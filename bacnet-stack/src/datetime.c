@@ -82,18 +82,33 @@ static uint8_t month_days(
         return 0;
 }
 
+static bool date_is_valid(
+    uint16_t year,
+    uint8_t month,
+    uint8_t day)
+{
+    bool status = false; /* true if value date */
+    uint8_t monthdays;  /* days in a month */
+
+
+    monthdays = month_days(year, month);
+    if ((year >= 1900) && (monthdays) && (day >= 1) && (day <= monthdays)) {
+        status = true;
+    }
+
+    return status;
+}
+
 static uint32_t days_since_epoch(
     uint16_t year,
     uint8_t month,
     uint8_t day)
 {
     uint32_t days = 0;  /* return value */
-    uint8_t monthdays;  /* days in a month */
     uint16_t years = 0; /* loop counter for years */
     uint8_t months = 0; /* loop counter for months */
 
-    monthdays = month_days(year, month);
-    if ((year >= 1900) && (monthdays) && (day >= 1) && (day <= monthdays)) {
+    if (date_is_valid(year, month, day)) {
         for (years = 1900; years < year; years++) {
             days += 365;
             if (is_leap_year(years))
@@ -144,7 +159,6 @@ static void days_since_epoch_into_ymd(
     return;
 }
 
-
 /* Jan 1, 1900 is a Monday */
 /* wday 1=Monday...7=Sunday */
 static uint8_t day_of_week(
@@ -154,6 +168,50 @@ static uint8_t day_of_week(
 {
     return (uint8_t) ((days_since_epoch(year, month, day) % 7) + 1);
 }
+
+static bool time_is_valid(
+    uint8_t hour,
+    uint8_t min,
+    uint8_t sec,
+    uint8_t hundredths)
+{
+    bool status = false;
+
+    if ((hour < 24) && (min < 60) && (sec < 60) && (hundredths < 100)) {
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * Determines if a given date and time is valid for calendar
+ *
+ * @param bdate - pointer to a BACNET_DATE structure
+ * @param btime - pointer to a BACNET_TIME structure
+ *
+ * @return true if the date and time are valid
+ */
+bool datetime_is_valid(
+    BACNET_DATE *bdate,
+    BACNET_TIME *btime)
+{
+    bool status = false; /* return value */
+
+    /* get the number of days in the month, and check for valid month too */
+    if (bdate) {
+        status = date_is_valid(bdate->year, bdate->month, bdate->day);
+        if (status && btime) {
+            status = time_is_valid(btime->hour, btime->min, btime->sec,
+                btime->hundredths);
+        } else {
+            status = false;
+        }
+    }
+
+    return status;
+}
+
 
 /* if the date1 is the same as date2, return is 0
    if date1 is after date2, returns positive

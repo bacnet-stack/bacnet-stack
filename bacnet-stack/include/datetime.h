@@ -87,6 +87,10 @@ extern "C" {
         uint8_t minute,
         uint8_t seconds,
         uint8_t hundredths);
+    /* utility test for validity */
+    bool datetime_is_valid(
+        BACNET_DATE *bdate,
+        BACNET_TIME *btime);
 
     /* utility comparison functions:
        if the date/times are the same, return is 0
@@ -113,7 +117,7 @@ extern "C" {
         BACNET_DATE_TIME * datetime1,
         BACNET_DATE_TIME * datetime2);
 
-    /* utility add function */
+    /* utility add or subtract minutes function */
     void datetime_add_minutes(
         BACNET_DATE_TIME * bdatetime,
         int32_t minutes);
