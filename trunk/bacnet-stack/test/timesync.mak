@@ -1,12 +1,24 @@
 #Makefile to build test case
-CC      = gcc
-SRC_DIR = ../src
-INCLUDES = -I../include -I.
-DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_TIMESYNC
 
-CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+# tools - only if you need them.
+# Most platforms have this already defined
+# CC = gcc
+# AR = ar
+# MAKE = make
+# SIZE = size
+#
+# Assumes rm and cp are available
 
-SRCS = $(SRC_DIR)/bacdcode.c \
+SRC_DIR := ../src
+INCLUDES := -I../include -I.
+DEFINES := -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_TIMESYNC
+
+CFLAGS  := $(INCLUDES) $(DEFINES) -g
+CFLAGS += -Wall
+
+TARGET := timesync
+
+SRCS := $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/bacint.c \
 	$(SRC_DIR)/bacstr.c \
 	$(SRC_DIR)/bacreal.c \
@@ -18,12 +30,10 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/timesync.c \
 	ctest.c
 
-TARGET = timesync
+OBJS := ${SRCS:.c=.o}
 
 all: ${TARGET}
  
-OBJS = ${SRCS:.c=.o}
-
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS}
 
@@ -37,4 +47,9 @@ depend:
 clean:
 	rm -rf core ${TARGET} $(OBJS) *.bak *.1 *.ini
 
+run:
+	./${TARGET}
+
 include: .depend
+
+.PHONY: all run clean
