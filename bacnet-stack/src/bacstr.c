@@ -730,6 +730,28 @@ bool octetstring_copy(
         octetstring_length(src));
 }
 
+/* returns the number of bytes copied, or 0 if the dest
+   cannot hold entire octetstring value */
+size_t octetstring_copy_value(
+    uint8_t * dest,
+    size_t length,
+    BACNET_OCTET_STRING * src)
+{
+    size_t bytes_copied = 0;
+    size_t i;   /* counter */
+
+    if (src && dest) {
+        if (length <= src->length) {
+            for (i = 0; i < src->length; i++) {
+                dest[i]= src->value[i];
+            }
+            bytes_copied = src->length;
+        }
+    }
+
+    return bytes_copied;
+}
+
 /* returns false if the string exceeds capacity */
 bool octetstring_append(
     BACNET_OCTET_STRING * octet_string,
