@@ -28,6 +28,23 @@
 #include <stdbool.h>
 #include "bacdef.h"
 
+struct BACnet_Recipient_List;
+typedef struct BACnet_Recipient_List {
+    /*
+        BACnetRecipient ::= CHOICE {
+            device [0] BACnetObjectIdentifier,
+            address [1] BACnetAddress
+        }
+    */
+    uint8_t tag;
+    union {
+        BACNET_OBJECT_ID device;
+        BACNET_ADDRESS address;
+    } type;
+    /* simple linked list */
+    struct BACnet_Recipient_List *next;
+} BACNET_RECIPIENT_LIST;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -62,6 +79,15 @@ extern "C" {
         unsigned apdu_len,
         BACNET_DATE * my_date,
         BACNET_TIME * my_time);
+
+    int timesync_encode_timesync_recipients(
+        uint8_t * apdu,
+        unsigned max_apdu,
+        BACNET_RECIPIENT_LIST *recipient);
+    int timesync_decode_timesync_recipients(
+        uint8_t * apdu,
+        unsigned apdu_len,
+        BACNET_RECIPIENT_LIST *recipient);
 
 #ifdef TEST
 #include "ctest.h"

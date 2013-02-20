@@ -176,15 +176,27 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
+    /* time synchronization handlers */
     void handler_timesync(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
-
     void handler_timesync_utc(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
+    /* time sync master features */
+    int handler_timesync_encode_recipients(
+        uint8_t * apdu,
+        int max_apdu);
+    void handler_timesync_task(void);
+    void handler_timesync_init(void);
+    bool handler_timesync_recipient_write(
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
+    bool handler_timesync_interval_set(uint32_t minutes);
+    bool handler_timesync_recipient_address_set(
+        unsigned index,
+        BACNET_ADDRESS *address);
 
     void handler_read_property_multiple(
         uint8_t * service_request,

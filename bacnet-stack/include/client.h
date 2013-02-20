@@ -168,6 +168,10 @@ extern "C" {
     void Send_TimeSync(
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
+    void Send_TimeSync_Remote(
+        BACNET_ADDRESS * dest,
+        BACNET_DATE * bdate,
+        BACNET_TIME * btime);
     void Send_TimeSyncUTC(
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
