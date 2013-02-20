@@ -165,6 +165,10 @@ extern "C" {
     bool octetstring_copy(
         BACNET_OCTET_STRING * dest,
         BACNET_OCTET_STRING * src);
+    size_t octetstring_copy_value(
+        uint8_t * dest,
+        size_t length,
+        BACNET_OCTET_STRING * src);
 /* returns false if the string exceeds capacity */
     bool octetstring_append(
         BACNET_OCTET_STRING * octet_string,
