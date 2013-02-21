@@ -916,7 +916,7 @@ bool MSTP_Master_Node_FSM(
                    should be sent is unknown - so PollForMaster */
                 mstp_port->Poll_Station = next_this_station;
                 MSTP_Create_And_Send_Frame(mstp_port,
-                    FRAME_TYPE_POLL_FOR_MASTER, 
+                    FRAME_TYPE_POLL_FOR_MASTER,
                     mstp_port->Poll_Station,
                     mstp_port->This_Station, NULL, 0);
                 mstp_port->RetryCount = 0;
@@ -1010,6 +1010,7 @@ bool MSTP_Master_Node_FSM(
                 } else {
                     /* FindNewSuccessor */
                     /* Assume that NS has failed.  */
+                    /* note: if NS=TS-1, this node could send PFM to self! */
                     mstp_port->Poll_Station = next_next_station;
                     /* Transmit a Poll For Master frame to PS. */
                     MSTP_Create_And_Send_Frame(mstp_port,
