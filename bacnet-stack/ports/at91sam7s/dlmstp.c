@@ -965,6 +965,7 @@ static bool MSTP_Master_Node_FSM(
                 } else {
                     /* FindNewSuccessor */
                     /* Assume that NS has failed.  */
+                    /* note: if NS=TS-1, this node could send PFM to self! */
                     Poll_Station = next_next_station;
                     /* Transmit a Poll For Master frame to PS. */
                     MSTP_Send_Frame(FRAME_TYPE_POLL_FOR_MASTER, Poll_Station,
