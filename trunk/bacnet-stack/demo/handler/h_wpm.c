@@ -174,10 +174,10 @@ void handler_write_property_multiple(
             fprintf(stderr, "WPM: Sending Abort!\n");
 #endif
         } else if (len == BACNET_STATUS_ERROR) {
-            apdu_len =
-                bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
-                wp_data.error_class, wp_data.error_code);
+            apdu_len = wpm_error_ack_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id,
+                &wp_data);
 #if PRINT_ENABLED
             fprintf(stderr, "WPM: Sending Error!\n");
 #endif
