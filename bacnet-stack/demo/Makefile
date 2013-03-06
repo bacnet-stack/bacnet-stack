@@ -28,6 +28,13 @@ LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 LIBRARY2=-lc,-lgcc,-lrt,-lm
 LIBRARIES=$(LIBRARY1),$(LIBRARY2)
 endif
+ifeq (${BACNET_PORT},bsd)
+PFLAGS = -pthread
+TARGET_EXT =
+LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARY2=-lc,-lgcc,-lm
+LIBRARIES=$(LIBRARY1),$(LIBRARY2)
+endif
 ifeq (${BACNET_PORT},win32)
 TARGET_EXT = .exe
 LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
@@ -49,17 +56,18 @@ LFLAGS = -Wl,$(LIBRARIES)
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov scov timesync epics readpropm \
-	mstpcap mstpcrc uptransfer
+	uptransfer
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter readbdt
 endif
-#ifeq (${BACNET_PORT},linux)
+ifeq (${BACNET_PORT},linux)
+SUBDIRS += mstpcap mstpcrc
 #SUBDIRS += router
-#endif
+endif
 
 ifeq (${BACNET_PORT},win32)
-SUBDIRS += ptransfer
+SUBDIRS += ptransfer mstpcap mstpcrc
 endif
 
 ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
