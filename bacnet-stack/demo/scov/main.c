@@ -69,6 +69,10 @@ static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 /* data used in COV subscription request */
 BACNET_SUBSCRIBE_COV_DATA *COV_Subscribe_Data = NULL;
+/* flags to signal early termination */
+static bool Notification_Detected = false;
+static bool Simple_Ack_Detected = false;
+static bool Cancel_Requested = false;
 
 static void MyErrorHandler(
     BACNET_ADDRESS * src,
@@ -113,6 +117,36 @@ void MyRejectHandler(
     }
 }
 
+void My_Unconfirmed_COV_Notification_Handler(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
+{
+    handler_ucov_notification(service_request, service_len, src);
+    Notification_Detected = true;
+}
+
+void My_Confirmed_COV_Notification_Handler(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_DATA * service_data)
+{
+    handler_ccov_notification(service_request, service_len, src, service_data);
+    Notification_Detected = true;
+}
+
+void MyWritePropertySimpleAckHandler(
+    BACNET_ADDRESS * src,
+    uint8_t invoke_id)
+{
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("SubscribeCOV Acknowledged!\r\n");
+        Simple_Ack_Detected = true;
+    }
+}
+
 static void Init_Service_Handlers(
     void)
 {
@@ -131,9 +165,12 @@ static void Init_Service_Handlers(
         handler_read_property);
     /* handle the data coming back from COV subscriptions */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_COV_NOTIFICATION,
-        handler_ccov_notification);
+        My_Confirmed_COV_Notification_Handler);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-        handler_ucov_notification);
+        My_Unconfirmed_COV_Notification_Handler);
+    /* handle the Simple ack coming back from SubscribeCOV */
+    apdu_set_confirmed_simple_ack_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
+        MyWritePropertySimpleAckHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -317,8 +354,9 @@ int main(
             /* keep track of time for next check */
             last_seconds = current_seconds;
         }
-        if (Error_Detected)
+        if (Error_Detected) {
             break;
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found =
@@ -327,6 +365,13 @@ int main(
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
+                Simple_Ack_Detected = false;
+                Notification_Detected = false;
+                if (cov_data->cancellationRequest) {
+                    Cancel_Requested = true;
+                } else {
+                    Cancel_Requested = false;
+                }
                 Target_Device_Process_Identifier =
                     cov_data->subscriberProcessIdentifier;
                 Request_Invoke_ID =
@@ -337,14 +382,20 @@ int main(
                     /* increase the timeout to the longest lifetime */
                     timeout_seconds = cov_data->lifetime;
                 }
-                printf("Sent SubscribeCOV request.  Waiting %u seconds.\r\n",
+                printf("Sent SubscribeCOV request. "
+                    " Waiting up to %u seconds....\r\n",
                     (unsigned) (timeout_seconds - elapsed_seconds));
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 if (cov_data->next) {
                     cov_data = cov_data->next;
                     Request_Invoke_ID = 0;
                 } else {
-                    /* do nothing - wait for lifetime value to expire */
+                    if (Notification_Detected) {
+                        break;
+                    }
+                    if (Cancel_Requested && Simple_Ack_Detected) {
+                        break;
+                    }
                 }
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
