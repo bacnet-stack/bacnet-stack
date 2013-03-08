@@ -180,6 +180,7 @@ void Initialize_Device_Addresses(
     )
 {
     int i = 0;  /* First entry is Gateway Device */
+    uint32_t virtual_mac = 0;
     DEVICE_OBJECT_DATA *pDev = NULL;
     /* Setup info for the main gateway device first */
 #if defined(BACDL_BIP)
@@ -207,11 +208,24 @@ void Initialize_Device_Addresses(
         if (pDev == NULL)
             continue;
 #if defined(BACDL_BIP)
+        virtual_mac = i;
         netPtr = (struct in_addr *) pDev->bacDevAddr.mac;
+#if (MAX_NUM_DEVICES > 0xFFFFFF)
+        pDev->bacDevAddr.mac[0] = ((virtual_mac & 0xff000000) >> 24);
+#else
         pDev->bacDevAddr.mac[0] = gatewayMac[3];
+#endif
+#if (MAX_NUM_DEVICES > 0xFFFF)
+        pDev->bacDevAddr.mac[1] = ((virtual_mac & 0xff0000) >> 16);
+#else
         pDev->bacDevAddr.mac[1] = gatewayMac[2];
+#endif
+#if (MAX_NUM_DEVICES > 0xFF)
+        pDev->bacDevAddr.mac[2] = ((virtual_mac & 0xff00) >> 8);
+#else
         pDev->bacDevAddr.mac[2] = gatewayMac[1];
-        pDev->bacDevAddr.mac[3] = i;
+#endif
+        pDev->bacDevAddr.mac[3] = (virtual_mac & 0xff);
         memcpy(&pDev->bacDevAddr.mac[4], &myPort, 2);
         pDev->bacDevAddr.mac_len = 6;
         pDev->bacDevAddr.net = VIRTUAL_DNET;
