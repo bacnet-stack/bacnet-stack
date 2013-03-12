@@ -55,14 +55,22 @@ int rp_encode_apdu(
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_READ_PROPERTY;      /* service choice */
         apdu_len = 4;
-        len =
-            encode_context_object_id(&apdu[apdu_len], 0, rpdata->object_type,
-            rpdata->object_instance);
-        apdu_len += len;
-        len =
-            encode_context_enumerated(&apdu[apdu_len], 1,
-            rpdata->object_property);
-        apdu_len += len;
+        if (rpdata->object_type <= BACNET_MAX_OBJECT) {
+            /* check bounds so that we could create malformed
+               messages for testing */
+            len =
+                encode_context_object_id(&apdu[apdu_len], 0, rpdata->object_type,
+                rpdata->object_instance);
+            apdu_len += len;
+        }
+        if (rpdata->object_property <= 4194303) {
+            /* check bounds so that we could create malformed
+               messages for testing */
+            len =
+                encode_context_enumerated(&apdu[apdu_len], 1,
+                rpdata->object_property);
+            apdu_len += len;
+        }
         /* optional array index */
         if (rpdata->array_index != BACNET_ARRAY_ALL) {
             len =
