@@ -233,21 +233,6 @@ int main(
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-    if (Target_Object_Type >= MAX_BACNET_OBJECT_TYPE) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-            Target_Object_Type, MAX_BACNET_OBJECT_TYPE);
-        return 1;
-    }
-    if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
-            Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
-        return 1;
-    }
-    if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property=%u - it must be less than %u\r\n",
-            Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
-        return 1;
-    }
 
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
