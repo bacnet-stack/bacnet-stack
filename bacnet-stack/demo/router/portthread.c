@@ -40,17 +40,17 @@ ROUTER_PORT* find_dnet(
 	ROUTER_PORT *port = head;
 	DNET *dnet;
 
-	// for broadcast messages no search is needed
+	/* for broadcast messages no search is needed */
 	if (net == BACNET_BROADCAST_NETWORK)
 		return port;
 
 	while(port != NULL) {
 
-		// check if DNET is directly connected to the router
+		/* check if DNET is directly connected to the router */
 		if (net == port->route_info.net)
 			return port;
 
-		// else search router ports DNET list
+		/* else search router ports DNET list */
 		else if (port->route_info.dnets) {
 			dnet = port->route_info.dnets;
 			while (dnet != NULL) {
@@ -88,7 +88,7 @@ void add_dnet(
 	} else {
 
 		while (dnet != NULL) {
-			if (dnet->net == net)	// make sure NETs are not repeated
+			if (dnet->net == net)	/* make sure NETs are not repeated */
 				return;
 			tmp = dnet;
 			dnet = dnet->next;

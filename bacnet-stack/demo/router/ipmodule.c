@@ -21,9 +21,9 @@ Copyright (C) 2012  Andriy Sukhynyuk, Vasyl Tkhir, Andriy Ivasiv
 #include "bacint.h"
 
 #ifdef TEST_PACKET
-	uint8_t test_packet[]={0x81, 0x0a, 0x00, 0x16,		// BVLC header
-			0x01, 0x24, 0x00, 0x01, 0x01, 0x0b, 0xff,	// NPDU
-			0x00, 0x03, 0x01, 0x0c, 0x0c, 0x00, 0x00, 0x00, 0x02, 0x19, 0x55};	// APDU
+	uint8_t test_packet[]={0x81, 0x0a, 0x00, 0x16,		/* BVLC header */
+			0x01, 0x24, 0x00, 0x01, 0x01, 0x0b, 0xff,	/* NPDU */
+			0x00, 0x03, 0x01, 0x0c, 0x0c, 0x00, 0x00, 0x00, 0x02, 0x19, 0x55};	/* APDU */
 #endif
 
 extern int get_local_address_ioctl(
@@ -36,18 +36,18 @@ void* dl_ip_thread(void *pArgs) {
 	BACMSG msg_storage, *bacmsg = NULL;
 	MSG_DATA *msg_data;
 	ROUTER_PORT *port = (ROUTER_PORT*)pArgs;
-	IP_DATA ip_data;		// port specific parameters
+	IP_DATA ip_data;		/* port specific parameters */
 	BACNET_ADDRESS address = { 0 };
 	int status;
 	uint8_t shutdown = 0;
 
-	// initialize router port
+	/* initialize router port */
 	if (!dl_ip_init(port, &ip_data)) {
 		port->state = INIT_FAILED;
 		return NULL;
 	}
 
-	// allocate buffer
+	/* allocate buffer */
 	ip_data.max_buff = MAX_BIP_MPDU;
 	ip_data.buff = (uint8_t*)malloc(ip_data.max_buff);
 
@@ -68,7 +68,7 @@ void* dl_ip_thread(void *pArgs) {
 
 	while (!shutdown) {
 
-		// check for incoming messages
+		/* check for incoming messages */
 		bacmsg = recv_from_msgbox(port->port_id, &msg_storage);
 
 		if (bacmsg) {
@@ -117,7 +117,7 @@ void* dl_ip_thread(void *pArgs) {
 		}
 	}
 
-	// cleanup procedure
+	/* cleanup procedure */
 	dl_ip_cleanup(&ip_data);
 	port->state = FINISHED;
 	return NULL;
@@ -127,17 +127,17 @@ bool dl_ip_init(ROUTER_PORT *port,
 		IP_DATA *ip_data) {
 	struct sockaddr_in sin;
 	int socket_opt = 0;
-	int status = 0;	// for error checking
+	int status = 0;	/* for error checking */
 
-	// setup port for later use
+	/* setup port for later use */
 	ip_data->port = htons(port->params.bip_params.port);
 
-	// get local address
+	/* get local address */
 	status = get_local_address_ioctl(port->iface, &ip_data->local_addr, SIOCGIFADDR);
 	if (status < 0) {
 		return false;
 	}
-	// get broadcast address
+	/* get broadcast address */
 	status = get_local_address_ioctl(port->iface, &ip_data->broadcast_addr, SIOCGIFBRDADDR);
 	if (status < 0) {
 		return false;
@@ -147,7 +147,7 @@ bool dl_ip_init(ROUTER_PORT *port,
 	if (ip_data->socket < 0)
 		return false;
 
-	// setup socket options
+	/* setup socket options */
 
 	socket_opt = 1;
 	status = setsockopt(ip_data->socket, SOL_SOCKET, SO_REUSEADDR, &socket_opt, sizeof(socket_opt));
@@ -162,7 +162,7 @@ bool dl_ip_init(ROUTER_PORT *port,
 		return false;
 	}
 
-	// bind the socket to the local port number
+	/* bind the socket to the local port number */
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = htonl(INADDR_ANY);
 	sin.sin_port = ip_data->port;
@@ -175,7 +175,7 @@ bool dl_ip_init(ROUTER_PORT *port,
 		return false;
 	}
 
-	// add BIP address to router port structure
+	/* add BIP address to router port structure */
 	memcpy(&port->route_info.mac[0], &ip_data->local_addr.s_addr, 4);
 	memcpy(&port->route_info.mac[4], &port->params.bip_params.port, 2);
 	port->route_info.mac_len = 6;
@@ -204,7 +204,7 @@ int dl_ip_send(IP_DATA *data,
 	data->buff[0] = BVLL_TYPE_BACNET_IP;
 	bip_dest.sin_family = AF_INET;
 	if (dest->net == BACNET_BROADCAST_NETWORK) {
-		// broadcast
+		/* broadcast */
 		bip_dest.sin_addr.s_addr = data->broadcast_addr.s_addr;
 		bip_dest.sin_port = data->port;
 		data->buff[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
@@ -213,7 +213,7 @@ int dl_ip_send(IP_DATA *data,
 		memcpy(&bip_dest.sin_port, &dest->mac[4], 2);
 		data->buff[1] = BVLC_ORIGINAL_UNICAST_NPDU;
 	} else {
-		// invalid address
+		/* invalid address */
 		return -1;
 	}
 
@@ -224,7 +224,7 @@ int dl_ip_send(IP_DATA *data,
 	memcpy(&data->buff[buff_len], pdu, pdu_len);
 	buff_len += pdu_len;
 
-	// send the packet
+	/* send the packet */
 	bytes_sent =
 		sendto(data->socket, (char *) data->buff, buff_len, 0,
 		(struct sockaddr *) &bip_dest, sizeof(struct sockaddr));
@@ -241,13 +241,13 @@ int dl_ip_recv(
 		unsigned timeout)
 {
 	int received_bytes = 0;
-	uint16_t buff_len = 0;	// return value
+	uint16_t buff_len = 0;	/* return value */
 	fd_set read_fds;
 	struct timeval select_timeout;
 	struct sockaddr_in sin = { 0 };
 	socklen_t sin_len = sizeof(sin);
 
-	// make sure the socket is open
+	/* make sure the socket is open */
 	if (data->socket < 0)
 		return 0;
 
@@ -268,7 +268,7 @@ int dl_ip_recv(
 	sin.sin_addr.s_addr = 0x7E1D40A; sin.sin_port = 0xC0BA;
 #else
 	int ret = select(data->socket + 1, &read_fds, NULL, NULL, &select_timeout);
-	// see if there is a packet for us
+	/* see if there is a packet for us */
 	if (ret > 0)
 		received_bytes =
 			recvfrom(data->socket, (char *) &data->buff[0], data->max_buff, 0,
@@ -278,12 +278,12 @@ int dl_ip_recv(
 #endif
 	PRINT(DEBUG, "received from %s\n", inet_ntoa(sin.sin_addr));
 
-	// check for errors
+	/* check for errors */
 	if (received_bytes <= 0) {
 		return 0;
 	}
 
-	// the signature of a BACnet/IP packet
+	/* the signature of a BACnet/IP packet */
 	if (data->buff[0] != BVLL_TYPE_BACNET_IP)
 		return 0;
 
@@ -302,18 +302,18 @@ int dl_ip_recv(
 			memcpy(&src->mac[4], &sin.sin_port, 2);
 
 			(void) decode_unsigned16(&data->buff[2], &buff_len);
-			// subtract off the BVLC header
+			/* subtract off the BVLC header */
 			buff_len -= 4;
 			if (buff_len < data->max_buff) {
-				// allocate data message stucture
+				/* allocate data message stucture */
 				(*msg_data) = (MSG_DATA*)malloc(sizeof(MSG_DATA));
 				(*msg_data)->pdu_len = buff_len;
 				(*msg_data)->pdu = (uint8_t*)malloc((*msg_data)->pdu_len);
-				// fill up data message structure
+				/* fill up data message structure */
 				memmove(&(*msg_data)->pdu[0], &data->buff[4], (*msg_data)->pdu_len);
 				memmove(&(*msg_data)->src, src, sizeof(BACNET_ADDRESS));
 			}
-			// ignore packets that are too large
+			/* ignore packets that are too large */
 			else {
 				buff_len = 0;
 
@@ -336,18 +336,18 @@ int dl_ip_recv(
 			memcpy(&src->mac[4], &sin.sin_port, 2);
 
 			(void) decode_unsigned16(&data->buff[2], &buff_len);
-			// subtract off the BVLC header
+			/* subtract off the BVLC header */
 			buff_len -= 10;
 			if (buff_len < data->max_buff) {
-				// allocate data message stucture
+				/* allocate data message stucture */
 				(*msg_data) = (MSG_DATA*)malloc(sizeof(MSG_DATA));
 				(*msg_data)->pdu_len = buff_len;
 				(*msg_data)->pdu = (uint8_t*)malloc((*msg_data)->pdu_len);
-				// fill up data message structure
+				/* fill up data message structure */
 				memmove(&(*msg_data)->pdu, &data->buff[4+6], (*msg_data)->pdu_len);
 				memmove(&(*msg_data)->src, src, sizeof(BACNET_ADDRESS));
 			} else {
-				// ignore packets that are too large
+				/* ignore packets that are too large */
 				buff_len = 0;
 			}
 		}
@@ -364,10 +364,10 @@ int dl_ip_recv(
 
 void dl_ip_cleanup(
 		IP_DATA *ip_data) {
-	// free buffer
+	/* free buffer */
 	if (ip_data->buff)
 		free(ip_data->buff);
-	// close socket
+	/* close socket */
 	if (ip_data->socket > 0)
 		close(ip_data->socket);
 	return;

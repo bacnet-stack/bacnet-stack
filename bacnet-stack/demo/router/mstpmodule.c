@@ -90,7 +90,7 @@ void* dl_mstp_thread(void* pArgs) {
 	port->state = RUNNING;
 
 	while (!shutdown) {
-		// message loop
+		/* message loop */
 		BACMSG msg_storage, * bacmsg;
 		MSG_DATA * msg_data;
 

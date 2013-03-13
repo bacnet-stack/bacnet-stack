@@ -32,7 +32,7 @@
 #include "bacdef.h"
 #include "bacaddr.h"
 #include "mstp.h"
-//#include "dlmstp.h"
+/*#include "dlmstp.h" */
 #include "dlmstp_linux.h"
 #include "rs485.h"
 #include "npdu.h"
@@ -602,7 +602,7 @@ void dlmstp_set_mac_address(
 	void * poPort,
     uint8_t mac_address)
 {
-//	SHARED_MSTP_DATA * poSharedData;
+/*	SHARED_MSTP_DATA * poSharedData; */
 	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
 	if(!mstp_port)
 	{
@@ -633,7 +633,7 @@ void dlmstp_set_mac_address(
 uint8_t dlmstp_mac_address(
 	void * poPort)
 {
-//	SHARED_MSTP_DATA * poSharedData;
+/*	SHARED_MSTP_DATA * poSharedData; */
 	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
 	if(!mstp_port)
 	{
@@ -660,7 +660,7 @@ void dlmstp_set_max_info_frames(
 	void * poPort,
     uint8_t max_info_frames)
 {
-//	SHARED_MSTP_DATA * poSharedData;
+/*	SHARED_MSTP_DATA * poSharedData; */
 	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
 	if(!mstp_port)
 	{
@@ -688,7 +688,7 @@ void dlmstp_set_max_info_frames(
 uint8_t dlmstp_max_info_frames(
 	void * poPort)
 {
-//	SHARED_MSTP_DATA * poSharedData;
+/*	SHARED_MSTP_DATA * poSharedData; */
 	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
 	if(!mstp_port)
 	{
@@ -713,7 +713,7 @@ void dlmstp_set_max_master(
 	void * poPort,
     uint8_t max_master)
 {
-//	SHARED_MSTP_DATA * poSharedData;
+/*	SHARED_MSTP_DATA * poSharedData; */
 	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
 	if(!mstp_port)
 	{
@@ -743,7 +743,7 @@ void dlmstp_set_max_master(
 uint8_t dlmstp_max_master(
 	void * poPort)
 {
-//	SHARED_MSTP_DATA * poSharedData;
+/*	SHARED_MSTP_DATA * poSharedData; */
 	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
 	if(!mstp_port)
 	{

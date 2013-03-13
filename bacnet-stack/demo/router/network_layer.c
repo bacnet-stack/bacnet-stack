@@ -47,25 +47,25 @@ uint16_t process_network_message(
 	case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
 		PRINT(INFO, "Recieved Who-Is-Router-To-Network message\n");
 		if (apdu_len) {
-			// if NET specified
+			/* if NET specified */
 			decode_unsigned16(&data->pdu[apdu_offset], &net);
 			if (srcport->route_info.net == net) {
 				PRINT(INFO, "Message discarded: NET directly connected\n");
 				return -2;
 			}
 
-			destport = find_dnet(net, NULL); // see if NET can be reached
+			destport = find_dnet(net, NULL); /* see if NET can be reached */
 			if (destport) {
-				// if TRUE send reply
+				/* if TRUE send reply */
 				PRINT(INFO, "Sending I-Am-Router-To-Network message\n");
 				buff_len = create_network_message(NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
 						data, buff, &net);
 			} else {
-				data->dest.net = net; // NET to look for
-				return -1;	// else initiate NET search procedure
+				data->dest.net = net; /* NET to look for */
+				return -1;	/* else initiate NET search procedure */
 			}
 		} else {
-			// if NET is omitted (message sent with -1)
+			/* if NET is omitted (message sent with -1) */
 			PRINT(INFO, "Sending I-Am-Router-To-Network message\n");
 			buff_len = create_network_message(NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK,
 					data, buff, NULL);
@@ -79,15 +79,15 @@ uint16_t process_network_message(
 		int net_count = apdu_len / 2;
 		int i;
 		for (i = 0; i < net_count; i++) {
-			decode_unsigned16(&data->pdu[apdu_offset+2*i], &net);	// decode received NET values
-			add_dnet(&srcport->route_info, net, data->src);			// and update routing table
+			decode_unsigned16(&data->pdu[apdu_offset+2*i], &net);	/* decode received NET values */
+			add_dnet(&srcport->route_info, net, data->src);			/* and update routing table */
 		}
 		break;
 	}
 	case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
 	{
-		// first octet of the message contains rejection reason
-		// next two octets contain NET (can be decoded for additional info on error)
+		/* first octet of the message contains rejection reason */
+		/* next two octets contain NET (can be decoded for additional info on error) */
 		error_code = data->pdu[apdu_offset];
 		switch (error_code) {
 		case 0:
@@ -114,9 +114,9 @@ uint16_t process_network_message(
 			int net_count = data->pdu[apdu_offset];
 			while (net_count--) {
 				int i = 1;
-				decode_unsigned16(&data->pdu[apdu_offset+i], &net);		// decode received NET values
-				add_dnet(&srcport->route_info, net, data->src);			// and update routing table
-				if (data->pdu[apdu_offset+i+3] > 0)						// find next NET value
+				decode_unsigned16(&data->pdu[apdu_offset+i], &net);		/* decode received NET values */
+				add_dnet(&srcport->route_info, net, data->src);			/* and update routing table */
+				if (data->pdu[apdu_offset+i+3] > 0)						/* find next NET value */
 					i = data->pdu[apdu_offset+i+3] + 4;
 				else
 					i = i + 4;
@@ -132,9 +132,9 @@ uint16_t process_network_message(
 			int net_count = data->pdu[apdu_offset];
 			while (net_count--) {
 				int i = 1;
-				decode_unsigned16(&data->pdu[apdu_offset+i], &net);		// decode received NET values
-				add_dnet(&srcport->route_info, net, data->src);			// and update routing table
-				if (data->pdu[apdu_offset+i+3] > 0)						// find next NET value
+				decode_unsigned16(&data->pdu[apdu_offset+i], &net);		/* decode received NET values */
+				add_dnet(&srcport->route_info, net, data->src);			/* and update routing table */
+				if (data->pdu[apdu_offset+i+3] > 0)						/* find next NET value */
 					i = data->pdu[apdu_offset+i+3] + 4;
 				else
 					i = i + 4;
@@ -148,7 +148,7 @@ uint16_t process_network_message(
 	case NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK:
 	case NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK:
 	case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
-	// hell if I know what to do with these messages
+	/* hell if I know what to do with these messages */
 		break;
 
 	default:
@@ -173,9 +173,9 @@ uint16_t create_network_message(
 		data_expecting_reply = true;
 	init_npdu(&npdu_data, network_message_type, data_expecting_reply);
 
-	*buff = (uint8_t*)malloc(128); // resolve different length
+	*buff = (uint8_t*)malloc(128); /* resolve different length */
 
-	// manual destination setup for Init-RT-Table-Ack message
+	/* manual destination setup for Init-RT-Table-Ack message */
 	data->dest.net = BACNET_BROADCAST_NETWORK;
 	buff_len = npdu_encode_pdu(*buff, &data->dest, NULL, &npdu_data);
 
@@ -252,7 +252,7 @@ uint16_t create_network_message(
 		case NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK:
 		case NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK:
 		case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
-		// hell if I know what to do with these messages
+		/* hell if I know what to do with these messages */
 			break;
 	}
 
@@ -276,7 +276,7 @@ void send_network_message(
 
 	buff_len = create_network_message(network_message_type, data, buff, val);
 
-	// form network message
+	/* form network message */
 	data->pdu = *buff;
 	data->pdu_len = buff_len;
 	msg.origin = head->main_id;

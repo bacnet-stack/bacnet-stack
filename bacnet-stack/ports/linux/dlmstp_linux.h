@@ -25,7 +25,7 @@
 #define DLMSTP_LINUX_H
 
 #include "mstp.h"
-//#include "dlmstp.h"
+/*#include "dlmstp.h" */
 #include "bits/pthreadtypes.h"
 
 #include <stdbool.h>

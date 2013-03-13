@@ -45,7 +45,7 @@ uint32_t timeGetTime(
     struct timespec now;
     uint32_t ticks;
 
-    //    clock_gettime(CLOCK_MONOTONIC, &now);
+    /*    clock_gettime(CLOCK_MONOTONIC, &now); */
     clock_serv_t cclock;
     mach_timespec_t mts;
     host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
@@ -145,7 +145,7 @@ uint32_t timer_reset(
 void timer_init(
     void)
 {
-    //clock_gettime(CLOCK_MONOTONIC, &start);
+    /*clock_gettime(CLOCK_MONOTONIC, &start); */
     clock_serv_t cclock;
     mach_timespec_t mts;
     host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);

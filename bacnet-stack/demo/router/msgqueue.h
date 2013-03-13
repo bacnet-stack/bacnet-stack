@@ -47,10 +47,10 @@ typedef struct _message {
 	MSGTYPE type;
 	MSGSUBTYPE subtype;
 	void *data;
-	// add timestamp
+	/* add timestamp */
 } BACMSG;
 
-// specific message type data structures
+/* specific message type data structures */
 typedef struct _msg_data {
 	BACNET_ADDRESS dest;
 	BACNET_ADDRESS src;
@@ -61,12 +61,12 @@ typedef struct _msg_data {
 
 MSGBOX_ID create_msgbox();
 
-// returns sent byte count
+/* returns sent byte count */
 bool send_to_msgbox(
 		MSGBOX_ID dest,
 		BACMSG *msg);
 
-// returns received message
+/* returns received message */
 BACMSG* recv_from_msgbox(
 		MSGBOX_ID src,
 		BACMSG *msg);
@@ -74,11 +74,11 @@ BACMSG* recv_from_msgbox(
 void del_msgbox(
 		MSGBOX_ID msgboxid);
 
-// free message data structure
+/* free message data structure */
 void free_data(
 		MSG_DATA *data);
 
-// check message reference counter and delete data if needed
+/* check message reference counter and delete data if needed */
 void check_data(
 		MSG_DATA *data);
 

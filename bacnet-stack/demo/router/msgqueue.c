@@ -86,7 +86,7 @@ void free_data(
 void check_data(
 		MSG_DATA *data) {
 
-	// lock and decrement messages reference count
+	/* lock and decrement messages reference count */
 	pthread_mutex_lock(&msg_lock);
 		if (--data->ref_count == 0) {
 			free_data(data);

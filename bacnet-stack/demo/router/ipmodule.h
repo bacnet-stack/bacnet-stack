@@ -51,7 +51,7 @@ int dl_ip_send(
 
 int dl_ip_recv(
 		IP_DATA *data,
-		MSG_DATA **msg,	// on recieve fill up message
+		MSG_DATA **msg,	/* on recieve fill up message */
 		BACNET_ADDRESS *src,
 		unsigned timeout);
 
