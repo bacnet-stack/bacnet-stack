@@ -20,13 +20,13 @@ Copyright (C) 2012  Andriy Sukhynyuk, Vasyl Tkhir, Andriy Ivasiv
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>       // for time
+#include <time.h>       /* for time */
 #include <errno.h>
 #include <assert.h>
 #include <fcntl.h>
-#include <libconfig.h>	// read config files
-#include <unistd.h>		// for getopt
-#include <termios.h> 	// used in kbhit()
+#include <libconfig.h>	/* read config files */
+#include <unistd.h>		/* for getopt */
+#include <termios.h> 	/* used in kbhit() */
 #include <getopt.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -42,7 +42,7 @@ Copyright (C) 2012  Andriy Sukhynyuk, Vasyl Tkhir, Andriy Ivasiv
 
 #define KEY_ESC 27
 
-ROUTER_PORT *head = NULL;	// pointer to list of router ports
+ROUTER_PORT *head = NULL;	/* pointer to list of router ports */
 
 int port_count;
 
@@ -122,7 +122,7 @@ int main(
 				{
 					MSGBOX_ID msg_src = bacmsg->origin;
 
-					// allocate message structure
+					/* allocate message structure */
 					msg_data = malloc(sizeof(MSG_DATA));
 					if (!msg_data) {
 						PRINT(ERROR, "Error: Could not allocate memory\n");
@@ -141,13 +141,13 @@ int main(
 						buff_len = process_msg(bacmsg, msg_data, &buff);
 					}
 
-					// if buff_len
-					// >0 - form new message and send
-					// =-1 - try to find next router
-					// other value - discard message
+					/* if buff_len */
+					/* >0 - form new message and send */
+					/* =-1 - try to find next router */
+					/* other value - discard message */
 
 					if (buff_len > 0) {
-						// form new message
+						/* form new message */
 						msg_data->pdu = buff;
 						msg_data->pdu_len = buff_len;
 						msg_storage.origin = head->main_id;
@@ -176,11 +176,11 @@ int main(
 							}
 						}
 					} else  if (buff_len == -1) {
-						uint16_t net = msg_data->dest.net;	// NET to find
+						uint16_t net = msg_data->dest.net;	/* NET to find */
 						PRINT(INFO, "Searching NET...\n");
 						send_network_message(NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, msg_data, &buff, &net);
 					} else {
-						// if invalid message send Reject-Message-To-Network
+						/* if invalid message send Reject-Message-To-Network */
 						PRINT(ERROR, "Error: Invalid message\n");
 						free_data(msg_data);
 					}
@@ -223,20 +223,20 @@ bool read_config(
 
 	config_init(&cfg);
 
-	// open configuration file
+	/* open configuration file */
 	if (!config_read_file(&cfg, filepath)) {
 		PRINT(ERROR, "Config file error: %d - %s\n", config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		return false;
 	}
 
-	// get router "port" count
+	/* get router "port" count */
 	setting = config_lookup(&cfg, "ports");
 	if (setting != NULL) {
 		int count = config_setting_length(setting);
 		int i;
 
-		// lookup and initialize router "port" parameters
+		/* lookup and initialize router "port" parameters */
 		for (i = 0; i < count; i++) {
 			const char *dev_type;
 			const char *iface;
@@ -244,7 +244,7 @@ bool read_config(
 			const char *str_param;
 			config_setting_t *port = config_setting_get_elem(setting, i);
 
-			// create new list node to store port information
+			/* create new list node to store port information */
 			if (head == NULL) {
 				head = (ROUTER_PORT*)malloc(sizeof(ROUTER_PORT));
 				head->next = NULL;
@@ -268,7 +268,7 @@ bool read_config(
 					current->iface = (char*)malloc((strlen(iface) + 1)*sizeof(char));
 					strcpy(current->iface, iface);
 
-					// check if interface is valid
+					/* check if interface is valid */
 					fd = socket(AF_INET, SOCK_DGRAM, 0);
 					if (fd) {
 						struct ifreq ifr;
@@ -306,7 +306,7 @@ bool read_config(
 					current->iface = (char*)malloc((strlen(iface) + 1)*sizeof(char));
 					strcpy(current->iface, iface);
 
-					// check if interface is valid
+					/* check if interface is valid */
 					fd = open(current->iface, O_NOCTTY | O_NONBLOCK);
 					if (fd != -1) {
 						close(fd);
@@ -421,7 +421,7 @@ bool parse_cmd(
 	if (argc < 2)
 		print_help();
 
-	// begin checking cmd parameters
+	/* begin checking cmd parameters */
 	opt = getopt_long(argc, argv, optString, Options, &index);
 	printf("opt = %c\r\n", opt);
 	while (opt != -1) {
@@ -435,7 +435,7 @@ bool parse_cmd(
 			break;
 		case 'D':
 
-			// create new list node to store port information
+			/* create new list node to store port information */
 			if (head == NULL) {
 				head = (ROUTER_PORT*)malloc(sizeof(ROUTER_PORT));
 				head->next = NULL;
@@ -458,11 +458,11 @@ bool parse_cmd(
 					current->iface = "eth0";
 				}
 
-				// setup default parameters
-				current->params.bip_params.port = 0xBAC0; // 47808
+				/* setup default parameters */
+				current->params.bip_params.port = 0xBAC0; /* 47808 */
 				current->route_info.net = get_next_free_dnet();
 
-				// check if interface is valid
+				/* check if interface is valid */
 				fd = socket(AF_INET, SOCK_DGRAM, 0);
 				if (fd) {
 					struct ifreq ifr;
@@ -484,7 +484,7 @@ bool parse_cmd(
 						if (result) {
 							current->params.bip_params.port = (uint16_t)result;
 						} else {
-							current->params.bip_params.port = 0xBAC0; // 47808
+							current->params.bip_params.port = 0xBAC0; /* 47808 */
 						}
 						break;
 					case 'n':
@@ -508,7 +508,7 @@ bool parse_cmd(
 					current->iface = "/dev/ttyS0";
 				}
 
-				// check if interface is valid
+				/* check if interface is valid */
 				fd = open(current->iface, O_NOCTTY | O_NONBLOCK);
 				if (fd != -1) {
 					close(fd);
@@ -517,7 +517,7 @@ bool parse_cmd(
 					return false;
 				}
 
-				// setup default parameters
+				/* setup default parameters */
 				current->route_info.mac[0] = 127;
 				current->route_info.mac_len = 1;
 				current->params.mstp_params.max_master = 127;
@@ -619,7 +619,7 @@ void init_port_threads(
 				port->func,
 				port);
 
-		pthread_detach(*thread); // for proper thread termination
+		pthread_detach(*thread); /* for proper thread termination */
 
 		port = port->next;
 	}
@@ -634,7 +634,7 @@ bool init_router() {
 		return false;
 
 	port = head;
-	// add main message box id to all ports
+	/* add main message box id to all ports */
 	while (port != NULL) {
 		port->main_id = msgboxid;
 		port = port->next;
@@ -642,7 +642,7 @@ bool init_router() {
 
 	init_port_threads(head);
 
-	// wait for port initialization
+	/* wait for port initialization */
 	port = head;
 	while (port != NULL) {
 		if (port->state == RUNNING) {
@@ -672,9 +672,9 @@ void cleanup() {
 	msg.type = SERVICE;
 	msg.subtype = SHUTDOWN;
 
-	del_msgbox(head->main_id);	// close routers message box
+	del_msgbox(head->main_id);	/* close routers message box */
 
-	// send shutdown message to all router ports
+	/* send shutdown message to all router ports */
 	port = head;
 	while (port != NULL) {
 		if (port->state == RUNNING)
@@ -736,11 +736,11 @@ uint16_t process_msg(BACMSG *msg,
 	if (srcport && destport) {
 		data->src.net = srcport->route_info.net;
 
-		// if received from another router save real source address (not other router source address)
+		/* if received from another router save real source address (not other router source address) */
 		if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK && data->src.net != addr.net)
 			memmove(&data->src, &addr, sizeof(BACNET_ADDRESS));
 
-		// encode both source and destination for broadcast and router-to-router communication
+		/* encode both source and destination for broadcast and router-to-router communication */
 		if (data->dest.net == BACNET_BROADCAST_NETWORK || destport->route_info.net != data->dest.net) {
 			npdu_len = npdu_encode_pdu(npdu, &data->dest, &data->src, &npdu_data);
 		}
@@ -751,15 +751,15 @@ uint16_t process_msg(BACMSG *msg,
 		buff_len = npdu_len + data->pdu_len - apdu_offset;
 
 		*buff = (uint8_t*)malloc(buff_len);
-		memmove(*buff, npdu, npdu_len);					// copy newly formed NPDU
-		memmove(*buff+npdu_len, &data->pdu[apdu_offset], apdu_len);	// copy APDU
+		memmove(*buff, npdu, npdu_len);					/* copy newly formed NPDU */
+		memmove(*buff+npdu_len, &data->pdu[apdu_offset], apdu_len);	/* copy APDU */
 
 	} else {
-		// request net search
+		/* request net search */
 		return -1;
 	}
 
-	// delete received message
+	/* delete received message */
 	free_data((MSG_DATA*)msg->data);
 
 	return buff_len;
@@ -771,7 +771,7 @@ int kbhit()
     static bool initialized = false;
 
     if (! initialized) {
-        // use termios to turn off line buffering
+        /* use termios to turn off line buffering */
         struct termios term;
         tcgetattr(STDIN, &term);
         term.c_lflag &= ~ICANON;
@@ -787,12 +787,12 @@ int kbhit()
 
 bool is_network_msg(BACMSG *msg) {
 
-	uint8_t control_byte; // NPDU control byte
+	uint8_t control_byte; /* NPDU control byte */
 	MSG_DATA *data = (MSG_DATA*)msg->data;
 
 	control_byte = data->pdu[1];
 
-	return control_byte & 0x80;	// check 7th bit
+	return control_byte & 0x80;	/* check 7th bit */
 }
 
 uint16_t get_next_free_dnet() {

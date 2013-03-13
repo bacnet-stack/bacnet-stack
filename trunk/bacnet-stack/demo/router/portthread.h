@@ -47,7 +47,7 @@ typedef enum {
 	FINISHED
 } PORT_STATE;
 
-// router port thread function
+/* router port thread function */
 typedef void* (*PORT_FUNC)(
 		void*);
 
@@ -57,7 +57,7 @@ typedef enum {
 	PARITY_ODD
 }PARITY;
 
-// port specific parameters
+/* port specific parameters */
 typedef union _port_params {
 	struct {
 		uint16_t port;
@@ -72,16 +72,16 @@ typedef union _port_params {
 	} mstp_params;
 } PORT_PARAMS;
 
-// list node for reacheble networks
+/* list node for reacheble networks */
 typedef struct _dnet {
 	uint8_t mac[MAX_MAC_LEN];
 	uint8_t mac_len;
 	uint16_t net;
-	bool state; // enabled or disabled
+	bool state; /* enabled or disabled */
 	struct _dnet *next;
 } DNET;
 
-// information for routing table
+/* information for routing table */
 typedef struct _routing_table_entry {
 	uint8_t mac[MAX_MAC_LEN];
 	uint8_t mac_len;
@@ -92,28 +92,28 @@ typedef struct _routing_table_entry {
 typedef struct _port {
 	DL_TYPE type;
 	PORT_STATE state;
-	MSGBOX_ID main_id;	// same for every router port
-	MSGBOX_ID port_id;	// different for every router port
+	MSGBOX_ID main_id;	/* same for every router port */
+	MSGBOX_ID port_id;	/* different for every router port */
 	char *iface;
 	PORT_FUNC func;
 	RT_ENTRY route_info;
 	PORT_PARAMS params;
-	struct _port *next;	// pointer to next list node
+	struct _port *next;	/* pointer to next list node */
 } ROUTER_PORT;
 
 extern ROUTER_PORT *head;
 extern int port_count;
 
-// get recieving router port
+/* get recieving router port */
 ROUTER_PORT* find_snet(
 		MSGBOX_ID id);
 
-// get sending router port
+/* get sending router port */
 ROUTER_PORT* find_dnet(
 		uint16_t net,
 		BACNET_ADDRESS *addr);
 
-// add reacheble network for specified router port
+/* add reacheble network for specified router port */
 void add_dnet(
 		RT_ENTRY *route_info,
 		uint16_t net,
