@@ -1,5 +1,5 @@
 #!/bin/sh
-# Release helper for this project
+# Release script for this project
 
 USERNAME=skarg
 PROJECT=bacnet
