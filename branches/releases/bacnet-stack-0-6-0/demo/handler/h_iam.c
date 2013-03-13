@@ -99,8 +99,10 @@ void handler_i_am_bind(
     len =
         iam_decode_service_request(service_request, &device_id, &max_apdu,
         &segmentation, &vendor_id);
-    /* only add address if requested to bind */
-    address_add_binding(device_id, max_apdu, src);
+    if (len > 0) {
+        /* only add address if requested to bind */
+        address_add_binding(device_id, max_apdu, src);
+    }
 
     return;
 }
