@@ -11,11 +11,11 @@
 #if (__GNUC__ <= 4) && (__GNUC_MINOR__ < 3)
 
 #if !defined(EEWE) && defined(EEPE)
-# define EEWE EEPE
+#define EEWE EEPE
 #endif
 
 #if !defined(EEMWE) && defined(EEMPE)
-# define EEMWE EEMPE
+#define EEMWE EEMPE
 #endif
 
 #endif

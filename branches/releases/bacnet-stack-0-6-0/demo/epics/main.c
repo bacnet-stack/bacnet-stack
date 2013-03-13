@@ -1191,11 +1191,11 @@ int main(
                     (Request_Invoke_ID ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData
-                        (Read_Property_Multiple_Data.rpm_data->object_type,
+                    PrintReadPropertyData(Read_Property_Multiple_Data.
+                        rpm_data->object_type,
                         Read_Property_Multiple_Data.rpm_data->object_instance,
-                        Read_Property_Multiple_Data.
-                        rpm_data->listOfProperties);
+                        Read_Property_Multiple_Data.rpm_data->
+                        listOfProperties);
                     if (tsm_invoke_id_free(Request_Invoke_ID)) {
                         Request_Invoke_ID = 0;
                     } else {

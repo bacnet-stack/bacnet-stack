@@ -480,8 +480,8 @@ void handler_cov_task(
                 object_type = (BACNET_OBJECT_TYPE)
                     COV_Subscriptions[index].monitoredObjectIdentifier.type;
                 object_instance =
-                    COV_Subscriptions[index].monitoredObjectIdentifier.
-                    instance;
+                    COV_Subscriptions[index].
+                    monitoredObjectIdentifier.instance;
                 status = Device_COV(object_type, object_instance);
                 if (status) {
                     COV_Subscriptions[index].flag.send_requested = true;
@@ -500,8 +500,8 @@ void handler_cov_task(
                 object_type = (BACNET_OBJECT_TYPE)
                     COV_Subscriptions[index].monitoredObjectIdentifier.type;
                 object_instance =
-                    COV_Subscriptions[index].monitoredObjectIdentifier.
-                    instance;
+                    COV_Subscriptions[index].
+                    monitoredObjectIdentifier.instance;
                 Device_COV_Clear(object_type, object_instance);
             }
             index++;
@@ -517,8 +517,9 @@ void handler_cov_task(
                 (COV_Subscriptions[index].invokeID)) {
                 if (tsm_invoke_id_free(COV_Subscriptions[index].invokeID)) {
                     COV_Subscriptions[index].invokeID = 0;
-                } else if (tsm_invoke_id_failed(COV_Subscriptions[index].
-                        invokeID)) {
+                } else
+                    if (tsm_invoke_id_failed(COV_Subscriptions
+                        [index].invokeID)) {
                     tsm_free_invoke_id(COV_Subscriptions[index].invokeID);
                     COV_Subscriptions[index].invokeID = 0;
                 }
@@ -546,11 +547,11 @@ void handler_cov_task(
                 }
                 if (send) {
                     object_type = (BACNET_OBJECT_TYPE)
-                        COV_Subscriptions[index].monitoredObjectIdentifier.
-                        type;
+                        COV_Subscriptions[index].
+                        monitoredObjectIdentifier.type;
                     object_instance =
-                        COV_Subscriptions[index].monitoredObjectIdentifier.
-                        instance;
+                        COV_Subscriptions[index].
+                        monitoredObjectIdentifier.instance;
                     /* configure the linked list for the two properties */
                     value_list[0].next = &value_list[1];
                     value_list[1].next = NULL;

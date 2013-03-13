@@ -930,7 +930,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_LAST_KEY_SERVER, "last-key-server"}
     ,
     {PROP_NETWORK_ACCESS_SECURITY_ALGORITHMS,
-            "network-access-security-algorithms"}
+        "network-access-security-algorithms"}
     ,
     {PROP_PACKET_REORDER_TIME, "packet-reorder-time"}
     ,

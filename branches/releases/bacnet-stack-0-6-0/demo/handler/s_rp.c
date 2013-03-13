@@ -60,7 +60,7 @@
  * @return invoke id of outgoing message, or 0 if device is not bound or no tsm available
  */
 uint8_t Send_Read_Property_Request_Address(
-    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS * dest,
     uint16_t max_apdu,
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
@@ -149,7 +149,7 @@ uint8_t Send_Read_Property_Request(
     BACNET_PROPERTY_ID object_property,
     int32_t array_index)
 {
-    BACNET_ADDRESS dest = {0};
+    BACNET_ADDRESS dest = { 0 };
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
@@ -157,10 +157,9 @@ uint8_t Send_Read_Property_Request(
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
     if (status) {
-        invoke_id = Send_Read_Property_Request_Address(
-            &dest, max_apdu, object_type,
-            object_instance, object_property,
-            array_index);
+        invoke_id =
+            Send_Read_Property_Request_Address(&dest, max_apdu, object_type,
+            object_instance, object_property, array_index);
     }
 
     return invoke_id;
