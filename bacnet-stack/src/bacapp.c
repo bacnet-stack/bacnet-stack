@@ -1103,8 +1103,8 @@ int bacapp_snprintf_value(
                         if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
                             ret_val =
                                 snprintf(str, str_len, "%s",
-                                bactext_object_type_name(value->
-                                    type.Enumerated));
+                                bactext_object_type_name(value->type.
+                                    Enumerated));
                         } else if (value->type.Enumerated < 128) {
                             ret_val =
                                 snprintf(str, str_len, "reserved %lu",
@@ -1124,8 +1124,8 @@ int bacapp_snprintf_value(
                         if (value->type.Enumerated < 256) {
                             ret_val =
                                 snprintf(str, str_len, "%s",
-                                bactext_engineering_unit_name(value->type.
-                                    Enumerated));
+                                bactext_engineering_unit_name(value->
+                                    type.Enumerated));
                         } else {
                             ret_val =
                                 snprintf(str, str_len, "proprietary %lu",
@@ -1135,16 +1135,16 @@ int bacapp_snprintf_value(
                     case PROP_POLARITY:
                         ret_val =
                             snprintf(str, str_len, "%s",
-                            bactext_binary_polarity_name(value->type.
-                                Enumerated));
+                            bactext_binary_polarity_name(value->
+                                type.Enumerated));
                         break;
                     case PROP_PRESENT_VALUE:
                     case PROP_RELINQUISH_DEFAULT:
                         if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
                             ret_val =
                                 snprintf(str, str_len, "%s",
-                                bactext_binary_present_value_name(value->
-                                    type.Enumerated));
+                                bactext_binary_present_value_name(value->type.
+                                    Enumerated));
                         } else {
                             ret_val =
                                 snprintf(str, str_len, "%lu",
@@ -1159,8 +1159,8 @@ int bacapp_snprintf_value(
                     case PROP_SYSTEM_STATUS:
                         ret_val =
                             snprintf(str, str_len, "%s",
-                            bactext_device_status_name(value->type.
-                                Enumerated));
+                            bactext_device_status_name(value->
+                                type.Enumerated));
                         break;
                     case PROP_SEGMENTATION_SUPPORTED:
                         ret_val =
@@ -1261,8 +1261,8 @@ int bacapp_snprintf_value(
                     break;
                 if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
                     if (!append_str(&p_str, &rem_str_len,
-                            bactext_object_type_name(value->type.Object_Id.
-                                type)
+                            bactext_object_type_name(value->type.
+                                Object_Id.type)
                         )
                         )
                         break;
@@ -1645,8 +1645,8 @@ void testBACnetApplicationData_Safe(
                 break;
 
             case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-                characterstring_init_ansi(&input_value[i].
-                    type.Character_String, "Hello There!");
+                characterstring_init_ansi(&input_value[i].type.
+                    Character_String, "Hello There!");
                 break;
 
             case BACNET_APPLICATION_TAG_BIT_STRING:

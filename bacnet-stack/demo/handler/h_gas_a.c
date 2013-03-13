@@ -56,24 +56,23 @@
  * decoded from the APDU header of this message.
  */
 void get_alarm_summary_ack_handler(
-    uint8_t *service_request,
+    uint8_t * service_request,
     uint16_t service_len,
-    BACNET_ADDRESS *src,
-    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+    BACNET_ADDRESS * src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
     uint16_t apdu_len = 0;
     uint16_t len = 0;
     BACNET_GET_ALARM_SUMMARY_DATA data;
 
-    while(service_len - len){
-        apdu_len = get_alarm_summary_ack_decode_apdu_data(
-            &service_request[len],
-            service_len - len,
-            &data);
+    while (service_len - len) {
+        apdu_len =
+            get_alarm_summary_ack_decode_apdu_data(&service_request[len],
+            service_len - len, &data);
 
         len += apdu_len;
 
-        if(apdu_len > 0){
+        if (apdu_len > 0) {
             /* FIXME: Add code to process data */
         } else {
             break;

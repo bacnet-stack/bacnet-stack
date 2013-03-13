@@ -94,7 +94,7 @@ uint16_t bip_get_port(
 
 static void bip_mac_to_addr(
     struct ip_addr *address,
-    uint8_t *mac)
+    uint8_t * mac)
 {
     if (mac && address) {
         address->addr = ((u32_t) ((((uint32_t) mac[0]) << 24) & 0xff000000));
@@ -105,14 +105,14 @@ static void bip_mac_to_addr(
 }
 
 static void bip_addr_to_mac(
-    uint8_t *mac,
+    uint8_t * mac,
     struct ip_addr *address)
 {
     if (mac && address) {
-	    mac[0] = (uint8_t)(address->addr >> 24);
-        mac[1] = (uint8_t)(address->addr >> 16);
-        mac[2] = (uint8_t)(address->addr >> 8);
-        mac[3] = (uint8_t)(address->addr);
+        mac[0] = (uint8_t) (address->addr >> 24);
+        mac[1] = (uint8_t) (address->addr >> 16);
+        mac[2] = (uint8_t) (address->addr >> 8);
+        mac[3] = (uint8_t) (address->addr);
     }
 }
 
@@ -161,7 +161,7 @@ int bip_send_pdu(
     if (pkt == NULL) {
         return 0;
     }
-    mtu = (uint8_t *)pkt->payload;
+    mtu = (uint8_t *) pkt->payload;
     mtu[0] = BVLL_TYPE_BACNET_IP;
     if (dest->net == BACNET_BROADCAST_NETWORK) {
         /* broadcast */
@@ -209,7 +209,7 @@ void bip_server_callback(
     };  /* address where message came from */
     struct ip_addr sin_addr;
     uint16_t sin_port = 0;
-    uint8_t *pdu = (uint8_t *)pkt->payload;
+    uint8_t *pdu = (uint8_t *) pkt->payload;
 
     /* the signature of a BACnet/IP packet */
     if (pdu[0] != BVLL_TYPE_BACNET_IP) {
@@ -219,8 +219,7 @@ void bip_server_callback(
     if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
         (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
-        if ((addr->addr == BIP_Address.s_addr) &&
-            (port == BIP_Port)) {
+        if ((addr->addr == BIP_Address.s_addr) && (port == BIP_Port)) {
             pdu_len = 0;
         } else {
             /* data in src->mac[] is in network format */
@@ -236,8 +235,7 @@ void bip_server_callback(
     } else if (function == BVLC_FORWARDED_NPDU) {
         bip_mac_to_addr(&sin_addr, &pdu[4]);
         memcpy(&sin_port, &pdu[8], 2);
-        if ((sin_addr.addr == BIP_Address.s_addr) &&
-            (sin_port == BIP_Port)) {
+        if ((sin_addr.addr == BIP_Address.s_addr) && (sin_port == BIP_Port)) {
             /* ignore forwarded messages from me */
             pdu_len = 0;
         } else {
@@ -326,12 +324,13 @@ void bip_get_broadcast_address(
 bool bip_init(
     char *ifname)
 {
-    (void)ifname;
+    (void) ifname;
     /* Create a new UDP control block  */
     Server_upcb = udp_new();
     if (Server_upcb == NULL) {
         /* increase MEMP_NUM_UDP_PCB in lwipopts.h */
-        while(1) {};
+        while (1) {
+        };
     }
     /* Bind the upcb to the UDP_PORT port */
     /* Using IP_ADDR_ANY allow the upcb to be used by any local interface */

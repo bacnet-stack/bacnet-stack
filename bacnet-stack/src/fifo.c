@@ -101,7 +101,8 @@
 *
 * @return Number of bytes in the FIFO
 */
-unsigned FIFO_Count(FIFO_BUFFER const *b)
+unsigned FIFO_Count(
+    FIFO_BUFFER const *b)
 {
     unsigned head, tail;        /* used to avoid volatile decision */
 
@@ -121,7 +122,8 @@ unsigned FIFO_Count(FIFO_BUFFER const *b)
 *
 * @return true if the FIFO is full, false if it is not.
 */
-bool FIFO_Full(FIFO_BUFFER const *b)
+bool FIFO_Full(
+    FIFO_BUFFER const *b)
 {
     return (b ? (FIFO_Count(b) == b->buffer_len) : true);
 }
@@ -134,7 +136,8 @@ bool FIFO_Full(FIFO_BUFFER const *b)
 *
 * @return true if the number of bytes sought is available
 */
-bool FIFO_Available(FIFO_BUFFER const *b,
+bool FIFO_Available(
+    FIFO_BUFFER const *b,
     unsigned count)
 {
     return (b ? (count <= (b->buffer_len - FIFO_Count(b))) : false);
@@ -146,7 +149,8 @@ bool FIFO_Available(FIFO_BUFFER const *b,
 * @param b - pointer to FIFO_BUFFER structure
 * @return true if the FIFO is empty, false if it is not.
 */
-bool FIFO_Empty(FIFO_BUFFER const *b)
+bool FIFO_Empty(
+    FIFO_BUFFER const *b)
 {
     return (b ? (FIFO_Count(b) == 0) : true);
 }
@@ -161,7 +165,8 @@ bool FIFO_Empty(FIFO_BUFFER const *b)
 *
 * @return byte of data, or zero if nothing in the list
 */
-uint8_t FIFO_Peek(FIFO_BUFFER const *b)
+uint8_t FIFO_Peek(
+    FIFO_BUFFER const *b)
 {
     unsigned index;
 
@@ -183,7 +188,8 @@ uint8_t FIFO_Peek(FIFO_BUFFER const *b)
 *
 * @return the data
 */
-uint8_t FIFO_Get(FIFO_BUFFER * b)
+uint8_t FIFO_Get(
+    FIFO_BUFFER * b)
 {
     uint8_t data_byte = 0;
     unsigned index;
@@ -207,7 +213,8 @@ uint8_t FIFO_Get(FIFO_BUFFER * b)
 *
 * @return      the number of bytes actually pulled from the FIFO
 */
-unsigned FIFO_Pull(FIFO_BUFFER * b,
+unsigned FIFO_Pull(
+    FIFO_BUFFER * b,
     uint8_t * buffer,
     unsigned length)
 {
@@ -246,7 +253,8 @@ unsigned FIFO_Pull(FIFO_BUFFER * b,
 *
 * @return true on successful add, false if not added
 */
-bool FIFO_Put(FIFO_BUFFER * b,
+bool FIFO_Put(
+    FIFO_BUFFER * b,
     uint8_t data_byte)
 {
     bool status = false;        /* return value */
@@ -274,7 +282,8 @@ bool FIFO_Put(FIFO_BUFFER * b,
 *
 * @return true if space available and added, false if not added
 */
-bool FIFO_Add(FIFO_BUFFER * b,
+bool FIFO_Add(
+    FIFO_BUFFER * b,
     uint8_t * buffer,
     unsigned count)
 {
@@ -303,7 +312,8 @@ bool FIFO_Add(FIFO_BUFFER * b,
 *
 * @return none
 */
-void FIFO_Flush(FIFO_BUFFER * b)
+void FIFO_Flush(
+    FIFO_BUFFER * b)
 {
     unsigned head;      /* used to avoid volatile decision */
 
@@ -322,7 +332,8 @@ void FIFO_Flush(FIFO_BUFFER * b)
 *
 * @return      none
 */
-void FIFO_Init(FIFO_BUFFER * b,
+void FIFO_Init(
+    FIFO_BUFFER * b,
     volatile uint8_t * buffer,
     unsigned buffer_len)
 {
@@ -347,7 +358,8 @@ void FIFO_Init(FIFO_BUFFER * b,
 *
 * @param pTest - test tracking pointer
 */
-void testFIFOBuffer(Test * pTest)
+void testFIFOBuffer(
+    Test * pTest)
 {
     /* FIFO data structure */
     FIFO_BUFFER test_buffer = { 0 };
@@ -466,7 +478,8 @@ void testFIFOBuffer(Test * pTest)
 *
 * @return  returns 0 on success, and non-zero on fail.
 */
-int main(void)
+int main(
+    void)
 {
     Test *pTest;
     bool rc;

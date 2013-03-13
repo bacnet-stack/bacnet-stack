@@ -915,7 +915,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     {PROP_LAST_KEY_SERVER, "last-key-server"}
     ,
     {PROP_NETWORK_ACCESS_SECURITY_POLICIES,
-            "network-access-security-policies"}
+        "network-access-security-policies"}
     ,
     {PROP_PACKET_REORDER_TIME, "packet-reorder-time"}
     ,
@@ -1013,7 +1013,8 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_LIGHTING_COMMAND, "lighting-command"}
     ,
-    {PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY, "lighting-command-default-priority"}
+    {PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
+            "lighting-command-default-priority"}
     ,
     {PROP_MAX_ACTUAL_VALUE, "max-actual-value"}
     ,

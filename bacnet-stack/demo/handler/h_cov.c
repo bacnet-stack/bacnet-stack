@@ -311,7 +311,7 @@ static bool cov_list_subscribe(
             /* From BACnet Standard 135-2010-13.14.2
                ...Cancellations that are issued for which no matching COV
                context can be found shall succeed as if a context had
-               existed, returning 'Result(+)'.*/
+               existed, returning 'Result(+)'. */
             found = true;
         }
     }
@@ -406,10 +406,10 @@ static void cov_lifetime_expiration_handler(
             /* expire the subscription */
 #if PRINT_ENABLED
             fprintf(stderr, "COVtimer: PID=%u ",
-            COV_Subscriptions[index].subscriberProcessIdentifier);
+                COV_Subscriptions[index].subscriberProcessIdentifier);
             fprintf(stderr, "%s %u ",
-                bactext_object_type_name(
-                COV_Subscriptions[index].monitoredObjectIdentifier.type),
+                bactext_object_type_name(COV_Subscriptions[index].
+                    monitoredObjectIdentifier.type),
                 COV_Subscriptions[index].monitoredObjectIdentifier.instance);
             fprintf(stderr, "time remaining=%u seconds ",
                 COV_Subscriptions[index].lifetime);
@@ -497,13 +497,13 @@ void handler_cov_task(
                 object_type = (BACNET_OBJECT_TYPE)
                     COV_Subscriptions[index].monitoredObjectIdentifier.type;
                 object_instance =
-                    COV_Subscriptions[index].monitoredObjectIdentifier.
-                    instance;
+                    COV_Subscriptions[index].
+                    monitoredObjectIdentifier.instance;
                 status = Device_COV(object_type, object_instance);
                 if (status) {
                     COV_Subscriptions[index].flag.send_requested = true;
 #if PRINT_ENABLED
-                    fprintf(stderr,"COVtask: Marking...\n");
+                    fprintf(stderr, "COVtask: Marking...\n");
 #endif
                 }
             }
@@ -520,8 +520,8 @@ void handler_cov_task(
                 object_type = (BACNET_OBJECT_TYPE)
                     COV_Subscriptions[index].monitoredObjectIdentifier.type;
                 object_instance =
-                    COV_Subscriptions[index].monitoredObjectIdentifier.
-                    instance;
+                    COV_Subscriptions[index].
+                    monitoredObjectIdentifier.instance;
                 Device_COV_Clear(object_type, object_instance);
             }
             index++;
@@ -537,8 +537,9 @@ void handler_cov_task(
                 (COV_Subscriptions[index].invokeID)) {
                 if (tsm_invoke_id_free(COV_Subscriptions[index].invokeID)) {
                     COV_Subscriptions[index].invokeID = 0;
-                } else if (tsm_invoke_id_failed(COV_Subscriptions[index].
-                        invokeID)) {
+                } else
+                    if (tsm_invoke_id_failed(COV_Subscriptions
+                        [index].invokeID)) {
                     tsm_free_invoke_id(COV_Subscriptions[index].invokeID);
                     COV_Subscriptions[index].invokeID = 0;
                 }
@@ -566,13 +567,13 @@ void handler_cov_task(
                 }
                 if (send) {
                     object_type = (BACNET_OBJECT_TYPE)
-                        COV_Subscriptions[index].monitoredObjectIdentifier.
-                        type;
+                        COV_Subscriptions[index].
+                        monitoredObjectIdentifier.type;
                     object_instance =
-                        COV_Subscriptions[index].monitoredObjectIdentifier.
-                        instance;
+                        COV_Subscriptions[index].
+                        monitoredObjectIdentifier.instance;
 #if PRINT_ENABLED
-                    fprintf(stderr,"COVtask: Sending...\n");
+                    fprintf(stderr, "COVtask: Sending...\n");
 #endif
                     /* configure the linked list for the two properties */
                     value_list[0].next = &value_list[1];

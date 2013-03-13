@@ -189,14 +189,17 @@ extern "C" {
     int handler_timesync_encode_recipients(
         uint8_t * apdu,
         int max_apdu);
-    void handler_timesync_task(void);
-    void handler_timesync_init(void);
+    void handler_timesync_task(
+        void);
+    void handler_timesync_init(
+        void);
     bool handler_timesync_recipient_write(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
-    bool handler_timesync_interval_set(uint32_t minutes);
+    bool handler_timesync_interval_set(
+        uint32_t minutes);
     bool handler_timesync_recipient_address_set(
         unsigned index,
-        BACNET_ADDRESS *address);
+        BACNET_ADDRESS * address);
 
     void handler_read_property_multiple(
         uint8_t * service_request,
@@ -313,10 +316,10 @@ extern "C" {
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
     void get_alarm_summary_ack_handler(
-        uint8_t *service_request,
+        uint8_t * service_request,
         uint16_t service_len,
-        BACNET_ADDRESS *src,
-        BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data);
+        BACNET_ADDRESS * src,
+        BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
 
 
 #ifdef __cplusplus

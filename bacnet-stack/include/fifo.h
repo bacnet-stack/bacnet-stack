@@ -31,40 +31,52 @@ typedef struct fifo_buffer_t FIFO_BUFFER;
 extern "C" {
 #endif /* __cplusplus */
 
-    unsigned FIFO_Count(FIFO_BUFFER const *b);
+    unsigned FIFO_Count(
+        FIFO_BUFFER const *b);
 
-    bool FIFO_Full(FIFO_BUFFER const *b);
+    bool FIFO_Full(
+        FIFO_BUFFER const *b);
 
-    bool FIFO_Available(FIFO_BUFFER const *b,
+    bool FIFO_Available(
+        FIFO_BUFFER const *b,
         unsigned count);
 
-    bool FIFO_Empty(FIFO_BUFFER const *b);
+    bool FIFO_Empty(
+        FIFO_BUFFER const *b);
 
-    uint8_t FIFO_Peek(FIFO_BUFFER const *b);
+    uint8_t FIFO_Peek(
+        FIFO_BUFFER const *b);
 
-    uint8_t FIFO_Get(FIFO_BUFFER * b);
+    uint8_t FIFO_Get(
+        FIFO_BUFFER * b);
 
-    unsigned FIFO_Pull(FIFO_BUFFER * b,
+    unsigned FIFO_Pull(
+        FIFO_BUFFER * b,
         uint8_t * data_bytes,
         unsigned length);
 
-    bool FIFO_Put(FIFO_BUFFER * b,
+    bool FIFO_Put(
+        FIFO_BUFFER * b,
         uint8_t data_byte);
 
-    bool FIFO_Add(FIFO_BUFFER * b,
+    bool FIFO_Add(
+        FIFO_BUFFER * b,
         uint8_t * data_bytes,
         unsigned count);
 
-    void FIFO_Flush(FIFO_BUFFER * b);
+    void FIFO_Flush(
+        FIFO_BUFFER * b);
 
 /* note: buffer_len must be a power of two */
-    void FIFO_Init(FIFO_BUFFER * b,
+    void FIFO_Init(
+        FIFO_BUFFER * b,
         volatile uint8_t * buffer,
         unsigned buffer_len);
 
 #ifdef TEST
 #include "ctest.h"
-    void testFIFOBuffer(Test * pTest);
+    void testFIFOBuffer(
+        Test * pTest);
 #endif
 
 #ifdef __cplusplus

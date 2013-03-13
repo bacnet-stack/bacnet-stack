@@ -141,7 +141,8 @@ static struct property_value_list_t Property_Value_List[] = {
     {-1, NULL}
 };
 
-static BACNET_APPLICATION_DATA_VALUE *object_property_value(int32_t property_id)
+static BACNET_APPLICATION_DATA_VALUE *object_property_value(
+    int32_t property_id)
 {
     BACNET_APPLICATION_DATA_VALUE *value = NULL;
     int32_t index = 0;
@@ -414,8 +415,10 @@ void CheckIsWritableProperty(
             bIsWritable = true;
         }
     } else if (object_type == OBJECT_NETWORK_SECURITY) {
-        if ((rpm_property->propertyIdentifier == PROP_BASE_DEVICE_SECURITY_POLICY) ||
-            (rpm_property->propertyIdentifier == PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
+        if ((rpm_property->propertyIdentifier ==
+                PROP_BASE_DEVICE_SECURITY_POLICY) ||
+            (rpm_property->propertyIdentifier ==
+                PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
             (rpm_property->propertyIdentifier == PROP_SECURITY_TIME_WINDOW) ||
             (rpm_property->propertyIdentifier == PROP_PACKET_REORDER_TIME) ||
             (rpm_property->propertyIdentifier == PROP_LAST_KEY_SERVER) ||
@@ -434,7 +437,8 @@ void CheckIsWritableProperty(
 }
 
 
-static const char *protocol_services_supported_text(size_t bit_index)
+static const char *protocol_services_supported_text(
+    size_t bit_index)
 {
     bool is_confirmed = false;
     size_t text_index = 0;
@@ -1154,9 +1158,8 @@ void PrintHeading(
         (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         printf("Product Description: \"%s\"\r\n\r\n",
             characterstring_value(&value->type.Character_String));
-    }else {
-        printf(
-            "Product Description: "
+    } else {
+        printf("Product Description: "
             "\"your product description here\"\r\n\r\n");
     }
     printf("BIBBs Supported:\r\n");
@@ -1220,7 +1223,8 @@ void PrintHeading(
         printf("-- SubscribeCOVProperty           Initiate Execute\r\n");
 #ifdef BAC_ROUTING
         if (Target_Address.net == 0) {
-            printf("-- Note: The following Routing Services are Supported:\r\n");
+            printf
+                ("-- Note: The following Routing Services are Supported:\r\n");
             printf("-- Who-Is-Router-To-Network    Initiate Execute\r\n");
             printf("-- I-Am-Router-To-Network      Initiate Execute\r\n");
             printf("-- Initialize-Routing-Table    Execute\r\n");
@@ -1441,7 +1445,8 @@ int main(
         current_seconds = time(NULL);
         /* Has at least one second passed ? */
         if (current_seconds != last_seconds) {
-            tsm_timer_milliseconds((uint16_t)((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds((uint16_t) ((current_seconds -
+                        last_seconds) * 1000));
         }
 
         /* OK to proceed; see what we are up to now */
@@ -1629,11 +1634,11 @@ int main(
                     (Request_Invoke_ID ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData
-                        (Read_Property_Multiple_Data.rpm_data->object_type,
+                    PrintReadPropertyData(Read_Property_Multiple_Data.
+                        rpm_data->object_type,
                         Read_Property_Multiple_Data.rpm_data->object_instance,
-                        Read_Property_Multiple_Data.
-                        rpm_data->listOfProperties);
+                        Read_Property_Multiple_Data.rpm_data->
+                        listOfProperties);
                     if (tsm_invoke_id_free(Request_Invoke_ID)) {
                         Request_Invoke_ID = 0;
                     } else {

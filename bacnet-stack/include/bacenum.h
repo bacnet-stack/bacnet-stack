@@ -409,12 +409,12 @@ typedef enum {
     PROP_POWER = 384,
     PROP_TRANSITION = 385,
     PROP_EGRESS_ACTIVE = 386
-    /* The special property identifiers all, optional, and required  */
-    /* are reserved for use in the ReadPropertyConditional and */
-    /* ReadPropertyMultiple services or services not defined in this standard. */
-    /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
-    /* Enumerated values 512-4194303 may be used by others subject to the  */
-    /* procedures and constraints described in Clause 23.  */
+        /* The special property identifiers all, optional, and required  */
+        /* are reserved for use in the ReadPropertyConditional and */
+        /* ReadPropertyMultiple services or services not defined in this standard. */
+        /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
+        /* Enumerated values 512-4194303 may be used by others subject to the  */
+        /* procedures and constraints described in Clause 23.  */
 } BACNET_PROPERTY_ID;
 
 /* do the MAX as define rather than enumeration for devices

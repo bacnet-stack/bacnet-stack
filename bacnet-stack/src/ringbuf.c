@@ -112,10 +112,10 @@ volatile uint8_t *Ringbuf_Peek(
 *****************************************************************************/
 bool Ringbuf_Pop(
     RING_BUFFER * b,
-    uint8_t *data_element)
+    uint8_t * data_element)
 {
-    bool status = false; /* return value */
-    volatile uint8_t *ring_data = NULL;     /* used to help point ring data */
+    bool status = false;        /* return value */
+    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
     unsigned i; /* loop counter */
 
     if (!Ringbuf_Empty(b)) {
@@ -141,7 +141,7 @@ bool Ringbuf_Pop(
 *****************************************************************************/
 bool Ringbuf_Put(
     RING_BUFFER * b,    /* ring buffer structure */
-    uint8_t *data_element)
+    uint8_t * data_element)
 {       /* one element to add to the ring */
     bool status = false;        /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -173,11 +173,11 @@ bool Ringbuf_Put(
 *****************************************************************************/
 bool Ringbuf_Put_Front(
     RING_BUFFER * b,    /* ring buffer structure */
-    uint8_t *data_element)
+    uint8_t * data_element)
 {       /* one element to add to the front of the ring */
     bool status = false;        /* return value */
-    volatile uint8_t *ring_data = NULL;     /* used to help point ring data */
-    unsigned i = 0; /* loop counter */
+    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
+    unsigned i = 0;     /* loop counter */
 
     if (b && data_element) {
         /* limit the amount of elements that we accept */
@@ -285,7 +285,7 @@ static void testRingAroundBuffer(
                     ct_test(pTest, test_data[data_index] == dummy);
                 }
             }
-            (void)Ringbuf_Pop(test_buffer, NULL);
+            (void) Ringbuf_Pop(test_buffer, NULL);
         }
     }
     ct_test(pTest, Ringbuf_Empty(test_buffer));
@@ -320,7 +320,7 @@ static void testRingBuf(
         ct_test(pTest, test_data[data_index] == data_element[data_index]);
     }
     ct_test(pTest, !Ringbuf_Empty(&test_buffer));
-    (void)Ringbuf_Pop(&test_buffer, NULL);
+    (void) Ringbuf_Pop(&test_buffer, NULL);
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 
     /* fill to max */
@@ -351,7 +351,7 @@ static void testRingBuf(
                 ct_test(pTest, test_data[data_index] == index);
             }
         }
-        (void)Ringbuf_Pop(&test_buffer, NULL);
+        (void) Ringbuf_Pop(&test_buffer, NULL);
     }
     ct_test(pTest, Ringbuf_Empty(&test_buffer));
 

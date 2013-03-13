@@ -250,8 +250,8 @@ int Binary_Output_Read_Property(
 {
     int len = 0;
     int apdu_len = 0;   /* return value */
-    BACNET_BIT_STRING bit_string = {0};
-    BACNET_CHARACTER_STRING char_string = {0};
+    BACNET_BIT_STRING bit_string = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
     unsigned object_index = 0;
     unsigned i = 0;
@@ -272,13 +272,11 @@ int Binary_Output_Read_Property(
         case PROP_OBJECT_NAME:
             Binary_Output_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
-                encode_application_character_string(&apdu[0],
-                &char_string);
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
-                encode_application_enumerated(&apdu[0],
-                rpdata->object_type);
+                encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         case PROP_PRESENT_VALUE:
             present_value =
@@ -461,8 +459,8 @@ bool Binary_Output_Write_Property(
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
-                        Binary_Output_Present_Value_Set(wp_data->
-                            object_instance, level, priority);
+                        Binary_Output_Present_Value_Set
+                            (wp_data->object_instance, level, priority);
                     } else if (priority == 6) {
                         status = false;
                         /* Command priority 6 is reserved for use by Minimum On/Off

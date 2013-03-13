@@ -178,10 +178,10 @@ int Binary_Input_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
-    BACNET_BIT_STRING bit_string = {0};
+    BACNET_BIT_STRING bit_string = { 0 };
     BACNET_POLARITY polarity = POLARITY_NORMAL;
     BACNET_BINARY_PV value = BINARY_INACTIVE;
-    BACNET_CHARACTER_STRING char_string = {0};
+    BACNET_CHARACTER_STRING char_string = { 0 };
     uint8_t *apdu = NULL;
 
     if ((rpdata->application_data == NULL) ||
@@ -198,13 +198,11 @@ int Binary_Input_Read_Property(
         case PROP_OBJECT_NAME:
             Binary_Input_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
-                encode_application_character_string(&apdu[0],
-                &char_string);
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
-                encode_application_enumerated(&apdu[0],
-                rpdata->object_type);
+                encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         case PROP_PRESENT_VALUE:
             value = Binary_Input_Present_Value(rpdata->object_instance);

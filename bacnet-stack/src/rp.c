@@ -59,8 +59,8 @@ int rp_encode_apdu(
             /* check bounds so that we could create malformed
                messages for testing */
             len =
-                encode_context_object_id(&apdu[apdu_len], 0, rpdata->object_type,
-                rpdata->object_instance);
+                encode_context_object_id(&apdu[apdu_len], 0,
+                rpdata->object_type, rpdata->object_instance);
             apdu_len += len;
         }
         if (rpdata->object_property <= 4194303) {

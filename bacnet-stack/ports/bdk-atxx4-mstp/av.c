@@ -221,13 +221,11 @@ int Analog_Value_Read_Property(
         case PROP_OBJECT_NAME:
             Analog_Value_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
-                encode_application_character_string(&apdu[0],
-                &char_string);
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
-                encode_application_enumerated(&apdu[0],
-                rpdata->object_type);
+                encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         case PROP_PRESENT_VALUE:
             real_value = Analog_Value_Present_Value(rpdata->object_instance);

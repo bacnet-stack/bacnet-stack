@@ -49,46 +49,44 @@
 
 #define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
 uint32_t Timer_Silence(
-    void * poPort)
+    void *poPort)
 {
-	struct timeval now, tmp_diff;
-	SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return -1;
-	}
-	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return -1;
-	}
+    struct timeval now, tmp_diff;
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return -1;
+    }
+    poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return -1;
+    }
 
-	int32_t res;
+    int32_t res;
 
-	gettimeofday(&now, NULL);
-	timersub(&poSharedData->start, &now, &tmp_diff);
-	res = ((tmp_diff.tv_sec) * 1000 + (tmp_diff.tv_usec) / 1000);
+    gettimeofday(&now, NULL);
+    timersub(&poSharedData->start, &now, &tmp_diff);
+    res = ((tmp_diff.tv_sec) * 1000 + (tmp_diff.tv_usec) / 1000);
 
-	return (res >= 0 ? res : -res);
+    return (res >= 0 ? res : -res);
 }
 
 void Timer_Silence_Reset(
-	void * poPort)
+    void *poPort)
 {
-	SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return;
-	}
-	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return;
-	}
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return;
+    }
+    poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return;
+    }
 
-	gettimeofday(&poSharedData->start, NULL);
+    gettimeofday(&poSharedData->start, NULL);
 }
 
 void get_abstime(
@@ -106,22 +104,22 @@ void get_abstime(
 }
 
 void dlmstp_cleanup(
-	void * poPort)
+    void *poPort)
 {
-	SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return;
-	}
-	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return;
-	}
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return;
+    }
+    poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return;
+    }
 
     /* restore the old port settings */
-    tcsetattr(poSharedData->RS485_Handle, TCSANOW, &poSharedData->RS485_oldtio);
+    tcsetattr(poSharedData->RS485_Handle, TCSANOW,
+        &poSharedData->RS485_oldtio);
     close(poSharedData->RS485_Handle);
 
     pthread_cond_destroy(&poSharedData->Received_Frame_Flag);
@@ -134,7 +132,7 @@ void dlmstp_cleanup(
 
 /* returns number of bytes sent on success, zero on failure */
 int dlmstp_send_pdu(
-	void * poPort,
+    void *poPort,
     BACNET_ADDRESS * dest,      /* destination address */
     uint8_t * pdu,      /* any data to be sent - may be null */
     unsigned pdu_len)
@@ -142,34 +140,34 @@ int dlmstp_send_pdu(
     int bytes_sent = 0;
     struct mstp_pdu_packet *pkt;
     unsigned i = 0;
-	SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return 0;
-	}
-	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return 0;
-	}
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return 0;
+    }
+    poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return 0;
+    }
 
-	pkt = (struct mstp_pdu_packet *) Ringbuf_Alloc(&poSharedData->PDU_Queue);
-	    if (pkt) {
-	        pkt->data_expecting_reply = BACNET_DATA_EXPECTING_REPLY(pdu[BACNET_PDU_CONTROL_BYTE_OFFSET]);
-	        for (i = 0; i < pdu_len; i++) {
-	            pkt->buffer[i] = pdu[i];
-	        }
-	        pkt->length = pdu_len;
-	        pkt->destination_mac = dest->mac[0];
-	        bytes_sent = pdu_len;
-	    }
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Alloc(&poSharedData->PDU_Queue);
+    if (pkt) {
+        pkt->data_expecting_reply =
+            BACNET_DATA_EXPECTING_REPLY(pdu[BACNET_PDU_CONTROL_BYTE_OFFSET]);
+        for (i = 0; i < pdu_len; i++) {
+            pkt->buffer[i] = pdu[i];
+        }
+        pkt->length = pdu_len;
+        pkt->destination_mac = dest->mac[0];
+        bytes_sent = pdu_len;
+    }
 
-	    return bytes_sent;
+    return bytes_sent;
 }
 
 uint16_t dlmstp_receive(
-	void * poPort,
+    void *poPort,
     BACNET_ADDRESS * src,       /* source address */
     uint8_t * pdu,      /* PDU data */
     uint16_t max_pdu,   /* amount of space available in the PDU  */
@@ -178,60 +176,58 @@ uint16_t dlmstp_receive(
     uint16_t pdu_len = 0;
     struct timespec abstime;
     int rv = 0;
-	SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return 0;
-	}
-	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return 0;
-	}
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return 0;
+    }
+    poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return 0;
+    }
     (void) max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
     get_abstime(&abstime, timeout);
-        rv = pthread_cond_timedwait(&poSharedData->Receive_Packet_Flag, &poSharedData->Receive_Packet_Mutex,
-            &abstime);
-        if (rv == 0) {
-            if (poSharedData->Receive_Packet.ready) {
-                if (poSharedData->Receive_Packet.pdu_len) {
-                	poSharedData->MSTP_Packets++;
-                    if (src) {
-                        memmove(src, &poSharedData->Receive_Packet.address,
-                            sizeof(poSharedData->Receive_Packet.address));
-                    }
-                    if (pdu) {
-                        memmove(pdu, &poSharedData->Receive_Packet.pdu,
-                            sizeof(poSharedData->Receive_Packet.pdu));
-                    }
-                    pdu_len = poSharedData->Receive_Packet.pdu_len;
+    rv = pthread_cond_timedwait(&poSharedData->Receive_Packet_Flag,
+        &poSharedData->Receive_Packet_Mutex, &abstime);
+    if (rv == 0) {
+        if (poSharedData->Receive_Packet.ready) {
+            if (poSharedData->Receive_Packet.pdu_len) {
+                poSharedData->MSTP_Packets++;
+                if (src) {
+                    memmove(src, &poSharedData->Receive_Packet.address,
+                        sizeof(poSharedData->Receive_Packet.address));
                 }
-                poSharedData->Receive_Packet.ready = false;
+                if (pdu) {
+                    memmove(pdu, &poSharedData->Receive_Packet.pdu,
+                        sizeof(poSharedData->Receive_Packet.pdu));
+                }
+                pdu_len = poSharedData->Receive_Packet.pdu_len;
             }
+            poSharedData->Receive_Packet.ready = false;
         }
+    }
 
-        return pdu_len;
+    return pdu_len;
 }
 
 void *dlmstp_receive_fsm_task(
     void *pArg)
 {
     bool received_frame;
-    SHARED_MSTP_DATA * poSharedData;
-    struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t*)pArg;
-    if(!mstp_port)
-    {
-    	return NULL;
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *) pArg;
+    if (!mstp_port) {
+        return NULL;
     }
 
-	poSharedData = (SHARED_MSTP_DATA *) ((struct mstp_port_struct_t*)pArg)->UserData;
-	if(!poSharedData)
-	{
-		return NULL;
-   	}
+    poSharedData =
+        (SHARED_MSTP_DATA *) ((struct mstp_port_struct_t *) pArg)->UserData;
+    if (!poSharedData) {
+        return NULL;
+    }
 
     for (;;) {
         /* only do receive state machine while we don't have a frame */
@@ -239,9 +235,10 @@ void *dlmstp_receive_fsm_task(
             (mstp_port->ReceivedInvalidFrame == false)) {
             do {
                 RS485_Check_UART_Data(mstp_port);
-                MSTP_Receive_Frame_FSM((volatile struct mstp_port_struct_t*)pArg);
+                MSTP_Receive_Frame_FSM((volatile struct mstp_port_struct_t *)
+                    pArg);
                 received_frame = mstp_port->ReceivedValidFrame ||
-                		mstp_port->ReceivedInvalidFrame;
+                    mstp_port->ReceivedInvalidFrame;
                 if (received_frame) {
                     pthread_cond_signal(&poSharedData->Received_Frame_Flag);
                     break;
@@ -256,61 +253,60 @@ void *dlmstp_receive_fsm_task(
 void *dlmstp_master_fsm_task(
     void *pArg)
 {
-	uint32_t silence = 0;
-	bool run_master = false;
-    SHARED_MSTP_DATA * poSharedData;
-    struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t*)pArg;
-    if(!mstp_port)
-    {
-    	return NULL;
+    uint32_t silence = 0;
+    bool run_master = false;
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *) pArg;
+    if (!mstp_port) {
+        return NULL;
     }
 
-	poSharedData = (SHARED_MSTP_DATA *) ((struct mstp_port_struct_t*)pArg)->UserData;
-	if(!poSharedData)
-	{
-		return NULL;
-   	}
+    poSharedData =
+        (SHARED_MSTP_DATA *) ((struct mstp_port_struct_t *) pArg)->UserData;
+    if (!poSharedData) {
+        return NULL;
+    }
 
-	for (;;) {
-	        if (mstp_port->ReceivedValidFrame == false &&
-	            mstp_port->ReceivedInvalidFrame == false) {
-	            RS485_Check_UART_Data(mstp_port);
-	            MSTP_Receive_Frame_FSM(mstp_port);
-	        }
-	        if (mstp_port->ReceivedValidFrame || mstp_port->ReceivedInvalidFrame) {
-	            run_master = true;
-	        } else {
-	            silence = mstp_port->SilenceTimer(NULL);
-	            switch (mstp_port->master_state) {
-	                case MSTP_MASTER_STATE_IDLE:
-	                    if (silence >= Tno_token)
-	                        run_master = true;
-	                    break;
-	                case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-	                    if (silence >= poSharedData->Treply_timeout)
-	                        run_master = true;
-	                    break;
-	                case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-	                    if (silence >= poSharedData->Tusage_timeout)
-	                        run_master = true;
-	                    break;
-	                default:
-	                    run_master = true;
-	                    break;
-	            }
-	        }
-	        if (run_master) {
-	            if (mstp_port->This_Station <= DEFAULT_MAX_MASTER) {
-	                while (MSTP_Master_Node_FSM(mstp_port)) {
-	                    /* do nothing while immediate transitioning */
-	                }
-	            } else if (mstp_port->This_Station < 255) {
-	                MSTP_Slave_Node_FSM(mstp_port);
-	            }
-	        }
-	    }
+    for (;;) {
+        if (mstp_port->ReceivedValidFrame == false &&
+            mstp_port->ReceivedInvalidFrame == false) {
+            RS485_Check_UART_Data(mstp_port);
+            MSTP_Receive_Frame_FSM(mstp_port);
+        }
+        if (mstp_port->ReceivedValidFrame || mstp_port->ReceivedInvalidFrame) {
+            run_master = true;
+        } else {
+            silence = mstp_port->SilenceTimer(NULL);
+            switch (mstp_port->master_state) {
+                case MSTP_MASTER_STATE_IDLE:
+                    if (silence >= Tno_token)
+                        run_master = true;
+                    break;
+                case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
+                    if (silence >= poSharedData->Treply_timeout)
+                        run_master = true;
+                    break;
+                case MSTP_MASTER_STATE_POLL_FOR_MASTER:
+                    if (silence >= poSharedData->Tusage_timeout)
+                        run_master = true;
+                    break;
+                default:
+                    run_master = true;
+                    break;
+            }
+        }
+        if (run_master) {
+            if (mstp_port->This_Station <= DEFAULT_MAX_MASTER) {
+                while (MSTP_Master_Node_FSM(mstp_port)) {
+                    /* do nothing while immediate transitioning */
+                }
+            } else if (mstp_port->This_Station < 255) {
+                MSTP_Slave_Node_FSM(mstp_port);
+            }
+        }
+    }
 
-	    return NULL;
+    return NULL;
 }
 
 void dlmstp_fill_bacnet_address(
@@ -343,12 +339,11 @@ uint16_t MSTP_Put_Receive(
     volatile struct mstp_port_struct_t *mstp_port)
 {
     uint16_t pdu_len = 0;
-    SHARED_MSTP_DATA * poSharedData = (SHARED_MSTP_DATA*)mstp_port->UserData;
+    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 
-	if(!poSharedData)
-	{
-		return 0;
-	}
+    if (!poSharedData) {
+        return 0;
+    }
 
     if (!poSharedData->Receive_Packet.ready) {
         /* bounds check - maybe this should send an abort? */
@@ -373,42 +368,41 @@ uint16_t MSTP_Get_Send(
     volatile struct mstp_port_struct_t * mstp_port,
     unsigned timeout)
 {       /* milliseconds to wait for a packet */
-	uint16_t pdu_len = 0;
-	uint8_t frame_type = 0;
-	struct mstp_pdu_packet *pkt;
-    SHARED_MSTP_DATA * poSharedData = (SHARED_MSTP_DATA*)mstp_port->UserData;
+    uint16_t pdu_len = 0;
+    uint8_t frame_type = 0;
+    struct mstp_pdu_packet *pkt;
+    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 
-	if(!poSharedData)
-	{
-		return 0;
-	}
+    if (!poSharedData) {
+        return 0;
+    }
 
-	(void) timeout;
-	if (Ringbuf_Empty(&poSharedData->PDU_Queue)) {
-		return 0;
-	}
-	pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&poSharedData->PDU_Queue);
-	if (pkt->data_expecting_reply) {
-		frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
-	} else {
-		frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
-	}
-	/* convert the PDU into the MSTP Frame */
-	pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
-		mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
-		mstp_port->This_Station, (uint8_t *) & pkt->buffer[0], pkt->length);
+    (void) timeout;
+    if (Ringbuf_Empty(&poSharedData->PDU_Queue)) {
+        return 0;
+    }
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&poSharedData->PDU_Queue);
+    if (pkt->data_expecting_reply) {
+        frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+    } else {
+        frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+    }
+    /* convert the PDU into the MSTP Frame */
+    pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
+        mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
+        mstp_port->This_Station, (uint8_t *) & pkt->buffer[0], pkt->length);
     (void) Ringbuf_Pop(&poSharedData->PDU_Queue, NULL);
 
-	return pdu_len;
+    return pdu_len;
 }
 
 bool dlmstp_compare_data_expecting_reply(
-	    uint8_t * request_pdu,
-	    uint16_t request_pdu_len,
-	    uint8_t src_address,
-	    uint8_t * reply_pdu,
-	    uint16_t reply_pdu_len,
-	    uint8_t dest_address)
+    uint8_t * request_pdu,
+    uint16_t request_pdu_len,
+    uint8_t src_address,
+    uint8_t * reply_pdu,
+    uint16_t reply_pdu_len,
+    uint8_t dest_address)
 {
     uint16_t offset;
     /* One way to check the message is to compare NPDU
@@ -565,12 +559,11 @@ uint16_t MSTP_Get_Reply(
     bool matched = false;
     uint8_t frame_type = 0;
     struct mstp_pdu_packet *pkt;
-    SHARED_MSTP_DATA * poSharedData = (SHARED_MSTP_DATA*)mstp_port->UserData;
+    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 
-	if(!poSharedData)
-	{
-		return 0;
-	}
+    if (!poSharedData) {
+        return 0;
+    }
 
     if (Ringbuf_Empty(&poSharedData->PDU_Queue)) {
         return 0;
@@ -599,15 +592,15 @@ uint16_t MSTP_Get_Reply(
 }
 
 void dlmstp_set_mac_address(
-	void * poPort,
+    void *poPort,
     uint8_t mac_address)
 {
 /*	SHARED_MSTP_DATA * poSharedData; */
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return;
-	}
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return;
+    }
 /*
 	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 	if(!poSharedData)
@@ -617,7 +610,7 @@ void dlmstp_set_mac_address(
 */
     /* Master Nodes can only have address 0-127 */
     if (mac_address <= 127) {
-    	mstp_port->This_Station = mac_address;
+        mstp_port->This_Station = mac_address;
         /* FIXME: implement your data storage */
         /* I2C_Write_Byte(
            EEPROM_DEVICE_ADDRESS,
@@ -631,14 +624,14 @@ void dlmstp_set_mac_address(
 }
 
 uint8_t dlmstp_mac_address(
-	void * poPort)
+    void *poPort)
 {
 /*	SHARED_MSTP_DATA * poSharedData; */
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return 0;
-	}
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return 0;
+    }
 /*	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 	if(!poSharedData)
 	{
@@ -657,15 +650,15 @@ uint8_t dlmstp_mac_address(
 /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
 /* node, its value shall be 1. */
 void dlmstp_set_max_info_frames(
-	void * poPort,
+    void *poPort,
     uint8_t max_info_frames)
 {
 /*	SHARED_MSTP_DATA * poSharedData; */
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return;
-	}
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return;
+    }
 /*
 	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 	if(!poSharedData)
@@ -674,7 +667,7 @@ void dlmstp_set_max_info_frames(
 	}
 */
     if (max_info_frames >= 1) {
-    	mstp_port->Nmax_info_frames = max_info_frames;
+        mstp_port->Nmax_info_frames = max_info_frames;
         /* FIXME: implement your data storage */
         /* I2C_Write_Byte(
            EEPROM_DEVICE_ADDRESS,
@@ -686,14 +679,14 @@ void dlmstp_set_max_info_frames(
 }
 
 uint8_t dlmstp_max_info_frames(
-	void * poPort)
+    void *poPort)
 {
 /*	SHARED_MSTP_DATA * poSharedData; */
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return 0;
-	}
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return 0;
+    }
 /*
 	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 	if(!poSharedData)
@@ -710,15 +703,15 @@ uint8_t dlmstp_max_info_frames(
 /* less than or equal to 127. If Max_Master is not writable in a node, */
 /* its value shall be 127. */
 void dlmstp_set_max_master(
-	void * poPort,
+    void *poPort,
     uint8_t max_master)
 {
 /*	SHARED_MSTP_DATA * poSharedData; */
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return;
-	}
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return;
+    }
 /*
 	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 	if(!poSharedData)
@@ -728,7 +721,7 @@ void dlmstp_set_max_master(
 */
     if (max_master <= 127) {
         if (mstp_port->This_Station <= max_master) {
-        	mstp_port->Nmax_master = max_master;
+            mstp_port->Nmax_master = max_master;
             /* FIXME: implement your data storage */
             /* I2C_Write_Byte(
                EEPROM_DEVICE_ADDRESS,
@@ -741,14 +734,14 @@ void dlmstp_set_max_master(
 }
 
 uint8_t dlmstp_max_master(
-	void * poPort)
+    void *poPort)
 {
 /*	SHARED_MSTP_DATA * poSharedData; */
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return 0;
-	}
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return 0;
+    }
 /*
 	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
 	if(!poSharedData)
@@ -761,36 +754,35 @@ uint8_t dlmstp_max_master(
 
 /* RS485 Baud Rate 9600, 19200, 38400, 57600, 115200 */
 void dlmstp_set_baud_rate(
-	void * poPort,
+    void *poPort,
     uint32_t baud)
 {
-	SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return;
-	}
-	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return;
-	}
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return;
+    }
+    poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return;
+    }
 
     switch (baud) {
         case 9600:
-        	poSharedData->RS485_Baud = B9600;
+            poSharedData->RS485_Baud = B9600;
             break;
         case 19200:
-        	poSharedData->RS485_Baud = B19200;
+            poSharedData->RS485_Baud = B19200;
             break;
         case 38400:
-        	poSharedData->RS485_Baud = B38400;
+            poSharedData->RS485_Baud = B38400;
             break;
         case 57600:
-        	poSharedData->RS485_Baud = B57600;
+            poSharedData->RS485_Baud = B57600;
             break;
         case 115200:
-        	poSharedData->RS485_Baud = B115200;
+            poSharedData->RS485_Baud = B115200;
             break;
         default:
             break;
@@ -798,19 +790,18 @@ void dlmstp_set_baud_rate(
 }
 
 uint32_t dlmstp_baud_rate(
-	void * poPort)
+    void *poPort)
 {
-	SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return false;
-	}
-	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return false;
-	}
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return false;
+    }
+    poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return false;
+    }
 
     switch (poSharedData->RS485_Baud) {
         case B19200:
@@ -828,21 +819,20 @@ uint32_t dlmstp_baud_rate(
 }
 
 void dlmstp_get_my_address(
-	void * poPort,
+    void *poPort,
     BACNET_ADDRESS * my_address)
 {
     int i = 0;  /* counter */
-	SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t *) poPort;
-	if(!mstp_port)
-	{
-		return;
-	}
-	poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return;
-	}
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return;
+    }
+    poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return;
+    }
     my_address->mac_len = 1;
     my_address->mac[0] = mstp_port->This_Station;
     my_address->net = 0;        /* local only, no routing */
@@ -873,28 +863,30 @@ void dlmstp_get_broadcast_address(
 }
 
 bool dlmstp_init(
-	void * poPort,
+    void *poPort,
     char *ifname)
 {
     unsigned long hThread = 0;
     int rv = 0;
-    SHARED_MSTP_DATA * poSharedData;
-	struct mstp_port_struct_t * mstp_port = (struct mstp_port_struct_t*)poPort;
-	if(!mstp_port)
-	{
-		return false;
-	}
+    SHARED_MSTP_DATA *poSharedData;
+    struct mstp_port_struct_t *mstp_port =
+        (struct mstp_port_struct_t *) poPort;
+    if (!mstp_port) {
+        return false;
+    }
 
-	poSharedData = (SHARED_MSTP_DATA *) ((struct mstp_port_struct_t*)mstp_port)->UserData;
-	if(!poSharedData)
-	{
-		return false;
-	}
+    poSharedData =
+        (SHARED_MSTP_DATA *) ((struct mstp_port_struct_t *) mstp_port)->
+        UserData;
+    if (!poSharedData) {
+        return false;
+    }
 
-	poSharedData->RS485_Port_Name = ifname;
+    poSharedData->RS485_Port_Name = ifname;
     /* initialize PDU queue */
-    Ringbuf_Init(&poSharedData->PDU_Queue, (uint8_t *) & poSharedData->PDU_Buffer,
-        sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
+    Ringbuf_Init(&poSharedData->PDU_Queue,
+        (uint8_t *) & poSharedData->PDU_Buffer, sizeof(struct mstp_pdu_packet),
+        MSTP_PDU_PACKET_COUNT);
     /* initialize packet queue */
     poSharedData->Receive_Packet.ready = false;
     poSharedData->Receive_Packet.pdu_len = 0;
@@ -918,7 +910,9 @@ bool dlmstp_init(
        Open device for reading and writing.
        Blocking mode - more CPU effecient
      */
-    poSharedData->RS485_Handle = open(poSharedData->RS485_Port_Name, O_RDWR | O_NOCTTY | O_NONBLOCK/*| O_NDELAY */ );
+    poSharedData->RS485_Handle =
+        open(poSharedData->RS485_Port_Name,
+        O_RDWR | O_NOCTTY | O_NONBLOCK /*| O_NDELAY */ );
     if (poSharedData->RS485_Handle < 0) {
         perror(poSharedData->RS485_Port_Name);
         exit(-1);
@@ -941,7 +935,8 @@ bool dlmstp_init(
        CLOCAL  : local connection, no modem contol
        CREAD   : enable receiving characters
      */
-    newtio.c_cflag = poSharedData->RS485_Baud | poSharedData->RS485MOD | CLOCAL | CREAD;
+    newtio.c_cflag =
+        poSharedData->RS485_Baud | poSharedData->RS485MOD | CLOCAL | CREAD;
     /* Raw input */
     newtio.c_iflag = 0;
     /* Raw output */
@@ -954,7 +949,8 @@ bool dlmstp_init(
     usleep(200000);
     tcflush(poSharedData->RS485_Handle, TCIOFLUSH);
     /* ringbuffer */
-    FIFO_Init(&poSharedData->Rx_FIFO, poSharedData->Rx_Buffer, sizeof(poSharedData->Rx_Buffer));
+    FIFO_Init(&poSharedData->Rx_FIFO, poSharedData->Rx_Buffer,
+        sizeof(poSharedData->Rx_Buffer));
     printf("=success!\n");
     mstp_port->InputBuffer = &poSharedData->RxBuffer[0];
     mstp_port->InputBufferSize = sizeof(poSharedData->RxBuffer);
@@ -967,7 +963,8 @@ bool dlmstp_init(
 #if PRINT_ENABLED
     fprintf(stderr, "MS/TP MAC: %02X\n", mstp_port->This_Station);
     fprintf(stderr, "MS/TP Max_Master: %02X\n", mstp_port->Nmax_master);
-    fprintf(stderr, "MS/TP Max_Info_Frames: %u\n", mstp_port->Nmax_info_frames);
+    fprintf(stderr, "MS/TP Max_Info_Frames: %u\n",
+        mstp_port->Nmax_info_frames);
 #endif
 
     rv = pthread_create(&hThread, NULL, dlmstp_master_fsm_task, mstp_port);

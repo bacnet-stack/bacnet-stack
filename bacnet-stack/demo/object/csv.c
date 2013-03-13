@@ -357,8 +357,8 @@ int CharacterString_Value_Read_Property(
             break;
         case PROP_OUT_OF_SERVICE:
             object_index =
-                CharacterString_Value_Instance_To_Index(rpdata->
-                object_instance);
+                CharacterString_Value_Instance_To_Index
+                (rpdata->object_instance);
             state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -406,8 +406,8 @@ bool CharacterString_Value_Write_Property(
                 &wp_data->error_code);
             if (status) {
                 status =
-                    CharacterString_Value_Present_Value_Set(wp_data->
-                    object_instance, &value.type.Character_String);
+                    CharacterString_Value_Present_Value_Set
+                    (wp_data->object_instance, &value.type.Character_String);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -419,8 +419,8 @@ bool CharacterString_Value_Write_Property(
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                CharacterString_Value_Out_Of_Service_Set(wp_data->
-                    object_instance, value.type.Boolean);
+                CharacterString_Value_Out_Of_Service_Set
+                    (wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:

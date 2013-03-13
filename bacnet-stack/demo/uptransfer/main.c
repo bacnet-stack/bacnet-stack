@@ -152,7 +152,7 @@ int main(
         0
     };  /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 10;     /* milliseconds */
+    unsigned timeout = 10;      /* milliseconds */
     unsigned max_apdu = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
@@ -213,7 +213,7 @@ int main(
     if (strcmp(argv[1], "broadcast") == 0) {
         Target_Broadcast = true;
         Target_DNET = BACNET_BROADCAST_NETWORK;
-    } else if (strncmp(argv[1],"dnet=",5) == 0) {
+    } else if (strncmp(argv[1], "dnet=", 5) == 0) {
         Target_Broadcast = true;
         Target_DNET = strtol(&argv[1][5], NULL, 0);
     } else {
