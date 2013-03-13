@@ -2022,7 +2022,7 @@ void testBACDCodeUnsignedValue(
     uint8_t array[5] = { 0 };
     uint8_t encoded_array[5] = { 0 };
     uint32_t decoded_value = 0;
-    int len, apdu_len;
+    int len;
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -2040,9 +2040,8 @@ void testBACDCodeUnsignedValue(
     ct_test(pTest, memcmp(&array[0], &encoded_array[0], sizeof(array)) == 0);
     /* an unsigned will take up to 4 octects */
     /* plus a one octet for the tag */
-    apdu_len = encode_application_unsigned(&apdu[0], value);
+    encode_application_unsigned(&apdu[0], value);
     /* apdu_len varies... */
-    /*ct_test(pTest, apdu_len == 5); */
     len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
     ct_test(pTest, len == 1);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_UNSIGNED_INT);
@@ -2089,7 +2088,7 @@ void testBACDCodeSignedValue(
     uint8_t array[5] = { 0 };
     uint8_t encoded_array[5] = { 0 };
     int32_t decoded_value = 0;
-    int len = 0, apdu_len = 0;
+    int len = 0;
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -2116,7 +2115,7 @@ void testBACDCodeSignedValue(
     }
     /* a signed int will take up to 4 octects */
     /* plus a one octet for the tag */
-    apdu_len = encode_application_signed(&apdu[0], value);
+    encode_application_signed(&apdu[0], value);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_SIGNED_INT);
     ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == false);
