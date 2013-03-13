@@ -121,6 +121,7 @@ void handler_write_property_multiple(
 #endif
                         if (Device_Write_Property(&wp_data) == false) {
                             error = true;
+                            len = BACNET_STATUS_ERROR;
                             goto WPM_ABORT;
                         }
                     } else {
