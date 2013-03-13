@@ -125,7 +125,7 @@ extern "C" {
  * These BIBBs prescribe the BACnet capabilities required to interoperably
  * perform the data sharing functions enumerated in 22.2.1.1 for the BACnet
  * devices defined therein.
-                      *//** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
+                                              *//** @defgroup DSRP Data Sharing -Read Property Service (DS-RP)
  * @ingroup DataShare
  * 15.5 ReadProperty Service <br>
  * The ReadProperty service is used by a client BACnet-user to request the

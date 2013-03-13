@@ -97,7 +97,7 @@ uint8_t Send_Private_Transfer_Request(
                 block->cMyByte2);
             len +=
                 encode_application_real(&pt_req_buffer[len], block->fMyReal);
-            characterstring_init_ansi(&bsTemp, (char *)block->sMyString);
+            characterstring_init_ansi(&bsTemp, (char *) block->sMyString);
             len +=
                 encode_application_character_string(&pt_req_buffer[len],
                 &bsTemp);

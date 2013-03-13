@@ -223,10 +223,10 @@ void rpm_ack_extract_data(
             } else {
                 /* AccessError */
                 sprintf(ackString, "BACnet Error: %s: %s",
-                    bactext_error_class_name((int) listOfProperties->error.
-                        error_class),
-                    bactext_error_code_name((int) listOfProperties->error.
-                        error_code));
+                    bactext_error_class_name((int) listOfProperties->
+                        error.error_class),
+                    bactext_error_code_name((int) listOfProperties->
+                        error.error_code));
                 LogError(ackString);
             }
             listOfProperties = listOfProperties->next;

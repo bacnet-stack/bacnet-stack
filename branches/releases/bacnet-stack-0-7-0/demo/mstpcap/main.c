@@ -823,7 +823,7 @@ int main(
             if (test_global_header(argv[2])) {
                 while (read_received_packet(mstp_port)) {
                     packet_count++;
-                    fprintf(stderr, "\r%u packets", (unsigned)packet_count);
+                    fprintf(stderr, "\r%u packets", (unsigned) packet_count);
                 }
                 if (packet_count) {
                     packet_statistics_print();

@@ -130,7 +130,8 @@ static int32_t Property_List[MAX_PROPS + 2];
 #define INIT_ID_PROPLIST_SIZE 5
 /* Define Enums to match the property and value arrays below */
 enum init_ids { INIT_VENDOR_NAME, INIT_MODEL_NAME, INIT_DESCRIPTION,
-        INIT_OBJ_TYPES };
+    INIT_OBJ_TYPES
+};
 static int32_t InitIdPropList[INIT_ID_PROPLIST_SIZE] = {
     PROP_VENDOR_NAME,
     PROP_MODEL_NAME,    /* Have to use this twice, for Model Name and Number */
@@ -1504,11 +1505,11 @@ int main(
                     (Request_Invoke_ID ==
                         Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
-                    PrintReadPropertyData
-                        (Read_Property_Multiple_Data.rpm_data->object_type,
+                    PrintReadPropertyData(Read_Property_Multiple_Data.
+                        rpm_data->object_type,
                         Read_Property_Multiple_Data.rpm_data->object_instance,
-                        Read_Property_Multiple_Data.
-                        rpm_data->listOfProperties);
+                        Read_Property_Multiple_Data.rpm_data->
+                        listOfProperties);
                     if (tsm_invoke_id_free(Request_Invoke_ID)) {
                         Request_Invoke_ID = 0;
                     } else {
