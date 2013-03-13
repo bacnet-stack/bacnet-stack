@@ -62,9 +62,6 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-
-
-
 void handler_write_property_multiple(
     uint8_t * service_request,
     uint16_t service_len,
@@ -81,8 +78,6 @@ void handler_write_property_multiple(
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
     int bytes_sent = 0;
-
-
 
     if (service_data->segmented_message) {
         wp_data.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -168,7 +163,6 @@ void handler_write_property_multiple(
     npdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
         &npdu_data);
-
     apdu_len = 0;
     /* handle any errors */
     if (error) {
@@ -181,10 +175,10 @@ void handler_write_property_multiple(
             fprintf(stderr, "WPM: Sending Abort!\n");
 #endif
         } else if (len == BACNET_STATUS_ERROR) {
-            apdu_len =
-                bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
-                wp_data.error_class, wp_data.error_code);
+            apdu_len = wpm_error_ack_encode_apdu(
+                &Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id,
+                &wp_data);
 #if PRINT_ENABLED
             fprintf(stderr, "WPM: Sending Error!\n");
 #endif
@@ -210,4 +204,11 @@ void handler_write_property_multiple(
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0) {
+        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+    }
+#else
+    bytes_sent = bytes_sent;
+#endif
 }
