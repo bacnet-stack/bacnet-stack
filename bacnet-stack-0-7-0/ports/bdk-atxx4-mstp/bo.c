@@ -446,8 +446,8 @@ bool Binary_Output_Write_Property(
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
-                        Binary_Output_Present_Value_Set(wp_data->
-                            object_instance, level, priority);
+                        Binary_Output_Present_Value_Set
+                            (wp_data->object_instance, level, priority);
                     } else if (priority == 6) {
                         status = false;
                         /* Command priority 6 is reserved for use by Minimum On/Off

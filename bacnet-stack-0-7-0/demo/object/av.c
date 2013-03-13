@@ -424,11 +424,11 @@ int Analog_Value_Read_Property(
         case PROP_LIMIT_ENABLE:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, 0,
-                (CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) ? true :
-                false);
+                (CurrentAV->
+                    Limit_Enable & EVENT_LOW_LIMIT_ENABLE) ? true : false);
             bitstring_set_bit(&bit_string, 1,
-                (CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ? true :
-                false);
+                (CurrentAV->
+                    Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ? true : false);
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -436,14 +436,14 @@ int Analog_Value_Read_Property(
         case PROP_EVENT_ENABLE:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL,
-                (CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ? true :
-                false);
+                (CurrentAV->
+                    Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ? true : false);
             bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,
-                (CurrentAV->Event_Enable & EVENT_ENABLE_TO_FAULT) ? true :
-                false);
+                (CurrentAV->
+                    Event_Enable & EVENT_ENABLE_TO_FAULT) ? true : false);
             bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,
-                (CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) ? true :
-                false);
+                (CurrentAV->
+                    Event_Enable & EVENT_ENABLE_TO_NORMAL) ? true : false);
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -451,8 +451,8 @@ int Analog_Value_Read_Property(
         case PROP_ACKED_TRANSITIONS:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, TRANSITION_TO_OFFNORMAL,
-                CurrentAV->
-                Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked);
+                CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+                bIsAcked);
             bitstring_set_bit(&bit_string, TRANSITION_TO_FAULT,
                 CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked);
             bitstring_set_bit(&bit_string, TRANSITION_TO_NORMAL,
@@ -735,7 +735,7 @@ bool Analog_Value_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
 
             if (status) {
-                switch ((BACNET_NOTIFY_TYPE)value.type.Enumerated) {
+                switch ((BACNET_NOTIFY_TYPE) value.type.Enumerated) {
                     case NOTIFY_EVENT:
                         CurrentAV->Notify_Type = 1;
                         break;
@@ -1017,17 +1017,17 @@ void Analog_Value_Intrinsic_Reporting(
             event_data.notificationParams.outOfRange.exceedingValue =
                 PresentVal;
             /* Status_Flags of the referenced object. */
-            bitstring_init(&event_data.notificationParams.
-                outOfRange.statusFlags);
-            bitstring_set_bit(&event_data.notificationParams.
-                outOfRange.statusFlags, STATUS_FLAG_IN_ALARM,
+            bitstring_init(&event_data.notificationParams.outOfRange.
+                statusFlags);
+            bitstring_set_bit(&event_data.notificationParams.outOfRange.
+                statusFlags, STATUS_FLAG_IN_ALARM,
                 CurrentAV->Event_State ? true : false);
-            bitstring_set_bit(&event_data.notificationParams.
-                outOfRange.statusFlags, STATUS_FLAG_FAULT, false);
-            bitstring_set_bit(&event_data.notificationParams.
-                outOfRange.statusFlags, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&event_data.notificationParams.
-                outOfRange.statusFlags, STATUS_FLAG_OUT_OF_SERVICE,
+            bitstring_set_bit(&event_data.notificationParams.outOfRange.
+                statusFlags, STATUS_FLAG_FAULT, false);
+            bitstring_set_bit(&event_data.notificationParams.outOfRange.
+                statusFlags, STATUS_FLAG_OVERRIDDEN, false);
+            bitstring_set_bit(&event_data.notificationParams.outOfRange.
+                statusFlags, STATUS_FLAG_OUT_OF_SERVICE,
                 CurrentAV->Out_Of_Service);
             /* Deadband used for limit checking. */
             event_data.notificationParams.outOfRange.deadband =
@@ -1047,30 +1047,24 @@ void Analog_Value_Intrinsic_Reporting(
                 case EVENT_STATE_OFFNORMAL:
                 case EVENT_STATE_HIGH_LIMIT:
                 case EVENT_STATE_LOW_LIMIT:
-                    CurrentAV->
-                        Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked =
-                        false;
-                    CurrentAV->
-                        Acked_Transitions[TRANSITION_TO_OFFNORMAL].Time_Stamp =
-                        event_data.timeStamp.value.dateTime;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+                        bIsAcked = false;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+                        Time_Stamp = event_data.timeStamp.value.dateTime;
                     break;
 
                 case EVENT_STATE_FAULT:
-                    CurrentAV->
-                        Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
-                        false;
-                    CurrentAV->
-                        Acked_Transitions[TRANSITION_TO_FAULT].Time_Stamp =
-                        event_data.timeStamp.value.dateTime;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].
+                        bIsAcked = false;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].
+                        Time_Stamp = event_data.timeStamp.value.dateTime;
                     break;
 
                 case EVENT_STATE_NORMAL:
-                    CurrentAV->
-                        Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
-                        false;
-                    CurrentAV->
-                        Acked_Transitions[TRANSITION_TO_NORMAL].Time_Stamp =
-                        event_data.timeStamp.value.dateTime;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].
+                        bIsAcked = false;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].
+                        Time_Stamp = event_data.timeStamp.value.dateTime;
                     break;
             }
         }
@@ -1097,12 +1091,12 @@ int Analog_Value_Event_Information(
         /* Acked_Transitions property, which has at least one of the bits
            (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
         IsNotAckedTransitions =
-            (AV_Descr[index].
-            Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked ==
-            false) | (AV_Descr[index].
-            Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
-            false) | (AV_Descr[index].
-            Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked == false);
+            (AV_Descr[index].Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+            bIsAcked ==
+            false) | (AV_Descr[index].Acked_Transitions[TRANSITION_TO_FAULT].
+            bIsAcked ==
+            false) | (AV_Descr[index].Acked_Transitions[TRANSITION_TO_NORMAL].
+            bIsAcked == false);
     } else
         return -1;      /* end of list  */
 
@@ -1117,8 +1111,8 @@ int Analog_Value_Event_Information(
         bitstring_init(&getevent_data->acknowledgedTransitions);
         bitstring_set_bit(&getevent_data->acknowledgedTransitions,
             TRANSITION_TO_OFFNORMAL,
-            AV_Descr[index].
-            Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked);
+            AV_Descr[index].Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+            bIsAcked);
         bitstring_set_bit(&getevent_data->acknowledgedTransitions,
             TRANSITION_TO_FAULT,
             AV_Descr[index].Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked);
@@ -1136,14 +1130,14 @@ int Analog_Value_Event_Information(
         /* Event Enable */
         bitstring_init(&getevent_data->eventEnable);
         bitstring_set_bit(&getevent_data->eventEnable, TRANSITION_TO_OFFNORMAL,
-            (AV_Descr[index].Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ? true :
-            false);
+            (AV_Descr[index].
+                Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ? true : false);
         bitstring_set_bit(&getevent_data->eventEnable, TRANSITION_TO_FAULT,
-            (AV_Descr[index].Event_Enable & EVENT_ENABLE_TO_FAULT) ? true :
-            false);
+            (AV_Descr[index].
+                Event_Enable & EVENT_ENABLE_TO_FAULT) ? true : false);
         bitstring_set_bit(&getevent_data->eventEnable, TRANSITION_TO_NORMAL,
-            (AV_Descr[index].Event_Enable & EVENT_ENABLE_TO_NORMAL) ? true :
-            false);
+            (AV_Descr[index].
+                Event_Enable & EVENT_ENABLE_TO_NORMAL) ? true : false);
         /* Event Priorities */
         Notification_Class_Get_Priorities(AV_Descr[index].Notification_Class,
             getevent_data->eventPriorities);
@@ -1162,8 +1156,8 @@ int Analog_Value_Alarm_Ack(
 
 
     object_index =
-        Analog_Value_Instance_To_Index(alarmack_data->
-        eventObjectIdentifier.instance);
+        Analog_Value_Instance_To_Index(alarmack_data->eventObjectIdentifier.
+        instance);
 
     if (object_index < MAX_ANALOG_VALUES)
         CurrentAV = &AV_Descr[object_index];
@@ -1176,22 +1170,22 @@ int Analog_Value_Alarm_Ack(
         case EVENT_STATE_OFFNORMAL:
         case EVENT_STATE_HIGH_LIMIT:
         case EVENT_STATE_LOW_LIMIT:
-            if (CurrentAV->
-                Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked == false) {
+            if (CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+                bIsAcked == false) {
                 if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-                if (datetime_compare(&CurrentAV->Acked_Transitions
-                        [TRANSITION_TO_OFFNORMAL].Time_Stamp,
+                if (datetime_compare(&CurrentAV->
+                        Acked_Transitions[TRANSITION_TO_OFFNORMAL].Time_Stamp,
                         &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
 
                 /* Clean transitions flag. */
-                CurrentAV->
-                    Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked = true;
+                CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+                    bIsAcked = true;
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1205,8 +1199,8 @@ int Analog_Value_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-                if (datetime_compare(&CurrentAV->Acked_Transitions
-                        [TRANSITION_TO_NORMAL].Time_Stamp,
+                if (datetime_compare(&CurrentAV->
+                        Acked_Transitions[TRANSITION_TO_NORMAL].Time_Stamp,
                         &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
@@ -1228,8 +1222,8 @@ int Analog_Value_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-                if (datetime_compare(&CurrentAV->Acked_Transitions
-                        [TRANSITION_TO_FAULT].Time_Stamp,
+                if (datetime_compare(&CurrentAV->
+                        Acked_Transitions[TRANSITION_TO_FAULT].Time_Stamp,
                         &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
@@ -1277,16 +1271,16 @@ int Analog_Value_Alarm_Summary(
             bitstring_init(&getalarm_data->acknowledgedTransitions);
             bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
                 TRANSITION_TO_OFFNORMAL,
-                AV_Descr[index].
-                Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked);
+                AV_Descr[index].Acked_Transitions[TRANSITION_TO_OFFNORMAL].
+                bIsAcked);
             bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
                 TRANSITION_TO_FAULT,
-                AV_Descr[index].Acked_Transitions[TRANSITION_TO_FAULT].
-                bIsAcked);
+                AV_Descr[index].
+                Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked);
             bitstring_set_bit(&getalarm_data->acknowledgedTransitions,
                 TRANSITION_TO_NORMAL,
-                AV_Descr[index].Acked_Transitions[TRANSITION_TO_NORMAL].
-                bIsAcked);
+                AV_Descr[index].
+                Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked);
 
             return 1;   /* active alarm */
         } else

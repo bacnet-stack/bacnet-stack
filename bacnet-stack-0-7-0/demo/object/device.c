@@ -1454,8 +1454,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -1488,8 +1488,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* FIXME: bounds check? */
-                Device_Set_Vendor_Identifier((uint16_t) value.type.
-                    Unsigned_Int);
+                Device_Set_Vendor_Identifier((uint16_t) value.
+                    type.Unsigned_Int);
             }
             break;
         case PROP_SYSTEM_STATUS:
@@ -1535,8 +1535,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_LOC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Location(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Location(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1546,8 +1546,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_DESC_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Description(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Description(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1556,8 +1556,8 @@ bool Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_MOD_LEN, true,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Device_Set_Model_Name(characterstring_value(&value.type.
-                        Character_String),
+                Device_Set_Model_Name(characterstring_value(&value.
+                        type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }
             break;
@@ -1569,8 +1569,8 @@ bool Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
-                    dlmstp_set_max_info_frames((uint8_t) value.type.
-                        Unsigned_Int);
+                    dlmstp_set_max_info_frames((uint8_t) value.
+                        type.Unsigned_Int);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
