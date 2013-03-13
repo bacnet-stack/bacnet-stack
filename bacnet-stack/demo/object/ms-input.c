@@ -783,6 +783,15 @@ bool Multistate_Input_Write_Property(
 #include <string.h>
 #include "ctest.h"
 
+
+bool Device_Valid_Object_Name(
+    BACNET_CHARACTER_STRING * object_name,
+    int *object_type,
+    uint32_t * object_instance)
+{
+    return true;
+}
+
 bool WPValidateArgType(
     BACNET_APPLICATION_DATA_VALUE * pValue,
     uint8_t ucExpectedTag,
