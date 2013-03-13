@@ -316,13 +316,13 @@ static void packet_statistics_clear(
 }
 
 static uint32_t Timer_Silence(
-	void * pArg)
+    void *pArg)
 {
     return timer_milliseconds(TIMER_SILENCE);
 }
 
 static void Timer_Silence_Reset(
-	void * pArg)
+    void *pArg)
 {
     timer_reset(TIMER_SILENCE);
 }
@@ -823,7 +823,7 @@ int main(
             if (test_global_header(argv[2])) {
                 while (read_received_packet(mstp_port)) {
                     packet_count++;
-                    fprintf(stderr, "\r%u packets", (unsigned)packet_count);
+                    fprintf(stderr, "\r%u packets", (unsigned) packet_count);
                 }
                 if (packet_count) {
                     packet_statistics_print();

@@ -66,7 +66,7 @@ bool bacnet_address_same(
     uint8_t i = 0;      /* loop counter */
     uint8_t max_len = 0;        /* used for dynamic max */
 
-    if (dest == src) /* same ? */
+    if (dest == src)    /* same ? */
         return true;
 
     if (dest->net != src->net)
@@ -82,8 +82,7 @@ bool bacnet_address_same(
         if (dest->adr[i] != src->adr[i])
             return false;
     }
-    if (dest->net == 0)
-    {
+    if (dest->net == 0) {
         if (dest->mac_len != src->mac_len)
             return false;
         max_len = dest->mac_len;

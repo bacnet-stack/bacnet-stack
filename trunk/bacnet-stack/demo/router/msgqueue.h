@@ -32,54 +32,55 @@ extern pthread_mutex_t msg_lock;
 typedef int MSGBOX_ID;
 
 typedef enum {
-	DATA,
-	SERVICE
+    DATA,
+    SERVICE
 } MSGTYPE;
 
 typedef enum {
-	SHUTDOWN,
-	CHG_IP,
-	CHG_MAC
+    SHUTDOWN,
+    CHG_IP,
+    CHG_MAC
 } MSGSUBTYPE;
 
 typedef struct _message {
-	MSGBOX_ID origin;
-	MSGTYPE type;
-	MSGSUBTYPE subtype;
-	void *data;
-	/* add timestamp */
+    MSGBOX_ID origin;
+    MSGTYPE type;
+    MSGSUBTYPE subtype;
+    void *data;
+    /* add timestamp */
 } BACMSG;
 
 /* specific message type data structures */
 typedef struct _msg_data {
-	BACNET_ADDRESS dest;
-	BACNET_ADDRESS src;
-	uint8_t *pdu;
-	uint16_t pdu_len;
-	uint8_t ref_count;
+    BACNET_ADDRESS dest;
+    BACNET_ADDRESS src;
+    uint8_t *pdu;
+    uint16_t pdu_len;
+    uint8_t ref_count;
 } MSG_DATA;
 
-MSGBOX_ID create_msgbox();
+MSGBOX_ID create_msgbox(
+    );
 
 /* returns sent byte count */
 bool send_to_msgbox(
-		MSGBOX_ID dest,
-		BACMSG *msg);
+    MSGBOX_ID dest,
+    BACMSG * msg);
 
 /* returns received message */
-BACMSG* recv_from_msgbox(
-		MSGBOX_ID src,
-		BACMSG *msg);
+BACMSG *recv_from_msgbox(
+    MSGBOX_ID src,
+    BACMSG * msg);
 
 void del_msgbox(
-		MSGBOX_ID msgboxid);
+    MSGBOX_ID msgboxid);
 
 /* free message data structure */
 void free_data(
-		MSG_DATA *data);
+    MSG_DATA * data);
 
 /* check message reference counter and delete data if needed */
 void check_data(
-		MSG_DATA *data);
+    MSG_DATA * data);
 
 #endif /* end of MSGQUEUE_H */

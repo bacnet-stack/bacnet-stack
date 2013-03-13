@@ -46,9 +46,9 @@
  * smaller devices.
  */
 #ifdef LARGE_MEMORY
-#  define ADDR_T unsigned long
+#define ADDR_T unsigned long
 #else /* !LARGE_MEMORY */
-#  define ADDR_T unsigned int
+#define ADDR_T unsigned int
 #endif /* LARGE_MEMORY */
 
 #ifndef REMOVE_BLOCK_SUPPORT

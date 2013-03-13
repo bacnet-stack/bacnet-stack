@@ -54,8 +54,8 @@
 #include <termios.h>
 #include <unistd.h>
 #include <sched.h>
-#include <linux/serial.h> /* for struct serial_struct */
-#include <math.h> /* for calculation of custom divisor */
+#include <linux/serial.h>       /* for struct serial_struct */
+#include <math.h>       /* for calculation of custom divisor */
 #include <sys/ioctl.h>
 
 /* Local includes */
@@ -187,8 +187,8 @@ uint32_t RS485_Get_Baud_Rate(
             break;
         case B38400:
             if (!RS485_SpecBaud) {
-               /* Linux asks for custom divisor
-                only when baud is set on 38400 */
+                /* Linux asks for custom divisor
+                   only when baud is set on 38400 */
                 baud = 38400;
             } else {
                 baud = 76800;
@@ -217,14 +217,13 @@ uint32_t RS485_Get_Baud_Rate(
 * NOTES:       none
 *****************************************************************************/
 uint32_t RS485_Get_Port_Baud_Rate(
-	volatile struct mstp_port_struct_t *mstp_port)
+    volatile struct mstp_port_struct_t * mstp_port)
 {
     uint32_t baud = 0;
-    SHARED_MSTP_DATA * poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		return 0;
-	}
+    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        return 0;
+    }
     switch (poSharedData->RS485_Baud) {
         case B0:
             baud = 0;
@@ -387,66 +386,63 @@ void RS485_Send_Frame(
     volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
     uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
-{	    /* number of bytes of data (up to 501) */
+{       /* number of bytes of data (up to 501) */
     uint32_t turnaround_time = Tturnaround * 1000;
     uint32_t baud;
     ssize_t written = 0;
     int greska;
-    SHARED_MSTP_DATA * poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-	    baud = RS485_Get_Baud_Rate();
-	   /* sleeping for turnaround time is necessary to give other devices
-		   time to change from sending to receiving state. */
-		usleep(turnaround_time / baud);
-		/*
-		   On  success,  the  number of bytes written are returned (zero indicates
-		   nothing was written).  On error, -1  is  returned,  and  errno  is  set
-		   appropriately.   If  count  is zero and the file descriptor refers to a
-		   regular file, 0 will be returned without causing any other effect.  For
-		   a special file, the results are not portable.
-		 */
-		written = write(RS485_Handle, buffer, nbytes);
-		greska = errno;
-		if (written <= 0) {
-			printf("write error: %s\n", strerror(greska));
-		} else {
-			/* wait until all output has been transmitted. */
-			tcdrain(RS485_Handle);
-		}
-		/*  tcdrain(RS485_Handle); */
-		/* per MSTP spec, sort of */
-		if (mstp_port) {
-			mstp_port->SilenceTimerReset((void*)mstp_port);
-		}
-   	}
-	else
-	{
-		baud = RS485_Get_Port_Baud_Rate(mstp_port);
-	   /* sleeping for turnaround time is necessary to give other devices
-		   time to change from sending to receiving state. */
-		usleep(turnaround_time / baud);
-		/*
-		   On  success,  the  number of bytes written are returned (zero indicates
-		   nothing was written).  On error, -1  is  returned,  and  errno  is  set
-		   appropriately.   If  count  is zero and the file descriptor refers to a
-		   regular file, 0 will be returned without causing any other effect.  For
-		   a special file, the results are not portable.
-		 */
-		written = write(poSharedData->RS485_Handle, buffer, nbytes);
-		greska = errno;
-		if (written <= 0) {
-			printf("write error: %s\n", strerror(greska));
-		} else {
-			/* wait until all output has been transmitted. */
-			tcdrain(poSharedData->RS485_Handle);
-		}
-		/*  tcdrain(RS485_Handle); */
-		/* per MSTP spec, sort of */
-		if (mstp_port) {
-			mstp_port->SilenceTimerReset((void*)mstp_port);
-		}
-	}
+    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        baud = RS485_Get_Baud_Rate();
+        /* sleeping for turnaround time is necessary to give other devices
+           time to change from sending to receiving state. */
+        usleep(turnaround_time / baud);
+        /*
+           On  success,  the  number of bytes written are returned (zero indicates
+           nothing was written).  On error, -1  is  returned,  and  errno  is  set
+           appropriately.   If  count  is zero and the file descriptor refers to a
+           regular file, 0 will be returned without causing any other effect.  For
+           a special file, the results are not portable.
+         */
+        written = write(RS485_Handle, buffer, nbytes);
+        greska = errno;
+        if (written <= 0) {
+            printf("write error: %s\n", strerror(greska));
+        } else {
+            /* wait until all output has been transmitted. */
+            tcdrain(RS485_Handle);
+        }
+        /*  tcdrain(RS485_Handle); */
+        /* per MSTP spec, sort of */
+        if (mstp_port) {
+            mstp_port->SilenceTimerReset((void *) mstp_port);
+        }
+    } else {
+        baud = RS485_Get_Port_Baud_Rate(mstp_port);
+        /* sleeping for turnaround time is necessary to give other devices
+           time to change from sending to receiving state. */
+        usleep(turnaround_time / baud);
+        /*
+           On  success,  the  number of bytes written are returned (zero indicates
+           nothing was written).  On error, -1  is  returned,  and  errno  is  set
+           appropriately.   If  count  is zero and the file descriptor refers to a
+           regular file, 0 will be returned without causing any other effect.  For
+           a special file, the results are not portable.
+         */
+        written = write(poSharedData->RS485_Handle, buffer, nbytes);
+        greska = errno;
+        if (written <= 0) {
+            printf("write error: %s\n", strerror(greska));
+        } else {
+            /* wait until all output has been transmitted. */
+            tcdrain(poSharedData->RS485_Handle);
+        }
+        /*  tcdrain(RS485_Handle); */
+        /* per MSTP spec, sort of */
+        if (mstp_port) {
+            mstp_port->SilenceTimerReset((void *) mstp_port);
+        }
+    }
 
     return;
 }
@@ -465,75 +461,73 @@ void RS485_Check_UART_Data(
     uint8_t buf[2048];
     int n;
 
-    SHARED_MSTP_DATA * poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
-	if(!poSharedData)
-	{
-		if (mstp_port->ReceiveError == true) {
-			/* do nothing but wait for state machine to clear the error */
-			/* burning time, so wait a longer time */
-			waiter.tv_sec = 0;
-			waiter.tv_usec = 5000;
-		} else if (mstp_port->DataAvailable == false) {
-			/* wait for state machine to read from the DataRegister */
-			if (FIFO_Count(&Rx_FIFO) > 0) {
-				/* data is available */
-				mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
-				mstp_port->DataAvailable = true;
-				/* FIFO is giving data - don't wait very long */
-				waiter.tv_sec = 0;
-				waiter.tv_usec = 10;
-			} else {
-				/* FIFO is empty - wait a longer time */
-				waiter.tv_sec = 0;
-				waiter.tv_usec = 5000;
-			}
-		}
-		/* grab bytes and stuff them into the FIFO every time */
-		FD_ZERO(&input);
-		FD_SET(RS485_Handle, &input);
-		n = select(RS485_Handle + 1, &input, NULL, NULL, &waiter);
-		if (n < 0) {
-			return;
-		}
-		if (FD_ISSET(RS485_Handle, &input)) {
-			n = read(RS485_Handle, buf, sizeof(buf));
-			FIFO_Add(&Rx_FIFO, &buf[0], n);
-		}
-	}
-	else
-	{
-		if (mstp_port->ReceiveError == true) {
-			/* do nothing but wait for state machine to clear the error */
-			/* burning time, so wait a longer time */
-			waiter.tv_sec = 0;
-			waiter.tv_usec = 5000;
-		} else if (mstp_port->DataAvailable == false) {
-			/* wait for state machine to read from the DataRegister */
-			if (FIFO_Count(&poSharedData->Rx_FIFO) > 0) {
-				/* data is available */
-				mstp_port->DataRegister = FIFO_Get(&poSharedData->Rx_FIFO);
-				mstp_port->DataAvailable = true;
-				/* FIFO is giving data - don't wait very long */
-				waiter.tv_sec = 0;
-				waiter.tv_usec = 10;
-			} else {
-				/* FIFO is empty - wait a longer time */
-				waiter.tv_sec = 0;
-				waiter.tv_usec = 5000;
-			}
-		}
-		/* grab bytes and stuff them into the FIFO every time */
-		FD_ZERO(&input);
-		FD_SET(poSharedData->RS485_Handle, &input);
-		n = select(poSharedData->RS485_Handle + 1, &input, NULL, NULL, &waiter);
-		if (n < 0) {
-			return;
-		}
-		if (FD_ISSET(poSharedData->RS485_Handle, &input)) {
-			n = read(poSharedData->RS485_Handle, buf, sizeof(buf));
-			FIFO_Add(&poSharedData->Rx_FIFO, &buf[0], n);
-		}
-	}
+    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    if (!poSharedData) {
+        if (mstp_port->ReceiveError == true) {
+            /* do nothing but wait for state machine to clear the error */
+            /* burning time, so wait a longer time */
+            waiter.tv_sec = 0;
+            waiter.tv_usec = 5000;
+        } else if (mstp_port->DataAvailable == false) {
+            /* wait for state machine to read from the DataRegister */
+            if (FIFO_Count(&Rx_FIFO) > 0) {
+                /* data is available */
+                mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
+                mstp_port->DataAvailable = true;
+                /* FIFO is giving data - don't wait very long */
+                waiter.tv_sec = 0;
+                waiter.tv_usec = 10;
+            } else {
+                /* FIFO is empty - wait a longer time */
+                waiter.tv_sec = 0;
+                waiter.tv_usec = 5000;
+            }
+        }
+        /* grab bytes and stuff them into the FIFO every time */
+        FD_ZERO(&input);
+        FD_SET(RS485_Handle, &input);
+        n = select(RS485_Handle + 1, &input, NULL, NULL, &waiter);
+        if (n < 0) {
+            return;
+        }
+        if (FD_ISSET(RS485_Handle, &input)) {
+            n = read(RS485_Handle, buf, sizeof(buf));
+            FIFO_Add(&Rx_FIFO, &buf[0], n);
+        }
+    } else {
+        if (mstp_port->ReceiveError == true) {
+            /* do nothing but wait for state machine to clear the error */
+            /* burning time, so wait a longer time */
+            waiter.tv_sec = 0;
+            waiter.tv_usec = 5000;
+        } else if (mstp_port->DataAvailable == false) {
+            /* wait for state machine to read from the DataRegister */
+            if (FIFO_Count(&poSharedData->Rx_FIFO) > 0) {
+                /* data is available */
+                mstp_port->DataRegister = FIFO_Get(&poSharedData->Rx_FIFO);
+                mstp_port->DataAvailable = true;
+                /* FIFO is giving data - don't wait very long */
+                waiter.tv_sec = 0;
+                waiter.tv_usec = 10;
+            } else {
+                /* FIFO is empty - wait a longer time */
+                waiter.tv_sec = 0;
+                waiter.tv_usec = 5000;
+            }
+        }
+        /* grab bytes and stuff them into the FIFO every time */
+        FD_ZERO(&input);
+        FD_SET(poSharedData->RS485_Handle, &input);
+        n = select(poSharedData->RS485_Handle + 1, &input, NULL, NULL,
+            &waiter);
+        if (n < 0) {
+            return;
+        }
+        if (FD_ISSET(poSharedData->RS485_Handle, &input)) {
+            n = read(poSharedData->RS485_Handle, buf, sizeof(buf));
+            FIFO_Add(&poSharedData->Rx_FIFO, &buf[0], n);
+        }
+    }
 }
 
 void RS485_Cleanup(
@@ -541,7 +535,7 @@ void RS485_Cleanup(
 {
     /* restore the old port settings */
     tcsetattr(RS485_Handle, TCSANOW, &RS485_oldtio);
-    ioctl (RS485_Handle, TIOCSSERIAL, &RS485_oldserial);
+    ioctl(RS485_Handle, TIOCSSERIAL, &RS485_oldserial);
     close(RS485_Handle);
 }
 
@@ -573,9 +567,9 @@ void RS485_Initialize(
     /* save current serial port settings */
     tcgetattr(RS485_Handle, &RS485_oldtio);
     /* we read the old serial setup */
-    ioctl (RS485_Handle, TIOCGSERIAL, &RS485_oldserial);
+    ioctl(RS485_Handle, TIOCGSERIAL, &RS485_oldserial);
     /* we need a copy of existing settings */
-    memcpy (&newserial, &RS485_oldserial, sizeof (struct serial_struct));
+    memcpy(&newserial, &RS485_oldserial, sizeof(struct serial_struct));
     /* clear struct for new port settings */
     bzero(&newtio, sizeof(newtio));
     /*
@@ -599,19 +593,21 @@ void RS485_Initialize(
         /* 76800, custom divisor must be set */
         newserial.flags |= ASYNC_SPD_CUST;
         newserial.custom_divisor =
-            round (((float)newserial.baud_base)/76800);
+            round(((float) newserial.baud_base) / 76800);
         /* we must check that we calculated some sane value;
-            small baud bases yield bad custom divisor values */
-        baud_error = fabs (1 -((float)newserial.baud_base)/
-            ((float)newserial.custom_divisor)/76800);
+           small baud bases yield bad custom divisor values */
+        baud_error =
+            fabs(1 -
+            ((float) newserial.baud_base) /
+            ((float) newserial.custom_divisor) / 76800);
         if ((newserial.custom_divisor == 0) || (baud_error > 0.02)) {
             /* bad divisor */
-            fprintf (stderr, "bad custom divisor %d, base baud %d\n",
+            fprintf(stderr, "bad custom divisor %d, base baud %d\n",
                 newserial.custom_divisor, newserial.baud_base);
-            exit (EXIT_FAILURE);
+            exit(EXIT_FAILURE);
         }
         /* if all goes well, set new divisor */
-        ioctl (RS485_Handle, TIOCSSERIAL, &newserial);
+        ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
     }
 
     /* destructor */

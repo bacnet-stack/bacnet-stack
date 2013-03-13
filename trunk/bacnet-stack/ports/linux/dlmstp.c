@@ -100,7 +100,7 @@ static uint8_t Tusage_timeout = 60;
 static struct timeval start;
 
 static uint32_t Timer_Silence(
-	void * pArg)
+    void *pArg)
 {
     struct timeval now, tmp_diff;
     int32_t res;
@@ -113,7 +113,7 @@ static uint32_t Timer_Silence(
 }
 
 static void Timer_Silence_Reset(
-	void * pArg)
+    void *pArg)
 {
     gettimeofday(&start, NULL);
 }

@@ -855,8 +855,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -908,13 +908,13 @@ bool Device_Write_Property_Local(
                         characterstring_encoding(&value.type.Character_String);
                     if (encoding < MAX_CHARACTER_STRING_ENCODING) {
                         /* All the object names in a device must be unique. */
-                        if (Device_Valid_Object_Name(&value.
-                                type.Character_String, NULL, NULL)) {
+                        if (Device_Valid_Object_Name(&value.type.
+                                Character_String, NULL, NULL)) {
                             wp_data->error_class = ERROR_CLASS_PROPERTY;
                             wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                         } else {
-                            Device_Set_Object_Name(&value.
-                                type.Character_String);
+                            Device_Set_Object_Name(&value.type.
+                                Character_String);
                             status = true;
                         }
                     } else {

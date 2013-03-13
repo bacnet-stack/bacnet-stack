@@ -743,7 +743,7 @@ size_t octetstring_copy_value(
     if (src && dest) {
         if (length <= src->length) {
             for (i = 0; i < src->length; i++) {
-                dest[i]= src->value[i];
+                dest[i] = src->value[i];
             }
             bytes_copied = src->length;
         }

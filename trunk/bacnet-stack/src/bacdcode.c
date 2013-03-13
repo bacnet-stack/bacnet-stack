@@ -994,7 +994,7 @@ uint32_t encode_bacnet_character_string_safe(
     char *pString,
     uint32_t length)
 {
-    uint32_t apdu_len = 1 /*encoding*/;
+    uint32_t apdu_len = 1 /*encoding */ ;
     uint32_t i;
 
     apdu_len += length;
@@ -1014,9 +1014,7 @@ int encode_bacnet_character_string(
     uint8_t * apdu,
     BACNET_CHARACTER_STRING * char_string)
 {
-    return (int)encode_bacnet_character_string_safe(
-        apdu,
-        MAX_APDU,
+    return (int) encode_bacnet_character_string_safe(apdu, MAX_APDU,
         characterstring_encoding(char_string),
         characterstring_value(char_string),
         characterstring_length(char_string));

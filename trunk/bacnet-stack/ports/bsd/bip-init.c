@@ -43,14 +43,13 @@
 
 bool BIP_Debug = true;
 
-void *
-get_addr_ptr (struct sockaddr * sockaddr_ptr)
+void *get_addr_ptr(
+    struct sockaddr *sockaddr_ptr)
 {
-    void * addr_ptr;
+    void *addr_ptr;
     if (sockaddr_ptr->sa_family == AF_INET) {
-        addr_ptr = &((struct sockaddr_in *)  sockaddr_ptr)->sin_addr;
-    }
-    else if (sockaddr_ptr->sa_family == AF_INET6) {
+        addr_ptr = &((struct sockaddr_in *) sockaddr_ptr)->sin_addr;
+    } else if (sockaddr_ptr->sa_family == AF_INET6) {
         addr_ptr = &((struct sockaddr_in6 *) sockaddr_ptr)->sin6_addr;
     }
     return addr_ptr;
@@ -81,41 +80,41 @@ long bip_getaddrbyname(
  * @param request [in] addr broadaddr netmask
  */
 static int get_local_address(
-    char *ifname,struct in_addr *addr,char *request)
+    char *ifname,
+    struct in_addr *addr,
+    char *request)
 {
 
-    char rv;     /* return value */
+    char rv;    /* return value */
 
-    struct ifaddrs * ifaddrs_ptr;
+    struct ifaddrs *ifaddrs_ptr;
     int status;
-    status = getifaddrs (& ifaddrs_ptr);
+    status = getifaddrs(&ifaddrs_ptr);
     if (status == -1) {
-    	    fprintf (stderr, "Error in 'getifaddrs': %d (%s)\n",
-    	    	    errno, strerror (errno));
+        fprintf(stderr, "Error in 'getifaddrs': %d (%s)\n", errno,
+            strerror(errno));
     }
     while (ifaddrs_ptr) {
-            if ((ifaddrs_ptr->ifa_addr->sa_family == AF_INET) && 
-                (strcmp(ifaddrs_ptr->ifa_name, ifname) == 0)) {
-                void * addr_ptr;
-                if (! ifaddrs_ptr->ifa_addr) {
-	            return rv;
-                }
-                if (strcmp(request, "addr") == 0) {
-                    addr_ptr = get_addr_ptr (ifaddrs_ptr->ifa_addr);
-                }
-                else if (strcmp(request, "broadaddr") == 0) {
-                    addr_ptr = get_addr_ptr (ifaddrs_ptr->ifa_broadaddr);
-                }
-                else if (strcmp(request, "netmask") == 0) {
-                    addr_ptr = get_addr_ptr (ifaddrs_ptr->ifa_netmask);
-                }
-                if (addr_ptr) {
-		        memcpy(addr, addr_ptr, sizeof(struct in_addr));
-		}
+        if ((ifaddrs_ptr->ifa_addr->sa_family == AF_INET) &&
+            (strcmp(ifaddrs_ptr->ifa_name, ifname) == 0)) {
+            void *addr_ptr;
+            if (!ifaddrs_ptr->ifa_addr) {
+                return rv;
             }
-            ifaddrs_ptr = ifaddrs_ptr->ifa_next;
+            if (strcmp(request, "addr") == 0) {
+                addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_addr);
+            } else if (strcmp(request, "broadaddr") == 0) {
+                addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_broadaddr);
+            } else if (strcmp(request, "netmask") == 0) {
+                addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_netmask);
+            }
+            if (addr_ptr) {
+                memcpy(addr, addr_ptr, sizeof(struct in_addr));
+            }
+        }
+        ifaddrs_ptr = ifaddrs_ptr->ifa_next;
     }
-    freeifaddrs (ifaddrs_ptr);
+    freeifaddrs(ifaddrs_ptr);
     return rv;
 }
 
@@ -185,7 +184,7 @@ bool bip_init(
 
     if (ifname) {
         bip_set_interface(ifname);
-	printf("interface %s", ifname);
+        printf("interface %s", ifname);
     } else {
         bip_set_interface("en0");
     }
@@ -258,9 +257,9 @@ int bip_get_local_netmask(
     char *ifname = getenv("BACNET_IFACE");      /* will probably be null */
     if (ifname == NULL)
         ifname = "en0";
-    printf("ifname %s",ifname);
+    printf("ifname %s", ifname);
     char *request = "netmask";
     rv = get_local_address(ifname, netmask, request);
-    
+
     return rv;
 }

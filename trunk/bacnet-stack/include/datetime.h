@@ -89,8 +89,8 @@ extern "C" {
         uint8_t hundredths);
     /* utility test for validity */
     bool datetime_is_valid(
-        BACNET_DATE *bdate,
-        BACNET_TIME *btime);
+        BACNET_DATE * bdate,
+        BACNET_TIME * btime);
 
     /* utility comparison functions:
        if the date/times are the same, return is 0

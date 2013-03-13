@@ -31,7 +31,7 @@
 #include "bacdef.h"
 #include "npdu.h"
 
-struct sockaddr_in; /* Defined elsewhere, needed here. */
+struct sockaddr_in;     /* Defined elsewhere, needed here. */
 
 #ifdef __cplusplus
 extern "C" {

@@ -73,13 +73,13 @@ static uint8_t Tusage_timeout = 50;
 
 /* Timer that indicates line silence - and functions */
 static uint32_t Timer_Silence(
-    void * pArg)
+    void *pArg)
 {
     return timer_milliseconds(TIMER_SILENCE);
 }
 
 static void Timer_Silence_Reset(
-    void * pArg)
+    void *pArg)
 {
     timer_reset(TIMER_SILENCE);
 }
@@ -259,7 +259,7 @@ uint16_t MSTP_Put_Receive(
         Receive_Packet.pdu_len = mstp_port->DataLength;
         Receive_Packet.ready = true;
         rc = ReleaseSemaphore(Receive_Packet_Flag, 1, NULL);
-        (void)rc;
+        (void) rc;
     }
 
     return pdu_len;

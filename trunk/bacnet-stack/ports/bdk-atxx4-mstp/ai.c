@@ -169,13 +169,11 @@ int Analog_Input_Read_Property(
         case PROP_OBJECT_NAME:
             Analog_Input_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
-                encode_application_character_string(&apdu[0],
-                &char_string);
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
-                encode_application_enumerated(&apdu[0],
-                rpdata->object_type);
+                encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         case PROP_PRESENT_VALUE:
             apdu_len =

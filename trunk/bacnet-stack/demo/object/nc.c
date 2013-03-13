@@ -189,8 +189,8 @@ int Notification_Class_Read_Property(
 
     apdu = rpdata->application_data;
     CurrentNotify =
-        &NC_Info[Notification_Class_Instance_To_Index
-        (rpdata->object_instance)];
+        &NC_Info[Notification_Class_Instance_To_Index(rpdata->
+            object_instance)];
 
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -400,8 +400,8 @@ bool Notification_Class_Write_Property(
 
 
     CurrentNotify =
-        &NC_Info[Notification_Class_Instance_To_Index
-        (wp_data->object_instance)];
+        &NC_Info[Notification_Class_Instance_To_Index(wp_data->
+            object_instance)];
 
     /* decode the some of the request
      */
@@ -467,8 +467,9 @@ bool Notification_Class_Write_Property(
             while (iOffset < wp_data->application_data_len) {
                 /* Decode Valid Days */
                 len =
-                    bacapp_decode_application_data(&wp_data->application_data
-                    [iOffset], wp_data->application_data_len, &value);
+                    bacapp_decode_application_data(&wp_data->
+                    application_data[iOffset], wp_data->application_data_len,
+                    &value);
 
                 if ((len == 0) ||
                     (value.tag != BACNET_APPLICATION_TAG_BIT_STRING)) {
@@ -491,8 +492,9 @@ bool Notification_Class_Write_Property(
                 iOffset += len;
                 /* Decode From Time */
                 len =
-                    bacapp_decode_application_data(&wp_data->application_data
-                    [iOffset], wp_data->application_data_len, &value);
+                    bacapp_decode_application_data(&wp_data->
+                    application_data[iOffset], wp_data->application_data_len,
+                    &value);
 
                 if ((len == 0) || (value.tag != BACNET_APPLICATION_TAG_TIME)) {
                     /* Bad decode, wrong tag or following required parameter missing */
@@ -506,8 +508,9 @@ bool Notification_Class_Write_Property(
                 iOffset += len;
                 /* Decode To Time */
                 len =
-                    bacapp_decode_application_data(&wp_data->application_data
-                    [iOffset], wp_data->application_data_len, &value);
+                    bacapp_decode_application_data(&wp_data->
+                    application_data[iOffset], wp_data->application_data_len,
+                    &value);
 
                 if ((len == 0) || (value.tag != BACNET_APPLICATION_TAG_TIME)) {
                     /* Bad decode, wrong tag or following required parameter missing */
@@ -526,8 +529,9 @@ bool Notification_Class_Write_Property(
                         RECIPIENT_TYPE_DEVICE;
                     /* Decode Network Number */
                     len =
-                        bacapp_decode_context_data(&wp_data->application_data
-                        [iOffset], wp_data->application_data_len, &value,
+                        bacapp_decode_context_data(&wp_data->
+                        application_data[iOffset],
+                        wp_data->application_data_len, &value,
                         PROP_RECIPIENT_LIST);
 
                     if ((len == 0) ||
@@ -538,21 +542,21 @@ bool Notification_Class_Write_Property(
                         return false;
                     }
                     /* store value */
-                    TmpNotify.Recipient_List[idx].Recipient.
-                        _.DeviceIdentifier = value.type.Object_Id.instance;
+                    TmpNotify.Recipient_List[idx].Recipient._.
+                        DeviceIdentifier = value.type.Object_Id.instance;
 
                     iOffset += len;
                 }
                 /* opening tag [1] - Recipient */
-                else if (decode_is_opening_tag_number
-                    (&wp_data->application_data[iOffset], 1)) {
+                else if (decode_is_opening_tag_number(&wp_data->
+                        application_data[iOffset], 1)) {
                     iOffset++;
                     TmpNotify.Recipient_List[idx].Recipient.RecipientType =
                         RECIPIENT_TYPE_ADDRESS;
                     /* Decode Network Number */
                     len =
-                        bacapp_decode_application_data
-                        (&wp_data->application_data[iOffset],
+                        bacapp_decode_application_data(&wp_data->
+                        application_data[iOffset],
                         wp_data->application_data_len, &value);
 
                     if ((len == 0) ||
@@ -569,8 +573,8 @@ bool Notification_Class_Write_Property(
                     iOffset += len;
                     /* Decode Address */
                     len =
-                        bacapp_decode_application_data
-                        (&wp_data->application_data[iOffset],
+                        bacapp_decode_application_data(&wp_data->
+                        application_data[iOffset],
                         wp_data->application_data_len, &value);
 
                     if ((len == 0) ||
@@ -581,16 +585,16 @@ bool Notification_Class_Write_Property(
                         return false;
                     }
                     /* store value */
-                    if (TmpNotify.Recipient_List[idx].Recipient._.
-                        Address.net == 0) {
-                        memcpy(TmpNotify.Recipient_List[idx].Recipient.
-                            _.Address.mac, value.type.Octet_String.value,
+                    if (TmpNotify.Recipient_List[idx].Recipient._.Address.
+                        net == 0) {
+                        memcpy(TmpNotify.Recipient_List[idx].Recipient._.
+                            Address.mac, value.type.Octet_String.value,
                             value.type.Octet_String.length);
-                        TmpNotify.Recipient_List[idx].Recipient._.
-                            Address.mac_len = value.type.Octet_String.length;
+                        TmpNotify.Recipient_List[idx].Recipient._.Address.
+                            mac_len = value.type.Octet_String.length;
                     } else {
-                        memcpy(TmpNotify.Recipient_List[idx].Recipient.
-                            _.Address.adr, value.type.Octet_String.value,
+                        memcpy(TmpNotify.Recipient_List[idx].Recipient._.
+                            Address.adr, value.type.Octet_String.value,
                             value.type.Octet_String.length);
                         TmpNotify.Recipient_List[idx].Recipient._.Address.len =
                             value.type.Octet_String.length;
@@ -598,8 +602,8 @@ bool Notification_Class_Write_Property(
 
                     iOffset += len;
                     /* closing tag [1] - Recipient */
-                    if (decode_is_closing_tag_number(&wp_data->application_data
-                            [iOffset], 1))
+                    if (decode_is_closing_tag_number(&wp_data->
+                            application_data[iOffset], 1))
                         iOffset++;
                     else {
                         /* Bad decode, wrong tag or following required parameter missing */
@@ -616,8 +620,9 @@ bool Notification_Class_Write_Property(
 
                 /* Process Identifier */
                 len =
-                    bacapp_decode_application_data(&wp_data->application_data
-                    [iOffset], wp_data->application_data_len, &value);
+                    bacapp_decode_application_data(&wp_data->
+                    application_data[iOffset], wp_data->application_data_len,
+                    &value);
 
                 if ((len == 0) ||
                     (value.tag != BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
@@ -633,8 +638,9 @@ bool Notification_Class_Write_Property(
                 iOffset += len;
                 /* Issue Confirmed Notifications */
                 len =
-                    bacapp_decode_application_data(&wp_data->application_data
-                    [iOffset], wp_data->application_data_len, &value);
+                    bacapp_decode_application_data(&wp_data->
+                    application_data[iOffset], wp_data->application_data_len,
+                    &value);
 
                 if ((len == 0) ||
                     (value.tag != BACNET_APPLICATION_TAG_BOOLEAN)) {
@@ -650,8 +656,9 @@ bool Notification_Class_Write_Property(
                 iOffset += len;
                 /* Transitions */
                 len =
-                    bacapp_decode_application_data(&wp_data->application_data
-                    [iOffset], wp_data->application_data_len, &value);
+                    bacapp_decode_application_data(&wp_data->
+                    application_data[iOffset], wp_data->application_data_len,
+                    &value);
 
                 if ((len == 0) ||
                     (value.tag != BACNET_APPLICATION_TAG_BIT_STRING)) {
@@ -692,16 +699,16 @@ bool Notification_Class_Write_Property(
                 CurrentNotify->Recipient_List[idx] =
                     TmpNotify.Recipient_List[idx];
 
-                if (CurrentNotify->Recipient_List[idx].
-                    Recipient.RecipientType == RECIPIENT_TYPE_DEVICE) {
+                if (CurrentNotify->Recipient_List[idx].Recipient.
+                    RecipientType == RECIPIENT_TYPE_DEVICE) {
                     /* copy Device_ID */
                     DeviceID =
-                        CurrentNotify->Recipient_List[idx].Recipient.
-                        _.DeviceIdentifier;
+                        CurrentNotify->Recipient_List[idx].Recipient._.
+                        DeviceIdentifier;
                     address_bind_request(DeviceID, &max_apdu, &src);
 
-                } else if (CurrentNotify->Recipient_List[idx].
-                    Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
+                } else if (CurrentNotify->Recipient_List[idx].Recipient.
+                    RecipientType == RECIPIENT_TYPE_ADDRESS) {
                     /* copy Address */
                     /* src = CurrentNotify->Recipient_List[idx].Recipient._.Address; */
                     /* address_bind_request(BACNET_MAX_INSTANCE, &max_apdu, &src); */
@@ -824,16 +831,16 @@ void Notification_Class_common_reporting_function(
             event_data->priority =
                 CurrentNotify->Priority[TRANSITION_TO_NORMAL];
             event_data->ackRequired =
-                (CurrentNotify->Ack_Required & TRANSITION_TO_NORMAL_MASKED) ?
-                true : false;
+                (CurrentNotify->
+                Ack_Required & TRANSITION_TO_NORMAL_MASKED) ? true : false;
             break;
 
         case EVENT_STATE_FAULT:
             event_data->priority =
                 CurrentNotify->Priority[TRANSITION_TO_FAULT];
             event_data->ackRequired =
-                (CurrentNotify->Ack_Required & TRANSITION_TO_FAULT_MASKED) ?
-                true : false;
+                (CurrentNotify->
+                Ack_Required & TRANSITION_TO_FAULT_MASKED) ? true : false;
             break;
 
         case EVENT_STATE_OFFNORMAL:
@@ -918,13 +925,13 @@ void Notification_Class_find_recipient(
                 RECIPIENT_TYPE_DEVICE) {
                 /* Device ID */
                 DeviceID =
-                    CurrentNotify->Recipient_List[idx].Recipient.
-                    _.DeviceIdentifier;
+                    CurrentNotify->Recipient_List[idx].Recipient._.
+                    DeviceIdentifier;
                 /* Send who_ is request only when address of device is unknown. */
                 if (!address_bind_request(DeviceID, &max_apdu, &src))
                     Send_WhoIs(DeviceID, DeviceID);
-            } else if (CurrentNotify->Recipient_List[idx].
-                Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
+            } else if (CurrentNotify->Recipient_List[idx].Recipient.
+                RecipientType == RECIPIENT_TYPE_ADDRESS) {
 
             }
         }

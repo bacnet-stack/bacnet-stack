@@ -126,16 +126,14 @@ int main(
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("Send a Read-Broadcast-Distribution-Table message to a BBMD.\r\n"
-            "\r\n"
-            "IP:\r\n"
+        printf
+            ("Send a Read-Broadcast-Distribution-Table message to a BBMD.\r\n"
+            "\r\n" "IP:\r\n"
             "IP address of the BBMD in dotted decimal notation\r\n"
             "[port]\r\n"
-            "optional BACnet/IP port number (default=47808=0xBAC0)\r\n"
-            "\r\n"
+            "optional BACnet/IP port number (default=47808=0xBAC0)\r\n" "\r\n"
             "To send a Read-Broadcast-Distribution-Table message to a BBMD\r\n"
-            "at 192.168.0.1 using port 47808:\r\n"
-            "%s 192.168.0.1 47808\r\n",
+            "at 192.168.0.1 using port 47808:\r\n" "%s 192.168.0.1 47808\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -143,8 +141,7 @@ int main(
     if (argc > 1) {
         Target_BBMD_Address = inet_addr(argv[1]);
         if (Target_BBMD_Address == (-1)) {
-            fprintf(stderr, "IP=%s - failed to convert address.\r\n",
-                argv[1]);
+            fprintf(stderr, "IP=%s - failed to convert address.\r\n", argv[1]);
             return 1;
         }
     }

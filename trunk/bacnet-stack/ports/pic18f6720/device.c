@@ -85,7 +85,7 @@ BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
 void Device_Init(
     object_functions_t * object_table)
 {
-    (void)object_table;
+    (void) object_table;
     Reinitialize_State = BACNET_REINIT_IDLE;
     dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
     /* FIXME: Get the data from the eeprom */
@@ -420,10 +420,8 @@ int Device_Read_Property_Local(
                     }
                 }
             } else {
-                if (Device_Object_List_Identifier(
-                        rpdata->array_index,
-                        &object_type,
-                        &instance))
+                if (Device_Object_List_Identifier(rpdata->array_index,
+                        &object_type, &instance))
                     apdu_len =
                         encode_application_object_id(&apdu[0], object_type,
                         instance);
@@ -586,8 +584,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -646,11 +644,13 @@ bool Device_Write_Property_Local(
                            the device. */
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                        wp_data->error_code =
+                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+                    wp_data->error_code =
+                        ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;

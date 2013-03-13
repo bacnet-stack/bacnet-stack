@@ -26,36 +26,36 @@ Copyright (C) 2012  Andriy Sukhynyuk, Vasyl Tkhir, Andriy Ivasiv
 #define MAX_BIP_PDU		(MAX_NPDU + MAX_BIP_APDU)
 #define MAX_BIP_MPDU	(MAX_HEADER + MAX_BIP_PDU)
 
- typedef struct ip_data {
-	int socket;
-	uint16_t port;
-	struct in_addr local_addr;
-	struct in_addr broadcast_addr;
-	uint8_t *buff;
-	uint16_t max_buff;
- } IP_DATA;
+typedef struct ip_data {
+    int socket;
+    uint16_t port;
+    struct in_addr local_addr;
+    struct in_addr broadcast_addr;
+    uint8_t *buff;
+    uint16_t max_buff;
+} IP_DATA;
 
 
-void* dl_ip_thread(
-		void *pArgs);
+void *dl_ip_thread(
+    void *pArgs);
 
 bool dl_ip_init(
-		ROUTER_PORT *port,
-		IP_DATA *data);
+    ROUTER_PORT * port,
+    IP_DATA * data);
 
 int dl_ip_send(
-		IP_DATA *data,
-		BACNET_ADDRESS *dest,
-		uint8_t *pdu,
-		unsigned pdu_len);
+    IP_DATA * data,
+    BACNET_ADDRESS * dest,
+    uint8_t * pdu,
+    unsigned pdu_len);
 
 int dl_ip_recv(
-		IP_DATA *data,
-		MSG_DATA **msg,	/* on recieve fill up message */
-		BACNET_ADDRESS *src,
-		unsigned timeout);
+    IP_DATA * data,
+    MSG_DATA ** msg,    /* on recieve fill up message */
+    BACNET_ADDRESS * src,
+    unsigned timeout);
 
 void dl_ip_cleanup(
-		IP_DATA *data);
+    IP_DATA * data);
 
 #endif /* end of UDPMODULE_H */

@@ -158,7 +158,8 @@ int Binary_Value_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            present_value = Binary_Value_Present_Value(rpdata->object_instance);
+            present_value =
+                Binary_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -245,8 +246,8 @@ bool Binary_Value_Write_Property(
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = value.type.Enumerated;
                     object_index =
-                        Binary_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                        Binary_Value_Instance_To_Index
+                        (wp_data->object_instance);
                     priority--;
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] = level;

@@ -111,10 +111,10 @@ struct mstp_port_struct_t {
        so that you can be atomic on 8 bit microcontrollers */
              uint32_t(
         *SilenceTimer) (
-        void * pArg);
+        void *pArg);
     void (
         *SilenceTimerReset) (
-        void * pArg);
+        void *pArg);
 
     /* A timer used to measure and generate Reply Postponed frames.  It is */
     /* incremented by a timer process and is cleared by the Master Node State */
@@ -164,8 +164,8 @@ struct mstp_port_struct_t {
     uint8_t *OutputBuffer;
     uint16_t OutputBufferSize;
 
-    /*Platform-specific port data*/
-    void * UserData;
+    /*Platform-specific port data */
+    void *UserData;
 
 };
 

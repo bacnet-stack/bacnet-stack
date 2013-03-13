@@ -87,7 +87,7 @@ static bool date_is_valid(
     uint8_t month,
     uint8_t day)
 {
-    bool status = false; /* true if value date */
+    bool status = false;        /* true if value date */
     uint8_t monthdays;  /* days in a month */
 
 
@@ -193,16 +193,17 @@ static bool time_is_valid(
  * @return true if the date and time are valid
  */
 bool datetime_is_valid(
-    BACNET_DATE *bdate,
-    BACNET_TIME *btime)
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime)
 {
-    bool status = false; /* return value */
+    bool status = false;        /* return value */
 
     /* get the number of days in the month, and check for valid month too */
     if (bdate) {
         status = date_is_valid(bdate->year, bdate->month, bdate->day);
         if (status && btime) {
-            status = time_is_valid(btime->hour, btime->min, btime->sec,
+            status =
+                time_is_valid(btime->hour, btime->min, btime->sec,
                 btime->hundredths);
         } else {
             status = false;

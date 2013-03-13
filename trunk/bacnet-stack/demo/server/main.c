@@ -151,7 +151,7 @@ int main(
         0
     };  /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 1;     /* milliseconds */
+    unsigned timeout = 1;       /* milliseconds */
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
@@ -188,7 +188,7 @@ int main(
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
-        elapsed_seconds = (uint32_t)(current_seconds - last_seconds);
+        elapsed_seconds = (uint32_t) (current_seconds - last_seconds);
         if (elapsed_seconds) {
             last_seconds = current_seconds;
             dcc_timer_seconds(elapsed_seconds);

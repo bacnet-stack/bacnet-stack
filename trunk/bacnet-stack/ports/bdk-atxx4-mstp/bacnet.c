@@ -65,7 +65,8 @@ static bool seeprom_version_test(
 
     rv = seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *) & id, 2);
     if (rv > 0) {
-        rv = seeprom_bytes_read(NV_SEEPROM_VERSION_0, (uint8_t *) & version, 2);
+        rv = seeprom_bytes_read(NV_SEEPROM_VERSION_0, (uint8_t *) & version,
+            2);
     }
 
     if ((rv > 0) && (id == SEEPROM_ID) && (version == SEEPROM_VERSION)) {

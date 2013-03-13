@@ -19,7 +19,7 @@ Copyright (C) 2012  Andriy Sukhynyuk, Vasyl Tkhir, Andriy Ivasiv
 
 #include "portthread.h"
 
-void* dl_mstp_thread(
-		void* pArgs);
+void *dl_mstp_thread(
+    void *pArgs);
 
 #endif /* end of MSTPMODULE_H */

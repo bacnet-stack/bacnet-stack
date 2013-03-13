@@ -31,11 +31,11 @@
 struct BACnet_Recipient_List;
 typedef struct BACnet_Recipient_List {
     /*
-        BACnetRecipient ::= CHOICE {
-            device [0] BACnetObjectIdentifier,
-            address [1] BACnetAddress
-        }
-    */
+       BACnetRecipient ::= CHOICE {
+       device [0] BACnetObjectIdentifier,
+       address [1] BACnetAddress
+       }
+     */
     uint8_t tag;
     union {
         BACNET_OBJECT_ID device;
@@ -83,11 +83,11 @@ extern "C" {
     int timesync_encode_timesync_recipients(
         uint8_t * apdu,
         unsigned max_apdu,
-        BACNET_RECIPIENT_LIST *recipient);
+        BACNET_RECIPIENT_LIST * recipient);
     int timesync_decode_timesync_recipients(
         uint8_t * apdu,
         unsigned apdu_len,
-        BACNET_RECIPIENT_LIST *recipient);
+        BACNET_RECIPIENT_LIST * recipient);
 
 #ifdef TEST
 #include "ctest.h"

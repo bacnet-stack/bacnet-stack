@@ -1129,8 +1129,8 @@ static bool MSTP_Master_Node_FSM(
                 if (pkt != NULL) {
                     matched =
                         dlmstp_compare_data_expecting_reply(&InputBuffer[0],
-                        DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
-                        pkt->destination_mac);
+                        DataLength, SourceAddress, &pkt->buffer[0],
+                        pkt->length, pkt->destination_mac);
                 } else {
                     matched = false;
                 }
@@ -1146,10 +1146,12 @@ static bool MSTP_Master_Node_FSM(
                     if (pkt->data_expecting_reply) {
                         frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
                     } else {
-                        frame_type = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
+                        frame_type =
+                            FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
                     }
-                    MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
-                        (uint8_t *) & pkt->buffer[0], pkt->length);
+                    MSTP_Send_Frame(frame_type, pkt->destination_mac,
+                        This_Station, (uint8_t *) & pkt->buffer[0],
+                        pkt->length);
                     Master_State = MSTP_MASTER_STATE_IDLE;
                     /* clear our flag we were holding for comparison */
                     MSTP_Flag.ReceivedValidFrame = false;
@@ -1354,4 +1356,3 @@ void dlmstp_get_broadcast_address(
 
     return;
 }
-
