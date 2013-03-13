@@ -492,8 +492,8 @@ bool Routed_Device_Write_Property_Local(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Routed_Device_Set_Object_Instance_Number(value.
-                            type.Object_Id.instance))) {
+                    (Routed_Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world know */
                 } else {
                     status = false;
@@ -507,8 +507,8 @@ bool Routed_Device_Write_Property_Local(
                 WPValidateString(&value, MAX_DEV_NAME_LEN, false,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Routed_Device_Set_Object_Name(characterstring_encoding
-                    (&value.type.Character_String),
+                Routed_Device_Set_Object_Name(characterstring_encoding(&value.
+                        type.Character_String),
                     characterstring_value(&value.type.Character_String),
                     characterstring_length(&value.type.Character_String));
             }

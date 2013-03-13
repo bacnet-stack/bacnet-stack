@@ -660,8 +660,8 @@ static void bvlc_bdt_forward_npdu(
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
             bip_dest.sin_addr.s_addr =
-                ((~BBMD_Table[i].broadcast_mask.s_addr) | BBMD_Table[i].
-                dest_address.s_addr);
+                ((~BBMD_Table[i].broadcast_mask.
+                    s_addr) | BBMD_Table[i].dest_address.s_addr);
             bip_dest.sin_port = BBMD_Table[i].dest_port;
             /* don't send to my broadcast address and same port */
             if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr())
@@ -1162,9 +1162,8 @@ int bvlc_send_pdu(
     /* bip datalink doesn't need to know the npdu data */
     (void) npdu_data;
     mtu[0] = BVLL_TYPE_BACNET_IP;
-    if ((dest->net == BACNET_BROADCAST_NETWORK) ||
-        ((dest->net > 0) && (dest->len == 0)) ||
-        (dest->mac_len == 0)) {
+    if ((dest->net == BACNET_BROADCAST_NETWORK) || ((dest->net > 0) &&
+            (dest->len == 0)) || (dest->mac_len == 0)) {
         /* if we are a foreign device */
         if (Remote_BBMD.sin_port) {
             mtu[1] = BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK;

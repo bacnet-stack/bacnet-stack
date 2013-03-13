@@ -187,7 +187,8 @@ int main(
 
     if (argc < 4) {
         /* FIXME: what about access method - record or stream? */
-        printf("%s device-instance file-instance local-name [octet count] [pad value]\r\n",
+        printf
+            ("%s device-instance file-instance local-name [octet count] [pad value]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -288,8 +289,8 @@ int main(
                     if (len < requestedOctetCount) {
                         End_Of_File_Detected = true;
                         if (pad_byte) {
-                            memset(octetstring_value(&fileData)+len+1,
-                                (int)Target_File_Requested_Octet_Pad_Byte,
+                            memset(octetstring_value(&fileData) + len + 1,
+                                (int) Target_File_Requested_Octet_Pad_Byte,
                                 requestedOctetCount - len);
                             len = requestedOctetCount;
                         }

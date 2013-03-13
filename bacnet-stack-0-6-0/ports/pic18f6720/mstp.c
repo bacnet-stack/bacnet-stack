@@ -1145,10 +1145,10 @@ bool MSTP_Master_Node_FSM(
                    see if the message is that same APDU type
                    along with the matching src/dest and invoke ID */
                 matched =
-                    mstp_compare_data_expecting_reply(&mstp_port->
-                    InputBuffer[0], mstp_port->DataLength,
-                    mstp_port->SourceAddress, &mstp_port->TxBuffer[0],
-                    mstp_port->TxLength, mstp_port->TxDestination);
+                    mstp_compare_data_expecting_reply(&mstp_port->InputBuffer
+                    [0], mstp_port->DataLength, mstp_port->SourceAddress,
+                    &mstp_port->TxBuffer[0], mstp_port->TxLength,
+                    mstp_port->TxDestination);
             }
             if (matched && mstp_port->TxReady) {
                 /* Reply */

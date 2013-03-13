@@ -861,8 +861,8 @@ bool Device_Write_Property_Local(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(value.type.
+                            Object_Id.instance))) {
                     eeprom_bytes_write(NV_EEPROM_DEVICE_0,
                         (uint8_t *) & value.type.Object_Id.instance, 4);
                     /* we could send an I-Am broadcast to let the world know */
