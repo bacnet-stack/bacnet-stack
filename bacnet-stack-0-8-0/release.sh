@@ -4,6 +4,7 @@
 USERNAME=skarg
 PROJECT=bacnet
 SVN_BASE_URL=https://svn.code.sf.net/p/${PROJECT}/code
+SVN_BRANCH_NAME=${SVN_BASE_URL}/branches/releases/bacnet-stack-0-8-0
 SVN_MODULE=bacnet-stack
 FRS_URL=${USERNAME},${PROJECT}@frs.sourceforge.net:/home/frs/project/b/ba/bacnet/bacnet-stack
 
@@ -40,11 +41,10 @@ fi
 ARCHIVE_NAME=${SVN_MODULE}-${DOTTED_VERSION}
 TAGGED_NAME=${SVN_MODULE}-${DASHED_VERSION}
 
-SVN_TRUNK_NAME=${SVN_BASE_URL}/trunk/${SVN_MODULE}
 SVN_TAGGED_NAME=${SVN_BASE_URL}/tags/${TAGGED_NAME}
 echo "Setting a tag on the ${SVN_MODULE} module called ${TAGGED_NAME}"
 TAG_COMMENT="Created version ${ARCHIVE_NAME}"
-svn copy --username=${USERNAME} ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m "${TAG_COMMENT}"
+svn copy --username=${USERNAME} ${SVN_BRANCH_NAME} ${SVN_TAGGED_NAME} -m "${TAG_COMMENT}"
 echo "done."
 
 if [ -d "${ARCHIVE_NAME}" ]
