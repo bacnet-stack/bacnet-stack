@@ -1,9 +1,12 @@
 #!/bin/sh
 # Release helper for this project
 
+USERNAME=skarg
 PROJECT=bacnet
+SVN_BASE_URL=https://svn.code.sf.net/p/${PROJECT}/code
+SVN_BRANCH_NAME=${SVN_BASE_URL}/branches/releases/bacnet-stack-0-7-0
 SVN_MODULE=bacnet-stack
-FRS_URL=skarg,bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet/bacnet-stack
+FRS_URL=${USERNAME},${PROJECT}@frs.sourceforge.net:/home/frs/project/b/ba/bacnet/bacnet-stack
 
 if [ -z "$1" ]
 then
@@ -37,23 +40,22 @@ fi
 
 ARCHIVE_NAME=${SVN_MODULE}-${DOTTED_VERSION}
 TAGGED_NAME=${SVN_MODULE}-${DASHED_VERSION}
-SVN_BASE_URL=https://${PROJECT}.svn.sourceforge.net/svnroot/${PROJECT}
 
-SVN_TRUNK_NAME=${SVN_BASE_URL}/trunk/${SVN_MODULE}
 SVN_TAGGED_NAME=${SVN_BASE_URL}/tags/${TAGGED_NAME}
 echo "Setting a tag on the ${SVN_MODULE} module called ${TAGGED_NAME}"
-svn copy ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m "tagged" > /dev/null
+TAG_COMMENT="Created version ${ARCHIVE_NAME}"
+svn copy --username=${USERNAME} ${SVN_BRANCH_NAME} ${SVN_TAGGED_NAME} -m "${TAG_COMMENT}"
 echo "done."
 
 if [ -d "${ARCHIVE_NAME}" ]
 then
   echo "removing old ${ARCHIVE_NAME}..."
-  rm -rf ${ARCHIVE_NAME}
+rm -rf ${ARCHIVE_NAME}
   echo "done."
 fi
 
 echo "Getting a clean version out of subversion for Linux gzip"
-svn export ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
+svn export --username=${USERNAME} ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
 echo "done."
 
 GZIP_FILENAME=${ARCHIVE_NAME}.tgz
@@ -81,11 +83,12 @@ then
   echo "done."
 fi
 echo "Getting another clean version out of subversion for Windows zip"
-svn export --native-eol CRLF ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
+svn export --username=${USERNAME} --native-eol CRLF ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
 ZIP_FILENAME=${ARCHIVE_NAME}.zip
 echo "done."
 echo "Zipping the directory exported for Windows."
 zip -r ${ZIP_FILENAME} ${ARCHIVE_NAME} > /dev/null
+
 if [ -e "${ZIP_FILENAME}" ]
 then
   echo "${ZIP_FILENAME} created."
@@ -113,4 +116,3 @@ echo "Sending ${ARCHIVE_NAME} to SourceForge using scp..."
 scp -r ${ARCHIVE_NAME} ${FRS_URL}
 
 echo "Complete!"
-
