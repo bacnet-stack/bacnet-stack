@@ -24,7 +24,16 @@ INCLUDES = $(INCLUDE1) $(INCLUDE2)
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-LIBRARIES=-lc,-lgcc,-lrt,-lm,-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARY2=-lc,-lgcc,-lrt,-lm
+LIBRARIES=$(LIBRARY1),$(LIBRARY2)
+endif
+ifeq (${BACNET_PORT},bsd)
+PFLAGS = -pthread
+TARGET_EXT =
+LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+LIBRARY2=-lc,-lgcc,-lm
+LIBRARIES=$(LIBRARY1),$(LIBRARY2)
 endif
 ifeq (${BACNET_PORT},win32)
 TARGET_EXT = .exe
@@ -47,19 +56,28 @@ LFLAGS = -Wl,$(LIBRARIES)
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov scov timesync epics readpropm \
-	mstpcap mstpcrc uptransfer \
-	whoisrouter iamrouter initrouter
+	uptransfer
+
+ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
+	SUBDIRS += whoisrouter iamrouter initrouter
+endif
+ifeq (${BACNET_PORT},linux)
+SUBDIRS += mstpcap mstpcrc
+endif
+
 ifeq (${BACNET_PORT},win32)
-SUBDIRS += ptransfer
+SUBDIRS += ptransfer mstpcap mstpcrc
 endif
 
 ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
 	SUBDIRS += gateway
 endif
 
+.PHONY : all clean
+
 TARGETS = all clean
 
 $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
-	$(MAKE) -b -C $(subst ., , $@)
+	$(MAKE) -s -b -C $(subst ., , $@)
