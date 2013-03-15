@@ -1,7 +1,7 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
  Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
- Updated by ?????? ????? 2011 <nikola.jelic@euroicc.com>
+ Updated by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
