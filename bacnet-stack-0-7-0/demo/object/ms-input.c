@@ -358,7 +358,6 @@ int Multistate_Input_Read_Property(
     BACNET_CHARACTER_STRING char_string;
     uint32_t present_value = 0;
     unsigned i = 0;
-    unsigned int object_index = 0;
     bool state = false;
     uint8_t *apdu = NULL;
 
@@ -435,9 +434,6 @@ int Multistate_Input_Read_Property(
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
-                object_index =
-                    Multistate_Input_Instance_To_Index
-                    (rpdata->object_instance);
                 for (i = 1; i <= MULTISTATE_NUMBER_OF_STATES; i++) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
@@ -457,9 +453,6 @@ int Multistate_Input_Read_Property(
                     }
                 }
             } else {
-                object_index =
-                    Multistate_Input_Instance_To_Index
-                    (rpdata->object_instance);
                 if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Input_State_Text(rpdata->object_instance,
