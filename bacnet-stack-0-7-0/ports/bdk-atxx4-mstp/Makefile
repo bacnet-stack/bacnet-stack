@@ -31,10 +31,11 @@ SIZE_OPTIONS = -t
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
 #AVRDUDE_PROGRAMMERID = avr109
-#AVRDUDE_PROGRAMMERID = jtag2fast
+#AVRDUDE_PROGRAMMERID = jtag2fast -B 8
 #AVRDUDE_PROGRAMMERID = avrispmkII
 #AVRDUDE_PROGRAMMERID = dragon_isp
-AVRDUDE_PROGRAMMERID = dragon_jtag
+#AVRDUDE_PROGRAMMERID = dragon_jtag -B 8
+AVRDUDE_PROGRAMMERID = ftisp -b 4800
 #
 # port--serial or parallel port to which your
 # hardware programmer is attached
@@ -234,7 +235,6 @@ HEX_FUSE_FLAGS += --change-section-lma .fuse=0 --no-change-warnings
 AVRDUDE_FLAGS = -c $(AVRDUDE_PROGRAMMERID)
 AVRDUDE_FLAGS += -p $(AVRDUDE_MCU)
 AVRDUDE_FLAGS += -P $(AVRDUDE_PORT)
-AVRDUDE_FLAGS += -B 8
 
 # Fuse high byte (0=enable,1=disable):
 # 0x93 = 1 0 0 1   0 0 1 1
