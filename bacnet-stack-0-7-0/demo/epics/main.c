@@ -335,10 +335,7 @@ static void Init_Service_Handlers(
 
 /** Determine if this is a writable property, and, if so,
  * note that in the EPICS output.
- * This function may need a lot of customization for different implementations;
- * but as a starting point, take the Device object-instance and -name as writable.
- * For the EPICS output to VTS3, printing 'w' after the property is sufficient,
- * but to aid readability for human eyes, printing as "Writable".
+ * This function may need a lot of customization for different implementations.
  *
  * @param object_type [in] The BACnet Object type of this object.
  * @note  object_instance [in] The ID number for this object.
@@ -351,10 +348,69 @@ void CheckIsWritableProperty(
     BACNET_PROPERTY_REFERENCE * rpm_property)
 {
     bool bIsWritable = false;
-    if (object_type == OBJECT_DEVICE) {
-        if ((rpm_property->propertyIdentifier == PROP_OBJECT_IDENTIFIER) ||
-            (rpm_property->propertyIdentifier == PROP_OBJECT_NAME))
+    if ((object_type == OBJECT_ANALOG_OUTPUT) ||
+        (object_type == OBJECT_BINARY_OUTPUT) ||
+        (object_type == OBJECT_COMMAND) ||
+        (object_type == OBJECT_MULTI_STATE_OUTPUT) ||
+        (object_type == OBJECT_ACCESS_DOOR)) {
+        if (rpm_property->propertyIdentifier == PROP_PRESENT_VALUE) {
             bIsWritable = true;
+        }
+    } else if (object_type == OBJECT_AVERAGING) {
+        if ((rpm_property->propertyIdentifier == PROP_ATTEMPTED_SAMPLES) ||
+            (rpm_property->propertyIdentifier == PROP_WINDOW_INTERVAL) ||
+            (rpm_property->propertyIdentifier == PROP_WINDOW_SAMPLES)) {
+            bIsWritable = true;
+        }
+    } else if (object_type == OBJECT_FILE) {
+        if (rpm_property->propertyIdentifier == PROP_ARCHIVE) {
+            bIsWritable = true;
+        }
+    } else if ((object_type == OBJECT_LIFE_SAFETY_POINT) ||
+        (object_type == OBJECT_LIFE_SAFETY_ZONE)) {
+        if (rpm_property->propertyIdentifier == PROP_MODE) {
+            bIsWritable = true;
+        }
+    } else if (object_type == OBJECT_PROGRAM) {
+        if (rpm_property->propertyIdentifier == PROP_PROGRAM_CHANGE) {
+            bIsWritable = true;
+        }
+    } else if (object_type == OBJECT_PULSE_CONVERTER) {
+        if (rpm_property->propertyIdentifier == PROP_ADJUST_VALUE) {
+            bIsWritable = true;
+        }
+    } else if ((object_type == OBJECT_TRENDLOG) ||
+        (object_type == OBJECT_EVENT_LOG) ||
+        (object_type == OBJECT_TREND_LOG_MULTIPLE)) {
+        if ((rpm_property->propertyIdentifier == PROP_ENABLE) ||
+            (rpm_property->propertyIdentifier == PROP_RECORD_COUNT)) {
+            bIsWritable = true;
+        }
+    } else if (object_type == OBJECT_LOAD_CONTROL) {
+        if ((rpm_property->propertyIdentifier == PROP_REQUESTED_SHED_LEVEL) ||
+            (rpm_property->propertyIdentifier == PROP_START_TIME) ||
+            (rpm_property->propertyIdentifier == PROP_SHED_DURATION) ||
+            (rpm_property->propertyIdentifier == PROP_DUTY_WINDOW) ||
+            (rpm_property->propertyIdentifier == PROP_SHED_LEVELS)) {
+            bIsWritable = true;
+        }
+    } else if ((object_type == OBJECT_ACCESS_ZONE) ||
+        (object_type == OBJECT_ACCESS_USER) ||
+        (object_type == OBJECT_ACCESS_RIGHTS) ||
+        (object_type == OBJECT_ACCESS_CREDENTIAL)) {
+        if (rpm_property->propertyIdentifier == PROP_GLOBAL_IDENTIFIER) {
+            bIsWritable = true;
+        }
+    } else if (object_type == OBJECT_NETWORK_SECURITY) {
+        if ((rpm_property->propertyIdentifier == PROP_BASE_DEVICE_SECURITY_POLICY) ||
+            (rpm_property->propertyIdentifier == PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
+            (rpm_property->propertyIdentifier == PROP_SECURITY_TIME_WINDOW) ||
+            (rpm_property->propertyIdentifier == PROP_PACKET_REORDER_TIME) ||
+            (rpm_property->propertyIdentifier == PROP_LAST_KEY_SERVER) ||
+            (rpm_property->propertyIdentifier == PROP_SECURITY_PDU_TIMEOUT) ||
+            (rpm_property->propertyIdentifier == PROP_DO_NOT_HIDE)) {
+            bIsWritable = true;
+        }
     }
     /* Add more checking here, eg for Time_Synchronization_Recipients,
      * Manual_Slave_Address_Binding, Object_Property_Reference,
