@@ -70,24 +70,24 @@ all: library demos
 .PHONY : all library demos clean
 
 library:
-	$(MAKE) -C lib all
+	$(MAKE) -s -C lib all
 
 demos:
-	$(MAKE) -C demo all
+	$(MAKE) -s -C demo all
 
 # Add "ports" to the build, if desired
 ports:	atmega168 bdk-atxx4-mstp at91sam7s
-	@echo "Built the ARM7 and AVR ports"
+.PHONY : atmega168 bdk-atxx4-mstp at91sam7s
 
-atmega168: ports/atmega168/Makefile
-	$(MAKE) -C ports/atmega168 clean all
+atmega168:
+	$(MAKE) -s -C ports/atmega168 clean all
 
-at91sam7s: ports/at91sam7s/makefile
-	$(MAKE) -C ports/at91sam7s clean all
+at91sam7s:
+	$(MAKE) -s -C ports/at91sam7s clean all
 
-bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
-	$(MAKE) -C ports/bdk-atxx4-mstp clean all
+bdk-atxx4-mstp:
+	$(MAKE) -s -C ports/bdk-atxx4-mstp clean all
 
 clean:
-	$(MAKE) -C lib clean
-	$(MAKE) -C demo clean
+	$(MAKE) -s -C lib clean
+	$(MAKE) -s -C demo clean
