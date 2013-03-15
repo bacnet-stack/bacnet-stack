@@ -204,4 +204,11 @@ void handler_write_property_multiple(
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0) {
+        fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));
+    }
+#else
+    bytes_sent = bytes_sent;
+#endif
 }
