@@ -99,8 +99,10 @@ void input_task(
         /* pins used are PB4, PB3, PB2, PB1, PB0 */
         value = BITMASK_CHECK(PINB, 0x1F);
         if (value == old_buttons) {
+            /* stable value */
             Buttons = old_buttons;
         }
+        old_buttons = value;
     }
 #if BDK_V1_HACK
     input_switch_workaround();
