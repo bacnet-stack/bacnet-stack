@@ -1,7 +1,7 @@
 /**************************************************************************
 *
 * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
-* Contributions by ?????? ????? 2011 <nikola.jelic@euroicc.com>
+* Contributions by Nikola Jelic 2011 <nikola.jelic@euroicc.com>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
