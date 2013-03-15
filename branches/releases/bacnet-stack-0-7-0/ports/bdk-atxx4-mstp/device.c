@@ -909,8 +909,10 @@ bool Device_Write_Property_Local(
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
                 status =
                     bacnet_name_write_unique(NV_EEPROM_DEVICE_NAME,
-                    value.type.Object_Id.type, value.type.Object_Id.instance,
-                    &value.type.Character_String, &wp_data->error_class,
+                    wp_data->object_type,
+                    wp_data->object_instance,
+                    &value.type.Character_String,
+                    &wp_data->error_class,
                     &wp_data->error_code);
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
