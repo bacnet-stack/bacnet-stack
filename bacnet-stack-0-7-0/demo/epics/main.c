@@ -1102,9 +1102,6 @@ void PrintHeading(
     )
 {
     BACNET_APPLICATION_DATA_VALUE *value;
-    char *relation = "for";     /* Text for Gateways */
-    if (Target_Address.net != 0)
-        relation = "provided by";       /* Text for child routed devices */
 
     printf("PICS 0\r\n");
     printf("BACnet Protocol Implementation Conformance Statement\r\n\r\n");
