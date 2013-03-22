@@ -1,8 +1,8 @@
 #!/bin/sh
 # Release helper for this project
 
-SVN_PROJECT=trunk/bacnet-stack
-SVN_BASE_URL=https://svn.code.sf.net/p/bacnet/code/
+SVN_PROJECT=branches/releases/bacnet-stack-0-8-0
+SVN_BASE_URL=http://svn.code.sf.net/p/bacnet/code/
 SVN_TRUNK_NAME=${SVN_BASE_URL}${SVN_PROJECT}
 
 if [ -z "$1" ]
