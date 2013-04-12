@@ -17,9 +17,6 @@ MY_BACNET_DEFINES += -DBACFILE
 MY_BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES ?= $(MY_BACNET_DEFINES)
 
-# un-comment the next line to build the routing demo application
-#BACNET_DEFINES += -DBAC_ROUTING
-
 #BACDL_DEFINE=-DBACDL_ETHERNET=1
 #BACDL_DEFINE=-DBACDL_ARCNET=1
 #BACDL_DEFINE=-DBACDL_MSTP=1
@@ -37,19 +34,10 @@ MAKE_DEFINE ?=
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE) $(BBMD_DEFINE) -DWEAK_FUNC=
 DEFINES += $(MAKE_DEFINE)
 
-# directories
+# BACnet Ports Directory 
 BACNET_PORT ?= linux
-BACNET_PORT_DIR = ../ports/${BACNET_PORT}
 
-BACNET_OBJECT = ../demo/object
-BACNET_HANDLER = ../demo/handler
-BACNET_CORE = ../src
-BACNET_INCLUDE = ../include
-# compiler configuration
-#STANDARDS = -std=c99
-INCLUDE1 = -I$(BACNET_PORT_DIR) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
-INCLUDE2 = -I$(BACNET_INCLUDE)
-INCLUDES = $(INCLUDE1) $(INCLUDE2)
+# Default compiler settings
 OPTIMIZATION = -Os
 DEBUGGING =
 WARNINGS = -Wall -Wmissing-prototypes
@@ -74,6 +62,9 @@ library:
 
 demos:
 	$(MAKE) -s -C demo all
+
+gateway:
+	$(MAKE) -B -s -C demo gateway 
 
 router:
 	$(MAKE) -s -C demo router

@@ -21,25 +21,20 @@ BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
 INCLUDE1 = -I$(BACNET_PORT_DIR) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
 INCLUDE2 = -I$(BACNET_INCLUDE)
 INCLUDES = $(INCLUDE1) $(INCLUDE2)
+BACNET_LIB=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
-LIBRARY2=-lc,-lgcc,-lrt,-lm
-LIBRARIES=$(LIBRARY1),$(LIBRARY2)
+SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
 endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
-LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
-LIBRARY2=-lc,-lgcc,-lm
-LIBRARIES=$(LIBRARY1),$(LIBRARY2)
+SYSTEM_LIB=-lc,-lgcc,-lm
 endif
 ifeq (${BACNET_PORT},win32)
 TARGET_EXT = .exe
-LIBRARY1=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
-LIBRARY2=-lws2_32,-lgcc,-lm,-liphlpapi,-lwinmm
-LIBRARIES=$(LIBRARY1),$(LIBRARY2)
+SYSTEM_LIB=-lws2_32,-lgcc,-lm,-liphlpapi,-lwinmm
 endif
 #build for release (default) or debug
 DEBUGGING =
@@ -49,8 +44,8 @@ OPTIMIZATION = -O0
 DEBUGGING = -g
 endif
 # put all the flags together
-CFLAGS = -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
-LFLAGS = -Wl,$(LIBRARIES)
+CFLAGS := -Wall $(DEBUGGING) $(OPTIMIZATION) $(INCLUDES) $(DEFINES)
+LFLAGS := -Wl,$(BACNET_LIB),$(SYSTEM_LIB)
 
 .EXPORT_ALL_VARIABLES:
 
@@ -70,11 +65,7 @@ ifeq (${BACNET_PORT},win32)
 SUBDIRS += ptransfer mstpcap mstpcrc
 endif
 
-ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
-	SUBDIRS += gateway
-endif
-
-.PHONY : all router clean
+.PHONY : all gateway router clean
 
 TARGETS = all clean
 
@@ -83,5 +74,11 @@ $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
 	$(MAKE) -s -b -C $(subst ., , $@)
 
+gateway:
+	$(MAKE) -s -b -C gateway
+
 router:
 	$(MAKE) -s -b -C router
+
+
+
