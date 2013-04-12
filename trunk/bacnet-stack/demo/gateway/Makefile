@@ -9,21 +9,22 @@ TARGET = bacgateway
 
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
+# put any overloaded or special built src files here,
+# so the linker uses these instead of the functions in the library
 SRCS = main.c \
 	$(BACNET_OBJECT)/gw_device.c \
-	${CORE_SRC} \
-	${PORT_SRC} \
-	${HANDLER_SRC} \
-	${OBJECT_SRC} \
-	${ROUTING_SRC}
+	$(BACNET_HANDLER)/h_routed_npdu.c \
+	$(BACNET_HANDLER)/s_router.c
 
 OBJS = ${SRCS:.c=.o}
 
 DEFINES += -DBAC_ROUTING
 
+CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
+
 all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
-${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
+${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET} 
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
@@ -44,3 +45,4 @@ clean:
 	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET} $(TARGET).map
 
 include: .depend
+
