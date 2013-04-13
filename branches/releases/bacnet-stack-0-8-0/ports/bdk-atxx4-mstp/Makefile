@@ -94,8 +94,7 @@ CSRC = main.c \
 	bo.c
 
 # common demo files needed
-DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
-	$(BACNET_DEMO)/handler/h_dcc.c \
+DEMOSRC = $(BACNET_DEMO)/handler/h_dcc.c \
 	$(BACNET_DEMO)/handler/h_npdu.c \
 	$(BACNET_DEMO)/handler/h_rd.c \
 	$(BACNET_DEMO)/handler/h_rp.c \
@@ -103,36 +102,37 @@ DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/h_whohas.c \
 	$(BACNET_DEMO)/handler/h_whois.c \
 	$(BACNET_DEMO)/handler/h_wp.c \
+	$(BACNET_DEMO)/handler/noserv.c \
 	$(BACNET_DEMO)/handler/s_iam.c \
 	$(BACNET_DEMO)/handler/s_ihave.c \
-	$(BACNET_DEMO)/handler/noserv.c
+	$(BACNET_DEMO)/handler/txbuf.c
 
 # core BACnet stack files
 CORESRC =  \
-	$(BACNET_CORE)/fifo.c \
-	$(BACNET_CORE)/ringbuf.c \
-	$(BACNET_CORE)/memcopy.c \
-	$(BACNET_CORE)/crc.c \
+	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/apdu.c \
-	$(BACNET_CORE)/npdu.c \
+	$(BACNET_CORE)/bacaddr.c \
+	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
+	$(BACNET_CORE)/crc.c \
+	$(BACNET_CORE)/dcc.c \
+	$(BACNET_CORE)/fifo.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
-	$(BACNET_CORE)/dcc.c \
-	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/memcopy.c \
+	$(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/rd.c \
-	$(BACNET_CORE)/rpm.c \
-	$(BACNET_CORE)/wp.c \
-	$(BACNET_CORE)/whois.c \
-	$(BACNET_CORE)/whohas.c \
-	$(BACNET_CORE)/bacaddr.c \
-	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
-	$(BACNET_CORE)/bacerror.c \
-	$(BACNET_CORE)/bacapp.c
+	$(BACNET_CORE)/ringbuf.c \
+	$(BACNET_CORE)/rp.c \
+	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/whohas.c \
+	$(BACNET_CORE)/whois.c \
+	$(BACNET_CORE)/wp.c
 
 #	$(BACNET_CORE)/version.c
 #	$(BACNET_CORE)/bacprop.c \
