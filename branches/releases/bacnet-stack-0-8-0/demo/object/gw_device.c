@@ -410,7 +410,7 @@ bool Routed_Device_Name(
             pDev->bacObj.Object_Name);
     }
 
-    return FALSE;
+    return false;
 }
 
 /** Manages ReadProperty service for fields which are different for routed

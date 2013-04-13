@@ -9,6 +9,17 @@
 #
 # Assumes rm and cp are available
 
+BACNET_PORT_DIR = ../ports/${BACNET_PORT}
+BACNET_OBJECT = ../demo/object
+BACNET_HANDLER = ../demo/handler
+BACNET_CORE = ../src
+BACNET_INCLUDE = ../include
+# compiler configuration
+#STANDARDS = -std=c99
+INCLUDE1 = -I$(BACNET_PORT_DIR) -I$(BACNET_OBJECT) -I$(BACNET_HANDLER)
+INCLUDE2 = -I$(BACNET_INCLUDE)
+INCLUDES = $(INCLUDE1) $(INCLUDE2)
+
 # target
 TARGET = bacnet
 LIBRARY = lib$(TARGET).a
@@ -103,11 +114,11 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_cov.c  \
 	$(BACNET_HANDLER)/s_ptransfer.c \
 	$(BACNET_HANDLER)/s_rd.c \
-	$(BACNET_HANDLER)/s_router.c \
 	$(BACNET_HANDLER)/s_rp.c  \
 	$(BACNET_HANDLER)/s_rpm.c  \
 	$(BACNET_HANDLER)/s_ts.c \
 	$(BACNET_HANDLER)/s_cevent.c  \
+	$(BACNET_HANDLER)/s_router.c  \
 	$(BACNET_HANDLER)/s_uevent.c  \
 	$(BACNET_HANDLER)/s_whohas.c \
 	$(BACNET_HANDLER)/s_whois.c  \
@@ -183,19 +194,12 @@ ifdef BACDL_ALL
 PORT_SRC = ${PORT_ALL_SRC}
 endif
 
-
-ifneq (,$(findstring -DBAC_ROUTING,$(BACNET_DEFINES)))
-ROUTING_SRC = \
-	$(BACNET_HANDLER)/h_routed_npdu.c \
-	$(BACNET_HANDLER)/s_router.c  \
-	$(BACNET_OBJECT)/gw_device.c
-else
-ROUTING_SRC =
-endif
-
-SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC} ${ROUTING_SRC}
+SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC}
 
 OBJS = ${SRCS:.c=.o}
+
+# use local includes, but other values from calling Makefile
+CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
 
 all: $(LIBRARY)
 
