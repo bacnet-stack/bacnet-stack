@@ -44,11 +44,15 @@ baciamr - BACnet I-Am-Router to Network message
 bacinitr - BACnet Initialize Router message
 bacwir - BACnet Who-Is Router to Network message
 
-MS/TP Capture Tool
+MS/TP Tools
 ------------------
-The mstpcap tool is used for capturing MS/TP traffic
+mstpcap - a tool that is used for capturing MS/TP traffic
 from an RS-485 serial adapter and saving the packets
 in a file for viewing by Wireshark.
+
+mstpcrc - calculates Header CRC or Data CRC for ascii hex or decimal input.
+Optionally takes the input and saves it to a PCAP format file for viewing
+in Wireshark.
 
 Environment Variables
 ---------------------
