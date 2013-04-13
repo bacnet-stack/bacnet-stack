@@ -1122,6 +1122,8 @@ static bool MSTP_Master_Node_FSM(
                 Master_State = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 MSTP_Flag.ReceivedValidFrame = false;
+                /* clear the queue */
+                (void) Ringbuf_Pop(&PDU_Queue, NULL);
             } else if ((Timer_Silence() > Treply_delay) || (pkt != NULL)) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
