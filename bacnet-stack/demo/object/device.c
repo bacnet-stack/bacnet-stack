@@ -67,6 +67,9 @@
 #if defined(BACFILE)
 #include "bacfile.h"
 #endif /* defined(BACFILE) */
+#if defined(BAC_UCI)
+#include "ucix.h"
+#endif /* defined(BAC_UCI) */
 
 
 #if defined(__BORLANDC__)
@@ -1810,8 +1813,24 @@ void Device_Init(
     object_functions_t * object_table)
 {
     struct object_functions *pObject = NULL;
+#if defined(BAC_UCI)
+    const char *uciname;
+    struct uci_context *ctx;
+    fprintf(stderr, "Device_Init\n");
+    ctx = ucix_init("bacnet_dev");
+    if(!ctx)
+        fprintf(stderr,  "Failed to load config file bacnet_dev\n");
+    uciname = ucix_get_option(ctx, "bacnet_dev", "0", "Name");
+    if (uciname != 0) {
+        characterstring_init_ansi(&My_Object_Name, uciname);
+    } else {
+#endif /* defined(BAC_UCI) */
+        characterstring_init_ansi(&My_Object_Name, "SimpleServer");
+#if defined(BAC_UCI)
+    }
+    ucix_cleanup(ctx);
+#endif /* defined(BAC_UCI) */
 
-    characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     if (object_table) {
         Object_Table = object_table;
     } else {

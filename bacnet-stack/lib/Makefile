@@ -193,6 +193,9 @@ endif
 ifdef BACDL_ALL
 PORT_SRC = ${PORT_ALL_SRC}
 endif
+ifneq (,$(findstring -DBAC_UCI,$(BACNET_DEFINES)))
+UCI_SRC = $(BACNET_CORE)/ucix.c
+endif
 
 SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC}
 
