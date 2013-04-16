@@ -1281,7 +1281,11 @@ int dlmstp_send_pdu(
             pkt->buffer[i] = pdu[i];
         }
         pkt->length = pdu_len;
-        pkt->destination_mac = dest->mac[0];
+        if (dest->mac_len == 0) {
+            pkt->destination_mac = MSTP_BROADCAST_ADDRESS;
+        } else {
+            pkt->destination_mac = dest->mac[0];
+        }
         bytes_sent = pdu_len;
     }
 
