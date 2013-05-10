@@ -61,9 +61,21 @@ SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter readbdt
 endif
-ifeq (${BACNET_PORT},linux)
+
+# EKH: only include MSTP stuff if building targets MSTP or ALL. This allows us to compile under Cygwin, which has no support for RS485 (yet)
+# I searched for a clean way of doing the 'or' operation and the best I could come up with was http://stackoverflow.com/questions/7656425/makefile-ifeq-logical-or
+addMSTP=
+ifdef BACDL_ALL
+	addMSTP = true 
+endif
+ifeq (${BACDL_DEFINE},-DBACDL_MSTP=1)
+	addMSTP = true 
+endif
+ifdef addMSTP			# if we want MSTP
+ifeq (${BACNET_PORT},linux)	# AND we are compiling under linux/cygwin
 SUBDIRS += mstpcap mstpcrc
 #SUBDIRS += router
+endif
 endif
 
 ifeq (${BACNET_PORT},win32)

@@ -62,7 +62,7 @@ are created that run under Windows or Linux. They use the BACnet/IP datalink
 layer for communication by default, but could be compiled to use BACnet 
 Ethernet, ARCNET, or MS/TP.
 
-Linux/Unix
+Linux/Unix/Cygwin
 $ make clean all
 
 Windows
