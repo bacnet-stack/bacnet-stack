@@ -169,13 +169,8 @@ bool Device_Object_List_Identifier(
 }
 
 /* return the length of the apdu encoded or -1 for error */
-int Device_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    uint32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Device_Read_Property(
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
     int len = 0;        /* apdu len intermediate value */
@@ -185,14 +180,19 @@ int Device_Encode_Property_APDU(
     int object_type = 0;
     uint32_t instance = 0;
     unsigned count = 0;
+    uint8_t *apdu = NULL;
 
-    object_instance = object_instance;
+    if ((rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
     /* FIXME: change the hardcoded names to suit your application */
-    switch (property) {
+    switch ((int) rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_DEVICE,
-                Object_Instance_Number);
+                encode_application_object_id(&apdu[0], rpdata->object_type,
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(&char_string, Object_Name);
@@ -271,13 +271,13 @@ int Device_Encode_Property_APDU(
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
             /* Array element zero is the number of objects in the list */
-            if (array_index == 0)
+            if (rpdata->array_index == 0)
                 apdu_len = encode_application_unsigned(&apdu[0], count);
             /* if no index was specified, then try to encode the entire list */
             /* into one packet.  Note that more than likely you will have */
             /* to return an error if the number of encoded objects exceeds */
             /* your maximum APDU size. */
-            else if (array_index == BACNET_ARRAY_ALL) {
+            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= count; i++) {
                     Device_Object_List_Identifier(i, &object_type, &instance);
                     len =
@@ -287,21 +287,22 @@ int Device_Encode_Property_APDU(
                     /* assume next one is the same size as this one */
                     /* can we all fit into the APDU? */
                     if ((apdu_len + len) >= MAX_APDU) {
-                        *error_code =
+                        rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
             } else {
-                if (Device_Object_List_Identifier(array_index, &object_type,
+                if (Device_Object_List_Identifier(rpdata->array_index,
+                        &object_type,
                         &instance))
                     apdu_len =
                         encode_application_object_id(&apdu[0], object_type,
                         instance);
                 else {
-                    *error_class = ERROR_CLASS_PROPERTY;
-                    *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                    rpdata->error_class = ERROR_CLASS_PROPERTY;
+                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                     apdu_len = BACNET_STATUS_ERROR;
                 }
             }
@@ -326,16 +327,16 @@ int Device_Encode_Property_APDU(
             apdu_len = encode_application_unsigned(&apdu[0], 0);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = -1;
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (property != PROP_OBJECT_LIST) &&
-        (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
     }
 

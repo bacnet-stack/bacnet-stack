@@ -84,13 +84,7 @@ static void init(
     PORTD = 0;
 
     /* Configure the watchdog timer - Disabled for testing */
-#if defined(__AVR_ATmega168__)
-    BIT_CLEAR(MCUSR, WDRF);
-    WDTCSR = 0;
-#else
-    BIT_CLEAR(MCUCSR, WDRF);
-    WDTCR = 0;
-#endif
+    WATCHDOG_INIT();
 
     /* Configure Specialized Hardware */
     RS485_Initialize();

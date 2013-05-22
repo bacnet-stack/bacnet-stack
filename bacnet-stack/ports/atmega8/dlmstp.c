@@ -37,6 +37,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "bacdef.h"
+#include "mstpdef.h"
 #include "dlmstp.h"
 #include "rs485.h"
 #include "crc.h"
@@ -44,6 +45,8 @@
 #include "bits.h"
 #include "bytes.h"
 #include "bacaddr.h"
+/* special optimization - I-Am response in this module */
+#include "client.h"
 #include "txbuf.h"
 
 /* This file has been customized for use with small microprocessors */
@@ -53,46 +56,16 @@
 #include "hardware.h"
 #include "timer.h"
 
-/*  The value 255 is used to denote broadcast when used as a */
-/* destination address but is not allowed as a value for a station. */
-/* Station addresses for master nodes can be 0-127.  */
-/* Station addresses for slave nodes can be 127-254.  */
-#define MSTP_BROADCAST_ADDRESS 255
-
-/* MS/TP Frame Type */
-/* Frame Types 8 through 127 are reserved by ASHRAE. */
-#define FRAME_TYPE_TOKEN 0
-#define FRAME_TYPE_POLL_FOR_MASTER 1
-#define FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER 2
-#define FRAME_TYPE_TEST_REQUEST 3
-#define FRAME_TYPE_TEST_RESPONSE 4
-#define FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY 5
-#define FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY 6
-#define FRAME_TYPE_REPLY_POSTPONED 7
-/* Frame Types 128 through 255: Proprietary Frames */
-/* These frames are available to vendors as proprietary (non-BACnet) frames. */
-/* The first two octets of the Data field shall specify the unique vendor */
-/* identification code, most significant octet first, for the type of */
-/* vendor-proprietary frame to be conveyed. The length of the data portion */
-/* of a Proprietary frame shall be in the range of 2 to 501 octets. */
-#define FRAME_TYPE_PROPRIETARY_MIN 128
-#define FRAME_TYPE_PROPRIETARY_MAX 255
-
-/* receive FSM states */
-typedef enum {
-    MSTP_RECEIVE_STATE_IDLE = 0,
-    MSTP_RECEIVE_STATE_PREAMBLE = 1,
-    MSTP_RECEIVE_STATE_HEADER = 2,
-    MSTP_RECEIVE_STATE_DATA = 3
-} MSTP_RECEIVE_STATE;
-
 /* The state of the Receive State Machine */
 static MSTP_RECEIVE_STATE Receive_State;
 static struct mstp_flag_t {
     /* A Boolean flag set to TRUE by the Receive State Machine  */
-    /* if an invalid or valid frame is received.  */
+    /* if an invalid frame is received.  */
     /* Set to FALSE by the main state machine. */
     unsigned ReceivedInvalidFrame:1;
+    /* A Boolean flag set to TRUE by the Receive State Machine  */
+    /* if a valid frame is received.  */
+    /* Set to FALSE by the main state machine. */
     unsigned ReceivedValidFrame:1;
     /* A Boolean flag set TRUE by the datalink transmit if a
        frame is pending */
@@ -118,7 +91,7 @@ struct mstp_packet_info_t {
     uint8_t buffer_len; /* buffer to put the data */
     uint8_t index;      /* index into receive buffer */
 };
-static struct nitoo_packet_info_t MSTP_Receive_Packet;
+static struct mstp_packet_info_t MSTP_Receive_Packet;
 
 /* Used to store the data length of a received frame. */
 static uint16_t DataLength;
@@ -160,23 +133,10 @@ static uint8_t TransmitPacketDest;
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
 #define Tframe_abort 30
 
-/* The maximum idle time a sending node may allow to elapse between octets */
-/* of a frame the node is transmitting: 20 bit times. */
-#define Tframe_gap 20
-
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
 #define Treply_delay 250
-
-/* The width of the time slot within which a node may generate a token: */
-/* 10 milliseconds. */
-#define Tslot 10
-
-/* The maximum time a node may wait after reception of the token or */
-/* a Poll For Master frame before sending the first octet of a frame: */
-/* 15 milliseconds. */
-#define Tusage_delay 15
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) {if (x < 0xFF) x++;}
@@ -257,6 +217,7 @@ static void MSTP_Send_Frame(
     crc8 = CRC_Calc_Header(buffer[3], crc8);
     buffer[4] = source;
     crc8 = CRC_Calc_Header(buffer[4], crc8);
+
     buffer[5] = HI_BYTE(pdu_len);
     crc8 = CRC_Calc_Header(buffer[5], crc8);
     buffer[6] = LO_BYTE(pdu_len);
@@ -282,116 +243,6 @@ static void MSTP_Send_Frame(
     }
     RS485_Transmitter_Enable(false);
 }
-
-#if 0
-/* return true if the packet is good. */
-/* note: buffer should include the CRC as the last byte */
-static bool crc_header_good(
-    uint8_t * buffer,
-    uint8_t len)
-{
-    uint8_t i;  /* loop counter */
-    uint8_t crc8 = 0xFF;        /* loop counter */
-
-    for (i = 0; i < len; i++) {
-        crc8 = CRC_Calc_Header(buffer[i], crc8);
-    }
-
-    return (crc8 == 0x55);
-}
-
-
-static void mstp_receive_handler(
-    void)
-{
-    uint8_t data_register = 0;  /* data from UART */
-
-    if (RS485_ReceiveError()) {
-        timer_silence_reset();
-    } else if (RS485_DataAvailable(&data_register)) {
-        timer_silence_reset();
-        if ((MSTP_Receive_Packet.preamble1 == false) &&
-            (data_register == 0x55)) {
-            MSTP_Receive_Packet.preamble1 = true;
-            return;
-        }
-        if ((MSTP_Receive_Packet.preamble2 == false) &&
-            (MSTP_Receive_Packet.preamble1 == true)) {
-            if (data_register == 0xFF) {
-                MSTP_Receive_Packet.preamble2 = true;
-                MSTP_Receive_Packet.index = 0;
-                MSTP_Receive_Packet.data_len = 0;
-            } else if (data_register == 0x55) {
-                /* repeated preamble1 */
-                return;
-            } else {
-                MSTP_Receive_Packet.preamble1 = false;
-            }
-            return;
-        }
-        if (DataLength == 0) {
-            MSTP_Receive_Packet.header[MSTP_Receive_Packet.index] =
-                data_register;
-            if (MSTP_Receive_Packet.index == 5) {
-                if (crc_header_good(MSTP_Receive_Packet.header, 6)) {
-                    FrameType = MSTP_Receive_Packet.header[0];
-                    DestinationAddress = MSTP_Receive_Packet.header[1];
-                    SourceAddress = MSTP_Receive_Packet.header[2];
-                    DataLength =
-                        (MSTP_Receive_Packet.header[3] * 256) +
-                        MSTP_Receive_Packet.header[4];
-                    if (DataLength == 0) {
-                        MSTP_Receive_Packet.valid_frame = true;
-                    } else {
-                        MSTP_Receive_Packet.index = 0;
-                    }
-                } else {
-                    MSTP_Receive_Packet.preamble2 = false;
-                    MSTP_Receive_Packet.preamble2 = false;
-                    MSTP_Receive_Packet.index = 0;
-                }
-            }
-        } else {
-            MSTP_Receive_Packet.buffer[MSTP_Receive_Packet.index] =
-                data_register;
-            if (packet_info->index == packet_info->len) {
-                /* PDU length ended */
-                packet_info->ready = true;
-            } else if (packet_info->index >= sizeof(packet_info->buffer)) {
-                /* exceeded the size of the storage */
-                packet_info->len = packet_info->index;
-                packet_info->ready = true;
-            } else {
-                packet_info->index++;
-            }
-            MSTP_Receive_Packet.index++;
-            if (packet_info->ready) {
-                /* validate the CRC */
-                if (!lrc_packet_good(packet_info->buffer,
-                        packet_info->len + 1)) {
-                    packet_info->ready = false;
-                }
-                /* pull off the CRC */
-                packet_info->crc = packet_info->buffer[packet_info->len];
-                /* get ready for the next packet */
-                packet_info->index = 0;
-                packet_info->preamble1 = false;
-                packet_info->preamble2 = false;
-                led_setup_off();
-            }
-        }
-    } else {
-        if (ReceivePreamble1 == true) {
-            if (timer_silence_elapsed(Tframe_abort)) {
-                /* we've been busy too long! Abort packet! */
-                Index = 0;
-                ReceivePreamble1 = false;
-                ReceivePreamble2 = false;
-            }
-        }
-    }
-}
-#endif
 
 static void MSTP_Receive_Frame_FSM(
     void)
