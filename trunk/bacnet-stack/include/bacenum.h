@@ -408,18 +408,18 @@ typedef enum {
     PROP_MIN_ACTUAL_VALUE = 383,
     PROP_POWER = 384,
     PROP_TRANSITION = 385,
-    PROP_EGRESS_ACTIVE = 386
+    PROP_EGRESS_ACTIVE = 386,
         /* The special property identifiers all, optional, and required  */
         /* are reserved for use in the ReadPropertyConditional and */
         /* ReadPropertyMultiple services or services not defined in this standard. */
         /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
         /* Enumerated values 512-4194303 may be used by others subject to the  */
         /* procedures and constraints described in Clause 23.  */
+    /* do the MAX here instead of outside of enum so that
+       compilers will allocate adequate sized datatype for enum */
+    MAX_BACNET_PROPERTY_ID = 4194303
 } BACNET_PROPERTY_ID;
 
-/* do the MAX as define rather than enumeration for devices
-   and compilers that want to use smaller datatype for enum */
-#define MAX_BACNET_PROPERTY_ID 4194303
 
 typedef enum {
     EVENT_LOW_LIMIT_ENABLE = 1,
