@@ -19,34 +19,35 @@ BACNET_INCLUDE = ../../include
 BACNET_DEMO = ../../demo
 
 # local files for this project
-CSRC = main.c \
-	timer.c \
-	rs485.c \
+CSRC = apdu.c \
+	device.c \
 	dlmstp.c \
-	apdu.c \
-	$(BACNET_CORE)/crc.c
+	main.c \
+	rs485.c \
+	timer.c
 
 # common demo files needed
-DEMOSRC = h_rp.c \
-	device.c \
+DEMOSRC =
+	$(BACNET_DEMO)/handler/h_rp.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/h_npdu.c \
 	$(BACNET_DEMO)/handler/noserv.c
 
-# core BACnet stack files
+# core BACnet stack files - place into library
 CORESRC =  \
+	$(BACNET_CORE)/crc.c \
+	$(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/apdu.c \
-	$(BACNET_CORE)/npdu.c \
+	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/bacaddr.c \
-	$(BACNET_CORE)/abort.c \
+	$(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/reject.c \
-	$(BACNET_CORE)/bacerror.c \
-	$(BACNET_CORE)/bacapp.c
+	$(BACNET_CORE)/rp.c
 
 #	$(BACNET_CORE)/iam.c \
 #	$(BACNET_CORE)/whois.c \

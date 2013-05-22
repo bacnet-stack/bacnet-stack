@@ -1985,9 +1985,66 @@
       <data/>
     </settings>
   </configuration>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\abort.c</name>
-  </file>
+  <group>
+    <name>BACnet-Core</name>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\abort.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\bacapp.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\bacdcode.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\bacerror.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\bacint.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\bacreal.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\bacstr.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\crc.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\iam.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\npdu.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\reject.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\rp.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\whois.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\src\wp.c</name>
+    </file>
+  </group>
+  <group>
+    <name>BACnet-Handlers</name>
+    <file>
+      <name>$PROJ_DIR$\..\..\demo\handler\h_npdu.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\demo\handler\noserv.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\demo\handler\s_iam.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\demo\handler\txbuf.c</name>
+    </file>
+  </group>
   <file>
     <name>$PROJ_DIR$\apdu.c</name>
   </file>
@@ -1998,37 +2055,13 @@
     <name>$PROJ_DIR$\avr035.h</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\..\..\src\bacapp.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\bacdcode.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\bacerror.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\bacint.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\bacreal.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\bacstr.c</name>
-  </file>
-  <file>
     <name>$PROJ_DIR$\bv.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\crc.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\device.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\dlmstp.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\demo\handler\h_npdu.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\h_rp.c</name>
@@ -2043,34 +2076,16 @@
     <name>$PROJ_DIR$\hardware.h</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\..\..\src\iam.c</name>
-  </file>
-  <file>
     <name>$PROJ_DIR$\iar2gcc.h</name>
   </file>
   <file>
     <name>$PROJ_DIR$\main.c</name>
   </file>
   <file>
-    <name>$PROJ_DIR$\..\..\demo\handler\noserv.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\npdu.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\reject.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\rp.c</name>
-  </file>
-  <file>
     <name>$PROJ_DIR$\rs485.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\rs485.h</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\demo\handler\s_iam.c</name>
   </file>
   <file>
     <name>$PROJ_DIR$\stack.c</name>
@@ -2080,15 +2095,6 @@
   </file>
   <file>
     <name>$PROJ_DIR$\timer.h</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\demo\handler\txbuf.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\whois.c</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\..\src\wp.c</name>
   </file>
 </project>
 
