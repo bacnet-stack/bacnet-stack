@@ -218,7 +218,7 @@ void Multistate_Input_Out_Of_Service_Set(
     return;
 }
 
-static char *Multistate_Input_Description(
+char *Multistate_Input_Description(
     uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
@@ -380,7 +380,7 @@ static bool Multistate_Input_Object_Name_Write(
     return status;
 }
 
-static char *Multistate_Input_State_Text(
+char *Multistate_Input_State_Text(
     uint32_t object_instance,
     uint32_t state_index)
 {

@@ -59,6 +59,12 @@ extern "C" {
         uint32_t object_instance,
         char *new_name);
 
+    BACNET_BINARY_PV Binary_Input_Present_Value(
+        uint32_t object_instance);
+    bool Binary_Input_Present_Value_Set(
+        uint32_t object_instance,
+        BACNET_BINARY_PV value);
+
     char *Binary_Input_Description(
         uint32_t instance);
     bool Binary_Input_Description_Set(
@@ -75,13 +81,18 @@ extern "C" {
     bool Binary_Input_Active_Text_Set(
         uint32_t instance,
         char *new_name);
+
     BACNET_POLARITY Binary_Input_Polarity(
         uint32_t object_instance);
     bool Binary_Input_Polarity_Set(
         uint32_t object_instance,
         BACNET_POLARITY polarity);
+
     bool Binary_Input_Out_Of_Service(
         uint32_t object_instance);
+    void Binary_Input_Out_Of_Service_Set(
+        uint32_t object_instance,
+        bool value);
 
     bool Binary_Input_Encode_Value_List(
         uint32_t object_instance,
@@ -98,12 +109,6 @@ extern "C" {
         BACNET_WRITE_PROPERTY_DATA * wp_data);
     void Binary_Input_Init(
         void);
-    BACNET_BINARY_PV Binary_Input_Present_Value(
-        uint32_t object_instance);
-
-    bool Binary_Input_Present_Value_Set(
-        uint32_t object_instance,
-        BACNET_BINARY_PV value);
 
 #ifdef TEST
 #include "ctest.h"

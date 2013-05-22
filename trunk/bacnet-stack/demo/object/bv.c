@@ -50,7 +50,7 @@ static BACNET_BINARY_PV
     Binary_Value_Level[MAX_BINARY_VALUES][BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
-static bool Binary_Value_Out_Of_Service[MAX_BINARY_VALUES];
+static bool Out_Of_Service[MAX_BINARY_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Value_Properties_Required[] = {
@@ -153,7 +153,7 @@ unsigned Binary_Value_Instance_To_Index(
     return index;
 }
 
-static BACNET_BINARY_PV Binary_Value_Present_Value(
+BACNET_BINARY_PV Binary_Value_Present_Value(
     uint32_t object_instance)
 {
     BACNET_BINARY_PV value = RELINQUISH_DEFAULT;
@@ -188,6 +188,32 @@ bool Binary_Value_Object_Name(
     }
 
     return status;
+}
+
+bool Binary_Value_Out_Of_Service(
+    uint32_t instance)
+{
+    unsigned index = 0;
+    bool oos_flag = false;
+
+    index = Binary_Value_Instance_To_Index(instance);
+    if (index < MAX_BINARY_VALUES) {
+        oos_flag = Out_Of_Service[index];
+    }
+
+    return oos_flag;
+}
+
+void Binary_Value_Out_Of_Service_Set(
+    uint32_t instance,
+    bool oos_flag)
+{
+    unsigned index = 0;
+
+    index = Binary_Value_Instance_To_Index(instance);
+    if (index < MAX_BINARY_VALUES) {
+        Out_Of_Service[index] = oos_flag;
+    }
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
@@ -238,7 +264,7 @@ int Binary_Value_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            state = Binary_Value_Out_Of_Service[object_index];
+            state = Binary_Value_Out_Of_Service(rpdata->object_instance);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -248,9 +274,7 @@ int Binary_Value_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index =
-                Binary_Value_Instance_To_Index(rpdata->object_instance);
-            state = Binary_Value_Out_Of_Service[object_index];
+            state = Binary_Value_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_PRIORITY_ARRAY:
@@ -418,9 +442,8 @@ bool Binary_Value_Write_Property(
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                object_index =
-                    Binary_Value_Instance_To_Index(wp_data->object_instance);
-                Binary_Value_Out_Of_Service[object_index] = value.type.Boolean;
+                Binary_Value_Out_Of_Service_Set(wp_data->object_instance,
+                    value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:

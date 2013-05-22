@@ -63,6 +63,19 @@ extern "C" {
         uint32_t object_instance,
         unsigned priority);
 
+    bool Analog_Output_Change_Of_Value(
+        uint32_t instance);
+    void Analog_Output_Change_Of_Value_Clear(
+        uint32_t instance);
+    bool Analog_Output_Encode_Value_List(
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+    float Analog_Output_COV_Increment(
+        uint32_t instance);
+    void Analog_Output_COV_Increment_Set(
+        uint32_t instance,
+        float value);
+
     bool Analog_Output_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
@@ -82,6 +95,11 @@ extern "C" {
     uint16_t Analog_Output_Units(
         uint32_t instance);
 
+    bool Analog_Output_Out_Of_Service(
+        uint32_t instance);
+    void Analog_Output_Out_Of_Service_Set(
+        uint32_t instance,
+        bool oos_flag);
 
     void Analog_Output_Init(
         void);

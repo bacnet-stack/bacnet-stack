@@ -118,6 +118,19 @@ extern "C" {
         uint32_t object_instance,
         bool oos_flag);
 
+    bool Analog_Input_Change_Of_Value(
+        uint32_t instance);
+    void Analog_Input_Change_Of_Value_Clear(
+        uint32_t instance);
+    bool Analog_Input_Encode_Value_List(
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+    float Analog_Input_COV_Increment(
+        uint32_t instance);
+    void Analog_Input_COV_Increment_Set(
+        uint32_t instance,
+        float value);
+
     /* note: header of Intrinsic_Reporting function is required
        even when INTRINSIC_REPORTING is not defined */
     void Analog_Input_Intrinsic_Reporting(

@@ -63,7 +63,7 @@ int rp_encode_apdu(
                 rpdata->object_type, rpdata->object_instance);
             apdu_len += len;
         }
-        if (rpdata->object_property <= 4194303) {
+        if (rpdata->object_property <= MAX_BACNET_PROPERTY_ID) {
             /* check bounds so that we could create malformed
                messages for testing */
             len =

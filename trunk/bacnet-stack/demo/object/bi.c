@@ -272,7 +272,7 @@ bool Binary_Input_Present_Value_Set(
     return status;
 }
 
-static void Binary_Input_Out_Of_Service_Set(
+void Binary_Input_Out_Of_Service_Set(
     uint32_t object_instance,
     bool value)
 {
@@ -339,6 +339,7 @@ int Binary_Input_Read_Property(
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
+    bool state = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -374,13 +375,8 @@ int Binary_Input_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            if (Binary_Input_Out_Of_Service(rpdata->object_instance)) {
-                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                    true);
-            } else {
-                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                    false);
-            }
+            state = Binary_Input_Out_Of_Service(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
@@ -389,9 +385,8 @@ int Binary_Input_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            apdu_len =
-                encode_application_boolean(&apdu[0],
-                Binary_Input_Out_Of_Service(rpdata->object_instance));
+            state = Binary_Input_Out_Of_Service(rpdata->object_instance);
+            apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_POLARITY:
             apdu_len =

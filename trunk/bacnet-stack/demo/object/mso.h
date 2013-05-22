@@ -62,6 +62,48 @@ extern "C" {
     bool Multistate_Output_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    bool Multistate_Output_Change_Of_Value(
+        uint32_t instance);
+    void Multistate_Output_Change_Of_Value_Clear(
+        uint32_t instance);
+    bool Multistate_Output_Encode_Value_List(
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+
+    uint32_t Multistate_Output_Present_Value(
+        uint32_t instance);
+    bool Multistate_Output_Present_Value_Set(
+        uint32_t instance,
+        unsigned value,
+        unsigned priority);
+    bool Multistate_Output_Present_Value_Relinquish(
+        uint32_t instance,
+        unsigned priority);
+
+    bool Multistate_Output_Out_Of_Service(
+        uint32_t instance);
+    void Multistate_Output_Out_Of_Service_Set(
+        uint32_t instance,
+        bool value);
+
+    char *Multistate_Output_Description(
+        uint32_t instance);
+    bool Multistate_Output_Description_Set(
+        uint32_t object_instance,
+        char *text_string);
+
+    bool Multistate_Output_State_Text_Set(
+        uint32_t object_instance,
+        uint32_t state_index,
+        char *new_name);
+    bool Multistate_Output_Max_States_Set(
+        uint32_t instance,
+        uint32_t max_states_requested);
+    char *Multistate_Output_State_Text(
+        uint32_t object_instance,
+        uint32_t state_index);
+
+
 #ifdef TEST
 #include "ctest.h"
     void testMultistateOutput(

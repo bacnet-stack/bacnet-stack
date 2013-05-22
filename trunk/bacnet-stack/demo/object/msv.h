@@ -73,15 +73,26 @@ extern "C" {
         uint32_t object_instance,
         uint32_t value);
 
+    bool Multistate_Value_Change_Of_Value(
+        uint32_t instance);
+    void Multistate_Value_Change_Of_Value_Clear(
+        uint32_t instance);
+    bool Multistate_Value_Encode_Value_List(
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+
     bool Multistate_Value_Out_Of_Service(
         uint32_t object_instance);
     void Multistate_Value_Out_Of_Service_Set(
         uint32_t object_instance,
         bool value);
 
+    char *Multistate_Value_Description(
+        uint32_t instance);
     bool Multistate_Value_Description_Set(
         uint32_t object_instance,
         char *text_string);
+
     bool Multistate_Value_State_Text_Set(
         uint32_t object_instance,
         uint32_t state_index,
@@ -89,6 +100,9 @@ extern "C" {
     bool Multistate_Value_Max_States_Set(
         uint32_t instance,
         uint32_t max_states_requested);
+    char *Multistate_Value_State_Text(
+        uint32_t object_instance,
+        uint32_t state_index);
 
     void Multistate_Value_Init(
         void);

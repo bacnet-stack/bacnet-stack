@@ -211,7 +211,7 @@ void Multistate_Value_Out_Of_Service_Set(
     return;
 }
 
-static char *Multistate_Value_Description(
+char *Multistate_Value_Description(
     uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
@@ -298,7 +298,7 @@ bool Multistate_Value_Name_Set(
     return status;
 }
 
-static char *Multistate_Value_State_Text(
+char *Multistate_Value_State_Text(
     uint32_t object_instance,
     uint32_t state_index)
 {
@@ -357,7 +357,6 @@ int Multistate_Value_Read_Property(
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t present_value = 0;
-    unsigned object_index = 0;
     unsigned i = 0;
     bool state = false;
     uint8_t *apdu = NULL;
@@ -403,13 +402,8 @@ int Multistate_Value_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            if (Multistate_Value_Out_Of_Service(rpdata->object_instance)) {
-                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                    true);
-            } else {
-                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                    false);
-            }
+            state = Multistate_Value_Out_Of_Service(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
@@ -418,9 +412,7 @@ int Multistate_Value_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index =
-                Multistate_Value_Instance_To_Index(rpdata->object_instance);
-            state = Out_Of_Service[object_index];
+            state = Multistate_Value_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_NUMBER_OF_STATES:
@@ -437,9 +429,6 @@ int Multistate_Value_Read_Property(
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
-                object_index =
-                    Multistate_Value_Instance_To_Index
-                    (rpdata->object_instance);
                 for (i = 1; i <= MULTISTATE_NUMBER_OF_STATES; i++) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Value_State_Text(rpdata->object_instance,
@@ -459,9 +448,6 @@ int Multistate_Value_Read_Property(
                     }
                 }
             } else {
-                object_index =
-                    Multistate_Value_Instance_To_Index
-                    (rpdata->object_instance);
                 if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
                     characterstring_init_ansi(&char_string,
                         Multistate_Value_State_Text(rpdata->object_instance,
