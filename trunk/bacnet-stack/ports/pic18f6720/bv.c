@@ -90,7 +90,7 @@ unsigned Binary_Value_Instance_To_Index(
     return index;
 }
 
-static BACNET_BINARY_PV Binary_Value_Present_Value(
+BACNET_BINARY_PV Binary_Value_Present_Value(
     uint32_t object_instance)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
