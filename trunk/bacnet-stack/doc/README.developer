@@ -9,7 +9,7 @@ A BACnet device is supposed to support, at a minimum, ReadProperty service
 PC that is used for reading other BACnet devices.
 
 There are a number of core files that you will need. Services such as
-ReadProperty, I-Am, and Reject are consided core files. After determinging
+ReadProperty, I-Am, and Reject are consided core files. After determining
 which services you want in your device, add files to your project or makefile
 from the following BACnet services (messages) provided by this BACnet stack:
 
