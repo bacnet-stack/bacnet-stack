@@ -150,7 +150,7 @@ uint32_t datetime_days_since_epoch(
     return days;
 }
 
-void days_since_epoch_into_ymd(
+static void days_since_epoch_into_ymd(
     uint32_t days,
     uint16_t * pYear,
     uint8_t * pMonth,
