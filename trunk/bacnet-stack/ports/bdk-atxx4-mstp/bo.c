@@ -210,7 +210,7 @@ BACNET_POLARITY Binary_Output_Polarity(
     return polarity;
 }
 
-static void Binary_Output_Out_Of_Service_Set(
+void Binary_Output_Out_Of_Service_Set(
     uint32_t instance,
     bool flag)
 {
