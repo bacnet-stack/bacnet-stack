@@ -16,9 +16,7 @@ then
   exit 1
 fi
 
-# convert 0.0.0 to 0-0-0
 DOTTED_VERSION="$1"
-DASHED_VERSION="$(echo "$1" | sed 's/[\.*]/-/g')"
 echo "Creating the release files for version ${DOTTED_VERSION}"
 
 CHANGELOG=ChangeLog-${DOTTED_VERSION}
@@ -38,11 +36,10 @@ else
 fi
 
 ARCHIVE_NAME=${SVN_MODULE}-${DOTTED_VERSION}
-TAGGED_NAME=${SVN_MODULE}-${DASHED_VERSION}
 
 SVN_TRUNK_NAME=${SVN_BASE_URL}/trunk/${SVN_MODULE}
-SVN_TAGGED_NAME=${SVN_BASE_URL}/tags/${TAGGED_NAME}
-echo "Setting a tag on the ${SVN_MODULE} module called ${TAGGED_NAME}"
+SVN_TAGGED_NAME=${SVN_BASE_URL}/tags/${ARCHIVE_NAME}
+echo "Setting a tag on the ${SVN_MODULE} module called ${ARCHIVE_NAME}"
 TAG_COMMENT="Created version ${ARCHIVE_NAME}"
 svn copy --username=${USERNAME} ${SVN_TRUNK_NAME} ${SVN_TAGGED_NAME} -m "${TAG_COMMENT}"
 echo "done."
