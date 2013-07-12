@@ -44,21 +44,21 @@
  *  Aside from error-checking, if the NPDU doesn't contain routing info,
  *  this handler doesn't do much besides stepping over the NPDU header
  *  and passing the remaining bytes to the apdu_handler.
- *  @note The routing (except src) and NCPI information, including 
+ *  @note The routing (except src) and NCPI information, including
  *  npdu_data->data_expecting_reply, are discarded.
  * @see routing_npdu_handler
- *  
+ *
  * @ingroup MISCHNDLR
- *  
- * @param src  [out] Returned with routing source information if the NPDU 
- *                   has any and if this points to non-null storage for it. 
+ *
+ * @param src  [out] Returned with routing source information if the NPDU
+ *                   has any and if this points to non-null storage for it.
  *                   If src->net and src->len are 0 on return, there is no
  *                   routing source information.
  *                   This src describes the original source of the message when
  *                   it had to be routed to reach this BACnet Device, and this
- *                   is passed down into the apdu_handler; however, I don't 
- *                   think this project's code has any use for the src info  
- *                   on return from this handler, since the response has 
+ *                   is passed down into the apdu_handler; however, I don't
+ *                   think this project's code has any use for the src info
+ *                   on return from this handler, since the response has
  *                   already been sent via the apdu_handler.
  *  @param pdu [in]  Buffer containing the NPDU and APDU of the received packet.
  *  @param pdu_len [in] The size of the received message in the pdu[] buffer.
@@ -85,8 +85,16 @@ void npdu_handler(
                 /* only handle the version that we know how to handle */
                 /* and we are not a router, so ignore messages with
                    routing information cause they are not for us */
-                apdu_handler(src, &pdu[apdu_offset],
-                    (uint16_t) (pdu_len - apdu_offset));
+                if ((dest.net == BACNET_BROADCAST_NETWORK) &&
+                    ((pdu[apdu_offset] & 0xF0) ==
+                    PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+                    /* hack for 5.4.5.1 - IDLE */
+                    /* ConfirmedBroadcastReceived */
+                    /* then enter IDLE - ignore the PDU */
+                } else {
+                    apdu_handler(src, &pdu[apdu_offset],
+                        (uint16_t) (pdu_len - apdu_offset));
+                }
             } else {
 #if PRINT_ENABLED
                 printf("NPDU: DNET=%u.  Discarded!\n", (unsigned) dest.net);
