@@ -1173,12 +1173,14 @@ int Device_Read_Property_Local(
     uint8_t *apdu = NULL;
     struct object_functions *pObject = NULL;
     bool found = false;
+    uint16_t apdu_max =0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
+    apdu_max = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
@@ -1307,7 +1309,7 @@ int Device_Read_Property_Local(
                         apdu_len += len;
                         /* assume next one is the same size as this one */
                         /* can we all fit into the APDU? Don't check for last entry */
-                        if ((i != count) && (apdu_len + len) >= MAX_APDU) {
+                        if ((i != count) && (apdu_len + len) >= apdu_max) {
                             /* Abort response */
                             rpdata->error_code =
                                 ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -1352,8 +1354,7 @@ int Device_Read_Property_Local(
             apdu_len = encode_application_unsigned(&apdu[0], apdu_retries());
             break;
         case PROP_DEVICE_ADDRESS_BINDING:
-            /* FIXME: the real max apdu remaining should be passed into function */
-            apdu_len = address_list_encode(&apdu[0], MAX_APDU);
+            apdu_len = address_list_encode(&apdu[0], apdu_max);
             break;
         case PROP_DATABASE_REVISION:
             apdu_len =
@@ -1371,8 +1372,7 @@ int Device_Read_Property_Local(
             break;
 #endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
-            /* FIXME: the real max apdu should be passed into function */
-            apdu_len = handler_cov_encode_subscriptions(&apdu[0], MAX_APDU);
+            apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
