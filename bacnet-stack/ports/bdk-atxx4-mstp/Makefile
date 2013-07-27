@@ -36,14 +36,17 @@ SIZE_OPTIONS = -t
 # jtag2slow = Atmel JTAG ICE mkII, running at 19200 Bd
 # avrispmkII = AVR ISP MKII
 # avr109 = bootloader
+ifeq (${JTAG},ftisp)
+AVRDUDE_PROGRAMMERID = ftisp
+endif
 ifeq (${JTAG},avr109)
 AVRDUDE_PROGRAMMERID = avr109
 endif
 ifeq (${JTAG},avrispmkII)
-#AVRDUDE_PROGRAMMERID = avrispmkII
+AVRDUDE_PROGRAMMERID = avrispmkII
 endif
 ifeq (${JTAG},dragon_isp)
-#AVRDUDE_PROGRAMMERID = dragon_isp
+AVRDUDE_PROGRAMMERID = dragon_isp
 endif
 ifeq (${JTAG},dragon_jtag)
 AVRDUDE_PROGRAMMERID = dragon_jtag
@@ -58,8 +61,10 @@ endif
 # port--serial or parallel port to which your
 # hardware programmer is attached
 # usb can just be usb
-AVRDUDE_PORT = usb
-#AVRDUDE_PORT = /dev/ttyUSB0
+AVRDUDE_PORT := usb
+ifeq (${JTAG},ftisp)
+AVRDUDE_PORT := /dev/ttyUSB0
+endif
 
 # Source locations
 BACNET_CORE = ../../src
