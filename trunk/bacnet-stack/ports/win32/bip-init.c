@@ -42,6 +42,9 @@
 #include "bip.h"
 #include "net.h"
 
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "IPHLPAPI.lib")
+
 bool BIP_Debug = false;
 
 /* gets an IP address by name, where name can be a
