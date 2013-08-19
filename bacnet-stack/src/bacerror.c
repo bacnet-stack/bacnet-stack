@@ -233,8 +233,8 @@ void testBACError(
 
     /* max boundaries */
     service = 255;
-    error_class = LAST_PROPRIETARY_ERROR_CLASS;
-    error_code = LAST_PROPRIETARY_ERROR_CODE;
+    error_class = ERROR_CLASS_PROPRIETARY_LAST;
+    error_code = ERROR_CODE_PROPRIETARY_LAST;
     len =
         bacerror_encode_apdu(&apdu[0], invoke_id, service, error_class,
         error_code);
