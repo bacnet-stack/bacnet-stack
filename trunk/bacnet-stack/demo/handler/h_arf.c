@@ -107,6 +107,7 @@ void handler_atomic_read_file(
     int pdu_len = 0;
     bool error = false;
     int bytes_sent = 0;
+    uint32_t offset = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
@@ -147,8 +148,8 @@ void handler_atomic_read_file(
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (data.type.stream.requestedOctetCount <
-                octetstring_capacity(&data.fileData)) {
-                if (bacfile_read_data(&data)) {
+                octetstring_capacity(&data.fileData[0])) {
+                if (bacfile_read_stream_data(&data)) {
 #if PRINT_ENABLED
                     fprintf(stderr, "ARF: Stream offset %d, %d octets.\n",
                         data.type.stream.fileStartPosition,
@@ -170,8 +171,29 @@ void handler_atomic_read_file(
 #if PRINT_ENABLED
                 fprintf(stderr, "Too Big To Send (%d >= %d). Sending Abort!\n",
                     data.type.stream.requestedOctetCount,
-                    octetstring_capacity(&data.fileData));
+                    octetstring_capacity(&data.fileData[0]));
 #endif
+            }
+        } else if (data.access == FILE_RECORD_ACCESS) {
+            if (data.type.record.fileStartRecord >=
+                BACNET_READ_FILE_RECORD_COUNT) {
+                error_class = ERROR_CLASS_SERVICES;
+                error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+                error = true;
+            } else if (bacfile_read_stream_data(&data)) {
+#if PRINT_ENABLED
+                fprintf(stderr,
+                    "ARF: fileStartRecord %d, %u RecordCount.\n",
+                    data.type.record.fileStartRecord,
+                    data.type.record.RecordCount);
+#endif
+                len =
+                    arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, &data);
+            } else {
+                error = true;
+                error_class = ERROR_CLASS_OBJECT;
+                error_code = ERROR_CODE_FILE_ACCESS_DENIED;
             }
         } else {
             error = true;
@@ -184,7 +206,7 @@ void handler_atomic_read_file(
     } else {
         error = true;
         error_class = ERROR_CLASS_SERVICES;
-        error_code = ERROR_CODE_FILE_ACCESS_DENIED;
+        error_code = ERROR_CODE_INCONSISTENT_OBJECT_TYPE;
     }
     if (error) {
         len =

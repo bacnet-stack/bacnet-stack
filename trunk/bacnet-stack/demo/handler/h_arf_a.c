@@ -72,7 +72,7 @@ void handler_atomic_read_file_ack(
         if (data.access == FILE_STREAM_ACCESS) {
             bacfile_read_ack_stream_data(instance, &data);
         } else if (data.access == FILE_RECORD_ACCESS) {
-            /* FIXME: add handling for Record Access */
+            bacfile_read_ack_record_data(instance, &data);
         }
     }
 }

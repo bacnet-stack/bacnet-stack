@@ -204,6 +204,7 @@ int arf_ack_encode_apdu(
     BACNET_ATOMIC_READ_FILE_DATA * data)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
+    uint32_t i = 0;
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK;
@@ -221,7 +222,7 @@ int arf_ack_encode_apdu(
                     data->type.stream.fileStartPosition);
                 apdu_len +=
                     encode_application_octet_string(&apdu[apdu_len],
-                    &data->fileData);
+                    &data->fileData[0]);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
                 break;
             case FILE_RECORD_ACCESS:
@@ -232,9 +233,11 @@ int arf_ack_encode_apdu(
                 apdu_len +=
                     encode_application_unsigned(&apdu[apdu_len],
                     data->type.record.RecordCount);
-                apdu_len +=
-                    encode_application_octet_string(&apdu[apdu_len],
-                    &data->fileData);
+                for (i = 0; i < data->type.record.RecordCount; i++) {
+                    apdu_len +=
+                        encode_application_octet_string(&apdu[apdu_len],
+                            &data->fileData[i]);
+                }
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
                 break;
             default:
@@ -255,6 +258,7 @@ int arf_ack_decode_service_request(
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
+    uint32_t i = 0;
 
     /* check for value pointers */
     if (apdu_len && data) {
@@ -287,7 +291,7 @@ int arf_ack_decode_service_request(
                 return -1;
             len +=
                 decode_octet_string(&apdu[len], len_value_type,
-                &data->fileData);
+                &data->fileData[0]);
             if (!decode_is_closing_tag_number(&apdu[len], 0))
                 return -1;
             /* a tag number is not extended so only one octet */
@@ -316,16 +320,18 @@ int arf_ack_decode_service_request(
             len +=
                 decode_unsigned(&apdu[len], len_value_type,
                 &data->type.record.RecordCount);
-            /* fileData */
-            tag_len =
-                decode_tag_number_and_value(&apdu[len], &tag_number,
-                &len_value_type);
-            len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
-                return -1;
-            len +=
-                decode_octet_string(&apdu[len], len_value_type,
-                &data->fileData);
+            for (i = 0; i < data->type.record.RecordCount; i++) {
+                /* fileData */
+                tag_len =
+                    decode_tag_number_and_value(&apdu[len], &tag_number,
+                    &len_value_type);
+                len += tag_len;
+                if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
+                    return -1;
+                len +=
+                    decode_octet_string(&apdu[len], len_value_type,
+                        &data->fileData[i]);
+            }
             if (!decode_is_closing_tag_number(&apdu[len], 1))
                 return -1;
             /* a tag number is not extended so only one octet */
@@ -403,11 +409,11 @@ void testAtomicReadFileAckAccess(
             data->type.record.RecordCount);
     }
     ct_test(pTest,
-        octetstring_length(&test_data.fileData) ==
-        octetstring_length(&data->fileData));
-    ct_test(pTest, memcmp(octetstring_value(&test_data.fileData),
-            octetstring_value(&data->fileData),
-            octetstring_length(&test_data.fileData)) == 0);
+        octetstring_length(&test_data.fileData[0]) ==
+        octetstring_length(&data->fileData[0]));
+    ct_test(pTest, memcmp(octetstring_value(&test_data.fileData[0]),
+            octetstring_value(&data->fileData[0]),
+            octetstring_length(&test_data.fileData[0])) == 0);
 }
 
 void testAtomicReadFileAck(
@@ -420,7 +426,7 @@ void testAtomicReadFileAck(
     data.endOfFile = true;
     data.access = FILE_STREAM_ACCESS;
     data.type.stream.fileStartPosition = 0;
-    octetstring_init(&data.fileData, test_octet_string,
+    octetstring_init(&data.fileData[0], test_octet_string,
         sizeof(test_octet_string));
     testAtomicReadFileAckAccess(pTest, &data);
 
@@ -428,7 +434,7 @@ void testAtomicReadFileAck(
     data.access = FILE_RECORD_ACCESS;
     data.type.record.fileStartRecord = 1;
     data.type.record.RecordCount = 2;
-    octetstring_init(&data.fileData, test_octet_string,
+    octetstring_init(&data.fileData[0], test_octet_string,
         sizeof(test_octet_string));
     testAtomicReadFileAckAccess(pTest, &data);
 

@@ -74,12 +74,19 @@ extern "C" {
         uint8_t invokeID);
 
     /* handler ACK helper */
-    bool bacfile_read_data(
+    bool bacfile_read_stream_data(
         BACNET_ATOMIC_READ_FILE_DATA * data);
     bool bacfile_read_ack_stream_data(
         uint32_t instance,
         BACNET_ATOMIC_READ_FILE_DATA * data);
     bool bacfile_write_stream_data(
+        BACNET_ATOMIC_WRITE_FILE_DATA * data);
+    bool bacfile_read_record_data(
+        BACNET_ATOMIC_READ_FILE_DATA * data);
+    bool bacfile_read_ack_record_data(
+        uint32_t instance,
+        BACNET_ATOMIC_READ_FILE_DATA * data);
+    bool bacfile_write_record_data(
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
     void bacfile_init(
