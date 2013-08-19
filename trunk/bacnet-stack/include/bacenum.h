@@ -1370,10 +1370,10 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_ERROR_CLASS = 8
+    MAX_BACNET_ERROR_CLASS = 8,
+    ERROR_CLASS_PROPRIETARY_FIRST = 64,
+    ERROR_CLASS_PROPRIETARY_LAST = 65535
 } BACNET_ERROR_CLASS;
-#define FIRST_PROPRIETARY_ERROR_CLASS 64
-#define LAST_PROPRIETARY_ERROR_CLASS 65535
 
 /* These are sorted in the order given in
    Clause 18. ERROR, REJECT AND ABORT CODES
@@ -1541,7 +1541,7 @@ typedef enum {
     ERROR_CODE_ABORT_SECURITY_ERROR = 136,
 
     MAX_BACNET_ERROR_CODE = 137,
-    
+
     ERROR_CODE_PROPRIETARY_FIRST = 256,
     ERROR_CODE_PROPRIETARY_LAST = 65535
 
@@ -1611,7 +1611,7 @@ typedef enum BACnetLightingTransition {
     BACNET_LIGHTING_TRANSITION_FADE = 1,
     BACNET_LIGHTING_TRANSITION_RAMP = 2
 } BACNET_LIGHTING_TRANSITION;
-            
+
 /* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
 /* 0=Monday-6=Sunday */
 typedef enum BACnetDaysOfWeek {
