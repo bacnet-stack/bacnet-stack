@@ -370,7 +370,7 @@ void testAtomicWriteFile(
     data.object_instance = 1;
     data.access = FILE_RECORD_ACCESS;
     data.type.record.fileStartRecord = 1;
-    data.type.record.returnedRecordCount = 2;
+    data.type.record.returnedRecordCount = 1;
     octetstring_init(&data.fileData[0], test_octet_string,
         sizeof(test_octet_string));
     testAtomicWriteFileAccess(pTest, &data);
