@@ -130,7 +130,22 @@ void handler_atomic_write_file(
 #if PRINT_ENABLED
                 fprintf(stderr, "AWF: Stream offset %d, %d bytes\n",
                     data.type.stream.fileStartPosition,
-                    octetstring_length(&data.fileData));
+                    octetstring_length(&data.fileData[0]));
+#endif
+                len =
+                    awf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, &data);
+            } else {
+                error = true;
+                error_class = ERROR_CLASS_OBJECT;
+                error_code = ERROR_CODE_FILE_ACCESS_DENIED;
+            }
+        } else if (data.access == FILE_RECORD_ACCESS) {
+            if (bacfile_write_record_data(&data)) {
+#if PRINT_ENABLED
+                fprintf(stderr, "AWF: StartRecord %d, RecordCount %u\n",
+                    data.type.record.fileStartRecord,
+                    data.type.record.returnedRecordCount);
 #endif
                 len =
                     awf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
@@ -151,7 +166,7 @@ void handler_atomic_write_file(
     } else {
         error = true;
         error_class = ERROR_CLASS_SERVICES;
-        error_code = ERROR_CODE_FILE_ACCESS_DENIED;
+        error_code = ERROR_CODE_INCONSISTENT_OBJECT_TYPE;
     }
     if (error) {
         len =

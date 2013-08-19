@@ -46,6 +46,7 @@ int awf_encode_apdu(
     BACNET_ATOMIC_WRITE_FILE_DATA * data)
 {
     int apdu_len = 0;   /* total length of the apdu, return value */
+    uint32_t i = 0;
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -64,7 +65,7 @@ int awf_encode_apdu(
                     data->type.stream.fileStartPosition);
                 apdu_len +=
                     encode_application_octet_string(&apdu[apdu_len],
-                    &data->fileData);
+                    &data->fileData[0]);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
                 break;
             case FILE_RECORD_ACCESS:
@@ -75,9 +76,11 @@ int awf_encode_apdu(
                 apdu_len +=
                     encode_application_unsigned(&apdu[apdu_len],
                     data->type.record.returnedRecordCount);
-                apdu_len +=
-                    encode_application_octet_string(&apdu[apdu_len],
-                    &data->fileData);
+                for (i = 0; i < data->type.record.returnedRecordCount; i++) {
+                    apdu_len +=
+                        encode_application_octet_string(&apdu[apdu_len],
+                            &data->fileData[i]);
+                }
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
                 break;
             default:
@@ -101,6 +104,7 @@ int awf_decode_service_request(
     int32_t signed_value = 0;
     uint32_t unsigned_value = 0;
     uint16_t type = 0;  /* for decoding */
+    uint32_t i = 0;
 
     /* check for value pointers */
     if (apdu_len && data) {
@@ -133,7 +137,7 @@ int awf_decode_service_request(
                 return -1;
             len +=
                 decode_octet_string(&apdu[len], len_value_type,
-                &data->fileData);
+                &data->fileData[0]);
             if (!decode_is_closing_tag_number(&apdu[len], 0))
                 return -1;
             /* a tag number is not extended so only one octet */
@@ -162,15 +166,17 @@ int awf_decode_service_request(
                 decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
             data->type.record.returnedRecordCount = unsigned_value;
             /* fileData */
-            tag_len =
-                decode_tag_number_and_value(&apdu[len], &tag_number,
-                &len_value_type);
-            len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
-                return -1;
-            len +=
-                decode_octet_string(&apdu[len], len_value_type,
-                &data->fileData);
+            for (i = 0; i < data->type.record.returnedRecordCount; i++) {
+                tag_len =
+                    decode_tag_number_and_value(&apdu[len], &tag_number,
+                    &len_value_type);
+                len += tag_len;
+                if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
+                    return -1;
+                len +=
+                    decode_octet_string(&apdu[len], len_value_type,
+                        &data->fileData[i]);
+            }
             if (!decode_is_closing_tag_number(&apdu[len], 1))
                 return -1;
             /* a tag number is not extended so only one octet */
@@ -294,7 +300,8 @@ int awf_ack_decode_apdu(
 
     if (apdu_len > offset) {
         len =
-            awf_decode_service_request(&apdu[offset], apdu_len - offset, data);
+            awf_ack_decode_service_request(&apdu[offset], apdu_len - offset,
+            data);
     }
 
     return len;
@@ -338,11 +345,11 @@ void testAtomicWriteFileAccess(
             data->type.record.returnedRecordCount);
     }
     ct_test(pTest,
-        octetstring_length(&test_data.fileData) ==
-        octetstring_length(&data->fileData));
-    ct_test(pTest, memcmp(octetstring_value(&test_data.fileData),
-            octetstring_value(&data->fileData),
-            octetstring_length(&test_data.fileData)) == 0);
+        octetstring_length(&test_data.fileData[0]) ==
+        octetstring_length(&data->fileData[0]));
+    ct_test(pTest, memcmp(octetstring_value(&test_data.fileData[0]),
+            octetstring_value(&data->fileData[0]),
+            octetstring_length(&test_data.fileData[0])) == 0);
 }
 
 void testAtomicWriteFile(
@@ -355,7 +362,7 @@ void testAtomicWriteFile(
     data.object_instance = 1;
     data.access = FILE_STREAM_ACCESS;
     data.type.stream.fileStartPosition = 0;
-    octetstring_init(&data.fileData, test_octet_string,
+    octetstring_init(&data.fileData[0], test_octet_string,
         sizeof(test_octet_string));
     testAtomicWriteFileAccess(pTest, &data);
 
@@ -364,7 +371,7 @@ void testAtomicWriteFile(
     data.access = FILE_RECORD_ACCESS;
     data.type.record.fileStartRecord = 1;
     data.type.record.returnedRecordCount = 2;
-    octetstring_init(&data.fileData, test_octet_string,
+    octetstring_init(&data.fileData[0], test_octet_string,
         sizeof(test_octet_string));
     testAtomicWriteFileAccess(pTest, &data);
 

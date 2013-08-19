@@ -29,6 +29,10 @@
 #include "bacdcode.h"
 #include "bacstr.h"
 
+#ifndef BACNET_READ_FILE_RECORD_COUNT
+#define BACNET_READ_FILE_RECORD_COUNT 1
+#endif
+
 typedef struct BACnet_Atomic_Read_File_Data {
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
@@ -44,7 +48,7 @@ typedef struct BACnet_Atomic_Read_File_Data {
             uint32_t RecordCount;
         } record;
     } type;
-    BACNET_OCTET_STRING fileData;
+  BACNET_OCTET_STRING fileData[BACNET_READ_FILE_RECORD_COUNT];
     bool endOfFile;
 } BACNET_ATOMIC_READ_FILE_DATA;
 
