@@ -1539,7 +1539,7 @@ const char *bactext_error_class_name(
     unsigned index)
 {
     return indtext_by_index_split_default(bacnet_error_class_names, index,
-        FIRST_PROPRIETARY_ERROR_CLASS, ASHRAE_Reserved_String,
+        ERROR_CLASS_PROPRIETARY_FIRST, ASHRAE_Reserved_String,
         Vendor_Proprietary_String);
 }
 
@@ -1791,7 +1791,7 @@ const char *bactext_error_code_name(
     unsigned index)
 {
     return indtext_by_index_split_default(bacnet_error_code_names, index,
-        FIRST_PROPRIETARY_ERROR_CLASS, ASHRAE_Reserved_String,
+        ERROR_CODE_PROPRIETARY_FIRST, ASHRAE_Reserved_String,
         Vendor_Proprietary_String);
 }
 
