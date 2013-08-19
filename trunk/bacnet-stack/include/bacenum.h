@@ -1548,7 +1548,6 @@ typedef enum {
     /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
     /* Enumerated values 256-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    /* The last enumeration used in this version is 50. */
 } BACNET_ERROR_CODE;
 
 typedef enum {
@@ -1586,23 +1585,33 @@ typedef enum BACnetShedState {
 } BACNET_SHED_STATE;
 
 typedef enum BACnetLightingOperation {
-    BACNET_LIGHTS_STOP = 0,
+    BACNET_LIGHTS_NONE = 0,
     BACNET_LIGHTS_FADE_TO = 1,
-    BACNET_LIGHTS_FADE_TO_OVER = 2,
-    BACNET_LIGHTS_RAMP_TO = 3,
-    BACNET_LIGHTS_RAMP_TO_AT_RATE = 4,
-    BACNET_LIGHTS_RAMP_UP = 5,
-    BACNET_LIGHTS_RAMP_UP_AT_RATE = 6,
-    BACNET_LIGHTS_RAMP_DOWN = 7,
-    BACNET_LIGHTS_RAMP_DOWN_AT_RATE = 8,
-    BACNET_LIGHTS_STEP_UP = 9,
-    BACNET_LIGHTS_STEP_DOWN = 10,
-    BACNET_LIGHTS_STEP_UP_BY = 11,
-    BACNET_LIGHTS_STEP_DOWN_BY = 12,
-    BACNET_LIGHTS_GOTO_LEVEL = 13,
-    BACNET_LIGHTS_RELINQUISH = 14
+    BACNET_LIGHTS_RAMP_TO = 2,
+    BACNET_LIGHTS_STEP_UP = 3,
+    BACNET_LIGHTS_STEP_DOWN = 4,
+    BACNET_LIGHTS_STEP_ON = 5,
+    BACNET_LIGHTS_STEP_OFF = 6,
+    BACNET_LIGHTS_WARN = 7,
+    BACNET_LIGHTS_WARN_OFF = 8,
+    BACNET_LIGHTS_WARN_RELINQUISH = 9,
+    BACNET_LIGHTS_STOP = 10
 } BACNET_LIGHTING_OPERATION;
 
+typedef enum BACnetLightingInProgress {
+    BACNET_LIGHTING_IDLE = 0,
+    BACNET_LIGHTING_FADE_ACTIVE = 1,
+    BACNET_LIGHTING_RAMP_ACTIVE = 2,
+    BACNET_LIGHTING_NOT_CONTROLLED = 3,
+    BACNET_LIGHTING_OTHER = 4
+} BACNET_LIGHTING_IN_PROGRESS;
+
+typedef enum BACnetLightingTransition {
+    BACNET_LIGHTING_TRANSITION_IDLE = 0,
+    BACNET_LIGHTING_TRANSITION_FADE = 1,
+    BACNET_LIGHTING_TRANSITION_RAMP = 2
+} BACNET_LIGHTING_TRANSITION;
+            
 /* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
 /* 0=Monday-6=Sunday */
 typedef enum BACnetDaysOfWeek {
