@@ -130,9 +130,9 @@ static void AtomicReadFileAckHandler(
                 /* is there anything to do with this? data.stream.requestedOctetCount */
                 (void) fseek(pFile, data.type.stream.fileStartPosition,
                     SEEK_SET);
-                octets_written = fwrite(octetstring_value(&data.fileData), 1,   /* unit to write in bytes - in our case, an octet is one byte */
-                    octetstring_length(&data.fileData), pFile);
-                if (octets_written != octetstring_length(&data.fileData)) {
+                octets_written = fwrite(octetstring_value(&data.fileData[0]), 1,   /* unit to write in bytes - in our case, an octet is one byte */
+                    octetstring_length(&data.fileData[0]), pFile);
+                if (octets_written != octetstring_length(&data.fileData[0])) {
                     fprintf(stderr, "Unable to write data to file \"%s\".\n",
                         Local_File_Name);
                 } else if (octets_written == 0) {
