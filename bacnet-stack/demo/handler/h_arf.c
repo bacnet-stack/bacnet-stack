@@ -107,7 +107,6 @@ void handler_atomic_read_file(
     int pdu_len = 0;
     bool error = false;
     int bytes_sent = 0;
-    uint32_t offset = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
