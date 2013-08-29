@@ -1321,7 +1321,7 @@ bool bacapp_print_value(
     char *str;
     bool retval = false;
     size_t str_len = 32;
-    uint16_t status;
+    int status;
 
     while (true) {
         /* Try to allocate memory for the output string. Give up if unable. */
