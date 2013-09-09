@@ -49,6 +49,8 @@
 #include "mstptext.h"
 #include "version.h"
 #include "dlmstp.h"
+/* I-Am decoding */
+#include "iam.h"
 
 #ifndef max
 #define max(a,b) (((a) (b)) ? (a) : (b))
@@ -105,9 +107,12 @@ struct mstp_statistics {
     /* Addendum 2008v - sending tokens to myself */
     /* counts how many times the node passes the token */
     uint32_t self_token_count;
+    /* if we see an I-Am message from this node, store the Device ID */
+    uint32_t device_id;
 };
 
-static struct mstp_statistics MSTP_Statistics[256];
+#define MAX_MSTP_DEVICES 256
+static struct mstp_statistics MSTP_Statistics[MAX_MSTP_DEVICES];
 static uint32_t Invalid_Frame_Count;
 
 static uint32_t timeval_diff_ms(
@@ -121,6 +126,49 @@ static uint32_t timeval_diff_ms(
         old->tv_usec) / 1000;
 
     return ms;
+}
+
+static void mstp_monitor_i_am(
+    uint8_t mac,
+    uint8_t *pdu,
+    uint16_t pdu_len)
+{
+    BACNET_ADDRESS src = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int apdu_offset = 0;
+    uint16_t apdu_len = 0;
+    uint8_t *apdu = NULL;
+    uint8_t pdu_type = 0;
+    uint8_t service_choice = 0;
+    uint8_t *service_request = NULL;
+    uint32_t device_id = 0;
+    int len = 0;
+
+    if (pdu[0] == BACNET_PROTOCOL_VERSION) {
+        MSTP_Fill_BACnet_Address(&src, mac);
+        apdu_offset = npdu_decode(&pdu[0], &dest, &src, &npdu_data);
+        if ((!npdu_data.network_layer_message) &&
+            (apdu_offset > 0) && (apdu_offset < pdu_len) &&
+            ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) &&
+            (src.net == 0)) {
+            apdu_len = pdu_len - apdu_offset;
+            apdu = &pdu[apdu_offset];
+            pdu_type = apdu[0] & 0xF0;
+            if ((pdu_type == PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) &&
+                (apdu_len >= 2)) {
+                service_choice = apdu[1];
+                service_request = &apdu[2];
+                if (service_choice == SERVICE_UNCONFIRMED_I_AM) {
+                    len = iam_decode_service_request(service_request,
+                        &device_id, NULL, NULL, NULL);
+                    if (len != -1) {
+                        MSTP_Statistics[mac].device_id = device_id;
+                    }
+                }
+            }
+        }
+    }
 }
 
 static void packet_statistics(
@@ -221,6 +269,15 @@ static void packet_statistics(
                     MSTP_Statistics[src].der_reply = delta;
                 }
             }
+            if ((mstp_port->ReceivedValidFrame) ||
+                (mstp_port->ReceivedValidFrameNotForUs)){
+                if ((mstp_port->DataLength <= mstp_port->InputBufferSize) &&
+                    (mstp_port->DataLength > 0)) {
+                    mstp_monitor_i_am(src,
+                        &mstp_port->InputBuffer[0],
+                        mstp_port->DataLength);
+                }
+            }
             break;
         case FRAME_TYPE_REPLY_POSTPONED:
             MSTP_Statistics[src].reply_postponed_count++;
@@ -253,21 +310,28 @@ static void packet_statistics_print(
 
     fprintf(stdout, "\r\n");
     fprintf(stdout, "==== MS/TP Frame Counts ====\r\n");
-    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s", "MAC", "Tokens",
-        "PFM", "RPFM", "DER", "Postpd", "DNER", "TestReq", "TestRsp");
+    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s", "MAC",
+        "Device", "Tokens", "PFM", "RPFM", "DER", "Postpd", "DNER", "TestReq",
+        "TestRsp");
     fprintf(stdout, "\r\n");
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < MAX_MSTP_DEVICES; i++) {
         /* check for masters or slaves */
         if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
             || (MSTP_Statistics[i].pfm_count)) {
             node_count++;
             fprintf(stdout, "%-8u", i);
+            if (MSTP_Statistics[i].device_id <= 4194303) {
+                fprintf(stdout, "%-8lu",
+                    (long unsigned int) MSTP_Statistics[i].device_id);
+            } else {
+                fprintf(stdout, "%-8s", "-");
+            }
             fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu",
                 (long unsigned int) MSTP_Statistics[i].token_count,
                 (long unsigned int) MSTP_Statistics[i].pfm_count,
                 (long unsigned int) MSTP_Statistics[i].rpfm_count,
                 (long unsigned int) MSTP_Statistics[i].der_count);
-            fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu",
+            fprintf(stdout, "%-8lu%-8lu%-8lu%-7lu",
                 (long unsigned int) MSTP_Statistics[i].reply_postponed_count,
                 (long unsigned int) MSTP_Statistics[i].dner_count,
                 (long unsigned int) MSTP_Statistics[i].test_request_count,
@@ -283,7 +347,7 @@ static void packet_statistics_print(
         "MaxMstr", "Retries", "Npoll", "Self", "Treply", "Tusage", "Trpfm",
         "Tder", "Tpostpd");
     fprintf(stdout, "\r\n");
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < MAX_MSTP_DEVICES; i++) {
         /* check for masters or slaves */
         if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
             || (MSTP_Statistics[i].pfm_count)) {
@@ -311,7 +375,12 @@ static void packet_statistics_print(
 static void packet_statistics_clear(
     void)
 {
+    unsigned i = 0;
+
     memset(&MSTP_Statistics[0], 0, sizeof(MSTP_Statistics));
+    for (i = 0; i < MAX_MSTP_DEVICES; i++) {
+        MSTP_Statistics[i].device_id = 0xFFFFFFFF;
+    }
     Invalid_Frame_Count = 0;
 }
 
@@ -641,6 +710,7 @@ static bool read_received_packet(
     uint8_t header[8] = { 0 };  /* MS/TP header */
     struct timeval tv;
     size_t count = 0;
+    unsigned i = 0;
 
     if (pFile) {
         count = fread(&ts_sec, sizeof(ts_sec), 1, pFile);
@@ -680,7 +750,19 @@ static bool read_received_packet(
         mstp_port->SourceAddress = header[4];
         mstp_port->DataLength = MAKE_WORD(header[6], header[5]);
         mstp_port->HeaderCRCActual = header[7];
+        mstp_port->HeaderCRC = 0xFF;
+        for (i = 2; i < 8; i++) {
+            mstp_port->HeaderCRC = CRC_Calc_Header(header[i],
+                mstp_port->HeaderCRC);
+        }
+        if (mstp_port->HeaderCRC != 0x55) {
+            mstp_port->ReceivedInvalidFrame = true;
+        } else if (mstp_port->DataLength == 0) {
+            mstp_port->ReceivedValidFrame = true;
+            mstp_port->ReceivedValidFrameNotForUs = true;
+        }
         if (orig_len > 8) {
+            /* packet includes data */
             mstp_port->DataLength = orig_len - 8 - 2;
             count =
                 fread(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
@@ -700,6 +782,24 @@ static bool read_received_packet(
                 fclose(pFile);
                 pFile = NULL;
                 return false;
+            }
+            mstp_port->DataCRC = 0xFFFF;
+            for (i = 0; i < mstp_port->DataLength; i++) {
+                mstp_port->DataCRC =
+                    CRC_Calc_Data(mstp_port->InputBuffer[i],
+                    mstp_port->DataCRC);
+            }
+            mstp_port->DataCRC =
+                CRC_Calc_Data(mstp_port->DataCRCActualMSB,
+                mstp_port->DataCRC);
+            mstp_port->DataCRC =
+                CRC_Calc_Data(mstp_port->DataCRCActualLSB,
+                mstp_port->DataCRC);
+            if (mstp_port->DataCRC == 0xF0B8) {
+                mstp_port->ReceivedValidFrame = true;
+                mstp_port->ReceivedValidFrameNotForUs = true;
+            } else {
+                mstp_port->ReceivedInvalidFrame = true;
             }
         } else {
             mstp_port->DataLength = 0;
@@ -790,6 +890,7 @@ int main(
     /* mimic our pointer in the state machine */
     mstp_port = &MSTP_Port;
     MSTP_Init(mstp_port);
+    packet_statistics_clear();
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf("mstpcap --scan <filename>\r\n"

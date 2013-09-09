@@ -205,6 +205,10 @@ extern "C" {
         uint8_t * data, /* any data to be sent - may be null */
         uint16_t data_len);
 
+    void MSTP_Fill_BACnet_Address(
+        BACNET_ADDRESS * src,
+        uint8_t mstp_address);
+
     /* functions used by the MS/TP state machine to put or get data */
     /* FIXME: developer must implement these in their DLMSTP module */
     uint16_t MSTP_Put_Receive(
