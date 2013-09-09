@@ -174,6 +174,31 @@ bool MSTP_Line_Active(
     return (mstp_port->EventCount > Nmin_octets);
 }
 
+void MSTP_Fill_BACnet_Address(
+    BACNET_ADDRESS * src,
+    uint8_t mstp_address)
+{
+    int i = 0;
+
+    if (mstp_address == MSTP_BROADCAST_ADDRESS) {
+        /* mac_len = 0 if broadcast address */
+        src->mac_len = 0;
+        src->mac[0] = 0;
+    } else {
+        src->mac_len = 1;
+        src->mac[0] = mstp_address;
+    }
+    /* fill with 0's starting with index 1; index 0 filled above */
+    for (i = 1; i < MAX_MAC_LEN; i++) {
+        src->mac[i] = 0;
+    }
+    src->net = 0;
+    src->len = 0;
+    for (i = 0; i < MAX_MAC_LEN; i++) {
+        src->adr[i] = 0;
+    }
+}
+
 uint16_t MSTP_Create_Frame(
     uint8_t * buffer,   /* where frame is loaded */
     uint16_t buffer_len,        /* amount of space available */
