@@ -125,24 +125,6 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_upt.c \
 	$(BACNET_HANDLER)/s_wp.c
 
-OBJECT_SRC = \
-	$(BACNET_OBJECT)/device.c \
-	$(BACNET_OBJECT)/ai.c \
-	$(BACNET_OBJECT)/ao.c \
-	$(BACNET_OBJECT)/av.c \
-	$(BACNET_OBJECT)/bi.c \
-	$(BACNET_OBJECT)/bo.c \
-	$(BACNET_OBJECT)/bv.c \
-	$(BACNET_OBJECT)/csv.c \
-	$(BACNET_OBJECT)/lc.c \
-	$(BACNET_OBJECT)/lsp.c \
-	$(BACNET_OBJECT)/ms-input.c \
-	$(BACNET_OBJECT)/mso.c \
-	$(BACNET_OBJECT)/msv.c \
-	$(BACNET_OBJECT)/nc.c  \
-	$(BACNET_OBJECT)/trendlog.c \
-	$(BACNET_OBJECT)/bacfile.c
-
 PORT_ARCNET_SRC = \
 	$(BACNET_PORT_DIR)/arcnet.c
 
@@ -194,7 +176,7 @@ ifdef BACDL_ALL
 PORT_SRC = ${PORT_ALL_SRC}
 endif
 
-SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC} ${OBJECT_SRC}
+SRCS = ${CORE_SRC} ${PORT_SRC} ${HANDLER_SRC}
 
 OBJS = ${SRCS:.c=.o}
 
