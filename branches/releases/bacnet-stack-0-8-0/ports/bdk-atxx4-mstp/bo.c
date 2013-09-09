@@ -528,7 +528,8 @@ void Binary_Output_Init(
 {
     unsigned i, j;
 
-    /* initialize all the analog output priority arrays to NULL */
+    /* initialize all the analog output priority arrays, polarity, and
+       out-of-service properties. */
     for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
         seeprom_bytes_read(NV_SEEPROM_BINARY_OUTPUT(i, NV_SEEPROM_BO_POLARITY),
             &Polarity[i], 1);
