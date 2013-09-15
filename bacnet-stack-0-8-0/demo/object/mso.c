@@ -317,7 +317,7 @@ int Multistate_Output_Read_Property(
             break;
         case PROP_RELINQUISH_DEFAULT:
             present_value = MULTISTATE_RELINQUISH_DEFAULT;
-            apdu_len = encode_application_enumerated(&apdu[0], present_value);
+            apdu_len = encode_application_unsigned(&apdu[0], present_value);
             break;
         case PROP_NUMBER_OF_STATES:
             apdu_len =
