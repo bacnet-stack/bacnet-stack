@@ -62,6 +62,8 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
+/* method to tell main loop to exit from CTRL-C or other signals */
+static volatile bool Exit_Requested;
 
 /* statistics derived from monitoring the network for each node */
 struct mstp_statistics {
@@ -834,7 +836,13 @@ static BOOL WINAPI CtrlCHandler(
         DisconnectNamedPipe(hPipe);
         CloseHandle(hPipe);
     }
+    /* signal to main loop to exit */
+    Exit_Requested = true;
+    while (Exit_Requested) {
+        Sleep(100);
+    }
     exit(0);
+
     return TRUE;
 }
 #else
@@ -845,7 +853,11 @@ static void sig_int(
     if (FD_Pipe != -1) {
         close(FD_Pipe);
     }
-
+    /* signal to main loop to exit */
+    Exit_Requested = true;
+    while (Exit_Requested) {
+        usleep(1000);
+    }
     exit(0);
 }
 
@@ -986,5 +998,12 @@ int main(
             filename_create_new();
             packet_count = 0;
         }
+        if (Exit_Requested) {
+            break;
+        }
     }
+    /* tell signal interrupts we are done */
+    Exit_Requested = false;
+
+    return 0;
 }
