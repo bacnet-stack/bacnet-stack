@@ -853,11 +853,7 @@ static void sig_int(
     if (FD_Pipe != -1) {
         close(FD_Pipe);
     }
-    /* signal to main loop to exit */
     Exit_Requested = true;
-    while (Exit_Requested) {
-        usleep(1000);
-    }
     exit(0);
 }
 
