@@ -83,6 +83,9 @@ atmega168: ports/atmega168/Makefile
 at91sam7s: ports/at91sam7s/makefile
 	$(MAKE) -s -C ports/at91sam7s clean all
 
+mstpsnap: ports/linux/mstpsnap.mak
+	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
+
 bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 	$(MAKE) -s -C ports/bdk-atxx4-mstp clean all
 
