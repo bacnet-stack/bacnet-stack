@@ -5,7 +5,8 @@ and saves the packets to a file in Wireshark PCAP format for
 the BACnet MS/TP dissector to read.  The filename has a date and time
 code in it, and will contain up to 65535 packets.  A new file
 will be created at each 65535 packet interval.  The tool can
-be stopped by using Control-C.
+be stopped by using Control-C.  The tool can also pipe its output
+to Wireshark to be monitored in real-time.
 
 Here is a sample of the tool running (use CTRL-C to quit):
 D:\code\bacnet-stack>bin\mstpcap.exe com54 38400
@@ -14,12 +15,12 @@ mstpcap: Using \\.\COM54 for capture at 38400 bps.
 mstpcap: saving capture to mstp_20110413134119.cap
 1156 packets
 ==== MS/TP Frame Counts ====
-MAC     Tokens  PFM     RPFM    DER     Postpd  DNER    TestReq TestRsp
-0       188     4       0       0       0       0       0       0
-2       189     0       0       0       0       0       0       0
-3       189     9       0       0       0       0       0       0
-7       189     60      0       0       0       0       0       0
-35      188     140     0       0       0       0       0       0
+MAC     Device  Tokens  PFM     RPFM    DER     Postpd  DNER    TestReq TestRsp
+0       -       188     4       0       0       0       0       0       0
+2       -       189     0       0       0       0       0       0       0
+3       -       189     9       0       0       0       0       0       0
+7       -       189     60      0       0       0       0       0       0
+35      -       188     140     0       0       0       0       0       0
 Node Count: 5
 
 ==== MS/TP Usage and Timing Maximums ====
@@ -37,12 +38,12 @@ D:\code\bacnet-stack>bin\mstpcap.exe --scan mstp_20110413134119.cap
 Scanning mstp_20110413134119.cap
 1156 packets
 ==== MS/TP Frame Counts ====
-MAC     Tokens  PFM     RPFM    DER     Postpd  DNER    TestReq TestRsp
-0       188     4       0       0       0       0       0       0
-2       189     0       0       0       0       0       0       0
-3       189     9       0       0       0       0       0       0
-7       189     60      0       0       0       0       0       0
-35      188     140     0       0       0       0       0       0
+MAC     Device  Tokens  PFM     RPFM    DER     Postpd  DNER    TestReq TestRsp
+0       -       188     4       0       0       0       0       0       0
+2       -       189     0       0       0       0       0       0       0
+3       -       189     9       0       0       0       0       0       0
+7       -       189     60      0       0       0       0       0       0
+35      -       188     140     0       0       0       0       0       0
 Node Count: 5
 
 ==== MS/TP Usage and Timing Maximums ====
@@ -64,6 +65,8 @@ The statistics are cleared when the new file is created.
 The statistics can be emitted from a file using the "--scan" option.
 
 The MS/TP Frame counts use the following abbreviations:
+
+Device = Device ID when an I-Am is seen in a capture (trigger with Who-Is).
 
 Tokens = number of Token frames sent from this MAC address.
 
@@ -111,7 +114,7 @@ Tpostpd = maximum number of milliseconds to respond to
 DataExpectingReply request with ReplyPostponed.  Tpostpd is
 required to be less than 250ms.
 
-==== FTDI chip RS-485 converter 76800 baud tricks ==== 
+==== FTDI chip RS-485 converter 76800 baud tricks ====
 
 If you are using FTDI chip in your RS485 converter, you can
 alias an existing baud rate on Windows in the FTDIPORT.INF file
@@ -145,7 +148,6 @@ to be 300 baud.
 
 So to capture at 76800 baud type: mstpcap.exe COM2 300
 
-
 Linux (used with Debian Lenny and Fedora 15)
 http://www.connecttech.com/KnowledgeDatabase/kdb309.htm
 As root:
@@ -175,3 +177,11 @@ will actually capture at 76800 baud. (76923)
 Just navigate (cd bin) to bin folder in the project and type:
 
 $ ./mstpcap
+
+==== Named Pipe direct to Wireshark ====
+
+Use the named pipe option to send the capture output directly to Wireshark.
+On Windows, use \\.\pipe\wireshark as the name, and set that name as the
+interface name in Wireshark.  On Linux, the named pipe name can be just about
+any file name, such as /tmp/wireshark.  See:
+http://wiki.wireshark.org/CaptureSetup/Pipes
