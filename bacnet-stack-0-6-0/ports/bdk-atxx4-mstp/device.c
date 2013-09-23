@@ -647,7 +647,7 @@ int Device_Read_Property_Local(
         return 0;
     }
     apdu = rpdata->application_data;
-    switch (rpdata->object_property) {
+    switch ((int)rpdata->object_property) {
             /* object name, object id, object type are handled in Device object */
         case PROP_DESCRIPTION:
             bacnet_name(NV_EEPROM_DEVICE_DESCRIPTION, &char_string,
@@ -857,7 +857,7 @@ bool Device_Write_Property_Local(
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    switch (wp_data->object_property) {
+    switch ((int)wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&

@@ -180,7 +180,7 @@ int Device_Encode_Property_APDU(
 
     object_instance = object_instance;
     /* FIXME: change the hardcoded names to suit your application */
-    switch (property) {
+    switch ((int)property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_DEVICE,
@@ -382,7 +382,7 @@ bool Device_Write_Property(
         *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    switch (wp_data->object_property) {
+    switch ((int)wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
