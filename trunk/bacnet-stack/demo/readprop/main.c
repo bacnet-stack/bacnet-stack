@@ -134,7 +134,9 @@ void My_Read_Property_Ack_Handler(
         (service_data->invoke_id == Request_Invoke_ID)) {
         len =
             rp_ack_decode_service_request(service_request, service_len, &data);
-        if (len > 0) {
+        if (len < 0) {
+            printf("<decode failed!>\r\n");
+        } else {
             rp_ack_print_data(&data);
         }
     }
