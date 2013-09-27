@@ -63,6 +63,12 @@ extern "C" {
         uint32_t object_instance,
         unsigned priority);
 
+    float Analog_Output_Relinquish_Default(
+        uint32_t object_instance);
+    bool Analog_Output_Relinquish_Default_Set(
+        uint32_t object_instance,
+        float value);
+
     bool Analog_Output_Change_Of_Value(
         uint32_t instance);
     void Analog_Output_Change_Of_Value_Clear(
@@ -118,4 +124,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
 #endif

@@ -88,6 +88,8 @@ extern "C" {
     bool Binary_Output_Present_Value_Relinquish(
         uint32_t instance,
         unsigned priority);
+    unsigned Binary_Output_Present_Value_Priority(
+        uint32_t object_instance);
 
     BACNET_POLARITY Binary_Output_Polarity(
         uint32_t instance);
@@ -100,6 +102,12 @@ extern "C" {
     void Binary_Output_Out_Of_Service_Set(
         uint32_t object_instance,
         bool value);
+
+    BACNET_BINARY_PV Binary_Output_Relinquish_Default(
+        uint32_t object_instance);
+    bool Binary_Output_Relinquish_Default_Set(
+        uint32_t object_instance,
+        BACNET_BINARY_PV value);
 
     bool Binary_Output_Encode_Value_List(
         uint32_t object_instance,
