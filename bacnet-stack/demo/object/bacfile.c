@@ -522,6 +522,7 @@ bool bacfile_write_record_data(
     FILE *pFile = NULL;
     uint32_t i = 0;
     char dummy_data[FILE_RECORD_SIZE];
+    char *pData = NULL;
 
     pFilename = bacfile_name(data->object_instance);
     if (pFilename) {
@@ -542,8 +543,8 @@ bool bacfile_write_record_data(
             if ((data->type.record.fileStartRecord != -1) &&
                 (data->type.record.fileStartRecord > 0)) {
                 for (i = 0; i < data->type.record.fileStartRecord; i++) {
-                    fgets(&dummy_data[0], sizeof(dummy_data), pFile);
-                    if (feof(pFile)) {
+                    pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
+                    if ((pData == NULL) || feof(pFile)) {
                         break;
                     }
                 }
@@ -598,6 +599,7 @@ bool bacfile_read_ack_record_data(
     char *pFilename = NULL;
     uint32_t i = 0;
     char dummy_data[MAX_OCTET_STRING_BYTES] = {0};
+    char *pData = NULL;
 
     pFilename = bacfile_name(instance);
     if (pFilename) {
@@ -606,8 +608,8 @@ bool bacfile_read_ack_record_data(
         if (pFile) {
             if (data->type.record.fileStartRecord > 0) {
                 for (i = 0; i < data->type.record.fileStartRecord; i++) {
-                    fgets(&dummy_data[0], sizeof(dummy_data), pFile);
-                    if (feof(pFile)) {
+                    pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
+                    if ((pData == NULL) || feof(pFile)) {
                         break;
                     }
                 }
