@@ -11,7 +11,7 @@ LOGFILE = test.log
 
 all: abort address arf awf bacapp bacdcode bacerror bacint bacstr \
 	cov crc datetime dcc event filename fifo getevent iam ihave \
-	indtext keylist key memcopy npdu ptransfer \
+	indtext keylist key memcopy npdu proplist ptransfer \
 	rd reject ringbuf rp rpm sbuf timesync \
 	whohas whois wp objects
 
@@ -140,6 +140,11 @@ npdu: logfile test/npdu.mak
 	$(MAKE) -s -C test -f npdu.mak clean all
 	( ./test/npdu >> ${LOGFILE} )
 	$(MAKE) -s -C test -f npdu.mak clean
+
+proplist: logfile test/proplist.mak
+	$(MAKE) -s -C test -f proplist.mak clean all
+	( ./test/proplist >> ${LOGFILE} )
+	$(MAKE) -s -C test -f proplist.mak clean
 
 ptransfer: logfile test/ptransfer.mak
 	$(MAKE) -s -C test -f ptransfer.mak clean all
