@@ -42,6 +42,13 @@ extern "C" {
     void property_list_special(
         BACNET_OBJECT_TYPE object_type,
         struct special_property_list_t *pPropertyList);
+    BACNET_PROPERTY_ID property_list_special_property(
+        BACNET_OBJECT_TYPE object_type,
+        BACNET_PROPERTY_ID special_property,
+        unsigned index);
+    unsigned property_list_special_count(
+        BACNET_OBJECT_TYPE object_type,
+        BACNET_PROPERTY_ID special_property);
 
 #ifdef __cplusplus
 }
