@@ -122,6 +122,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_uevent.c  \
 	$(BACNET_HANDLER)/s_whohas.c \
 	$(BACNET_HANDLER)/s_whois.c  \
+	$(BACNET_HANDLER)/s_wpm.c  \
 	$(BACNET_HANDLER)/s_upt.c \
 	$(BACNET_HANDLER)/s_wp.c
 
