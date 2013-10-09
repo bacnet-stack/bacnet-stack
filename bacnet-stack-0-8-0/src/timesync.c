@@ -162,7 +162,7 @@ int timesync_encode_timesync_recipients(
             }
         } else if (pRecipient->tag == 1) {
             if (pRecipient->type.address.net) {
-                len = 1 + 3 + 2 + pRecipient->type.address.net + 1;
+                len = 1 + 3 + 2 + pRecipient->type.address.len + 1;
             } else {
                 len = 1 + 3 + 2 + pRecipient->type.address.mac_len + 1;
             }
