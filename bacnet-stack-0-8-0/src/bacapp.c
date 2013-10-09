@@ -1140,7 +1140,7 @@ int bacapp_snprintf_value(
                         break;
                     case PROP_PRESENT_VALUE:
                     case PROP_RELINQUISH_DEFAULT:
-                        if (object_type < PROPRIETARY_BACNET_OBJECT_TYPE) {
+                        if (object_type < OBJECT_PROPRIETARY_MIN) {
                             ret_val =
                                 snprintf(str, str_len, "%s",
                                 bactext_binary_present_value_name(value->type.
