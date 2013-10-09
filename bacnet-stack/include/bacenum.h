@@ -1211,9 +1211,9 @@ typedef enum {
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION = 36,
     SERVICE_SUPPORTED_WHO_HAS = 33,
     SERVICE_SUPPORTED_WHO_IS = 34
-        /* Other services to be added as they are defined. */
-        /* All values in this production are reserved */
-        /* for definition by ASHRAE. */
+    /* Other services to be added as they are defined. */
+    /* All values in this production are reserved */
+    /* for definition by ASHRAE. */
 } BACNET_SERVICES_SUPPORTED;
 
 typedef enum {
@@ -1334,10 +1334,10 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_ABORT_REASON = 5
+    MAX_BACNET_ABORT_REASON = 5,
+    ABORT_REASON_PROPRIETARY_FIRST = 64,
+    ABORT_REASON_PROPRIETARY_LAST = 65535
 } BACNET_ABORT_REASON;
-#define FIRST_PROPRIETARY_ABORT_REASON 64
-#define LAST_PROPRIETARY_ABORT_REASON 65535
 
 typedef enum {
     REJECT_REASON_OTHER = 0,
@@ -1353,10 +1353,10 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_REJECT_REASON = 10
+    MAX_BACNET_REJECT_REASON = 10,
+    REJECT_REASON_PROPRIETARY_FIRST = 64,
+    REJECT_REASON_PROPRIETARY_LAST = 65535
 } BACNET_REJECT_REASON;
-#define FIRST_PROPRIETARY_REJECT_REASON 64
-#define LAST_PROPRIETARY_REJECT_REASON 65535
 
 typedef enum {
     ERROR_CLASS_DEVICE = 0,

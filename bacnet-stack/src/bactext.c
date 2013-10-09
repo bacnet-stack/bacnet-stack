@@ -1483,6 +1483,8 @@ INDTEXT_DATA bacnet_reject_reason_names[] = {
     ,
     {REJECT_REASON_UNRECOGNIZED_SERVICE, "Unrecognized Service"}
     ,
+    {REJECT_REASON_PROPRIETARY_FIRST, "Proprietary"}
+    ,
     {0, NULL}
 };
 
@@ -1490,7 +1492,7 @@ const char *bactext_reject_reason_name(
     unsigned index)
 {
     return indtext_by_index_split_default(bacnet_reject_reason_names, index,
-        FIRST_PROPRIETARY_REJECT_REASON, ASHRAE_Reserved_String,
+        REJECT_REASON_PROPRIETARY_FIRST, ASHRAE_Reserved_String,
         Vendor_Proprietary_String);
 }
 
@@ -1506,6 +1508,8 @@ INDTEXT_DATA bacnet_abort_reason_names[] = {
     ,
     {ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, "Segmentation Not Supported"}
     ,
+    {ABORT_REASON_PROPRIETARY_FIRST, "Proprietary"}
+    ,
     {0, NULL}
 };
 
@@ -1513,7 +1517,7 @@ const char *bactext_abort_reason_name(
     unsigned index)
 {
     return indtext_by_index_split_default(bacnet_abort_reason_names, index,
-        FIRST_PROPRIETARY_ABORT_REASON, ASHRAE_Reserved_String,
+        ABORT_REASON_PROPRIETARY_FIRST, ASHRAE_Reserved_String,
         Vendor_Proprietary_String);
 }
 
