@@ -34,6 +34,7 @@
 #include "bacapp.h"
 #include "bacenum.h"
 #include "rpm.h"
+#include "wpm.h"
 #include "cov.h"
 #include "event.h"
 #include "lso.h"
@@ -151,6 +152,9 @@ extern "C" {
         int application_data_len,
         uint8_t priority,
         uint32_t array_index);
+	uint8_t Send_Write_Property_Multiple_Request_Data(
+		uint32_t device_id,
+		BACNET_WRITE_ACCESS_DATA * write_access_data);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Reinitialize_Device_Request(
