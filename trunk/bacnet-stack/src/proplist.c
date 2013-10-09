@@ -996,7 +996,7 @@ void testPropList(
     BACNET_PROPERTY_ID property = MAX_BACNET_PROPERTY_ID;
     unsigned object_id = 0, object_name = 0, object_type = 0;
 
-    for (i = 0; i < PROPRIETARY_BACNET_OBJECT_TYPE; i++) {
+    for (i = 0; i < OBJECT_PROPRIETARY_MIN; i++) {
         count = property_list_special_count((BACNET_OBJECT_TYPE)i, PROP_ALL);
         ct_test(pTest, count >= 3);
         object_id = 0;
