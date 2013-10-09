@@ -210,9 +210,9 @@ void testBACError(
 
     /* check them all...   */
     for (service = 0; service < MAX_BACNET_CONFIRMED_SERVICE; service++) {
-        for (error_class = 0; error_class < MAX_BACNET_ERROR_CLASS;
+        for (error_class = 0; error_class < ERROR_CLASS_PROPRIETARY_FIRST;
             error_class++) {
-            for (error_code = 0; error_code < MAX_BACNET_ERROR_CODE;
+            for (error_code = 0; error_code < ERROR_CODE_PROPRIETARY_FIRST;
                 error_code++) {
                 len =
                     bacerror_encode_apdu(&apdu[0], invoke_id, service,
