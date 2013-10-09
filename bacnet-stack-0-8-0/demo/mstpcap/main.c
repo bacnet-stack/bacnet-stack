@@ -837,6 +837,24 @@ static BOOL WINAPI CtrlCHandler(
     exit(0);
     return TRUE;
 }
+
+/*************************************************************************
+* Description: print available COM ports
+* Returns: none
+* Notes: none
+**************************************************************************/
+static void print_com_ports(void)
+{
+    unsigned i = 0;
+
+    printf("List of available COM ports:\r\n");
+    /* try to open all 255 COM ports */
+    for (i=1; i<256; i++) {
+        if (RS485_Interface_Valid(i)) {
+            printf("COM%u\r\n", i);
+        }
+    }
+}
 #else
 static void sig_int(
     int signo)
@@ -937,6 +955,11 @@ int main(
     }
     if (argc > 1) {
         RS485_Set_Interface(argv[1]);
+    } else {
+        #if defined(_WIN32)
+        print_com_ports();
+        return 0;
+        #endif
     }
     if (argc > 2) {
         my_baud = strtol(argv[2], NULL, 0);
