@@ -260,7 +260,8 @@ static bool cov_list_subscribe(
                 (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
                     cov_data->monitoredObjectIdentifier.instance) &&
                 (COV_Subscriptions[index].subscriberProcessIdentifier ==
-                    cov_data->subscriberProcessIdentifier)) {
+                    cov_data->subscriberProcessIdentifier) &&
+                bacnet_address_same(src, &COV_Subscriptions[index].dest)) {
                 existing_entry = true;
                 if (cov_data->cancellationRequest) {
                     COV_Subscriptions[index].flag.valid = false;
