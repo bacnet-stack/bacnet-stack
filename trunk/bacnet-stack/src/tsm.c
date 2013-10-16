@@ -64,6 +64,14 @@ static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS];
 /* invoke ID for incrementing between subsequent calls. */
 static uint8_t Current_Invoke_ID = 1;
 
+static tsm_timeout_function Timeout_Function;
+
+void tsm_set_timeout_handler(
+    tsm_timeout_function pFunction)
+{
+    Timeout_Function = pFunction;
+}
+
 /* returns MAX_TSM_TRANSACTIONS if not found */
 static uint8_t tsm_find_invokeID_index(
     uint8_t invokeID)
@@ -276,6 +284,11 @@ void tsm_timer_milliseconds(
                        and this indicates a failed message:
                        IDLE and a valid invoke id */
                     TSM_List[i].state = TSM_STATE_IDLE;
+                    if(TSM_List[i].InvokeID != 0) {
+                        if(!Timeout_Function) {
+                            Timeout_Function(TSM_List[i].InvokeID);
+                        }
+                    }
                 }
             }
         }

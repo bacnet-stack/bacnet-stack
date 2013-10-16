@@ -80,9 +80,17 @@ typedef struct BACnet_TSM_Data {
     unsigned apdu_len;
 } BACNET_TSM_DATA;
 
+typedef void (
+    *tsm_timeout_function) (
+    uint8_t invoke_id);
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    void tsm_set_timeout_handler(
+        tsm_timeout_function pFunction);
 
     bool tsm_transaction_available(
         void);
