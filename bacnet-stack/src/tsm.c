@@ -284,8 +284,8 @@ void tsm_timer_milliseconds(
                        and this indicates a failed message:
                        IDLE and a valid invoke id */
                     TSM_List[i].state = TSM_STATE_IDLE;
-                    if(TSM_List[i].InvokeID != 0) {
-                        if(!Timeout_Function) {
+                    if (TSM_List[i].InvokeID != 0) {
+                        if (Timeout_Function) {
                             Timeout_Function(TSM_List[i].InvokeID);
                         }
                     }
