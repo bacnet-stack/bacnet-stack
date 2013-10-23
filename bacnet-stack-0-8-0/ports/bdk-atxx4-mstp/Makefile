@@ -172,11 +172,10 @@ DEFINES += -DSEEPROM_PAGE_SIZE=64
 DEFINES += -DSEEPROM_WORD_ADDRESS_16BIT=1
 endif
 ifeq (${BDK_VERSION},3)
+# usage:
+# make BDK_VERSION=3 clean all
 DEFINES += -DBDK_VERSION=3
 endif
-
-#ifdef
-
 
 OPTIMIZE_FLAGS = -mcall-prologues
 OPTIMIZE_FLAGS += -finline-functions-called-once
