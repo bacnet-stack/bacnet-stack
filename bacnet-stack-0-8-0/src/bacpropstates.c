@@ -34,7 +34,6 @@
 
 #include "bacdcode.h"
 #include "npdu.h"
-#include "device.h"
 #include "timestamp.h"
 #include "bacpropstates.h"
 
