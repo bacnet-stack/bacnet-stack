@@ -1139,7 +1139,44 @@ typedef enum {
     BACNET_APPLICATION_TAG_RESERVE1 = 13,
     BACNET_APPLICATION_TAG_RESERVE2 = 14,
     BACNET_APPLICATION_TAG_RESERVE3 = 15,
-    MAX_BACNET_APPLICATION_TAG = 16
+    MAX_BACNET_APPLICATION_TAG = 16,
+
+    /* Extra stuff - complex tagged data - not specifically enumerated */
+
+    /* Means : "nothing", an empty list, not even a null character */
+    BACNET_APPLICATION_TAG_EMPTYLIST,
+    /* BACnetWeeknday */
+    BACNET_APPLICATION_TAG_WEEKNDAY,
+    /* BACnetDateRange */
+    BACNET_APPLICATION_TAG_DATERANGE,
+    /* BACnetDateTime */
+    BACNET_APPLICATION_TAG_DATETIME,
+    /* BACnetTimeStamp */
+    BACNET_APPLICATION_TAG_TIMESTAMP,
+    /* Error Class, Error Code */
+    BACNET_APPLICATION_TAG_ERROR,
+    /* BACnetDeviceObjectPropertyReference */
+    BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE,
+    /* BACnetDeviceObjectReference */
+    BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE,
+    /* BACnetObjectPropertyReference */
+    BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE,
+    /* BACnetDestination (Recipient_List) */
+    BACNET_APPLICATION_TAG_DESTINATION,
+    /* BACnetRecipient */
+    BACNET_APPLICATION_TAG_RECIPIENT,
+    /* BACnetCOVSubscription */
+    BACNET_APPLICATION_TAG_COV_SUBSCRIPTION,
+    /* BACnetCalendarEntry */
+    BACNET_APPLICATION_TAG_CALENDAR_ENTRY,
+    /* BACnetWeeklySchedule */
+    BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+    /* BACnetSpecialEvent */
+    BACNET_APPLICATION_TAG_SPECIAL_EVENT,
+    /* BACnetReadAccessSpecification */
+    BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,
+    /* BACnetLightingCommand */
+    BACNET_APPLICATION_TAG_LIGHTING_COMMAND
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -1707,5 +1744,11 @@ typedef enum {
     NETWORK_REJECT_REASON_INVALID
 } BACNET_NETWORK_REJECT_REASONS;
 
+typedef enum BACnetWriteStatus {
+    BACNET_WRITE_STATUS_IDLE = 0,
+    BACNET_WRITE_STATUS_IN_PROGRESS = 1,
+    BACNET_WRITE_STATUS_SUCCESSFUL = 2,
+    BACNET_WRITE_STATUS_FAILED = 3
+} BACNET_WRITE_STATUS;
 
 #endif /* end of BACENUM_H */
