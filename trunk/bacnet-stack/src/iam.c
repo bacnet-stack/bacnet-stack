@@ -36,7 +36,6 @@
 #include "bacdef.h"
 #include "npdu.h"
 #include "dcc.h"
-#include "device.h"
 #include "bacdcode.h"
 #include "address.h"
 #include "iam.h"
