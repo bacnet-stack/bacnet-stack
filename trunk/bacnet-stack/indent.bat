@@ -1,6 +1,6 @@
 rem Indent the C and H files with specific coding standard
 rem requires 'indent.exe' from MSYS (MinGW).
-rem requires 'todos.exe' from MSYS (MinGW).
+rem See http://www.gnu.org/software/indent/manual/indent.pdf
 set OPTIONS=-kr -nut -nlp -ip4 -cli4 -bfda -nbc -nbbo -c0 -cd0 -cp0 -di0 -l79 -nhnl
 rem -kr The Kernighan & Ritchie style, corresponds to the following options:
 rem -nbad -bap -bbo -nbc -br -brs -c33 -cd33 -ncdb -ce -ci4 -cli0
@@ -26,12 +26,10 @@ goto :eof
 :treeProcess
 rem perform the indent on all the files of this subdirectory:
 for %%f in (*.c) do (
-    todos.exe "%%f"
-    indent.exe %OPTIONS% "%%f" -o "%%f"
+    indent.exe "%%f" -o "%%f" %OPTIONS%
 )
 for %%f in (*.h) do (
-    todos.exe "%%f"
-    indent.exe %OPTIONS% "%%f" -o "%%f"
+    indent.exe "%%f" -o "%%f" %OPTIONS%
 )
 rem loop over all directories and sub directories
 for /D %%d in (*) do (
