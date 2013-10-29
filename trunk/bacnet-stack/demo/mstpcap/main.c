@@ -132,7 +132,7 @@ static uint32_t timeval_diff_ms(
 
 static void mstp_monitor_i_am(
     uint8_t mac,
-    uint8_t *pdu,
+    uint8_t * pdu,
     uint16_t pdu_len)
 {
     BACNET_ADDRESS src = { 0 };
@@ -150,10 +150,9 @@ static void mstp_monitor_i_am(
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
         MSTP_Fill_BACnet_Address(&src, mac);
         apdu_offset = npdu_decode(&pdu[0], &dest, &src, &npdu_data);
-        if ((!npdu_data.network_layer_message) &&
-            (apdu_offset > 0) && (apdu_offset < pdu_len) &&
-            ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) &&
-            (src.net == 0)) {
+        if ((!npdu_data.network_layer_message) && (apdu_offset > 0) &&
+            (apdu_offset < pdu_len) && ((dest.net == 0) ||
+                (dest.net == BACNET_BROADCAST_NETWORK)) && (src.net == 0)) {
             apdu_len = pdu_len - apdu_offset;
             apdu = &pdu[apdu_offset];
             pdu_type = apdu[0] & 0xF0;
@@ -162,8 +161,9 @@ static void mstp_monitor_i_am(
                 service_choice = apdu[1];
                 service_request = &apdu[2];
                 if (service_choice == SERVICE_UNCONFIRMED_I_AM) {
-                    len = iam_decode_service_request(service_request,
-                        &device_id, NULL, NULL, NULL);
+                    len =
+                        iam_decode_service_request(service_request, &device_id,
+                        NULL, NULL, NULL);
                     if (len != -1) {
                         MSTP_Statistics[mac].device_id = device_id;
                     }
@@ -272,11 +272,10 @@ static void packet_statistics(
                 }
             }
             if ((mstp_port->ReceivedValidFrame) ||
-                (mstp_port->ReceivedValidFrameNotForUs)){
+                (mstp_port->ReceivedValidFrameNotForUs)) {
                 if ((mstp_port->DataLength <= mstp_port->InputBufferSize) &&
                     (mstp_port->DataLength > 0)) {
-                    mstp_monitor_i_am(src,
-                        &mstp_port->InputBuffer[0],
+                    mstp_monitor_i_am(src, &mstp_port->InputBuffer[0],
                         mstp_port->DataLength);
                 }
             }
@@ -754,8 +753,8 @@ static bool read_received_packet(
         mstp_port->HeaderCRCActual = header[7];
         mstp_port->HeaderCRC = 0xFF;
         for (i = 2; i < 8; i++) {
-            mstp_port->HeaderCRC = CRC_Calc_Header(header[i],
-                mstp_port->HeaderCRC);
+            mstp_port->HeaderCRC =
+                CRC_Calc_Header(header[i], mstp_port->HeaderCRC);
         }
         if (mstp_port->HeaderCRC != 0x55) {
             mstp_port->ReceivedInvalidFrame = true;
@@ -792,11 +791,9 @@ static bool read_received_packet(
                     mstp_port->DataCRC);
             }
             mstp_port->DataCRC =
-                CRC_Calc_Data(mstp_port->DataCRCActualMSB,
-                mstp_port->DataCRC);
+                CRC_Calc_Data(mstp_port->DataCRCActualMSB, mstp_port->DataCRC);
             mstp_port->DataCRC =
-                CRC_Calc_Data(mstp_port->DataCRCActualLSB,
-                mstp_port->DataCRC);
+                CRC_Calc_Data(mstp_port->DataCRCActualLSB, mstp_port->DataCRC);
             if (mstp_port->DataCRC == 0xF0B8) {
                 mstp_port->ReceivedValidFrame = true;
                 mstp_port->ReceivedValidFrameNotForUs = true;
@@ -851,13 +848,14 @@ static BOOL WINAPI CtrlCHandler(
 * Returns: none
 * Notes: none
 **************************************************************************/
-static void print_com_ports(void)
+static void print_com_ports(
+    void)
 {
     unsigned i = 0;
 
     printf("List of available COM ports:\r\n");
     /* try to open all 255 COM ports */
-    for (i=1; i<256; i++) {
+    for (i = 1; i < 256; i++) {
         if (RS485_Interface_Valid(i)) {
             printf("COM%u\r\n", i);
         }
@@ -964,10 +962,10 @@ int main(
     if (argc > 1) {
         RS485_Set_Interface(argv[1]);
     } else {
-        #if defined(_WIN32)
+#if defined(_WIN32)
         print_com_ports();
         return 0;
-        #endif
+#endif
     }
     if (argc > 2) {
         my_baud = strtol(argv[2], NULL, 0);

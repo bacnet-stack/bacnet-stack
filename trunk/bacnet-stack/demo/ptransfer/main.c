@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>       /* for time */
-#include <ctype.h> /* for tupper */
+#include <ctype.h>      /* for tupper */
 #if defined(WIN32) || defined(__BORLANDC__)
 #include <conio.h>
 #endif

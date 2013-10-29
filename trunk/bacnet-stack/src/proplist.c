@@ -923,7 +923,7 @@ BACNET_PROPERTY_ID property_list_special_property(
 {
     int property = -1;  /* return value */
     unsigned required, optional, proprietary;
-    struct special_property_list_t PropertyList = {{0}};
+    struct special_property_list_t PropertyList = { {0} };
 
     property_list_special(object_type, &PropertyList);
     required = PropertyList.Required.count;
@@ -967,7 +967,7 @@ unsigned property_list_special_count(
     BACNET_PROPERTY_ID special_property)
 {
     unsigned count = 0; /* return value */
-    struct special_property_list_t PropertyList = {{0}};
+    struct special_property_list_t PropertyList = { {0} };
 
     property_list_special(object_type, &PropertyList);
     if (special_property == PROP_ALL) {
@@ -997,16 +997,15 @@ void testPropList(
     unsigned object_id = 0, object_name = 0, object_type = 0;
 
     for (i = 0; i < OBJECT_PROPRIETARY_MIN; i++) {
-        count = property_list_special_count((BACNET_OBJECT_TYPE)i, PROP_ALL);
+        count = property_list_special_count((BACNET_OBJECT_TYPE) i, PROP_ALL);
         ct_test(pTest, count >= 3);
         object_id = 0;
         object_name = 0;
         object_type = 0;
         for (j = 0; j < count; j++) {
-            property = property_list_special_property(
-                (BACNET_OBJECT_TYPE)i,
-                PROP_ALL,
-                j);
+            property =
+                property_list_special_property((BACNET_OBJECT_TYPE) i,
+                PROP_ALL, j);
             if (property == PROP_OBJECT_TYPE) {
                 object_type++;
             }

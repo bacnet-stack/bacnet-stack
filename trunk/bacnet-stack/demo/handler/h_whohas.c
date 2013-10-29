@@ -111,8 +111,8 @@ void handler_who_has(
 
 
 #ifdef BAC_ROUTING      /* was for BAC_ROUTING - delete in 2/2012 if still unused */
-						/* EKH: I restored this to BAC_ROUTING (from DEPRECATED) because I found that the server demo with the built-in 
-								virtual Router did not insert the SADRs of the virtual devices on the virtual network without it */
+                                                /* EKH: I restored this to BAC_ROUTING (from DEPRECATED) because I found that the server demo with the built-in 
+                                                   virtual Router did not insert the SADRs of the virtual devices on the virtual network without it */
 
 /** Handler for Who-Has requests in the virtual routing setup,
  * with broadcast I-Have response.

@@ -18,24 +18,56 @@
 
 #ifndef _UCI_H__
 #define _UCI_H__
-struct uci_context* ucix_init(const char *config_file);
-struct uci_context* ucix_init_path(const char *path, const char *config_file);
-void ucix_cleanup(struct uci_context *ctx);
-void ucix_save(struct uci_context *ctx);
-void ucix_save_state(struct uci_context *ctx);
-const char* ucix_get_option(struct uci_context *ctx,
-	const char *p, const char *s, const char *o);
-int ucix_get_option_int(struct uci_context *ctx,
-	const char *p, const char *s, const char *o, int def);
-void ucix_add_section(struct uci_context *ctx,
-	const char *p, const char *s, const char *t);
-void ucix_add_option(struct uci_context *ctx,
-	const char *p, const char *s, const char *o, const char *t);
-void ucix_add_option_int(struct uci_context *ctx,
-	const char *p, const char *s, const char *o, int t);
-int ucix_commit(struct uci_context *ctx, const char *p);
-void ucix_revert(struct uci_context *ctx,
-	const char *p, const char *s, const char *o);
-void ucix_del(struct uci_context *ctx, const char *p,
-	const char *s, const char *o);
+struct uci_context *ucix_init(
+    const char *config_file);
+struct uci_context *ucix_init_path(
+    const char *path,
+    const char *config_file);
+void ucix_cleanup(
+    struct uci_context *ctx);
+void ucix_save(
+    struct uci_context *ctx);
+void ucix_save_state(
+    struct uci_context *ctx);
+const char *ucix_get_option(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o);
+int ucix_get_option_int(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o,
+    int def);
+void ucix_add_section(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *t);
+void ucix_add_option(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o,
+    const char *t);
+void ucix_add_option_int(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o,
+    int t);
+int ucix_commit(
+    struct uci_context *ctx,
+    const char *p);
+void ucix_revert(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o);
+void ucix_del(
+    struct uci_context *ctx,
+    const char *p,
+    const char *s,
+    const char *o);
 #endif

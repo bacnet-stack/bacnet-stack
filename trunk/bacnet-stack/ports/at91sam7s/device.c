@@ -648,7 +648,7 @@ int Device_Read_Property_Local(
         return 0;
     }
     apdu = rpdata->application_data;
-    switch ((int)rpdata->object_property) {
+    switch ((int) rpdata->object_property) {
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string, "BACnet Demo");
             apdu_len =
@@ -851,7 +851,7 @@ bool Device_Write_Property_Local(
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    switch ((int)wp_data->object_property) {
+    switch ((int) wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&

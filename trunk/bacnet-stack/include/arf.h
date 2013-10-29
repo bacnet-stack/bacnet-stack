@@ -48,7 +48,7 @@ typedef struct BACnet_Atomic_Read_File_Data {
             uint32_t RecordCount;
         } record;
     } type;
-  BACNET_OCTET_STRING fileData[BACNET_READ_FILE_RECORD_COUNT];
+    BACNET_OCTET_STRING fileData[BACNET_READ_FILE_RECORD_COUNT];
     bool endOfFile;
 } BACNET_ATOMIC_READ_FILE_DATA;
 

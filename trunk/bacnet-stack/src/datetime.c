@@ -89,12 +89,11 @@ bool datetime_ymd_is_valid(
     uint8_t month,
     uint8_t day)
 {
-    bool status = false; /* true if value date */
-    uint8_t monthdays = 0;  /* days in a month */
+    bool status = false;        /* true if value date */
+    uint8_t monthdays = 0;      /* days in a month */
 
     monthdays = datetime_month_days(year, month);
-    if ((year >= 1900) && (monthdays > 0) &&
-        (day >= 1) && (day <= monthdays)) {
+    if ((year >= 1900) && (monthdays > 0) && (day >= 1) && (day <= monthdays)) {
         status = true;
     }
 
@@ -102,10 +101,10 @@ bool datetime_ymd_is_valid(
 }
 
 bool datetime_date_is_valid(
-    BACNET_DATE *bdate)
+    BACNET_DATE * bdate)
 {
 
-    bool status = false; /* true if value date */
+    bool status = false;        /* true if value date */
 
     if (bdate) {
         status = datetime_ymd_is_valid(bdate->year, bdate->month, bdate->day);
@@ -139,7 +138,7 @@ static uint32_t days_since_epoch(
 }
 
 uint32_t datetime_days_since_epoch(
-    BACNET_DATE *bdate)
+    BACNET_DATE * bdate)
 {
     uint32_t days = 0;
 
@@ -188,7 +187,7 @@ static void days_since_epoch_into_ymd(
 
 void datetime_days_since_epoch_into_date(
     uint32_t days,
-    BACNET_DATE *bdate)
+    BACNET_DATE * bdate)
 {
     uint16_t year = 0;
     uint8_t month = 0;
@@ -209,7 +208,7 @@ uint8_t datetime_day_of_week(
 }
 
 bool datetime_time_is_valid(
-    BACNET_TIME *btime)
+    BACNET_TIME * btime)
 {
     bool status = false;
 
@@ -232,8 +231,8 @@ bool datetime_time_is_valid(
  * @return true if the date and time are valid
  */
 bool datetime_is_valid(
-    BACNET_DATE *bdate,
-    BACNET_TIME *btime)
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime)
 {
     return datetime_date_is_valid(bdate) && datetime_time_is_valid(btime);
 }
@@ -447,15 +446,12 @@ static void seconds_since_midnight_into_hms(
  * @return seconds since midnight
  */
 uint32_t datetime_seconds_since_midnight(
-    BACNET_TIME *btime)
+    BACNET_TIME * btime)
 {
     uint32_t seconds = 0;
 
     if (btime) {
-        seconds = seconds_since_midnight(
-            btime->hour,
-            btime->min,
-            btime->sec);
+        seconds = seconds_since_midnight(btime->hour, btime->min, btime->sec);
     }
 
     return seconds;
@@ -468,14 +464,12 @@ uint32_t datetime_seconds_since_midnight(
  * @return minutes since midnight
  */
 uint16_t datetime_minutes_since_midnight(
-    BACNET_TIME *btime)
+    BACNET_TIME * btime)
 {
     uint32_t minutes = 0;
 
     if (btime) {
-        minutes = minutes_since_midnight(
-            btime->hour,
-            btime->min);
+        minutes = minutes_since_midnight(btime->hour, btime->min);
     }
 
     return minutes;
@@ -983,8 +977,8 @@ void testDateEpoch(
         for (month = 1; month <= 12; month++) {
             for (day = 1; day <= datetime_month_days(year, month); day++) {
                 days = days_since_epoch(year, month, day);
-                days_since_epoch_into_ymd(days,
-                    &test_year, &test_month, &test_day);
+                days_since_epoch_into_ymd(days, &test_year, &test_month,
+                    &test_day);
                 ct_test(pTest, year == test_year);
                 ct_test(pTest, month == test_month);
                 ct_test(pTest, day == test_day);

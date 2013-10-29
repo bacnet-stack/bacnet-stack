@@ -181,8 +181,7 @@ void handler_atomic_read_file(
                 error = true;
             } else if (bacfile_read_stream_data(&data)) {
 #if PRINT_ENABLED
-                fprintf(stderr,
-                    "ARF: fileStartRecord %d, %u RecordCount.\n",
+                fprintf(stderr, "ARF: fileStartRecord %d, %u RecordCount.\n",
                     data.type.record.fileStartRecord,
                     data.type.record.RecordCount);
 #endif

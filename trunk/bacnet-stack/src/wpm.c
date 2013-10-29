@@ -256,56 +256,58 @@ int wpm_encode_apdu_object_property(
 }
 
 int wpm_encode_apdu(
-	uint8_t * apdu,
-	size_t max_apdu,
-	uint8_t invoke_id,
-	BACNET_WRITE_ACCESS_DATA * write_access_data)
+    uint8_t * apdu,
+    size_t max_apdu,
+    uint8_t invoke_id,
+    BACNET_WRITE_ACCESS_DATA * write_access_data)
 {
-	int apdu_len = 0;
-	int len = 0;
-	BACNET_WRITE_ACCESS_DATA *wpm_object;        /* current object */
-	uint8_t apdu_temp[MAX_APDU];      /* temp for data before copy */
-	BACNET_PROPERTY_VALUE *wpm_property;    /* current property */
-	BACNET_WRITE_PROPERTY_DATA wpdata;	/* for compatibility with wpm_encode_apdu_object_property function */
+    int apdu_len = 0;
+    int len = 0;
+    BACNET_WRITE_ACCESS_DATA *wpm_object;       /* current object */
+    uint8_t apdu_temp[MAX_APDU];        /* temp for data before copy */
+    BACNET_PROPERTY_VALUE *wpm_property;        /* current property */
+    BACNET_WRITE_PROPERTY_DATA wpdata;  /* for compatibility with wpm_encode_apdu_object_property function */
 
-	if (apdu) {
-		len =  wpm_encode_apdu_init(&apdu[0], invoke_id);
-		apdu_len += len;
+    if (apdu) {
+        len = wpm_encode_apdu_init(&apdu[0], invoke_id);
+        apdu_len += len;
 
-		wpm_object = write_access_data;
+        wpm_object = write_access_data;
 
-		while(wpm_object){
+        while (wpm_object) {
 
-			len = wpm_encode_apdu_object_begin(&apdu[apdu_len],
-				wpm_object->object_type, wpm_object->object_instance);
-			apdu_len += len;
+            len =
+                wpm_encode_apdu_object_begin(&apdu[apdu_len],
+                wpm_object->object_type, wpm_object->object_instance);
+            apdu_len += len;
 
-			wpm_property = wpm_object->listOfProperties;
+            wpm_property = wpm_object->listOfProperties;
 
-			while(wpm_property){
-				wpdata.object_property = wpm_property->propertyIdentifier;
-				wpdata.array_index = wpm_property->propertyArrayIndex;
-				wpdata.priority = wpm_property->priority;
+            while (wpm_property) {
+                wpdata.object_property = wpm_property->propertyIdentifier;
+                wpdata.array_index = wpm_property->propertyArrayIndex;
+                wpdata.priority = wpm_property->priority;
 
-				wpdata.application_data_len = bacapp_encode_data(&apdu_temp[0],
-					&wpm_property->value);
-				memcpy(&wpdata.application_data[0], &apdu_temp[0],
-					wpdata.application_data_len);
+                wpdata.application_data_len =
+                    bacapp_encode_data(&apdu_temp[0], &wpm_property->value);
+                memcpy(&wpdata.application_data[0], &apdu_temp[0],
+                    wpdata.application_data_len);
 
-				len = wpm_encode_apdu_object_property(&apdu[apdu_len], &wpdata);
-				apdu_len += len;
+                len =
+                    wpm_encode_apdu_object_property(&apdu[apdu_len], &wpdata);
+                apdu_len += len;
 
-				wpm_property = wpm_property->next;
-			}
+                wpm_property = wpm_property->next;
+            }
 
-			len =  wpm_encode_apdu_object_end(&apdu[apdu_len]);
-			apdu_len += len;
+            len = wpm_encode_apdu_object_end(&apdu[apdu_len]);
+            apdu_len += len;
 
-			wpm_object = wpm_object->next;
-		}
-	}
+            wpm_object = wpm_object->next;
+        }
+    }
 
-	return apdu_len;
+    return apdu_len;
 }
 
 int wpm_ack_encode_apdu_init(
