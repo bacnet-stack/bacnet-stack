@@ -23,7 +23,7 @@
 #include <uci_config.h>
 #include <uci.h>
 #include "ucix.h"
-//#include "log.h"
+/*#include "log.h" */
 
 static struct uci_ptr ptr;
 
@@ -46,7 +46,7 @@ struct uci_context *ucix_init(
     const char *config_file)
 {
     struct uci_context *ctx = uci_alloc_context();
-//      uci_add_history_path(ctx, "/var/state");
+/*      uci_add_history_path(ctx, "/var/state"); */
     uci_add_delta_path(ctx, "/var/state");
     if (uci_load(ctx, config_file, NULL) != UCI_OK) {
         fprintf(stderr, "%s/%s is missing or corrupt\n", ctx->savedir,
