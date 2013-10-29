@@ -114,10 +114,10 @@ void handler_who_is_unicast(
 
 
 #ifdef BAC_ROUTING      /* was for BAC_ROUTING - delete in 2/2012 if still unused */
-						/* EKH: I restored this to BAC_ROUTING (from DEPRECATED) because I found that the server demo with the built-in 
-								virtual Router did not insert the SADRs of the virtual devices on the virtual network without it */
-								
-								
+                                                /* EKH: I restored this to BAC_ROUTING (from DEPRECATED) because I found that the server demo with the built-in 
+                                                   virtual Router did not insert the SADRs of the virtual devices on the virtual network without it */
+
+
 /** Local function to check Who-Is requests against our Device IDs.
  * Will check the gateway (root Device) and all virtual routed
  * Devices against the range and respond for each that matches.

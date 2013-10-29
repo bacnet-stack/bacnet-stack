@@ -875,9 +875,8 @@ bool dlmstp_init(
         return false;
     }
 
-    poSharedData =
-        (SHARED_MSTP_DATA *) ((struct mstp_port_struct_t *) mstp_port)->
-        UserData;
+    poSharedData = (SHARED_MSTP_DATA *) ((struct mstp_port_struct_t *)
+        mstp_port)->UserData;
     if (!poSharedData) {
         return false;
     }

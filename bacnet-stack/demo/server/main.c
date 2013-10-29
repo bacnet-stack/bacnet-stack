@@ -166,8 +166,8 @@ int main(
     struct uci_context *ctx;
 
     ctx = ucix_init("bacnet_dev");
-    if(!ctx)
-        fprintf(stderr,  "Failed to load config file bacnet_dev\n");
+    if (!ctx)
+        fprintf(stderr, "Failed to load config file bacnet_dev\n");
     uciId = ucix_get_option_int(ctx, "bacnet_dev", "0", "Id", 0);
     printf("ID: %i", uciId);
     if (uciId != 0) {

@@ -295,8 +295,7 @@ int Device_Read_Property(
                 }
             } else {
                 if (Device_Object_List_Identifier(rpdata->array_index,
-                        &object_type,
-                        &instance))
+                        &object_type, &instance))
                     apdu_len =
                         encode_application_object_id(&apdu[0], object_type,
                         instance);

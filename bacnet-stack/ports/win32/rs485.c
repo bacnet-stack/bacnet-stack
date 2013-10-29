@@ -131,7 +131,8 @@ void RS485_Set_Interface(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_Interface_Valid(unsigned port_number)
+bool RS485_Interface_Valid(
+    unsigned port_number)
 {
     HANDLE h = 0;
     DWORD err = 0;
@@ -139,17 +140,12 @@ bool RS485_Interface_Valid(unsigned port_number)
     char ifname[255] = "";
 
     sprintf(ifname, "\\\\.\\COM%u", port_number);
-    h = CreateFile(
-        ifname,
-        GENERIC_READ | GENERIC_WRITE, 0,
-        NULL, OPEN_EXISTING, 0,
-        NULL);
+    h = CreateFile(ifname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+        OPEN_EXISTING, 0, NULL);
     if (h == INVALID_HANDLE_VALUE) {
         err = GetLastError();
-        if ((err == ERROR_ACCESS_DENIED) ||
-            (err == ERROR_GEN_FAILURE) ||
-            (err == ERROR_SHARING_VIOLATION) ||
-            (err == ERROR_SEM_TIMEOUT)) {
+        if ((err == ERROR_ACCESS_DENIED) || (err == ERROR_GEN_FAILURE) ||
+            (err == ERROR_SHARING_VIOLATION) || (err == ERROR_SEM_TIMEOUT)) {
             status = true;
         }
     } else {

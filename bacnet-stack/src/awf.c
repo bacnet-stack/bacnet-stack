@@ -79,7 +79,7 @@ int awf_encode_apdu(
                 for (i = 0; i < data->type.record.returnedRecordCount; i++) {
                     apdu_len +=
                         encode_application_octet_string(&apdu[apdu_len],
-                            &data->fileData[i]);
+                        &data->fileData[i]);
                 }
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 1);
                 break;
@@ -175,7 +175,7 @@ int awf_decode_service_request(
                     return -1;
                 len +=
                     decode_octet_string(&apdu[len], len_value_type,
-                        &data->fileData[i]);
+                    &data->fileData[i]);
             }
             if (!decode_is_closing_tag_number(&apdu[len], 1))
                 return -1;

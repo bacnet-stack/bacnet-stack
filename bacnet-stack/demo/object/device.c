@@ -1173,7 +1173,7 @@ int Device_Read_Property_Local(
     uint8_t *apdu = NULL;
     struct object_functions *pObject = NULL;
     bool found = false;
-    uint16_t apdu_max =0;
+    uint16_t apdu_max = 0;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -1818,8 +1818,8 @@ void Device_Init(
     struct uci_context *ctx;
     fprintf(stderr, "Device_Init\n");
     ctx = ucix_init("bacnet_dev");
-    if(!ctx)
-        fprintf(stderr,  "Failed to load config file bacnet_dev\n");
+    if (!ctx)
+        fprintf(stderr, "Failed to load config file bacnet_dev\n");
     uciname = ucix_get_option(ctx, "bacnet_dev", "0", "Name");
     if (uciname != 0) {
         characterstring_init_ansi(&My_Object_Name, uciname);

@@ -89,18 +89,18 @@ extern "C" {
         uint8_t hundredths);
     /* utility test for validity */
     bool datetime_is_valid(
-        BACNET_DATE *bdate,
-        BACNET_TIME *btime);
+        BACNET_DATE * bdate,
+        BACNET_TIME * btime);
     bool datetime_time_is_valid(
-        BACNET_TIME *btime);
+        BACNET_TIME * btime);
     bool datetime_date_is_valid(
-        BACNET_DATE *bdate);
+        BACNET_DATE * bdate);
     /* date and time calculations and summaries */
     uint32_t datetime_days_since_epoch(
-        BACNET_DATE *bdate);
+        BACNET_DATE * bdate);
     void datetime_days_since_epoch_into_date(
         uint32_t days,
-        BACNET_DATE *bdate);
+        BACNET_DATE * bdate);
     bool datetime_is_leap_year(
         uint16_t year);
     uint8_t datetime_month_days(
@@ -115,9 +115,9 @@ extern "C" {
         uint8_t month,
         uint8_t day);
     uint32_t datetime_seconds_since_midnight(
-        BACNET_TIME *btime);
+        BACNET_TIME * btime);
     uint16_t datetime_minutes_since_midnight(
-        BACNET_TIME *btime);
+        BACNET_TIME * btime);
 
     /* utility comparison functions:
        if the date/times are the same, return is 0

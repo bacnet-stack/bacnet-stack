@@ -7,7 +7,8 @@
 //------------------------------------------------------------------------------
 /// Default spurious interrupt handler. Infinite loop.
 //------------------------------------------------------------------------------
-void AT91F_Spurious_handler( void )
+void AT91F_Spurious_handler(
+    void)
 {
     while (1);
 }
@@ -15,7 +16,8 @@ void AT91F_Spurious_handler( void )
 //------------------------------------------------------------------------------
 /// Default handler for fast interrupt requests. Infinite loop.
 //------------------------------------------------------------------------------
-void AT91F_Default_FIQ_handler( void )
+void AT91F_Default_FIQ_handler(
+    void)
 {
     while (1);
 }
@@ -23,7 +25,8 @@ void AT91F_Default_FIQ_handler( void )
 //------------------------------------------------------------------------------
 /// Default handler for standard interrupt requests. Infinite loop.
 //------------------------------------------------------------------------------
-void AT91F_Default_IRQ_handler( void )
+void AT91F_Default_IRQ_handler(
+    void)
 {
     while (1);
 }

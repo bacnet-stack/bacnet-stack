@@ -87,7 +87,7 @@ void npdu_handler(
                    routing information cause they are not for us */
                 if ((dest.net == BACNET_BROADCAST_NETWORK) &&
                     ((pdu[apdu_offset] & 0xF0) ==
-                    PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+                        PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
                     /* hack for 5.4.5.1 - IDLE */
                     /* ConfirmedBroadcastReceived */
                     /* then enter IDLE - ignore the PDU */

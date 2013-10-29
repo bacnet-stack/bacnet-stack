@@ -123,7 +123,8 @@ extern "C" {
     uint16_t Analog_Value_Units(
         uint32_t instance);
     bool Analog_Value_Units_Set(
-        uint32_t instance, uint16_t unit);
+        uint32_t instance,
+        uint16_t unit);
 
     bool Analog_Value_Out_Of_Service(
         uint32_t instance);

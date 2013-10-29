@@ -112,7 +112,7 @@ bool rs485_receive_error(
     return false;
 }
 
-                                                                                                                                                                                                                     /*********************************************************************//**
+                                                                                                                                                                                                                                                                                                                                                                   /*********************************************************************//**
  * @brief        USARTx interrupt handler sub-routine
  * @param[in]    None
  * @return         None
