@@ -38,6 +38,7 @@
 #include "proplist.h"
 
 /** @file proplist.c  List of Required and Optional object properties */
+/* note: the PROP_PROPERTY_LIST is NOT included in these lists, on purpose */
 
 static const int Default_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
@@ -428,6 +429,16 @@ static const int Channel_Properties_Optional[] = {
     PROP_RELIABILITY,
     PROP_EXECUTION_DELAY,
     PROP_ALLOW_GROUP_DELAY_INHIBIT,
+    PROP_EVENT_DETECTION_ENABLE,
+    PROP_NOTIFICATION_CLASS,
+    PROP_EVENT_ENABLE,
+    PROP_EVENT_STATE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
