@@ -60,17 +60,19 @@ void handler_who_is(
     len =
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
-    if (len == 0)
+    if (len == 0) {
         Send_I_Am(&Handler_Transmit_Buffer[0]);
-    else if (len != -1) {
+    else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
+        /* or */
+        /* BACnet wildcard is the max instance number - everyone responds */
         if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
                 (Device_Object_Instance_Number() <= (uint32_t) high_limit))
             ||
-            /* BACnet wildcard is the max instance number - everyone responds */
             ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
-                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit)))
+                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit))) {
             Send_I_Am(&Handler_Transmit_Buffer[0]);
+        }
     }
 
     return;
@@ -117,12 +119,12 @@ void handler_who_is_unicast(
 /** Local function to check Who-Is requests against our Device IDs.
  * Will check the gateway (root Device) and all virtual routed
  * Devices against the range and respond for each that matches.
- *  
+ *
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
  * @param src [in] The BACNET_ADDRESS of the message's source.
  * @param is_unicast [in] True if should send unicast response(s)
- * 			back to the src, else False if should broadcast response(s). 
+ * 			back to the src, else False if should broadcast response(s).
  */
 static void check_who_is_for_routing(
     uint8_t * service_request,
@@ -170,12 +172,12 @@ static void check_who_is_for_routing(
 }
 
 
-/** Handler for Who-Is requests in the virtual routing setup, 
+/** Handler for Who-Is requests in the virtual routing setup,
  * with broadcast I-Am response(s).
  * @ingroup DMDDB
  * Will check the gateway (root Device) and all virtual routed
  * Devices against the range and respond for each that matches.
- *  
+ *
  * @ingroup DMDDB
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
@@ -190,11 +192,11 @@ void handler_who_is_bcast_for_routing(
 }
 
 
-/** Handler for Who-Is requests in the virtual routing setup, 
+/** Handler for Who-Is requests in the virtual routing setup,
  * with unicast I-Am response(s) returned to the src.
  * Will check the gateway (root Device) and all virtual routed
  * Devices against the range and respond for each that matches.
- *  
+ *
  * @ingroup DMDDB
  * @param service_request [in] The received message to be handled.
  * @param service_len [in] Length of the service_request message.
