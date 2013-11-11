@@ -27,6 +27,8 @@ OBJECT_SRC = \
 	$(BACNET_OBJECT)/msv.c \
 	$(BACNET_OBJECT)/nc.c  \
 	$(BACNET_OBJECT)/trendlog.c \
+	$(BACNET_OBJECT)/channel.c \
+	$(BACNET_OBJECT)/lo.c \
 	$(BACNET_OBJECT)/bacfile.c
 
 SRCS = ${SRC} ${OBJECT_SRC}
