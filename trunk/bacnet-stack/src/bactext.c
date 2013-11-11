@@ -1005,7 +1005,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_DEFAULT_STEP_INCREMENT, "default-step-increment"}
     ,
-    {PROP_EGRESS_TIMER, "egress-timer"}
+    {PROP_EGRESS_TIME, "egress-time"}
     ,
     {PROP_IN_PROGRESS, "in-progress"}
     ,
@@ -2220,4 +2220,42 @@ const char *bactext_network_layer_msg_name(
         return Vendor_Proprietary_String;
     else
         return "Invalid Network Layer Message";
+}
+
+INDTEXT_DATA bacnet_lighting_operation_names[] = {
+    {BACNET_LIGHTS_NONE, "none"}
+    ,
+    {BACNET_LIGHTS_FADE_TO, "fade-to"}
+    ,
+    {BACNET_LIGHTS_RAMP_TO, "ramp-to"}
+    ,
+    {BACNET_LIGHTS_STEP_UP, "step-up"}
+    ,
+    {BACNET_LIGHTS_STEP_DOWN, "step-down"}
+    ,
+    {BACNET_LIGHTS_STEP_ON, "step-on"}
+    ,
+    {BACNET_LIGHTS_STEP_OFF, "step-off"}
+    ,
+    {BACNET_LIGHTS_WARN, "warn"}
+    ,
+    {BACNET_LIGHTS_WARN_OFF, "warn-off"}
+    ,
+    {BACNET_LIGHTS_WARN_RELINQUISH, "warn-relinquish"}
+    ,
+    {BACNET_LIGHTS_STOP, "stop"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_lighting_operation_name(
+    unsigned index)
+{
+    if (index < BACNET_LIGHTS_PROPRIETARY_FIRST)
+        return indtext_by_index_default(network_layer_msg_names, index,
+            ASHRAE_Reserved_String);
+    else if (index <= BACNET_LIGHTS_PROPRIETARY_LAST)
+        return Vendor_Proprietary_String;
+    else
+        return "Invalid BACnetLightingOperation";
 }

@@ -125,6 +125,7 @@
     defined(BACAPP_ENUMERATED) || \
     defined(BACAPP_DATE) || \
     defined(BACAPP_TIME) || \
+    defined(BACAPP_LIGHTING_COMMAND) || \
     defined(BACAPP_OBJECT_ID))
 #define BACAPP_ALL
 #endif
@@ -143,6 +144,7 @@
 #define BACAPP_DATE
 #define BACAPP_TIME
 #define BACAPP_OBJECT_ID
+#define BACAPP_LIGHTING_COMMAND
 #endif
 
 /*

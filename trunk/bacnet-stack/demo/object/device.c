@@ -54,6 +54,7 @@
 #include "bi.h"
 #include "bo.h"
 #include "bv.h"
+#include "channel.h"
 #include "csv.h"
 #include "lc.h"
 #include "lsp.h"
@@ -197,7 +198,6 @@ static object_functions_t My_Object_Table[] = {
             NULL /* COV */ ,
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
-#if 0
     {OBJECT_CHARACTERSTRING_VALUE,
             CharacterString_Value_Init,
             CharacterString_Value_Count,
@@ -213,7 +213,6 @@ static object_functions_t My_Object_Table[] = {
             NULL /* COV */ ,
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
-#endif
 #if defined(INTRINSIC_REPORTING)
     {OBJECT_NOTIFICATION_CLASS,
             Notification_Class_Init,
@@ -291,7 +290,6 @@ static object_functions_t My_Object_Table[] = {
             NULL /* COV */ ,
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
-#if 0
     {OBJECT_MULTI_STATE_VALUE,
             Multistate_Value_Init,
             Multistate_Value_Count,
@@ -307,7 +305,6 @@ static object_functions_t My_Object_Table[] = {
             NULL /* COV */ ,
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
-#endif
     {OBJECT_TRENDLOG,
             Trend_Log_Init,
             Trend_Log_Count,
@@ -318,6 +315,36 @@ static object_functions_t My_Object_Table[] = {
             Trend_Log_Write_Property,
             Trend_Log_Property_Lists,
             TrendLogGetRRInfo,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
+    {OBJECT_LIGHTING_OUTPUT,
+            Lighting_Output_Init,
+            Lighting_Output_Count,
+            Lighting_Output_Index_To_Instance,
+            Lighting_Output_Valid_Instance,
+            Lighting_Output_Object_Name,
+            Lighting_Output_Read_Property,
+            Lighting_Output_Write_Property,
+            Lighting_Output_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
+    {OBJECT_CHANNEL,
+            Channel_Init,
+            Channel_Count,
+            Channel_Index_To_Instance,
+            Channel_Valid_Instance,
+            Channel_Object_Name,
+            Channel_Read_Property,
+            Channel_Write_Property,
+            Channel_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
             NULL /* Iterator */ ,
             NULL /* Value_Lists */ ,
             NULL /* COV */ ,
