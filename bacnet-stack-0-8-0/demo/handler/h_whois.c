@@ -62,7 +62,7 @@ void handler_who_is(
         &high_limit);
     if (len == 0) {
         Send_I_Am(&Handler_Transmit_Buffer[0]);
-    else if (len != BACNET_STATUS_ERROR) {
+    } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
         /* or */
         /* BACnet wildcard is the max instance number - everyone responds */
