@@ -295,6 +295,87 @@ bool Channel_Number_Set(uint32_t object_instance, uint16_t value)
 }
 
 /**
+ * For a given object instance-number, determines the member count
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return member count
+ */
+static bool Channel_Control_Member_Valid(
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    bool status = false;
+
+    if ((pMember) &&
+        (pMember->objectIdentifier.instance != BACNET_MAX_INSTANCE) &&
+        (pMember->deviceIndentifier.instance != BACNET_MAX_INSTANCE)) {
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, determines the member count
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return member count
+ */
+unsigned Channel_Control_Member_Count(uint32_t object_instance)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned count = 0;
+    unsigned m = 0;
+    unsigned index = 0;
+
+    index = Channel_Instance_To_Index(object_instance);
+    if (index < BACNET_CHANNELS_MAX) {
+        for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
+            pMember = &Channel[index].Members[m];
+            if (Channel_Control_Member_Valid(pMember)) {
+                count++;
+            }
+        }
+    }
+
+    return count;
+}
+
+/**
+ * For a given object instance-number, returns the member element
+ *
+ * @param object_instance - object-instance number of the object
+ * @param element - member element number 1..N
+ *
+ * @return pointer to member element or NULL if not found
+ */
+BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *
+Channel_Control_Member_Element(uint32_t object_instance,
+    unsigned element)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned count = 0;
+    unsigned m = 0;
+    unsigned index = 0;
+
+    index = Channel_Instance_To_Index(object_instance);
+    if (index < BACNET_CHANNELS_MAX) {
+        for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
+            pMember = &Channel[index].Members[m];
+            if (Channel_Control_Member_Valid(pMember)) {
+                count++;
+                if (count == element) {
+                    return pMember;
+                }
+            }
+        }
+    }
+
+    return NULL;
+}
+
+/**
  * For a given object instance-number, determines the Number
  *
  * @param  object_instance - object-instance number of the object
@@ -1183,7 +1264,9 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
     BACNET_CHANNEL_VALUE * cvalue = NULL;
     uint32_t unsigned_value = 0;
     unsigned i = 0;
+    unsigned count = 0;
     bool state = false;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -1239,30 +1322,24 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-            break;
-        case PROP_CHANNEL_NUMBER:
-            unsigned_value = Channel_Number(rpdata->object_instance);
-            apdu_len =
-                encode_application_unsigned(&apdu[0], unsigned_value);
-            break;
-        case PROP_CONTROL_GROUPS:
-            /* Array element zero is the number of elements in the array */
             if (rpdata->array_index == 0) {
-                apdu_len = encode_application_unsigned(&apdu[0],
-                    CONTROL_GROUPS_MAX);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
+                /* Array element zero is the number of elements in the array */
+                count = Channel_Control_Member_Count(rpdata->object_instance);
+                apdu_len = encode_application_unsigned(&apdu[0], count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 1; i <= CONTROL_GROUPS_MAX; i++) {
-                    unsigned_value = Channel_Control_Groups_Element(
+                /* if no index was specified, then try to encode the entire list */
+                /* into one packet. */
+                count = Channel_Control_Member_Count(rpdata->object_instance);
+                for (i = 1; i <= count; i++) {
+                    pMember = Channel_Control_Member_Element(
                         rpdata->object_instance, i);
-                    len =
-                        encode_application_unsigned(&apdu[apdu_len],
-                        unsigned_value);
+                    len +=
+                        bacapp_encode_device_obj_property_ref(&apdu[apdu_len],
+                        pMember);
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_class = ERROR_CLASS_SERVICES;
                         rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
                         apdu_len = BACNET_STATUS_ERROR;
@@ -1270,6 +1347,52 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                     }
                 }
             } else {
+                /* a specific element was requested */
+                count = Channel_Control_Member_Count(rpdata->object_instance);
+                if (rpdata->array_index <= count) {
+                    pMember = Channel_Control_Member_Element(
+                        rpdata->object_instance, rpdata->array_index);
+                    apdu_len +=
+                        bacapp_encode_device_obj_property_ref(&apdu[0],
+                        pMember);
+                } else {
+                    rpdata->error_class = ERROR_CLASS_PROPERTY;
+                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                    apdu_len = BACNET_STATUS_ERROR;
+                }
+            }
+            break;
+        case PROP_CHANNEL_NUMBER:
+            unsigned_value = Channel_Number(rpdata->object_instance);
+            apdu_len =
+                encode_application_unsigned(&apdu[0], unsigned_value);
+            break;
+        case PROP_CONTROL_GROUPS:
+            if (rpdata->array_index == 0) {
+                /* Array element zero is the number of elements in the array */
+                apdu_len = encode_application_unsigned(&apdu[0],
+                    CONTROL_GROUPS_MAX);
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list */
+                /* into one packet. */
+                for (i = 1; i <= CONTROL_GROUPS_MAX; i++) {
+                    unsigned_value = Channel_Control_Groups_Element(
+                        rpdata->object_instance, i);
+                    len =
+                        encode_application_unsigned(&apdu[apdu_len],
+                        unsigned_value);
+                    /* add it if we have room */
+                    if ((apdu_len + len) < MAX_APDU) {
+                        apdu_len += len;
+                    } else {
+                        rpdata->error_class = ERROR_CLASS_SERVICES;
+                        rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                        apdu_len = BACNET_STATUS_ERROR;
+                        break;
+                    }
+                }
+            } else {
+                /* a specific element was requested */
                 if (rpdata->array_index <= CONTROL_GROUPS_MAX) {
                     unsigned_value = Channel_Control_Groups_Element(
                         rpdata->object_instance, rpdata->array_index);
