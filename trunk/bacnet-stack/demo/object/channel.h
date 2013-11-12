@@ -155,10 +155,21 @@ extern "C" {
     uint16_t Channel_Number(uint32_t object_instance);
     bool Channel_Number_Set(uint32_t object_instance, uint16_t value);
 
-    unsigned Channel_Control_Member_Count(uint32_t object_instance);
+    unsigned Channel_Reference_List_Member_Count(uint32_t object_instance);
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *
-    Channel_Control_Member_Element(uint32_t object_instance,
+    Channel_Reference_List_Member_Element(uint32_t object_instance,
         unsigned element);
+    bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
+        unsigned array_index,
+        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc);
+    unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
+        BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc);
+    unsigned Channel_Reference_List_Member_Local_Add(
+        uint32_t object_instance,
+        uint16_t type,
+        uint32_t instance,
+        BACNET_PROPERTY_ID propertyIdentifier,
+        uint32_t arrayIndex);
 
     void Channel_Init(void);
 
