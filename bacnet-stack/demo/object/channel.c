@@ -301,7 +301,7 @@ bool Channel_Number_Set(uint32_t object_instance, uint16_t value)
  *
  * @return member count
  */
-static bool Channel_Control_Member_Valid(
+static bool Channel_Reference_List_Member_Valid(
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
 {
     bool status = false;
@@ -322,7 +322,7 @@ static bool Channel_Control_Member_Valid(
  *
  * @return member count
  */
-unsigned Channel_Control_Member_Count(uint32_t object_instance)
+unsigned Channel_Reference_List_Member_Count(uint32_t object_instance)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     unsigned count = 0;
@@ -333,7 +333,7 @@ unsigned Channel_Control_Member_Count(uint32_t object_instance)
     if (index < BACNET_CHANNELS_MAX) {
         for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
             pMember = &Channel[index].Members[m];
-            if (Channel_Control_Member_Valid(pMember)) {
+            if (Channel_Reference_List_Member_Valid(pMember)) {
                 count++;
             }
         }
@@ -346,13 +346,13 @@ unsigned Channel_Control_Member_Count(uint32_t object_instance)
  * For a given object instance-number, returns the member element
  *
  * @param object_instance - object-instance number of the object
- * @param element - member element number 1..N
+ * @param  array_index - 1-based array index
  *
  * @return pointer to member element or NULL if not found
  */
 BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *
-Channel_Control_Member_Element(uint32_t object_instance,
-    unsigned element)
+Channel_Reference_List_Member_Element(uint32_t object_instance,
+    unsigned array_index)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     unsigned count = 0;
@@ -363,9 +363,9 @@ Channel_Control_Member_Element(uint32_t object_instance,
     if (index < BACNET_CHANNELS_MAX) {
         for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
             pMember = &Channel[index].Members[m];
-            if (Channel_Control_Member_Valid(pMember)) {
+            if (Channel_Reference_List_Member_Valid(pMember)) {
                 count++;
-                if (count == element) {
+                if (count == array_index) {
                     return pMember;
                 }
             }
@@ -373,6 +373,112 @@ Channel_Control_Member_Element(uint32_t object_instance,
     }
 
     return NULL;
+}
+
+/**
+ * For a given object instance-number, returns the member element
+ *
+ * @param object_instance - object-instance number of the object
+ * @param  array_index - 1-based array index
+ *
+ * @return pointer to member element or NULL if not found
+ */
+bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
+    unsigned array_index,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned count = 0;
+    unsigned m = 0;
+    unsigned index = 0;
+    bool status = false;
+
+    index = Channel_Instance_To_Index(object_instance);
+    if (index < BACNET_CHANNELS_MAX) {
+        for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
+            pMember = &Channel[index].Members[m];
+            if (Channel_Reference_List_Member_Valid(pMember)) {
+                count++;
+                if (count == array_index) {
+                    memcpy(pMember, pMemberSrc,
+                        sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+                    status = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, adds a member element
+ *
+ * @param object_instance - object-instance number of the object
+ * @param pMemberSrc - pointer to a object property reference element
+ *
+ * @return array_index - 1-based array index value for added element, or
+ * zero if not added
+ */
+unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
+    unsigned count = 0;
+    unsigned m = 0;
+    unsigned index = 0;
+
+    index = Channel_Instance_To_Index(object_instance);
+    if (index < BACNET_CHANNELS_MAX) {
+        for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
+            pMember = &Channel[index].Members[m];
+            if (Channel_Reference_List_Member_Valid(pMember)) {
+                count++;
+            } else {
+                /* first empty slot */
+                count++;
+                memcpy(pMember, pMemberSrc,
+                    sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+                break;
+            }
+        }
+    }
+
+    return count;
+}
+
+/**
+ * For a given object instance-number, adds a member element
+ *
+ * @param object_instance - object-instance number of the object
+ * @param type - object type
+ * @param instance - object instance number
+ * @param propertyIdentifier - property identifier BACNET_PROPERTY_ID
+ * @param  array_index - 1-based array index of object property
+ *
+ * @return array_index - 1-based array index value for added element, or
+ * zero if not added
+ */
+unsigned Channel_Reference_List_Member_Local_Add(
+    uint32_t object_instance,
+    uint16_t type,
+    uint32_t instance,
+    BACNET_PROPERTY_ID propertyIdentifier,
+    uint32_t arrayIndex)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = {{0}};
+
+    member.objectIdentifier.type = type;
+    member.objectIdentifier.instance = instance;
+    member.propertyIdentifier = propertyIdentifier;
+    member.arrayIndex = arrayIndex;
+    member.deviceIndentifier.type = OBJECT_DEVICE;
+    member.deviceIndentifier.instance = Device_Object_Instance_Number();
+
+    return Channel_Reference_List_Member_Element_Add(
+        object_instance,
+        &member);
 }
 
 /**
@@ -1324,14 +1430,14 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
             if (rpdata->array_index == 0) {
                 /* Array element zero is the number of elements in the array */
-                count = Channel_Control_Member_Count(rpdata->object_instance);
+                count = Channel_Reference_List_Member_Count(rpdata->object_instance);
                 apdu_len = encode_application_unsigned(&apdu[0], count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
-                count = Channel_Control_Member_Count(rpdata->object_instance);
+                count = Channel_Reference_List_Member_Count(rpdata->object_instance);
                 for (i = 1; i <= count; i++) {
-                    pMember = Channel_Control_Member_Element(
+                    pMember = Channel_Reference_List_Member_Element(
                         rpdata->object_instance, i);
                     len +=
                         bacapp_encode_device_obj_property_ref(&apdu[apdu_len],
@@ -1348,9 +1454,9 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 }
             } else {
                 /* a specific element was requested */
-                count = Channel_Control_Member_Count(rpdata->object_instance);
+                count = Channel_Reference_List_Member_Count(rpdata->object_instance);
                 if (rpdata->array_index <= count) {
-                    pMember = Channel_Control_Member_Element(
+                    pMember = Channel_Reference_List_Member_Element(
                         rpdata->object_instance, rpdata->array_index);
                     apdu_len +=
                         bacapp_encode_device_obj_property_ref(&apdu[0],
