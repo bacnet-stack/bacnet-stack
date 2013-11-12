@@ -155,6 +155,11 @@ extern "C" {
     uint16_t Channel_Number(uint32_t object_instance);
     bool Channel_Number_Set(uint32_t object_instance, uint16_t value);
 
+    unsigned Channel_Control_Member_Count(uint32_t object_instance);
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *
+    Channel_Control_Member_Element(uint32_t object_instance,
+        unsigned element);
+
     void Channel_Init(void);
 
 #ifdef TEST
