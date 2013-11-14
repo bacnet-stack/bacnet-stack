@@ -13,7 +13,7 @@ all: abort address arf awf bacapp bacdcode bacerror bacint bacstr \
 	cov crc datetime dcc event filename fifo getevent iam ihave \
 	indtext keylist key memcopy npdu proplist ptransfer \
 	rd reject ringbuf rp rpm sbuf timesync \
-	whohas whois wp objects
+	whohas whois wp objects lighting
 
 clean: logfile
 	rm ${LOGFILE}
@@ -130,6 +130,11 @@ key: logfile test/key.mak
 	$(MAKE) -s -C test -f key.mak clean all
 	( ./test/key >> ${LOGFILE} )
 	$(MAKE) -s -C test -f key.mak clean
+
+lighting: lighting test/lighting.mak
+	$(MAKE) -s -C test -f lighting.mak clean all
+	( ./test/lighting >> ${LOGFILE} )
+	$(MAKE) -s -C test -f lighting.mak clean
 
 memcopy: logfile test/memcopy.mak
 	$(MAKE) -s -C test -f memcopy.mak clean all

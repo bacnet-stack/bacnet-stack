@@ -144,7 +144,7 @@ int lighting_command_decode(
 
     apdu_max_len = apdu_max_len;
     /* check for value pointers */
-    if (apdu_len && data) {
+    if (apdu_max_len && data) {
         /* Tag 0: operation */
         if (!decode_is_context_tag(&apdu[apdu_len], 0))
             return BACNET_STATUS_ERROR;
@@ -278,7 +278,7 @@ bool lighting_command_same(
             (dst->use_ramp_rate == src->use_ramp_rate) &&
             (dst->use_step_increment == src->use_step_increment) &&
             (dst->use_fade_time == src->use_fade_time) &&
-            (dst->use_priority = src->use_priority)) {
+            (dst->use_priority == src->use_priority)) {
             status = true;
             if ((dst->use_target_level) &&
                 (dst->target_level != src->target_level)) {
@@ -312,11 +312,53 @@ bool lighting_command_same(
 #include "ctest.h"
 
 void testBACnetLightingCommand(
-    Test * pTest)
+    Test * pTest,
+    BACNET_LIGHTING_COMMAND *data)
 {
     bool status = false;
+    BACNET_LIGHTING_COMMAND test_data;
+    int len, apdu_len;
+    uint8_t apdu[MAX_APDU] = {0};
 
+    status = lighting_command_copy(&test_data, NULL);
+    ct_test(pTest, status == false);
+    status = lighting_command_copy(NULL, data);
+    ct_test(pTest, status == false);
+    status = lighting_command_copy(&test_data, data);
     ct_test(pTest, status == true);
+    status = lighting_command_same(&test_data, data);
+    ct_test(pTest, status == true);
+    len = lighting_command_encode(apdu, data);
+    apdu_len = lighting_command_decode(apdu, sizeof(apdu), &test_data);
+    ct_test(pTest, len > 0);
+    ct_test(pTest, apdu_len > 0);
+    status = lighting_command_same(&test_data, data);
+}
+
+void testBACnetLightingCommandAll(
+    Test * pTest)
+{
+    BACNET_LIGHTING_COMMAND data;
+
+    data.operation = BACNET_LIGHTS_NONE;
+    data.use_target_level = false;
+    data.use_ramp_rate = false;
+    data.use_step_increment = false;
+    data.use_fade_time = false;
+    data.use_priority = false;
+    data.target_level = 0.0;
+    data.ramp_rate = 100.0;
+    data.step_increment = 1.0;
+    data.fade_time = 100;
+    data.priority = 1;
+    testBACnetLightingCommand(pTest, &data);
+    data.operation = BACNET_LIGHTS_STOP;
+    data.use_target_level = true;
+    data.use_ramp_rate = true;
+    data.use_step_increment = true;
+    data.use_fade_time = true;
+    data.use_priority = true;
+    testBACnetLightingCommand(pTest, &data);
 }
 
 #ifdef TEST_LIGHTING_COMMAND
@@ -328,7 +370,7 @@ int main(
 
     pTest = ct_create("BACnet Lighting Command", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testBACnetLightingCommand);
+    rc = ct_addTestFunction(pTest, testBACnetLightingCommandAll);
     assert(rc);
 
     ct_setStream(pTest, stdout);
