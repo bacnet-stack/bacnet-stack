@@ -42,6 +42,7 @@
 #include "config.h"     /* the custom stuff */
 #include "wp.h"
 #include "handlers.h"
+#include "proplist.h"
 #include "lighting.h"
 #include "device.h"
 #if defined (CHANNEL_LIGHTING_COMMAND) || defined (BACAPP_LIGHTING_COMMAND)
@@ -74,22 +75,8 @@ struct bacnet_channel_object {
 
 struct bacnet_channel_object Channel[BACNET_CHANNELS_MAX];
 
-/* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_LAST_PRIORITY,
-    PROP_WRITE_STATUS,
-    PROP_STATUS_FLAGS,
-    PROP_OUT_OF_SERVICE,
-    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
-    PROP_CHANNEL_NUMBER,
-    PROP_CONTROL_GROUPS,
-    -1
-};
-
+/* These arrays are used by the ReadPropertyMultiple handler
+   property-list property (as of protocol-revision 14) */
 static const int Properties_Optional[] = {
     -1
 };
@@ -114,7 +101,7 @@ void Channel_Property_Lists(const int **pRequired,
     const int **pProprietary)
 {
     if (pRequired)
-        *pRequired = Properties_Required;
+        *pRequired = property_list_required(OBJECT_CHANNEL);
     if (pOptional)
         *pOptional = Properties_Optional;
     if (pProprietary)
@@ -1374,6 +1361,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
     bool state = false;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     uint8_t *apdu = NULL;
+    const int *pRequired = NULL, *pOptional = NULL, *pProprietary = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -1512,6 +1500,14 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 }
             }
             break;
+        case PROP_PROPERTY_LIST:
+            Channel_Property_Lists(&pRequired, &pOptional, &pProprietary);
+            apdu_len = property_list_encode(
+                rpdata,
+                pRequired,
+                pOptional,
+                pProprietary);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1521,6 +1517,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
     /*  only array properties can have array options */
     if ((apdu_len >= 0)
         && (rpdata->object_property != PROP_PRIORITY_ARRAY)
+        && (rpdata->object_property != PROP_PROPERTY_LIST)
         && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;

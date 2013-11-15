@@ -34,7 +34,10 @@
 #include <stdint.h>
 #include "bacenum.h"
 #include "bacdef.h"
+#include "bacdcode.h"
+#include "bacenum.h"
 #include "rpm.h"
+#include "rp.h"
 #include "proplist.h"
 
 /** @file proplist.c  List of Required and Optional object properties */
@@ -755,6 +758,189 @@ unsigned property_list_count(
 }
 
 /**
+ * Function that returns the list of all Optional properties
+ * of known standard objects.
+ *
+ * @param object_type - enumerated BACNET_OBJECT_TYPE
+ * @return returns a pointer to a '-1' terminated array of
+ * type 'int' that contain BACnet object properties for the given object
+ * type.
+ */
+const int * property_list_optional(
+    BACNET_OBJECT_TYPE object_type)
+{
+    const int * pList = NULL;
+
+    switch (object_type) {
+        case OBJECT_DEVICE:
+            pList = Device_Properties_Optional;
+            break;
+        case OBJECT_ACCUMULATOR:
+            pList = Accumulator_Properties_Optional;
+            break;
+        case OBJECT_ANALOG_INPUT:
+            pList = Analog_Input_Properties_Optional;
+            break;
+        case OBJECT_ANALOG_OUTPUT:
+            pList = Analog_Output_Properties_Optional;
+            break;
+        case OBJECT_ANALOG_VALUE:
+            pList = Analog_Value_Properties_Optional;
+            break;
+        case OBJECT_AVERAGING:
+            pList = Averaging_Properties_Optional;
+            break;
+        case OBJECT_BINARY_INPUT:
+            pList = Binary_Input_Properties_Optional;
+            break;
+        case OBJECT_BINARY_OUTPUT:
+            pList = Binary_Output_Properties_Optional;
+            break;
+        case OBJECT_BINARY_VALUE:
+            pList = Binary_Value_Properties_Optional;
+            break;
+        case OBJECT_CALENDAR:
+            pList = Calendar_Properties_Optional;
+            break;
+        case OBJECT_CHANNEL:
+            pList = Channel_Properties_Optional;
+            break;
+        case OBJECT_COMMAND:
+            pList = Command_Properties_Optional;
+            break;
+        case OBJECT_CHARACTERSTRING_VALUE:
+            pList =
+                CharacterString_Value_Properties_Optional;
+            break;
+        case OBJECT_LOAD_CONTROL:
+            pList = Load_Control_Properties_Optional;
+            break;
+        case OBJECT_LIFE_SAFETY_POINT:
+            pList =
+                Life_Safety_Point_Properties_Optional;
+            break;
+        case OBJECT_MULTI_STATE_INPUT:
+            pList =
+                Multistate_Input_Properties_Optional;
+            break;
+        case OBJECT_MULTI_STATE_OUTPUT:
+            pList =
+                Multistate_Output_Properties_Optional;
+            break;
+        case OBJECT_MULTI_STATE_VALUE:
+            pList =
+                Multistate_Value_Properties_Optional;
+            break;
+        case OBJECT_NOTIFICATION_CLASS:
+            pList =
+                Notification_Class_Properties_Optional;
+            break;
+        case OBJECT_TRENDLOG:
+            pList = Trend_Log_Properties_Optional;
+            break;
+        case OBJECT_FILE:
+            pList = File_Properties_Optional;
+            break;
+        default:
+            break;
+    }
+
+    return pList;
+}
+
+/**
+ * Function that returns the list of Required properties
+ * of known standard objects.
+ *
+ * @param object_type - enumerated BACNET_OBJECT_TYPE
+ * @return returns a pointer to a '-1' terminated array of
+ * type 'int' that contain BACnet object properties for the given object
+ * type.
+ */
+const int * property_list_required(
+    BACNET_OBJECT_TYPE object_type)
+{
+    const int * pList = NULL;
+
+    switch (object_type) {
+        case OBJECT_DEVICE:
+            pList = Device_Properties_Required;
+            break;
+        case OBJECT_ACCUMULATOR:
+            pList = Accumulator_Properties_Required;
+            break;
+        case OBJECT_ANALOG_INPUT:
+            pList = Analog_Input_Properties_Required;
+            break;
+        case OBJECT_ANALOG_OUTPUT:
+            pList = Analog_Output_Properties_Required;
+            break;
+        case OBJECT_ANALOG_VALUE:
+            pList = Analog_Value_Properties_Required;
+            break;
+        case OBJECT_AVERAGING:
+            pList = Averaging_Properties_Required;
+            break;
+        case OBJECT_BINARY_INPUT:
+            pList = Binary_Input_Properties_Required;
+            break;
+        case OBJECT_BINARY_OUTPUT:
+            pList = Binary_Output_Properties_Required;
+            break;
+        case OBJECT_BINARY_VALUE:
+            pList = Binary_Value_Properties_Required;
+            break;
+        case OBJECT_CALENDAR:
+            pList = Calendar_Properties_Required;
+            break;
+        case OBJECT_CHANNEL:
+            pList = Channel_Properties_Required;
+            break;
+        case OBJECT_COMMAND:
+            pList = Command_Properties_Required;
+            break;
+        case OBJECT_CHARACTERSTRING_VALUE:
+            pList =
+                CharacterString_Value_Properties_Required;
+            break;
+        case OBJECT_LOAD_CONTROL:
+            pList = Load_Control_Properties_Required;
+            break;
+        case OBJECT_LIFE_SAFETY_POINT:
+            pList =
+                Life_Safety_Point_Properties_Required;
+            break;
+        case OBJECT_MULTI_STATE_INPUT:
+            pList =
+                Multistate_Input_Properties_Required;
+            break;
+        case OBJECT_MULTI_STATE_OUTPUT:
+            pList =
+                Multistate_Output_Properties_Required;
+            break;
+        case OBJECT_MULTI_STATE_VALUE:
+            pList =
+                Multistate_Value_Properties_Required;
+            break;
+        case OBJECT_NOTIFICATION_CLASS:
+            pList =
+                Notification_Class_Properties_Required;
+            break;
+        case OBJECT_TRENDLOG:
+            pList = Trend_Log_Properties_Required;
+            break;
+        case OBJECT_FILE:
+            pList = File_Properties_Required;
+            break;
+        default:
+            pList = Default_Properties_Required;
+            break;
+    }
+
+    return pList;
+}
+
+/**
  * Function that returns the list of Required or Optional properties
  * of known standard objects.
  *
@@ -770,158 +956,14 @@ void property_list_special(
     if (pPropertyList == NULL) {
         return;
     }
+    pPropertyList->Required.pList = property_list_required(object_type);
+    pPropertyList->Optional.pList = property_list_optional(object_type);
     pPropertyList->Proprietary.pList = NULL;
-    switch (object_type) {
-        case OBJECT_DEVICE:
-            pPropertyList->Required.pList = Device_Properties_Required;
-            pPropertyList->Optional.pList = Device_Properties_Optional;
-            break;
-            break;
-        case OBJECT_ACCUMULATOR:
-            pPropertyList->Required.pList = Accumulator_Properties_Required;
-            pPropertyList->Optional.pList = Accumulator_Properties_Optional;
-            break;
-        case OBJECT_ANALOG_INPUT:
-            pPropertyList->Required.pList = Analog_Input_Properties_Required;
-            pPropertyList->Optional.pList = Analog_Input_Properties_Optional;
-            break;
-        case OBJECT_ANALOG_OUTPUT:
-            pPropertyList->Required.pList = Analog_Output_Properties_Required;
-            pPropertyList->Optional.pList = Analog_Output_Properties_Optional;
-            break;
-        case OBJECT_ANALOG_VALUE:
-            pPropertyList->Required.pList = Analog_Value_Properties_Required;
-            pPropertyList->Optional.pList = Analog_Value_Properties_Optional;
-            break;
-        case OBJECT_AVERAGING:
-            pPropertyList->Required.pList = Averaging_Properties_Required;
-            pPropertyList->Optional.pList = Averaging_Properties_Optional;
-            break;
-        case OBJECT_BINARY_INPUT:
-            pPropertyList->Required.pList = Binary_Input_Properties_Required;
-            pPropertyList->Optional.pList = Binary_Input_Properties_Optional;
-            break;
-        case OBJECT_BINARY_OUTPUT:
-            pPropertyList->Required.pList = Binary_Output_Properties_Required;
-            pPropertyList->Optional.pList = Binary_Output_Properties_Optional;
-            break;
-        case OBJECT_BINARY_VALUE:
-            pPropertyList->Required.pList = Binary_Value_Properties_Required;
-            pPropertyList->Optional.pList = Binary_Value_Properties_Optional;
-            break;
-        case OBJECT_CALENDAR:
-            pPropertyList->Required.pList = Calendar_Properties_Required;
-            pPropertyList->Optional.pList = Calendar_Properties_Optional;
-            break;
-        case OBJECT_CHANNEL:
-            pPropertyList->Required.pList = Channel_Properties_Required;
-            pPropertyList->Optional.pList = Channel_Properties_Optional;
-            break;
-        case OBJECT_COMMAND:
-            pPropertyList->Required.pList = Command_Properties_Required;
-            pPropertyList->Optional.pList = Command_Properties_Optional;
-            break;
-        case OBJECT_CHARACTERSTRING_VALUE:
-            pPropertyList->Required.pList =
-                CharacterString_Value_Properties_Required;
-            pPropertyList->Optional.pList =
-                CharacterString_Value_Properties_Optional;
-            break;
-        case OBJECT_LOAD_CONTROL:
-            pPropertyList->Required.pList = Load_Control_Properties_Required;
-            pPropertyList->Optional.pList = Load_Control_Properties_Optional;
-            break;
-        case OBJECT_LIFE_SAFETY_POINT:
-            pPropertyList->Required.pList =
-                Life_Safety_Point_Properties_Required;
-            pPropertyList->Optional.pList =
-                Life_Safety_Point_Properties_Optional;
-            break;
-        case OBJECT_MULTI_STATE_INPUT:
-            pPropertyList->Required.pList =
-                Multistate_Input_Properties_Required;
-            pPropertyList->Optional.pList =
-                Multistate_Input_Properties_Optional;
-            break;
-        case OBJECT_MULTI_STATE_OUTPUT:
-            pPropertyList->Required.pList =
-                Multistate_Output_Properties_Required;
-            pPropertyList->Optional.pList =
-                Multistate_Output_Properties_Optional;
-            break;
-        case OBJECT_MULTI_STATE_VALUE:
-            pPropertyList->Required.pList =
-                Multistate_Value_Properties_Required;
-            pPropertyList->Optional.pList =
-                Multistate_Value_Properties_Optional;
-            break;
-        case OBJECT_NOTIFICATION_CLASS:
-            pPropertyList->Required.pList =
-                Notification_Class_Properties_Required;
-            pPropertyList->Optional.pList =
-                Notification_Class_Properties_Optional;
-            break;
-        case OBJECT_TRENDLOG:
-            pPropertyList->Required.pList = Trend_Log_Properties_Required;
-            pPropertyList->Optional.pList = Trend_Log_Properties_Optional;
-            break;
-        case OBJECT_FILE:
-            pPropertyList->Required.pList = File_Properties_Required;
-            pPropertyList->Optional.pList = File_Properties_Optional;
-            break;
-        case OBJECT_EVENT_ENROLLMENT:
-        case OBJECT_GROUP:
-        case OBJECT_LOOP:
-        case OBJECT_PROGRAM:
-        case OBJECT_SCHEDULE:
-        case OBJECT_LIFE_SAFETY_ZONE:
-        case OBJECT_PULSE_CONVERTER:
-        case OBJECT_EVENT_LOG:
-        case OBJECT_GLOBAL_GROUP:
-        case OBJECT_TREND_LOG_MULTIPLE:
-        case OBJECT_STRUCTURED_VIEW:
-        case OBJECT_ACCESS_DOOR:
-        case OBJECT_LIGHTING_OUTPUT:
-        case OBJECT_ACCESS_CREDENTIAL:
-        case OBJECT_ACCESS_POINT:
-        case OBJECT_ACCESS_RIGHTS:
-        case OBJECT_ACCESS_USER:
-        case OBJECT_ACCESS_ZONE:
-        case OBJECT_CREDENTIAL_DATA_INPUT:
-        case OBJECT_NETWORK_SECURITY:
-        case OBJECT_BITSTRING_VALUE:
-        case OBJECT_DATE_PATTERN_VALUE:
-        case OBJECT_DATE_VALUE:
-        case OBJECT_DATETIME_PATTERN_VALUE:
-        case OBJECT_DATETIME_VALUE:
-        case OBJECT_INTEGER_VALUE:
-        case OBJECT_LARGE_ANALOG_VALUE:
-        case OBJECT_OCTETSTRING_VALUE:
-        case OBJECT_POSITIVE_INTEGER_VALUE:
-        case OBJECT_TIME_PATTERN_VALUE:
-        case OBJECT_TIME_VALUE:
-        case OBJECT_NOTIFICATION_FORWARDER:
-        case OBJECT_ALERT_ENROLLMENT:
-            pPropertyList->Required.pList = Default_Properties_Required;
-            pPropertyList->Optional.pList = NULL;
-            pPropertyList->Proprietary.pList = NULL;
-            break;
-        default:
-            /* proprietary objects */
-            pPropertyList->Required.pList = Default_Properties_Required;
-            pPropertyList->Optional.pList = NULL;
-            pPropertyList->Proprietary.pList = NULL;
-            break;
-    }
     /* Fetch the counts if available otherwise zero them */
     pPropertyList->Required.count =
-        pPropertyList->Required.pList ==
-        NULL ? 0 : property_list_count(pPropertyList->Required.pList);
-
+        property_list_count(pPropertyList->Required.pList);
     pPropertyList->Optional.count =
-        pPropertyList->Optional.pList ==
-        NULL ? 0 : property_list_count(pPropertyList->Optional.pList);
-
+        property_list_count(pPropertyList->Optional.pList);
     pPropertyList->Proprietary.count = 0;
 
     return;
@@ -992,6 +1034,171 @@ unsigned property_list_special_count(
     }
 
     return count;
+}
+
+/**
+ * ReadProperty handler for this property.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ *
+ * @param  rpdata - ReadProperty data, including requested data and
+ * data for the reply, or error response.
+ *
+ * @return number of APDU bytes in the response, or
+ * BACNET_STATUS_ERROR on error.
+ */
+int property_list_encode(
+    BACNET_READ_PROPERTY_DATA * rpdata,
+    const int *pListRequired,
+    const int *pListOptional,
+    const int *pListProprietary)
+{
+    int apdu_len = 0;   /* return value */
+    uint8_t *apdu = NULL;
+    int max_apdu_len = 0;
+    unsigned count = 0;
+    unsigned required_count = 0;
+    unsigned optional_count = 0;
+    unsigned proprietary_count = 0;
+    int len = 0;
+    unsigned i = 0; /* loop index */
+
+    required_count = property_list_count(pListRequired);
+    if (required_count >= 3) {
+        /* less the 3 always required properties */
+        count -= 3;
+    } else {
+        count = 0;
+    }
+    optional_count = property_list_count(pListOptional);
+    proprietary_count = property_list_count(pListProprietary);
+    /* total of all counts */
+    count = required_count + optional_count + proprietary_count;
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    max_apdu_len = rpdata->application_data_len;
+    switch (rpdata->object_property) {
+        case PROP_PROPERTY_LIST:
+            if (rpdata->array_index == 0) {
+                /* Array element zero is the number of elements in the array */
+                apdu_len =
+                    encode_application_unsigned(&apdu[0], count);
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list */
+                /* into one packet. */
+                if (required_count > 3) {
+                    for (i = 0; i < required_count; i++) {
+                        if ((pListRequired[i] == PROP_OBJECT_TYPE) ||
+                            (pListRequired[i] == PROP_OBJECT_IDENTIFIER) ||
+                            (pListRequired[i] == PROP_OBJECT_NAME)) {
+                            continue;
+                        } else {
+                            len =
+                                encode_application_enumerated(&apdu[apdu_len],
+                                pListRequired[i]);
+                        }
+                        /* add it if we have room */
+                        if ((apdu_len + len) < max_apdu_len) {
+                            apdu_len += len;
+                        } else {
+                            rpdata->error_class = ERROR_CLASS_SERVICES;
+                            rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                            apdu_len = BACNET_STATUS_ERROR;
+                            break;
+                        }
+                    }
+                }
+                if (optional_count) {
+                    for (i = 0; i < optional_count; i++) {
+                        len =
+                            encode_application_enumerated(&apdu[apdu_len],
+                            pListOptional[i]);
+                        /* add it if we have room */
+                        if ((apdu_len + len) < max_apdu_len) {
+                            apdu_len += len;
+                        } else {
+                            rpdata->error_class = ERROR_CLASS_SERVICES;
+                            rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                            apdu_len = BACNET_STATUS_ERROR;
+                            break;
+                        }
+                    }
+                }
+                if (proprietary_count) {
+                    for (i = 0; i < proprietary_count; i++) {
+                        len =
+                            encode_application_enumerated(&apdu[apdu_len],
+                            pListProprietary[i]);
+                        /* add it if we have room */
+                        if ((apdu_len + len) < max_apdu_len) {
+                            apdu_len += len;
+                        } else {
+                            rpdata->error_class = ERROR_CLASS_SERVICES;
+                            rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
+                            apdu_len = BACNET_STATUS_ERROR;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                if (rpdata->array_index <= count) {
+                    count = 0;
+                    if (required_count > 3) {
+                        for (i = 0; i < required_count; i++) {
+                            if ((pListRequired[i] == PROP_OBJECT_TYPE) ||
+                                (pListRequired[i] == PROP_OBJECT_IDENTIFIER) ||
+                                (pListRequired[i] == PROP_OBJECT_NAME)) {
+                                continue;
+                            } else {
+                                count++;
+                            }
+                            if (count == rpdata->array_index) {
+                                apdu_len = encode_application_enumerated(
+                                    &apdu[apdu_len],
+                                    pListRequired[i]);
+                                break;
+                            }
+                        }
+                    }
+                    if ((apdu_len == 0) && (optional_count > 0)) {
+                        for (i = 0; i < optional_count; i++) {
+                            count++;
+                            if (count == rpdata->array_index) {
+                                apdu_len = encode_application_enumerated(
+                                    &apdu[apdu_len],
+                                    pListOptional[i]);
+                                break;
+                            }
+                        }
+                    }
+                    if ((apdu_len == 0) && (proprietary_count > 0)) {
+                        for (i = 0; i < proprietary_count; i++) {
+                            count++;
+                            if (count == rpdata->array_index) {
+                                apdu_len = encode_application_enumerated(
+                                    &apdu[apdu_len],
+                                    pListProprietary[i]);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    rpdata->error_class = ERROR_CLASS_PROPERTY;
+                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+                    apdu_len = BACNET_STATUS_ERROR;
+                }
+            }
+            break;
+        default:
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            apdu_len = BACNET_STATUS_ERROR;
+            break;
+    }
+
+    return apdu_len;
 }
 
 #ifdef TEST
