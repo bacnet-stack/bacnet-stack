@@ -49,6 +49,7 @@
 struct lighting_output_object {
     float Present_Value;
     float Tracking_Value;
+    float Physical_Value;
     BACNET_LIGHTING_COMMAND Lighting_Command;
     BACNET_LIGHTING_IN_PROGRESS In_Progress;
     bool Out_Of_Service:1;
@@ -1253,6 +1254,106 @@ bool Lighting_Output_Write_Property(
 }
 
 /**
+ * Handles the timing for a single Lighting Output object Ramp
+ *
+ * @param pLight - Lighting Output object
+ * @param pCommand - BACNET_LIGHTING_COMMAND of the Lighting Output object
+ * @param milliseconds - number of milliseconds elapsed since previously
+ * called.  Works best when called about every 10 milliseconds.
+ */
+static void Lighting_Output_Ramp_Handler(
+    struct lighting_output_object *pLight,
+    BACNET_LIGHTING_COMMAND *pCommand,
+    uint16_t milliseconds)
+{
+    if (pLight && pCommand) {
+
+    }
+}
+
+/**
+ * Handles the timing for a single Lighting Output object Fade
+ *
+ * @param pLight - Lighting Output object
+ * @param pCommand - BACNET_LIGHTING_COMMAND of the Lighting Output object
+ * @param milliseconds - number of milliseconds elapsed since previously
+ * called.  Works best when called about every 10 milliseconds.
+ */
+static void Lighting_Output_Fade_Handler(
+    struct lighting_output_object *pLight,
+    BACNET_LIGHTING_COMMAND *pCommand,
+    uint16_t milliseconds)
+{
+    if (pLight && pCommand) {
+
+    }
+}
+
+/**
+ * Handles the timing for a single Lighting Output object
+ *
+ * @param index - 0..MAX_LIGHTING_OUTPUTS value
+ * @param milliseconds - number of milliseconds elapsed since previously
+ * called.  Works best when called about every 10 milliseconds.
+ */
+static void Lighting_Output_Timer_Handler(
+    unsigned index,
+    uint16_t milliseconds)
+{
+    struct lighting_output_object *pLight = NULL;
+    BACNET_LIGHTING_COMMAND *pCommand = NULL;
+
+    if (index < MAX_LIGHTING_OUTPUTS) {
+        pLight = &Lighting_Output[index];
+        pCommand = &pLight->Lighting_Command;
+        switch (pCommand->operation) {
+            case BACNET_LIGHTS_NONE:
+                break;
+            case BACNET_LIGHTS_FADE_TO:
+                Lighting_Output_Fade_Handler(pLight, pCommand, milliseconds);
+                break;
+            case BACNET_LIGHTS_RAMP_TO:
+                Lighting_Output_Ramp_Handler(pLight, pCommand, milliseconds);
+                break;
+            case BACNET_LIGHTS_STEP_UP:
+                break;
+            case BACNET_LIGHTS_STEP_DOWN:
+                break;
+            case BACNET_LIGHTS_STEP_ON:
+                break;
+            case BACNET_LIGHTS_STEP_OFF:
+                break;
+            case BACNET_LIGHTS_WARN:
+                break;
+            case BACNET_LIGHTS_WARN_OFF:
+                break;
+            case BACNET_LIGHTS_WARN_RELINQUISH:
+                break;
+            case BACNET_LIGHTS_STOP:
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+/**
+ * Initializes the Lighting Output object data
+ *
+ * @param milliseconds - number of milliseconds elapsed since previously
+ * called.  Works best when called about every 10 milliseconds.
+ */
+void Lighting_Output_Timer(
+    uint16_t milliseconds)
+{
+    unsigned i = 0;
+
+    for (i = 0; i < MAX_LIGHTING_OUTPUTS; i++) {
+        Lighting_Output_Timer_Handler(i, milliseconds);
+    }
+}
+
+/**
  * Initializes the Lighting Output object data
  */
 void Lighting_Output_Init(
@@ -1263,6 +1364,7 @@ void Lighting_Output_Init(
     for (i = 0; i < MAX_LIGHTING_OUTPUTS; i++) {
         Lighting_Output[i].Present_Value = 0.0;
         Lighting_Output[i].Tracking_Value = 0.0;
+        Lighting_Output[i].Physical_Value = 0.0;
         Lighting_Output[i].Lighting_Command.operation = BACNET_LIGHTS_NONE;
         Lighting_Output[i].Lighting_Command.use_target_level = false;
         Lighting_Output[i].Lighting_Command.use_ramp_rate = false;
