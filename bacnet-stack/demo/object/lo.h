@@ -156,6 +156,9 @@ extern "C" {
         uint32_t object_instance,
         unsigned priority);
 
+    void Lighting_Output_Timer(
+        uint16_t milliseconds);
+
     void Lighting_Output_Init(
         void);
 
