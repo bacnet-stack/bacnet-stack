@@ -29,7 +29,7 @@
 #include "bacenum.h"
 #include "bacdef.h"
 #include "bacapp.h"
-
+#include "proplist.h"
 /*
  * Bundle together commonly used data items for convenience when calling
  * rpm helper functions.
@@ -68,17 +68,6 @@ typedef void (
     const int **pRequired,
     const int **pOptional,
     const int **pProprietary);
-
-struct property_list_t {
-    const int *pList;
-    unsigned count;
-};
-
-struct special_property_list_t {
-    struct property_list_t Required;
-    struct property_list_t Optional;
-    struct property_list_t Proprietary;
-};
 
 typedef void (
     *rpm_object_property_lists_function) (

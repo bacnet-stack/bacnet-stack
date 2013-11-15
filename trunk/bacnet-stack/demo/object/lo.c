@@ -39,6 +39,7 @@
 #include "wp.h"
 #include "lighting.h"
 #include "handlers.h"
+#include "proplist.h"
 /* me! */
 #include "lo.h"
 
@@ -72,21 +73,8 @@ struct lighting_output_object {
 };
 struct lighting_output_object Lighting_Output[MAX_LIGHTING_OUTPUTS];
 
-/* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_UNITS,
-    PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
-    -1
-};
-
+/* These arrays are used by the ReadPropertyMultiple handler and
+   property-list property (as of protocol-revision 14) */
 static const int Properties_Optional[] = {
     -1
 };
@@ -112,7 +100,7 @@ void Lighting_Output_Property_Lists(
     const int **pProprietary)
 {
     if (pRequired)
-        *pRequired = Properties_Required;
+        *pRequired = property_list_required(OBJECT_LIGHTING_OUTPUT);
     if (pOptional)
         *pOptional = Properties_Optional;
     if (pProprietary)
@@ -963,6 +951,7 @@ int Lighting_Output_Read_Property(
     unsigned i = 0;
     bool state = false;
     uint8_t *apdu = NULL;
+    const int *pRequired = NULL, *pOptional = NULL, *pProprietary = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -1051,12 +1040,12 @@ int Lighting_Output_Read_Property(
             break;
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= BACNET_MAX_PRIORITY; i++) {
                     if (Lighting_Output_Priority_Active(
                         rpdata->object_instance, i)) {
@@ -1110,6 +1099,14 @@ int Lighting_Output_Read_Property(
             apdu_len = encode_application_unsigned(&apdu[0],
                 unsigned_value);
             break;
+        case PROP_PROPERTY_LIST:
+            Lighting_Output_Property_Lists(&pRequired, &pOptional, &pProprietary);
+            apdu_len = property_list_encode(
+                rpdata,
+                pRequired,
+                pOptional,
+                pProprietary);
+            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1118,6 +1115,7 @@ int Lighting_Output_Read_Property(
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->object_property != PROP_PROPERTY_LIST) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
