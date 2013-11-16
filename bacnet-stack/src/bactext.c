@@ -1039,6 +1039,14 @@ const char *bactext_property_name(
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
 }
 
+const char *bactext_property_name_default(
+    unsigned index,
+    const char *default_string)
+{
+    return indtext_by_index_default(bacnet_property_names, index,
+        default_string);
+}
+
 unsigned bactext_property_id(
     const char *name)
 {

@@ -1557,6 +1557,7 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
         return false;
     }
     if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->object_property != PROP_PROPERTY_LIST) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1686,15 +1687,13 @@ void Channel_Init(void)
         Channel[i].Write_Status = BACNET_WRITE_STATUS_IDLE;
         for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
             Channel[i].Members[m].objectIdentifier.type =
-                OBJECT_CHANNEL;
-            Channel[i].Members[m].objectIdentifier.instance =
-                BACNET_MAX_INSTANCE;
-            Channel[i].Members[m].propertyIdentifier = MAX_BACNET_PROPERTY_ID;
+                OBJECT_LIGHTING_OUTPUT;
+            Channel[i].Members[m].objectIdentifier.instance = i+1;
+            Channel[i].Members[m].propertyIdentifier = PROP_LIGHTING_COMMAND;
             Channel[i].Members[m].arrayIndex = BACNET_ARRAY_ALL;
             Channel[i].Members[m].deviceIndentifier.type =
                 OBJECT_DEVICE;
-            Channel[i].Members[m].deviceIndentifier.instance =
-                BACNET_MAX_INSTANCE;
+            Channel[i].Members[m].deviceIndentifier.instance = 0;
         }
         Channel[i].Number = 0;
         for (g = 0; g < CONTROL_GROUPS_MAX; g++) {

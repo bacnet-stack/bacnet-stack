@@ -54,6 +54,9 @@ extern "C" {
         unsigned *found_index);
     const char *bactext_property_name(
         unsigned index);
+    const char *bactext_property_name_default(
+        unsigned index,
+        const char *default_string);
     bool bactext_property_index(
         const char *search_name,
         unsigned *found_index);
