@@ -148,6 +148,7 @@ static const int Accumulator_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -184,6 +185,7 @@ static const int Analog_Input_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -221,6 +223,7 @@ static const int Analog_Output_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -254,6 +257,7 @@ static const int Analog_Value_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -317,6 +321,7 @@ static const int Binary_Input_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -356,6 +361,7 @@ static const int Binary_Output_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -393,6 +399,7 @@ static const int Binary_Value_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -489,6 +496,44 @@ static const int CharacterString_Value_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
+    PROP_PROFILE_NAME,
+    -1
+};
+
+static const int Lighting_Output_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,
+    PROP_LIGHTING_COMMAND,
+    PROP_IN_PROGRESS,
+    PROP_STATUS_FLAGS,
+    PROP_OUT_OF_SERVICE,
+    PROP_BLINK_WARN_ENABLE,
+    PROP_EGRESS_TIME,
+    PROP_EGRESS_ACTIVE,
+    PROP_DEFAULT_FADE_TIME,
+    PROP_DEFAULT_RAMP_RATE,
+    PROP_DEFAULT_STEP_INCREMENT,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
+    -1
+};
+
+static const int Lighting_Output_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_RELIABILITY,
+    PROP_TRANSITION,
+    PROP_FEEDBACK_VALUE,
+    PROP_POWER,
+    PROP_INSTANTANEOUS_POWER,
+    PROP_MIN_ACTUAL_VALUE,
+    PROP_MAX_ACTUAL_VALUE,
+    PROP_COV_INCREMENT,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -524,6 +569,7 @@ static const int Load_Control_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -562,6 +608,7 @@ static const int Life_Safety_Point_Properties_Optional[] = {
     PROP_DIRECT_READING,
     PROP_UNITS,
     PROP_MEMBER_OF,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -592,6 +639,7 @@ static const int Multistate_Input_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -623,6 +671,7 @@ static const int Multistate_Output_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -654,6 +703,7 @@ static const int Multistate_Value_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
     -1
 };
@@ -708,11 +758,12 @@ static const int Trend_Log_Properties_Optional[] = {
     PROP_NOTIFY_TYPE,
     PROP_EVENT_TIME_STAMPS,
     PROP_EVENT_MESSAGE_TEXTS,
-    PROP_PROFILE_NAME,
     PROP_ALIGN_INTERVALS,
     PROP_INTERVAL_OFFSET,
     PROP_TRIGGER,
     PROP_RELIABILITY,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
+    PROP_PROFILE_NAME,
     -1
 };
 
@@ -812,6 +863,9 @@ const int * property_list_optional(
             pList =
                 CharacterString_Value_Properties_Optional;
             break;
+        case OBJECT_LIGHTING_OUTPUT:
+            pList = Lighting_Output_Properties_Optional;
+            break;
         case OBJECT_LOAD_CONTROL:
             pList = Load_Control_Properties_Optional;
             break;
@@ -905,6 +959,9 @@ const int * property_list_required(
             break;
         case OBJECT_LOAD_CONTROL:
             pList = Load_Control_Properties_Required;
+            break;
+        case OBJECT_LIGHTING_OUTPUT:
+            pList = Lighting_Output_Properties_Required;
             break;
         case OBJECT_LIFE_SAFETY_POINT:
             pList =
