@@ -1130,6 +1130,17 @@ int bacapp_snprintf_value(
                 break;
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 switch (property) {
+                    case PROP_PROPERTY_LIST:
+                        char_str = bactext_property_name_default(
+                            value->type.Enumerated, NULL);
+                        if (char_str) {
+                            ret_val = snprintf(str, str_len, "%s", char_str);
+                        } else {
+                            ret_val =
+                                snprintf(str, str_len, "%lu",
+                                (unsigned long) value->type.Enumerated);
+                        }
+                        break;
                     case PROP_OBJECT_TYPE:
                         if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
                             ret_val =
