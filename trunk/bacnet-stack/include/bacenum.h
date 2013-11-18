@@ -1422,6 +1422,17 @@ typedef enum {
 } BACNET_NETWORK_MESSAGE_TYPE;
 
 typedef enum {
+    REINITIALIZED_STATE_COLD_START = 0,
+    REINITIALIZED_STATE_WARM_START = 1,
+    REINITIALIZED_STATE_START_BACKUP = 2,
+    REINITIALIZED_STATE_END_BACKUP = 3,
+    REINITIALIZED_STATE_START_RESTORE = 4,
+    REINITIALIZED_STATE_END_RESTORE = 5,
+    REINITIALIZED_STATE_ABORT_RESTORE = 6,
+    REINITIALIZED_STATE_IDLE = 255
+} BACNET_REINITIALIZED_STATE_OF_DEVICE;
+
+typedef enum {
     ABORT_REASON_OTHER = 0,
     ABORT_REASON_BUFFER_OVERFLOW = 1,
     ABORT_REASON_INVALID_APDU_IN_THIS_STATE = 2,
@@ -1431,6 +1442,8 @@ typedef enum {
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
     MAX_BACNET_ABORT_REASON = 5,
+    /* do the MAX here instead of outside of enum so that
+       compilers will allocate adequate sized datatype for enum */
     ABORT_REASON_PROPRIETARY_FIRST = 64,
     ABORT_REASON_PROPRIETARY_LAST = 65535
 } BACNET_ABORT_REASON;
@@ -1450,6 +1463,8 @@ typedef enum {
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
     MAX_BACNET_REJECT_REASON = 10,
+    /* do the MAX here instead of outside of enum so that
+       compilers will allocate adequate sized datatype for enum */
     REJECT_REASON_PROPRIETARY_FIRST = 64,
     REJECT_REASON_PROPRIETARY_LAST = 65535
 } BACNET_REJECT_REASON;
@@ -1466,6 +1481,9 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
+    MAX_BACNET_ERROR_CLASS = 8,
+    /* do the MAX here instead of outside of enum so that
+       compilers will allocate adequate sized datatype for enum */
     ERROR_CLASS_PROPRIETARY_FIRST = 64,
     ERROR_CLASS_PROPRIETARY_LAST = 65535
 } BACNET_ERROR_CLASS;
@@ -1634,6 +1652,9 @@ typedef enum {
     ERROR_CODE_VALUE_TOO_LONG = 134,
     ERROR_CODE_ABORT_INSUFFICIENT_SECURITY = 135,
     ERROR_CODE_ABORT_SECURITY_ERROR = 136,
+
+    MAX_BACNET_ERROR_CODE = 137,
+
     /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
     /* Enumerated values 256-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
