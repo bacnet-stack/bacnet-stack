@@ -759,6 +759,7 @@ static bool read_received_packet(
         if (mstp_port->HeaderCRC != 0x55) {
             mstp_port->ReceivedInvalidFrame = true;
         } else if (mstp_port->DataLength == 0) {
+            mstp_port->ReceivedInvalidFrame = false;
             mstp_port->ReceivedValidFrame = true;
             mstp_port->ReceivedValidFrameNotForUs = true;
         }
@@ -794,16 +795,18 @@ static bool read_received_packet(
                 CRC_Calc_Data(mstp_port->DataCRCActualMSB, mstp_port->DataCRC);
             mstp_port->DataCRC =
                 CRC_Calc_Data(mstp_port->DataCRCActualLSB, mstp_port->DataCRC);
-            if (mstp_port->DataCRC == 0xF0B8) {
-                mstp_port->ReceivedValidFrame = true;
-                mstp_port->ReceivedValidFrameNotForUs = true;
-            } else {
+            if (mstp_port->DataCRC != 0xF0B8) {
                 mstp_port->ReceivedInvalidFrame = true;
             }
         } else {
             mstp_port->DataLength = 0;
         }
-        packet_statistics(&tv, mstp_port);
+        if (mstp_port->ReceivedInvalidFrame) {
+            Invalid_Frame_Count++;
+        } else if ((mstp_port->ReceivedValidFrame) ||
+            (mstp_port->ReceivedValidFrameNotForUs)) {
+            packet_statistics(&tv, mstp_port);
+        }
     } else {
         return false;
     }
