@@ -187,7 +187,7 @@ static void MyErrorHandler(
         (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
         if (ShowValues) {
-            fprintf(stderr, "-- BACnet Error: %s: %s\r\n",
+            fprintf(stderr, "-- BACnet Error: %s: %s\n",
                 bactext_error_class_name(error_class),
                 bactext_error_code_name(error_code));
         }
@@ -210,7 +210,7 @@ void MyAbortHandler(
 #if PRINT_ERRORS
         /* It is normal for this to fail, so don't print. */
         if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues) {
-            fprintf(stderr, "-- BACnet Abort: %s \r\n",
+            fprintf(stderr, "-- BACnet Abort: %s \n",
                 bactext_abort_reason_name(abort_reason));
         }
 #endif
@@ -233,7 +233,7 @@ void MyRejectHandler(
         (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
         if (ShowValues) {
-            fprintf(stderr, "BACnet Reject: %s\r\n",
+            fprintf(stderr, "BACnet Reject: %s\n",
                 bactext_reject_reason_name(reject_reason));
         }
 #endif
@@ -488,7 +488,7 @@ bool PrettyPrintPropertyValue(
         ((property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) ||
             (property == PROP_PROTOCOL_SERVICES_SUPPORTED))) {
         len = bitstring_bits_used(&value->type.Bit_String);
-        fprintf(stream, "( \r\n        ");
+        fprintf(stream, "( \n        ");
         for (i = 0; i < len; i++) {
             fprintf(stream, "%s", bitstring_bit(&value->type.Bit_String,
                     (uint8_t) i) ? "T" : "F");
@@ -513,10 +513,10 @@ bool PrettyPrintPropertyValue(
                     } else      /* not supported */
                         fprintf(stream, ",");
                 }
-                fprintf(stream, "\r\n        ");
+                fprintf(stream, "\n        ");
             }
         }
-        fprintf(stream, ") \r\n");
+        fprintf(stream, ") \n");
     } else if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_DATE)) {
         /* eg, property == PROP_LOCAL_DATE
          * VTS needs (3-Aug-2011,4) or (8/3/11,4), so we'll use the
@@ -531,7 +531,7 @@ bool PrettyPrintPropertyValue(
         /* Meanwhile, a fallback plan */
         status = bacapp_print_value(stdout, object_value);
     } else
-        fprintf(stream, "? \r\n");
+        fprintf(stream, "? \n");
 
     return status;
 }
@@ -559,13 +559,13 @@ void PrintReadPropertyData(
     bool isSequence = false;    /* Ie, will need bracketing braces {} */
 
     if (rpm_property == NULL) {
-        fprintf(stdout, "    -- Null Property data \r\n");
+        fprintf(stdout, "    -- Null Property data \n");
         return;
     }
     value = rpm_property->value;
     if (value == NULL) {
         /* Then we print the error information */
-        fprintf(stdout, "?  -- BACnet Error: %s: %s\r\n",
+        fprintf(stdout, "?  -- BACnet Error: %s: %s\n",
             bactext_error_class_name((int) rpm_property->error.error_class),
             bactext_error_code_name((int) rpm_property->error.error_code));
         return;
@@ -580,7 +580,7 @@ void PrintReadPropertyData(
             case PROP_PRESENT_VALUE:
             case PROP_PRIORITY_ARRAY:
                 if (!ShowValues) {
-                    fprintf(stdout, "? \r\n");
+                    fprintf(stdout, "? \n");
                     /* We want the Values freed below, but don't want to
                      * print anything for them.  To achieve this, swap
                      * out the Property for a non-existent Property
@@ -637,7 +637,7 @@ void PrintReadPropertyData(
                     /* If the array is empty (nothing for this first entry),
                      * Make it VTS3-friendly and don't show "Null" as a value. */
                     if (value->tag == BACNET_APPLICATION_TAG_NULL) {
-                        fprintf(stdout, "?\r\n        ");
+                        fprintf(stdout, "?\n        ");
                         break;
                     }
 
@@ -645,9 +645,9 @@ void PrintReadPropertyData(
                      * opening brace has already printed, since this is an array
                      * of values[] ) */
                     if (value->next == NULL)
-                        fprintf(stdout, "{ \r\n        ");
+                        fprintf(stdout, "{ \n        ");
                     else
-                        fprintf(stdout, "\r\n        ");
+                        fprintf(stdout, "\n        ");
                 }
 
                 if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
@@ -698,9 +698,9 @@ void PrintReadPropertyData(
                     /* There are more. */
                     fprintf(stdout, ", ");
                     if (!(Walked_List_Index % 4))
-                        fprintf(stdout, "\r\n        ");
+                        fprintf(stdout, "\n        ");
                 } else {
-                    fprintf(stdout, " } \r\n");
+                    fprintf(stdout, " } \n");
                 }
                 break;
 
@@ -761,7 +761,7 @@ void PrintReadPropertyData(
                     }
                     CheckIsWritableProperty(object_type,        /* object_instance, */
                         rpm_property);
-                    fprintf(stdout, "\r\n");
+                    fprintf(stdout, "\n");
                 }
                 break;
         }
@@ -1001,26 +1001,26 @@ void PrintUsage(
     )
 {
     printf
-        ("bacepics -- Generates Full EPICS file, including Object and Property List \r\n");
-    printf("Usage: \r\n");
+        ("bacepics -- Generates Full EPICS file, including Object and Property List \n");
+    printf("Usage: \n");
     printf
-        ("  bacepics [-v] [-p sport] [-t target_mac [-n dnet]] device-instance \r\n");
-    printf("    -v: show values instead of '?' \r\n");
+        ("  bacepics [-v] [-p sport] [-t target_mac [-n dnet]] device-instance \n");
+    printf("    -v: show values instead of '?' \n");
     printf
-        ("    -p: Use sport for \"my\" port, instead of 0xBAC0 (BACnet/IP only) \r\n");
-    printf("        Allows you to communicate with a localhost target. \r\n");
+        ("    -p: Use sport for \"my\" port, instead of 0xBAC0 (BACnet/IP only) \n");
+    printf("        Allows you to communicate with a localhost target. \n");
     printf
-        ("    -t: declare target's MAC instead of using Who-Is to bind to  \r\n");
+        ("    -t: declare target's MAC instead of using Who-Is to bind to  \n");
     printf
-        ("        device-instance. Format is \"C0:A8:00:18:BA:C0\" (as usual) \r\n");
-    printf("        Use \"7F:00:00:01:BA:C0\" for loopback testing \r\n");
-    printf("    -n: specify target's DNET if not local BACnet network  \r\n");
-    printf("        or on routed Virtual Network \r\n");
-    printf("\r\n");
+        ("        device-instance. Format is \"C0:A8:00:18:BA:C0\" (as usual) \n");
+    printf("        Use \"7F:00:00:01:BA:C0\" for loopback testing \n");
+    printf("    -n: specify target's DNET if not local BACnet network  \n");
+    printf("        or on routed Virtual Network \n");
+    printf("\n");
     printf
-        ("You may want to redirect the output to a .tpi file for VTS use,\r\n");
-    printf("    eg, bacepics -v 2701876 > epics-2701876.tpi \r\n");
-    printf("\r\n");
+        ("You may want to redirect the output to a .tpi file for VTS use,\n");
+    printf("    eg, bacepics -v 2701876 > epics-2701876.tpi \n");
+    printf("\n");
     exit(0);
 }
 
@@ -1034,7 +1034,7 @@ int CheckCommandLineArgs(
 
     /* print help if not enough arguments */
     if (argc < 2) {
-        fprintf(stdout, "Error: Must provide a device-instance \r\n\r\n");
+        fprintf(stdout, "Error: Must provide a device-instance \n\n");
         PrintUsage();   /* Will exit */
     }
     for (i = 1; i < argc; i++) {
@@ -1059,7 +1059,7 @@ int CheckCommandLineArgs(
                     /* Destination Network Number */
                     if (Target_Address.mac_len == 0)
                         fprintf(stderr,
-                            "Must provide a Target MAC before DNET \r\n");
+                            "Must provide a Target MAC before DNET \n");
                     if (++i < argc)
                         Target_Address.net =
                             (uint16_t) strtol(argv[i], NULL, 0);
@@ -1086,7 +1086,7 @@ int CheckCommandLineArgs(
                             Provided_Targ_MAC = true;
                             break;
                         } else
-                            printf("ERROR: invalid Target MAC %s \r\n",
+                            printf("ERROR: invalid Target MAC %s \n",
                                 argv[i]);
                         /* And fall through to PrintUsage */
                     }
@@ -1101,7 +1101,7 @@ int CheckCommandLineArgs(
             Target_Device_Object_Instance = strtol(anArg, NULL, 0);
             if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
                 fprintf(stdout,
-                    "Error: device-instance=%u - it must be less than %u\r\n",
+                    "Error: device-instance=%u - it must be less than %u\n",
                     Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
                 PrintUsage();
             }
@@ -1109,7 +1109,7 @@ int CheckCommandLineArgs(
         }
     }
     if (!bFoundTarget) {
-        fprintf(stdout, "Error: Must provide a device-instance \r\n\r\n");
+        fprintf(stdout, "Error: Must provide a device-instance \n\n");
         PrintUsage();   /* Will exit */
     }
 
@@ -1123,197 +1123,197 @@ void PrintHeading(
     BACNET_APPLICATION_DATA_VALUE *value = NULL;
     BACNET_OBJECT_PROPERTY_VALUE property_value;
 
-    printf("PICS 0\r\n");
-    printf("BACnet Protocol Implementation Conformance Statement\r\n\r\n");
+    printf("PICS 0\n");
+    printf("BACnet Protocol Implementation Conformance Statement\n\n");
 
-    printf("--\r\n--\r\n");
-    printf("-- Generated by BACnet Protocol Stack library EPICS tool\r\n");
-    printf("-- BACnet/IP Interface for BACnet-stack Devices\r\n");
-    printf("-- http://sourceforge.net/projects/bacnet/ \r\n");
-    printf("-- \r\n--\r\n\r\n");
+    printf("--\n--\n");
+    printf("-- Generated by BACnet Protocol Stack library EPICS tool\n");
+    printf("-- BACnet/IP Interface for BACnet-stack Devices\n");
+    printf("-- http://sourceforge.net/projects/bacnet/ \n");
+    printf("-- \n--\n\n");
     value = object_property_value(PROP_VENDOR_NAME);
     if ((value != NULL) &&
         (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
-        printf("Vendor Name: \"%s\"\r\n",
+        printf("Vendor Name: \"%s\"\n",
             characterstring_value(&value->type.Character_String));
     } else {
-        printf("Vendor Name: \"your vendor name here\"\r\n");
+        printf("Vendor Name: \"your vendor name here\"\n");
     }
 
     value = object_property_value(PROP_MODEL_NAME);
     /* Best we can do with Product Name and Model Number is use the same text */
     if ((value != NULL) &&
         (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
-        printf("Product Name: \"%s\"\r\n",
+        printf("Product Name: \"%s\"\n",
             characterstring_value(&value->type.Character_String));
-        printf("Product Model Number: \"%s\"\r\n",
+        printf("Product Model Number: \"%s\"\n",
             characterstring_value(&value->type.Character_String));
     } else {
-        printf("Product Name: \"your product name here\"\r\n");
-        printf("Product Model Number: \"your model number here\"\r\n");
+        printf("Product Name: \"your product name here\"\n");
+        printf("Product Model Number: \"your model number here\"\n");
     }
 
     value = object_property_value(PROP_DESCRIPTION);
     if ((value != NULL) &&
         (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
-        printf("Product Description: \"%s\"\r\n\r\n",
+        printf("Product Description: \"%s\"\n\n",
             characterstring_value(&value->type.Character_String));
     } else {
         printf("Product Description: "
-            "\"your product description here\"\r\n\r\n");
+            "\"your product description here\"\n\n");
     }
-    printf("BIBBs Supported:\r\n");
-    printf("{\r\n");
-    printf(" DS-RP-B\r\n");
-    printf("-- possible BIBBs in this device\r\n");
-    printf("-- DS-RPM-B\r\n");
-    printf("-- DS-WP-B\r\n");
-    printf("-- DM-DDB-B\r\n");
-    printf("-- DM-DOB-B\r\n");
-    printf("-- DM-DCC-B\r\n");
-    printf("-- DM-RD-B\r\n");
-    printf("-- DS-COV-A\r\n");
-    printf("-- DS-COV-B\r\n");
-    printf("-- AE-N-A\r\n");
-    printf("-- AE-N-I-B\r\n");
-    printf("-- AE-N-E-B\r\n");
-    printf("-- AE-ACK-B\r\n");
-    printf("-- AE-ACK-A\r\n");
-    printf("-- DM-UTC-B\r\n");
+    printf("BIBBs Supported:\n");
+    printf("{\n");
+    printf(" DS-RP-B\n");
+    printf("-- possible BIBBs in this device\n");
+    printf("-- DS-RPM-B\n");
+    printf("-- DS-WP-B\n");
+    printf("-- DM-DDB-B\n");
+    printf("-- DM-DOB-B\n");
+    printf("-- DM-DCC-B\n");
+    printf("-- DM-RD-B\n");
+    printf("-- DS-COV-A\n");
+    printf("-- DS-COV-B\n");
+    printf("-- AE-N-A\n");
+    printf("-- AE-N-I-B\n");
+    printf("-- AE-N-E-B\n");
+    printf("-- AE-ACK-B\n");
+    printf("-- AE-ACK-A\n");
+    printf("-- DM-UTC-B\n");
 #ifdef BAC_ROUTING
     /* Next line only for the gateway (ie, if not addressing a subNet) */
     if (Target_Address.net == 0)
-        printf("-- NM-RC-B\r\n");
+        printf("-- NM-RC-B\n");
 #endif
-    printf("}\r\n\r\n");
-    printf("BACnet Standard Application Services Supported:\r\n");
-    printf("{\r\n");
+    printf("}\n\n");
+    printf("BACnet Standard Application Services Supported:\n");
+    printf("{\n");
     value = object_property_value(PROP_PROTOCOL_SERVICES_SUPPORTED);
     /* We have to process this bit string and determine which Object Types we have,
      * and show them
      */
     if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING)) {
         int i, len = bitstring_bits_used(&value->type.Bit_String);
-        printf("-- services reported by this device\r\n");
+        printf("-- services reported by this device\n");
         for (i = 0; i < len; i++) {
             if (bitstring_bit(&value->type.Bit_String, (uint8_t) i))
-                printf(" %s\r\n", protocol_services_supported_text(i));
+                printf(" %s\n", protocol_services_supported_text(i));
         }
     } else {
-        printf("-- use \'Initiate\' or \'Execute\' or both for services.\r\n");
-        printf(" ReadProperty                   Execute\r\n");
-        printf("-- ReadPropertyMultiple           Initiate Execute\r\n");
-        printf("-- WriteProperty                  Initiate Execute\r\n");
-        printf("-- DeviceCommunicationControl     Initiate Execute\r\n");
-        printf("-- Who-Has                        Initiate Execute\r\n");
-        printf("-- I-Have                         Initiate Execute\r\n");
-        printf("-- Who-Is                         Initiate Execute\r\n");
-        printf("-- I-Am                           Initiate Execute\r\n");
-        printf("-- ReinitializeDevice             Initiate Execute\r\n");
-        printf("-- AcknowledgeAlarm               Initiate Execute\r\n");
-        printf("-- ConfirmedCOVNotification       Initiate Execute\r\n");
-        printf("-- UnconfirmedCOVNotification     Initiate Execute\r\n");
-        printf("-- ConfirmedEventNotification     Initiate Execute\r\n");
-        printf("-- UnconfirmedEventNotification   Initiate Execute\r\n");
-        printf("-- GetAlarmSummary                Initiate Execute\r\n");
-        printf("-- GetEnrollmentSummary           Initiate Execute\r\n");
-        printf("-- WritePropertyMultiple          Initiate Execute\r\n");
-        printf("-- ReadRange                      Initiate Execute\r\n");
-        printf("-- GetEventInformation            Initiate Execute\r\n");
-        printf("-- SubscribeCOVProperty           Initiate Execute\r\n");
+        printf("-- use \'Initiate\' or \'Execute\' or both for services.\n");
+        printf(" ReadProperty                   Execute\n");
+        printf("-- ReadPropertyMultiple           Initiate Execute\n");
+        printf("-- WriteProperty                  Initiate Execute\n");
+        printf("-- DeviceCommunicationControl     Initiate Execute\n");
+        printf("-- Who-Has                        Initiate Execute\n");
+        printf("-- I-Have                         Initiate Execute\n");
+        printf("-- Who-Is                         Initiate Execute\n");
+        printf("-- I-Am                           Initiate Execute\n");
+        printf("-- ReinitializeDevice             Initiate Execute\n");
+        printf("-- AcknowledgeAlarm               Initiate Execute\n");
+        printf("-- ConfirmedCOVNotification       Initiate Execute\n");
+        printf("-- UnconfirmedCOVNotification     Initiate Execute\n");
+        printf("-- ConfirmedEventNotification     Initiate Execute\n");
+        printf("-- UnconfirmedEventNotification   Initiate Execute\n");
+        printf("-- GetAlarmSummary                Initiate Execute\n");
+        printf("-- GetEnrollmentSummary           Initiate Execute\n");
+        printf("-- WritePropertyMultiple          Initiate Execute\n");
+        printf("-- ReadRange                      Initiate Execute\n");
+        printf("-- GetEventInformation            Initiate Execute\n");
+        printf("-- SubscribeCOVProperty           Initiate Execute\n");
 #ifdef BAC_ROUTING
         if (Target_Address.net == 0) {
             printf
-                ("-- Note: The following Routing Services are Supported:\r\n");
-            printf("-- Who-Is-Router-To-Network    Initiate Execute\r\n");
-            printf("-- I-Am-Router-To-Network      Initiate Execute\r\n");
-            printf("-- Initialize-Routing-Table    Execute\r\n");
-            printf("-- Initialize-Routing-Table-Ack Initiate\r\n");
+                ("-- Note: The following Routing Services are Supported:\n");
+            printf("-- Who-Is-Router-To-Network    Initiate Execute\n");
+            printf("-- I-Am-Router-To-Network      Initiate Execute\n");
+            printf("-- Initialize-Routing-Table    Execute\n");
+            printf("-- Initialize-Routing-Table-Ack Initiate\n");
         }
 #endif
     }
-    printf("}\r\n\r\n");
+    printf("}\n\n");
 
-    printf("Standard Object-Types Supported:\r\n");
-    printf("{\r\n");
+    printf("Standard Object-Types Supported:\n");
+    printf("{\n");
     value = object_property_value(PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED);
     /* We have to process this bit string and determine which Object Types we have,
      * and show them
      */
     if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING)) {
         int i, len = bitstring_bits_used(&value->type.Bit_String);
-        printf("-- objects reported by this device\r\n");
+        printf("-- objects reported by this device\n");
         for (i = 0; i < len; i++) {
             if (bitstring_bit(&value->type.Bit_String, (uint8_t) i))
-                printf(" %s\r\n", bactext_object_type_name(i));
+                printf(" %s\n", bactext_object_type_name(i));
         }
     } else {
-        printf("-- possible objects in this device\r\n");
-        printf("-- use \'Createable\' or \'Deleteable\' or both or none.\r\n");
-        printf("-- Analog Input            Createable Deleteable\r\n");
-        printf("-- Analog Output           Createable Deleteable\r\n");
-        printf("-- Analog Value            Createable Deleteable\r\n");
-        printf("-- Binary Input            Createable Deleteable\r\n");
-        printf("-- Binary Output           Createable Deleteable\r\n");
-        printf("-- Binary Value            Createable Deleteable\r\n");
-        printf("-- Device                  Createable Deleteable\r\n");
-        printf("-- Multi-state Input       Createable Deleteable\r\n");
-        printf("-- Multi-state Output      Createable Deleteable\r\n");
-        printf("-- Multi-state Value       Createable Deleteable\r\n");
-        printf("-- Structured View         Createable Deleteable\r\n");
-        printf("-- Characterstring Value\r\n");
-        printf("-- Datetime Value\r\n");
-        printf("-- Integer Value\r\n");
-        printf("-- Positive Integer Value\r\n");
-        printf("-- Trend Log\r\n");
-        printf("-- Load Control\r\n");
-        printf("-- Bitstring Value\r\n");
-        printf("-- Date Pattern Value\r\n");
-        printf("-- Date Value\r\n");
-        printf("-- Datetime Pattern Value\r\n");
-        printf("-- Large Analog Value\r\n");
-        printf("-- Octetstring Value\r\n");
-        printf("-- Time Pattern Value\r\n");
-        printf("-- Time Value\r\n");
+        printf("-- possible objects in this device\n");
+        printf("-- use \'Createable\' or \'Deleteable\' or both or none.\n");
+        printf("-- Analog Input            Createable Deleteable\n");
+        printf("-- Analog Output           Createable Deleteable\n");
+        printf("-- Analog Value            Createable Deleteable\n");
+        printf("-- Binary Input            Createable Deleteable\n");
+        printf("-- Binary Output           Createable Deleteable\n");
+        printf("-- Binary Value            Createable Deleteable\n");
+        printf("-- Device                  Createable Deleteable\n");
+        printf("-- Multi-state Input       Createable Deleteable\n");
+        printf("-- Multi-state Output      Createable Deleteable\n");
+        printf("-- Multi-state Value       Createable Deleteable\n");
+        printf("-- Structured View         Createable Deleteable\n");
+        printf("-- Characterstring Value\n");
+        printf("-- Datetime Value\n");
+        printf("-- Integer Value\n");
+        printf("-- Positive Integer Value\n");
+        printf("-- Trend Log\n");
+        printf("-- Load Control\n");
+        printf("-- Bitstring Value\n");
+        printf("-- Date Pattern Value\n");
+        printf("-- Date Value\n");
+        printf("-- Datetime Pattern Value\n");
+        printf("-- Large Analog Value\n");
+        printf("-- Octetstring Value\n");
+        printf("-- Time Pattern Value\n");
+        printf("-- Time Value\n");
     }
-    printf("}\r\n\r\n");
+    printf("}\n\n");
 
-    printf("Data Link Layer Option:\r\n");
-    printf("{\r\n");
-    printf("-- choose the data link options supported\r\n");
-    printf("-- ISO 8802-3, 10BASE5\r\n");
-    printf("-- ISO 8802-3, 10BASE2\r\n");
-    printf("-- ISO 8802-3, 10BASET\r\n");
-    printf("-- ISO 8802-3, fiber\r\n");
-    printf("-- ARCNET, coax star\r\n");
-    printf("-- ARCNET, coax bus\r\n");
-    printf("-- ARCNET, twisted pair star \r\n");
-    printf("-- ARCNET, twisted pair bus\r\n");
-    printf("-- ARCNET, fiber star\r\n");
-    printf("-- ARCNET, twisted pair, EIA-485, Baud rate(s): 156000\r\n");
-    printf("-- MS/TP master. Baud rate(s): 9600, 38400\r\n");
-    printf("-- MS/TP slave. Baud rate(s): 9600, 38400\r\n");
-    printf("-- Point-To-Point. EIA 232, Baud rate(s): 9600\r\n");
-    printf("-- Point-To-Point. Modem, Baud rate(s): 9600\r\n");
-    printf("-- Point-To-Point. Modem, Baud rate(s): 9600 to 115200\r\n");
-    printf("-- BACnet/IP, 'DIX' Ethernet\r\n");
-    printf("-- BACnet/IP, Other\r\n");
-    printf("-- Other\r\n");
-    printf("}\r\n\r\n");
+    printf("Data Link Layer Option:\n");
+    printf("{\n");
+    printf("-- choose the data link options supported\n");
+    printf("-- ISO 8802-3, 10BASE5\n");
+    printf("-- ISO 8802-3, 10BASE2\n");
+    printf("-- ISO 8802-3, 10BASET\n");
+    printf("-- ISO 8802-3, fiber\n");
+    printf("-- ARCNET, coax star\n");
+    printf("-- ARCNET, coax bus\n");
+    printf("-- ARCNET, twisted pair star \n");
+    printf("-- ARCNET, twisted pair bus\n");
+    printf("-- ARCNET, fiber star\n");
+    printf("-- ARCNET, twisted pair, EIA-485, Baud rate(s): 156000\n");
+    printf("-- MS/TP master. Baud rate(s): 9600, 38400\n");
+    printf("-- MS/TP slave. Baud rate(s): 9600, 38400\n");
+    printf("-- Point-To-Point. EIA 232, Baud rate(s): 9600\n");
+    printf("-- Point-To-Point. Modem, Baud rate(s): 9600\n");
+    printf("-- Point-To-Point. Modem, Baud rate(s): 9600 to 115200\n");
+    printf("-- BACnet/IP, 'DIX' Ethernet\n");
+    printf("-- BACnet/IP, Other\n");
+    printf("-- Other\n");
+    printf("}\n\n");
 
-    printf("Character Sets Supported:\r\n");
-    printf("{\r\n");
-    printf("-- choose any character sets supported\r\n");
-    printf("-- ANSI X3.4\r\n");
-    printf("-- IBM/Microsoft DBCS\r\n");
-    printf("-- JIS C 6226\r\n");
-    printf("-- ISO 8859-1\r\n");
-    printf("-- ISO 10646 (UCS-4)\r\n");
-    printf("-- ISO 10646 (UCS2)\r\n");
-    printf("}\r\n\r\n");
+    printf("Character Sets Supported:\n");
+    printf("{\n");
+    printf("-- choose any character sets supported\n");
+    printf("-- ANSI X3.4\n");
+    printf("-- IBM/Microsoft DBCS\n");
+    printf("-- JIS C 6226\n");
+    printf("-- ISO 8859-1\n");
+    printf("-- ISO 10646 (UCS-4)\n");
+    printf("-- ISO 10646 (UCS2)\n");
+    printf("}\n\n");
 
-    printf("Special Functionality:\r\n");
-    printf("{\r\n");
+    printf("Special Functionality:\n");
+    printf("{\n");
     value = object_property_value(PROP_MAX_APDU_LENGTH_ACCEPTED);
     printf(" Maximum APDU size in octets: ");
     if (value != NULL) {
@@ -1326,12 +1326,12 @@ void PrintHeading(
     } else {
         printf("?");
     }
-    printf("\r\n}\r\n\r\n");
+    printf("\n}\n\n");
 
-    printf("List of Objects in Test Device:\r\n");
+    printf("List of Objects in Test Device:\n");
     /* Print Opening brace, then kick off the Device Object */
-    printf("{\r\n");
-    printf("  {\r\n");  /* And opening brace for the first object */
+    printf("{\n");
+    printf("  {\n");  /* And opening brace for the first object */
 }
 
 
@@ -1470,7 +1470,7 @@ int main(
                     if (elapsed_seconds > timeout_seconds) {
                         fprintf(stderr,
                             "\rError: Unable to bind to %u"
-                            " after waiting %ld seconds.\r\n",
+                            " after waiting %ld seconds.\n",
                             Target_Device_Object_Instance,
                             (long int) elapsed_seconds);
                         break;
@@ -1496,7 +1496,7 @@ int main(
                     elapsed_seconds = 0;
                 } else {
                     /* We failed.  Will hurt the header info we can show. */
-                    fprintf(stderr, "\r-- Failed to get Heading info \r\n");
+                    fprintf(stderr, "\r-- Failed to get Heading info \n");
                 }
                 myState = GET_HEADING_RESPONSE;
                 break;
@@ -1582,7 +1582,7 @@ int main(
                     else
                         myState = GET_PROPERTY_REQUEST;
                 } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                    fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                    fprintf(stderr, "\rError: TSM Timeout!\n");
                     tsm_free_invoke_id(Request_Invoke_ID);
                     Request_Invoke_ID = 0;
                     elapsed_seconds = 0;
@@ -1674,7 +1674,7 @@ int main(
                                 fprintf(stdout, "    -- Failed to get ");
                                 Print_Property_Identifier(Property_List
                                     [Property_List_Index]);
-                                fprintf(stdout, " \r\n");
+                                fprintf(stdout, " \n");
                                 Error_Count++;
                                 Property_List_Index++;
                                 if (Property_List_Index >=
@@ -1684,7 +1684,7 @@ int main(
                                 }
                             }
                         } else {
-                            fprintf(stdout, "    -- unknown property\r\n");
+                            fprintf(stdout, "    -- unknown property\n");
                             Error_Count++;
                             Property_List_Index++;
                             if (Property_List_Index >= Property_List_Length) {
@@ -1694,7 +1694,7 @@ int main(
                         }
                     }
                 } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                    fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                    fprintf(stderr, "\rError: TSM Timeout!\n");
                     tsm_free_invoke_id(Request_Invoke_ID);
                     elapsed_seconds = 0;
                     Request_Invoke_ID = 0;
@@ -1710,7 +1710,7 @@ int main(
 
             case NEXT_OBJECT:
                 if (myObject.type == OBJECT_DEVICE) {
-                    printf("  -- Found %d Objects \r\n",
+                    printf("  -- Found %d Objects \n",
                         Keylist_Count(Object_List));
                     Object_List_Index = -1;     /* start over (will be incr to 0) */
                 }
@@ -1725,16 +1725,16 @@ int main(
                         if (myObject.type == OBJECT_DEVICE)
                             continue;
                         /* Closing brace for the previous Object */
-                        printf("  }, \r\n");
+                        printf("  }, \n");
                         /* Opening brace for the new Object */
-                        printf("  { \r\n");
+                        printf("  { \n");
                         /* Test code:
                            if ( myObject.type == OBJECT_STRUCTURED_VIEW )
                            printf( "    -- Structured View %d \n", myObject.instance );
                          */
                     } else {
                         /* Closing brace for the last Object */
-                        printf("  } \r\n");
+                        printf("  } \n");
                         /* done with all Objects, signal end of this while loop */
                         myObject.type = MAX_BACNET_OBJECT_TYPE;
                     }
@@ -1759,7 +1759,7 @@ int main(
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                fprintf(stderr, "\rError: APDU Timeout! (%lds)\r\n",
+                fprintf(stderr, "\rError: APDU Timeout! (%lds)\n",
                     (long int) elapsed_seconds);
                 break;
             }
@@ -1768,14 +1768,14 @@ int main(
     } while (myObject.type < MAX_BACNET_OBJECT_TYPE);
 
     if (Error_Count > 0)
-        fprintf(stdout, "\r-- Found %d Errors \r\n", Error_Count);
+        fprintf(stdout, "\r-- Found %d Errors \n", Error_Count);
 
     /* Closing brace for all Objects, if we got any, and closing footer  */
     if (myState != INITIAL_BINDING) {
-        printf("} \r\n");
+        printf("} \n");
         printf
-            ("End of BACnet Protocol Implementation Conformance Statement\r\n");
-        printf("\r\n");
+            ("End of BACnet Protocol Implementation Conformance Statement\n");
+        printf("\n");
     }
 
     return 0;
