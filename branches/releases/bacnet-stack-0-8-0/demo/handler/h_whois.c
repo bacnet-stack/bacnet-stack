@@ -100,7 +100,7 @@ void handler_who_is_unicast(
     /* If no limits, then always respond */
     if (len == 0)
         Send_I_Am_Unicast(&Handler_Transmit_Buffer[0], src);
-    else if (len != -1) {
+    else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
         if (((Device_Object_Instance_Number() >= (uint32_t) low_limit) &&
                 (Device_Object_Instance_Number() <= (uint32_t) high_limit))
@@ -143,7 +143,7 @@ static void check_who_is_for_routing(
     len =
         whois_decode_service_request(service_request, service_len, &low_limit,
         &high_limit);
-    if (len == -1) {
+    if (len == BACNET_STATUS_ERROR) {
         /* Invalid; just leave */
         return;
     }
