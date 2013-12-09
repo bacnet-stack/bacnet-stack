@@ -15,6 +15,8 @@ SRCS = bo.c \
 	$(SRC_DIR)/datetime.c \
 	$(SRC_DIR)/bacapp.c \
 	$(SRC_DIR)/bactext.c \
+	$(SRC_DIR)/proplist.c \
+	$(SRC_DIR)/lighting.c \
 	$(SRC_DIR)/indtext.c \
 	$(TEST_DIR)/ctest.c
 
