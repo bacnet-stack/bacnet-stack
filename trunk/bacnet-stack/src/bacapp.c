@@ -1647,7 +1647,7 @@ bool bacapp_same_value(
                 break;
 #endif
 #if defined (BACAPP_LIGHTING_COMMAND)
-            case BACNET_APPLICATION_TAG_BIT_STRING:
+            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 status = lighting_command_same(
                     &value->type.Lighting_Command,
                     &test_value->type.Lighting_Command);
