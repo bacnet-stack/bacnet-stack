@@ -1675,12 +1675,11 @@ static bool testBACnetApplicationDataValue(
     BACNET_APPLICATION_DATA_VALUE * value)
 {
     uint8_t apdu[480] = { 0 };
-    int len = 0;
     int apdu_len = 0;
     BACNET_APPLICATION_DATA_VALUE test_value;
 
     apdu_len = bacapp_encode_application_data(&apdu[0], value);
-    len = bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
+    bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
 
     return bacapp_same_value(value, &test_value);
 }

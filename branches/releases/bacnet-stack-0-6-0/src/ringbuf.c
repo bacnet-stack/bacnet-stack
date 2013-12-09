@@ -215,7 +215,7 @@ void testRingAroundBuffer(
     unsigned element_size,
     unsigned element_count)
 {
-    uint8_t *test_data;
+    volatile uint8_t *test_data;
     unsigned index;
     unsigned data_index;
     unsigned count;
@@ -265,7 +265,7 @@ void testRingBuf(
     unsigned element_count)
 {
     RING_BUFFER test_buffer;
-    uint8_t *test_data;
+    volatile uint8_t *test_data;
     unsigned index;
     unsigned data_index;
     bool status;
