@@ -14,6 +14,7 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/bacstr.c \
 	$(SRC_DIR)/bacreal.c \
 	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/lighting.c \
 	$(SRC_DIR)/ptransfer.c \
 	ctest.c
 

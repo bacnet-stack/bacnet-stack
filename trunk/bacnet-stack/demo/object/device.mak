@@ -21,6 +21,8 @@ SRCS = device.c \
 	$(SRC_DIR)/bacapp.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
+	$(SRC_DIR)/proplist.c \
+	$(SRC_DIR)/lighting.c \
 	$(SRC_DIR)/apdu.c \
 	$(SRC_DIR)/address.c \
 	$(SRC_DIR)/bacaddr.c \

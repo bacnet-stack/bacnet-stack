@@ -31,6 +31,7 @@
 #include "bacdef.h"
 #include "apdu.h"
 #include "bacapp.h"
+#include "ptransfer.h"
 #include "rd.h"
 #include "rp.h"
 #include "rpm.h"
