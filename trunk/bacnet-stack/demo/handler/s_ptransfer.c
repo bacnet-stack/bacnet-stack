@@ -47,6 +47,14 @@
 
 /** @file s_ptransfer.c  Send a Private Transfer request. */
 
+/* This function is exported. Hence this unnecessary prototype. */
+uint8_t Send_Private_Transfer_Request(
+    uint32_t device_id,
+    uint16_t vendor_id,
+    uint32_t service_number,
+    char block_number,
+    DATABLOCK * block);
+
 uint8_t Send_Private_Transfer_Request(
     uint32_t device_id,
     uint16_t vendor_id,

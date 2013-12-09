@@ -42,8 +42,10 @@
 #include "bip.h"
 #include "net.h"
 
+#if defined(_MSC_VER)
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "IPHLPAPI.lib")
+#endif
 
 bool BIP_Debug = false;
 
