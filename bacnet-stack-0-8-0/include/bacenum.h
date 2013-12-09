@@ -1598,6 +1598,7 @@ typedef enum {
     ERROR_CODE_VALUE_TOO_LONG = 134,
     ERROR_CODE_ABORT_INSUFFICIENT_SECURITY = 135,
     ERROR_CODE_ABORT_SECURITY_ERROR = 136,
+    MAX_BACNET_ERROR_CODE = 137,
         /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
         /* Enumerated values 256-65535 may be used by others subject to */
         /* the procedures and constraints described in Clause 23. */
