@@ -283,6 +283,9 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
+    void private_transfer_print_data(
+        BACNET_PRIVATE_TRANSFER_DATA *private_data);
+
     void handler_read_range(
         uint8_t * service_request,
         uint16_t service_len,

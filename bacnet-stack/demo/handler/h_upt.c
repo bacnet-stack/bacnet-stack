@@ -39,12 +39,9 @@
 
 /** @file h_upt.c  Handles Unconfirmed Private Transfer requests. */
 
-void handler_unconfirmed_private_transfer(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src)
+void private_transfer_print_data(
+    BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
-    BACNET_PRIVATE_TRANSFER_DATA private_data;
     BACNET_OBJECT_PROPERTY_VALUE object_value;  /* for bacapp printing */
     BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
     int len = 0;
@@ -53,21 +50,15 @@ void handler_unconfirmed_private_transfer(
     bool first_value = true;
     bool print_brace = false;
 
-#if PRINT_ENABLED
-    fprintf(stderr, "Received Unconfirmed Private Transfer Request!\n");
-#endif
-    len =
-        ptransfer_decode_service_request(service_request, service_len,
-        &private_data);
-    if (len >= 0) {
+    if (private_data) {
 #if PRINT_ENABLED
         printf("PrivateTransfer:vendorID=%u\r\n",
-            (unsigned) private_data.vendorID);
+            (unsigned) private_data->vendorID);
         printf("PrivateTransfer:serviceNumber=%lu\r\n",
-            (unsigned long) private_data.serviceNumber);
+            (unsigned long) private_data->serviceNumber);
 #endif
-        application_data = private_data.serviceParameters;
-        application_data_len = private_data.serviceParametersLen;
+        application_data = private_data->serviceParameters;
+        application_data_len = private_data->serviceParametersLen;
         for (;;) {
             len =
                 bacapp_decode_application_data(application_data,
@@ -102,9 +93,29 @@ void handler_unconfirmed_private_transfer(
             }
         }
 #if PRINT_ENABLED
-        if (print_brace)
+        if (print_brace) {
             fprintf(stdout, "}");
+        }
         fprintf(stdout, "\r\n");
 #endif
+    }
+}
+
+void handler_unconfirmed_private_transfer(
+    uint8_t * service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS * src)
+{
+    BACNET_PRIVATE_TRANSFER_DATA private_data;
+    int len = 0;
+
+#if PRINT_ENABLED
+    fprintf(stderr, "Received Unconfirmed Private Transfer Request!\n");
+#endif
+    len =
+        ptransfer_decode_service_request(service_request, service_len,
+        &private_data);
+    if (len >= 0) {
+        private_transfer_print_data(&private_data);
     }
 }
