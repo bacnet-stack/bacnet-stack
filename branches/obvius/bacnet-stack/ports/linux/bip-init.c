@@ -37,10 +37,18 @@
 #include "bacdcode.h"
 #include "bip.h"
 #include "net.h"
+#include "debug.h"
 
 /** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
 
 bool BIP_Debug = false;
+
+/* If non-zero, it means we've bound our B/IP socket to an alternate
+ * UDP port, so that we can register as foreign devices with a BACnet
+ * server running on the same host, and thereby "share" the standard
+ * BACnet socket between several Linux processes.
+ */
+uint16_t BIP_My_Port = 0;
 
 /* gets an IP address by name, where name can be a
    string that is an IP address in dotted form, or
@@ -157,6 +165,9 @@ bool bip_init(
     struct sockaddr_in sin;
     int sockopt = 0;
     int sock_fd = -1;
+	char *sz;
+	uint16_t our_port = 0;
+	int client_range = 1;
 
     if (ifname)
         bip_set_interface(ifname);
@@ -167,40 +178,95 @@ bool bip_init(
     bip_set_socket(sock_fd);
     if (sock_fd < 0)
         return false;
-    /* Allow us to use the same socket for sending and receiving */
-    /* This makes sure that the src port is correct when sending */
+	/* The following variables:
+	 *
+	 *   BACNET_IP_CLIENT_PORT  (example: 48808)
+	 *   BACNET_IP_CLIENT_RANGE (example: 100)
+	 *
+	 * let you specify an alternate UDP port for the B/IP app to bind to,
+	 * separate from the standard BACnet port specified in $BACNET_IP_PORT.
+	 *
+	 * This is useful when trying to run a BACnet server and simultaneously
+	 * use the BACnet command-line utilties on a single Linux host.
+	 * Ordinarily this would be impossible as each of these "apps" would
+	 * need to bind to and receive on the standard BACnet UDP port (47808),
+	 * and Linux doesn't allow multiple processes to share a UDP socket
+	 * in a useful way (i.e., such that all processes receive all packets).
+	 *
+	 * One solution is to move all code into a single Linux process.
+	 *
+	 * A simpler, more modular solution is to run the BACnet server on
+	 * the standard BACnet port, with BBMD enabled, and then have each
+	 * 'client-side' BACnet app register as a foreign device w/ this 
+	 * server.  The above two variables simplify this by letting
+	 * these 'client-side' apps automatically choose a free port in the
+	 * range specified.
+	 */
     sockopt = 1;
+	if ((sz = getenv("BACNET_IP_CLIENT_PORT")) != NULL && (our_port = atoi(sz)) > 0) {
+		sockopt = 0;
+	}
     status =
         setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt,
         sizeof(sockopt));
+	debug_printf("bip_init: setsockopt SO_REUSEADDR=%d --> %d\n", sockopt, status);
     if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
         return status;
     }
     /* allow us to send a broadcast */
+	sockopt = 1;
     status =
         setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST, &sockopt,
         sizeof(sockopt));
+	debug_printf("bip_init: SO_BROADCAST=%d --> %d\n", sockopt, status);
     if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
         return false;
     }
     /* bind the socket to the local port number and IP address */
+	if (!our_port) our_port = ntohs(bip_get_port());
+	if ((sz = getenv("BACNET_IP_CLIENT_RANGE")) != NULL && (client_range = atoi(sz)) <= 0)
+		client_range = 1;
+	{	int skew = 0, tries = client_range;
+		srand((unsigned)time(0));
+		do {
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = bip_get_port();
+			sin.sin_port = htons((our_port + skew) & 0xFFFF);
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     status =
         bind(sock_fd, (const struct sockaddr *) &sin, sizeof(struct sockaddr));
+			debug_printf("bip_init: bind to %u --> %d\n", ntohs(sin.sin_port), status);
+			skew = rand() % client_range;
+		} while (status < 0 && --tries > 0);
+	}
+
     if (status < 0) {
         close(sock_fd);
         bip_set_socket(-1);
+		debug_printf("bip_init: bind failed\n");
         return false;
     }
+	BIP_My_Port = sin.sin_port;
+	debug_printf("bip_init: bound to port %u\n", (unsigned) ntohs(sin.sin_port));
 
     return true;
+}
+
+/** Return the UDP port from which *we* send packets, in network-byte order.
+ *
+ *  This will usually be the standard BACnet port, from bip_get_port(),
+ *  only differing if -- for instance -- we've registered as a foreign
+ *  device with a BBMD running on the same host.
+ */
+
+uint16_t bip_get_my_port(
+	void)
+{
+	return BIP_My_Port == 0 ? bip_get_port() : BIP_My_Port;
 }
 
 /** Cleanup and close out the BACnet/IP services by closing the socket.

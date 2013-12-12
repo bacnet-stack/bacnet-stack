@@ -87,6 +87,8 @@ extern "C" {
     /* returns network byte order */
     uint16_t bip_get_port(
         void);
+    uint16_t bip_get_my_port(
+        void);
 
     /* use network byte order for setting */
     void bip_set_addr(
