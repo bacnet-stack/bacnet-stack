@@ -626,11 +626,10 @@ static bool bvlc_delete_foreign_device(
     uint8_t * pdu)
 {
     struct sockaddr_in sin = { 0 };     /* the ip address */
-    uint16_t port = 0;  /* the decoded port */
     bool status = false;        /* return value */
     unsigned i = 0;
 
-    bvlc_decode_bip_address(pdu, &sin.sin_addr, &port);
+    bvlc_decode_bip_address(pdu, &sin.sin_addr, &sin.sin_port);
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid) {
             if ((FD_Table[i].dest_address.s_addr == sin.sin_addr.s_addr) &&
