@@ -290,6 +290,10 @@ void dlenv_init(
         apdu_timeout_set(60000);
 #endif
     }
+    pEnv = getenv("BACNET_APDU_RETRIES");
+    if (pEnv) {
+        apdu_retries_set((uint16_t) strtol(pEnv, NULL, 0));
+    }
     if (!datalink_init(getenv("BACNET_IFACE"))) {
         exit(1);
     }
