@@ -989,12 +989,16 @@ uint16_t bvlc_receive(
             /* decode the 4 byte original address and 2 byte port */
             bvlc_decode_bip_address(&npdu[4], &original_sin.sin_addr,
                 &original_sin.sin_port);
+            debug_printf("BVLC: Received Forwarded-NPDU from %s:%04X.\n",
+                inet_ntoa(original_sin.sin_addr), ntohs(original_sin.sin_port));
             npdu_len -= 6;
             /*  Broadcast locally if received via unicast from a BDT member */
             if (bvlc_bdt_member_mask_is_unicast(&sin)) {
                 dest.sin_addr.s_addr = bip_get_broadcast_addr();
                 dest.sin_port = bip_get_port();
-                bvlc_send_mpdu(&dest, &npdu[4 + 6], npdu_len);
+				debug_printf("BVLC: Received unicast from BDT member, re-broadcasting locally to %s:%04X.\n",
+					inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
+                bvlc_send_mpdu(&dest, &npdu[0], npdu_len+4+6);
             }
             /* use the original addr from the BVLC for src */
             dest.sin_addr.s_addr = original_sin.sin_addr.s_addr;
