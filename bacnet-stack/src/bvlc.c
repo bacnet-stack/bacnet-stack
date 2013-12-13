@@ -47,6 +47,8 @@
 
 #define FDT_GRACE	30
 
+#define AS_BACNET_LOCAL_FD_AS_VIRTUAL
+
 /** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC),
  * which includes: BACnet Broadcast Management Device,
  * Broadcast Distribution Table, and
@@ -113,6 +115,16 @@ typedef struct {
 static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 static int FD_Table_Modified = 0;
 
+int bvlc_send_mpdu(
+    struct sockaddr_in *dest,   /* the destination address */
+    uint8_t * mtu,      /* the data */
+    uint16_t mtu_len);
+
+static bool bvlc_peer_is_local(
+		struct sockaddr_in * psin /*network byte order*/)
+{	
+	return psin->sin_addr.s_addr == bip_get_addr();
+}
 
 void bvlc_maintenance_timer(
     time_t seconds)
@@ -353,6 +365,199 @@ static int bvlc_encode_read_bdt_ack(
 
     return pdu_len;
 }
+
+#ifdef AS_BACNET_LOCAL_FD_AS_VIRTUAL
+
+/* Return our virtual net number, or 0 if not defined. */
+static unsigned bvlc_get_vnet()
+{
+	static unsigned _vnet = 0xFFFF;
+
+	char * s;
+
+	if (_vnet == 0xFFFF)
+		_vnet = (s = getenv("AS_BACNET_VNET")) ? atoi(s) : 0; 
+
+	return _vnet;
+}
+
+/* Make local foreign devices appear as virtual devices on our virtual network.
+ *
+ * A "local foreign device" means one sharing our IP address, in other words, a BACnet
+ * client running locally but on a different UDP port, registering as a Foreign Device
+ * with this server so as to transmit broadcasts on the standard BACnet port.
+ *
+ * We assume npdu contains a Forwarded-NPDU, and we convert this to an
+ * Original-Broadcast-NPDU appearing to come from a device on our virtual network.
+ * The NPDU dest field will be inserted and set to our IP address + the foreign device's port.
+ *
+ * BACnet peers will either reply directly to this virtual device, or they will reply to
+ * us (on the standard port, typically for broadcasts), and we will convert these
+ * replies to Forwarded-NPDU's in the function bvlc_route_virtual_to_local_fd().
+ *
+ * Return bytes encoded, or 0 on encoding error.
+ */
+static int bvlc_encode_local_fd_as_virtual_npdu(
+    uint8_t * pdu,				/* bvll */
+	unsigned pdu_size,
+    struct sockaddr_in *sin,    /* source address in network order */
+    uint8_t * npdu,
+    unsigned npdu_length)
+{
+    int len = 0;
+
+    unsigned i; /* for loop counter */
+
+    if (pdu) {
+		BACNET_ADDRESS npdu_dst, npdu_src;
+		BACNET_NPDU_DATA npdu_data;
+		unsigned new_npdu_encoded;
+		unsigned old_npdu_decoded;
+		unsigned pdu_len;
+
+		old_npdu_decoded = npdu_decode(npdu, &npdu_dst, &npdu_src, &npdu_data);
+		if (old_npdu_decoded <= 0) {
+			debug_printf("BVLC: local_fd_as_virtual: "
+					     "Failed decoding NPDU header from local peer.\n");
+			return 0;
+		}
+
+		/* Re-encode NPDU header, to set source address */
+		memset(&npdu_src, 0, sizeof(npdu_src));
+        memcpy(&npdu_src.adr[0], &sin->sin_addr.s_addr, 4);
+        memcpy(&npdu_src.adr[4], &sin->sin_port, 2);
+		npdu_src.len = 6;
+		npdu_src.net = bvlc_get_vnet();
+		new_npdu_encoded = npdu_encode_pdu(pdu + 4, &npdu_dst, &npdu_src, &npdu_data);
+		if (new_npdu_encoded <= 0) {
+			debug_printf("BVLC: local_fd_as_virtual: "
+					     "Failed rewriting NPDU header to insert source address of local peer.\n");
+			return 0;
+		}
+
+		pdu_len = 4 + npdu_length - old_npdu_decoded + new_npdu_encoded;
+		if (pdu_len > pdu_size) {
+			debug_printf("BVLC: local_fd_as_virtual: "
+					     "Failed rewriting NPDU header, pdu_len %u > MAX_MPDU %u.\n",
+						 pdu_len, pdu_size);
+			return 0;
+		}
+
+        pdu[0] = BVLL_TYPE_BACNET_IP;
+        pdu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
+        /* The 2-octet BVLC Length field is the length, in octets,
+           of the entire BVLL message, including the two octets of the
+           length field itself, most significant octet first. */
+        encode_unsigned16(&pdu[2], (uint16_t) pdu_len);
+        len = 4 + new_npdu_encoded;
+        for (i = old_npdu_decoded; i < npdu_length; i++) {
+            pdu[len] = npdu[i];
+            len++;
+        }
+    }
+
+    return len;
+}
+
+/* Filter received Original-Unicast-NPDU and Original-Broadcast-NPDU,
+ * looking for messages addressed to virtual devices (i.e., those sharing
+ * our IP address but on a different port).
+ *
+ * We re-encode these as Forwarded-NPDU's and send them to the local device's
+ * UDP port.
+ *
+ * Returns 1 if message was to a virtual device and has been forwarded.
+ *         0 if message was not, and should be processed in the regular fashion.
+ */
+static int bvlc_route_virtual_to_local_fd(
+	struct sockaddr_in * sin,
+    uint8_t * mtu,		/* bvll */
+    unsigned mtu_len)
+{
+	struct sockaddr_in dst;
+	BACNET_ADDRESS npdu_dst, npdu_src;
+	BACNET_NPDU_DATA npdu_data;
+	unsigned old_npdu_decoded;
+	unsigned new_npdu_encoded;
+
+	/* Decode NPDU header. We assume an Original-Unicast-NPDU or Original-Broadcast-NPDU */
+	old_npdu_decoded = npdu_decode(mtu+4, &npdu_dst, &npdu_src, &npdu_data);
+	if (old_npdu_decoded <= 0 || old_npdu_decoded > mtu_len-4)
+		return 0;
+
+	/* Check destination net:  No net, or net is not ours, bail.
+	 * This also catches the case of us not being configured for a virtual net */
+	if (npdu_dst.net == 0 || npdu_dst.net != bvlc_get_vnet())
+		return 0;
+
+	/* Decode destination address */
+	memset(&dst, 0, sizeof(dst));
+	if (npdu_dst.len == 6) {
+		memcpy(&dst.sin_addr.s_addr, &npdu_dst.adr[0], 4);
+		memcpy(&dst.sin_port, &npdu_dst.adr[4], 2);
+	}
+
+	/* Destination is not our IP or port is our sending port, bail.
+	 * Our virtual devices will have dest = our IP, but port = something other than our 'sending port'
+	 * Also catches the case of the destination address not being 6 bytes.
+	 *
+	 * Note that if the dst doesn't match our IP address, it still may be a valid virtual
+	 * device of the type handled internally by the server by the "routed device" logic. */
+	if (dst.sin_addr.s_addr != bip_get_addr() || dst.sin_port == bip_get_my_port())
+		return 0;
+
+	debug_printf("BVLC: Rewrote virtual to Forwarded-NPDU to %s.%04X.\n",
+			     inet_ntoa(dst.sin_addr), ntohs(dst.sin_port));
+
+	/* Packet is destined not for us but for one of our virtual devices.
+	 * If we fail, we drop the packet by returning 1.
+	 * Re-encode as Forwarded-NPDU and send to the local UDP port specified in the NDPU destination */
+	{
+		uint8_t pdu[MAX_MPDU] = { 0 };
+		unsigned pdu_len;
+		int i, len;
+
+		/* BVLL header, we repackage as Forwarded-NPDU */
+		pdu[0] = BVLL_TYPE_BACNET_IP;	/* mtu[0]; */
+		pdu[1] = BVLC_FORWARDED_NPDU;	/* mtu[1]; */
+		/* Remove destination address */
+		npdu_dst.net = 0;
+		npdu_dst.len = 0;
+		new_npdu_encoded = npdu_encode_pdu(pdu + 4 + 6, &npdu_dst, &npdu_src, &npdu_data);
+		if (new_npdu_encoded <= 0) {
+			debug_printf("BVLC: virtual_to_local_fd: "
+					     "Failed rewriting NPDU header as Forwarded-NPDU.\n");
+			return 1;
+		}
+		/* New length will be this, including 6 bytes for Forwarded address/port */
+		pdu_len = mtu_len + 6 - old_npdu_decoded + new_npdu_encoded;
+		if (pdu_len > MAX_MPDU) {
+			debug_printf("BVLC: virtual_to_local_fd: "
+					     "Failed rewriting NPDU header, pdu_len %u > MAX_MPDU %u.\n",
+						 pdu_len, MAX_MPDU);
+			return 1;
+		}
+        /* The 2-octet BVLC Length field is the length, in octets,
+           of the entire BVLL message, including the two octets of the
+           length field itself, most significant octet first. */
+        encode_unsigned16(&pdu[2], (uint16_t) (pdu_len));
+		len = 4;
+        len +=
+            bvlc_encode_bip_address(&pdu[len], &sin->sin_addr, sin->sin_port);
+		len += new_npdu_encoded;
+		for (i = 4 + old_npdu_decoded; i < mtu_len; i++) {
+			pdu[len] = mtu[i];
+			len++;
+		}
+		bvlc_send_mpdu(&dst, pdu, pdu_len);
+
+		/*DEBUGGING:
+		 inet_aton("10.55.78.1", &dst.sin_addr);
+		 bvlc_send_mpdu(&dst, pdu, pdu_len);*/
+	}
+	return 1;
+}
+#endif /*AS_BACNET_LOCAL_FD_AS_VIRTUAL*/
 
 static int bvlc_encode_forwarded_npdu(
     uint8_t * pdu,
@@ -739,12 +944,24 @@ static void bvlc_forward_npdu(
     uint16_t mtu_len = 0;
     struct sockaddr_in bip_dest = { 0 };
 
+#ifdef AS_BACNET_LOCAL_FD_AS_VIRTUAL
+	if (bvlc_peer_is_local(sin)) {
+		debug_printf("BVLC: Rewrote Forwarded-NPDU as virtual, sent as local broadcast.\n");
+		mtu_len =
+			(uint16_t) bvlc_encode_local_fd_as_virtual_npdu(&mtu[0], MAX_MPDU, sin, npdu, npdu_length);
+	}
+	else
+#endif
+	{
+		debug_printf("BVLC: Sent Forwarded-NPDU as local broadcast.\n");
     mtu_len =
         (uint16_t) bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, npdu_length);
+	}
+	if (mtu_len) {
     bip_dest.sin_addr.s_addr = bip_get_broadcast_addr();
     bip_dest.sin_port = bip_get_port();
     bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
-    debug_printf("BVLC: Sent Forwarded-NPDU as local broadcast.\n");
+	}
 }
 
 static void bvlc_fdt_forward_npdu(
@@ -1190,6 +1407,12 @@ uint16_t bvlc_receive(
             npdu_len = 0;
             break;
         case BVLC_ORIGINAL_UNICAST_NPDU:
+#ifdef AS_BACNET_LOCAL_FD_AS_VIRTUAL
+			if (bvlc_route_virtual_to_local_fd(&sin, &npdu[0], npdu_len+4)) {
+				npdu_len = 0;
+				break;
+			}
+#endif
             debug_printf("BVLC: Received Original-Unicast-NPDU.\n");
             /* ignore messages from me */
             if ((sin.sin_addr.s_addr == bip_get_addr()) &&
@@ -1210,6 +1433,12 @@ uint16_t bvlc_receive(
             }
             break;
         case BVLC_ORIGINAL_BROADCAST_NPDU:
+#ifdef AS_BACNET_LOCAL_FD_AS_VIRTUAL
+			if (bvlc_route_virtual_to_local_fd(&sin, &npdu[0], npdu_len+4)) {
+				npdu_len = 0;
+				break;
+			}
+#endif
             debug_printf("BVLC: Received Original-Broadcast-NPDU.\n");
             /* Upon receipt of a BVLL Original-Broadcast-NPDU message,
                a BBMD shall construct a BVLL Forwarded-NPDU message and
