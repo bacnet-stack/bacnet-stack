@@ -45,6 +45,8 @@
 #endif
 #include "debug.h"
 
+#define FDT_GRACE	30
+
 /** @file bvlc.c  Handle the BACnet Virtual Link Control (BVLC),
  * which includes: BACnet Broadcast Management Device,
  * Broadcast Distribution Table, and
@@ -109,6 +111,7 @@ typedef struct {
 #define MAX_FD_ENTRIES 128
 #endif
 static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
+static int FD_Table_Modified = 0;
 
 
 void bvlc_maintenance_timer(
@@ -126,6 +129,7 @@ void bvlc_maintenance_timer(
                 }
                 if (FD_Table[i].seconds_remaining == 0) {
                     FD_Table[i].valid = false;
+					++ FD_Table_Modified;
                 }
             }
         }
@@ -599,7 +603,7 @@ static bool bvlc_register_foreign_device(
                    a BBMD shall start a timer with a value equal to the
                    Time-to-Live parameter supplied plus a fixed grace
                    period of 30 seconds. */
-                FD_Table[i].seconds_remaining = time_to_live + 30;
+                FD_Table[i].seconds_remaining = time_to_live + FDT_GRACE;
                 break;
             }
         }
@@ -610,14 +614,15 @@ static bool bvlc_register_foreign_device(
                 FD_Table[i].dest_address.s_addr = sin->sin_addr.s_addr;
                 FD_Table[i].dest_port = sin->sin_port;
                 FD_Table[i].time_to_live = time_to_live;
-                FD_Table[i].seconds_remaining = time_to_live + 30;
+                FD_Table[i].seconds_remaining = time_to_live + FDT_GRACE;
                 FD_Table[i].valid = true;
                 status = true;
                 break;
             }
         }
     }
-
+	if (status)
+		++FD_Table_Modified;
 
     return status;
 }
@@ -641,6 +646,8 @@ static bool bvlc_delete_foreign_device(
             }
         }
     }
+	if (status)
+		++FD_Table_Modified;
     return status;
 }
 #endif
@@ -1446,6 +1453,91 @@ BACNET_BVLC_FUNCTION bvlc_get_function_code(
     void)
 {
     return BVLC_Function_Code;
+}
+
+/** Get the next valid entry from the foreign-device table.
+ *
+ * @param index - initialize to 0, on return will be updated to index
+ *          of item returned.
+ * @param dest_sin - address and port, network byte order.
+ * @param time_to_live - original TTL in seconds as set by client.
+ * @param seconds_remaining - seconds actually left, including 30 second
+ *          grace period.
+ * @returns true if we found a 'valid' entry.
+ *          false if no more valid entries in table.
+ */
+bool bvlc_get_fdt_next_valid_entry(
+	int * index,
+	struct sockaddr_in * dest_sin, /* or NULL */
+	time_t * time_to_live,
+	time_t * seconds_remaining)
+{
+	int i;
+    for (i = *index; i < MAX_FD_ENTRIES; i++) {
+		if (FD_Table[i].valid) {
+			*index = i;		/* caller should increment *index before next call */
+			dest_sin->sin_addr = FD_Table[i].dest_address;
+			dest_sin->sin_port = FD_Table[i].dest_port;
+			*time_to_live = FD_Table[i].time_to_live;
+			*seconds_remaining = FD_Table[i].seconds_remaining;
+			return true;
+		}
+	}
+	*index = i;
+	return false;
+}
+
+/** Set an entry in the foreign-device table by its index.
+ *
+ * @param index - index from 0 of the table entry to set.
+ *          note: unlike bvlc_get_fdt_next_valid_entry(), index is
+ *          not automatically incremented.
+ * @param valid - if true, a valid entry is created.
+ *                if false, the entry is cleared.
+ * @param dest_sin - address and port, network byte order.
+ *                pass NULL if clearing table entry.
+ * @param time_to_live - original TTL in seconds as set by client.
+ *                pass 0 if clearing table entry.
+ * @param seconds_remaining - note: no grace period is applied to this value.
+ *                pass 0 if clearing table entry.
+ * @returns true if the entry was set.
+ *          false if the index is invalid or end of table reached.
+ */
+bool bvlc_set_fdt_entry(
+	int index,
+	bool valid,
+	struct sockaddr_in * dest_sin, /* or NULL */
+	time_t time_to_live,
+	time_t seconds_remaining)
+{
+	int i = index;
+    if (i < MAX_FD_ENTRIES) {
+		FD_Table[i].dest_address.s_addr = dest_sin ? dest_sin->sin_addr.s_addr : 0;
+		FD_Table[i].dest_port = dest_sin ? dest_sin->sin_port : 0;
+		FD_Table[i].time_to_live = time_to_live;
+		FD_Table[i].seconds_remaining = seconds_remaining;
+		FD_Table[i].valid = valid;
+		++FD_Table_Modified;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/** Test if foreign device table has been modified since last call.
+ *	Changes are tracked by an internal counter, incremented on each change.
+ *	Changes via bvlc_set_fd_entry() are considered a change by this function.
+ *
+ * @param old_count - Pointer to caller's counter. Receives updated count.
+ * @return true if foreign device table has been modified since last call.
+ *         false if it hasn't.
+ */
+bool bvlc_is_fdt_modified(
+	int * old_count)
+{
+	bool modified = (*old_count != FD_Table_Modified);
+	*old_count = FD_Table_Modified;
+	return modified;
 }
 
 #ifdef TEST
