@@ -713,7 +713,7 @@ static void bvlc_bdt_forward_npdu(
                 continue;
             }
             bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
-            debug_printf("BVLC: BDT Sent Forwarded-NPDU to %s:%04X\n",
+            debug_printf("BVLC: BDT Sent Forwarded-NPDU to %s:%04X.\n",
                 inet_ntoa(bip_dest.sin_addr), ntohs(bip_dest.sin_port));
         }
     }
@@ -768,7 +768,7 @@ static void bvlc_fdt_forward_npdu(
                 continue;
             }
             bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
-            debug_printf("BVLC: FDT Sent Forwarded-NPDU to %s:%04X\n",
+            debug_printf("BVLC: FDT Sent Forwarded-NPDU to %s:%04X.\n",
                 inet_ntoa(bip_dest.sin_addr), ntohs(bip_dest.sin_port));
         }
     }
@@ -820,17 +820,54 @@ static int bvlc_send_fdt(
     return mtu_len;
 }
 
-static bool bvlc_bdt_member_mask_is_unicast(
-    struct sockaddr_in *sin)
+static bool bvlc_is_unicast_from_bdt_member(
+    struct sockaddr_in *src,	/* the immediate src address of Forwarded-NPDU */
+	struct in_addr *target)		/* the immediate target of Forwarded-NPDU - broadcast or unicast */
 {       /* network order address */
     bool unicast = false;
     unsigned i = 0;     /* loop counter */
 
+	/* 135-2010 J.4.3: "If there are two or more BBMDs on a single subnet, their 
+	 *   BDTs shall not contain any common entries in order to avoid a broadcast
+	 *   forwarding loop."
+	 *
+	 * 135-2010 J.4.3.2: "The BDT consists of one entry for the address of the BBMD for
+	 *   the local IP subnet and an entry for the BBMD on each remote IP subnet to which
+	 *   broadcasts are to be forwarded.
+	 *
+	 *   "The broadcast distribution masks referring to the same IP subnet shall be
+	 *   identical in each BDT."
+	 *
+	 * This implies the BDT will contain an entry for ourselves, as well as other BBMDs.
+	 *
+	 * Thus, if we forward an NPDU from another BBMD to our local subnet (as a broadcast),
+	 * we will receive it ourselves a second time, find ourselves in the BDT and (incorrectly)
+	 * forward it AGAIN as a broadcast to our local subnet, ad infinitum.  The 'target' address
+	 * test below prevents this loop.
+	 *
+	 * The 'target' test also prevents broadcast loops between two (misconfigured) BBMD's on the
+	 * same subnet.
+	 */
+
+	debug_printf("BVLC: Forwarded-NPDU has target %s.\n",
+				inet_ntoa(*target));
+
+	if (target->s_addr != bip_get_addr())
+		return false;	/* not my address, must be broadcast */
+
+	debug_printf("BVLC: Is sender %s:%04X a BDT member?\n",
+				inet_ntoa(src->sin_addr), ntohs(src->sin_port));
+
+	if (src->sin_addr.s_addr == bip_get_addr() && src->sin_port == bip_get_port())
+		return false;	/* sender is me. 'BDT member' doesn't mean 'other than myself'. */
+
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (BBMD_Table[i].valid) {
-            /* find the source address in the table */
-            if ((BBMD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr) &&
-                (BBMD_Table[i].dest_port == sin->sin_port)) {
+            /* find the source address in the table. */
+			debug_printf("BVLC: BDT[%d] is %s:%04X ?\n",
+						i, inet_ntoa(BBMD_Table[i].dest_address), ntohs(BBMD_Table[i].dest_port));
+            if ((BBMD_Table[i].dest_address.s_addr == src->sin_addr.s_addr) &&
+                (BBMD_Table[i].dest_port == src->sin_port)) {
                 /* unicast mask? */
                 if (BBMD_Table[i].broadcast_mask.s_addr == 0xFFFFFFFFL) {
                     unicast = true;
@@ -858,17 +895,30 @@ uint16_t bvlc_receive(
     struct sockaddr_in sin = { 0 };
     struct sockaddr_in original_sin = { 0 };
     struct sockaddr_in dest = { 0 };
-    socklen_t sin_len = sizeof(sin);
     int received_bytes = 0;
     uint16_t result_code = 0;
     uint16_t i = 0;
     bool status = false;
     uint16_t time_to_live = 0;
+	int opt;
+	socklen_t optlen;
+	struct msghdr mh;
+	struct iovec iov;
+	char cmbuf[0x100];
+	struct cmsghdr *cmsg;
+	struct in_addr target = { 0 };
 
     /* Make sure the socket is open */
     if (bip_socket() < 0) {
         return 0;
     }
+
+	/* set IP_PKTINFO option if not already set; required for recvmsg(). */
+	optlen = sizeof(opt);
+	if (getsockopt(bip_socket(), IPPROTO_IP, IP_PKTINFO, &opt, &optlen) == 0 && !opt) {
+		opt = 1;
+		setsockopt(bip_socket(), IPPROTO_IP, IP_PKTINFO, &opt, sizeof(opt));
+	}
 
     /* we could just use a non-blocking socket, but that consumes all
        the CPU time.  We can use a timeout; it is only supported as
@@ -886,9 +936,24 @@ uint16_t bvlc_receive(
     max = bip_socket();
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
+
+		memset(&iov, 0, sizeof(iov));
+		memset(&mh,  0, sizeof(mh));
+
+		mh.msg_name = &sin;
+		mh.msg_namelen = sizeof(sin);
+		mh.msg_iov  = &iov;
+		mh.msg_iovlen = 1;	/* # of iov[] array elements */
+		mh.msg_control = cmbuf;
+		mh.msg_controllen = sizeof(cmbuf);
+		mh.msg_flags = 0;
+
+		iov.iov_base = &npdu[0];
+		iov.iov_len = max_npdu;
+
         received_bytes =
-            recvfrom(bip_socket(), (char *) &npdu[0], max_npdu, 0,
-            (struct sockaddr *) &sin, &sin_len);
+			recvmsg(bip_socket(), &mh, 0);
+
     } else {
         return 0;
     }
@@ -900,6 +965,16 @@ uint16_t bvlc_receive(
     if (received_bytes == 0) {
         return 0;
     }
+	/* parse msghdr to recover pkt's destination address (unicast or broadcast?) */
+	for (cmsg = CMSG_FIRSTHDR(&mh); cmsg != NULL; cmsg = CMSG_NXTHDR(&mh, cmsg))
+	{	struct in_pktinfo *pi;
+		if (cmsg->cmsg_level != IPPROTO_IP || cmsg->cmsg_type != IP_PKTINFO)
+			continue;
+		pi = (struct in_pktinfo*) CMSG_DATA(cmsg);
+		/* at this point, "sin" is the source sockaddr (already in sin_addr.)
+		 *   "pi->ipi_addr" is the in-packet destination address. (We copy this.) */
+		target.s_addr = pi->ipi_addr.s_addr;
+	}
     /* the signature of a BACnet/IP packet */
     if (npdu[0] != BVLL_TYPE_BACNET_IP) {
         return 0;
@@ -989,11 +1064,11 @@ uint16_t bvlc_receive(
             /* decode the 4 byte original address and 2 byte port */
             bvlc_decode_bip_address(&npdu[4], &original_sin.sin_addr,
                 &original_sin.sin_port);
-            debug_printf("BVLC: Received Forwarded-NPDU from %s:%04X.\n",
+            debug_printf("BVLC: Received Forwarded-NPDU, originally from %s:%04X.\n",
                 inet_ntoa(original_sin.sin_addr), ntohs(original_sin.sin_port));
             npdu_len -= 6;
             /*  Broadcast locally if received via unicast from a BDT member */
-            if (bvlc_bdt_member_mask_is_unicast(&sin)) {
+            if (bvlc_is_unicast_from_bdt_member(&sin, &target)) {
                 dest.sin_addr.s_addr = bip_get_broadcast_addr();
                 dest.sin_port = bip_get_port();
 				debug_printf("BVLC: Received unicast from BDT member, re-broadcasting locally to %s:%04X.\n",
@@ -1004,8 +1079,6 @@ uint16_t bvlc_receive(
             dest.sin_addr.s_addr = original_sin.sin_addr.s_addr;
             dest.sin_port = original_sin.sin_port;
             bvlc_fdt_forward_npdu(&dest, &npdu[4 + 6], npdu_len);
-            debug_printf("BVLC: Received Forwarded-NPDU from %s:%04X.\n",
-                inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
             bvlc_internet_to_bacnet_address(src, &dest);
             if (npdu_len < max_npdu) {
                 /* shift the buffer to return a valid PDU */
@@ -1097,7 +1170,13 @@ uint16_t bvlc_receive(
                it shall return a BVLC-Result message to the foreign device
                with a result code of X'0060' indicating that the forwarding
                attempt was unsuccessful */
-            bvlc_forward_npdu(&sin, &npdu[4], npdu_len);
+			/* Note that we do not test if this packet is "from a foreign device"
+			   or from some other source. In either case, if the message was not
+			   a unicast to us, then it was a broadcast and should've been
+			   received by the subnet already, so we will not rebroadcast it
+			   to the local net again as this could result in a broadcast loop. */
+			if (target.s_addr == bip_get_addr())
+            	bvlc_forward_npdu(&sin, &npdu[4], npdu_len);
             bvlc_bdt_forward_npdu(&sin, &npdu[4], npdu_len);
             bvlc_fdt_forward_npdu(&sin, &npdu[4], npdu_len);
             /* not an NPDU */
@@ -1189,18 +1268,21 @@ int bvlc_send_pdu(
             mtu[1] = BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK;
             address.s_addr = Remote_BBMD.sin_addr.s_addr;
             port = Remote_BBMD.sin_port;
-            debug_printf("BVLC: Sent Distribute-Broadcast-to-Network.\n");
+            debug_printf("BVLC: Sent Distribute-Broadcast-to-Network to %s:%04X.\n",
+			    inet_ntoa(address), ntohs(port));
         } else {
             address.s_addr = bip_get_broadcast_addr();
             port = bip_get_port();
             mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
-            debug_printf("BVLC: Sent Original-Broadcast-NPDU.\n");
+            debug_printf("BVLC: Sent Original-Broadcast-NPDU to %s.%04X.\n",
+			    inet_ntoa(address), ntohs(port));
         }
     } else if (dest->mac_len == 6) {
         /* valid unicast */
         bvlc_decode_bip_address(&dest->mac[0], &address, &port);
         mtu[1] = BVLC_ORIGINAL_UNICAST_NPDU;
-        debug_printf("BVLC: Sent Original-Unicast-NPDU.\n");
+        debug_printf("BVLC: Sent Original-Unicast-NPDU to %s.%04X.\n",
+		    inet_ntoa(address), ntohs(port));
     } else {
         /* invalid address */
         return -1;
