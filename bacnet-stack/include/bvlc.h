@@ -112,6 +112,25 @@ extern "C" {
     BACNET_BVLC_FUNCTION bvlc_get_function_code(
         void);
 
+	/* Returns next valid entry in foreign-device table, if any. */
+	bool bvlc_get_fdt_next_valid_entry(
+		int * index,
+		struct sockaddr_in * dest_sin, /* or NULL */
+		time_t * time_to_live,
+		time_t * seconds_remaining);
+
+	/* Sets or clears a given entry in the foreign-device table. */
+	bool bvlc_set_fdt_entry(
+		int index,
+		bool valid,
+		struct sockaddr_in * dest_sin, /* or NULL */
+		time_t time_to_live,
+		time_t seconds_remaining);
+
+	/* Tests if the foreign-device table has been modified. */
+	bool bvlc_is_fdt_modified(
+	    int * old_count);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
