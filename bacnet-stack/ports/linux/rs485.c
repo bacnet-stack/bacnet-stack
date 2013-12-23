@@ -391,7 +391,11 @@ void RS485_Send_Frame(
     uint32_t baud;
     ssize_t written = 0;
     int greska;
-    SHARED_MSTP_DATA *poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    SHARED_MSTP_DATA *poSharedData = NULL;
+
+    if (mstp_port) {
+        poSharedData = (SHARED_MSTP_DATA *) mstp_port->UserData;
+    }
     if (!poSharedData) {
         baud = RS485_Get_Baud_Rate();
         /* sleeping for turnaround time is necessary to give other devices
@@ -626,27 +630,42 @@ int main(
     int argc,
     char *argv[])
 {
-    uint8_t buf[8];
-    char *wbuf = { "BACnet!" };
-    size_t wlen = strlen(wbuf) + 1;
-    unsigned i = 0;
-    size_t written = 0;
-    int rlen;
+    volatile struct mstp_port_struct_t mstp_port = {0};
+    uint8_t token_buf[8] = {0x55, 0xFF, 0x00, 0x7E, 0x07, 0x00, 0x00, 0xFD};
+    uint8_t pfm_buf[8] = {0x55, 0xFF, 0x01, 0x67, 0x07, 0x00, 0x00, 0x3E};
+    long baud = 38400;
+    bool write_token = false;
+    bool write_pfm = false;
 
     /* argv has the "/dev/ttyS0" or some other device */
     if (argc > 1) {
         RS485_Set_Interface(argv[1]);
     }
-    RS485_Set_Baud_Rate(38400);
+    if (argc > 2) {
+        baud = strtol(argv[2], NULL, 0);
+    }
+    if (argc > 3) {
+        if (strcmp("token", argv[3]) == 0) {
+            write_token = true;
+        }
+        if (strcmp("pfm", argv[3]) == 0) {
+            write_pfm = true;
+        }
+    }
+    RS485_Set_Baud_Rate(baud);
     RS485_Initialize();
-
     for (;;) {
-        written = write(RS485_Handle, wbuf, wlen);
-        rlen = read(RS485_Handle, buf, sizeof(buf));
-        /* print any characters received */
-        if (rlen > 0) {
-            for (i = 0; i < rlen; i++) {
-                fprintf(stderr, "%02X ", buf[i]);
+        if (write_token) {
+            RS485_Send_Frame(NULL,token_buf, sizeof(token_buf));
+            usleep(25000);
+        } else if (write_pfm) {
+            RS485_Send_Frame(NULL,pfm_buf, sizeof(pfm_buf));
+            usleep(100000);
+        } else {
+            RS485_Check_UART_Data(&mstp_port);
+            if (mstp_port.DataAvailable) {
+                fprintf(stderr, "%02X ", mstp_port.DataRegister);
+                mstp_port.DataAvailable = false;
             }
         }
     }
