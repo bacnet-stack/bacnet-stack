@@ -802,7 +802,7 @@ bool Lighting_Output_Default_Step_Increment_Set(
 unsigned Lighting_Output_Default_Priority(
     uint32_t object_instance)
 {
-    unsigned value = 0.0;
+    unsigned value = 0;
     unsigned int index = 0;
 
     index = Lighting_Output_Instance_To_Index(object_instance);
@@ -1222,7 +1222,7 @@ bool Lighting_Output_Write_Property(
             if (status) {
                 Lighting_Output_Out_Of_Service_Set(
                     wp_data->object_instance,
-                    &value.type.Boolean);
+                    value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:

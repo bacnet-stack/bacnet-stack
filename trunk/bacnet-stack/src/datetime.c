@@ -502,7 +502,7 @@ void datetime_add_minutes(
     if (minutes < 0) {
         /* convert to positive for easier math */
         minutes *= -1;
-        if (minutes > bdatetime_minutes) {
+        if ((uint32_t)minutes > bdatetime_minutes) {
             /* previous day */
             bdatetime_days -= 1;
             bdatetime_minutes += ((24 * 60) - minutes);

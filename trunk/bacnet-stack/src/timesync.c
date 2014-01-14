@@ -166,7 +166,7 @@ int timesync_encode_timesync_recipients(
             } else {
                 len = 1 + 3 + 2 + pRecipient->type.address.mac_len + 1;
             }
-            if (max_apdu >= len) {
+            if (max_apdu >= (unsigned)len) {
                 /* CHOICE - address [1] BACnetAddress - opening */
                 len = encode_opening_tag(&apdu[apdu_len], 1);
                 apdu_len += len;

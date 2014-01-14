@@ -542,7 +542,7 @@ bool bacfile_write_record_data(
         if (pFile) {
             if ((data->type.record.fileStartRecord != -1) &&
                 (data->type.record.fileStartRecord > 0)) {
-                for (i = 0; i < data->type.record.fileStartRecord; i++) {
+                for (i = 0; i < (uint32_t)data->type.record.fileStartRecord; i++) {
                     pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
                     if ((pData == NULL) || feof(pFile)) {
                         break;
@@ -608,7 +608,7 @@ bool bacfile_read_ack_record_data(
         pFile = fopen(pFilename, "rb");
         if (pFile) {
             if (data->type.record.fileStartRecord > 0) {
-                for (i = 0; i < data->type.record.fileStartRecord; i++) {
+                for (i = 0; i < (uint32_t)data->type.record.fileStartRecord; i++) {
                     pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
                     if ((pData == NULL) || feof(pFile)) {
                         break;
