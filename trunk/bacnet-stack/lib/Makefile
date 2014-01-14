@@ -104,6 +104,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_getevent.c  \
 	$(BACNET_HANDLER)/h_gas_a.c  \
 	$(BACNET_HANDLER)/h_get_alarm_sum.c  \
+	$(BACNET_HANDLER)/h_getevent_a.c  \
 	$(BACNET_HANDLER)/h_pt.c  \
 	$(BACNET_HANDLER)/h_pt_a.c  \
 	$(BACNET_HANDLER)/h_upt.c  \
@@ -111,6 +112,8 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_awfs.c \
 	$(BACNET_HANDLER)/s_dcc.c \
 	$(BACNET_HANDLER)/s_ihave.c \
+	$(BACNET_HANDLER)/s_get_alarm_sum.c  \
+	$(BACNET_HANDLER)/s_get_event.c  \
 	$(BACNET_HANDLER)/s_iam.c  \
 	$(BACNET_HANDLER)/s_cov.c  \
 	$(BACNET_HANDLER)/s_ptransfer.c \
