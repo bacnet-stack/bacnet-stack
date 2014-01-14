@@ -57,6 +57,9 @@ int stricmp(
     return (int) c1 - c2;
 }
 #endif
+#if defined(_MSC_VER)
+#define stricmp _stricmp
+#endif
 
 bool indtext_by_string(
     INDTEXT_DATA * data_list,

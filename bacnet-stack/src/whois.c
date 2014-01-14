@@ -84,20 +84,20 @@ int whois_decode_service_request(
         if (tag_number != 0) {
             return BACNET_STATUS_ERROR;
         }
-        if (apdu_len > len) {
+        if (apdu_len > (unsigned)len) {
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             if (decoded_value <= BACNET_MAX_INSTANCE) {
                 if (pLow_limit) {
                     *pLow_limit = decoded_value;
                 }
             }
-            if (apdu_len > len) {
+            if (apdu_len > (unsigned)len) {
                 len +=
                     decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
                 if (tag_number != 1) {
                     return BACNET_STATUS_ERROR;
                 }
-                if (apdu_len > len) {
+                if (apdu_len > (unsigned)len) {
                     len += decode_unsigned(&apdu[len], len_value, &decoded_value);
                     if (decoded_value <= BACNET_MAX_INSTANCE) {
                         if (pHigh_limit) {

@@ -866,7 +866,7 @@ int Channel_Coerce_Data_Encode(
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     if (value->type.Unsigned_Int <= 9999999) {
-                        float_value = value->type.Unsigned_Int;
+                        float_value = (float)value->type.Unsigned_Int;
                         apdu_len = encode_application_real(&apdu[0],
                             float_value);
                     } else {
@@ -908,7 +908,7 @@ int Channel_Coerce_Data_Encode(
                         signed_value);
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     if (value->type.Signed_Int <= 9999999) {
-                        float_value = value->type.Signed_Int;
+                        float_value = (float)value->type.Signed_Int;
                         apdu_len = encode_application_real(&apdu[0],
                             float_value);
                     } else {
@@ -938,7 +938,7 @@ int Channel_Coerce_Data_Encode(
                 } else if (tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                     if ((value->type.Real >= 0.0) &&
                         (value->type.Real <= 2147483000.0)) {
-                        unsigned_value = value->type.Real;
+                        unsigned_value = (uint32_t)value->type.Real;
                         apdu_len = encode_application_unsigned(&apdu[0],
                             unsigned_value);
                     } else {
@@ -947,7 +947,7 @@ int Channel_Coerce_Data_Encode(
                 } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
                     if ((value->type.Real >= -2147483000.0) &&
                         (value->type.Real <= 214783000.0)) {
-                        signed_value = value->type.Real;
+                        signed_value = (int32_t)value->type.Real;
                         apdu_len = encode_application_signed(&apdu[0],
                             signed_value);
                     } else {
@@ -964,7 +964,7 @@ int Channel_Coerce_Data_Encode(
                 } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                     if ((value->type.Real >= 0.0) &&
                         (value->type.Real <= 2147483000.0)) {
-                        unsigned_value = value->type.Real;
+                        unsigned_value = (uint32_t)value->type.Real;
                         apdu_len = encode_application_enumerated(&apdu[0],
                             unsigned_value);
                     } else {
@@ -986,7 +986,7 @@ int Channel_Coerce_Data_Encode(
                 } else if (tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                     if ((value->type.Double >= 0.0) &&
                         (value->type.Double <= 2147483000.0)) {
-                        unsigned_value = value->type.Double;
+                        unsigned_value = (uint32_t)value->type.Double;
                         apdu_len = encode_application_unsigned(&apdu[0],
                             unsigned_value);
                     } else {
@@ -995,7 +995,7 @@ int Channel_Coerce_Data_Encode(
                 } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
                     if ((value->type.Double >= -2147483000.0) &&
                         (value->type.Double <= 214783000.0)) {
-                        signed_value = value->type.Double;
+                        signed_value = (int32_t)value->type.Double;
                         apdu_len = encode_application_signed(&apdu[0],
                             signed_value);
                     } else {
@@ -1004,7 +1004,7 @@ int Channel_Coerce_Data_Encode(
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     if ((value->type.Double >= 3.4E-38) &&
                         (value->type.Double <= 3.4E+38)) {
-                        float_value = value->type.Double;
+                        float_value = (float)value->type.Double;
                         apdu_len = encode_application_real(&apdu[0],
                             float_value);
                     } else {
@@ -1017,7 +1017,7 @@ int Channel_Coerce_Data_Encode(
                 } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                     if ((value->type.Double >= 0.0) &&
                         (value->type.Double <= 2147483000.0)) {
-                        unsigned_value = value->type.Double;
+                        unsigned_value = (uint32_t)value->type.Double;
                         apdu_len = encode_application_enumerated(&apdu[0],
                             unsigned_value);
                     } else {
@@ -1050,7 +1050,7 @@ int Channel_Coerce_Data_Encode(
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     if (value->type.Enumerated <= 9999999) {
-                        float_value = value->type.Enumerated;
+                        float_value = (float)value->type.Enumerated;
                         apdu_len = encode_application_real(&apdu[0],
                             float_value);
                     } else {
