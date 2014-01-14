@@ -42,6 +42,23 @@
 #include "get_alarm_sum.h"
 #include "npdu.h"
 
+/* encode service */
+int get_alarm_summary_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id
+        ) {
+    int apdu_len = 0; /* total length of the apdu, return value */
+
+    if (apdu) {
+        apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+        apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+        apdu[2] = invoke_id;
+        apdu[3] = SERVICE_CONFIRMED_GET_ALARM_SUMMARY;
+        apdu_len = 4;
+    }
+
+    return apdu_len;
+}
 
 /** Helper function encode the beginning of a GetAlarmSummary ACK.
  *

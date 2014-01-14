@@ -231,6 +231,22 @@ extern "C" {
         BACNET_ADDRESS * dest,
         BACNET_PRIVATE_TRANSFER_DATA * private_data);
 
+    uint8_t Send_Get_Alarm_Summary_Address(
+        BACNET_ADDRESS *dest,
+        uint16_t max_apdu);
+
+    uint8_t Send_Get_Alarm_Summary(
+        uint32_t device_id);
+
+    uint8_t Send_Get_Event_Information_Address(
+        BACNET_ADDRESS *dest,
+        uint16_t max_apdu,
+        BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
+
+    uint8_t Send_Get_Event_Information(
+        uint32_t device_id,
+        BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

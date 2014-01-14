@@ -53,6 +53,10 @@ typedef int (
 extern "C" {
 #endif /* __cplusplus */
 
+    int get_alarm_summary_encode_apdu(
+        uint8_t * apdu,
+        uint8_t invoke_id);
+
     /* set GetAlarmSummary function */
     void handler_get_alarm_summary_set(
         BACNET_OBJECT_TYPE object_type,
