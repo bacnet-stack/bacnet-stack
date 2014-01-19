@@ -107,7 +107,8 @@ void Send_TimeSyncUTC(
 
     /* encode the APDU portion of the packet */
     pdu_len =
-        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0], bdate, btime);
+        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        bdate, btime);
     bytes_sent =
         datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
