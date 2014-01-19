@@ -179,6 +179,8 @@ extern "C" {
     void Send_TimeSyncUTC(
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
+    void Send_TimeSyncUTC_Device(void);
+    void Send_TimeSync_Device(void);
 
     uint8_t Send_Atomic_Read_File_Stream(
         uint32_t device_id,

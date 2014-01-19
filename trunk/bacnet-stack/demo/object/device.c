@@ -1169,6 +1169,18 @@ void Device_getCurrentDateTime(
     DateTime->time = Local_Time;
 }
 
+int32_t Device_UTC_Offset(void)
+{
+    Update_Current_Time();
+
+    return UTC_Offset;
+}
+
+bool Device_Daylight_Savings_Status(void)
+{
+    return Daylight_Savings_Status;
+}
+
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
    BACNET_STATUS_ABORT for abort message */
 int Device_Read_Property_Local(
