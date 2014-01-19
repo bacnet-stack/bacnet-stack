@@ -65,7 +65,6 @@ void Send_TimeSync_Remote(
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest, &my_address,
         &npdu_data);
-
     /* encode the APDU portion of the packet */
     len =
         timesync_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate, btime);
@@ -112,10 +111,9 @@ void Send_TimeSyncUTC(
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
         &npdu_data);
-
     /* encode the APDU portion of the packet */
     pdu_len =
-        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[0], bdate, btime);
+        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate, btime);
     bytes_sent =
         datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
@@ -125,4 +123,36 @@ void Send_TimeSyncUTC(
             "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
             strerror(errno));
 #endif
+}
+
+/**
+ * Sends a UTC TimeSync message using the local time from the device.
+ */
+void Send_TimeSyncUTC_Device(void)
+{
+    int32_t utc_offset_minutes = 0;
+    bool dst = false;
+    BACNET_DATE_TIME local_time;
+    BACNET_DATE_TIME utc_time;
+
+    Device_getCurrentDateTime(&local_time);
+    dst = Device_Daylight_Savings_Status();
+    utc_offset_minutes = Device_UTC_Offset();
+    datetime_copy(&utc_time, &local_time);
+    datetime_add_minutes(&utc_time, utc_offset_minutes);
+    if (dst) {
+        datetime_add_minutes(&utc_time, -60);
+    }
+    Send_TimeSyncUTC(&utc_time.date, &utc_time.time);
+}
+
+/**
+ * Sends a TimeSync message using the local time from the device.
+ */
+void Send_TimeSync_Device(void)
+{
+    BACNET_DATE_TIME local_time;
+
+    Device_getCurrentDateTime(&local_time);
+    Send_TimeSync(&local_time.date, &local_time.time);
 }

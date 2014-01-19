@@ -32,6 +32,10 @@
 #include <stdint.h>
 #include <string.h>     /* for memmove */
 #include <time.h>       /* for timezone, localtime */
+/* OS specific include*/
+#include "net.h"
+#include "timer.h"
+/* BACnet includes */
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
@@ -69,14 +73,14 @@ static char *Description = "command line client";
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
-/* static BACNET_TIME Local_Time;  rely on OS, if there is one */
-/* static BACNET_DATE Local_Date;   rely on OS, if there is one */
+static BACNET_TIME Local_Time;  /* rely on OS, if there is one */
+static BACNET_DATE Local_Date;  /* rely on OS, if there is one */
 /* NOTE: BACnet UTC Offset is inverse of common practice.
    If your UTC offset is -5hours of GMT,
    then BACnet UTC offset is +5hours.
    BACnet UTC offset is expressed in minutes. */
-/* static int32_t UTC_Offset = 5 * 60; */
-/* static bool Daylight_Savings_Status = false;    rely on OS */
+static int32_t UTC_Offset = 5 * 60;
+static bool Daylight_Savings_Status = false;    /* rely on OS */
 /* List_Of_Session_Keys */
 /* Time_Synchronization_Recipients */
 /* Max_Master - rely on MS/TP subsystem, if there is one */
@@ -631,6 +635,83 @@ bool Device_Object_Name_Copy(
     }
 
     return found;
+}
+
+static void Update_Current_Time(
+    void)
+{
+    struct tm *tblock = NULL;
+#if defined(_MSC_VER)
+    time_t tTemp;
+#else
+    struct timeval tv;
+#endif
+/*
+struct tm
+
+int    tm_sec   Seconds [0,60].
+int    tm_min   Minutes [0,59].
+int    tm_hour  Hour [0,23].
+int    tm_mday  Day of month [1,31].
+int    tm_mon   Month of year [0,11].
+int    tm_year  Years since 1900.
+int    tm_wday  Day of week [0,6] (Sunday =0).
+int    tm_yday  Day of year [0,365].
+int    tm_isdst Daylight Savings flag.
+*/
+#if defined(_MSC_VER)
+    time(&tTemp);
+    tblock = (struct tm *)localtime(&tTemp);
+#else
+    if (gettimeofday(&tv, NULL) == 0) {
+        tblock = (struct tm *)localtime((const time_t *)&tv.tv_sec);
+    }
+#endif
+
+    if (tblock) {
+        datetime_set_date(&Local_Date, (uint16_t) tblock->tm_year + 1900,
+            (uint8_t) tblock->tm_mon + 1, (uint8_t) tblock->tm_mday);
+#if !defined(_MSC_VER)
+        datetime_set_time(&Local_Time, (uint8_t) tblock->tm_hour,
+            (uint8_t) tblock->tm_min, (uint8_t) tblock->tm_sec,
+            (uint8_t) (tv.tv_usec / 10000));
+#else
+        datetime_set_time(&Local_Time, (uint8_t) tblock->tm_hour,
+            (uint8_t) tblock->tm_min, (uint8_t) tblock->tm_sec, 0);
+#endif
+        if (tblock->tm_isdst) {
+            Daylight_Savings_Status = true;
+        } else {
+            Daylight_Savings_Status = false;
+        }
+        /* note: timezone is declared in <time.h> stdlib. */
+        UTC_Offset = timezone / 60;
+    } else {
+        datetime_date_wildcard_set(&Local_Date);
+        datetime_time_wildcard_set(&Local_Time);
+        Daylight_Savings_Status = false;
+    }
+}
+
+void Device_getCurrentDateTime(
+    BACNET_DATE_TIME * DateTime)
+{
+    Update_Current_Time();
+
+    DateTime->date = Local_Date;
+    DateTime->time = Local_Time;
+}
+
+int32_t Device_UTC_Offset(void)
+{
+    Update_Current_Time();
+
+    return UTC_Offset;
+}
+
+bool Device_Daylight_Savings_Status(void)
+{
+    return Daylight_Savings_Status;
 }
 
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
