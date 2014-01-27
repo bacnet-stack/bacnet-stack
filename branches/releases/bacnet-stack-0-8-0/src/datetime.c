@@ -150,7 +150,7 @@ uint32_t datetime_days_since_epoch(
     return days;
 }
 
-void days_since_epoch_into_ymd(
+static void days_since_epoch_into_ymd(
     uint32_t days,
     uint16_t * pYear,
     uint8_t * pMonth,
@@ -508,7 +508,7 @@ void datetime_add_minutes(
     if (minutes < 0) {
         /* convert to positive for easier math */
         minutes *= -1;
-        if (minutes > bdatetime_minutes) {
+        if ((uint32_t)minutes > bdatetime_minutes) {
             /* previous day */
             bdatetime_days -= 1;
             bdatetime_minutes += ((24 * 60) - minutes);
