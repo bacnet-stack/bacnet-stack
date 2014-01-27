@@ -49,6 +49,11 @@
 
 /** @file h_cov.c  Handles Change of Value (COV) services. */
 
+typedef struct BACnet_COV_Address{
+    bool valid:1;
+    BACNET_ADDRESS dest;
+} BACNET_COV_ADDRESS;
+
 /* note: This COV service only monitors the properties
    of an object that have been specified in the standard.  */
 typedef struct BACnet_COV_Subscription_Flags {
@@ -59,17 +64,116 @@ typedef struct BACnet_COV_Subscription_Flags {
 
 typedef struct BACnet_COV_Subscription {
     BACNET_COV_SUBSCRIPTION_FLAGS flag;
-    BACNET_ADDRESS dest;
-    uint32_t subscriberProcessIdentifier;
-    BACNET_OBJECT_ID monitoredObjectIdentifier;
+    uint8_t dest_index;
     uint8_t invokeID;   /* for confirmed COV */
+    uint32_t subscriberProcessIdentifier;
     uint32_t lifetime;  /* optional */
+    BACNET_OBJECT_ID monitoredObjectIdentifier;
 } BACNET_COV_SUBSCRIPTION;
 
 #ifndef MAX_COV_SUBCRIPTIONS
 #define MAX_COV_SUBCRIPTIONS 128
 #endif
 static BACNET_COV_SUBSCRIPTION COV_Subscriptions[MAX_COV_SUBCRIPTIONS];
+#ifndef MAX_COV_ADDRESSES
+#define MAX_COV_ADDRESSES 16
+#endif
+static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
+
+/**
+* Gets the address from the list of COV addresses
+*
+* @param  index - offset into COV address list where address is stored
+* @param  dest - address to be filled when found
+*
+* @return true if valid address, false if not valid or not found
+*/
+static BACNET_ADDRESS *cov_address_get(
+    int index)
+{
+    BACNET_ADDRESS *cov_dest = NULL;
+
+    if (index < MAX_COV_ADDRESSES) {
+        if (COV_Addresses[index].valid) {
+            cov_dest = &COV_Addresses[index].dest;
+        }
+    }
+
+    return cov_dest;
+}
+
+/**
+ * Removes the address from the list of COV addresses, if it is not
+ * used by other COV subscriptions
+ */
+static void cov_address_remove_unused(void)
+{
+    unsigned index = 0;
+    unsigned cov_index = 0;
+    bool found = false;
+
+    for (cov_index = 0; cov_index < MAX_COV_ADDRESSES; cov_index++) {
+        if (COV_Addresses[cov_index].valid) {
+            found = false;
+            for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+                if ((COV_Subscriptions[index].flag.valid) &&
+                    (COV_Subscriptions[index].dest_index == cov_index)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                COV_Addresses[cov_index].valid = false;
+            }
+        }
+    }
+}
+
+/**
+* Adds the address to the list of COV addresses
+*
+* @param  dest - address to be added if there is room in the list
+*
+* @return index number 0..N, or -1 if unable to add
+*/
+static int cov_address_add(
+    BACNET_ADDRESS *dest)
+{
+    int index = -1;
+    unsigned i = 0;
+    bool found = false;
+    bool valid = false;
+    BACNET_ADDRESS *cov_dest = NULL;
+
+    if (dest) {
+        for (i = 0; i < MAX_COV_ADDRESSES; i++) {
+            valid = COV_Addresses[i].valid;
+            if (valid) {
+                cov_dest = &COV_Addresses[i].dest;
+                found = bacnet_address_same(dest, cov_dest);
+                if (found) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            /* find a free place to add a new address */
+            for (i = 0; i < MAX_COV_ADDRESSES; i++) {
+                valid = COV_Addresses[i].valid;
+                if (!valid) {
+                    index = i;
+                    cov_dest = &COV_Addresses[i].dest;
+                    bacnet_address_copy(cov_dest, dest);
+                    COV_Addresses[i].valid = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    return index;
+}
 
 /*
 BACnetCOVSubscription ::= SEQUENCE {
@@ -106,9 +210,18 @@ static int cov_encode_subscription(
     int len = 0;
     int apdu_len = 0;
     BACNET_OCTET_STRING octet_string;
+    BACNET_ADDRESS *dest = NULL;
+
 
     /* FIXME: unused parameter */
     max_apdu = max_apdu;
+    if (!cov_subscription) {
+        return 0;
+    }
+    dest = cov_address_get(cov_subscription->dest_index);
+    if (!dest) {
+        return 0;
+    }
     /* Recipient [0] BACnetRecipientProcess - opening */
     len = encode_opening_tag(&apdu[apdu_len], 0);
     apdu_len += len;
@@ -120,18 +233,14 @@ static int cov_encode_subscription(
     apdu_len += len;
     /* network-number Unsigned16, */
     /* -- A value of 0 indicates the local network */
-    len =
-        encode_application_unsigned(&apdu[apdu_len],
-        cov_subscription->dest.net);
+    len = encode_application_unsigned(&apdu[apdu_len], dest->net);
     apdu_len += len;
     /* mac-address OCTET STRING */
     /* -- A string of length 0 indicates a broadcast */
-    if (cov_subscription->dest.net) {
-        octetstring_init(&octet_string, &cov_subscription->dest.adr[0],
-            cov_subscription->dest.len);
+    if (dest->net) {
+        octetstring_init(&octet_string, &dest->adr[0], dest->len);
     } else {
-        octetstring_init(&octet_string, &cov_subscription->dest.mac[0],
-            cov_subscription->dest.mac_len);
+        octetstring_init(&octet_string, &dest->mac[0], dest->mac_len);
     }
     len = encode_application_octet_string(&apdu[apdu_len], &octet_string);
     apdu_len += len;
@@ -226,7 +335,7 @@ void handler_cov_init(
 
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         COV_Subscriptions[index].flag.valid = false;
-        COV_Subscriptions[index].dest.mac_len = 0;
+        COV_Subscriptions[index].dest_index = -1;
         COV_Subscriptions[index].subscriberProcessIdentifier = 0;
         COV_Subscriptions[index].monitoredObjectIdentifier.type =
             OBJECT_ANALOG_INPUT;
@@ -235,6 +344,9 @@ void handler_cov_init(
         COV_Subscriptions[index].invokeID = 0;
         COV_Subscriptions[index].lifetime = 0;
         COV_Subscriptions[index].flag.send_requested = false;
+    }
+    for (index = 0; index < MAX_COV_ADDRESSES; index++) {
+        COV_Addresses[index].valid = false;
     }
 }
 
@@ -248,25 +360,35 @@ static bool cov_list_subscribe(
     int index;
     int first_invalid_index = -1;
     bool found = true;
+    bool address_match = false;
+    BACNET_ADDRESS *dest = NULL;
 
     /* unable to subscribe - resources? */
     /* unable to cancel subscription - other? */
 
-    /* existing? - match Object ID and Process ID */
+    /* existing? - match Object ID and Process ID and address */
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         if (COV_Subscriptions[index].flag.valid) {
+            dest = cov_address_get(COV_Subscriptions[index].dest_index);
+            if (dest) {
+                address_match = bacnet_address_same(src, dest);
+            } else {
+                /* skip address matching - we don't have an address */
+                address_match = true;
+            }
             if ((COV_Subscriptions[index].monitoredObjectIdentifier.type ==
                     cov_data->monitoredObjectIdentifier.type) &&
                 (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
                     cov_data->monitoredObjectIdentifier.instance) &&
                 (COV_Subscriptions[index].subscriberProcessIdentifier ==
-                    cov_data->subscriberProcessIdentifier) &&
-                bacnet_address_same(src, &COV_Subscriptions[index].dest)) {
+                    cov_data->subscriberProcessIdentifier) && address_match) {
                 existing_entry = true;
                 if (cov_data->cancellationRequest) {
                     COV_Subscriptions[index].flag.valid = false;
+                    COV_Subscriptions[index].dest_index = -1;
+                    cov_address_remove_unused();
                 } else {
-                    bacnet_address_copy(&COV_Subscriptions[index].dest, src);
+                    COV_Subscriptions[index].dest_index = cov_address_add(src);
                     COV_Subscriptions[index].flag.issueConfirmedNotifications =
                         cov_data->issueConfirmedNotifications;
                     COV_Subscriptions[index].lifetime = cov_data->lifetime;
@@ -289,7 +411,7 @@ static bool cov_list_subscribe(
         index = first_invalid_index;
         found = true;
         COV_Subscriptions[index].flag.valid = true;
-        bacnet_address_copy(&COV_Subscriptions[index].dest, src);
+        COV_Subscriptions[index].dest_index = cov_address_add(src);
         COV_Subscriptions[index].monitoredObjectIdentifier.type =
             cov_data->monitoredObjectIdentifier.type;
         COV_Subscriptions[index].monitoredObjectIdentifier.instance =
@@ -332,6 +454,7 @@ static bool cov_send_request(
     uint8_t invoke_id = 0;
     bool status = false;        /* return value */
     BACNET_COV_DATA cov_data;
+    BACNET_ADDRESS *dest = NULL;
 
     if (!dcc_communication_enabled()) {
         return status;
@@ -339,10 +462,20 @@ static bool cov_send_request(
 #if PRINT_ENABLED
     fprintf(stderr, "COVnotification: requested\n");
 #endif
+    if (!cov_subscription) {
+        return status;
+    }
+    dest = cov_address_get(cov_subscription->dest_index);
+    if (!dest) {
+#if PRINT_ENABLED
+        fprintf(stderr, "COVnotification: dest not found!\n");
+#endif
+        return status;
+    }
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &cov_subscription->dest,
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest,
         &my_address, &npdu_data);
     /* load the COV data structure for outgoing message */
     cov_data.subscriberProcessIdentifier =
@@ -372,14 +505,17 @@ static bool cov_send_request(
     pdu_len += len;
     if (cov_subscription->flag.issueConfirmedNotifications) {
         tsm_set_confirmed_unsegmented_transaction(invoke_id,
-            &cov_subscription->dest, &npdu_data, &Handler_Transmit_Buffer[0],
+            dest, &npdu_data, &Handler_Transmit_Buffer[0],
             (uint16_t) pdu_len);
     }
     bytes_sent =
-        datalink_send_pdu(&cov_subscription->dest, &npdu_data,
+        datalink_send_pdu(dest, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent > 0) {
         status = true;
+#if PRINT_ENABLED
+        fprintf(stderr, "COVnotification: Sent!\n");
+#endif
     }
 
   COV_FAILED:
@@ -417,6 +553,8 @@ static void cov_lifetime_expiration_handler(
             fprintf(stderr, "\n");
 #endif
             COV_Subscriptions[index].flag.valid = false;
+            COV_Subscriptions[index].dest_index = -1;
+            cov_address_remove_unused();
             if (COV_Subscriptions[index].flag.issueConfirmedNotifications) {
                 if (COV_Subscriptions[index].invokeID) {
                     tsm_free_invoke_id(COV_Subscriptions[index].invokeID);
@@ -469,7 +607,7 @@ void handler_cov_timer_seconds(
     }
 }
 
-void handler_cov_task(
+bool handler_cov_task(
     void)
 {
     static int index = 0;
@@ -600,6 +738,8 @@ void handler_cov_task(
             cov_task_state = COV_STATE_IDLE;
             break;
     }
+
+    return (cov_task_state == COV_STATE_IDLE);
 }
 
 static bool cov_subscribe(
