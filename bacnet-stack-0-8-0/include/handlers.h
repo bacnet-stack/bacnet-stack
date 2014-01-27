@@ -195,8 +195,12 @@ extern "C" {
         void);
     bool handler_timesync_recipient_write(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
-    bool handler_timesync_interval_set(
-        uint32_t minutes);
+    uint32_t handler_timesync_interval(void);
+    bool handler_timesync_interval_set(uint32_t minutes);
+    uint32_t handler_timesync_interval_offset(void);
+    bool handler_timesync_interval_offset_set(uint32_t minutes);
+    bool handler_timesync_interval_align(void);
+    bool handler_timesync_interval_align_set(bool flag);
     bool handler_timesync_recipient_address_set(
         unsigned index,
         BACNET_ADDRESS * address);
