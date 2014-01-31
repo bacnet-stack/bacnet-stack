@@ -85,10 +85,24 @@ static bool seeprom_version_test(
     return status;
 }
 
+void device_id_init(uint8_t mac)
+{
+    uint32_t device_id = 0;
+
+    /* Get the device ID from the eeprom */
+    eeprom_bytes_read(NV_EEPROM_DEVICE_0, (uint8_t *) & device_id,
+        sizeof(device_id));
+    if (device_id < BACNET_MAX_INSTANCE) {
+        Device_Set_Object_Instance_Number(device_id);
+    } else {
+        /* use the DIP switch address as the Device ID if unconfigured */
+        Device_Set_Object_Instance_Number(MSTP_MAC_Address);
+    }
+}
+
 void bacnet_init(
     void)
 {
-    uint32_t device_id = 0;
     uint8_t max_master = 0;
 
     MSTP_MAC_Address = input_address();
@@ -105,15 +119,7 @@ void bacnet_init(
     }
     /* initialize objects */
     Device_Init(NULL);
-    /* Get the device ID from the eeprom */
-    eeprom_bytes_read(NV_EEPROM_DEVICE_0, (uint8_t *) & device_id,
-        sizeof(device_id));
-    if (device_id < BACNET_MAX_INSTANCE) {
-        Device_Set_Object_Instance_Number(device_id);
-    } else {
-        /* use the DIP switch address as the Device ID if unconfigured */
-        Device_Set_Object_Instance_Number(MSTP_MAC_Address);
-    }
+    device_id_init(MSTP_MAC_Address);
     /* set up our confirmed service unrecognized service handler - required! */
     apdu_set_unrecognized_service_handler_handler
         (handler_unrecognized_service);
@@ -158,6 +164,7 @@ void bacnet_task(
         /* address changed! */
         MSTP_MAC_Address = mstp_mac_address;
         dlmstp_set_mac_address(MSTP_MAC_Address);
+        device_id_init(MSTP_MAC_Address);
         Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
     /* handle the inputs */
