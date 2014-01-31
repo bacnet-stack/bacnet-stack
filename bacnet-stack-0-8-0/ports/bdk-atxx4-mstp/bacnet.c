@@ -85,7 +85,7 @@ static bool seeprom_version_test(
     return status;
 }
 
-void device_id_init(uint8_t mac)
+static void device_id_init(uint8_t mac)
 {
     uint32_t device_id = 0;
 
