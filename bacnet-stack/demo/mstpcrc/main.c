@@ -225,14 +225,15 @@ int main(
 
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("mstpcrc [options] <00 00 00 00...>\r\n"
+        printf("mstpcrc [options] <05 03 01 0D...>\r\n"
             "perform MS/TP CRC on data bytes.\r\n" "options:\r\n"
             "[-x] interprete the arguments as ascii hex (default)\r\n"
             "[-d] interprete the argument as ascii decimal\r\n"
             "[-m] Write the bytes to Wireshark capture file\r\n"
             "[-8] calculate the MS/TP 8-bit Header CRC (default)\r\n"
             "[-16] calculate the MS/TP 16-bit Data CRC\r\n"
-            "[-32] calculate the MS/TP 32-bit Extended Frame CRC\r\n");
+            "[-32] calculate the MS/TP 32-bit Extended Frame CRC\r\n"
+            "Note: MS/TP Header CRC does not include the 55 FF preamble.\r\n");
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
