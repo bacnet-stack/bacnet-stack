@@ -206,7 +206,7 @@ wp: logfile test/wp.mak
 	( ./test/wp >> ${LOGFILE} )
 	$(MAKE) -s -C test -f wp.mak clean
 
-objects: ai ao av bi bo bv csv lc lo lso lsp mso msv ms-input
+objects: ai ao av bi bo bv csv lc lo lso lsp mso msv ms-input command
 
 ai: logfile demo/object/ai.mak
 	$(MAKE) -s -C demo/object -f ai.mak clean all
@@ -236,6 +236,11 @@ bv: logfile demo/object/bv.mak
 	$(MAKE) -s -C demo/object -f bv.mak clean all
 	( ./demo/object/binary_value >> ${LOGFILE} )
 	$(MAKE) -s -C demo/object -f bv.mak clean
+
+command: logfile demo/object/command.mak
+	$(MAKE) -s -C demo/object -f command.mak clean all
+	( ./demo/object/command >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f command.mak clean
 
 csv: logfile demo/object/csv.mak
 	$(MAKE) -s -C demo/object -f csv.mak clean all
