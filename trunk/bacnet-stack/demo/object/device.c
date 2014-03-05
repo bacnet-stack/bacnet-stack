@@ -55,6 +55,7 @@
 #include "bo.h"
 #include "bv.h"
 #include "channel.h"
+#include "command.h"
 #include "csv.h"
 #include "lc.h"
 #include "lsp.h"
@@ -207,6 +208,21 @@ static object_functions_t My_Object_Table[] = {
             CharacterString_Value_Read_Property,
             CharacterString_Value_Write_Property,
             CharacterString_Value_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
+    {OBJECT_COMMAND,
+            Command_Init,
+            Command_Count,
+            Command_Index_To_Instance,
+            Command_Valid_Instance,
+            Command_Object_Name,
+            Command_Read_Property,
+            Command_Write_Property,
+            Command_Property_Lists,
             NULL /* ReadRangeInfo */ ,
             NULL /* Iterator */ ,
             NULL /* Value_Lists */ ,
