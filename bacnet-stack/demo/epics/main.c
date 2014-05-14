@@ -170,6 +170,8 @@ static bool Using_Walked_List = false;
 static bool IsLongArray = false;
 /* Show value instead of '?' */
 static bool ShowValues = false;
+/* show only device object properties */
+static bool ShowDeviceObjectOnly = false;
 /* read required and optional properties when RPM ALL does not work */
 static bool Optional_Properties = false;
 
@@ -697,7 +699,7 @@ void PrintReadPropertyData(
                     (value->next != NULL)) {
                     /* There are more. */
                     fprintf(stdout, ", ");
-                    if (!(Walked_List_Index % 4))
+                    if (!(Walked_List_Index % 3))
                         fprintf(stdout, "\n        ");
                 } else {
                     fprintf(stdout, " } \n");
@@ -1004,8 +1006,9 @@ void PrintUsage(
         ("bacepics -- Generates Full EPICS file, including Object and Property List \n");
     printf("Usage: \n");
     printf
-        ("  bacepics [-v] [-p sport] [-t target_mac [-n dnet]] device-instance \n");
+        ("  bacepics [-v] [-d] [-p sport] [-t target_mac [-n dnet]] device-instance \n");
     printf("    -v: show values instead of '?' \n");
+    printf("    -d: show only device object properties\n");
     printf
         ("    -p: Use sport for \"my\" port, instead of 0xBAC0 (BACnet/IP only) \n");
     printf("        Allows you to communicate with a localhost target. \n");
@@ -1018,7 +1021,7 @@ void PrintUsage(
     printf("        or on routed Virtual Network \n");
     printf("\n");
     printf
-        ("You may want to redirect the output to a .tpi file for VTS use,\n");
+        ("You can redirect the output to a .tpi file for VTS use,\n");
     printf("    eg, bacepics -v 2701876 > epics-2701876.tpi \n");
     printf("\n");
     exit(0);
@@ -1046,6 +1049,9 @@ int CheckCommandLineArgs(
                     break;
                 case 'v':
                     ShowValues = true;
+                    break;
+                case 'd':
+                    ShowDeviceObjectOnly = true;
                     break;
                 case 'p':
                     if (++i < argc) {
@@ -1327,7 +1333,10 @@ void PrintHeading(
         printf("?");
     }
     printf("\n}\n\n");
+}
 
+void Print_Device_Heading(void)
+{
     printf("List of Objects in Test Device:\n");
     /* Print Opening brace, then kick off the Device Object */
     printf("{\n");
@@ -1503,7 +1512,12 @@ int main(
 
             case PRINT_HEADING:
                 /* Print out the header information */
-                PrintHeading();
+                if (ShowDeviceObjectOnly) {
+                    Print_Device_Heading();
+                } else {
+                    PrintHeading();
+                    Print_Device_Heading();
+                }
                 myState = GET_ALL_REQUEST;
                 /* Fall through now */
 
@@ -1713,6 +1727,13 @@ int main(
                     printf("  -- Found %d Objects \n",
                         Keylist_Count(Object_List));
                     Object_List_Index = -1;     /* start over (will be incr to 0) */
+                    if (ShowDeviceObjectOnly) {
+                        /* Closing brace for the Device Object */
+                        printf("  }, \n");
+                        /* done with all Objects, signal end of this while loop */
+                        myObject.type = MAX_BACNET_OBJECT_TYPE;
+                        break;
+                    }
                 }
                 /* Advance to the next object, as long as it's not the Device object */
                 do {
