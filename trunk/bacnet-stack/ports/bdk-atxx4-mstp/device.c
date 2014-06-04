@@ -208,7 +208,7 @@ bool Device_Write_Property(
     return status;
 }
 
-static unsigned property_list_count(
+static unsigned my_property_list_count(
     const int *pList)
 {
     unsigned property_count = 0;
@@ -248,15 +248,15 @@ void Device_Objects_Property_List(
     /* Fetch the counts if available otherwise zero them */
     pPropertyList->Required.count =
         pPropertyList->Required.pList ==
-        NULL ? 0 : property_list_count(pPropertyList->Required.pList);
+        NULL ? 0 : my_property_list_count(pPropertyList->Required.pList);
 
     pPropertyList->Optional.count =
         pPropertyList->Optional.pList ==
-        NULL ? 0 : property_list_count(pPropertyList->Optional.pList);
+        NULL ? 0 : my_property_list_count(pPropertyList->Optional.pList);
 
     pPropertyList->Proprietary.count =
         pPropertyList->Proprietary.pList ==
-        NULL ? 0 : property_list_count(pPropertyList->Proprietary.pList);
+        NULL ? 0 : my_property_list_count(pPropertyList->Proprietary.pList);
 
     return;
 }
