@@ -184,11 +184,20 @@ void input_init(
     BIT_CLEAR(DDRB, DDB1);
     BIT_CLEAR(DDRB, DDB2);
     BIT_CLEAR(DDRB, DDB3);
+    /* activate the internal pull up resistors */
+    BIT_SET(PORTB, PORTB1);
+    BIT_SET(PORTB, PORTB2);
+    BIT_SET(PORTB, PORTB3);
 #else
     BIT_CLEAR(DDRB, DDB1);
     BIT_CLEAR(DDRB, DDB2);
     BIT_CLEAR(DDRB, DDB3);
     BIT_CLEAR(DDRB, DDB4);
+    /* activate the internal pull up resistors */
+    BIT_SET(PORTB, PORTB1);
+    BIT_SET(PORTB, PORTB2);
+    BIT_SET(PORTB, PORTB3);
+    BIT_SET(PORTB, PORTB4);
 #endif
     timer_interval_start(&Debounce_Timer, 30);
 }
