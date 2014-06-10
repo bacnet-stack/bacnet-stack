@@ -131,6 +131,8 @@ extern "C" {
     bool Lighting_Output_Egress_Time_Set(
         uint32_t object_instance,
         uint32_t seconds);
+    bool Lighting_Output_Egress_Active(
+        uint32_t object_instance);
 
     uint32_t Lighting_Output_Default_Fade_Time(
         uint32_t object_instance);

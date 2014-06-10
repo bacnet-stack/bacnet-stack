@@ -22,8 +22,11 @@ SRCS = main.c \
 	$(BACNET_OBJECT)/bi.c \
 	$(BACNET_OBJECT)/bo.c \
 	$(BACNET_OBJECT)/bv.c \
+	$(BACNET_OBJECT)/channel.c \
+	$(BACNET_OBJECT)/command.c \
 	$(BACNET_OBJECT)/csv.c \
 	$(BACNET_OBJECT)/lc.c \
+	$(BACNET_OBJECT)/lo.c \
 	$(BACNET_OBJECT)/lsp.c \
 	$(BACNET_OBJECT)/ms-input.c \
 	$(BACNET_OBJECT)/mso.c \

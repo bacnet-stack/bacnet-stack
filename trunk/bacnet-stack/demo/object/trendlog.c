@@ -1665,7 +1665,7 @@ static int local_read_property(
  * Attempt to fetch the logged property and store it in the Trend Log       *
  ****************************************************************************/
 
-void TL_fetch_property(
+static void TL_fetch_property(
     int iLog)
 {
     uint8_t ValueBuf[MAX_APDU]; /* This is a big buffer in case someone selects the device object list for example */
