@@ -93,3 +93,4 @@ clean:
 	$(MAKE) -s -C lib clean
 	$(MAKE) -s -C demo clean
 	$(MAKE) -s -C demo/router clean
+	$(MAKE) -s -C demo/gateway clean
