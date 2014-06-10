@@ -34,7 +34,7 @@ MAKE_DEFINE ?=
 DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE) $(BBMD_DEFINE) -DWEAK_FUNC=
 DEFINES += $(MAKE_DEFINE)
 
-# BACnet Ports Directory 
+# BACnet Ports Directory
 BACNET_PORT ?= linux
 
 # Default compiler settings
@@ -64,7 +64,7 @@ demos:
 	$(MAKE) -s -C demo all
 
 gateway:
-	$(MAKE) -B -s -C demo gateway 
+	$(MAKE) -B -s -C demo gateway
 
 router:
 	$(MAKE) -s -C demo router
@@ -86,3 +86,4 @@ clean:
 	$(MAKE) -s -C lib clean
 	$(MAKE) -s -C demo clean
 	$(MAKE) -s -C demo/router clean
+	$(MAKE) -s -C demo/gateway clean
