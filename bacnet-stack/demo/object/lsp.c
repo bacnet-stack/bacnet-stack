@@ -37,6 +37,7 @@
 #include "wp.h"
 #include "lsp.h"
 #include "handlers.h"
+#include "proplist.h"
 
 #ifndef MAX_LIFE_SAFETY_POINTS
 #define MAX_LIFE_SAFETY_POINTS 7
@@ -53,45 +54,42 @@ static BACNET_LIFE_SAFETY_OPERATION
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
 static bool Life_Safety_Point_Out_Of_Service[MAX_LIFE_SAFETY_POINTS];
-
-/* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Life_Safety_Point_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_TRACKING_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_RELIABILITY,
-    PROP_MODE,
-    PROP_ACCEPTED_MODES,
-    PROP_SILENCED,
-    PROP_OPERATION_EXPECTED,
-    -1
-};
-
-static const int Life_Safety_Point_Properties_Optional[] = {
+/* These arrays are used by the ReadPropertyMultiple handler and
+   property-list property (as of protocol-revision 14) */
+static const int Properties_Optional[] = {
     PROP_DESCRIPTION,
     -1
 };
 
-static const int Life_Safety_Point_Properties_Proprietary[] = {
+static const int Properties_Proprietary[] = {
     -1
 };
 
+/**
+ * Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ *
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optkional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void Life_Safety_Point_Property_Lists(
     const int **pRequired,
     const int **pOptional,
     const int **pProprietary)
 {
-    if (pRequired)
-        *pRequired = Life_Safety_Point_Properties_Required;
-    if (pOptional)
-        *pOptional = Life_Safety_Point_Properties_Optional;
-    if (pProprietary)
-        *pProprietary = Life_Safety_Point_Properties_Proprietary;
+    if (pRequired) {
+        *pRequired = property_list_required(OBJECT_LIFE_SAFETY_POINT);
+    }
+    if (pOptional) {
+        *pOptional = Properties_Optional;
+    }
+    if (pProprietary) {
+        *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }

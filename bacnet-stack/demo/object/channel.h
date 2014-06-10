@@ -170,6 +170,25 @@ extern "C" {
         uint32_t instance,
         BACNET_PROPERTY_ID propertyIdentifier,
         uint32_t arrayIndex);
+    uint16_t Channel_Control_Groups_Element(
+        uint32_t object_instance,
+        int32_t array_index);
+    bool Channel_Control_Groups_Element_Set(
+        uint32_t object_instance,
+        int32_t array_index,
+        uint16_t value);
+    bool Channel_Value_Copy(BACNET_CHANNEL_VALUE * cvalue,
+        BACNET_APPLICATION_DATA_VALUE * value);
+    int Channel_Value_Encode(uint8_t *apdu, int apdu_max,
+        BACNET_CHANNEL_VALUE * value);
+    int Channel_Coerce_Data_Encode(
+        uint8_t * apdu,
+        unsigned max_apdu,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_APPLICATION_TAG tag);
+    bool Channel_Write_Member_Value(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_APPLICATION_DATA_VALUE * value);
 
     void Channel_Init(void);
 

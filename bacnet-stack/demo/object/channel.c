@@ -1185,7 +1185,7 @@ bool Channel_Write_Member_Value(
  *
  * @return  true if values are within range and present-value is sent.
  */
-bool Channel_Write_Members(
+static bool Channel_Write_Members(
     struct bacnet_channel_object * pChannel,
     BACNET_APPLICATION_DATA_VALUE * value,
     uint8_t priority)
