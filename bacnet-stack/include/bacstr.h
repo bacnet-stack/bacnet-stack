@@ -87,10 +87,12 @@ extern "C" {
     bool bitstring_copy(
         BACNET_BIT_STRING * dest,
         BACNET_BIT_STRING * src);
-
     bool bitstring_same(
         BACNET_BIT_STRING * bitstring1,
         BACNET_BIT_STRING * bitstring2);
+    bool bitstring_init_ascii(
+        BACNET_BIT_STRING * bit_string,
+        const char *ascii);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
