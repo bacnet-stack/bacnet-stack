@@ -1410,9 +1410,9 @@ bool bacapp_parse_application_data(
                     (char *) argv);
                 break;
             case BACNET_APPLICATION_TAG_BIT_STRING:
-                /* FIXME: how to parse a bit string? */
-                status = false;
-                bitstring_init(&value->type.Bit_String);
+#if PRINT_ENABLED
+                status = bitstring_init_ascii(&value->type.Bit_String, argv);
+#endif
                 break;
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 unsigned_long_value = strtoul(argv, NULL, 0);
