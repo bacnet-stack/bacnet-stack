@@ -92,7 +92,7 @@
         <platformTool>ICD3PlatformTool</platformTool>
         <languageToolchain>C18</languageToolchain>
         <languageToolchainVersion>3.40</languageToolchainVersion>
-        <platform>3</platform>
+        <platform>2</platform>
       </toolsSet>
       <compileType>
         <linkerTool>
@@ -135,7 +135,7 @@
                   value="..\;..\..\..\include;..\..\..\demo\object"/>
         <property key="optimization-master" value="Enable all"/>
         <property key="preprocessor-macros"
-                  value="PRINT_ENABLED=0;BACDL_MSTP=1;BIG_ENDIAN=0;MAX_APDU=50;MAX_TSM_TRANSACTIONS=0"/>
+                  value="PRINT_ENABLED=0;BACDL_MSTP=1;BIG_ENDIAN=0;MAX_APDU=50;MAX_TSM_TRANSACTIONS=0;BACAPP_MINIMAL"/>
         <property key="procedural-abstraction-passes" value="0"/>
         <property key="storage-class" value="sca"/>
         <property key="verbose" value="false"/>
