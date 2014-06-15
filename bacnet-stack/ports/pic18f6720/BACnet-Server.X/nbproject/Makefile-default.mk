@@ -8,14 +8,18 @@
 
 
 # Include project Makefile
+ifeq "${IGNORE_LOCAL}" "TRUE"
+# do not include local makefile. User is passing all local related variables already
+else
 include Makefile
 # Include makefile containing local settings
 ifeq "$(wildcard nbproject/Makefile-local-default.mk)" "nbproject/Makefile-local-default.mk"
 include nbproject/Makefile-local-default.mk
 endif
+endif
 
 # Environment
-MKDIR=gnumkdir -p
+MKDIR=mkdir -p
 RM=rm -f 
 MV=mv 
 CP=cp 
@@ -62,7 +66,7 @@ LDLIBSOPTIONS=
 FIXDEPS=fixDeps
 
 .build-conf:  ${BUILD_SUBPROJECTS}
-	${MAKE} ${MAKE_OPTIONS} -f nbproject/Makefile-default.mk dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+	${MAKE}  -f nbproject/Makefile-default.mk dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 
 MP_PROCESSOR_OPTION=18F6720
 MP_PROCESSOR_OPTION_LD=18f6720
@@ -79,273 +83,273 @@ ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 ${OBJECTDIR}/_ext/1386528437/abort.o: ../../../src/abort.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/abort.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/abort.o   ../../../src/abort.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/abort.o   ../../../src/abort.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/abort.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/abort.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacapp.o: ../../../src/bacapp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacapp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacapp.o   ../../../src/bacapp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacapp.o   ../../../src/bacapp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacapp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacapp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacdcode.o: ../../../src/bacdcode.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacdcode.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacdcode.o   ../../../src/bacdcode.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacdcode.o   ../../../src/bacdcode.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacdcode.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacdcode.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacerror.o: ../../../src/bacerror.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacerror.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacerror.o   ../../../src/bacerror.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacerror.o   ../../../src/bacerror.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacerror.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacerror.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacstr.o: ../../../src/bacstr.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacstr.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacstr.o   ../../../src/bacstr.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacstr.o   ../../../src/bacstr.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacstr.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacstr.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/crc.o: ../../../src/crc.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/crc.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/crc.o   ../../../src/crc.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/crc.o   ../../../src/crc.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/crc.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/crc.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/dcc.o: ../../../src/dcc.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/dcc.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/dcc.o   ../../../src/dcc.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/dcc.o   ../../../src/dcc.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/dcc.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/dcc.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/iam.o: ../../../src/iam.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/iam.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/iam.o   ../../../src/iam.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/iam.o   ../../../src/iam.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/iam.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/iam.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/rd.o: ../../../src/rd.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/rd.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/rd.o   ../../../src/rd.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/rd.o   ../../../src/rd.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/rd.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/rd.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/reject.o: ../../../src/reject.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/reject.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/reject.o   ../../../src/reject.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/reject.o   ../../../src/reject.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/reject.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/reject.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/rp.o: ../../../src/rp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/rp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/rp.o   ../../../src/rp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/rp.o   ../../../src/rp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/rp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/rp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/whois.o: ../../../src/whois.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/whois.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/whois.o   ../../../src/whois.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/whois.o   ../../../src/whois.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/whois.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/whois.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_dcc.o: ../../../demo/handler/h_dcc.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_dcc.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_dcc.o   ../../../demo/handler/h_dcc.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_dcc.o   ../../../demo/handler/h_dcc.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_dcc.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_dcc.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_rd.o: ../../../demo/handler/h_rd.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_rd.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_rd.o   ../../../demo/handler/h_rd.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_rd.o   ../../../demo/handler/h_rd.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_rd.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_rd.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/main.o: ../main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/main.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/main.o   ../main.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/main.o   ../main.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/main.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/main.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/dlmstp.o: ../dlmstp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/dlmstp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/dlmstp.o   ../dlmstp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/dlmstp.o   ../dlmstp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/dlmstp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/dlmstp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/device.o: ../device.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/device.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/device.o   ../device.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/device.o   ../device.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/device.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/device.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/rs485.o: ../rs485.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/rs485.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/rs485.o   ../rs485.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/rs485.o   ../rs485.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/rs485.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/rs485.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/isr.o: ../isr.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/isr.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/isr.o   ../isr.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/isr.o   ../isr.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/isr.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/isr.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/datetime.o: ../../../src/datetime.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/datetime.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/datetime.o   ../../../src/datetime.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/datetime.o   ../../../src/datetime.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/datetime.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/datetime.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/txbuf.o: ../../../demo/handler/txbuf.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/txbuf.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/txbuf.o   ../../../demo/handler/txbuf.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/txbuf.o   ../../../demo/handler/txbuf.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/txbuf.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/txbuf.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_whois.o: ../../../demo/handler/h_whois.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_whois.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_whois.o   ../../../demo/handler/h_whois.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_whois.o   ../../../demo/handler/h_whois.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_whois.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_whois.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/mstp.o: ../mstp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/mstp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/mstp.o   ../mstp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/mstp.o   ../mstp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/mstp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/mstp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/bv.o: ../bv.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/bv.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/bv.o   ../bv.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/bv.o   ../bv.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/bv.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/bv.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/ai.o: ../ai.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/ai.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/ai.o   ../ai.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/ai.o   ../ai.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/ai.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/ai.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/bi.o: ../bi.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/bi.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/bi.o   ../bi.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/bi.o   ../bi.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/bi.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/bi.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/av.o: ../av.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/av.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/av.o   ../av.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/av.o   ../av.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/av.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/av.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/wp.o: ../../../src/wp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/wp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/wp.o   ../../../src/wp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/wp.o   ../../../src/wp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/wp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/wp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_npdu.o: ../../../demo/handler/h_npdu.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_npdu.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_npdu.o   ../../../demo/handler/h_npdu.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_npdu.o   ../../../demo/handler/h_npdu.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_npdu.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_npdu.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/s_iam.o: ../../../demo/handler/s_iam.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/s_iam.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/s_iam.o   ../../../demo/handler/s_iam.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/s_iam.o   ../../../demo/handler/s_iam.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/s_iam.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/s_iam.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacreal.o: ../../../src/bacreal.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacreal.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacreal.o   ../../../src/bacreal.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacreal.o   ../../../src/bacreal.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacreal.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacreal.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacint.o: ../../../src/bacint.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacint.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacint.o   ../../../src/bacint.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacint.o   ../../../src/bacint.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacint.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacint.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/npdu.o: ../../../src/npdu.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/npdu.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/npdu.o   ../../../src/npdu.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/npdu.o   ../../../src/npdu.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/npdu.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/npdu.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/apdu.o: ../apdu.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/apdu.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/apdu.o   ../apdu.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/apdu.o   ../apdu.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/apdu.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/apdu.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/noserv.o: ../../../demo/handler/noserv.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/noserv.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/noserv.o   ../../../demo/handler/noserv.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/noserv.o   ../../../demo/handler/noserv.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/noserv.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/noserv.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/fifo.o: ../../../src/fifo.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/fifo.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/fifo.o   ../../../src/fifo.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/fifo.o   ../../../src/fifo.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/fifo.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/fifo.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_rp.o: ../../../demo/handler/h_rp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_rp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_rp.o   ../../../demo/handler/h_rp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_rp.o   ../../../demo/handler/h_rp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_rp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_rp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_wp.o: ../../../demo/handler/h_wp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_wp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_wp.o   ../../../demo/handler/h_wp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_wp.o   ../../../demo/handler/h_wp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_wp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_wp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacaddr.o: ../../../src/bacaddr.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacaddr.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacaddr.o   ../../../src/bacaddr.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_ICD3=1 -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacaddr.o   ../../../src/bacaddr.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacaddr.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacaddr.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
@@ -353,273 +357,273 @@ else
 ${OBJECTDIR}/_ext/1386528437/abort.o: ../../../src/abort.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/abort.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/abort.o   ../../../src/abort.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/abort.o   ../../../src/abort.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/abort.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/abort.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacapp.o: ../../../src/bacapp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacapp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacapp.o   ../../../src/bacapp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacapp.o   ../../../src/bacapp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacapp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacapp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacdcode.o: ../../../src/bacdcode.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacdcode.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacdcode.o   ../../../src/bacdcode.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacdcode.o   ../../../src/bacdcode.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacdcode.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacdcode.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacerror.o: ../../../src/bacerror.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacerror.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacerror.o   ../../../src/bacerror.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacerror.o   ../../../src/bacerror.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacerror.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacerror.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacstr.o: ../../../src/bacstr.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacstr.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacstr.o   ../../../src/bacstr.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacstr.o   ../../../src/bacstr.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacstr.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacstr.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/crc.o: ../../../src/crc.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/crc.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/crc.o   ../../../src/crc.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/crc.o   ../../../src/crc.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/crc.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/crc.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/dcc.o: ../../../src/dcc.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/dcc.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/dcc.o   ../../../src/dcc.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/dcc.o   ../../../src/dcc.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/dcc.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/dcc.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/iam.o: ../../../src/iam.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/iam.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/iam.o   ../../../src/iam.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/iam.o   ../../../src/iam.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/iam.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/iam.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/rd.o: ../../../src/rd.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/rd.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/rd.o   ../../../src/rd.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/rd.o   ../../../src/rd.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/rd.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/rd.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/reject.o: ../../../src/reject.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/reject.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/reject.o   ../../../src/reject.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/reject.o   ../../../src/reject.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/reject.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/reject.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/rp.o: ../../../src/rp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/rp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/rp.o   ../../../src/rp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/rp.o   ../../../src/rp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/rp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/rp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/whois.o: ../../../src/whois.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/whois.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/whois.o   ../../../src/whois.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/whois.o   ../../../src/whois.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/whois.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/whois.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_dcc.o: ../../../demo/handler/h_dcc.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_dcc.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_dcc.o   ../../../demo/handler/h_dcc.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_dcc.o   ../../../demo/handler/h_dcc.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_dcc.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_dcc.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_rd.o: ../../../demo/handler/h_rd.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_rd.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_rd.o   ../../../demo/handler/h_rd.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_rd.o   ../../../demo/handler/h_rd.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_rd.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_rd.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/main.o: ../main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/main.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/main.o   ../main.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/main.o   ../main.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/main.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/main.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/dlmstp.o: ../dlmstp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/dlmstp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/dlmstp.o   ../dlmstp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/dlmstp.o   ../dlmstp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/dlmstp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/dlmstp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/device.o: ../device.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/device.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/device.o   ../device.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/device.o   ../device.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/device.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/device.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/rs485.o: ../rs485.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/rs485.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/rs485.o   ../rs485.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/rs485.o   ../rs485.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/rs485.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/rs485.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/isr.o: ../isr.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/isr.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/isr.o   ../isr.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/isr.o   ../isr.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/isr.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/isr.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/datetime.o: ../../../src/datetime.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/datetime.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/datetime.o   ../../../src/datetime.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/datetime.o   ../../../src/datetime.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/datetime.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/datetime.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/txbuf.o: ../../../demo/handler/txbuf.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/txbuf.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/txbuf.o   ../../../demo/handler/txbuf.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/txbuf.o   ../../../demo/handler/txbuf.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/txbuf.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/txbuf.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_whois.o: ../../../demo/handler/h_whois.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_whois.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_whois.o   ../../../demo/handler/h_whois.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_whois.o   ../../../demo/handler/h_whois.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_whois.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_whois.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/mstp.o: ../mstp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/mstp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/mstp.o   ../mstp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/mstp.o   ../mstp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/mstp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/mstp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/bv.o: ../bv.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/bv.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/bv.o   ../bv.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/bv.o   ../bv.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/bv.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/bv.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/ai.o: ../ai.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/ai.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/ai.o   ../ai.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/ai.o   ../ai.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/ai.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/ai.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/bi.o: ../bi.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/bi.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/bi.o   ../bi.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/bi.o   ../bi.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/bi.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/bi.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/av.o: ../av.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/av.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/av.o   ../av.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/av.o   ../av.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/av.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/av.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/wp.o: ../../../src/wp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/wp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/wp.o   ../../../src/wp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/wp.o   ../../../src/wp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/wp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/wp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_npdu.o: ../../../demo/handler/h_npdu.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_npdu.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_npdu.o   ../../../demo/handler/h_npdu.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_npdu.o   ../../../demo/handler/h_npdu.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_npdu.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_npdu.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/s_iam.o: ../../../demo/handler/s_iam.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/s_iam.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/s_iam.o   ../../../demo/handler/s_iam.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/s_iam.o   ../../../demo/handler/s_iam.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/s_iam.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/s_iam.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacreal.o: ../../../src/bacreal.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacreal.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacreal.o   ../../../src/bacreal.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacreal.o   ../../../src/bacreal.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacreal.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacreal.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacint.o: ../../../src/bacint.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacint.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacint.o   ../../../src/bacint.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacint.o   ../../../src/bacint.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacint.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacint.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/npdu.o: ../../../src/npdu.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/npdu.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/npdu.o   ../../../src/npdu.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/npdu.o   ../../../src/npdu.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/npdu.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/npdu.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1472/apdu.o: ../apdu.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
 	@${RM} ${OBJECTDIR}/_ext/1472/apdu.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1472/apdu.o   ../apdu.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1472/apdu.o   ../apdu.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1472/apdu.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/apdu.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/noserv.o: ../../../demo/handler/noserv.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/noserv.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/noserv.o   ../../../demo/handler/noserv.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/noserv.o   ../../../demo/handler/noserv.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/noserv.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/noserv.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/fifo.o: ../../../src/fifo.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/fifo.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/fifo.o   ../../../src/fifo.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/fifo.o   ../../../src/fifo.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/fifo.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/fifo.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_rp.o: ../../../demo/handler/h_rp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_rp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_rp.o   ../../../demo/handler/h_rp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_rp.o   ../../../demo/handler/h_rp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_rp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_rp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1394255507/h_wp.o: ../../../demo/handler/h_wp.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1394255507 
 	@${RM} ${OBJECTDIR}/_ext/1394255507/h_wp.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1394255507/h_wp.o   ../../../demo/handler/h_wp.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1394255507/h_wp.o   ../../../demo/handler/h_wp.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1394255507/h_wp.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1394255507/h_wp.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 ${OBJECTDIR}/_ext/1386528437/bacaddr.o: ../../../src/bacaddr.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1386528437 
 	@${RM} ${OBJECTDIR}/_ext/1386528437/bacaddr.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/_ext/1386528437/bacaddr.o   ../../../src/bacaddr.c 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -DPRINT_ENABLED=0 -DBACDL_MSTP=1 -DBIG_ENDIAN=0 -DMAX_APDU=50 -DMAX_TSM_TRANSACTIONS=0 -DBACAPP_MINIMAL -I"../" -I"../../../include" -I"../../../demo/object" -ms -oa-  -I ${MP_CC_DIR}/../h  -fo ${OBJECTDIR}/_ext/1386528437/bacaddr.o   ../../../src/bacaddr.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/_ext/1386528437/bacaddr.o 
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1386528437/bacaddr.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
@@ -628,13 +632,13 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: link
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
+dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    ../18F6720.lkr
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_LD} $(MP_EXTRA_LD_PRE) "..\18F6720.lkr"  -p$(MP_PROCESSOR_OPTION_LD)  -w -x -u_DEBUG   -z__MPLAB_BUILD=1  -u_CRUNTIME -z__MPLAB_DEBUG=1 -z__MPLAB_DEBUGGER_ICD3=1 $(MP_LINKER_DEBUG_OPTION) -l ${MP_CC_DIR}\\..\\lib  -o dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}   
+	${MP_LD} $(MP_EXTRA_LD_PRE) "../18F6720.lkr"  -p$(MP_PROCESSOR_OPTION_LD)  -w -x -u_DEBUG   -z__MPLAB_BUILD=1  -u_CRUNTIME -z__MPLAB_DEBUG=1 -z__MPLAB_DEBUGGER_ICD3=1 $(MP_LINKER_DEBUG_OPTION) -l ${MP_CC_DIR}/../lib  -o dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}   
 else
-dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
+dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   ../18F6720.lkr
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_LD} $(MP_EXTRA_LD_PRE) "..\18F6720.lkr"  -p$(MP_PROCESSOR_OPTION_LD)  -w    -z__MPLAB_BUILD=1  -u_CRUNTIME -l ${MP_CC_DIR}\\..\\lib  -o dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}   
+	${MP_LD} $(MP_EXTRA_LD_PRE) "../18F6720.lkr"  -p$(MP_PROCESSOR_OPTION_LD)  -w    -z__MPLAB_BUILD=1  -u_CRUNTIME -l ${MP_CC_DIR}/../lib  -o dist/${CND_CONF}/${IMAGE_TYPE}/BACnet-Server.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}   
 endif
 
 
@@ -653,7 +657,7 @@ endif
 # Enable dependency checking
 .dep.inc: .depcheck-impl
 
-DEPFILES=$(shell mplabwildcard ${POSSIBLE_DEPFILES})
+DEPFILES=$(shell "${PATH_TO_IDE_BIN}"mplabwildcard ${POSSIBLE_DEPFILES})
 ifneq (${DEPFILES},)
 include ${DEPFILES}
 endif
