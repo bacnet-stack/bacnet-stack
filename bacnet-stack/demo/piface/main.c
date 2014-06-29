@@ -114,7 +114,9 @@ static void Init_Service_Handlers(
 static void piface_init(void)
 {
     int hw_addr = 0;   /**< PiFaceDigital hardware address  */
+#ifdef PIFACE_INTERRUPT_ENABLE
     int intenable = 1; /**< Whether or not interrupts are enabled  */
+#endif
 
     /**
      * Open piface digital SPI connection(s)
@@ -137,24 +139,45 @@ static void piface_init(void)
 #endif
 }
 
+/* track the Piface pin state to react on changes only */
+static bool PiFace_Pin_Status[MAX_BINARY_INPUTS];
 
+/** 
+ * Clean up the PiFace interface 
+ */
 static void piface_cleanup(void)
 {
     pifacedigital_close(0);
 }
 
+/**
+ * Perform a periodic task for the PiFace card
+ */
 static void piface_task(void) 
 {
     unsigned i = 0;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
+    bool pin_status = false;
 
     for (i = 0; i < MAX_BINARY_INPUTS; i++) {
         if (!Binary_Input_Out_Of_Service(i)) {
-            present_value = BINARY_INACTIVE;
+            present_value = Binary_Input_Present_Value(i);
+            pin_status = false;
             if (pifacedigital_digital_read(i)) {
-                present_value = BINARY_ACTIVE;
+                pin_status = true;
             }
-            Binary_Input_Present_Value_Set(i, present_value);
+            if (pin_status != PiFace_Pin_Status[i]) {
+                PiFace_Pin_Status[i] = pin_status;
+                if (pin_status) {
+                    /* toggle the input only when button is pressed */
+                    if (present_value == BINARY_INACTIVE) {
+                        present_value = BINARY_ACTIVE;
+                    } else {
+                        present_value = BINARY_INACTIVE;
+                    }
+                    Binary_Input_Present_Value_Set(i, present_value);
+                }
+            }
         }
     }
     for (i = 0; i < MAX_BINARY_OUTPUTS; i++) {
@@ -174,7 +197,7 @@ static void piface_task(void)
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
  *      datalink_receive, npdu_handler,
  *      dcc_timer_seconds, bvlc_maintenance_timer,
- *      Load_Control_State_Machine_Handler, handler_cov_task,
+ *      handler_cov_task,
  *      tsm_timer_milliseconds
  *
  * @param argc [in] Arg count.
@@ -200,8 +223,10 @@ int main(
     if (argc > 1) {
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
     }
-    printf("BACnet PiFace Digital Demo\n" "BACnet Stack Version %s\n"
-        "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
+    printf("BACnet Raspberry Pi PiFace Digital Demo\n" 
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n" 
+        "Max APDU: %d\n", BACnet_Version,
         Device_Object_Instance_Number(), MAX_APDU);
     /* load any static address bindings to show up
        in our device bindings list */
