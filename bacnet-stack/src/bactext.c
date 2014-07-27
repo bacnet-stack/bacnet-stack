@@ -164,115 +164,115 @@ const char *bactext_application_tag_name(
 }
 
 INDTEXT_DATA bacnet_object_type_names[] = {
-    {OBJECT_ANALOG_INPUT, "Analog Input"}
+    {OBJECT_ANALOG_INPUT, "analog-input"}
     ,
-    {OBJECT_ANALOG_OUTPUT, "Analog Output"}
+    {OBJECT_ANALOG_OUTPUT, "analog-output"}
     ,
-    {OBJECT_ANALOG_VALUE, "Analog Value"}
+    {OBJECT_ANALOG_VALUE, "analog-value"}
     ,
-    {OBJECT_BINARY_INPUT, "Binary Input"}
+    {OBJECT_BINARY_INPUT, "binary-input"}
     ,
-    {OBJECT_BINARY_OUTPUT, "Binary Output"}
+    {OBJECT_BINARY_OUTPUT, "binary-output"}
     ,
-    {OBJECT_BINARY_VALUE, "Binary Value"}
+    {OBJECT_BINARY_VALUE, "binary-value"}
     ,
-    {OBJECT_CALENDAR, "Calendar"}
+    {OBJECT_CALENDAR, "calendar"}
     ,
-    {OBJECT_COMMAND, "Command"}
+    {OBJECT_COMMAND, "command"}
     ,
-    {OBJECT_DEVICE, "Device"}
+    {OBJECT_DEVICE, "device"}
     ,
-    {OBJECT_EVENT_ENROLLMENT, "Event Enrollment"}
+    {OBJECT_EVENT_ENROLLMENT, "event-enrollment"}
     ,
-    {OBJECT_FILE, "File"}
+    {OBJECT_FILE, "file"}
     ,
-    {OBJECT_GROUP, "Group"}
+    {OBJECT_GROUP, "group"}
     ,
-    {OBJECT_LOOP, "Loop"}
+    {OBJECT_LOOP, "loop"}
     ,
-    {OBJECT_MULTI_STATE_INPUT, "Multi-state Input"}
+    {OBJECT_MULTI_STATE_INPUT, "multi-state-input"}
     ,
-    {OBJECT_MULTI_STATE_OUTPUT, "Multi-state Output"}
+    {OBJECT_MULTI_STATE_OUTPUT, "multi-state-output"}
     ,
-    {OBJECT_NOTIFICATION_CLASS, "Notification Class"}
+    {OBJECT_NOTIFICATION_CLASS, "notification-class"}
     ,
-    {OBJECT_PROGRAM, "Program"}
+    {OBJECT_PROGRAM, "program"}
     ,
-    {OBJECT_SCHEDULE, "Schedule"}
+    {OBJECT_SCHEDULE, "schedule"}
     ,
-    {OBJECT_AVERAGING, "Averaging"}
+    {OBJECT_AVERAGING, "averaging"}
     ,
-    {OBJECT_MULTI_STATE_VALUE, "Multi-state Value"}
+    {OBJECT_MULTI_STATE_VALUE, "multi-state-value"}
     ,
-    {OBJECT_TRENDLOG, "TrendLog"}
+    {OBJECT_TRENDLOG, "trend-log"}
     ,
-    {OBJECT_LIFE_SAFETY_POINT, "Life Safety Point"}
+    {OBJECT_LIFE_SAFETY_POINT, "life-safety-point"}
     ,
-    {OBJECT_LIFE_SAFETY_ZONE, "Life Safety Zone"}
+    {OBJECT_LIFE_SAFETY_ZONE, "life-safety-zone"}
     ,
-    {OBJECT_ACCUMULATOR, "Accumulator"}
+    {OBJECT_ACCUMULATOR, "accumulator"}
     ,
-    {OBJECT_PULSE_CONVERTER, "Pulse Converter"}
+    {OBJECT_PULSE_CONVERTER, "pulse-converter"}
     ,
-    {OBJECT_EVENT_LOG, "Event Log"}
+    {OBJECT_EVENT_LOG, "event-log"}
     ,
-    {OBJECT_GLOBAL_GROUP, "Global Group"}
+    {OBJECT_GLOBAL_GROUP, "global-group"}
     ,
-    {OBJECT_TREND_LOG_MULTIPLE, "Trend Log Multiple"}
+    {OBJECT_TREND_LOG_MULTIPLE, "trend-log-multiple"}
     ,
-    {OBJECT_LOAD_CONTROL, "Load Control"}
+    {OBJECT_LOAD_CONTROL, "load-control"}
     ,
-    {OBJECT_STRUCTURED_VIEW, "Structured View"}
+    {OBJECT_STRUCTURED_VIEW, "structured-view"}
     ,
-    {OBJECT_ACCESS_DOOR, "Access Door"}
+    {OBJECT_ACCESS_DOOR, "access-door"}
     ,
-    {OBJECT_LIGHTING_OUTPUT, "Lighting Output"}
+    {OBJECT_LIGHTING_OUTPUT, "lighting-output"}
     ,
-    {OBJECT_ACCESS_CREDENTIAL, "Access Credential"}
+    {OBJECT_ACCESS_CREDENTIAL, "access-credential"}
     ,
-    {OBJECT_ACCESS_POINT, "Access Point"}
+    {OBJECT_ACCESS_POINT, "access-point"}
     ,
-    {OBJECT_ACCESS_RIGHTS, "Access Rights"}
+    {OBJECT_ACCESS_RIGHTS, "access-rights"}
     ,
-    {OBJECT_ACCESS_USER, "Access User"}
+    {OBJECT_ACCESS_USER, "access-user"}
     ,
-    {OBJECT_ACCESS_ZONE, "Access Zone"}
+    {OBJECT_ACCESS_ZONE, "access-zone"}
     ,
-    {OBJECT_CREDENTIAL_DATA_INPUT, "Credential Data Input"}
+    {OBJECT_CREDENTIAL_DATA_INPUT, "credential-data-input"}
     ,
-    {OBJECT_NETWORK_SECURITY, "Network Security"}
+    {OBJECT_NETWORK_SECURITY, "network-security"}
     ,
-    {OBJECT_BITSTRING_VALUE, "BitString Value"}
+    {OBJECT_BITSTRING_VALUE, "bitstring-value"}
     ,
-    {OBJECT_CHARACTERSTRING_VALUE, "CharacterString Value"}
+    {OBJECT_CHARACTERSTRING_VALUE, "characterstring-value"}
     ,
-    {OBJECT_DATE_PATTERN_VALUE, "Date Pattern Value"}
+    {OBJECT_DATE_PATTERN_VALUE, "date-pattern-value"}
     ,
-    {OBJECT_DATE_VALUE, "Date Value"}
+    {OBJECT_DATE_VALUE, "date-value"}
     ,
-    {OBJECT_DATETIME_PATTERN_VALUE, "DateTime Pattern Value"}
+    {OBJECT_DATETIME_PATTERN_VALUE, "datetime-pattern-value"}
     ,
-    {OBJECT_DATETIME_VALUE, "DateTime Value"}
+    {OBJECT_DATETIME_VALUE, "datetime-value"}
     ,
-    {OBJECT_INTEGER_VALUE, "Integer Value"}
+    {OBJECT_INTEGER_VALUE, "integer-value"}
     ,
-    {OBJECT_LARGE_ANALOG_VALUE, "Large Analog Value"}
+    {OBJECT_LARGE_ANALOG_VALUE, "large-analog-value"}
     ,
-    {OBJECT_OCTETSTRING_VALUE, "OctetString Value"}
+    {OBJECT_OCTETSTRING_VALUE, "octetstring-value"}
     ,
-    {OBJECT_POSITIVE_INTEGER_VALUE, "Positive Integer Value"}
+    {OBJECT_POSITIVE_INTEGER_VALUE, "positive-integer-value"}
     ,
-    {OBJECT_TIME_PATTERN_VALUE, "Time Pattern Value"}
+    {OBJECT_TIME_PATTERN_VALUE, "time-pattern-value"}
     ,
-    {OBJECT_TIME_VALUE, "Time Value"}
+    {OBJECT_TIME_VALUE, "time-value"}
     ,
-    {OBJECT_NOTIFICATION_FORWARDER, "Notification Forwarder"}
+    {OBJECT_NOTIFICATION_FORWARDER, "notification-forwarder"}
     ,
-    {OBJECT_ALERT_ENROLLMENT, "Alert Enrollment"}
+    {OBJECT_ALERT_ENROLLMENT, "alert-enrollment"}
     ,
-    {OBJECT_CHANNEL, "Channel"}
+    {OBJECT_CHANNEL, "channel"}
     ,
-    {OBJECT_LIGHTING_OUTPUT, "Lighting Output"}
+    {OBJECT_LIGHTING_OUTPUT, "lighting-output"}
     ,
     {0, NULL}
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
