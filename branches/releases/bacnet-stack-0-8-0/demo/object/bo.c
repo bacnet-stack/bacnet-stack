@@ -50,7 +50,7 @@ static BACNET_BINARY_PV
     Binary_Output_Level[MAX_BINARY_OUTPUTS][BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
-static bool Binary_Output_Out_Of_Service_Array[MAX_BINARY_OUTPUTS];
+static bool Out_Of_Service[MAX_BINARY_OUTPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Output_Properties_Required[] = {
@@ -176,6 +176,20 @@ BACNET_BINARY_PV Binary_Output_Present_Value(
     return value;
 }
 
+bool Binary_Output_Out_Of_Service(
+    uint32_t object_instance)
+{
+    bool value = false;
+    unsigned index = 0;
+
+    index = Binary_Output_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_OUTPUTS) {
+        value = Out_Of_Service[index];
+    }
+
+    return value;
+}
+
 /* note: the object name must be unique within this device */
 bool Binary_Output_Object_Name(
     uint32_t object_instance,
@@ -253,7 +267,7 @@ int Binary_Output_Read_Property(
         case PROP_OUT_OF_SERVICE:
             object_index =
                 Binary_Output_Instance_To_Index(rpdata->object_instance);
-            state = Binary_Output_Out_Of_Service_Array[object_index];
+            state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_POLARITY:
@@ -437,7 +451,7 @@ bool Binary_Output_Write_Property(
             if (status) {
                 object_index =
                     Binary_Output_Instance_To_Index(wp_data->object_instance);
-                Binary_Output_Out_Of_Service_Array[object_index] =
+                Out_Of_Service[object_index] =
                     value.type.Boolean;
             }
             break;
