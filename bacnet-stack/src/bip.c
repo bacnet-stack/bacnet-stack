@@ -166,11 +166,19 @@ int bip_send_pdu(
 
     mtu[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
-    if ((dest->net == BACNET_BROADCAST_NETWORK) || ((dest->net > 0) &&
-            (dest->len == 0)) || (dest->mac_len == 0)) {
+    if ((dest->net == BACNET_BROADCAST_NETWORK) || (dest->mac_len == 0)) {
         /* broadcast */
         address.s_addr = BIP_Broadcast_Address.s_addr;
         port = BIP_Port;
+        mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
+    } else if ((dest->net > 0) && (dest->len == 0)) {
+        /* network specific broadcast */
+        if (dest->mac_len == 6) {
+            bip_decode_bip_address(dest, &address, &port);
+        } else {
+            address.s_addr = BIP_Broadcast_Address.s_addr;
+            port = BIP_Port;
+        }
         mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
     } else if (dest->mac_len == 6) {
         bip_decode_bip_address(dest, &address, &port);
