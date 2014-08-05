@@ -163,6 +163,14 @@ const char *bactext_application_tag_name(
         ASHRAE_Reserved_String);
 }
 
+bool bactext_application_tag_index(
+    const char *search_name,
+    unsigned *found_index)
+{
+    return indtext_by_istring(bacnet_application_tag_names, search_name,
+        found_index);
+}
+
 INDTEXT_DATA bacnet_object_type_names[] = {
     {OBJECT_ANALOG_INPUT, "analog-input"}
     ,
@@ -2089,6 +2097,14 @@ const char *bactext_segmentation_name(
         ASHRAE_Reserved_String);
 }
 
+bool bactext_segmentation_index(
+    const char *search_name,
+    unsigned *found_index)
+{
+    return indtext_by_istring(bacnet_segmentation_names, search_name,
+        found_index);
+}
+
 INDTEXT_DATA bacnet_node_type_names[] = {
     {BACNET_NODE_UNKNOWN, "unknown"}
     ,
@@ -2159,4 +2175,148 @@ const char *bactext_network_layer_msg_name(
         return Vendor_Proprietary_String;
     else
         return "Invalid Network Layer Message";
+}
+
+INDTEXT_DATA life_safety_state_names[] = {
+	{LIFE_SAFETY_STATE_QUIET, "quiet"}
+	,
+    {LIFE_SAFETY_STATE_PRE_ALARM, "pre-alarm"}
+	,
+    {LIFE_SAFETY_STATE_ALARM, "alarm"}
+	,
+    {LIFE_SAFETY_STATE_FAULT, "fault"}
+	,
+    {LIFE_SAFETY_STATE_FAULT_PRE_ALARM, "fault-pre-alarm"}
+	,
+    {LIFE_SAFETY_STATE_FAULT_ALARM, "fault-alarm"}
+	,
+    {LIFE_SAFETY_STATE_NOT_READY, "not-ready"}
+	,
+    {LIFE_SAFETY_STATE_ACTIVE, "active"}
+	,
+    {LIFE_SAFETY_STATE_TAMPER, "tamper"}
+	,
+    {LIFE_SAFETY_STATE_TEST_ALARM, "test-alarm"}
+	,
+    {LIFE_SAFETY_STATE_TEST_ACTIVE, "test-active"}
+	,
+    {LIFE_SAFETY_STATE_TEST_FAULT, "test-fault"}
+	,
+    {LIFE_SAFETY_STATE_TEST_FAULT_ALARM, "fault-alarm"}
+	,
+    {LIFE_SAFETY_STATE_HOLDUP, "holdupt"}
+	,
+    {LIFE_SAFETY_STATE_DURESS, "duress"}
+	,
+    {LIFE_SAFETY_STATE_TAMPER_ALARM, "tamper-alarm"}
+	,
+    {LIFE_SAFETY_STATE_ABNORMAL, "abnormal"}
+	,
+    {LIFE_SAFETY_STATE_EMERGENCY_POWER, "emergency-power"}
+	,
+    {LIFE_SAFETY_STATE_DELAYED, "delayed"}
+	,
+    {LIFE_SAFETY_STATE_BLOCKED, "blocked"}
+	,
+    {LIFE_SAFETY_STATE_LOCAL_ALARM, "local-alarm"}
+	,
+    {LIFE_SAFETY_STATE_GENERAL_ALARM, "general-alarm"}
+	,
+    {LIFE_SAFETY_STATE_SUPERVISORY, "supervisory"}
+	,
+    {LIFE_SAFETY_STATE_TEST_SUPERVISORY, "test-supervisory"}
+	,
+    {0, NULL}
+};
+
+const char *bactext_life_safety_state_name(
+        unsigned index)
+{
+	if (index < MAX_LIFE_SAFETY_STATE)
+        return indtext_by_index_default(life_safety_state_names, index,
+            ASHRAE_Reserved_String);
+    else
+        return "Invalid Safety State Message";
+}
+
+INDTEXT_DATA lighting_in_progress[] = {
+		{BACNET_LIGHTING_IDLE, "idle" }
+		,
+		{ BACNET_LIGHTING_FADE_ACTIVE, "fade" }
+		,
+		{ BACNET_LIGHTING_RAMP_ACTIVE, "ramp" }
+		,
+		{ BACNET_LIGHTING_NOT_CONTROLLED, "not" }
+		,
+		{BACNET_LIGHTING_OTHER, "other"}
+		,
+		{ 0, NULL }
+};
+
+const char *bactext_lighting_in_progress(
+	unsigned index)
+{
+	if (index < MAX_BACNET_LIGHTING_IN_PROGRESS)
+		return indtext_by_index_default(lighting_in_progress, index,
+		ASHRAE_Reserved_String);
+	else
+		return "Invalid Lighting In Progress Message";
+}
+
+INDTEXT_DATA lighting_transition[] = {
+		{ BACNET_LIGHTING_TRANSITION_IDLE, "idle" }
+		,
+		{ BACNET_LIGHTING_TRANSITION_FADE, "fade" }
+		,
+		{ BACNET_LIGHTING_TRANSITION_RAMP, "ramp" }
+		,
+		{ 0, NULL }
+};
+
+const char *bactext_lighting_transition(
+	unsigned index)
+{
+	if (index < MAX_BACNET_LIGHTING_TRANSITION)
+		return indtext_by_index_default(lighting_transition, index,
+		ASHRAE_Reserved_String);
+	else
+		return "Invalid Lighting Transition Message";
+}
+
+INDTEXT_DATA bacnet_lighting_operation_names[] = {
+    {BACNET_LIGHTS_NONE, "none"}
+    ,
+    {BACNET_LIGHTS_FADE_TO, "fade-to"}
+    ,
+    {BACNET_LIGHTS_RAMP_TO, "ramp-to"}
+    ,
+    {BACNET_LIGHTS_STEP_UP, "step-up"}
+    ,
+    {BACNET_LIGHTS_STEP_DOWN, "step-down"}
+    ,
+    {BACNET_LIGHTS_STEP_ON, "step-on"}
+    ,
+    {BACNET_LIGHTS_STEP_OFF, "step-off"}
+    ,
+    {BACNET_LIGHTS_WARN, "warn"}
+    ,
+    {BACNET_LIGHTS_WARN_OFF, "warn-off"}
+    ,
+    {BACNET_LIGHTS_WARN_RELINQUISH, "warn-relinquish"}
+    ,
+    {BACNET_LIGHTS_STOP, "stop"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_lighting_operation_name(
+    unsigned index)
+{
+    if (index < BACNET_LIGHTS_PROPRIETARY_FIRST)
+        return indtext_by_index_default(network_layer_msg_names, index,
+            ASHRAE_Reserved_String);
+    else if (index <= BACNET_LIGHTS_PROPRIETARY_LAST)
+        return Vendor_Proprietary_String;
+    else
+        return "Invalid BACnetLightingOperation";
 }
