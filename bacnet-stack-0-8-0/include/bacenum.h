@@ -1654,7 +1654,13 @@ typedef enum BACnetLightingOperation {
     BACNET_LIGHTS_WARN = 7,
     BACNET_LIGHTS_WARN_OFF = 8,
     BACNET_LIGHTS_WARN_RELINQUISH = 9,
-    BACNET_LIGHTS_STOP = 10
+    BACNET_LIGHTS_STOP = 10,
+	MAX_BACNET_LIGHTING_OPERATION = 11,
+    /* Enumerated values 0-255 are reserved for definition by ASHRAE.
+       Enumerated values 256-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23 */
+    BACNET_LIGHTS_PROPRIETARY_FIRST = 256,
+    BACNET_LIGHTS_PROPRIETARY_LAST = 65535
 } BACNET_LIGHTING_OPERATION;
 
 typedef enum BACnetLightingInProgress {
@@ -1662,13 +1668,20 @@ typedef enum BACnetLightingInProgress {
     BACNET_LIGHTING_FADE_ACTIVE = 1,
     BACNET_LIGHTING_RAMP_ACTIVE = 2,
     BACNET_LIGHTING_NOT_CONTROLLED = 3,
-    BACNET_LIGHTING_OTHER = 4
+    BACNET_LIGHTING_OTHER = 4,
+	MAX_BACNET_LIGHTING_IN_PROGRESS = 5
 } BACNET_LIGHTING_IN_PROGRESS;
 
 typedef enum BACnetLightingTransition {
     BACNET_LIGHTING_TRANSITION_IDLE = 0,
     BACNET_LIGHTING_TRANSITION_FADE = 1,
-    BACNET_LIGHTING_TRANSITION_RAMP = 2
+    BACNET_LIGHTING_TRANSITION_RAMP = 2,
+	MAX_BACNET_LIGHTING_TRANSITION = 3,
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-255 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
+    BACNET_LIGHTING_TRANSITION_PROPRIETARY_FIRST = 64,
+    BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST = 255
 } BACNET_LIGHTING_TRANSITION;
 
 /* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
