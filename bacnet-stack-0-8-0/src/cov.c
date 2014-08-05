@@ -53,6 +53,7 @@ static int notify_encode_apdu(
     int len = 0;        /* length of each encoding */
     int apdu_len = 0;   /* total length of the apdu, return value */
     BACNET_PROPERTY_VALUE *value = NULL;        /* value in list */
+	BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
 
     if (apdu) {
         /* tag 0 - subscriberProcessIdentifier */
@@ -99,9 +100,15 @@ static int notify_encode_apdu(
             /* abstract syntax gets enclosed in a context tag */
             len = encode_opening_tag(&apdu[apdu_len], 2);
             apdu_len += len;
-            len =
-                bacapp_encode_application_data(&apdu[apdu_len], &value->value);
-            apdu_len += len;
+            app_data = &value->value;
+			while (app_data != NULL)
+			{
+                len =
+                bacapp_encode_application_data(&apdu[apdu_len], app_data);
+                apdu_len += len;
+				app_data = app_data->next;
+            }
+
             len = encode_closing_tag(&apdu[apdu_len], 2);
             apdu_len += len;
             /* tag 3 - priority OPTIONAL */
@@ -169,12 +176,14 @@ int cov_notify_decode_service_request(
     BACNET_COV_DATA * data)
 {
     int len = 0;        /* return value */
+    int app_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
     uint16_t decoded_type = 0;  /* for decoding */
     uint32_t property = 0;      /* for decoding */
     BACNET_PROPERTY_VALUE *value = NULL;        /* value in list */
+	BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */
@@ -258,13 +267,18 @@ int cov_notify_decode_service_request(
             }
             /* a tag number of 2 is not extended so only one octet */
             len++;
-            len +=
-                bacapp_decode_application_data(&apdu[len], apdu_len - len,
-                &value->value);
-            /* FIXME: check the return value; abort if no valid data? */
-            /* FIXME: there might be more than one data element in here! */
-            if (!decode_is_closing_tag_number(&apdu[len], 2)) {
-                return -1;
+            app_data = &value->value;
+			while (!decode_is_closing_tag_number(&apdu[len], 2))
+			{
+                app_len =
+                bacapp_decode_application_data(&apdu[len], apdu_len - len, app_data);
+				if (app_len <= 0)
+				{
+					return -1;
+				}
+                len += app_len;
+
+                app_data = app_data->next;
             }
             /* a tag number of 2 is not extended so only one octet */
             len++;
