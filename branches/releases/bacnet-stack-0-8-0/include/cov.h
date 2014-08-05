@@ -106,6 +106,10 @@ extern "C" {
         uint8_t invoke_id,
         BACNET_SUBSCRIBE_COV_DATA * data);
 
+    void cov_data_value_list_link(
+        BACNET_COV_DATA *data,
+        BACNET_PROPERTY_VALUE *value_list,
+        size_t count);
 
 #ifdef TEST
 #include "ctest.h"

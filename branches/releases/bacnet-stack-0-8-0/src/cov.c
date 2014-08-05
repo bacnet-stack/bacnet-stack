@@ -194,7 +194,7 @@ int cov_notify_decode_service_request(
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             data->subscriberProcessIdentifier = decoded_value;
         } else {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         /* tag 1 - initiatingDeviceIdentifier */
         if (decode_is_context_tag(&apdu[len], 1)) {
@@ -205,10 +205,10 @@ int cov_notify_decode_service_request(
                 decode_object_id(&apdu[len], &decoded_type,
                 &data->initiatingDeviceIdentifier);
             if (decoded_type != OBJECT_DEVICE) {
-                return -1;
+                return BACNET_STATUS_ERROR;
             }
         } else {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         /* tag 2 - monitoredObjectIdentifier */
         if (decode_is_context_tag(&apdu[len], 2)) {
@@ -220,7 +220,7 @@ int cov_notify_decode_service_request(
                 &data->monitoredObjectIdentifier.instance);
             data->monitoredObjectIdentifier.type = decoded_type;
         } else {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         /* tag 3 - timeRemaining */
         if (decode_is_context_tag(&apdu[len], 3)) {
@@ -230,16 +230,20 @@ int cov_notify_decode_service_request(
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             data->timeRemaining = decoded_value;
         } else {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         /* tag 4: opening context tag - listOfValues */
         if (!decode_is_opening_tag_number(&apdu[len], 4)) {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
         /* a tag number of 4 is not extended so only one octet */
         len++;
         /* the first value includes a pointer to the next value, etc */
         value = data->listOfValues;
+        if (value == NULL) {
+            /* no space to store any values */
+            return BACNET_STATUS_ERROR;
+        }
         while (value != NULL) {
             /* tag 0 - propertyIdentifier */
             if (decode_is_context_tag(&apdu[len], 0)) {
@@ -249,7 +253,7 @@ int cov_notify_decode_service_request(
                 len += decode_enumerated(&apdu[len], len_value, &property);
                 value->propertyIdentifier = (BACNET_PROPERTY_ID) property;
             } else {
-                return -1;
+                return BACNET_STATUS_ERROR;
             }
             /* tag 1 - propertyArrayIndex OPTIONAL */
             if (decode_is_context_tag(&apdu[len], 1)) {
@@ -263,18 +267,22 @@ int cov_notify_decode_service_request(
             }
             /* tag 2: opening context tag - value */
             if (!decode_is_opening_tag_number(&apdu[len], 2)) {
-                return -1;
+                return BACNET_STATUS_ERROR;
             }
             /* a tag number of 2 is not extended so only one octet */
             len++;
             app_data = &value->value;
 			while (!decode_is_closing_tag_number(&apdu[len], 2))
 			{
+                if (app_data == NULL) {
+                    /* out of room to store more values */
+                    return BACNET_STATUS_ERROR;
+                }
                 app_len =
                 bacapp_decode_application_data(&apdu[len], apdu_len - len, app_data);
-				if (app_len <= 0)
+				if (app_len < 0)
 				{
-					return -1;
+					return BACNET_STATUS_ERROR;
 				}
                 len += app_len;
 
@@ -299,9 +307,9 @@ int cov_notify_decode_service_request(
             }
             /* is there another one to decode? */
             value = value->next;
-            /* out of room to store more values */
             if (value == NULL) {
-                return -1;
+                /* out of room to store more values */
+                return BACNET_STATUS_ERROR;
             }
         }
     }
@@ -638,6 +646,38 @@ int cov_subscribe_property_decode_service_request(
     return len;
 }
 
+/** Link an array or buffer of BACNET_PROPERTY_VALUE elements and add them
+ * to the BACNET_COV_DATA structure.  It is used prior to encoding or
+ * decoding the APDU data into the structure.
+ *
+ * @param data - The BACNET_COV_DATA structure that holds the data to
+ * be encoded or decoded.
+ * @param value_list - One or more BACNET_PROPERTY_VALUE elements in
+ * a buffer or array.
+ * @param count - number of BACNET_PROPERTY_VALUE elements
+ */
+void cov_data_value_list_link(
+    BACNET_COV_DATA *data,
+    BACNET_PROPERTY_VALUE *value_list,
+    size_t count)
+{
+    BACNET_PROPERTY_VALUE *current_value_list = NULL;
+
+    if (data && value_list) {
+        data->listOfValues = value_list;
+        while (count) {
+            if (count > 1) {
+                current_value_list = value_list;
+                value_list++;
+                current_value_list->next = value_list;
+            } else {
+                value_list->next = NULL;
+            }
+            count--;
+        }
+    }
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
@@ -761,12 +801,14 @@ int cov_subscribe_property_decode_apdu(
     return len;
 }
 
-/* dummy function stubs */
 void testCOVNotifyData(
     Test * pTest,
     BACNET_COV_DATA * data,
     BACNET_COV_DATA * test_data)
 {
+    BACNET_PROPERTY_VALUE *value = NULL;
+    BACNET_PROPERTY_VALUE *test_value = NULL;
+
     ct_test(pTest,
         test_data->subscriberProcessIdentifier ==
         data->subscriberProcessIdentifier);
@@ -780,7 +822,24 @@ void testCOVNotifyData(
         test_data->monitoredObjectIdentifier.instance ==
         data->monitoredObjectIdentifier.instance);
     ct_test(pTest, test_data->timeRemaining == data->timeRemaining);
-    /* FIXME: test the listOfValues in some clever manner */
+    /* test the listOfValues in some clever manner */
+    value = data->listOfValues;
+    test_value = test_data->listOfValues;
+    while (value) {
+        ct_test(pTest, test_value);
+        if (test_value) {
+            ct_test(pTest,
+                test_value->propertyIdentifier == value->propertyIdentifier);
+            ct_test(pTest,
+                test_value->propertyArrayIndex == value->propertyArrayIndex);
+            ct_test(pTest,
+                test_value->priority == value->priority);
+            ct_test(pTest,
+                bacapp_same_value(&test_value->value, &value->value));
+            test_value = test_value->next;
+        }
+        value = value->next;
+    }
 }
 
 void testUCOVNotifyData(
@@ -791,12 +850,13 @@ void testUCOVNotifyData(
     int len = 0;
     int apdu_len = 0;
     BACNET_COV_DATA test_data;
+    BACNET_PROPERTY_VALUE value_list[5] = {{0}};
 
     len = ucov_notify_encode_apdu(&apdu[0], data);
     ct_test(pTest, len > 0);
     apdu_len = len;
 
-    test_data.listOfValues = NULL;
+    cov_data_value_list_link(&test_data, &value_list[0], 5);
     len = ucov_notify_decode_apdu(&apdu[0], apdu_len, &test_data);
     ct_test(pTest, len != -1);
     testCOVNotifyData(pTest, data, &test_data);
@@ -811,13 +871,14 @@ void testCCOVNotifyData(
     int len = 0;
     int apdu_len = 0;
     BACNET_COV_DATA test_data;
+    BACNET_PROPERTY_VALUE value_list[2] = {{0}};
     uint8_t test_invoke_id = 0;
 
     len = ccov_notify_encode_apdu(&apdu[0], invoke_id, data);
     ct_test(pTest, len != 0);
     apdu_len = len;
 
-    test_data.listOfValues = NULL;
+    cov_data_value_list_link(&test_data, &value_list[0], 2);
     len =
         ccov_notify_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
         &test_data);
@@ -831,7 +892,7 @@ void testCOVNotify(
 {
     uint8_t invoke_id = 12;
     BACNET_COV_DATA data;
-    BACNET_PROPERTY_VALUE value_list[2];
+    BACNET_PROPERTY_VALUE value_list[2] = {{0}};
 
     data.subscriberProcessIdentifier = 1;
     data.initiatingDeviceIdentifier = 123;
@@ -839,18 +900,22 @@ void testCOVNotify(
     data.monitoredObjectIdentifier.instance = 321;
     data.timeRemaining = 456;
 
-    data.listOfValues = &value_list[0];
+    cov_data_value_list_link(&data, &value_list[0], 2);
+    /* first value */
     value_list[0].propertyIdentifier = PROP_PRESENT_VALUE;
     value_list[0].propertyArrayIndex = BACNET_ARRAY_ALL;
     bacapp_parse_application_data(BACNET_APPLICATION_TAG_REAL, "21.0",
         &value_list[0].value);
     value_list[0].priority = 0;
-    value_list[0].next = NULL;
+    /* second value */
+    value_list[1].propertyIdentifier = PROP_STATUS_FLAGS;
+    value_list[1].propertyArrayIndex = BACNET_ARRAY_ALL;
+    bacapp_parse_application_data(BACNET_APPLICATION_TAG_BIT_STRING, "0000",
+        &value_list[1].value);
+    value_list[1].priority = 0;
 
     testUCOVNotifyData(pTest, &data);
     testCCOVNotifyData(pTest, invoke_id, &data);
-
-    /* FIXME: add more values to the list of values */
 }
 
 void testCOVSubscribeData(
