@@ -46,6 +46,7 @@
 #include "net.h"
 #include "datalink.h"
 #include "whois.h"
+#include "version.h"
 /* some demo stuff needed */
 #include "rpm.h"
 #include "filename.h"
@@ -74,7 +75,7 @@ static void MyErrorHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\r\n",
+        printf("BACnet Error: %s: %s\n",
             bactext_error_class_name((int) error_class),
             bactext_error_code_name((int) error_code));
         Error_Detected = true;
@@ -90,7 +91,7 @@ void MyAbortHandler(
     (void) server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\r\n",
+        printf("BACnet Abort: %s\n",
             bactext_abort_reason_name((int) abort_reason));
         Error_Detected = true;
     }
@@ -104,7 +105,7 @@ void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\r\n",
+        printf("BACnet Reject: %s\n",
             bactext_reject_reason_name((int) reject_reason));
         Error_Detected = true;
     }
@@ -233,6 +234,63 @@ void cleanup(
     }
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s device-instance object-type object-instance "
+        "property[index][,property[index]] [object-type ...]\n",
+        filename);
+    printf("       [--version][--help]\n");
+}
+
+static void print_help(char *filename)
+{
+    printf("Read one or more properties from one or more objects\n"
+        "in a BACnet device and print the value(s).\n"
+        "device-instance:\n"
+        "BACnet Device Object Instance number that you are\n"
+        "trying to communicate to.  This number will be used\n"
+        "to try and bind with the device using Who-Is and\n"
+        "I-Am services.  For example, if you were reading\n"
+        "Device Object 123, the device-instance would be 123.\n"
+        "\nobject-type:\n"
+        "The object type is the integer value of the enumeration\n"
+        "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
+        "that you are reading.  For example if you were\n"
+        "reading Analog Output 2, the object-type would be 1.\n"
+        "\nobject-instance:\n"
+        "This is the object instance number of the object that\n"
+        "you are reading.  For example, if you were reading\n"
+        "Analog Output 2, the object-instance would be 2.\n"
+        "\nproperty:\n"
+        "The property is an integer value of the enumeration\n"
+        "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
+        "you are reading.  For example, if you were reading the\n"
+        "Present Value property, use 85 as the property.\n"
+        "\n[index]:\n"
+        "This optional integer parameter is the index number of \n"
+        "an array property.  Individual elements of an array can\n"
+        "be read.  If this parameter is missing and the property\n"
+        "is an array, the entire array will be read.\n"
+        "\nExample:\n"
+        "If you want read the PRESENT_VALUE property and various\n"
+        "array elements of the PRIORITY_ARRAY in Device 123\n"
+        "Analog Output object 99, use the following command:\n"
+        "%s 123 1 99 85,87[0],87\n"
+        "If you want read the PRESENT_VALUE property in objects\n"
+        "Analog Input 77 and Analog Input 78 in Device 123\n"
+        "use the following command:\n" "%s 123 0 77 85 0 78 85\n"
+        "If you want read the ALL property in\n"
+        "Device object 123, you would use the following command:\n"
+        "%s 123 8 123 8\n"
+        "If you want read the OPTIONAL property in\n"
+        "Device object 123, you would use the following command:\n"
+        "%s 123 8 123 80\n"
+        "If you want read the REQUIRED property in\n"
+        "Device object 123, you would use the following command:\n"
+        "%s 123 8 123 105\n", filename, filename, filename, filename,
+        filename);
+}
+
 int main(
     int argc,
     char *argv[])
@@ -258,64 +316,33 @@ int main(
     unsigned property_id = 0;
     unsigned property_array_index = 0;
     int scan_count = 0;
+    int argi = 0;
     char *filename = NULL;
 
-    if (argc < 5) {
-        filename = filename_remove_path(argv[0]);
-        printf("Usage: %s device-instance object-type object-instance "
-            "property[index][,property[index]] [object-type ...]\r\n",
-            filename);
-        if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-            printf("device-instance:\r\n"
-                "BACnet Device Object Instance number that you are\r\n"
-                "trying to communicate to.  This number will be used\r\n"
-                "to try and bind with the device using Who-Is and\r\n"
-                "I-Am services.  For example, if you were reading\r\n"
-                "Device Object 123, the device-instance would be 123.\r\n"
-                "\r\nobject-type:\r\n"
-                "The object type is the integer value of the enumeration\r\n"
-                "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\r\n"
-                "that you are reading.  For example if you were\r\n"
-                "reading Analog Output 2, the object-type would be 1.\r\n"
-                "\r\nobject-instance:\r\n"
-                "This is the object instance number of the object that\r\n"
-                "you are reading.  For example, if you were reading\r\n"
-                "Analog Output 2, the object-instance would be 2.\r\n"
-                "\r\nproperty:\r\n"
-                "The property is an integer value of the enumeration\r\n"
-                "BACNET_PROPERTY_ID in bacenum.h.  It is the property\r\n"
-                "you are reading.  For example, if you were reading the\r\n"
-                "Present Value property, use 85 as the property.\r\n"
-                "\r\n[index]:\r\n"
-                "This optional integer parameter is the index number of \r\n"
-                "an array property.  Individual elements of an array can\r\n"
-                "be read.  If this parameter is missing and the property\r\n"
-                "is an array, the entire array will be read.\r\n"
-                "\r\nExample:\r\n"
-                "If you want read the PRESENT_VALUE property and various\r\n"
-                "array elements of the PRIORITY_ARRAY in Device 123\r\n"
-                "Analog Output object 99, use the following command:\r\n"
-                "%s 123 1 99 85,87[0],87\r\n"
-                "If you want read the PRESENT_VALUE property in objects\r\n"
-                "Analog Input 77 and Analog Input 78 in Device 123\r\n"
-                "use the following command:\r\n" "%s 123 0 77 85 0 78 85\r\n"
-                "If you want read the ALL property in\r\n"
-                "Device object 123, you would use the following command:\r\n"
-                "%s 123 8 123 8\r\n"
-                "If you want read the OPTIONAL property in\r\n"
-                "Device object 123, you would use the following command:\r\n"
-                "%s 123 8 123 80\r\n"
-                "If you want read the REQUIRED property in\r\n"
-                "Device object 123, you would use the following command:\r\n"
-                "%s 123 8 123 105\r\n", filename, filename, filename, filename,
-                filename);
+    filename = filename_remove_path(argv[0]);
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename);
+            print_help(filename);
+            return 0;
         }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+    }
+    if (argc < 5) {
+        print_usage(filename);
         return 0;
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -330,11 +357,11 @@ int main(
         tag_value_arg++;
         args_remaining--;
         if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough object property triples.\r\n");
+            fprintf(stderr, "Error: not enough object property triples.\n");
             return 1;
         }
         if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
-            fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+            fprintf(stderr, "object-type=%u - it must be less than %u\n",
                 rpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
             return 1;
         }
@@ -342,11 +369,11 @@ int main(
         tag_value_arg++;
         args_remaining--;
         if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough object property triples.\r\n");
+            fprintf(stderr, "Error: not enough object property triples.\n");
             return 1;
         }
         if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
-            fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
+            fprintf(stderr, "object-instance=%u - it must be less than %u\n",
                 rpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
             return 1;
         }
@@ -362,7 +389,7 @@ int main(
                 rpm_property->propertyIdentifier = property_id;
                 if (rpm_property->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
                     fprintf(stderr,
-                        "property=%u - it must be less than %u\r\n",
+                        "property=%u - it must be less than %u\n",
                         rpm_property->propertyIdentifier,
                         MAX_BACNET_PROPERTY_ID + 1);
                     return 1;
@@ -437,7 +464,7 @@ int main(
             } else if (tsm_invoke_id_free(Request_Invoke_ID))
                 break;
             else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* try again or abort? */
@@ -447,7 +474,7 @@ int main(
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                printf("\rError: APDU Timeout!\r\n");
+                printf("\rError: APDU Timeout!\n");
                 Error_Detected = true;
                 break;
             }

@@ -45,6 +45,7 @@
 #include "net.h"
 #include "datalink.h"
 #include "whois.h"
+#include "version.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -86,7 +87,7 @@ static void MyErrorHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\r\n",
+        printf("BACnet Error: %s: %s\n",
             bactext_error_class_name((int) error_class),
             bactext_error_code_name((int) error_code));
         Error_Detected = true;
@@ -102,7 +103,7 @@ void MyAbortHandler(
     (void) server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\r\n",
+        printf("BACnet Abort: %s\n",
             bactext_abort_reason_name((int) abort_reason));
         Error_Detected = true;
     }
@@ -115,7 +116,7 @@ void MyRejectHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\r\n",
+        printf("BACnet Reject: %s\n",
             bactext_reject_reason_name((int) reject_reason));
         Error_Detected = true;
     }
@@ -127,7 +128,7 @@ void MyWritePropertySimpleAckHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("\r\nWriteProperty Acknowledged!\r\n");
+        printf("\nWriteProperty Acknowledged!\n");
     }
 }
 
@@ -156,6 +157,72 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s device-instance object-type object-instance "
+        "property priority index tag value [tag value...]\n",
+        filename);
+}
+
+static void print_help(char *filename)
+{
+    printf("device-instance:\n"
+        "BACnet Device Object Instance number that you are trying to\n"
+        "communicate to.  This number will be used to try and bind with\n"
+        "the device using Who-Is and I-Am services.  For example, if you were\n"
+        "writing to Device Object 123, the device-instance would be 123.\n"
+        "\n" "object-type:\n"
+        "The object type is the integer value of the enumeration\n"
+        "BACNET_OBJECT_TYPE in bacenum.h.  It is the object that you are\n"
+        "writing to.  For example if you were writing to Analog Output 2, \n"
+        "the object-type would be 1.\n" "\n" "object-instance:\n"
+        "This is the object instance number of the object that you are \n"
+        "writing to.  For example, if you were writing to Analog Output 2, \n"
+        "the object-instance would be 2.\n" "\n" "property:\n"
+        "The property is an integer value of the enumeration \n"
+        "BACNET_PROPERTY_ID in bacenum.h.  It is the property you are \n"
+        "writing to.  For example, if you were writing to the Present Value\n"
+        "property, you would use 85 as the property.\n" "\n"
+        "priority:\n"
+        "This parameter is used for setting the priority of the\n"
+        "write. If Priority 0 is given, no priority is sent.  The BACnet \n"
+        "standard states that the value is written at the lowest \n"
+        "priority (16) if the object property supports priorities\n"
+        "when no priority is sent.\n" "\n" "index\n"
+        "This integer parameter is the index number of an array.\n"
+        "If the property is an array, individual elements can be written\n"
+        "to if supported.  If this parameter is -1, the index is ignored.\n"
+        "\n" "tag:\n"
+        "Tag is the integer value of the enumeration BACNET_APPLICATION_TAG \n"
+        "in bacenum.h.  It is the data type of the value that you are\n"
+        "writing.  For example, if you were writing a REAL value, you would \n"
+        "use a tag of 4.\n"
+        "Context tags are created using two tags in a row.  The context tag\n"
+        "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged REAL.\n"
+        "\n" "value:\n"
+        "The value is an ASCII representation of some type of data that you\n"
+        "are writing.  It is encoded using the tag information provided.  For\n"
+        "example, if you were writing a REAL value of 100.0, you would use \n"
+        "100.0 as the value.\n" "\n"
+        "Here is a brief overview of BACnet property and tags:\n"
+        "Certain properties are expected to be written with certain \n"
+        "application tags, so you probably need to know which ones to use\n"
+        "with each property of each object.  It is almost safe to say that\n"
+        "given a property and an object and a table, the tag could be looked\n"
+        "up automatically.  There may be a few exceptions to this, such as\n"
+        "the Any property type in the schedule object and the Present Value\n"
+        "accepting REAL, BOOLEAN, NULL, etc.  Perhaps it would be simpler for\n"
+        "the demo to use this kind of table - but I also wanted to be able\n"
+        "to do negative testing by passing the wrong tag and have the server\n"
+        "return a reject message.\n" "\nExample:\n"
+        "If you want send a value of 100 to the Present-Value in\n"
+        "Analog Output 0 of Device 123 at priority 16,\n"
+        "send the following command:\n"
+        "%s 123 1 0 85 16 -1 4 100\n"
+        "To send a relinquish command to the same object:\n"
+        "%s 123 1 0 85 16 -1 0 0\n", filename, filename);
+}
+
 int main(
     int argc,
     char *argv[])
@@ -176,70 +243,28 @@ int main(
     int args_remaining = 0, tag_value_arg = 0, i = 0;
     BACNET_APPLICATION_TAG property_tag;
     uint8_t context_tag = 0;
+    int argi = 0;
 
-    if (argc < 9) {
-        /* note: priority 16 and 0 should produce the same end results... */
-        printf("Usage: %s device-instance object-type object-instance "
-            "property priority index tag value [tag value...]\r\n",
-            filename_remove_path(argv[0]));
-        if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-            printf("device-instance:\r\n"
-                "BACnet Device Object Instance number that you are trying to\r\n"
-                "communicate to.  This number will be used to try and bind with\r\n"
-                "the device using Who-Is and I-Am services.  For example, if you were\r\n"
-                "writing to Device Object 123, the device-instance would be 123.\r\n"
-                "\r\n" "object-type:\r\n"
-                "The object type is the integer value of the enumeration\r\n"
-                "BACNET_OBJECT_TYPE in bacenum.h.  It is the object that you are\r\n"
-                "writing to.  For example if you were writing to Analog Output 2, \r\n"
-                "the object-type would be 1.\r\n" "\r\n" "object-instance:\r\n"
-                "This is the object instance number of the object that you are \r\n"
-                "writing to.  For example, if you were writing to Analog Output 2, \r\n"
-                "the object-instance would be 2.\r\n" "\r\n" "property:\r\n"
-                "The property is an integer value of the enumeration \r\n"
-                "BACNET_PROPERTY_ID in bacenum.h.  It is the property you are \r\n"
-                "writing to.  For example, if you were writing to the Present Value\r\n"
-                "property, you would use 85 as the property.\r\n" "\r\n"
-                "priority:\r\n"
-                "This parameter is used for setting the priority of the\r\n"
-                "write. If Priority 0 is given, no priority is sent.  The BACnet \r\n"
-                "standard states that the value is written at the lowest \r\n"
-                "priority (16) if the object property supports priorities\r\n"
-                "when no priority is sent.\r\n" "\r\n" "index\r\n"
-                "This integer parameter is the index number of an array.\r\n"
-                "If the property is an array, individual elements can be written\r\n"
-                "to if supported.  If this parameter is -1, the index is ignored.\r\n"
-                "\r\n" "tag:\r\n"
-                "Tag is the integer value of the enumeration BACNET_APPLICATION_TAG \r\n"
-                "in bacenum.h.  It is the data type of the value that you are\r\n"
-                "writing.  For example, if you were writing a REAL value, you would \r\n"
-                "use a tag of 4.\r\n"
-                "Context tags are created using two tags in a row.  The context tag\r\n"
-                "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged REAL.\r\n"
-                "\r\n" "value:\r\n"
-                "The value is an ASCII representation of some type of data that you\r\n"
-                "are writing.  It is encoded using the tag information provided.  For\r\n"
-                "example, if you were writing a REAL value of 100.0, you would use \r\n"
-                "100.0 as the value.\r\n" "\r\n"
-                "Here is a brief overview of BACnet property and tags:\r\n"
-                "Certain properties are expected to be written with certain \r\n"
-                "application tags, so you probably need to know which ones to use\r\n"
-                "with each property of each object.  It is almost safe to say that\r\n"
-                "given a property and an object and a table, the tag could be looked\r\n"
-                "up automatically.  There may be a few exceptions to this, such as\r\n"
-                "the Any property type in the schedule object and the Present Value\r\n"
-                "accepting REAL, BOOLEAN, NULL, etc.  Perhaps it would be simpler for\r\n"
-                "the demo to use this kind of table - but I also wanted to be able\r\n"
-                "to do negative testing by passing the wrong tag and have the server\r\n"
-                "return a reject message.\r\n" "\r\nExample:\r\n"
-                "If you want send a value of 100 to the Present-Value in\r\n"
-                "Analog Output 0 of Device 123 at priority 16,\r\n"
-                "send the following command:\r\n"
-                "%s 123 1 0 85 16 -1 4 100\r\n"
-                "To send a relinquish command to the same object:\r\n"
-                "%s 123 1 0 85 16 -1 0 0\r\n", filename_remove_path(argv[0]),
-                filename_remove_path(argv[0]));
+    /* print help if requested */
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename_remove_path(argv[0]));
+            print_help(filename_remove_path(argv[0]));
+            return 0;
         }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n",
+                filename_remove_path(argv[0]),
+                BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg\n"
+                "This is free software; see the source for copying conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+    }
+    if (argc < 9) {
+        print_usage(filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
@@ -252,22 +277,22 @@ int main(
     if (Target_Object_Property_Index == -1)
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+        fprintf(stderr, "object-type=%u - it must be less than %u\n",
             Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
         return 1;
     }
     if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "object-instance=%u - it must be less than %u\n",
             Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property=%u - it must be less than %u\r\n",
+        fprintf(stderr, "property=%u - it must be less than %u\n",
             Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
@@ -287,15 +312,15 @@ int main(
         property_tag = strtol(argv[tag_value_arg], NULL, 0);
         args_remaining--;
         if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough tag-value pairs\r\n");
+            fprintf(stderr, "Error: not enough tag-value pairs\n");
             return 1;
         }
         value_string = argv[tag_value_arg + 1];
         args_remaining--;
-        /* printf("tag[%d]=%u value[%d]=%s\r\n",
+        /* printf("tag[%d]=%u value[%d]=%s\n",
            i, property_tag, i, value_string); */
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            fprintf(stderr, "Error: tag=%u - it must be less than %u\r\n",
+            fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
@@ -304,7 +329,7 @@ int main(
             &Target_Object_Property_Value[i]);
         if (!status) {
             /* FIXME: show the expected entry format for the tag */
-            fprintf(stderr, "Error: unable to parse the tag value\r\n");
+            fprintf(stderr, "Error: unable to parse the tag value\n");
             return 1;
         }
         Target_Object_Property_Value[i].next = NULL;
@@ -317,7 +342,7 @@ int main(
         }
     }
     if (args_remaining > 0) {
-        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\r\n",
+        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\n",
             MAX_PROPERTY_VALUES);
         return 1;
     }
@@ -366,7 +391,7 @@ int main(
             } else if (tsm_invoke_id_free(Request_Invoke_ID))
                 break;
             else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* try again or abort? */
@@ -377,7 +402,7 @@ int main(
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
                 Error_Detected = true;
-                printf("\rError: APDU Timeout!\r\n");
+                printf("\rError: APDU Timeout!\n");
                 break;
             }
         }

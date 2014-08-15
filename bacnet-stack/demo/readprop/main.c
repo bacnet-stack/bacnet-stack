@@ -46,6 +46,7 @@
 #include "net.h"
 #include "datalink.h"
 #include "whois.h"
+#include "version.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -75,7 +76,7 @@ static void MyErrorHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\r\n",
+        printf("BACnet Error: %s: %s\n",
             bactext_error_class_name((int) error_class),
             bactext_error_code_name((int) error_code));
         Error_Detected = true;
@@ -91,7 +92,7 @@ void MyAbortHandler(
     (void) server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\r\n",
+        printf("BACnet Abort: %s\n",
             bactext_abort_reason_name((int) abort_reason));
         Error_Detected = true;
     }
@@ -104,7 +105,7 @@ void MyRejectHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\r\n",
+        printf("BACnet Reject: %s\n",
             bactext_reject_reason_name((int) reject_reason));
         Error_Detected = true;
     }
@@ -135,7 +136,7 @@ void My_Read_Property_Ack_Handler(
         len =
             rp_ack_decode_service_request(service_request, service_len, &data);
         if (len < 0) {
-            printf("<decode failed!>\r\n");
+            printf("<decode failed!>\n");
         } else {
             rp_ack_print_data(&data);
         }
@@ -167,6 +168,51 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s device-instance object-type object-instance "
+        "property [index]\n", filename);
+    printf("       [--version][--help]\n");
+}
+
+static void print_help(char *filename)
+{
+    printf("Read a property from an object in a BACnet device\n"
+        "and print the value.\n"
+        "device-instance:\n"
+        "BACnet Device Object Instance number that you are\n"
+        "trying to communicate to.  This number will be used\n"
+        "to try and bind with the device using Who-Is and\n"
+        "I-Am services.  For example, if you were reading\n"
+        "Device Object 123, the device-instance would be 123.\n"
+        "\nobject-type:\n"
+        "The object type is the integer value of the enumeration\n"
+        "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
+        "that you are reading.  For example if you were\n"
+        "reading Analog Output 2, the object-type would be 1.\n"
+        "\nobject-instance:\n"
+        "This is the object instance number of the object that\n"
+        "you are reading.  For example, if you were reading\n"
+        "Analog Output 2, the object-instance would be 2.\n"
+        "\nproperty:\n"
+        "The property is an integer value of the enumeration\n"
+        "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
+        "you are reading.  For example, if you were reading the\n"
+        "Present Value property, use 85 as the property.\n"
+        "\nindex:\n"
+        "This integer parameter is the index number of an array.\n"
+        "If the property is an array, individual elements can\n"
+        "be read.  If this parameter is missing and the property\n"
+        "is an array, the entire array will be read.\n"
+        "\nExample:\n"
+        "If you want read the Present-Value of Analog Output 101\n"
+        "in Device 123, you could send the following command:\n"
+        "%s 123 1 101 85\n"
+        "If you want read the Priority-Array of Analog Output 101\n"
+        "in Device 123, you could send the following command:\n"
+        "%s 123 1 101 87\n", filename, filename);
+}
+
 int main(
     int argc,
     char *argv[])
@@ -182,45 +228,27 @@ int main(
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
+    int argi = 0;
+    char *filename = NULL;
 
-    if (argc < 5) {
-        printf("Usage: %s device-instance object-type object-instance "
-            "property [index]\r\n", filename_remove_path(argv[0]));
-        if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-            printf("device-instance:\r\n"
-                "BACnet Device Object Instance number that you are\r\n"
-                "trying to communicate to.  This number will be used\r\n"
-                "to try and bind with the device using Who-Is and\r\n"
-                "I-Am services.  For example, if you were reading\r\n"
-                "Device Object 123, the device-instance would be 123.\r\n"
-                "\r\nobject-type:\r\n"
-                "The object type is the integer value of the enumeration\r\n"
-                "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\r\n"
-                "that you are reading.  For example if you were\r\n"
-                "reading Analog Output 2, the object-type would be 1.\r\n"
-                "\r\nobject-instance:\r\n"
-                "This is the object instance number of the object that\r\n"
-                "you are reading.  For example, if you were reading\r\n"
-                "Analog Output 2, the object-instance would be 2.\r\n"
-                "\r\nproperty:\r\n"
-                "The property is an integer value of the enumeration\r\n"
-                "BACNET_PROPERTY_ID in bacenum.h.  It is the property\r\n"
-                "you are reading.  For example, if you were reading the\r\n"
-                "Present Value property, use 85 as the property.\r\n"
-                "\r\nindex:\r\n"
-                "This integer parameter is the index number of an array.\r\n"
-                "If the property is an array, individual elements can\r\n"
-                "be read.  If this parameter is missing and the property\r\n"
-                "is an array, the entire array will be read.\r\n"
-                "\r\nExample:\r\n"
-                "If you want read the Present-Value of Analog Output 101\r\n"
-                "in Device 123, you could send the following command:\r\n"
-                "%s 123 1 101 85\r\n"
-                "If you want read the Priority-Array of Analog Output 101\r\n"
-                "in Device 123, you could send the following command:\r\n"
-                "%s 123 1 101 87\r\n", filename_remove_path(argv[0]),
-                filename_remove_path(argv[0]));
+    filename = filename_remove_path(argv[0]);
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename);
+            print_help(filename);
+            return 0;
         }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+    }
+    if (argc < 5) {
+        print_usage(filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
@@ -231,7 +259,7 @@ int main(
     if (argc > 5)
         Target_Object_Index = strtol(argv[5], NULL, 0);
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -279,7 +307,7 @@ int main(
             } else if (tsm_invoke_id_free(Request_Invoke_ID))
                 break;
             else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 /* try again or abort? */
@@ -289,7 +317,7 @@ int main(
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                printf("\rError: APDU Timeout!\r\n");
+                printf("\rError: APDU Timeout!\n");
                 Error_Detected = true;
                 break;
             }
