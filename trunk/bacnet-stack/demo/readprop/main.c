@@ -248,7 +248,7 @@ int main(
         }
     }
     if (argc < 5) {
-        print_usage(filename_remove_path(argv[0]));
+        print_usage(filename);
         return 0;
     }
     /* decode the command line parameters */
