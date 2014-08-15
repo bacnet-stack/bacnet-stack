@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <time.h>       /* for time */
 #include <errno.h>
+#include "address.h"
 #include "bactext.h"
 #include "config.h"
 #include "bacdef.h"
@@ -103,88 +104,42 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-/** Parse a string for a bacnet-address
- *
- * @param mac [out] BACNET Address MAC at least 6 octets
- * @param arg [in] nul terminated string to parse
- * @return length of address parsed in bytes
- */
-int address_from_ascii(
-    uint8_t *mac,
-    char *arg)
-{
-    unsigned a[6] = {0}, p = 0;
-    uint16_t port = 0;
-    int c, len = 0;
-
-    c = sscanf(arg, "%3u.%3u.%3u.%3u:%5u", &a[0],&a[1],&a[2],&a[3],&p);
-    if ((c == 4) || (c == 5)) {
-        mac[0] = a[0];
-        mac[1] = a[1];
-        mac[2] = a[2];
-        mac[3] = a[3];
-        if (c == 4) {
-            port = htons((uint16_t) 0xBAC0);
-        } else {
-            port = htons((uint16_t) p);
-        }
-        memcpy(&mac[4], &port, 2);
-        len = 6;
-    } else {
-        c = sscanf(arg, "%2x:%2x:%2x:%2x:%2x:%2x",
-            &a[0],&a[1],&a[2],&a[3],&a[4],&a[5]);
-        if (c == 6) {
-            mac[0] = a[0];
-            mac[1] = a[1];
-            mac[2] = a[2];
-            mac[3] = a[3];
-            mac[4] = a[4];
-            mac[5] = a[5];
-            len = 6;
-        } else if (c == 1) {
-            a[0] = (unsigned)strtol(arg, NULL, 0);
-            if (a[0] <= 255) {
-                mac[0] = a[0];
-                len = 1;
-            }
-        }
-    }
-
-    return len;
-}
-
 static void print_usage(char *filename)
 {
-    printf("Usage: %s [--dnet][--dadr][--mac][--version][--help]\n", filename);
+    printf("Usage: %s [--dnet][--dadr][--mac]\n", filename);
+    printf("       [--version][--help]\n");
 }
 
 static void print_help(char *filename)
 {
     printf("Send BACnet TimeSynchronization request.\n"
         "\n"
+        "--mac A\n"
+        "BACnet mac address."
+        "Valid ranges are from 0 to 255\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+        "\n"
         "--dnet N\n"
-        " BACnet network number N for directed requests."
-        " Valid range is from 0 to 65535\n"
-        " where 0 is the local connection\n"
-        " and 65535 is network broadcast.\n"
+        "BACnet network number N for directed requests.\n"
+        "Valid range is from 0 to 65535 where 0 is the local connection\n"
+        "and 65535 is network broadcast.\n"
         "\n"
         "--dadr A\n"
-        " BACnet mac address."
-        " Valid ranges are from 0 to 255\n"
-        " or an IP string with optional port number like 10.1.2.3:47808\n"
-        " or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n"
-        "Examples:\n"
+        "BACnet mac address on the destination BACnet network number.\n"
+        "Valid ranges are from 0 to 255\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+        "\n");
+    printf("Examples:\n"
         "Send a TimeSynchronization request to DNET 123:\n"
-        "%s --dnet 123\n"
-        "Send a TimeSynchronization request to MAC 10.0.0.1 DNET 123 DADR 5:\n"
-        "%s --mac 10.0.0.1 --dnet 123 --dadr 5\n"
-        "Send a TimeSynchronization request to MAC 10.1.2.3:47808:\n"
-        "%s --mac 10.1.2.3:47808\n",
-        filename,
-        filename,
-        filename);
+        "%s --dnet 123\n", filename);
+    printf("Send a TimeSynchronization request to MAC 10.0.0.1 DNET 123 DADR 5:\n"
+        "%s --mac 10.0.0.1 --dnet 123 --dadr 5\n", filename);
+    printf("Send a TimeSynchronization request to MAC 10.1.2.3:47808:\n"
+        "%s --mac 10.1.2.3:47808\n", filename);
 #if 0
+    /* FIXME: it would be nice to be able to send arbitrary time values */
         "date format: year/month/day:dayofweek (e.g. 2006/4/1:6)\n"
         "year: AD, such as 2006\n" "month: 1=January, 12=December\n"
         "day: 1-31\n" "dayofweek: 1=Monday, 7=Sunday\n" "\n"
@@ -213,26 +168,25 @@ int main(
     struct tm *my_time;
     BACNET_DATE bdate;
     BACNET_TIME btime;
-    BACNET_ADDRESS dest;
     long dnet = -1;
-    uint8_t mac[MAX_MAC_LEN];
-    uint8_t adr[MAX_MAC_LEN];
-    int argi = 0;
-    int len = 0, mac_len = 0;
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
     bool global_broadcast = true;
+    int argi = 0;
+    char *filename = NULL;
 
     /* decode any command line parameters */
+    filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--help") == 0) {
-            print_usage(filename_remove_path(argv[0]));
-            print_help(filename_remove_path(argv[0]));
+            print_usage(filename);
+            print_help(filename);
             return 0;
         }
         if (strcmp(argv[argi], "--version") == 0) {
-            printf("%s %s\n",
-                filename_remove_path(argv[0]),
-                BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg\n"
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
                 "This is free software; see the source for copying conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
@@ -240,8 +194,7 @@ int main(
         }
         if (strcmp(argv[argi], "--mac") == 0) {
             if (++argi < argc) {
-                mac_len = address_from_ascii(&mac[0], argv[argi]);
-                if (mac_len) {
+                if (address_mac_from_ascii(&mac, argv[argi])) {
                     global_broadcast = false;
                 }
             }
@@ -256,8 +209,7 @@ int main(
         }
         if (strcmp(argv[argi], "--dadr") == 0) {
             if (++argi < argc) {
-                len = address_from_ascii(&adr[0], argv[argi]);
-                if (len) {
+                if (address_mac_from_ascii(&adr, argv[argi])) {
                     global_broadcast = false;
                 }
             }
@@ -266,19 +218,19 @@ int main(
     if (global_broadcast) {
         datalink_get_broadcast_address(&dest);
     } else {
-        if (len && mac_len) {
-            memcpy(&dest.mac[0], &mac[0], mac_len);
-            dest.mac_len = mac_len;
-            memcpy(&dest.adr[0], &adr[0], len);
-            dest.len = len;
+        if (adr.len && mac.len) {
+            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
+            dest.mac_len = mac.len;
+            memcpy(&dest.adr[0], &adr.adr[0], adr.len);
+            dest.len = adr.len;
             if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
                 dest.net = dnet;
             } else {
                 dest.net = BACNET_BROADCAST_NETWORK;
             }
-        } else if (mac_len) {
-            memcpy(&dest.mac[0], &mac[0], mac_len);
-            dest.mac_len = mac_len;
+        } else if (mac.len) {
+            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
+            dest.mac_len = mac.len;
             dest.len = 0;
             if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
                 dest.net = dnet;

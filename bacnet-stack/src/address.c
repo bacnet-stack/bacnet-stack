@@ -189,6 +189,86 @@ static struct Address_Cache_Entry *address_remove_oldest(
     return (pCandidate);
 }
 
+/** Initialize a BACNET_MAC_ADDRESS
+ *
+ * @param mac [out] BACNET_MAC_ADDRESS structure
+ * @param adr [in] address to initialize, null if empty
+ * @param len [in] length of address in bytes
+ */
+void address_mac_init(
+    BACNET_MAC_ADDRESS *mac,
+    uint8_t *adr,
+    uint8_t len)
+{
+    uint8_t i = 0;
+
+    if (mac && adr && (len <= sizeof(mac->adr))) {
+        for (i = 0; i < len; i++) {
+            mac->adr[i] = adr[i];
+        }
+        mac->len = len;
+    } else {
+        mac->len = 0;
+    }
+}
+
+/** Parse an ASCII string for a bacnet-address
+ *
+ * @param mac [out] BACNET_MAC_ADDRESS structure to store the results
+ * @param arg [in] nul terminated ASCII string to parse
+ *
+ * @return true if the address was parsed
+ */
+bool address_mac_from_ascii(
+    BACNET_MAC_ADDRESS *mac,
+    char *arg)
+{
+    unsigned a[6] = {0}, p = 0;
+    uint16_t port = 0;
+    int c;
+    bool status = false;
+
+    if (!(mac && arg)) {
+        return false;
+    }
+    c = sscanf(arg, "%3u.%3u.%3u.%3u:%5u", &a[0],&a[1],&a[2],&a[3],&p);
+    if ((c == 4) || (c == 5)) {
+        mac->adr[0] = a[0];
+        mac->adr[1] = a[1];
+        mac->adr[2] = a[2];
+        mac->adr[3] = a[3];
+        if (c == 4) {
+            port = 0xBAC0;
+        } else {
+            port = (uint16_t)p;
+        }
+        encode_unsigned16(&mac->adr[4], port);
+        mac->len = 6;
+        status = true;
+    } else {
+        c = sscanf(arg, "%2x:%2x:%2x:%2x:%2x:%2x",
+            &a[0],&a[1],&a[2],&a[3],&a[4],&a[5]);
+        if (c == 6) {
+            mac->adr[0] = a[0];
+            mac->adr[1] = a[1];
+            mac->adr[2] = a[2];
+            mac->adr[3] = a[3];
+            mac->adr[4] = a[4];
+            mac->adr[5] = a[5];
+            mac->len = 6;
+            status = true;
+        } else if (c == 1) {
+            a[0] = (unsigned)strtol(arg, NULL, 0);
+            if (a[0] <= 255) {
+                mac->adr[0] = a[0];
+                mac->len = 1;
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
 
 /* File format:
 DeviceID MAC SNET SADR MAX-APDU
@@ -206,11 +286,10 @@ static void address_file_init(
     long device_id = 0;
     unsigned snet = 0;
     unsigned max_apdu = 0;
-    unsigned mac[MAX_MAC_LEN] = { 0 };
-    int count = 0;
     char mac_string[80] = { "" }, sadr_string[80] = {
     ""};
     BACNET_ADDRESS src = { 0 };
+    BACNET_MAC_ADDRESS mac = { 0 };
     int index = 0;
 
     pFile = fopen(pFilename, "r");
@@ -221,22 +300,19 @@ static void address_file_init(
                 if (sscanf(line, "%7ld %79s %5u %79s %4u", &device_id,
                         &mac_string[0], &snet, &sadr_string[0],
                         &max_apdu) == 5) {
-                    count =
-                        sscanf(mac_string, "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
-                        &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
-                    src.mac_len = (uint8_t) count;
-                    for (index = 0; index < MAX_MAC_LEN; index++) {
-                        src.mac[index] = (uint8_t) mac[index];
+                    if (address_mac_from_ascii(&mac, mac_string)) {
+                        src.mac_len = mac.len;
+                        for (index = 0; index < MAX_MAC_LEN; index++) {
+                            src.mac[index] = mac.adr[index];
+                        }
                     }
                     src.net = (uint16_t) snet;
                     if (snet) {
-                        count =
-                            sscanf(sadr_string, "%2x:%2x:%2x:%2x:%2x:%2x",
-                            &mac[0], &mac[1], &mac[2], &mac[3], &mac[4],
-                            &mac[5]);
-                        src.len = (uint8_t) count;
-                        for (index = 0; index < MAX_MAC_LEN; index++) {
-                            src.adr[index] = (uint8_t) mac[index];
+                        if (address_mac_from_ascii(&mac, sadr_string)) {
+                            src.len = mac.len;
+                            for (index = 0; index < MAX_MAC_LEN; index++) {
+                                src.adr[index] = mac.adr[index];
+                            }
                         }
                     } else {
                         src.len = 0;

@@ -96,6 +96,15 @@ extern "C" {
     void address_cache_timer(
         uint16_t uSeconds);
 
+    void address_mac_init(
+        BACNET_MAC_ADDRESS *mac,
+        uint8_t *adr,
+        uint8_t len);
+
+    bool address_mac_from_ascii(
+        BACNET_MAC_ADDRESS *mac,
+        char *arg);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
