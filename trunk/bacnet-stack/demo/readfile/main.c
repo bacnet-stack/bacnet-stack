@@ -43,6 +43,7 @@
 #include "net.h"
 #include "datalink.h"
 #include "whois.h"
+#include "version.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -71,9 +72,9 @@ static void Atomic_Read_File_Error_Handler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("\r\nBACnet Error!\r\n");
-    printf("Error Class: %s\r\n", bactext_error_class_name(error_class));
-    printf("Error Code: %s\r\n", bactext_error_code_name(error_code));
+    printf("\nBACnet Error!\n");
+    printf("Error Class: %s\n", bactext_error_class_name(error_class));
+    printf("Error Code: %s\n", bactext_error_code_name(error_code));
     Error_Detected = true;
 }
 
@@ -87,8 +88,8 @@ void MyAbortHandler(
     (void) src;
     (void) invoke_id;
     (void) server;
-    printf("\r\nBACnet Abort!\r\n");
-    printf("Abort Reason: %s\r\n", bactext_abort_reason_name(abort_reason));
+    printf("\nBACnet Abort!\n");
+    printf("Abort Reason: %s\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
@@ -100,8 +101,8 @@ void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("\r\nBACnet Reject!\r\n");
-    printf("Reject Reason: %s\r\n", bactext_reject_reason_name(reject_reason));
+    printf("\nBACnet Reject!\n");
+    printf("Reject Reason: %s\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
@@ -146,7 +147,7 @@ static void AtomicReadFileAckHandler(
             }
             if (data.endOfFile) {
                 End_Of_File_Detected = true;
-                printf("\r\n");
+                printf("\n");
             }
         }
     }
@@ -202,6 +203,37 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s device-instance file-instance local-name\n",
+        filename);
+    printf("       [--version][--help]\n");
+}
+
+static void print_help(char *filename)
+{
+    printf("Read a file from a BACnet device and save it locally.\n"
+        "device-instance:\n"
+        "BACnet Device Object Instance number that you are trying to\n"
+        "communicate to.  This number will be used to try and bind with\n"
+        "the device using Who-Is and I-Am services.  For example, if you were\n"
+        "reading from Device Object 123, the device-instance would be 123.\n"
+        "\n"
+        "file-instance:\n"
+        "This is the file object instance number that you are reading from.\n"
+        "For example, if you were reading from File 2, \n"
+        "the file-instance would be 2.\n"
+        "\n"
+        "local-name:\n"
+        "The name of the file that will be stored locally.\n"
+        "\n"
+        "Example:\n"
+        "If you want read File 2 from Device 123 and save it to temp.txt,\n"
+        "use the following command:\n"
+        "%s 123 2 temp.txt\n",
+        filename);
+}
+
 int main(
     int argc,
     char *argv[])
@@ -221,11 +253,28 @@ int main(
     uint8_t invoke_id = 0;
     bool found = false;
     uint16_t my_max_apdu = 0;
+    int argi = 0;
+    char *filename = NULL;
 
+    /* print help if requested */
+    filename = filename_remove_path(argv[0]);
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename);
+            print_help(filename);
+            return 0;
+        }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+    }
     if (argc < 4) {
-        /* FIXME: what about access method - record or stream? */
-        printf("%s device-instance file-instance local-name\r\n",
-            filename_remove_path(argv[0]));
+        print_usage(filename);
         return 0;
     }
     /* decode the command line parameters */
@@ -233,12 +282,12 @@ int main(
     Target_File_Object_Instance = strtol(argv[2], NULL, 0);
     Local_File_Name = argv[3];
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_File_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "file-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "file-instance=%u - it must be less than %u\n",
             Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
@@ -310,7 +359,7 @@ int main(
                     requestedOctetCount);
                 Current_Invoke_ID = invoke_id;
             } else if (tsm_invoke_id_failed(invoke_id)) {
-                fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(invoke_id);
                 /* try again or abort? */
                 Error_Detected = true;
@@ -320,7 +369,7 @@ int main(
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                fprintf(stderr, "\rError: APDU Timeout!\r\n");
+                fprintf(stderr, "\rError: APDU Timeout!\n");
                 Error_Detected = true;
                 break;
             }

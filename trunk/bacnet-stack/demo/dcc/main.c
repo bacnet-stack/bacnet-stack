@@ -44,6 +44,7 @@
 #include "datalink.h"
 #include "whois.h"
 #include "dcc.h"
+#include "version.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -73,7 +74,7 @@ static void MyErrorHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
+    printf("BACnet Error: %s: %s\n", bactext_error_class_name(error_class),
         bactext_error_code_name(error_code));
     Error_Detected = true;
 }
@@ -88,7 +89,7 @@ void MyAbortHandler(
     (void) src;
     (void) invoke_id;
     (void) server;
-    printf("BACnet Abort: %s\r\n", bactext_abort_reason_name(abort_reason));
+    printf("BACnet Abort: %s\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
@@ -100,7 +101,7 @@ void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
+    printf("BACnet Reject: %s\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
@@ -110,7 +111,7 @@ void MyDeviceCommunicationControlSimpleAckHandler(
 {
     (void) src;
     (void) invoke_id;
-    printf("DeviceCommunicationControl Acknowledged!\r\n");
+    printf("DeviceCommunicationControl Acknowledged!\n");
 }
 
 static void Init_Service_Handlers(
@@ -143,6 +144,27 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s device-instance state [timeout [password]]\n", filename);
+    printf("       [--version][--help]\n");
+}
+
+static void print_help(char *filename)
+{
+    printf("Send BACnet DeviceCommunicationControl service to device.\n"
+        "\n" "The device-instance can be 0 to %lu.\n"
+        "Possible state values:\n" "  0=enable\n" "  1=disable\n"
+        "  2=disable-initiation\n"
+        "The timeout can be 0 for infinite, or a value in minutes for disable.\n"
+        "The optional password is a character string of 1 to 20 characters.\n"
+        "\nExample:\n"
+        "If you want disable Device Communications in Device 123\n"
+        "for 60 minutes with password 'filister', use the following command:\n"
+        "%s 123 1 60 filister\n",
+        (unsigned long)(BACNET_MAX_INSTANCE - 1), filename);
+}
+
 int main(
     int argc,
     char *argv[])
@@ -159,33 +181,45 @@ int main(
     time_t timeout_seconds = 0;
     uint8_t invoke_id = 0;
     bool found = false;
+    int argi = 0;
+    char *filename = NULL;
 
+    filename = filename_remove_path(argv[0]);
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename);
+            print_help(filename);
+            return 0;
+        }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+    }
     if (argc < 3) {
-        printf("Usage: %s device-instance state timeout [password]\r\n"
-            "Send BACnet DeviceCommunicationControl service to device.\r\n"
-            "\r\n" "The device-instance can be 0 to %d.\r\n"
-            "Possible state values:\r\n" "  0=enable\r\n" "  1=disable\r\n"
-            "  2=disable-initiation\r\n"
-            "The timeout can be 0 for infinite, or a value in minutes for disable.\r\n"
-            "The optional password is a character string of 1 to 20 characters.\r\n"
-            "Use BACNET_IFACE environment variable for the interface\r\n",
-            filename_remove_path(argv[0]), BACNET_MAX_INSTANCE - 1);
+        print_usage(filename);
         return 0;
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Communication_State = (uint16_t) strtol(argv[2], NULL, 0);
-    Communication_Timeout_Minutes = (uint16_t) strtol(argv[3], NULL, 0);
+    /* optional timeout, required if password is included */
+    if (argc > 3) {
+        Communication_Timeout_Minutes = (uint16_t) strtol(argv[3], NULL, 0);
+    }
     /* optional password */
-    if (argc > 4)
+    if (argc > 4) {
         Communication_Password = argv[4];
-
+    }
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
@@ -229,7 +263,7 @@ int main(
             } else if (tsm_invoke_id_free(invoke_id))
                 break;
             else if (tsm_invoke_id_failed(invoke_id)) {
-                fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(invoke_id);
                 /* try again or abort? */
                 break;
@@ -238,7 +272,7 @@ int main(
             /* increment timer - exit if timed out */
             elapsed_seconds += (current_seconds - last_seconds);
             if (elapsed_seconds > timeout_seconds) {
-                printf("\rError: APDU Timeout!\r\n");
+                printf("\rError: APDU Timeout!\n");
                 break;
             }
         }

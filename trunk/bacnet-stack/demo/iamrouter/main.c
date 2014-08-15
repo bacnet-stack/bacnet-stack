@@ -39,6 +39,7 @@
 #include "apdu.h"
 #include "device.h"
 #include "datalink.h"
+#include "version.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -62,7 +63,7 @@ void MyAbortHandler(
     (void) src;
     (void) invoke_id;
     (void) server;
-    printf("BACnet Abort: %s\r\n", bactext_abort_reason_name(abort_reason));
+    printf("BACnet Abort: %s\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
@@ -74,7 +75,7 @@ void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    printf("BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
+    printf("BACnet Reject: %s\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
@@ -99,33 +100,57 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s DNET [DNET] [DNET] [...]\n", filename);
+    printf("       [--version][--help]\n");
+}
+
+static void print_help(char *filename)
+{
+    printf("Send BACnet I-Am-Router-To-Network message for \n"
+        "one or more networks.\n" "\nDNET:\n"
+        "BACnet destination network number 0-65534\n"
+        "To send a I-Am-Router-To-Network message for DNET 86:\n"
+        "%s 86\n"
+        "To send a I-Am-Router-To-Network message for multiple DNETs\n"
+        "use the following command:\n" "%s 86 42 24 14\n",
+        filename, filename);
+}
+
 int main(
     int argc,
     char *argv[])
 {
     unsigned arg_count = 0;
+    int argi = 0;
+    char *filename = NULL;
 
-    if (argc < 2) {
-        printf("Usage: %s DNET [DNET] [DNET] [...]\r\n",
-            filename_remove_path(argv[0]));
-        return 0;
+    filename = filename_remove_path(argv[0]);
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename);
+            print_help(filename);
+            exit(0);
+        }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            exit(0);
+        }
     }
-    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("Send BACnet I-Am-Router-To-Network message for \r\n"
-            "one or more networks.\r\n" "\r\nDNET:\r\n"
-            "BACnet destination network number 0-65534\r\n"
-            "To send a I-Am-Router-To-Network message for DNET 86:\r\n"
-            "%s 86\r\n"
-            "To send a I-Am-Router-To-Network message for multiple DNETs\r\n"
-            "use the following command:\r\n" "%s 86 42 24 14\r\n",
-            filename_remove_path(argv[0]), filename_remove_path(argv[0]));
+    if (argc < 2) {
+        print_usage(filename);
         return 0;
     }
     /* decode the command line parameters */
     if (argc > 1) {
         for (arg_count = 1; arg_count < argc; arg_count++) {
             if (arg_count > MAX_ROUTER_DNETS) {
-                fprintf(stderr, "Limited to %u DNETS.  Sorry!\r\n",
+                fprintf(stderr, "Limited to %u DNETS.  Sorry!\n",
                     MAX_ROUTER_DNETS);
                 break;
             }
@@ -135,7 +160,7 @@ int main(
             Target_Router_Networks[arg_count] = -1;
             /* invalid DNET? */
             if (Target_Router_Networks[arg_count - 1] >= 65535) {
-                fprintf(stderr, "DNET=%u - it must be less than %u\r\n",
+                fprintf(stderr, "DNET=%u - it must be less than %u\n",
                     Target_Router_Networks[arg_count - 1], 65535);
                 return 1;
             }
