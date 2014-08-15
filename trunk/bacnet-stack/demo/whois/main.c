@@ -41,6 +41,7 @@
 #include "device.h"
 #include "datalink.h"
 #include "bactext.h"
+#include "version.h"
 /* some demo stuff needed */
 #include "filename.h"
 #include "handlers.h"
@@ -183,7 +184,7 @@ void MyAbortHandler(
     (void) src;
     (void) invoke_id;
     (void) server;
-    fprintf(stderr, "BACnet Abort: %s\r\n",
+    fprintf(stderr, "BACnet Abort: %s\n",
         bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
@@ -196,7 +197,7 @@ void MyRejectHandler(
     /* FIXME: verify src and invoke id */
     (void) src;
     (void) invoke_id;
-    fprintf(stderr, "BACnet Reject: %s\r\n",
+    fprintf(stderr, "BACnet Reject: %s\n",
         bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
@@ -286,86 +287,60 @@ static void print_address_cache(
     }
 }
 
-static int print_usage(
-    char *exe_name)
+static void print_usage(
+    char *filename)
 {
-    printf("Usage:\n" "\n" "%s [[network]:[address]] "
-        "[device-instance-min [device-instance-max]] [--help]\n", exe_name);
-    return 1;
+    printf("Usage: %s", filename);
+    printf(" [device-instance-min [device-instance-max]]\n");
+    printf("       [--dnet][--dadr][--mac]\n");
+    printf("       [--version][--help]\n");
 }
 
-
-static int print_help(
-    char *exe_name)
+static void print_help(
+    char *filename)
 {
-    printf("Usage:\n" "\n" "%s [[network]:[address]] "
-        "[device-instance-min [device-instance-max]] [--help]\n" "\n"
-        "  Send BACnet WhoIs service request to a device or multiple devices, and wait\n"
-        "  for responses. Displays any devices found and their network information.\n"
-        "\n" "device-instance:\r\n"
-        "  BACnet Device Object Instance number that you are trying to send a Who-Is\n"
-        "  service request. The value should be in  the range of 0 to 4194303. A range\n"
-        "  of values can also be specified by using a minimum value and a maximum value.\n"
-        "\n" "network:\n"
-        "  BACnet network number for directed requests. Valid range is from 0 to 65535\n"
-        "  where 0 is the local connection and 65535 is network broadcast.\n"
-        "\n" "address:\n"
-        "  BACnet mac address number. Valid ranges are from 0 to 255 or a IP connection \n"
-        "  string including port number like 10.1.2.3:47808.\n" "\n"
-        "Examples:\n\n" "To send a WhoIs request to Network 123:\n"
-        "%s 123:\n\n" "To send a WhoIs request to Network 123 Address 5:\n"
-        "%s 123:5\n\n" "To send a WhoIs request to Device 123:\n" "%s 123\n\n"
-        "To send a WhoIs request to Devices from 1000 to 9000:\n"
-        "%s 1000 9000\n\n"
-        "To send a WhoIs request to Devices from 1000 to 9000 on Network 123:\n"
-        "%s 123: 1000 9000\n\n" "To send a WhoIs request to all devices:\n"
-        "%s\n\n", exe_name, exe_name, exe_name, exe_name, exe_name, exe_name,
-        exe_name);
-    return 1;
+    printf("Send BACnet WhoIs service request to a device or multiple\n"
+        "devices, and wait for responses. Displays any devices found\n"
+        "and their network information.\n"
+        "\n"
+        "device-instance:\n"
+        "BACnet Device Object Instance number that you are trying\n"
+        "to send a Who-Is service request. The value should be in\n"
+        "the range of 0 to 4194303. A range of values can also be\n"
+        "specified by using a minimum value and a maximum value.\n"
+        "\n");
+    printf("--mac A\n"
+        "BACnet mac address."
+        "Valid ranges are from 0 to 255\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+        "\n"
+        "--dnet N\n"
+        "BACnet network number N for directed requests.\n"
+        "Valid range is from 0 to 65535 where 0 is the local connection\n"
+        "and 65535 is network broadcast.\n"
+        "\n"
+        "--dadr A\n"
+        "BACnet mac address on the destination BACnet network number.\n"
+        "Valid ranges are from 0 to 255\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+        "\n");
+    printf("Send a WhoIs request to DNET 123:\n"
+        "%s --dnet 123\n", filename);
+    printf("Send a WhoIs request to MAC 10.0.0.1 DNET 123 DADR 5:\n"
+        "%s --mac 10.0.0.1 --dnet 123 --dadr 5\n", filename);
+    printf("Send a WhoIs request to MAC 10.1.2.3:47808:\n"
+        "%s --mac 10.1.2.3:47808\n", filename);
+    printf("Send a WhoIs request to Device 123:\n"
+        "%s 123\n", filename);
+    printf("Send a WhoIs request to Devices from 1000 to 9000:\n"
+        "%s 1000 9000\n", filename);
+    printf("Send a WhoIs request to Devices from 1000 to 9000 on DNET 123:\n"
+        "%s 1000 9000 --dnet 123\n", filename);
+    printf("Send a WhoIs request to all devices:\n"
+        "%s\n", filename);
 }
-
-
-/* Parse a string for a bacnet-address
-**
-** @return length of address parsed in bytes
-*/
-static int parse_bac_address(
-    BACNET_ADDRESS * dest,      /* [out] BACNET Address */
-    char *src   /* [in] nul terminated string to parse */
-    )
-{
-    int i = 0;
-    uint16_t s;
-    int a[4], p;
-    int c = sscanf(src, "%u.%u.%u.%u:%u", &a[0], &a[1], &a[2], &a[3], &p);
-
-    dest->len = 0;
-
-    if (c == 1) {
-        if (a[0] < 256) {       /* mstp */
-            dest->adr[0] = a[0];
-            dest->len = 1;
-        } else if (a[0] < 0x0FFFF) {    /* lon */
-            s = htons((uint16_t) a[0]);
-            memcpy(&dest->adr[0], &s, 2);
-            dest->len = 2;
-        } else
-            return 0;
-    } else if (c == 5) {        /* ip address */
-        for (i = 0; i < 4; i++) {
-            if (a[i] == 0 || a[i] > 255)
-                return 0;
-
-            dest->adr[i] = a[i];
-        }
-        s = htons((uint16_t) p);
-        memcpy(&dest->adr[i], &s, 2);
-        dest->len = 6;
-    }
-    return dest->len;
-}
-
-
 
 int main(
     int argc,
@@ -381,61 +356,106 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
-    BACNET_ADDRESS dest;
-    int argi;
+    long dnet = -1;
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    bool global_broadcast = true;
+    int argi = 0;
+    unsigned int target_args = 0;
+    char *filename = NULL;
 
-    /* print help if requested */
+    /* decode any command line parameters */
+    filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--help") == 0) {
-            print_help(filename_remove_path(argv[0]));
+            print_usage(filename);
+            print_help(filename);
             return 0;
         }
-    }
-
-    datalink_get_broadcast_address(&dest);
-
-    /* decode the command line parameters */
-    if (argc >= 2) {
-        char *s;
-        long v = strtol(argv[1], &s, 0);
-        if (*s++ == ':') {
-            if (argv[1][0] != ':')
-                dest.net = (uint16_t) v;
-            dest.mac_len = 0;
-            if (isdigit(*s))
-                parse_bac_address(&dest, s);
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+        if (strcmp(argv[argi], "--mac") == 0) {
+            if (++argi < argc) {
+                if (address_mac_from_ascii(&mac, argv[argi])) {
+                    global_broadcast = false;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dnet") == 0) {
+            if (++argi < argc) {
+                dnet = strtol(argv[argi], NULL, 0);
+                if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                    global_broadcast = false;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dadr") == 0) {
+            if (++argi < argc) {
+                if (address_mac_from_ascii(&adr, argv[argi])) {
+                    global_broadcast = false;
+                }
+            }
         } else {
-            Target_Object_Instance_Min = Target_Object_Instance_Max = v;
+            if (target_args == 0) {
+                Target_Object_Instance_Min = Target_Object_Instance_Max =
+                    strtol(argv[argi], NULL, 0);
+                target_args++;
+            } else if (target_args == 1) {
+                Target_Object_Instance_Max = strtol(argv[argi], NULL, 0);
+                target_args++;
+            } else {
+                print_usage(filename);
+                return 1;
+            }
         }
     }
-
-    if (argc <= 2) {
-        /* empty */
-    } else if (argc == 3) {
-        if (Target_Object_Instance_Min == -1)
-            Target_Object_Instance_Min = Target_Object_Instance_Max =
-                strtol(argv[2], NULL, 0);
-        else
-            Target_Object_Instance_Max = strtol(argv[2], NULL, 0);
-    } else if (argc == 4) {
-        Target_Object_Instance_Min = strtol(argv[2], NULL, 0);
-        Target_Object_Instance_Max = strtol(argv[3], NULL, 0);
+    if (global_broadcast) {
+        datalink_get_broadcast_address(&dest);
     } else {
-        print_usage(filename_remove_path(argv[0]));
-        return 1;
+        if (adr.len && mac.len) {
+            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
+            dest.mac_len = mac.len;
+            memcpy(&dest.adr[0], &adr.adr[0], adr.len);
+            dest.len = adr.len;
+            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                dest.net = dnet;
+            } else {
+                dest.net = BACNET_BROADCAST_NETWORK;
+            }
+        } else if (mac.len) {
+            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
+            dest.mac_len = mac.len;
+            dest.len = 0;
+            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                dest.net = dnet;
+            } else {
+                dest.net = 0;
+            }
+        } else {
+            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                dest.net = dnet;
+            } else {
+                dest.net = BACNET_BROADCAST_NETWORK;
+            }
+            dest.mac_len = 0;
+            dest.len = 0;
+        }
     }
-
     if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance-min=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance-min=%u - it must be less than %u\n",
             Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance-max=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance-max=%u - it must be less than %u\n",
             Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
-
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     init_service_handlers();
