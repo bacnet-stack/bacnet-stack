@@ -134,6 +134,12 @@ struct BACnet_Device_Address {
     uint8_t adr[MAX_MAC_LEN];   /* hwaddr (MAC) address */
 };
 typedef struct BACnet_Device_Address BACNET_ADDRESS;
+/* define a MAC address for manipulation */
+struct BACnet_MAC_Address {
+    uint8_t len;        /* length of MAC address */
+    uint8_t adr[MAX_MAC_LEN];
+};
+typedef struct BACnet_MAC_Address BACNET_MAC_ADDRESS;
 
 /* note: with microprocessors having lots more code space than memory,
    it might be better to have a packed encoding with a library to
