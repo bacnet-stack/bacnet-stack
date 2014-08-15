@@ -65,7 +65,7 @@ library:
 	$(MAKE) -s -C lib all
 
 demos:
-	$(MAKE) -s -C demo all
+	$(MAKE) -C demo all
 
 gateway:
 	$(MAKE) -B -s -C demo gateway
