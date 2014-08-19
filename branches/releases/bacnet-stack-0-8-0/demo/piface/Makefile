@@ -55,7 +55,6 @@ DEMOSRC = \
         $(BACNET_HANDLER)/h_getevent.c  \
         $(BACNET_HANDLER)/h_gas_a.c  \
         $(BACNET_HANDLER)/h_get_alarm_sum.c  \
-        $(BACNET_HANDLER)/h_getevent_a.c  \
         $(BACNET_HANDLER)/h_pt.c  \
         $(BACNET_HANDLER)/h_pt_a.c  \
         $(BACNET_HANDLER)/h_upt.c  \
@@ -63,8 +62,6 @@ DEMOSRC = \
         $(BACNET_HANDLER)/s_awfs.c \
         $(BACNET_HANDLER)/s_dcc.c \
         $(BACNET_HANDLER)/s_ihave.c \
-        $(BACNET_HANDLER)/s_get_alarm_sum.c  \
-        $(BACNET_HANDLER)/s_get_event.c  \
         $(BACNET_HANDLER)/s_iam.c  \
         $(BACNET_HANDLER)/s_cov.c  \
         $(BACNET_HANDLER)/s_ptransfer.c \
@@ -134,7 +131,6 @@ CORESRC =  \
         $(BACNET_CORE)/get_alarm_sum.c \
         $(BACNET_CORE)/readrange.c \
         $(BACNET_CORE)/timestamp.c \
-        $(BACNET_CORE)/lighting.c \
         $(BACNET_CORE)/version.c
 
 PORT_BIP_SRC = \
