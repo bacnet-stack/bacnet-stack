@@ -48,6 +48,9 @@ extern "C" {
         BACNET_RELIABILITY Reliability;
         bool Out_Of_Service;
         uint8_t Units;
+        float Prior_Value;
+        float COV_Increment;
+        bool Changed;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;
@@ -117,6 +120,19 @@ extern "C" {
     void Analog_Input_Out_Of_Service_Set(
         uint32_t object_instance,
         bool oos_flag);
+
+    bool Analog_Input_Change_Of_Value(
+        uint32_t instance);
+    void Analog_Input_Change_Of_Value_Clear(
+        uint32_t instance);
+    bool Analog_Input_Encode_Value_List(
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+    float Analog_Input_COV_Increment(
+        uint32_t instance);
+    void Analog_Input_COV_Increment_Set(
+        uint32_t instance,
+        float value);
 
     /* note: header of Intrinsic_Reporting function is required
        even when INTRINSIC_REPORTING is not defined */
