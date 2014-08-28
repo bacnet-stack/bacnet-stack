@@ -46,12 +46,8 @@ extern "C" {
     typedef struct analog_value_descr {
         unsigned Event_State:3;
         bool Out_Of_Service;
-        uint8_t Units;
-        /* Here is our Priority Array.  They are supposed to be Real, but */
-        /* we don't have that kind of memory, so we will use a single byte */
-        /* and load a Real for returning the value when asked. */
-        uint8_t Priority_Array[BACNET_MAX_PRIORITY];
-        float Relinquish_Default;
+        uint16_t Units;
+        float Present_Value;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;
