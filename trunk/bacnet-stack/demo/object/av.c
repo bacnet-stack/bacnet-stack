@@ -46,13 +46,6 @@
 #define MAX_ANALOG_VALUES 4
 #endif
 
-/* we choose to have a NULL level in our system represented by */
-/* a particular value.  When the priorities are not in use, they */
-/* will be relinquished (i.e. set to the NULL level). */
-#define ANALOG_LEVEL_NULL 255
-
-
-
 ANALOG_VALUE_DESCR AV_Descr[MAX_ANALOG_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -70,8 +63,6 @@ static const int Analog_Value_Properties_Required[] = {
 
 static const int Analog_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
-    PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY,
     PROP_NOTIFICATION_CLASS,
@@ -113,11 +104,8 @@ void Analog_Value_Init(
 
     for (i = 0; i < MAX_ANALOG_VALUES; i++) {
         memset(&AV_Descr[i], 0x00, sizeof(ANALOG_VALUE_DESCR));
-        /* initialize all the analog output priority arrays to NULL */
-        for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
-            AV_Descr[i].Priority_Array[j] = ANALOG_LEVEL_NULL;
-        }
-        AV_Descr[i].Units = UNITS_PERCENT;
+        AV_Descr[i].Present_Value = 0.0;
+        AV_Descr[i].Units = UNITS_NO_UNITS;
 #if defined(INTRINSIC_REPORTING)
         AV_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
@@ -184,55 +172,41 @@ unsigned Analog_Value_Instance_To_Index(
     return index;
 }
 
+/**
+ * For a given object instance-number, sets the present-value at a given
+ * priority 1..16.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point analog value
+ * @param  priority - priority 1..16
+ *
+ * @return  true if values are within range and present-value is set.
+ */
 bool Analog_Value_Present_Value_Set(
     uint32_t object_instance,
     float value,
     uint8_t priority)
 {
-    ANALOG_VALUE_DESCR *CurrentAV;
     unsigned index = 0;
     bool status = false;
 
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
-        CurrentAV = &AV_Descr[index];
-        if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-            (priority != 6 /* reserved */ ) &&
-            (value >= 0.0) && (value <= 100.0)) {
-            CurrentAV->Priority_Array[priority - 1] = (uint8_t) value;
-            /* Note: you could set the physical output here to the next
-               highest priority, or to the relinquish default if no
-               priorities are set.
-               However, if Out of Service is TRUE, then don't set the
-               physical output.  This comment may apply to the
-               main loop (i.e. check out of service before changing output) */
-            status = true;
-        }
+        AV_Descr[index].Present_Value = value;
+        status = true;
     }
     return status;
 }
 
-
 float Analog_Value_Present_Value(
     uint32_t object_instance)
 {
-    ANALOG_VALUE_DESCR *CurrentAV;
     float value = 0;
     unsigned index = 0;
-    unsigned i = 0;
 
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
-        CurrentAV = &AV_Descr[index];
-        /* When all the priorities are level null, the present value returns */
-        /* the Relinquish Default value */
-        value = CurrentAV->Relinquish_Default;
-        for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-            if (CurrentAV->Priority_Array[i] != ANALOG_LEVEL_NULL) {
-                value = CurrentAV->Priority_Array[i];
-                break;
-            }
-        }
+        value = AV_Descr[index].Present_Value;
     }
 
     return value;
@@ -342,58 +316,6 @@ int Analog_Value_Read_Property(
         case PROP_UNITS:
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAV->Units);
-            break;
-
-        case PROP_PRIORITY_ARRAY:
-            /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
-                apdu_len =
-                    encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
-                    /* FIXME: check if we have room before adding it to APDU */
-                    if (CurrentAV->Priority_Array[i] == ANALOG_LEVEL_NULL)
-                        len = encode_application_null(&apdu[apdu_len]);
-                    else {
-                        real_value = CurrentAV->Priority_Array[i];
-                        len =
-                            encode_application_real(&apdu[apdu_len],
-                            real_value);
-                    }
-                    /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
-                        apdu_len += len;
-                    else {
-                        rpdata->error_class = ERROR_CLASS_SERVICES;
-                        rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                        apdu_len = BACNET_STATUS_ERROR;
-                        break;
-                    }
-                }
-            } else {
-                if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (CurrentAV->Priority_Array[rpdata->array_index - 1]
-                        == ANALOG_LEVEL_NULL)
-                        apdu_len = encode_application_null(&apdu[0]);
-                    else {
-                        real_value =
-                            CurrentAV->Priority_Array[rpdata->array_index - 1];
-                        apdu_len =
-                            encode_application_real(&apdu[0], real_value);
-                    }
-                } else {
-                    rpdata->error_class = ERROR_CLASS_PROPERTY;
-                    rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = BACNET_STATUS_ERROR;
-                }
-            }
-            break;
-
-        case PROP_RELINQUISH_DEFAULT:
-            real_value = CurrentAV->Relinquish_Default;
-            apdu_len = encode_application_real(&apdu[0], real_value);
             break;
 
 #if defined(INTRINSIC_REPORTING)
@@ -543,8 +465,6 @@ bool Analog_Value_Write_Property(
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
-    unsigned int priority = 0;
-    uint8_t level = ANALOG_LEVEL_NULL;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     ANALOG_VALUE_DESCR *CurrentAV;
@@ -594,27 +514,9 @@ bool Analog_Value_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status =
-                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
-                    &wp_data->error_class, &wp_data->error_code);
-                if (status) {
-                    level = ANALOG_LEVEL_NULL;
-                    priority = wp_data->priority;
-                    if (priority && (priority <= BACNET_MAX_PRIORITY)) {
-                        priority--;
-                        CurrentAV->Priority_Array[priority] = level;
-                        /* Note: you could set the physical output here to the next
-                           highest priority, or to the relinquish default if no
-                           priorities are set.
-                           However, if Out of Service is TRUE, then don't set the
-                           physical output.  This comment may apply to the
-                           main loop (i.e. check out of service before changing output) */
-                    } else {
-                        status = false;
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                }
+                status = false;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
 
@@ -633,15 +535,6 @@ bool Analog_Value_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 CurrentAV->Units = value.type.Enumerated;
-            }
-            break;
-
-        case PROP_RELINQUISH_DEFAULT:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
-                &wp_data->error_class, &wp_data->error_code);
-            if (status) {
-                CurrentAV->Relinquish_Default = value.type.Real;
             }
             break;
 
@@ -757,7 +650,6 @@ bool Analog_Value_Write_Property(
         case PROP_STATUS_FLAGS:
         case PROP_EVENT_STATE:
         case PROP_DESCRIPTION:
-        case PROP_PRIORITY_ARRAY:
 #if defined(INTRINSIC_REPORTING)
         case PROP_ACKED_TRANSITIONS:
         case PROP_EVENT_TIME_STAMPS:
@@ -765,6 +657,8 @@ bool Analog_Value_Write_Property(
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
+        case PROP_RELINQUISH_DEFAULT:
+        case PROP_PRIORITY_ARRAY:
         default:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
