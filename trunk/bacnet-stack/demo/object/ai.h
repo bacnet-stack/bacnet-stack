@@ -48,6 +48,9 @@ extern "C" {
         BACNET_RELIABILITY Reliability;
         bool Out_Of_Service;
         uint8_t Units;
+        float Prior_Value;
+        float COV_Increment;
+        bool Changed;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;

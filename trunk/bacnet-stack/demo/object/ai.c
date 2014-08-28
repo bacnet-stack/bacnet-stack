@@ -53,6 +53,7 @@ ANALOG_INPUT_DESCR AI_Descr[MAX_ANALOG_INPUTS];
 static const int Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
+    PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY,
     PROP_NOTIFICATION_CLASS,
@@ -104,6 +105,9 @@ void Analog_Input_Init(
         AI_Descr[i].Out_Of_Service = false;
         AI_Descr[i].Units = UNITS_PERCENT;
         AI_Descr[i].Reliability = RELIABILITY_NO_FAULT_DETECTED;
+        AI_Descr[i].Prior_Value = 0.0f;
+        AI_Descr[i].COV_Increment = 1.0f;
+        AI_Descr[i].Changed = false;
 #if defined(INTRINSIC_REPORTING)
         AI_Descr[i].Event_State = EVENT_STATE_NORMAL;
         /* notification class not connected */
@@ -187,14 +191,37 @@ float Analog_Input_Present_Value(
     return value;
 }
 
+static void Analog_Input_COV_Detect(unsigned int index,
+    float value)
+{
+    float prior_value = 0.0;
+    float cov_increment = 0.0;
+    float cov_delta = 0.0;
+
+    if (index < MAX_ANALOG_INPUTS) {
+        prior_value = AI_Descr[index].Prior_Value;
+        cov_increment = AI_Descr[index].COV_Increment;
+        if (prior_value > value) {
+            cov_delta = prior_value - value;
+        } else {
+            cov_delta = value - prior_value;
+        }
+        if (cov_delta >= cov_increment) {
+            AI_Descr[index].Changed = true;
+            AI_Descr[index].Prior_Value = value;
+        }
+    }
+}
+
 void Analog_Input_Present_Value_Set(
     uint32_t object_instance,
     float value)
 {
-    unsigned int index;
+    unsigned int index = 0;
 
     index = Analog_Input_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_INPUTS) {
+        Analog_Input_COV_Detect(index, value);
         AI_Descr[index].Present_Value = value;
     }
 }
@@ -214,6 +241,127 @@ bool Analog_Input_Object_Name(
     }
 
     return status;
+}
+
+bool Analog_Input_Change_Of_Value(
+    uint32_t object_instance)
+{
+    unsigned index = 0;
+    bool changed = false;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        changed = AI_Descr[index].Changed;
+    }
+
+    return changed;
+}
+
+void Analog_Input_Change_Of_Value_Clear(
+    uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        AI_Descr[index].Changed = false;
+    }
+}
+
+/* returns true if value has changed */
+bool Analog_Input_Encode_Value_List(
+    uint32_t object_instance,
+    BACNET_PROPERTY_VALUE * value_list)
+{
+    bool status = false;
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_REAL;
+        value_list->value.type.Real =
+            Analog_Input_Present_Value(object_instance);
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_IN_ALARM, false);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_FAULT, false);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OVERRIDDEN, false);
+        if (Analog_Input_Out_Of_Service(object_instance)) {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_OUT_OF_SERVICE, true);
+        } else {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_OUT_OF_SERVICE, false);
+        }
+        value_list->priority = BACNET_NO_PRIORITY;
+    }
+    status = Analog_Input_Change_Of_Value(object_instance);
+
+    return status;
+}
+
+float Analog_Input_COV_Increment(
+    uint32_t object_instance)
+{
+    unsigned index = 0;
+    float value = 0;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        value = AI_Descr[index].COV_Increment;
+    }
+
+    return value;
+}
+
+void Analog_Input_COV_Increment_Set(
+    uint32_t object_instance,
+    float value)
+{
+    unsigned index = 0;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        AI_Descr[index].COV_Increment = value;
+        Analog_Input_COV_Detect(index, AI_Descr[index].Present_Value);
+    }
+}
+
+bool Analog_Input_Out_Of_Service(
+    uint32_t object_instance)
+{
+    unsigned index = 0;
+    bool value = false;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        value = AI_Descr[index].Out_Of_Service;
+    }
+
+    return value;
+}
+
+void Analog_Input_Out_Of_Service_Set(
+    uint32_t object_instance,
+    bool value)
+{
+    unsigned index = 0;
+
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        AI_Descr[index].Out_Of_Service = value;
+    }
 }
 
 /* return apdu length, or BACNET_STATUS_ERROR on error */
@@ -312,6 +460,11 @@ int Analog_Input_Read_Property(
         case PROP_UNITS:
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAI->Units);
+            break;
+
+        case PROP_COV_INCREMENT:
+            apdu_len = encode_application_real(&apdu[0],
+                CurrentAI->COV_Increment);
             break;
 
 #if defined(INTRINSIC_REPORTING)
@@ -533,7 +686,9 @@ bool Analog_Input_Write_Property(
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                CurrentAI->Out_Of_Service = value.type.Boolean;
+                Analog_Input_Out_Of_Service_Set(
+                    wp_data->object_instance,
+                    value.type.Boolean);
             }
             break;
 
@@ -543,6 +698,23 @@ bool Analog_Input_Write_Property(
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 CurrentAI->Units = value.type.Enumerated;
+            }
+            break;
+
+        case PROP_COV_INCREMENT:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
+                &wp_data->error_class, &wp_data->error_code);
+            if (status) {
+                if (value.type.Real >= 0.0) {
+                    Analog_Input_COV_Increment_Set(
+                        wp_data->object_instance,
+                        value.type.Real);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
 
