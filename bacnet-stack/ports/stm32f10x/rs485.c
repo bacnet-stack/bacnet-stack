@@ -325,8 +325,13 @@ void rs485_init(
     GPIO_Init(GPIOA, &GPIO_InitStructure);
     /* Enable USARTx Clock */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+    /*RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);*/
     /* Enable GPIO Clock */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    /* Enable the USART Pins Software Remapping for this pair
+    of pins and peripheral functions:
+    USART3 Full remap (TX/PD8, RX/PD9, CK/PD10, CTS/PD11, RTS/PD12) */
+    /*GPIO_PinRemapConfig(GPIO_FullRemap_USART3, ENABLE);*/
     /* Configure the NVIC Preemption Priority Bits */
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
     /* Enable the USARTx Interrupt */
