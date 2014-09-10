@@ -25,6 +25,7 @@ SRCS = main.c \
 	$(BACNET_OBJECT)/channel.c \
 	$(BACNET_OBJECT)/command.c \
 	$(BACNET_OBJECT)/csv.c \
+	$(BACNET_OBJECT)/iv.c \
 	$(BACNET_OBJECT)/lc.c \
 	$(BACNET_OBJECT)/lo.c \
 	$(BACNET_OBJECT)/lsp.c \
