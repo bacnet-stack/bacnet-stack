@@ -87,6 +87,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_rpm.c \
 	$(BACNET_HANDLER)/h_rpm_a.c \
 	$(BACNET_HANDLER)/h_rr.c \
+	$(BACNET_HANDLER)/h_rr_a.c \
 	$(BACNET_HANDLER)/h_wp.c  \
 	$(BACNET_HANDLER)/h_wpm.c \
 	$(BACNET_HANDLER)/h_alarm_ack.c  \
@@ -119,6 +120,7 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_ptransfer.c \
 	$(BACNET_HANDLER)/s_rd.c \
 	$(BACNET_HANDLER)/s_rp.c  \
+	$(BACNET_HANDLER)/s_readrange.c  \
 	$(BACNET_HANDLER)/s_rpm.c  \
 	$(BACNET_HANDLER)/s_ts.c \
 	$(BACNET_HANDLER)/s_cevent.c  \
