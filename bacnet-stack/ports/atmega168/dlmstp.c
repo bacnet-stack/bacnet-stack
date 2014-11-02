@@ -987,7 +987,12 @@ int dlmstp_send_pdu(
         TransmitPacket = pdu;
         TransmitPacketLen = pdu_len;
         bytes_sent = pdu_len;
-        TransmitPacketDest = dest->mac[0];
+        if (dest && dest->mac_len) {
+            TransmitPacketDest = dest->mac[0];
+        } else {
+            /* mac_len = 0 is a broadcast address */
+            TransmitPacketDest = MSTP_BROADCAST_ADDRESS;
+        }
         MSTP_Flag.TransmitPacketPending = true;
     }
 

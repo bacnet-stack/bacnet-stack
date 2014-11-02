@@ -74,19 +74,17 @@ int dlmstp_send_pdu(
     unsigned mtu_len = 0;
 
     if (MSTP_Port.TxReady == false) {
-        if (npdu_data->confirmed_message)
+        if (npdu_data->confirmed_message) {
             MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
-        else
+        } else {
             MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
-
+        }
         /* load destination MAC address */
-        if (dest && dest->mac_len == 1) {
+        if (dest->mac_len) {
             destination = dest->mac[0];
         } else {
-#if PRINT_ENABLED
-            fprintf(stderr, "mstp: invalid destination MAC address!\n");
-#endif
-            return -2;
+            /* mac_len = 0 is a broadcast address */
+            destination = MSTP_BROADCAST_ADDRESS;
         }
         /* header len */
         mtu_len = MAX_HEADER - 2 /* data crc */ ;
