@@ -613,7 +613,7 @@ void RS485_Initialize(
         /* if all goes well, set new divisor */
         ioctl(RS485_Handle, TIOCSSERIAL, &newserial);
     }
-
+    printf(" at Baud Rate %u", RS485_Get_Baud_Rate());
     /* destructor */
     atexit(RS485_Cleanup);
     /* flush any data waiting */
