@@ -105,10 +105,11 @@ int dlmstp_send_pdu(
             MSTP_Port.TxFrameType = FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
 
         /* load destination MAC address */
-        if (dest && dest->mac_len == 1) {
+        if (dest && dest->mac_len) {
             MSTP_Port.TxDestination = dest->mac[0];
         } else {
-            return -2;
+            /* mac_len = 0 is a broadcast address */
+            MSTP_Port.TxDestination = MSTP_BROADCAST_ADDRESS;
         }
         dlmstp_get_my_address(&src);
         if ((MAX_HEADER + pdu_len) > MAX_MPDU) {

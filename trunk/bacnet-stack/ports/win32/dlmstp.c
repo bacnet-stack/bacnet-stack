@@ -279,10 +279,10 @@ uint16_t MSTP_Get_Send(
         return 0;
     }
     /* load destination MAC address */
-    if (Transmit_Packet.address.mac_len == 1) {
+    if (Transmit_Packet.address.mac_len) {
         destination = Transmit_Packet.address.mac[0];
     } else {
-        return 0;
+        destination = MSTP_BROADCAST_ADDRESS;
     }
     if ((MAX_HEADER + Transmit_Packet.pdu_len) > MAX_MPDU) {
         return 0;
