@@ -287,6 +287,7 @@ extern "C" {
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    bool Device_Object_Name_ANSI_Init(const char * object_name);
 
     BACNET_DEVICE_STATUS Device_System_Status(
         void);
