@@ -40,7 +40,7 @@
 
 /* number of demo objects */
 #ifndef MAX_MULTISTATE_VALUES
-#define MAX_MULTISTATE_VALUES 1
+#define MAX_MULTISTATE_VALUES 4
 #endif
 
 /* how many states? 1 to 254 states - 0 is not allowed. */
