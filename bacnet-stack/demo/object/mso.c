@@ -44,7 +44,7 @@
 
 /* When all the priorities are level null, the present value returns */
 /* the Relinquish Default value */
-#define MULTISTATE_RELINQUISH_DEFAULT 0
+#define MULTISTATE_RELINQUISH_DEFAULT 1		/* multistates cannot be 0 !	*/
 
 /* NULL part of the array */
 #define MULTISTATE_NULL (255)

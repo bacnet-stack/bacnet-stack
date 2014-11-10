@@ -222,6 +222,7 @@ bool Binary_Input_Encode_Value_List(
         value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+        value_list->value.next = NULL;			/* 2014.09.03 - edward@bac-test.com - added this, lack was causing exceptions under MSVC emulation */
         value_list->value.type.Enumerated =
             Binary_Input_Present_Value(object_instance);
         value_list->priority = BACNET_NO_PRIORITY;
@@ -232,6 +233,7 @@ bool Binary_Input_Encode_Value_List(
         value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        value_list->value.next = NULL;			/* 2014.09.03 - edward@bac-test.com - added this, lack was causing exceptions under MSVC emulation */
         bitstring_init(&value_list->value.type.Bit_String);
         bitstring_set_bit(&value_list->value.type.Bit_String,
             STATUS_FLAG_IN_ALARM, false);
@@ -247,6 +249,7 @@ bool Binary_Input_Encode_Value_List(
                 STATUS_FLAG_OUT_OF_SERVICE, false);
         }
         value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;   /* 2014.09.03 - edward@bac-test.com - added this, lack was causing exceptions under MSVC emulation */
     }
     status = Binary_Input_Change_Of_Value(object_instance);
 
