@@ -282,6 +282,7 @@ bool Analog_Input_Encode_Value_List(
         value_list->value.tag = BACNET_APPLICATION_TAG_REAL;
         value_list->value.type.Real =
             Analog_Input_Present_Value(object_instance);
+        value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
         value_list = value_list->next;
     }
@@ -304,7 +305,9 @@ bool Analog_Input_Encode_Value_List(
             bitstring_set_bit(&value_list->value.type.Bit_String,
                 STATUS_FLAG_OUT_OF_SERVICE, false);
         }
+        value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
     }
     status = Analog_Input_Change_Of_Value(object_instance);
 
