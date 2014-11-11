@@ -40,7 +40,7 @@
 
 /* number of demo objects */
 #ifndef MAX_MULTISTATE_VALUES
-#define MAX_MULTISTATE_VALUES 1
+#define MAX_MULTISTATE_VALUES 4
 #endif
 
 /* how many states? 1 to 254 states - 0 is not allowed. */
@@ -97,11 +97,13 @@ void Multistate_Value_Property_Lists(
 void Multistate_Value_Init(
     void)
 {
-    unsigned i;
+    unsigned int i;
 
     /* initialize all the analog output priority arrays to NULL */
     for (i = 0; i < MAX_MULTISTATE_VALUES; i++) {
         Present_Value[i] = 1;
+        sprintf(&Object_Name[i][0], "MULTISTATE VALUE %u", i);
+        sprintf(&Object_Description[i][0], "MULTISTATE VALUE %u", i);
     }
 
     return;
