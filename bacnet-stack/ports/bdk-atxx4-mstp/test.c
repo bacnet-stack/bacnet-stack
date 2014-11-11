@@ -41,6 +41,11 @@
 #define BDK_VERSION 4
 #endif
 
+#define BINARY_STRING_MAX 3
+const char * const binary_string[BINARY_STRING_MAX] = {
+    "INACTIVE", "ACTIVE", "RELINQUISH"
+};
+
 /* timer for test task */
 static struct itimer Test_Timer;
 /* MAC Address of MS/TP */
@@ -62,6 +67,21 @@ void test_init(
     BIT_SET(DDRB, DDB0);
 #endif
 }
+
+/**
+* @brief send a string of text to the RS-232 port
+* @param text - C string of text (null terminated)
+*/
+static void test_write_string(const char * text)
+{
+    size_t len = 0;
+
+    if (text) {
+        len = strlen(text);
+        serial_bytes_send((uint8_t *)text, len);
+    }
+}
+
 
 /*************************************************************************
 * Description: Turn on a pin
@@ -161,14 +181,17 @@ void test_task(
             case '0':
                 Binary_Output_Present_Value_Set(0, BINARY_INACTIVE, 0);
                 Binary_Output_Present_Value_Set(1, BINARY_INACTIVE, 0);
+                test_write_string(binary_string[0]);
                 break;
             case '1':
                 Binary_Output_Present_Value_Set(0, BINARY_ACTIVE, 0);
                 Binary_Output_Present_Value_Set(1, BINARY_ACTIVE, 0);
+                test_write_string(binary_string[1]);
                 break;
             case '2':
                 Binary_Output_Present_Value_Set(0, BINARY_NULL, 0);
                 Binary_Output_Present_Value_Set(1, BINARY_NULL, 0);
+                test_write_string(binary_string[2]);
                 break;
             case '3':
                 rs485_baud_rate_set(38400);
