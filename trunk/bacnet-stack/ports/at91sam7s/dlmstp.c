@@ -622,6 +622,8 @@ static void MSTP_Receive_Frame_FSM(
                         MSTP_Flag.ReceivedInvalidFrame = true;
                     }
                     Receive_State = MSTP_RECEIVE_STATE_IDLE;
+                    MSTP_Flag.ReceivedInvalidFrame = true;
+                    Receive_State = MSTP_RECEIVE_STATE_IDLE;
                 }
             }
             break;
@@ -1118,7 +1120,6 @@ static bool MSTP_Master_Node_FSM(
                 }
                 MSTP_Send_Frame(frame_type, pkt->destination_mac, This_Station,
                     (uint8_t *) & pkt->buffer[0], pkt->length);
-                (void) Ringbuf_Pop(&PDU_Queue, NULL);
                 Master_State = MSTP_MASTER_STATE_IDLE;
                 /* clear our flag we were holding for comparison */
                 MSTP_Flag.ReceivedValidFrame = false;
@@ -1279,7 +1280,7 @@ uint16_t dlmstp_receive(
     }
     if (Receive_State == MSTP_RECEIVE_STATE_IDLE) {
         /* only do master state machine while rx is idle */
-        if (This_Station <= DEFAULT_MAX_MASTER) {
+        if (This_Station <= 127) {
             while (MSTP_Master_Node_FSM()) {
                 /* do nothing while some states fast transition */
             };
