@@ -62,8 +62,8 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
-static uint16_t Timer_Silence(
-    void)
+static uint32_t Timer_Silence(
+    void *pArg)
 {
     uint32_t delta_time = 0;
 
@@ -72,11 +72,11 @@ static uint16_t Timer_Silence(
         delta_time = 0xFFFF;
     }
 
-    return (uint16_t) delta_time;
+    return delta_time;
 }
 
 static void Timer_Silence_Reset(
-    void)
+    void *pArg)
 {
     timer_reset(TIMER_SILENCE);
 }
