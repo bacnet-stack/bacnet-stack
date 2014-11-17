@@ -36,8 +36,12 @@
 
 #define MAX_BIP_APDU	1476
 #define MAX_BIP_PDU		(MAX_NPDU + MAX_BIP_APDU)
-#define MAX_BIP_MPDU	(MAX_HEADER + MAX_BIP_PDU)          /* Yes, we know this is longer than an Ethernet Frame, a UDP payload and an IPv6 packet. Grandfathered in from BACnet Ethernet days,    */
-                                                            /* and we can rely on the lower layers of the Ethernet stack to fragment/reassemble the BACnet MPDUs                                    */
+#define MAX_BIP_MPDU	(MAX_HEADER + MAX_BIP_PDU)
+/* Yes, we know this is longer than an Ethernet Frame,
+   a UDP payload and an IPv6 packet.
+   Grandfathered in from BACnet Ethernet days,
+   and we can rely on the lower layers of the
+   Ethernet stack to fragment/reassemble the BACnet MPDUs */
 
 typedef struct ip_data {
     int socket;
