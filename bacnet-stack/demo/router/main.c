@@ -52,8 +52,6 @@
 #include "network_layer.h"
 #include "ipmodule.h"
 #include "mstpmodule.h"
-#include "bip.h"
-#include "dlmstp.h"
 
 #define KEY_ESC 27
 
