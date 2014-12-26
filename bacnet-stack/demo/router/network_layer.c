@@ -299,6 +299,7 @@ void send_network_message(
     if (!data) {
         data = (MSG_DATA *) malloc(sizeof(MSG_DATA));
         data->dest.net = BACNET_BROADCAST_NETWORK;
+        data->dest.len = 0;
     }
 
     buff_len = create_network_message(network_message_type, data, buff, val);
