@@ -91,9 +91,13 @@ static inline void millisecond_timer(
 static inline void init(
     void)
 {
+    unsigned int pcsr;
+
     /* Initialize the Parallel I/O Controller A Peripheral Clock */
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
-    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_PIOA);
+
+    pcsr = pPMC->PMC_PCSR;
+    pPMC->PMC_PCER = pcsr | (1 << AT91C_ID_PIOA);
 
     /* Set up the LEDs (PA0 - PA3) */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
