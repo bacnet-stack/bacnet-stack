@@ -59,8 +59,7 @@ PORTSRC = main.c \
 	init.c \
 	blinker.c \
 	rs485.c \
-	dlmstp.c \
-	$(BACNET_CORE)/crc.c
+	dlmstp.c
 
 DEMOSRC = ai.c \
 	av.c \
@@ -80,30 +79,33 @@ DEMOSRC = ai.c \
 	$(BACNET_DEMO)/handler/s_iam.c \
 	$(BACNET_DEMO)/handler/s_ihave.c
 
-CORESRC = $(BACNET_CORE)/npdu.c \
+CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/apdu.c \
+	$(BACNET_CORE)/bacaddr.c \
+	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_CORE)/bacaddr.c \
-	$(BACNET_CORE)/abort.c \
-	$(BACNET_CORE)/bacerror.c \
-	$(BACNET_CORE)/reject.c \
-	$(BACNET_CORE)/bacapp.c \
+	$(BACNET_CORE)/crc.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
+	$(BACNET_CORE)/lighting.c \
 	$(BACNET_CORE)/memcopy.c \
-	$(BACNET_CORE)/ringbuf.c \
+	$(BACNET_CORE)/npdu.c \
+	$(BACNET_CORE)/proplist.c \
 	$(BACNET_CORE)/rd.c \
+	$(BACNET_CORE)/reject.c \
+	$(BACNET_CORE)/ringbuf.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
-	$(BACNET_CORE)/wp.c \
+	$(BACNET_CORE)/version.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
-	$(BACNET_CORE)/version.c
+	$(BACNET_CORE)/wp.c
 
 CSRC = $(PORTSRC) $(DEMOSRC)
 #CSRC = $(PORTSRC)

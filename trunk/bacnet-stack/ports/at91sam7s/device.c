@@ -279,21 +279,6 @@ bool Device_Write_Property(
     return status;
 }
 
-static unsigned property_list_count(
-    const int *pList)
-{
-    unsigned property_count = 0;
-
-    if (pList) {
-        while (*pList != -1) {
-            property_count++;
-            pList++;
-        }
-    }
-
-    return property_count;
-}
-
 /* for a given object type, returns the special property list */
 void Device_Objects_Property_List(
     BACNET_OBJECT_TYPE object_type,
