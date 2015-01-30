@@ -337,9 +337,12 @@ void Timer_Silence_Reset(
 void TimerInit(
     void)
 {
+    unsigned int pcsr;
     /* enable the Timer0 peripheral clock */
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
-    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_TC0);
+
+    pcsr = pPMC->PMC_PCSR;
+    pPMC->PMC_PCER = pcsr | (1 << AT91C_ID_TC0);
     /* Set up the AIC  registers for Timer 0 */
     volatile AT91PS_AIC pAIC = AT91C_BASE_AIC;
     /* Disable timer 0 interrupt */

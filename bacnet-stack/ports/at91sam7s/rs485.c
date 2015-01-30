@@ -65,9 +65,12 @@ static int RS485_Baud = 38400;
 void RS485_Initialize(
     void)
 {
+    unsigned int pcsr;
     /* Enable the USART0 clock in the Power Management Controller */
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
-    pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_US0);
+
+    pcsr = pPMC->PMC_PCSR;
+    pPMC->PMC_PCER = pcsr | (1 << AT91C_ID_US0);
 
     /* Disable and clear USART0 interrupt
        in AIC Interrupt Disable Command Register */
