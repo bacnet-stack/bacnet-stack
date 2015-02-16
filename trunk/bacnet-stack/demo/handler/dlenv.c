@@ -292,7 +292,7 @@ void dlenv_init(
     }
     pEnv = getenv("BACNET_APDU_RETRIES");
     if (pEnv) {
-        apdu_retries_set((uint16_t) strtol(pEnv, NULL, 0));
+        apdu_retries_set((uint8_t) strtol(pEnv, NULL, 0));
     }
     if (!datalink_init(getenv("BACNET_IFACE"))) {
         exit(1);
