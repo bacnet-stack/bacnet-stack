@@ -84,7 +84,8 @@ int bacapp_encode_device_obj_property_ref(
     }
 
     /* Likewise, device id is optional so see if needed
-     * (set type to non device to omit */
+     * (set type to BACNET_NO_DEV_TYPE or something other than OBJECT_DEVICE to
+	 * omit */
 
     if (value->deviceIndentifier.type == OBJECT_DEVICE) {
         len =
@@ -126,7 +127,7 @@ int bacapp_decode_device_obj_property_ref(
         }
         apdu_len += len;
     } else {
-        value->arrayIndex = 0;
+        value->arrayIndex = BACNET_ARRAY_ALL;
     }
 
     if (decode_is_context_tag(&apdu[apdu_len], 3)) {
@@ -138,8 +139,8 @@ int bacapp_decode_device_obj_property_ref(
         }
         apdu_len += len;
     } else {
-        value->deviceIndentifier.instance = 0;
-        value->deviceIndentifier.type = 0;
+    	value->deviceIndentifier.type = BACNET_NO_DEV_TYPE;
+    	value->deviceIndentifier.instance = BACNET_NO_DEV_ID;
     }
 
     return apdu_len;
@@ -204,7 +205,8 @@ int bacapp_encode_device_obj_ref(
     int apdu_len = 0;
 
     /* Device id is optional so see if needed
-     * (set type to non device to omit */
+     * (set type to BACNET_NO_DEV_TYPE or something other than OBJECT_DEVICE to
+	 * omit */
 
     if (value->deviceIndentifier.type == OBJECT_DEVICE) {
         len =
@@ -239,8 +241,8 @@ int bacapp_decode_device_obj_ref(
         }
         apdu_len += len;
     } else {
-        value->deviceIndentifier.instance = 0;
-        value->deviceIndentifier.type = 0;
+    	value->deviceIndentifier.type = BACNET_NO_DEV_TYPE;
+    	value->deviceIndentifier.instance = BACNET_NO_DEV_ID;
     }
 
     if (-1 == (len =
