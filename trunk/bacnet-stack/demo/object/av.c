@@ -100,7 +100,11 @@ void Analog_Value_Property_Lists(
 void Analog_Value_Init(
     void)
 {
-    unsigned i, j;
+#if defined(INTRINSIC_REPORTING)
+	unsigned i, j;
+#else
+	unsigned i;
+#endif
 
     for (i = 0; i < MAX_ANALOG_VALUES; i++) {
         memset(&AV_Descr[i], 0x00, sizeof(ANALOG_VALUE_DESCR));
