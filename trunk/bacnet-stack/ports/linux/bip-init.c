@@ -107,6 +107,7 @@ void bip_set_interface(
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
+    struct in_addr netmask;
     int rv = 0;
 
     /* setup local address */
@@ -120,9 +121,14 @@ void bip_set_interface(
         fprintf(stderr, "IP Address: %s\n", inet_ntoa(local_address));
     }
     /* setup local broadcast address */
-    rv = get_local_address_ioctl(ifname, &broadcast_address, SIOCGIFBRDADDR);
+    rv = get_local_address_ioctl(ifname, &netmask, SIOCGIFNETMASK);
+
     if (rv < 0) {
         broadcast_address.s_addr = ~0;
+    }
+    else {
+        broadcast_address = local_address;
+        broadcast_address.s_addr |= (~netmask.s_addr);
     }
     bip_set_broadcast_addr(broadcast_address.s_addr);
     if (BIP_Debug) {
