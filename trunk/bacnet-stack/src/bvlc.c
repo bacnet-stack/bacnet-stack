@@ -39,7 +39,6 @@
 #include "bacdcode.h"
 #include "bacint.h"
 #include "bvlc.h"
-#include "bip.h"
 #ifndef DEBUG_ENABLED
 #define DEBUG_ENABLED 0
 #endif
@@ -68,16 +67,6 @@ BACNET_BVLC_FUNCTION BVLC_Function_Code = BVLC_RESULT;  /* A safe default */
  */
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
 
-typedef struct {
-    /* true if valid entry - false if not */
-    bool valid;
-    /* BACnet/IP address */
-    struct in_addr dest_address;        /* in network format */
-    /* BACnet/IP port number - not always 47808=BAC0h */
-    uint16_t dest_port; /* in network format */
-    /* Broadcast Distribution Mask */
-    struct in_addr broadcast_mask;      /* in tework format */
-} BBMD_TABLE_ENTRY;
 
 #ifndef MAX_BBMD_ENTRIES
 #define MAX_BBMD_ENTRIES 128
@@ -1374,6 +1363,86 @@ BACNET_BVLC_FUNCTION bvlc_get_function_code(
 {
     return BVLC_Function_Code;
 }
+
+/** Get handle to broadcast distribution table (BDT).
+ *
+ *  Do not modify the table using the returned pointer,
+ *  use the dedicated functions instead.
+ *  (For optimization the table is not copied to caller)
+ *
+ * @return Number of valid entries in the table or -1 on error.
+ */
+int bvlc_get_bdt_local(
+     const BBMD_TABLE_ENTRY** table)
+{
+    int count = 0;
+
+    if(table == NULL)
+        return -1;
+
+    *table = BBMD_Table;
+
+    for (count = 0; count < MAX_BBMD_ENTRIES; ++count) {
+        if (!BBMD_Table[count].valid) {
+            break;
+        }
+    }
+
+    return count;
+}
+
+/** Invalidate all entries in the broadcast distribution table (BDT).
+ */
+void bvlc_clear_bdt_local(
+    void)
+{
+    int i = 0;
+    for (i = 0; i < MAX_BBMD_ENTRIES; ++i) {
+        BBMD_Table[i].valid = false;
+        BBMD_Table[i].dest_address.s_addr = 0;
+        BBMD_Table[i].dest_port = 0;
+        BBMD_Table[i].broadcast_mask.s_addr = 0;
+    }
+}
+
+/** Add new entry to broadcast distribution table.
+ *
+ * @return True if the new entry was added successfully.
+ */
+bool bvlc_add_bdt_entry_local(
+    BBMD_TABLE_ENTRY* entry)
+{
+    bool found = false;
+    int i = 0;
+
+    if(entry == NULL)
+        return false;
+
+    /* Find first empty slot */
+    for (i = 0; i < MAX_BBMD_ENTRIES; ++i) {
+        if (!BBMD_Table[i].valid) {
+            found = true;
+            break;
+        }
+
+        /* Make sure that we are not adding a duplicate */
+        if(BBMD_Table[i].dest_address.s_addr == entry->dest_address.s_addr &&
+           BBMD_Table[i].broadcast_mask.s_addr == entry->broadcast_mask.s_addr &&
+           BBMD_Table[i].dest_port == entry->dest_port) {
+            return false;
+        }
+    }
+
+    if(!found)
+        return false;
+
+    /* Copy new entry to the empty slot */
+    BBMD_Table[i] = *entry;
+    BBMD_Table[i].valid = true;
+
+    return true;
+}
+
 
 #ifdef TEST
 #include <assert.h>
