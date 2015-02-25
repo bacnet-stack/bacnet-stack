@@ -164,6 +164,13 @@ BACNET_BINARY_PV Binary_Input_Present_Value(
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         value = Present_Value[index];
+        if (Polarity[index] != POLARITY_NORMAL) {
+            if (value == BINARY_INACTIVE) {
+                value = BINARY_ACTIVE;
+            } else {
+                value = BINARY_INACTIVE;
+            }
+        }
     }
 
     return value;
@@ -265,6 +272,13 @@ bool Binary_Input_Present_Value_Set(
 
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
+        if (Polarity[index] != POLARITY_NORMAL) {
+            if (value == BINARY_INACTIVE) {
+                value = BINARY_ACTIVE;
+            } else {
+                value = BINARY_INACTIVE;
+            }
+        }
         if (Present_Value[index] != value) {
             Change_Of_Value[index] = true;
         }
@@ -298,8 +312,10 @@ bool Binary_Input_Object_Name(
 {
     static char text_string[32] = "";   /* okay for single thread */
     bool status = false;
+    unsigned index = 0;
 
-    if (object_instance < MAX_BINARY_INPUTS) {
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS) {
         sprintf(text_string, "BINARY INPUT %lu",
             (unsigned long) object_instance);
         status = characterstring_init_ansi(object_name, text_string);
@@ -312,9 +328,11 @@ BACNET_POLARITY Binary_Input_Polarity(
     uint32_t object_instance)
 {
     BACNET_POLARITY polarity = POLARITY_NORMAL;
+    unsigned index = 0;
 
-    if (object_instance < MAX_BINARY_INPUTS) {
-        polarity = Polarity[object_instance];
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS) {
+        polarity = Polarity[index];
     }
 
     return polarity;
@@ -325,9 +343,11 @@ bool Binary_Input_Polarity_Set(
     BACNET_POLARITY polarity)
 {
     bool status = false;
+    unsigned index = 0;
 
-    if (object_instance < MAX_BINARY_INPUTS) {
-        Polarity[object_instance] = polarity;
+    index = Binary_Input_Instance_To_Index(object_instance);
+    if (index < MAX_BINARY_INPUTS) {
+        Polarity[index] = polarity;
     }
 
     return status;
