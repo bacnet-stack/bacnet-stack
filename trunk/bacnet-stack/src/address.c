@@ -258,7 +258,6 @@ bool address_mac_from_ascii(
             mac->len = 6;
             status = true;
         } else if (c == 1) {
-            a[0] = (unsigned)strtol(arg, NULL, 0);
             if (a[0] <= 255) {
                 mac->adr[0] = a[0];
                 mac->len = 1;
