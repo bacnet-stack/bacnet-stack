@@ -311,7 +311,7 @@ static void print_help(
         "\n");
     printf("--mac A\n"
         "BACnet mac address."
-        "Valid ranges are from 0 to 255\n"
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
         "or an IP string with optional port number like 10.1.2.3:47808\n"
         "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
         "\n"
@@ -322,14 +322,14 @@ static void print_help(
         "\n"
         "--dadr A\n"
         "BACnet mac address on the destination BACnet network number.\n"
-        "Valid ranges are from 0 to 255\n"
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
         "or an IP string with optional port number like 10.1.2.3:47808\n"
         "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
         "\n");
     printf("Send a WhoIs request to DNET 123:\n"
         "%s --dnet 123\n", filename);
-    printf("Send a WhoIs request to MAC 10.0.0.1 DNET 123 DADR 5:\n"
-        "%s --mac 10.0.0.1 --dnet 123 --dadr 5\n", filename);
+    printf("Send a WhoIs request to MAC 10.0.0.1 DNET 123 DADR 05h:\n"
+        "%s --mac 10.0.0.1 --dnet 123 --dadr 05\n", filename);
     printf("Send a WhoIs request to MAC 10.1.2.3:47808:\n"
         "%s --mac 10.1.2.3:47808\n", filename);
     printf("Send a WhoIs request to Device 123:\n"
