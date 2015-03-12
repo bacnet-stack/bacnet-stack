@@ -805,6 +805,7 @@ static void BuildPropRequest(
         }
         propEntry->propertyIdentifier = Property_Value_List[i].property_id;
         propEntry->propertyArrayIndex = BACNET_ARRAY_ALL;
+        propEntry->next = NULL;
         oldEntry = propEntry;
         propEntry = NULL;
     }
@@ -1347,6 +1348,7 @@ void StartNextObject(
     rpm_object->object_instance = pNewObject->instance;
     rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
     rpm_object->listOfProperties = rpm_property;
+    rpm_object->next = NULL;
     assert(rpm_property);
     rpm_property->propertyIdentifier = PROP_ALL;
     rpm_property->propertyArrayIndex = BACNET_ARRAY_ALL;
