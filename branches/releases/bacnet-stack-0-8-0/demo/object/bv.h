@@ -52,6 +52,69 @@ extern "C" {
     bool Binary_Value_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    bool Binary_Value_Name_Set(
+        uint32_t object_instance,
+        char *new_name);
+
+    char *Binary_Value_Description(
+        uint32_t instance);
+    bool Binary_Value_Description_Set(
+        uint32_t instance,
+        char *new_name);
+
+    char *Binary_Value_Inactive_Text(
+        uint32_t instance);
+    bool Binary_Value_Inactive_Text_Set(
+        uint32_t instance,
+        char *new_name);
+    char *Binary_Value_Active_Text(
+        uint32_t instance);
+    bool Binary_Value_Active_Text_Set(
+        uint32_t instance,
+        char *new_name);
+
+    bool Binary_Value_Encode_Value_List(
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+    bool Binary_Value_Change_Of_Value(
+        uint32_t instance);
+    void Binary_Value_Change_Of_Value_Clear(
+        uint32_t instance);
+
+    BACNET_BINARY_PV Binary_Value_Present_Value(
+        uint32_t instance);
+    bool Binary_Value_Present_Value_Set(
+        uint32_t instance,
+        BACNET_BINARY_PV value);
+
+    bool Binary_Value_Out_Of_Service(
+        uint32_t instance);
+    void Binary_Value_Out_Of_Service_Set(
+        uint32_t instance,
+        bool value);
+
+    char *Binary_Value_Description(
+        uint32_t instance);
+    bool Binary_Value_Description_Set(
+        uint32_t object_instance,
+        char *text_string);
+
+    char *Binary_Value_Inactive_Text(
+        uint32_t instance);
+    bool Binary_Value_Inactive_Text_Set(
+        uint32_t instance,
+        char *new_name);
+    char *Binary_Value_Active_Text(
+        uint32_t instance);
+    bool Binary_Value_Active_Text_Set(
+        uint32_t instance,
+        char *new_name);
+
+    BACNET_POLARITY Binary_Value_Polarity(
+        uint32_t instance);
+    bool Binary_Value_Polarity_Set(
+        uint32_t object_instance,
+        BACNET_POLARITY polarity);
 
     void Binary_Value_Init(
         void);
