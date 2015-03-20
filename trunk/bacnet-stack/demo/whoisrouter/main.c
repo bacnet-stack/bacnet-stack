@@ -108,16 +108,19 @@ static void My_Router_Handler(
                 }
             }
             printf("\nNetworks: ");
-            while (npdu_len) {
+            while (npdu_len >= 2) {
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
                 printf("%hu", dnet);
                 npdu_len -= len;
                 npdu_offset += len;
-                if (npdu_len) {
+                if (npdu_len >= 2) {
                     printf(", ");
                 }
             }
             printf("\n");
+            if (npdu_len) {
+                printf("Warning! Extra byte received!\n");
+            }
             break;
         case NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK:
         case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
