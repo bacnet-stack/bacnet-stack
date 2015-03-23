@@ -56,7 +56,7 @@ LFLAGS := -Wl,$(BACNET_LIB),$(SYSTEM_LIB)
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois ucov scov timesync epics readpropm readrange \
-	uptransfer
+	uptransfer getevent
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter readbdt

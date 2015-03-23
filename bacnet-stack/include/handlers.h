@@ -222,6 +222,8 @@ extern "C" {
     /* print the RP Ack data to stdout */
     void rp_ack_print_data(
         BACNET_READ_PROPERTY_DATA * data);
+    /* print the GE Ack data to stdout */
+    void ge_ack_print_data(BACNET_GET_EVENT_INFORMATION_DATA * data, uint32_t device_id);
     /* print the RPM Ack data to stdout */
     void rpm_ack_print_data(
         BACNET_READ_ACCESS_DATA * rpm_data);

@@ -130,7 +130,8 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/s_whois.c  \
 	$(BACNET_HANDLER)/s_wpm.c  \
 	$(BACNET_HANDLER)/s_upt.c \
-	$(BACNET_HANDLER)/s_wp.c
+	$(BACNET_HANDLER)/s_wp.c \
+	$(BACNET_HANDLER)/s_getevent.c
 
 PORT_ARCNET_SRC = \
 	$(BACNET_PORT_DIR)/arcnet.c
