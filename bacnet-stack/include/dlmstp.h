@@ -113,6 +113,8 @@ extern "C" {
 
     bool dlmstp_sole_master(
         void);
+    bool dlmstp_send_pdu_queue_empty(void);
+    bool dlmstp_send_pdu_queue_full(void);
 
 #ifdef __cplusplus
 }
