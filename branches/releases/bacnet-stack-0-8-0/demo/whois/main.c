@@ -353,9 +353,9 @@ static int parse_bac_address(
             return 0;
     } else if (c == 5) {        /* ip address */
         for (i = 0; i < 4; i++) {
-            if (a[i] == 0 || a[i] > 255)
+            if ((a[i] < 0) || (a[i] > 255)) {
                 return 0;
-
+            }
             dest->adr[i] = a[i];
         }
         s = htons((uint16_t) p);
@@ -364,8 +364,6 @@ static int parse_bac_address(
     }
     return dest->len;
 }
-
-
 
 int main(
     int argc,
