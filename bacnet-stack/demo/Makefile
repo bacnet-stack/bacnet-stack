@@ -35,7 +35,7 @@ endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread
 TARGET_EXT =
-SYSTEM_LIB=-lc,-lgcc,-lm
+SYSTEM_LIB=-lc,-lm
 endif
 ifeq (${BACNET_PORT},win32)
 TARGET_EXT = .exe
