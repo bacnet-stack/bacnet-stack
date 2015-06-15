@@ -149,8 +149,17 @@ do
   echo Fixing DOS/Unix ${filename}
   ${DOS2UNIX} ${filename}
   echo Setting Subversion EOL Style for ${filename}
-  /usr/bin/svn propset svn:eol-style binary ${filename}
+  /usr/bin/svn propdel svn:eol-style ${filename}
   /usr/bin/svn propset svn:mime-type application/excel ${filename}
+done
+
+for filename in $( find ${directory} -name '*.ods' )
+do
+  echo Fixing DOS/Unix ${filename}
+  ${DOS2UNIX} ${filename}
+  echo Setting Subversion EOL Style for ${filename}
+  /usr/bin/svn propdel svn:eol-style ${filename}
+  /usr/bin/svn propset svn:mime-type application/vnd.oasis.opendocument.spreadsheet ${filename}
 done
 
 for filename in $( find ${directory} -name '*~' )
