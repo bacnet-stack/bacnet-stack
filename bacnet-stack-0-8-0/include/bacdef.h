@@ -107,6 +107,9 @@
 /* Array index 0=size of array, n=array element n,  MAX=all array elements */
 /* 32-bit MAX, to use with uint32_t */
 #define BACNET_ARRAY_ALL 0xFFFFFFFFU
+/* For device object property references with no device id defined */
+#define BACNET_NO_DEV_ID   0xFFFFFFFFu
+#define BACNET_NO_DEV_TYPE 0xFFFFu
 /* Priority Array for commandable objects */
 #define BACNET_NO_PRIORITY 0
 #define BACNET_MIN_PRIORITY 1
