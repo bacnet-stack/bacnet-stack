@@ -30,6 +30,7 @@
 #include <time.h>
 #include "bacdef.h"
 #include "npdu.h"
+#include "bip.h"
 
 struct sockaddr_in;     /* Defined elsewhere, needed here. */
 
@@ -44,6 +45,17 @@ extern "C" {
 #else
 #define bvlc_maintenance_timer(x)
 #endif
+
+    typedef struct {
+        /* true if valid entry - false if not */
+        bool valid;
+        /* BACnet/IP address */
+        struct in_addr dest_address;        /* in network format */
+        /* BACnet/IP port number - not always 47808=BAC0h */
+        uint16_t dest_port; /* in network format */
+        /* Broadcast Distribution Mask */
+        struct in_addr broadcast_mask;      /* in tework format */
+    } BBMD_TABLE_ENTRY;
 
     uint16_t bvlc_receive(
         BACNET_ADDRESS * src,   /* returns the source address */
@@ -111,6 +123,26 @@ extern "C" {
      * BVLC_ORIGINAL_UNICAST_NPDU and BVLC_ORIGINAL_BROADCAST_NPDU.  */
     BACNET_BVLC_FUNCTION bvlc_get_function_code(
         void);
+
+
+    /* Local interface to manage BBMD.
+     * The interface user needs to handle mutual exclusion if needed i.e.
+     * BACnet packet is not being handled when the BBMD table is modified.
+     */
+
+    /* Get handle to broadcast distribution table. Returns the number of
+     * valid entries in the table. */
+    int bvlc_get_bdt_local(
+         const BBMD_TABLE_ENTRY** table);
+
+    /* Invalidate all entries in the broadcast distribution table */
+    void bvlc_clear_bdt_local(void);
+
+    /* Add new entry to broadcast distribution table. Returns true if the new
+     * entry was added successfully */
+    bool bvlc_add_bdt_entry_local(
+        BBMD_TABLE_ENTRY* entry);
+
 
 #ifdef __cplusplus
 }
