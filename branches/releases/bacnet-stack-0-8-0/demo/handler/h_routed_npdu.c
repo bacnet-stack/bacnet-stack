@@ -22,7 +22,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-/* Acknowledging the contribution of code and ideas used here that 
+/* Acknowledging the contribution of code and ideas used here that
  * came from Paul Chapman's vmac demo project. */
 
 #include <stdbool.h>
@@ -48,17 +48,17 @@
 #endif
 
 
-/** @file h_routed_npdu.c  Handles messages at the NPDU level of the BACnet stack, 
+/** @file h_routed_npdu.c  Handles messages at the NPDU level of the BACnet stack,
  * including routing and network control messages. */
 
 
 /** Handler to manage the Network Layer Control Messages received in a packet.
  *  This handler is called if the NCPI bit 7 indicates that this packet is a
- *  network layer message and there is no further DNET to pass it to.  
- *  The NCPI has already been decoded into the npdu_data structure. 
+ *  network layer message and there is no further DNET to pass it to.
+ *  The NCPI has already been decoded into the npdu_data structure.
  * @ingroup MISCHNDLR
- * 
- * @param src  [in] The routing source information, if any. 
+ *
+ * @param src  [in] The routing source information, if any.
  *                   If src->net and src->len are 0, there is no
  *                   routing source information.
  * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
@@ -111,12 +111,12 @@ static void network_control_handler(
             debug_printf("%s for Networks: ",
                 bactext_network_layer_msg_name
                 (NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK));
-            while (npdu_len) {
+            while (npdu_len >= 2) {
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
                 debug_printf("%hu", dnet);
                 npdu_len -= len;
                 npdu_offset += len;
-                if (npdu_len) {
+                if (npdu_len >= 2) {
                     debug_printf(", ");
                 }
             }
@@ -139,7 +139,7 @@ static void network_control_handler(
             /* Do nothing - don't support upstream traffic congestion control */
             break;
         case NETWORK_MESSAGE_INIT_RT_TABLE:
-            /* If sent with Number of Ports == 0, we respond with 
+            /* If sent with Number of Ports == 0, we respond with
              * NETWORK_MESSAGE_INIT_RT_TABLE_ACK and a list of all our
              * reachable networks.
              */
@@ -159,7 +159,7 @@ static void network_control_handler(
             }
             /* Else, fall through to do nothing. */
         case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
-            /* Do nothing with the routing table info, since don't support 
+            /* Do nothing with the routing table info, since don't support
              * upstream traffic congestion control */
             break;
         case NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK:
@@ -175,15 +175,15 @@ static void network_control_handler(
     }
 }
 
-/** An APDU pre-handler that makes sure that the subsequent APDU handler call 
- * operates on the right Device Object(s), as addressed by the destination 
+/** An APDU pre-handler that makes sure that the subsequent APDU handler call
+ * operates on the right Device Object(s), as addressed by the destination
  * (routing) information.
- * 
+ *
  * @note Even when the destination is "routed" to our virtual BACnet network,
  * the src information does not need to change to reflect that (as it normally
- * would for a routed message) because the reply will be sent from the level 
+ * would for a routed message) because the reply will be sent from the level
  * of the gateway Device.
- * 
+ *
  * @param src [in] The BACNET_ADDRESS of the message's source.
  * @param dest [in] The BACNET_ADDRESS of the message's destination.
  * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
@@ -205,8 +205,8 @@ static void routed_apdu_handler(
         /* We don't know how to reach this one.
          * The protocol doesn't specifically state this, but if this message
          * was broadcast to us, we should assume "someone else" is handling
-         * it and not get involved (ie, send a Reject-Message). 
-         * Since we can't reach other routers that src couldn't already reach, 
+         * it and not get involved (ie, send a Reject-Message).
+         * Since we can't reach other routers that src couldn't already reach,
          * we don't try the standard path of asking Who-Is-Router-to-Network. */
 #if defined(BACDL_BIP)
         /* If wasn't unicast to us, must have been one of the bcast types.
@@ -239,7 +239,7 @@ static void routed_apdu_handler(
 /** Handler for the NPDU portion of a received packet, which may have routing.
  *  This is a fuller handler than the regular npdu_handler, as it manages
  *  - Decoding of the NCPI byte
- *  - Further processing by network_control_handler() if this is a  network 
+ *  - Further processing by network_control_handler() if this is a  network
  *    layer message.
  *  - Further processing by routed_apdu_handler() if it contains an APDU
  *    - Normally (no routing) by apdu_handler()
@@ -249,16 +249,16 @@ static void routed_apdu_handler(
  * @note The npdu_data->data_expecting_reply status is discarded.
  * @see npdu_handler
  * @ingroup NMRC
- *  
- * @param src  [out] Returned with routing source information if the NPDU 
- *                   has any and if this points to non-null storage for it. 
+ *
+ * @param src  [out] Returned with routing source information if the NPDU
+ *                   has any and if this points to non-null storage for it.
  *                   If src->net and src->len are 0 on return, there is no
  *                   routing source information.
  *                   This src describes the original source of the message when
  *                   it had to be routed to reach this BACnet Device, and this
- *                   is passed down into the apdu_handler; however, I don't 
- *                   think this project's code has any use for the src info  
- *                   on return from this handler, since the response has 
+ *                   is passed down into the apdu_handler; however, I don't
+ *                   think this project's code has any use for the src info
+ *                   on return from this handler, since the response has
  *                   already been sent via the apdu_handler.
  * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
  * 					 Normally just one valid entry; terminated with a -1 value.
