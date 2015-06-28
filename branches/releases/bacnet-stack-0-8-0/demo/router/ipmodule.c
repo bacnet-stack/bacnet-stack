@@ -381,7 +381,7 @@ int dl_ip_recv(
                         (*msg_data)->pdu =
                             (uint8_t *) malloc((*msg_data)->pdu_len);
                         /* fill up data message structure */
-                        memmove(&(*msg_data)->pdu, &data->buff[4 + 6],
+                        memmove(&(*msg_data)->pdu[0], &data->buff[4 + 6],
                             (*msg_data)->pdu_len);
                         memmove(&(*msg_data)->src, src,
                             sizeof(BACNET_ADDRESS));
