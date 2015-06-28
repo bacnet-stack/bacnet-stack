@@ -1151,7 +1151,7 @@ bool MSTP_Master_Node_FSM(
                 matched =
                     mstp_compare_data_expecting_reply(&mstp_port->InputBuffer
                     [0], mstp_port->DataLength, mstp_port->SourceAddress,
-                    &mstp_port->TxBuffer[0], mstp_port->TxLength,
+                    &mstp_port->TxBuffer[8], mstp_port->TxLength,
                     mstp_port->TxDestination);
             }
             if (matched && mstp_port->TxReady) {
