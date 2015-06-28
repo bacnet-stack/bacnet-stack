@@ -144,6 +144,27 @@ extern "C" {
         BBMD_TABLE_ENTRY* entry);
 
 
+    /* NAT handling
+     * If the communication between BBMDs goes through a NAT enabled internet
+     * router, special considerations are needed as stated in Annex J.7.8.
+     *
+     * In short, the local IP address of the BBMD is different than the global
+     * address which is visible to the other BBMDs or foreign devices. This is
+     * why the source address in forwarded messages needs to be changed to the
+     * global IP address.
+     *
+     * For other considerations/limitations see Annex J.7.8.
+     */
+
+    /* Set global IP address of a NAT enabled router which is used in forwarded
+     * messages. Enables NAT handling.
+     */
+    void bvlc_set_global_address_for_nat(const struct in_addr* addr);
+
+    /* Disable NAT handling of BBMD.
+     */
+    void bvlc_disable_nat(void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
