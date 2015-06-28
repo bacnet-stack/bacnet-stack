@@ -217,8 +217,8 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found = address_bind_request(Target_Device_Object_Instance, 
-								&max_apdu, 
+    found = address_bind_request(Target_Device_Object_Instance,
+								&max_apdu,
 								&Target_Address);
     if (!found) {
         Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
@@ -248,9 +248,11 @@ int main(int argc, char *argv[])
                 Request_Invoke_ID = Send_GetEvent(&Target_Address,
                                                   &LastReceivedObjectIdentifier);
                 More_Events = false;
-            } else if (tsm_invoke_id_free(Request_Invoke_ID))
-                if (Recieved_Ack) break;
-            else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
+            } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
+                if (Recieved_Ack) {
+                    break;
+                }
+            } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
