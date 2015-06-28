@@ -113,6 +113,74 @@ bool datetime_date_is_valid(
     return status;
 }
 
+static uint32_t day_of_year(
+    uint16_t year,
+    uint8_t month,
+    uint8_t day)
+{
+    uint32_t days = 0;  /* return value */
+    uint8_t months = 0; /* loop counter for months */
+
+    if (datetime_ymd_is_valid(year, month, day)) {
+        for (months = 1; months < month; months++) {
+            days += datetime_month_days(year, months);
+        }
+        days += day;
+    }
+
+    return (days);
+}
+
+void day_of_year_into_md(
+    uint32_t days,
+    uint16_t year,
+    uint8_t * pMonth,
+    uint8_t * pDay)
+{
+    uint8_t month = 1;
+    uint8_t day = 0;
+
+    while (days > (uint32_t) datetime_month_days(year, month)) {
+        days -= datetime_month_days(year, month);
+        month++;
+    }
+
+    day = (uint8_t) (day + days);
+
+    if (pMonth) {
+        *pMonth = month;
+    }
+    if (pDay) {
+        *pDay = day;
+    }
+
+    return;
+}
+
+void datetime_day_of_year_into_date(
+    uint32_t days,
+    uint16_t year,
+    BACNET_DATE *bdate)
+{
+    uint8_t month = 0;
+    uint8_t day = 0;
+
+    day_of_year_into_md(days, year, &month, &day);
+    datetime_set_date(bdate, year, month, day);
+}
+
+uint32_t datetime_day_of_year(
+    BACNET_DATE *bdate)
+{
+    uint32_t days = 0;
+
+    if (bdate) {
+        days = day_of_year(bdate->year, bdate->month, bdate->day);
+    }
+
+    return days;
+}
+
 static uint32_t days_since_epoch(
     uint16_t year,
     uint8_t month,
@@ -120,7 +188,6 @@ static uint32_t days_since_epoch(
 {
     uint32_t days = 0;  /* return value */
     uint16_t years = 0; /* loop counter for years */
-    uint8_t months = 0; /* loop counter for months */
 
     if (datetime_ymd_is_valid(year, month, day)) {
         for (years = 1900; years < year; years++) {
@@ -128,10 +195,9 @@ static uint32_t days_since_epoch(
             if (datetime_is_leap_year(years))
                 days++;
         }
-        for (months = 1; months < month; months++) {
-            days += datetime_month_days(years, months);
-        }
-        days += (day - 1);
+        days += day_of_year(year, month, day);
+        /* 'days since' is one less */
+        days -= 1;
     }
 
     return (days);
@@ -149,7 +215,7 @@ uint32_t datetime_days_since_epoch(
     return days;
 }
 
-static void days_since_epoch_into_ymd(
+void days_since_epoch_into_ymd(
     uint32_t days,
     uint16_t * pYear,
     uint8_t * pMonth,
@@ -957,6 +1023,44 @@ void testBACnetDateTime(
     return;
 }
 
+void testDayOfYear(
+    Test * pTest)
+{
+    uint32_t days = 0;
+    uint8_t month = 0, test_month = 0;
+    uint8_t day = 0, test_day = 0;
+    uint16_t year = 0;
+    BACNET_DATE bdate;
+    BACNET_DATE test_bdate;
+
+    days = day_of_year(1900, 1, 1);
+    ct_test(pTest, days == 1);
+    day_of_year_into_md(days, 1900, &month, &day);
+    ct_test(pTest, month == 1);
+    ct_test(pTest, day == 1);
+
+    for (year = 1900; year <= 2154; year++) {
+        for (month = 1; month <= 12; month++) {
+            for (day = 1; day <= datetime_month_days(year, month); day++) {
+                days = day_of_year(year, month, day);
+                day_of_year_into_md(days, year, &test_month, &test_day);
+                ct_test(pTest, month == test_month);
+                ct_test(pTest, day == test_day);
+            }
+        }
+    }
+    for (year = 1900; year <= 2154; year++) {
+        for (month = 1; month <= 12; month++) {
+            for (day = 1; day <= datetime_month_days(year, month); day++) {
+                datetime_set_date(&bdate, year, month, day);
+                days = datetime_day_of_year(&bdate);
+                datetime_day_of_year_into_date(days, year, &test_bdate);
+                ct_test(pTest, datetime_compare_date(&bdate, &test_bdate) == 0);
+            }
+        }
+    }
+}
+
 void testDateEpoch(
     Test * pTest)
 {
@@ -1079,6 +1183,8 @@ int main(
     rc = ct_addTestFunction(pTest, testBACnetDateTimeWildcard);
     assert(rc);
     rc = ct_addTestFunction(pTest, testDatetimeCodec);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testDayOfYear);
     assert(rc);
 
     ct_setStream(pTest, stdout);

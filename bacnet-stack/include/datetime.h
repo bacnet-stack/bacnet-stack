@@ -101,6 +101,12 @@ extern "C" {
     void datetime_days_since_epoch_into_date(
         uint32_t days,
         BACNET_DATE * bdate);
+    uint32_t datetime_day_of_year(
+        BACNET_DATE *bdate);
+    void datetime_day_of_year_into_date(
+        uint32_t days,
+        uint16_t year,
+        BACNET_DATE *bdate);
     bool datetime_is_leap_year(
         uint16_t year);
     uint8_t datetime_month_days(
