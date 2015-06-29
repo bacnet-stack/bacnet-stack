@@ -301,7 +301,7 @@ int main(
                 } else {
                     End_Of_File_Detected = true;
                 }
-                printf("\rSending %d bytes", (fileStartPosition + len));
+                printf("\rSending %d bytes", (int)(fileStartPosition + len));
                 invoke_id =
                     Send_Atomic_Write_File_Stream
                     (Target_Device_Object_Instance,

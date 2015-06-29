@@ -130,7 +130,7 @@ void handler_atomic_write_file(
 #if PRINT_ENABLED
                 fprintf(stderr, "AWF: Stream offset %d, %d bytes\n",
                     data.type.stream.fileStartPosition,
-                    octetstring_length(&data.fileData[0]));
+                    (int)octetstring_length(&data.fileData[0]));
 #endif
                 len =
                     awf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
