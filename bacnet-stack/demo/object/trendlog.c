@@ -450,7 +450,6 @@ bool Trend_Log_Write_Property(
 {
     bool status = false;        /* return value */
     int len = 0;
-    int iOffset = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     TL_LOG_INFO *CurrentLog;
     BACNET_DATE TempDate;       /* build here in case of error in time half of datetime */
