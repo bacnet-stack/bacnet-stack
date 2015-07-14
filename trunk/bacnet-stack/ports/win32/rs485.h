@@ -70,6 +70,8 @@ extern "C" {
 
     bool RS485_Interface_Valid(
         unsigned port_number);
+    void RS485_Print_Ports(
+        void);
 
 
 #ifdef __cplusplus

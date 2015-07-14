@@ -624,6 +624,14 @@ void RS485_Initialize(
     printf("=success!\n");
 }
 
+void RS485_Print_Ports(void)
+{
+    /* note: format for Wireshark ExtCap */
+    //printf("interface {value=/dev/ttyUSB%u}"
+    //    "{display=MS/TP Capture on /dev/ttyUSB%u}\n", i, i);
+    /* FIXME: add code to print ports */
+}
+
 #ifdef TEST_RS485
 #include <string.h>
 int main(
