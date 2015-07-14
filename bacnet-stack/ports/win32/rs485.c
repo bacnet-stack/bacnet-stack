@@ -489,6 +489,26 @@ void RS485_Check_UART_Data(
     }
 }
 
+/*************************************************************************
+* Description: print available COM ports
+* Returns: none
+* Notes: none
+**************************************************************************/
+void RS485_Print_Ports(
+    void)
+{
+    unsigned i = 0;
+
+    /* try to open all 255 COM ports */
+    for (i = 1; i < 256; i++) {
+        if (RS485_Interface_Valid(i)) {
+            /* note: format for Wireshark ExtCap */
+            printf("interface {value=COM%u}"
+                "{display=BACnet MS/TP on COM%u}\n", i, i);
+        }
+    }
+}
+
 #ifdef TEST_RS485
 
 #include "mstpdef.h"
