@@ -185,3 +185,13 @@ On Windows, use \\.\pipe\wireshark as the name, and set that name as the
 interface name in Wireshark.  On Linux, the named pipe name can be just about
 any file name, such as /tmp/wireshark.  See:
 http://wiki.wireshark.org/CaptureSetup/Pipes
+
+==== EXTCAP direct from Wireshark ====
+
+To use extcap, run Wireshark and go to the About-dialog.
+Find a tab located there named "Folders".
+Locate the extcap search path.
+Copy the mstpcap.exe to that folder, which may not exist.
+Restart Wireshark, and look for "BACnet MS/TP on COMx" interfaces.
+Configure the interface to change baud rate.
+Capture directly from the interface.
