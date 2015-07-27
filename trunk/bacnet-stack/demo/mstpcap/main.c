@@ -433,47 +433,35 @@ uint16_t MSTP_Get_Reply(
 static char Capture_Filename[32] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
 #if defined(_WIN32)
-static HANDLE hPipe = NULL;     /* pipe handle */
-static PSECURITY_DESCRIPTOR pPipeSD = NULL;
+static HANDLE hPipe = INVALID_HANDLE_VALUE;     /* pipe handle */
 static void named_pipe_create(
-    char *name)
+    char *pipe_name)
 {
-    SECURITY_ATTRIBUTES sa;
-
-    pPipeSD = (PSECURITY_DESCRIPTOR)(malloc(SECURITY_DESCRIPTOR_MIN_LENGTH));
-    if (!pPipeSD) {
-        Exit_Requested = true;
-        return;
-    }
-    if (!InitializeSecurityDescriptor(pPipeSD, SECURITY_DESCRIPTOR_REVISION)) {
-        free(pPipeSD);
-        pPipeSD = NULL;
-        Exit_Requested = true;
-        return;
-    }
-    /* When an object has no DACL (when the pDacl parameter is NULL),
-       no protection is assigned to the object, and all access requests
-       are granted. To help maintain security, restrict access by using
-       a DACL. */
-    if (!SetSecurityDescriptorDacl(pPipeSD, TRUE, (PACL)NULL, FALSE)) {
-        free(pPipeSD);
-        pPipeSD = NULL;
-        Exit_Requested = true;
-        return;
-    }
-    // now set up the security attributes
-    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-    sa.lpSecurityDescriptor = pPipeSD;
-    sa.bInheritHandle = TRUE;
-    fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", name);
-    hPipe =
-        CreateNamedPipe(name, PIPE_ACCESS_OUTBOUND,
-        PIPE_TYPE_MESSAGE | PIPE_WAIT,
-        PIPE_UNLIMITED_INSTANCES, 65536, 65536, 0L, &sa);
-    if (hPipe == INVALID_HANDLE_VALUE) {
-        RS485_Print_Error();
-        Exit_Requested = true;
-        return;
+    fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", pipe_name);
+    /* create the pipe */
+    while (hPipe == INVALID_HANDLE_VALUE)
+    {
+        /* use CreateFile rather than CreateNamedPipe */
+        hPipe = CreateFile(
+            pipe_name,
+            GENERIC_READ |
+            GENERIC_WRITE,
+            0,
+            NULL,
+            OPEN_EXISTING,
+            0,
+            NULL);
+        if (hPipe != INVALID_HANDLE_VALUE) {
+            break;
+        }
+        /* if an error occured at handle creation */
+        if (!WaitNamedPipe(pipe_name, 20000)) {
+            printf("Could not open pipe: waited for 20sec!\n"
+                "If this message was issued before the 20sec finished,\n"
+                "then the pipe doesn't exist!\n");
+            Exit_Requested = true;
+            return;
+        }
     }
     ConnectNamedPipe(hPipe, NULL);
 }
@@ -864,13 +852,11 @@ static BOOL WINAPI CtrlCHandler(
 {
     dwCtrlType = dwCtrlType;
 
-    if (hPipe) {
+    if (hPipe != INVALID_HANDLE_VALUE) {
         FlushFileBuffers(hPipe);
         DisconnectNamedPipe(hPipe);
         CloseHandle(hPipe);
-    }
-    if (pPipeSD) {
-        free(pPipeSD);
+        hPipe = INVALID_HANDLE_VALUE;
     }
     /* signal to main loop to exit */
     Exit_Requested = true;
