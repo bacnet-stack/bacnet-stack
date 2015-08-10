@@ -54,7 +54,11 @@
 #include "txbuf.h"
 #include "dlenv.h"
 
-#define MAX_OBJ_IDS_IN_GE_ACK 10
+/* Depending on on the max-APDU-length-accepted (varies per device),
+   the amount of event entries in the GetEventInformation ACK can sum
+   up to 24 max (max APDU length is 1476), especially if the flag
+   MORE_EVENTS is true. */
+#define MAX_OBJ_IDS_IN_GE_ACK 24
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = {0};
