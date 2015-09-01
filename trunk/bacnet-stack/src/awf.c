@@ -99,6 +99,7 @@ int awf_decode_service_request(
 {
     int len = 0;
     int tag_len = 0;
+    int decoded_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     int32_t signed_value = 0;
@@ -135,9 +136,13 @@ int awf_decode_service_request(
             len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
                 return -1;
-            len +=
+            decoded_len =
                 decode_octet_string(&apdu[len], len_value_type,
                 &data->fileData[0]);
+            if (decoded_len != len_value_type) {
+                return -1;
+            }
+            len += decoded_len;
             if (!decode_is_closing_tag_number(&apdu[len], 0))
                 return -1;
             /* a tag number is not extended so only one octet */
@@ -173,9 +178,13 @@ int awf_decode_service_request(
                 len += tag_len;
                 if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
                     return -1;
-                len +=
+                decoded_len =
                     decode_octet_string(&apdu[len], len_value_type,
                     &data->fileData[i]);
+                if (decoded_len != len_value_type) {
+                    return -1;
+                }
+                len += decoded_len;
             }
             if (!decode_is_closing_tag_number(&apdu[len], 1))
                 return -1;

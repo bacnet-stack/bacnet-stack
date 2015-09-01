@@ -59,9 +59,11 @@ static uint32_t Target_File_Object_Instance = BACNET_MAX_INSTANCE;
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
 static char *Local_File_Name = NULL;
+static int Target_File_Start_Position;
+static unsigned int Target_File_Requested_Octet_Count;
 static bool End_Of_File_Detected = false;
 static bool Error_Detected = false;
-static uint8_t Current_Invoke_ID = 0;
+static uint8_t Request_Invoke_ID = 0;
 
 static void Atomic_Read_File_Error_Handler(
     BACNET_ADDRESS * src,
@@ -69,13 +71,13 @@ static void Atomic_Read_File_Error_Handler(
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    printf("\nBACnet Error!\n");
-    printf("Error Class: %s\n", bactext_error_class_name(error_class));
-    printf("Error Code: %s\n", bactext_error_code_name(error_code));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Error: %s: %s\n",
+            bactext_error_class_name((int) error_class),
+            bactext_error_code_name((int) error_code));
+        Error_Detected = true;
+    }
 }
 
 void MyAbortHandler(
@@ -84,13 +86,13 @@ void MyAbortHandler(
     uint8_t abort_reason,
     bool server)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
     (void) server;
-    printf("\nBACnet Abort!\n");
-    printf("Abort Reason: %s\n", bactext_abort_reason_name(abort_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Abort: %s\n",
+            bactext_abort_reason_name((int) abort_reason));
+        Error_Detected = true;
+    }
 }
 
 void MyRejectHandler(
@@ -98,12 +100,12 @@ void MyRejectHandler(
     uint8_t invoke_id,
     uint8_t reject_reason)
 {
-    /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    printf("\nBACnet Reject!\n");
-    printf("Reject Reason: %s\n", bactext_reject_reason_name(reject_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf("BACnet Reject: %s\n",
+            bactext_reject_reason_name((int) reject_reason));
+        Error_Detected = true;
+    }
 }
 
 static void AtomicReadFileAckHandler(
@@ -113,44 +115,59 @@ static void AtomicReadFileAckHandler(
     BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
 {
     int len = 0;
+    int result = 0;
     BACNET_ATOMIC_READ_FILE_DATA data;
     FILE *pFile = NULL; /* stream pointer */
     size_t octets_written = 0;
 
-    (void) src; /* FIXME: validate the source address matches */
-    len = arf_ack_decode_service_request(service_request, service_len, &data);
-    if (len > 0) {
-        /* validate the parameters before storing data */
-        if ((data.access == FILE_STREAM_ACCESS) &&
-            (service_data->invoke_id == Current_Invoke_ID)) {
-            if (data.type.stream.fileStartPosition == 0)
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len = arf_ack_decode_service_request(service_request, service_len, &data);
+        if ((len > 0) && (data.access == FILE_STREAM_ACCESS)) {
+            if (data.type.stream.fileStartPosition == 0) {
                 pFile = fopen(Local_File_Name, "wb");
-            else
+            } else {
                 pFile = fopen(Local_File_Name, "rb+");
+            }
             if (pFile) {
-                /* is there anything to do with this? data.stream.requestedOctetCount */
-                (void) fseek(pFile, data.type.stream.fileStartPosition,
+                result = fseek(pFile, data.type.stream.fileStartPosition,
                     SEEK_SET);
-                octets_written = fwrite(octetstring_value(&data.fileData[0]), 1,        /* unit to write in bytes - in our case, an octet is one byte */
-                    octetstring_length(&data.fileData[0]), pFile);
-                if (octets_written != octetstring_length(&data.fileData[0])) {
-                    fprintf(stderr, "Unable to write data to file \"%s\".\n",
-                        Local_File_Name);
-                } else if (octets_written == 0) {
-                    fprintf(stderr, "Received 0 byte octet string!.\n");
+                if (result == 0) {
+                    /* unit to write in bytes -
+                       in our case, an octet is one byte */
+                    octets_written = fwrite(
+                        octetstring_value(&data.fileData[0]), 1,
+                        octetstring_length(&data.fileData[0]), pFile);
+                    if (octets_written !=
+                        octetstring_length(&data.fileData[0])) {
+                        fprintf(stderr,
+                            "Unable to write data to file \"%s\".\n",
+                            Local_File_Name);
+                    } else if (octets_written == 0) {
+                        fprintf(stderr, "Received 0 byte octet string!.\n");
+                    } else {
+                        Target_File_Start_Position =
+                            data.type.stream.fileStartPosition +
+                            octets_written;
+                        printf("\r%d bytes", (int)Target_File_Start_Position);
+                    }
+                    fflush(pFile);
                 } else {
-                    printf("\r%d bytes",
-                        (int)(data.type.stream.fileStartPosition +
-                        octets_written));
+                    fprintf(stderr, "Unable to seek to %d!\n",
+                        data.type.stream.fileStartPosition);
                 }
-                fflush(pFile);
                 fclose(pFile);
             }
             if (data.endOfFile) {
                 End_Of_File_Detected = true;
                 printf("\n");
             }
+        } else {
+            fprintf(stderr, "Decode error! %d bytes decoded.\n", len);
         }
+    } else {
+        fprintf(stderr, "Address & Invoke ID mismatch! Invoke ID=%d\n",
+            Request_Invoke_ID);
     }
 }
 
@@ -249,8 +266,6 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
-    int fileStartPosition = 0;
-    unsigned requestedOctetCount = 0;
     uint8_t invoke_id = 0;
     bool found = false;
     uint16_t my_max_apdu = 0;
@@ -343,13 +358,13 @@ int main(
             }
             /* Typical sizes are 50, 128, 206, 480, 1024, and 1476 octets */
             if (my_max_apdu <= 50) {
-                requestedOctetCount = my_max_apdu - 20;
+                Target_File_Requested_Octet_Count = my_max_apdu - 20;
             } else if (my_max_apdu <= 480) {
-                requestedOctetCount = my_max_apdu - 32;
+                Target_File_Requested_Octet_Count = my_max_apdu - 32;
             } else if (my_max_apdu <= 1476) {
-                requestedOctetCount = my_max_apdu - 64;
+                Target_File_Requested_Octet_Count = my_max_apdu - 64;
             } else {
-                requestedOctetCount = my_max_apdu / 2;
+                Target_File_Requested_Octet_Count = my_max_apdu / 2;
             }
             /* has the previous invoke id expired or returned?
                note: invoke ID = 0 is invalid, so it will be idle */
@@ -357,16 +372,14 @@ int main(
                 if (End_Of_File_Detected || Error_Detected) {
                     break;
                 }
-                if (invoke_id != 0) {
-                    fileStartPosition += requestedOctetCount;
-                }
+                /* the ACK will increment the start position if OK */
                 /* we'll read the file in chunks
                    less than max_apdu to keep unsegmented */
                 invoke_id =
                     Send_Atomic_Read_File_Stream(Target_Device_Object_Instance,
-                    Target_File_Object_Instance, fileStartPosition,
-                    requestedOctetCount);
-                Current_Invoke_ID = invoke_id;
+                    Target_File_Object_Instance, Target_File_Start_Position,
+                    Target_File_Requested_Octet_Count);
+                Request_Invoke_ID = invoke_id;
             } else if (tsm_invoke_id_failed(invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(invoke_id);
