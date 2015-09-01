@@ -256,6 +256,7 @@ int arf_ack_decode_service_request(
 {
     int len = 0;
     int tag_len = 0;
+    int decoded_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint32_t i = 0;
@@ -265,8 +266,9 @@ int arf_ack_decode_service_request(
         len =
             decode_tag_number_and_value(&apdu[0], &tag_number,
             &len_value_type);
-        if (tag_number != BACNET_APPLICATION_TAG_BOOLEAN)
+        if (tag_number != BACNET_APPLICATION_TAG_BOOLEAN) {
             return -1;
+        }
         data->endOfFile = decode_boolean(len_value_type);
         if (decode_is_opening_tag_number(&apdu[len], 0)) {
             data->access = FILE_STREAM_ACCESS;
@@ -277,8 +279,9 @@ int arf_ack_decode_service_request(
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
                 return -1;
+            }
             len +=
                 decode_signed(&apdu[len], len_value_type,
                 &data->type.stream.fileStartPosition);
@@ -287,13 +290,19 @@ int arf_ack_decode_service_request(
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
+            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
                 return -1;
-            len +=
+            }
+            decoded_len =
                 decode_octet_string(&apdu[len], len_value_type,
                 &data->fileData[0]);
-            if (!decode_is_closing_tag_number(&apdu[len], 0))
+            if (decoded_len != len_value_type) {
                 return -1;
+            }
+            len += decoded_len;
+            if (!decode_is_closing_tag_number(&apdu[len], 0)) {
+                return -1;
+            }
             /* a tag number is not extended so only one octet */
             len++;
         } else if (decode_is_opening_tag_number(&apdu[len], 1)) {
@@ -305,8 +314,9 @@ int arf_ack_decode_service_request(
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
                 return -1;
+            }
             len +=
                 decode_signed(&apdu[len], len_value_type,
                 &data->type.record.fileStartRecord);
@@ -315,8 +325,9 @@ int arf_ack_decode_service_request(
                 decode_tag_number_and_value(&apdu[len], &tag_number,
                 &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 return -1;
+            }
             len +=
                 decode_unsigned(&apdu[len], len_value_type,
                 &data->type.record.RecordCount);
@@ -326,18 +337,25 @@ int arf_ack_decode_service_request(
                     decode_tag_number_and_value(&apdu[len], &tag_number,
                     &len_value_type);
                 len += tag_len;
-                if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
+                if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
                     return -1;
-                len +=
-                    decode_octet_string(&apdu[len], len_value_type,
-                    &data->fileData[i]);
+                }
+                decoded_len =
+                        decode_octet_string(&apdu[len], len_value_type,
+                        &data->fileData[i]);
+                if (decoded_len != len_value_type) {
+                    return -1;
+                }
+                len += decoded_len;
             }
-            if (!decode_is_closing_tag_number(&apdu[len], 1))
+            if (!decode_is_closing_tag_number(&apdu[len], 1)) {
                 return -1;
+            }
             /* a tag number is not extended so only one octet */
             len++;
-        } else
+        } else {
             return -1;
+        }
     }
 
     return len;

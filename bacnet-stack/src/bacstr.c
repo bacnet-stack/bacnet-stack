@@ -696,25 +696,23 @@ bool octetstring_init(
     bool status = false;        /* return value */
     size_t i;   /* counter */
 
-    if (octet_string) {
+    if (octet_string && (length <= MAX_OCTET_STRING_BYTES)) {
         octet_string->length = 0;
-        if (length <= MAX_OCTET_STRING_BYTES) {
-            if (value) {
-                for (i = 0; i < length; i++) {
-                    if (i < length) {
-                        octet_string->value[octet_string->length] = value[i];
-                        octet_string->length++;
-                    } else {
-                        octet_string->value[i] = 0;
-                    }
-                }
-            } else {
-                for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
+        if (value) {
+            for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
+                if (i < length) {
+                    octet_string->value[i] = value[i];
+                } else {
                     octet_string->value[i] = 0;
                 }
             }
-            status = true;
+            octet_string->length = length;
+        } else {
+            for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
+                octet_string->value[i] = 0;
+            }
         }
+        status = true;
     }
 
     return status;
