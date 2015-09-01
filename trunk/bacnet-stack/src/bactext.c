@@ -792,7 +792,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_AUTHENTICATION_POLICY_NAMES, "authentication-policy-names"}
     ,
-    {PROP_AUTHORIZATION_STATUS, "authentication-status"}
+    {PROP_AUTHENTICATION_STATUS, "authentication-status"}
     ,
     {PROP_AUTHORIZATION_MODE, "authorization-mode"}
     ,
