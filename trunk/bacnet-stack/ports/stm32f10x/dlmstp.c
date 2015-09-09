@@ -444,10 +444,10 @@ static void MSTP_Send_Frame(
 {       /* number of bytes of data (up to 501) */
     uint8_t crc8 = 0xFF;        /* used to calculate the crc value */
     uint16_t crc16 = 0xFFFF;    /* used to calculate the crc value */
-    static struct mstp_tx_packet *pkt;
+    struct mstp_tx_packet *pkt;
     uint16_t i = 0;     /* used to calculate CRC for data */
 
-    pkt = (struct mstp_tx_packet *) Ringbuf_Alloc(&Transmit_Queue);
+    pkt = (struct mstp_tx_packet *) Ringbuf_Data_Peek(&Transmit_Queue);
     if (pkt) {
         /* create the MS/TP header */
         pkt->buffer[0] = 0x55;
@@ -476,6 +476,7 @@ static void MSTP_Send_Frame(
             pkt->length += data_len;
             pkt->length += 2;
         }
+        Ringbuf_Data_Put(&Transmit_Queue, (uint8_t *)pkt);
     } else {
         pkt = NULL;
     }
@@ -1274,7 +1275,7 @@ int dlmstp_send_pdu(
     struct mstp_pdu_packet *pkt;
     uint16_t i = 0;
 
-    pkt = (struct mstp_pdu_packet *) Ringbuf_Alloc(&PDU_Queue);
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Data_Peek(&PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply = npdu_data->data_expecting_reply;
         for (i = 0; i < pdu_len; i++) {
@@ -1286,7 +1287,9 @@ int dlmstp_send_pdu(
         } else {
             pkt->destination_mac = MSTP_BROADCAST_ADDRESS;
         }
-        bytes_sent = pdu_len;
+        if (Ringbuf_Data_Put(&PDU_Queue, (uint8_t *)pkt)) {
+            bytes_sent = pdu_len;
+        }
     }
 
     return bytes_sent;

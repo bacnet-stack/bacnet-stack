@@ -113,11 +113,12 @@ void bacnet_task_timed(
 
     pdu_len = dlmstp_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 5);
     if (pdu_len) {
-        pkt = (struct mstp_rx_packet *) Ringbuf_Alloc(&Receive_Queue);
+        pkt = (struct mstp_rx_packet *) Ringbuf_Data_Peek(&Receive_Queue);
         if (pkt) {
             memcpy(pkt->buffer, PDUBuffer, MAX_MPDU);
             bacnet_address_copy(&pkt->src, &src);
             pkt->length = pdu_len;
+            Ringbuf_Data_Put(&Receive_Queue, pkt);
         }
     }
 }
@@ -133,7 +134,7 @@ static void bacnet_test_task(void)
 	uint32_t instance;
 	float float_value;
 	uint16_t adc_value;
-	
+
     instance = Analog_Input_Index_To_Instance(index);
     if (!Analog_Input_Out_Of_Service(instance)) {
 		adc_value = adc_result_12bit(index);
@@ -194,7 +195,7 @@ void bacnet_task(void)
 void bacnet_init(void)
 {
     unsigned i;
-    
+
     Ringbuf_Init(&Receive_Queue, (uint8_t *) & Receive_Buffer,
         sizeof(struct mstp_rx_packet), MSTP_RECEIVE_PACKET_COUNT);
     dlmstp_init(NULL);
@@ -229,5 +230,5 @@ void bacnet_init(void)
         Analog_Input_Units_Set(
             Analog_Input_Index_To_Instance(i),
             UNITS_PERCENT);
-    }        
+    }
 }

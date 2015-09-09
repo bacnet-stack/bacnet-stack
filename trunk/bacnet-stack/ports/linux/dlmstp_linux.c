@@ -151,7 +151,7 @@ int dlmstp_send_pdu(
         return 0;
     }
 
-    pkt = (struct mstp_pdu_packet *) Ringbuf_Alloc(&poSharedData->PDU_Queue);
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Data_Peek(&poSharedData->PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply =
             BACNET_DATA_EXPECTING_REPLY(pdu[BACNET_PDU_CONTROL_BYTE_OFFSET]);
@@ -160,7 +160,9 @@ int dlmstp_send_pdu(
         }
         pkt->length = pdu_len;
         pkt->destination_mac = dest->mac[0];
-        bytes_sent = pdu_len;
+        if (Ringbuf_Data_Put(&PDU_Queue, (uint8_t *)pkt)) {
+            bytes_sent = pdu_len;
+        }
     }
 
     return bytes_sent;

@@ -60,8 +60,10 @@ extern "C" {
     bool Ringbuf_Put_Front(
         RING_BUFFER * b,        /* ring buffer structure */
         uint8_t * data_element);
-    volatile uint8_t *Ringbuf_Alloc(
+    volatile uint8_t *Ringbuf_Data_Peek(
         RING_BUFFER * b);
+    bool Ringbuf_Data_Put(
+        RING_BUFFER * b, volatile uint8_t *data_element);
     /* Note: element_count must be a power of two */
     void Ringbuf_Init(
         RING_BUFFER * b,        /* ring buffer structure */
