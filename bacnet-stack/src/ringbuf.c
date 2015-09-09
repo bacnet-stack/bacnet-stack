@@ -86,7 +86,7 @@ bool Ringbuf_Empty(
 }
 
 /****************************************************************************
-* DESCRIPTION: Looks at the data from the head of the list without removing it
+* DESCRIPTION: Looks at the data from the front of the list without removing it
 * RETURN:      pointer to the data, or NULL if nothing in the list
 * ALGORITHM:   none
 * NOTES:       none
@@ -134,7 +134,7 @@ bool Ringbuf_Pop(
 }
 
 /****************************************************************************
-* DESCRIPTION: Adds an element of data to the ring buffer
+* DESCRIPTION: Adds an element of data to the end of the ring buffer
 * RETURN:      true on succesful add, false if not added
 * ALGORITHM:   none
 * NOTES:       none
@@ -197,13 +197,13 @@ bool Ringbuf_Put_Front(
 }
 
 /****************************************************************************
-* DESCRIPTION: Reserves and gets the next data portion of the buffer.
-* RETURN:      pointer to the data, or NULL if the list is full
+* DESCRIPTION: Gets a pointer to the next free data element of the buffer
+*              without adding it to the ring.
+* RETURN:      pointer to the next data chunk, or NULL if ring buffer is full.
 * ALGORITHM:   none
-* NOTES:       none
+* NOTES:       Use Ringbuf_Data_Peek with Ringbuf_Data_Put
 *****************************************************************************/
-volatile uint8_t *Ringbuf_Alloc(
-    RING_BUFFER * b)
+volatile uint8_t *Ringbuf_Data_Peek(RING_BUFFER * b)
 {
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
 
@@ -212,11 +212,39 @@ volatile uint8_t *Ringbuf_Alloc(
         if (!Ringbuf_Full(b)) {
             ring_data = b->buffer;
             ring_data += ((b->head % b->element_count) * b->element_size);
-            b->head++;
         }
     }
 
     return ring_data;
+}
+
+/****************************************************************************
+* DESCRIPTION: Adds the previously peeked element of data to the end of the
+*              ring buffer
+* RETURN:      true if the buffer has space and the data element points to the
+*              same memory previously peeked.
+* ALGORITHM:   none
+* NOTES:       Use Ringbuf_Data_Peek with Ringbuf_Data_Put
+*****************************************************************************/
+bool Ringbuf_Data_Put(RING_BUFFER * b, volatile uint8_t *data_element)
+{
+    bool status = false;
+    volatile uint8_t *ring_data = NULL; /* used to help point ring data */
+
+    if (b) {
+        /* limit the amount of elements that we accept */
+        if (!Ringbuf_Full(b)) {
+            ring_data = b->buffer;
+            ring_data += ((b->head % b->element_count) * b->element_size);
+            if (ring_data == data_element) {
+                /* same chunk of memory - okay to signal the head */
+                b->head++;
+                status = true;
+            }
+        }
+    }
+
+    return status;
 }
 
 /****************************************************************************

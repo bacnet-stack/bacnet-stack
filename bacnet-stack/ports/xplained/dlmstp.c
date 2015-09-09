@@ -1267,7 +1267,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
     struct mstp_pdu_packet *pkt;
     uint16_t i = 0;
 
-    pkt = (struct mstp_pdu_packet *) Ringbuf_Alloc(&PDU_Queue);
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Data_Peek(&PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply = npdu_data->data_expecting_reply;
         for (i = 0; i < pdu_len; i++) {
@@ -1279,7 +1279,9 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
         } else {
             pkt->destination_mac = dest->mac[0];
         }
-        bytes_sent = pdu_len;
+        if (Ringbuf_Data_Put(&PDU_Queue, pkt)) {
+            bytes_sent = pdu_len;
+        }
     }
 
     return bytes_sent;
@@ -1294,13 +1296,13 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
  * @param max_pdu [in] - the size of the PDU buffer
  * @param timeout [in] - the number of milliseconds to wait for a packet
  *
- * @return Return the length of the packet 
+ * @return Return the length of the packet
  */
 uint16_t dlmstp_receive(BACNET_ADDRESS * src,
     uint8_t * pdu,
     uint16_t max_pdu,
     unsigned timeout)
-{ 
+{
     uint16_t pdu_len = 0;       /* return value */
     bool transmitting = false;
 
