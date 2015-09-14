@@ -1044,6 +1044,15 @@ int main(
             }
             RS485_Set_Interface(argv[argi]);
         }
+        if (strncasecmp(argv[argi], "com", 3) == 0) {
+            /* legacy command line options */
+            RS485_Set_Interface(argv[argi]);
+            if ((argi+1) < argc) {
+                argi++;
+                my_baud = strtol(argv[argi], NULL, 0);
+                RS485_Set_Baud_Rate(my_baud);
+            }
+        }
         if (strcmp(argv[argi], "--baud") == 0) {
             argi++;
             if (argi >= argc) {
