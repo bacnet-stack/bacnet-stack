@@ -1001,8 +1001,10 @@ int main(
                 if (packet_count) {
                     packet_statistics_print();
                 }
+                Exit_Requested = true;
             } else {
                 fprintf(stderr, "File header does not match.\n");
+                return 1;
             }
         }
         if (strcmp(argv[argi], "--extcap-interfaces") == 0) {
