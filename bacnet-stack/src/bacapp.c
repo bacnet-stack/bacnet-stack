@@ -673,6 +673,15 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                 case 0:        /* Device Object ID */
                     tag = BACNET_APPLICATION_TAG_OBJECT_ID;
                     break;
+                case 1:
+                    /* 2015.08.22 EKH 135-2012 pg 708
+                    todo - Context 1 in Recipient list would be a BACnetAddress, not coded yet...
+                    BACnetRecipient::= CHOICE { 
+                         device  [0] BACnetObjectIdentifier, 
+                         address  [1] BACnetAddress 
+                          }
+                          */
+                    break;
                 default:
                     break;
             }
