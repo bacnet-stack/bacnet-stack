@@ -20,7 +20,11 @@ Add the configuration text below to your subversion client
 configuration file that is normally in the following location:
 
 Windows: %USERPROFILE%\Application Data\Subversion\config
-Linux:   ~/.subversion/config
+or %appdata%\subversion\config
+or Click the 'edit' button for 'Subversion configuration file' in
+the TortoiseSVN settings dialog under General.
+
+Linux:   ~/.subversion/config or /etc/subversion/config
 
 Warning: Make sure the settings are merged into the appropriate
 section if it already exists, as duplicate section names can
