@@ -382,7 +382,6 @@ int Analog_Input_Read_Property(
     int len = 0;
 #endif
     uint8_t *apdu = NULL;
-    const int *pRequired = NULL, *pOptional = NULL, *pProprietary = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -592,14 +591,6 @@ int Analog_Input_Read_Property(
             }
             break;
 #endif
-        case PROP_PROPERTY_LIST:
-            Analog_Input_Property_Lists(&pRequired, &pOptional, &pProprietary);
-            apdu_len = property_list_encode(
-                rpdata,
-                pRequired,
-                pOptional,
-                pProprietary);
-            break;
         case 9997:
             /* test case for real encoding-decoding unsigned value correctly */
             apdu_len = encode_application_real(&apdu[0], 90.510F);
@@ -620,7 +611,6 @@ int Analog_Input_Read_Property(
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) && (rpdata->object_property != PROP_EVENT_TIME_STAMPS)
-        && (rpdata->object_property != PROP_PROPERTY_LIST)
         && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -653,7 +643,6 @@ bool Analog_Input_Write_Property(
     }
     /*  only array properties can have array options */
     if ((wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->object_property != PROP_PROPERTY_LIST) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -838,7 +827,6 @@ bool Analog_Input_Write_Property(
         case PROP_ACKED_TRANSITIONS:
         case PROP_EVENT_TIME_STAMPS:
 #endif
-        case PROP_PROPERTY_LIST:
         case 9997:
         case 9998:
         case 9999:

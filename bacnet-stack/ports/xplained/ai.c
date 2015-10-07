@@ -203,10 +203,10 @@ bool Analog_Input_Units_Set(
         Units[index] = value;
         status = true;
     }
-    
+
     return status;
 }
-    
+
 uint16_t Analog_Input_Units(
     uint32_t object_instance)
 {
@@ -217,8 +217,8 @@ uint16_t Analog_Input_Units(
 	if (index < MAX_ANALOG_INPUTS) {
         value = Units[index];
     }
-    
-    return value;    
+
+    return value;
 }
 
 /* return apdu length, or -1 on error */
@@ -261,7 +261,7 @@ int Analog_Input_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, 
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
                 Analog_Input_Out_Of_Service(rpdata->object_instance));
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -270,11 +270,11 @@ int Analog_Input_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            apdu_len = encode_application_boolean(&apdu[0], 
+            apdu_len = encode_application_boolean(&apdu[0],
                 Analog_Input_Out_Of_Service(rpdata->object_instance));
             break;
         case PROP_UNITS:
-            apdu_len = encode_application_enumerated(&apdu[0], 
+            apdu_len = encode_application_enumerated(&apdu[0],
                 Analog_Input_Units(rpdata->object_instance));
             break;
         default:
@@ -314,7 +314,6 @@ bool Analog_Input_Write_Property(
     }
     /*  only array properties can have array options */
     if ((wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
-        (wp_data->object_property != PROP_PROPERTY_LIST) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;

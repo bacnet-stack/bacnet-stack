@@ -607,7 +607,6 @@ int Command_Read_Property(
     uint8_t *apdu = NULL;
     uint16_t apdu_max = 0;
     COMMAND_DESCR *CurrentCommand;
-    const int *pRequired = NULL, *pOptional = NULL, *pProprietary = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -707,12 +706,6 @@ int Command_Read_Property(
                 }
             }
             break;
-        case PROP_PROPERTY_LIST:
-            Command_Property_Lists(&pRequired, &pOptional, &pProprietary);
-            apdu_len =
-                property_list_encode(rpdata, pRequired, pOptional,
-                pProprietary);
-            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -721,7 +714,6 @@ int Command_Read_Property(
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACTION)
-        && (rpdata->object_property != PROP_PROPERTY_LIST)
         && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -760,7 +752,6 @@ bool Command_Write_Property(
     }
     /*  only array properties can have array options */
     if ((wp_data->object_property != PROP_ACTION) &&
-        (wp_data->object_property != PROP_PROPERTY_LIST) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -798,7 +789,6 @@ bool Command_Write_Property(
         case PROP_IN_PROCESS:
         case PROP_ALL_WRITES_SUCCESSFUL:
         case PROP_ACTION:
-        case PROP_PROPERTY_LIST:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
