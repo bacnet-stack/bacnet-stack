@@ -1427,7 +1427,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 for (i = 1; i <= count; i++) {
                     pMember = Channel_Reference_List_Member_Element(
                         rpdata->object_instance, i);
-                    len +=
+                    len =
                         bacapp_encode_device_obj_property_ref(&apdu[apdu_len],
                         pMember);
                     /* add it if we have room */
@@ -1518,6 +1518,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
     if ((apdu_len >= 0)
         && (rpdata->object_property != PROP_PRIORITY_ARRAY)
         && (rpdata->object_property != PROP_PROPERTY_LIST)
+        && (rpdata->object_property != PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES)
         && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
