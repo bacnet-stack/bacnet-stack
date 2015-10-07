@@ -951,7 +951,6 @@ int Lighting_Output_Read_Property(
     unsigned i = 0;
     bool state = false;
     uint8_t *apdu = NULL;
-    const int *pRequired = NULL, *pOptional = NULL, *pProprietary = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -1099,14 +1098,6 @@ int Lighting_Output_Read_Property(
             apdu_len = encode_application_unsigned(&apdu[0],
                 unsigned_value);
             break;
-        case PROP_PROPERTY_LIST:
-            Lighting_Output_Property_Lists(&pRequired, &pOptional, &pProprietary);
-            apdu_len = property_list_encode(
-                rpdata,
-                pRequired,
-                pOptional,
-                pProprietary);
-            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1115,7 +1106,6 @@ int Lighting_Output_Read_Property(
     }
     /*  only array properties can have array options */
     if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
-        (rpdata->object_property != PROP_PROPERTY_LIST) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;

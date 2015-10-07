@@ -1361,7 +1361,6 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
     bool state = false;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     uint8_t *apdu = NULL;
-    const int *pRequired = NULL, *pOptional = NULL, *pProprietary = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -1500,14 +1499,6 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 }
             }
             break;
-        case PROP_PROPERTY_LIST:
-            Channel_Property_Lists(&pRequired, &pOptional, &pProprietary);
-            apdu_len = property_list_encode(
-                rpdata,
-                pRequired,
-                pOptional,
-                pProprietary);
-            break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1517,7 +1508,6 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
     /*  only array properties can have array options */
     if ((apdu_len >= 0)
         && (rpdata->object_property != PROP_PRIORITY_ARRAY)
-        && (rpdata->object_property != PROP_PROPERTY_LIST)
         && (rpdata->object_property != PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES)
         && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -1558,7 +1548,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
         return false;
     }
     if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
-        (wp_data->object_property != PROP_PROPERTY_LIST) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1661,7 +1650,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
         case PROP_LAST_PRIORITY:
         case PROP_WRITE_STATUS:
         case PROP_STATUS_FLAGS:
-        case PROP_PROPERTY_LIST:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
