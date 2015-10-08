@@ -1399,7 +1399,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 (BACNET_WRITE_STATUS)Channel_Write_Status(
                 rpdata->object_instance);
             apdu_len =
-                encode_application_unsigned(&apdu[0], unsigned_value);
+                encode_application_enumerated(&apdu[0], unsigned_value);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
