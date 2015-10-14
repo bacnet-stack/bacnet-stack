@@ -1050,7 +1050,8 @@ typedef enum {
     OBJECT_LOAD_CONTROL = 28,
     OBJECT_STRUCTURED_VIEW = 29,
     OBJECT_ACCESS_DOOR = 30,
-    /* 31 was lighting output, but BACnet editor changed it... */
+    OBJECT_TIMER = 31,
+    /* Note: 31 was lighting output, but BACnet editor changed it... */
     OBJECT_ACCESS_CREDENTIAL = 32,      /* Addendum 2008-j */
     OBJECT_ACCESS_POINT = 33,
     OBJECT_ACCESS_RIGHTS = 34,
@@ -1074,6 +1075,8 @@ typedef enum {
     OBJECT_ALERT_ENROLLMENT = 52,       /* Addendum 2010-af */
     OBJECT_CHANNEL = 53,        /* Addendum 2010-aa */
     OBJECT_LIGHTING_OUTPUT = 54,        /* Addendum 2010-i */
+    OBJECT_BINARY_LIGHTING_OUTPUT = 55, /* Addendum 135-2012az */
+    OBJECT_NETWORK_PORT = 56,   /* Addendum 135-2012az */
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
