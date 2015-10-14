@@ -92,7 +92,8 @@ Retries = number of second tokens sent to this MAC address.
 
 Npoll = number of Tokens between Poll-For-Master
 
-Self = number of Tokens sent to self (Addendum 135-2008v)
+Self/TT = number of Tokens sent to self (Addendum 135-2008v) and
+  number of tardy tokens sent late.
 
 Treply = maximum number of milliseconds it took to reply with
 a token after receiving a token. Treply is required to be less

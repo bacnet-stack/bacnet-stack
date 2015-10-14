@@ -113,6 +113,8 @@ struct mstp_statistics {
     /* Addendum 2008v - sending tokens to myself */
     /* counts how many times the node passes the token */
     uint32_t self_token_count;
+    /* counts how many times the node sends the token out-of-order (ooo) */
+    uint32_t ooo_token_count;
     /* if we see an I-Am message from this node, store the Device ID */
     uint32_t device_id;
 };
@@ -185,6 +187,7 @@ static void packet_statistics(
     static uint8_t old_frame = 255;
     static uint8_t old_src = 255;
     static uint8_t old_dst = 255;
+    static uint8_t old_token_dst = 255;
     uint8_t frame, src, dst;
     uint32_t delta;
     uint32_t npoll;
@@ -223,6 +226,11 @@ static void packet_statistics(
                     MSTP_Statistics[src].tusage_timeout = delta;
                 }
             }
+            if (old_token_dst != src) {
+                /* out-of-order Token sender */
+                MSTP_Statistics[src].ooo_token_count++;
+            }
+            old_token_dst = dst;
             break;
         case FRAME_TYPE_POLL_FOR_MASTER:
             if (MSTP_Statistics[src].last_pfm_tokens) {
@@ -312,6 +320,7 @@ static void packet_statistics_print(
 {
     unsigned i; /* loop counter */
     unsigned node_count = 0;
+    long unsigned int self_or_ooo_count;
 
     fprintf(stdout, "\n");
     fprintf(stdout, "==== MS/TP Frame Counts ====\n");
@@ -349,7 +358,7 @@ static void packet_statistics_print(
     fprintf(stdout, "\n");
     fprintf(stdout, "==== MS/TP Usage and Timing Maximums ====\n");
     fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s", "MAC",
-        "MaxMstr", "Retries", "Npoll", "Self", "Treply", "Tusage", "Trpfm",
+        "MaxMstr", "Retries", "Npoll", "Self/TT", "Treply", "Tusage", "Trpfm",
         "Tder", "Tpostpd");
     fprintf(stdout, "\n");
     for (i = 0; i < MAX_MSTP_DEVICES; i++) {
@@ -357,12 +366,14 @@ static void packet_statistics_print(
         if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
             || (MSTP_Statistics[i].pfm_count)) {
             node_count++;
+            self_or_ooo_count = MSTP_Statistics[i].self_token_count +
+                MSTP_Statistics[i].ooo_token_count;
             fprintf(stdout, "%-8u", i);
             fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu%-8lu",
                 (long unsigned int) MSTP_Statistics[i].max_master,
                 (long unsigned int) MSTP_Statistics[i].token_retries,
                 (long unsigned int) MSTP_Statistics[i].npoll,
-                (long unsigned int) MSTP_Statistics[i].self_token_count,
+                self_or_ooo_count,
                 (long unsigned int) MSTP_Statistics[i].token_reply);
             fprintf(stdout, "%-8lu%-8lu%-8lu%-7lu",
                 (long unsigned int) MSTP_Statistics[i].tusage_timeout,
