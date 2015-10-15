@@ -1444,7 +1444,7 @@ int Device_Read_Property_Local(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) &&
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
