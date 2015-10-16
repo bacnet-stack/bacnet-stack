@@ -12,7 +12,7 @@
       <name>General</name>
       <archiveVersion>3</archiveVersion>
       <data>
-        <version>21</version>
+        <version>22</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -29,8 +29,8 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>19</version>
-          <state>37</state>
+          <version>20</version>
+          <state>38</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -87,7 +87,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>6.30.7.53437</state>
+          <state>7.10.3.6927</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -137,13 +137,13 @@
         </option>
         <option>
           <name>GFPUCoreSlave</name>
-          <version>19</version>
-          <state>37</state>
+          <version>20</version>
+          <state>38</state>
         </option>
         <option>
           <name>GBECoreSlave</name>
-          <version>19</version>
-          <state>37</state>
+          <version>20</version>
+          <state>38</state>
         </option>
         <option>
           <name>OGUseCmsis</name>
@@ -153,15 +153,23 @@
           <name>OGUseCmsisDspLib</name>
           <state>0</state>
         </option>
+        <option>
+          <name>GRuntimeLibThreads</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICCARM</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>28</version>
+        <version>31</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
+        <option>
+          <name>CCOptimizationNoSizeConstraints</name>
+          <state>0</state>
+        </option>
         <option>
           <name>CCDefines</name>
           <state>STM32F10X_XL</state>
@@ -237,7 +245,7 @@
         <option>
           <name>CCAllowList</name>
           <version>1</version>
-          <state>0000000</state>
+          <state>00000000</state>
         </option>
         <option>
           <name>CCDebugInfo</name>
@@ -308,9 +316,7 @@
           <state>$PROJ_DIR$</state>
           <state>$PROJ_DIR$\..\..\include</state>
           <state>$PROJ_DIR$\..\..\demo\object</state>
-          <state>$PROJ_DIR$\CMSIS\CM3\CoreSupport</state>
-          <state>$PROJ_DIR$\CMSIS\CM3\DeviceSupport\ST\STM32F10x</state>
-          <state>$PROJ_DIR$\drivers\inc</state>
+          <state>$PROJ_DIR$\drivers</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -403,13 +409,26 @@
           <name>IccFloatSemantics</name>
           <state>0</state>
         </option>
+        <option>
+          <name>CCNoLiteralPool</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>CCOptStrategySlave</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>CCGuardCalls</name>
+          <state>1</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>AARM</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>8</version>
+        <version>9</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -565,6 +584,10 @@
           <name>AExtraOptionsV2</name>
           <state></state>
         </option>
+        <option>
+          <name>AsmNoLiteralPool</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -622,7 +645,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>15</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -902,6 +925,10 @@
           <version>0</version>
           <state>0</state>
         </option>
+        <option>
+          <name>IlinkThreadsSlave</name>
+          <state>1</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -941,7 +968,7 @@
       <name>General</name>
       <archiveVersion>3</archiveVersion>
       <data>
-        <version>21</version>
+        <version>22</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -958,8 +985,8 @@
         </option>
         <option>
           <name>Variant</name>
-          <version>19</version>
-          <state>37</state>
+          <version>20</version>
+          <state>38</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -1066,13 +1093,13 @@
         </option>
         <option>
           <name>GFPUCoreSlave</name>
-          <version>19</version>
-          <state>37</state>
+          <version>20</version>
+          <state>38</state>
         </option>
         <option>
           <name>GBECoreSlave</name>
-          <version>19</version>
-          <state>37</state>
+          <version>20</version>
+          <state>38</state>
         </option>
         <option>
           <name>OGUseCmsis</name>
@@ -1082,15 +1109,23 @@
           <name>OGUseCmsisDspLib</name>
           <state>0</state>
         </option>
+        <option>
+          <name>GRuntimeLibThreads</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>ICCARM</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>28</version>
+        <version>31</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
+        <option>
+          <name>CCOptimizationNoSizeConstraints</name>
+          <state>0</state>
+        </option>
         <option>
           <name>CCDefines</name>
           <state>NDEBUG</state>
@@ -1167,7 +1202,7 @@
         <option>
           <name>CCAllowList</name>
           <version>1</version>
-          <state>1111111</state>
+          <state>11111110</state>
         </option>
         <option>
           <name>CCDebugInfo</name>
@@ -1333,13 +1368,26 @@
           <name>IccFloatSemantics</name>
           <state>0</state>
         </option>
+        <option>
+          <name>CCNoLiteralPool</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>CCOptStrategySlave</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>CCGuardCalls</name>
+          <state>1</state>
+        </option>
       </data>
     </settings>
     <settings>
       <name>AARM</name>
       <archiveVersion>2</archiveVersion>
       <data>
-        <version>8</version>
+        <version>9</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1495,6 +1543,10 @@
           <name>AExtraOptionsV2</name>
           <state></state>
         </option>
+        <option>
+          <name>AsmNoLiteralPool</name>
+          <state>0</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -1552,7 +1604,7 @@
       <name>ILINK</name>
       <archiveVersion>0</archiveVersion>
       <data>
-        <version>15</version>
+        <version>16</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -1832,6 +1884,10 @@
           <version>0</version>
           <state>0</state>
         </option>
+        <option>
+          <name>IlinkThreadsSlave</name>
+          <state>1</state>
+        </option>
       </data>
     </settings>
     <settings>
@@ -1978,73 +2034,73 @@
   <group>
     <name>STM32-Lib</name>
     <file>
-      <name>$PROJ_DIR$\drivers\src\misc.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_adc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_adc.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_bkp.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_bkp.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_can.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_can.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_cec.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_cec.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_crc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_crc.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_dac.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_dac.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_dbgmcu.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_dbgmcu.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_dma.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_dma.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_exti.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_exti.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_flash.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_flash.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_fsmc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_fsmc.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_gpio.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_gpio.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_i2c.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_i2c.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_iwdg.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_iwdg.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_misc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_pwr.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_pwr.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_rcc.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_rcc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_rtc.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_rtc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_sdio.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_sdio.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_spi.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_spi.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_tim.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_tim.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_usart.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_usart.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\src\stm32f10x_wwdg.c</name>
+      <name>$PROJ_DIR$\drivers\stm32f10x_wwdg.c</name>
     </file>
   </group>
   <file>
