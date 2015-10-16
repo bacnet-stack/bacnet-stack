@@ -68,6 +68,14 @@ extern "C" {
     void ethernet_get_broadcast_address(
         BACNET_ADDRESS * dest); /* destination address */
 
+    /* some functions from Linux driver */
+    void ethernet_debug_address(
+        const char *info,
+        BACNET_ADDRESS * dest);
+    int ethernet_send(
+        uint8_t * mtu,
+        int mtu_len);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

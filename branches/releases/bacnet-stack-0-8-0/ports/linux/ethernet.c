@@ -70,10 +70,11 @@ void ethernet_cleanup(
     return;
 }
 
+#if 0
 /*----------------------------------------------------------------------
  Portable function to set a socket into nonblocking mode.
  Calling this on a socket causes all future read() and write() calls on
- that socket to do only as much as they can immediately, and return 
+ that socket to do only as much as they can immediately, and return
  without waiting.
  If no data can be read or written, they return -1 and set errno
  to EAGAIN (or EWOULDBLOCK).
@@ -88,6 +89,7 @@ int setNonblocking(
         flags = 0;
     return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
+#endif
 
 /* opens an 802.2 socket to receive and send packets */
 static int ethernet_bind(
@@ -95,7 +97,9 @@ static int ethernet_bind(
     char *interface_name)
 {
     int sock_fd = -1;   /* return value */
+#if 0
     int sockopt = 0;
+#endif
     int uid = 0;
 
     fprintf(stderr, "ethernet: opening \"%s\"\n", interface_name);
