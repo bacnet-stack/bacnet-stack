@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>       /* for time */
+#include <ctype.h>      /* for tupper */
 #if defined(WIN32) || defined(__BORLANDC__)
 #include <conio.h>
 #endif
@@ -61,7 +62,7 @@
 #define _stricmp stricmp
 #endif
 
-uint8_t Send_Private_Transfer_Request(
+extern uint8_t Send_Private_Transfer_Request(
     uint32_t device_id,
     uint16_t vendor_id,
     uint32_t service_number,
@@ -175,7 +176,6 @@ int main(
     int iCount = 0;
     int iType = 0;
     int iKey;
-    static int iLimit[3] = { 7, 11, 7 };
 
     if (((argc != 2) && (argc != 3)) || ((argc >= 2) &&
             (strcmp(argv[1], "--help") == 0))) {
@@ -299,7 +299,7 @@ int main(
                             NewData.cMyByte1 = iCount;
                             NewData.cMyByte2 = 255 - iCount;
                             NewData.fMyReal = (float) iCount;
-                            strcpy(NewData.sMyString, "Test Data - [x]");
+                            strcpy((char*)NewData.sMyString, "Test Data - [x]");
                             NewData.sMyString[13] = 'a' + iCount;
                             printf("Sending block %d\n", iCount);
                             invoke_id =
