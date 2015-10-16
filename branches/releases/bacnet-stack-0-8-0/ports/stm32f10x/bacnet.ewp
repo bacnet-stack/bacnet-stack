@@ -12,7 +12,7 @@
       <name>General</name>
       <archiveVersion>3</archiveVersion>
       <data>
-        <version>22</version>
+        <version>24</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>1</debug>
         <option>
@@ -26,11 +26,6 @@
         <option>
           <name>ListPath</name>
           <state>Debug\List</state>
-        </option>
-        <option>
-          <name>Variant</name>
-          <version>20</version>
-          <state>38</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -59,11 +54,6 @@
           <state>0</state>
         </option>
         <option>
-          <name>FPU</name>
-          <version>2</version>
-          <state>0</state>
-        </option>
-        <option>
           <name>OGCoreOrChip</name>
           <state>1</state>
         </option>
@@ -87,7 +77,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>7.10.3.6927</state>
+          <state>7.40.3.8937</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -136,18 +126,13 @@
           <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Normal.h</state>
         </option>
         <option>
-          <name>GFPUCoreSlave</name>
-          <version>20</version>
-          <state>38</state>
-        </option>
-        <option>
           <name>GBECoreSlave</name>
-          <version>20</version>
+          <version>22</version>
           <state>38</state>
         </option>
         <option>
           <name>OGUseCmsis</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>OGUseCmsisDspLib</name>
@@ -156,6 +141,34 @@
         <option>
           <name>GRuntimeLibThreads</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>CoreVariant</name>
+          <version>22</version>
+          <state>38</state>
+        </option>
+        <option>
+          <name>GFPUDeviceSlave</name>
+          <state>STM32F103xG	ST STM32F103xG</state>
+        </option>
+        <option>
+          <name>FPU2</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>NrRegs</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>NEON</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>GFPUCoreSlave2</name>
+          <version>22</version>
+          <state>38</state>
         </option>
       </data>
     </settings>
@@ -600,7 +613,7 @@
         <debug>1</debug>
         <option>
           <name>OOCOutputFormat</name>
-          <version>2</version>
+          <version>3</version>
           <state>0</state>
         </option>
         <option>
@@ -627,6 +640,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -969,7 +983,7 @@
       <name>General</name>
       <archiveVersion>3</archiveVersion>
       <data>
-        <version>22</version>
+        <version>24</version>
         <wantNonLocal>1</wantNonLocal>
         <debug>0</debug>
         <option>
@@ -983,11 +997,6 @@
         <option>
           <name>ListPath</name>
           <state>Release\List</state>
-        </option>
-        <option>
-          <name>Variant</name>
-          <version>20</version>
-          <state>38</state>
         </option>
         <option>
           <name>GEndianMode</name>
@@ -1016,11 +1025,6 @@
           <state>0</state>
         </option>
         <option>
-          <name>FPU</name>
-          <version>2</version>
-          <state>0</state>
-        </option>
-        <option>
           <name>OGCoreOrChip</name>
           <state>1</state>
         </option>
@@ -1044,7 +1048,7 @@
         </option>
         <option>
           <name>OGLastSavedByProductVersion</name>
-          <state>6.30.7.53437</state>
+          <state>7.40.3.8937</state>
         </option>
         <option>
           <name>GeneralEnableMisra</name>
@@ -1093,13 +1097,8 @@
           <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Normal.h</state>
         </option>
         <option>
-          <name>GFPUCoreSlave</name>
-          <version>20</version>
-          <state>38</state>
-        </option>
-        <option>
           <name>GBECoreSlave</name>
-          <version>20</version>
+          <version>22</version>
           <state>38</state>
         </option>
         <option>
@@ -1113,6 +1112,34 @@
         <option>
           <name>GRuntimeLibThreads</name>
           <state>0</state>
+        </option>
+        <option>
+          <name>CoreVariant</name>
+          <version>22</version>
+          <state>38</state>
+        </option>
+        <option>
+          <name>GFPUDeviceSlave</name>
+          <state>STM32F103xG	ST STM32F103xG</state>
+        </option>
+        <option>
+          <name>FPU2</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>NrRegs</name>
+          <version>0</version>
+          <state>0</state>
+        </option>
+        <option>
+          <name>NEON</name>
+          <state>0</state>
+        </option>
+        <option>
+          <name>GFPUCoreSlave2</name>
+          <version>22</version>
+          <state>38</state>
         </option>
       </data>
     </settings>
@@ -1558,7 +1585,7 @@
         <debug>0</debug>
         <option>
           <name>OOCOutputFormat</name>
-          <version>2</version>
+          <version>3</version>
           <state>0</state>
         </option>
         <option>
@@ -1585,6 +1612,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
+        <hasPrio>0</hasPrio>
       </data>
     </settings>
     <settings>
@@ -2034,46 +2062,43 @@
   <group>
     <name>STM32-Lib</name>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_bkp.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_bkp.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_can.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_can.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_cec.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_cec.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_crc.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_crc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_dac.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_dac.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_dbgmcu.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_dbgmcu.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_dma.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_dma.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_exti.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_exti.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_flash.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_flash.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_fsmc.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_fsmc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_gpio.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_gpio.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_i2c.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_i2c.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_iwdg.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_misc.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_iwdg.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\drivers\src\stm32f10x_misc.c</name>
@@ -2082,25 +2107,25 @@
       <name>$PROJ_DIR$\drivers\src\stm32f10x_pwr.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_rcc.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_rcc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_rtc.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_rtc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_sdio.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_sdio.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_spi.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_spi.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_tim.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_tim.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_usart.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_usart.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_wwdg.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_wwdg.c</name>
     </file>
   </group>
   <file>
