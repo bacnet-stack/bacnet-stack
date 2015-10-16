@@ -160,7 +160,7 @@ int dlmstp_send_pdu(
         }
         pkt->length = pdu_len;
         pkt->destination_mac = dest->mac[0];
-        if (Ringbuf_Data_Put(&PDU_Queue, (uint8_t *)pkt)) {
+        if (Ringbuf_Data_Put(&poSharedData->PDU_Queue, (uint8_t *)pkt)) {
             bytes_sent = pdu_len;
         }
     }
