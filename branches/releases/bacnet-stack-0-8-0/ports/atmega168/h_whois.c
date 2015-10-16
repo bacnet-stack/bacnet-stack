@@ -58,7 +58,7 @@ void handler_who_is(
     } else if (len != BACNET_STATUS_ERROR) {
         /* is my device id within the limits? */
         target_device = Device_Object_Instance_Number();
-        if (((target_device >= low_limit) && (target_device <= high_limit)) {
+        if ((target_device >= low_limit) && (target_device <= high_limit)) {
             Send_I_Am_Flag = true;
         }
     }
