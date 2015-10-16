@@ -84,11 +84,7 @@ void handler_who_is(uint8_t * service_request,
     } else if (len != -1) {
         /* is my device id within the limits? */
         target_device = Device_Object_Instance_Number();
-        if (((target_device >= low_limit) && (target_device <= high_limit))
-            ||
-            /* BACnet wildcard is the max instance number - everyone responds */
-            ((BACNET_MAX_INSTANCE >= (uint32_t) low_limit) &&
-                (BACNET_MAX_INSTANCE <= (uint32_t) high_limit))) {
+        if (((target_device >= low_limit) && (target_device <= high_limit)) {
             sendIamUnicast(&Handler_Transmit_Buffer[0], src);
         }
     }
