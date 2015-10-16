@@ -155,7 +155,7 @@ int dlmstp_send_pdu(
     struct mstp_pdu_packet *pkt;
     unsigned i = 0;
 
-    pkt = (struct mstp_pdu_packet *) Ringbuf_Alloc(&PDU_Queue);
+    pkt = (struct mstp_pdu_packet *) Ringbuf_Data_Peek(&PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply = npdu_data->data_expecting_reply;
         for (i = 0; i < pdu_len; i++) {
@@ -168,7 +168,9 @@ int dlmstp_send_pdu(
             /* mac_len = 0 is a broadcast address */
             pkt->destination_mac = MSTP_BROADCAST_ADDRESS;
         }
-        bytes_sent = pdu_len;
+        if (Ringbuf_Data_Put(&PDU_Queue, (uint8_t *)pkt)) {
+            bytes_sent = pdu_len;
+        }
     }
 
     return bytes_sent;
