@@ -147,7 +147,7 @@
         </option>
         <option>
           <name>OGUseCmsis</name>
-          <state>1</state>
+          <state>0</state>
         </option>
         <option>
           <name>OGUseCmsisDspLib</name>
@@ -316,7 +316,8 @@
           <state>$PROJ_DIR$</state>
           <state>$PROJ_DIR$\..\..\include</state>
           <state>$PROJ_DIR$\..\..\demo\object</state>
-          <state>$PROJ_DIR$\drivers</state>
+          <state>$PROJ_DIR$\CMSIS\</state>
+          <state>$PROJ_DIR$\drivers\inc</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1273,8 +1274,7 @@
           <state>$PROJ_DIR$</state>
           <state>$PROJ_DIR$\..\..\include</state>
           <state>$PROJ_DIR$\..\..\demo\object</state>
-          <state>$PROJ_DIR$\CMSIS\CM3\CoreSupport</state>
-          <state>$PROJ_DIR$\CMSIS\CM3\DeviceSupport\ST\STM32F10x</state>
+          <state>$PROJ_DIR$\CMSIS\</state>
           <state>$PROJ_DIR$\drivers\inc</state>
         </option>
         <option>
@@ -1685,7 +1685,7 @@
         </option>
         <option>
           <name>IlinkIcfFile</name>
-          <state>D:\code\bacnet-stack\ports\stm32f10x\stm32f10x_flash.icf</state>
+          <state>$PROJ_DIR$\STM32F10x_FLASH.icf</state>
         </option>
         <option>
           <name>IlinkIcfFileSlave</name>
@@ -2034,9 +2034,6 @@
   <group>
     <name>STM32-Lib</name>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_adc.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\drivers\stm32f10x_bkp.c</name>
     </file>
     <file>
@@ -2079,7 +2076,10 @@
       <name>$PROJ_DIR$\drivers\stm32f10x_misc.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_pwr.c</name>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_misc.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\drivers\src\stm32f10x_pwr.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\drivers\stm32f10x_rcc.c</name>
