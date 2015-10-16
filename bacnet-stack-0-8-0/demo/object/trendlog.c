@@ -450,7 +450,6 @@ bool Trend_Log_Write_Property(
 {
     bool status = false;        /* return value */
     int len = 0;
-    int iOffset = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     TL_LOG_INFO *CurrentLog;
     BACNET_DATE TempDate;       /* build here in case of error in time half of datetime */
@@ -1600,8 +1599,8 @@ void TL_fetch_property(
 {
     uint8_t ValueBuf[MAX_APDU]; /* This is a big buffer in case someone selects the device object list for example */
     uint8_t StatusBuf[3];       /* Should be tag, bits unused in last octet and 1 byte of data */
-    BACNET_ERROR_CLASS error_class;
-    BACNET_ERROR_CODE error_code;
+    BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_OTHER;
     int iLen;
     uint8_t ucCount;
     TL_LOG_INFO *CurrentLog;

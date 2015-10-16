@@ -170,7 +170,7 @@ void handler_atomic_read_file(
 #if PRINT_ENABLED
                 fprintf(stderr, "Too Big To Send (%d >= %d). Sending Abort!\n",
                     data.type.stream.requestedOctetCount,
-                    octetstring_capacity(&data.fileData));
+                    (int)octetstring_capacity(&data.fileData));
 #endif
             }
         } else {
