@@ -67,6 +67,8 @@ extern "C" {
 
     void RS485_Cleanup(
         void);
+    void RS485_Print_Ports(
+        void);
 
 #ifdef __cplusplus
 }
