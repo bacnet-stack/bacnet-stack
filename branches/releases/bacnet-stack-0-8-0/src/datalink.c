@@ -31,6 +31,11 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
+#include "ethernet.h"
+#include "bip.h"
+#include "bvlc.h"
+#include "arcnet.h"
+#include "dlmstp.h"
 #include "datalink.h"
 #include <string.h>
 
@@ -41,10 +46,10 @@
 
 /** Function template to Initialize the DataLink services at the given interface.
  * @ingroup DLTemplates
- * 
+ *
  * @note For Linux, ifname is eth0, ath0, arc0, ttyS0, and others.
          For Windows, ifname is the COM port or dotted ip address of the interface.
-         
+
  * @param ifname [in] The named interface to use for the network layer.
  * @return True if the interface is successfully initialized,
  *         else False if the initialization fails.
@@ -92,6 +97,13 @@ void datalink_set(
         datalink_init = bip_init;
         datalink_send_pdu = bip_send_pdu;
         datalink_receive = bip_receive;
+        datalink_cleanup = bip_cleanup;
+        datalink_get_broadcast_address = bip_get_broadcast_address;
+        datalink_get_my_address = bip_get_my_address;
+    } else if (strcasecmp("bvlc", datalink_string) == 0) {
+        datalink_init = bip_init;
+        datalink_send_pdu = bvlc_send_pdu;
+        datalink_receive = bvlc_receive;
         datalink_cleanup = bip_cleanup;
         datalink_get_broadcast_address = bip_get_broadcast_address;
         datalink_get_my_address = bip_get_my_address;
