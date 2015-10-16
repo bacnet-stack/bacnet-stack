@@ -131,7 +131,8 @@ void RS485_Set_Interface(
 * ALGORITHM:   none
 * NOTES:       none
 *****************************************************************************/
-bool RS485_Interface_Valid(unsigned port_number)
+bool RS485_Interface_Valid(
+    unsigned port_number)
 {
     HANDLE h = 0;
     DWORD err = 0;
@@ -139,17 +140,12 @@ bool RS485_Interface_Valid(unsigned port_number)
     char ifname[255] = "";
 
     sprintf(ifname, "\\\\.\\COM%u", port_number);
-    h = CreateFile(
-        ifname,
-        GENERIC_READ | GENERIC_WRITE, 0,
-        NULL, OPEN_EXISTING, 0,
-        NULL);
+    h = CreateFile(ifname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+        OPEN_EXISTING, 0, NULL);
     if (h == INVALID_HANDLE_VALUE) {
         err = GetLastError();
-        if ((err == ERROR_ACCESS_DENIED) ||
-            (err == ERROR_GEN_FAILURE) ||
-            (err == ERROR_SHARING_VIOLATION) ||
-            (err == ERROR_SEM_TIMEOUT)) {
+        if ((err == ERROR_ACCESS_DENIED) || (err == ERROR_GEN_FAILURE) ||
+            (err == ERROR_SHARING_VIOLATION) || (err == ERROR_SEM_TIMEOUT)) {
             status = true;
         }
     } else {
@@ -489,6 +485,26 @@ void RS485_Check_UART_Data(
                 mstp_port->DataRegister = lpBuf[0];
                 mstp_port->DataAvailable = TRUE;
             }
+        }
+    }
+}
+
+/*************************************************************************
+* Description: print available COM ports
+* Returns: none
+* Notes: none
+**************************************************************************/
+void RS485_Print_Ports(
+    void)
+{
+    unsigned i = 0;
+
+    /* try to open all 255 COM ports */
+    for (i = 1; i < 256; i++) {
+        if (RS485_Interface_Valid(i)) {
+            /* note: format for Wireshark ExtCap */
+            printf("interface {value=COM%u}"
+                "{display=BACnet MS/TP on COM%u}\n", i, i);
         }
     }
 }

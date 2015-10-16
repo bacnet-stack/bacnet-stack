@@ -47,11 +47,15 @@
 #include "rs485.h"
 #include "crc.h"
 #include "mstptext.h"
+#include "filename.h"
 #include "version.h"
 #include "dlmstp.h"
 /* I-Am decoding */
 #include "iam.h"
 
+/* define our Data Link Type for libPCAP */
+#define DLT_BACNET_MS_TP 165
+/* local min/max macros */
 #ifndef max
 #define max(a,b) (((a) (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -62,6 +66,8 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
+/* method to tell main loop to exit from CTRL-C or other signals */
+static volatile bool Exit_Requested;
 
 /* statistics derived from monitoring the network for each node */
 struct mstp_statistics {
@@ -107,6 +113,8 @@ struct mstp_statistics {
     /* Addendum 2008v - sending tokens to myself */
     /* counts how many times the node passes the token */
     uint32_t self_token_count;
+    /* counts how many times the node sends the token out-of-order (ooo) */
+    uint32_t ooo_token_count;
     /* if we see an I-Am message from this node, store the Device ID */
     uint32_t device_id;
 };
@@ -130,7 +138,7 @@ static uint32_t timeval_diff_ms(
 
 static void mstp_monitor_i_am(
     uint8_t mac,
-    uint8_t *pdu,
+    uint8_t * pdu,
     uint16_t pdu_len)
 {
     BACNET_ADDRESS src = { 0 };
@@ -148,10 +156,9 @@ static void mstp_monitor_i_am(
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
         MSTP_Fill_BACnet_Address(&src, mac);
         apdu_offset = npdu_decode(&pdu[0], &dest, &src, &npdu_data);
-        if ((!npdu_data.network_layer_message) &&
-            (apdu_offset > 0) && (apdu_offset < pdu_len) &&
-            ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) &&
-            (src.net == 0)) {
+        if ((!npdu_data.network_layer_message) && (apdu_offset > 0) &&
+            (apdu_offset < pdu_len) && ((dest.net == 0) ||
+                (dest.net == BACNET_BROADCAST_NETWORK)) && (src.net == 0)) {
             apdu_len = pdu_len - apdu_offset;
             apdu = &pdu[apdu_offset];
             pdu_type = apdu[0] & 0xF0;
@@ -160,8 +167,9 @@ static void mstp_monitor_i_am(
                 service_choice = apdu[1];
                 service_request = &apdu[2];
                 if (service_choice == SERVICE_UNCONFIRMED_I_AM) {
-                    len = iam_decode_service_request(service_request,
-                        &device_id, NULL, NULL, NULL);
+                    len =
+                        iam_decode_service_request(service_request, &device_id,
+                        NULL, NULL, NULL);
                     if (len != -1) {
                         MSTP_Statistics[mac].device_id = device_id;
                     }
@@ -179,6 +187,7 @@ static void packet_statistics(
     static uint8_t old_frame = 255;
     static uint8_t old_src = 255;
     static uint8_t old_dst = 255;
+    static uint8_t old_token_dst = 255;
     uint8_t frame, src, dst;
     uint32_t delta;
     uint32_t npoll;
@@ -217,6 +226,11 @@ static void packet_statistics(
                     MSTP_Statistics[src].tusage_timeout = delta;
                 }
             }
+            if (old_token_dst != src) {
+                /* out-of-order Token sender */
+                MSTP_Statistics[src].ooo_token_count++;
+            }
+            old_token_dst = dst;
             break;
         case FRAME_TYPE_POLL_FOR_MASTER:
             if (MSTP_Statistics[src].last_pfm_tokens) {
@@ -270,11 +284,10 @@ static void packet_statistics(
                 }
             }
             if ((mstp_port->ReceivedValidFrame) ||
-                (mstp_port->ReceivedValidFrameNotForUs)){
+                (mstp_port->ReceivedValidFrameNotForUs)) {
                 if ((mstp_port->DataLength <= mstp_port->InputBufferSize) &&
                     (mstp_port->DataLength > 0)) {
-                    mstp_monitor_i_am(src,
-                        &mstp_port->InputBuffer[0],
+                    mstp_monitor_i_am(src, &mstp_port->InputBuffer[0],
                         mstp_port->DataLength);
                 }
             }
@@ -307,13 +320,14 @@ static void packet_statistics_print(
 {
     unsigned i; /* loop counter */
     unsigned node_count = 0;
+    long unsigned int self_or_ooo_count;
 
-    fprintf(stdout, "\r\n");
-    fprintf(stdout, "==== MS/TP Frame Counts ====\r\n");
+    fprintf(stdout, "\n");
+    fprintf(stdout, "==== MS/TP Frame Counts ====\n");
     fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s", "MAC",
         "Device", "Tokens", "PFM", "RPFM", "DER", "Postpd", "DNER", "TestReq",
         "TestRsp");
-    fprintf(stdout, "\r\n");
+    fprintf(stdout, "\n");
     for (i = 0; i < MAX_MSTP_DEVICES; i++) {
         /* check for masters or slaves */
         if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
@@ -336,39 +350,41 @@ static void packet_statistics_print(
                 (long unsigned int) MSTP_Statistics[i].dner_count,
                 (long unsigned int) MSTP_Statistics[i].test_request_count,
                 (long unsigned int) MSTP_Statistics[i].test_response_count);
-            fprintf(stdout, "\r\n");
+            fprintf(stdout, "\n");
         }
     }
-    fprintf(stdout, "Node Count: %u\r\n", node_count);
+    fprintf(stdout, "Node Count: %u\n", node_count);
     node_count = 0;
-    fprintf(stdout, "\r\n");
-    fprintf(stdout, "==== MS/TP Usage and Timing Maximums ====\r\n");
+    fprintf(stdout, "\n");
+    fprintf(stdout, "==== MS/TP Usage and Timing Maximums ====\n");
     fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s", "MAC",
-        "MaxMstr", "Retries", "Npoll", "Self", "Treply", "Tusage", "Trpfm",
+        "MaxMstr", "Retries", "Npoll", "Self/TT", "Treply", "Tusage", "Trpfm",
         "Tder", "Tpostpd");
-    fprintf(stdout, "\r\n");
+    fprintf(stdout, "\n");
     for (i = 0; i < MAX_MSTP_DEVICES; i++) {
         /* check for masters or slaves */
         if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
             || (MSTP_Statistics[i].pfm_count)) {
             node_count++;
+            self_or_ooo_count = MSTP_Statistics[i].self_token_count +
+                MSTP_Statistics[i].ooo_token_count;
             fprintf(stdout, "%-8u", i);
             fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu%-8lu",
                 (long unsigned int) MSTP_Statistics[i].max_master,
                 (long unsigned int) MSTP_Statistics[i].token_retries,
                 (long unsigned int) MSTP_Statistics[i].npoll,
-                (long unsigned int) MSTP_Statistics[i].self_token_count,
+                self_or_ooo_count,
                 (long unsigned int) MSTP_Statistics[i].token_reply);
             fprintf(stdout, "%-8lu%-8lu%-8lu%-7lu",
                 (long unsigned int) MSTP_Statistics[i].tusage_timeout,
                 (long unsigned int) MSTP_Statistics[i].pfm_reply,
                 (long unsigned int) MSTP_Statistics[i].der_reply,
                 (long unsigned int) MSTP_Statistics[i].reply_postponed);
-            fprintf(stdout, "\r\n");
+            fprintf(stdout, "\n");
         }
     }
-    fprintf(stdout, "Node Count: %u\r\n", node_count);
-    fprintf(stdout, "Invalid Frame Count: %lu\r\n",
+    fprintf(stdout, "Node Count: %u\n", node_count);
+    fprintf(stdout, "Invalid Frame Count: %lu\n",
         (long unsigned int) Invalid_Frame_Count);
 }
 
@@ -428,18 +444,35 @@ uint16_t MSTP_Get_Reply(
 static char Capture_Filename[32] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
 #if defined(_WIN32)
-static HANDLE hPipe = NULL;     /* pipe handle */
-
+static HANDLE hPipe = INVALID_HANDLE_VALUE;     /* pipe handle */
 static void named_pipe_create(
-    char *name)
+    char *pipe_name)
 {
-    fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", name);
-    hPipe =
-        CreateNamedPipe(name, PIPE_ACCESS_OUTBOUND,
-        PIPE_TYPE_MESSAGE | PIPE_WAIT, 1, 65536, 65536, 300, NULL);
-    if (hPipe == INVALID_HANDLE_VALUE) {
-        RS485_Print_Error();
-        return;
+    fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", pipe_name);
+    /* create the pipe */
+    while (hPipe == INVALID_HANDLE_VALUE)
+    {
+        /* use CreateFile rather than CreateNamedPipe */
+        hPipe = CreateFile(
+            pipe_name,
+            GENERIC_READ |
+            GENERIC_WRITE,
+            0,
+            NULL,
+            OPEN_EXISTING,
+            0,
+            NULL);
+        if (hPipe != INVALID_HANDLE_VALUE) {
+            break;
+        }
+        /* if an error occured at handle creation */
+        if (!WaitNamedPipe(pipe_name, 20000)) {
+            printf("Could not open pipe: waited for 20sec!\n"
+                "If this message was issued before the 20sec finished,\n"
+                "then the pipe doesn't exist!\n");
+            Exit_Requested = true;
+            return;
+        }
     }
     ConnectNamedPipe(hPipe, NULL);
 }
@@ -550,7 +583,7 @@ static void write_global_header(
     int32_t thiszone = 0;       /* GMT to local correction */
     uint32_t sigfigs = 0;       /* accuracy of timestamps */
     uint32_t snaplen = 65535;   /* max length of captured packets, in octets */
-    uint32_t network = 165;     /* data link type - BACNET_MS_TP */
+    uint32_t network = DLT_BACNET_MS_TP;     /* data link type - BACNET_MS_TP */
 
     /* create a new file. */
     pFile = fopen(filename, "wb");
@@ -685,7 +718,7 @@ static bool test_global_header(
             return false;
         }
         count = fread(&network, sizeof(network), 1, pFile);
-        if ((count != 1) || (network != 165)) {
+        if ((count != 1) || (network != DLT_BACNET_MS_TP)) {
             fprintf(stderr, "mstpcap: invalid data link type (DLT)\n");
             fclose(pFile);
             pFile = NULL;
@@ -752,8 +785,8 @@ static bool read_received_packet(
         mstp_port->HeaderCRCActual = header[7];
         mstp_port->HeaderCRC = 0xFF;
         for (i = 2; i < 8; i++) {
-            mstp_port->HeaderCRC = CRC_Calc_Header(header[i],
-                mstp_port->HeaderCRC);
+            mstp_port->HeaderCRC =
+                CRC_Calc_Header(header[i], mstp_port->HeaderCRC);
         }
         if (mstp_port->HeaderCRC != 0x55) {
             mstp_port->ReceivedInvalidFrame = true;
@@ -791,11 +824,9 @@ static bool read_received_packet(
                     mstp_port->DataCRC);
             }
             mstp_port->DataCRC =
-                CRC_Calc_Data(mstp_port->DataCRCActualMSB,
-                mstp_port->DataCRC);
+                CRC_Calc_Data(mstp_port->DataCRCActualMSB, mstp_port->DataCRC);
             mstp_port->DataCRC =
-                CRC_Calc_Data(mstp_port->DataCRCActualLSB,
-                mstp_port->DataCRC);
+                CRC_Calc_Data(mstp_port->DataCRCActualLSB, mstp_port->DataCRC);
             if (mstp_port->DataCRC != 0xF0B8) {
                 mstp_port->ReceivedInvalidFrame = true;
             }
@@ -832,31 +863,20 @@ static BOOL WINAPI CtrlCHandler(
 {
     dwCtrlType = dwCtrlType;
 
-    if (hPipe) {
+    if (hPipe != INVALID_HANDLE_VALUE) {
         FlushFileBuffers(hPipe);
         DisconnectNamedPipe(hPipe);
         CloseHandle(hPipe);
+        hPipe = INVALID_HANDLE_VALUE;
+    }
+    /* signal to main loop to exit */
+    Exit_Requested = true;
+    while (Exit_Requested) {
+        Sleep(100);
     }
     exit(0);
+
     return TRUE;
-}
-
-/*************************************************************************
-* Description: print available COM ports
-* Returns: none
-* Notes: none
-**************************************************************************/
-static void print_com_ports(void)
-{
-    unsigned i = 0;
-
-    printf("List of available COM ports:\r\n");
-    /* try to open all 255 COM ports */
-    for (i=1; i<256; i++) {
-        if (RS485_Interface_Valid(i)) {
-            printf("COM%u\r\n", i);
-        }
-    }
 }
 #else
 static void sig_int(
@@ -866,7 +886,7 @@ static void sig_int(
     if (FD_Pipe != -1) {
         close(FD_Pipe);
     }
-
+    Exit_Requested = true;
     exit(0);
 }
 
@@ -890,6 +910,51 @@ void filename_create_new(
     write_global_header(&Capture_Filename[0]);
 }
 
+static void print_usage(
+    char *filename)
+{
+    printf("Usage: %s", filename);
+    printf(" [--scan <filename>]\n");
+    printf(" [--extcap-interface port]\n");
+    printf(" [--extcap-interfaces][--extcap-dlts][--extcap-config]\n");
+    printf(" [--capture][--baud baud][--fifo pipe]\n");
+    printf(" [--version][--help]\n");
+}
+
+static void print_help(char *filename) {
+    printf("%s --scan <filename>\n"
+        "perform statistic analysis on MS/TP capture file.\n",
+        filename);
+    printf("\n");
+    printf("Captures MS/TP packets from a serial interface\n"
+        "and saves them to a file. Saves packets in a\n"
+        "filename mstp_20090123091200.cap that has data and time.\n"
+        "After receiving 65535 packets, a new file is created.\n" "\n"
+        "Command line options:\n"
+        "[--extcap-interface port] - serial interface.\n"
+#if defined(_WIN32)
+        "    Supported values: COM1, COM2, etc.\n"
+#else
+        "    Supported values: /dev/ttyS0, /dev/ttyUSB0, etc.\n"
+#endif
+        "[--baud baud] - MS/TP port baud rate.\n"
+        "    Supported values: 9600, 19200, 38400, 57600, 76800, 115200.\n"
+        "    Defaults to 38400.\n"
+        "[--fifo pipe] - FIFO pipe path and name\n"
+#if defined(_WIN32)
+        "    Supported values: \\\\.\\pipe\\wireshark\n"
+#else
+        "    Supported values: any file name\n"
+#endif
+        "    Use that name as the interface name in Wireshark.\n");
+    printf("\n");
+    printf("%s [--extcap-interfaces][--extcap-dlts][--extcap-config]\n"
+        "[--capture][--baud baud][--fifo pipe]\n"
+        "[--extcap-interface iface]\n"
+        "Usage from Wireshark ExtCap interface\n",
+        filename);
+}
+
 /* simple test to packetize the data and print it */
 int main(
     int argc,
@@ -898,6 +963,8 @@ int main(
     volatile struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
+    int argi = 0;
+    char *filename = NULL;
 
     MSTP_Port.InputBuffer = &RxBuffer[0];
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
@@ -912,61 +979,117 @@ int main(
     mstp_port = &MSTP_Port;
     MSTP_Init(mstp_port);
     packet_statistics_clear();
-    /* initialize our interface */
-    if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf("mstpcap --scan <filename>\r\n"
-            "perform statistic analysis on MS/TP capture file.\r\n");
-        printf("\r\n");
-        printf("mstpcap [interface] [baud] [named pipe]\r\n"
-            "Captures MS/TP packets from a serial interface\r\n"
-            "and save them to a file. Saves packets in a\r\n"
-            "filename mstp_20090123091200.cap that has data and time.\r\n"
-            "After receiving 65535 packets, a new file is created.\r\n" "\r\n"
-            "Command line options:\r\n" "[interface] - serial interface.\r\n"
-            "    defaults to COM4 on  Windows, and /dev/ttyUSB0 on linux.\r\n"
-            "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
-            "    defaults to 38400.\r\n"
-            "[named pipe] - use \\\\.\\pipe\\wireshark as the name\r\n"
-            "    and set that name as the interface name in Wireshark\r\n");
-        return 0;
-    }
-    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
-        printf("mstpcap %s\r\n", BACNET_VERSION_TEXT);
-        printf("Copyright (C) 2011 by Steve Karg\r\n"
-            "This is free software; see the source for copying conditions.\r\n"
-            "There is NO warranty; not even for MERCHANTABILITY or\r\n"
-            "FITNESS FOR A PARTICULAR PURPOSE.\r\n");
-        return 0;
-    }
-    if ((argc > 1) && (strcmp(argv[1], "--scan") == 0)) {
-        if (argc > 2) {
-            printf("Scanning %s\r\n", argv[2]);
+    /* decode any command line parameters */
+    filename = filename_remove_path(argv[0]);
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename);
+            print_help(filename);
+            return 0;
+        }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("mstpcap %s\n", BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2011 by Steve Karg\n"
+                "This is free software; see the source for copying conditions.\n"
+                "There is NO warranty; not even for MERCHANTABILITY or\n"
+                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+        if (strcmp(argv[argi], "--scan") == 0) {
+            argi++;
+            if (argi >= argc) {
+                printf("An file name must be provided.\n");
+                return 1;
+            }
+            printf("Scanning %s\n", argv[argi]);
             /* perform statistics on the file */
-            if (test_global_header(argv[2])) {
+            if (test_global_header(argv[argi])) {
                 while (read_received_packet(mstp_port)) {
                     packet_count++;
-                    fprintf(stderr, "\r%u packets", (unsigned) packet_count);
+                    fprintf(stderr, "\r%u packets",
+                        (unsigned) packet_count);
                 }
                 if (packet_count) {
                     packet_statistics_print();
                 }
+                Exit_Requested = true;
             } else {
                 fprintf(stderr, "File header does not match.\n");
+                return 1;
             }
-            return 1;
+        }
+        if (strcmp(argv[argi], "--extcap-interfaces") == 0) {
+            RS485_Print_Ports();
+            return 0;
+        }
+        if (strcmp(argv[argi], "--extcap-dlts") == 0) {
+            argi++;
+            if (argi >= argc) {
+                printf("An interface must be provided.\n");
+                return 0;
+            }
+            printf("dlt {number=%u}{name=BACnet MS/TP}"
+                "{display=BACnet MS/TP}\n",
+                DLT_BACNET_MS_TP);
+            Exit_Requested = true;
+        }
+        if (strcmp(argv[argi], "--extcap-config") == 0) {
+            printf("arg {number=0}{call=--baud}{display=Baud Rate}"
+                "{tooltip=Serial port baud rate in bits per second}"
+                "{type=selector}\n");
+            printf("value {arg=0}{value=9600}{display=9600}{default=false}\n");
+            printf("value {arg=0}{value=19200}{display=19200}{default=false}\n");
+            printf("value {arg=0}{value=38400}{display=38400}{default=true}\n");
+            printf("value {arg=0}{value=57600}{display=57600}{default=false}\n");
+            printf("value {arg=0}{value=76800}{display=76800}{default=false}\n");
+            printf("value {arg=0}{value=115200}{display=115200}{default=false}\n");
+            return 0;
+        }
+        if (strcmp(argv[argi], "--capture") == 0) {
+            /* do nothing - fall through and start running! */
+        }
+        if (strcmp(argv[argi], "--extcap-interface") == 0) {
+            argi++;
+            if (argi >= argc) {
+                printf("An interface must be provided or "
+                    "the selection must be displayed.\n");
+                return 0;
+            }
+            RS485_Set_Interface(argv[argi]);
+        }
+        if (strncasecmp(argv[argi], "com", 3) == 0) {
+            /* legacy command line options */
+            RS485_Set_Interface(argv[argi]);
+            if ((argi+1) < argc) {
+                argi++;
+                my_baud = strtol(argv[argi], NULL, 0);
+                RS485_Set_Baud_Rate(my_baud);
+            }
+        }
+        if (strcmp(argv[argi], "--baud") == 0) {
+            argi++;
+            if (argi >= argc) {
+                printf("A baud rate must be provided.\n");
+                return 0;
+            }
+            my_baud = strtol(argv[argi], NULL, 0);
+            RS485_Set_Baud_Rate(my_baud);
+        }
+        if (strcmp(argv[argi], "--fifo") == 0) {
+            argi++;
+            if (argi >= argc) {
+                printf("A named pipe must be provided.\n");
+                return 0;
+            }
+            named_pipe_create(argv[argi]);
         }
     }
-    if (argc > 1) {
-        RS485_Set_Interface(argv[1]);
-    } else {
-        #if defined(_WIN32)
-        print_com_ports();
+    if (Exit_Requested) {
         return 0;
-        #endif
     }
-    if (argc > 2) {
-        my_baud = strtol(argv[2], NULL, 0);
-        RS485_Set_Baud_Rate(my_baud);
+    if (argc <= 1) {
+        RS485_Print_Ports();
+        return 0;
     }
     atexit(cleanup);
     RS485_Initialize();
@@ -979,9 +1102,6 @@ int main(
 #else
     signal_init();
 #endif
-    if (argc > 3) {
-        named_pipe_create(argv[3]);
-    }
     filename_create_new();
     /* run forever */
     for (;;) {
@@ -1012,5 +1132,12 @@ int main(
             filename_create_new();
             packet_count = 0;
         }
+        if (Exit_Requested) {
+            break;
+        }
     }
+    /* tell signal interrupts we are done */
+    Exit_Requested = false;
+
+    return 0;
 }
