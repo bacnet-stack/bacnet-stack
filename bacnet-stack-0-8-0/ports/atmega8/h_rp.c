@@ -44,6 +44,15 @@
 #if MAX_BINARY_VALUES
 #include "bv.h"
 #endif
+/* old style function */
+int Device_Encode_Property_APDU(
+    uint8_t * apdu,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID property,
+    uint32_t array_index,
+    BACNET_ERROR_CLASS * error_class,
+    BACNET_ERROR_CODE * error_code);
+
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */

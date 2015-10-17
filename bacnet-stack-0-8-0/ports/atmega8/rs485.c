@@ -31,10 +31,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-/*#include "mstp.h" */
+#include "bits.h"
 
 /* This file has been customized for use with ATMEGA168 */
-#if defined(__AVR_ATmega168__)
+#if (defined(__ICCAVR__) && (defined(__ATmega168__))) || \
+    (defined(__GNUC__) && defined(__AVR_ATmega168__))
     /* USART defines for RS-485 port */
 #define UCSRB UCSR0B
 #define TXEN TXEN0
@@ -153,6 +154,22 @@ bool RS485_Set_Baud_Rate(
 }
 
 /****************************************************************************
+* DESCRIPTION: Enable or disable the transmitter
+* RETURN:      none
+* ALGORITHM:   none
+* NOTES:       none
+*****************************************************************************/
+void RS485_Transmitter_Enable(
+    bool enable)
+{
+    if (enable) {
+        BIT_SET(PORTD, PD2);
+    } else {
+        BIT_CLEAR(PORTD, PD2);
+    }
+}
+
+/****************************************************************************
 * DESCRIPTION: Waits on the SilenceTimer for 40 bits.
 * RETURN:      none
 * ALGORITHM:   none
@@ -179,22 +196,6 @@ void RS485_Turnaround_Delay(
     }
     /* Clear the Transmit Complete flag by writing a one to it. */
     BIT_SET(UCSR0A, TXC0);
-}
-
-/****************************************************************************
-* DESCRIPTION: Enable or disable the transmitter
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Transmitter_Enable(
-    bool enable)
-{
-    if (enable) {
-        BIT_SET(PORTD, PD2);
-    } else {
-        BIT_CLEAR(PORTD, PD2);
-    }
 }
 
 /****************************************************************************
