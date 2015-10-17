@@ -78,21 +78,6 @@ static struct mstp_flag_t {
     unsigned ReceivePacketPending:1;
 } MSTP_Flag;
 
-/* data passed to receive handler */
-struct mstp_packet_info_t {
-    /* A Boolean flag set to TRUE by the Receive State Machine  */
-    /* if a valid frame is received.  */
-    unsigned valid_frame:1;
-    /*  preamble flags */
-    unsigned preamble1:1;
-    unsigned preamble2:1;
-    uint8_t header[6];  /* buffer to put the header bytes */
-    uint8_t *buffer;    /* buffer to put the data */
-    uint8_t buffer_len; /* buffer to put the data */
-    uint8_t index;      /* index into receive buffer */
-};
-static struct mstp_packet_info_t MSTP_Receive_Packet;
-
 /* Used to store the data length of a received frame. */
 static uint16_t DataLength;
 /* Used to store the destination address of a received frame. */
