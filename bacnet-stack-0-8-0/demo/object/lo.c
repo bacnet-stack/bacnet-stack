@@ -77,7 +77,6 @@ static uint8_t Lighting_Output_Max_Present_Value[MAX_LIGHTING_OUTPUTS];
 /* without changing the physical output */
 static bool Lighting_Output_Out_Of_Service[MAX_LIGHTING_OUTPUTS];
 /* the lighting command is what we are doing */
-static uint8_t Lighting_Command_Priority = 16;
 static BACNET_LIGHTING_COMMAND Lighting_Command[MAX_LIGHTING_OUTPUTS];
 
 int Lighting_Output_Encode_Lighting_Command(
@@ -510,7 +509,6 @@ bool Lighting_Output_Write_Property(
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
-    uint8_t level = LIGHTING_LEVEL_NULL;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -549,7 +547,6 @@ bool Lighting_Output_Write_Property(
                     WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
                     &wp_data->error_class, &wp_data->error_code);
                 if (status) {
-                    level = LIGHTING_LEVEL_NULL;
                     object_index =
                         Lighting_Output_Instance_To_Index
                         (wp_data->object_instance);
