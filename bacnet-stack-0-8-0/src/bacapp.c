@@ -146,6 +146,14 @@ int bacapp_encode_application_data(
                     value->type.Object_Id.instance);
                 break;
 #endif
+#if defined (BACAPP_DEVICE_OBJECT_PROP_REF)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
+                /* BACnetDeviceObjectPropertyReference */
+                apdu_len =
+                    bacapp_encode_device_obj_property_ref(&apdu[0],
+                    &value->type.Device_Object_Property_Reference);
+                break;
+#endif
             default:
                 break;
         }

@@ -125,7 +125,8 @@
     defined(BACAPP_ENUMERATED) || \
     defined(BACAPP_DATE) || \
     defined(BACAPP_TIME) || \
-    defined(BACAPP_OBJECT_ID))
+    defined(BACAPP_OBJECT_ID) || \
+    defined(BACAPP_DEVICE_OBJECT_PROP_REF))
 #define BACAPP_ALL
 #endif
 
@@ -143,6 +144,7 @@
 #define BACAPP_DATE
 #define BACAPP_TIME
 #define BACAPP_OBJECT_ID
+#define BACAPP_DEVICE_OBJECT_PROP_REF
 #endif
 
 /*

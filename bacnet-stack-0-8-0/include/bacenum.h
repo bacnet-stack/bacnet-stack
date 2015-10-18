@@ -1139,7 +1139,44 @@ typedef enum {
     BACNET_APPLICATION_TAG_RESERVE1 = 13,
     BACNET_APPLICATION_TAG_RESERVE2 = 14,
     BACNET_APPLICATION_TAG_RESERVE3 = 15,
-    MAX_BACNET_APPLICATION_TAG = 16
+    MAX_BACNET_APPLICATION_TAG = 16,
+
+    /* Extra stuff - complex tagged data - not specifically enumerated */
+
+    /* Means : "nothing", an empty list, not even a null character */
+    BACNET_APPLICATION_TAG_EMPTYLIST,
+    /* BACnetWeeknday */
+    BACNET_APPLICATION_TAG_WEEKNDAY,
+    /* BACnetDateRange */
+    BACNET_APPLICATION_TAG_DATERANGE,
+    /* BACnetDateTime */
+    BACNET_APPLICATION_TAG_DATETIME,
+    /* BACnetTimeStamp */
+    BACNET_APPLICATION_TAG_TIMESTAMP,
+    /* Error Class, Error Code */
+    BACNET_APPLICATION_TAG_ERROR,
+    /* BACnetDeviceObjectPropertyReference */
+    BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE,
+    /* BACnetDeviceObjectReference */
+    BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE,
+    /* BACnetObjectPropertyReference */
+    BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE,
+    /* BACnetDestination (Recipient_List) */
+    BACNET_APPLICATION_TAG_DESTINATION,
+    /* BACnetRecipient */
+    BACNET_APPLICATION_TAG_RECIPIENT,
+    /* BACnetCOVSubscription */
+    BACNET_APPLICATION_TAG_COV_SUBSCRIPTION,
+    /* BACnetCalendarEntry */
+    BACNET_APPLICATION_TAG_CALENDAR_ENTRY,
+    /* BACnetWeeklySchedule */
+    BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE,
+    /* BACnetSpecialEvent */
+    BACNET_APPLICATION_TAG_SPECIAL_EVENT,
+    /* BACnetReadAccessSpecification */
+    BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,
+    /* BACnetLightingCommand */
+    BACNET_APPLICATION_TAG_LIGHTING_COMMAND
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */
@@ -1383,6 +1420,17 @@ typedef enum {
     /* X'80' to X'FF': Available for vendor proprietary messages */
     NETWORK_MESSAGE_INVALID = 0x100
 } BACNET_NETWORK_MESSAGE_TYPE;
+
+typedef enum {
+    REINITIALIZED_STATE_COLD_START = 0,
+    REINITIALIZED_STATE_WARM_START = 1,
+    REINITIALIZED_STATE_START_BACKUP = 2,
+    REINITIALIZED_STATE_END_BACKUP = 3,
+    REINITIALIZED_STATE_START_RESTORE = 4,
+    REINITIALIZED_STATE_END_RESTORE = 5,
+    REINITIALIZED_STATE_ABORT_RESTORE = 6,
+    REINITIALIZED_STATE_IDLE = 255
+} BACNET_REINITIALIZED_STATE_OF_DEVICE;
 
 typedef enum {
     ABORT_REASON_OTHER = 0,
@@ -1722,5 +1770,50 @@ typedef enum {
     NETWORK_REJECT_REASON_INVALID
 } BACNET_NETWORK_REJECT_REASONS;
 
+typedef enum BACnetWriteStatus {
+    BACNET_WRITE_STATUS_IDLE = 0,
+    BACNET_WRITE_STATUS_IN_PROGRESS = 1,
+    BACNET_WRITE_STATUS_SUCCESSFUL = 2,
+    BACNET_WRITE_STATUS_FAILED = 3
+} BACNET_WRITE_STATUS;
+
+/* BACnetNetworkType ::= ENUMERATED */
+typedef enum {
+    PORT_TYPE_ETHERNET = 0,
+    PORT_TYPE_ARCNET = 1,
+    PORT_TYPE_MSTP = 2,
+    PORT_TYPE_PTP = 3,
+    PORT_TYPE_LONTALK = 4,
+    PORT_TYPE_BIP = 5,
+    PORT_TYPE_ZIGBEE = 6,
+    PORT_TYPE_VIRTUAL = 7,
+    PORT_TYPE_NON_BACNET = 8
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-255 may be used by others subject to the
+       procedures and constraints described in Clause 23.*/
+} BACNET_PORT_TYPE;
+
+/* BACnetNetworkNumberQuality ::= ENUMERATED */
+typedef enum {
+    PORT_QUALITY_UNKNOWN = 0,
+    PORT_QUALITY_LEARNED = 1,
+    PORT_QUALITY_LEARNED_CONFIGURED = 2,
+    PORT_QUALITY_CONFIGURED = 3
+} BACNET_PORT_QUALITY;
+
+/* BACnetNetworkPortCommand :: = ENUMERATED */
+typedef enum {
+    PORT_COMMAND_IDLE = 0,
+    PORT_COMMAND_DISCARD_CHANGES = 1,
+    PORT_COMMAND_RENEW_FD_REGISTRATION = 2,
+    PORT_COMMAND_RESTART_SLAVE_DISCOVERY = 3,
+    PORT_COMMAND_RENEW_DHCP = 4,
+    PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
+    PORT_COMMAND_DISCONNECT = 6,
+    PORT_COMMAND_RESTART_PORT = 7
+    /* Enumerated values 0-127 are reserved for definition by ASHRAE.
+       Enumerated values 128-255 may be used by others subject to the
+       procedures and constraints described in Clause 23. */
+} BACNET_PORT_COMMAND;
 
 #endif /* end of BACENUM_H */
