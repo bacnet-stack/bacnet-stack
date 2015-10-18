@@ -154,6 +154,14 @@ int bacapp_encode_application_data(
                     &value->type.Lighting_Command);
                 break;
 #endif
+#if defined (BACAPP_DEVICE_OBJECT_PROP_REF)
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
+                /* BACnetDeviceObjectPropertyReference */
+                apdu_len =
+                    bacapp_encode_device_obj_property_ref(&apdu[0],
+                    &value->type.Device_Object_Property_Reference);
+                break;
+#endif
             default:
                 break;
         }
@@ -676,9 +684,9 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
                 case 1:
                     /* 2015.08.22 EKH 135-2012 pg 708
                     todo - Context 1 in Recipient list would be a BACnetAddress, not coded yet...
-                    BACnetRecipient::= CHOICE { 
-                         device  [0] BACnetObjectIdentifier, 
-                         address  [1] BACnetAddress 
+                    BACnetRecipient::= CHOICE {
+                         device  [0] BACnetObjectIdentifier,
+                         address  [1] BACnetAddress
                           }
                           */
                     break;

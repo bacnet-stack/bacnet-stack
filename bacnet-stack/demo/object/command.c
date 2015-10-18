@@ -306,12 +306,23 @@ int cl_decode_apdu(
 COMMAND_DESCR Command_Descr[MAX_COMMANDS];
 
 /* These arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Optional[] = {
+static const int Command_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_IN_PROCESS,
+    PROP_ALL_WRITES_SUCCESSFUL,
+    PROP_ACTION,
+    -1
+};
+
+static const int Command_Properties_Optional[] = {
     PROP_DESCRIPTION,
     -1
 };
 
-static const int Properties_Proprietary[] = {
+static const int Command_Properties_Proprietary[] = {
     -1
 };
 
@@ -332,11 +343,11 @@ void Command_Property_Lists(
     const int **pProprietary)
 {
     if (pRequired)
-        *pRequired = property_list_required(OBJECT_COMMAND);
+        *pRequired = Command_Properties_Required;
     if (pOptional)
-        *pOptional = Properties_Optional;
+        *pOptional = Command_Properties_Optional;
     if (pProprietary)
-        *pProprietary = Properties_Proprietary;
+        *pProprietary = Command_Properties_Proprietary;
 
     return;
 }

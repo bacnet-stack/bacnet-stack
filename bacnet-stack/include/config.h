@@ -127,36 +127,37 @@
     defined(BACAPP_DATE) || \
     defined(BACAPP_TIME) || \
     defined(BACAPP_LIGHTING_COMMAND) || \
+    defined(BACAPP_DEVICE_OBJECT_PROP_REF) || \
     defined(BACAPP_OBJECT_ID))
-#define BACAPP_ALL
 #endif
 
 #if defined (BACAPP_ALL)
-#define BACAPP_NULL
-#define BACAPP_BOOLEAN
-#define BACAPP_UNSIGNED
-#define BACAPP_SIGNED
-#define BACAPP_REAL
-#define BACAPP_DOUBLE
-#define BACAPP_OCTET_STRING
-#define BACAPP_CHARACTER_STRING
-#define BACAPP_BIT_STRING
-#define BACAPP_ENUMERATED
-#define BACAPP_DATE
-#define BACAPP_TIME
-#define BACAPP_OBJECT_ID
-#define BACAPP_LIGHTING_COMMAND
+    #define BACAPP_NULL
+    #define BACAPP_BOOLEAN
+    #define BACAPP_UNSIGNED
+    #define BACAPP_SIGNED
+    #define BACAPP_REAL
+    #define BACAPP_DOUBLE
+    #define BACAPP_OCTET_STRING
+    #define BACAPP_CHARACTER_STRING
+    #define BACAPP_BIT_STRING
+    #define BACAPP_ENUMERATED
+    #define BACAPP_DATE
+    #define BACAPP_TIME
+    #define BACAPP_OBJECT_ID
+    #define BACAPP_DEVICE_OBJECT_PROP_REF
+    #define BACAPP_LIGHTING_COMMAND
 #elif defined (BACAPP_MINIMAL)
-#define BACAPP_NULL
-#define BACAPP_BOOLEAN
-#define BACAPP_UNSIGNED
-#define BACAPP_SIGNED
-#define BACAPP_REAL
-#define BACAPP_CHARACTER_STRING
-#define BACAPP_ENUMERATED
-#define BACAPP_DATE
-#define BACAPP_TIME
-#define BACAPP_OBJECT_ID
+    #define BACAPP_NULL
+    #define BACAPP_BOOLEAN
+    #define BACAPP_UNSIGNED
+    #define BACAPP_SIGNED
+    #define BACAPP_REAL
+    #define BACAPP_CHARACTER_STRING
+    #define BACAPP_ENUMERATED
+    #define BACAPP_DATE
+    #define BACAPP_TIME
+    #define BACAPP_OBJECT_ID
 #endif
 
 /*

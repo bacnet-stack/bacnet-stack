@@ -77,11 +77,26 @@ struct bacnet_channel_object Channel[BACNET_CHANNELS_MAX];
 
 /* These arrays are used by the ReadPropertyMultiple handler
    property-list property (as of protocol-revision 14) */
-static const int Properties_Optional[] = {
+static const int Channel_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_LAST_PRIORITY,
+    PROP_WRITE_STATUS,
+    PROP_STATUS_FLAGS,
+    PROP_OUT_OF_SERVICE,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
+    PROP_CHANNEL_NUMBER,
+    PROP_CONTROL_GROUPS,
     -1
 };
 
-static const int Properties_Proprietary[] = {
+static const int Channel_Properties_Optional[] = {
+    -1
+};
+
+static const int Channel_Properties_Proprietary[] = {
     -1
 };
 
@@ -101,11 +116,11 @@ void Channel_Property_Lists(const int **pRequired,
     const int **pProprietary)
 {
     if (pRequired)
-        *pRequired = property_list_required(OBJECT_CHANNEL);
+        *pRequired = Channel_Properties_Required;
     if (pOptional)
-        *pOptional = Properties_Optional;
+        *pOptional = Channel_Properties_Optional;
     if (pProprietary)
-        *pProprietary = Properties_Proprietary;
+        *pProprietary = Channel_Properties_Proprietary;
 
     return;
 }

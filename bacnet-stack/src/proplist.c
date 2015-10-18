@@ -40,6 +40,11 @@
 #include "rp.h"
 #include "proplist.h"
 
+#ifndef BACNET_PROPERTY_LISTS
+#define BACNET_PROPERTY_LISTS 0
+#endif
+
+#if BACNET_PROPERTY_LISTS
 /** @file proplist.c  List of Required and Optional object properties */
 /* note: the PROP_PROPERTY_LIST is NOT included in these lists, on purpose */
 
@@ -831,27 +836,6 @@ static const int Integer_Value_Properties_Optional[] = {
 };
 
 /**
- * Function that returns the number of BACnet object properties in a list
- *
- * @param pList - array of type 'int' that is a list of BACnet object
- * properties, terminated by a '-1' value.
- */
-unsigned property_list_count(
-    const int *pList)
-{
-    unsigned property_count = 0;
-
-    if (pList) {
-        while (*pList != -1) {
-            property_count++;
-            pList++;
-        }
-    }
-
-    return property_count;
-}
-
-/**
  * Function that returns the list of all Optional properties
  * of known standard objects.
  *
@@ -1140,6 +1124,28 @@ unsigned property_list_special_count(
     }
 
     return count;
+}
+#endif
+
+/**
+ * Function that returns the number of BACnet object properties in a list
+ *
+ * @param pList - array of type 'int' that is a list of BACnet object
+ * properties, terminated by a '-1' value.
+ */
+unsigned property_list_count(
+    const int *pList)
+{
+    unsigned property_count = 0;
+
+    if (pList) {
+        while (*pList != -1) {
+            property_count++;
+            pList++;
+        }
+    }
+
+    return property_count;
 }
 
 /**
