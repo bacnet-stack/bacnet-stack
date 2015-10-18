@@ -29,6 +29,10 @@
 #include <stdio.h>
 #include "bacdef.h"
 
+#ifndef DEBUG_ENABLED
+#define DEBUG_ENABLED 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

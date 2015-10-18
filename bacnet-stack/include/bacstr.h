@@ -195,6 +195,11 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string1,
         BACNET_OCTET_STRING * octet_string2);
 
+#ifdef TEST
+#include "ctest.h"
+    void testBACnetStrings(
+        Test * pTest);
+#endif
 
 #ifdef __cplusplus
 }
