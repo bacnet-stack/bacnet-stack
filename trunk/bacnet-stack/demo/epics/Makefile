@@ -13,6 +13,8 @@ SRCS = main.c \
 
 OBJS = ${SRCS:.c=.o}
 
+CFLAGS += -DBACNET_PROPERTY_LISTS=1
+
 all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
 ${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}

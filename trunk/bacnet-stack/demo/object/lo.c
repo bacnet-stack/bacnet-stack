@@ -75,11 +75,32 @@ struct lighting_output_object Lighting_Output[MAX_LIGHTING_OUTPUTS];
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
-static const int Properties_Optional[] = {
+static const int Lighting_Output_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,
+    PROP_LIGHTING_COMMAND,
+    PROP_IN_PROGRESS,
+    PROP_STATUS_FLAGS,
+    PROP_OUT_OF_SERVICE,
+    PROP_BLINK_WARN_ENABLE,
+    PROP_EGRESS_TIME,
+    PROP_EGRESS_ACTIVE,
+    PROP_DEFAULT_FADE_TIME,
+    PROP_DEFAULT_RAMP_RATE,
+    PROP_DEFAULT_STEP_INCREMENT,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
+    -1
+};
+static const int Lighting_Output_Properties_Optional[] = {
     -1
 };
 
-static const int Properties_Proprietary[] = {
+static const int Lighting_Output_Properties_Proprietary[] = {
     -1
 };
 
@@ -100,11 +121,11 @@ void Lighting_Output_Property_Lists(
     const int **pProprietary)
 {
     if (pRequired)
-        *pRequired = property_list_required(OBJECT_LIGHTING_OUTPUT);
+        *pRequired = Lighting_Output_Properties_Required;
     if (pOptional)
-        *pOptional = Properties_Optional;
+        *pOptional = Lighting_Output_Properties_Optional;
     if (pProprietary)
-        *pProprietary = Properties_Proprietary;
+        *pProprietary = Lighting_Output_Properties_Proprietary;
 
     return;
 }

@@ -1788,4 +1788,43 @@ typedef enum BACnetWriteStatus {
     BACNET_WRITE_STATUS_FAILED = 3
 } BACNET_WRITE_STATUS;
 
+/* BACnetNetworkType ::= ENUMERATED */
+typedef enum {
+    PORT_TYPE_ETHERNET = 0,
+    PORT_TYPE_ARCNET = 1,
+    PORT_TYPE_MSTP = 2,
+    PORT_TYPE_PTP = 3,
+    PORT_TYPE_LONTALK = 4,
+    PORT_TYPE_BIP = 5,
+    PORT_TYPE_ZIGBEE = 6,
+    PORT_TYPE_VIRTUAL = 7,
+    PORT_TYPE_NON_BACNET = 8
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-255 may be used by others subject to the
+       procedures and constraints described in Clause 23.*/
+} BACNET_PORT_TYPE;
+
+/* BACnetNetworkNumberQuality ::= ENUMERATED */
+typedef enum {
+    PORT_QUALITY_UNKNOWN = 0,
+    PORT_QUALITY_LEARNED = 1,
+    PORT_QUALITY_LEARNED_CONFIGURED = 2,
+    PORT_QUALITY_CONFIGURED = 3
+} BACNET_PORT_QUALITY;
+
+/* BACnetNetworkPortCommand :: = ENUMERATED */
+typedef enum {
+    PORT_COMMAND_IDLE = 0,
+    PORT_COMMAND_DISCARD_CHANGES = 1,
+    PORT_COMMAND_RENEW_FD_REGISTRATION = 2,
+    PORT_COMMAND_RESTART_SLAVE_DISCOVERY = 3,
+    PORT_COMMAND_RENEW_DHCP = 4,
+    PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
+    PORT_COMMAND_DISCONNECT = 6,
+    PORT_COMMAND_RESTART_PORT = 7
+    /* Enumerated values 0-127 are reserved for definition by ASHRAE.
+       Enumerated values 128-255 may be used by others subject to the
+       procedures and constraints described in Clause 23. */
+} BACNET_PORT_COMMAND;
+
 #endif /* end of BACENUM_H */
