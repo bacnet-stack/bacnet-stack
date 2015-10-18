@@ -768,7 +768,7 @@ int bacapp_decode_context_datetime(
 #include <string.h>
 #include "ctest.h"
 
-void testBACnetDateTimeWildcard(
+static void testBACnetDateTimeWildcard(
     Test * pTest)
 {
     BACNET_DATE_TIME bdatetime;
@@ -783,7 +783,7 @@ void testBACnetDateTimeWildcard(
     ct_test(pTest, status == true);
 }
 
-void testBACnetDateTimeAdd(
+static void testBACnetDateTimeAdd(
     Test * pTest)
 {
     BACNET_DATE_TIME bdatetime, test_bdatetime;
@@ -827,7 +827,7 @@ void testBACnetDateTimeAdd(
     ct_test(pTest, diff == 0);
 }
 
-void testBACnetDateTimeSeconds(
+static void testBACnetDateTimeSeconds(
     Test * pTest)
 {
     uint8_t hour = 0, minute = 0, second = 0;
@@ -849,7 +849,7 @@ void testBACnetDateTimeSeconds(
     }
 }
 
-void testBACnetDate(
+static void testBACnetDate(
     Test * pTest)
 {
     BACNET_DATE bdate1, bdate2;
@@ -911,7 +911,7 @@ void testBACnetDate(
     return;
 }
 
-void testBACnetTime(
+static void testBACnetTime(
     Test * pTest)
 {
     BACNET_TIME btime1, btime2;
@@ -961,7 +961,7 @@ void testBACnetTime(
     return;
 }
 
-void testBACnetDateTime(
+static void testBACnetDateTime(
     Test * pTest)
 {
     BACNET_DATE_TIME bdatetime1, bdatetime2;
@@ -1029,7 +1029,7 @@ void testBACnetDateTime(
     return;
 }
 
-void testDayOfYear(
+static void testDayOfYear(
     Test * pTest)
 {
     uint32_t days = 0;
@@ -1067,7 +1067,7 @@ void testDayOfYear(
     }
 }
 
-void testDateEpoch(
+static void testDateEpoch(
     Test * pTest)
 {
     uint32_t days = 0;
@@ -1097,7 +1097,7 @@ void testDateEpoch(
     }
 }
 
-void testBACnetDayOfWeek(
+static void testBACnetDayOfWeek(
     Test * pTest)
 {
     uint8_t dow = 0;
@@ -1126,7 +1126,7 @@ void testBACnetDayOfWeek(
     ct_test(pTest, dow == 3);
 }
 
-void testDatetimeCodec(
+static void testDatetimeCodec(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -1162,15 +1162,11 @@ void testDatetimeCodec(
 
 }
 
-
-#ifdef TEST_DATE_TIME
-int main(
-    void)
+void testDateTime(
+    Test * pTest)
 {
-    Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet Date Time", NULL);
     /* individual tests */
     rc = ct_addTestFunction(pTest, testBACnetDate);
     assert(rc);
@@ -1192,7 +1188,16 @@ int main(
     assert(rc);
     rc = ct_addTestFunction(pTest, testDayOfYear);
     assert(rc);
+}
 
+#ifdef TEST_DATE_TIME
+int main(
+    void)
+{
+    Test *pTest;
+
+    pTest = ct_create("BACnet Date Time", NULL);
+    testDateTime(pTest);
     ct_setStream(pTest, stdout);
     ct_run(pTest);
     (void) ct_report(pTest);
