@@ -308,6 +308,23 @@ void *Keylist_Data(
     return node ? node->data : NULL;
 }
 
+/* returns the index from the node specified by key */
+int Keylist_Index(
+    OS_Keylist list,
+    KEY key)
+{
+    int index = -1;      /* used to look up the index of node */
+
+    if (list && list->array && list->count) {
+        if (!FindIndex(list, key, &index)) {
+            index = -1;
+        }
+    }
+
+    return index;
+}
+
+
 /* returns the data specified by key */
 void *Keylist_Data_Index(
     OS_Keylist list,
@@ -406,7 +423,7 @@ void Keylist_Delete(
 #include "ctest.h"
 
 /* test the FIFO */
-void testKeyListFIFO(
+static void testKeyListFIFO(
     Test * pTest)
 {
     OS_Keylist list;
@@ -450,7 +467,7 @@ void testKeyListFIFO(
 }
 
 /* test the FILO */
-void testKeyListFILO(
+static void testKeyListFILO(
     Test * pTest)
 {
     OS_Keylist list;
@@ -497,7 +514,7 @@ void testKeyListFILO(
     return;
 }
 
-void testKeyListDataKey(
+static void testKeyListDataKey(
     Test * pTest)
 {
     OS_Keylist list;
@@ -578,7 +595,7 @@ void testKeyListDataKey(
     return;
 }
 
-void testKeyListDataIndex(
+static void testKeyListDataIndex(
     Test * pTest)
 {
     OS_Keylist list;
@@ -650,7 +667,7 @@ void testKeyListDataIndex(
 }
 
 /* test access of a lot of entries */
-void testKeyListLarge(
+static void testKeyListLarge(
     Test * pTest)
 {
     int data1 = 42;
@@ -681,14 +698,11 @@ void testKeyListLarge(
     return;
 }
 
-#ifdef TEST_KEYLIST
-int main(
-    void)
+/* test access of a lot of entries */
+void testKeyList(
+    Test * pTest)
 {
-    Test *pTest;
     bool rc;
-
-    pTest = ct_create("keylist", NULL);
 
     /* individual tests */
     rc = ct_addTestFunction(pTest, testKeyListFIFO);
@@ -701,7 +715,17 @@ int main(
     assert(rc);
     rc = ct_addTestFunction(pTest, testKeyListLarge);
     assert(rc);
+}
 
+#ifdef TEST_KEYLIST
+int main(
+    void)
+{
+    Test *pTest;
+    bool rc;
+
+    pTest = ct_create("keylist", NULL);
+    testKeyList(pTest);
     ct_setStream(pTest, stdout);
     ct_run(pTest);
     (void) ct_report(pTest);

@@ -228,7 +228,7 @@ int decode_signed32(
 #include <ctype.h>
 #include "ctest.h"
 
-void testBACnetUnsigned16(
+static void testBACnetUnsigned16(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -245,7 +245,7 @@ void testBACnetUnsigned16(
     }
 }
 
-void testBACnetUnsigned24(
+static void testBACnetUnsigned24(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -262,7 +262,7 @@ void testBACnetUnsigned24(
     }
 }
 
-void testBACnetUnsigned32(
+static void testBACnetUnsigned32(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -279,7 +279,7 @@ void testBACnetUnsigned32(
     }
 }
 
-void testBACnetSigned8(
+static void testBACnetSigned8(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -296,7 +296,7 @@ void testBACnetSigned8(
     }
 }
 
-void testBACnetSigned16(
+static void testBACnetSigned16(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -313,7 +313,7 @@ void testBACnetSigned16(
     }
 }
 
-void testBACnetSigned24(
+static void testBACnetSigned24(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -328,7 +328,7 @@ void testBACnetSigned24(
     }
 }
 
-void testBACnetSigned32(
+static void testBACnetSigned32(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -349,14 +349,12 @@ void testBACnetSigned32(
     }
 }
 
-#ifdef TEST_BACINT
-int main(
-    void)
+void testBACnetIntegers(
+    Test * pTest)
 {
-    Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACint", NULL);
+    assert(pTest);
     /* individual tests */
     rc = ct_addTestFunction(pTest, testBACnetUnsigned16);
     assert(rc);
@@ -372,6 +370,16 @@ int main(
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACnetSigned32);
     assert(rc);
+}
+
+#ifdef TEST_BACINT
+int main(
+    void)
+{
+    Test *pTest;
+
+    pTest = ct_create("BACint", NULL);
+    testBACnetIntegers(pTest);
     /* configure output */
     ct_setStream(pTest, stdout);
     ct_run(pTest);
