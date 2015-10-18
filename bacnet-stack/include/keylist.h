@@ -84,6 +84,11 @@ extern "C" {
         OS_Keylist list,
         KEY key);
 
+/* returns the index from the node specified by key */
+    int Keylist_Index(
+        OS_Keylist list,
+        KEY key);
+
 /* returns the data specified by key */
     void *Keylist_Data_Index(
         OS_Keylist list,
@@ -102,6 +107,12 @@ extern "C" {
 /* returns the number of items in the list */
     int Keylist_Count(
         OS_Keylist list);
+
+#ifdef TEST
+#include "ctest.h"
+    void testKeyList(
+        Test * pTest);
+#endif
 
 #ifdef __cplusplus
 }
