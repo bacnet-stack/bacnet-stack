@@ -78,6 +78,12 @@ extern "C" {
         uint8_t * apdu,
         int32_t * value);
 
+#ifdef TEST
+#include "ctest.h"
+    void testBACnetIntegers(
+        Test * pTest);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -185,6 +185,12 @@ extern "C" {
         uint8_t tag_number,
         BACNET_DATE_TIME * value);
 
+#ifdef TEST
+#include "ctest.h"
+    void testDateTime(
+        Test * pTest);
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
