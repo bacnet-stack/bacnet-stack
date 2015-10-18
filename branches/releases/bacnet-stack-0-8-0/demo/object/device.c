@@ -394,21 +394,6 @@ rr_info_function Device_Objects_RR_Info(
     return (pObject != NULL ? pObject->Object_RR_Info : NULL);
 }
 
-static unsigned property_list_count(
-    const int *pList)
-{
-    unsigned property_count = 0;
-
-    if (pList) {
-        while (*pList != -1) {
-            property_count++;
-            pList++;
-        }
-    }
-
-    return property_count;
-}
-
 /** For a given object type, returns the special property list.
  * This function is used for ReadPropertyMultiple calls which want
  * just Required, just Optional, or All properties.
