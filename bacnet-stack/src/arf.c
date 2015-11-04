@@ -405,6 +405,7 @@ void testAtomicReadFileAckAccess(
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
+    unsigned int i = 0;
 
     len = arf_ack_encode_apdu(&apdu[0], invoke_id, data);
     ct_test(pTest, len != 0);
@@ -418,6 +419,12 @@ void testAtomicReadFileAckAccess(
         ct_test(pTest,
             test_data.type.stream.fileStartPosition ==
             data->type.stream.fileStartPosition);
+        ct_test(pTest,
+            octetstring_length(&test_data.fileData[0]) ==
+            octetstring_length(&data->fileData[0]));
+        ct_test(pTest, memcmp(octetstring_value(&test_data.fileData[0]),
+                octetstring_value(&data->fileData[0]),
+                octetstring_length(&test_data.fileData[0])) == 0);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         ct_test(pTest,
             test_data.type.record.fileStartRecord ==
@@ -425,13 +432,15 @@ void testAtomicReadFileAckAccess(
         ct_test(pTest,
             test_data.type.record.RecordCount ==
             data->type.record.RecordCount);
+        for (i = 0; i < data->type.record.RecordCount; i++) {
+            ct_test(pTest,
+                octetstring_length(&test_data.fileData[i]) ==
+                octetstring_length(&data->fileData[i]));
+            ct_test(pTest, memcmp(octetstring_value(&test_data.fileData[i]),
+                    octetstring_value(&data->fileData[i]),
+                    octetstring_length(&test_data.fileData[i])) == 0);
+        }
     }
-    ct_test(pTest,
-        octetstring_length(&test_data.fileData[0]) ==
-        octetstring_length(&data->fileData[0]));
-    ct_test(pTest, memcmp(octetstring_value(&test_data.fileData[0]),
-            octetstring_value(&data->fileData[0]),
-            octetstring_length(&test_data.fileData[0])) == 0);
 }
 
 void testAtomicReadFileAck(
@@ -439,7 +448,7 @@ void testAtomicReadFileAck(
 {
     BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint8_t test_octet_string[32] = "Joshua-Mary-Anna-Christopher";
-
+    unsigned int i = 0;
 
     data.endOfFile = true;
     data.access = FILE_STREAM_ACCESS;
@@ -451,9 +460,11 @@ void testAtomicReadFileAck(
     data.endOfFile = false;
     data.access = FILE_RECORD_ACCESS;
     data.type.record.fileStartRecord = 1;
-    data.type.record.RecordCount = 2;
-    octetstring_init(&data.fileData[0], test_octet_string,
-        sizeof(test_octet_string));
+    data.type.record.RecordCount = BACNET_READ_FILE_RECORD_COUNT;
+    for (i = 0; i < data.type.record.RecordCount; i++) {
+        octetstring_init(&data.fileData[i], test_octet_string,
+            sizeof(test_octet_string));
+    }
     testAtomicReadFileAckAccess(pTest, &data);
 
     return;
