@@ -131,7 +131,7 @@ key: logfile test/key.mak
 	( ./test/key >> ${LOGFILE} )
 	$(MAKE) -s -C test -f key.mak clean
 
-lighting: lighting test/lighting.mak
+lighting: logfile test/lighting.mak
 	$(MAKE) -s -C test -f lighting.mak clean all
 	( ./test/lighting >> ${LOGFILE} )
 	$(MAKE) -s -C test -f lighting.mak clean

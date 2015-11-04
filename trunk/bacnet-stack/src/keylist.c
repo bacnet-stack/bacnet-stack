@@ -722,7 +722,6 @@ int main(
     void)
 {
     Test *pTest;
-    bool rc;
 
     pTest = ct_create("keylist", NULL);
     testKeyList(pTest);

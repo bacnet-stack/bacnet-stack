@@ -9,6 +9,7 @@ DEFINES += -DTEST -DBACDL_TEST
 DEFINES += -DBACAPP_ALL
 DEFINES += -DMAX_TSM_TRANSACTIONS=0
 DEFINES += -DTEST_DEVICE
+DEFINES += -DBACNET_PROPERTY_LISTS=1
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
@@ -19,6 +20,7 @@ SRCS = device.c \
 	$(SRC_DIR)/bacreal.c \
 	$(SRC_DIR)/datetime.c \
 	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
 	$(SRC_DIR)/proplist.c \

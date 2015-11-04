@@ -24,6 +24,7 @@ SRCS := $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/bacreal.c \
 	$(SRC_DIR)/bacerror.c \
 	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
 	$(SRC_DIR)/datetime.c \
@@ -34,7 +35,7 @@ SRCS := $(SRC_DIR)/bacdcode.c \
 OBJS := ${SRCS:.c=.o}
 
 all: ${TARGET}
- 
+
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS}
 
