@@ -237,13 +237,11 @@ bool Analog_Value_Object_Name(
 int Analog_Value_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
-    int len = 0;
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     float real_value = (float) 1.414;
     unsigned object_index = 0;
-    unsigned i = 0;
     bool state = false;
     uint8_t *apdu = NULL;
     ANALOG_VALUE_DESCR *CurrentAV;

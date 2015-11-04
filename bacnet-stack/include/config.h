@@ -129,6 +129,7 @@
     defined(BACAPP_LIGHTING_COMMAND) || \
     defined(BACAPP_DEVICE_OBJECT_PROP_REF) || \
     defined(BACAPP_OBJECT_ID))
+#define BACAPP_ALL
 #endif
 
 #if defined (BACAPP_ALL)
