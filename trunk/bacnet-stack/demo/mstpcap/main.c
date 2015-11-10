@@ -53,6 +53,10 @@
 /* I-Am decoding */
 #include "iam.h"
 
+#ifdef _WIN32
+#define strncasecmp(x,y,z) _strnicmp(x,y,z)
+#endif
+
 /* define our Data Link Type for libPCAP */
 #define DLT_BACNET_MS_TP 165
 /* local min/max macros */

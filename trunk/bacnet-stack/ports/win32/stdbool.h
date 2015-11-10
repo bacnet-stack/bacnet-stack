@@ -14,7 +14,9 @@
    the values 0 and 1. */
 /* We choose 8 bit to match C++ */
 /* It must also promote to integer */
+#if _MSC_VER < 1600
 typedef int8_t _Bool;
+#endif /* _MSC_VER < 1600 VS 2010 and earlier */
 #endif
 
 /* ISO C Standard: 7.16 Boolean type */

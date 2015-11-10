@@ -40,6 +40,7 @@ endif
 ifeq (${BACNET_PORT},win32)
 TARGET_EXT = .exe
 SYSTEM_LIB=-lws2_32,-lgcc,-lm,-liphlpapi,-lwinmm
+DEFINES += -D_NO_OLDNAMES
 endif
 #build for release (default) or debug
 DEBUGGING =
