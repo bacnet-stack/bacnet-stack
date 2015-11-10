@@ -245,6 +245,10 @@ int Analog_Value_Read_Property(
     bool state = false;
     uint8_t *apdu = NULL;
     ANALOG_VALUE_DESCR *CurrentAV;
+#if defined(INTRINSIC_REPORTING)
+    int len = 0;
+    unsigned int i = 0;
+#endif
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
