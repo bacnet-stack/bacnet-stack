@@ -50,6 +50,12 @@
 /* include the device object */
 #include "device.h"     /* me */
 
+#if defined(__BORLANDC__) || defined(_WIN32)
+/* seems to not be defined in time.h as specified by The Open Group */
+/* difference from UTC and local standard time  */
+long int timezone;
+#endif
+
 /* note: you really only need to define variables for
    properties that are writable or that may change.
    The properties that are constant can be hard coded

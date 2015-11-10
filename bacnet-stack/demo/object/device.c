@@ -75,9 +75,9 @@
 #endif /* defined(BAC_UCI) */
 
 
-#if defined(__BORLANDC__)
-/* seems to not be defined in time.h as specified by The Open Group */
-/* difference from UTC and local standard time  */
+#if defined(__BORLANDC__) || defined(_WIN32)
+/* Not included in time.h as specified by The Open Group */
+/* Difference from UTC and local standard time */
 long int timezone;
 #endif
 

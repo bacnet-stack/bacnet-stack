@@ -61,7 +61,7 @@
 /* os specfic includes */
 #include "timer.h"
 
-#if defined(__BORLANDC__)
+#if defined(__BORLANDC__) || defined(_WIN32)
 /* seems to not be defined in time.h as specified by The Open Group */
 /* difference from UTC and local standard time  */
 long int timezone;
@@ -79,7 +79,11 @@ bool Routed_Device_Write_Property_Local(
 
 
 #if !defined(BAC_ROUTING)
+#ifdef _MSC_VER
+#pragma message This file should not be included in the build unless BAC_ROUTING is enabled.
+#else
 #warning This file should not be included in the build unless BAC_ROUTING is enabled.
+#endif
 #endif
 
 /****************************************************************************
