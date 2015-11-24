@@ -139,6 +139,19 @@ extern "C" {
         BACNET_DATE_TIME * datetime1,
         BACNET_DATE_TIME * datetime2);
 
+    /* full comparison functions:
+     * taking into account FF fields in date and time structures,
+     * do a full comparison of two values */
+    int datetime_wildcard_compare_date(
+        BACNET_DATE * date1,
+        BACNET_DATE * date2);
+    int datetime_wildcard_compare_time(
+        BACNET_TIME * time1,
+        BACNET_TIME * time2);
+    int datetime_wildcard_compare(
+        BACNET_DATE_TIME * datetime1,
+        BACNET_DATE_TIME * datetime2);
+
     /* utility copy functions */
     void datetime_copy_date(
         BACNET_DATE * dest,
