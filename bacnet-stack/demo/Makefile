@@ -86,8 +86,8 @@ $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
 gateway:
 	$(MAKE) -s -b -C gateway
 
+server:
+	$(MAKE) -b -C server
+
 router:
 	$(MAKE) -s -b -C router
-
-
-
