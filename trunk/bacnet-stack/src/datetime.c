@@ -368,6 +368,81 @@ int datetime_compare(
     return diff;
 }
 
+int datetime_wildcard_compare_date(
+    BACNET_DATE * date1,
+    BACNET_DATE * date2)
+{
+    int diff = 0;
+
+    if (date1 && date2) {
+        if ((date1->year != 1900 + 0xFF) && (date2->year != 1900 + 0xFF)) {
+            diff = (int)date1->year - (int)date2->year;
+        }
+        if (diff == 0) {
+            if ((date1->month != 0xFF) && (date2->month != 0xFF)) {
+                diff = (int)date1->month - (int)date2->month;
+            }
+            if (diff == 0) {
+                if ((date1->day != 0xFF) && (date2->day != 0xFF)) {
+                    diff = (int)date1->day - (int)date2->day;
+                }
+                /* we ignore weekday in comparison */
+            }
+        }
+    }
+
+    return diff;
+}
+
+int datetime_wildcard_compare_time(
+    BACNET_TIME * time1,
+    BACNET_TIME * time2)
+{
+    int diff = 0;
+
+    if (time1 && time2) {
+        if ((time1->hour != 0xFF) && (time2->hour != 0xFF)) {
+            diff = (int)time1->hour - (int)time2->hour;
+        }
+        if (diff == 0) {
+            if ((time1->min != 0xFF) && (time2->min != 0xFF)) {
+                diff = (int)time1->min - (int)time2->min;
+            }
+            if (diff == 0) {
+                if ((time1->sec != 0xFF) && (time2->sec != 0xFF)) {
+                    diff = (int)time1->sec - (int)time2->sec;
+                }
+                if (diff == 0) {
+                    if ((time1->hundredths != 0xFF) &&
+                        (time2->hundredths != 0xFF)) {
+                        diff = (int)time1->hundredths - (int)time2->hundredths;
+                    }
+                }
+            }
+        }
+    }
+
+    return diff;
+}
+
+int datetime_wildcard_compare(
+    BACNET_DATE_TIME * datetime1,
+    BACNET_DATE_TIME * datetime2)
+{
+    int diff = 0;
+
+    diff = datetime_wildcard_compare_date(
+        &datetime1->date,
+        &datetime2->date);
+    if (diff == 0) {
+        diff = datetime_wildcard_compare_time(
+            &datetime1->time,
+            &datetime2->time);
+    }
+
+    return diff;
+}
+
 void datetime_copy_date(
     BACNET_DATE * dest_date,
     BACNET_DATE * src_date)
@@ -1023,6 +1098,29 @@ static void testBACnetDateTime(
     return;
 }
 
+static void testWildcardDateTime(
+    Test * pTest)
+{
+    BACNET_DATE_TIME bdatetime1, bdatetime2;
+    BACNET_DATE bdate;
+    BACNET_TIME btime;
+    int diff = 0;
+
+    datetime_wildcard_set(&bdatetime1);
+    ct_test(pTest, datetime_wildcard(&bdatetime1));
+    ct_test(pTest, datetime_wildcard_present(&bdatetime1));
+    datetime_copy(&bdatetime2, &bdatetime1);
+    diff = datetime_wildcard_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff == 0);
+    datetime_time_wildcard_set(&btime);
+    datetime_date_wildcard_set(&bdate);
+    datetime_set(&bdatetime1, &bdate, &btime);
+    diff = datetime_wildcard_compare(&bdatetime1, &bdatetime2);
+    ct_test(pTest, diff == 0);
+
+    return;
+}
+
 static void testDayOfYear(
     Test * pTest)
 {
@@ -1181,6 +1279,8 @@ void testDateTime(
     rc = ct_addTestFunction(pTest, testDatetimeCodec);
     assert(rc);
     rc = ct_addTestFunction(pTest, testDayOfYear);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testWildcardDateTime);
     assert(rc);
 }
 
