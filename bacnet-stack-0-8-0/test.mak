@@ -196,7 +196,7 @@ wp: logfile test/wp.mak
 	( ./test/wp >> ${LOGFILE} )
 	$(MAKE) -s -C test -f wp.mak clean
 
-objects: ai ao av bi bo bv csv lc lo lso lsp mso msv ms-input
+objects: ai ao av bi bo bv csv lc lo lso lsp mso msv ms-input osv piv
 
 ai: logfile demo/object/ai.mak
 	$(MAKE) -s -C demo/object -f ai.mak clean all
@@ -271,3 +271,13 @@ msv: logfile demo/object/msv.mak
 	$(MAKE) -s -C demo/object -f msv.mak clean all
 	( ./demo/object/multistate_value >> ${LOGFILE} )
 	$(MAKE) -s -C demo/object -f msv.mak clean
+
+osv: logfile demo/object/osv.mak
+	$(MAKE) -s -C demo/object -f osv.mak clean all
+	( ./demo/object/octetstring_value >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f osv.mak clean
+
+piv: logfile demo/object/piv.mak
+	$(MAKE) -s -C demo/object -f piv.mak clean all
+	( ./demo/object/positiveinteger_value >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f piv.mak clean
