@@ -48,44 +48,41 @@
 POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Positiveinteger_Value_Properties_Required[] = {
+static const int PositiveInteger_Value_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,
     PROP_STATUS_FLAGS,
-    PROP_UNITS
-    -1
+    PROP_UNITS - 1
 };
 
-static const int Positiveinteger_Value_Properties_Optional[] = {
+static const int PositiveInteger_Value_Properties_Optional[] = {
     PROP_OUT_OF_SERVICE,
     -1
 };
 
-static const int Positiveinteger_Value_Properties_Proprietary[] = {
+static const int PositiveInteger_Value_Properties_Proprietary[] = {
     -1
 };
 
-void Positiveinteger_Value_Property_Lists(
-    const int **pRequired,
+void PositiveInteger_Value_Property_Lists(const int **pRequired,
     const int **pOptional,
     const int **pProprietary)
 {
     if (pRequired)
-        *pRequired = Positiveinteger_Value_Properties_Required;
+        *pRequired = PositiveInteger_Value_Properties_Required;
     if (pOptional)
-        *pOptional = Positiveinteger_Value_Properties_Optional;
+        *pOptional = PositiveInteger_Value_Properties_Optional;
     if (pProprietary)
-        *pProprietary = Positiveinteger_Value_Properties_Proprietary;
+        *pProprietary = PositiveInteger_Value_Properties_Proprietary;
 
     return;
 }
 
-void Positiveinteger_Value_Init(
-    void)
+void PositiveInteger_Value_Init(void)
 {
-	unsigned i;
+    unsigned i;
 
     for (i = 0; i < MAX_POSITIVEINTEGER_VALUES; i++) {
         memset(&PIV_Descr[i], 0x00, sizeof(POSITIVEINTEGER_VALUE_DESCR));
@@ -95,8 +92,7 @@ void Positiveinteger_Value_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Positiveinteger_Value_Valid_Instance(
-    uint32_t object_instance)
+bool PositiveInteger_Value_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_POSITIVEINTEGER_VALUES)
         return true;
@@ -106,8 +102,7 @@ bool Positiveinteger_Value_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Positiveinteger_Value_Count(
-    void)
+unsigned PositiveInteger_Value_Count(void)
 {
     return MAX_POSITIVEINTEGER_VALUES;
 }
@@ -115,8 +110,7 @@ unsigned Positiveinteger_Value_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Positiveinteger_Value_Index_To_Instance(
-    unsigned index)
+uint32_t PositiveInteger_Value_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -124,8 +118,7 @@ uint32_t Positiveinteger_Value_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Positiveinteger_Value_Instance_To_Index(
-    uint32_t object_instance)
+unsigned PositiveInteger_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_POSITIVEINTEGER_VALUES;
 
@@ -145,29 +138,27 @@ unsigned Positiveinteger_Value_Instance_To_Index(
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Positiveinteger_Value_Present_Value_Set(
-    uint32_t object_instance,
+bool PositiveInteger_Value_Present_Value_Set(uint32_t object_instance,
     uint32_t value,
     uint8_t priority)
 {
     unsigned index = 0;
     bool status = false;
 
-    index = Positiveinteger_Value_Instance_To_Index(object_instance);
+    index = PositiveInteger_Value_Instance_To_Index(object_instance);
     if (index < MAX_POSITIVEINTEGER_VALUES) {
-      PIV_Descr[index].Present_Value = value;
-      status = true;
+        PIV_Descr[index].Present_Value = value;
+        status = true;
     }
     return status;
 }
 
-uint32_t Positiveinteger_Value_Present_Value(
-    uint32_t object_instance)
+uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance)
 {
     uint32_t value = 0;
     unsigned index = 0;
 
-    index = Positiveinteger_Value_Instance_To_Index(object_instance);
+    index = PositiveInteger_Value_Instance_To_Index(object_instance);
     if (index < MAX_POSITIVEINTEGER_VALUES) {
         value = PIV_Descr[index].Present_Value;
     }
@@ -176,8 +167,7 @@ uint32_t Positiveinteger_Value_Present_Value(
 }
 
 /* note: the object name must be unique within this device */
-bool Positiveinteger_Value_Object_Name(
-    uint32_t object_instance,
+bool PositiveInteger_Value_Object_Name(uint32_t object_instance,
     BACNET_CHARACTER_STRING * object_name)
 {
     static char text_string[32] = "";   /* okay for single thread */
@@ -193,8 +183,7 @@ bool Positiveinteger_Value_Object_Name(
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
-int Positiveinteger_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
@@ -211,7 +200,8 @@ int Positiveinteger_Value_Read_Property(
 
     apdu = rpdata->application_data;
 
-    object_index = Positiveinteger_Value_Instance_To_Index(rpdata->object_instance);
+    object_index =
+        PositiveInteger_Value_Instance_To_Index(rpdata->object_instance);
     if (object_index < MAX_POSITIVEINTEGER_VALUES)
         CurrentAV = &PIV_Descr[object_index];
     else
@@ -220,23 +210,27 @@ int Positiveinteger_Value_Read_Property(
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_POSITIVE_INTEGER_VALUE,
-                rpdata->object_instance);
+                encode_application_object_id(&apdu[0],
+                OBJECT_POSITIVE_INTEGER_VALUE, rpdata->object_instance);
             break;
 
         case PROP_OBJECT_NAME:
-            Positiveinteger_Value_Object_Name(rpdata->object_instance, &char_string);
+            PositiveInteger_Value_Object_Name(rpdata->object_instance,
+                &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_OBJECT_TYPE:
             apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_POSITIVE_INTEGER_VALUE);
+                encode_application_enumerated(&apdu[0],
+                OBJECT_POSITIVE_INTEGER_VALUE);
             break;
 
         case PROP_PRESENT_VALUE:
-            apdu_len = encode_application_unsigned(&apdu[0], Positiveinteger_Value_Present_Value(rpdata->object_instance));
+            apdu_len =
+                encode_application_unsigned(&apdu[0],
+                PositiveInteger_Value_Present_Value(rpdata->object_instance));
             break;
 
         case PROP_STATUS_FLAGS:
@@ -251,8 +245,9 @@ int Positiveinteger_Value_Read_Property(
             break;
 
         case PROP_UNITS:
-	  apdu_len = encode_application_enumerated(&apdu[0], CurrentAV->Units);
-	    
+            apdu_len =
+                encode_application_enumerated(&apdu[0], CurrentAV->Units);
+
         case PROP_OUT_OF_SERVICE:
             state = CurrentAV->Out_Of_Service;
             apdu_len = encode_application_boolean(&apdu[0], state);
@@ -276,8 +271,7 @@ int Positiveinteger_Value_Read_Property(
 }
 
 /* returns true if successful */
-bool Positiveinteger_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
@@ -304,7 +298,8 @@ bool Positiveinteger_Value_Write_Property(
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    object_index = Positiveinteger_Value_Instance_To_Index(wp_data->object_instance);
+    object_index =
+        PositiveInteger_Value_Instance_To_Index(wp_data->object_instance);
     if (object_index < MAX_POSITIVEINTEGER_VALUES)
         CurrentAV = &PIV_Descr[object_index];
     else
@@ -316,8 +311,9 @@ bool Positiveinteger_Value_Write_Property(
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                if (Positiveinteger_Value_Present_Value_Set(wp_data->object_instance,
-                        value.type.Unsigned_Int, wp_data->priority)) {
+                if (PositiveInteger_Value_Present_Value_Set(wp_data->
+                        object_instance, value.type.Unsigned_Int,
+                        wp_data->priority)) {
                     status = true;
                 } else if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
@@ -363,8 +359,7 @@ bool Positiveinteger_Value_Write_Property(
 }
 
 
-void Positiveinteger_Value_Intrinsic_Reporting(
-    uint32_t object_instance)
+void PositiveInteger_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
 }
 
@@ -373,8 +368,7 @@ void Positiveinteger_Value_Intrinsic_Reporting(
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE * pValue,
     uint8_t ucExpectedTag,
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
@@ -387,8 +381,7 @@ bool WPValidateArgType(
     return false;
 }
 
-void testPositiveinteger_Value(
-    Test * pTest)
+void testPositiveInteger_Value(Test * pTest)
 {
     BACNET_READ_PROPERTY_DATA rpdata;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -398,14 +391,14 @@ void testPositiveinteger_Value(
     uint16_t decoded_type = 0;
     uint32_t decoded_instance = 0;
 
-    Positiveinteger_Value_Init();
+    PositiveInteger_Value_Init();
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_POSITIVE_INTEGER_VALUE;
     rpdata.object_instance = 1;
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
     rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Positiveinteger_Value_Read_Property(&rpdata);
+    len = PositiveInteger_Value_Read_Property(&rpdata);
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
@@ -417,15 +410,14 @@ void testPositiveinteger_Value(
 }
 
 #ifdef TEST_POSITIVEINTEGER_VALUE
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet Positiveinteger Value", NULL);
+    pTest = ct_create("BACnet PositiveInteger Value", NULL);
     /* individual tests */
-    rc = ct_addTestFunction(pTest, testPositiveinteger_Value);
+    rc = ct_addTestFunction(pTest, testPositiveInteger_Value);
     assert(rc);
 
     ct_setStream(pTest, stdout);
