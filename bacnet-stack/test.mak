@@ -296,3 +296,8 @@ piv: logfile demo/object/piv.mak
 	$(MAKE) -s -C demo/object -f piv.mak clean all
 	( ./demo/object/positiveinteger_value >> ${LOGFILE} )
 	$(MAKE) -s -C demo/object -f piv.mak clean
+
+schedule: logfile demo/object/schedule.mak
+	$(MAKE) -s -C demo/object -f schedule.mak clean all
+	( ./demo/object/schedule >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f schedule.mak clean

@@ -37,74 +37,56 @@ extern "C" {
 #endif /* __cplusplus */
 
     typedef struct positiveinteger_value_descr {
-      bool Out_Of_Service:1;
-      uint32_t Present_Value;
-      uint16_t Units;
+        bool Out_Of_Service:1;
+        uint32_t Present_Value;
+        uint16_t Units;
     } POSITIVEINTEGER_VALUE_DESCR;
 
 
-    void Positiveinteger_Value_Property_Lists(
-        const int **pRequired,
+    void PositiveInteger_Value_Property_Lists(const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
-    bool Positiveinteger_Value_Valid_Instance(
-        uint32_t object_instance);
-    unsigned Positiveinteger_Value_Count(
-        void);
-    uint32_t Positiveinteger_Value_Index_To_Instance(
-        unsigned index);
-    unsigned Positiveinteger_Value_Instance_To_Index(
-        uint32_t object_instance);
+    bool PositiveInteger_Value_Valid_Instance(uint32_t object_instance);
+    unsigned PositiveInteger_Value_Count(void);
+    uint32_t PositiveInteger_Value_Index_To_Instance(unsigned index);
+    unsigned PositiveInteger_Value_Instance_To_Index(uint32_t object_instance);
 
-    bool Positiveinteger_Value_Object_Name(
-        uint32_t object_instance,
+    bool PositiveInteger_Value_Object_Name(uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
 
-    int Positiveinteger_Value_Read_Property(
-        BACNET_READ_PROPERTY_DATA * rpdata);
+    int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *
+        rpdata);
 
-    bool Positiveinteger_Value_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
+    bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *
+        wp_data);
 
-    bool Positiveinteger_Value_Present_Value_Set(
-        uint32_t object_instance,
+    bool PositiveInteger_Value_Present_Value_Set(uint32_t object_instance,
         uint32_t value,
         uint8_t priority);
-    uint32_t Positiveinteger_Value_Present_Value(
-        uint32_t object_instance);
+    uint32_t PositiveInteger_Value_Present_Value(uint32_t object_instance);
 
-    bool Positiveinteger_Value_Change_Of_Value(
-        uint32_t instance);
-    void Positiveinteger_Value_Change_Of_Value_Clear(
-        uint32_t instance);
-    bool Positiveinteger_Value_Encode_Value_List(
-        uint32_t object_instance,
+    bool PositiveInteger_Value_Change_Of_Value(uint32_t instance);
+    void PositiveInteger_Value_Change_Of_Value_Clear(uint32_t instance);
+    bool PositiveInteger_Value_Encode_Value_List(uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
 
-    char *Positiveinteger_Value_Description(
-        uint32_t instance);
-    bool Positiveinteger_Value_Description_Set(
-        uint32_t instance,
+    char *PositiveInteger_Value_Description(uint32_t instance);
+    bool PositiveInteger_Value_Description_Set(uint32_t instance,
         char *new_name);
 
-    bool Positiveinteger_Value_Out_Of_Service(
-        uint32_t instance);
-    void Positiveinteger_Value_Out_Of_Service_Set(
-        uint32_t instance,
+    bool PositiveInteger_Value_Out_Of_Service(uint32_t instance);
+    void PositiveInteger_Value_Out_Of_Service_Set(uint32_t instance,
         bool oos_flag);
 
     /* note: header of Intrinsic_Reporting function is required
        even when INTRINSIC_REPORTING is not defined */
-    void Positiveinteger_Value_Intrinsic_Reporting(
-        uint32_t object_instance);
+    void PositiveInteger_Value_Intrinsic_Reporting(uint32_t object_instance);
 
-    void Positiveinteger_Value_Init(
-        void);
+    void PositiveInteger_Value_Init(void);
 
 #ifdef TEST
 #include "ctest.h"
-    void testPositiveinteger_Value(
-        Test * pTest);
+    void testPositiveInteger_Value(Test * pTest);
 #endif
 
 #ifdef __cplusplus

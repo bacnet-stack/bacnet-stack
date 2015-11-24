@@ -63,6 +63,9 @@
 #include "ms-input.h"
 #include "mso.h"
 #include "msv.h"
+#include "osv.h"
+#include "piv.h"
+#include "schedule.h"
 #include "trendlog.h"
 #if defined(INTRINSIC_REPORTING)
 #include "nc.h"
@@ -401,6 +404,51 @@ static object_functions_t My_Object_Table[] = {
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
 #endif
+    {OBJECT_OCTETSTRING_VALUE,
+            OctetString_Value_Init,
+            OctetString_Value_Count,
+            OctetString_Value_Index_To_Instance,
+            OctetString_Value_Valid_Instance,
+            OctetString_Value_Object_Name,
+            OctetString_Value_Read_Property,
+            OctetString_Value_Write_Property,
+            OctetString_Value_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
+    {OBJECT_POSITIVE_INTEGER_VALUE,
+            PositiveInteger_Value_Init,
+            PositiveInteger_Value_Count,
+            PositiveInteger_Value_Index_To_Instance,
+            PositiveInteger_Value_Valid_Instance,
+            PositiveInteger_Value_Object_Name,
+            PositiveInteger_Value_Read_Property,
+            PositiveInteger_Value_Write_Property,
+            PositiveInteger_Value_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
+    {OBJECT_SCHEDULE,
+            Schedule_Init,
+            Schedule_Count,
+            Schedule_Index_To_Instance,
+            Schedule_Valid_Instance,
+            Schedule_Object_Name,
+            Schedule_Read_Property,
+            Schedule_Write_Property,
+            Schedule_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
     {MAX_BACNET_OBJECT_TYPE,
             NULL /* Init */ ,
             NULL /* Count */ ,
