@@ -70,6 +70,10 @@ uint8_t Send_Write_Property_Multiple_Request_Data(
 	int bytes_sent = 0;
 	BACNET_NPDU_DATA npdu_data;
 
+    /* if we are forbidden to send, don't send! */
+    if (!dcc_communication_enabled())
+        return 0;
+
 	/* is the device bound? */
 	status = address_get_by_device(device_id, &max_apdu, &dest);
 	/* is there a tsm available? */
