@@ -78,14 +78,20 @@
     <ClCompile Include="..\..\..\..\demo\object\bi.c" />
     <ClCompile Include="..\..\..\..\demo\object\bo.c" />
     <ClCompile Include="..\..\..\..\demo\object\bv.c" />
+    <ClCompile Include="..\..\..\..\demo\object\channel.c" />
+    <ClCompile Include="..\..\..\..\demo\object\command.c" />
     <ClCompile Include="..\..\..\..\demo\object\csv.c" />
     <ClCompile Include="..\..\..\..\demo\object\device.c" />
+    <ClCompile Include="..\..\..\..\demo\object\iv.c" />
     <ClCompile Include="..\..\..\..\demo\object\lc.c" />
     <ClCompile Include="..\..\..\..\demo\object\lo.c" />
     <ClCompile Include="..\..\..\..\demo\object\lsp.c" />
     <ClCompile Include="..\..\..\..\demo\object\ms-input.c" />
     <ClCompile Include="..\..\..\..\demo\object\mso.c" />
     <ClCompile Include="..\..\..\..\demo\object\msv.c" />
+    <ClCompile Include="..\..\..\..\demo\object\osv.c" />
+    <ClCompile Include="..\..\..\..\demo\object\piv.c" />
+    <ClCompile Include="..\..\..\..\demo\object\schedule.c" />
     <ClCompile Include="..\..\..\..\demo\object\trendlog.c" />
   </ItemGroup>
   <ItemGroup>

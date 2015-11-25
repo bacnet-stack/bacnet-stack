@@ -169,6 +169,9 @@
     <ClCompile Include="..\..\bip-init.c">
       <Filter>Source Files\ports</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\lighting.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
