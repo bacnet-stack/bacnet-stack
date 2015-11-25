@@ -147,6 +147,12 @@ extern "C" {
         BACNET_GET_ALARM_SUMMARY_DATA * getalarm_data);
 #endif
 
+    bool Analog_Value_Create(
+        uint32_t object_instance);
+    bool Analog_Value_Delete(
+        uint32_t object_instance);
+    void Analog_Value_Cleanup(
+        void);
     void Analog_Value_Init(
         void);
 

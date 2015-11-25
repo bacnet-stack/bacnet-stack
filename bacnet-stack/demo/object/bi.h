@@ -107,6 +107,13 @@ extern "C" {
 
     bool Binary_Input_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    bool Binary_Input_Create(
+        uint32_t object_instance);
+    bool Binary_Input_Delete(
+        uint32_t object_instance);
+    void Binary_Input_Cleanup(
+        void);
     void Binary_Input_Init(
         void);
 
