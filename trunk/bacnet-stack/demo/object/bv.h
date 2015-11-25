@@ -127,6 +127,12 @@ extern "C" {
     bool Binary_Value_Polarity_Set(
         uint32_t object_instance,
         BACNET_POLARITY polarity);
+    bool Binary_Value_Create(
+        uint32_t object_instance);
+    bool Binary_Value_Delete(
+        uint32_t object_instance);
+    void Binary_Value_Cleanup(
+        void);
 
 #ifdef TEST
 #include "ctest.h"

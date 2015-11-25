@@ -107,13 +107,19 @@ extern "C" {
         uint32_t instance,
         bool oos_flag);
 
-    void Analog_Output_Init(
-        void);
-
     int Analog_Output_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
     bool Analog_Output_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    bool Analog_Output_Create(
+        uint32_t object_instance);
+    bool Analog_Output_Delete(
+        uint32_t object_instance);
+    void Analog_Output_Cleanup(
+        void);
+    void Analog_Output_Init(
+        void);
 
 #ifdef TEST
 #include "ctest.h"
