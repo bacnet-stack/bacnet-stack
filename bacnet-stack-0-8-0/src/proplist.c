@@ -792,6 +792,49 @@ static const int File_Properties_Optional[] = {
     -1
 };
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Integer_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_UNITS,
+    -1
+};
+
+static const int Integer_Value_Properties_Optional[] = {
+    PROP_DESCRIPTION,
+    PROP_EVENT_STATE,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+    PROP_COV_INCREMENT,
+    PROP_TIME_DELAY,
+    PROP_NOTIFICATION_CLASS,
+    PROP_HIGH_LIMIT,
+    PROP_LOW_LIMIT,
+    PROP_DEADBAND,
+    PROP_LIMIT_ENABLE,
+    PROP_EVENT_ENABLE,
+    PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,
+    PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS,
+    PROP_EVENT_MESSAGE_TEXTS_CONFIG,
+    PROP_EVENT_DETECTION_ENABLE,
+    PROP_EVENT_ALGORITHM_INHIBIT_REF,
+    PROP_EVENT_ALGORITHM_INHIBIT,
+    PROP_TIME_DELAY_NORMAL,
+    PROP_RELIABILITY_EVALUATION_INHIBIT,
+    PROP_MIN_PRES_VALUE,
+    PROP_MAX_PRES_VALUE,
+    PROP_RESOLUTION,
+    PROP_PROFILE_NAME,
+    -1
+};
+
 /**
  * Function that returns the list of all Optional properties
  * of known standard objects.
@@ -878,6 +921,9 @@ const int * property_list_optional(
             break;
         case OBJECT_FILE:
             pList = File_Properties_Optional;
+            break;
+        case OBJECT_INTEGER_VALUE:
+            pList = Integer_Value_Properties_Optional;
             break;
         default:
             break;
@@ -973,34 +1019,15 @@ const int * property_list_required(
         case OBJECT_FILE:
             pList = File_Properties_Required;
             break;
+        case OBJECT_INTEGER_VALUE:
+            pList = Integer_Value_Properties_Required;
+            break;
         default:
             pList = Default_Properties_Required;
             break;
     }
 
     return pList;
-}
-#endif
-
-/**
- * Function that returns the number of BACnet object properties in a list
- *
- * @param pList - array of type 'int' that is a list of BACnet object
- * properties, terminated by a '-1' value.
- */
-unsigned property_list_count(
-    const int *pList)
-{
-    unsigned property_count = 0;
-
-    if (pList) {
-        while (*pList != -1) {
-            property_count++;
-            pList++;
-        }
-    }
-
-    return property_count;
 }
 
 /**
@@ -1097,6 +1124,28 @@ unsigned property_list_special_count(
     }
 
     return count;
+}
+#endif
+
+/**
+ * Function that returns the number of BACnet object properties in a list
+ *
+ * @param pList - array of type 'int' that is a list of BACnet object
+ * properties, terminated by a '-1' value.
+ */
+unsigned property_list_count(
+    const int *pList)
+{
+    unsigned property_count = 0;
+
+    if (pList) {
+        while (*pList != -1) {
+            property_count++;
+            pList++;
+        }
+    }
+
+    return property_count;
 }
 
 /**
