@@ -112,6 +112,7 @@
     <ClCompile Include="..\..\..\..\src\indtext.c" />
     <ClCompile Include="..\..\..\..\src\key.c" />
     <ClCompile Include="..\..\..\..\src\keylist.c" />
+    <ClCompile Include="..\..\..\..\src\lighting.c" />
     <ClCompile Include="..\..\..\..\src\lso.c" />
     <ClCompile Include="..\..\..\..\src\memcopy.c" />
     <ClCompile Include="..\..\..\..\src\mstp.c" />
