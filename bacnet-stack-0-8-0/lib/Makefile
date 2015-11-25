@@ -34,6 +34,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacprop.c \
 	$(BACNET_CORE)/bactext.c \
+	$(BACNET_CORE)/bactimevalue.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/indtext.c \
 	$(BACNET_CORE)/key.c \
