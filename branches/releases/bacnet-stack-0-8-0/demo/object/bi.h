@@ -96,14 +96,21 @@ extern "C" {
 
     bool Binary_Input_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
-    void Binary_Input_Init(
-        void);
     BACNET_BINARY_PV Binary_Input_Present_Value(
         uint32_t object_instance);
 
     bool Binary_Input_Present_Value_Set(
         uint32_t object_instance,
         BACNET_BINARY_PV value);
+
+    bool Binary_Input_Create(
+        uint32_t object_instance);
+    bool Binary_Input_Delete(
+        uint32_t object_instance);
+    void Binary_Input_Cleanup(
+        void);
+    void Binary_Input_Init(
+        void);
 
 #ifdef TEST
 #include "ctest.h"

@@ -116,14 +116,22 @@ extern "C" {
         uint32_t object_instance,
         BACNET_POLARITY polarity);
 
-    void Binary_Value_Init(
-        void);
-
     int Binary_Value_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     bool Binary_Value_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    bool Binary_Value_Create(
+        uint32_t object_instance);
+    bool Binary_Value_Delete(
+        uint32_t object_instance);
+    void Binary_Value_Cleanup(
+        void);
+    void Binary_Value_Init(
+        void);
+
+
 
 #ifdef TEST
 #include "ctest.h"

@@ -36,9 +36,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    void Binary_Output_Init(
-        void);
-
     void Binary_Output_Property_Lists(
         const int **pRequired,
         const int **pOptional,
@@ -106,6 +103,15 @@ extern "C" {
         uint32_t instance);
     void Binary_Output_Change_Of_Value_Clear(
         uint32_t instance);
+
+    bool Binary_Output_Create(
+        uint32_t object_instance);
+    bool Binary_Output_Delete(
+        uint32_t object_instance);
+    void Binary_Output_Cleanup(
+        void);
+    void Binary_Output_Init(
+        void);
 
 #ifdef TEST
 #include "ctest.h"
