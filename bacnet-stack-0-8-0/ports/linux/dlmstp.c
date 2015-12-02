@@ -482,6 +482,9 @@ static bool dlmstp_compare_data_expecting_reply(
 #endif
         return false;
     }
+#if 0
+    /* the NDPU priority doesn't get passed through the stack, and
+       all outgoing messages have NORMAL priority */
     if (request.npdu_data.priority != reply.npdu_data.priority) {
 #if PRINT_ENABLED
         fprintf(stderr,
@@ -489,6 +492,7 @@ static bool dlmstp_compare_data_expecting_reply(
 #endif
         return false;
     }
+#endif
     if (!bacnet_address_same(&request.address, &reply.address)) {
 #if PRINT_ENABLED
         fprintf(stderr,
