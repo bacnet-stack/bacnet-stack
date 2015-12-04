@@ -5,9 +5,10 @@
 
 /* C99 Boolean types for compilers without C99 support */
 /* http://www.opengroup.org/onlinepubs/009695399/basedefs/stdbool.h.html */
+
 #if !defined(__cplusplus)
 
-#if !defined(__GNUC__)
+#if !defined(__GNUC__) && !defined(_MSC_VER)
 /* _Bool builtin type is included in GCC */
 /* ISO C Standard: 5.2.5 An object declared as 
    type _Bool is large enough to store 
