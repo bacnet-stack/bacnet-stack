@@ -489,6 +489,7 @@ static bool cov_send_request(
     cov_data.timeRemaining = cov_subscription->lifetime;
     cov_data.listOfValues = value_list;
     if (cov_subscription->flag.issueConfirmedNotifications) {
+        npdu_data.data_expecting_reply = true;
         invoke_id = tsm_next_free_invokeID();
         if (invoke_id) {
             cov_subscription->invokeID = invoke_id;
