@@ -172,14 +172,32 @@ static void print_usage(char *filename)
 {
     printf("Usage: %s device-instance object-type object-instance "
         "property [index]\n", filename);
+    printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
 static void print_help(char *filename)
 {
     printf("Read a property from an object in a BACnet device\n"
-        "and print the value.\n"
-        "device-instance:\n"
+        "and print the value.\n");
+    printf("--mac A\n"
+        "Optional BACnet mac address."
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+        "\n"
+        "--dnet N\n"
+        "Optional BACnet network number N for directed requests.\n"
+        "Valid range is from 0 to 65535 where 0 is the local connection\n"
+        "and 65535 is network broadcast.\n"
+        "\n"
+        "--dadr A\n"
+        "Optional BACnet mac address on the destination BACnet network number.\n"
+        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+        "or an IP string with optional port number like 10.1.2.3:47808\n"
+        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+        "\n");
+    printf("device-instance:\n"
         "BACnet Device Object Instance number that you are\n"
         "trying to communicate to.  This number will be used\n"
         "to try and bind with the device using Who-Is and\n"
@@ -228,7 +246,13 @@ int main(
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
+    long dnet = -1;
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    bool specific_address = false;
     int argi = 0;
+    unsigned int target_args = 0;
     char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
@@ -240,33 +264,96 @@ int main(
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+            printf("Copyright (C) 2015 by Steve Karg and others.\n"
                 "This is free software; see the source for copying conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
+        if (strcmp(argv[argi], "--mac") == 0) {
+            if (++argi < argc) {
+                if (address_mac_from_ascii(&mac, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dnet") == 0) {
+            if (++argi < argc) {
+                dnet = strtol(argv[argi], NULL, 0);
+                if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dadr") == 0) {
+            if (++argi < argc) {
+                if (address_mac_from_ascii(&adr, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else {
+            if (target_args == 0) {
+                Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
+                target_args++;
+            } else if (target_args == 1) {
+                Target_Object_Type = strtol(argv[argi], NULL, 0);
+                target_args++;
+            } else if (target_args == 2) {
+                Target_Object_Instance = strtol(argv[argi], NULL, 0);
+                target_args++;
+            } else if (target_args == 3) {
+                Target_Object_Property = strtol(argv[argi], NULL, 0);
+                target_args++;
+            } else if (target_args == 4) {
+                Target_Object_Index = strtol(argv[argi], NULL, 0);
+                target_args++;
+            } else {
+                print_usage(filename);
+                return 1;
+            }
+        }
     }
-    if (argc < 5) {
+    if (target_args < 4) {
         print_usage(filename);
         return 0;
     }
-    /* decode the command line parameters */
-    Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    Target_Object_Type = strtol(argv[2], NULL, 0);
-    Target_Object_Instance = strtol(argv[3], NULL, 0);
-    Target_Object_Property = strtol(argv[4], NULL, 0);
-    if (argc > 5)
-        Target_Object_Index = strtol(argv[5], NULL, 0);
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-
+    address_init();
+    if (specific_address) {
+        if (adr.len && mac.len) {
+            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
+            dest.mac_len = mac.len;
+            memcpy(&dest.adr[0], &adr.adr[0], adr.len);
+            dest.len = adr.len;
+            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                dest.net = dnet;
+            } else {
+                dest.net = BACNET_BROADCAST_NETWORK;
+            }
+        } else if (mac.len) {
+            memcpy(&dest.mac[0], &mac.adr[0], mac.len);
+            dest.mac_len = mac.len;
+            dest.len = 0;
+            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                dest.net = dnet;
+            } else {
+                dest.net = 0;
+            }
+        } else {
+            if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                dest.net = dnet;
+            } else {
+                dest.net = BACNET_BROADCAST_NETWORK;
+            }
+            dest.mac_len = 0;
+            dest.len = 0;
+        }
+        address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
+    }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    address_init();
     Init_Service_Handlers();
     dlenv_init();
     atexit(datalink_cleanup);
