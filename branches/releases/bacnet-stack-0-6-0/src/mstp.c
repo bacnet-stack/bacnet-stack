@@ -563,7 +563,7 @@ bool MSTP_Master_Node_FSM(
     uint8_t next_poll_station = 0;
     uint8_t next_this_station = 0;
     uint8_t next_next_station = 0;
-    uint16_t my_timeout = 10, ns_timeout = 0, mm_timeout = 0;
+    uint16_t my_timeout = 10, ns_timeout = 0;
     /* transition immediately to the next state */
     bool transition_now = false;
     static MSTP_MASTER_STATE master_state = MSTP_MASTER_STATE_INITIALIZE;
@@ -933,10 +933,7 @@ bool MSTP_Master_Node_FSM(
             } else {
                 ns_timeout =
                     Tno_token + (Tslot * (mstp_port->This_Station + 1));
-                mm_timeout =
-                    Tno_token + (Tslot * (mstp_port->Nmax_master + 1));
-                if ((mstp_port->SilenceTimer() < ns_timeout) ||
-                    (mstp_port->SilenceTimer() > mm_timeout)) {
+                if (mstp_port->SilenceTimer() < ns_timeout) {
                     /* GenerateToken */
                     /* Assume that this node is the lowest numerical address  */
                     /* on the network and is empowered to create a token.  */
