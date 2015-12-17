@@ -60,6 +60,9 @@ BACNET_APDU_TIMEOUT - set this value in milliseconds to change
     the APDU timeout.  APDU Timeout is how much time a client
     waits for a response from a BACnet device. Default is 3000ms.
 
+BACNET_APDU_RETRIES - indicate the maximum number of times that
+    an APDU shall be retransmitted.
+
 BACNET_IFACE - set this value to dotted IP address (Windows) of
     the interface (see ipconfig command on Windows) for which you
     want to bind.  On Linux, set this to the /dev interface
