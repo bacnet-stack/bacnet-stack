@@ -212,7 +212,7 @@ void dlmstp_automac_hander(
 bool dlmstp_init(
     char *ifname)
 {
-    ifname = ifname;
+    (void)ifname;
     Ringbuf_Init(&Transmit_Queue, (uint8_t *) & Transmit_Buffer,
         sizeof(struct mstp_tx_packet), MSTP_TRANSMIT_PACKET_COUNT);
     Ringbuf_Init(&PDU_Queue, (uint8_t *) & PDU_Buffer,
@@ -466,7 +466,7 @@ static void MSTP_Send_Frame(
         crc8 = CRC_Calc_Header(pkt->buffer[5], crc8);
         pkt->buffer[6] = data_len % 256;
         crc8 = CRC_Calc_Header(pkt->buffer[6], crc8);
-        pkt->buffer[7] = ~crc8;
+        pkt->buffer[7] = (uint8_t)(~crc8);
         pkt->length = 8;
         if (data_len) {
             /* calculate CRC for any data */
@@ -1214,7 +1214,7 @@ static bool MSTP_Master_Node_FSM(
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
             pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&PDU_Queue);
-            if (pkt != NULL) {
+            if (pkt) {
                 matched =
                     dlmstp_compare_data_expecting_reply(&InputBuffer[0],
                     DataLength, SourceAddress, &pkt->buffer[0], pkt->length,
@@ -1243,7 +1243,7 @@ static bool MSTP_Master_Node_FSM(
                 MSTP_Flag.ReceivedValidFrame = false;
                 /* clear the queue */
                 (void) Ringbuf_Pop(&PDU_Queue, NULL);
-            } else if (rs485_silence_elapsed(Treply_delay) || (pkt != NULL)) {
+            } else if (rs485_silence_elapsed(Treply_delay) || pkt) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
                 /* within Treply_delay after the reception of the */

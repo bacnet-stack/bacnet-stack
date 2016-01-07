@@ -339,7 +339,7 @@ unsigned Device_Count(
 uint32_t Device_Index_To_Instance(
     unsigned index)
 {
-    index = index;
+    (void)index;
     return Object_Instance_Number;
 }
 
@@ -957,7 +957,7 @@ bool Device_Write_Property_Local(
             break;
     }
     /* not using len at this time */
-    len = len;
+    (void)len;
 
     return status;
 }
