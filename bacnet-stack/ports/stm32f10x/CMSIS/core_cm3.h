@@ -1542,6 +1542,7 @@ static __INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority)
  *
  * Note: The priority cannot be set for every core interrupt.
  */
+#ifndef __CSTAT__
 static __INLINE uint32_t NVIC_GetPriority(IRQn_Type IRQn)
 {
 
@@ -1550,7 +1551,7 @@ static __INLINE uint32_t NVIC_GetPriority(IRQn_Type IRQn)
   else {
     return((uint32_t)(NVIC->IP[(uint32_t)(IRQn)]           >> (8 - __NVIC_PRIO_BITS)));  } /* get priority for device specific interrupts  */
 }
-
+#endif
 
 /**
  * @brief  Encode the priority for an interrupt
