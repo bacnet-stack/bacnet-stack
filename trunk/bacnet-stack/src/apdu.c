@@ -378,8 +378,8 @@ void apdu_retries_set(
 /* When network communications are completely disabled,
    only DeviceCommunicationControl and ReinitializeDevice APDUs
    shall be processed and no messages shall be initiated.
-   When the initiation of communications is disabled, 
-   all APDUs shall be processed and responses returned as 
+   When the initiation of communications is disabled,
+   all APDUs shall be processed and responses returned as
    required... */
 static bool apdu_confirmed_dcc_disabled(
     uint8_t service_choice)
@@ -413,7 +413,7 @@ static bool apdu_unconfirmed_dcc_disabled(
     bool status = false;
 
     if (dcc_communication_disabled()) {
-        /* there are no Unconfirmed messages that 
+        /* there are no Unconfirmed messages that
            can be processed in this state */
         status = true;
     } else if (dcc_communication_initiation_disabled()) {
@@ -462,8 +462,7 @@ void apdu_handler(
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                len =
-                    (int) apdu_decode_confirmed_service_request(&apdu[0],
+                apdu_decode_confirmed_service_request(&apdu[0],
                     apdu_len, &service_data, &service_choice, &service_request,
                     &service_request_len);
                 if (apdu_confirmed_dcc_disabled(service_choice)) {

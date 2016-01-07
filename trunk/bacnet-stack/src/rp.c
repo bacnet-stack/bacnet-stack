@@ -98,7 +98,7 @@ int rp_decode_service_request(
     uint32_t array_value = 0;   /* for decoding */
 
     /* check for value pointers */
-    if (rpdata != NULL) {
+    if (rpdata) {
         /* Must have at least 2 tags, an object id and a property identifier
          * of at least 1 byte in length to have any chance of parsing */
         if (apdu_len < 7) {
@@ -142,7 +142,9 @@ int rp_decode_service_request(
 
     if (len < apdu_len) {
         /* If something left over now, we have an invalid request */
-        rpdata->error_code = ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS;
+        if (rpdata) {
+            rpdata->error_code = ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS;
+        }
         return BACNET_STATUS_REJECT;
     }
 
