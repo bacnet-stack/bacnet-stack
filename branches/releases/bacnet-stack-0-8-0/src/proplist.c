@@ -1175,16 +1175,14 @@ int property_list_encode(
     unsigned i = 0; /* loop index */
 
     required_count = property_list_count(pListRequired);
-    if (required_count >= 3) {
-        /* less the 3 always required properties */
-        count -= 3;
-    } else {
-        count = 0;
-    }
     optional_count = property_list_count(pListOptional);
     proprietary_count = property_list_count(pListProprietary);
     /* total of all counts */
     count = required_count + optional_count + proprietary_count;
+    if (required_count >= 3) {
+        /* less the 3 always required properties */
+        count -= 3;
+    }
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
