@@ -161,8 +161,7 @@ static void mstp_monitor_i_am(
         MSTP_Fill_BACnet_Address(&src, mac);
         apdu_offset = npdu_decode(&pdu[0], &dest, &src, &npdu_data);
         if ((!npdu_data.network_layer_message) && (apdu_offset > 0) &&
-            (apdu_offset < pdu_len) && ((dest.net == 0) ||
-                (dest.net == BACNET_BROADCAST_NETWORK)) && (src.net == 0)) {
+            (apdu_offset < pdu_len) && (src.net == 0)) {
             apdu_len = pdu_len - apdu_offset;
             apdu = &pdu[apdu_offset];
             pdu_type = apdu[0] & 0xF0;
@@ -1061,6 +1060,7 @@ int main(
             }
             RS485_Set_Interface(argv[argi]);
         }
+#if defined(_WIN32)
         if (strncasecmp(argv[argi], "com", 3) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
@@ -1070,6 +1070,17 @@ int main(
                 RS485_Set_Baud_Rate(my_baud);
             }
         }
+#else
+        if (strncasecmp(argv[argi], "/dev/", 5) == 0) {
+            /* legacy command line options */
+            RS485_Set_Interface(argv[argi]);
+            if ((argi+1) < argc) {
+                argi++;
+                my_baud = strtol(argv[argi], NULL, 0);
+                RS485_Set_Baud_Rate(my_baud);
+            }
+        }
+#endif
         if (strcmp(argv[argi], "--baud") == 0) {
             argi++;
             if (argi >= argc) {
