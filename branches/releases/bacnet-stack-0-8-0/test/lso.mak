@@ -12,9 +12,11 @@ SRCS = $(SRC_DIR)/bacdcode.c \
 	$(SRC_DIR)/bacreal.c \
 	$(SRC_DIR)/bacerror.c \
 	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
 	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/lighting.c \
 	$(SRC_DIR)/memcopy.c \
 	$(SRC_DIR)/lso.c \
 	ctest.c
