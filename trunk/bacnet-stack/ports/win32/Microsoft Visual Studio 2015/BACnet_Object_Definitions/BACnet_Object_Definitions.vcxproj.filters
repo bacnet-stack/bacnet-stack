@@ -48,12 +48,6 @@
     <ClCompile Include="..\..\..\..\demo\object\csv.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\demo\object\device-client.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\demo\object\device.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\demo\object\gw_device.c">
       <Filter>Source Files</Filter>
     </ClCompile>
