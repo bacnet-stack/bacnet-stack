@@ -54,6 +54,19 @@
 #include "timestamp.h"
 #include "command.h"
 
+ /*BACnetActionCommand ::= SEQUENCE {
+ deviceIdentifier [0] BACnetObjectIdentifier OPTIONAL,
+ objectIdentifier [1] BACnetObjectIdentifier,
+ propertyIdentifier [2] BACnetPropertyIdentifier,
+ propertyArrayIndex [3] Unsigned OPTIONAL, --used only with array datatype
+ propertyValue [4] ABSTRACT-SYNTAX.&Type,
+ priority [5] Unsigned (1..16) OPTIONAL, --used only when property is commandable
+ postDelay [6] Unsigned OPTIONAL,
+ quitOnFailure [7] BOOLEAN,
+ writeSuccessful [8] BOOLEAN
+ }*/
+
+
 int cl_encode_apdu(
     uint8_t * apdu,
     BACNET_ACTION_LIST * bcl)
@@ -91,10 +104,31 @@ int cl_encode_apdu(
             return BACNET_STATUS_REJECT;
         apdu_len += len;
     }
-    len = bacapp_encode_context_data_value(&apdu[apdu_len], 4, &bcl->Value);
+
+	/* 	BACnet Testing Observed Incident oi00108
+		Command Action not correctly formatted
+		Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+			BITS: BIT00031
+			BC 135.1: 9.20.1.7
+			BC 135.1: 9.20.1.9
+		Any discussions can be directed to edward@bac-test.com
+		Please feel free to remove this comment when my changes have been reviewed 
+		by all interested parties. Say 6 months -> September 2016 */
+				
+	len = encode_opening_tag(&apdu[apdu_len], 4);
+	if (len < 0)
+		return BACNET_STATUS_REJECT;
+	apdu_len += len;
+	len = bacapp_encode_application_data(&apdu[apdu_len], &bcl->Value);
     if (len < 0)
         return BACNET_STATUS_REJECT;
     apdu_len += len;
+	len = encode_closing_tag(&apdu[apdu_len], 4);
+	if (len < 0)
+		return BACNET_STATUS_REJECT;
+	apdu_len += len;
+
+
     if (bcl->Priority != BACNET_NO_PRIORITY) {
         len = encode_context_unsigned(&apdu[apdu_len], 5, bcl->Priority);
         if (len < 0)

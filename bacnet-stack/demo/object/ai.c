@@ -375,12 +375,23 @@ void Analog_Input_Out_Of_Service_Set(
 
     index = Analog_Input_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_INPUTS) {
+		/* 	BACnet Testing Observed Incident oi00104
+			The Changed flag was not being set when a client wrote to the Out-of-Service bit.
+			Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+				BC 135.1: 8.2.1-A
+				BC 135.1: 8.2.2-A
+    		Any discussions can be directed to edward@bac-test.com
+    		Please feel free to remove this comment when my changes accepted after suitable time for
+    		review by all interested parties. Say 6 months -> September 2016 */
+        if (AI_Descr[index].Out_Of_Service != value) {
+            AI_Descr[index].Changed = true;
+        }
         AI_Descr[index].Out_Of_Service = value;
     }
 }
 
 /* return apdu length, or BACNET_STATUS_ERROR on error */
-/* assumption - object has already exists */
+/* assumption - object already exists */
 int Analog_Input_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
@@ -604,7 +615,7 @@ int Analog_Input_Read_Property(
             break;
 #endif
         case 9997:
-            /* test case for real encoding-decoding unsigned value correctly */
+            /* test case for real encoding-decoding real value correctly */
             apdu_len = encode_application_real(&apdu[0], 90.510F);
             break;
         case 9998:

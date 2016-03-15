@@ -247,6 +247,16 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
         case PROP_UNITS:
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAV->Units);
+			break;
+			/* 	BACnet Testing Observed Incident oi00109
+				Positive Integer Value / Units returned wrong datatype - missing break.
+				Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+					BITS: BIT00031
+					BC 135.1: 9.20.1.7
+					BC 135.1: 9.20.1.9
+				Any discussions can be directed to edward@bac-test.com
+				Please feel free to remove this comment when my changes have been reviewed 
+				by all interested parties. Say 6 months -> September 2016 */
 
         case PROP_OUT_OF_SERVICE:
             state = CurrentAV->Out_Of_Service;

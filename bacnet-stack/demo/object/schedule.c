@@ -150,6 +150,26 @@ bool Schedule_Object_Name(uint32_t object_instance,
     return status;
 }
 
+/* 	BACnet Testing Observed Incident oi00106
+	Out of service was not supported by Schedule object
+	Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+		BITS: BIT00032
+	Any discussions can be directed to edward@bac-test.com 
+	Please feel free to remove this comment when my changes accepted after suitable time for
+	review by all interested parties. Say 6 months -> September 2016 */
+void Schedule_Out_Of_Service_Set(
+    uint32_t object_instance,
+    bool value)
+{
+    unsigned index = 0;
+
+    index = Schedule_Instance_To_Index(object_instance);
+    if (index < MAX_SCHEDULES) {
+        Schedule_Descr[index].Out_Of_Service = value;
+    }
+}
+
+
 int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;
@@ -191,9 +211,16 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
             apdu_len = bacapp_encode_data(&apdu[0], CurrentSC->Present_Value);
             break;
         case PROP_EFFECTIVE_PERIOD:
-            apdu_len = encode_bacnet_date(&apdu[0], &CurrentSC->Start_Date);
+			/* 	BACnet Testing Observed Incident oi00110
+				Effective Period of Schedule object not correctly formatted
+				Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+					BITS: BIT00031
+				Any discussions can be directed to edward@bac-test.com
+				Please feel free to remove this comment when my changes accepted after suitable time for
+				review by all interested parties. Say 6 months -> September 2016 */
+            apdu_len = encode_application_date(&apdu[0], &CurrentSC->Start_Date);
             apdu_len +=
-                encode_bacnet_date(&apdu[apdu_len], &CurrentSC->End_Date);
+                encode_application_date(&apdu[apdu_len], &CurrentSC->End_Date);
             break;
         case PROP_WEEKLY_SCHEDULE:
             if (rpdata->array_index == 0)       /* count, always 7 */
@@ -254,8 +281,17 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 encode_application_enumerated(&apdu[0],
                 RELIABILITY_NO_FAULT_DETECTED);
             break;
+            
         case PROP_OUT_OF_SERVICE:
-            apdu_len = encode_application_boolean(&apdu[0], false);
+			/* 	BACnet Testing Observed Incident oi00106
+				Out of service was not supported by Schedule object
+				Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+					BITS: BIT00032
+				Any discussions can be directed to edward@bac-test.com
+				Please feel free to remove this comment when my changes accepted after suitable time for
+				review by all interested parties. Say 6 months -> September 2016 */
+            apdu_len = encode_application_boolean(&apdu[0], 
+                CurrentSC->Out_Of_Service );
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -276,8 +312,33 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
 
 bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
-    unsigned object_index = 0;
+	/* Ed->Steve, I know that initializing stack values used to be 'safer', but warnings in latest compilers indicate when 
+		uninitialized values are being used, and I think that the warnings are more useful to reveal bad code flow than the 
+		"safety: of pre-intializing variables. Please give this some thought let me know if you agree we should start to 
+		remove initializations */
+    unsigned object_index ;
     bool status = false;        /* return value */
+    int len ;
+    BACNET_APPLICATION_DATA_VALUE value;
+
+	/* 	BACnet Testing Observed Incident oi00106
+		Out of service was not supported by Schedule object
+		Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+			BITS: BIT00032
+		Any discussions can be directed to edward@bac-test.com
+		Please feel free to remove this comment when my changes accepted after suitable time for
+		review by all interested parties. Say 6 months -> September 2016 */
+    /* decode the some of the request */
+    len =
+        bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
+    /* FIXME: len < application_data_len: more data? */
+    if (len < 0) {
+        /* error while decoding - a value larger than we can handle */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
 
     object_index = Schedule_Instance_To_Index(wp_data->object_instance);
     if (object_index >= MAX_SCHEDULES) {
@@ -285,6 +346,24 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
     }
 
     switch ((int) wp_data->object_property) {
+        case PROP_OUT_OF_SERVICE:
+			/* 	BACnet Testing Observed Incident oi00106
+				Out of service was not supported by Schedule object
+				Revealed by BACnet Test Client v1.8.16 ( www.bac-test.com/bacnet-test-client-download )
+					BITS: BIT00032
+				Any discussions can be directed to edward@bac-test.com
+				Please feel free to remove this comment when my changes accepted after suitable time for
+				review by all interested parties. Say 6 months -> September 2016 */		
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
+            if (status) {
+                Schedule_Out_Of_Service_Set(
+                    wp_data->object_instance,
+                    value.type.Boolean);
+            }
+            break;
+
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
         case PROP_OBJECT_TYPE:
@@ -296,7 +375,6 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
         case PROP_PRIORITY_FOR_WRITING:
         case PROP_STATUS_FLAGS:
         case PROP_RELIABILITY:
-        case PROP_OUT_OF_SERVICE:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
@@ -331,6 +409,12 @@ void Schedule_Recalculate_PV(SCHEDULE_DESCR * desc,
     desc->Present_Value = NULL;
 
     /* for future development, here should be the loop for Exception Schedule */
+	
+	/* Just a note to developers: We have a paying customer who has asked us to fully implement the Schedule Object.
+		In good spirit, they have agreed to allow us to release the code we develop back to the Open Source community after a 6-12 month waiting period.
+		However, if you are about to work on this yourself, please ping us at info@connect-ex.com, we may be able to broker an early release on a
+		case-by-case basis. */
+		
 
     for (i = 0;
         i < desc->Weekly_Schedule[wday - 1].TV_Count &&
