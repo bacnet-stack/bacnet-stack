@@ -13,7 +13,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\dev\Kargs BACnet Stack\demo\object;C:\dev\Kargs BACnet Stack\demo\handler;C:\dev\Kargs BACnet Stack\ports\win32;C:\dev\Kargs BACnet Stack\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories></AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4245;4389;4244;4996;4018;4100;4267;4701;4244;4100;4701;4214;4244;4267;4189;4100;4701</DisableSpecificWarnings>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>

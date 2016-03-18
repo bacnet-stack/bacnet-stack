@@ -105,7 +105,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;BACDL_BIP;USE_INADDR=0;BACAPP_ALL;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\..\include;..\..\..\..\ports\win32;..\..\..\..\demo\object;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4244;4267;4189;4100;4701</DisableSpecificWarnings>
     </ClCompile>
@@ -157,9 +157,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\Karg%27s BACnet Stack\demo\handler\h_alarm_ack.c" />
-    <ClCompile Include="..\..\..\..\..\Karg%27s BACnet Stack\demo\handler\h_getevent.c" />
-    <ClCompile Include="..\..\..\..\..\Karg%27s BACnet Stack\demo\handler\h_get_alarm_sum.c" />
+    <ClCompile Include="..\..\..\..\demo\handler\h_alarm_ack.c" />
+    <ClCompile Include="..\..\..\..\demo\handler\h_getevent.c" />
+    <ClCompile Include="..\..\..\..\demo\handler\h_get_alarm_sum.c" />
     <ClCompile Include="..\..\..\..\demo\handler\dlenv.c" />
     <ClCompile Include="..\..\..\..\demo\handler\h_arf.c" />
     <ClCompile Include="..\..\..\..\demo\handler\h_arf_a.c" />
