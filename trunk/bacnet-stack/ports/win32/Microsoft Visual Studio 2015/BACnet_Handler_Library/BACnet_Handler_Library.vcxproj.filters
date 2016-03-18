@@ -159,13 +159,13 @@
     <ClCompile Include="..\..\..\..\demo\handler\txbuf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\Karg%27s BACnet Stack\demo\handler\h_alarm_ack.c">
+    <ClCompile Include="..\..\..\..\demo\handler\h_get_alarm_sum.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\Karg%27s BACnet Stack\demo\handler\h_getevent.c">
+    <ClCompile Include="..\..\..\..\demo\handler\h_getevent.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\Karg%27s BACnet Stack\demo\handler\h_get_alarm_sum.c">
+    <ClCompile Include="..\..\..\..\demo\handler\h_alarm_ack.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -28,3 +28,14 @@ syntax: glob
 *.pcapng
 *.pcap
 *.patch
+*.suo
+*.sdf
+*.lastbuildstate
+*.obj
+*.pdb
+*.tlog
+*.log
+*.idb
+*.lib
+*.ilk
+*.opendb
