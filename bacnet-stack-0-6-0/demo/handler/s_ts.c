@@ -87,6 +87,7 @@ void Send_TimeSyncUTC(
     BACNET_DATE * bdate,
     BACNET_TIME * btime)
 {
+    int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
@@ -106,9 +107,10 @@ void Send_TimeSyncUTC(
         &npdu_data);
 
     /* encode the APDU portion of the packet */
-    pdu_len =
+    len =
         timesync_utc_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
         bdate, btime);
+    pdu_len += len;
     bytes_sent =
         datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
