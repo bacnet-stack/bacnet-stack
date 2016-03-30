@@ -45,6 +45,13 @@
 
 /** @file s_ts.c  Send TimeSync requests. */
 
+/**
+ * Sends a TimeSync message to a specific destination
+ *
+ * @param dest - #BACNET_ADDRESS - the specific destination
+ * @param bdate - #BACNET_DATE
+ * @param btime - #BACNET_TIME
+ */
 void Send_TimeSync_Remote(
     BACNET_ADDRESS * dest,
     BACNET_DATE * bdate,
@@ -80,6 +87,12 @@ void Send_TimeSync_Remote(
 #endif
 }
 
+/**
+ * Sends a TimeSync message as a broadcast
+ *
+ * @param bdate - #BACNET_DATE
+ * @param btime - #BACNET_TIME
+ */
 void Send_TimeSync(
     BACNET_DATE * bdate,
     BACNET_TIME * btime)
@@ -90,12 +103,20 @@ void Send_TimeSync(
     Send_TimeSync_Remote(&dest, bdate, btime);
 }
 
-void Send_TimeSyncUTC(
+/**
+ * Sends a UTC TimeSync message to a specific destination
+ *
+ * @param dest - #BACNET_ADDRESS - the specific destination
+ * @param bdate - #BACNET_DATE
+ * @param btime - #BACNET_TIME
+ */
+void Send_TimeSyncUTC_Remote(
+    BACNET_ADDRESS * dest,
     BACNET_DATE * bdate,
     BACNET_TIME * btime)
 {
+    int len = 0;
     int pdu_len = 0;
-    BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -103,19 +124,19 @@ void Send_TimeSyncUTC(
     if (!dcc_communication_enabled())
         return;
 
-    /* we could use unicast or broadcast */
-    datalink_get_broadcast_address(&dest);
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest, &my_address,
         &npdu_data);
     /* encode the APDU portion of the packet */
-    pdu_len =
-        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[pdu_len], bdate, btime);
+    len =
+        timesync_utc_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        bdate, btime);
+    pdu_len += len;
     bytes_sent =
-        datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
+        datalink_send_pdu(dest, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
@@ -123,6 +144,22 @@ void Send_TimeSyncUTC(
             "Failed to Send UTC-Time-Synchronization Request (%s)!\n",
             strerror(errno));
 #endif
+}
+
+/**
+ * Sends a UTC TimeSync message as a broadcast
+ *
+ * @param bdate - #BACNET_DATE
+ * @param btime - #BACNET_TIME
+ */
+void Send_TimeSyncUTC(
+    BACNET_DATE * bdate,
+    BACNET_TIME * btime)
+{
+    BACNET_ADDRESS dest;
+
+    datalink_get_broadcast_address(&dest);
+    Send_TimeSyncUTC_Remote(&dest, bdate, btime);
 }
 
 /**
