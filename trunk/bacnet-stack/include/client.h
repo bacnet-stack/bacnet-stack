@@ -183,6 +183,10 @@ extern "C" {
     void Send_TimeSyncUTC(
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
+    void Send_TimeSyncUTC_Remote(
+        BACNET_ADDRESS * dest,
+        BACNET_DATE * bdate,
+        BACNET_TIME * btime);
     void Send_TimeSyncUTC_Device(void);
     void Send_TimeSync_Device(void);
 
