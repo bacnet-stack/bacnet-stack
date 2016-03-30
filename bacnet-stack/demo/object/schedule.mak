@@ -15,6 +15,7 @@ SRCS = schedule.c \
 	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/bactimevalue.c \
 	$(SRC_DIR)/datetime.c \
+	$(SRC_DIR)/lighting.c \
 	$(SRC_DIR)/bacapp.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
