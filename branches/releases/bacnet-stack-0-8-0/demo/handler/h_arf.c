@@ -150,18 +150,13 @@ void handler_atomic_read_file(
                 octetstring_capacity(&data.fileData)) {
                 if (bacfile_read_data(&data)) {
 #if PRINT_ENABLED
-                    fprintf(stderr, "ARF: Stream offset %d, %d octets.\n",
-                        data.type.stream.fileStartPosition,
-                        data.type.stream.requestedOctetCount);
+				fprintf(stderr, "ARF: Stream offset %d, %d octets.\n",
+					data.type.stream.fileStartPosition,
+					data.type.stream.requestedOctetCount);
 #endif
-                    len =
-                        arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                        service_data->invoke_id, &data);
-                } else {
-                    error = true;
-                    error_class = ERROR_CLASS_OBJECT;
-                    error_code = ERROR_CODE_FILE_ACCESS_DENIED;
-                }
+				len =
+					arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+					service_data->invoke_id, &data);
             } else {
                 len =
                     abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
