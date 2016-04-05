@@ -791,12 +791,16 @@ static bool read_received_packet(
             mstp_port->HeaderCRC =
                 CRC_Calc_Header(header[i], mstp_port->HeaderCRC);
         }
-        if (mstp_port->HeaderCRC != 0x55) {
-            mstp_port->ReceivedInvalidFrame = true;
-        } else if (mstp_port->DataLength == 0) {
-            mstp_port->ReceivedInvalidFrame = false;
+        if (mstp_port->HeaderCRC == 0x55) {
             mstp_port->ReceivedValidFrame = true;
-            mstp_port->ReceivedValidFrameNotForUs = true;
+            mstp_port->ReceivedInvalidFrame = false;
+            if (mstp_port->DataLength == 0) {
+                mstp_port->ReceivedValidFrame = true;
+                mstp_port->ReceivedValidFrameNotForUs = true;
+            }
+        } else {
+            mstp_port->ReceivedValidFrame = false;
+            mstp_port->ReceivedInvalidFrame = true;
         }
         if (orig_len > 8) {
             /* packet includes data */
@@ -830,8 +834,14 @@ static bool read_received_packet(
                 CRC_Calc_Data(mstp_port->DataCRCActualMSB, mstp_port->DataCRC);
             mstp_port->DataCRC =
                 CRC_Calc_Data(mstp_port->DataCRCActualLSB, mstp_port->DataCRC);
-            if (mstp_port->DataCRC != 0xF0B8) {
+            if (mstp_port->DataCRC == 0xF0B8) {
+                mstp_port->ReceivedInvalidFrame = false;
+                mstp_port->ReceivedValidFrame = true;
+                mstp_port->ReceivedValidFrameNotForUs = true;
+            } else {
                 mstp_port->ReceivedInvalidFrame = true;
+                mstp_port->ReceivedValidFrame = false;
+                mstp_port->ReceivedValidFrameNotForUs = false;
             }
         } else {
             mstp_port->DataLength = 0;
