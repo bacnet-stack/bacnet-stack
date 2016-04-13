@@ -54,7 +54,8 @@ static const int PositiveInteger_Value_Properties_Required[] = {
     PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE,
     PROP_STATUS_FLAGS,
-    PROP_UNITS - 1
+    PROP_UNITS,
+    - 1
 };
 
 static const int PositiveInteger_Value_Properties_Optional[] = {
