@@ -40,6 +40,8 @@
 #include "abort.h"
 #include "alarm_ack.h"
 #include "handlers.h"
+#include "device.h"
+
 
 /** @file h_alarm_ack.c  Handles Alarm Acknowledgment. */
 
