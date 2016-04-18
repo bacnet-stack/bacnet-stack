@@ -148,7 +148,7 @@ void handler_atomic_read_file(
         } else if (data.access == FILE_STREAM_ACCESS) {
             if (data.type.stream.requestedOctetCount <
                 octetstring_capacity(&data.fileData[0])) {
-                bacfile_read_stream_data(&data)
+                bacfile_read_stream_data(&data);
 #if PRINT_ENABLED
 				fprintf(stderr, "ARF: Stream offset %d, %d octets.\n",
 					data.type.stream.fileStartPosition,
