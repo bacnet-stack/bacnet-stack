@@ -1,7 +1,7 @@
+@echo off
 rem Indent the C and H files with specific coding standard
 rem requires 'indent.exe' from MSYS (MinGW).
 rem See http://www.gnu.org/software/indent/manual/indent.pdf
-set OPTIONS=-kr -nut -nlp -ip4 -cli4 -bfda -nbc -nbbo -c0 -cd0 -cp0 -di0 -l79 -nhnl
 rem -kr The Kernighan & Ritchie style, corresponds to the following options:
 rem -nbad -bap -bbo -nbc -br -brs -c33 -cd33 -ncdb -ce -ci4 -cli0
 rem -cp33 -cs -d0 -di1 -nfc1 -nfca -hnl -i4 -ip0 -l75 -lp -npcs
@@ -20,22 +20,11 @@ rem -di0 Put variables in column n.
 rem -l79 Set maximum line length for non-comment lines to n.
 rem -nhnl Do not prefer to break long lines at the position of newlines in the input.
 
-call :treeProcess
-goto :eof
-
-:treeProcess
-rem perform the indent on all the files of this subdirectory:
-for %%f in (*.c) do (
-    indent.exe "%%f" -o "%%f" %OPTIONS%
-)
-for %%f in (*.h) do (
-    indent.exe "%%f" -o "%%f" %OPTIONS%
-)
-rem loop over all directories and sub directories
-for /D %%d in (*) do (
-    cd %%d
-    call :treeProcess
-    cd ..
-)
-exit /b
-
+echo Fixing Unix/DOS line endings for "%1"
+unix2dos.exe "%1"
+echo Setting Subversion EOL Style for "%1"
+svn.exe propset svn:eol-style native "%1"
+svn.exe propset svn:mime-type text/plain "%1"
+echo Indenting "%1"
+set OPTIONS=-kr -nut -nlp -ip4 -cli4 -bfda -nbc -nbbo -c0 -cd0 -cp0 -di0 -l79 -nhnl
+indent.exe "%1" -o "%1" %OPTIONS%
