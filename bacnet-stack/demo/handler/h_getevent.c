@@ -44,7 +44,7 @@
 static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
 
 
-/** print eventState 
+/** print eventState
  */
 void ge_ack_print_data(
     BACNET_GET_EVENT_INFORMATION_DATA * data,
@@ -171,18 +171,24 @@ void handler_get_event_information(
                         goto GET_EVENT_ERROR;
                     }
                     apdu_len += len;
-                    if (apdu_len >= service_data->max_resp - 2) {
-                        /* Device must be able to fit minimum one event information.
-                           Length of one event informations needs more than 50 octets. */
-                        if (service_data->max_resp < 128) {
+                    if ((apdu_len >= service_data->max_resp - 2)  ||
+                        (apdu_len >= MAX_APDU - 2)) {
+                        /* Device must be able to fit minimum
+                           one event information.
+                           Length of one event informations needs
+                           more than 50 octets. */
+                        if ((service_data->max_resp < 128) ||
+                            (MAX_APDU < 128)) {
                             len = BACNET_STATUS_ABORT;
                             error = true;
                             goto GET_EVENT_ERROR;
-                        } else
+                        } else {
                             more_events = true;
+                        }
                         break;
-                    } else
+                    } else {
                         pdu_len += len;
+                    }
                 } else if (valid_event < 0) {
                     break;
                 }
