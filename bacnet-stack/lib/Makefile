@@ -74,6 +74,7 @@ CORE_SRC = \
 	$(BACNET_CORE)/readrange.c \
 	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/lighting.c \
+	$(BACNET_CORE)/bacsec.c \
 	$(BACNET_CORE)/version.c
 
 HANDLER_SRC = \

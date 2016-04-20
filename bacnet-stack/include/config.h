@@ -80,11 +80,20 @@
     /* #define MAX_APDU 1476 */
 #if defined(BACDL_BIP)
 #define MAX_APDU 1476
+
 /* #define MAX_APDU 128 enable this IP for testing readrange so you get the More Follows flag set */
 #elif defined (BACDL_ETHERNET)
+#if defined(BACNET_SECURITY)
+#define MAX_APDU 1420
+#else
 #define MAX_APDU 1476
+#endif
+#else
+#if defined(BACNET_SECURITY)
+#define MAX_APDU 412
 #else
 #define MAX_APDU 480
+#endif
 #endif
 #endif
 
@@ -133,32 +142,32 @@
 #endif
 
 #if defined (BACAPP_ALL)
-    #define BACAPP_NULL
-    #define BACAPP_BOOLEAN
-    #define BACAPP_UNSIGNED
-    #define BACAPP_SIGNED
-    #define BACAPP_REAL
-    #define BACAPP_DOUBLE
-    #define BACAPP_OCTET_STRING
-    #define BACAPP_CHARACTER_STRING
-    #define BACAPP_BIT_STRING
-    #define BACAPP_ENUMERATED
-    #define BACAPP_DATE
-    #define BACAPP_TIME
-    #define BACAPP_OBJECT_ID
-    #define BACAPP_DEVICE_OBJECT_PROP_REF
-    #define BACAPP_LIGHTING_COMMAND
+#define BACAPP_NULL
+#define BACAPP_BOOLEAN
+#define BACAPP_UNSIGNED
+#define BACAPP_SIGNED
+#define BACAPP_REAL
+#define BACAPP_DOUBLE
+#define BACAPP_OCTET_STRING
+#define BACAPP_CHARACTER_STRING
+#define BACAPP_BIT_STRING
+#define BACAPP_ENUMERATED
+#define BACAPP_DATE
+#define BACAPP_TIME
+#define BACAPP_OBJECT_ID
+#define BACAPP_DEVICE_OBJECT_PROP_REF
+#define BACAPP_LIGHTING_COMMAND
 #elif defined (BACAPP_MINIMAL)
-    #define BACAPP_NULL
-    #define BACAPP_BOOLEAN
-    #define BACAPP_UNSIGNED
-    #define BACAPP_SIGNED
-    #define BACAPP_REAL
-    #define BACAPP_CHARACTER_STRING
-    #define BACAPP_ENUMERATED
-    #define BACAPP_DATE
-    #define BACAPP_TIME
-    #define BACAPP_OBJECT_ID
+#define BACAPP_NULL
+#define BACAPP_BOOLEAN
+#define BACAPP_UNSIGNED
+#define BACAPP_SIGNED
+#define BACAPP_REAL
+#define BACAPP_CHARACTER_STRING
+#define BACAPP_ENUMERATED
+#define BACAPP_DATE
+#define BACAPP_TIME
+#define BACAPP_OBJECT_ID
 #endif
 
 /*
