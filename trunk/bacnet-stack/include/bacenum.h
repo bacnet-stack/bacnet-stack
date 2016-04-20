@@ -1328,7 +1328,8 @@ typedef enum {
     BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK = 9,
     BVLC_ORIGINAL_UNICAST_NPDU = 10,
     BVLC_ORIGINAL_BROADCAST_NPDU = 11,
-    MAX_BVLC_FUNCTION = 12
+    BVLC_SECURE_BVLL = 12,
+    MAX_BVLC_FUNCTION = 13
 } BACNET_BVLC_FUNCTION;
 
 typedef enum {
@@ -1419,7 +1420,17 @@ typedef enum {
     NETWORK_MESSAGE_INIT_RT_TABLE_ACK = 7,
     NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK = 8,
     NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK = 9,
-    /* X'0A' to X'7F': Reserved for use by ASHRAE, */
+    NETWORK_MESSAGE_CHALLENGE_REQUEST = 10,
+    NETWORK_MESSAGE_SECURITY_PAYLOAD = 11,
+    NETWORK_MESSAGE_SECURITY_RESPONSE = 12,
+    NETWORK_MESSAGE_REQUEST_KEY_UPDATE = 13,
+    NETWORK_MESSAGE_UPDATE_KEY_SET = 14,
+    NETWORK_MESSAGE_UPDATE_DISTRIBUTION_KEY = 15,
+    NETWORK_MESSAGE_REQUEST_MASTER_KEY = 16,
+    NETWORK_MESSAGE_SET_MASTER_KEY = 17,
+    NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER = 18,
+    NETWORK_MESSAGE_NETWORK_NUMBER_IS = 19,
+    /* X'14' to X'7F': Reserved for use by ASHRAE, */
     /* X'80' to X'FF': Available for vendor proprietary messages */
     NETWORK_MESSAGE_INVALID = 0x100
 } BACNET_NETWORK_MESSAGE_TYPE;
@@ -1441,10 +1452,12 @@ typedef enum {
     ABORT_REASON_INVALID_APDU_IN_THIS_STATE = 2,
     ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK = 3,
     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED = 4,
+    ABORT_REASON_SECURITY_ERROR = 5,
+    ABORT_REASON_INSUFFICIENT_SECURITY = 6,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
     /* Enumerated values 64-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
-    MAX_BACNET_ABORT_REASON = 5,
+    MAX_BACNET_ABORT_REASON = 7,
     /* do the MAX here instead of outside of enum so that
        compilers will allocate adequate sized datatype for enum */
     ABORT_REASON_PROPRIETARY_FIRST = 64,
@@ -1714,7 +1727,7 @@ typedef enum BACnetLightingOperation {
     BACNET_LIGHTS_WARN_OFF = 8,
     BACNET_LIGHTS_WARN_RELINQUISH = 9,
     BACNET_LIGHTS_STOP = 10,
-	MAX_BACNET_LIGHTING_OPERATION = 11,
+    MAX_BACNET_LIGHTING_OPERATION = 11,
     /* Enumerated values 0-255 are reserved for definition by ASHRAE.
        Enumerated values 256-65535 may be used by others subject to
        the procedures and constraints described in Clause 23 */
@@ -1728,14 +1741,14 @@ typedef enum BACnetLightingInProgress {
     BACNET_LIGHTING_RAMP_ACTIVE = 2,
     BACNET_LIGHTING_NOT_CONTROLLED = 3,
     BACNET_LIGHTING_OTHER = 4,
-	MAX_BACNET_LIGHTING_IN_PROGRESS = 5
+    MAX_BACNET_LIGHTING_IN_PROGRESS = 5
 } BACNET_LIGHTING_IN_PROGRESS;
 
 typedef enum BACnetLightingTransition {
     BACNET_LIGHTING_TRANSITION_IDLE = 0,
     BACNET_LIGHTING_TRANSITION_FADE = 1,
     BACNET_LIGHTING_TRANSITION_RAMP = 2,
-	MAX_BACNET_LIGHTING_TRANSITION = 3,
+    MAX_BACNET_LIGHTING_TRANSITION = 3,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to
        the procedures and constraints described in Clause 23. */
@@ -1777,6 +1790,8 @@ typedef enum {
     NETWORK_REJECT_ROUTER_BUSY = 2,
     NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE = 3,
     NETWORK_REJECT_MESSAGE_TOO_LONG = 4,
+    NETWORK_REJECT_BACNET_SECURITY = 5,
+    NETWORK_REJECT_BAD_ADDRESS = 6,
     /* Reasons this value or above we don't know about */
     NETWORK_REJECT_REASON_INVALID
 } BACNET_NETWORK_REJECT_REASONS;
@@ -1799,9 +1814,9 @@ typedef enum {
     PORT_TYPE_ZIGBEE = 6,
     PORT_TYPE_VIRTUAL = 7,
     PORT_TYPE_NON_BACNET = 8
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-       Enumerated values 64-255 may be used by others subject to the
-       procedures and constraints described in Clause 23.*/
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+           Enumerated values 64-255 may be used by others subject to the
+           procedures and constraints described in Clause 23. */
 } BACNET_PORT_TYPE;
 
 /* BACnetNetworkNumberQuality ::= ENUMERATED */
@@ -1822,9 +1837,74 @@ typedef enum {
     PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
     PORT_COMMAND_DISCONNECT = 6,
     PORT_COMMAND_RESTART_PORT = 7
-    /* Enumerated values 0-127 are reserved for definition by ASHRAE.
-       Enumerated values 128-255 may be used by others subject to the
-       procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-127 are reserved for definition by ASHRAE.
+           Enumerated values 128-255 may be used by others subject to the
+           procedures and constraints described in Clause 23. */
 } BACNET_PORT_COMMAND;
+
+typedef enum {
+    BACNET_SECURITY_LEVEL_INCAPABLE = 0,
+    BACNET_SECURITY_LEVEL_PLAIN = 1,
+    BACNET_SECURITY_LEVEL_SIGNED = 2,
+    BACNET_SECURITY_LEVEL_ENCRYPTED = 3,
+    BACNET_SECURITY_LEVEL_SIGNED_END_TO_END = 4,
+    BACNET_SECURITY_LEVEL_ENCRYPTED_END_TO_END = 5
+} BACNET_SECURITY_LEVEL;
+
+typedef enum {
+    BACNET_SECURITY_POLICY_PLAIN_NOT_TRUSTED = 0,
+    BACNET_SECURITY_POLICY_PLAIN_TRUSTED = 1,
+    BACNET_SECURITY_POLICY_SIGNED_TRUSTED = 2,
+    BACNET_SECURITY_POLICY_ENCRYPTED_TRUSTED = 3
+} BACNET_SECURITY_POLICY;
+
+typedef enum {
+    KIA_AES_MD5 = 0,
+    KIA_AES_SHA256 = 1,
+    /* 2-255 reserved */
+    KIA_MAX_KEY_IDENTIFIER_ALGORITHM = 255
+} BACNET_KEY_IDENTIFIER_ALGORITHM;
+
+typedef enum {
+    KIKN_NOT_USED = 0,
+    KIKN_DEVICE_MASTER = 1,
+    KIKN_DISTRIBUTION = 2,
+    KIKN_INSTALLATION = 3,
+    KIKN_GENERAL_NETWORK_ACCESS = 4,
+    KIKN_USER_AUTHENTICATED = 5,
+    KIKN_MIN_APPLICATION_SPECIFIC = 6,
+    KIKN_MAX_APPLICATION_SPECIFIC = 127,
+    /* 128-255 reserved */
+    KIKN_MAX_KEY_IDENTIFIER_KEY_NUMBER = 255
+} BACNET_KEY_IDENTIFIER_KEY_NUMBER;
+
+typedef enum {
+    SEC_RESP_SUCCESS = 0,
+    SEC_RESP_ACCESS_DENIED = 1,
+    SEC_RESP_BAD_DESTINATION_ADDRESS = 2,
+    SEC_RESP_BAD_DESTINATION_DEVICE_ID = 3,
+    SEC_RESP_BAD_SIGNATURE = 4,
+    SEC_RESP_BAD_SOURCE_ADDRESS = 5,
+    SEC_RESP_BAD_TIMESTAMP = 6,
+    SEC_RESP_CANNOT_USE_KEY = 7,
+    SEC_RESP_CANNOT_VERIFY_MESSAGE_ID = 8,
+    SEC_RESP_CORRECT_KEY_REVISION = 9,
+    SEC_RESP_DESTINATION_DEVICE_ID_REQUIRED = 10,
+    SEC_RESP_DUPLICATE_MESSAGE = 11,
+    SEC_RESP_ENCRYPTION_NOT_CONFIGURED = 12,
+    SEC_RESP_ENCRYPTION_REQUIRED = 13,
+    SEC_RESP_INCORRECT_KEY = 14,
+    SEC_RESP_INVALID_KEY_DATA = 15,
+    SEC_RESP_KEY_UPDATE_IN_PROGRESS = 16,
+    SEC_RESP_MALFORMED_MESSAGE = 17,
+    SEC_RESP_NOT_KEY_SERVER = 18,
+    SEC_RESP_SECURITY_NOT_CONFIGURED = 19,
+    SEC_RESP_SOURCE_SECURITY_REQUIRED = 20,
+    SEC_RESP_TOO_MANY_KEYS = 21,
+    SEC_RESP_UNKNOWN_AUTHENTICATION_TYPE = 22,
+    SEC_RESP_UNKNOWN_KEY = 23,
+    SEC_RESP_UNKNOWN_KEY_REVISION = 24,
+    SEC_RESP_UNKNOWN_SOURCE_MESSAGE = 25
+} BACNET_SECURITY_RESPONSE_CODE;
 
 #endif /* end of BACENUM_H */
