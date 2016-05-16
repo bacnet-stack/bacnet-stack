@@ -74,6 +74,9 @@ gateway:
 server:
 	$(MAKE) -B -C demo server
 
+iam:
+	$(MAKE) -B -C demo iam
+
 router:
 	$(MAKE) -s -C demo router
 

@@ -37,11 +37,55 @@
 #include "device.h"
 #include "datalink.h"
 #include "iam.h"
+#include "txbuf.h"
 /* some demo stuff needed */
 #include "handlers.h"
 #include "client.h"
 
 /** @file s_iam.c  Send an I-Am message. */
+
+/** Send a I-Am request to a remote network for a specific device.
+ * @param target_address [in] BACnet address of target router
+ * @param device_id [in] Device Instance 0 - 4194303
+ * @param max_apdu [in] Max APDU 0-65535
+ * @param segmentation [in] #BACNET_SEGMENTATION enumeration
+ * @param vendor_id [in] BACnet vendor ID 0-65535
+ */
+void Send_I_Am_To_Network(
+    BACNET_ADDRESS * target_address,
+    uint32_t device_id,
+    unsigned int max_apdu,
+    int segmentation,
+    uint16_t vendor_id)
+{
+    int len = 0;
+    int pdu_len = 0;
+    int bytes_sent = 0;
+    BACNET_NPDU_DATA npdu_data;
+    BACNET_ADDRESS my_address;
+
+    datalink_get_my_address(&my_address);
+    /* encode the NPDU portion of the packet */
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], target_address,
+        &my_address, &npdu_data);
+    /* encode the APDU portion of the packet */
+    /* encode the APDU portion of the packet */
+    len =
+        iam_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+        device_id, max_apdu, segmentation, vendor_id);
+    pdu_len += len;
+    bytes_sent =
+        datalink_send_pdu(target_address, &npdu_data,
+        &Handler_Transmit_Buffer[0], pdu_len);
+#if PRINT_ENABLED
+    if (bytes_sent <= 0)
+        fprintf(stderr, "Failed to Send I-Am Request (%s)!\n",
+            strerror(errno));
+#endif
+}
 
 /** Encode an I Am message to be broadcast.
  * @param buffer [in,out] The buffer to use for building the message.

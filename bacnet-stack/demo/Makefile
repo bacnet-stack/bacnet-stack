@@ -56,7 +56,7 @@ LFLAGS := -Wl,$(BACNET_LIB),$(SYSTEM_LIB)
 .EXPORT_ALL_VARIABLES:
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
-	whohas whois ucov scov timesync epics readpropm readrange \
+	whohas whois iam ucov scov timesync epics readpropm readrange \
 	uptransfer getevent
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
@@ -88,6 +88,9 @@ gateway:
 
 server:
 	$(MAKE) -b -C server
+
+iam:
+	$(MAKE) -b -C iam
 
 router:
 	$(MAKE) -s -b -C router
