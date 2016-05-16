@@ -48,6 +48,12 @@ extern "C" {
 /* unconfirmed requests */
     void Send_I_Am(
         uint8_t * buffer);
+    void Send_I_Am_To_Network(
+        BACNET_ADDRESS * target_address,
+        uint32_t device_id,
+        unsigned int max_apdu,
+        int segmentation,
+        uint16_t vendor_id);
     int iam_encode_pdu(
         uint8_t * buffer,
         BACNET_ADDRESS * dest,
