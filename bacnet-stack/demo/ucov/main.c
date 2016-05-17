@@ -170,7 +170,7 @@ int main(
         return 1;
     }
     if (cov_data.listOfValues->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+        fprintf(stderr, "property-identifier=%u - it must be less than %u\r\n",
             cov_data.listOfValues->propertyIdentifier,
             MAX_BACNET_PROPERTY_ID + 1);
         return 1;
