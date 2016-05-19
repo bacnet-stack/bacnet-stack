@@ -92,5 +92,8 @@ server:
 iam:
 	$(MAKE) -b -C iam
 
+uevent:
+	$(MAKE) -b -C uevent
+
 router:
 	$(MAKE) -s -b -C router
