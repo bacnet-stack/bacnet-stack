@@ -37,6 +37,35 @@
 
 /** @file timestamp.c  Encode/Decode BACnet Timestamps  */
 
+void bacapp_timestamp_sequence_set(
+    BACNET_TIMESTAMP * dest,
+    uint16_t sequenceNum)
+{
+    if (dest) {
+        dest->tag = TIME_STAMP_SEQUENCE;
+        dest->value.sequenceNum = sequenceNum;
+    }
+}
+
+void bacapp_timestamp_time_set(
+    BACNET_TIMESTAMP * dest,
+    BACNET_TIME *btime)
+{
+    if (dest && btime) {
+        dest->tag = TIME_STAMP_TIME;
+        datetime_copy_time(&dest->value.time, btime);
+    }
+}
+
+void bacapp_timestamp_datetime_set(
+    BACNET_TIMESTAMP * dest,
+    BACNET_DATE_TIME * bdateTime)
+{
+    if (dest && bdateTime) {
+        dest->tag = TIME_STAMP_DATETIME;
+        datetime_copy(&dest->value.dateTime, bdateTime);
+    }
+}
 
 void bacapp_timestamp_copy(
     BACNET_TIMESTAMP * dest,
