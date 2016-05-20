@@ -57,7 +57,7 @@ LFLAGS := -Wl,$(BACNET_LIB),$(SYSTEM_LIB)
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
-	uptransfer getevent
+	uptransfer getevent uevent abort error
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter readbdt
@@ -94,6 +94,12 @@ iam:
 
 uevent:
 	$(MAKE) -b -C uevent
+
+abort:
+	$(MAKE) -b -C abort
+
+error:
+	$(MAKE) -b -C error
 
 router:
 	$(MAKE) -s -b -C router
