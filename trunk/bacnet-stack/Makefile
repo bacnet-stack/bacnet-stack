@@ -80,6 +80,12 @@ iam:
 uevent:
 	$(MAKE) -B -C demo uevent
 
+abort:
+	$(MAKE) -B -C demo abort
+
+error:
+	$(MAKE) -B -C demo error
+
 router:
 	$(MAKE) -s -C demo router
 

@@ -111,9 +111,11 @@ HANDLER_SRC = \
 	$(BACNET_HANDLER)/h_pt.c  \
 	$(BACNET_HANDLER)/h_pt_a.c  \
 	$(BACNET_HANDLER)/h_upt.c  \
+	$(BACNET_HANDLER)/s_abort.c \
 	$(BACNET_HANDLER)/s_arfs.c \
 	$(BACNET_HANDLER)/s_awfs.c \
 	$(BACNET_HANDLER)/s_dcc.c \
+	$(BACNET_HANDLER)/s_error.c \
 	$(BACNET_HANDLER)/s_ihave.c \
 	$(BACNET_HANDLER)/s_get_alarm_sum.c  \
 	$(BACNET_HANDLER)/s_get_event.c  \

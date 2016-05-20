@@ -263,6 +263,40 @@ extern "C" {
         uint32_t device_id,
         BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
 
+    int Send_Abort_To_Network(
+        uint8_t * buffer,
+        BACNET_ADDRESS *dest,
+        uint8_t invoke_id,
+        BACNET_ABORT_REASON reason,
+        bool server);
+
+    int abort_encode_pdu(
+        uint8_t * buffer,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data,
+        uint8_t invoke_id,
+        BACNET_ABORT_REASON reason,
+        bool server);
+
+    int Send_Error_To_Network(
+        uint8_t * buffer,
+        BACNET_ADDRESS *dest,
+        uint8_t invoke_id,
+        BACNET_CONFIRMED_SERVICE service,
+        BACNET_ERROR_CLASS error_class,
+        BACNET_ERROR_CODE error_code);
+
+    int error_encode_pdu(
+        uint8_t * buffer,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data,
+        uint8_t invoke_id,
+        BACNET_CONFIRMED_SERVICE service,
+        BACNET_ERROR_CLASS error_class,
+        BACNET_ERROR_CODE error_code);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
