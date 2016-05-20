@@ -103,6 +103,7 @@ static void print_usage(char *filename)
 {
     printf("Usage: %s [abort-reason [invoke-id [server]]]\n",
         filename);
+    printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 

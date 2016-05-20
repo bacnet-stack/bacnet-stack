@@ -80,6 +80,7 @@ static void print_usage(char *filename)
         "    [new-state status-flags message notify-type\n"
         "     ack-required from-state to-state]\n",
         filename);
+    printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
