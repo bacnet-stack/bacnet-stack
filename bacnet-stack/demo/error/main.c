@@ -104,6 +104,7 @@ static void print_usage(char *filename)
 {
     printf("Usage: %s [error-class error-code service-number invoke-id]\n",
         filename);
+    printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 

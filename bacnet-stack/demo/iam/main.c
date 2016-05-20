@@ -104,6 +104,7 @@ static void print_usage(char *filename)
 {
     printf("Usage: %s [device-instance vendor-id max-apdu segmentation]\n",
         filename);
+    printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 

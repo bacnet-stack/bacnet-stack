@@ -5,11 +5,11 @@ export BACNET_APDU_TIMEOUT=0
 # bacucov: pid device-id object-type object-instance time-remaining
 # property tag value [priority] [index]
 
-# BACnetReliability
-# PROP_RELIABILITY = 103,
-# OBJECT_ANALOG_INPUT = 0
+# BACnetProgramState
+# PROP_PROGRAM_STATE = 92,
+# OBJECT_PROGRAM = 16
 # BACNET_APPLICATION_TAG_ENUMERATED = 9
-for reliability in {0..64}
+for program_state in {0..16}
 do
-   ./bin/bacucov 1 2 0 1 5 103 9 ${reliability}
+   ./bin/bacucov 1 2 16 1 5 92 9 ${program_state}
 done
