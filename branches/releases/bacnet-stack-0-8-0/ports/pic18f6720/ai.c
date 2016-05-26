@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
@@ -73,7 +74,8 @@ char *Analog_Input_Name(
     static char text_string[16] = "";   /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_INPUTS) {
-        sprintf(text_string, "AI-%lu", (unsigned long) object_instance);
+        sprintf(&text_string[0], (const rom far char *)"AI-%lu",
+            (unsigned long) object_instance);
         return text_string;
     }
 

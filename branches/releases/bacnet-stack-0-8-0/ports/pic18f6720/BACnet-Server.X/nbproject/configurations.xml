@@ -71,6 +71,7 @@
       <itemPath>../../../demo/handler/h_rp.c</itemPath>
       <itemPath>../../../demo/handler/h_wp.c</itemPath>
       <itemPath>../../../src/bacaddr.c</itemPath>
+      <itemPath>../../../src/bacdevobjpropref.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

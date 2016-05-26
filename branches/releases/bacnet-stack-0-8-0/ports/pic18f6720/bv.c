@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "bacdef.h"
 #include "bacdcode.h"
 #include "bacenum.h"
@@ -110,7 +111,8 @@ char *Binary_Value_Name(
     static char text_string[16] = "";   /* okay for single thread */
 
     if (object_instance < MAX_BINARY_VALUES) {
-        sprintf(text_string, "BV-%lu", object_instance);
+        sprintf(text_string, (const rom far char *)"BV-%lu",
+            (unsigned long) object_instance);
         return text_string;
     }
 
