@@ -142,8 +142,7 @@ char *Analog_Value_Name(
     static char text_string[32] = "";   /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_VALUES) {
-        sprintf(text_string, (const rom far char *)"AV-%lu",
-            (unsigned long) object_instance);
+        sprintf(text_string, "AV-%lu",  (unsigned long) object_instance);
         return text_string;
     }
 

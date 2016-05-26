@@ -114,8 +114,7 @@ char *Binary_Input_Name(
     static char text_string[16] = "";   /* okay for single thread */
 
     if (object_instance < MAX_BINARY_INPUTS) {
-        sprintf(text_string, (const rom far char *)"BI-%lu",
-            (unsigned long) object_instance);
+        sprintf(text_string, "BI-%lu",  (unsigned long) object_instance);
         return text_string;
     }
 
