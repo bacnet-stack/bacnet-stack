@@ -74,8 +74,7 @@ char *Analog_Input_Name(
     static char text_string[16] = "";   /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_INPUTS) {
-        sprintf(&text_string[0], (const rom far char *)"AI-%lu",
-            (unsigned long) object_instance);
+        sprintf(&text_string[0], "AI-%lu", (unsigned long) object_instance);
         return text_string;
     }
 
