@@ -74,6 +74,9 @@ gateway:
 server:
 	$(MAKE) -B -C demo server
 
+mstpcap:
+	$(MAKE) -B -C demo mstpcap
+
 iam:
 	$(MAKE) -B -C demo iam
 
