@@ -89,6 +89,9 @@ gateway:
 server:
 	$(MAKE) -b -C server
 
+mstpcap:
+	$(MAKE) -b -C mstpcap
+
 iam:
 	$(MAKE) -b -C iam
 
