@@ -67,6 +67,9 @@ demos:
 gateway:
 	$(MAKE) -B -s -C demo gateway
 
+mstpcap:
+	$(MAKE) -B -s -C demo mstpcap
+
 router:
 	$(MAKE) -s -C demo router
 
