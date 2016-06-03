@@ -65,8 +65,12 @@
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
+#define MSTP_HEADER_MAX (2+1+1+1+2+1)
+
 /* local port data - shared with RS-485 */
 static volatile struct mstp_port_struct_t MSTP_Port;
+/* track the receive state to know when there is a broken packet */
+static MSTP_RECEIVE_STATE MSTP_Receive_State = MSTP_RECEIVE_STATE_IDLE;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
@@ -614,13 +618,14 @@ static void write_global_header(
 
 
 static void write_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port)
+    volatile struct mstp_port_struct_t *mstp_port,
+    size_t header_len)
 {
-    uint32_t ts_sec;    /* timestamp seconds */
-    uint32_t ts_usec;   /* timestamp microseconds */
-    uint32_t incl_len;  /* number of octets of packet saved in file */
-    uint32_t orig_len;  /* actual length of packet */
-    uint8_t header[8];  /* MS/TP header */
+    uint32_t ts_sec = 0;    /* timestamp seconds */
+    uint32_t ts_usec = 0;   /* timestamp microseconds */
+    uint32_t incl_len = 0;  /* number of octets of packet saved in file */
+    uint32_t orig_len = 0;  /* actual length of packet */
+    uint8_t header[MSTP_HEADER_MAX] = {0};  /* MS/TP header */
     struct timeval tv;
     size_t max_data = 0;
 
@@ -634,24 +639,42 @@ static void write_received_packet(
         }
         (void) data_write(&ts_sec, sizeof(ts_sec), 1);
         (void) data_write(&ts_usec, sizeof(ts_usec), 1);
-        if (mstp_port->DataLength) {
-            max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
-            incl_len = orig_len = 8 + max_data + 2;
+        if (mstp_port->ReceivedInvalidFrame) {
+            if (mstp_port->Index) {
+                max_data = min(mstp_port->InputBufferSize, mstp_port->Index);
+                incl_len = orig_len = header_len + max_data + 2/* checksum*/;
+            } else {
+                /* header only */
+                incl_len = orig_len = header_len;
+            }
         } else {
-            incl_len = orig_len = 8;
+            if (mstp_port->DataLength) {
+                max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
+                incl_len = orig_len = header_len + max_data + 2/* checksum*/;
+            } else {
+                /* header only - or at least some bytes of the header */
+                incl_len = orig_len = header_len;
+            }
         }
         (void) data_write(&incl_len, sizeof(incl_len), 1);
         (void) data_write(&orig_len, sizeof(orig_len), 1);
-        header[0] = 0x55;
-        header[1] = 0xFF;
-        header[2] = mstp_port->FrameType;
-        header[3] = mstp_port->DestinationAddress;
-        header[4] = mstp_port->SourceAddress;
-        header[5] = HI_BYTE(mstp_port->DataLength);
-        header[6] = LO_BYTE(mstp_port->DataLength);
-        header[7] = mstp_port->HeaderCRCActual;
-        (void) data_write(header, sizeof(header), 1);
-        if (mstp_port->DataLength) {
+        if (header_len == 1) {
+            header[0] = mstp_port->DataRegister;
+        } else if (header_len == 2) {
+            header[0] = 0x55;
+            header[1] = mstp_port->DataRegister;
+        } else {
+            header[0] = 0x55;
+            header[1] = 0xFF;
+            header[2] = mstp_port->FrameType;
+            header[3] = mstp_port->DestinationAddress;
+            header[4] = mstp_port->SourceAddress;
+            header[5] = HI_BYTE(mstp_port->DataLength);
+            header[6] = LO_BYTE(mstp_port->DataLength);
+            header[7] = mstp_port->HeaderCRCActual;
+        }
+        (void) data_write(header, header_len, 1);
+        if (max_data) {
             (void) data_write(mstp_port->InputBuffer, max_data, 1);
             (void) data_write((char *) &mstp_port->DataCRCActualMSB, 1, 1);
             (void) data_write((char *) &mstp_port->DataCRCActualLSB, 1, 1);
@@ -968,6 +991,25 @@ static void print_help(char *filename) {
         filename);
 }
 
+/* initialize some of the variables in the MS/TP Receive structure */
+static void mstp_structure_init(
+    volatile struct mstp_port_struct_t *mstp_port)
+{
+    if (mstp_port) {
+        mstp_port->FrameType = FRAME_TYPE_PROPRIETARY_MAX;
+        mstp_port->DestinationAddress = MSTP_BROADCAST_ADDRESS;
+        mstp_port->SourceAddress = MSTP_BROADCAST_ADDRESS;
+        mstp_port->DataLength = 0;
+        mstp_port->HeaderCRCActual = 0;
+        mstp_port->Index = 0;
+        mstp_port->EventCount = 0;
+        mstp_port->ReceivedInvalidFrame = false;
+        mstp_port->ReceivedValidFrame = false;
+        mstp_port->ReceivedValidFrameNotForUs = false;
+        mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+    }
+}
+
 /* simple test to packetize the data and print it */
 int main(
     int argc,
@@ -976,6 +1018,7 @@ int main(
     volatile struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
     uint32_t packet_count = 0;
+    uint32_t header_len = 0;
     int argi = 0;
     char *filename = NULL;
 
@@ -1134,18 +1177,43 @@ int main(
         MSTP_Receive_Frame_FSM(mstp_port);
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
-            write_received_packet(mstp_port);
-            mstp_port->ReceivedValidFrame = false;
+            write_received_packet(mstp_port, MSTP_HEADER_MAX);
+            mstp_structure_init(mstp_port);
             packet_count++;
         } else if (mstp_port->ReceivedValidFrameNotForUs) {
-            write_received_packet(mstp_port);
-            mstp_port->ReceivedValidFrameNotForUs = false;
+            write_received_packet(mstp_port, MSTP_HEADER_MAX);
+            mstp_structure_init(mstp_port);
             packet_count++;
         } else if (mstp_port->ReceivedInvalidFrame) {
-            write_received_packet(mstp_port);
+            if (MSTP_Receive_State == MSTP_RECEIVE_STATE_HEADER) {
+                mstp_port->Index = 0;
+            }
+            write_received_packet(mstp_port, MSTP_HEADER_MAX);
+            mstp_structure_init(mstp_port);
             Invalid_Frame_Count++;
-            mstp_port->ReceivedInvalidFrame = false;
             packet_count++;
+        } else if (mstp_port->receive_state == MSTP_RECEIVE_STATE_IDLE) {
+            if (MSTP_Receive_State == MSTP_RECEIVE_STATE_IDLE) {
+                if (mstp_port->EventCount) {
+                    write_received_packet(mstp_port, 1);
+                    mstp_structure_init(mstp_port);
+                    Invalid_Frame_Count++;
+                }
+            } else {
+                /* invalid byte or timeout */
+                if (MSTP_Receive_State == MSTP_RECEIVE_STATE_PREAMBLE) {
+                    if (mstp_port->EventCount) {
+                        header_len = 1;
+                    } else {
+                        header_len = 2;
+                    }
+                } else {
+                    header_len = 3 + mstp_port->Index;
+                }
+                write_received_packet(mstp_port, header_len);
+                mstp_structure_init(mstp_port);
+                Invalid_Frame_Count++;
+            }
         }
         if (!(packet_count % 100)) {
             fprintf(stdout, "\r%hu packets, %hu invalid frames", packet_count,
@@ -1160,6 +1228,8 @@ int main(
         if (Exit_Requested) {
             break;
         }
+        /* track the packetizer state */
+        MSTP_Receive_State = mstp_port->receive_state;
     }
     /* tell signal interrupts we are done */
     Exit_Requested = false;
