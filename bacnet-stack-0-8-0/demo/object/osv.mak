@@ -15,7 +15,6 @@ SRCS = osv.c \
 	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/datetime.c \
 	$(SRC_DIR)/proplist.c \
-	$(SRC_DIR)/lighting.c \
 	$(SRC_DIR)/bacapp.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
@@ -24,19 +23,19 @@ SRCS = osv.c \
 TARGET = octetstring_value
 
 all: ${TARGET}
- 
+
 OBJS = ${SRCS:.c=.o}
 
 ${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -o $@ ${OBJS}
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
-	
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
 	rm -rf core ${TARGET} $(OBJS)
 
