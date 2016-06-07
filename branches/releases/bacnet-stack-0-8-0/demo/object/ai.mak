@@ -14,6 +14,7 @@ SRCS = ai.c \
 	$(SRC_DIR)/bacstr.c \
 	$(SRC_DIR)/bacreal.c \
 	$(SRC_DIR)/bacapp.c \
+	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
 	$(SRC_DIR)/datetime.c \

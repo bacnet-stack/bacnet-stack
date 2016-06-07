@@ -6,5 +6,5 @@ set CC=gcc
 set AR=ar
 set MAKE=make
 rem make BACNET_PORT=win32 BUILD=release -f test.mak clean all
-make -s -f test.mak clean all
+make -f test.mak clean all
 

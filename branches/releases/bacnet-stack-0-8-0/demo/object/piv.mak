@@ -14,7 +14,6 @@ SRCS = piv.c \
 	$(SRC_DIR)/bacreal.c \
 	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/datetime.c \
-	$(SRC_DIR)/lighting.c \
 	$(SRC_DIR)/bacapp.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
@@ -23,19 +22,19 @@ SRCS = piv.c \
 TARGET = positiveinteger_value
 
 all: ${TARGET}
- 
+
 OBJS = ${SRCS:.c=.o}
 
 ${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -o $@ ${OBJS}
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
-	
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
 	rm -rf core ${TARGET} $(OBJS)
 
