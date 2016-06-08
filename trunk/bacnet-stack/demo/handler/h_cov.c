@@ -608,7 +608,7 @@ void handler_cov_timer_seconds(
     }
 }
 
-void handler_cov_task(
+bool handler_cov_fsm(
     void)
 {
     static int index = 0;
@@ -739,6 +739,13 @@ void handler_cov_task(
             cov_task_state = COV_STATE_IDLE;
             break;
     }
+    return (cov_task_state == COV_STATE_IDLE);
+}
+
+void handler_cov_task(
+    void)
+{
+    handler_cov_fsm();
 }
 
 static bool cov_subscribe(

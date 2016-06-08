@@ -243,7 +243,7 @@ extern "C" {
         uint32_t device_id,
         BACNET_ALARM_ACK_DATA * data);
 
-    void Send_UnconfirmedPrivateTransfer(
+    int Send_UnconfirmedPrivateTransfer(
         BACNET_ADDRESS * dest,
         BACNET_PRIVATE_TRANSFER_DATA * private_data);
 

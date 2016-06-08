@@ -190,8 +190,7 @@ extern "C" {
     int handler_timesync_encode_recipients(
         uint8_t * apdu,
         int max_apdu);
-    void handler_timesync_task(
-        void);
+    void handler_timesync_task(BACNET_DATE_TIME *bdatetime);
     void handler_timesync_init(
         void);
     bool handler_timesync_recipient_write(
@@ -233,6 +232,8 @@ extern "C" {
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
+    bool handler_cov_fsm(
+        void);
     void handler_cov_task(
         void);
     void handler_cov_timer_seconds(
