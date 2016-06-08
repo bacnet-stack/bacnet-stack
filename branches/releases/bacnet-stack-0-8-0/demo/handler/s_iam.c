@@ -103,13 +103,11 @@ void Send_I_Am(
     /* send data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
-#if PRINT_ENABLED
     if (bytes_sent <= 0) {
+#if PRINT_ENABLED
         fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
-    }
-#else
-    bytes_sent = bytes_sent;
 #endif
+    }
 }
 
 /** Encode an I Am message to be unicast directly back to the src.
@@ -185,10 +183,9 @@ void Send_I_Am_Unicast(
     /* send data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
+    if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
-#else
-    bytes_sent = bytes_sent;
 #endif
+    }
 }

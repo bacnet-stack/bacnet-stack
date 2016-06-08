@@ -91,12 +91,10 @@ void Send_I_Have(
     bytes_sent =
         datalink_send_pdu(&dest, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
-#if PRINT_ENABLED
     if (bytes_sent <= 0) {
+#if PRINT_ENABLED
         fprintf(stderr, "Failed to Send I-Have Reply (%s)!\n",
             strerror(errno));
-    }
-#else
-    bytes_sent = bytes_sent;
 #endif
+    }
 }

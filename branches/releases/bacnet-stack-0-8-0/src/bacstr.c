@@ -909,7 +909,7 @@ bool octetstring_value_same(
 #include <time.h>
 #include "ctest.h"
 
-void testBitString(
+static void testBitString(
     Test * pTest)
 {
     uint8_t bit = 0;
@@ -971,7 +971,7 @@ void testBitString(
     }
 }
 
-void testCharacterString(
+static void testCharacterString(
     Test * pTest)
 {
     BACNET_CHARACTER_STRING bacnet_string;
@@ -1031,7 +1031,7 @@ void testCharacterString(
     }
 }
 
-void testOctetString(
+static void testOctetString(
     Test * pTest)
 {
     BACNET_OCTET_STRING bacnet_string;
@@ -1095,21 +1095,28 @@ void testOctetString(
     }
 }
 
-#ifdef TEST_BACSTR
-int main(
-    void)
+void testBACnetStrings(
+    Test * pTest)
 {
-    Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet Strings", NULL);
-    /* individual tests */
+    /* add individual tests */
     rc = ct_addTestFunction(pTest, testBitString);
     assert(rc);
     rc = ct_addTestFunction(pTest, testCharacterString);
     assert(rc);
     rc = ct_addTestFunction(pTest, testOctetString);
     assert(rc);
+}
+
+#ifdef TEST_BACSTR
+int main(
+    void)
+{
+    Test *pTest;
+
+    pTest = ct_create("BACnet Strings", NULL);
+    testBACnetStrings(pTest);
     /* configure output */
     ct_setStream(pTest, stdout);
     ct_run(pTest);

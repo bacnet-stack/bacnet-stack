@@ -1853,7 +1853,7 @@ static void print_apdu(
     return;
 }
 
-void testBACDCodeTags(
+static void testBACDCodeTags(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -1903,7 +1903,7 @@ void testBACDCodeTags(
     return;
 }
 
-void testBACDCodeEnumerated(
+static void testBACDCodeEnumerated(
     Test * pTest)
 {
     uint8_t array[5] = { 0 };
@@ -1947,7 +1947,7 @@ void testBACDCodeEnumerated(
     return;
 }
 
-void testBACDCodeReal(
+static void testBACDCodeReal(
     Test * pTest)
 {
     uint8_t real_array[4] = { 0 };
@@ -1981,7 +1981,7 @@ void testBACDCodeReal(
     return;
 }
 
-void testBACDCodeDouble(
+static void testBACDCodeDouble(
     Test * pTest)
 {
     uint8_t double_array[8] = { 0 };
@@ -2015,7 +2015,7 @@ void testBACDCodeDouble(
     return;
 }
 
-void testBACDCodeUnsignedValue(
+static void testBACDCodeUnsignedValue(
     Test * pTest,
     uint32_t value)
 {
@@ -2048,7 +2048,7 @@ void testBACDCodeUnsignedValue(
     ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == false);
 }
 
-void testBACDCodeUnsigned(
+static void testBACDCodeUnsigned(
     Test * pTest)
 {
     uint32_t value = 1;
@@ -2064,7 +2064,7 @@ void testBACDCodeUnsigned(
     return;
 }
 
-void testBACnetUnsigned(
+static void testBACnetUnsigned(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -2081,7 +2081,7 @@ void testBACnetUnsigned(
     }
 }
 
-void testBACDCodeSignedValue(
+static void testBACDCodeSignedValue(
     Test * pTest,
     int32_t value)
 {
@@ -2123,7 +2123,7 @@ void testBACDCodeSignedValue(
     return;
 }
 
-void testBACDCodeSigned(
+static void testBACDCodeSigned(
     Test * pTest)
 {
     int value = 1;
@@ -2148,7 +2148,7 @@ void testBACDCodeSigned(
     return;
 }
 
-void testBACnetSigned(
+static void testBACnetSigned(
     Test * pTest)
 {
     uint8_t apdu[32] = { 0 };
@@ -2169,7 +2169,7 @@ void testBACnetSigned(
     }
 }
 
-void testBACDCodeOctetString(
+static void testBACDCodeOctetString(
     Test * pTest)
 {
     uint8_t array[MAX_APDU] = { 0 };
@@ -2226,7 +2226,7 @@ void testBACDCodeOctetString(
     return;
 }
 
-void testBACDCodeCharacterString(
+static void testBACDCodeCharacterString(
     Test * pTest)
 {
     uint8_t array[MAX_APDU] = { 0 };
@@ -2284,7 +2284,7 @@ void testBACDCodeCharacterString(
     return;
 }
 
-void testBACDCodeObject(
+static void testBACDCodeObject(
     Test * pTest)
 {
     uint8_t object_array[4] = {
@@ -2321,7 +2321,7 @@ void testBACDCodeObject(
     return;
 }
 
-void testBACDCodeMaxSegsApdu(
+static void testBACDCodeMaxSegsApdu(
     Test * pTest)
 {
     int max_segs[8] = { 0, 2, 4, 8, 16, 32, 64, 65 };
@@ -2340,7 +2340,7 @@ void testBACDCodeMaxSegsApdu(
     }
 }
 
-void testBACDCodeBitString(
+static void testBACDCodeBitString(
     Test * pTest)
 {
     uint8_t bit = 0;
@@ -2388,7 +2388,7 @@ void testBACDCodeBitString(
     }
 }
 
-void testUnsignedContextDecodes(
+static void testUnsignedContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2482,7 +2482,7 @@ void testUnsignedContextDecodes(
 
 }
 
-void testSignedContextDecodes(
+static void testSignedContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2580,7 +2580,7 @@ void testSignedContextDecodes(
 
 }
 
-void testEnumeratedContextDecodes(
+static void testEnumeratedContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2673,7 +2673,7 @@ void testEnumeratedContextDecodes(
     ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 }
 
-void testFloatContextDecodes(
+static void testFloatContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2721,7 +2721,7 @@ void testFloatContextDecodes(
     ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 }
 
-void testDoubleContextDecodes(
+static void testDoubleContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2769,7 +2769,7 @@ void testDoubleContextDecodes(
     ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 }
 
-void testObjectIDContextDecodes(
+static void testObjectIDContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2810,7 +2810,7 @@ void testObjectIDContextDecodes(
     ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 }
 
-void testCharacterStringContextDecodes(
+static void testCharacterStringContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2847,7 +2847,7 @@ void testCharacterStringContextDecodes(
     ct_test(pTest, strcmp(in.value, out.value) == 0);
 }
 
-void testBitStringContextDecodes(
+static void testBitStringContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2886,7 +2886,7 @@ void testBitStringContextDecodes(
     ct_test(pTest, memcmp(in.value, out.value, MAX_BITSTRING_BYTES) == 0);
 }
 
-void testOctetStringContextDecodes(
+static void testOctetStringContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2923,7 +2923,7 @@ void testOctetStringContextDecodes(
 
 }
 
-void testTimeContextDecodes(
+static void testTimeContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -2965,7 +2965,7 @@ void testTimeContextDecodes(
 
 }
 
-void testDateContextDecodes(
+static void testDateContextDecodes(
     Test * pTest)
 {
     uint8_t apdu[MAX_APDU];
@@ -3006,16 +3006,12 @@ void testDateContextDecodes(
     ct_test(pTest, in.year == out.year);
 }
 
-
-#ifdef TEST_DECODE
-int main(
-    void)
+void test_BACDCode(
+    Test * pTest)
 {
-    Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACDCode", NULL);
-    /* individual tests */
+    /* add individual tests */
     rc = ct_addTestFunction(pTest, testBACDCodeTags);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeReal);
@@ -3040,42 +3036,41 @@ int main(
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACDCodeBitString);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testUnsignedContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testSignedContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testEnumeratedContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testCharacterStringContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testFloatContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testDoubleContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testObjectIDContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testBitStringContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testTimeContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testDateContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testOctetStringContextDecodes);
     assert(rc);
-
     rc = ct_addTestFunction(pTest, testBACDCodeDouble);
     assert(rc);
+}
+
+#ifdef TEST_DECODE
+int main(
+    void)
+{
+    Test *pTest;
+
+    pTest = ct_create("BACDCode", NULL);
+    test_BACDCode(pTest);
+
     /* configure output */
     ct_setStream(pTest, stdout);
     ct_run(pTest);
