@@ -883,8 +883,10 @@ int encode_octet_string(
            to bounds check since it might not be the only data chunk */
         len = (int) octetstring_length(octet_string);
         value = octetstring_value(octet_string);
-        for (i = 0; i < len; i++) {
-            apdu[i] = value[i];
+        if (value) {
+            for (i = 0; i < len; i++) {
+                apdu[i] = value[i];
+            }
         }
     }
 
