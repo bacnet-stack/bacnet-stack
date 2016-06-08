@@ -417,9 +417,13 @@ extern "C" {
 /* true if the tag is a closing tag */
 #define IS_CLOSING_TAG(x) ((x & 0x07) == 7)
 
+#ifdef TEST
+#include "ctest.h"
+    void test_BACDCode(
+        Test * pTest);
+#endif
 
 #ifdef __cplusplus
-
 }
 #endif /* __cplusplus */
 #endif

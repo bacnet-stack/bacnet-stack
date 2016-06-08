@@ -80,11 +80,13 @@ void Send_I_Am_To_Network(
     bytes_sent =
         datalink_send_pdu(target_address, &npdu_data,
         &Handler_Transmit_Buffer[0], pdu_len);
+    if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send I-Am Request (%s)!\n",
             strerror(errno));
 #endif
+    }
+
 }
 
 /** Encode an I Am message to be broadcast.
@@ -227,10 +229,9 @@ void Send_I_Am_Unicast(
     /* send data */
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
+    if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
         fprintf(stderr, "Failed to Send I-Am Reply (%s)!\n", strerror(errno));
-#else
-    (void)bytes_sent;
 #endif
+    }
 }
