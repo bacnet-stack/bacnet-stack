@@ -143,11 +143,12 @@ uint8_t Send_COV_Subscribe(
             bytes_sent =
                 datalink_send_pdu(&dest, &npdu_data,
                 &Handler_Transmit_Buffer[0], pdu_len);
+            if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-            if (bytes_sent <= 0)
                 fprintf(stderr, "Failed to Send SubscribeCOV Request (%s)!\n",
                     strerror(errno));
 #endif
+            }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;

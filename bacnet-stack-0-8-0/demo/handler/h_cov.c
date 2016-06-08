@@ -608,7 +608,7 @@ void handler_cov_timer_seconds(
     }
 }
 
-void handler_cov_task(
+bool handler_cov_fsm(
     void)
 {
     static int index = 0;
@@ -740,7 +740,13 @@ void handler_cov_task(
             break;
     }
 
-    return;
+    return (cov_task_state == COV_STATE_IDLE);
+}
+
+void handler_cov_task(
+    void)
+{
+    handler_cov_fsm();
 }
 
 static bool cov_subscribe(
@@ -887,13 +893,12 @@ void handler_cov_subscribe(
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
+    if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
         fprintf(stderr, "SubscribeCOV: Failed to send PDU (%s)!\n",
             strerror(errno));
-#else
-    bytes_sent = bytes_sent;
 #endif
+    }
 
     return;
 }

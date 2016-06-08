@@ -331,10 +331,10 @@ uint16_t apdu_decode_confirmed_service_request(
 {
     uint16_t len = 0;   /* counts where we are in PDU */
 
-    service_data->segmented_message = (apdu[0] & BIT3) ? true : false;
-    service_data->more_follows = (apdu[0] & BIT2) ? true : false;
+    service_data->segmented_message = (apdu[0] & BIT(3)) ? true : false;
+    service_data->more_follows = (apdu[0] & BIT(2)) ? true : false;
     service_data->segmented_response_accepted =
-        (apdu[0] & BIT1) ? true : false;
+        (apdu[0] & BIT(1)) ? true : false;
     service_data->max_segs = decode_max_segs(apdu[1]);
     service_data->max_resp = decode_max_apdu(apdu[1]);
     service_data->invoke_id = apdu[2];
@@ -462,8 +462,7 @@ void apdu_handler(
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                len =
-                    (int) apdu_decode_confirmed_service_request(&apdu[0],
+                apdu_decode_confirmed_service_request(&apdu[0],
                     apdu_len, &service_data, &service_choice, &service_request,
                     &service_request_len);
                 if (apdu_confirmed_dcc_disabled(service_choice)) {
@@ -535,9 +534,9 @@ void apdu_handler(
                 break;
             case PDU_TYPE_COMPLEX_ACK:
                 service_ack_data.segmented_message =
-                    (apdu[0] & BIT3) ? true : false;
+                    (apdu[0] & BIT(3)) ? true : false;
                 service_ack_data.more_follows =
-                    (apdu[0] & BIT2) ? true : false;
+                    (apdu[0] & BIT(2)) ? true : false;
                 invoke_id = service_ack_data.invoke_id = apdu[1];
                 len = 2;
                 if (service_ack_data.segmented_message) {

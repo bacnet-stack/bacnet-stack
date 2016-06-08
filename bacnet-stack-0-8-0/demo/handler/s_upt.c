@@ -45,7 +45,7 @@
 
 /** @file s_upt.c  Send an Unconfirmed Private Transfer request. */
 
-void Send_UnconfirmedPrivateTransfer(
+int Send_UnconfirmedPrivateTransfer(
     BACNET_ADDRESS * dest,
     BACNET_PRIVATE_TRANSFER_DATA * private_data)
 {
@@ -56,7 +56,7 @@ void Send_UnconfirmedPrivateTransfer(
     BACNET_ADDRESS my_address;
 
     if (!dcc_communication_enabled())
-        return;
+        return bytes_sent;
 
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
@@ -73,10 +73,13 @@ void Send_UnconfirmedPrivateTransfer(
     bytes_sent =
         datalink_send_pdu(dest, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
+    if (bytes_sent <= 0) {
 #if PRINT_ENABLED
-    if (bytes_sent <= 0)
         fprintf(stderr,
             "Failed to Send UnconfirmedPrivateTransfer Request (%s)!\n",
             strerror(errno));
 #endif
+    }
+
+    return bytes_sent;
 }
