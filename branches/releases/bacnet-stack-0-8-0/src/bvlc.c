@@ -419,6 +419,7 @@ static int bvlc_encode_read_bdt_ack(
  * @param pdu - buffer to store the encoding
  * @param sin - source address in network order
  * @param npdu - NPDU to forward
+ * @param max_npdu - amount of space available in the NPDU
  * @param npdu_length - size of the NPDU to forward
  *
  * @return number of bytes encoded
@@ -427,13 +428,14 @@ static int bvlc_encode_forwarded_npdu(
     uint8_t * pdu,
     struct sockaddr_in *sin,
     uint8_t * npdu,
+    uint16_t max_npdu,
     unsigned npdu_length)
 {
     int len = 0;
 
     unsigned i; /* for loop counter */
 
-    if (pdu) {
+    if (pdu && sin && npdu && (npdu_length <= max_npdu)) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
         pdu[1] = BVLC_FORWARDED_NPDU;
         /* The 2-octet BVLC Length field is the length, in octets,
@@ -819,12 +821,14 @@ int bvlc_send_mpdu(
  *
  * @param sin - source address in network order
  * @param npdu - the NPDU
+ * @param max_npdu - amount of space available in the NPDU
  * @param npdu_length - length of the NPDU
  * @param original - was the message an original (not forwarded)
  */
 static void bvlc_bdt_forward_npdu(
     struct sockaddr_in *sin,
     uint8_t * npdu,
+    uint16_t max_npdu,
     uint16_t npdu_length,
     bool original)
 {
@@ -845,11 +849,11 @@ static void bvlc_bdt_forward_npdu(
         struct sockaddr_in nat_addr = *sin;
         nat_addr.sin_addr = BVLC_Global_Address;
         mtu_len = (uint16_t) bvlc_encode_forwarded_npdu(&mtu[0],
-                             &nat_addr, npdu, npdu_length);
+                             &nat_addr, npdu, max_npdu, npdu_length);
     }
     else {
         mtu_len = (uint16_t) bvlc_encode_forwarded_npdu(&mtu[0],
-                             sin, npdu, npdu_length);
+                             sin, npdu, max_npdu, npdu_length);
     }
 
     /* loop through the BDT and send one to each entry, except us */
@@ -896,11 +900,13 @@ static void bvlc_bdt_forward_npdu(
  *
  * @param sin - source address in network order
  * @param npdu - the NPDU
- * @param npdu_length - amount of space available in the NPDU
+ * @param max_npdu - amount of space available in the NPDU
+ * @param npdu_length - reported length of the NPDU
  */
 static void bvlc_forward_npdu(
     struct sockaddr_in *sin,
     uint8_t * npdu,
+    uint16_t max_npdu,
     uint16_t npdu_length)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
@@ -908,7 +914,8 @@ static void bvlc_forward_npdu(
     struct sockaddr_in bip_dest = { 0 };
 
     mtu_len =
-        (uint16_t) bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu, npdu_length);
+        (uint16_t) bvlc_encode_forwarded_npdu(&mtu[0], sin, npdu,
+        max_npdu, npdu_length);
     bip_dest.sin_addr.s_addr = bip_get_broadcast_addr();
     bip_dest.sin_port = bip_get_port();
     bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
@@ -920,12 +927,14 @@ static void bvlc_forward_npdu(
  * @param sin - source address in network order
  * @param npdu - returns the NPDU
  * @param max_npdu - amount of space available in the NPDU
+ * @param npdu_length - reported length of the NPDU
  * @param original - was the message an original (not forwarded)
  */
 static void bvlc_fdt_forward_npdu(
     struct sockaddr_in *sin,
     uint8_t * npdu,
     uint16_t max_npdu,
+    uint16_t npdu_length,
     bool original)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
@@ -945,10 +954,10 @@ static void bvlc_fdt_forward_npdu(
         struct sockaddr_in nat_addr = *sin;
         nat_addr.sin_addr = BVLC_Global_Address;
         mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(&mtu[0],
-                             &nat_addr, npdu, max_npdu);
+                             &nat_addr, npdu, max_npdu, npdu_length);
     } else {
         mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(&mtu[0],
-                             sin, npdu, max_npdu);
+                             sin, npdu, max_npdu, npdu_length);
     }
 
     /* loop through the FDT and send one to each entry */
@@ -1252,7 +1261,8 @@ uint16_t bvlc_receive(
             /* use the original addr from the BVLC for src */
             dest.sin_addr.s_addr = original_sin.sin_addr.s_addr;
             dest.sin_port = original_sin.sin_port;
-            bvlc_fdt_forward_npdu(&dest, &npdu[4 + 6], npdu_len, false);
+            bvlc_fdt_forward_npdu(&dest, &npdu[4 + 6], max_npdu-(4 + 6),
+                npdu_len, false);
             debug_printf("BVLC: Received Forwarded-NPDU from %s:%04X.\n",
                 inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
             bvlc_internet_to_bacnet_address(src, &dest);
@@ -1346,9 +1356,9 @@ uint16_t bvlc_receive(
                it shall return a BVLC-Result message to the foreign device
                with a result code of X'0060' indicating that the forwarding
                attempt was unsuccessful */
-            bvlc_forward_npdu(&sin, &npdu[4], npdu_len);
-            bvlc_bdt_forward_npdu(&sin, &npdu[4], npdu_len, false);
-            bvlc_fdt_forward_npdu(&sin, &npdu[4], npdu_len, false);
+            bvlc_forward_npdu(&sin, &npdu[4], max_npdu-4, npdu_len);
+            bvlc_bdt_forward_npdu(&sin, &npdu[4], max_npdu-4, npdu_len, false);
+            bvlc_fdt_forward_npdu(&sin, &npdu[4], max_npdu-4, npdu_len, false);
             /* not an NPDU */
             npdu_len = 0;
             break;
@@ -1400,8 +1410,8 @@ uint16_t bvlc_receive(
                     npdu[i] = npdu[4 + i];
                 }
                 /* if BDT or FDT entries exist, Forward the NPDU */
-                bvlc_bdt_forward_npdu(&sin, &npdu[0], npdu_len, true);
-                bvlc_fdt_forward_npdu(&sin, &npdu[0], npdu_len, true);
+                bvlc_bdt_forward_npdu(&sin, &npdu[0], max_npdu, npdu_len, true);
+                bvlc_fdt_forward_npdu(&sin, &npdu[0], max_npdu, npdu_len, true);
             } else {
                 /* ignore packets that are too large */
                 npdu_len = 0;
