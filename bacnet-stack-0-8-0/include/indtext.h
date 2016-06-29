@@ -29,8 +29,8 @@
 #include <string.h>
 
 /* index and text pairs */
-typedef struct {
-    unsigned index;     /* index number that matches the text */
+const typedef struct {
+    const unsigned index;     /* index number that matches the text */
     const char *pString;        /* text pair - use NULL to end the list */
 } INDTEXT_DATA;
 
