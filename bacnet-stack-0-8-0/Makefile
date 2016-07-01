@@ -71,6 +71,7 @@ mstpcap:
 	$(MAKE) -B -s -C demo mstpcap
 
 router:
+	$(MAKE) -s -C lib all
 	$(MAKE) -s -C demo router
 
 # Add "ports" to the build, if desired
