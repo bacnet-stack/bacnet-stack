@@ -170,6 +170,23 @@ uint16_t process_network_message(
         case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
             /* hell if I know what to do with these messages */
             break;
+        case NETWORK_MESSAGE_CHALLENGE_REQUEST:
+        case NETWORK_MESSAGE_SECURITY_PAYLOAD:
+        case NETWORK_MESSAGE_SECURITY_RESPONSE:
+        case NETWORK_MESSAGE_REQUEST_KEY_UPDATE:
+        case NETWORK_MESSAGE_UPDATE_KEY_SET:
+        case NETWORK_MESSAGE_UPDATE_DISTRIBUTION_KEY:
+        case NETWORK_MESSAGE_REQUEST_MASTER_KEY:
+        case NETWORK_MESSAGE_SET_MASTER_KEY:
+        case NETWORK_MESSAGE_NETWORK_NUMBER_IS:
+            /* security messages */
+            break;
+        case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
+            buff_len =
+                create_network_message(NETWORK_MESSAGE_NETWORK_NUMBER_IS,
+                data, buff, &buff);
+            break;
+
 
         default:
             PRINT(ERROR, "Error: Message unsupported\n");
@@ -279,6 +296,21 @@ uint16_t create_network_message(
         case NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK:
         case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
             /* hell if I know what to do with these messages */
+            break;
+        case NETWORK_MESSAGE_CHALLENGE_REQUEST:
+        case NETWORK_MESSAGE_SECURITY_PAYLOAD:
+        case NETWORK_MESSAGE_SECURITY_RESPONSE:
+        case NETWORK_MESSAGE_REQUEST_KEY_UPDATE:
+        case NETWORK_MESSAGE_UPDATE_KEY_SET:
+        case NETWORK_MESSAGE_UPDATE_DISTRIBUTION_KEY:
+        case NETWORK_MESSAGE_REQUEST_MASTER_KEY:
+        case NETWORK_MESSAGE_SET_MASTER_KEY:
+            /* security messages */
+            break;
+        case NETWORK_MESSAGE_NETWORK_NUMBER_IS:
+            /* fixme: needs message constructed */
+            break;
+        default:
             break;
     }
 
