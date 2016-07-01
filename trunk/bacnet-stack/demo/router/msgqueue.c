@@ -55,7 +55,7 @@ bool send_to_msgbox(
 
     int err;
 
-    err = msgsnd(dest, msg, sizeof(BACMSG), 0);
+    err = msgsnd(dest, msg, sizeof(BACMSG)-sizeof(MSGTYPE), 0);
     if (err) {
         return false;
     }
@@ -69,7 +69,7 @@ BACMSG *recv_from_msgbox(
 
     int recv_bytes;
 
-    recv_bytes = msgrcv(src, msg, sizeof(BACMSG), 0, IPC_NOWAIT);
+    recv_bytes = msgrcv(src, msg, sizeof(BACMSG)-sizeof(MSGTYPE), 0, IPC_NOWAIT);
     if (recv_bytes > 0) {
         return msg;
     } else {

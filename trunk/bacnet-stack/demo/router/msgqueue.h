@@ -44,7 +44,7 @@ extern pthread_mutex_t msg_lock;
 typedef int MSGBOX_ID;
 
 typedef enum {
-    DATA,
+    DATA = 1,
     SERVICE
 } MSGTYPE;
 
@@ -55,8 +55,8 @@ typedef enum {
 } MSGSUBTYPE;
 
 typedef struct _message {
-    MSGBOX_ID origin;
     MSGTYPE type;
+    MSGBOX_ID origin;
     MSGSUBTYPE subtype;
     void *data;
     /* add timestamp */

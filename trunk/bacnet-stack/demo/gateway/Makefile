@@ -33,6 +33,9 @@ SRCS = main.c \
 	$(BACNET_OBJECT)/mso.c \
 	$(BACNET_OBJECT)/msv.c \
 	$(BACNET_OBJECT)/nc.c  \
+	$(BACNET_OBJECT)/osv.c \
+	$(BACNET_OBJECT)/piv.c \
+	$(BACNET_OBJECT)/schedule.c \
 	$(BACNET_OBJECT)/trendlog.c \
 	$(BACNET_OBJECT)/bacfile.c
 
