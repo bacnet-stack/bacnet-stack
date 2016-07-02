@@ -144,7 +144,7 @@ void *dl_mstp_thread(
                     break;
             }
         } else {
-            pdu_len = dlmstp_receive(&mstp_port, NULL, NULL, 0, 1000);
+            pdu_len = dlmstp_receive(&mstp_port, NULL, NULL, 0, 5);
 
             if (pdu_len > 0) {
                 msg_data = (MSG_DATA *) malloc(sizeof(MSG_DATA));

@@ -119,7 +119,7 @@ void *dl_ip_thread(
                     break;
             }
         } else {
-            status = dl_ip_recv(&ip_data, &msg_data, &address, 1000);
+            status = dl_ip_recv(&ip_data, &msg_data, &address, 5);
             if (status > 0) {
                 memmove(&msg_data->src.len, &address.mac_len, 1);
                 memmove(&msg_data->src.adr[0], &address.mac[0], MAX_MAC_LEN);
