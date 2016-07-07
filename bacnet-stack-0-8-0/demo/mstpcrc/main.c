@@ -62,8 +62,31 @@ static bool ASCII_Decimal = false;
 static unsigned CRC_Size = 8;
 /* save to capture file for viewing in Wireshark */
 static bool MSTP_Cap = false;
+static bool MSTP_Text_File = false;
 static char Capture_Filename[32] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
+static FILE *pText_File = NULL;      /* stream pointer */
+
+/******************************************************************
+* DESCRIPTION:  Takes one of the arguments passed by the main function
+*               and converts it into a buffer value.
+*               argi - single argument in string form.
+* RETURN:       nothing
+* NOTES:        none
+******************************************************************/
+static void Parse_Number(
+    char *argi)
+{
+    long long_value = 0;
+
+    if (ASCII_Decimal) {
+        long_value = strtol(argi, NULL, 10);
+    } else {
+        long_value = strtol(argi, NULL, 16);
+    }
+    CRC_Buffer[CRC_Buffer_Len] = (uint8_t) long_value;
+    CRC_Buffer_Len++;
+}
 
 /******************************************************************
 * DESCRIPTION:  Takes one of the arguments passed by the main function
@@ -114,18 +137,21 @@ static void Parse_Arguments(
                 case 'M':
                     MSTP_Cap = true;
                     break;
+                case 'f':
+                case 'F':
+                    MSTP_Text_File = true;
+                    break;
                 default:
                     break;
             }
         } else {
-            /* should be number values here */
-            if (ASCII_Decimal) {
-                long_value = strtol(argv[i], NULL, 10);
+            if (MSTP_Text_File) {
+                /* open existing file. */
+                pText_File = fopen(argv[i], "r");
             } else {
-                long_value = strtol(argv[i], NULL, 16);
+                /* should be number values here */
+                Parse_Number(argv[i]);
             }
-            CRC_Buffer[CRC_Buffer_Len] = (uint8_t) long_value;
-            CRC_Buffer_Len++;
         }
     }
 }
@@ -212,6 +238,35 @@ static void Write_Pcap(
         fclose(pFile);
     }
 }
+/* hold 3 ASCII characters per byte of data */
+static char Text_Buffer[1024*3];
+static void Process_Text_File(void)
+{
+    char *argi = NULL;
+
+    filename_create(&Capture_Filename[0]);
+    write_global_header(&Capture_Filename[0]);
+    while (fgets(Text_Buffer, sizeof(Text_Buffer), pText_File)) {
+        CRC_Buffer_Len = 0;
+        do {
+            if (!argi) {
+                argi = strtok(Text_Buffer, " ");
+            } else {
+                argi = strtok(NULL, " ");
+            }
+            if (argi) {
+                Parse_Number(argi);
+            }
+        } while (argi);
+        write_received_packet(CRC_Buffer, CRC_Buffer_Len);
+    }
+    if (pFile) {
+        fclose(pFile);
+    }
+    if (pText_File) {
+        fclose(pText_File);
+    }
+}
 
 /* simple program to CRC the data and print the CRC */
 int main(
@@ -233,6 +288,7 @@ int main(
             "[-8] calculate the MS/TP 8-bit Header CRC (default)\r\n"
             "[-16] calculate the MS/TP 16-bit Data CRC\r\n"
             "[-32] calculate the MS/TP 32-bit Extended Frame CRC\r\n"
+            "[-f filename] read MS/TP capture data from text file\r\n"
             "Note: MS/TP Header CRC does not include the 55 FF preamble.\r\n");
         return 0;
     }
@@ -245,7 +301,9 @@ int main(
         return 0;
     }
     Parse_Arguments(argc, argv);
-    if (CRC_Buffer_Len) {
+    if (MSTP_Text_File) {
+        Process_Text_File();
+    } else if (CRC_Buffer_Len) {
         if (MSTP_Cap) {
             Write_Pcap(CRC_Buffer, CRC_Buffer_Len);
         } else {
