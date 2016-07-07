@@ -685,7 +685,7 @@ static void write_received_packet(
     }
 }
 
-/* write packet to file in libpcap format */
+/* read header from file in libpcap format */
 static bool test_global_header(
     const char *filename)
 {
@@ -698,7 +698,7 @@ static bool test_global_header(
     uint32_t network = 0;       /* data link type - BACNET_MS_TP */
     size_t count = 0;
 
-    /* create a new file. */
+    /* open existing file. */
     pFile = fopen(filename, "rb");
     if (pFile) {
         count = fread(&magic_number, sizeof(magic_number), 1, pFile);
