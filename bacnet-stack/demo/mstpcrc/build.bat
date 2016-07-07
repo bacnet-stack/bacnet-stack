@@ -6,4 +6,4 @@ set CC=gcc
 set AR=ar
 set MAKE=make
 set TARGET_EXT=.exe
-make clean all
+make BACNET_PORT=win32 clean all

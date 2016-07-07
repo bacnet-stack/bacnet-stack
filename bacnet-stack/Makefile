@@ -77,6 +77,9 @@ server:
 mstpcap:
 	$(MAKE) -B -C demo mstpcap
 
+mstpcrc: library
+	$(MAKE) -B -C demo mstpcrc
+
 iam:
 	$(MAKE) -B -C demo iam
 
@@ -89,8 +92,7 @@ abort:
 error:
 	$(MAKE) -B -C demo error
 
-router:
-	$(MAKE) -s -C lib all
+router: library
 	$(MAKE) -s -C demo router
 
 # Add "ports" to the build, if desired
