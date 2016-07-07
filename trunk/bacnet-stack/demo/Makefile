@@ -92,6 +92,9 @@ server:
 mstpcap:
 	$(MAKE) -b -C mstpcap
 
+mstpcrc:
+	$(MAKE) -b -C mstpcrc
+
 iam:
 	$(MAKE) -b -C iam
 
