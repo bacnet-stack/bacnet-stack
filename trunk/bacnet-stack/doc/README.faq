@@ -121,7 +121,10 @@ A-14: Here are the things that you can do to shrink the firmware size:
 
 Q-15: I have downloaded the BACnet stack but can't get demo/server to work. I am using a single computer. In one console window I run demo/server/bacserv. In another console window I run demo/whois/bacwi. When I capture packets with WireShark, I see the I-Am broadcast packet being sent by demo/server/bacserv when it starts. I also see the Who-Is broadcast packet sent by demo/whois/bacwi. But demo/server/bacserv never receives any message. How do I make it work?
 
-A-15: This is a common issue with BACnet/IP. The server application binds to the BACnet/IP UDP port 47808 on that computer, and therefore, the client application is unable to receive broadcast messages on port 47808 since those packets are only going to the server application.
+A-15: This is a common issue with BACnet/IP. The server application binds to the BACnet/IP UDP port 47808 on that computer, and therefore, the client application is unable to receive broadcast messages on port 47808 since those packets are only going to the server application. You can use the netstat tool to see if the port is in use:
+
+$ netstat -p udp -a -n | grep 47808
+  UDP    10.87.225.118:47808    *:*
 
 The correct solution is to use BVLC (BACnet Virtual Link Control) where the client applications use BACnet Foreign Device Registration, and some application (probably the server) runs a BBMD (BACnet Broadcast Management Device).
 
