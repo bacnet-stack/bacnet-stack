@@ -34,6 +34,13 @@ OBJECT_SRC = \
 	$(BACNET_OBJECT)/nc.c  \
 	$(BACNET_OBJECT)/trendlog.c \
 	$(BACNET_OBJECT)/schedule.c \
+	$(BACNET_OBJECT)/access_credential.c \
+	$(BACNET_OBJECT)/access_door.c \
+	$(BACNET_OBJECT)/access_point.c \
+	$(BACNET_OBJECT)/access_rights.c \
+	$(BACNET_OBJECT)/access_user.c \
+	$(BACNET_OBJECT)/access_zone.c \
+	$(BACNET_OBJECT)/credential_data_input.c \
 	$(BACNET_OBJECT)/bacfile.c
 
 SRCS = ${SRC} ${OBJECT_SRC}

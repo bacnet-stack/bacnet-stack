@@ -206,7 +206,45 @@ wp: logfile test/wp.mak
 	( ./test/wp >> ${LOGFILE} )
 	$(MAKE) -s -C test -f wp.mak clean
 
-objects: ai ao av bi bo bv csv lc lo lso lsp mso msv ms-input osv piv command
+objects: ai ao av bi bo bv csv lc lo lso lsp \
+	mso msv ms-input osv piv command \
+	access_credential access_door access_point access_rights \
+	access_user access_zone credential_data_input
+
+access_credential: logfile demo/object/access_credential.mak
+	$(MAKE) -s -C demo/object -f access_credential.mak clean all
+	( ./demo/object/access_credential >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f access_credential.mak clean
+
+access_door: logfile demo/object/access_door.mak
+	$(MAKE) -s -C demo/object -f access_door.mak clean all
+	( ./demo/object/access_door >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f access_door.mak clean
+
+access_point: logfile demo/object/access_point.mak
+	$(MAKE) -s -C demo/object -f access_point.mak clean all
+	( ./demo/object/access_point >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f access_point.mak clean
+
+access_rights: logfile demo/object/access_rights.mak
+	$(MAKE) -s -C demo/object -f access_rights.mak clean all
+	( ./demo/object/access_rights >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f access_rights.mak clean
+
+access_user: logfile demo/object/access_user.mak
+	$(MAKE) -s -C demo/object -f access_user.mak clean all
+	( ./demo/object/access_user >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f access_user.mak clean
+
+access_zone: logfile demo/object/access_zone.mak
+	$(MAKE) -s -C demo/object -f access_zone.mak clean all
+	( ./demo/object/access_zone >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f access_zone.mak clean
+
+credential_data_input: logfile demo/object/credential_data_input.mak
+	$(MAKE) -s -C demo/object -f credential_data_input.mak clean all
+	( ./demo/object/credential_data_input >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f credential_data_input.mak clean
 
 ai: logfile demo/object/ai.mak
 	$(MAKE) -s -C demo/object -f ai.mak clean all
