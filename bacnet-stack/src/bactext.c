@@ -812,7 +812,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_EXIT_POINTS, "exit-points"}
     ,
-    {PROP_EXPIRY_TIME, "expiry-time"}
+    {PROP_EXPIRATION_TIME, "expiration-time"}
     ,
     {PROP_EXTENDED_TIME_ENABLE, "extended-time-enable"}
     ,

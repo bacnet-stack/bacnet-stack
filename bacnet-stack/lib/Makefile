@@ -75,6 +75,11 @@ CORE_SRC = \
 	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/lighting.c \
 	$(BACNET_CORE)/bacsec.c \
+	$(BACNET_CORE)/access_rule.c \
+	$(BACNET_CORE)/assigned_access_rights.c \
+	$(BACNET_CORE)/authentication_factor_format.c \
+	$(BACNET_CORE)/authentication_factor.c \
+	$(BACNET_CORE)/credential_authentication_factor.c \
 	$(BACNET_CORE)/version.c
 
 HANDLER_SRC = \
