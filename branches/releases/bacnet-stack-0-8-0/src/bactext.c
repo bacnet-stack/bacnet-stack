@@ -792,7 +792,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_AUTHENTICATION_POLICY_NAMES, "authentication-policy-names"}
     ,
-    {PROP_AUTHORIZATION_STATUS, "authentication-status"}
+    {PROP_AUTHENTICATION_STATUS, "authentication-status"}
     ,
     {PROP_AUTHORIZATION_MODE, "authorization-mode"}
     ,
@@ -812,7 +812,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_EXIT_POINTS, "exit-points"}
     ,
-    {PROP_EXPIRY_TIME, "expiry-time"}
+    {PROP_EXPIRATION_TIME, "expiration-time"}
     ,
     {PROP_EXTENDED_TIME_ENABLE, "extended-time-enable"}
     ,
@@ -1013,7 +1013,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_DEFAULT_STEP_INCREMENT, "default-step-increment"}
     ,
-    {PROP_EGRESS_TIMER, "egress-timer"}
+    {PROP_EGRESS_TIME, "egress-time"}
     ,
     {PROP_IN_PROGRESS, "in-progress"}
     ,
