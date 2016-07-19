@@ -452,7 +452,7 @@ static void MSTP_Send_Frame(
         crc8 = CRC_Calc_Header(pkt->buffer[5], crc8);
         pkt->buffer[6] = data_len % 256;
         crc8 = CRC_Calc_Header(pkt->buffer[6], crc8);
-        pkt->buffer[7] = ~crc8;
+        pkt->buffer[7] = (uint8_t)(~crc8);
         pkt->length = 8;
         if (data_len) {
             /* calculate CRC for any data */
@@ -1272,10 +1272,10 @@ int dlmstp_send_pdu(
             pkt->buffer[i] = pdu[i];
         }
         pkt->length = pdu_len;
-        if (dest->mac_len == 0) {
-            pkt->destination_mac = MSTP_BROADCAST_ADDRESS;
-        } else {
+        if (dest && dest->mac_len) {
             pkt->destination_mac = dest->mac[0];
+        } else {
+            pkt->destination_mac = MSTP_BROADCAST_ADDRESS;
         }
         if (Ringbuf_Data_Put(&PDU_Queue, (uint8_t *)pkt)) {
             bytes_sent = pdu_len;
