@@ -70,7 +70,6 @@ static bool Error_Detected = false;
 /* data used in COV subscription request */
 BACNET_SUBSCRIBE_COV_DATA *COV_Subscribe_Data = NULL;
 /* flags to signal early termination */
-static bool Notification_Detected = false;
 static bool Simple_Ack_Detected = false;
 static bool Cancel_Requested = false;
 
@@ -123,7 +122,6 @@ void My_Unconfirmed_COV_Notification_Handler(
     BACNET_ADDRESS * src)
 {
     handler_ucov_notification(service_request, service_len, src);
-    Notification_Detected = true;
 }
 
 void My_Confirmed_COV_Notification_Handler(
@@ -133,7 +131,6 @@ void My_Confirmed_COV_Notification_Handler(
     BACNET_CONFIRMED_SERVICE_DATA * service_data)
 {
     handler_ccov_notification(service_request, service_len, src, service_data);
-    Notification_Detected = true;
 }
 
 void MyWritePropertySimpleAckHandler(
@@ -366,7 +363,6 @@ int main(
         if (found) {
             if (Request_Invoke_ID == 0) {
                 Simple_Ack_Detected = false;
-                Notification_Detected = false;
                 if (cov_data->cancellationRequest) {
                     Cancel_Requested = true;
                 } else {
@@ -390,9 +386,6 @@ int main(
                     cov_data = cov_data->next;
                     Request_Invoke_ID = 0;
                 } else {
-                    if (Notification_Detected) {
-                        break;
-                    }
                     if (Cancel_Requested && Simple_Ack_Detected) {
                         break;
                     }
@@ -401,7 +394,6 @@ int main(
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
-                /* try again or abort? */
                 break;
             }
         } else {
