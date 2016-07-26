@@ -146,6 +146,9 @@ static void Init_Service_Handlers(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
         handler_get_alarm_summary);
 #endif /* defined(INTRINSIC_REPORTING) */
+#if defined(BACNET_TIME_MASTER)
+    handler_timesync_init();
+#endif
 }
 
 static void print_usage(const char *filename)
@@ -196,6 +199,9 @@ int main(
     uint32_t elapsed_milliseconds = 0;
     uint32_t address_binding_tmr = 0;
     uint32_t recipient_scan_tmr = 0;
+#if defined(BACNET_TIME_MASTER)
+    BACNET_DATE_TIME bdatetime;
+#endif
 #if defined(BAC_UCI)
     int uciId = 0;
     struct uci_context *ctx;
@@ -282,6 +288,10 @@ int main(
             trend_log_timer(elapsed_seconds);
 #if defined(INTRINSIC_REPORTING)
             Device_local_reporting();
+#endif
+#if defined(BACNET_TIME_MASTER)
+            Device_getCurrentDateTime(&bdatetime);
+            handler_timesync_task(&bdatetime);
 #endif
         }
         handler_cov_task();

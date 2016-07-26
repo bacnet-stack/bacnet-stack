@@ -644,6 +644,12 @@ static const int Device_Properties_Optional[] = {
     PROP_DAYLIGHT_SAVINGS_STATUS,
     PROP_LOCATION,
     PROP_ACTIVE_COV_SUBSCRIPTIONS,
+#if defined(BACNET_TIME_MASTER)
+    PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_TIME_SYNCHRONIZATION_INTERVAL,
+    PROP_ALIGN_INTERVALS,
+    PROP_INTERVAL_OFFSET,
+#endif
     -1
 };
 
@@ -697,8 +703,13 @@ static BACNET_DATE Local_Date;  /* rely on OS, if there is one */
    BACnet UTC offset is expressed in minutes. */
 static int32_t UTC_Offset = 5 * 60;
 static bool Daylight_Savings_Status = false;    /* rely on OS */
-/* List_Of_Session_Keys */
+#if defined(BACNET_TIME_MASTER)
+static bool Align_Intervals;
+static uint32_t Interval_Minutes;
+static uint32_t Interval_Offset_Minutes;
 /* Time_Synchronization_Recipients */
+#endif
+/* List_Of_Session_Keys */
 /* Max_Master - rely on MS/TP subsystem, if there is one */
 /* Max_Info_Frames - rely on MS/TP subsystem, if there is one */
 /* Device_Address_Binding - required, but relies on binding cache */
@@ -1263,10 +1274,89 @@ int32_t Device_UTC_Offset(void)
     return UTC_Offset;
 }
 
+void Device_UTC_Offset_Set(int16_t offset)
+{
+    UTC_Offset = offset;
+}
+
 bool Device_Daylight_Savings_Status(void)
 {
     return Daylight_Savings_Status;
 }
+
+#if defined(BACNET_TIME_MASTER)
+/**
+ * Sets the time sync interval in minutes
+ *
+ * @param flag
+ * This property, of type BOOLEAN, specifies whether (TRUE)
+ * or not (FALSE) clock-aligned periodic time synchronization is
+ * enabled. If periodic time synchronization is enabled and the
+ * time synchronization interval is a factor of (divides without
+ * remainder) an hour or day, then the beginning of the period
+ * specified for time synchronization shall be aligned to the hour or
+ * day, respectively. If this property is present, it shall be writable.
+ */
+bool Device_Align_Intervals_Set(bool flag)
+{
+    Align_Intervals = flag;
+
+    return true;
+}
+
+bool Device_Align_Intervals(void)
+{
+    return Align_Intervals;
+}
+
+/**
+ * Sets the time sync interval in minutes
+ *
+ * @param minutes
+ * This property, of type Unsigned, specifies the periodic
+ * interval in minutes at which TimeSynchronization and
+ * UTCTimeSynchronization requests shall be sent. If this
+ * property has a value of zero, then periodic time synchronization is
+ * disabled. If this property is present, it shall be writable.
+ */
+bool Device_Time_Sync_Interval_Set(uint32_t minutes)
+{
+    Interval_Minutes = minutes;
+
+    return true;
+}
+
+uint32_t Device_Time_Sync_Interval(void)
+{
+    return Interval_Minutes;
+}
+
+/**
+ * Sets the time sync interval offset value.
+ *
+ * @param minutes
+ * This property, of type Unsigned, specifies the offset in
+ * minutes from the beginning of the period specified for time
+ * synchronization until the actual time synchronization requests
+ * are sent. The offset used shall be the value of Interval_Offset
+ * modulo the value of Time_Synchronization_Interval;
+ * e.g., if Interval_Offset has the value 31 and
+ * Time_Synchronization_Interval is 30, the offset used shall be 1.
+ * Interval_Offset shall have no effect if Align_Intervals is
+ * FALSE. If this property is present, it shall be writable.
+ */
+bool Device_Interval_Offset_Set(uint32_t minutes)
+{
+    Interval_Offset_Minutes = minutes;
+
+    return true;
+}
+
+uint32_t Device_Interval_Offset(void)
+{
+    return Interval_Offset_Minutes;
+}
+#endif
 
 /* return the length of the apdu encoded or BACNET_STATUS_ERROR for error or
    BACNET_STATUS_ABORT for abort message */
@@ -1482,6 +1572,29 @@ int Device_Read_Property_Local(
                 encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
 #endif
+#if defined(BACNET_TIME_MASTER)
+        case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
+            apdu_len = handler_timesync_encode_recipients(&apdu[0], MAX_APDU);
+            if (apdu_len < 0) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                apdu_len = BACNET_STATUS_ABORT;
+            }
+            break;
+        case PROP_TIME_SYNCHRONIZATION_INTERVAL:
+            apdu_len = encode_application_unsigned(&apdu[0],
+                Device_Time_Sync_Interval());
+            break;
+        case PROP_ALIGN_INTERVALS:
+            apdu_len =
+                encode_application_boolean(&apdu[0],
+                Device_Align_Intervals());
+            break;
+        case PROP_INTERVAL_OFFSET:
+            apdu_len = encode_application_unsigned(&apdu[0],
+                Device_Interval_Offset());
+            break;
+#endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
             apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max);
             break;
@@ -1558,6 +1671,7 @@ bool Device_Write_Property_Local(
     BACNET_APPLICATION_DATA_VALUE value;
     int object_type = 0;
     uint32_t object_instance = 0;
+    uint32_t minutes = 0;
     int temp;
 
     /* decode the some of the request */
@@ -1696,9 +1810,71 @@ bool Device_Write_Property_Local(
                     characterstring_length(&value.type.Character_String));
             }
             break;
-
-        case PROP_MAX_INFO_FRAMES:
+#if defined(BACNET_TIME_MASTER)
+        case PROP_TIME_SYNCHRONIZATION_INTERVAL:
+            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                if (value.type.Unsigned_Int < 65535) {
+                    minutes = value.type.Unsigned_Int;
+                    Device_Time_Sync_Interval_Set(minutes);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_ALIGN_INTERVALS:
+            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+                Device_Align_Intervals_Set(value.type.Boolean);
+                status = true;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+        case PROP_INTERVAL_OFFSET:
+            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+                if (value.type.Unsigned_Int < 65535) {
+                    minutes = value.type.Unsigned_Int;
+                    Device_Interval_Offset_Set(minutes);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+            break;
+#else
+        case PROP_TIME_SYNCHRONIZATION_INTERVAL:
+        case PROP_ALIGN_INTERVALS:
+        case PROP_INTERVAL_OFFSET:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            break;
+#endif
+        case PROP_UTC_OFFSET:
+            if (value.tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
+                if ((value.type.Signed_Int < (12*60)) &&
+                    (value.type.Signed_Int > (-12*60))) {
+                    Device_UTC_Offset_Set(value.type.Signed_Int);
+                    status = true;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            }
+           break;
 #if defined(BACDL_MSTP)
+        case PROP_MAX_INFO_FRAMES:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                 &wp_data->error_class, &wp_data->error_code);
@@ -1713,9 +1889,7 @@ bool Device_Write_Property_Local(
                 }
             }
             break;
-#endif
         case PROP_MAX_MASTER:
-#if defined(BACDL_MSTP)
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                 &wp_data->error_class, &wp_data->error_code);
@@ -1730,13 +1904,18 @@ bool Device_Write_Property_Local(
                 }
             }
             break;
+#else
+        case PROP_MAX_INFO_FRAMES:
+        case PROP_MAX_MASTER:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            break;
 #endif
         case PROP_OBJECT_TYPE:
         case PROP_VENDOR_NAME:
         case PROP_FIRMWARE_REVISION:
         case PROP_APPLICATION_SOFTWARE_VERSION:
         case PROP_LOCAL_TIME:
-        case PROP_UTC_OFFSET:
         case PROP_LOCAL_DATE:
         case PROP_DAYLIGHT_SAVINGS_STATUS:
         case PROP_PROTOCOL_VERSION:
@@ -1749,6 +1928,9 @@ bool Device_Write_Property_Local(
         case PROP_DEVICE_ADDRESS_BINDING:
         case PROP_DATABASE_REVISION:
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+#if defined(BACNET_TIME_MASTER)
+        case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
+#endif
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;

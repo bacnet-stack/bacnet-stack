@@ -237,6 +237,12 @@ extern "C" {
         BACNET_DATE_TIME * DateTime);
     int32_t Device_UTC_Offset(void);
     bool Device_Daylight_Savings_Status(void);
+    bool Device_Align_Intervals(void);
+    bool Device_Align_Intervals_Set(bool flag);
+    uint32_t Device_Time_Sync_Interval(void);
+    bool Device_Time_Sync_Interval_Set(uint32_t value);
+    uint32_t Device_Interval_Offset(void);
+    bool Device_Interval_Offset_Set(uint32_t value);
 
     void Device_Property_Lists(
         const int **pRequired,
