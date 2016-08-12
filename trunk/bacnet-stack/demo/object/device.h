@@ -250,6 +250,7 @@ extern "C" {
         const int **pProprietary);
     void Device_Objects_Property_List(
         BACNET_OBJECT_TYPE object_type,
+        uint32_t object_instance,
         struct special_property_list_t *pPropertyList);
     /* functions to support COV */
     bool Device_Encode_Value_List(
