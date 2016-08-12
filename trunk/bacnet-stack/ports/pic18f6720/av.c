@@ -235,9 +235,9 @@ int Analog_Value_Read_Property(
                     if ((apdu_len + len) < MAX_APDU)
                         apdu_len += len;
                     else {
-                        *error_class = ERROR_CLASS_SERVICES;
-                        *error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                        apdu_len = -1;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
@@ -256,7 +256,7 @@ int Analog_Value_Read_Property(
                 } else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    apdu_len = -1;
+                    apdu_len = BACNET_STATUS_ERROR;
                 }
             }
 
@@ -269,7 +269,7 @@ int Analog_Value_Read_Property(
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            apdu_len = -1;
+            apdu_len = BACNET_STATUS_ERROR;
             break;
     }
     /*  only array properties can have array options */
@@ -280,7 +280,7 @@ int Analog_Value_Read_Property(
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = -1;
+        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

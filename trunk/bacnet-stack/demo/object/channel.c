@@ -1448,9 +1448,9 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                     if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
                     } else {
-                        rpdata->error_class = ERROR_CLASS_SERVICES;
-                        rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                        apdu_len = BACNET_STATUS_ERROR;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
@@ -1493,9 +1493,9 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                     if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
                     } else {
-                        rpdata->error_class = ERROR_CLASS_SERVICES;
-                        rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                        apdu_len = BACNET_STATUS_ERROR;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
