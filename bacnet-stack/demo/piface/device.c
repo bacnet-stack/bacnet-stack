@@ -178,10 +178,12 @@ rr_info_function Device_Objects_RR_Info(
  */
 void Device_Objects_Property_List(
     BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
     struct special_property_list_t *pPropertyList)
 {
     struct object_functions *pObject = NULL;
 
+    (void)object_instance;
     pPropertyList->Required.pList = NULL;
     pPropertyList->Optional.pList = NULL;
     pPropertyList->Proprietary.pList = NULL;

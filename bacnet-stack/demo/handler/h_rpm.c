@@ -325,7 +325,7 @@ void handler_read_property_multiple(
                 } else {
                     special_object_property = rpmdata.object_property;
                     Device_Objects_Property_List(rpmdata.object_type,
-                        &property_list);
+                        rpmdata.object_instance, &property_list);
                     property_count =
                         RPM_Object_Property_Count(&property_list,
                         special_object_property);

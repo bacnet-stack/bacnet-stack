@@ -71,7 +71,7 @@ static struct my_object_functions {
             NULL, NULL, NULL}, {
         OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
             Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
-            Analog_Input_Object_Name, Analog_Input_Read_Property, 
+            Analog_Input_Object_Name, Analog_Input_Read_Property,
             Analog_Input_Write_Property, Analog_Input_Property_Lists,
             NULL, NULL, NULL}, {
     MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
@@ -192,11 +192,14 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
 }
 
 /* for a given object type, returns the special property list */
-void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
+void Device_Objects_Property_List(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
     struct special_property_list_t *pPropertyList)
 {
     struct my_object_functions *pObject = NULL;
 
+    (void)object_instance;
     pPropertyList->Required.pList = NULL;
     pPropertyList->Optional.pList = NULL;
     pPropertyList->Proprietary.pList = NULL;
