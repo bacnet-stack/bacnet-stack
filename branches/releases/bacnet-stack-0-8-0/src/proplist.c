@@ -1213,9 +1213,9 @@ int property_list_encode(
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
                         } else {
-                            rpdata->error_class = ERROR_CLASS_SERVICES;
-                            rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                            apdu_len = BACNET_STATUS_ERROR;
+                            rpdata->error_code =
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
                     }
@@ -1229,9 +1229,9 @@ int property_list_encode(
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
                         } else {
-                            rpdata->error_class = ERROR_CLASS_SERVICES;
-                            rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                            apdu_len = BACNET_STATUS_ERROR;
+                            rpdata->error_code =
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
                     }
@@ -1245,9 +1245,9 @@ int property_list_encode(
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
                         } else {
-                            rpdata->error_class = ERROR_CLASS_SERVICES;
-                            rpdata->error_code = ERROR_CODE_NO_SPACE_FOR_OBJECT;
-                            apdu_len = BACNET_STATUS_ERROR;
+                            rpdata->error_code =
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
                     }
