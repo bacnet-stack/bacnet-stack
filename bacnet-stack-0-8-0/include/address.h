@@ -59,6 +59,13 @@ extern "C" {
         unsigned *max_apdu,
         BACNET_ADDRESS * src);
 
+    bool address_device_get_by_index(
+        unsigned index,
+        uint32_t * device_id,
+        uint32_t * device_ttl,
+        unsigned *max_apdu,
+        BACNET_ADDRESS * src);
+
     bool address_get_device_id(
         BACNET_ADDRESS * src,
         uint32_t * device_id);
@@ -72,6 +79,12 @@ extern "C" {
 
     bool address_bind_request(
         uint32_t device_id,
+        unsigned *max_apdu,
+        BACNET_ADDRESS * src);
+
+    bool address_device_bind_request(
+        uint32_t device_id,
+        uint32_t * device_ttl,
         unsigned *max_apdu,
         BACNET_ADDRESS * src);
 
@@ -95,6 +108,9 @@ extern "C" {
 
     void address_cache_timer(
         uint16_t uSeconds);
+
+    void address_protected_entry_index_set(uint32_t top_protected_entry_index);
+    void address_own_device_id_set(uint32_t own_id);
 
 #ifdef __cplusplus
 }
