@@ -11,7 +11,7 @@ LOGFILE = test.log
 
 all: abort address arf awf bacapp bacdcode bacerror bacint bacstr \
 	cov crc datetime dcc event filename fifo getevent iam ihave \
-	indtext keylist key memcopy npdu ptransfer \
+	indtext keylist key memcopy npdu ptransfer bacdevobjpropref \
 	rd reject ringbuf rp rpm sbuf timesync \
 	whohas whois wp objects
 
@@ -50,6 +50,11 @@ bacdcode: logfile test/bacdcode.mak
 	$(MAKE) -s -C test -f bacdcode.mak clean all
 	( ./test/bacdcode >> ${LOGFILE} )
 	$(MAKE) -s -C test -f bacdcode.mak clean
+
+bacdevobjpropref: logfile test/bacdevobjpropref.mak
+	$(MAKE) -s -C test -f bacdevobjpropref.mak clean all
+	( ./test/bacdevobjpropref >> ${LOGFILE} )
+	$(MAKE) -s -C test -f bacdevobjpropref.mak clean
 
 bacerror: logfile test/bacerror.mak
 	$(MAKE) -s -C test -f bacerror.mak clean all
