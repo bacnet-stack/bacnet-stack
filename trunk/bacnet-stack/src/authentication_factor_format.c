@@ -40,7 +40,7 @@ int bacapp_encode_authentication_factor_format(
     else
         apdu_len += len;
 
-    if (aff->format_type == AUTHENTICATION_FACTOR_TYPE_CUSTOM) {
+    if (aff->format_type == AUTHENTICATION_FACTOR_CUSTOM) {
         len = encode_context_unsigned(&apdu[apdu_len], 1, aff->vendor_id);
         if (len < 0)
             return -1;
@@ -101,7 +101,7 @@ int bacapp_decode_authentication_factor_format(
             return -1;
         else
             apdu_len += len;
-        if ((aff->format_type != AUTHENTICATION_FACTOR_TYPE_CUSTOM)
+        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM)
             && (aff->vendor_id != 0))
             return -1;
     }
@@ -112,7 +112,7 @@ int bacapp_decode_authentication_factor_format(
             return -1;
         else
             apdu_len += len;
-        if ((aff->format_type != AUTHENTICATION_FACTOR_TYPE_CUSTOM)
+        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM)
             && (aff->vendor_format != 0))
             return -1;
     }

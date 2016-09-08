@@ -30,7 +30,7 @@
 #include "bacdef.h"
 #include "bacenum.h"
 
-typedef struct {
+typedef struct BACnetDeviceObjectPropertyReference {
     BACNET_OBJECT_ID objectIdentifier;
     BACNET_PROPERTY_ID propertyIdentifier;
     uint32_t arrayIndex;
@@ -41,7 +41,7 @@ typedef struct {
  * If the optional deviceIdentifier is not provided, then this refers
  * to an object inside this Device.
  */
-typedef struct {
+typedef struct BACnetDeviceObjectReference {
     BACNET_OBJECT_ID deviceIndentifier;         /**< Optional, for external device. */
     BACNET_OBJECT_ID objectIdentifier;
 } BACNET_DEVICE_OBJECT_REFERENCE;

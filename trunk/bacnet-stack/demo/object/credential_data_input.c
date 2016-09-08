@@ -90,7 +90,7 @@ void Credential_Data_Input_Init(
         for (i = 0; i < MAX_CREDENTIAL_DATA_INPUTS; i++) {
             /* there should be a meaningful setup for present value */
             cdi_descr[i].present_value.format_type =
-                AUTHENTICATION_FACTOR_TYPE_UNDEFINED;
+                AUTHENTICATION_FACTOR_UNDEFINED;
             cdi_descr[i].present_value.format_class = 0;
             octetstring_init(&cdi_descr[i].present_value.value, NULL, 0);
             cdi_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
