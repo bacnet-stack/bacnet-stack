@@ -54,8 +54,8 @@ static BACNET_LIFE_SAFETY_OPERATION
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
 static bool Life_Safety_Point_Out_Of_Service[MAX_LIFE_SAFETY_POINTS];
-/* These arrays are used by the ReadPropertyMultiple handler and
-   property-list property (as of protocol-revision 14) */
+
+/* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Life_Safety_Point_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,

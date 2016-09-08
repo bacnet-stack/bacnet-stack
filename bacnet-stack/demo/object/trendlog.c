@@ -1594,13 +1594,13 @@ static int local_read_property(
  * Attempt to fetch the logged property and store it in the Trend Log       *
  ****************************************************************************/
 
-static void TL_fetch_property(
+void TL_fetch_property(
     int iLog)
 {
     uint8_t ValueBuf[MAX_APDU]; /* This is a big buffer in case someone selects the device object list for example */
     uint8_t StatusBuf[3];       /* Should be tag, bits unused in last octet and 1 byte of data */
-    BACNET_ERROR_CLASS error_class = 0;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_OTHER;
     int iLen;
     uint8_t ucCount;
     TL_LOG_INFO *CurrentLog;

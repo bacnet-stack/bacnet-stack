@@ -100,10 +100,9 @@ void Analog_Value_Property_Lists(
 void Analog_Value_Init(
     void)
 {
-#if defined(INTRINSIC_REPORTING)
-	unsigned i, j;
-#else
 	unsigned i;
+#if defined(INTRINSIC_REPORTING)
+	unsigned j;
 #endif
 
     for (i = 0; i < MAX_ANALOG_VALUES; i++) {
@@ -247,7 +246,7 @@ int Analog_Value_Read_Property(
     ANALOG_VALUE_DESCR *CurrentAV;
 #if defined(INTRINSIC_REPORTING)
     int len = 0;
-    unsigned int i = 0;
+    unsigned i = 0;
 #endif
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
