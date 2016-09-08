@@ -81,17 +81,31 @@ static const int Life_Safety_Point_Properties_Proprietary[] = {
     -1
 };
 
+/**
+ * Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ *
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optkional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void Life_Safety_Point_Property_Lists(
     const int **pRequired,
     const int **pOptional,
     const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Life_Safety_Point_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Life_Safety_Point_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Life_Safety_Point_Properties_Proprietary;
+    }
 
     return;
 }

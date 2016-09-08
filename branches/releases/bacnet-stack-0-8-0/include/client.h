@@ -48,6 +48,12 @@ extern "C" {
 /* unconfirmed requests */
     void Send_I_Am(
         uint8_t * buffer);
+    void Send_I_Am_To_Network(
+        BACNET_ADDRESS * target_address,
+        uint32_t device_id,
+        unsigned int max_apdu,
+        int segmentation,
+        uint16_t vendor_id);
     int iam_encode_pdu(
         uint8_t * buffer,
         BACNET_ADDRESS * dest,
@@ -112,7 +118,11 @@ extern "C" {
         uint32_t device_id,
         BACNET_SUBSCRIBE_COV_DATA * cov_data);
 
-
+/* returns the invoke ID for confirmed request, or 0 if failed */
+    uint8_t Send_GetEvent(
+        BACNET_ADDRESS * target_address,
+        BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
+    uint8_t Send_GetEvent_Global(void);
 
 /* returns the invoke ID for confirmed request, or 0 if failed */
     uint8_t Send_Read_Property_Request_Address(

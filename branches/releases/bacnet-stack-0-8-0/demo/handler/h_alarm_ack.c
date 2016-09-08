@@ -40,6 +40,8 @@
 #include "abort.h"
 #include "alarm_ack.h"
 #include "handlers.h"
+#include "device.h"
+
 
 /** @file h_alarm_ack.c  Handles Alarm Acknowledgment. */
 
@@ -127,9 +129,14 @@ void handler_alarm_ack(
         data.ackSource.value, (unsigned long) data.ackProcessIdentifier);
 #endif
 
-
-    if (Alarm_Ack[data.eventObjectIdentifier.type]) {
-
+	if (!Device_Valid_Object_Id(data.eventObjectIdentifier.type, data.eventObjectIdentifier.instance))
+	{
+		len =
+			bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+				service_data->invoke_id,
+				SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, ERROR_CLASS_OBJECT, ERROR_CODE_UNKNOWN_OBJECT);
+	}
+    else if (Alarm_Ack[data.eventObjectIdentifier.type]) {
         ack_result =
             Alarm_Ack[data.eventObjectIdentifier.type] (&data, &error_code);
 

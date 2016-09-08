@@ -179,7 +179,7 @@ void handler_atomic_read_file(
     } else {
         error = true;
         error_class = ERROR_CLASS_SERVICES;
-        error_code = ERROR_CODE_FILE_ACCESS_DENIED;
+        error_code = ERROR_CODE_INCONSISTENT_OBJECT_TYPE;
     }
     if (error) {
         len =

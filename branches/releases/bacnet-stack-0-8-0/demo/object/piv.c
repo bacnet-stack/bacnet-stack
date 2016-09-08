@@ -248,6 +248,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
         case PROP_UNITS:
             apdu_len =
                 encode_application_enumerated(&apdu[0], CurrentAV->Units);
+			break;
 
         case PROP_OUT_OF_SERVICE:
             state = CurrentAV->Out_Of_Service;

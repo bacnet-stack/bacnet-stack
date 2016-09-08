@@ -54,7 +54,7 @@
 static uint8_t Analog_Output_Level[MAX_ANALOG_OUTPUTS][BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
-static bool Analog_Output_Out_Of_Service[MAX_ANALOG_OUTPUTS];
+static bool Out_Of_Service[MAX_ANALOG_OUTPUTS];
 
 /* we need to have our arrays initialized before answering any calls */
 static bool Analog_Output_Initialized = false;
@@ -268,6 +268,32 @@ bool Analog_Output_Object_Name(
     return status;
 }
 
+bool Analog_Output_Out_Of_Service(
+    uint32_t instance)
+{
+    unsigned index = 0;
+    bool oos_flag = false;
+
+    index = Analog_Output_Instance_To_Index(instance);
+    if (index < MAX_ANALOG_OUTPUTS) {
+        oos_flag = Out_Of_Service[index];
+    }
+
+    return oos_flag;
+}
+
+void Analog_Output_Out_Of_Service_Set(
+    uint32_t instance,
+    bool oos_flag)
+{
+    unsigned index = 0;
+
+    index = Analog_Output_Instance_To_Index(instance);
+    if (index < MAX_ANALOG_OUTPUTS) {
+        Out_Of_Service[index] = oos_flag;
+    }
+}
+
 /* return apdu len, or BACNET_STATUS_ERROR on error */
 int Analog_Output_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
@@ -312,7 +338,8 @@ int Analog_Output_Read_Property(
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
-            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
+            state = Analog_Output_Out_Of_Service(rpdata->object_instance);
+            bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE, state);
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
@@ -320,9 +347,7 @@ int Analog_Output_Read_Property(
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index =
-                Analog_Output_Instance_To_Index(rpdata->object_instance);
-            state = Analog_Output_Out_Of_Service[object_index];
+            state = Analog_Output_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_UNITS:
@@ -404,7 +429,6 @@ bool Analog_Output_Write_Property(
     BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
-    unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -450,9 +474,6 @@ bool Analog_Output_Write_Property(
                     WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
                     &wp_data->error_class, &wp_data->error_code);
                 if (status) {
-                    object_index =
-                        Analog_Output_Instance_To_Index
-                        (wp_data->object_instance);
                     status =
                         Analog_Output_Present_Value_Relinquish
                         (wp_data->object_instance, wp_data->priority);
@@ -468,10 +489,8 @@ bool Analog_Output_Write_Property(
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                object_index =
-                    Analog_Output_Instance_To_Index(wp_data->object_instance);
-                Analog_Output_Out_Of_Service[object_index] =
-                    value.type.Boolean;
+                Analog_Output_Out_Of_Service_Set(wp_data->object_instance,
+                    value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:

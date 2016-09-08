@@ -17,6 +17,7 @@ SRCS = lo.c \
 	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/indtext.c \
+	$(SRC_DIR)/lighting.c \
 	$(TEST_DIR)/ctest.c
 
 TARGET = lighting_output

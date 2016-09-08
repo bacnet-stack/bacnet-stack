@@ -374,12 +374,15 @@ void Analog_Input_Out_Of_Service_Set(
 
     index = Analog_Input_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_INPUTS) {
+        if (AI_Descr[index].Out_Of_Service != value) {
+            AI_Descr[index].Changed = true;
+        }
         AI_Descr[index].Out_Of_Service = value;
     }
 }
 
 /* return apdu length, or BACNET_STATUS_ERROR on error */
-/* assumption - object has already exists */
+/* assumption - object already exists */
 int Analog_Input_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
@@ -604,7 +607,7 @@ int Analog_Input_Read_Property(
 #endif
 
         case 9997:
-            /* test case for real encoding-decoding unsigned value correctly */
+            /* test case for real encoding-decoding real value correctly */
             apdu_len = encode_application_real(&apdu[0], 90.510F);
             break;
         case 9998:
