@@ -298,9 +298,11 @@ void dlenv_init(
     if (!datalink_init(getenv("BACNET_IFACE"))) {
         exit(1);
     }
+#if (MAX_TSM_TRANSACTIONS)
     pEnv = getenv("BACNET_INVOKE_ID");
     if (pEnv) {
         tsm_invokeID_set((uint8_t) strtol(pEnv, NULL, 0));
     }
+#endif
     dlenv_register_as_foreign_device();
 }
