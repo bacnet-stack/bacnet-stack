@@ -99,13 +99,12 @@ void apdu_handler(
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    uint16_t len = 0;   /* counts where we are in PDU */
 
     if (apdu) {
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                len = apdu_decode_confirmed_service_request(&apdu[0],   /* APDU data */
+                apdu_decode_confirmed_service_request(&apdu[0],   /* APDU data */
                     apdu_len, &service_data, &service_choice, &service_request,
                     &service_request_len);
                 if (service_choice == SERVICE_CONFIRMED_READ_PROPERTY) {
