@@ -71,8 +71,6 @@
 static volatile struct mstp_port_struct_t MSTP_Port;
 /* track the receive state to know when there is a broken packet */
 static MSTP_RECEIVE_STATE MSTP_Receive_State = MSTP_RECEIVE_STATE_IDLE;
-/* track the bytes that are incoming to know when to check for loss */
-static bool DataAvailable;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
@@ -687,7 +685,7 @@ static void write_received_packet(
     }
 }
 
-/* write packet to file in libpcap format */
+/* read header from file in libpcap format */
 static bool test_global_header(
     const char *filename)
 {
@@ -700,7 +698,7 @@ static bool test_global_header(
     uint32_t network = 0;       /* data link type - BACNET_MS_TP */
     size_t count = 0;
 
-    /* create a new file. */
+    /* open existing file. */
     pFile = fopen(filename, "rb");
     if (pFile) {
         count = fread(&magic_number, sizeof(magic_number), 1, pFile);
@@ -1176,7 +1174,6 @@ int main(
     /* run forever */
     for (;;) {
         RS485_Check_UART_Data(mstp_port);
-        DataAvailable = mstp_port->DataAvailable;
         MSTP_Receive_Frame_FSM(mstp_port);
         /* process the data portion of the frame */
         if (mstp_port->ReceivedValidFrame) {
@@ -1195,8 +1192,7 @@ int main(
             mstp_structure_init(mstp_port);
             Invalid_Frame_Count++;
             packet_count++;
-        } else if ((mstp_port->receive_state == MSTP_RECEIVE_STATE_IDLE) &&
-                (DataAvailable)) {
+        } else if (mstp_port->receive_state == MSTP_RECEIVE_STATE_IDLE) {
             if (MSTP_Receive_State == MSTP_RECEIVE_STATE_IDLE) {
                 if (mstp_port->EventCount) {
                     write_received_packet(mstp_port, 1);
