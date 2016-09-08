@@ -34,8 +34,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 3. Build
 -----------------------
 
-1. Download, build and install libconfig C/C++ Configuration File Library from http://www.hyperrealm.com/libconfig
-2. Set variable "BACNET_PORT" in library root diredory Makefile to linux
+1. Download, build and install libconfig C/C++ Configuration File Library 
+   from http://www.hyperrealm.com/libconfig or use APT to install
+   sudo apt-get install libconfig-dev
+2. Set variable "BACNET_PORT" in library root directory Makefile to linux
 3. Run "make clean all" from library root directory
 
 -----------------------

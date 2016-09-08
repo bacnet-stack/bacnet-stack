@@ -36,10 +36,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    void Binary_Value_Init(
+        void);
+
     void Binary_Value_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+
     bool Binary_Value_Valid_Instance(
         uint32_t object_instance);
     unsigned Binary_Value_Count(
@@ -48,6 +52,8 @@ extern "C" {
         unsigned index);
     unsigned Binary_Value_Instance_To_Index(
         uint32_t object_instance);
+    bool Binary_Value_Object_Instance_Add(
+        uint32_t instance);
 
     bool Binary_Value_Object_Name(
         uint32_t object_instance,
@@ -72,6 +78,12 @@ extern "C" {
     bool Binary_Value_Active_Text_Set(
         uint32_t instance,
         char *new_name);
+
+    int Binary_Value_Read_Property(
+        BACNET_READ_PROPERTY_DATA * rpdata);
+
+    bool Binary_Value_Write_Property(
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     bool Binary_Value_Encode_Value_List(
         uint32_t object_instance,
@@ -115,23 +127,12 @@ extern "C" {
     bool Binary_Value_Polarity_Set(
         uint32_t object_instance,
         BACNET_POLARITY polarity);
-
-    int Binary_Value_Read_Property(
-        BACNET_READ_PROPERTY_DATA * rpdata);
-
-    bool Binary_Value_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
-
     bool Binary_Value_Create(
         uint32_t object_instance);
     bool Binary_Value_Delete(
         uint32_t object_instance);
     void Binary_Value_Cleanup(
         void);
-    void Binary_Value_Init(
-        void);
-
-
 
 #ifdef TEST
 #include "ctest.h"

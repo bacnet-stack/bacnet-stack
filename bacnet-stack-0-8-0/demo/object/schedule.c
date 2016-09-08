@@ -150,6 +150,18 @@ bool Schedule_Object_Name(uint32_t object_instance,
     return status;
 }
 
+void Schedule_Out_Of_Service_Set(
+    uint32_t object_instance,
+    bool value)
+{
+    unsigned index = 0;
+
+    index = Schedule_Instance_To_Index(object_instance);
+    if (index < MAX_SCHEDULES) {
+        Schedule_Descr[index].Out_Of_Service = value;
+    }
+}
+
 int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;
@@ -191,9 +203,9 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
             apdu_len = bacapp_encode_data(&apdu[0], CurrentSC->Present_Value);
             break;
         case PROP_EFFECTIVE_PERIOD:
-            apdu_len = encode_bacnet_date(&apdu[0], &CurrentSC->Start_Date);
+            apdu_len = encode_application_date(&apdu[0], &CurrentSC->Start_Date);
             apdu_len +=
-                encode_bacnet_date(&apdu[apdu_len], &CurrentSC->End_Date);
+                encode_application_date(&apdu[apdu_len], &CurrentSC->End_Date);
             break;
         case PROP_WEEKLY_SCHEDULE:
             if (rpdata->array_index == 0)       /* count, always 7 */
@@ -255,7 +267,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 RELIABILITY_NO_FAULT_DETECTED);
             break;
         case PROP_OUT_OF_SERVICE:
-            apdu_len = encode_application_boolean(&apdu[0], false);
+            apdu_len = encode_application_boolean(&apdu[0], 
+                CurrentSC->Out_Of_Service);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -278,6 +291,20 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     unsigned object_index = 0;
     bool status = false;        /* return value */
+    int len ;
+    BACNET_APPLICATION_DATA_VALUE value;
+
+    /* decode the some of the request */
+    len =
+        bacapp_decode_application_data(wp_data->application_data,
+        wp_data->application_data_len, &value);
+    /* FIXME: len < application_data_len: more data? */
+    if (len < 0) {
+        /* error while decoding - a value larger than we can handle */
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        return false;
+    }
 
     object_index = Schedule_Instance_To_Index(wp_data->object_instance);
     if (object_index >= MAX_SCHEDULES) {
@@ -285,6 +312,16 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
     }
 
     switch ((int) wp_data->object_property) {
+        case PROP_OUT_OF_SERVICE:
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
+            if (status) {
+                Schedule_Out_Of_Service_Set(
+                    wp_data->object_instance,
+                    value.type.Boolean);
+            }
+            break;
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
         case PROP_OBJECT_TYPE:
@@ -296,7 +333,6 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
         case PROP_PRIORITY_FOR_WRITING:
         case PROP_STATUS_FLAGS:
         case PROP_RELIABILITY:
-        case PROP_OUT_OF_SERVICE:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
