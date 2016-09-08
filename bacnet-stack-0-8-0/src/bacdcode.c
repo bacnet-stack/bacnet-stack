@@ -414,7 +414,7 @@ int decode_tag_number_and_value(
     return len;
 }
 
-/* Same as function above, but will safely fail is packet has been truncated */
+/* Same as function above, but will safely fail if packet has been truncated */
 int decode_tag_number_and_value_safe(
     uint8_t * apdu,
     uint32_t apdu_len_remaining,
