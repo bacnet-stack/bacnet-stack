@@ -278,6 +278,7 @@ uint16_t create_network_message(
         case NETWORK_MESSAGE_ROUTER_AVAILABLE_TO_NETWORK:
         case NETWORK_MESSAGE_ESTABLISH_CONNECTION_TO_NETWORK:
         case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
+        default:
             /* hell if I know what to do with these messages */
             break;
     }
