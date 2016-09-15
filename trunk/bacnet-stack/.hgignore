@@ -21,7 +21,6 @@ syntax: glob
 *.ewd
 *.d
 *.r90
-*.r90
 *.s90
 *.pbi
 *.cap
