@@ -382,7 +382,7 @@ void Analog_Input_Out_Of_Service_Set(
 }
 
 /* return apdu length, or BACNET_STATUS_ERROR on error */
-/* assumption - object already exists */
+/* assumption - object has already exists */
 int Analog_Input_Read_Property(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
