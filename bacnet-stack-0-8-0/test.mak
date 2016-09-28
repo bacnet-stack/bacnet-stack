@@ -9,7 +9,7 @@
 
 LOGFILE = test.log
 
-all: abort address arf awf bacapp bacdcode bacerror bacint bacstr \
+all: abort address arf awf bvlc6 bacapp bacdcode bacerror bacint bacstr \
 	cov crc datetime dcc event filename fifo getevent iam ihave \
 	indtext keylist key memcopy npdu ptransfer bacdevobjpropref \
 	rd reject ringbuf rp rpm sbuf timesync \
@@ -70,6 +70,11 @@ bacstr: logfile test/bacstr.mak
 	$(MAKE) -s -C test -f bacstr.mak clean all
 	( ./test/bacstr >> ${LOGFILE} )
 	$(MAKE) -s -C test -f bacstr.mak clean
+
+bvlc6: logfile test/bvlc6.mak
+	$(MAKE) -s -C test -f bvlc6.mak clean all
+	( ./test/bvlc6 >> ${LOGFILE} )
+	$(MAKE) -s -C test -f bvlc6.mak clean
 
 cov: logfile test/cov.mak
 	$(MAKE) -s -C test -f cov.mak clean all
@@ -185,6 +190,11 @@ timesync: logfile test/timesync.mak
 	$(MAKE) -s -C test -f timesync.mak clean all
 	( ./test/timesync >> ${LOGFILE} )
 	$(MAKE) -s -C test -f timesync.mak clean
+
+vmac: logfile test/vmac.mak
+	$(MAKE) -s -C test -f vmac.mak clean all
+	( ./test/vmac >> ${LOGFILE} )
+	$(MAKE) -s -C test -f vmac.mak clean
 
 whohas: logfile test/whohas.mak
 	$(MAKE) -s -C test -f whohas.mak clean all

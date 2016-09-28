@@ -28,13 +28,33 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
+/* WindowsXP - minimum */
+#define _NTDDI_VERSION_FROM_WIN32_WINNT2(ver)    ver##0000
+#define _NTDDI_VERSION_FROM_WIN32_WINNT(ver)     _NTDDI_VERSION_FROM_WIN32_WINNT2(ver)
+
+#ifndef _WIN32_WINNT
+#  define _WIN32_WINNT 0x501
+#endif
+#ifndef NTDDI_VERSION
+#  define NTDDI_VERSION _NTDDI_VERSION_FROM_WIN32_WINNT(_WIN32_WINNT)
+#endif
 
 #include <windows.h>
 #if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
  (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
 #include <iphlpapi.h>
 #endif
+#include <windows.h>
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdlib.h>
+#include <stdio.h>
+#ifdef __MINGW32__
+#include <ws2spi.h>
+#else
+#include <wspiapi.h>
+#endif
+
 #include <sys/timeb.h>
 
 #ifdef _MSC_VER
