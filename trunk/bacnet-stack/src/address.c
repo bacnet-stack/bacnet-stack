@@ -457,7 +457,7 @@ bool address_get_by_device(
         if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
             (pMatch->device_id == device_id)) {
             if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {     /* If bound then fetch data */
-                *src = pMatch->address;
+                bacnet_address_copy(src, &pMatch->address);
                 *max_apdu = pMatch->max_apdu;
                 found = true;   /* Prove we found it */
             }
@@ -518,7 +518,7 @@ void address_add(
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
             (pMatch->device_id == device_id)) {
-            pMatch->address = *src;
+            bacnet_address_copy(&pMatch->address, src);
             pMatch->max_apdu = max_apdu;
 
             /* Pick the right time to live */
@@ -547,7 +547,7 @@ void address_add(
                 pMatch->Flags = BAC_ADDR_IN_USE;
                 pMatch->device_id = device_id;
                 pMatch->max_apdu = max_apdu;
-                pMatch->address = *src;
+                bacnet_address_copy(&pMatch->address, src);
                 pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;       /* Opportunistic entry so leave on short fuse */
                 found = true;
                 break;
@@ -563,7 +563,7 @@ void address_add(
             pMatch->Flags = BAC_ADDR_IN_USE;
             pMatch->device_id = device_id;
             pMatch->max_apdu = max_apdu;
-            pMatch->address = *src;
+            bacnet_address_copy(&pMatch->address, src);
             pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;   /* Opportunistic entry so leave on short fuse */
         }
     }
@@ -589,7 +589,7 @@ bool address_device_bind_request(
             if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {     /* Already bound */
                 found = true;
                 if (src) {
-                    *src = pMatch->address;
+                    bacnet_address_copy(src, &pMatch->address);
                 }
                 if (max_apdu) {
                     *max_apdu = pMatch->max_apdu;
@@ -655,7 +655,7 @@ void address_add_binding(
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
             (pMatch->device_id == device_id)) {
-            pMatch->address = *src;
+            bacnet_address_copy(&pMatch->address, src);
             pMatch->max_apdu = max_apdu;
             /* Clear bind request flag in case it was set */
             pMatch->Flags &= ~BAC_ADDR_BIND_REQ;
@@ -686,7 +686,7 @@ bool address_device_get_by_index(
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
             BAC_ADDR_IN_USE) {
             if (src) {
-                *src = pMatch->address;
+                bacnet_address_copy(src, &pMatch->address);
             }
             if (device_id) {
                 *device_id = pMatch->device_id;
