@@ -76,6 +76,8 @@ static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 /* method to tell main loop to exit from CTRL-C or other signals */
 static volatile bool Exit_Requested;
+/* flag to indicate Wireshark is running the show - no stdout or stderr */
+static bool Wireshark_Capture;
 
 /* statistics derived from monitoring the network for each node */
 struct mstp_statistics {
@@ -455,7 +457,9 @@ static HANDLE hPipe = INVALID_HANDLE_VALUE;     /* pipe handle */
 static void named_pipe_create(
     char *pipe_name)
 {
-    fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", pipe_name);
+    if (!Wireshark_Capture) {
+        fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", pipe_name);
+    }
     /* create the pipe */
     while (hPipe == INVALID_HANDLE_VALUE)
     {
@@ -606,7 +610,9 @@ static void write_global_header(
         (void) data_write_header(&snaplen, sizeof(snaplen), 1, pipe_enable);
         (void) data_write_header(&network, sizeof(network), 1, pipe_enable);
         fflush(pFile);
-        fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
+        if (!Wireshark_Capture) {
+            fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
+        }
     } else {
         fprintf(stderr, "mstpcap[header]: failed to open %s: %s\n", filename,
             strerror(errno));
@@ -885,7 +891,9 @@ static bool read_received_packet(
 static void cleanup(
     void)
 {
-    packet_statistics_print();
+    if (!Wireshark_Capture) {
+        packet_statistics_print();
+    }
     if (pFile) {
         fflush(pFile);  /* stream pointer */
         fclose(pFile);  /* stream pointer */
@@ -1045,7 +1053,7 @@ int main(
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("mstpcap %s\n", BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2011 by Steve Karg\n"
+            printf("Copyright (C) 2011-2016 by Steve Karg\n"
                 "This is free software; see the source for copying conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
@@ -1103,6 +1111,7 @@ int main(
         }
         if (strcmp(argv[argi], "--capture") == 0) {
             /* do nothing - fall through and start running! */
+            Wireshark_Capture = true;
         }
         if (strcmp(argv[argi], "--extcap-interface") == 0) {
             argi++;
@@ -1162,8 +1171,10 @@ int main(
     atexit(cleanup);
     RS485_Initialize();
     timer_init();
-    fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
-        RS485_Interface(), (long) RS485_Get_Baud_Rate());
+    if (!Wireshark_Capture) {
+        fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
+            RS485_Interface(), (long) RS485_Get_Baud_Rate());
+    }
 #if defined(_WIN32)
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
@@ -1215,15 +1226,17 @@ int main(
                 Invalid_Frame_Count++;
             }
         }
-        if (!(packet_count % 100)) {
-            fprintf(stdout, "\r%hu packets, %hu invalid frames", packet_count,
-                Invalid_Frame_Count);
-        }
-        if (packet_count >= 65535) {
-            packet_statistics_print();
-            packet_statistics_clear();
-            filename_create_new();
-            packet_count = 0;
+        if (!Wireshark_Capture) {
+            if (!(packet_count % 100)) {
+                fprintf(stdout, "\r%hu packets, %hu invalid frames", packet_count,
+                    Invalid_Frame_Count);
+            }
+            if (packet_count >= 65535) {
+                packet_statistics_print();
+                packet_statistics_clear();
+                filename_create_new();
+                packet_count = 0;
+            }
         }
         if (Exit_Requested) {
             break;
