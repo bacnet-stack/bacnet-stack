@@ -409,6 +409,38 @@ typedef enum {
     PROP_POWER = 384,
     PROP_TRANSITION = 385,
     PROP_EGRESS_ACTIVE = 386,
+	/* enumerations 399-427 are defined in Addendum 2012-ai */
+    PROP_APDU_LENGTH = 399,
+    PROP_IP_ADDRESS = 400,
+    PROP_IP_DEFAULT_GATEWAY = 401,
+    PROP_IP_DHCP_ENABLE = 402,
+    PROP_IP_DHCP_LEASE_TIME = 403,
+    PROP_IP_DHCP_LEASE_TIME_REMAINING = 404,
+    PROP_IP_DHCP_SERVER = 405,
+    PROP_IP_DNS_SERVER = 406,
+    PROP_BACNET_IP_GLOBAL_ADDRESS = 407,
+    PROP_BACNET_IP_MODE = 408,
+    PROP_BACNET_IP_MULTICAST_ADDRESS = 409,
+    PROP_BACNET_IP_NAT_TRAVERSAL = 410,
+    PROP_IP_SUBNET_MASK = 411,
+    PROP_BACNET_IP_UDP_PORT = 412,
+    PROP_BBMD_ACCEPT_FD_REGISTRATIONS = 413,
+    PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE = 414,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE = 415,
+	PROP_CHANGES_PENDING = 416,
+    PROP_COMMAND = 417,
+    PROP_FD_BBMD_ADDRESS = 418,
+    PROP_FD_SUBSCRIPTION_LIFETIME = 419,
+	PROP_LINK_SPEED = 420,
+	PROP_LINK_SPEEDS = 421,
+    PROP_LINK_SPEED_AUTONEGOTIATE = 422,
+	PROP_MAC_ADDRESS = 423,
+    PROP_NETWORK_INTERFACE_NAME = 424,
+	PROP_NETWORK_NUMBER = 425,
+	PROP_NETWORK_NUMBER_QUALITY = 426,
+	PROP_NETWORK_TYPE = 427,
+    PROP_ROUTING_TABLE = 428,
+    PROP_VIRTUAL_MAC_ADDRESS_TABLE = 429,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
@@ -2158,5 +2190,55 @@ typedef enum {
     AUTHENTICATION_FACTOR_USER_PASSWORD = 24,
     AUTHENTICATION_FACTOR_MAX = 25
 } BACNET_AUTHENTICATION_FACTOR_TYPE;
+
+typedef enum {
+    NETWORK_TYPE_ETHERNET = 0,
+    NETWORK_TYPE_ARCNET = 1,
+    NETWORK_TYPE_MSTP = 2,
+    NETWORK_TYPE_PTP = 3,
+    NETWORK_TYPE_LONTALK = 4,
+    NETWORK_TYPE_BACNET_IPV4 = 5,
+    NETWORK_TYPE_ZIGBEE = 6,
+    NETWORK_TYPE_VIRTUAL = 7,
+    /* (8), removed in version 1 revision 18 */
+    NETWORK_TYPE_BACNET_IPV6 = 9,
+    NETWORK_TYPE_SERIAL = 10,
+/* Enumerated values 0-63 are reserved for definition by ASHRAE.
+   Enumerated values 64-255 may be used by others subject to the
+   procedures and constraints described in Clause 23. */
+    /* do the max range inside of enum so that
+       compilers will allocate adequate sized datatype for enum
+       which is used to store decoding */
+    NETWORK_TYPE_PROPRIETARY_MIN = 64,
+    NETWORK_TYPE_PROPRIETARY_MAX = 255
+} BACNET_NETWORK_TYPE;
+
+/* Network Number Quality, Addendum 135-2012az */
+typedef enum {
+    NETWORK_NUMBER_QUALITIY_UNKNOWN = 0,
+    NETWORK_NUMBER_QUALITIY_LEARNED = 1,
+    NETWORK_NUMBER_QUALITIY_LEARNED_CONFIGURED = 2,
+    NETWORK_NUMBER_QUALITIY_CONFIGURED = 3
+} BACNET_NETWORK_NUMBER_QUALITY;
+
+typedef enum BACnetNetworkPortCommand_T {
+    NETWORK_PORT_COMMAND_IDLE = 0,
+    NETWORK_PORT_COMMAND_DISCARD_CHANGES = 1,
+    NETWORK_PORT_COMMAND_RENEW_FD_REGISTRATION = 2,
+    NETWORK_PORT_COMMAND_RESTART_SLAVE_DISCOVERY = 3,
+    NETWORK_PORT_COMMAND_RENEW_DHCP = 4,
+    NETWORK_PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
+    NETWORK_PORT_COMMAND_DISCONNECT = 6,
+    NETWORK_PORT_COMMAND_RESTART_PORT = 7,
+    /* Enumerated values 0-127 are reserved for definition 
+       by ASHRAE. Enumerated values 128-255 may be used 
+       by others subject to the procedures and constraints 
+       described in Clause 23.*/
+    /* do the max range inside of enum so that
+       compilers will allocate adequate sized datatype for enum
+       which is used to store decoding */
+    NETWORK_PORT_COMMAND_PROPRIETARY_MIN = 128,
+    NETWORK_PORT_COMMAND_PROPRIETARY_MAX = 255
+} BACNET_NETWORK_PORT_COMMAND;
 
 #endif /* end of BACENUM_H */
