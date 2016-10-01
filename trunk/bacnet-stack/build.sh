@@ -14,6 +14,8 @@ make BACNET_PORT=win32 BUILD=release clean all > /dev/null
 
 # Build for MinGW MS/TP
 # make BACNET_PORT=win32 BACDL_DEFINE=-DBACDL_MSTP=1 clean all
+# make BACNET_PORT=win32 BACDL_DEFINE=-DBACDL_BIP6=1 clean all
+# make BACDL_DEFINE=-DBACDL_BIP6=1 BUILD=debug clean all
 
 # On Linux, install mingw32 and use this:
 # make BACNET_PORT=win32 CC=i586-mingw32msvc-gcc AR=i586-mingw32msvc-ar clean all

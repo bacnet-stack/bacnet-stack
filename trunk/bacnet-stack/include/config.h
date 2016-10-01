@@ -30,11 +30,13 @@
 
 /* declare a single physical layer using your compiler define.
    see datalink.h for possible defines. */
-#if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_TEST) || defined(BACDL_ALL))
+#if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || \
+    defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_BIP6) || \
+    defined(BACDL_TEST) || defined(BACDL_ALL))
 #define BACDL_BIP
 #endif
 
-/* optional configuration for BACnet/IP datalink layers */
+/* optional configuration for BACnet/IP datalink layer */
 #if (defined(BACDL_BIP) || defined(BACDL_ALL))
 /* other BIP defines (define as 1 to enable):
     USE_INADDR - uses INADDR_BROADCAST for broadcast and binds using INADDR_ANY
@@ -42,6 +44,13 @@
 */
 #if !defined(BBMD_ENABLED)
 #define BBMD_ENABLED 1
+#endif
+#endif
+
+/* optional configuration for BACnet/IPv6 datalink layer */
+#if defined(BACDL_BIP6)
+#if !defined(BBMD6_ENABLED)
+#define BBMD6_ENABLED 0
 #endif
 #endif
 
@@ -80,8 +89,10 @@
     /* #define MAX_APDU 1476 */
 #if defined(BACDL_BIP)
 #define MAX_APDU 1476
-
-/* #define MAX_APDU 128 enable this IP for testing readrange so you get the More Follows flag set */
+/* #define MAX_APDU 128 enable this IP for testing
+   readrange so you get the More Follows flag set */
+#elif defined(BACDL_BIP6)
+#define MAX_APDU 1476
 #elif defined (BACDL_ETHERNET)
 #if defined(BACNET_SECURITY)
 #define MAX_APDU 1420

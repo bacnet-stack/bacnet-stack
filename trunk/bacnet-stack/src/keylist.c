@@ -325,7 +325,7 @@ int Keylist_Index(
 }
 
 
-/* returns the data specified by key */
+/* returns the data specified by index */
 void *Keylist_Data_Index(
     OS_Keylist list,
     int index)

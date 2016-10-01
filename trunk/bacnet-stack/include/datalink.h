@@ -79,6 +79,17 @@ extern void routed_get_my_address(
 #define datalink_get_my_address bip_get_my_address
 #endif
 
+#elif defined(BACDL_BIP6)
+#include "bip6.h"
+#include "bvlc6.h"
+#define datalink_init bip6_init
+#define datalink_send_pdu bip6_send_pdu
+#define datalink_receive bip6_receive
+#define datalink_cleanup bip6_cleanup
+#define datalink_get_broadcast_address bip6_get_broadcast_address
+#define datalink_get_my_address bip6_get_my_address
+
+
 #else /* Ie, BACDL_ALL */
 #include "npdu.h"
 
