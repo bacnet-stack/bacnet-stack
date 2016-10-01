@@ -163,22 +163,24 @@ PORT_BIP_SRC = \
 	$(BACNET_CORE)/bvlc.c \
 	$(BACNET_CORE)/bip.c
 
+PORT_BIP6_SRC = \
+	$(BACNET_HANDLER)/h_bbmd6.c \
+	$(BACNET_PORT_DIR)/bip6.c \
+	$(BACNET_CORE)/vmac.c \
+	$(BACNET_CORE)/bvlc6.c
+
 PORT_ALL_SRC = \
-	$(BACNET_PORT_DIR)/arcnet.c \
-	$(BACNET_PORT_DIR)/dlmstp.c \
-	$(BACNET_PORT_DIR)/rs485.c \
-	$(BACNET_PORT_DIR)/timer.c \
-	$(BACNET_CORE)/ringbuf.c \
-	$(BACNET_CORE)/fifo.c \
-	$(BACNET_CORE)/mstp.c \
-	$(BACNET_CORE)/crc.c \
-	$(BACNET_PORT_DIR)/ethernet.c \
-	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_CORE)/bvlc.c \
-	$(BACNET_CORE)/bip.c
+	$(PORT_ARCNET_SRC) \
+	$(PORT_MSTP_SRC) \
+	$(PORT_ETHERNET_SRC) \
+	$(PORT_BIP_SRC) \
+	$(PORT_BIP6_SRC)
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 PORT_SRC = ${PORT_BIP_SRC}
+endif
+ifeq (${BACDL_DEFINE},-DBACDL_BIP6=1)
+PORT_SRC = ${PORT_BIP6_SRC}
 endif
 ifeq (${BACDL_DEFINE},-DBACDL_MSTP=1)
 PORT_SRC = ${PORT_MSTP_SRC}

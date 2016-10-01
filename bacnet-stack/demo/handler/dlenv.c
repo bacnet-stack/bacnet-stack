@@ -226,6 +226,10 @@ void dlenv_maintenance_timer(
  *   - BACNET_MAX_MASTER
  *   - BACNET_MSTP_BAUD
  *   - BACNET_MSTP_MAC
+ * - BACDL_BIP6: (BACnet/IPv6)
+ *   - BACNET_BIP6_PORT - UDP/IP port number (0..65534) used for BACnet/IPv6
+ *     communications.  Default is 47808 (0xBAC0).
+ *   - BACNET_BIP6_BROADCAST - FF05::BAC0 or FF02::BAC0 or ...
  */
 void dlenv_init(
     void)
@@ -238,6 +242,27 @@ void dlenv_init(
         datalink_set(pEnv);
     } else {
         datalink_set(NULL);
+    }
+#endif
+#if defined(BACDL_BIP6)
+    BACNET_IP6_ADDRESS addr;
+    pEnv = getenv("BACNET_BIP6_BROADCAST");
+    if (pEnv) {
+        bvlc6_address_set(&addr,
+                (uint16_t) strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0, 0,
+                BIP6_MULTICAST_GROUP_ID);
+        bip6_set_broadcast_addr(&addr);
+    } else {
+        bvlc6_address_set(&addr,
+                BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
+                BIP6_MULTICAST_GROUP_ID);
+        bip6_set_broadcast_addr(&addr);
+    }
+    pEnv = getenv("BACNET_BIP6_PORT");
+    if (pEnv) {
+        bip6_set_port((uint16_t) strtol(pEnv, NULL, 0));
+    } else {
+        bip6_set_port(0xBAC0);
     }
 #endif
 #if defined(BACDL_BIP)
@@ -295,6 +320,7 @@ void dlenv_init(
     if (pEnv) {
         apdu_retries_set((uint8_t) strtol(pEnv, NULL, 0));
     }
+    /* === Initialize the Datalink Here === */
     if (!datalink_init(getenv("BACNET_IFACE"))) {
         exit(1);
     }

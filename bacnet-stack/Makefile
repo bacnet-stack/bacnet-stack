@@ -96,6 +96,9 @@ error:
 router: library
 	$(MAKE) -s -C demo router
 
+router-ipv6:
+	$(MAKE) -B -s -C demo router-ipv6
+
 # Add "ports" to the build, if desired
 ports:	atmega168 bdk-atxx4-mstp at91sam7s
 	@echo "Built the ARM7 and AVR ports"
@@ -116,4 +119,5 @@ clean:
 	$(MAKE) -s -C lib clean
 	$(MAKE) -s -C demo clean
 	$(MAKE) -s -C demo/router clean
+	$(MAKE) -s -C demo/router-ipv6 clean
 	$(MAKE) -s -C demo/gateway clean
