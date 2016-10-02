@@ -38,6 +38,7 @@
 #include <stdbool.h>    /* for the standard bool type. */
 #include "bacdcode.h"
 #include "config.h"
+#include "device.h"
 #include "bip6.h"
 #include "net.h"
 
@@ -52,6 +53,29 @@ void bip6_set_interface(
     char *ifname)
 {
 
+}
+
+/**
+ * Set the BACnet IPv6 UDP port number
+ *
+ * @param port - IPv6 UDP port number
+ */
+void bip6_set_port(
+    uint16_t port)
+{
+    BIP6_Addr.port = port;
+    BIP6_Broadcast_Addr.port = port;
+}
+
+/**
+ * Get the BACnet IPv6 UDP port number
+ *
+ * @return IPv6 UDP port number
+ */
+uint16_t bip6_get_port(
+    void)
+{
+    return BIP6_Addr.port;
 }
 
 /**
@@ -298,11 +322,11 @@ bool bip6_init(
     char *ifname)
 {
     WSADATA wd;
-    int i, NumSocks, RetVal, FromLen, AmountRead;
-    SOCKADDR_STORAGE From;
-    ADDRINFO Hints, *AddrInfo, *AI;
+    int i, RetVal;
+    struct addrinfo Hints, *AddrInfo, *AI;
     SOCKET ServSock[FD_SETSIZE];
-    fd_set SockSet;
+    char port[6] = "";
+    int sockopt = 0;
 
     // Ask for Winsock version 2.2.
     if ((RetVal = WSAStartup(MAKEWORD(2, 2), &wd)) != 0) {
@@ -322,7 +346,8 @@ bool bip6_init(
     Hints.ai_family = PF_INET6;
     Hints.ai_socktype = SOCK_DGRAM;
     Hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
-    RetVal = getaddrinfo(ifname, BIP6_Addr.port, &Hints, &AddrInfo);
+    snprintf(port, sizeof(port), "%u", BIP6_Addr.port);
+    RetVal = getaddrinfo(ifname, &port[0], &Hints, &AddrInfo);
     if (RetVal != 0) {
         fprintf(stderr, "getaddrinfo failed with error %d: %s\n",
                 RetVal, gai_strerror(RetVal));
@@ -359,9 +384,8 @@ bool bip6_init(
             continue;
         }
         if ((AI->ai_family == PF_INET6) &&
-            IN6_IS_ADDR_LINKLOCAL((IN6_ADDR *) INETADDR_ADDRESS(AI->ai_addr)) &&
-            (((SOCKADDR_IN6 *) (AI->ai_addr))->sin6_scope_id == 0)
-            ) {
+            IN6_IS_ADDR_LINKLOCAL(AI->ai_addr) &&
+            (((SOCKADDR_IN6 *) (AI->ai_addr))->sin6_scope_id == 0)) {
             fprintf(stderr,
                     "IPv6 link local addresses should specify a scope ID!\n");
         }
@@ -369,7 +393,7 @@ bool bip6_init(
         /* This makes sure that the src port is correct when sending */
         sockopt = 1;
         RetVal =
-            setsockopt(BIP6_Socket, SOL_SOCKET, SO_REUSEADDR, &sockopt,
+            setsockopt(BIP6_Socket, SOL_SOCKET, SO_REUSEADDR, (char *)&sockopt,
             sizeof(sockopt));
         if (RetVal < 0) {
             closesocket(BIP6_Socket);

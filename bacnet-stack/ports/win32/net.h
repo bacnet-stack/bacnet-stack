@@ -28,16 +28,8 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
-/* WindowsXP - minimum */
-#define _NTDDI_VERSION_FROM_WIN32_WINNT2(ver)    ver##0000
-#define _NTDDI_VERSION_FROM_WIN32_WINNT(ver)     _NTDDI_VERSION_FROM_WIN32_WINNT2(ver)
-
-#ifndef _WIN32_WINNT
-#  define _WIN32_WINNT 0x501
-#endif
-#ifndef NTDDI_VERSION
-#  define NTDDI_VERSION _NTDDI_VERSION_FROM_WIN32_WINNT(_WIN32_WINNT)
-#endif
+/* Windows XP minimum */
+#define _WIN32_WINNT 0x501
 
 #include <windows.h>
 #if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
@@ -47,6 +39,11 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#ifndef IPPROTO_IPV6
+   // If the version of winsock does not by default include IPV6 then
+   // use the tech preview if it is avaliable.
+   #include <tpipv6.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef __MINGW32__
