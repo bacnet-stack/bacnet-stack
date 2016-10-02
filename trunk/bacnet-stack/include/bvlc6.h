@@ -204,18 +204,18 @@ extern "C" {
         BACNET_ADDRESS * addr,
         uint32_t *device_id);
 
-    int bvlc6_encode_header(
-        uint8_t * pdu,
-        uint16_t pdu_size,
-        uint8_t message_type,
-        uint16_t length);
-    int bvlc6_decode_header(
-        uint8_t * pdu,
-        uint16_t pdu_len,
-        uint8_t * message_type,
-        uint16_t * length);
+   int bvlc6_encode_header(
+       uint8_t * pdu,
+       uint16_t pdu_size,
+       uint8_t message_type,
+       uint16_t length);
+   int bvlc6_decode_header(
+       uint8_t * pdu,
+       uint16_t pdu_len,
+       uint8_t * message_type,
+       uint16_t * length);
 
-    int bvlc6_encode_result(
+   int bvlc6_encode_result(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac,
@@ -226,13 +226,13 @@ extern "C" {
         uint32_t * vmac,
         uint16_t * result_code);
 
-    int bvlc6_encode_original_unicast(
-        uint8_t * pdu,
-        uint16_t pdu_size,
-        uint32_t vmac_src,
-        uint32_t vmac_dst,
-        uint8_t * npdu,
-        uint16_t npdu_len);
+   int bvlc6_encode_original_unicast(
+       uint8_t * pdu,
+       uint16_t pdu_size,
+       uint32_t vmac_src,
+       uint32_t vmac_dst,
+       uint8_t * npdu,
+       uint16_t npdu_len);
     int bvlc6_decode_original_unicast(
         uint8_t * pdu,
         uint16_t pdu_len,
