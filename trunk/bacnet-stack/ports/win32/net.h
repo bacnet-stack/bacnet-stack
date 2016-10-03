@@ -29,6 +29,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 /* Windows XP minimum */
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x501
 
 #include <windows.h>

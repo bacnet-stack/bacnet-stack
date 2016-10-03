@@ -38,6 +38,7 @@
 #include <stdbool.h>    /* for the standard bool type. */
 #include "bacdcode.h"
 #include "config.h"
+#include "debug.h"
 #include "device.h"
 #include "bip6.h"
 #include "net.h"
@@ -48,11 +49,177 @@ static SOCKET BIP6_Socket = INVALID_SOCKET;
 static BACNET_IP6_ADDRESS BIP6_Addr;
 static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
 
+static void debug_print_ipv6(const char *str, const struct in6_addr * addr) {
+   debug_printf( "BIP6: %s %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+        str,
+        (int)addr->s6_addr[0], (int)addr->s6_addr[1],
+        (int)addr->s6_addr[2], (int)addr->s6_addr[3],
+        (int)addr->s6_addr[4], (int)addr->s6_addr[5],
+        (int)addr->s6_addr[6], (int)addr->s6_addr[7],
+        (int)addr->s6_addr[8], (int)addr->s6_addr[9],
+        (int)addr->s6_addr[10], (int)addr->s6_addr[11],
+        (int)addr->s6_addr[12], (int)addr->s6_addr[13],
+        (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
+}
+
+static LPSTR PrintError(int ErrorCode)
+{
+    static char Message[1024];
+
+    // If this program was multithreaded, we'd want to use
+    // FORMAT_MESSAGE_ALLOCATE_BUFFER instead of a static buffer here.
+    // (And of course, free the buffer when we were done with it)
+
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
+                  FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, ErrorCode,
+                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                  (LPSTR) Message, 1024, NULL);
+    return Message;
+}
+
 /* on Windows, ifname is the IPv6 address of the interface */
 void bip6_set_interface(
     char *ifname)
 {
+    int i, RetVal;
+    struct addrinfo Hints, *AddrInfo, *AI;
+    struct sockaddr_in6* sin;
+    struct sockaddr_in6 server;
+    struct in6_addr broadcast_address;
+    struct ipv6_mreq join_request;
+    SOCKET ServSock[FD_SETSIZE];
+    char port[6] = "";
+    int sockopt = 0;
 
+    // By setting the AI_PASSIVE flag in the hints to getaddrinfo, we're
+    // indicating that we intend to use the resulting address(es) to bind
+    // to a socket(s) for accepting incoming connections.  This means that
+    // when the Address parameter is NULL, getaddrinfo will return one
+    // entry per allowed protocol family containing the unspecified address
+    // for that family.
+    //
+    memset(&Hints, 0, sizeof (Hints));
+    Hints.ai_family = PF_INET6;
+    Hints.ai_socktype = SOCK_DGRAM;
+    Hints.ai_protocol = IPPROTO_UDP;
+    Hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
+    snprintf(port, sizeof(port), "%u", BIP6_Addr.port);
+    debug_printf("BIP6: getaddrinfo - IPv6 address %s port %s\n", ifname, port);
+    RetVal = getaddrinfo(ifname, &port[0], &Hints, &AddrInfo);
+    if (RetVal != 0) {
+        fprintf(stderr, "BIP6: getaddrinfo failed with error %d: %s\n",
+                RetVal, gai_strerror(RetVal));
+        WSACleanup();
+        return;
+    }
+    //
+    // Find the first matching address getaddrinfo returned so that
+    // we can create a new socket and bind that address to it,
+    // and create a queue to listen on.
+    //
+    for (i = 0, AI = AddrInfo; AI != NULL; AI = AI->ai_next) {
+        // Highly unlikely, but check anyway.
+        if (i == FD_SETSIZE) {
+            fprintf(stderr,
+                "BIP6: getaddrinfo returned more addresses than we could use.\n");
+            break;
+        }
+        // only support PF_INET6.
+        if (AI->ai_family != PF_INET6) {
+            continue;
+        }
+        // only support SOCK_DGRAM.
+        if (AI->ai_socktype != SOCK_DGRAM) {
+            continue;
+        }
+        // only support IPPROTO_UDP.
+        if (AI->ai_protocol != IPPROTO_UDP) {
+            continue;
+        }
+        BIP6_Socket = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+        if (BIP6_Socket == INVALID_SOCKET) {
+            fprintf(stderr, "BIP6: socket() failed with error %d: %s\n",
+                    WSAGetLastError(), PrintError(WSAGetLastError()));
+            continue;
+        }
+        if ((AI->ai_family == PF_INET6) &&
+            IN6_IS_ADDR_LINKLOCAL(AI->ai_addr) &&
+            (((SOCKADDR_IN6 *) (AI->ai_addr))->sin6_scope_id == 0)) {
+            fprintf(stderr,
+                    "BIP6: IPv6 link local addresses needs a scope ID!\n");
+        }
+        /* Allow us to use the same socket for sending and receiving */
+        /* This makes sure that the src port is correct when sending */
+        sockopt = 1;
+        RetVal =
+            setsockopt(BIP6_Socket, SOL_SOCKET, SO_REUSEADDR,
+            (char *)&sockopt, sizeof(sockopt));
+        if (RetVal < 0) {
+            closesocket(BIP6_Socket);
+            BIP6_Socket = INVALID_SOCKET;
+            continue;
+        }
+        /* allow us to send a broadcast */
+        RetVal =
+            setsockopt(BIP6_Socket, SOL_SOCKET, SO_BROADCAST,
+            (char *)&sockopt, sizeof(sockopt));
+        if (RetVal < 0) {
+            closesocket(BIP6_Socket);
+            BIP6_Socket = INVALID_SOCKET;
+            fprintf(stderr, "BIP6: setsockopt(SO_BROADCAST) failed "
+                "with error %d: %s\n",
+                WSAGetLastError(), PrintError(WSAGetLastError()));
+            continue;
+        }
+        /* subscribe to a multicast address */
+        memcpy(&broadcast_address.s6_addr[0], &BIP6_Broadcast_Addr.address[0],
+            IP6_ADDRESS_MAX);
+        memcpy(&join_request.ipv6mr_multiaddr, &broadcast_address,
+            sizeof(struct in6_addr));
+        /* Let system choose the interface */
+        join_request.ipv6mr_interface = 0;
+        RetVal = setsockopt(BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP,
+            (char *)&join_request, sizeof(join_request));
+        if (RetVal < 0) {
+            fprintf(stderr, "BIP6: setsockopt(IPV6_JOIN_GROUP) failed "
+                "with error %d: %s\n",
+                WSAGetLastError(), PrintError(WSAGetLastError()));
+        }
+        //
+        // bind() associates a local address and port combination
+        // with the socket just created. This is most useful when
+        // the application is a server that has a well-known port
+        // that clients know about in advance.
+        //
+        memset(&server, 0, sizeof(server));
+        server.sin6_family = PF_INET6;
+        server.sin6_port = htons(BIP6_Addr.port);
+        server.sin6_addr = in6addr_any;
+        if (bind(BIP6_Socket, (struct sockaddr *) &server, sizeof(server)) ==
+            SOCKET_ERROR) {
+            fprintf(stderr, "BIP6: bind() failed with error %d: %s\n",
+                    WSAGetLastError(), PrintError(WSAGetLastError()));
+            closesocket(ServSock[i]);
+            continue;
+        } else {
+            sin = (struct sockaddr_in6*)AI->ai_addr;
+            bvlc6_address_set(&BIP6_Addr,
+                ntohs(sin->sin6_addr.s6_addr16[0]),
+                ntohs(sin->sin6_addr.s6_addr16[1]),
+                ntohs(sin->sin6_addr.s6_addr16[2]),
+                ntohs(sin->sin6_addr.s6_addr16[3]),
+                ntohs(sin->sin6_addr.s6_addr16[4]),
+                ntohs(sin->sin6_addr.s6_addr16[5]),
+                ntohs(sin->sin6_addr.s6_addr16[6]),
+                ntohs(sin->sin6_addr.s6_addr16[7]));
+            /* https://msdn.microsoft.com/en-us/library/windows/desktop/ms740496(v=vs.85).aspx */
+        }
+        i++;
+        if (BIP6_Socket != INVALID_SOCKET) {
+            break;
+        }
+    }
+    freeaddrinfo(AddrInfo);
 }
 
 /**
@@ -171,6 +338,7 @@ int bip6_send_mpdu(
     uint16_t mtu_len)
 {
     struct sockaddr_in6 bvlc_dest = { 0 };
+    uint16_t addr16[8];
 
     /* assumes that the driver has already been initialized */
     if (BIP6_Socket < 0) {
@@ -178,8 +346,18 @@ int bip6_send_mpdu(
     }
     /* load destination IP address */
     bvlc_dest.sin6_family = AF_INET6;
-    memcpy(&bvlc_dest.sin6_addr, &dest->address[0], IP6_ADDRESS_MAX);
-    bvlc_dest.sin6_port = dest->port;
+    bvlc6_address_get(dest, &addr16[0], &addr16[1], &addr16[2], &addr16[3],
+        &addr16[4], &addr16[5], &addr16[6], &addr16[7]);
+    bvlc_dest.sin6_addr.s6_addr16[0] = htons(addr16[0]);
+    bvlc_dest.sin6_addr.s6_addr16[1] = htons(addr16[1]);
+    bvlc_dest.sin6_addr.s6_addr16[2] = htons(addr16[2]);
+    bvlc_dest.sin6_addr.s6_addr16[3] = htons(addr16[3]);
+    bvlc_dest.sin6_addr.s6_addr16[4] = htons(addr16[4]);
+    bvlc_dest.sin6_addr.s6_addr16[5] = htons(addr16[5]);
+    bvlc_dest.sin6_addr.s6_addr16[6] = htons(addr16[6]);
+    bvlc_dest.sin6_addr.s6_addr16[7] = htons(addr16[7]);
+    bvlc_dest.sin6_port = htons(dest->port);
+    debug_print_ipv6("BIP6: Sending MPDU->", &bvlc_dest.sin6_addr);
     /* Send the packet */
     return sendto(BIP6_Socket, (char *) mtu, mtu_len, 0,
         (struct sockaddr *) &bvlc_dest, sizeof(bvlc_dest));
@@ -284,21 +462,6 @@ void bip6_cleanup(
     return;
 }
 
-static LPSTR PrintError(int ErrorCode)
-{
-    static char Message[1024];
-
-    // If this program was multithreaded, we'd want to use
-    // FORMAT_MESSAGE_ALLOCATE_BUFFER instead of a static buffer here.
-    // (And of course, free the buffer when we were done with it)
-
-    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-                  FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, ErrorCode,
-                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                  (LPSTR) Message, 1024, NULL);
-    return Message;
-}
-
 /** Initialize the BACnet/IP services at the given interface.
  * @ingroup DLBIP6
  * -# Gets the local IP address and local broadcast address from the system,
@@ -322,109 +485,29 @@ bool bip6_init(
     char *ifname)
 {
     WSADATA wd;
-    int i, RetVal;
-    struct addrinfo Hints, *AddrInfo, *AI;
-    SOCKET ServSock[FD_SETSIZE];
-    char port[6] = "";
-    int sockopt = 0;
+    int RetVal;
 
     // Ask for Winsock version 2.2.
     if ((RetVal = WSAStartup(MAKEWORD(2, 2), &wd)) != 0) {
-        fprintf(stderr, "WSAStartup failed with error %d: %s\n",
+        fprintf(stderr, "BIP6: WSAStartup failed with error %d: %s\n",
                 RetVal, PrintError(RetVal));
         WSACleanup();
-        return -1;
+        exit(1);
     }
-    // By setting the AI_PASSIVE flag in the hints to getaddrinfo, we're
-    // indicating that we intend to use the resulting address(es) to bind
-    // to a socket(s) for accepting incoming connections.  This means that
-    // when the Address parameter is NULL, getaddrinfo will return one
-    // entry per allowed protocol family containing the unspecified address
-    // for that family.
-    //
-    memset(&Hints, 0, sizeof (Hints));
-    Hints.ai_family = PF_INET6;
-    Hints.ai_socktype = SOCK_DGRAM;
-    Hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
-    snprintf(port, sizeof(port), "%u", BIP6_Addr.port);
-    RetVal = getaddrinfo(ifname, &port[0], &Hints, &AddrInfo);
-    if (RetVal != 0) {
-        fprintf(stderr, "getaddrinfo failed with error %d: %s\n",
-                RetVal, gai_strerror(RetVal));
-        WSACleanup();
-        return -1;
+    if (BIP6_Addr.port == 0) {
+        bip6_set_port(0xBAC0);
     }
-    //
-    // Find the first matchin address getaddrinfo returned so that
-    // we can create a new socket and bind that address to it,
-    // and create a queue to listen on.
-    //
-    for (i = 0, AI = AddrInfo; AI != NULL; AI = AI->ai_next) {
-        // Highly unlikely, but check anyway.
-        if (i == FD_SETSIZE) {
-            printf("getaddrinfo returned more addresses than we could use.\n");
-            break;
-        }
-        // only support PF_INET6.
-        if (AI->ai_family != PF_INET6) {
-            continue;
-        }
-        // only support SOCK_DGRAM.
-        if (AI->ai_socktype != SOCK_DGRAM) {
-            continue;
-        }
-        // only support IPPROTO_UDP.
-        if (AI->ai_protocol != IPPROTO_UDP) {
-            continue;
-        }
-        BIP6_Socket = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-        if (BIP6_Socket == INVALID_SOCKET) {
-            fprintf(stderr, "socket() failed with error %d: %s\n",
-                    WSAGetLastError(), PrintError(WSAGetLastError()));
-            continue;
-        }
-        if ((AI->ai_family == PF_INET6) &&
-            IN6_IS_ADDR_LINKLOCAL(AI->ai_addr) &&
-            (((SOCKADDR_IN6 *) (AI->ai_addr))->sin6_scope_id == 0)) {
-            fprintf(stderr,
-                    "IPv6 link local addresses should specify a scope ID!\n");
-        }
-        /* Allow us to use the same socket for sending and receiving */
-        /* This makes sure that the src port is correct when sending */
-        sockopt = 1;
-        RetVal =
-            setsockopt(BIP6_Socket, SOL_SOCKET, SO_REUSEADDR, (char *)&sockopt,
-            sizeof(sockopt));
-        if (RetVal < 0) {
-            closesocket(BIP6_Socket);
-            BIP6_Socket = INVALID_SOCKET;
-            continue;
-        }
-        //
-        // bind() associates a local address and port combination
-        // with the socket just created. This is most useful when
-        // the application is a server that has a well-known port
-        // that clients know about in advance.
-        //
-        if (bind(BIP6_Socket, AI->ai_addr, (int) AI->ai_addrlen) == SOCKET_ERROR) {
-            fprintf(stderr, "bind() failed with error %d: %s\n",
-                    WSAGetLastError(), PrintError(WSAGetLastError()));
-            closesocket(ServSock[i]);
-            continue;
-        } else {
-            /* FIXME: store the address */
-            /* https://msdn.microsoft.com/en-us/library/windows/desktop/ms740496(v=vs.85).aspx */
-        }
-        i++;
-        if (BIP6_Socket != INVALID_SOCKET) {
-            break;
-        }
+    debug_printf("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
+    bip6_set_interface(ifname);
+    if (BIP6_Broadcast_Addr.address[0] == 0) {
+        bvlc6_address_set(&BIP6_Broadcast_Addr,
+                BIP6_MULTICAST_LINK_LOCAL, 0, 0, 0, 0, 0, 0,
+                BIP6_MULTICAST_GROUP_ID);
     }
-    freeaddrinfo(AddrInfo);
     if (BIP6_Socket == INVALID_SOCKET) {
-        fprintf(stderr, "Fatal error: unable to serve on any address.\n");
+        fprintf(stderr, "BIP6: Fatal error: unable to serve on any address.\n");
         WSACleanup();
-        return -1;
+        exit(1);
     }
 
     return true;
