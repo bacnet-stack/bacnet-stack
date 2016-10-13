@@ -150,6 +150,7 @@ void my_i_am_handler(
     unsigned max_apdu = 0;
     int segmentation = 0;
     uint16_t vendor_id = 0;
+    unsigned i = 0;
 
     (void) service_len;
     len =
@@ -160,9 +161,21 @@ void my_i_am_handler(
 #endif
     if (len != -1) {
 #if PRINT_ENABLED
-        fprintf(stderr, " from %lu, MAC = %d.%d.%d.%d.%d.%d\n",
-            (unsigned long) device_id, src->mac[0], src->mac[1], src->mac[2],
-            src->mac[3], src->mac[4], src->mac[5]);
+        fprintf(stderr, " from %lu, MAC = ", (unsigned long) device_id);
+        if ((src->mac_len == 6) && (src->len == 0)) {
+            fprintf(stderr, "%u.%u.%u.%u %02X%02X\n",
+                (unsigned)src->mac[0], (unsigned)src->mac[1],
+                (unsigned)src->mac[2], (unsigned)src->mac[3],
+                (unsigned)src->mac[4], (unsigned)src->mac[5]);
+        } else {
+            for (i = 0; i < src->mac_len; i++) {
+                fprintf(stderr, "%02X", (unsigned)src->mac[i]);
+                if (i < (src->mac_len-1)) {
+                    fprintf(stderr, ":");
+                }
+            }
+            fprintf(stderr, "\n");
+        }
 #endif
         address_table_add(device_id, max_apdu, src);
     } else {
