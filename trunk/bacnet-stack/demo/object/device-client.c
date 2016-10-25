@@ -512,7 +512,7 @@ unsigned Device_Object_List_Count(
  * @return True if found, else false.
  */
 bool Device_Object_List_Identifier(
-    unsigned array_index,
+    uint32_t array_index,
     int *object_type,
     uint32_t * instance)
 {
@@ -578,7 +578,7 @@ bool Device_Valid_Object_Name(
     bool found = false;
     int type = 0;
     uint32_t instance;
-    unsigned max_objects = 0, i = 0;
+    uint32_t max_objects = 0, i = 0;
     bool check_id = false;
     BACNET_CHARACTER_STRING object_name2;
     struct object_functions *pObject = NULL;
@@ -808,10 +808,10 @@ int Device_Read_Property_Local(
     int len = 0;        /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    unsigned i = 0;
+    uint32_t i = 0;
     int object_type = 0;
     uint32_t instance = 0;
-    unsigned count = 0;
+    uint32_t count = 0;
     uint8_t *apdu = NULL;
     struct object_functions *pObject = NULL;
     bool found = false;

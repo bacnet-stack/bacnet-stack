@@ -193,13 +193,13 @@ unsigned Device_Object_List_Count(
 /* Since many network clients depend on the object list */
 /* for discovery, it must be consistent! */
 bool Device_Object_List_Identifier(
-    unsigned array_index,
+    uint32_t array_index,
     int *object_type,
     uint32_t * instance)
 {
     bool status = false;
-    unsigned object_index = 0;
-    unsigned object_count = 0;
+    uint32_t object_index = 0;
+    uint32_t object_count = 0;
 
     /* device object */
     if (array_index == 1) {
@@ -272,10 +272,10 @@ int Device_Read_Property_Local(
     int len = 0;        /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    unsigned i = 0;
+    uint32_t i = 0;
     int object_type = 0;
     uint32_t instance = 0;
-    unsigned count = 0;
+    uint32_t count = 0;
     BACNET_TIME local_time;
     BACNET_DATE local_date;
     uint8_t year = 0;

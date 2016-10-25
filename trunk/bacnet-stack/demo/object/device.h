@@ -275,7 +275,7 @@ extern "C" {
     unsigned Device_Object_List_Count(
         void);
     bool Device_Object_List_Identifier(
-        unsigned array_index,
+        uint32_t array_index,
         int *object_type,
         uint32_t * instance);
 

@@ -66,7 +66,7 @@ extern "C" {
     bool Device_Set_Object_Instance_Number(uint32_t object_id);
     bool Device_Valid_Object_Instance_Number(uint32_t object_id);
     unsigned Device_Object_List_Count(void);
-    bool Device_Object_List_Identifier(unsigned array_index,
+    bool Device_Object_List_Identifier(uint32_t array_index,
         int *object_type,
         uint32_t * instance);
 
