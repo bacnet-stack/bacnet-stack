@@ -16,6 +16,7 @@ SIZE = avr-size
 # Source locations
 BACNET_CORE = ../../src
 BACNET_INCLUDE = ../../include
+BACNET_OBJECT_INCLUDE = ../../demo/object
 BACNET_DEMO = ../../demo
 
 # local files for this project
@@ -27,7 +28,7 @@ CSRC = apdu.c \
 	timer.c
 
 # common demo files needed
-DEMOSRC =
+DEMOSRC = \
 	$(BACNET_DEMO)/handler/h_rp.c \
 	$(BACNET_DEMO)/handler/txbuf.c \
 	$(BACNET_DEMO)/handler/h_npdu.c \
@@ -73,7 +74,7 @@ CORESRC =  \
 #	$(BACNET_CORE)/address.c \
 
 ## Include Directories
-INCLUDES = -I. -I$(BACNET_INCLUDE)
+INCLUDES = -I. -I$(BACNET_INCLUDE) -I$(BACNET_OBJECT_INCLUDE)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)

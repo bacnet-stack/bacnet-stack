@@ -1283,7 +1283,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS * dest,      /* destination address */
         } else {
             pkt->destination_mac = dest->mac[0];
         }
-        if (Ringbuf_Data_Put(&PDU_Queue, pkt)) {
+        if (Ringbuf_Data_Put(&PDU_Queue, (volatile uint8_t *)pkt)) {
             bytes_sent = pdu_len;
         }
     }
