@@ -2,7 +2,7 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectVersion>6.2</ProjectVersion>
+    <ProjectVersion>7.0</ProjectVersion>
     <ToolchainName>com.Atmel.AVRGCC8.C</ToolchainName>
     <ProjectGuid>{ea031b72-ce11-41cc-bfdc-00625d02a537}</ProjectGuid>
     <avrdevice>ATxmega256A3BU</avrdevice>
@@ -160,7 +160,7 @@
   <documentation help="http://asf.atmel.com/docs/3.8.1/xmega.applications.xmega_a3bu_xplained_demo.xmega_a3bu_xplained/html/index.html" />
   <offline-documentation help="" />
   <dependencies>
-    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.10.1" />
+    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.21.0" />
   </dependencies>
   <project id="xmega.applications.xmega_a3bu_xplained_demo.xmega_a3bu_xplained" value="Add" config="" content-id="Atmel.ASF" />
   <board id="board.xmega_a3bu_xplained" value="Add" config="" content-id="Atmel.ASF" />
@@ -213,69 +213,213 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
       <AvrGcc>
+  <avrgcc.common.Device>-mmcu=atxmega256a3bu -B "%24(PackRepoDir)\atmel\XMEGAA_DFP\1.0.36\gcc\dev\atxmega256a3bu"</avrgcc.common.Device>
   <avrgcc.common.optimization.RelaxBranches>True</avrgcc.common.optimization.RelaxBranches>
   <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
   <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
   <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
   <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
   <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
-  <avrgcc.compiler.symbols.DefSymbols><ListValues>
-  <Value>IOPORT_XMEGA_COMPAT</Value>
-  <Value>BACDL_MSTP</Value>
-  <Value>MAX_APDU=128</Value>
-  <Value>MAX_TSM_TRANSACTIONS=1</Value>
-  <Value>MSTP_PDU_PACKET_COUNT=2</Value>
-  <Value>BACNET_VENDOR_ID=293</Value>
-  <Value>MAX_ADDRESS_CACHE=32</Value>
-  <Value>MAX_ANALOG_INPUTS=8</Value>
-  <Value>BOARD=XMEGA_A3BU_XPLAINED</Value>
-  <Value>NDEBUG</Value>
-</ListValues></avrgcc.compiler.symbols.DefSymbols>
-  <avrgcc.compiler.directories.IncludePaths><ListValues><Value>..</Value><Value>../config</Value><Value>../ASF/xmega/drivers/rtc32</Value><Value>../ASF/xmega/drivers/pmic</Value><Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value><Value>../ASF/xmega/utils/preprocessor</Value><Value>../ASF/common/utils</Value><Value>../ASF/common/services/sleepmgr</Value><Value>../ASF/xmega/drivers/sleep</Value><Value>../ASF/common/services/gpio</Value><Value>../ASF/xmega/drivers/tc</Value><Value>../ASF/xmega/drivers/adc</Value><Value>../ASF/xmega/drivers/cpu</Value><Value>../ASF/common/boards</Value><Value>../ASF/common/services/ioport</Value><Value>../ASF/xmega/drivers/nvm</Value><Value>../ASF/xmega/boards</Value><Value>../ASF/xmega/utils</Value><Value>../ASF/xmega/drivers/wdt</Value><Value>../ASF/common/services/clock</Value><Value>../ASF/common/services/delay</Value><Value>../ASF/xmega/drivers/usart</Value><Value>../ASF/xmega/services/pwm</Value><Value>../ASF/common/drivers/nvm</Value><Value>../ASF/common/services/serial/xmega_usart</Value><Value>../ASF/common/services/serial</Value><Value>../ASF/common/utils/stdio/stdio_serial</Value><Value>../ASF/xmega/services/timeout</Value><Value>../../../include</Value><Value>../../../demo/object</Value></ListValues></avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>IOPORT_XMEGA_COMPAT</Value>
+      <Value>BACDL_MSTP</Value>
+      <Value>MAX_APDU=128</Value>
+      <Value>MAX_TSM_TRANSACTIONS=1</Value>
+      <Value>MSTP_PDU_PACKET_COUNT=2</Value>
+      <Value>BACNET_VENDOR_ID=293</Value>
+      <Value>MAX_ADDRESS_CACHE=32</Value>
+      <Value>MAX_ANALOG_INPUTS=8</Value>
+      <Value>BOARD=XMEGA_A3BU_XPLAINED</Value>
+      <Value>NDEBUG</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>..</Value>
+      <Value>../config</Value>
+      <Value>../ASF/xmega/drivers/rtc32</Value>
+      <Value>../ASF/xmega/drivers/pmic</Value>
+      <Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value>
+      <Value>../ASF/xmega/utils/preprocessor</Value>
+      <Value>../ASF/common/utils</Value>
+      <Value>../ASF/common/services/sleepmgr</Value>
+      <Value>../ASF/xmega/drivers/sleep</Value>
+      <Value>../ASF/common/services/gpio</Value>
+      <Value>../ASF/xmega/drivers/tc</Value>
+      <Value>../ASF/xmega/drivers/adc</Value>
+      <Value>../ASF/xmega/drivers/cpu</Value>
+      <Value>../ASF/common/boards</Value>
+      <Value>../ASF/common/services/ioport</Value>
+      <Value>../ASF/xmega/drivers/nvm</Value>
+      <Value>../ASF/xmega/boards</Value>
+      <Value>../ASF/xmega/utils</Value>
+      <Value>../ASF/xmega/drivers/wdt</Value>
+      <Value>../ASF/common/services/clock</Value>
+      <Value>../ASF/common/services/delay</Value>
+      <Value>../ASF/xmega/drivers/usart</Value>
+      <Value>../ASF/xmega/services/pwm</Value>
+      <Value>../ASF/common/drivers/nvm</Value>
+      <Value>../ASF/common/services/serial/xmega_usart</Value>
+      <Value>../ASF/common/services/serial</Value>
+      <Value>../ASF/common/utils/stdio/stdio_serial</Value>
+      <Value>../ASF/xmega/services/timeout</Value>
+      <Value>../../../include</Value>
+      <Value>../../../demo/object</Value>
+      <Value>%24(PackRepoDir)\atmel\XMEGAA_DFP\1.0.36\include</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
   <avrgcc.compiler.optimization.OtherFlags>-fdata-sections</avrgcc.compiler.optimization.OtherFlags>
   <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
   <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
   <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
   <avrgcc.compiler.miscellaneous.OtherFlags>-std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax</avrgcc.compiler.miscellaneous.OtherFlags>
-  <avrgcc.linker.libraries.Libraries><ListValues><Value>libm</Value></ListValues></avrgcc.linker.libraries.Libraries>
+  <avrgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libm</Value>
+    </ListValues>
+  </avrgcc.linker.libraries.Libraries>
   <avrgcc.linker.miscellaneous.LinkerFlags>-Wl,--relax -Wl,--section-start=.BOOT=0x40000</avrgcc.linker.miscellaneous.LinkerFlags>
   <avrgcc.assembler.general.AssemblerFlags>-mrelax -DBOARD=XMEGA_A3BU_XPLAINED -DIOPORT_XMEGA_COMPAT</avrgcc.assembler.general.AssemblerFlags>
-  <avrgcc.assembler.general.IncludePaths><ListValues><Value>../ASF/xmega/drivers/rtc32</Value><Value>../ASF/xmega/drivers/pmic</Value><Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value><Value>../ASF/xmega/drivers/nvm</Value><Value>../ASF/xmega/utils/preprocessor</Value><Value>../ASF/common/utils</Value><Value>../ASF/common/services/sleepmgr</Value><Value>../ASF/xmega/drivers/sleep</Value><Value>../ASF/common/services/gpio</Value><Value>../ASF/xmega/drivers/tc</Value><Value>../ASF/xmega/drivers/adc</Value><Value>../ASF/xmega/drivers/cpu</Value><Value>../ASF/common/boards</Value><Value>../ASF/common/services/ioport</Value><Value>../ASF/xmega/boards</Value><Value>../ASF/xmega/utils</Value><Value>../ASF/common/services/clock</Value><Value>../ASF/common/services/delay</Value><Value>../ASF/xmega/drivers/wdt</Value><Value>../ASF/xmega/drivers/usart</Value><Value>../config</Value><Value>.</Value><Value>../ASF/xmega/services/pwm</Value><Value>../ASF/common/drivers/nvm</Value><Value>../ASF/common/services/serial/xmega_usart</Value><Value>../ASF/common/services/serial</Value><Value>../ASF/common/utils/stdio/stdio_serial</Value><Value>../ASF/xmega/services/timeout</Value></ListValues></avrgcc.assembler.general.IncludePaths>
-  <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+  <avrgcc.assembler.general.IncludePaths>
+    <ListValues>
+      <Value>../ASF/xmega/drivers/rtc32</Value>
+      <Value>../ASF/xmega/drivers/pmic</Value>
+      <Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value>
+      <Value>../ASF/xmega/drivers/nvm</Value>
+      <Value>../ASF/xmega/utils/preprocessor</Value>
+      <Value>../ASF/common/utils</Value>
+      <Value>../ASF/common/services/sleepmgr</Value>
+      <Value>../ASF/xmega/drivers/sleep</Value>
+      <Value>../ASF/common/services/gpio</Value>
+      <Value>../ASF/xmega/drivers/tc</Value>
+      <Value>../ASF/xmega/drivers/adc</Value>
+      <Value>../ASF/xmega/drivers/cpu</Value>
+      <Value>../ASF/common/boards</Value>
+      <Value>../ASF/common/services/ioport</Value>
+      <Value>../ASF/xmega/boards</Value>
+      <Value>../ASF/xmega/utils</Value>
+      <Value>../ASF/common/services/clock</Value>
+      <Value>../ASF/common/services/delay</Value>
+      <Value>../ASF/xmega/drivers/wdt</Value>
+      <Value>../ASF/xmega/drivers/usart</Value>
+      <Value>../config</Value>
+      <Value>.</Value>
+      <Value>../ASF/xmega/services/pwm</Value>
+      <Value>../ASF/common/drivers/nvm</Value>
+      <Value>../ASF/common/services/serial/xmega_usart</Value>
+      <Value>../ASF/common/services/serial</Value>
+      <Value>../ASF/common/utils/stdio/stdio_serial</Value>
+      <Value>../ASF/xmega/services/timeout</Value>
+    </ListValues>
+  </avrgcc.assembler.general.IncludePaths>
 </AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <ToolchainSettings>
       <AvrGcc>
+  <avrgcc.common.Device>-mmcu=atxmega256a3bu -B "%24(PackRepoDir)\atmel\XMEGAA_DFP\1.0.36\gcc\dev\atxmega256a3bu"</avrgcc.common.Device>
   <avrgcc.common.optimization.RelaxBranches>True</avrgcc.common.optimization.RelaxBranches>
   <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
   <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
   <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
   <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
   <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
-  <avrgcc.compiler.symbols.DefSymbols><ListValues>
-  <Value>IOPORT_XMEGA_COMPAT</Value>
-  <Value>BACDL_MSTP</Value>
-  <Value>MAX_APDU=128</Value>
-  <Value>MAX_TSM_TRANSACTIONS=1</Value>
-  <Value>MSTP_PDU_PACKET_COUNT=2</Value>
-  <Value>BACNET_VENDOR_ID=293</Value>
-  <Value>MAX_ADDRESS_CACHE=32</Value>
-  <Value>MAX_ANALOG_INPUTS=8</Value>
-  <Value>DEBUG</Value>
-</ListValues></avrgcc.compiler.symbols.DefSymbols>
-  <avrgcc.compiler.directories.IncludePaths><ListValues><Value>..</Value><Value>../config</Value><Value>../ASF/xmega/drivers/rtc32</Value><Value>../ASF/xmega/drivers/pmic</Value><Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value><Value>../ASF/xmega/utils/preprocessor</Value><Value>../ASF/common/utils</Value><Value>../ASF/common/services/sleepmgr</Value><Value>../ASF/xmega/drivers/sleep</Value><Value>../ASF/common/services/gpio</Value><Value>../ASF/xmega/drivers/tc</Value><Value>../ASF/xmega/drivers/adc</Value><Value>../ASF/xmega/drivers/cpu</Value><Value>../ASF/common/boards</Value><Value>../ASF/common/services/ioport</Value><Value>../ASF/xmega/drivers/nvm</Value><Value>../ASF/xmega/boards</Value><Value>../ASF/xmega/utils</Value><Value>../ASF/xmega/drivers/wdt</Value><Value>../ASF/common/services/clock</Value><Value>../ASF/common/services/delay</Value><Value>../ASF/xmega/drivers/usart</Value><Value>../ASF/xmega/services/pwm</Value><Value>../ASF/common/drivers/nvm</Value><Value>../ASF/common/services/serial/xmega_usart</Value><Value>../ASF/common/services/serial</Value><Value>../ASF/common/utils/stdio/stdio_serial</Value><Value>../ASF/xmega/services/timeout</Value><Value>../../../include</Value><Value>../../../demo/object</Value></ListValues></avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>IOPORT_XMEGA_COMPAT</Value>
+      <Value>BACDL_MSTP</Value>
+      <Value>MAX_APDU=128</Value>
+      <Value>MAX_TSM_TRANSACTIONS=1</Value>
+      <Value>MSTP_PDU_PACKET_COUNT=2</Value>
+      <Value>BACNET_VENDOR_ID=293</Value>
+      <Value>MAX_ADDRESS_CACHE=32</Value>
+      <Value>MAX_ANALOG_INPUTS=8</Value>
+      <Value>DEBUG</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>..</Value>
+      <Value>../config</Value>
+      <Value>../ASF/xmega/drivers/rtc32</Value>
+      <Value>../ASF/xmega/drivers/pmic</Value>
+      <Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value>
+      <Value>../ASF/xmega/utils/preprocessor</Value>
+      <Value>../ASF/common/utils</Value>
+      <Value>../ASF/common/services/sleepmgr</Value>
+      <Value>../ASF/xmega/drivers/sleep</Value>
+      <Value>../ASF/common/services/gpio</Value>
+      <Value>../ASF/xmega/drivers/tc</Value>
+      <Value>../ASF/xmega/drivers/adc</Value>
+      <Value>../ASF/xmega/drivers/cpu</Value>
+      <Value>../ASF/common/boards</Value>
+      <Value>../ASF/common/services/ioport</Value>
+      <Value>../ASF/xmega/drivers/nvm</Value>
+      <Value>../ASF/xmega/boards</Value>
+      <Value>../ASF/xmega/utils</Value>
+      <Value>../ASF/xmega/drivers/wdt</Value>
+      <Value>../ASF/common/services/clock</Value>
+      <Value>../ASF/common/services/delay</Value>
+      <Value>../ASF/xmega/drivers/usart</Value>
+      <Value>../ASF/xmega/services/pwm</Value>
+      <Value>../ASF/common/drivers/nvm</Value>
+      <Value>../ASF/common/services/serial/xmega_usart</Value>
+      <Value>../ASF/common/services/serial</Value>
+      <Value>../ASF/common/utils/stdio/stdio_serial</Value>
+      <Value>../ASF/xmega/services/timeout</Value>
+      <Value>../../../include</Value>
+      <Value>../../../demo/object</Value>
+      <Value>%24(PackRepoDir)\atmel\XMEGAA_DFP\1.0.36\include</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
   <avrgcc.compiler.optimization.OtherFlags>-fdata-sections</avrgcc.compiler.optimization.OtherFlags>
   <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
   <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Maximum (-g3)</avrgcc.compiler.optimization.DebugLevel>
   <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
   <avrgcc.compiler.miscellaneous.OtherFlags>-std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax</avrgcc.compiler.miscellaneous.OtherFlags>
-  <avrgcc.linker.libraries.Libraries><ListValues><Value>libm</Value></ListValues></avrgcc.linker.libraries.Libraries>
+  <avrgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libm</Value>
+    </ListValues>
+  </avrgcc.linker.libraries.Libraries>
   <avrgcc.linker.miscellaneous.LinkerFlags>-Wl,--relax -Wl,--section-start=.BOOT=0x40000</avrgcc.linker.miscellaneous.LinkerFlags>
   <avrgcc.assembler.general.AssemblerFlags>-mrelax -DBOARD=XMEGA_A3BU_XPLAINED -DIOPORT_XMEGA_COMPAT</avrgcc.assembler.general.AssemblerFlags>
-  <avrgcc.assembler.general.IncludePaths><ListValues><Value>../ASF/xmega/drivers/rtc32</Value><Value>../ASF/xmega/drivers/pmic</Value><Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value><Value>../ASF/xmega/drivers/nvm</Value><Value>../ASF/xmega/utils/preprocessor</Value><Value>../ASF/common/utils</Value><Value>../ASF/common/services/sleepmgr</Value><Value>../ASF/xmega/drivers/sleep</Value><Value>../ASF/common/services/gpio</Value><Value>../ASF/xmega/drivers/tc</Value><Value>../ASF/xmega/drivers/adc</Value><Value>../ASF/xmega/drivers/cpu</Value><Value>../ASF/common/boards</Value><Value>../ASF/common/services/ioport</Value><Value>../ASF/xmega/boards</Value><Value>../ASF/xmega/utils</Value><Value>../ASF/common/services/clock</Value><Value>../ASF/common/services/delay</Value><Value>../ASF/xmega/drivers/wdt</Value><Value>../ASF/xmega/drivers/usart</Value><Value>../config</Value><Value>.</Value><Value>../ASF/xmega/services/pwm</Value><Value>../ASF/common/drivers/nvm</Value><Value>../ASF/common/services/serial/xmega_usart</Value><Value>../ASF/common/services/serial</Value><Value>../ASF/common/utils/stdio/stdio_serial</Value><Value>../ASF/xmega/services/timeout</Value></ListValues></avrgcc.assembler.general.IncludePaths>
-  <avrgcc.compiler.optimization.DebugLevel>Maximum (-g3)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.assembler.general.IncludePaths>
+    <ListValues>
+      <Value>../ASF/xmega/drivers/rtc32</Value>
+      <Value>../ASF/xmega/drivers/pmic</Value>
+      <Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value>
+      <Value>../ASF/xmega/drivers/nvm</Value>
+      <Value>../ASF/xmega/utils/preprocessor</Value>
+      <Value>../ASF/common/utils</Value>
+      <Value>../ASF/common/services/sleepmgr</Value>
+      <Value>../ASF/xmega/drivers/sleep</Value>
+      <Value>../ASF/common/services/gpio</Value>
+      <Value>../ASF/xmega/drivers/tc</Value>
+      <Value>../ASF/xmega/drivers/adc</Value>
+      <Value>../ASF/xmega/drivers/cpu</Value>
+      <Value>../ASF/common/boards</Value>
+      <Value>../ASF/common/services/ioport</Value>
+      <Value>../ASF/xmega/boards</Value>
+      <Value>../ASF/xmega/utils</Value>
+      <Value>../ASF/common/services/clock</Value>
+      <Value>../ASF/common/services/delay</Value>
+      <Value>../ASF/xmega/drivers/wdt</Value>
+      <Value>../ASF/xmega/drivers/usart</Value>
+      <Value>../config</Value>
+      <Value>.</Value>
+      <Value>../ASF/xmega/services/pwm</Value>
+      <Value>../ASF/common/drivers/nvm</Value>
+      <Value>../ASF/common/services/serial/xmega_usart</Value>
+      <Value>../ASF/common/services/serial</Value>
+      <Value>../ASF/common/utils/stdio/stdio_serial</Value>
+      <Value>../ASF/xmega/services/timeout</Value>
+    </ListValues>
+  </avrgcc.assembler.general.IncludePaths>
   <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
 </AvrGcc>
     </ToolchainSettings>
@@ -284,36 +428,107 @@
     <OutputPath>bin\Debug-XPLAINED\</OutputPath>
     <ToolchainSettings>
       <AvrGcc>
-  <avrgcc.common.optimization.RelaxBranches>False</avrgcc.common.optimization.RelaxBranches>
+  <avrgcc.common.Device>-mmcu=atxmega256a3bu -B "%24(PackRepoDir)\atmel\XMEGAA_DFP\1.0.36\gcc\dev\atxmega256a3bu"</avrgcc.common.Device>
   <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
   <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
   <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
   <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
   <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
-  <avrgcc.compiler.symbols.DefSymbols><ListValues>
-  <Value>IOPORT_XMEGA_COMPAT</Value>
-  <Value>BACDL_MSTP</Value>
-  <Value>MAX_APDU=128</Value>
-  <Value>MAX_TSM_TRANSACTIONS=1</Value>
-  <Value>MSTP_PDU_PACKET_COUNT=2</Value>
-  <Value>BACNET_VENDOR_ID=293</Value>
-  <Value>MAX_ADDRESS_CACHE=32</Value>
-  <Value>MAX_ANALOG_INPUTS=8</Value>
-  <Value>BOARD=XMEGA_A3BU_XPLAINED</Value>
-  <Value>CONF_BOARD_ENABLE_RS485_XPLAINED</Value>
-  <Value>DEBUG</Value>
-</ListValues></avrgcc.compiler.symbols.DefSymbols>
-  <avrgcc.compiler.directories.IncludePaths><ListValues><Value>..</Value><Value>../config</Value><Value>../ASF/xmega/drivers/rtc32</Value><Value>../ASF/xmega/drivers/pmic</Value><Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value><Value>../ASF/xmega/utils/preprocessor</Value><Value>../ASF/common/utils</Value><Value>../ASF/common/services/sleepmgr</Value><Value>../ASF/xmega/drivers/sleep</Value><Value>../ASF/common/services/gpio</Value><Value>../ASF/xmega/drivers/tc</Value><Value>../ASF/xmega/drivers/adc</Value><Value>../ASF/xmega/drivers/cpu</Value><Value>../ASF/common/boards</Value><Value>../ASF/common/services/ioport</Value><Value>../ASF/xmega/drivers/nvm</Value><Value>../ASF/xmega/boards</Value><Value>../ASF/xmega/utils</Value><Value>../ASF/xmega/drivers/wdt</Value><Value>../ASF/common/services/clock</Value><Value>../ASF/common/services/delay</Value><Value>../ASF/xmega/drivers/usart</Value><Value>../ASF/xmega/services/pwm</Value><Value>../ASF/common/drivers/nvm</Value><Value>../ASF/common/services/serial/xmega_usart</Value><Value>../ASF/common/services/serial</Value><Value>../ASF/common/utils/stdio/stdio_serial</Value><Value>../ASF/xmega/services/timeout</Value><Value>../../../include</Value><Value>../../../demo/object</Value></ListValues></avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>IOPORT_XMEGA_COMPAT</Value>
+      <Value>BACDL_MSTP</Value>
+      <Value>MAX_APDU=128</Value>
+      <Value>MAX_TSM_TRANSACTIONS=1</Value>
+      <Value>MSTP_PDU_PACKET_COUNT=2</Value>
+      <Value>BACNET_VENDOR_ID=293</Value>
+      <Value>MAX_ADDRESS_CACHE=32</Value>
+      <Value>MAX_ANALOG_INPUTS=8</Value>
+      <Value>BOARD=XMEGA_A3BU_XPLAINED</Value>
+      <Value>CONF_BOARD_ENABLE_RS485_XPLAINED</Value>
+      <Value>DEBUG</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>..</Value>
+      <Value>../config</Value>
+      <Value>../ASF/xmega/drivers/rtc32</Value>
+      <Value>../ASF/xmega/drivers/pmic</Value>
+      <Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value>
+      <Value>../ASF/xmega/utils/preprocessor</Value>
+      <Value>../ASF/common/utils</Value>
+      <Value>../ASF/common/services/sleepmgr</Value>
+      <Value>../ASF/xmega/drivers/sleep</Value>
+      <Value>../ASF/common/services/gpio</Value>
+      <Value>../ASF/xmega/drivers/tc</Value>
+      <Value>../ASF/xmega/drivers/adc</Value>
+      <Value>../ASF/xmega/drivers/cpu</Value>
+      <Value>../ASF/common/boards</Value>
+      <Value>../ASF/common/services/ioport</Value>
+      <Value>../ASF/xmega/drivers/nvm</Value>
+      <Value>../ASF/xmega/boards</Value>
+      <Value>../ASF/xmega/utils</Value>
+      <Value>../ASF/xmega/drivers/wdt</Value>
+      <Value>../ASF/common/services/clock</Value>
+      <Value>../ASF/common/services/delay</Value>
+      <Value>../ASF/xmega/drivers/usart</Value>
+      <Value>../ASF/xmega/services/pwm</Value>
+      <Value>../ASF/common/drivers/nvm</Value>
+      <Value>../ASF/common/services/serial/xmega_usart</Value>
+      <Value>../ASF/common/services/serial</Value>
+      <Value>../ASF/common/utils/stdio/stdio_serial</Value>
+      <Value>../ASF/xmega/services/timeout</Value>
+      <Value>../../../include</Value>
+      <Value>../../../demo/object</Value>
+      <Value>%24(PackRepoDir)\atmel\XMEGAA_DFP\1.0.36\include</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
   <avrgcc.compiler.optimization.OtherFlags>-fdata-sections</avrgcc.compiler.optimization.OtherFlags>
   <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
   <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Maximum (-g3)</avrgcc.compiler.optimization.DebugLevel>
   <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
   <avrgcc.compiler.miscellaneous.OtherFlags>-std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax</avrgcc.compiler.miscellaneous.OtherFlags>
-  <avrgcc.linker.libraries.Libraries><ListValues><Value>libm</Value></ListValues></avrgcc.linker.libraries.Libraries>
+  <avrgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libm</Value>
+    </ListValues>
+  </avrgcc.linker.libraries.Libraries>
   <avrgcc.linker.miscellaneous.LinkerFlags>-Wl,--relax -Wl,--section-start=.BOOT=0x40000</avrgcc.linker.miscellaneous.LinkerFlags>
   <avrgcc.assembler.general.AssemblerFlags>-mrelax -DBOARD=XMEGA_A3BU_XPLAINED -DIOPORT_XMEGA_COMPAT</avrgcc.assembler.general.AssemblerFlags>
-  <avrgcc.assembler.general.IncludePaths><ListValues><Value>../ASF/xmega/drivers/rtc32</Value><Value>../ASF/xmega/drivers/pmic</Value><Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value><Value>../ASF/xmega/drivers/nvm</Value><Value>../ASF/xmega/utils/preprocessor</Value><Value>../ASF/common/utils</Value><Value>../ASF/common/services/sleepmgr</Value><Value>../ASF/xmega/drivers/sleep</Value><Value>../ASF/common/services/gpio</Value><Value>../ASF/xmega/drivers/tc</Value><Value>../ASF/xmega/drivers/adc</Value><Value>../ASF/xmega/drivers/cpu</Value><Value>../ASF/common/boards</Value><Value>../ASF/common/services/ioport</Value><Value>../ASF/xmega/boards</Value><Value>../ASF/xmega/utils</Value><Value>../ASF/common/services/clock</Value><Value>../ASF/common/services/delay</Value><Value>../ASF/xmega/drivers/wdt</Value><Value>../ASF/xmega/drivers/usart</Value><Value>../config</Value><Value>.</Value><Value>../ASF/xmega/services/pwm</Value><Value>../ASF/common/drivers/nvm</Value><Value>../ASF/common/services/serial/xmega_usart</Value><Value>../ASF/common/services/serial</Value><Value>../ASF/common/utils/stdio/stdio_serial</Value><Value>../ASF/xmega/services/timeout</Value></ListValues></avrgcc.assembler.general.IncludePaths>
-  <avrgcc.compiler.optimization.DebugLevel>Maximum (-g3)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.assembler.general.IncludePaths>
+    <ListValues>
+      <Value>../ASF/xmega/drivers/rtc32</Value>
+      <Value>../ASF/xmega/drivers/pmic</Value>
+      <Value>../ASF/xmega/boards/xmega_a3bu_xplained</Value>
+      <Value>../ASF/xmega/drivers/nvm</Value>
+      <Value>../ASF/xmega/utils/preprocessor</Value>
+      <Value>../ASF/common/utils</Value>
+      <Value>../ASF/common/services/sleepmgr</Value>
+      <Value>../ASF/xmega/drivers/sleep</Value>
+      <Value>../ASF/common/services/gpio</Value>
+      <Value>../ASF/xmega/drivers/tc</Value>
+      <Value>../ASF/xmega/drivers/adc</Value>
+      <Value>../ASF/xmega/drivers/cpu</Value>
+      <Value>../ASF/common/boards</Value>
+      <Value>../ASF/common/services/ioport</Value>
+      <Value>../ASF/xmega/boards</Value>
+      <Value>../ASF/xmega/utils</Value>
+      <Value>../ASF/common/services/clock</Value>
+      <Value>../ASF/common/services/delay</Value>
+      <Value>../ASF/xmega/drivers/wdt</Value>
+      <Value>../ASF/xmega/drivers/usart</Value>
+      <Value>../config</Value>
+      <Value>.</Value>
+      <Value>../ASF/xmega/services/pwm</Value>
+      <Value>../ASF/common/drivers/nvm</Value>
+      <Value>../ASF/common/services/serial/xmega_usart</Value>
+      <Value>../ASF/common/services/serial</Value>
+      <Value>../ASF/common/utils/stdio/stdio_serial</Value>
+      <Value>../ASF/xmega/services/timeout</Value>
+    </ListValues>
+  </avrgcc.assembler.general.IncludePaths>
   <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
 </AvrGcc>
     </ToolchainSettings>

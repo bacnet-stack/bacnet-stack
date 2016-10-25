@@ -118,7 +118,7 @@ void bacnet_task_timed(
             memcpy(pkt->buffer, PDUBuffer, MAX_MPDU);
             bacnet_address_copy(&pkt->src, &src);
             pkt->length = pdu_len;
-            Ringbuf_Data_Put(&Receive_Queue, pkt);
+            Ringbuf_Data_Put(&Receive_Queue, (volatile uint8_t *)pkt);
         }
     }
 }
