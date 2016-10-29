@@ -180,17 +180,22 @@ bool Binary_Output_Present_Value_Set(
     return status;
 }
 
-static void Binary_Output_Polarity_Set(
+bool Binary_Output_Polarity_Set(
     uint32_t instance,
     BACNET_POLARITY polarity)
 {
+    bool status = false;
+
     if (instance < MAX_BINARY_OUTPUTS) {
         if (polarity < MAX_POLARITY) {
             Polarity[instance] = polarity;
             seeprom_bytes_write(NV_SEEPROM_BINARY_OUTPUT(instance,
                     NV_SEEPROM_BO_POLARITY), &Polarity[instance], 1);
+            status = true;
         }
     }
+
+    return status;
 }
 
 BACNET_POLARITY Binary_Output_Polarity(
@@ -205,7 +210,7 @@ BACNET_POLARITY Binary_Output_Polarity(
     return polarity;
 }
 
-static void Binary_Output_Out_Of_Service_Set(
+void Binary_Output_Out_Of_Service_Set(
     uint32_t instance,
     bool flag)
 {
