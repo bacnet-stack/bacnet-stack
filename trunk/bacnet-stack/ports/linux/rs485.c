@@ -57,6 +57,10 @@
 #include <linux/serial.h>       /* for struct serial_struct */
 #include <math.h>       /* for calculation of custom divisor */
 #include <sys/ioctl.h>
+/* for scandir */
+#include <dirent.h>
+/* for basename */
+#include <libgen.h>
 
 /* Local includes */
 #include "mstp.h"
@@ -624,12 +628,73 @@ void RS485_Initialize(
     printf("=success!\n");
 }
 
+/* Print in a format for Wireshark ExtCap */
 void RS485_Print_Ports(void)
 {
-    /* note: format for Wireshark ExtCap */
-    //printf("interface {value=/dev/ttyUSB%u}"
-    //    "{display=MS/TP Capture on /dev/ttyUSB%u}\n", i, i);
-    /* FIXME: add code to print ports */
+    int n;
+    struct dirent **namelist;
+    const char* sysdir = "/sys/class/tty/";
+    struct stat st;
+    char buffer[1024];
+    char device_dir[1024];
+    char *driver_name = NULL;
+    int fd = 0;
+    bool valid_port = false;
+    struct serial_struct serinfo;
+
+    // Scan through /sys/class/tty - it contains all tty-devices in the system
+    n = scandir(sysdir, &namelist, NULL, NULL);
+    if (n < 0) {
+        perror("RS485: scandir");
+    } else {
+        while (n--) {
+            if (strcmp(namelist[n]->d_name,"..") &&
+                strcmp(namelist[n]->d_name,".")) {
+                snprintf(device_dir, sizeof(device_dir),
+                    "%s%s/device",
+                    sysdir, namelist[n]->d_name);
+                // Stat the devicedir and handle it if it is a symlink
+                if (lstat(device_dir, &st)==0 && S_ISLNK(st.st_mode)) {
+                    memset(buffer, 0, sizeof(buffer));
+                    snprintf(device_dir, sizeof(device_dir),
+                        "%s%s/device/driver",
+                        sysdir, namelist[n]->d_name);
+                    if (readlink(device_dir, buffer, sizeof(buffer)) > 0) {
+                        valid_port = false;
+                        driver_name=basename(buffer);
+                        if (strcmp(driver_name,"serial8250") == 0) {
+                            // serial8250-devices must be probed
+                            snprintf(device_dir, sizeof(device_dir),
+                                "/dev/%s", namelist[n]->d_name);
+                            fd = open(device_dir,
+                                O_RDWR | O_NONBLOCK | O_NOCTTY);
+                            if (fd >= 0) {
+                                // Get serial_info
+                                if (ioctl(fd, TIOCGSERIAL, &serinfo)==0) {
+                                    // If device type is not PORT_UNKNOWN
+                                    // we accept the port
+                                    if (serinfo.type != PORT_UNKNOWN) {
+                                        valid_port = true;
+                                    }
+                                }
+                                close(fd);
+                            }
+                        } else {
+                            valid_port = true;
+                        }
+                        if (valid_port) {
+                            // print full absolute file path
+                            printf("interface {value=/dev/%s}"
+                                "{display=MS/TP Capture on /dev/%s}\n",
+                                namelist[n]->d_name, namelist[n]->d_name);
+                        }
+                    }
+                }
+            }
+            free(namelist[n]);
+        }
+        free(namelist);
+    }
 }
 
 #ifdef TEST_RS485
