@@ -267,7 +267,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 RELIABILITY_NO_FAULT_DETECTED);
             break;
         case PROP_OUT_OF_SERVICE:
-            apdu_len = encode_application_boolean(&apdu[0], 
+            apdu_len = encode_application_boolean(&apdu[0],
                 CurrentSC->Out_Of_Service);
             break;
         default:
@@ -390,6 +390,27 @@ void Schedule_Recalculate_PV(SCHEDULE_DESCR * desc,
 #include <string.h>
 #include "ctest.h"
 
+bool WPValidateArgType(
+    BACNET_APPLICATION_DATA_VALUE * pValue,
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS * pErrorClass,
+    BACNET_ERROR_CODE * pErrorCode)
+{
+    bool bResult;
+
+    /*
+     * start out assuming success and only set up error
+     * response if validation fails.
+     */
+    bResult = true;
+    if (pValue->tag != ucExpectedTag) {
+        bResult = false;
+        *pErrorClass = ERROR_CLASS_PROPERTY;
+        *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
+    }
+
+    return (bResult);
+}
 
 void testSchedule(Test * pTest)
 {
