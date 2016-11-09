@@ -84,38 +84,44 @@ static int get_local_address(
     struct in_addr *addr,
     char *request)
 {
+    int status = -1;
+    struct ifaddrs *ifaddrs_ptr = NULL;
+    struct ifaddrs *ifaddrs_next = NULL;
+    void *addr_ptr = NULL;
 
-    char rv;    /* return value */
-
-    struct ifaddrs *ifaddrs_ptr;
-    int status;
     status = getifaddrs(&ifaddrs_ptr);
     if (status == -1) {
         fprintf(stderr, "Error in 'getifaddrs': %d (%s)\n", errno,
             strerror(errno));
+        return status;
     }
-    while (ifaddrs_ptr) {
-        if ((ifaddrs_ptr->ifa_addr->sa_family == AF_INET) &&
-            (strcmp(ifaddrs_ptr->ifa_name, ifname) == 0)) {
-            void *addr_ptr;
-            if (!ifaddrs_ptr->ifa_addr) {
-                return rv;
+    status = -1;
+    ifaddrs_next = ifaddrs_ptr;
+    while (ifaddrs_next) {
+        if ((ifaddrs_next->ifa_addr->sa_family == AF_INET) &&
+            (strcmp(ifaddrs_next->ifa_name, ifname) == 0)) {
+            if (!ifaddrs_next->ifa_addr) {
+                break;
             }
+            addr_ptr = NULL;
             if (strcmp(request, "addr") == 0) {
-                addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_addr);
+                addr_ptr = get_addr_ptr(ifaddrs_next->ifa_addr);
             } else if (strcmp(request, "broadaddr") == 0) {
-                addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_broadaddr);
+                addr_ptr = get_addr_ptr(ifaddrs_next->ifa_broadaddr);
             } else if (strcmp(request, "netmask") == 0) {
-                addr_ptr = get_addr_ptr(ifaddrs_ptr->ifa_netmask);
+                addr_ptr = get_addr_ptr(ifaddrs_next->ifa_netmask);
             }
             if (addr_ptr) {
                 memcpy(addr, addr_ptr, sizeof(struct in_addr));
+                status = 0;
+                break;
             }
         }
-        ifaddrs_ptr = ifaddrs_ptr->ifa_next;
+        ifaddrs_next = ifaddrs_next->ifa_next;
     }
     freeifaddrs(ifaddrs_ptr);
-    return rv;
+
+    return status;
 }
 
 /** Gets the local IP address and local broadcast address from the system,
