@@ -56,12 +56,19 @@ endif
 endif
 CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
 
+DEMO_LINUX =
+ifeq (${BACNET_PORT},linux)
+ifneq (${OSTYPE},cygwin)
+	DEMO_LINUX=router
+endif
+endif
+
 # Export the variables defined here to all subprocesses
 # (see http://www.gnu.org/software/automake/manual/make/Special-Targets.html)
 .EXPORT_ALL_VARIABLES:
 
-all: library demos
-.PHONY : all library demos clean
+all: library demos gateway router-ipv6 ${DEMO_LINUX}
+.PHONY : all library demos router gateway router-ipv6 ${DEMO_LINUX} clean
 
 library:
 	$(MAKE) -s -C lib all
