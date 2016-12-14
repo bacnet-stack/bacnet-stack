@@ -268,10 +268,11 @@ bool Device_Object_List_Identifier(
 int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
+    static char string_buffer[28];
+    static BACNET_CHARACTER_STRING char_string;
     int apdu_len = 0;   /* return value */
     int len = 0;        /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
-    BACNET_CHARACTER_STRING char_string;
     uint32_t i = 0;
     int object_type = 0;
     uint32_t instance = 0;
@@ -279,7 +280,6 @@ int Device_Read_Property_Local(
     BACNET_TIME local_time;
     BACNET_DATE local_date;
     uint8_t year = 0;
-    char string_buffer[28];
     int16_t TimeZone = 0;
     uint8_t *apdu = NULL;
 
