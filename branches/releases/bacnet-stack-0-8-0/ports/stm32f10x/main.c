@@ -123,7 +123,6 @@ int main(
     timer_init();
     lse_init();
     led_init();
-    rs485_init();
     bacnet_init();
     timer_interval_start(&Blink_Timer, 125);
     for (;;) {
