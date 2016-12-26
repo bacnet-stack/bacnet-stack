@@ -718,11 +718,13 @@ bool handler_cov_fsm(
                     /* configure the linked list for the two properties */
                     value_list[0].next = &value_list[1];
                     value_list[1].next = NULL;
-                    (void) Device_Encode_Value_List(object_type,
+                    status = Device_Encode_Value_List(object_type,
                         object_instance, &value_list[0]);
-                    status =
-                        cov_send_request(&COV_Subscriptions[index],
-                        &value_list[0]);
+                    if (status) {
+                        status =
+                            cov_send_request(&COV_Subscriptions[index],
+                            &value_list[0]);
+                    }
                     if (status) {
                         COV_Subscriptions[index].flag.send_requested = false;
                     }
