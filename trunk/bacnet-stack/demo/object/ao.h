@@ -95,6 +95,12 @@ extern "C" {
         uint32_t instance,
         char *new_name);
 
+    BACNET_RELIABILITY Analog_Output_Reliability(
+        uint32_t object_instance);
+    bool Analog_Output_Reliability_Set(
+        uint32_t object_instance,
+        BACNET_RELIABILITY value);
+
     bool Analog_Output_Units_Set(
         uint32_t instance,
         uint16_t units);

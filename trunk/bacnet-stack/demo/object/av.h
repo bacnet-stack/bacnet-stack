@@ -83,6 +83,9 @@ extern "C" {
     bool Analog_Value_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    bool Analog_Value_Name_Set(
+        uint32_t object_instance,
+        char *new_name);
 
     int Analog_Value_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
@@ -115,6 +118,12 @@ extern "C" {
     bool Analog_Value_Description_Set(
         uint32_t instance,
         char *new_name);
+
+    BACNET_RELIABILITY Analog_Value_Reliability(
+        uint32_t object_instance);
+    bool Analog_Value_Reliability_Set(
+        uint32_t object_instance,
+        BACNET_RELIABILITY value);
 
     uint16_t Analog_Value_Units(
         uint32_t instance);

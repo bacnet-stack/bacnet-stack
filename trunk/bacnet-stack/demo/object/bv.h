@@ -68,6 +68,12 @@ extern "C" {
         uint32_t instance,
         char *new_name);
 
+    BACNET_RELIABILITY Binary_Value_Reliability(
+        uint32_t object_instance);
+    bool Binary_Value_Reliability_Set(
+        uint32_t object_instance,
+        BACNET_RELIABILITY value);
+
     char *Binary_Value_Inactive_Text(
         uint32_t instance);
     bool Binary_Value_Inactive_Text_Set(
