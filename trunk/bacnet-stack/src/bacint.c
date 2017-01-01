@@ -113,6 +113,54 @@ int decode_unsigned32(
     return 4;
 }
 
+#ifdef UINT64_MAX
+/**
+ * @brief       Encode a 64-bit unsigned value into buffer
+ * @param       buffer - pointer to bytes for storing encoding
+ * @param       value - 16-bit value to encode
+ * @return      Returns the number of bytes encoded
+ */
+int encode_unsigned64(
+    uint8_t * buffer,
+    uint64_t value)
+{
+    buffer[0] = (uint8_t) ((value & 0xff00000000000000) >> 56);
+    buffer[1] = (uint8_t) ((value & 0x00ff000000000000) >> 48);
+    buffer[2] = (uint8_t) ((value & 0x0000ff0000000000) >> 40);
+    buffer[3] = (uint8_t) ((value & 0x000000ff00000000) >> 32);
+    buffer[4] = (uint8_t) ((value & 0x00000000ff000000) >> 24);
+    buffer[5] = (uint8_t) ((value & 0x0000000000ff0000) >> 16);
+    buffer[6] = (uint8_t) ((value & 0x000000000000ff00) >> 8);
+    buffer[7] = (uint8_t)  (value & 0x00000000000000ff);
+
+    return 8;
+}
+
+/**
+ * @brief       Decode a 64-bit unsigned value from a buffer
+ * @param       buffer - pointer to bytes for used for decoding
+ * @param       value - pointer to 64-bit value to store the decoded value
+ * @return      Returns the number of bytes decoded
+ */
+int decode_unsigned64(
+    uint8_t * buffer,
+    uint64_t * value)
+{
+    if (value) {
+        *value  = ((uint64_t) ((((uint64_t) buffer[0]) << 56) & 0xff00000000000000));
+        *value |= ((uint64_t) ((((uint64_t) buffer[1]) << 48) & 0x00ff000000000000));
+        *value |= ((uint64_t) ((((uint64_t) buffer[2]) << 40) & 0x0000ff0000000000));
+        *value |= ((uint64_t) ((((uint64_t) buffer[3]) << 32) & 0x000000ff00000000));
+        *value |= ((uint64_t) ((((uint64_t) buffer[4]) << 24) & 0x00000000ff000000));
+        *value |= ((uint64_t) ((((uint64_t) buffer[5]) << 16) & 0x0000000000ff0000));
+        *value |= ((uint64_t) ((((uint64_t) buffer[6]) << 8)  & 0x000000000000ff00));
+        *value |= ((uint64_t) (((uint64_t)  buffer[7])        & 0x00000000000000ff));
+    }
+
+    return 8;
+}
+#endif
+
 #if BACNET_USE_SIGNED
 int encode_signed8(
     uint8_t * apdu,

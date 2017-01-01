@@ -51,7 +51,11 @@ extern "C" {
     int decode_unsigned32(
         uint8_t * apdu,
         uint32_t * value);
-
+#ifdef UINT64_MAX
+    int decode_unsigned64(
+        uint8_t * buffer,
+        uint64_t * value);
+#endif
     /* signed value encoding and decoding */
     int encode_signed8(
         uint8_t * apdu,
@@ -77,6 +81,11 @@ extern "C" {
     int decode_signed32(
         uint8_t * apdu,
         int32_t * value);
+#ifdef UINT64_MAX
+    int encode_unsigned64(
+        uint8_t * buffer,
+        uint64_t value);
+#endif
 
 #ifdef TEST
 #include "ctest.h"
