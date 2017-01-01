@@ -36,6 +36,8 @@
 #include "bacdcode.h"
 #include "bacdef.h"
 #include "bacapp.h"
+#include "memcopy.h"
+/* me! */
 #include "cov.h"
 
 /** @file cov.c  Encode/Decode Change of Value (COV) services */
@@ -48,6 +50,7 @@ Unconfirmed COV Notification
 */
 static int notify_encode_apdu(
     uint8_t * apdu,
+    unsigned max_apdu_len,
     BACNET_COV_DATA * data)
 {
     int len = 0;        /* length of each encoding */
@@ -131,20 +134,27 @@ static int notify_encode_apdu(
 
 int ccov_notify_encode_apdu(
     uint8_t * apdu,
+    unsigned max_apdu_len,
     uint8_t invoke_id,
     BACNET_COV_DATA * data)
 {
     int len = 0;        /* length of each encoding */
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int apdu_len = BACNET_STATUS_ERROR;   /* return value */
 
-    if (apdu) {
+    if (apdu && data && memcopylen(0, max_apdu_len, 4)) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_COV_NOTIFICATION;
         apdu_len = 4;
-        len = notify_encode_apdu(&apdu[apdu_len], data);
+        len = notify_encode_apdu(&apdu[apdu_len],
+            max_apdu_len-apdu_len, data);
+        if (len < 0) {
+            /* return the error */
+            apdu_len = len;
+        } else {
         apdu_len += len;
+    }
     }
 
     return apdu_len;
@@ -152,17 +162,24 @@ int ccov_notify_encode_apdu(
 
 int ucov_notify_encode_apdu(
     uint8_t * apdu,
+    unsigned max_apdu_len,
     BACNET_COV_DATA * data)
 {
     int len = 0;        /* length of each encoding */
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int apdu_len = BACNET_STATUS_ERROR;   /* return value */
 
-    if (apdu && data) {
+    if (apdu && data && memcopylen(0, max_apdu_len, 2)) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; /* service choice */
         apdu_len = 2;
-        len = notify_encode_apdu(&apdu[apdu_len], data);
+        len = notify_encode_apdu(&apdu[apdu_len],
+            max_apdu_len-apdu_len, data);
+        if (len < 0) {
+            /* return the error */
+            apdu_len = len;
+        } else {
         apdu_len += len;
+    }
     }
 
     return apdu_len;
@@ -341,6 +358,7 @@ SubscribeCOV-Request ::= SEQUENCE {
 
 int cov_subscribe_encode_apdu(
     uint8_t * apdu,
+    unsigned max_apdu_len,
     uint8_t invoke_id,
     BACNET_SUBSCRIBE_COV_DATA * data)
 {
@@ -475,6 +493,7 @@ BACnetPropertyReference ::= SEQUENCE {
 
 int cov_subscribe_property_encode_apdu(
     uint8_t * apdu,
+    unsigned max_apdu_len,
     uint8_t invoke_id,
     BACNET_SUBSCRIBE_COV_DATA * data)
 {
@@ -801,6 +820,7 @@ int cov_subscribe_property_decode_apdu(
     return len;
 }
 
+/* dummy function stubs */
 void testCOVNotifyData(
     Test * pTest,
     BACNET_COV_DATA * data,

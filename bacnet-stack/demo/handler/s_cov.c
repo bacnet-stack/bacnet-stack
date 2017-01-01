@@ -44,8 +44,19 @@
 
 /** @file s_cov.c  Send a Change of Value (COV) update or a Subscribe COV request. */
 
+/** Encodes an Unconfirmed COV Notification.
+ * @ingroup DSCOV
+ *
+ * @param buffer [in,out] The buffer to build the message in for sending.
+ * @param buffer_len [in] Number of bytes in the buffer
+ * @param dest [in] Destination address
+ * @param npdu_data [in] Network Layer information
+ * @param cov_data [in]  The COV update information to be encoded.
+ * @return Size of the message sent (bytes), or a negative value on error.
+ */
 int ucov_notify_encode_pdu(
     uint8_t * buffer,
+    unsigned buffer_len,
     BACNET_ADDRESS * dest,
     BACNET_NPDU_DATA * npdu_data,
     BACNET_COV_DATA * cov_data)
@@ -62,8 +73,13 @@ int ucov_notify_encode_pdu(
     pdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
 
     /* encode the APDU portion of the packet */
-    len = ucov_notify_encode_apdu(&buffer[pdu_len], cov_data);
-    pdu_len += len;
+    len = ucov_notify_encode_apdu(&buffer[pdu_len],
+        buffer_len - pdu_len, cov_data);
+    if (len) {
+        pdu_len += len;
+    } else {
+        pdu_len = 0;
+    }
 
     return pdu_len;
 }
@@ -72,11 +88,13 @@ int ucov_notify_encode_pdu(
  * @ingroup DSCOV
  *
  * @param buffer [in,out] The buffer to build the message in for sending.
+ * @param buffer_len [in] Number of bytes in the buffer
  * @param cov_data [in]  The COV update information to be encoded.
  * @return Size of the message sent (bytes), or a negative value on error.
  */
 int Send_UCOV_Notify(
     uint8_t * buffer,
+    unsigned buffer_len,
     BACNET_COV_DATA * cov_data)
 {
     int pdu_len = 0;
@@ -84,7 +102,8 @@ int Send_UCOV_Notify(
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    pdu_len = ucov_notify_encode_pdu(buffer, &dest, &npdu_data, cov_data);
+    pdu_len = ucov_notify_encode_pdu(buffer, buffer_len, &dest, &npdu_data,
+        cov_data);
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
     return bytes_sent;
@@ -130,7 +149,7 @@ uint8_t Send_COV_Subscribe(
         /* encode the APDU portion of the packet */
         len =
             cov_subscribe_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            invoke_id, cov_data);
+            sizeof(Handler_Transmit_Buffer)-pdu_len, invoke_id, cov_data);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between

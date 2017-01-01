@@ -58,6 +58,7 @@ extern "C" {
 
     int ucov_notify_encode_apdu(
         uint8_t * apdu,
+        unsigned max_apdu_len,
         BACNET_COV_DATA * data);
 
     int ucov_notify_decode_apdu(
@@ -66,11 +67,13 @@ extern "C" {
         BACNET_COV_DATA * data);
 
     int ucov_notify_send(
-        uint8_t * buffer,
+        uint8_t * apdu,
+        unsigned max_apdu_len,
         BACNET_COV_DATA * data);
 
     int ccov_notify_encode_apdu(
         uint8_t * apdu,
+        unsigned max_apdu_len,
         uint8_t invoke_id,
         BACNET_COV_DATA * data);
 
@@ -93,6 +96,7 @@ extern "C" {
 
     int cov_subscribe_property_encode_apdu(
         uint8_t * apdu,
+        unsigned max_apdu_len,
         uint8_t invoke_id,
         BACNET_SUBSCRIBE_COV_DATA * data);
 
@@ -103,6 +107,7 @@ extern "C" {
 
     int cov_subscribe_encode_apdu(
         uint8_t * apdu,
+        unsigned max_apdu_len,
         uint8_t invoke_id,
         BACNET_SUBSCRIBE_COV_DATA * data);
 

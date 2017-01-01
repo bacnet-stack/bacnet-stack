@@ -495,14 +495,14 @@ static bool cov_send_request(
             cov_subscription->invokeID = invoke_id;
             len =
                 ccov_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                invoke_id, &cov_data);
+                sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, &cov_data);
         } else {
             goto COV_FAILED;
         }
     } else {
         len =
             ucov_notify_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            &cov_data);
+            sizeof(Handler_Transmit_Buffer) - pdu_len, &cov_data);
     }
     pdu_len += len;
     if (cov_subscription->flag.issueConfirmedNotifications) {
