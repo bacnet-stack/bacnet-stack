@@ -154,7 +154,7 @@ int timesync_encode_timesync_recipients(
                 /* CHOICE - device [0] BACnetObjectIdentifier */
                 len =
                     encode_context_object_id(&apdu[apdu_len], 0,
-                    pRecipient->type.device.type,
+                    (int)pRecipient->type.device.type,
                     pRecipient->type.device.instance);
                 apdu_len += len;
             } else {
@@ -162,9 +162,10 @@ int timesync_encode_timesync_recipients(
             }
         } else if (pRecipient->tag == 1) {
             if (pRecipient->type.address.net) {
-                len = 1 + 3 + 2 + pRecipient->type.address.len + 1;
+                len = (int)(1 + 3 + 2 + pRecipient->type.address.len + 1);
             } else {
-                len = 1 + 3 + 2 + pRecipient->type.address.mac_len + 1;
+                len =
+                    (int)(1 + 3 + 2 + pRecipient->type.address.mac_len + 1);
             }
             if (max_apdu >= (unsigned)len) {
                 /* CHOICE - address [1] BACnetAddress - opening */
