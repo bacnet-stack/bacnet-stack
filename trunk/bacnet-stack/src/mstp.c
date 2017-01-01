@@ -589,7 +589,7 @@ bool MSTP_Master_Node_FSM(
     uint8_t next_poll_station = 0;
     uint8_t next_this_station = 0;
     uint8_t next_next_station = 0;
-    uint16_t my_timeout = 10, ns_timeout = 0;
+    uint16_t my_timeout = 10, ns_timeout = 0, mm_timeout = 0;
     /* transition immediately to the next state */
     bool transition_now = false;
     MSTP_MASTER_STATE master_state = mstp_port->master_state;
@@ -616,32 +616,22 @@ bool MSTP_Master_Node_FSM(
             break;
         case MSTP_MASTER_STATE_IDLE:
             /* In the IDLE state, the node waits for a frame. */
-            /* LostToken */
-            if (mstp_port->SilenceTimer((void *) mstp_port) >= Tno_token) {
-                /* assume that the token has been lost */
-                mstp_port->EventCount = 0;      /* Addendum 135-2004d-8 */
-                mstp_port->master_state = MSTP_MASTER_STATE_NO_TOKEN;
-                /* set the receive frame flags to false in case we received
-                   some bytes and had a timeout for some reason */
-                mstp_port->ReceivedInvalidFrame = false;
-                mstp_port->ReceivedValidFrame = false;
-                transition_now = true;
-            } else if (mstp_port->ReceivedInvalidFrame == true) {
+            if (mstp_port->ReceivedInvalidFrame == true) {
                 /* ReceivedInvalidFrame */
                 /* invalid frame was received */
+                /* wait for the next frame - remain in IDLE */
                 mstp_port->ReceivedInvalidFrame = false;
             } else if (mstp_port->ReceivedValidFrame == true) {
-                /* wait for the next frame - remain in IDLE */
                 printf_master("MSTP: ReceivedValidFrame "
                     "Src=%02X Dest=%02X DataLen=%u " "FC=%u ST=%u Type=%s\n",
                     mstp_port->SourceAddress, mstp_port->DestinationAddress,
                     mstp_port->DataLength, mstp_port->FrameCount,
                     mstp_port->SilenceTimer((void *) mstp_port),
                     mstptext_frame_type((unsigned) mstp_port->FrameType));
-                /* destined for me! */
                 if ((mstp_port->DestinationAddress == mstp_port->This_Station)
                     || (mstp_port->DestinationAddress ==
                         MSTP_BROADCAST_ADDRESS)) {
+                    /* destined for me! */
                     switch (mstp_port->FrameType) {
                         case FRAME_TYPE_TOKEN:
                             /* ReceivedToken */
@@ -697,6 +687,16 @@ bool MSTP_Master_Node_FSM(
                     MSTP_MASTER_STATE_ANSWER_DATA_REQUEST) {
                     mstp_port->ReceivedValidFrame = false;
                 }
+            } else if (mstp_port->SilenceTimer((void *) mstp_port) >= Tno_token) {
+                /* LostToken */
+                /* assume that the token has been lost */
+                mstp_port->EventCount = 0;      /* Addendum 135-2004d-8 */
+                mstp_port->master_state = MSTP_MASTER_STATE_NO_TOKEN;
+                /* set the receive frame flags to false in case we received
+                   some bytes and had a timeout for some reason */
+                mstp_port->ReceivedInvalidFrame = false;
+                mstp_port->ReceivedValidFrame = false;
+                transition_now = true;
             }
             break;
         case MSTP_MASTER_STATE_USE_TOKEN:
@@ -950,7 +950,11 @@ bool MSTP_Master_Node_FSM(
             } else {
                 ns_timeout =
                     Tno_token + (Tslot * (mstp_port->This_Station + 1));
-                if (mstp_port->SilenceTimer((void *) mstp_port) < ns_timeout) {
+                mm_timeout =
+                    Tno_token + (Tslot * (mstp_port->Nmax_master + 1));
+                if ((mstp_port->SilenceTimer((void *) mstp_port) < ns_timeout)
+                    || (mstp_port->SilenceTimer((void *) mstp_port) >
+                        mm_timeout)) {
                     /* GenerateToken */
                     /* Assume that this node is the lowest numerical address  */
                     /* on the network and is empowered to create a token.  */
