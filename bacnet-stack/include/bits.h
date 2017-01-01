@@ -71,7 +71,7 @@
 #define BITMASK_SET(x,y) ((x) |= (y))
 #define BITMASK_CLEAR(x,y) ((x) &= (~(y)))
 #define BITMASK_FLIP(x,y) ((x) ^= (y))
-#define BITMASK_CHECK(x,y) ((x) & (y))
+#define BITMASK_CHECK(x,y) (((x) & (y)) == (y))
 
 #ifndef _BV
 #define _BV(x) (1<<(x))
