@@ -397,6 +397,21 @@ extern "C" {
         uint8_t invoke_id,
         uint8_t service_choice);
 
+    int encode_bacnet_address(
+        uint8_t * apdu,
+        BACNET_ADDRESS * destination);
+    int decode_bacnet_address(
+        uint8_t * apdu,
+        BACNET_ADDRESS * destination);
+    int encode_context_bacnet_address(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_ADDRESS * destination);
+    int decode_context_bacnet_address(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_ADDRESS * destination);
+
 /* from clause 20.2.1.2 Tag Number */
 /* true if extended tag numbering is used */
 #define IS_EXTENDED_TAG_NUMBER(x) ((x & 0xF0) == 0xF0)

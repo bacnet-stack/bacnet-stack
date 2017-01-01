@@ -688,7 +688,8 @@ int decode_context_bitstring(
     uint32_t len_value;
     int len = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_bitstring(&apdu[len], len_value, bit_string);
@@ -805,6 +806,7 @@ int decode_context_object_id(
     } else {
         len = BACNET_STATUS_ERROR;
     }
+
     return len;
 }
 
@@ -970,7 +972,8 @@ int decode_context_octet_string(
     bool status = false;
     uint32_t len_value = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
 
@@ -1096,7 +1099,8 @@ int decode_context_character_string(
     bool status = false;
     uint32_t len_value = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
 
@@ -1155,7 +1159,8 @@ int decode_context_unsigned(
     uint32_t len_value;
     int len = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_unsigned(&apdu[len], len_value, value);
@@ -1261,7 +1266,8 @@ int decode_context_enumerated(
     uint8_t tag_number;
     uint32_t len_value;
 
-    if (decode_is_context_tag(&apdu[len], tag_value)) {
+    if (decode_is_context_tag(&apdu[len], tag_value) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_enumerated(&apdu[len], len_value, value);
@@ -1366,7 +1372,8 @@ int decode_context_signed(
     uint32_t len_value;
     int len = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len +=
             decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_signed(&apdu[len], len_value, value);
@@ -1607,6 +1614,7 @@ int decode_application_time(
     } else {
         len = BACNET_STATUS_ERROR;
     }
+
     return len;
 }
 
@@ -1623,12 +1631,13 @@ int decode_context_bacnet_time(
     } else {
         len = BACNET_STATUS_ERROR;
     }
+
     return len;
 }
 
 
 /* BACnet Date */
-/* year = years since 1900 */
+/* year = years since 1900, wildcard=1900+255 */
 /* month 1=Jan */
 /* day = day of month */
 /* wday 1=Monday...7=Sunday */
@@ -1640,20 +1649,18 @@ int encode_bacnet_date(
     uint8_t * apdu,
     BACNET_DATE * bdate)
 {
-    /* allow 2 digit years */
     if (bdate->year >= 1900) {
+        /* normal encoding, including wildcard */
         apdu[0] = (uint8_t) (bdate->year - 1900);
     } else if (bdate->year < 0x100) {
+        /* allow 2 digit years */
         apdu[0] = (uint8_t) bdate->year;
-
     } else {
         /*
          ** Don't try and guess what the user meant here. Just fail
          */
         return BACNET_STATUS_ERROR;
     }
-
-
     apdu[1] = bdate->month;
     apdu[2] = bdate->day;
     apdu[3] = bdate->wday;
@@ -1702,7 +1709,8 @@ int decode_date(
     uint8_t * apdu,
     BACNET_DATE * bdate)
 {
-    bdate->year = (uint16_t) (apdu[0] + 1900);
+
+    bdate->year = (uint16_t)apdu[0] + 1900;
     bdate->month = apdu[1];
     bdate->day = apdu[2];
     bdate->wday = apdu[3];
@@ -1772,6 +1780,108 @@ int encode_simple_ack(
     apdu[2] = service_choice;
 
     return 3;
+}
+
+/* BACnetAddress */
+int encode_bacnet_address(
+    uint8_t * apdu,
+    BACNET_ADDRESS * destination)
+{
+    int apdu_len = 0;
+    BACNET_OCTET_STRING mac_addr;
+    /* network number */
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], destination->net);
+    /* encode mac address as an octet-string */
+    if (destination->len != 0)
+        octetstring_init(&mac_addr, destination->adr, destination->len);
+    else
+        octetstring_init(&mac_addr, destination->mac, destination->mac_len);
+    apdu_len += encode_application_octet_string(&apdu[apdu_len], &mac_addr);
+    return apdu_len;
+}
+
+/* BACnetAddress */
+int decode_bacnet_address(
+    uint8_t * apdu,
+    BACNET_ADDRESS * destination)
+{
+    int len = 0;
+    int tag_len = 0;
+    uint32_t len_value_type = 0;
+    uint8_t i = 0;
+    uint32_t data_unsigned = 0;
+    uint8_t tag_number = 0;
+    BACNET_OCTET_STRING mac_addr = {0};
+
+    /* network number */
+    tag_len =
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    len += tag_len;
+    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+        return BACNET_STATUS_ERROR;
+    }
+    len += decode_unsigned(&apdu[len], len_value_type, &data_unsigned);
+    destination->net = data_unsigned;
+    /* encode mac address as an octet-string */
+    tag_len =
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    len += tag_len;
+    if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
+        return BACNET_STATUS_ERROR;
+    }
+    len += decode_octet_string(&apdu[len], len_value_type, &mac_addr);
+    destination->mac_len = mac_addr.length;
+    /* paranoia : test too big strings */
+    if (destination->mac_len > sizeof(destination->mac)) {
+        destination->mac_len = sizeof(destination->mac);
+    }
+    /* copy address */
+    for (i = 0; i < destination->mac_len; i++) {
+        destination->mac[i] = mac_addr.value[i];
+    }
+
+    return len;
+}
+
+/* BACnetAddress */
+int encode_context_bacnet_address(
+    uint8_t * apdu,
+    uint8_t tag_number,
+    BACNET_ADDRESS * destination)
+{
+    int apdu_len = 0;
+    apdu_len += encode_opening_tag(&apdu[apdu_len], tag_number);
+    apdu_len += encode_bacnet_address(&apdu[apdu_len], destination);
+    apdu_len += encode_closing_tag(&apdu[apdu_len], tag_number);
+    return apdu_len;
+}
+
+/* BACnetAddress */
+int decode_context_bacnet_address(
+    uint8_t * apdu,
+    uint8_t tag_number,
+    BACNET_ADDRESS * destination)
+{
+    int len = 0;
+    int section_length;
+
+    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
+        len++;
+        section_length = decode_bacnet_address(&apdu[len], destination);
+        if (section_length < 0) {
+            len = BACNET_STATUS_ERROR;
+        } else {
+            len += section_length;
+            if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
+                len++;
+            } else {
+                len = BACNET_STATUS_ERROR;
+            }
+        }
+    } else {
+        len = BACNET_STATUS_ERROR;
+    }
+    return len;
 }
 
 /* end of decoding_encoding.c */
