@@ -93,6 +93,12 @@ extern "C" {
         uint32_t object_instance,
         char *text_string);
 
+    BACNET_RELIABILITY Multistate_Input_Reliability(
+        uint32_t object_instance);
+    bool Multistate_Input_Reliability_Set(
+        uint32_t object_instance,
+        BACNET_RELIABILITY value);
+
     bool Multistate_Input_State_Text_Set(
         uint32_t object_instance,
         uint32_t state_index,
@@ -103,6 +109,13 @@ extern "C" {
     char *Multistate_Input_State_Text(
         uint32_t object_instance,
         uint32_t state_index);
+
+    bool Multistate_Input_Create(
+        uint32_t object_instance);
+    bool Multistate_Input_Delete(
+        uint32_t object_instance);
+    void Multistate_Input_Cleanup(
+        void);
 
     void Multistate_Input_Init(
         void);

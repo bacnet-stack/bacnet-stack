@@ -71,6 +71,12 @@ extern "C" {
         uint32_t instance,
         char *new_name);
 
+    BACNET_RELIABILITY Binary_Input_Reliability(
+        uint32_t object_instance);
+    bool Binary_Input_Reliability_Set(
+        uint32_t object_instance,
+        BACNET_RELIABILITY value);
+
     char *Binary_Input_Inactive_Text(
         uint32_t instance);
     bool Binary_Input_Inactive_Text_Set(

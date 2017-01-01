@@ -226,7 +226,7 @@ extern "C" {
 
     bool Device_Reinitialize(
         BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
-
+    bool Device_Reinitialize_State_Set(BACNET_REINITIALIZED_STATE state);
     BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
         void);
 
@@ -295,6 +295,7 @@ extern "C" {
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
     bool Device_Object_Name_ANSI_Init(const char * object_name);
+    char * Device_Object_Name_ANSI(void);
 
     BACNET_DEVICE_STATUS Device_System_Status(
         void);
