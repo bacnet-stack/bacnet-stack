@@ -2043,7 +2043,7 @@ static void test_BVLC6_Delete_Foreign_Device_Message(
 {
     uint8_t pdu[64] = { 0 };
     uint32_t test_vmac_src = 0;
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY test_fdt_entry = {{{0}}};
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY test_fdt_entry = {0};
     uint8_t message_type = 0;
     uint16_t length = 0;
     int len = 0, test_len = 0;
@@ -2073,7 +2073,7 @@ static void test_BVLC6_Delete_Foreign_Device(
     Test * pTest)
 {
     uint32_t vmac_src = 0;
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = {{{0}}};
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = {0};
     unsigned int i = 0;
 
     /* test with zeros */
@@ -2252,7 +2252,6 @@ static void test_BVLC6_Address_Get_Set(
         ct_test(pTest, status);
         ct_test(pTest, group == test_group);
         group = group<<1;
-        port++;
     }
 }
 
