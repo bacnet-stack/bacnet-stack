@@ -1431,10 +1431,10 @@ void testEventEventState(
     data.eventType = EVENT_BUFFER_READY;
     data.notificationParams.bufferReady.previousNotification = 1234;
     data.notificationParams.bufferReady.currentNotification = 2345;
-    data.notificationParams.bufferReady.bufferProperty.deviceIndentifier.type =
+    data.notificationParams.bufferReady.bufferProperty.deviceIdentifier.type =
         OBJECT_DEVICE;
     data.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.instance = 500;
+        deviceIdentifier.instance = 500;
     data.notificationParams.bufferReady.bufferProperty.objectIdentifier.type =
         OBJECT_ANALOG_INPUT;
     data.notificationParams.bufferReady.bufferProperty.
@@ -1464,15 +1464,15 @@ void testEventEventState(
 
     ct_test(pTest,
         data.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.type ==
+        deviceIdentifier.type ==
         data2.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.type);
+        deviceIdentifier.type);
 
     ct_test(pTest,
         data.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.instance ==
+        deviceIdentifier.instance ==
         data2.notificationParams.bufferReady.bufferProperty.
-        deviceIndentifier.instance);
+        deviceIdentifier.instance);
 
     ct_test(pTest,
         data.notificationParams.bufferReady.bufferProperty.
