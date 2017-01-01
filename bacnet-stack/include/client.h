@@ -108,9 +108,11 @@ extern "C" {
 
     int Send_UCOV_Notify(
         uint8_t * buffer,
+        unsigned buffer_len,
         BACNET_COV_DATA * cov_data);
     int ucov_notify_encode_pdu(
         uint8_t * buffer,
+        unsigned buffer_len,
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * npdu_data,
         BACNET_COV_DATA * cov_data);
