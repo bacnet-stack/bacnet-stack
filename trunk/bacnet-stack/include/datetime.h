@@ -58,6 +58,19 @@ typedef struct BACnet_DateTime {
     BACNET_TIME time;
 } BACNET_DATE_TIME;
 
+/* range of dates */
+typedef struct BACnet_Date_Range {
+    BACNET_DATE startdate;
+    BACNET_DATE enddate;
+} BACNET_DATE_RANGE;
+
+/* week and days */
+typedef struct BACnet_Weeknday {
+    uint8_t month;      /* 1=Jan 13=odd 14=even FF=any */
+    uint8_t weekofmonth;        /* 1=days 1-7, 2=days 8-14, 3=days 15-21, 4=days 22-28, 5=days 29-31, 6=last 7 days, FF=any week */
+    uint8_t dayofweek;  /* 1=Monday-7=Sunday, FF=any */
+} BACNET_WEEKNDAY;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -169,6 +182,38 @@ extern "C" {
         int32_t minutes);
 
     /* date and time wildcards */
+    bool datetime_wildcard_year(
+        BACNET_DATE *bdate);
+    void datetime_wildcard_year_set(
+        BACNET_DATE *bdate);
+    bool datetime_wildcard_month(
+        BACNET_DATE *bdate);
+    void datetime_wildcard_month_set(
+        BACNET_DATE *bdate);
+    bool datetime_wildcard_day(
+        BACNET_DATE *bdate);
+    void datetime_wildcard_day_set(
+        BACNET_DATE *bdate);
+    bool datetime_wildcard_weekday(
+        BACNET_DATE *bdate);
+    void datetime_wildcard_weekday_set(
+        BACNET_DATE *bdate);
+    bool datetime_wildcard_hour(
+        BACNET_TIME *btime);
+    void datetime_wildcard_hour_set(
+        BACNET_TIME *btime);
+    bool datetime_wildcard_minute(
+        BACNET_TIME *btime);
+    void datetime_wildcard_minute_set(
+        BACNET_TIME *btime);
+    bool datetime_wildcard_second(
+        BACNET_TIME *btime);
+    void datetime_wildcard_second_set(
+        BACNET_TIME *btime);
+    bool datetime_wildcard_hundredths(
+        BACNET_TIME *btime);
+    void datetime_wildcard_hundredths_set(
+        BACNET_TIME *btime);
     bool datetime_wildcard(
         BACNET_DATE_TIME * bdatetime);
     bool datetime_wildcard_present(

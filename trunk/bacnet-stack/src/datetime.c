@@ -42,6 +42,11 @@
 
 /** @file datetime.c  Manipulate BACnet Date and Time values */
 
+/* define our epic beginnings */
+#define BACNET_EPOCH_YEAR 1900
+/* 1/1/1900 is a Monday */
+#define BACNET_EPOCH_DOW BACNET_WEEKDAY_MONDAY
+
 /* BACnet Date */
 /* year = years since 1900 */
 /* month 1=Jan */
@@ -93,7 +98,8 @@ bool datetime_ymd_is_valid(
     uint8_t monthdays = 0;      /* days in a month */
 
     monthdays = datetime_month_days(year, month);
-    if ((year >= 1900) && (monthdays > 0) && (day >= 1) && (day <= monthdays)) {
+    if ((year >= BACNET_EPOCH_YEAR) && (monthdays > 0) &&
+        (day >= 1) && (day <= monthdays)) {
         status = true;
     }
 
@@ -190,7 +196,7 @@ static uint32_t days_since_epoch(
     uint16_t years = 0; /* loop counter for years */
 
     if (datetime_ymd_is_valid(year, month, day)) {
-        for (years = 1900; years < year; years++) {
+        for (years = BACNET_EPOCH_YEAR; years < year; years++) {
             days += 365;
             if (datetime_is_leap_year(years))
                 days++;
@@ -221,7 +227,7 @@ static void days_since_epoch_into_ymd(
     uint8_t * pMonth,
     uint8_t * pDay)
 {
-    uint16_t year = 1900;
+    uint16_t year = BACNET_EPOCH_YEAR;
     uint8_t month = 1;
     uint8_t day = 1;
 
@@ -270,7 +276,11 @@ uint8_t datetime_day_of_week(
     uint8_t month,
     uint8_t day)
 {
-    return (uint8_t) ((days_since_epoch(year, month, day) % 7) + 1);
+    uint8_t dow = (uint8_t)BACNET_EPOCH_DOW;
+
+    dow += (days_since_epoch(year, month, day) % 7);
+
+    return dow;
 }
 
 bool datetime_time_is_valid(
@@ -592,7 +602,10 @@ uint32_t datetime_seconds_since_midnight(
     uint32_t seconds = 0;
 
     if (btime) {
-        seconds = seconds_since_midnight(btime->hour, btime->min, btime->sec);
+        seconds = seconds_since_midnight(
+            btime->hour,
+            btime->min,
+            btime->sec);
     }
 
     return seconds;
@@ -610,7 +623,9 @@ uint16_t datetime_minutes_since_midnight(
     uint32_t minutes = 0;
 
     if (btime) {
-        minutes = minutes_since_midnight(btime->hour, btime->min);
+        minutes = minutes_since_midnight(
+            btime->hour,
+            btime->min);
     }
 
     return minutes;
@@ -667,17 +682,212 @@ void datetime_add_minutes(
     datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
 }
 
+/* Returns true if year is a wildcard */
+bool datetime_wildcard_year(
+    BACNET_DATE *bdate)
+{
+    bool wildcard_present = false;
+
+    if (bdate) {
+        if (bdate->year == (BACNET_EPOCH_YEAR + 0xFF)) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+/* Sets the year as a wildcard */
+void datetime_wildcard_year_set(
+    BACNET_DATE *bdate)
+{
+    if (bdate) {
+        bdate->year = BACNET_EPOCH_YEAR + 0xFF;
+    }
+}
+
+/* Returns true if month is a wildcard */
+bool datetime_wildcard_month(
+    BACNET_DATE *bdate)
+{
+    bool wildcard_present = false;
+
+    if (bdate) {
+        if (bdate->month == 0xFF) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+/* Sets the month as a wildcard */
+void datetime_wildcard_month_set(
+    BACNET_DATE *bdate)
+{
+    if (bdate) {
+        bdate->month = 0xFF;
+    }
+}
+
+/* Returns true if day is a wildcard */
+bool datetime_wildcard_day(
+    BACNET_DATE *bdate)
+{
+    bool wildcard_present = false;
+
+    if (bdate) {
+        if (bdate->day == 0xFF) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+/* Sets the day as a wildcard */
+void datetime_wildcard_day_set(
+    BACNET_DATE *bdate)
+{
+    if (bdate) {
+        bdate->day = 0xFF;
+    }
+}
+
+/* Returns true if weekday is a wildcard */
+bool datetime_wildcard_weekday(
+    BACNET_DATE *bdate)
+{
+    bool wildcard_present = false;
+
+    if (bdate) {
+        if (bdate->wday == 0xFF) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+/* Sets the weekday as a wildcard */
+void datetime_wildcard_weekday_set(
+    BACNET_DATE *bdate)
+{
+    if (bdate) {
+        bdate->wday = 0xFF;
+    }
+}
+
+/* Returns true if hour is a wildcard */
+bool datetime_wildcard_hour(
+    BACNET_TIME *btime)
+{
+    bool wildcard_present = false;
+
+    if (btime) {
+        if (btime->hour == 0xFF) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+/* Sets the hour as a wildcard */
+void datetime_wildcard_hour_set(
+    BACNET_TIME *btime)
+{
+    if (btime) {
+        btime->hour = 0xFF;
+    }
+}
+
+/* Returns true if minute is a wildcard */
+bool datetime_wildcard_minute(
+    BACNET_TIME *btime)
+{
+    bool wildcard_present = false;
+
+    if (btime) {
+        if (btime->min == 0xFF) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+/* Sets the minute as a wildcard */
+void datetime_wildcard_minute_set(
+    BACNET_TIME *btime)
+{
+    if (btime) {
+        btime->min = 0xFF;
+    }
+}
+
+/* Returns true if seconds is wildcard */
+bool datetime_wildcard_second(
+    BACNET_TIME *btime)
+{
+    bool wildcard_present = false;
+
+    if (btime) {
+        if (btime->sec == 0xFF) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+/* Sets the seconds as a wildcard */
+void datetime_wildcard_second_set(
+    BACNET_TIME *btime)
+{
+    if (btime) {
+        btime->sec = 0xFF;
+    }
+}
+
+/* Returns true if hundredths is a wildcard */
+bool datetime_wildcard_hundredths(
+    BACNET_TIME *btime)
+{
+    bool wildcard_present = false;
+
+    if (btime) {
+        if (btime->hundredths == 0xFF) {
+            wildcard_present = true;
+        }
+    }
+
+    return wildcard_present;
+}
+
+/* Sets the hundredths as a wildcard */
+void datetime_wildcard_hundredths_set(
+    BACNET_TIME *btime)
+{
+    if (btime) {
+        btime->hundredths = 0xFF;
+    }
+}
+
 bool datetime_wildcard(
     BACNET_DATE_TIME * bdatetime)
 {
     bool wildcard_present = false;
 
     if (bdatetime) {
-        if ((bdatetime->date.year == (1900 + 0xFF)) &&
-            (bdatetime->date.month == 0xFF) && (bdatetime->date.day == 0xFF) &&
-            (bdatetime->date.wday == 0xFF) && (bdatetime->time.hour == 0xFF) &&
-            (bdatetime->time.min == 0xFF) && (bdatetime->time.sec == 0xFF) &&
-            (bdatetime->time.hundredths == 0xFF)) {
+        if (datetime_wildcard_year(&bdatetime->date) &&
+            datetime_wildcard_month(&bdatetime->date) &&
+            datetime_wildcard_day(&bdatetime->date) &&
+            datetime_wildcard_weekday(&bdatetime->date) &&
+            datetime_wildcard_hour(&bdatetime->time) &&
+            datetime_wildcard_minute(&bdatetime->time) &&
+            datetime_wildcard_second(&bdatetime->time) &&
+            datetime_wildcard_hundredths(&bdatetime->time)) {
             wildcard_present = true;
         }
     }
@@ -686,7 +896,8 @@ bool datetime_wildcard(
 }
 
 /* Returns true if any type of wildcard is present except for day of week
- * on it's own.
+ * on it's own.  Also checks for special day and month values.  Used in
+ * trendlog object.
  */
 bool datetime_wildcard_present(
     BACNET_DATE_TIME * bdatetime)
@@ -694,11 +905,12 @@ bool datetime_wildcard_present(
     bool wildcard_present = false;
 
     if (bdatetime) {
-        if ((bdatetime->date.year == (1900 + 0xFF)) ||
+        if (datetime_wildcard_year(&bdatetime->date) ||
             (bdatetime->date.month > 12) || (bdatetime->date.day > 31) ||
-            (bdatetime->time.hour == 0xFF) || (bdatetime->time.min == 0xFF) ||
-            (bdatetime->time.sec == 0xFF) ||
-            (bdatetime->time.hundredths == 0xFF)) {
+            datetime_wildcard_hour(&bdatetime->time) ||
+            datetime_wildcard_minute(&bdatetime->time) ||
+            datetime_wildcard_second(&bdatetime->time) ||
+            datetime_wildcard_hundredths(&bdatetime->time)) {
             wildcard_present = true;
         }
     }
@@ -710,7 +922,7 @@ void datetime_date_wildcard_set(
     BACNET_DATE * bdate)
 {
     if (bdate) {
-        bdate->year = 1900 + 0xFF;
+        bdate->year = BACNET_EPOCH_YEAR + 0xFF;
         bdate->month = 0xFF;
         bdate->day = 0xFF;
         bdate->wday = 0xFF;
@@ -829,9 +1041,6 @@ int bacapp_decode_context_datetime(
     return apdu_len;
 }
 
-
-
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
@@ -843,7 +1052,7 @@ static void testBACnetDateTimeWildcard(
     BACNET_DATE_TIME bdatetime;
     bool status = false;
 
-    datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+    datetime_set_values(&bdatetime, BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
     status = datetime_wildcard(&bdatetime);
     ct_test(pTest, status == false);
 
@@ -859,27 +1068,27 @@ static void testBACnetDateTimeAdd(
     uint32_t minutes = 0;
     int diff = 0;
 
-    datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+    datetime_set_values(&bdatetime, BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
     datetime_copy(&test_bdatetime, &bdatetime);
     datetime_add_minutes(&bdatetime, minutes);
     diff = datetime_compare(&test_bdatetime, &bdatetime);
     ct_test(pTest, diff == 0);
 
-    datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+    datetime_set_values(&bdatetime, BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
     datetime_add_minutes(&bdatetime, 60);
-    datetime_set_values(&test_bdatetime, 1900, 1, 1, 1, 0, 0, 0);
+    datetime_set_values(&test_bdatetime, BACNET_EPOCH_YEAR, 1, 1, 1, 0, 0, 0);
     diff = datetime_compare(&test_bdatetime, &bdatetime);
     ct_test(pTest, diff == 0);
 
-    datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+    datetime_set_values(&bdatetime, BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
     datetime_add_minutes(&bdatetime, (24 * 60));
-    datetime_set_values(&test_bdatetime, 1900, 1, 2, 0, 0, 0, 0);
+    datetime_set_values(&test_bdatetime, BACNET_EPOCH_YEAR, 1, 2, 0, 0, 0, 0);
     diff = datetime_compare(&test_bdatetime, &bdatetime);
     ct_test(pTest, diff == 0);
 
-    datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+    datetime_set_values(&bdatetime, BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
     datetime_add_minutes(&bdatetime, (31 * 24 * 60));
-    datetime_set_values(&test_bdatetime, 1900, 2, 1, 0, 0, 0, 0);
+    datetime_set_values(&test_bdatetime, BACNET_EPOCH_YEAR, 2, 1, 0, 0, 0, 0);
     diff = datetime_compare(&test_bdatetime, &bdatetime);
     ct_test(pTest, diff == 0);
 
@@ -924,14 +1133,14 @@ static void testBACnetDate(
     BACNET_DATE bdate1, bdate2;
     int diff = 0;
 
-    datetime_set_date(&bdate1, 1900, 1, 1);
+    datetime_set_date(&bdate1, BACNET_EPOCH_YEAR, 1, 1);
     datetime_copy_date(&bdate2, &bdate1);
     diff = datetime_compare_date(&bdate1, &bdate2);
     ct_test(pTest, diff == 0);
-    datetime_set_date(&bdate2, 1900, 1, 2);
+    datetime_set_date(&bdate2, BACNET_EPOCH_YEAR, 1, 2);
     diff = datetime_compare_date(&bdate1, &bdate2);
     ct_test(pTest, diff < 0);
-    datetime_set_date(&bdate2, 1900, 2, 1);
+    datetime_set_date(&bdate2, BACNET_EPOCH_YEAR, 2, 1);
     diff = datetime_compare_date(&bdate1, &bdate2);
     ct_test(pTest, diff < 0);
     datetime_set_date(&bdate2, 1901, 1, 1);
@@ -967,7 +1176,7 @@ static void testBACnetDate(
     datetime_set_date(&bdate2, 2006, 7, 15);
     diff = datetime_compare_date(&bdate1, &bdate2);
     ct_test(pTest, diff > 0);
-    datetime_set_date(&bdate2, 1900, 7, 15);
+    datetime_set_date(&bdate2, BACNET_EPOCH_YEAR, 7, 15);
     diff = datetime_compare_date(&bdate1, &bdate2);
     ct_test(pTest, diff > 0);
     datetime_set_date(&bdate2, 2008, 7, 15);
@@ -1038,12 +1247,12 @@ static void testBACnetDateTime(
     BACNET_TIME btime;
     int diff = 0;
 
-    datetime_set_values(&bdatetime1, 1900, 1, 1, 0, 0, 0, 0);
+    datetime_set_values(&bdatetime1, BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
     datetime_copy(&bdatetime2, &bdatetime1);
     diff = datetime_compare(&bdatetime1, &bdatetime2);
     ct_test(pTest, diff == 0);
     datetime_set_time(&btime, 0, 0, 0, 0);
-    datetime_set_date(&bdate, 1900, 1, 1);
+    datetime_set_date(&bdate, BACNET_EPOCH_YEAR, 1, 1);
     datetime_set(&bdatetime1, &bdate, &btime);
     diff = datetime_compare(&bdatetime1, &bdatetime2);
     ct_test(pTest, diff == 0);
@@ -1167,20 +1376,20 @@ static void testDateEpoch(
     uint8_t month = 0, test_month = 0;
     uint8_t day = 0, test_day = 0;
 
-    days = days_since_epoch(1900, 1, 1);
+    days = days_since_epoch(BACNET_EPOCH_YEAR, 1, 1);
     ct_test(pTest, days == 0);
     days_since_epoch_into_ymd(days, &year, &month, &day);
-    ct_test(pTest, year == 1900);
+    ct_test(pTest, year == BACNET_EPOCH_YEAR);
     ct_test(pTest, month == 1);
     ct_test(pTest, day == 1);
 
 
-    for (year = 1900; year <= 2154; year++) {
+    for (year = BACNET_EPOCH_YEAR; year < (BACNET_EPOCH_YEAR+0xFF); year++) {
         for (month = 1; month <= 12; month++) {
             for (day = 1; day <= datetime_month_days(year, month); day++) {
                 days = days_since_epoch(year, month, day);
-                days_since_epoch_into_ymd(days, &test_year, &test_month,
-                    &test_day);
+                days_since_epoch_into_ymd(days,
+                    &test_year, &test_month, &test_day);
                 ct_test(pTest, year == test_year);
                 ct_test(pTest, month == test_month);
                 ct_test(pTest, day == test_day);
@@ -1196,23 +1405,23 @@ static void testBACnetDayOfWeek(
 
     /* 1/1/1900 is a Monday */
     dow = datetime_day_of_week(1900, 1, 1);
-    ct_test(pTest, dow == 1);
+    ct_test(pTest, dow == BACNET_WEEKDAY_MONDAY);
 
     /* 1/1/2007 is a Monday */
     dow = datetime_day_of_week(2007, 1, 1);
-    ct_test(pTest, dow == 1);
+    ct_test(pTest, dow == BACNET_WEEKDAY_MONDAY);
     dow = datetime_day_of_week(2007, 1, 2);
-    ct_test(pTest, dow == 2);
+    ct_test(pTest, dow == BACNET_WEEKDAY_TUESDAY);
     dow = datetime_day_of_week(2007, 1, 3);
-    ct_test(pTest, dow == 3);
+    ct_test(pTest, dow == BACNET_WEEKDAY_WEDNESDAY);
     dow = datetime_day_of_week(2007, 1, 4);
-    ct_test(pTest, dow == 4);
+    ct_test(pTest, dow == BACNET_WEEKDAY_THURSDAY);
     dow = datetime_day_of_week(2007, 1, 5);
-    ct_test(pTest, dow == 5);
+    ct_test(pTest, dow == BACNET_WEEKDAY_FRIDAY);
     dow = datetime_day_of_week(2007, 1, 6);
-    ct_test(pTest, dow == 6);
+    ct_test(pTest, dow == BACNET_WEEKDAY_SATURDAY);
     dow = datetime_day_of_week(2007, 1, 7);
-    ct_test(pTest, dow == 7);
+    ct_test(pTest, dow == BACNET_WEEKDAY_SUNDAY);
 
     dow = datetime_day_of_week(2007, 1, 31);
     ct_test(pTest, dow == 3);
