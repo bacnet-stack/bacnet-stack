@@ -67,6 +67,13 @@ void handler_dcc_password_set(
     }
 }
 
+/** Gets (non-volatile hold) the password to be used for DCC requests.
+ * @return DCC password
+ */
+char *handler_dcc_password(void)
+{
+    return My_Password;
+}
 
 /** Handler for a Device Communication Control (DCC) request.
  * @ingroup DMDCC
