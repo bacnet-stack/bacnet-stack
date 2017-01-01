@@ -34,7 +34,7 @@ typedef struct BACnetDeviceObjectPropertyReference {
     BACNET_OBJECT_ID objectIdentifier;
     BACNET_PROPERTY_ID propertyIdentifier;
     uint32_t arrayIndex;
-    BACNET_OBJECT_ID deviceIndentifier;
+    BACNET_OBJECT_ID deviceIdentifier;
 } BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE;
 
 /** BACnetDeviceObjectReference structure.
@@ -42,7 +42,7 @@ typedef struct BACnetDeviceObjectPropertyReference {
  * to an object inside this Device.
  */
 typedef struct BACnetDeviceObjectReference {
-    BACNET_OBJECT_ID deviceIndentifier;         /**< Optional, for external device. */
+    BACNET_OBJECT_ID deviceIdentifier;         /**< Optional, for external device. */
     BACNET_OBJECT_ID objectIdentifier;
 } BACNET_DEVICE_OBJECT_REFERENCE;
 

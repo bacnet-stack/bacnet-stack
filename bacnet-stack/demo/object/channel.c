@@ -310,7 +310,7 @@ static bool Channel_Reference_List_Member_Valid(
 
     if ((pMember) &&
         (pMember->objectIdentifier.instance != BACNET_MAX_INSTANCE) &&
-        (pMember->deviceIndentifier.instance != BACNET_MAX_INSTANCE)) {
+        (pMember->deviceIdentifier.instance != BACNET_MAX_INSTANCE)) {
         status = true;
     }
 
@@ -475,8 +475,8 @@ unsigned Channel_Reference_List_Member_Local_Add(
     member.objectIdentifier.instance = instance;
     member.propertyIdentifier = propertyIdentifier;
     member.arrayIndex = arrayIndex;
-    member.deviceIndentifier.type = OBJECT_DEVICE;
-    member.deviceIndentifier.instance = Device_Object_Instance_Number();
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = Device_Object_Instance_Number();
 
     return Channel_Reference_List_Member_Element_Add(
         object_instance,
@@ -1219,8 +1219,8 @@ static bool Channel_Write_Members(
                we would need to update all channels when our device ID
                changed.  Instead, we'll just screen when members are
                set. */
-            if ((pMember->deviceIndentifier.type == OBJECT_DEVICE) &&
-                (pMember->deviceIndentifier.instance != BACNET_MAX_INSTANCE) &&
+            if ((pMember->deviceIdentifier.type == OBJECT_DEVICE) &&
+                (pMember->deviceIdentifier.instance != BACNET_MAX_INSTANCE) &&
                 (pMember->objectIdentifier.instance != BACNET_MAX_INSTANCE)) {
                 wp_data.object_type = pMember->objectIdentifier.type;
                 wp_data.object_instance = pMember->objectIdentifier.instance;
@@ -1695,9 +1695,9 @@ void Channel_Init(void)
             Channel[i].Members[m].objectIdentifier.instance = i+1;
             Channel[i].Members[m].propertyIdentifier = PROP_LIGHTING_COMMAND;
             Channel[i].Members[m].arrayIndex = BACNET_ARRAY_ALL;
-            Channel[i].Members[m].deviceIndentifier.type =
+            Channel[i].Members[m].deviceIdentifier.type =
                 OBJECT_DEVICE;
-            Channel[i].Members[m].deviceIndentifier.instance = 0;
+            Channel[i].Members[m].deviceIdentifier.instance = 0;
         }
         Channel[i].Number = 0;
         for (g = 0; g < CONTROL_GROUPS_MAX; g++) {
