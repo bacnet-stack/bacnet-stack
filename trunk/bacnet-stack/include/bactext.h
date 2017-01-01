@@ -128,6 +128,9 @@ extern "C" {
 	const char *bactext_life_safety_state_name(
         unsigned index);
 
+    const char *bactext_device_communications_name(
+        unsigned index);
+
     const char *bactext_lighting_operation_name(
         unsigned index);
 

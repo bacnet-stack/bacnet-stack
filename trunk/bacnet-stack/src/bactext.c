@@ -2389,3 +2389,20 @@ const char *bactext_lighting_operation_name(
     else
         return "Invalid BACnetLightingOperation";
 }
+
+INDTEXT_DATA bacnet_device_communications_names[] = {
+    {COMMUNICATION_ENABLE, "enabled"}
+    ,
+    {COMMUNICATION_DISABLE, "disabled"}
+    ,
+    {COMMUNICATION_DISABLE_INITIATION, "initiation disabled"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_device_communications_name(
+    unsigned index)
+{
+    return indtext_by_index_default(bacnet_device_communications_names, index,
+        ASHRAE_Reserved_String);
+}
