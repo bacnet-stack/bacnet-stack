@@ -97,11 +97,11 @@ int bacapp_encode_device_obj_property_ref(
     /* Likewise, device id is optional so see if needed
      * (set type to BACNET_NO_DEV_TYPE or something other than OBJECT_DEVICE to
 	 * omit */
-    if (value->deviceIndentifier.type == OBJECT_DEVICE) {
+    if (value->deviceIdentifier.type == OBJECT_DEVICE) {
         len =
             encode_context_object_id(&apdu[apdu_len], 3,
-            (int) value->deviceIndentifier.type,
-            value->deviceIndentifier.instance);
+            (int) value->deviceIdentifier.type,
+            value->deviceIdentifier.instance);
         apdu_len += len;
     }
     return apdu_len;
@@ -157,14 +157,14 @@ int bacapp_decode_device_obj_property_ref(
         !decode_is_closing_tag(&apdu[apdu_len])) {
         if (-1 == (len =
                 decode_context_object_id(&apdu[apdu_len], 3,
-                    &value->deviceIndentifier.type,
-                    &value->deviceIndentifier.instance))) {
+                    &value->deviceIdentifier.type,
+                    &value->deviceIdentifier.instance))) {
             return -1;
         }
         apdu_len += len;
     } else {
-    	value->deviceIndentifier.type = BACNET_NO_DEV_TYPE;
-    	value->deviceIndentifier.instance = BACNET_NO_DEV_ID;
+    	value->deviceIdentifier.type = BACNET_NO_DEV_TYPE;
+    	value->deviceIdentifier.instance = BACNET_NO_DEV_ID;
     }
 
     return apdu_len;
@@ -239,11 +239,11 @@ int bacapp_encode_device_obj_ref(
     /* Device id is optional so see if needed
      * (set type to BACNET_NO_DEV_TYPE or something other than OBJECT_DEVICE to
 	 * omit */
-    if (value->deviceIndentifier.type == OBJECT_DEVICE) {
+    if (value->deviceIdentifier.type == OBJECT_DEVICE) {
         len =
             encode_context_object_id(&apdu[apdu_len], 0,
-            (int) value->deviceIndentifier.type,
-            value->deviceIndentifier.instance);
+            (int) value->deviceIdentifier.type,
+            value->deviceIdentifier.instance);
         apdu_len += len;
     }
     /* object-identifier [1] BACnetObjectIdentifier */
@@ -271,14 +271,14 @@ int bacapp_decode_device_obj_ref(
         !decode_is_closing_tag(&apdu[apdu_len])) {
         if (-1 == (len =
                 decode_context_object_id(&apdu[apdu_len], 0,
-                    &value->deviceIndentifier.type,
-                    &value->deviceIndentifier.instance))) {
+                    &value->deviceIdentifier.type,
+                    &value->deviceIdentifier.instance))) {
             return -1;
         }
         apdu_len += len;
     } else {
-    	value->deviceIndentifier.type = BACNET_NO_DEV_TYPE;
-    	value->deviceIndentifier.instance = BACNET_NO_DEV_ID;
+    	value->deviceIdentifier.type = BACNET_NO_DEV_TYPE;
+    	value->deviceIdentifier.instance = BACNET_NO_DEV_ID;
     }
     /* object-identifier [1] BACnetObjectIdentifier */
     if (-1 == (len =
@@ -351,15 +351,15 @@ static void testDevObjPropRef(
     } else {
         ct_test(pTest, outData.arrayIndex == BACNET_ARRAY_ALL);
     }
-    if (inData->deviceIndentifier.type == OBJECT_DEVICE) {
+    if (inData->deviceIdentifier.type == OBJECT_DEVICE) {
         ct_test(pTest,
-            inData->deviceIndentifier.instance ==
-            outData.deviceIndentifier.instance);
+            inData->deviceIdentifier.instance ==
+            outData.deviceIdentifier.instance);
         ct_test(pTest,
-            inData->deviceIndentifier.type == outData.deviceIndentifier.type);
+            inData->deviceIdentifier.type == outData.deviceIdentifier.type);
     } else {
-        ct_test(pTest,outData.deviceIndentifier.instance == BACNET_NO_DEV_ID);
-        ct_test(pTest,outData.deviceIndentifier.type == BACNET_NO_DEV_TYPE);
+        ct_test(pTest,outData.deviceIdentifier.instance == BACNET_NO_DEV_ID);
+        ct_test(pTest,outData.deviceIdentifier.type == BACNET_NO_DEV_TYPE);
     }
 }
 
@@ -373,32 +373,32 @@ static void testDevIdPropRef(
     inData.objectIdentifier.type = 15;
     inData.propertyIdentifier = 25;
     inData.arrayIndex = 0x5678;
-    inData.deviceIndentifier.instance = 0x4343;
-    inData.deviceIndentifier.type = OBJECT_DEVICE;
+    inData.deviceIdentifier.instance = 0x4343;
+    inData.deviceIdentifier.type = OBJECT_DEVICE;
     testDevObjPropRef(pTest, &inData);
     /* optional array */
     inData.objectIdentifier.instance = 0x1234;
     inData.objectIdentifier.type = 15;
     inData.propertyIdentifier = 25;
     inData.arrayIndex = BACNET_ARRAY_ALL;
-    inData.deviceIndentifier.instance = 0x4343;
-    inData.deviceIndentifier.type = OBJECT_DEVICE;
+    inData.deviceIdentifier.instance = 0x4343;
+    inData.deviceIdentifier.type = OBJECT_DEVICE;
     testDevObjPropRef(pTest, &inData);
     /* optional device ID */
     inData.objectIdentifier.instance = 0x1234;
     inData.objectIdentifier.type = 15;
     inData.propertyIdentifier = 25;
     inData.arrayIndex = 1;
-    inData.deviceIndentifier.instance = 0;
-    inData.deviceIndentifier.type = BACNET_NO_DEV_TYPE;
+    inData.deviceIdentifier.instance = 0;
+    inData.deviceIdentifier.type = BACNET_NO_DEV_TYPE;
     testDevObjPropRef(pTest, &inData);
     /* optional array + optional device ID */
     inData.objectIdentifier.instance = 0x1234;
     inData.objectIdentifier.type = 15;
     inData.propertyIdentifier = 25;
     inData.arrayIndex = BACNET_ARRAY_ALL;
-    inData.deviceIndentifier.instance = 0;
-    inData.deviceIndentifier.type = BACNET_NO_DEV_TYPE;
+    inData.deviceIdentifier.instance = 0;
+    inData.deviceIdentifier.type = BACNET_NO_DEV_TYPE;
     testDevObjPropRef(pTest, &inData);
 }
 
@@ -411,16 +411,16 @@ static void testDevIdRef(
     int inLen;
     int outLen;
 
-    inData.deviceIndentifier.instance = 0x4343;
-    inData.deviceIndentifier.type = OBJECT_DEVICE;
+    inData.deviceIdentifier.instance = 0x4343;
+    inData.deviceIdentifier.type = OBJECT_DEVICE;
     inLen = bacapp_encode_device_obj_ref(buffer, &inData);
     outLen = bacapp_decode_device_obj_ref(buffer, &outData);
     ct_test(pTest, outLen == inLen);
     ct_test(pTest,
-        inData.deviceIndentifier.instance ==
-        outData.deviceIndentifier.instance);
+        inData.deviceIdentifier.instance ==
+        outData.deviceIdentifier.instance);
     ct_test(pTest,
-        inData.deviceIndentifier.type == outData.deviceIndentifier.type);
+        inData.deviceIdentifier.type == outData.deviceIdentifier.type);
 }
 
 void testBACnetDeviceObjectPropertyReference(

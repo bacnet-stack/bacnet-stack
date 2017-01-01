@@ -872,7 +872,7 @@ void testUCOVNotifyData(
     BACNET_COV_DATA test_data;
     BACNET_PROPERTY_VALUE value_list[5] = {{0}};
 
-    len = ucov_notify_encode_apdu(&apdu[0], data);
+    len = ucov_notify_encode_apdu(&apdu[0], sizeof(apdu), data);
     ct_test(pTest, len > 0);
     apdu_len = len;
 
@@ -894,7 +894,7 @@ void testCCOVNotifyData(
     BACNET_PROPERTY_VALUE value_list[2] = {{0}};
     uint8_t test_invoke_id = 0;
 
-    len = ccov_notify_encode_apdu(&apdu[0], invoke_id, data);
+    len = ccov_notify_encode_apdu(&apdu[0], sizeof(apdu), invoke_id, data);
     ct_test(pTest, len != 0);
     apdu_len = len;
 
@@ -995,7 +995,7 @@ void testCOVSubscribeEncoding(
     BACNET_SUBSCRIBE_COV_DATA test_data;
     uint8_t test_invoke_id = 0;
 
-    len = cov_subscribe_encode_apdu(&apdu[0], invoke_id, data);
+    len = cov_subscribe_encode_apdu(&apdu[0], sizeof(apdu), invoke_id, data);
     ct_test(pTest, len != 0);
     apdu_len = len;
 
@@ -1018,7 +1018,8 @@ void testCOVSubscribePropertyEncoding(
     BACNET_SUBSCRIBE_COV_DATA test_data;
     uint8_t test_invoke_id = 0;
 
-    len = cov_subscribe_property_encode_apdu(&apdu[0], invoke_id, data);
+    len = cov_subscribe_property_encode_apdu(&apdu[0], sizeof(apdu), invoke_id,
+        data);
     ct_test(pTest, len != 0);
     apdu_len = len;
 

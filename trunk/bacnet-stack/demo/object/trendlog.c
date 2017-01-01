@@ -229,9 +229,9 @@ void Trend_Log_Init(
             LogInfo[iLog].ulRecordCount = TL_MAX_ENTRIES;
             LogInfo[iLog].ulTotalRecordCount = 10000;
 
-            LogInfo[iLog].Source.deviceIndentifier.instance =
+            LogInfo[iLog].Source.deviceIdentifier.instance =
                 Device_Object_Instance_Number();
-            LogInfo[iLog].Source.deviceIndentifier.type = OBJECT_DEVICE;
+            LogInfo[iLog].Source.deviceIdentifier.type = OBJECT_DEVICE;
             LogInfo[iLog].Source.objectIdentifier.instance = iLog;
             LogInfo[iLog].Source.objectIdentifier.type = OBJECT_ANALOG_INPUT;
             LogInfo[iLog].Source.arrayIndex = BACNET_ARRAY_ALL;
@@ -713,7 +713,7 @@ bool Trend_Log_Write_Property(
                 }
 
             // We only support references to objects in ourself for now
-            if((TempSource.deviceIndentifier.type == OBJECT_DEVICE) && (TempSource.deviceIndentifier.instance != Device_Object_Instance_Number()))
+            if((TempSource.deviceIdentifier.type == OBJECT_DEVICE) && (TempSource.deviceIdentifier.instance != Device_Object_Instance_Number()))
                 	{
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
