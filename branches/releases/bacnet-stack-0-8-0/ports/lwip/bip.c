@@ -45,12 +45,36 @@
 
 /* port to use - stored in network byte order */
 static uint16_t BIP_Port = 0xBAC0;
+static bool BIP_Port_Changed;
 /* IP Address - stored in network byte order */
 static struct in_addr BIP_Address;
 /* Broadcast Address - stored in network byte order */
 static struct in_addr BIP_Broadcast_Address;
 /* lwIP socket, of sorts */
 static struct udp_pcb *Server_upcb;
+/* track packets for diagnostics */
+struct bacnet_stats {
+  uint32_t xmit;             /* Transmitted packets. */
+  uint32_t recv;             /* Received packets. */
+  uint32_t drop;             /* Dropped packets. */
+};
+struct bacnet_stats BIP_Stats;
+#define BIP_STATS_INC(x) ++BIP_Stats.x
+
+uint32_t bip_stats_xmit(void)
+{
+    return BIP_Stats.xmit;
+}
+
+uint32_t bip_stats_recv(void)
+{
+    return BIP_Stats.recv;
+}
+
+uint32_t bip_stats_drop(void)
+{
+    return BIP_Stats.drop;
+}
 
 void bip_set_addr(
     uint32_t net_address)
@@ -78,11 +102,18 @@ uint32_t bip_get_broadcast_addr(
     return BIP_Broadcast_Address.s_addr;
 }
 
-
 void bip_set_port(
     uint16_t port)
 {       /* in network byte order */
+    if (BIP_Port != port) {
+        BIP_Port_Changed = true;
     BIP_Port = port;
+}
+}
+
+bool bip_port_changed(void)
+{
+    return BIP_Port_Changed;
 }
 
 /* returns network byte order */
@@ -135,11 +166,38 @@ static int bip_decode_bip_address(
 /** Function to send a packet out the BACnet/IP socket (Annex J).
  * @ingroup DLBIP
  *
+ * @param dst_ip [in] Destination address
+ * @param port [in] UDP port number
+ * @param pkt [in] PBUF packet
+ *
+ * @return true if the packet was sent
+ */
+static bool bip_send_mpdu(
+    struct ip_addr *dst_ip,
+    uint16_t port,
+    struct pbuf *pkt)
+{
+    err_t status = ERR_OK;
+
+    /* Send the packet */
+    status = udp_sendto(Server_upcb, pkt, dst_ip, port);
+    /* free the buffer pbuf */
+    pbuf_free(pkt);
+    if (status == ERR_OK) {
+        BIP_STATS_INC(xmit);
+    }
+
+    return (status == ERR_OK);
+}
+
+/** Send the Original Broadcast or Unicast messages
+ *
  * @param dest [in] Destination address (may encode an IP address and port #).
  * @param npdu_data [in] The NPDU header (Network) information (not used).
  * @param pdu [in] Buffer of data to be sent - may be null (why?).
  * @param pdu_len [in] Number of bytes in the pdu buffer.
- * @return Number of bytes sent on success, negative number on failure.
+ *
+ * @return number of bytes sent
  */
 int bip_send_pdu(
     BACNET_ADDRESS * dest,      /* destination address */
@@ -147,21 +205,23 @@ int bip_send_pdu(
     uint8_t * pdu,      /* any data to be sent - may be null */
     unsigned pdu_len)
 {
-    struct pbuf *pkt = NULL;
-    uint8_t *mtu = NULL;
+    struct pbuf *pkt = NULL, *pkt0 = NULL;
+    uint8_t mtu[4] = {0};
     int mtu_len = 0;
     /* addr and port in host format */
     struct ip_addr dst_ip;
     uint16_t port = 0;
-    uint16_t length = pdu_len + 4;
     err_t status = ERR_OK;
 
-    (void) npdu_data;
-    pkt = pbuf_alloc(PBUF_TRANSPORT, length, PBUF_POOL);
-    if (pkt == NULL) {
+    pkt0 = pbuf_alloc(PBUF_TRANSPORT, 4, PBUF_POOL);
+    if (pkt0 == NULL) {
         return 0;
     }
-    mtu = (uint8_t *) pkt->payload;
+    pkt = pbuf_alloc(PBUF_TRANSPORT, pdu_len, PBUF_POOL);
+    if (pkt == NULL) {
+        pbuf_free(pkt0);
+        return 0;
+    }
     mtu[0] = BVLL_TYPE_BACNET_IP;
     if (dest->net == BACNET_BROADCAST_NETWORK) {
         /* broadcast */
@@ -176,22 +236,48 @@ int bip_send_pdu(
         /* invalid address */
         return -1;
     }
-    mtu_len = 2;
-    mtu_len +=
-        encode_unsigned16(&mtu[mtu_len],
-        (uint16_t) (pdu_len + 4 /*inclusive */ ));
-    memcpy(&mtu[mtu_len], pdu, pdu_len);
-    mtu_len += pdu_len;
-    pkt->len = mtu_len;
-    /* Send the packet */
-    status = udp_sendto(Server_upcb, pkt, &dst_ip, port);
-    /* free the buffer pbuf */
-    pbuf_free(pkt);
-    if (status != ERR_OK) {
-        return 0;
+    mtu_len = pdu_len + 4 /*inclusive */ ;
+    encode_unsigned16(&mtu[2], mtu_len);
+    pbuf_take(pkt0, mtu, 4);
+    pbuf_take(pkt, pdu, pdu_len);
+    pbuf_cat(pkt0, pkt);
+    status = bip_send_mpdu(&dst_ip, port, pkt0);
+    if (!status) {
+        mtu_len = 0;
     }
 
     return mtu_len;
+}
+
+/** Send the BVLC Result message
+ *
+ * @param addr [in] Destination address
+ * @param result_code - BVLC result code
+ *
+ * @return number of bytes encoded
+ */
+static bool bvlc_send_result(
+    struct ip_addr *addr,
+    uint16_t result_code)
+{
+    struct pbuf *pkt = NULL;
+    uint8_t mtu[6] = { 0 };
+    uint16_t mtu_len = 6;
+
+    pkt = pbuf_alloc(PBUF_TRANSPORT, mtu_len, PBUF_POOL);
+    if (pkt == NULL) {
+        return 0;
+    }
+    mtu[0] = BVLL_TYPE_BACNET_IP;
+    mtu[1] = BVLC_RESULT;
+    /* The 2-octet BVLC Length field is the length, in octets,
+       of the entire BVLL message, including the two octets of the
+       length field itself, most significant octet first. */
+    encode_unsigned16(&mtu[2], 6);
+    encode_unsigned16(&mtu[4], result_code);
+    pbuf_take(pkt, mtu, mtu_len);
+
+    return bip_send_mpdu(addr, BIP_Port, pkt);
 }
 
 void bip_server_callback(
@@ -233,8 +319,8 @@ void bip_server_callback(
             pdu_offset = 4;
         }
     } else if (function == BVLC_FORWARDED_NPDU) {
-        bip_mac_to_addr(&sin_addr, &pdu[4]);
-        memcpy(&sin_port, &pdu[8], 2);
+        IP4_ADDR(&sin_addr,pdu[4],pdu[5],pdu[6],pdu[7]);
+        decode_unsigned16(&pdu[8], &sin_port);
         if ((sin_addr.addr == BIP_Address.s_addr) && (sin_port == BIP_Port)) {
             /* ignore forwarded messages from me */
             pdu_len = 0;
@@ -249,10 +335,32 @@ void bip_server_callback(
             pdu_len -= 10;
             pdu_offset = 10;
         }
+    } else if (function == BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE) {
+        bvlc_send_result(addr,
+            BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK);
+    } else if (function == BVLC_READ_BROADCAST_DIST_TABLE) {
+        bvlc_send_result(addr,
+            BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK);
+    } else if (function == BVLC_REGISTER_FOREIGN_DEVICE) {
+        bvlc_send_result(addr,
+            BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK);
+    } else if (function == BVLC_READ_FOREIGN_DEVICE_TABLE) {
+        bvlc_send_result(addr,
+            BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK);
+    } else if (function == BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY) {
+        bvlc_send_result(addr,
+            BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK);
+    } else if (function == BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK) {
+        bvlc_send_result(addr,
+            BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK);
     }
     if (pdu_len) {
+        BIP_STATS_INC(recv);
         npdu_handler(&src, &pdu[pdu_offset], pdu_len);
+    } else {
+        BIP_STATS_INC(drop);
     }
+
 #if 0
     /* prepare for next packet */
     udp_disconnect(upcb);
