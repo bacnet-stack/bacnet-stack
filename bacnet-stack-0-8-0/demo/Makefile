@@ -51,7 +51,7 @@ LFLAGS := -Wl,$(BACNET_LIB),$(SYSTEM_LIB)
 .EXPORT_ALL_VARIABLES:
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
-	whohas whois ucov scov timesync epics readpropm \
+	whohas whois ucov scov timesync epics readpropm readrange \
 	uptransfer
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
