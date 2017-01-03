@@ -217,7 +217,14 @@ void Binary_Input_Change_Of_Value_Clear(
     return;
 }
 
-/* returns true if value has changed */
+/**
+ * Encode the Value List for Present-Value and Status-Flags
+ *
+ * @param object_instance - object-instance number of the object
+ * @param  value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
+ *
+ * @return true if values were encoded
+ */
 bool Binary_Input_Encode_Value_List(
     uint32_t object_instance,
     BACNET_PROPERTY_VALUE * value_list)
@@ -257,8 +264,8 @@ bool Binary_Input_Encode_Value_List(
         }
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;
+        status = true;
     }
-    status = Binary_Input_Change_Of_Value(object_instance);
 
     return status;
 }

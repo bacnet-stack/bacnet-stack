@@ -1719,7 +1719,8 @@ bool Device_Write_Property(
  * @param [in] The object type to be looked up.
  * @param [in] The object instance number to be looked up.
  * @param [out] The value list
- * @return True if the object instance supports this feature and value changed.
+ * @return True if the object instance supports this feature
+ *         and was encoded correctly
  */
 bool Device_Encode_Value_List(
     BACNET_OBJECT_TYPE object_type,
