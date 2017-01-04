@@ -118,7 +118,7 @@ void RS485_Set_Interface(
         if (strncmp("COM", ifname, 3) == 0) {
             if (strlen(ifname) > 3) {
                 sprintf(RS485_Port_Name, "\\\\.\\COM%i", atoi(ifname + 3));
-                fprintf(stderr, "Adjusted interface name to %s\r\n",
+                fprintf(stdout, "Adjusted interface name to %s\r\n",
                     RS485_Port_Name);
             }
         }
@@ -286,7 +286,7 @@ void RS485_Initialize(
     }
     RS485_Configure_Status();
 #if PRINT_ENABLED
-    fprintf(stderr, "RS485 Interface: %s\n", RS485_Port_Name);
+    fprintf(stdout, "RS485 Interface: %s\n", RS485_Port_Name);
 #endif
 
     atexit(RS485_Cleanup);
