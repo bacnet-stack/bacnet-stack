@@ -1015,7 +1015,7 @@ static bool append_str(
     const char *add_str)
 {
     bool retval;
-    uint16_t bytes_written;
+    int bytes_written;
 
     bytes_written = snprintf(*str, *rem_str_len, "%s", add_str);
     if ((bytes_written < 0) || (bytes_written >= *rem_str_len)) {
