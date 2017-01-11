@@ -48,6 +48,9 @@ extern "C" {
         bool Out_Of_Service;
         uint16_t Units;
         float Present_Value;
+        float Prior_Value;
+        float COV_Increment;
+        bool Changed;
 #if defined(INTRINSIC_REPORTING)
         uint32_t Time_Delay;
         uint32_t Notification_Class;
