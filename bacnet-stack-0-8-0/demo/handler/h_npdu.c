@@ -85,8 +85,16 @@ void npdu_handler(
                 /* only handle the version that we know how to handle */
                 /* and we are not a router, so ignore messages with
                    routing information cause they are not for us */
-                apdu_handler(src, &pdu[apdu_offset],
-                    (uint16_t) (pdu_len - apdu_offset));
+                if ((dest.net == BACNET_BROADCAST_NETWORK) &&
+                    ((pdu[apdu_offset] & 0xF0) ==
+                        PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+                    /* hack for 5.4.5.1 - IDLE */
+                    /* ConfirmedBroadcastReceived */
+                    /* then enter IDLE - ignore the PDU */
+                } else {
+                    apdu_handler(src, &pdu[apdu_offset],
+                        (uint16_t) (pdu_len - apdu_offset));
+                }
             } else {
 #if PRINT_ENABLED
                 printf("NPDU: DNET=%u.  Discarded!\n", (unsigned) dest.net);
