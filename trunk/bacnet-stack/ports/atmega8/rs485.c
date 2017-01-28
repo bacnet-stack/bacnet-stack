@@ -182,20 +182,20 @@ void RS485_Turnaround_Delay(
 
     RS485_Transmitter_Enable(false);
     while (nbytes) {
-        while (!BIT_CHECK(UCSR0A, UDRE0)) {
+        while (!BIT_CHECK(UCSRA, UDRE)) {
             /* do nothing - wait until Tx buffer is empty */
         }
         /* Send the data byte */
-        UDR0 = 0xff;
+        UDR = 0xff;
         nbytes--;
     }
     /* was the frame sent? */
-    while (!BIT_CHECK(UCSR0A, TXC0)) {
+    while (!BIT_CHECK(UCSRA, TXC)) {
         /* do nothing - wait until the entire frame in the
            Transmit Shift Register has been shifted out */
     }
     /* Clear the Transmit Complete flag by writing a one to it. */
-    BIT_SET(UCSR0A, TXC0);
+    BIT_SET(UCSRA, TXC);
 }
 
 /****************************************************************************

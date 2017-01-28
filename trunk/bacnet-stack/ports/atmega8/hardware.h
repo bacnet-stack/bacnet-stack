@@ -31,8 +31,12 @@
 #endif
 
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
-  #include <iom168.h>
-  #define WATCHDOG_INIT() {BIT_CLEAR(MCUSR, WDRF); WDTCSR = 0;}
+  #include <ioavr.h>
+  #if defined(__ATmega168__)
+    #define WATCHDOG_INIT() {BIT_CLEAR(MCUSR, WDRF); WDTCSR = 0;}
+  #else
+    #define WATCHDOG_INIT()
+  #endif
 #else
   #if !defined(__AVR_ATmega168__)
     #error Firmware is configured for ATmega168 only (-mmcu=atmega168)
@@ -45,7 +49,7 @@
 #endif
 
 #include "iar2gcc.h"
-#include "avr035.h"
+#include "bits.h"
 
 #define LED_NPDU_INIT() BIT_SET(DDRD, DDD5)
 #define LED_NPDU_ON() BIT_CLEAR(PORTD, PD5)
