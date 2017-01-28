@@ -1355,6 +1355,30 @@ void PrintHeading(
         printf("?");
     }
     printf("\n}\n\n");
+
+    printf("Default Property Value Restrictions:\n");
+    printf("{\n");
+    printf("  unsigned-integer: <minimum: 0; maximum: 4294967295>\n");
+    printf("  signed-integer: <minimum: -2147483647; maximum: 2147483647>\n");
+    printf("  real: <minimum: -3.40282347E38; maximum: 3.40282347E38; resolution: 1.0>\n");
+    printf("  double: <minimum: 2.2250738585072016E-38; maximum: 1.7976931348623157E38; resolution: 0.0001>\n");
+    printf("  date: <minimum: 01-January-1970; maximum: 31-December-2038>\n");
+    printf("  octet-string: <maximum length string: 122>\n");
+    printf("  character-string: <maximum length string: 122>\n");
+    printf("  list: <maximum length list: 10>\n");
+    printf("  variable-length-array: <maximum length array: 10>\n");
+    printf("}\n\n");
+
+    printf("Fail Times:\n");
+    printf("{\n");
+    printf("  Notification Fail Time: 2\n");
+    printf("  Internal Processing Fail Time: 0.5\n");
+    printf("  Minimum ON/OFF Time: 5\n");
+    printf("  Schedule Evaluation Fail Time: 1\n");
+    printf("  External Command Fail Time: 1\n");
+    printf("  Program Object State Change Fail Time: 2\n");
+    printf("  Acknowledgement Fail Time: 2\n");
+    printf("}\n\n");
 }
 
 void Print_Device_Heading(void)
