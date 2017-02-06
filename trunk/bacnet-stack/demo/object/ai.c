@@ -579,7 +579,7 @@ int Analog_Input_Read_Property(
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                for (i = 0; i < MAX_BACNET_EVENT_TRANSITION; i++) {;
+                for (i = 0; i < MAX_BACNET_EVENT_TRANSITION; i++) {
                     len =
                         encode_opening_tag(&apdu[apdu_len],
                         TIME_STAMP_DATETIME);
