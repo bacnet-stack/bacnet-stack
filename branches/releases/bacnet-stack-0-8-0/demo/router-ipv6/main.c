@@ -58,6 +58,9 @@
 #undef MAX_MPDU
 #include "bip.h"
 #include "bvlc.h"
+/* our object */
+#include "device.h"
+#include "handlers.h"
 
 /**
 * 6.6.1 Routing Tables
@@ -1037,6 +1040,11 @@ static void my_routing_npdu_handler(
                     routed_apdu_handler(snet, &npdu_data, src, &dest,
                         &pdu[apdu_offset],
                         (uint16_t) (pdu_len - apdu_offset));
+                    if ((dest.net == 0) ||
+                        (dest.net == BACNET_BROADCAST_NETWORK)) {
+                        apdu_handler(src, &pdu[apdu_offset],
+                        (uint16_t) (pdu_len - apdu_offset));
+                    }
                 }
             } else {
                 fprintf(stderr, "NPDU: DNET=%u.  Discarded!\n",
@@ -1116,6 +1124,26 @@ static void datalink_init(void)
     /* configure the next entry in the table */
     bip6_get_my_address(&my_address);
     port_add(BIP6_Net, &my_address);
+}
+
+/** Initialize the handlers we will utilize.
+ * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
+ */
+static void Init_Service_Handlers(
+    void)
+{
+    Device_Init(NULL);
+    /* we need to handle who-is to support dynamic device binding */
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
+    /* set the handler for all the services we don't implement */
+    /* It is required to send the proper reject message... */
+    apdu_set_unrecognized_service_handler_handler
+        (handler_unrecognized_service);
+    /* Set the handlers for any confirmed services that we support. */
+    /* We must implement read property - it's required! */
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
+        handler_read_property);
 }
 
 /**
@@ -1200,9 +1228,15 @@ int main(
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
 
+    if (argc > 1) {
+        Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
+    }
     printf("BACnet Simple IP Router Demo\n");
     printf("BACnet Stack Version %s\n", BACnet_Version);
+    printf("BACnet Device ID: %u\n" "Max APDU: %d\n",
+        Device_Object_Instance_Number(), MAX_APDU);
     datalink_init();
+    Init_Service_Handlers();
     atexit(cleanup);
     control_c_hooks();
     /* configure the timeout values */

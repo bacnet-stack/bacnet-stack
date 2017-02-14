@@ -53,6 +53,9 @@ extern "C" {
         unsigned timeout);
 
     /* functions that are custom per port */
+    bool bip6_address_match_self(
+        BACNET_IP6_ADDRESS *addr);
+
     void bip6_set_interface(
         char *ifname);
 
@@ -77,6 +80,8 @@ extern "C" {
         uint8_t * mtu,
         uint16_t mtu_len);
 
+    bool bip6_send_success(void);
+    bool bip6_send_failed(void);
 
 #ifdef __cplusplus
 }

@@ -376,6 +376,7 @@ extern "C" {
         uint16_t * npdu_len);
 
     /* user application function prototypes */
+    void bvlc6_maintenance_timer(time_t seconds);
     int bvlc6_handler(
         BACNET_IP6_ADDRESS *addr,
         BACNET_ADDRESS * src,
