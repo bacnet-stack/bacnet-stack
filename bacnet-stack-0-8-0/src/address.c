@@ -211,7 +211,7 @@ static struct Address_Cache_Entry *address_remove_oldest(
     return (pCandidate);
 }
 
-
+#ifdef BACNET_ADDRESS_CACHE_FILE
 /* File format:
 DeviceID MAC SNET SADR MAX-APDU
 4194303 05 0 0 50
@@ -276,7 +276,7 @@ static void address_file_init(
 
     return;
 }
-
+#endif
 
 /****************************************************************************
  * Clear down the cache and make sure the full complement of entries are    *
@@ -295,8 +295,9 @@ void address_init(
         pMatch->Flags = 0;
         pMatch++;
     }
+#ifdef BACNET_ADDRESS_CACHE_FILE
     address_file_init(Address_Cache_Filename);
-
+#endif
     return;
 }
 
@@ -308,8 +309,7 @@ void address_init(
  * of its entries intact.                                                   *
  ****************************************************************************/
 
-void address_init_partial(
-    void)
+void address_init_partial(void)
 {
     struct Address_Cache_Entry *pMatch;
 
@@ -327,7 +327,9 @@ void address_init_partial(
 
         pMatch++;
     }
+ #ifdef BACNET_ADDRESS_CACHE_FILE
     address_file_init(Address_Cache_Filename);
+#endif
 
     return;
 }
