@@ -145,7 +145,7 @@ int bvlc6_encode_result(
         if (bytes_encoded == 4) {
             encode_unsigned24(&pdu[4], vmac);
             encode_unsigned16(&pdu[7], result_code);
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -231,7 +231,7 @@ int bvlc6_encode_original_unicast(
                     pdu[10+i] = npdu[i];
                 }
             }
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -279,7 +279,7 @@ int bvlc6_decode_original_unicast(
         if (npdu_len) {
             *npdu_len = length;
         }
-        bytes_consumed = pdu_len;
+        bytes_consumed = (int)pdu_len;
     }
 
     return bytes_consumed;
@@ -328,7 +328,7 @@ int bvlc6_encode_original_broadcast(
                     pdu[7+i] = npdu[i];
                 }
             }
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -371,7 +371,7 @@ int bvlc6_decode_original_broadcast(
         if (npdu_len) {
             *npdu_len = length;
         }
-        bytes_consumed = pdu_len;
+        bytes_consumed = (int)pdu_len;
     }
 
     return bytes_consumed;
@@ -414,7 +414,7 @@ int bvlc6_encode_address_resolution(
         if (bytes_encoded == 4) {
             encode_unsigned24(&pdu[4], vmac_src);
             encode_unsigned24(&pdu[7], vmac_target);
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -478,7 +478,7 @@ int bvlc6_encode_address(
             pdu[i] = bip6_address->address[i];
         }
         encode_unsigned16(&pdu[IP6_ADDRESS_MAX], bip6_address->port);
-        bytes_encoded = length;
+        bytes_encoded = (int)length;
     }
 
     return bytes_encoded;
@@ -506,7 +506,7 @@ int bvlc6_decode_address(
             bip6_address->address[i] = pdu[i];
         }
         decode_unsigned16(&pdu[IP6_ADDRESS_MAX], &bip6_address->port);
-        bytes_consumed = length;
+        bytes_consumed = (int)length;
     }
 
     return bytes_consumed;
@@ -777,7 +777,7 @@ int bvlc6_encode_forwarded_address_resolution(
             encode_unsigned24(&pdu[offset], vmac_target);
             offset += 3;
             bvlc6_encode_address(&pdu[offset], pdu_size-offset, bip6_address);
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -817,7 +817,7 @@ int bvlc6_decode_forwarded_address_resolution(
         if (bip6_address) {
             bvlc6_decode_address(&pdu[offset], pdu_len-offset, bip6_address);
         }
-        bytes_consumed = length;
+        bytes_consumed = (int)length;
     }
 
     return bytes_consumed;
@@ -853,7 +853,7 @@ static int bvlc6_encode_address_ack(
             encode_unsigned24(&pdu[offset], vmac_src);
             offset += 3;
             encode_unsigned24(&pdu[offset], vmac_dst);
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -916,7 +916,7 @@ int bvlc6_decode_address_resolution_ack(
         if (vmac_dst) {
             decode_unsigned24(&pdu[offset], vmac_dst);
         }
-        bytes_consumed = length;
+        bytes_consumed = (int)length;
     }
 
     return bytes_consumed;
@@ -952,7 +952,7 @@ int bvlc6_encode_virtual_address_resolution(
             BVLC6_VIRTUAL_ADDRESS_RESOLUTION, length);
         if (bytes_encoded == 4) {
             encode_unsigned24(&pdu[4], vmac_src);
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -1085,7 +1085,7 @@ int bvlc6_encode_forwarded_npdu(
                     pdu[offset+i] = npdu[i];
                 }
             }
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -1138,7 +1138,7 @@ int bvlc6_decode_forwarded_npdu(
         if (npdu_len) {
             *npdu_len = length;
         }
-        bytes_consumed = pdu_len;
+        bytes_consumed = (int)pdu_len;
     }
 
     return bytes_consumed;
@@ -1182,7 +1182,7 @@ int bvlc6_encode_register_foreign_device(
             encode_unsigned24(&pdu[offset], vmac_src);
             offset += 3;
             encode_unsigned16(&pdu[offset], ttl_seconds);
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -1216,7 +1216,7 @@ int bvlc6_decode_register_foreign_device(
         if (ttl_seconds) {
             decode_unsigned16(&pdu[offset], ttl_seconds);
         }
-        bytes_consumed = length;
+        bytes_consumed = (int)length;
     }
 
     return bytes_consumed;
@@ -1268,7 +1268,7 @@ int bvlc6_encode_delete_foreign_device(
                 offset += 2;
                 encode_unsigned16(&pdu[offset],
                     fdt_entry->ttl_seconds_remaining);
-                bytes_encoded = length;
+                bytes_encoded = (int)length;
             }
         }
     }
@@ -1311,9 +1311,9 @@ int bvlc6_decode_delete_foreign_device(
             offset += 2;
             decode_unsigned16(&pdu[offset],
                 &fdt_entry->ttl_seconds_remaining);
-            bytes_consumed = length;
+            bytes_consumed = (int)length;
         }
-        bytes_consumed = length;
+        bytes_consumed = (int)length;
     }
 
     return bytes_consumed;
@@ -1357,7 +1357,7 @@ int bvlc6_encode_secure_bvll(
                     pdu[4+i] = sbuf[i];
                 }
             }
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -1393,7 +1393,7 @@ int bvlc6_decode_secure_bvll(
                 sbuf[i] = pdu[i];
             }
         }
-        bytes_consumed = pdu_len;
+        bytes_consumed = (int)pdu_len;
     }
 
     return bytes_consumed;
@@ -1446,7 +1446,7 @@ int bvlc6_encode_distribute_broadcast_to_network(
                     pdu[7+i] = npdu[i];
                 }
             }
-            bytes_encoded = length;
+            bytes_encoded = (int)length;
         }
     }
 
@@ -1489,7 +1489,7 @@ int bvlc6_decode_distribute_broadcast_to_network(
         if (npdu_len) {
             *npdu_len = length;
         }
-        bytes_consumed = pdu_len;
+        bytes_consumed = (int)pdu_len;
     }
 
     return bytes_consumed;
