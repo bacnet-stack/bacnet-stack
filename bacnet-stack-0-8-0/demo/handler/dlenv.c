@@ -158,7 +158,6 @@ int dlenv_register_as_foreign_device(
     return retval;
 }
 
-
 /** Datalink maintenance timer
  * @ingroup DataLink
  *
@@ -168,6 +167,12 @@ int dlenv_register_as_foreign_device(
 void dlenv_maintenance_timer(
     uint16_t elapsed_seconds)
 {
+#if defined(BACDL_BIP) && BBMD_ENABLED
+    bvlc_maintenance_timer(elapsed_seconds);
+#endif
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    bvlc6_maintenance_timer(elapsed_seconds);
+#endif
 #if defined(BACDL_BIP)
     if (BBMD_Timer_Seconds) {
         if (BBMD_Timer_Seconds <= elapsed_seconds) {

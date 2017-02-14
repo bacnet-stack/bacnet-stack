@@ -36,13 +36,13 @@
 #include <stdlib.h>
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
+#include <ifaddrs.h>
 #include "bacdcode.h"
 #include "config.h"
 #include "bip6.h"
 #include "debug.h"
 #include "device.h"
 #include "net.h"
-#include <ifaddrs.h>
 
 static void debug_print_ipv6(const char *str, const struct in6_addr * addr) {
    debug_printf( "BIP6: %s %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
@@ -182,12 +182,27 @@ bool bip6_set_addr(
 /**
  * Get the BACnet/IP address
  *
- * @return BACnet/IP address
+ * @param addr - network IPv6 address
+ *
+ * @return true if the BACnet/IP is copied to the addr
  */
 bool bip6_get_addr(
     BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(addr, &BIP6_Addr);
+}
+
+/**
+ * Determine if the BACnet/IPv6 address matches our own address
+ *
+ * @param addr - network IPv6 address
+ *
+ * @return true if the BACnet/IPv6 address matches our own address
+ */
+bool bip6_address_match_self(
+    BACNET_IP6_ADDRESS *addr)
+{
+    return !bvlc6_address_different(addr, &BIP6_Addr);
 }
 
 /**
