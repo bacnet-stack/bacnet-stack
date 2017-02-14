@@ -81,6 +81,13 @@ extern "C" {
     unsigned Schedule_Instance_To_Index(uint32_t instance);
     void Schedule_Init(void);
 
+    void Schedule_Out_Of_Service_Set(
+        uint32_t object_instance,
+        bool value);
+    bool Schedule_Out_Of_Service(
+        uint32_t object_instance);
+
+
     bool Schedule_Object_Name(uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
 

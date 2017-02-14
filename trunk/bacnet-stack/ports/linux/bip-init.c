@@ -78,6 +78,12 @@ static int get_local_ifr_ioctl(
     return rv;
 }
 
+/* forward prototype required for compilers */
+int get_local_address_ioctl(
+    char *ifname,
+    struct in_addr *addr,
+    int request);
+
 int get_local_address_ioctl(
     char *ifname,
     struct in_addr *addr,

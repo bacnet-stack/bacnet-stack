@@ -235,7 +235,10 @@ extern "C" {
 
     void Device_getCurrentDateTime(
         BACNET_DATE_TIME * DateTime);
+
     int32_t Device_UTC_Offset(void);
+    void Device_UTC_Offset_Set(int16_t offset);
+
     bool Device_Daylight_Savings_Status(void);
     bool Device_Align_Intervals(void);
     bool Device_Align_Intervals_Set(bool flag);
