@@ -290,7 +290,7 @@ int wpm_encode_apdu(
 				wpdata.application_data_len = bacapp_encode_data(&apdu_temp[0],
 					&wpm_property->value);
 				memcpy(&wpdata.application_data[0], &apdu_temp[0],
-					wpdata.application_data_len);
+					(size_t)wpdata.application_data_len);
 
 				len = wpm_encode_apdu_object_property(&apdu[apdu_len], &wpdata);
 				apdu_len += len;
