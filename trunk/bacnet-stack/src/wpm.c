@@ -288,10 +288,22 @@ int wpm_encode_apdu(
                 wpdata.array_index = wpm_property->propertyArrayIndex;
                 wpdata.priority = wpm_property->priority;
 
+<<<<<<< .working
                 wpdata.application_data_len =
                     bacapp_encode_data(&apdu_temp[0], &wpm_property->value);
                 memcpy(&wpdata.application_data[0], &apdu_temp[0],
                     wpdata.application_data_len);
+||||||| .merge-left.r3118
+				wpdata.application_data_len = bacapp_encode_data(&apdu_temp[0],
+					&wpm_property->value);
+				memcpy(&wpdata.application_data[0], &apdu_temp[0],
+					wpdata.application_data_len);
+=======
+				wpdata.application_data_len = bacapp_encode_data(&apdu_temp[0],
+					&wpm_property->value);
+				memcpy(&wpdata.application_data[0], &apdu_temp[0],
+					(size_t)wpdata.application_data_len);
+>>>>>>> .merge-right.r3119
 
                 len =
                     wpm_encode_apdu_object_property(&apdu[apdu_len], &wpdata);
