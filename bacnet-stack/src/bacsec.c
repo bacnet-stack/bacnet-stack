@@ -134,7 +134,7 @@ int encode_security_wrapper(int bytes_before,
     memcpy(&apdu[curr], wrapper->service_data, wrapper->service_data_len);
     curr += wrapper->service_data_len;
     /* signature calculation */
-    key_sign_msg(&key, &apdu[-bytes_before], bytes_before + curr,
+    key_sign_msg(&key, &apdu[-bytes_before], (uint32_t)(bytes_before + curr),
         wrapper->signature);
     /* padding and encryption */
     if (wrapper->encrypted_flag) {
@@ -149,7 +149,7 @@ int encode_security_wrapper(int bytes_before,
         }
         curr += encode_unsigned16(&apdu[curr], wrapper->padding_len);
         /* encryption */
-        key_encrypt_msg(&key, &apdu[enc_begin], curr - enc_begin,
+        key_encrypt_msg(&key, &apdu[enc_begin], (uint32_t)(curr - enc_begin),
             wrapper->signature);
     }
     memcpy(&apdu[curr], wrapper->signature, SIGNATURE_LEN);
@@ -176,7 +176,7 @@ int encode_security_payload(uint8_t * apdu,
     encode_unsigned16(&apdu[0], payload->payload_length);
     memcpy(&apdu[2], payload->payload, payload->payload_length);
 
-    return 2 + payload->payload_length;
+    return (int)(2 + payload->payload_length);
 }
 
 int encode_security_response(uint8_t * apdu,
@@ -201,7 +201,7 @@ int encode_security_response(uint8_t * apdu,
             break;
         case SEC_RESP_INCORRECT_KEY:
             apdu[curr++] = resp->response.incorrect_key.number_of_keys;
-            for (i = 0; i < resp->response.incorrect_key.number_of_keys; i++) {
+            for (i = 0; i < (int)resp->response.incorrect_key.number_of_keys; i++) {
                 curr +=
                     encode_unsigned16(&apdu[curr],
                     resp->response.incorrect_key.keys[i]);
@@ -331,7 +331,7 @@ int encode_update_key_set(uint8_t * apdu,
         if (key_set->set_key_count[0] > MAX_UPDATE_KEY_COUNT) {
             return -1;
         }
-        for (i = 0; i < key_set->set_key_count[0]; i++) {
+        for (i = 0; i < (int)key_set->set_key_count[0]; i++) {
             res = encode_key_entry(&apdu[curr], &key_set->set_keys[0][i]);
             if (res < 0) {
                 return -1;
@@ -351,7 +351,7 @@ int encode_update_key_set(uint8_t * apdu,
         if (key_set->set_key_count[1] > MAX_UPDATE_KEY_COUNT) {
             return -1;
         }
-        for (i = 0; i < key_set->set_key_count[1]; i++) {
+        for (i = 0; i < (int)key_set->set_key_count[1]; i++) {
             res = encode_key_entry(&apdu[curr], &key_set->set_keys[1][i]);
             if (res < 0) {
                 return -1;
@@ -386,7 +386,7 @@ int encode_request_master_key(uint8_t * apdu,
     memcpy(&apdu[curr], req_master_key->es_algorithms,
         req_master_key->no_supported_algorithms);
 
-    return curr + req_master_key->no_supported_algorithms;
+    return (int)(curr + req_master_key->no_supported_algorithms);
 }
 
 int encode_set_master_key(uint8_t * apdu,
@@ -402,7 +402,7 @@ int decode_security_wrapper_safe(int bytes_before,
 {
     int curr = 0;
     int enc_begin = 0;
-    int real_len = apdu_len_remaining - SIGNATURE_LEN;
+    int real_len = (int)(apdu_len_remaining - SIGNATURE_LEN);
     BACNET_KEY_ENTRY key;
     BACNET_SECURITY_RESPONSE_CODE res = SEC_RESP_SUCCESS;
 
@@ -446,8 +446,8 @@ int decode_security_wrapper_safe(int bytes_before,
     /* read signature */
     memcpy(wrapper->signature, &apdu[real_len], SIGNATURE_LEN);
     if (wrapper->encrypted_flag) {
-        if (!key_decrypt_msg(&key, &apdu[enc_begin], real_len - enc_begin,
-                wrapper->signature)) {
+        if (!key_decrypt_msg(&key, &apdu[enc_begin],
+                (uint32_t)(real_len - enc_begin), wrapper->signature)) {
             return -SEC_RESP_MALFORMED_MESSAGE;
         }
         curr += decode_unsigned16(&apdu[real_len - 2], &wrapper->padding_len);
@@ -494,11 +494,11 @@ int decode_security_wrapper_safe(int bytes_before,
             curr += wrapper->authentication_data_length;
         }
     }
-    wrapper->service_data_len = real_len - curr;
+    wrapper->service_data_len = (uint16_t)(real_len - curr);
     memcpy(wrapper->service_data, &apdu[curr], wrapper->service_data_len);
     curr += wrapper->service_data_len;
     if (!key_verify_sign_msg(&key, &apdu[-bytes_before],
-            bytes_before + real_len, wrapper->signature)) {
+            (uint32_t)(bytes_before + real_len), wrapper->signature)) {
         return -SEC_RESP_BAD_SIGNATURE;
     }
 
@@ -533,7 +533,7 @@ int decode_security_payload_safe(uint8_t * apdu,
         return -1;
     }
     memcpy(payload->payload, &apdu[2], payload->payload_length);
-    return 2 + payload->payload_length;
+    return (int)(2 + payload->payload_length);
 }
 
 int decode_security_response_safe(uint8_t * apdu,
@@ -575,7 +575,7 @@ int decode_security_response_safe(uint8_t * apdu,
                 resp->response.incorrect_key.number_of_keys * 2) {
                 return -1;
             }
-            for (i = 0; i < resp->response.incorrect_key.number_of_keys; i++) {
+            for (i = 0; i < (int)resp->response.incorrect_key.number_of_keys; i++) {
                 curr +=
                     decode_unsigned16(&apdu[curr],
                     &resp->response.incorrect_key.keys[i]);
@@ -744,7 +744,7 @@ int decode_update_key_set_safe(uint8_t * apdu,
         if (key_set->set_key_count[0] > MAX_UPDATE_KEY_COUNT) {
             return -1;
         }
-        for (i = 0; i < key_set->set_key_count[0]; i++) {
+        for (i = 0; i < (int)key_set->set_key_count[0]; i++) {
             res =
                 decode_key_entry_safe(apdu + curr, apdu_len_remaining - curr,
                 &key_set->set_keys[0][i]);
@@ -772,7 +772,7 @@ int decode_update_key_set_safe(uint8_t * apdu,
         if (key_set->set_key_count[1] > MAX_UPDATE_KEY_COUNT) {
             return -1;
         }
-        for (i = 0; i < key_set->set_key_count[1]; i++) {
+        for (i = 0; i < (int)key_set->set_key_count[1]; i++) {
             res =
                 decode_key_entry_safe(apdu + curr, apdu_len_remaining - curr,
                 &key_set->set_keys[1][i]);
@@ -822,7 +822,7 @@ int decode_request_master_key_safe(uint8_t * apdu,
     memcpy(req_master_key->es_algorithms, &apdu[curr],
         req_master_key->no_supported_algorithms);
 
-    return curr + req_master_key->no_supported_algorithms;
+    return (int)(curr + req_master_key->no_supported_algorithms);
 }
 
 int decode_set_master_key_safe(uint8_t * apdu,
