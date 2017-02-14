@@ -85,7 +85,7 @@ int DNET_list[2] = {
  * @param first_object_instance Set the first (gateway) Device to this
             instance number, and subsequent devices to incremented values.
  */
-void Devices_Init(
+static void Devices_Init(
     uint32_t first_object_instance)
 {
     int i;
@@ -176,7 +176,7 @@ static void Init_Service_Handlers(
  * device.) This is sure to be unique! The port number stays the same.
  * - For MS/TP, [Steve inserts a good idea here]
  */
-void Initialize_Device_Addresses(
+static void Initialize_Device_Addresses(
     )
 {
     int i = 0;  /* First entry is Gateway Device */

@@ -2,7 +2,7 @@
 CC      = gcc
 SRC_DIR = ../src
 INCLUDES = -I../include -I.
-DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_ADDRESS
+DEFINES = -DBIG_ENDIAN=0 -DBACNET_ADDRESS_CACHE_FILE -DTEST -DTEST_ADDRESS
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
@@ -24,18 +24,18 @@ OBJS = ${SRCS:.c=.o}
 TARGET = address
 
 all: ${TARGET}
- 
+
 ${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -o $@ ${OBJS}
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
-	
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
-	rm -rf ${TARGET} $(OBJS) 
+	rm -rf ${TARGET} $(OBJS)
 
 include: .depend

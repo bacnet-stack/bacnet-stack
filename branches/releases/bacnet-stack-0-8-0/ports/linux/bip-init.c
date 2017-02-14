@@ -81,6 +81,11 @@ static int get_local_ifr_ioctl(
 int get_local_address_ioctl(
     char *ifname,
     struct in_addr *addr,
+    int request);
+
+int get_local_address_ioctl(
+    char *ifname,
+    struct in_addr *addr,
     int request)
 {
     struct ifreq ifr = { {{0}} };
