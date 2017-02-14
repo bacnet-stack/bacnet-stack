@@ -1167,7 +1167,7 @@ int property_list_encode(
     int apdu_len = 0;   /* return value */
     uint8_t *apdu = NULL;
     int max_apdu_len = 0;
-    unsigned count = 0;
+    uint32_t count = 0;
     unsigned required_count = 0;
     unsigned optional_count = 0;
     unsigned proprietary_count = 0;
@@ -1207,7 +1207,7 @@ int property_list_encode(
                         } else {
                             len =
                                 encode_application_enumerated(&apdu[apdu_len],
-                                pListRequired[i]);
+                                (uint32_t)pListRequired[i]);
                         }
                         /* add it if we have room */
                         if ((apdu_len + len) < max_apdu_len) {
@@ -1224,7 +1224,7 @@ int property_list_encode(
                     for (i = 0; i < optional_count; i++) {
                         len =
                             encode_application_enumerated(&apdu[apdu_len],
-                            pListOptional[i]);
+                            (uint32_t)pListOptional[i]);
                         /* add it if we have room */
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
@@ -1240,7 +1240,7 @@ int property_list_encode(
                     for (i = 0; i < proprietary_count; i++) {
                         len =
                             encode_application_enumerated(&apdu[apdu_len],
-                            pListProprietary[i]);
+                            (uint32_t)pListProprietary[i]);
                         /* add it if we have room */
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
@@ -1267,7 +1267,7 @@ int property_list_encode(
                             if (count == rpdata->array_index) {
                                 apdu_len = encode_application_enumerated(
                                     &apdu[apdu_len],
-                                    pListRequired[i]);
+                                    (uint32_t)pListRequired[i]);
                                 break;
                             }
                         }
@@ -1278,7 +1278,7 @@ int property_list_encode(
                             if (count == rpdata->array_index) {
                                 apdu_len = encode_application_enumerated(
                                     &apdu[apdu_len],
-                                    pListOptional[i]);
+                                    (uint32_t)pListOptional[i]);
                                 break;
                             }
                         }
@@ -1289,7 +1289,7 @@ int property_list_encode(
                             if (count == rpdata->array_index) {
                                 apdu_len = encode_application_enumerated(
                                     &apdu[apdu_len],
-                                    pListProprietary[i]);
+                                    (uint32_t)pListProprietary[i]);
                                 break;
                             }
                         }

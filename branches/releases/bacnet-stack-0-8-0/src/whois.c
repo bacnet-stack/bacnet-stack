@@ -72,7 +72,7 @@ int whois_decode_service_request(
     int32_t * pLow_limit,
     int32_t * pHigh_limit)
 {
-    int len = 0;
+    unsigned int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0;
@@ -123,7 +123,7 @@ int whois_decode_service_request(
         len = 0;
     }
 
-    return len;
+    return (int)len;
 }
 
 #ifdef TEST
