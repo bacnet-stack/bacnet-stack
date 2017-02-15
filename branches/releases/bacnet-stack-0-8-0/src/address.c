@@ -126,7 +126,7 @@ void address_remove_device(
     uint32_t device_id)
 {
     struct Address_Cache_Entry *pMatch;
-    int index = 0;
+    uint32_t index = 0;
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
