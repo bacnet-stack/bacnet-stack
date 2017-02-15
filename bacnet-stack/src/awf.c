@@ -139,7 +139,7 @@ int awf_decode_service_request(
             decoded_len =
                 decode_octet_string(&apdu[len], len_value_type,
                 &data->fileData[0]);
-            if (decoded_len != len_value_type) {
+            if ((uint32_t)decoded_len != len_value_type) {
                 return -1;
             }
             len += decoded_len;
@@ -181,7 +181,7 @@ int awf_decode_service_request(
                 decoded_len =
                     decode_octet_string(&apdu[len], len_value_type,
                     &data->fileData[i]);
-                if (decoded_len != len_value_type) {
+                if ((uint32_t)decoded_len != len_value_type) {
                     return -1;
                 }
                 len += decoded_len;
