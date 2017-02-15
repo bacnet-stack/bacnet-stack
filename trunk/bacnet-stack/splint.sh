@@ -20,7 +20,8 @@ rm -f splint_output.txt
 touch splint_output.txt
 for filename in $( find $directory -name '*.c' )
 do
-  echo splinting ${filename} >> ${SPLINT_LOGFILE}
+  echo splinting ${filename}
+  echo splinting ${filename} >> ${SPLINT_LOGFILE} 
   ${SPLINT} ${filename} >> ${SPLINT_LOGFILE} 2>&1
 done
 

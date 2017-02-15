@@ -462,7 +462,7 @@ void apdu_handler(
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                apdu_decode_confirmed_service_request(&apdu[0],
+                (void)apdu_decode_confirmed_service_request(&apdu[0],
                     apdu_len, &service_data, &service_choice, &service_request,
                     &service_request_len);
                 if (apdu_confirmed_dcc_disabled(service_choice)) {
