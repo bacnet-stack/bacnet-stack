@@ -2085,7 +2085,7 @@ void Device_local_reporting(
     objects_count = Device_Object_List_Count();
 
     /* loop for all objects */
-    for (idx = 1; idx < objects_count; idx++) {
+    for (idx = 1; idx <= objects_count; idx++) {
         Device_Object_List_Identifier(idx, &object_type, &object_instance);
 
         pObject = Device_Objects_Find_Functions(object_type);
