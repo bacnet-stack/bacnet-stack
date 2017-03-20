@@ -330,21 +330,12 @@ void handler_read_property_multiple(
                         RPM_Object_Property_Count(&property_list,
                         special_object_property);
                     if (property_count == 0) {
-                        /* handle the error code - but use the special property */
-                        len =
-                            RPM_Encode_Property(&Handler_Transmit_Buffer
-                            [npdu_len], (uint16_t) apdu_len, MAX_APDU,
-                            &rpmdata);
-                        if (len > 0) {
-                            apdu_len += len;
-                        } else {
-#if PRINT_ENABLED
-                            fprintf(stderr,
-                                "RPM: Too full for special property!\r\n");
-#endif
-                            error = len;
-                            goto RPM_FAILURE;
-                        }
+                        /* this only happens with the OPTIONAL property */
+                        /* 135-2016bl-2. Clarify ReadPropertyMultiple
+                           response on OPTIONAL when empty.  */
+                        /* If no optional properties are supported then
+                           an empty 'List of Results' shall be returned
+                           for the specified property.*/
                     } else {
                         for (index = 0; index < property_count; index++) {
                             rpmdata.object_property =
