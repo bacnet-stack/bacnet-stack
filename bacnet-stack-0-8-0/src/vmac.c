@@ -154,7 +154,7 @@ bool VMAC_Different(
                 mac_len = (unsigned int)vmac1->mac_len;
             }
             for (i = 0; i < mac_len; i++) {
-                if (vmac1->mac[i] != vmac1->mac[i]) {
+                if (vmac1->mac[i] != vmac2->mac[i]) {
                     status = true;
                 }
             }
@@ -188,7 +188,7 @@ bool VMAC_Match(
                 mac_len = (unsigned int)vmac1->mac_len;
             }
             for (i = 0; i < mac_len; i++) {
-                if (vmac1->mac[i] != vmac1->mac[i]) {
+                if (vmac1->mac[i] != vmac2->mac[i]) {
                     status = false;
                 }
             }
