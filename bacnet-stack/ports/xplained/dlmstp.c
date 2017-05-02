@@ -725,22 +725,22 @@ static bool MSTP_Master_Node_FSM(void)
     /* The number of frames sent by this node during a single token hold. */
     /* When this counter reaches the value Nmax_info_frames, the node must */
     /* pass the token. */
-    static uint8_t FrameCount;
+    static uint8_t FrameCount = 0;
     /* "Next Station," the MAC address of the node to which This Station
        passes the token. If the Next_Station is unknown, Next_Station shall
        be equal to This_Station. */
-    static uint8_t Next_Station;
+    static uint8_t Next_Station = 0;
     /* "Poll Station," the MAC address of the node to which This Station last */
     /* sent a Poll For Master. This is used during token maintenance. */
     static uint8_t Poll_Station;
     /* A counter of transmission retries used for Token and Poll For Master */
     /* transmission. */
-    static unsigned RetryCount;
+    static unsigned RetryCount = 0;
     /* The number of tokens received by this node. When this counter reaches */
     /* the value Npoll, the node polls the address range between TS and NS */
     /* for additional master nodes. TokenCount is set to zero at the end of */
     /* the polling process. */
-    static unsigned TokenCount;
+    static unsigned TokenCount = 0;
     /* next-x-station calculations */
     uint8_t next_poll_station = 0;
     uint8_t next_this_station = 0;
@@ -748,10 +748,11 @@ static bool MSTP_Master_Node_FSM(void)
     /* timeout values */
     uint16_t my_timeout = 10, ns_timeout = 0;
     bool matched = false;
+    bool timeout = false;
     /* transition immediately to the next state */
     bool transition_now = false;
     /* packet from the PDU Queue */
-    struct mstp_pdu_packet *pkt;
+    struct mstp_pdu_packet *pkt = NULL;
 
     /* some calculations that several states need */
     next_poll_station = (Poll_Station + 1) % (Nmax_master + 1);
@@ -1183,11 +1184,8 @@ static bool MSTP_Master_Node_FSM(void)
             /* BACnet Data Expecting Reply, a Test_Request, or  */
             /* a proprietary frame that expects a reply is received. */
         case MSTP_MASTER_STATE_ANSWER_DATA_REQUEST:
-            if (rs485_silence_elapsed(Treply_delay)) {
-                Master_State = MSTP_MASTER_STATE_IDLE;
-                /* clear our flag we were holding for comparison */
-                MSTP_Flag.ReceivedValidFrame = false;
-            } else {
+            timeout = rs485_silence_elapsed(Treply_delay);
+            if (!timeout) {
                 pkt = (struct mstp_pdu_packet *) Ringbuf_Peek(&PDU_Queue);
                 if (pkt != NULL) {
                     matched =
@@ -1197,45 +1195,45 @@ static bool MSTP_Master_Node_FSM(void)
                 } else {
                     matched = false;
                 }
-                if (matched) {
-                    /* Reply */
-                    /* If a reply is available from the higher layers  */
-                    /* within Treply_delay after the reception of the  */
-                    /* final octet of the requesting frame  */
-                    /* (the mechanism used to determine this is a local matter), */
-                    /* then call MSTP_Send_Frame to transmit the reply frame  */
-                    /* and enter the IDLE state to wait for the next frame. */
-                    uint8_t frame_type;
-                    if (pkt->data_expecting_reply) {
-                        frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
-                    } else {
-                        frame_type =
-                            FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
-                    }
-                    MSTP_Send_Frame(frame_type, pkt->destination_mac,
-                        This_Station, (uint8_t *) & pkt->buffer[0],
-                        pkt->length);
-                    Master_State = MSTP_MASTER_STATE_IDLE;
-                    /* clear our flag we were holding for comparison */
-                    MSTP_Flag.ReceivedValidFrame = false;
-                    /* clear the queue */
-                    (void) Ringbuf_Pop(&PDU_Queue, NULL);
-                } else if (pkt != NULL) {
-                    /* DeferredReply */
-                    /* If no reply will be available from the higher layers */
-                    /* within Treply_delay after the reception of the */
-                    /* final octet of the requesting frame (the mechanism */
-                    /* used to determine this is a local matter), */
-                    /* then an immediate reply is not possible. */
-                    /* Any reply shall wait until this node receives the token. */
-                    /* Call MSTP_Send_Frame to transmit a Reply Postponed frame, */
-                    /* and enter the IDLE state. */
-                    MSTP_Send_Frame(FRAME_TYPE_REPLY_POSTPONED, SourceAddress,
-                        This_Station, NULL, 0);
-                    Master_State = MSTP_MASTER_STATE_IDLE;
-                    /* clear our flag we were holding for comparison */
-                    MSTP_Flag.ReceivedValidFrame = false;
+            }
+            if (matched) {
+                /* Reply */
+                /* If a reply is available from the higher layers  */
+                /* within Treply_delay after the reception of the  */
+                /* final octet of the requesting frame  */
+                /* (the mechanism used to determine this is a local matter), */
+                /* then call MSTP_Send_Frame to transmit the reply frame  */
+                /* and enter the IDLE state to wait for the next frame. */
+                uint8_t frame_type;
+                if (pkt->data_expecting_reply) {
+                    frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
+                } else {
+                    frame_type =
+                        FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY;
                 }
+                MSTP_Send_Frame(frame_type, pkt->destination_mac,
+                    This_Station, (uint8_t *) & pkt->buffer[0],
+                    pkt->length);
+                Master_State = MSTP_MASTER_STATE_IDLE;
+                /* clear our flag we were holding for comparison */
+                MSTP_Flag.ReceivedValidFrame = false;
+                /* clear the queue */
+                (void) Ringbuf_Pop(&PDU_Queue, NULL);
+            } else if ((pkt != NULL) || timeout) {
+                /* DeferredReply */
+                /* If no reply will be available from the higher layers */
+                /* within Treply_delay after the reception of the */
+                /* final octet of the requesting frame (the mechanism */
+                /* used to determine this is a local matter), */
+                /* then an immediate reply is not possible. */
+                /* Any reply shall wait until this node receives the token. */
+                /* Call MSTP_Send_Frame to transmit a Reply Postponed frame, */
+                /* and enter the IDLE state. */
+                MSTP_Send_Frame(FRAME_TYPE_REPLY_POSTPONED, SourceAddress,
+                    This_Station, NULL, 0);
+                Master_State = MSTP_MASTER_STATE_IDLE;
+                /* clear our flag we were holding for comparison */
+                MSTP_Flag.ReceivedValidFrame = false;
             }
             break;
         default:
