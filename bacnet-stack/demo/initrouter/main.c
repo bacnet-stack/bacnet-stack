@@ -128,41 +128,44 @@ static void My_Router_Handler(
                     printf("%02X", src->mac[j]);
                 }
             }
-            port_mappings = npdu[0];
-            printf("\nPort Mappings: %u\n", port_mappings);
-            npdu_offset = 1;
-            npdu_len--;
+            if (npdu_len >= 1) {
+                port_mappings = npdu[npdu_offset];
+                printf("\nPort Mappings: %u\n", port_mappings);
+                npdu_offset++;
+                npdu_len--;
+            }
             while (npdu_len) {
-                len = decode_unsigned16(&npdu[npdu_offset], &dnet);
-                printf("DNET=%hu, ", dnet);
-                npdu_offset += len;
-                npdu_len -= len;
-                if (!npdu_len) {
-                    break;
+                if (npdu_len >= 2) {
+                    len = decode_unsigned16(&npdu[npdu_offset], &dnet);
+                    printf("DNET=%hu, ", dnet);
+                    npdu_offset += len;
+                    npdu_len -= len;
                 }
-                port_id = npdu[npdu_offset];
-                printf("Port ID=%u, ", port_id);
-                npdu_offset++;
-                npdu_len--;
-                if (!npdu_len) {
-                    break;
+                if (npdu_len >= 1) {
+                    port_id = npdu[npdu_offset];
+                    printf("Port ID=%u, ", port_id);
+                    npdu_offset++;
+                    npdu_len--;
                 }
-                port_info_len = npdu[npdu_offset];
-                printf("Port Info Length=%u, ", port_info_len);
-                npdu_offset++;
-                npdu_len--;
-                printf("Port Info=\"");
-                for (j = 0; j < 255; j++) {
-                    if (!npdu_len) {
-                        break;
+                if (npdu_len >= 1) {
+                    port_info_len = npdu[npdu_offset];
+                    printf("Port Info Length=%u, ", port_info_len);
+                    npdu_offset++;
+                    npdu_len--;
+                } else {
+                    port_info_len = 0;
+                }
+                if (port_info_len) {
+                    printf("Port Info=\"");
+                    while (port_info_len) {
+                        if (npdu_len >= 1) {
+                            printf("%02X", npdu[npdu_offset]);
+                            npdu_offset++;
+                            npdu_len--;
+                        }
                     }
-                    if (j < port_info_len) {
-                        printf("%02X", npdu[npdu_offset]);
-                        npdu_offset++;
-                        npdu_len--;
-                    }
+                    printf("\"");
                 }
-                printf("\"");
                 if (npdu_len) {
                     printf("\n");
                 }
@@ -189,8 +192,10 @@ static void My_NPDU_Handler(
 
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
-        My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
-            (uint16_t) (pdu_len - apdu_offset));
+        if (apdu_offset <= pdu_len) {
+            My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
+                (uint16_t) (pdu_len - apdu_offset));
+        }
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
             ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK))) {
