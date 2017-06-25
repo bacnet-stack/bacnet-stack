@@ -123,10 +123,9 @@ void dlmstp_cleanup(
     close(poSharedData->RS485_Handle);
 
     pthread_cond_destroy(&poSharedData->Received_Frame_Flag);
-    pthread_cond_destroy(&poSharedData->Receive_Packet_Flag);
+    sem_destroy(&poSharedData->Receive_Packet_Flag);
     pthread_cond_destroy(&poSharedData->Master_Done_Flag);
     pthread_mutex_destroy(&poSharedData->Received_Frame_Mutex);
-    pthread_mutex_destroy(&poSharedData->Receive_Packet_Mutex);
     pthread_mutex_destroy(&poSharedData->Master_Done_Mutex);
 }
 
@@ -192,8 +191,7 @@ uint16_t dlmstp_receive(
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
     get_abstime(&abstime, timeout);
-    rv = pthread_cond_timedwait(&poSharedData->Receive_Packet_Flag,
-        &poSharedData->Receive_Packet_Mutex, &abstime);
+    rv = sem_timedwait(&poSharedData->Receive_Packet_Flag, &abstime);
     if (rv == 0) {
         if (poSharedData->Receive_Packet.ready) {
             if (poSharedData->Receive_Packet.pdu_len) {
@@ -358,7 +356,7 @@ uint16_t MSTP_Put_Receive(
             mstp_port->SourceAddress);
         poSharedData->Receive_Packet.pdu_len = mstp_port->DataLength;
         poSharedData->Receive_Packet.ready = true;
-        pthread_cond_signal(&poSharedData->Receive_Packet_Flag);
+        sem_post(&poSharedData->Receive_Packet_Flag);
     }
 
     return pdu_len;
@@ -910,17 +908,11 @@ bool dlmstp_init(
     /* initialize packet queue */
     poSharedData->Receive_Packet.ready = false;
     poSharedData->Receive_Packet.pdu_len = 0;
-    rv = pthread_cond_init(&poSharedData->Receive_Packet_Flag, NULL);
+    rv = sem_init(&poSharedData->Receive_Packet_Flag, 0, 0);
     if (rv != 0) {
         fprintf(stderr,
             "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
             ifname);
-        exit(1);
-    }
-    rv = pthread_mutex_init(&poSharedData->Receive_Packet_Mutex, NULL);
-    if (rv != 0) {
-        fprintf(stderr,
-            "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n", ifname);
         exit(1);
     }
 
