@@ -52,7 +52,7 @@ then
 fi
 
 echo "Getting a clean version out of subversion for Linux gzip"
-svn export --username=${USERNAME} ${SVN_TAGGED_NAME} ${ARCHIVE_NAME} > /dev/null
+svn export --username=${USERNAME} ${SVN_TAGGED_NAME} ${ARCHIVE_NAME}
 echo "done."
 
 GZIP_FILENAME=${ARCHIVE_NAME}.tgz
@@ -63,7 +63,7 @@ then
   rm ${GZIP_FILENAME}
   echo "done."
 fi
-tar -cvvzf ${GZIP_FILENAME} ${ARCHIVE_NAME}/ > /dev/null
+tar -cvvzf ${GZIP_FILENAME} ${ARCHIVE_NAME}/
 echo "done."
 if [ -e "${GZIP_FILENAME}" ]
 then
@@ -84,7 +84,7 @@ svn export --username=${USERNAME} --native-eol CRLF ${SVN_TAGGED_NAME} ${ARCHIVE
 ZIP_FILENAME=${ARCHIVE_NAME}.zip
 echo "done."
 echo "Zipping the directory exported for Windows."
-zip -r ${ZIP_FILENAME} ${ARCHIVE_NAME} > /dev/null
+zip -r ${ZIP_FILENAME} ${ARCHIVE_NAME}
 
 if [ -e "${ZIP_FILENAME}" ]
 then
@@ -110,6 +110,6 @@ mv ${CHANGELOG} ${ARCHIVE_NAME}
 cp readme.txt ${ARCHIVE_NAME}
 
 echo "Sending ${ARCHIVE_NAME} to SourceForge using scp..."
+echo "scp -r ${ARCHIVE_NAME} ${FRS_URL}"
 scp -r ${ARCHIVE_NAME} ${FRS_URL}
-
 echo "Complete!"
