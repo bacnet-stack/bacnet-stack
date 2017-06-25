@@ -581,7 +581,21 @@ uint16_t MSTP_Get_Reply(
         mstp_port->DataLength, mstp_port->SourceAddress,
         (uint8_t *) & pkt->buffer[0], pkt->length, pkt->destination_mac);
     if (!matched) {
-        return 0;
+        /* Walk the rest of the ring buffer to see if we can find a match */
+        while (!matched &&
+               (pkt = (struct mstp_pdu_packet *)Ringbuf_Peek_Next(&poSharedData->PDU_Queue, (uint8_t *)pkt)) != NULL) {
+            matched =
+                dlmstp_compare_data_expecting_reply(&mstp_port->InputBuffer[0],
+                                                    mstp_port->DataLength,
+                                                    mstp_port->SourceAddress,
+                                                    (uint8_t *) & pkt->buffer[0],
+                                                    pkt->length,
+                                                    pkt->destination_mac);
+        }
+        if (!matched) {
+            /* Still didn't find a match so just bail out */
+            return 0;
+        }
     }
     if (pkt->data_expecting_reply) {
         frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
@@ -592,7 +606,8 @@ uint16_t MSTP_Get_Reply(
     pdu_len = MSTP_Create_Frame(&mstp_port->OutputBuffer[0],    /* <-- loading this */
         mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
         mstp_port->This_Station, (uint8_t *) & pkt->buffer[0], pkt->length);
-    (void) Ringbuf_Pop(&poSharedData->PDU_Queue, NULL);
+    /* This will pop the element no matter where we found it */
+    (void) Ringbuf_Pop_Element(&poSharedData->PDU_Queue, (uint8_t *)pkt, NULL);
 
     return pdu_len;
 }
