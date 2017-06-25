@@ -63,6 +63,9 @@ extern "C" {
     volatile uint8_t *Ringbuf_Peek(RING_BUFFER const *b);
     bool Ringbuf_Pop(RING_BUFFER * b,
         uint8_t * data_element);
+    bool Ringbuf_Pop_Element(RING_BUFFER * b,
+        uint8_t * this_element,
+        uint8_t * data_element);
     bool Ringbuf_Put_Front(RING_BUFFER * b,
         uint8_t * data_element);
     /* head */
@@ -70,6 +73,8 @@ extern "C" {
         uint8_t * data_element);
     /* pair of functions to use head memory directly */
     volatile uint8_t *Ringbuf_Data_Peek(RING_BUFFER * b);
+    volatile uint8_t *Ringbuf_Peek_Next(RING_BUFFER const *b,
+        uint8_t * data_element);
     bool Ringbuf_Data_Put(RING_BUFFER * b, volatile uint8_t *data_element);
     /* Note: element_count must be a power of two */
     bool Ringbuf_Init(RING_BUFFER * b,
