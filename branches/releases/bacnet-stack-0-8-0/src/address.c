@@ -43,6 +43,13 @@
 #include "bacdcode.h"
 #include "readrange.h"
 
+/* we are likely compiling the demo command line tools if print enabled */
+#if !defined(BACNET_ADDRESS_CACHE_FILE)
+#if PRINT_ENABLED
+#define BACNET_ADDRESS_CACHE_FILE
+#endif
+#endif
+
 /** @file address.c  Handle address binding */
 
 /* This module is used to handle the address binding that */
