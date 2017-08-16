@@ -762,11 +762,37 @@ typedef enum {
     UNITS_PH = 234,
     UNITS_GRAMS_PER_SQUARE_METER = 235,
     UNITS_MINUTES_PER_DEGREE_KELVIN = 236,
-    /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
-    /* Enumerated values 256-65535 may be used by others subject to */
-    /* the procedures and constraints described in Clause 23. */
-    /* The last enumeration used in this version is 236. */
-    MAX_UNITS = 237,
+    UNITS_OHM_METER_SQUARED_PER_METER = 237,
+    UNITS_AMPERE_SECONDS = 238,
+    UNITS_VOLT_AMPERE_HOURS = 239,
+    UNITS_KILOVOLT_AMPERE_HOURS = 240,
+    UNITS_MEGAVOLT_AMPERE_HOURS = 241,
+    UNITS_VOLT_AMPERE_HOURS_REACTIVE = 242,
+    UNITS_KILOVOLT_AMPERE_HOURS_REACTIVE = 243,
+    UNITS_MEGAVOLT_AMPERE_HOURS_REACTIVE = 244,
+    UNITS_VOLT_SQUARE_HOURS = 245,
+    UNITS_AMPERE_SQUARE_HOURS = 246,
+    UNITS_JOULE_PER_HOURS = 247,
+    UNITS_CUBIC_FEET_PER_DAY = 248,
+    UNITS_CUBIC_METERS_PER_DAY = 249,
+    UNITS_WATT_HOURS_PER_CUBIC_METER = 250,
+    UNITS_JOULES_PER_CUBIC_METER = 251,
+    UNITS_MOLE_PERCENT = 252,
+    UNITS_PASCAL_SECONDS = 253,
+    UNITS_MILLION_STANDARD_CUBIC_FEET_PER_MINUTE = 254,
+    /* 255 - NOT USED */
+    UNITS_STANDARD_CUBIC_FEET_PER_DAY = 47808,
+    UNITS_MILLION_STANDARD_CUBIC_FEET_PER_DAY = 47809,
+    UNITS_THOUSAND_CUBIC_FEET_PER_DAY = 47810,
+    UNITS_THOUSAND_STANDARD_CUBIC_FEET_PER_DAY = 47811,
+    UNITS_POUNDS_MASS_PER_DAY = 47812,
+    /* 47813 - NOT USED */
+    UNITS_MILLIREMS = 47814,
+    UNITS_MILLIREMS_PER_HOUR = 47815,
+    /* Enumerated values 0-255 and 47808-49999 are reserved for
+       definition by ASHRAE. */
+    /* Enumerated values 256-47807 and 50000-65535 may be used by others
+       subject to the procedures and constraints described in Clause 23. */
     /* do the proprietary range inside of enum so that
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
@@ -2230,9 +2256,9 @@ typedef enum BACnetNetworkPortCommand_T {
     NETWORK_PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
     NETWORK_PORT_COMMAND_DISCONNECT = 6,
     NETWORK_PORT_COMMAND_RESTART_PORT = 7,
-    /* Enumerated values 0-127 are reserved for definition 
-       by ASHRAE. Enumerated values 128-255 may be used 
-       by others subject to the procedures and constraints 
+    /* Enumerated values 0-127 are reserved for definition
+       by ASHRAE. Enumerated values 128-255 may be used
+       by others subject to the procedures and constraints
        described in Clause 23.*/
     /* do the max range inside of enum so that
        compilers will allocate adequate sized datatype for enum
