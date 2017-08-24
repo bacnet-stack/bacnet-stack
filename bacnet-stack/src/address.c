@@ -43,6 +43,13 @@
 #include "bacdcode.h"
 #include "readrange.h"
 
+/* we are likely compiling the demo command line tools if print enabled */
+#if !defined(BACNET_ADDRESS_CACHE_FILE)
+#if PRINT_ENABLED
+#define BACNET_ADDRESS_CACHE_FILE
+#endif
+#endif
+
 /** @file address.c  Handle address binding */
 
 /* This module is used to handle the address binding that */
@@ -291,6 +298,7 @@ bool address_mac_from_ascii(
     return status;
 }
 
+#ifdef BACNET_ADDRESS_CACHE_FILE
 /* File format:
 DeviceID MAC SNET SADR MAX-APDU
 4194303 05 0 0 50
@@ -351,7 +359,7 @@ static void address_file_init(
 
     return;
 }
-
+#endif
 
 /****************************************************************************
  * Clear down the cache and make sure the full complement of entries are    *
@@ -370,8 +378,9 @@ void address_init(
         pMatch->Flags = 0;
         pMatch++;
     }
+#ifdef BACNET_ADDRESS_CACHE_FILE
     address_file_init(Address_Cache_Filename);
-
+#endif
     return;
 }
 
@@ -402,7 +411,9 @@ void address_init_partial(
 
         pMatch++;
     }
+ #ifdef BACNET_ADDRESS_CACHE_FILE
     address_file_init(Address_Cache_Filename);
+#endif
 
     return;
 }
