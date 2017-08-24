@@ -409,7 +409,20 @@ typedef enum {
     PROP_POWER = 384,
     PROP_TRANSITION = 385,
     PROP_EGRESS_ACTIVE = 386,
-	/* enumerations 399-427 are defined in Addendum 2012-ai */
+    /* enumerations 387-398 */
+    PROP_INTERFACE_VALUE = 387,
+    PROP_FAULT_HIGH_LIMIT = 388,
+    PROP_FAULT_LOW_LIMIT = 389,
+    PROP_LOW_DIFF_LIMIT = 390,
+    PROP_STRIKE_COUNT = 391,
+    PROP_TIME_OF_STRIKE_COUNT_RESET = 392,
+    PROP_DEFAULT_TIMEOUT = 393,
+    PROP_INITIAL_TIMEOUT = 394,
+    PROP_LAST_STATE_CHANGE = 395,
+    PROP_STATE_CHANGE_VALUES = 396,
+    PROP_TIMER_RUNNING = 397,
+    PROP_TIMER_STATE = 398,
+    /* enumerations 399-427 are defined in Addendum 2012-ai */
     PROP_APDU_LENGTH = 399,
     PROP_IP_ADDRESS = 400,
     PROP_IP_DEFAULT_GATEWAY = 401,
@@ -427,20 +440,83 @@ typedef enum {
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS = 413,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE = 414,
     PROP_BBMD_FOREIGN_DEVICE_TABLE = 415,
-	PROP_CHANGES_PENDING = 416,
+    PROP_CHANGES_PENDING = 416,
     PROP_COMMAND = 417,
     PROP_FD_BBMD_ADDRESS = 418,
     PROP_FD_SUBSCRIPTION_LIFETIME = 419,
-	PROP_LINK_SPEED = 420,
-	PROP_LINK_SPEEDS = 421,
+    PROP_LINK_SPEED = 420,
+    PROP_LINK_SPEEDS = 421,
     PROP_LINK_SPEED_AUTONEGOTIATE = 422,
-	PROP_MAC_ADDRESS = 423,
+    PROP_MAC_ADDRESS = 423,
     PROP_NETWORK_INTERFACE_NAME = 424,
-	PROP_NETWORK_NUMBER = 425,
-	PROP_NETWORK_NUMBER_QUALITY = 426,
-	PROP_NETWORK_TYPE = 427,
+    PROP_NETWORK_NUMBER = 425,
+    PROP_NETWORK_NUMBER_QUALITY = 426,
+    PROP_NETWORK_TYPE = 427,
     PROP_ROUTING_TABLE = 428,
     PROP_VIRTUAL_MAC_ADDRESS_TABLE = 429,
+    /* enumerations 430-491 */
+    PROP_COMMAND_TIME_ARRAY = 430,
+    PROP_CURRENT_COMMAND_PRIORITY = 431,
+    PROP_LAST_COMMAND_TIME = 432,
+    PROP_VALUE_SOURCE = 433,
+    PROP_VALUE_SOURCE_ARRAY = 434,
+    PROP_BACNET_IPV6_MODE = 435,
+    PROP_IPV6_ADDRESS = 436,
+    PROP_IPV6_PREFIX_LENGTH = 437,
+    PROP_BACNET_IPV6_UDP_PORT = 438,
+    PROP_IPV6_DEFAULT_GATEWAY = 439,
+    PROP_BACNET_IPV6_MULTICAST_ADDRESS = 440,
+    PROP_IPV6_DNS_SERVER = 441,
+    PROP_IPV6_AUTO_ADDRESSING_ENABLE = 442,
+    PROP_IPV6_DHCP_LEASE_TIME = 443,
+    PROP_IPV6_DHCP_LEASE_TIME_REMAINING = 444,
+    PROP_IPV6_DHCP_SERVER = 445,
+    PROP_IPV6_ZONE_INDEX = 446,
+    PROP_ASSIGNED_LANDING_CALLS = 447,
+    PROP_CAR_ASSIGNED_DIRECTION = 448,
+    PROP_CAR_DOOR_COMMAND = 449,
+    PROP_CAR_DOOR_STATUS = 450,
+    PROP_CAR_DOOR_TEXT = 451,
+    PROP_CAR_DOOR_ZONE = 452,
+    PROP_CAR_DRIVE_STATUS = 453,
+    PROP_CAR_LOAD = 454,
+    PROP_CAR_LOAD_UNITS = 455,
+    PROP_CAR_MODE = 456,
+    PROP_CAR_MOVING_DIRECTION = 457,
+    PROP_CAR_POSITION = 458,
+    PROP_ELEVATOR_GROUP = 459,
+    PROP_ENERGY_METER = 460,
+    PROP_ENERGY_METER_REF = 461,
+    PROP_ESCALATOR_MODE = 462,
+    PROP_FAULT_SIGNALS = 463,
+    PROP_FLOOR_TEXT = 464,
+    PROP_GROUP_ID = 465,
+    /* value 466 is unassigned */
+    PROP_GROUP_MODE = 467,
+    PROP_HIGHER_DECK = 468,
+    PROP_INSTALLATION_ID = 469,
+    PROP_LANDING_CALLS = 470,
+    PROP_LANDING_CALL_CONTROL = 471,
+    PROP_LANDING_DOOR_STATUS = 472,
+    PROP_LOWER_DECK = 473,
+    PROP_MACHINE_ROOM_ID = 474,
+    PROP_MAKING_CAR_CALL = 475,
+    PROP_NEXT_STOPPING_FLOOR = 476,
+    PROP_OPERATION_DIRECTION = 477,
+    PROP_PASSENGER_ALARM = 478,
+    PROP_POWER_MODE = 479,
+    PROP_REGISTERED_CAR_CALL = 480,
+    PROP_ACTIVE_COV_MULTIPLE_SUBSCRIPTIONS = 481,
+    PROP_PROTOCOL_LEVEL = 482,
+    PROP_REFERENCE_PORT = 483,
+    PROP_DEPLOYED_PROFILE_LOCATION = 484,
+    PROP_PROFILE_LOCATION = 485,
+    PROP_TAGS = 486,
+    PROP_SUBORDINATE_NODE_TYPES = 487,
+    PROP_SUBORDINATE_TAGS = 488,
+    PROP_SUBORDINATE_RELATIONSHIPS = 489,
+    PROP_DEFAULT_SUBORDINATE_RELATIONSHIP = 490,
+    PROP_REPRESENTS = 491,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
@@ -2153,9 +2229,9 @@ typedef enum {
     ACCESS_CREDENTIAL_DISABLE_MANUAL = 2,
     ACCESS_CREDENTIAL_DISABLE_LOCKOUT = 3,
     ACCESS_CREDENTIAL_DISABLE_MAX = 4
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-       Enumerated values 64-65535 may be used by others subject to
-       the procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+           Enumerated values 64-65535 may be used by others subject to
+           the procedures and constraints described in Clause 23. */
 } BACNET_ACCESS_CREDENTIAL_DISABLE;
 
 typedef enum {
@@ -2170,9 +2246,9 @@ typedef enum {
     CREDENTIAL_DISABLED_INACTIVITY = 8,
     CREDENTIAL_DISABLED_MANUAL = 9,
     CREDENTIAL_DISABLED_MAX = 10
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-       Enumerated values 64-65535 may be used by others subject to
-       the procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+           Enumerated values 64-65535 may be used by others subject to
+           the procedures and constraints described in Clause 23. */
 } BACNET_ACCESS_CREDENTIAL_DISABLE_REASON;
 
 typedef enum {
@@ -2183,9 +2259,9 @@ typedef enum {
     AUTHENTICATION_DISABLED_DAMAGED = 4,
     AUTHENTICATION_DISABLED_DESTROYED = 5,
     AUTHENTICATION_DISABLED_MAX = 6
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-       Enumerated values 64-65535 may be used by others subject to
-       the procedures and constraints described in Clause 23. */
+        /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+           Enumerated values 64-65535 may be used by others subject to
+           the procedures and constraints described in Clause 23. */
 } BACNET_AUTHENTICATION_DISABLE_REASON;
 
 typedef enum {
@@ -2259,7 +2335,7 @@ typedef enum BACnetNetworkPortCommand_T {
     /* Enumerated values 0-127 are reserved for definition
        by ASHRAE. Enumerated values 128-255 may be used
        by others subject to the procedures and constraints
-       described in Clause 23.*/
+       described in Clause 23. */
     /* do the max range inside of enum so that
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
