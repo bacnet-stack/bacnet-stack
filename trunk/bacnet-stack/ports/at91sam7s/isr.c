@@ -16,6 +16,7 @@
 /*  Taken from the Yahoo LPC2000 User's Group - Files Section 'UT050418A.ZIP' */
 /*  Specifically, the module armVIC.c with the include file references removed */
 /*  ********************************************************************************************** */
+#include "isr.h"
 
 #define IRQ_MASK 0x00000080
 #define FIQ_MASK 0x00000040
@@ -25,8 +26,7 @@ static inline unsigned __get_cpsr(
     void)
 {
     unsigned long retval;
-    asm volatile (
-        " mrs  %0, cpsr":"=r" (retval): /* no inputs */ );
+    asm volatile (" mrs  %0, cpsr" : "=r" (retval) : /* no inputs */  );
     return retval;
 }
 
