@@ -196,3 +196,16 @@ Copy the mstpcap.exe to that folder, which may not exist.
 Restart Wireshark, and look for "BACnet MS/TP on COMx" interfaces.
 Configure the interface to change baud rate.
 Capture directly from the interface.
+
+==== Developer Info about Wireshark ExtCap ====
+
+BACnet MS/TP uses a DLT (data link type) requested from and
+approved by libPCAP development team, which is 165.  Wireshark
+includes a dissector that decodes the MS/TP packets when they
+use the DLT for MS/TP.  Other DLTs exist for other types, and
+there are also DLTs set aside as USER DLTs.
+
+See the following URLs for information about ExtCap:
+https://github.com/wireshark/wireshark/blob/master/doc/README.extcap
+https://github.com/wireshark/wireshark/blob/master/doc/extcap_example.py
+https://wiki.wireshark.org/Development/Extcap
