@@ -297,8 +297,9 @@ int main(
         return 1;
     }
     args_remaining = (argc - 7);
+    /* location of next arg in arg array */
+    tag_value_arg = 7;
     for (i = 0; i < MAX_PROPERTY_VALUES; i++) {
-        tag_value_arg = 7 + (i * 2);
         /* special case for context tagged values */
         if (toupper(argv[tag_value_arg][0]) == 'C') {
             context_tag = (uint8_t) strtol(&argv[tag_value_arg][1], NULL, 0);
@@ -310,12 +311,14 @@ int main(
             Target_Object_Property_Value[i].context_specific = false;
         }
         property_tag = strtol(argv[tag_value_arg], NULL, 0);
+        tag_value_arg++;
         args_remaining--;
         if (args_remaining <= 0) {
             fprintf(stderr, "Error: not enough tag-value pairs\n");
             return 1;
         }
-        value_string = argv[tag_value_arg + 1];
+        value_string = argv[tag_value_arg];
+        tag_value_arg++;
         args_remaining--;
         /* printf("tag[%d]=%u value[%d]=%s\n",
            i, property_tag, i, value_string); */
