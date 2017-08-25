@@ -42,7 +42,9 @@
 #include "datalink.h"
 #include "bvlc.h"
 /* some demo stuff needed */
+#ifndef DEBUG_ENABLED
 #define DEBUG_ENABLED 0
+#endif
 #include "debug.h"
 #include "filename.h"
 #include "handlers.h"
