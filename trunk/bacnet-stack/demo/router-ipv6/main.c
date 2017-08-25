@@ -1037,6 +1037,12 @@ static void my_routing_npdu_handler(
                     routed_apdu_handler(snet, &npdu_data, src, &dest,
                         &pdu[apdu_offset],
                         (uint16_t) (pdu_len - apdu_offset));
+                    /* add a Device object and application layer */
+                    if ((dest.net == 0) ||
+                        (dest.net == BACNET_BROADCAST_NETWORK)) {
+                        apdu_handler(src, &pdu[apdu_offset],
+                        (uint16_t) (pdu_len - apdu_offset));
+                    }
                 }
             } else {
                 fprintf(stderr, "NPDU: DNET=%u.  Discarded!\n",
