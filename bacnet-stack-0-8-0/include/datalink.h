@@ -89,8 +89,7 @@ extern void routed_get_my_address(
 #define datalink_get_broadcast_address bip6_get_broadcast_address
 #define datalink_get_my_address bip6_get_my_address
 
-
-#else /* Ie, BACDL_ALL */
+#elif defined(BACDL_ALL) || defined(BACDL_NONE)
 #include "npdu.h"
 
 #define MAX_HEADER (8)
