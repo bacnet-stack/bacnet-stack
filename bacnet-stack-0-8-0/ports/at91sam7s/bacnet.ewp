@@ -1881,6 +1881,9 @@
       <name>$PROJ_DIR$\..\..\src\crc.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\..\src\datalink.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\..\src\dcc.c</name>
     </file>
     <file>
