@@ -64,6 +64,9 @@ static unsigned long LED_Timer_3 = 0;
 static unsigned long LED_Timer_4 = 1000;
 static unsigned long DCC_Timer = 1000;
 
+#define LEDS_ENABLED
+#define RS485_ENABLED
+
 static inline void millisecond_timer(
     void)
 {
@@ -95,6 +98,7 @@ static inline void init(
     volatile AT91PS_PMC pPMC = AT91C_BASE_PMC;
     pPMC->PMC_PCER = pPMC->PMC_PCSR | (1 << AT91C_ID_PIOA);
 
+#ifdef LEDS_ENABLED
     /* Set up the LEDs (PA0 - PA3) */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
     /* PIO Enable Register */
@@ -127,6 +131,7 @@ static inline void init(
     /* Enable the FIQ interrupt in */
     /* AIC Interrupt Enable Command Register */
     pAIC->AIC_IECR = (1 << AT91C_ID_FIQ);
+#endif
 }
 
 static inline void bacnet_init(
@@ -170,13 +175,15 @@ int main(
     void)
 {
     unsigned long IdleCount = 0;        /* idle loop blink counter */
+    uint16_t pdu_len = 0;
+    BACNET_ADDRESS src; /* source address */
+#ifdef LEDS_ENABLED
     bool LED1_Off_Enabled = true;
     bool LED2_Off_Enabled = true;
     bool LED3_Off_Enabled = true;
-    uint16_t pdu_len = 0;
-    BACNET_ADDRESS src; /* source address */
     /* Set up the LEDs (PA0 - PA3) */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
+#endif
 
     /* Initialize the Atmel AT91SAM7S256 */
     /* (watchdog, PLL clock, default interrupts, etc.) */
@@ -195,6 +202,7 @@ int main(
             dcc_timer_seconds(1);
             DCC_Timer = 1000;
         }
+#ifdef LEDS_ENABLED
         /* USART Tx turns the LED on, we turn it off */
         if (((pPIO->PIO_ODSR & LED1) == LED1) && (LED1_Off_Enabled)) {
             LED1_Off_Enabled = false;
@@ -240,13 +248,16 @@ int main(
             /* wait */
             LED_Timer_4 = 1000;
         }
+#endif
         /* count # of times through the idle loop */
         IdleCount++;
         /* BACnet handling */
         pdu_len =
             datalink_receive(&src, &Receive_PDU[0], sizeof(Receive_PDU), 0);
         if (pdu_len) {
+#ifdef LEDS_ENABLED
             pPIO->PIO_CODR = LED3;
+#endif
             npdu_handler(&src, &Receive_PDU[0], pdu_len);
         }
     }
