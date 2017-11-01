@@ -92,7 +92,7 @@ uint8_t Send_Read_Property_Multiple_Request(
             return 0;
         }
         pdu_len += len;
-        /* is it small enough for the the destination to receive?
+        /* is it small enough for the destination to receive?
            note: if there is a bottleneck router in between
            us and the destination, we won't know unless
            we have a way to check for that and update the
