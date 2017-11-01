@@ -164,7 +164,9 @@ extern "C" {
         int application_data_len,
         uint8_t priority,
         uint32_t array_index);
-    uint8_t Send_Write_Property_Multiple_Request_Data(
+    uint8_t Send_Write_Property_Multiple_Request(
+        uint8_t * pdu,
+        size_t max_pdu,
         uint32_t device_id,
         BACNET_WRITE_ACCESS_DATA * write_access_data);
 
