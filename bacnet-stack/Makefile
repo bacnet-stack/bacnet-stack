@@ -87,6 +87,9 @@ iam:
 uevent:
 	$(MAKE) -B -C demo uevent
 
+writepropm:
+	$(MAKE) -s -B -C demo writepropm
+
 abort:
 	$(MAKE) -B -C demo abort
 
