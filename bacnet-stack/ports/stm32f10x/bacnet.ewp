@@ -1996,6 +1996,9 @@
       <name>$PROJ_DIR$\..\..\src\npdu.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\..\src\proplist.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\..\src\rd.c</name>
     </file>
     <file>
