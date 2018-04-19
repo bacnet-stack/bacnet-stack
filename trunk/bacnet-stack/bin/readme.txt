@@ -83,6 +83,13 @@ BACNET_BBMD_TIMETOLIVE - number of seconds used in Foreign Device
 BACNET_BBMD_ADDRESS - dotted IPv4 address of the BBMD or Foreign Device
     Registrar.
 
+BACNET_BDT_ADDR_1 - dotted IPv4 address of the BBMD table entry 1..128
+BACNET_BDT_PORT_1 - UDP port of the BBMD table entry 1..128 (optional)
+BACNET_BDT_MASK_1 - dotted IPv4 mask of the BBMD table
+    entry 1..128 (optional)
+
+BACNET_IP_NAT_ADDR - dotted IPv4 address of the public facing router
+
 Example Usage
 -------------
 You can communicate with the virtual BACnet Device by using the other BACnet

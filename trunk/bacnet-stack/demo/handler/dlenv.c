@@ -45,7 +45,10 @@ static uint16_t BBMD_Timer_Seconds;
 static long bbmd_timetolive_seconds = 60000;
 static long bbmd_port = 0xBAC0;
 static long bbmd_address = 0;
+static long bbmd_mask = 0xFFFFFFFF;
 static int bbmd_result = 0;
+static BBMD_TABLE_ENTRY BBMD_Table_Entry;
+
 
 /* Simple setters for BBMD registration variables. */
 
@@ -120,6 +123,10 @@ int dlenv_register_as_foreign_device(
     int retval = 0;
 #if defined(BACDL_BIP)
     char *pEnv = NULL;
+    unsigned a[4] = {0};
+    char bbmd_env[32] = "";
+    unsigned entry_number = 0;
+    int c;
 
     pEnv = getenv("BACNET_BBMD_PORT");
     if (pEnv) {
@@ -151,8 +158,43 @@ int dlenv_register_as_foreign_device(
             fprintf(stderr, "FAILED to Register with BBMD at %s \n",
                 inet_ntoa(addr));
         BBMD_Timer_Seconds = (uint16_t) bbmd_timetolive_seconds;
+    } else {
+        for (entry_number = 1; entry_number <= 128; entry_number++) {
+            sprintf(bbmd_env,"BACNET_BDT_ADDR_%u", entry_number);
+            pEnv = getenv(bbmd_env);
+            if (pEnv) {
+                bbmd_address = bip_getaddrbyname(pEnv);
+            }
+            if (bbmd_address) {
+                bbmd_port = 0xBAC0;
+                sprintf(bbmd_env,"BACNET_BDT_PORT_%u", entry_number);
+                pEnv = getenv(bbmd_env);
+                if (pEnv) {
+                    bbmd_port = strtol(pEnv, NULL, 0);
+                    if (bbmd_port > 0xFFFF) {
+                        bbmd_port = 0xBAC0;
+                    }
+                }
+                bbmd_mask = 0xFFFFFFFF;
+                sprintf(bbmd_env,"BACNET_BDT_MASK_%u", entry_number);
+                pEnv = getenv(bbmd_env);
+                if (pEnv) {
+                    c = sscanf(pEnv, "%3u.%3u.%3u.%3u",
+                        &a[0],&a[1],&a[2],&a[3]);
+                    if (c == 4) {
+                        bbmd_mask =
+                            ((a[0]&0xFF)<<24)|((a[1]&0xFF)<<16)|
+                            ((a[2]&0xFF)<<8)|(a[3]&0xFF);
+                    }
+                }
+                BBMD_Table_Entry.valid = true;
+                BBMD_Table_Entry.dest_address.s_addr = bbmd_address;
+                BBMD_Table_Entry.dest_port = bbmd_port;
+                BBMD_Table_Entry.broadcast_mask.s_addr = bbmd_mask;
+                bvlc_add_bdt_entry_local(&BBMD_Table_Entry);
+            }
+        }
     }
-
     bbmd_result = retval;
 #endif
     return retval;
@@ -221,6 +263,11 @@ void dlenv_maintenance_timer(
  *       Registration (0..65535). Defaults to 60000 seconds.
  *   - BACNET_BBMD_ADDRESS - dotted IPv4 address of the BBMD or Foreign
  *       Device Registrar.
+ *   - BACNET_BDT_ADDR_1 - dotted IPv4 address of the BBMD table entry 1..128
+ *   - BACNET_BDT_PORT_1 - UDP port of the BBMD table entry 1..128 (optional)
+ *   - BACNET_BDT_MASK_1 - dotted IPv4 mask of the BBMD table
+ *       entry 1..128 (optional)
+ *   - BACNET_IP_NAT_ADDR - dotted IPv4 address of the public facing router
  * - BACDL_MSTP: (BACnet MS/TP)
  *   - BACNET_MAX_INFO_FRAMES
  *   - BACNET_MAX_MASTER
@@ -281,6 +328,14 @@ void dlenv_init(
          */
         if (ntohs(bip_get_port()) < 1024)
             bip_set_port(htons(0xBAC0));
+    }
+    pEnv = getenv("BACNET_IP_NAT_ADDR");
+    if (pEnv) {
+        struct in_addr nat_addr;
+        nat_addr.s_addr = bip_getaddrbyname(pEnv);
+        if (nat_addr.s_addr) {
+            bvlc_set_global_address_for_nat(&nat_addr);
+        }
     }
 #elif defined(BACDL_MSTP)
     pEnv = getenv("BACNET_MAX_INFO_FRAMES");

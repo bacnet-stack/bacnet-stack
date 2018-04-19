@@ -668,7 +668,6 @@ int bvlc_encode_original_broadcast_npdu(
 }
 #endif
 
-
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
 /** Create a Broadcast Distribution Table from message
  *
@@ -1707,6 +1706,7 @@ void bvlc_clear_bdt_local(
         BBMD_Table[i].dest_port = 0;
         BBMD_Table[i].broadcast_mask.s_addr = 0;
     }
+    debug_printf("BVLC: BBMD Table entries cleared.\n");
 }
 
 /** Add new entry to broadcast distribution table.
@@ -1743,6 +1743,7 @@ bool bvlc_add_bdt_entry_local(
     /* Copy new entry to the empty slot */
     BBMD_Table[i] = *entry;
     BBMD_Table[i].valid = true;
+    debug_printf("BVLC: BBMD Table entry added.\n");
 
     return true;
 }
@@ -1754,6 +1755,7 @@ void bvlc_set_global_address_for_nat(const struct in_addr* addr)
 {
     BVLC_Global_Address = *addr;
     BVLC_NAT_Handling = true;
+    debug_printf("BVLC: NAT Address enabled.\n");
 }
 
 /** Disable NAT handling.
@@ -1762,6 +1764,7 @@ void bvlc_disable_nat(void)
 {
     BVLC_NAT_Handling = false;
     BVLC_Global_Address.s_addr = 0;
+    debug_printf("BVLC: NAT Address disabled.\n");
 }
 
 
