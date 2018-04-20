@@ -43,7 +43,7 @@
 #include "handlers.h"
 #include "txbuf.h"
 #include "client.h"
-#define PRINT_ENABLED 1
+
 /** @file s_getevent.c  Send a GetEventInformation request. */
 
 /** Send a GetEventInformation request to a remote network for a specific device, a range,
@@ -68,7 +68,7 @@ uint8_t Send_GetEvent(
     pdu_len =
         npdu_encode_pdu(&Handler_Transmit_Buffer[0], target_address,
         &my_address, &npdu_data);
-    
+
     invoke_id = tsm_next_free_invokeID();
     if (invoke_id) {
         /* encode the APDU portion of the packet */
