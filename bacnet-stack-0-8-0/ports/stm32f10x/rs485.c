@@ -86,7 +86,11 @@ static uint16_t rs485_turnaround_time(
     /* delay after reception before transmitting - per MS/TP spec */
     /* wait a minimum  40 bit times since reception */
     /* at least 2 ms for errors: rounding, clock tick */
-    return (2 + ((Tturnaround * 1000UL) / Baud_Rate));
+    if (Baud_Rate) {
+        return (2 + ((Tturnaround * 1000UL) / Baud_Rate));
+    } else {
+        return 2;
+    }
 }
 
 /*************************************************************************
@@ -112,7 +116,7 @@ bool rs485_receive_error(
     return false;
 }
 
-                                                                                                                                                                                                                     /*********************************************************************//**
+/*********************************************************************//**
  * @brief        USARTx interrupt handler sub-routine
  * @param[in]    None
  * @return         None
