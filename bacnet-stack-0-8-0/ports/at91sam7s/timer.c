@@ -309,8 +309,10 @@ static void Timer0IrqHandler(
     dummy = pTC->TC_SR;
     /* increment the tick count */
     Timer_Milliseconds++;
-    if (SilenceTime < 60000)
+    if (SilenceTime < 60000) {
         SilenceTime++;
+    }
+    (void)dummy;
 }
 
 int Timer_Silence(
