@@ -260,7 +260,7 @@ bool RS485_ReceiveError(
     void)
 {
     bool ReceiveError = false;
-    uint8_t dummy_data;
+    volatile uint8_t dummy_data;
 
     /* check for framing error */
 #if 0
@@ -275,6 +275,7 @@ bool RS485_ReceiveError(
         /* flush the receive buffer */
         do {
             dummy_data = UDR0;
+            (void)dummy_data;
         } while (BIT_CHECK(UCSR0A, RXC0));
         ReceiveError = true;
     }
