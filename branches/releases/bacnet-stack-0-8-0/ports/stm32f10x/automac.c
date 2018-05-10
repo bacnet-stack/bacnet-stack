@@ -215,7 +215,7 @@ uint8_t automac_free_address_random(
 
     count = automac_free_address_count();
     if (count) {
-        random_count = rand() % count;
+        random_count =(uint8_t)(rand() % count);
         mac = automac_free_address_mac(random_count);
     }
 
