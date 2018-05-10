@@ -46,7 +46,8 @@
 #include "stm32f10x_tim.h"
 #include "stm32f10x_usart.h"
 #include "stm32f10x_wwdg.h"
-#include "stm32f10x_misc.h"       /* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
+/* High level functions for NVIC and SysTick (add-on to CMSIS functions) */
+#include "stm32f10x_misc.h"       
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
