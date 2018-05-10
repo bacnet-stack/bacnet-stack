@@ -138,6 +138,9 @@ BACNET_FLAGS += -DBIG_ENDIAN=0
 BACNET_FLAGS += -DMAX_TSM_TRANSACTIONS=0
 BACNET_FLAGS += -DMAX_CHARACTER_STRING_BYTES=64
 BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
+# if called from root Makefile, PRINT was already defined
+BACNET_FLAGS += -UPRINT_ENABLED
+BACNET_FLAGS += -DPRINT_ENABLED=0
 
 CFLAGS += $(MCU_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)
@@ -153,6 +156,8 @@ CFLAGS += -fno-common
 CFLAGS += -Wall
 # don't warn about missing braces since GCC is over-achiever for this
 CFLAGS += -Wno-missing-braces
+# don't warn about missing prototypes since STM32 library doesn't have some
+CFLAGS += -Wno-missing-prototypes
 
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)

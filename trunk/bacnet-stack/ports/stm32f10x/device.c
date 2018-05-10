@@ -80,6 +80,7 @@ static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 static BACNET_CHARACTER_STRING My_Object_Name;
 static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
+static const char *Reinit_Password = "stm32-challenge";
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {
@@ -362,15 +363,37 @@ bool Device_Reinitialize(
 {
     bool status = false;
 
-    if (characterstring_ansi_same(&rd_data->password, "stm32-challenge")) {
-        Reinitialize_State = rd_data->state;
+    /* Note: you could use a mix of state and password to multiple things */
+    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+        switch (rd_data->state) {
+            case BACNET_REINIT_COLDSTART:
+            case BACNET_REINIT_WARMSTART:
         dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-        /* Note: you could use a mix of state
-           and password to multiple things */
         /* note: you probably want to restart *after* the
            simple ack has been sent from the return handler
            so just set a flag from here */
-        status = true;
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_STARTBACKUP:
+            case BACNET_REINIT_ENDBACKUP:
+            case BACNET_REINIT_STARTRESTORE:
+            case BACNET_REINIT_ENDRESTORE:
+            case BACNET_REINIT_ABORTRESTORE:
+                if (dcc_communication_disabled()) {
+                    rd_data->error_class = ERROR_CLASS_SERVICES;
+                    rd_data->error_code = ERROR_CODE_COMMUNICATION_DISABLED;
+                } else {
+                    rd_data->error_class = ERROR_CLASS_SERVICES;
+                    rd_data->error_code =
+                        ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+                }
+                break;
+            default:
+                rd_data->error_class = ERROR_CLASS_SERVICES;
+                rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+                break;
+        }
     } else {
         rd_data->error_class = ERROR_CLASS_SECURITY;
         rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
