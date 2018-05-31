@@ -526,12 +526,20 @@ bool WPValidateArgType(
     BACNET_ERROR_CLASS * pErrorClass,
     BACNET_ERROR_CODE * pErrorCode)
 {
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
+     bool bResult;
 
-    return false;
+     /*
+      * start out assuming success and only set up error
+      * response if validation fails.
+      */
+     bResult = true;
+     if (pValue->tag != ucExpectedTag)  {
+         bResult = false;
+        *pErrorClass = ERROR_CLASS_PROPERTY;
+        *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
+     }
+   
+     return (bResult);
 }
 
 void testAnalogOutput(
