@@ -1467,6 +1467,7 @@ void testLoadControl(
     uint32_t decoded_instance = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
 
+    Analog_Output_Init();
     Load_Control_Init();
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
