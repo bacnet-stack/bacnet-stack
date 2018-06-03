@@ -507,10 +507,10 @@ bool bip6_init(
                 RetVal, PrintError(RetVal));
         WSACleanup();
         exit(1);
-        }
+    }
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0);
-        }
+    }
     debug_printf("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
     bip6_set_interface(ifname);
     if (BIP6_Broadcast_Addr.address[0] == 0) {
