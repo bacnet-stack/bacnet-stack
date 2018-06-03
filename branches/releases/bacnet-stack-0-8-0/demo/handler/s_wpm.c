@@ -71,13 +71,14 @@ uint8_t Send_Write_Property_Multiple_Request_Data(
 	BACNET_NPDU_DATA npdu_data;
 
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return 0;
+    }
 
-	/* is the device bound? */
-	status = address_get_by_device(device_id, &max_apdu, &dest);
-	/* is there a tsm available? */
-	if (status)
+    /* is the device bound? */
+    status = address_get_by_device(device_id, &max_apdu, &dest);
+    /* is there a tsm available? */
+    if (status)
 		invoke_id = tsm_next_free_invokeID();
 	if (invoke_id) {
 		/* encode the NPDU portion of the packet */
@@ -105,7 +106,7 @@ uint8_t Send_Write_Property_Multiple_Request_Data(
 				&Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
 			if (bytes_sent <= 0)
-				fprintf(stderr, "Failed to Send WriteProperty Request (%s)!\n",
+				fprintf(stderr, "Failed to Send WritePropertyMultiple Request (%s)!\n",
 				strerror(errno));
 #endif
 		} else {
@@ -113,7 +114,7 @@ uint8_t Send_Write_Property_Multiple_Request_Data(
 			invoke_id = 0;
 #if PRINT_ENABLED
 			fprintf(stderr,
-				"Failed to Send WriteProperty Request "
+				"Failed to Send WritePropertyMultiple Request "
 				"(exceeds destination maximum APDU)!\n");
 #endif
 		}
