@@ -299,6 +299,20 @@ bool bip6_get_addr(
     return bvlc6_address_copy(addr, &BIP6_Addr);
 }
 
+
+/**
+ * Determine if the BACnet/IPv6 address matches our own address
+ *
+ * @param addr - network IPv6 address
+ *
+ * @return true if the BACnet/IPv6 address matches our own address
+ */
+bool bip6_address_match_self(
+    BACNET_IP6_ADDRESS *addr)
+{
+    return !bvlc6_address_different(addr, &BIP6_Addr);
+}
+
 /**
  * Set the BACnet/IP address
  *
