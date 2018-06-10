@@ -106,6 +106,72 @@ typedef struct {
 static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 
 
+/* Define BBMD_BACKUP_FILE if the contents of the BDT
+ * (broadcast distribution table) are to be stored in 
+ * a backup file, so the contents are not lost across
+ * power failures, shutdowns, etc...
+ * (this is required behaviour as defined in BACnet standard).
+ * 
+ * BBMD_BACKUP_FILE should be set to the file name
+ * in which to store the BDT.
+ */
+#define BBMD_BACKUP_FILE BACnet_BDT_table
+#if defined(BBMD_BACKUP_FILE)
+
+#define tostr(a) str(a)
+#define str(a) #a
+
+void bvlc_bdt_backup_local(
+    void) 
+{
+    static FILE *bdt_file_ptr = NULL;
+    
+    /* only try opening the file if not already opened previously */
+    if (!bdt_file_ptr)
+        bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE),"wb");
+    
+    /* if error opening file for writing -> silently abort */
+    if (!bdt_file_ptr)
+        return;
+        
+    fseek(bdt_file_ptr, 0, SEEK_SET);
+    fwrite(BBMD_Table, sizeof(BBMD_TABLE_ENTRY), MAX_BBMD_ENTRIES, bdt_file_ptr); 
+    fflush(bdt_file_ptr);
+}
+
+void bvlc_bdt_restore_local(
+    void) 
+{
+    static FILE *bdt_file_ptr = NULL;
+    
+    /* only try opening the file if not already opened previously */
+    if (!bdt_file_ptr)
+        bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE),"rb");
+    
+    /* if error opening file for reading -> silently abort */
+    if (!bdt_file_ptr)
+        return;
+        
+    fseek(bdt_file_ptr, 0, SEEK_SET);
+    {
+        BBMD_TABLE_ENTRY BBMD_Table_tmp[MAX_BBMD_ENTRIES];
+        size_t entries = 0;
+        
+        entries = fread(BBMD_Table_tmp, sizeof(BBMD_TABLE_ENTRY), MAX_BBMD_ENTRIES, bdt_file_ptr); 
+        if (entries == MAX_BBMD_ENTRIES)
+            /* success reading the BDT table. */
+            memcpy(BBMD_Table, BBMD_Table_tmp, sizeof(BBMD_TABLE_ENTRY) * MAX_BBMD_ENTRIES);
+    }
+}
+#else
+void bvlc_bdt_backup_local (void) {}
+void bvlc_bdt_restore_local(void) {}
+#endif
+
+
+
+
+
 /** A timer function that is called about once a second.
  *
  * @param seconds - number of elapsed seconds since the last call
@@ -668,6 +734,7 @@ int bvlc_encode_original_broadcast_npdu(
 }
 #endif
 
+
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
 /** Create a Broadcast Distribution Table from message
  *
@@ -701,6 +768,9 @@ static bool bvlc_create_bdt(
             BBMD_Table[i].broadcast_mask.s_addr = 0;
         }
     }
+    /* BDT changed! Save backup to file */
+    bvlc_bdt_backup_local();
+
     /* did they all fit? */
     if (npdu_length < 10) {
         status = true;
@@ -1706,7 +1776,8 @@ void bvlc_clear_bdt_local(
         BBMD_Table[i].dest_port = 0;
         BBMD_Table[i].broadcast_mask.s_addr = 0;
     }
-    debug_printf("BVLC: BBMD Table entries cleared.\n");
+    /* BDT changed! Save backup to file */
+    bvlc_bdt_backup_local();
 }
 
 /** Add new entry to broadcast distribution table.
@@ -1744,6 +1815,9 @@ bool bvlc_add_bdt_entry_local(
     BBMD_Table[i] = *entry;
     BBMD_Table[i].valid = true;
     debug_printf("BVLC: BBMD Table entry added.\n");
+
+    /* BDT changed! Save backup to file */
+    bvlc_bdt_backup_local();
 
     return true;
 }

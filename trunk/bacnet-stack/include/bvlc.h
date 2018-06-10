@@ -143,6 +143,17 @@ extern "C" {
     bool bvlc_add_bdt_entry_local(
         BBMD_TABLE_ENTRY* entry);
 
+    /* Backup broadcast distribution table to a file.
+     * Filename is the BBMD_BACKUP_FILE constant
+     */
+    void bvlc_bdt_backup_local(
+        void);
+
+    /* Restore broadcast distribution from a file.
+     * Filename is the BBMD_BACKUP_FILE constant
+     */
+    void bvlc_bdt_restore_local(
+        void);
 
     /* NAT handling
      * If the communication between BBMDs goes through a NAT enabled internet
