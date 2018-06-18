@@ -21,7 +21,13 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
+*   Additional changes, Copyright (c) 2018 Ed Hague <edward@bac-test.com>
+*
+*   2018.06.17 -    Attempting to write to Object_Name returned UNKNOWN_PROPERTY.
+*                   Now returns WRITE_ACCESS_DENIED
+*
 *********************************************************************/
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -404,8 +410,7 @@ bool Notification_Class_Write_Property(
         &NC_Info[Notification_Class_Instance_To_Index(wp_data->
             object_instance)];
 
-    /* decode the some of the request
-     */
+    /* decode some of the request */
     len =
         bacapp_decode_application_data(wp_data->application_data,
         wp_data->application_data_len, &value);
@@ -755,6 +760,9 @@ bool Notification_Class_Write_Property(
 
             status = true;
 
+        case PROP_OBJECT_NAME:
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
 
         default:
