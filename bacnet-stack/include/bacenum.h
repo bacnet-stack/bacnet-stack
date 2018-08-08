@@ -2130,10 +2130,12 @@ typedef enum {
     PORT_TYPE_BIP = 5,
     PORT_TYPE_ZIGBEE = 6,
     PORT_TYPE_VIRTUAL = 7,
-    PORT_TYPE_NON_BACNET = 8
-        /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-           Enumerated values 64-255 may be used by others subject to the
-           procedures and constraints described in Clause 23. */
+    PORT_TYPE_NON_BACNET = 8,
+    PORT_TYPE_BIP6 = 9,
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-255 may be used by others subject to the
+       procedures and constraints described in Clause 23. */
+    PORT_TYPE_MAX = 255
 } BACNET_PORT_TYPE;
 
 /* BACnetNetworkNumberQuality ::= ENUMERATED */
@@ -2154,9 +2156,9 @@ typedef enum {
     PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
     PORT_COMMAND_DISCONNECT = 6,
     PORT_COMMAND_RESTART_PORT = 7
-        /* Enumerated values 0-127 are reserved for definition by ASHRAE.
-           Enumerated values 128-255 may be used by others subject to the
-           procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-127 are reserved for definition by ASHRAE.
+       Enumerated values 128-255 may be used by others subject to the
+       procedures and constraints described in Clause 23. */
 } BACNET_PORT_COMMAND;
 
 typedef enum {
