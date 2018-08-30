@@ -32,6 +32,7 @@ OBJECT_SRC = \
 	$(BACNET_OBJECT)/osv.c \
 	$(BACNET_OBJECT)/piv.c \
 	$(BACNET_OBJECT)/nc.c  \
+	$(BACNET_OBJECT)/netport.c  \
 	$(BACNET_OBJECT)/trendlog.c \
 	$(BACNET_OBJECT)/schedule.c \
 	$(BACNET_OBJECT)/access_credential.c \

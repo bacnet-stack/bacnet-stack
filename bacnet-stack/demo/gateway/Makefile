@@ -33,6 +33,7 @@ SRCS = main.c \
 	$(BACNET_OBJECT)/mso.c \
 	$(BACNET_OBJECT)/msv.c \
 	$(BACNET_OBJECT)/nc.c  \
+	$(BACNET_OBJECT)/netport.c \
 	$(BACNET_OBJECT)/osv.c \
 	$(BACNET_OBJECT)/piv.c \
 	$(BACNET_OBJECT)/schedule.c \

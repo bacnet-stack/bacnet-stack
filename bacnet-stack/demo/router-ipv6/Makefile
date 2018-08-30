@@ -16,6 +16,7 @@ BACNET_HANDLER_DIR = ../handler
 BACNET_OBJECT_DIR = ../object
 
 SRC = main.c \
+	$(BACNET_OBJECT_DIR)/netport.c \
 	$(BACNET_OBJECT_DIR)/device-client.c
 
 PORT_BIP6_SRC = \

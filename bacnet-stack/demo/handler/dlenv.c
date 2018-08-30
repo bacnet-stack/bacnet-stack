@@ -35,6 +35,9 @@
 #include "handlers.h"
 #include "dlenv.h"
 #include "tsm.h"
+#if (BACNET_PROTOCOL_REVISION >= 17)
+#include "netport.h"
+#endif
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
 
@@ -164,6 +167,9 @@ int dlenv_register_as_foreign_device(
             pEnv = getenv(bbmd_env);
             if (pEnv) {
                 bbmd_address = bip_getaddrbyname(pEnv);
+            } else if (entry_number == 1) {
+                /* BDT 1 is self (note: can be overridden) */
+                bbmd_address = bip_get_addr();
             }
             if (bbmd_address) {
                 bbmd_port = 0xBAC0;
@@ -174,6 +180,9 @@ int dlenv_register_as_foreign_device(
                     if (bbmd_port > 0xFFFF) {
                         bbmd_port = 0xBAC0;
                     }
+                } else if (entry_number == 1) {
+                    /* BDT 1 is self (note: can be overridden) */
+                    bbmd_port = bip_get_port();
                 }
                 bbmd_mask = 0xFFFFFFFF;
                 sprintf(bbmd_env,"BACNET_BDT_MASK_%u", entry_number);
@@ -200,6 +209,81 @@ int dlenv_register_as_foreign_device(
     return retval;
 }
 
+#if (BACNET_PROTOCOL_REVISION >= 17)
+#if defined(BACDL_BIP)
+/**
+ * Datalink network port object settings
+ */
+static void dlenv_network_port_init(void)
+{
+    uint32_t instance = 0;
+    uint32_t address = 0;
+    uint32_t broadcast = 0;
+    uint32_t test_broadcast = 0;
+    uint32_t mask = 0;
+    uint16_t port = 0;
+    uint8_t mac[4+2] = {0};
+    uint8_t prefix = 0;
+
+    instance = Network_Port_Index_To_Instance(0);
+    Network_Port_Name_Set(instance, "BACnet/IP Port");
+    Network_Port_Type_Set(instance, PORT_TYPE_BIP);
+    port = bip_get_port();
+    Network_Port_BIP_Port_Set(instance, port);
+    address = bip_get_addr();
+    memcpy(&mac[0], &address, 4);
+    memcpy(&mac[4], &port, 2);
+    Network_Port_MAC_Address_Set(instance, &mac[0], 6);
+    broadcast = bip_get_broadcast_addr();
+    for (prefix = 0; prefix < 32; prefix++) {
+        mask = htonl((0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF);
+        test_broadcast = (address & mask) | (~mask);
+        if (test_broadcast == broadcast) {
+            break;
+        }
+    }
+    Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
+}
+#elif defined(BACDL_MSTP)
+/**
+ * Datalink network port object settings
+ */
+static void dlenv_network_port_init(void)
+{
+    uint32_t instance = 0;
+    uint8_t mac[1] = {0};
+
+    instance = Network_Port_Index_To_Instance(0);
+    Network_Port_Name_Set(instance, "MS/TP Port");
+    Network_Port_MSTP_Max_Master_Set(instance, dlmstp_max_master());
+    Network_Port_MSTP_Max_Info_Frames_Set(instance, dlmstp_max_info_frames());
+    Network_Port_Link_Speed_Set(instance, dlmstp_baud_rate());
+    mac[0] = dlmstp_mac_address();
+    Network_Port_MAC_Address_Set(instance, &mac[0], 1);
+}
+#elif defined(BACDL_BIP6)
+/**
+ * Datalink network port object settings
+ */
+static void dlenv_network_port_init(void)
+{
+    uint32_t instance = 0;
+    const char *bip_port_name = ;
+
+    instance = Network_Port_Index_To_Instance(0);
+    Network_Port_Name_Set(instance, "BACnet/IPv6 Port");
+
+}
+#endif
+#else
+/**
+ * Datalink network port object settings
+ */
+static void dlenv_network_port_init(void)
+{
+    /* do nothing */
+}
+#endif
 
 /** Datalink maintenance timer
  * @ingroup DataLink
@@ -385,5 +469,6 @@ void dlenv_init(
         tsm_invokeID_set((uint8_t) strtol(pEnv, NULL, 0));
     }
 #endif
+    dlenv_network_port_init();
     dlenv_register_as_foreign_device();
 }
