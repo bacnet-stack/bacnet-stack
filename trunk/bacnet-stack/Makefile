@@ -17,6 +17,7 @@ MY_BACNET_DEFINES += -DBACFILE
 MY_BACNET_DEFINES += -DINTRINSIC_REPORTING
 MY_BACNET_DEFINES += -DBACNET_TIME_MASTER
 MY_BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
+MY_BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=17
 BACNET_DEFINES ?= $(MY_BACNET_DEFINES)
 
 # un-comment the next line to build in uci integration
@@ -73,7 +74,7 @@ gateway:
 	$(MAKE) -B -s -C demo gateway
 
 server:
-	$(MAKE) -B -C demo server
+	$(MAKE) -j -B -C demo server
 
 mstpcap:
 	$(MAKE) -B -C demo mstpcap

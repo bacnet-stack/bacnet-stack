@@ -47,6 +47,9 @@
 #include "handlers.h"
 #include "datalink.h"
 #include "address.h"
+#if (BACNET_PROTOCOL_REVISION >= 17)
+#include "netport.h"
+#endif
 /* include the device object */
 #include "device.h"     /* me */
 
@@ -133,6 +136,23 @@ static object_functions_t Object_Table[] = {
             NULL /* COV */ ,
             NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
+#if (BACNET_PROTOCOL_REVISION >= 17)
+    {OBJECT_NETWORK_PORT,
+            Network_Port_Init,
+            Network_Port_Count,
+            Network_Port_Index_To_Instance,
+            Network_Port_Valid_Instance,
+            Network_Port_Object_Name,
+            Network_Port_Read_Property,
+            Network_Port_Write_Property,
+            Network_Port_Property_Lists,
+            NULL /* ReadRangeInfo */ ,
+            NULL /* Iterator */ ,
+            NULL /* Value_Lists */ ,
+            NULL /* COV */ ,
+            NULL /* COV Clear */ ,
+        NULL /* Intrinsic Reporting */ },
+#endif
     {MAX_BACNET_OBJECT_TYPE,
             NULL /* Init */ ,
             NULL /* Count */ ,

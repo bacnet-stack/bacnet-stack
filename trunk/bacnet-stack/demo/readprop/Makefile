@@ -15,6 +15,7 @@ TARGET = bacrp
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 SRCS = main.c \
+	../object/netport.c \
 	../object/device-client.c
 
 OBJS = ${SRCS:.c=.o}
