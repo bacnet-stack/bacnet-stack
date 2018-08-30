@@ -63,6 +63,7 @@ static const int Properties_Required[] = {
 static const int Properties_Optional[] = {
     PROP_EVENT_STATE,
     PROP_OUT_OF_SERVICE,
+    PROP_DESCRIPTION,
     -1
 };
 
