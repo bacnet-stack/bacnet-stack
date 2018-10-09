@@ -316,7 +316,8 @@ int npdu_decode(
     uint8_t i = 0;      /* counter */
     uint16_t src_net = 0;
     uint16_t dest_net = 0;
-    uint8_t address_len = 0;
+    uint8_t slen = 0;
+    uint8_t dlen = 0;
     uint8_t mac_octet = 0;
 
     if (npdu && npdu_data) {
@@ -356,18 +357,18 @@ int npdu_decode(
             len += decode_unsigned16(&npdu[len], &dest_net);
             /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
             /* DLEN > 0 specifies length of DADR field */
-            address_len = npdu[len++];
+            dlen = npdu[len++];
             if (dest) {
                 dest->net = dest_net;
-                dest->len = address_len;
+                dest->len = dlen;
             }
-            if (address_len) {
-                if (address_len > MAX_MAC_LEN) {
+            if (dlen) {
+                if (dlen > MAX_MAC_LEN) {
                     /* address is too large could be a malformed message */
                     return -1;
                 }
 
-                for (i = 0; i < address_len; i++) {
+                for (i = 0; i < dlen; i++) {
                     mac_octet = npdu[len++];
                     if (dest)
                         dest->adr[i] = mac_octet;
@@ -385,32 +386,30 @@ int npdu_decode(
         /* Bit 3: Source specifier where: */
         /* 0 =  SNET, SLEN, and SADR absent */
         /* 1 =  SNET, SLEN, and SADR present */
-        /* SLEN = 0 Invalid todo Steve: immediately below src->len == broadcast case, surely then this comment is incorrect? */
-        /* SLEN > 0 specifies length of SADR field */
         if (npdu[1] & BIT3) {
             len += decode_unsigned16(&npdu[len], &src_net);
             /* SLEN = 0 denotes broadcast MAC SADR and SADR field is absent */
             /* SLEN > 0 specifies length of SADR field */
-            address_len = npdu[len++];
+            slen = npdu[len++];
             if (src) {
                 src->net = src_net;
-                src->len = address_len;
+                src->len = slen;
             }
-            if (address_len) {
-                if (address_len > MAX_MAC_LEN) {
+            if (slen) {
+                if (slen > MAX_MAC_LEN) {
                     /* address is too large could be a malformed message */
                     return -1;
                 }
 
-                for (i = 0; i < address_len; i++) {
+                for (i = 0; i < slen; i++) {
                     mac_octet = npdu[len++];
                     if (src)
                         src->adr[i] = mac_octet;
                 }
             }
         } else if (src) {
-            /* Clear the net number, with one exception: if the receive() 
-             * function set it to BACNET_BROADCAST_NETWORK, (eg, for 
+            /* Clear the net number, with one exception: if the receive()
+             * function set it to BACNET_BROADCAST_NETWORK, (eg, for
              * BVLC_ORIGINAL_BROADCAST_NPDU) then don't stomp on that.
              */
             if (src->net != BACNET_BROADCAST_NETWORK)
