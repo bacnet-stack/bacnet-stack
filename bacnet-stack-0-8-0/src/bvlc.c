@@ -734,7 +734,6 @@ int bvlc_encode_original_broadcast_npdu(
 }
 #endif
 
-
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
 /** Create a Broadcast Distribution Table from message
  *
@@ -1814,7 +1813,6 @@ bool bvlc_add_bdt_entry_local(
     /* Copy new entry to the empty slot */
     BBMD_Table[i] = *entry;
     BBMD_Table[i].valid = true;
-
     /* BDT changed! Save backup to file */
     bvlc_bdt_backup_local();
 
