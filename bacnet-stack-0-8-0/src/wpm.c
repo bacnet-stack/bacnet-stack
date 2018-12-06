@@ -248,7 +248,8 @@ int wpm_encode_apdu_object_property(
         }
         apdu_len += encode_closing_tag(&apdu[apdu_len], 2);
         if (wpdata->priority != BACNET_NO_PRIORITY) {
-            encode_context_unsigned(&apdu[apdu_len], 3, wpdata->priority);
+            apdu_len +=
+                encode_context_unsigned(&apdu[apdu_len], 3, wpdata->priority);
         }
     }
 
