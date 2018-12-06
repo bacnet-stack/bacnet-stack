@@ -368,10 +368,12 @@ bool Device_Reinitialize(
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
             case BACNET_REINIT_WARMSTART:
-        dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
-        /* note: you probably want to restart *after* the
-           simple ack has been sent from the return handler
-           so just set a flag from here */
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* Note: you could use a mix of state
+                   and password to multiple things */
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
                 Reinitialize_State = rd_data->state;
                 status = true;
                 break;
