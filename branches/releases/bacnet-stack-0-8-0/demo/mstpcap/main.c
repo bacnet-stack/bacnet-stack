@@ -450,7 +450,7 @@ uint16_t MSTP_Get_Reply(
     return 0;
 }
 
-static char Capture_Filename[32] = "mstp_20090123091200.cap";
+static char Capture_Filename[64] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
 #if defined(_WIN32)
 static HANDLE hPipe = INVALID_HANDLE_VALUE;     /* pipe handle */
