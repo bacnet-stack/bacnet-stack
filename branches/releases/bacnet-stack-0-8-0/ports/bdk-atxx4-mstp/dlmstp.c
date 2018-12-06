@@ -746,8 +746,11 @@ static bool MSTP_Master_Node_FSM(
                         break;
                     case FRAME_TYPE_POLL_FOR_MASTER:
                         /* ReceivedPFM */
-                        MSTP_Send_Frame(FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
-                            SourceAddress, This_Station, NULL, 0);
+                        /* DestinationAddress is equal to TS */
+                        if (DestinationAddress == This_Station) {
+                            MSTP_Send_Frame(FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
+                                SourceAddress, This_Station, NULL, 0);
+                        }
                         break;
                     case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                         /* indicate successful reception to the higher layers */
