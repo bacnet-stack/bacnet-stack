@@ -320,7 +320,6 @@ int Analog_Output_Read_Property(
                 rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             Analog_Output_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
@@ -501,7 +500,6 @@ bool Analog_Output_Write_Property(
         case PROP_UNITS:
         case PROP_PRIORITY_ARRAY:
         case PROP_RELINQUISH_DEFAULT:
-        case PROP_DESCRIPTION:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
@@ -538,7 +536,7 @@ bool WPValidateArgType(
         *pErrorClass = ERROR_CLASS_PROPERTY;
         *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
      }
-   
+
      return (bResult);
 }
 
