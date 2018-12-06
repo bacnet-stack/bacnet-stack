@@ -63,7 +63,7 @@ static unsigned CRC_Size = 8;
 /* save to capture file for viewing in Wireshark */
 static bool MSTP_Cap = false;
 static bool MSTP_Text_File = false;
-static char Capture_Filename[32] = "mstp_20090123091200.cap";
+static char Capture_Filename[64] = "mstp_20090123091200.cap";
 static FILE *pFile = NULL;      /* stream pointer */
 static FILE *pText_File = NULL;      /* stream pointer */
 
