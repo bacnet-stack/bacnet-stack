@@ -1205,7 +1205,11 @@ int main(
             packet_count++;
         } else if (mstp_port->receive_state == MSTP_RECEIVE_STATE_IDLE) {
             if (MSTP_Receive_State == MSTP_RECEIVE_STATE_IDLE) {
-                if (mstp_port->EventCount) {
+                if ((mstp_port->EventCount == 1) &&
+                    (mstp_port->DataRegister == 0xFF)) {
+                    /* 0xFF padding at end of message is allowed */
+                    mstp_structure_init(mstp_port);
+                } else if (mstp_port->EventCount > 1) {
                     write_received_packet(mstp_port, 1);
                     mstp_structure_init(mstp_port);
                     Invalid_Frame_Count++;
