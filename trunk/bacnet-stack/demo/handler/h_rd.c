@@ -120,7 +120,7 @@ void handler_reinitialize_device(
         goto RD_ABORT;
     }
     /* check the data from the request */
-    if (rd_data.state >= MAX_BACNET_REINITIALIZED_STATE) {
+    if (rd_data.state >= BACNET_REINIT_MAX) {
         len =
             reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
