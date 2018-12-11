@@ -52,8 +52,13 @@
 static uint8_t Present_Value[MAX_MULTISTATE_VALUES];
 /* Writable out-of-service allows others to manipulate our Present Value */
 static bool Out_Of_Service[MAX_MULTISTATE_VALUES];
+/* Change of Value flag */
+static bool Change_Of_Value[MAX_MULTISTATE_VALUES];
+/* object name storage */
 static char Object_Name[MAX_MULTISTATE_VALUES][64];
+/* object description storage */
 static char Object_Description[MAX_MULTISTATE_VALUES][64];
+/* object state text storage */
 static char State_Text[MAX_MULTISTATE_VALUES][MULTISTATE_NUMBER_OF_STATES][64];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -177,6 +182,9 @@ bool Multistate_Value_Present_Value_Set(
     index = Multistate_Value_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_VALUES) {
         if ((value > 0) && (value <= MULTISTATE_NUMBER_OF_STATES)) {
+            if (Present_Value[index] != (uint8_t)value) {
+                Change_Of_Value[index] = true;
+            }
             Present_Value[index] = (uint8_t) value;
             status = true;
         }
@@ -207,6 +215,9 @@ void Multistate_Value_Out_Of_Service_Set(
 
     index = Multistate_Value_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_VALUES) {
+        if (Out_Of_Service[index] != value) {
+            Change_Of_Value[index] = true;
+        }
         Out_Of_Service[index] = value;
     }
 
@@ -348,6 +359,87 @@ bool Multistate_Value_State_Text_Set(
 
     return status;;
 }
+
+bool Multistate_Value_Change_Of_Value(
+    uint32_t object_instance)
+{
+    bool status = false;
+    unsigned index;
+
+    index = Multistate_Value_Instance_To_Index(object_instance);
+    if (index < MAX_MULTISTATE_VALUES) {
+        status = Change_Of_Value[index];
+    }
+
+    return status;
+}
+
+void Multistate_Value_Change_Of_Value_Clear(
+    uint32_t object_instance)
+{
+    unsigned index;
+
+    index = Multistate_Value_Instance_To_Index(object_instance);
+    if (index < MAX_MULTISTATE_VALUES) {
+        Change_Of_Value[index] = false;
+    }
+
+    return;
+}
+
+/**
+ * For a given object instance-number, loads the value_list with the COV data.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value_list - list of COV data
+ *
+ * @return  true if the value list is encoded
+ */
+bool Multistate_Value_Encode_Value_List(
+    uint32_t object_instance,
+    BACNET_PROPERTY_VALUE * value_list)
+{
+    bool status = false;
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+        value_list->value.next = NULL;
+        value_list->value.type.Enumerated =
+            Multistate_Value_Present_Value(object_instance);
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        value_list->value.next = NULL;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_IN_ALARM, false);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_FAULT, false);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OVERRIDDEN, false);
+        if (Multistate_Value_Out_Of_Service(object_instance)) {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_OUT_OF_SERVICE, true);
+        } else {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_OUT_OF_SERVICE, false);
+        }
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
+        status = true;
+    }
+
+    return status;
+}
+
 
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
