@@ -91,7 +91,7 @@ struct object_data {
     uint16_t Network_Number;
     uint8_t Quality;
     uint16_t APDU_Length;
-    uint32_t Link_Speed;
+    float Link_Speed;
     union {
         struct bacnet_ipv4_port IPv4;
         struct bacnet_ipv6_port IPv6;
@@ -702,13 +702,6 @@ bool Network_Port_APDU_Length_Set(
     return status;
 }
 
-
-    uint32_t Network_Port_Link_Speed(
-        uint32_t object_instance);
-    bool Network_Port_Link_Speed_Set(
-        uint32_t object_instance,
-        uint32_t value);
-
 /**
  * For a given object instance-number, gets the network communication rate
  * as the number of bits per second. A value of 0 indicates an unknown
@@ -718,10 +711,10 @@ bool Network_Port_APDU_Length_Set(
  *
  * @return Link_Speed for this network port, or 0 if unknown
  */
-uint32_t Network_Port_Link_Speed(
+float Network_Port_Link_Speed(
     uint32_t object_instance)
 {
-    uint32_t value = 0;
+    float value = 0.0;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
@@ -742,7 +735,7 @@ uint32_t Network_Port_Link_Speed(
  */
 bool Network_Port_Link_Speed_Set(
     uint32_t object_instance,
-    uint32_t value)
+    float value)
 {
     bool status = false;
     unsigned index = 0;
@@ -1446,7 +1439,7 @@ int Network_Port_Read_Property(
                 Network_Port_APDU_Length(rpdata->object_instance));
             break;
         case PROP_LINK_SPEED:
-            apdu_len = encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_real(&apdu[0],
                 Network_Port_Link_Speed(rpdata->object_instance));
             break;
         case PROP_CHANGES_PENDING:
@@ -1767,10 +1760,10 @@ void Network_Port_Init(
         Object_List[index].Network_Number = 0;
         Object_List[index].Quality = PORT_QUALITY_UNKNOWN;
         Object_List[index].APDU_Length = MAX_APDU;
-        Object_List[index].Link_Speed = 0;
+        Object_List[index].Link_Speed = 0.0;
 #if defined(BACDL_MSTP)
         Object_List[index].Object_Name = "MS/TP Port";
-        Object_List[index].Link_Speed = 9600;
+        Object_List[index].Link_Speed = 9600.0;
         Object_List[index].Network_Type = PORT_TYPE_MSTP;
         Object_List[index].Network.MSTP.MAC_Address = 255;
         Object_List[index].Network.MSTP.Baud_Rate = 9600;
@@ -1778,7 +1771,7 @@ void Network_Port_Init(
         Object_List[index].Network.MSTP.Max_Info_Frames = 1;
 #elif defined(BACDL_BIP)
         Object_List[index].Object_Name = "BACnet/IP Port";
-        Object_List[index].Link_Speed = 0;
+        Object_List[index].Link_Speed = 0.0;
         Object_List[index].Network_Type = PORT_TYPE_BIP;
         Object_List[index].Network.IPv4.IP_Address[0] = 0;
         Object_List[index].Network.IPv4.IP_Address[1] = 0;

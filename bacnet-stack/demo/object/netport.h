@@ -120,11 +120,11 @@ extern "C" {
         uint32_t object_instance,
         uint8_t value);
 
-    uint32_t Network_Port_Link_Speed(
+    float Network_Port_Link_Speed(
         uint32_t object_instance);
     bool Network_Port_Link_Speed_Set(
         uint32_t object_instance,
-        uint32_t value);
+        float value);
 
     bool Network_Port_IP_Address(
         uint32_t object_instance,
