@@ -1766,7 +1766,6 @@ void Network_Port_Init(
         Object_List[index].Link_Speed = 9600.0;
         Object_List[index].Network_Type = PORT_TYPE_MSTP;
         Object_List[index].Network.MSTP.MAC_Address = 255;
-        Object_List[index].Network.MSTP.Baud_Rate = 9600;
         Object_List[index].Network.MSTP.Max_Master = 127;
         Object_List[index].Network.MSTP.Max_Info_Frames = 1;
 #elif defined(BACDL_BIP)
