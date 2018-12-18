@@ -1489,8 +1489,9 @@ int Network_Port_Read_Property(
                 /* if no index was specified, then try to encode the entire list */
                 /* into one packet. */
                 int len;
-                for (unsigned i = 0; i < BIP_DNS_MAX; i++) {
-                    Network_Port_IP_DNS_Server(rpdata->object_instance, i,
+                unsigned index;
+                for (index = 0; index < BIP_DNS_MAX; index++) {
+                    Network_Port_IP_DNS_Server(rpdata->object_instance, index,
                         &octet_string);
                     len = encode_application_octet_string(&apdu[apdu_len],
                         &octet_string);
