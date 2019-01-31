@@ -1820,7 +1820,7 @@
         </option>
         <option>
           <name>XclFile</name>
-          <state>$TOOLKIT_DIR$\src\template\cfgm1284p.xcl</state>
+          <state>$TOOLKIT_DIR$\src\template\cfgm644p.xcl</state>
         </option>
         <option>
           <name>XclFileSlave</name>
@@ -1924,11 +1924,11 @@
         </option>
         <option>
           <name>AllowExtraOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>GenerateExtraOutput</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>XExtraOutOverride</name>
@@ -1941,7 +1941,7 @@
         <option>
           <name>ExtraOutputFormat</name>
           <version>11</version>
-          <state>25</state>
+          <state>23</state>
         </option>
         <option>
           <name>ExtraFormatVariant</name>
