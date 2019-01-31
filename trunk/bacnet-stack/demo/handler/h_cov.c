@@ -47,6 +47,10 @@
 #include "device.h"
 #include "handlers.h"
 
+#ifndef MAX_COV_PROPERTIES
+#define MAX_COV_PROPERTIES 2
+#endif
+
 /** @file h_cov.c  Handles Change of Value (COV) services. */
 
 typedef struct BACnet_COV_Address {
@@ -616,7 +620,7 @@ bool handler_cov_fsm(
     uint32_t object_instance = 0;
     bool status = false;
     bool send = false;
-    BACNET_PROPERTY_VALUE value_list[2];
+    BACNET_PROPERTY_VALUE value_list[MAX_COV_PROPERTIES];
     /* states for transmitting */
     static enum {
         COV_STATE_IDLE = 0,
@@ -716,8 +720,8 @@ bool handler_cov_fsm(
                     fprintf(stderr, "COVtask: Sending...\n");
 #endif
                     /* configure the linked list for the two properties */
-                    value_list[0].next = &value_list[1];
-                    value_list[1].next = NULL;
+                    bacapp_property_value_list_init(&value_list[0],
+                        MAX_COV_PROPERTIES);
                     status = Device_Encode_Value_List(object_type,
                         object_instance, &value_list[0]);
                     if (status) {

@@ -1555,6 +1555,61 @@ bool bacapp_parse_application_data(
 }
 #endif
 
+/**
+ * Initialize an array (or single) #BACNET_APPLICATION_DATA_VALUE
+ *
+ * @param value - one or more #BACNET_APPLICATION_DATA_VALUE elements
+ * @param count - number of #BACNET_APPLICATION_DATA_VALUE elements
+ */
+void bacapp_value_list_init(
+    BACNET_APPLICATION_DATA_VALUE *value,
+    size_t count)
+{
+    size_t i = 0;
+
+    if (value && count) {
+        for (i = 0; i < count; i++) {
+            value->tag = BACNET_APPLICATION_TAG_NULL;
+            value->context_specific = 0;
+            value->context_tag = 0;
+            if ((i+1) < count) {
+                value->next = value + 1;
+            } else {
+                value->next = NULL;
+            }
+            value++;
+        }
+    }
+}
+
+/**
+ * Initialize an array (or single) #BACNET_PROPERTY_VALUE
+ *
+ * @param value - one or more #BACNET_PROPERTY_VALUE elements
+ * @param count - number of #BACNET_PROPERTY_VALUE elements
+ */
+void bacapp_property_value_list_init(
+    BACNET_PROPERTY_VALUE *value,
+    size_t count)
+{
+    size_t i = 0;
+
+    if (value && count) {
+        for (i = 0; i < count; i++) {
+            value->propertyIdentifier = MAX_BACNET_PROPERTY_ID;
+            value->propertyArrayIndex = BACNET_ARRAY_ALL;
+            value->priority = BACNET_NO_PRIORITY;
+            bacapp_value_list_init(&value->value, 1);
+            if ((i+1) < count) {
+                value->next = value + 1;
+            } else {
+                value->next = NULL;
+            }
+            value++;
+        }
+    }
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
