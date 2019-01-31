@@ -66,22 +66,12 @@ void handler_ucov_notification(
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
     BACNET_PROPERTY_VALUE *pProperty_value = NULL;
     int len = 0;
-    unsigned index = 0;
 
     /* src not needed for this application */
     src = src;
     /* create linked list to store data if more
        than one property value is expected */
-    pProperty_value = &property_value[0];
-    while (pProperty_value) {
-        index++;
-        if (index < MAX_COV_PROPERTIES) {
-            pProperty_value->next = &property_value[index];
-        } else {
-            pProperty_value->next = NULL;
-        }
-        pProperty_value = pProperty_value->next;
-    }
+    bacapp_property_value_list_init(&property_value[0], MAX_COV_PROPERTIES);
     cov_data.listOfValues = &property_value[0];
 #if PRINT_ENABLED
     fprintf(stderr, "UCOV: Received Notification!\n");

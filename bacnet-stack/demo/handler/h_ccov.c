@@ -69,7 +69,6 @@ void handler_ccov_notification(
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
     BACNET_PROPERTY_VALUE *pProperty_value = NULL;
-    unsigned index = 0;
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
@@ -77,16 +76,7 @@ void handler_ccov_notification(
 
     /* create linked list to store data if more
        than one property value is expected */
-    pProperty_value = &property_value[0];
-    while (pProperty_value) {
-        index++;
-        if (index < MAX_COV_PROPERTIES) {
-            pProperty_value->next = &property_value[index];
-        } else {
-            pProperty_value->next = NULL;
-        }
-        pProperty_value = pProperty_value->next;
-    }
+    bacapp_property_value_list_init(&property_value[0], MAX_COV_PROPERTIES);
     cov_data.listOfValues = &property_value[0];
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
