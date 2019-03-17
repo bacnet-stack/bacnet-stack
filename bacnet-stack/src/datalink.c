@@ -37,6 +37,7 @@
 #if defined(BACDL_ALL) || defined FOR_DOXYGEN
 #include "ethernet.h"
 #include "bip.h"
+#include "bip6.h"
 #include "bvlc.h"
 #include "arcnet.h"
 #include "dlmstp.h"
@@ -106,6 +107,20 @@ void datalink_set(
         datalink_cleanup = bip_cleanup;
         datalink_get_broadcast_address = bip_get_broadcast_address;
         datalink_get_my_address = bip_get_my_address;
+    } else if (strcasecmp("bip6", datalink_string) == 0) {
+        datalink_init = bip6_init;
+        datalink_send_pdu = bip6_send_pdu;
+        datalink_receive = bip6_receive;
+        datalink_cleanup = bip6_cleanup;
+        datalink_get_broadcast_address = bip6_get_broadcast_address;
+        datalink_get_my_address = bip6_get_my_address;
+    } else if (strcasecmp("bvlc6", datalink_string) == 0) {
+        datalink_init = bip6_init;
+        datalink_send_pdu = bvlc6_send_pdu;
+        datalink_receive = bvlc6_receive;
+        datalink_cleanup = bip6_cleanup;
+        datalink_get_broadcast_address = bip6_get_broadcast_address;
+        datalink_get_my_address = bip6_get_my_address;
     } else if (strcasecmp("ethernet", datalink_string) == 0) {
         datalink_init = ethernet_init;
         datalink_send_pdu = ethernet_send_pdu;
