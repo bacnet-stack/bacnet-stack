@@ -482,9 +482,9 @@ void RS485_Check_UART_Data(
                 /* data is available */
                 mstp_port->DataRegister = FIFO_Get(&Rx_FIFO);
                 mstp_port->DataAvailable = true;
-                /* FIFO is giving data - don't wait very long */
+                /* FIFO is giving data - just poll */
                 waiter.tv_sec = 0;
-                waiter.tv_usec = 10;
+                waiter.tv_usec = 0;
             } else {
                 /* FIFO is empty - wait a longer time */
                 waiter.tv_sec = 0;
@@ -514,9 +514,9 @@ void RS485_Check_UART_Data(
                 /* data is available */
                 mstp_port->DataRegister = FIFO_Get(&poSharedData->Rx_FIFO);
                 mstp_port->DataAvailable = true;
-                /* FIFO is giving data - don't wait very long */
+                /* FIFO is giving data - just poll */
                 waiter.tv_sec = 0;
-                waiter.tv_usec = 10;
+                waiter.tv_usec = 0;
             } else {
                 /* FIFO is empty - wait a longer time */
                 waiter.tv_sec = 0;
