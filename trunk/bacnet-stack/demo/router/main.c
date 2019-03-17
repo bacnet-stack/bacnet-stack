@@ -464,7 +464,10 @@ bool parse_cmd(
     ROUTER_PORT *current = head;
 
     if (argc < 2)
+	{
         print_help();
+		return false;
+	}
 
     /* begin checking cmd parameters */
     opt = getopt_long(argc, argv, optString, Options, &index);

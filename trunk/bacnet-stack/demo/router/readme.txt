@@ -37,8 +37,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 1. Download, build and install libconfig C/C++ Configuration File Library 
    from http://www.hyperrealm.com/libconfig or use APT to install
    sudo apt-get install libconfig-dev
-2. Set variable "BACNET_PORT" in library root directory Makefile to linux
-3. Run "make clean all" from library root directory
+2. Run "make clean all" from library root directory
+3. Run "make router" from library root directory
 
 -----------------------
 4. Router configuration
@@ -134,12 +134,16 @@ mstp arguments:
 		}
 	);
 
-
 -----------------------
 5. Start
 -----------------------
 
+5.1. With configuration file 
 1. Copy configuration file in the router executable directory
-2. Start the router with "router -c init.cfg" command in terminal
+2. Start the router with "sudo ./router -c init.cfg" command in terminal
+
+5.2. Passing params in command line
+1. sudo ./router -D "mstp" "/dev/ttyS0" --mac 1 127 1 --baud 38400 --network 4 -D "bip" "eth0" --network 1
+
 
 
