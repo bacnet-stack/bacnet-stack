@@ -98,39 +98,92 @@ static uint16_t Treply_timeout = 300;
 static uint8_t Tusage_timeout = 100;
 /* Timer that indicates line silence - and functions */
 
-static struct timeval start;
+static struct timespec start;
+
+/**
+ * Calculate the time difference between two timespec values.
+ *
+ * @param l - The minued (time from which we subtract).
+ * @param r - The subtrahend (time that is being subtracted).
+ *
+ * @returns True if the difference is negative, otherwise 0.
+ */
+static int timespec_subtract(struct timespec *result,
+			     const struct timespec *l,
+			     const struct timespec *r)
+{
+#   define NS_PER_S	1000000000	// nano-seconds per second
+    struct timespec right = *r;
+    int secs;
+
+    // Perform the carry for the later subtraction by updating y.
+    if (l->tv_nsec < right.tv_nsec) {
+	secs = (right.tv_nsec - l->tv_nsec) / NS_PER_S + 1;
+	right.tv_nsec -= NS_PER_S * secs;
+	right.tv_sec += secs;
+    }
+    if (l->tv_nsec - right.tv_nsec > NS_PER_S) {
+	secs = (l->tv_nsec - right.tv_nsec) / NS_PER_S;
+	right.tv_nsec += NS_PER_S * secs;
+	right.tv_sec -= secs;
+    }
+
+    // Compute the time remaining. tv_nsec is certainly positive.
+    result->tv_sec = l->tv_sec - right.tv_sec;
+    result->tv_nsec = l->tv_nsec - right.tv_nsec;
+
+    return l->tv_sec < right.tv_sec;
+}
+
+/**
+ * Add a certain number of nanoseconds to the specified time.
+ *
+ * @param ts - The time to which to add to.
+ * @param ns - The number of nanoseconds to add.  Allowed range
+ *		is -NS_PER_S..NS_PER_S (i.e., plus minus one second).
+ */
+static void timespec_add_ns(struct timespec *ts, long ns)
+{
+  ts->tv_nsec += ns;
+  if (ts->tv_nsec > NS_PER_S) {
+      ts->tv_nsec -= NS_PER_S;
+      ts->tv_sec += 1;
+  } else if (ts->tv_nsec < 0) {
+      ts->tv_nsec += NS_PER_S;
+      ts->tv_sec -= 1;
+  }
+}
 
 static uint32_t Timer_Silence(
     void *pArg)
 {
-    struct timeval now, tmp_diff;
+    struct timespec now, diff;
     int32_t res;
 
-    gettimeofday(&now, NULL);
-    timersub(&start, &now, &tmp_diff);
-    res = ((tmp_diff.tv_sec) * 1000 + (tmp_diff.tv_usec) / 1000);
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    timespec_subtract(&diff, &now, &start);
+    res = ((diff.tv_sec) * 1000 + (diff.tv_nsec) / 1000000);
 
-    return (res >= 0 ? res : -res);
+    return (res >= 0 ? res : 0);
 }
 
 static void Timer_Silence_Reset(
     void *pArg)
 {
-    gettimeofday(&start, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &start);
 }
 
 static void get_abstime(
     struct timespec *abstime,
     unsigned long milliseconds)
 {
-    struct timeval now, offset, result;
-
-    gettimeofday(&now, NULL);
-    offset.tv_sec = 0;
-    offset.tv_usec = milliseconds * 1000;
-    timeradd(&now, &offset, &result);
-    abstime->tv_sec = result.tv_sec;
-    abstime->tv_nsec = result.tv_usec * 1000;
+    clock_gettime(CLOCK_MONOTONIC, abstime);
+    if (milliseconds > 1000) {
+	fprintf(stderr, "DLMSTP: limited timeout of %lums to 1000ms\n",
+		milliseconds);
+	milliseconds = 1000;
+    }
+    timespec_add_ns(abstime, 1000000 * milliseconds);
 }
 
 void dlmstp_cleanup(
@@ -663,7 +716,15 @@ bool dlmstp_init(
     char *ifname)
 {
     unsigned long hThread = 0;
+    pthread_condattr_t attr;
     int rv = 0;
+
+    pthread_condattr_init(&attr);
+    if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
+	fprintf(stderr, "MS/TP Interface: %s\n failed to set MONOTONIC clock\n",
+		ifname);
+	exit(1);
+    }
 
     /* initialize PDU queue */
     Ringbuf_Init(&PDU_Queue, (uint8_t *) & PDU_Buffer,
@@ -671,7 +732,7 @@ bool dlmstp_init(
     /* initialize packet queue */
     Receive_Packet.ready = false;
     Receive_Packet.pdu_len = 0;
-    rv = pthread_cond_init(&Receive_Packet_Flag, NULL);
+    rv = pthread_cond_init(&Receive_Packet_Flag, &attr);
     if (rv != 0) {
         fprintf(stderr,
             "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
@@ -696,7 +757,7 @@ bool dlmstp_init(
     MSTP_Port.InputBufferSize = sizeof(RxBuffer);
     MSTP_Port.OutputBuffer = &TxBuffer[0];
     MSTP_Port.OutputBufferSize = sizeof(TxBuffer);
-    gettimeofday(&start, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &start);
     MSTP_Port.SilenceTimer = Timer_Silence;
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(&MSTP_Port);
