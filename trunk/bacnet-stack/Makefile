@@ -61,7 +61,7 @@ CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DE
 # (see http://www.gnu.org/software/automake/manual/make/Special-Targets.html)
 .EXPORT_ALL_VARIABLES:
 
-all: library demos gateway router-ipv6 ${DEMO_LINUX}
+all: library demos router-ipv6 ${DEMO_LINUX}
 .PHONY : all library demos router gateway router-ipv6 clean
 
 library:
@@ -100,7 +100,7 @@ error:
 router: library
 	$(MAKE) -s -C demo router
 
-router-ipv6:
+router-ipv6: library
 	$(MAKE) -B -s -C demo router-ipv6
 
 # Add "ports" to the build, if desired
