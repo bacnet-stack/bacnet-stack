@@ -1149,6 +1149,33 @@ unsigned property_list_count(
 }
 
 /**
+ * For a given object property, returns the true if in the property list
+ *
+ * @param pList - array of type 'int' that is a list of BACnet object
+ * @param object_property - property enumeration or propritary value
+ *
+ * @return true if object_property is a member of the property list
+ */
+bool property_list_member(
+    const int *pList,
+    int object_property)
+{
+    bool status = false;
+
+    if (pList) {
+        while ((*pList) != -1) {
+            if (object_property == (*pList)) {
+                status = true;
+                break;
+            }
+            pList++;
+        }
+    }
+
+    return status;
+}
+
+/**
  * ReadProperty handler for this property.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -1323,6 +1350,8 @@ void testPropList(
     unsigned count = 0;
     BACNET_PROPERTY_ID property = MAX_BACNET_PROPERTY_ID;
     unsigned object_id = 0, object_name = 0, object_type = 0;
+    struct special_property_list_t property_list = {0};
+
 
     for (i = 0; i < OBJECT_PROPRIETARY_MIN; i++) {
         count = property_list_special_count((BACNET_OBJECT_TYPE) i, PROP_ALL);
@@ -1347,6 +1376,20 @@ void testPropList(
         ct_test(pTest, object_type == 1);
         ct_test(pTest, object_id == 1);
         ct_test(pTest, object_name == 1);
+        /* test member function */
+        property_list_special((BACNET_OBJECT_TYPE) i, &property_list);
+        ct_test(pTest,
+            property_list_member(
+                property_list.Required.pList,
+                PROP_OBJECT_TYPE));
+        ct_test(pTest,
+            property_list_member(
+                property_list.Required.pList,
+                PROP_OBJECT_IDENTIFIER));
+        ct_test(pTest,
+            property_list_member(
+                property_list.Required.pList,
+                PROP_OBJECT_NAME));
     }
 }
 

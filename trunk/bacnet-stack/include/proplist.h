@@ -49,6 +49,9 @@ extern "C" {
 
     unsigned property_list_count(
         const int *pList);
+    bool property_list_member(
+        const int *pList,
+        int object_property);
     const int * property_list_optional(
         BACNET_OBJECT_TYPE object_type);
     const int * property_list_required(
