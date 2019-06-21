@@ -34,6 +34,11 @@
 #include "bacreal.h"
 #include "bits.h"
 
+/* legacy API */
+#define decode_tag_number_safe bacnet_tag_number_decode
+#define decode_tag_number_and_value_safe bacnet_tag_number_and_value_decode
+#define decode_object_id_safe bacnet_object_id_decode
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -57,15 +62,18 @@ extern "C" {
     int decode_tag_number(
         uint8_t * apdu,
         uint8_t * tag_number);
-    int decode_tag_number_safe(
+
+    int bacnet_tag_number_decode(
         uint8_t * apdu,
         uint32_t apdu_len_remaining,
         uint8_t * tag_number);
+
     int decode_tag_number_and_value(
         uint8_t * apdu,
         uint8_t * tag_number,
         uint32_t * value);
-    int decode_tag_number_and_value_safe(
+
+    int bacnet_tag_number_and_value_decode(
         uint8_t * apdu,
         uint32_t apdu_len_remaining,
         uint8_t * tag_number,
@@ -172,7 +180,7 @@ extern "C" {
         uint16_t * object_type,
         uint32_t * instance);
 
-    int decode_object_id_safe(
+    int bacnet_object_id_decode(
         uint8_t * apdu,
         uint32_t len_value,
         uint16_t * object_type,
@@ -248,6 +256,16 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_CHARACTER_STRING * char_string);
+    int bacnet_character_string_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint32_t len_value,
+        BACNET_CHARACTER_STRING * char_string);
+    int bacnet_character_string_context_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint8_t tag_value,
+        BACNET_CHARACTER_STRING * value);
 
 
 /* from clause 20.2.4 Encoding of an Unsigned Integer Value */
@@ -263,6 +281,16 @@ extern "C" {
     int encode_application_unsigned(
         uint8_t * apdu,
         uint32_t value);
+    int bacnet_unsigned_decode(
+        uint8_t * apdu,
+        uint16_t apdu_max_len,
+        uint32_t len_value,
+        uint32_t * value);
+    int bacnet_unsigned_context_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint8_t tag_number,
+        uint32_t * value);
     int decode_unsigned(
         uint8_t * apdu,
         uint32_t len_value,
@@ -298,6 +326,16 @@ extern "C" {
 /* from clause 20.2.11 Encoding of an Enumerated Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
+    int bacnet_enumerated_decode(
+        uint8_t * apdu,
+        uint16_t apdu_max_len,
+        uint32_t len_value,
+        uint32_t * value);
+    int bacnet_enumerated_context_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint8_t tag_value,
+        uint32_t * value);
     int decode_enumerated(
         uint8_t * apdu,
         uint32_t len_value,
