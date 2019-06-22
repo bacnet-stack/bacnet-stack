@@ -1,4 +1,4 @@
-/*
+/**
  * @file
  *
  * @brief RS-485 Interface
