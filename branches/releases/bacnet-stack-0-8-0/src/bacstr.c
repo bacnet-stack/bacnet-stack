@@ -44,6 +44,9 @@
 #endif
 
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
+#ifndef BACNET_STRING_UTF8_VALIDATION
+#define BACNET_STRING_UTF8_VALIDATION 1
+#endif
 
 void bitstring_init(
     BACNET_BIT_STRING * bit_string)
@@ -562,6 +565,7 @@ bool characterstring_printable(
     return status;
 }
 
+#if BACNET_STRING_UTF8_VALIDATION
 /* Basic UTF-8 manipulation routines
   by Jeff Bezanson
   placed in the public domain Fall 2005 */
@@ -666,6 +670,16 @@ bool utf8_isvalid(
 
     return true;
 }
+#else
+bool utf8_isvalid(
+    const char *str,
+    size_t length)
+{
+    (void)str;
+    (void)length;
+    return true;
+}
+#endif
 
 bool characterstring_valid(
     BACNET_CHARACTER_STRING * char_string)
