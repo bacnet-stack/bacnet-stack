@@ -178,13 +178,18 @@ extern "C" {
     int decode_object_id(
         uint8_t * apdu,
         uint16_t * object_type,
-        uint32_t * instance);
+        uint32_t * object_instance);
 
     int bacnet_object_id_decode(
         uint8_t * apdu,
         uint32_t len_value,
         uint16_t * object_type,
         uint32_t * instance);
+    int bacnet_object_id_application_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint16_t * object_type,
+        uint32_t * object_instance);
 
     int decode_context_object_id(
         uint8_t * apdu,
@@ -281,22 +286,27 @@ extern "C" {
     int encode_application_unsigned(
         uint8_t * apdu,
         uint32_t value);
-    int bacnet_unsigned_decode(
-        uint8_t * apdu,
-        uint16_t apdu_max_len,
-        uint32_t len_value,
-        uint32_t * value);
-    int bacnet_unsigned_context_decode(
-        uint8_t * apdu,
-        uint16_t apdu_len_max,
-        uint8_t tag_number,
-        uint32_t * value);
     int decode_unsigned(
         uint8_t * apdu,
         uint32_t len_value,
         uint32_t * value);
     int decode_context_unsigned(
         uint8_t * apdu,
+        uint8_t tag_number,
+        uint32_t * value);
+
+    int bacnet_unsigned_decode(
+        uint8_t * apdu,
+        uint16_t apdu_max_len,
+        uint32_t len_value,
+        uint32_t * value);
+    int bacnet_unsigned_application_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint32_t * value);
+    int bacnet_unsigned_context_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
         uint8_t tag_number,
         uint32_t * value);
 
@@ -322,6 +332,15 @@ extern "C" {
         uint8_t tag_number,
         int32_t * value);
 
+    int bacnet_signed_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint32_t len_value,
+        int32_t * value);
+    int bacnet_signed_application_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        int32_t * value);
 
 /* from clause 20.2.11 Encoding of an Enumerated Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
