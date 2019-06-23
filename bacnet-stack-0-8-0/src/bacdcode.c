@@ -798,15 +798,61 @@ int decode_object_id(
 
 int bacnet_object_id_decode(
     uint8_t * apdu,
-    uint32_t apdu_max,
+    uint32_t len_value_type,
     uint16_t * object_type,
     uint32_t * instance)
 {
-    if (apdu_max != 4) {
+    if (len_value_type != 4) {
         return 0;
     } else {
         return decode_object_id(apdu, object_type, instance);
     }
+}
+
+/**
+ * @brief Decode the BACnet Object Identifier Value when application encoded
+ * as defined in clause 20.2.14 Encoding of an Object Identifier Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_len_max - number of bytes in the buffer
+ * @param value - decoded value, if decoded
+ *
+ * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ */
+int bacnet_object_id_application_decode(
+    uint8_t * apdu,
+    uint16_t apdu_len_max,
+    uint16_t * object_type,
+    uint32_t * object_instance)
+{
+    int len = 0;
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint8_t tag_number;
+    uint32_t len_value_type = 0;
+
+    len = bacnet_tag_number_and_value_decode(&apdu[len], apdu_len_max,
+        &tag_number, &len_value_type);
+    if ((len > 0) && (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID)) {
+        apdu_len = len;
+        if (apdu_len < apdu_len_max) {
+            if ((apdu_len_max-apdu_len) >= len_value_type) {
+                len = bacnet_object_id_decode(&apdu[len],
+                    len_value_type, object_type, object_instance);
+                if (len > 0) {
+                    apdu_len += len;
+                } else {
+                    apdu_len = BACNET_STATUS_ERROR;
+                }
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+        } else {
+            apdu_len = BACNET_STATUS_ERROR;
+        }
+    }
+
+    return apdu_len;
 }
 
 int decode_context_object_id(
@@ -1331,6 +1377,47 @@ int bacnet_unsigned_context_decode(
  * from clause 20.2.4 Encoding of an Unsigned Integer Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
  *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_len_max - number of bytes in the buffer
+ * @param value - decoded value, if decoded
+ *
+ * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ */
+int bacnet_unsigned_application_decode(
+    uint8_t * apdu,
+    uint16_t apdu_len_max,
+    uint32_t * value)
+{
+    int len = 0;
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint8_t tag_number;
+    uint32_t len_value_type = 0;
+
+    len = bacnet_tag_number_and_value_decode(&apdu[len], apdu_len_max,
+        &tag_number, &len_value_type);
+    if ((len > 0) && (tag_number == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+        apdu_len = len;
+        if (apdu_len < apdu_len_max) {
+            len = bacnet_unsigned_decode(&apdu[len], apdu_len_max-apdu_len,
+                len_value_type, value);
+            if (len > 0) {
+                apdu_len += len;
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+        } else {
+            apdu_len = BACNET_STATUS_ERROR;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decodes from bytes into a BACnet Unsigned value
+ * from clause 20.2.4 Encoding of an Unsigned Integer Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
  * @param apdu - buffer to hold the bytes
  * @param len_value - number of bytes in the unsigned value encoding
  * @param value - the unsigned value decoded
@@ -1624,6 +1711,90 @@ int encode_context_enumerated(
 }
 
 #if BACNET_USE_SIGNED
+/**
+ * @brief Decode the BACnet Signed Integer Value when application encoded
+ * as defined in clause 20.2.5 Encoding of a Signed Integer Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_len_max - number of bytes in the buffer to decode
+ * @param len_value - number of bytes in the unsigned value encoding
+ * @param value - the unsigned value decoded
+ *
+ * @return  number of bytes decoded, or zero if errors occur
+ */
+int bacnet_signed_decode(
+    uint8_t * apdu,
+    uint16_t apdu_len_max,
+    uint32_t len_value,
+    int32_t * value)
+{
+    int len = 0;
+
+    if (apdu && value && (len_value <= apdu_len_max)) {
+        switch (len_value) {
+            case 1:
+                len = decode_signed8(&apdu[0], value);
+                break;
+            case 2:
+                len = decode_signed16(&apdu[0], value);
+                break;
+            case 3:
+                len = decode_signed24(&apdu[0], value);
+                break;
+            case 4:
+                len = decode_signed32(&apdu[0], value);
+                break;
+            default:
+                *value = 0;
+                break;
+        }
+    }
+
+    return len;
+}
+
+/**
+ * @brief Decode the BACnet Signed Integer Value when application encoded
+ * as defined in clause 20.2.5 Encoding of a Signed Integer Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_len_max - number of bytes in the buffer
+ * @param value - decoded value, if decoded
+ *
+ * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ */
+int bacnet_signed_application_decode(
+    uint8_t * apdu,
+    uint16_t apdu_len_max,
+    int32_t * value)
+{
+    int len = 0;
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint8_t tag_number;
+    uint32_t len_value_type = 0;
+
+    len = bacnet_tag_number_and_value_decode(&apdu[len], apdu_len_max,
+        &tag_number, &len_value_type);
+    if ((len > 0) && (tag_number == BACNET_APPLICATION_TAG_SIGNED_INT)) {
+        apdu_len = len;
+        if (apdu_len < apdu_len_max) {
+            len = bacnet_signed_decode(&apdu[len], apdu_len_max-apdu_len,
+                len_value_type, value);
+            if (len > 0) {
+                apdu_len += len;
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+        } else {
+            apdu_len = BACNET_STATUS_ERROR;
+        }
+    }
+
+    return apdu_len;
+}
+
 /* from clause 20.2.5 Encoding of a Signed Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -1632,27 +1803,9 @@ int decode_signed(
     uint32_t len_value,
     int32_t * value)
 {
-    if (value) {
-        switch (len_value) {
-            case 1:
-                decode_signed8(&apdu[0], value);
-                break;
-            case 2:
-                decode_signed16(&apdu[0], value);
-                break;
-            case 3:
-                decode_signed24(&apdu[0], value);
-                break;
-            case 4:
-                decode_signed32(&apdu[0], value);
-                break;
-            default:
-                *value = 0;
-                break;
-        }
-    }
+    const unsigned apdu_len_max = 4;
 
-    return (int) len_value;
+    return bacnet_signed_decode(apdu, apdu_len_max, len_value, value);
 }
 
 int decode_context_signed(
@@ -1660,18 +1813,26 @@ int decode_context_signed(
     uint8_t tag_number,
     int32_t * value)
 {
-    uint32_t len_value;
+    const unsigned apdu_len_max = 4;
+    uint32_t len_value = 0;
     int len = 0;
+    int apdu_len = 0;
 
     if (decode_is_context_tag(&apdu[len], tag_number) &&
         !decode_is_closing_tag(&apdu[len])) {
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        len += decode_signed(&apdu[len], len_value, value);
+        len = decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        apdu_len += len;
+        len = bacnet_signed_decode(&apdu[len], apdu_len_max, len_value, value);
+        if (len > 0) {
+            apdu_len += len;
+        } else {
+            apdu_len = BACNET_STATUS_ERROR;
+        }
     } else {
-        len = BACNET_STATUS_ERROR;
+        apdu_len = BACNET_STATUS_ERROR;
     }
-    return len;
+
+    return apdu_len;
 }
 
 /* from clause 20.2.5 Encoding of a Signed Integer Value */
@@ -2689,16 +2850,18 @@ static void testBACDCodeCharacterString(
 static void testBACDCodeObject(
     Test * pTest)
 {
-    uint8_t object_array[4] = {
+    uint8_t object_array[32] = {
         0
     };
-    uint8_t encoded_array[4] = {
+    uint8_t encoded_array[32] = {
         0
     };
     uint16_t type = OBJECT_BINARY_INPUT;
     uint16_t decoded_type = OBJECT_ANALOG_OUTPUT;
     uint32_t instance = 123;
     uint32_t decoded_instance = 0;
+    int len = 0;
+    uint8_t tag_number = 0;
 
     encode_bacnet_object_id(&encoded_array[0], type, instance);
     decode_object_id(&encoded_array[0], &decoded_type, &decoded_instance);
@@ -2709,15 +2872,46 @@ static void testBACDCodeObject(
             sizeof(object_array)) == 0);
     for (type = 0; type < 1024; type++) {
         for (instance = 0; instance <= BACNET_MAX_INSTANCE; instance += 1024) {
-            encode_bacnet_object_id(&encoded_array[0], type, instance);
-            decode_object_id(&encoded_array[0], &decoded_type,
-                &decoded_instance);
+            /* test application encoded */
+            len = encode_application_object_id(&encoded_array[0],
+                type, instance);
+            ct_test(pTest, len > 0);
+            bacnet_object_id_application_decode(&encoded_array[0], len,
+                &decoded_type, &decoded_instance);
             ct_test(pTest, decoded_type == type);
             ct_test(pTest, decoded_instance == instance);
-            encode_bacnet_object_id(&object_array[0], type, instance);
-            ct_test(pTest, memcmp(&object_array[0], &encoded_array[0],
-                    sizeof(object_array)) == 0);
+            /* test context encoded */
+            tag_number = 99;
+            len = encode_context_object_id(&encoded_array[0], tag_number,
+                type, instance);
+            ct_test(pTest, len > 0);
+            len = decode_context_object_id(&encoded_array[0], tag_number,
+                &decoded_type, &decoded_instance);
+            ct_test(pTest, len > 0);
+            ct_test(pTest, decoded_type == type);
+            ct_test(pTest, decoded_instance == instance);
+            tag_number = 100;
+            len = decode_context_object_id(&encoded_array[0], tag_number,
+                &decoded_type, &decoded_instance);
+            ct_test(pTest, len == BACNET_STATUS_ERROR);
         }
+    }
+    /* test context encoded */
+    tag_number = 1;
+    type = OBJECT_BINARY_INPUT;
+    instance = 123;
+    for (tag_number = 0; tag_number < 254; tag_number++) {
+        len = encode_context_object_id(&encoded_array[0], tag_number,
+            type, instance);
+        ct_test(pTest, len > 0);
+        len = decode_context_object_id(&encoded_array[0], tag_number,
+            &decoded_type, &decoded_instance);
+        ct_test(pTest, len > 0);
+        ct_test(pTest, decoded_type == type);
+        ct_test(pTest, decoded_instance == instance);
+        len = decode_context_object_id(&encoded_array[0], 254,
+            &decoded_type, &decoded_instance);
+        ct_test(pTest, len == BACNET_STATUS_ERROR);
     }
 
     return;
