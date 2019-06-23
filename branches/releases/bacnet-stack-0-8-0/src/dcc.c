@@ -352,6 +352,8 @@ void test_DeviceCommunicationControlMalformedData(
     uint8_t payload_3[] = {0x19, 0x01, 0x3d, 0x09, 0x00, 0x66, 0x69, 0x73, 0x74, 0x65, 0x72};
     /* payload with duration, enable-disable, and password */
     uint8_t payload_4[] = {0x00, 0x05, 0xf1, 0x11, 0x0a, 0x00, 0x19, 0x00, 0x2d, 0x09, 0x00, 0x66, 0x69, 0x73, 0x74, 0x65, 0x72};
+    /* payload submitted with bug report */
+    uint8_t payload_5[] = {0x0d,0xff,0x80,0x00,0x03,0x1a,0x0a,0x19,0x00,0x2a,0x00,0x41};
     int len = 0;
     uint8_t test_invoke_id = 0;
     uint16_t test_timeDuration = 0;
@@ -372,6 +374,10 @@ void test_DeviceCommunicationControlMalformedData(
     ct_test(pTest, len == BACNET_STATUS_ERROR);
     len =
         dcc_decode_apdu(&payload_4[0], sizeof(payload_4), &test_invoke_id,
+        &test_timeDuration, &test_enable_disable, &test_password);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    len =
+        dcc_decode_apdu(&payload_5[0], sizeof(payload_5), &test_invoke_id,
         &test_timeDuration, &test_enable_disable, &test_password);
     ct_test(pTest, len == BACNET_STATUS_ERROR);
 }
