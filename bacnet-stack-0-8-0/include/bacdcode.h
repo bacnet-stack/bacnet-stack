@@ -233,6 +233,15 @@ extern "C" {
         uint8_t tag_number,
         BACNET_OCTET_STRING * octet_string);
 
+    int bacnet_octet_string_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint32_t len_value,
+        BACNET_OCTET_STRING * value);
+    int bacnet_octet_string_application_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        BACNET_OCTET_STRING * value);
 
 /* from clause 20.2.9 Encoding of a Character String Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -336,6 +345,11 @@ extern "C" {
         uint8_t * apdu,
         uint16_t apdu_len_max,
         uint32_t len_value,
+        int32_t * value);
+    int bacnet_signed_context_decode(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint8_t tag_value,
         int32_t * value);
     int bacnet_signed_application_decode(
         uint8_t * apdu,
