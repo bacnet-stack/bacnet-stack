@@ -113,26 +113,27 @@ int arf_decode_service_request(
             data->access = FILE_STREAM_ACCESS;
             /* tag number 0 is not extended so only one octet */
             apdu_len++;
+            /* fileStartPosition */
             if (apdu_len >= apdu_len_max) {
                 return BACNET_STATUS_ERROR;
             }
-            /* fileStartPosition */
             len = bacnet_signed_application_decode(&apdu[apdu_len],
                 apdu_len_max-apdu_len, &data->type.stream.fileStartPosition);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
             apdu_len += len;
+            /* requestedOctetCount */
             if (apdu_len >= apdu_len_max) {
                 return BACNET_STATUS_ERROR;
             }
-            /* requestedOctetCount */
             len = bacnet_unsigned_application_decode(&apdu[apdu_len],
                 apdu_len_max, &data->type.stream.requestedOctetCount);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
             apdu_len += len;
+            /* closing tag */
             if (apdu_len >= apdu_len_max) {
                 return BACNET_STATUS_ERROR;
             }

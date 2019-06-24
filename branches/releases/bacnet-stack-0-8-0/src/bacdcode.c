@@ -956,6 +956,7 @@ int encode_octet_string(
     return len;
 }
 
+
 /* from clause 20.2.8 Encoding of an Octet String Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -981,6 +982,7 @@ int encode_application_octet_string(
     return apdu_len;
 }
 
+
 /* from clause 20.2.8 Encoding of an Octet String Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
@@ -1005,23 +1007,48 @@ int encode_context_octet_string(
     return apdu_len;
 }
 
+/**
+ * @brief Decode the BACnet Octet String Value
+ * from clause 20.2.8 Encoding of an Octet String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_len_max - number of bytes in the buffer to decode
+ * @param len_value - number of bytes in the unsigned value encoding
+ * @param value - the unsigned value decoded
+ *
+ * @return  number of bytes decoded, or zero if errors occur
+ */
+int bacnet_octet_string_decode(
+    uint8_t * apdu,
+    uint16_t apdu_len_max,
+    uint32_t len_value,
+    BACNET_OCTET_STRING * value)
+{
+    int len = 0;
+    bool status = false;
+
+    if (value && (len_value <= apdu_len_max)) {
+        status = octetstring_init(value, &apdu[0], len_value);
+        if (status) {
+            len = (int) len_value;
+        }
+    }
+
+    return len;
+}
+
 /* from clause 20.2.8 Encoding of an Octet String Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
 int decode_octet_string(
     uint8_t * apdu,
     uint32_t len_value,
-    BACNET_OCTET_STRING * octet_string)
+    BACNET_OCTET_STRING * value)
 {
-    int len = 0;        /* return value */
-    bool status = false;
+    const uint16_t apdu_len_max = MAX_APDU;
 
-    status = octetstring_init(octet_string, &apdu[0], len_value);
-    if (status) {
-        len = (int) len_value;
-    }
-
-    return len;
+    return bacnet_octet_string_decode(apdu, apdu_len_max, len_value, value);
 }
 
 int decode_context_octet_string(
@@ -1048,6 +1075,47 @@ int decode_context_octet_string(
     }
 
     return len;
+}
+
+/**
+ * @brief Decodes from bytes into a BACnet Octet String application encoding
+ * from clause 20.2.8 Encoding of an Octet String Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer of data to be decoded
+ * @param apdu_len_max - number of bytes in the buffer
+ * @param value - decoded value, if decoded
+ *
+ * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
+ */
+int bacnet_octet_string_application_decode(
+    uint8_t * apdu,
+    uint16_t apdu_len_max,
+    BACNET_OCTET_STRING * value)
+{
+    int len = 0;
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint8_t tag_number;
+    uint32_t len_value_type = 0;
+
+    len = bacnet_tag_number_and_value_decode(&apdu[len], apdu_len_max,
+        &tag_number, &len_value_type);
+    if ((len > 0) && (tag_number == BACNET_APPLICATION_TAG_OCTET_STRING)) {
+        apdu_len = len;
+        if (apdu_len < apdu_len_max) {
+            len = bacnet_octet_string_decode(&apdu[len], apdu_len_max-apdu_len,
+                len_value_type, value);
+            if (len > 0) {
+                apdu_len += len;
+            } else {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+        } else {
+            apdu_len = BACNET_STATUS_ERROR;
+        }
+    }
+
+    return apdu_len;
 }
 #endif
 
@@ -1755,6 +1823,58 @@ int bacnet_signed_decode(
 }
 
 /**
+ * @brief Decodes from bytes into a BACnet Signed value
+ * as defined in clause 20.2.5 Encoding of a Signed Integer Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer to hold the bytes
+ * @param apdu_len_max - number of bytes in the buffer to decode
+ * @param tag_value - context tag number expected
+ * @param value - the unsigned value decoded
+ *
+ * @return  number of bytes decoded, zero if wrong tag number,
+ * or error (-1) if malformed
+ */
+int bacnet_signed_context_decode(
+    uint8_t * apdu,
+    uint16_t apdu_len_max,
+    uint8_t tag_value,
+    int32_t * value)
+{
+    int apdu_len = 0;
+    unsigned len = 0;
+    uint8_t tag_number = 0;
+    uint32_t len_value_type = 0;
+
+    if (apdu_len_max) {
+        if (decode_is_context_tag(&apdu[apdu_len], tag_value) &&
+            !decode_is_closing_tag(&apdu[apdu_len])) {
+            len = bacnet_tag_number_and_value_decode(&apdu[apdu_len],
+                apdu_len_max - apdu_len,
+                &tag_number, &len_value_type);
+            if (len > 0) {
+                apdu_len += len;
+                if (apdu_len < apdu_len_max) {
+                    len = bacnet_signed_decode(&apdu[apdu_len],
+                        apdu_len_max - apdu_len, len_value_type, value);
+                    if (len > 0) {
+                        apdu_len += len;
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
+                } else {
+                    return BACNET_STATUS_ERROR;
+                }
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the BACnet Signed Integer Value when application encoded
  * as defined in clause 20.2.5 Encoding of a Signed Integer Value
  * and 20.2.1 General Rules for Encoding BACnet Tags
@@ -1795,9 +1915,18 @@ int bacnet_signed_application_decode(
     return apdu_len;
 }
 
-/* from clause 20.2.5 Encoding of a Signed Integer Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Decodes from bytes into a BACnet Unsigned value
+ * from clause 20.2.4 Encoding of an Unsigned Integer Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer holding the bytes
+ * @param len_value - number of bytes in the unsigned value encoding
+ * @param value - the unsigned value decoded
+ *
+ * @return  number of bytes decoded, #BACNET_STATUS_ERROR (-1) if
+ * wrong tag number, or error (-1) if malformed
+ */
 int decode_signed(
     uint8_t * apdu,
     uint32_t len_value,
@@ -1808,31 +1937,32 @@ int decode_signed(
     return bacnet_signed_decode(apdu, apdu_len_max, len_value, value);
 }
 
+/**
+ * @brief Decodes from bytes into a BACnet Unsigned value
+ * from clause 20.2.4 Encoding of an Unsigned Integer Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags
+ *
+ * @param apdu - buffer holding the bytes
+ * @param tag_value - context tag number expected
+ * @param value - the unsigned value decoded
+ *
+ * @return  number of bytes decoded, #BACNET_STATUS_ERROR (-1) if
+ * wrong tag number, or error (-1) if malformed
+ */
 int decode_context_signed(
     uint8_t * apdu,
-    uint8_t tag_number,
+    uint8_t tag_value,
     int32_t * value)
 {
-    const unsigned apdu_len_max = 4;
-    uint32_t len_value = 0;
+    const uint16_t apdu_len_max = 6;
     int len = 0;
-    int apdu_len = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number) &&
-        !decode_is_closing_tag(&apdu[len])) {
-        len = decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        apdu_len += len;
-        len = bacnet_signed_decode(&apdu[len], apdu_len_max, len_value, value);
-        if (len > 0) {
-            apdu_len += len;
-        } else {
-            apdu_len = BACNET_STATUS_ERROR;
-        }
-    } else {
-        apdu_len = BACNET_STATUS_ERROR;
+    len = bacnet_signed_context_decode(apdu, apdu_len_max, tag_value, value);
+    if (len == 0) {
+        len = BACNET_STATUS_ERROR;
     }
 
-    return apdu_len;
+    return len;
 }
 
 /* from clause 20.2.5 Encoding of a Signed Integer Value */
