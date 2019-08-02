@@ -282,6 +282,16 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     ,
     {OBJECT_LIGHTING_OUTPUT, "lighting-output"}
     ,
+    {OBJECT_BINARY_LIGHTING_OUTPUT, "binary-lighting-output"}
+    ,
+    {OBJECT_NETWORK_PORT, "network-port"}
+    ,
+    {OBJECT_ELEVATOR_GROUP, "elevator-group"}
+    ,
+    {OBJECT_ESCALATOR, "escalator"}
+    ,
+    {OBJECT_LIFT, "lift"}
+    ,
     {0, NULL}
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
        Enumerated values 128-1023 may be used by others subject to
@@ -1032,8 +1042,111 @@ INDTEXT_DATA bacnet_property_names[] = {
     ,
     {PROP_TRANSITION, "transition"}
     ,
-    {PROP_EGRESS_ACTIVE, "egress-active"}
-    ,
+    {PROP_EGRESS_ACTIVE, "egress-active"},
+    {PROP_INTERFACE_VALUE, "inteface-value"},
+    {PROP_FAULT_HIGH_LIMIT, "fault-high-limit"},
+    {PROP_FAULT_LOW_LIMIT, "fault-low-limit"},
+    {PROP_LOW_DIFF_LIMIT, "low-diff-limit"},
+    {PROP_STRIKE_COUNT, "strike-count"},
+    {PROP_TIME_OF_STRIKE_COUNT_RESET, "strike-count"},
+    {PROP_DEFAULT_TIMEOUT, "default-timeout"},
+    {PROP_INITIAL_TIMEOUT, "initial-timeout"},
+    {PROP_LAST_STATE_CHANGE, "last-state-change"},
+    {PROP_STATE_CHANGE_VALUES, "state-change-values"},
+    {PROP_TIMER_RUNNING, "timer-running"},
+    {PROP_TIMER_STATE, "timer-state"},
+    {PROP_APDU_LENGTH, "apdu-length"},
+    {PROP_IP_ADDRESS, "ip-address"},
+    {PROP_IP_DEFAULT_GATEWAY, "ip-default-gateway"},
+    {PROP_IP_DHCP_ENABLE, "ip-dhcp-enable"},
+    {PROP_IP_DHCP_LEASE_TIME, "ip-dhcp-lease-time"},
+    {PROP_IP_DHCP_LEASE_TIME_REMAINING, "ip-dhcp-lease-time-remaining"},
+    {PROP_IP_DHCP_SERVER, "ip-dhcp-server"},
+    {PROP_IP_DNS_SERVER, "ip-dns-server"},
+    {PROP_BACNET_IP_GLOBAL_ADDRESS, "bacnet-ip-global-address"},
+    {PROP_BACNET_IP_MODE, "bacnet-ip-mode"},
+    {PROP_BACNET_IP_MULTICAST_ADDRESS, "bacnet-ip-multicast-address"},
+    {PROP_BACNET_IP_NAT_TRAVERSAL, "bacnet-ip-nat-traversal"},
+    {PROP_IP_SUBNET_MASK, "ip-subnet-mask"},
+    {PROP_BACNET_IP_UDP_PORT, "bacnet-ip-udp-port"},
+    {PROP_BBMD_ACCEPT_FD_REGISTRATIONS, "bbmd-accept-fd-registrations"},
+    {PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE, "bbmd-broadcast-distribution-table"},
+    {PROP_BBMD_FOREIGN_DEVICE_TABLE, "bbmd-foreign-device-table"},
+    {PROP_CHANGES_PENDING, "changes-pending"},
+    {PROP_COMMAND, "command"},
+    {PROP_FD_BBMD_ADDRESS, "fd-bbmd-address"},
+    {PROP_FD_SUBSCRIPTION_LIFETIME, "fd-subscription-lifetime"},
+    {PROP_LINK_SPEED, "link-speed"},
+    {PROP_LINK_SPEEDS, "link-speeds"},
+    {PROP_LINK_SPEED_AUTONEGOTIATE, "link-speed-autonegotiate"},
+    {PROP_MAC_ADDRESS, "mac-address"},
+    {PROP_NETWORK_INTERFACE_NAME, "network-interface-name"},
+    {PROP_NETWORK_NUMBER, "network-number"},
+    {PROP_NETWORK_NUMBER_QUALITY, "network-number-quality"},
+    {PROP_NETWORK_TYPE, "network-type"},
+    {PROP_ROUTING_TABLE, "routing-table"},
+    {PROP_VIRTUAL_MAC_ADDRESS_TABLE, "virtual-mac-address-table"},
+    {PROP_COMMAND_TIME_ARRAY, "command-time-array"},
+    {PROP_CURRENT_COMMAND_PRIORITY, "current-command-priority"},
+    {PROP_LAST_COMMAND_TIME, "last-command-time"},
+    {PROP_VALUE_SOURCE, "value-source"},
+    {PROP_VALUE_SOURCE_ARRAY, "value-source-array"},
+    {PROP_BACNET_IPV6_MODE, "bacnet-ipv6-mode"},
+    {PROP_IPV6_ADDRESS, "ipv6-address"},
+    {PROP_IPV6_PREFIX_LENGTH, "ipv6-prefix-length"},
+    {PROP_BACNET_IPV6_UDP_PORT, "bacnet-ipv6-udp-port"},
+    {PROP_IPV6_DEFAULT_GATEWAY, "ipv6-default-gateway"},
+    {PROP_BACNET_IPV6_MULTICAST_ADDRESS, "bacnet-ipv6-multicast-address"},
+    {PROP_IPV6_DNS_SERVER, "ipv6-dns-server"},
+    {PROP_IPV6_AUTO_ADDRESSING_ENABLE, "ipv6-auto-addressing-enable"},
+    {PROP_IPV6_DHCP_LEASE_TIME, "ipv6-dhcp-lease-time"},
+    {PROP_IPV6_DHCP_LEASE_TIME_REMAINING, "ipv6-dhcp-lease-time-remaining"},
+    {PROP_IPV6_DHCP_SERVER, "ipv6-dhcp-server"},
+    {PROP_IPV6_ZONE_INDEX, "ipv6-zone-index"},
+    {PROP_ASSIGNED_LANDING_CALLS, "assigned-landing-calls"},
+    {PROP_CAR_ASSIGNED_DIRECTION, "car-assigned-direction"},
+    {PROP_CAR_DOOR_COMMAND, "car-door-command"},
+    {PROP_CAR_DOOR_STATUS, "car-door-status"},
+    {PROP_CAR_DOOR_TEXT, "car-door-text"},
+    {PROP_CAR_DOOR_ZONE, "car-door-zone"},
+    {PROP_CAR_DRIVE_STATUS, "car-drive-status"},
+    {PROP_CAR_LOAD, "car-load"},
+    {PROP_CAR_LOAD_UNITS, "car-load-units"},
+    {PROP_CAR_MODE, "car-mode"},
+    {PROP_CAR_MOVING_DIRECTION, "car-moving-direction"},
+    {PROP_CAR_POSITION, "car-position"},
+    {PROP_ELEVATOR_GROUP, "elevator-group"},
+    {PROP_ENERGY_METER, "energy-meter"},
+    {PROP_ENERGY_METER_REF, "energy-meter-ref"},
+    {PROP_ESCALATOR_MODE, "escalator-mode"},
+    {PROP_FAULT_SIGNALS, "fault-signals"},
+    {PROP_FLOOR_TEXT, "floor-text"},
+    {PROP_GROUP_ID, "group-id"},
+    {PROP_GROUP_MODE, "group-mode"},
+    {PROP_HIGHER_DECK, "higher-deck"},
+    {PROP_INSTALLATION_ID, "installation-id"},
+    {PROP_LANDING_CALLS, "landing-calls"},
+    {PROP_LANDING_CALL_CONTROL, "landing-call-control"},
+    {PROP_LANDING_DOOR_STATUS, "landing-door-status"},
+    {PROP_LOWER_DECK, "lower-deck"},
+    {PROP_MACHINE_ROOM_ID, "machine-room-id"},
+    {PROP_MAKING_CAR_CALL, "making-car-call"},
+    {PROP_NEXT_STOPPING_FLOOR, "next-stopping-floor"},
+    {PROP_OPERATION_DIRECTION, "operation-direction"},
+    {PROP_PASSENGER_ALARM, "passenger-alarm"},
+    {PROP_POWER_MODE, "power-mode"},
+    {PROP_REGISTERED_CAR_CALL, "registered-car-call"},
+    {PROP_ACTIVE_COV_MULTIPLE_SUBSCRIPTIONS, "active-cov-multiple-subscriptions"},
+    {PROP_PROTOCOL_LEVEL, "protocol-level"},
+    {PROP_REFERENCE_PORT, "reference-port"},
+    {PROP_DEPLOYED_PROFILE_LOCATION, "deployed-profile-location"},
+    {PROP_PROFILE_LOCATION, "profile-location"},
+    {PROP_TAGS, "tags"},
+    {PROP_SUBORDINATE_NODE_TYPES, "subordinate-node-types"},
+    {PROP_SUBORDINATE_TAGS, "subordinate-tags"},
+    {PROP_SUBORDINATE_RELATIONSHIPS, "subordinate-relationships"},
+    {PROP_DEFAULT_SUBORDINATE_RELATIONSHIP, "default-subordinate-relationship"},
+    {PROP_REPRESENTS, "represents"},
     {0, NULL}
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-4194303 may be used by others subject to the
@@ -1045,6 +1158,14 @@ const char *bactext_property_name(
 {
     return indtext_by_index_split_default(bacnet_property_names, index, 512,
         ASHRAE_Reserved_String, Vendor_Proprietary_String);
+}
+
+const char *bactext_property_name_default(
+    unsigned index,
+    const char *default_string)
+{
+    return indtext_by_index_default(bacnet_property_names, index,
+        default_string);
 }
 
 unsigned bactext_property_id(
@@ -1448,6 +1569,60 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
     {UNITS_WATTS_PER_METER_PER_DEGREE_KELVIN,
         "watts-per-meter-per-degree-Kelvin"}
     ,
+    {UNITS_PER_MILLE,"per-mille"},
+    {UNITS_GRAMS_PER_GRAM,"grams-per-gram"},
+    {UNITS_KILOGRAMS_PER_KILOGRAM,"kilograms-per-kilogram"},
+    {UNITS_GRAMS_PER_KILOGRAM,"grams-per-kilogram"},
+    {UNITS_MILLIGRAMS_PER_GRAM,"milligrams-per-gram"},
+    {UNITS_MILLIGRAMS_PER_KILOGRAM,"milligrams-per-kilogram"},
+    {UNITS_GRAMS_PER_MILLILITER,"grams-per-milliliter"},
+    {UNITS_GRAMS_PER_LITER,"grams-per-liter"},
+    {UNITS_MILLIGRAMS_PER_LITER,"milligrams-per-liter"},
+    {UNITS_MICROGRAMS_PER_LITER,"micrograms-per-liter"},
+    {UNITS_GRAMS_PER_CUBIC_METER,"grams-per-cubic-meter"},
+    {UNITS_MILLIGRAMS_PER_CUBIC_METER,"milligrams-per-cubic-meter"},
+    {UNITS_MICROGRAMS_PER_CUBIC_METER,"micrograms-per-cubic-meter"},
+    {UNITS_NANOGRAMS_PER_CUBIC_METER,"nanograms-per-cubic-meter"},
+    {UNITS_GRAMS_PER_CUBIC_CENTIMETER,"grams-per-cubic-centimeter"},
+    {UNITS_BECQUERELS,"becquerels"},
+    {UNITS_MEGABECQUERELS,"megabecquerels"},
+    {UNITS_GRAY,"gray"},
+    {UNITS_MILLIGRAY,"milligray"},
+    {UNITS_MICROGRAY,"microgray"},
+    {UNITS_SIEVERTS,"sieverts"},
+    {UNITS_MILLISIEVERTS,"millisieverts"},
+    {UNITS_MICROSIEVERTS,"microsieverts"},
+    {UNITS_MICROSIEVERTS_PER_HOUR,"microsieverts-per-hour"},
+    {UNITS_DECIBELS_A,"decibels-a"},
+    {UNITS_NEPHELOMETRIC_TURBIDITY_UNIT,"nephelometric-turbidity-unit"},
+    {UNITS_PH,"pH"},
+    {UNITS_GRAMS_PER_SQUARE_METER,"grams-per-square-meter"},
+    {UNITS_MINUTES_PER_DEGREE_KELVIN,"minutes-per-degree-kelvin"},
+    {UNITS_OHM_METER_SQUARED_PER_METER,"ohm-meter-squared-per-meter"},
+    {UNITS_AMPERE_SECONDS,"ampere-seconds"},
+    {UNITS_VOLT_AMPERE_HOURS,"volt-ampere-hours"},
+    {UNITS_KILOVOLT_AMPERE_HOURS,"kilovolt-ampere-hours"},
+    {UNITS_MEGAVOLT_AMPERE_HOURS,"megavolt-ampere-hours"},
+    {UNITS_VOLT_AMPERE_HOURS_REACTIVE,"volt-ampere-hours-reactive"},
+    {UNITS_KILOVOLT_AMPERE_HOURS_REACTIVE,"kilovolt-ampere-hours-reactive"},
+    {UNITS_MEGAVOLT_AMPERE_HOURS_REACTIVE,"megavolt-ampere-hours-reactive"},
+    {UNITS_VOLT_SQUARE_HOURS,"volt-square-hours"},
+    {UNITS_AMPERE_SQUARE_HOURS,"ampere-square-hours"},
+    {UNITS_JOULE_PER_HOURS,"joule-per-hours"},
+    {UNITS_CUBIC_FEET_PER_DAY,"cubic-feet-per-day"},
+    {UNITS_CUBIC_METERS_PER_DAY,"cubic-meters-per-day"},
+    {UNITS_WATT_HOURS_PER_CUBIC_METER,"watt-hours-per-cubic-meter"},
+    {UNITS_JOULES_PER_CUBIC_METER,"joules-per-cubic-meter"},
+    {UNITS_MOLE_PERCENT,"mole-percent"},
+    {UNITS_PASCAL_SECONDS,"pascal-seconds"},
+    {UNITS_MILLION_STANDARD_CUBIC_FEET_PER_MINUTE,"million-standard-cubic-feet-per-minute"},
+    {UNITS_STANDARD_CUBIC_FEET_PER_DAY,"standard-cubic-feet-per-day"},
+    {UNITS_MILLION_STANDARD_CUBIC_FEET_PER_DAY,"million-standard-cubic-feet-per-day"},
+    {UNITS_THOUSAND_CUBIC_FEET_PER_DAY,"thousand-cubic-feet-per-day"},
+    {UNITS_THOUSAND_STANDARD_CUBIC_FEET_PER_DAY,"thousand-standard-cubic-feet-per-day"},
+    {UNITS_POUNDS_MASS_PER_DAY,"pounds-mass-per-day"},
+    {UNITS_MILLIREMS,"millirems"},
+    {UNITS_MILLIREMS_PER_HOUR,"millirems-per-hour"},
     {0, NULL}
 /* Enumerated values 0-255 are reserved for definition by ASHRAE.
    Enumerated values 256-65535 may be used by others subject to
@@ -1739,59 +1914,116 @@ INDTEXT_DATA bacnet_error_code_names[] = {
     ,
     {ERROR_CODE_COMMUNICATION_DISABLED, "access-denied"}
     ,
-    {ERROR_CODE_SUCCESS, "success"},
-    {ERROR_CODE_ACCESS_DENIED, "access-denied"},
-    {ERROR_CODE_BAD_DESTINATION_ADDRESS, "bad-destination-address"},
-    {ERROR_CODE_BAD_DESTINATION_DEVICE_ID, "bad-destination-device-id"},
-    {ERROR_CODE_BAD_SIGNATURE, "bad-signature"},
-    {ERROR_CODE_BAD_SOURCE_ADDRESS, "bad-source-address"},
-    {ERROR_CODE_BAD_TIMESTAMP, "bad-timestamp"},
-    {ERROR_CODE_CANNOT_USE_KEY, "cannot-use-key"},
-    {ERROR_CODE_CANNOT_VERIFY_MESSAGE_ID, "cannot-verify-message-id"},
-    {ERROR_CODE_CORRECT_KEY_REVISION, "correct-key-revision"},
-    {ERROR_CODE_DESTINATION_DEVICE_ID_REQUIRED, "destination-device-id-required"},
-    {ERROR_CODE_DUPLICATE_MESSAGE, "duplicate-message"},
-    {ERROR_CODE_ENCRYPTION_NOT_CONFIGURED, "encryption-not-configured"},
-    {ERROR_CODE_ENCRYPTION_REQUIRED, "encryption-required"},
-    {ERROR_CODE_INCORRECT_KEY, "incorrect-key"},
-    {ERROR_CODE_INVALID_KEY_DATA, "invalid-key-data"},
-    {ERROR_CODE_KEY_UPDATE_IN_PROGRESS, "key-update-in-progress"},
-    {ERROR_CODE_MALFORMED_MESSAGE, "malformed-message"},
-    {ERROR_CODE_NOT_KEY_SERVER, "not-key-server"},
-    {ERROR_CODE_SECURITY_NOT_CONFIGURED, "security-not-configured"},
-    {ERROR_CODE_SOURCE_SECURITY_REQUIRED, "source-security-required"},
-    {ERROR_CODE_TOO_MANY_KEYS, "too-many-keys"},
-    {ERROR_CODE_UNKNOWN_AUTHENTICATION_TYPE, "unknown-authentication-type"},
-    {ERROR_CODE_UNKNOWN_KEY, "unknown-key"},
-    {ERROR_CODE_UNKNOWN_KEY_REVISION, "unknown-key-revision"},
-    {ERROR_CODE_UNKNOWN_SOURCE_MESSAGE, "unknown-source-message"},
-    {ERROR_CODE_NOT_ROUTER_TO_DNET, "not-router-to-dnet"},
-    {ERROR_CODE_ROUTER_BUSY, "router-busy"},
-    {ERROR_CODE_UNKNOWN_NETWORK_MESSAGE, "unknown-network-message"},
-    {ERROR_CODE_MESSAGE_TOO_LONG, "message-too-long"},
-    {ERROR_CODE_SECURITY_ERROR, "security-error"},
-    {ERROR_CODE_ADDRESSING_ERROR, "addressing-error"},
-    {ERROR_CODE_WRITE_BDT_FAILED, "write-bdt-failed"},
-    {ERROR_CODE_READ_BDT_FAILED, "read-bdt-failed"},
-    {ERROR_CODE_REGISTER_FOREIGN_DEVICE_FAILED, "register-foreign-device-failed"},
-    {ERROR_CODE_READ_FDT_FAILED, "read-fdt-failed"},
-    {ERROR_CODE_DELETE_FDT_ENTRY_FAILED, "delete-fdt-entry-failed"},
-    {ERROR_CODE_DISTRIBUTE_BROADCAST_FAILED, "distribute-broadcast-failed"},
-    {ERROR_CODE_UNKNOWN_FILE_SIZE, "unknown-file-size"},
-    {ERROR_CODE_ABORT_APDU_TOO_LONG, "abort-apdu-too-long"},
-    {ERROR_CODE_ABORT_APPLICATION_EXCEEDED_REPLY_TIME, "abort-application-exceeded-reply-time"},
-    {ERROR_CODE_ABORT_OUT_OF_RESOURCES, "abort-out-of-resources"},
-    {ERROR_CODE_ABORT_TSM_TIMEOUT, "abort-tsm-timeout"},
-    {ERROR_CODE_ABORT_WINDOW_SIZE_OUT_OF_RANGE, "abort-window-size-out-of-range"},
-    {ERROR_CODE_FILE_FULL, "file-full"},
-    {ERROR_CODE_INCONSISTENT_CONFIGURATION, "inconsistent-configuration"},
-    {ERROR_CODE_INCONSISTENT_OBJECT_TYPE, "inconsistent-object-type"},
-    {ERROR_CODE_INTERNAL_ERROR, "internal-error"},
-    {ERROR_CODE_NOT_CONFIGURED, "not-configured"},
-    {ERROR_CODE_OUT_OF_MEMORY, "out-of-memory"},
-    {ERROR_CODE_VALUE_TOO_LONG, "value-too-long"},
-    {ERROR_CODE_ABORT_INSUFFICIENT_SECURITY, "abort-insufficient-security"},
-    {ERROR_CODE_ABORT_SECURITY_ERROR, "abort-security-error"},
+    {ERROR_CODE_SUCCESS, "success"}
+    ,
+    {ERROR_CODE_ACCESS_DENIED, "access-denied"}
+    ,
+    {ERROR_CODE_BAD_DESTINATION_ADDRESS, "bad-destination-address"}
+    ,
+    {ERROR_CODE_BAD_DESTINATION_DEVICE_ID, "bad-destination-device-id"}
+    ,
+    {ERROR_CODE_BAD_SIGNATURE, "bad-signature"}
+    ,
+    {ERROR_CODE_BAD_SOURCE_ADDRESS, "bad-source-address"}
+    ,
+    {ERROR_CODE_BAD_TIMESTAMP, "bad-timestamp"}
+    ,
+    {ERROR_CODE_CANNOT_USE_KEY, "cannot-use-key"}
+    ,
+    {ERROR_CODE_CANNOT_VERIFY_MESSAGE_ID, "cannot-verify-message-id"}
+    ,
+    {ERROR_CODE_CORRECT_KEY_REVISION, "correct-key-revision"}
+    ,
+    {ERROR_CODE_DESTINATION_DEVICE_ID_REQUIRED,
+        "destination-device-id-required"}
+    ,
+    {ERROR_CODE_DUPLICATE_MESSAGE, "duplicate-message"}
+    ,
+    {ERROR_CODE_ENCRYPTION_NOT_CONFIGURED, "encryption-not-configured"}
+    ,
+    {ERROR_CODE_ENCRYPTION_REQUIRED, "encryption-required"}
+    ,
+    {ERROR_CODE_INCORRECT_KEY, "incorrect-key"}
+    ,
+    {ERROR_CODE_INVALID_KEY_DATA, "invalid-key-data"}
+    ,
+    {ERROR_CODE_KEY_UPDATE_IN_PROGRESS, "key-update-in-progress"}
+    ,
+    {ERROR_CODE_MALFORMED_MESSAGE, "malformed-message"}
+    ,
+    {ERROR_CODE_NOT_KEY_SERVER, "not-key-server"}
+    ,
+    {ERROR_CODE_SECURITY_NOT_CONFIGURED, "security-not-configured"}
+    ,
+    {ERROR_CODE_SOURCE_SECURITY_REQUIRED, "source-security-required"}
+    ,
+    {ERROR_CODE_TOO_MANY_KEYS, "too-many-keys"}
+    ,
+    {ERROR_CODE_UNKNOWN_AUTHENTICATION_TYPE, "unknown-authentication-type"}
+    ,
+    {ERROR_CODE_UNKNOWN_KEY, "unknown-key"}
+    ,
+    {ERROR_CODE_UNKNOWN_KEY_REVISION, "unknown-key-revision"}
+    ,
+    {ERROR_CODE_UNKNOWN_SOURCE_MESSAGE, "unknown-source-message"}
+    ,
+    {ERROR_CODE_NOT_ROUTER_TO_DNET, "not-router-to-dnet"}
+    ,
+    {ERROR_CODE_ROUTER_BUSY, "router-busy"}
+    ,
+    {ERROR_CODE_UNKNOWN_NETWORK_MESSAGE, "unknown-network-message"}
+    ,
+    {ERROR_CODE_MESSAGE_TOO_LONG, "message-too-long"}
+    ,
+    {ERROR_CODE_SECURITY_ERROR, "security-error"}
+    ,
+    {ERROR_CODE_ADDRESSING_ERROR, "addressing-error"}
+    ,
+    {ERROR_CODE_WRITE_BDT_FAILED, "write-bdt-failed"}
+    ,
+    {ERROR_CODE_READ_BDT_FAILED, "read-bdt-failed"}
+    ,
+    {ERROR_CODE_REGISTER_FOREIGN_DEVICE_FAILED,
+        "register-foreign-device-failed"}
+    ,
+    {ERROR_CODE_READ_FDT_FAILED, "read-fdt-failed"}
+    ,
+    {ERROR_CODE_DELETE_FDT_ENTRY_FAILED, "delete-fdt-entry-failed"}
+    ,
+    {ERROR_CODE_DISTRIBUTE_BROADCAST_FAILED, "distribute-broadcast-failed"}
+    ,
+    {ERROR_CODE_UNKNOWN_FILE_SIZE, "unknown-file-size"}
+    ,
+    {ERROR_CODE_ABORT_APDU_TOO_LONG, "abort-apdu-too-long"}
+    ,
+    {ERROR_CODE_ABORT_APPLICATION_EXCEEDED_REPLY_TIME,
+        "abort-application-exceeded-reply-time"}
+    ,
+    {ERROR_CODE_ABORT_OUT_OF_RESOURCES, "abort-out-of-resources"}
+    ,
+    {ERROR_CODE_ABORT_TSM_TIMEOUT, "abort-tsm-timeout"}
+    ,
+    {ERROR_CODE_ABORT_WINDOW_SIZE_OUT_OF_RANGE,
+        "abort-window-size-out-of-range"}
+    ,
+    {ERROR_CODE_FILE_FULL, "file-full"}
+    ,
+    {ERROR_CODE_INCONSISTENT_CONFIGURATION, "inconsistent-configuration"}
+    ,
+    {ERROR_CODE_INCONSISTENT_OBJECT_TYPE, "inconsistent-object-type"}
+    ,
+    {ERROR_CODE_INTERNAL_ERROR, "internal-error"}
+    ,
+    {ERROR_CODE_NOT_CONFIGURED, "not-configured"}
+    ,
+    {ERROR_CODE_OUT_OF_MEMORY, "out-of-memory"}
+    ,
+    {ERROR_CODE_VALUE_TOO_LONG, "value-too-long"}
+    ,
+    {ERROR_CODE_ABORT_INSUFFICIENT_SECURITY, "abort-insufficient-security"}
+    ,
+    {ERROR_CODE_ABORT_SECURITY_ERROR, "abort-security-error"}
+    ,
     {0, NULL}
 };
 
@@ -2319,4 +2551,21 @@ const char *bactext_lighting_operation_name(
         return Vendor_Proprietary_String;
     else
         return "Invalid BACnetLightingOperation";
+}
+
+INDTEXT_DATA bacnet_device_communications_names[] = {
+    {COMMUNICATION_ENABLE, "enabled"}
+    ,
+    {COMMUNICATION_DISABLE, "disabled"}
+    ,
+    {COMMUNICATION_DISABLE_INITIATION, "initiation disabled"}
+    ,
+    {0, NULL}
+};
+
+const char *bactext_device_communications_name(
+    unsigned index)
+{
+    return indtext_by_index_default(bacnet_device_communications_names, index,
+        ASHRAE_Reserved_String);
 }

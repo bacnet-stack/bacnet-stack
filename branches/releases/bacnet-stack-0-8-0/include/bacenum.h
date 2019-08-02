@@ -1222,6 +1222,9 @@ typedef enum {
     OBJECT_LIGHTING_OUTPUT = 54,        /* Addendum 2010-i */
     OBJECT_BINARY_LIGHTING_OUTPUT = 55, /* Addendum 135-2012az */
     OBJECT_NETWORK_PORT = 56,   /* Addendum 135-2012az */
+    OBJECT_ELEVATOR_GROUP = 57,   /* Addendum 135-2012aq */
+    OBJECT_ESCALATOR = 58,   /* Addendum 135-2012aq */
+    OBJECT_LIFT = 59,   /* Addendum 135-2012aq */
         /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
         /* Enumerated values 128-1023 may be used by others subject to  */
         /* the procedures and constraints described in Clause 23. */
