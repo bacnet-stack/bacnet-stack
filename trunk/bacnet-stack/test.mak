@@ -217,7 +217,7 @@ wp: logfile test/wp.mak
 	$(MAKE) -s -C test -f wp.mak clean
 
 objects: ai ao av bi bo bv csv lc lo lso lsp \
-	mso msv ms-input osv piv command \
+	mso msv ms-input netport osv piv command \
 	access_credential access_door access_point access_rights \
 	access_user access_zone credential_data_input
 
@@ -339,6 +339,11 @@ osv: logfile demo/object/osv.mak
 	$(MAKE) -s -C demo/object -f osv.mak clean all
 	( ./demo/object/octetstring_value >> ${LOGFILE} )
 	$(MAKE) -s -C demo/object -f osv.mak clean
+
+netport: logfile demo/object/netport.mak
+	$(MAKE) -s -C demo/object -f netport.mak clean all
+	( ./demo/object/network_port >> ${LOGFILE} )
+	$(MAKE) -s -C demo/object -f netport.mak clean
 
 piv: logfile demo/object/piv.mak
 	$(MAKE) -s -C demo/object -f piv.mak clean all

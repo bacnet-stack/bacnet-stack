@@ -40,7 +40,7 @@
 /* Although this stack can implement a later revision,
  * sometimes another revision is desired */
 #ifndef BACNET_PROTOCOL_REVISION
-#define BACNET_PROTOCOL_REVISION 14
+#define BACNET_PROTOCOL_REVISION 19
 #endif
 
 /* there are a few dependencies on the BACnet Protocol-Revision */

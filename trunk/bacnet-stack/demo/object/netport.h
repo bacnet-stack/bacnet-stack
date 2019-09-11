@@ -50,6 +50,11 @@ extern "C" {
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    void Network_Port_Property_List(
+        uint32_t object_instance,
+        const int **pRequired,
+        const int **pOptional,
+        const int **pProprietary);
 
     bool Network_Port_Object_Name(
         uint32_t object_instance,
@@ -193,6 +198,54 @@ extern "C" {
         uint32_t object_instance,
         bool value);
 
+    BACNET_IP_MODE Network_Port_BIP6_Mode(
+        uint32_t object_instance);
+    bool Network_Port_BIP6_Mode_Set(
+        uint32_t object_instance,
+        BACNET_IP_MODE value);
+
+    bool Network_Port_IPv6_Address(
+        uint32_t object_instance,
+        BACNET_OCTET_STRING *ip_address);
+    bool Network_Port_IPv6_Address_Set(
+        uint32_t object_instance,
+        uint8_t *ip_address);
+
+    bool Network_Port_IPv6_Multicast_Address(
+        uint32_t object_instance,
+        BACNET_OCTET_STRING *ip_address);
+    bool Network_Port_IPv6_Multicast_Address_Set(
+        uint32_t object_instance,
+        uint8_t *ip_address);
+
+    uint8_t Network_Port_IPv6_Subnet_Prefix(
+        uint32_t object_instance);
+    bool Network_Port_IPv6_Subnet_Prefix_Set(
+        uint32_t object_instance,
+        uint8_t value);
+
+    bool Network_Port_IPv6_Gateway(
+        uint32_t object_instance,
+        BACNET_OCTET_STRING *ip_address);
+    bool Network_Port_IPv6_Gateway_Set(
+        uint32_t object_instance,
+        uint8_t *ip_address);
+
+    bool Network_Port_IPv6_DNS_Server(
+        uint32_t object_instance,
+        unsigned dns_index,
+        BACNET_OCTET_STRING *ip_address);
+    bool Network_Port_IPv6_DNS_Server_Set(
+        uint32_t object_instance,
+        unsigned dns_index,
+        uint8_t *ip_address);
+
+    uint16_t Network_Port_BIP6_Port(
+        uint32_t object_instance);
+    bool Network_Port_BIP6_Port_Set(
+        uint32_t object_instance,
+        uint16_t value);
+
     bool Network_Port_Changes_Pending(
         uint32_t instance);
     bool Network_Port_Changes_Pending_Set(
@@ -208,7 +261,7 @@ extern "C" {
     unsigned Network_Port_Instance_To_Index(
         uint32_t object_instance);
 
-    bool Network_Port_Set_Network_Port_Instance_ID(
+    bool Network_Port_Object_Instance_Number_Set(
         unsigned index,
         uint32_t object_instance);
 

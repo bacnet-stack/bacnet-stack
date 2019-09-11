@@ -216,7 +216,7 @@ int dlenv_register_as_foreign_device(
  */
 static void dlenv_network_port_init(void)
 {
-    uint32_t instance = 0;
+    uint32_t instance = 1;
     uint32_t address = 0;
     uint32_t broadcast = 0;
     uint32_t test_broadcast = 0;
@@ -225,7 +225,7 @@ static void dlenv_network_port_init(void)
     uint8_t mac[4+2] = {0};
     uint8_t prefix = 0;
 
-    instance = Network_Port_Index_To_Instance(0);
+    Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IP Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP);
     port = bip_get_port();
@@ -243,6 +243,16 @@ static void dlenv_network_port_init(void)
         }
     }
     Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
+    Network_Port_Link_Speed_Set(instance, 0.0);
+    /* common NP data */
+    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
+    Network_Port_Out_Of_Service_Set(instance, false);
+    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
+    Network_Port_APDU_Length_Set(instance, MAX_APDU);
+    Network_Port_Network_Number_Set(instance, 0);
+    /* last thing - clear pending changes - we don't want to set these
+       since they are already set */
+    Network_Port_Changes_Pending_Set(instance, false);
 }
 #elif defined(BACDL_MSTP)
 /**
@@ -250,16 +260,26 @@ static void dlenv_network_port_init(void)
  */
 static void dlenv_network_port_init(void)
 {
-    uint32_t instance = 0;
+    uint32_t instance = 1;
     uint8_t mac[1] = {0};
 
-    instance = Network_Port_Index_To_Instance(0);
+    Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "MS/TP Port");
+    Network_Port_Type_Set(instance, PORT_TYPE_MSTP);
     Network_Port_MSTP_Max_Master_Set(instance, dlmstp_max_master());
     Network_Port_MSTP_Max_Info_Frames_Set(instance, dlmstp_max_info_frames());
     Network_Port_Link_Speed_Set(instance, dlmstp_baud_rate());
     mac[0] = dlmstp_mac_address();
     Network_Port_MAC_Address_Set(instance, &mac[0], 1);
+    /* common NP data */
+    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
+    Network_Port_Out_Of_Service_Set(instance, false);
+    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
+    Network_Port_APDU_Length_Set(instance, MAX_APDU);
+    Network_Port_Network_Number_Set(instance, 0);
+    /* last thing - clear pending changes - we don't want to set these
+       since they are already set */
+    Network_Port_Changes_Pending_Set(instance, false);
 }
 #elif defined(BACDL_BIP6)
 /**
@@ -267,12 +287,39 @@ static void dlenv_network_port_init(void)
  */
 static void dlenv_network_port_init(void)
 {
-    uint32_t instance = 0;
-    const char *bip_port_name = ;
+    uint32_t instance = 1;
+    uint32_t address = 0;
+    uint32_t broadcast = 0;
+    uint32_t test_broadcast = 0;
+    uint32_t mask = 0;
+    uint16_t port = 0;
+    uint8_t mac[16] = {0};
+    uint8_t prefix = 0;
+    BACNET_ADDRESS addr = {0};
+    BACNET_IP6_ADDRESS addr6 = {0};
 
-    instance = Network_Port_Index_To_Instance(0);
+    Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IPv6 Port");
+    Network_Port_Type_Set(instance, PORT_TYPE_BIP6);
+    port = bip6_get_port();
+    Network_Port_BIP6_Port_Set(instance, port);
+    bip6_get_my_address(&addr);
+    Network_Port_MAC_Address_Set(instance, &addr.mac[0], addr.mac_len);
+    bip6_get_addr(&addr6);
+    Network_Port_IPv6_Address_Set(instance, &addr6.address[0]);
+    bip6_get_broadcast_addr(&addr6);
+    Network_Port_IPv6_Multicast_Address_Set(instance, &addr6.address[0]);
+    Network_Port_IPv6_Subnet_Prefix_Set(instance, prefix);
 
+    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
+    Network_Port_Link_Speed_Set(instance, 0.0);
+    Network_Port_Out_Of_Service_Set(instance, false);
+    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
+    Network_Port_APDU_Length_Set(instance, MAX_APDU);
+    Network_Port_Network_Number_Set(instance, 0);
+    /* last thing - clear pending changes - we don't want to set these
+       since they are already set */
+    Network_Port_Changes_Pending_Set(instance, false);
 }
 #endif
 #else

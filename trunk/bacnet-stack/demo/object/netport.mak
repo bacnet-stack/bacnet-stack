@@ -3,7 +3,7 @@ CC      = gcc
 SRC_DIR = ../../src
 TEST_DIR = ../../test
 INCLUDES = -I../../include -I$(TEST_DIR) -I.
-DEFINES = -DBIG_ENDIAN=0 -DBACNET_UNIT_TEST -DBACAPP_ALL -DTEST_NETWORK_PORT
+DEFINES = -DBIG_ENDIAN=0 -DBACNET_UNIT_TEST -DTEST_NETWORK_PORT
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
@@ -17,6 +17,7 @@ SRCS = netport.c \
 	$(SRC_DIR)/bacdevobjpropref.c \
 	$(SRC_DIR)/bactext.c \
 	$(SRC_DIR)/lighting.c \
+	$(SRC_DIR)/proplist.c \
 	$(SRC_DIR)/indtext.c \
 	$(TEST_DIR)/ctest.c
 
