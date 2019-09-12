@@ -56,6 +56,9 @@ extern "C" {
     void bip6_set_interface(
         char *ifname);
 
+    bool bip6_address_match_self(
+        BACNET_IP6_ADDRESS *addr);
+
     bool bip6_set_addr(
         BACNET_IP6_ADDRESS *addr);
     bool bip6_get_addr(
