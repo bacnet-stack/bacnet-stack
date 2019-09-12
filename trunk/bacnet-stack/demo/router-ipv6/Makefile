@@ -25,7 +25,12 @@ PORT_BIP6_SRC = \
 	$(BACNET_HANDLER_DIR)/h_bbmd6.c \
 	$(BACNET_SOURCE_DIR)/vmac.c
 
-SRCS = ${SRC} ${PORT_BIP6_SRC}
+PORT_BIP_SRC = \
+	$(BACNET_PORT_DIR)/bip-init.c \
+	$(BACNET_SOURCE_DIR)/bvlc.c \
+	$(BACNET_SOURCE_DIR)/bip.c
+
+SRCS = ${SRC} ${PORT_BIP6_SRC} ${PORT_BIP_SRC}
 
 OBJS = ${SRCS:.c=.o}
 
