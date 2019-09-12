@@ -288,12 +288,6 @@ static void dlenv_network_port_init(void)
 static void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
-    uint32_t address = 0;
-    uint32_t broadcast = 0;
-    uint32_t test_broadcast = 0;
-    uint32_t mask = 0;
-    uint16_t port = 0;
-    uint8_t mac[16] = {0};
     uint8_t prefix = 0;
     BACNET_ADDRESS addr = {0};
     BACNET_IP6_ADDRESS addr6 = {0};
@@ -301,8 +295,7 @@ static void dlenv_network_port_init(void)
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IPv6 Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP6);
-    port = bip6_get_port();
-    Network_Port_BIP6_Port_Set(instance, port);
+    Network_Port_BIP6_Port_Set(instance, bip6_get_port());
     bip6_get_my_address(&addr);
     Network_Port_MAC_Address_Set(instance, &addr.mac[0], addr.mac_len);
     bip6_get_addr(&addr6);
