@@ -699,7 +699,7 @@ static int handler_bbmd6_for_non_bbmd(
                 debug_printf("BIP6: Received Original-Unicast-NPDU.\n");
                 if (bbmd6_address_match_self(addr)) {
                     /* ignore messages from my IPv6 address */
-                    offset = 0;
+                    debug_printf("BIP6: Original-Unicast-NPDU is me!.\n");
                 } else {
                     function_len = bvlc6_decode_original_unicast(
                         pdu, pdu_len,
@@ -713,7 +713,14 @@ static int handler_bbmd6_for_non_bbmd(
                             bbmd6_add_vmac(vmac_src, addr);
                             bvlc6_vmac_address_set(src, vmac_src);
                             offset = header_len + (function_len - npdu_len);
+                        } else {
+                            debug_printf(
+                                "BIP6: Original-Unicast-NPDU: "
+                                "VMAC is not me!\n");
                         }
+                    } else {
+                        debug_printf(
+                            "BIP6: Original-Unicast-NPDU: Unable to decode!\n");
                     }
                 }
                 break;
@@ -721,7 +728,7 @@ static int handler_bbmd6_for_non_bbmd(
                 debug_printf("BIP6: Received Original-Broadcast-NPDU.\n");
                 if (bbmd6_address_match_self(addr)) {
                     /* ignore messages from my IPv6 address */
-                    offset = 0;
+                    debug_printf("BIP6: Original-Broadcast-NPDU is me!\n");
                 } else {
                     function_len = bvlc6_decode_original_broadcast(
                         pdu, pdu_len,
@@ -734,6 +741,9 @@ static int handler_bbmd6_for_non_bbmd(
                         bbmd6_add_vmac(vmac_src, addr);
                         bvlc6_vmac_address_set(src, vmac_src);
                         offset = header_len + (function_len - npdu_len);
+                    } else {
+                        debug_printf(
+                            "BIP6: Original-Broadcast-NPDU: Unable to decode!\n");
                     }
                 }
                 break;
@@ -741,7 +751,7 @@ static int handler_bbmd6_for_non_bbmd(
                 debug_printf("BIP6: Received Forwarded-NPDU.\n");
                 if (bbmd6_address_match_self(addr)) {
                     /* ignore messages from my IPv6 address */
-                    offset = 0;
+                    debug_printf("BIP6: Forwarded-NPDU is me!\n");
                 } else {
                     function_len = bvlc6_decode_forwarded_npdu(
                         pdu, pdu_len,
@@ -754,6 +764,9 @@ static int handler_bbmd6_for_non_bbmd(
                         bbmd6_add_vmac(vmac_src, &fwd_address);
                         bvlc6_vmac_address_set(src, vmac_src);
                         offset = header_len + (function_len - npdu_len);
+                    } else {
+                        debug_printf(
+                            "BIP6: Forwarded-NPDU: Unable to decode!\n");
                     }
                 }
                 break;
@@ -862,6 +875,7 @@ static int handler_bbmd6_for_bbmd(
                    another B/IPv6 node or router. */
                 debug_printf("BIP6: Received Original-Unicast-NPDU.\n");
                 if (bbmd6_address_match_self(addr)) {
+                    debug_printf("BIP6: Dropped Original-Unicast-NPDU.\n");
                     /* ignore messages from my IPv6 address */
                     offset = 0;
                 } else {
