@@ -6,8 +6,7 @@ compiler:
 
 jobs:
   include:
-    - env: BUILD_TARGET="scan-build"
-      os: linux
+    - os: linux
       compiler: clang
       script: scan-build --status-bugs -analyze-headers -v make -j2
     - os: linux
