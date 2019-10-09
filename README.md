@@ -1,3 +1,5 @@
+# BACnet Stack [![Build Status](https://travis-ci.com/bacnet-stack/bacnet-stack.svg?branch=master)](https://travis-ci.com/bacnet-stack/bacnet-stack)
+
 BACnet open source protocol stack for embedded systems, Linux, and Windows
 http://bacnet.sourceforge.net/
 
@@ -104,3 +106,7 @@ mailing list and we can help.
 Steve Karg
 Birmingham, Alabama USA
 skarg@users.sourceforge.net
+
+ASHRAE® and BACnet® are registered trademarks of the 
+American Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.
+1791 Tullie Circle NE, Atlanta, GA 30329.
