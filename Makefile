@@ -128,3 +128,7 @@ clean:
 	$(MAKE) -s -C demo/router clean
 	$(MAKE) -s -C demo/router-ipv6 clean
 	$(MAKE) -s -C demo/gateway clean
+
+test:
+	$(MAKE)make -s -C test clean all report
+	$(MAKE)make -s -C demo/objects clean all report
