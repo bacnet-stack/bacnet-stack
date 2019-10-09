@@ -40,7 +40,6 @@
 *.ewsample
 *.asm
 *.ind
-*.ld
 *.7z
 *.hex
 *.elf

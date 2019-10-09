@@ -1,0 +1,26 @@
+language: c
+
+compiler:
+  - clang
+  - gcc
+
+jobs:
+  include:
+    - env: BUILD_TARGET="scan-build"
+      os: linux
+      compiler: clang
+      script: scan-build --status-bugs -analyze-headers -v make -j2
+    - os: linux
+      compiler: gcc
+      script: make
+    - stage: lint
+      name: "Pretty Check"
+      os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-6.0
+            - ubuntu-toolchain-r-test
+          packages:
+            - clang-format-6.0
+      script: make pretty-check
