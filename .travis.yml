@@ -6,10 +6,6 @@ compiler:
 
 jobs:
   include:
-    - stage: lint 
-      os: linux
-      compiler: clang
-      script: scan-build --status-bugs -analyze-headers -v make -j2
     - stage: demos-build
       os: linux
       compiler: gcc
@@ -22,4 +18,8 @@ jobs:
       os: linux
       compiler: gcc
       script: make clean test
+    - stage: lint 
+      os: linux
+      compiler: clang
+      script: scan-build --status-bugs -analyze-headers -v make -j2 server
 
