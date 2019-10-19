@@ -1,19 +1,20 @@
 language: c
 
 jobs:
-  - stage: demos-build
-    os: linux
-    compiler: gcc
-    script: make clean all
-  - stage: gateway-build
-    os: linux
-    compiler: gcc
-    script: make clean gateway
-  - stage: unit-tests
-    os: linux
-    compiler: gcc
-    script: make clean test
-  - stage: lint
-    os: linux
-    compiler: clang
-    script: scan-build --status-bugs -analyze-headers -v make -j2 clean server
+  - include:
+    - stage: demos-build
+      os: linux
+      compiler: gcc
+      script: make clean all
+    - stage: gateway-build
+      os: linux
+      compiler: gcc
+      script: make clean gateway
+    - stage: unit-tests
+      os: linux
+      compiler: gcc
+      script: make clean test
+    - stage: lint
+      os: linux
+      compiler: clang
+      script: scan-build --status-bugs -analyze-headers -v make -j2 clean server

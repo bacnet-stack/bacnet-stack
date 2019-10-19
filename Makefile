@@ -133,7 +133,7 @@ test:
 	$(MAKE) -s -C test clean
 	$(MAKE) -s -C test all
 	$(MAKE) -s -C test report
-	$(MAKE) -s -C demo/objects clean
-	$(MAKE) -s -C demo/objects all
-	$(MAKE) -s -C demo/objects report
+	$(MAKE) -s -C demo/object clean
+	$(MAKE) -s -C demo/object all
+	$(MAKE) -s -C demo/object report
 
