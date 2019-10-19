@@ -62,7 +62,7 @@ CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DE
 .EXPORT_ALL_VARIABLES:
 
 all: library demos router-ipv6 ${DEMO_LINUX}
-.PHONY : all library demos router gateway router-ipv6 clean
+.PHONY : all library demos router gateway router-ipv6 clean test
 
 library:
 	$(MAKE) -s -C lib all
@@ -130,5 +130,10 @@ clean:
 	$(MAKE) -s -C demo/gateway clean
 
 test:
-	$(MAKE)make -s -C test clean all report
-	$(MAKE)make -s -C demo/objects clean all report
+	$(MAKE) -s -C test clean
+	$(MAKE) -s -C test all
+	$(MAKE) -s -C test report
+	$(MAKE) -s -C demo/objects clean
+	$(MAKE) -s -C demo/objects all
+	$(MAKE) -s -C demo/objects report
+
