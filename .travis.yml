@@ -1,6 +1,8 @@
 language: c
 
-compiler: gcc
+compiler:
+  - gcc
+  - clang
 
 jobs:
   - include:
