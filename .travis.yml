@@ -1,5 +1,7 @@
 language: c
 
+compiler: gcc
+
 jobs:
   - include:
     - stage: demos-build
@@ -10,10 +12,6 @@ jobs:
       os: linux
       compiler: gcc
       script: make clean gateway
-    - stage: unit-tests
-      os: linux
-      compiler: gcc
-      script: make clean test
     - stage: lint
       os: linux
       compiler: clang
