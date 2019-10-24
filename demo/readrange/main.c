@@ -1,26 +1,26 @@
 /*************************************************************************
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 #define PRINT_ENABLED 1
 
@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <time.h>       /* for time */
+#include <time.h> /* for time */
 #include "bacdef.h"
 #include "config.h"
 #include "bactext.h"
@@ -54,7 +54,7 @@
 #include "readrange.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
 /* converted command line arguments */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
@@ -71,51 +71,43 @@ static bool Error_Detected = false;
 /* specific request data */
 static BACNET_READ_RANGE_DATA RR_Request;
 
-static void MyErrorHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class,
-    BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                           BACNET_ERROR_CLASS error_class,
+                           BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\r\n",
-            bactext_error_class_name((int) error_class),
-            bactext_error_code_name((int) error_code));
+               bactext_error_class_name((int)error_class),
+               bactext_error_code_name((int)error_code));
         Error_Detected = true;
     }
 }
 
-void MyAbortHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server)
+void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                    uint8_t abort_reason, bool server)
 {
-    (void) server;
+    (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\n",
-            bactext_abort_reason_name((int) abort_reason));
+               bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-void MyRejectHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t reject_reason)
+void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                     uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\n",
-            bactext_reject_reason_name((int) reject_reason));
+               bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
-static void Init_Service_Handlers(
-    void)
+static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is
@@ -125,14 +117,13 @@ static void Init_Service_Handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_RANGE,
-        handler_read_range_ack);
+                                   handler_read_range_ack);
 
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
@@ -144,14 +135,15 @@ static void Init_Service_Handlers(
 static void print_usage(char *filename)
 {
     printf("Usage: %s device-instance object-type object-instance property\n",
-        filename);
+           filename);
     printf("       range-type <index|<date time>> count\n");
     printf("       [--version][--help]\n");
 }
 
 static void print_help(char *filename)
 {
-    printf("Read a range of properties from an array or list property\n"
+    printf(
+        "Read a range of properties from an array or list property\n"
         "in an object in a BACnet device and print the values.\n"
         "device-instance:\n"
         "BACnet Device Object Instance number that you are\n"
@@ -186,20 +178,17 @@ static void print_help(char *filename)
         "If you want read the Log_Buffer of Trend Log 2\n"
         "in Device 123, from starting position 1 and read 10 entries,\n"
         "you could send the following command:\n"
-        "%s 123 20 2 131 1 1 10\n", filename);
+        "%s 123 20 2 131 1 1 10\n",
+        filename);
     printf("%s 123 20 2 131 2 1 10\n", filename);
     printf("%s 123 20 2 131 3 1/1/2014 00:00:01 10\n", filename);
 }
 
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     /* milliseconds */
+    unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
@@ -221,8 +210,10 @@ int main(
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying conditions.\n"
+            printf(
+                "Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
@@ -241,7 +232,7 @@ int main(
     /* some bounds checking */
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_Object_Range_Type == 1) {
@@ -270,39 +261,34 @@ int main(
             return 0;
         }
         RR_Request.RequestType = RR_BY_TIME;
-        count =
-            sscanf(argv[6], "%4d/%3d/%3d:%3d", &year, &month, &day,
-            &wday);
+        count = sscanf(argv[6], "%4d/%3d/%3d:%3d", &year, &month, &day, &wday);
         if (count == 3) {
-            datetime_set_date(&RR_Request.Range.RefTime.date,
-                (uint16_t) year,
-                (uint8_t) month,
-                (uint8_t) day);
+            datetime_set_date(&RR_Request.Range.RefTime.date, (uint16_t)year,
+                              (uint8_t)month, (uint8_t)day);
         } else if (count == 4) {
-            RR_Request.Range.RefTime.date.year = (uint16_t) year;
-            RR_Request.Range.RefTime.date.month = (uint8_t) month;
-            RR_Request.Range.RefTime.date.day = (uint8_t) day;
-            RR_Request.Range.RefTime.date.wday = (uint8_t) wday;
+            RR_Request.Range.RefTime.date.year = (uint16_t)year;
+            RR_Request.Range.RefTime.date.month = (uint8_t)month;
+            RR_Request.Range.RefTime.date.day = (uint8_t)day;
+            RR_Request.Range.RefTime.date.wday = (uint8_t)wday;
         } else {
             fprintf(stderr, "Invalid date format!\r\n");
             return 1;
         }
         count =
-            sscanf(argv[7], "%3d:%3d:%3d.%3d", &hour, &min, &sec,
-            &hundredths);
+            sscanf(argv[7], "%3d:%3d:%3d.%3d", &hour, &min, &sec, &hundredths);
         if (count == 4) {
-            RR_Request.Range.RefTime.time.hour = (uint8_t) hour;
-            RR_Request.Range.RefTime.time.min = (uint8_t) min;
-            RR_Request.Range.RefTime.time.sec = (uint8_t) sec;
-            RR_Request.Range.RefTime.time.hundredths = (uint8_t) hundredths;
+            RR_Request.Range.RefTime.time.hour = (uint8_t)hour;
+            RR_Request.Range.RefTime.time.min = (uint8_t)min;
+            RR_Request.Range.RefTime.time.sec = (uint8_t)sec;
+            RR_Request.Range.RefTime.time.hundredths = (uint8_t)hundredths;
         } else if (count == 3) {
-            RR_Request.Range.RefTime.time.hour = (uint8_t) hour;
-            RR_Request.Range.RefTime.time.min = (uint8_t) min;
-            RR_Request.Range.RefTime.time.sec = (uint8_t) sec;
+            RR_Request.Range.RefTime.time.hour = (uint8_t)hour;
+            RR_Request.Range.RefTime.time.min = (uint8_t)min;
+            RR_Request.Range.RefTime.time.sec = (uint8_t)sec;
             RR_Request.Range.RefTime.time.hundredths = 0;
         } else if (count == 2) {
-            RR_Request.Range.RefTime.time.hour = (uint8_t) hour;
-            RR_Request.Range.RefTime.time.min = (uint8_t) min;
+            RR_Request.Range.RefTime.time.hour = (uint8_t)hour;
+            RR_Request.Range.RefTime.time.min = (uint8_t)min;
             RR_Request.Range.RefTime.time.sec = 0;
             RR_Request.Range.RefTime.time.hundredths = 0;
         } else {
@@ -332,12 +318,11 @@ int main(
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found =
-        address_bind_request(Target_Device_Object_Instance, &max_apdu,
-        &Target_Address);
+    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
+                                 &Target_Address);
     if (!found) {
         Send_WhoIs(Target_Device_Object_Instance,
-            Target_Device_Object_Instance);
+                   Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -346,21 +331,19 @@ int main(
 
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds((uint16_t) ((current_seconds -
-                        last_seconds) * 1000));
+            tsm_timer_milliseconds(
+                (uint16_t)((current_seconds - last_seconds) * 1000));
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found =
-                address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                &Target_Address);
+            found = address_bind_request(Target_Device_Object_Instance,
+                                         &max_apdu, &Target_Address);
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
                 Request_Invoke_ID = Send_ReadRange_Request(
-                    Target_Device_Object_Instance,
-                    &RR_Request);
+                    Target_Device_Object_Instance, &RR_Request);
             } else if (tsm_invoke_id_free(Request_Invoke_ID))
                 break;
             else if (tsm_invoke_id_failed(Request_Invoke_ID)) {

@@ -41,7 +41,7 @@
 #include "bacenum.h"
 #include "bacapp.h"
 #include "bactext.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "device.h"
 #include "handlers.h"
 /* me! */
@@ -52,31 +52,25 @@
 #endif
 
 struct integer_object {
-    bool Out_Of_Service:1;
+    bool Out_Of_Service : 1;
     int32_t Present_Value;
     uint16_t Units;
 };
 struct integer_object Integer_Value[MAX_INTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Integer_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_UNITS,
-    -1
-};
+static const int Integer_Value_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                                        PROP_OBJECT_NAME,
+                                                        PROP_OBJECT_TYPE,
+                                                        PROP_PRESENT_VALUE,
+                                                        PROP_STATUS_FLAGS,
+                                                        PROP_UNITS,
+                                                        -1};
 
-static const int Integer_Value_Properties_Optional[] = {
-    PROP_OUT_OF_SERVICE,
-    -1
-};
+static const int Integer_Value_Properties_Optional[] = {PROP_OUT_OF_SERVICE,
+                                                        -1};
 
-static const int Integer_Value_Properties_Proprietary[] = {
-    -1
-};
+static const int Integer_Value_Properties_Proprietary[] = {-1};
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -89,10 +83,8 @@ static const int Integer_Value_Properties_Proprietary[] = {
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
-void Integer_Value_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Integer_Value_Property_Lists(const int **pRequired, const int **pOptional,
+                                  const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Integer_Value_Properties_Required;
@@ -111,8 +103,7 @@ void Integer_Value_Property_Lists(
  *
  * @return  true if the instance is valid, and false if not
  */
-bool Integer_Value_Valid_Instance(
-    uint32_t object_instance)
+bool Integer_Value_Valid_Instance(uint32_t object_instance)
 {
     unsigned int index;
 
@@ -129,8 +120,7 @@ bool Integer_Value_Valid_Instance(
  *
  * @return  Number of Analog Value objects
  */
-unsigned Integer_Value_Count(
-    void)
+unsigned Integer_Value_Count(void)
 {
     return MAX_INTEGER_VALUES;
 }
@@ -143,8 +133,7 @@ unsigned Integer_Value_Count(
  *
  * @return  object instance-number for the given index
  */
-uint32_t Integer_Value_Index_To_Instance(
-    unsigned index)
+uint32_t Integer_Value_Index_To_Instance(unsigned index)
 {
     uint32_t instance = 1;
 
@@ -162,8 +151,7 @@ uint32_t Integer_Value_Index_To_Instance(
  * @return  index for the given instance-number, or MAX_INTEGER_VALUES
  * if not valid.
  */
-unsigned Integer_Value_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Integer_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_INTEGER_VALUES;
 
@@ -184,8 +172,7 @@ unsigned Integer_Value_Instance_To_Index(
  *
  * @return  present-value of the object
  */
-int32_t Integer_Value_Present_Value(
-    uint32_t object_instance)
+int32_t Integer_Value_Present_Value(uint32_t object_instance)
 {
     int32_t value = 0;
     unsigned int index;
@@ -206,10 +193,8 @@ int32_t Integer_Value_Present_Value(
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Integer_Value_Present_Value_Set(
-    uint32_t object_instance,
-    int32_t value,
-    uint8_t priority)
+bool Integer_Value_Present_Value_Set(uint32_t object_instance, int32_t value,
+                                     uint8_t priority)
 {
     bool status = false;
     unsigned int index;
@@ -234,9 +219,8 @@ bool Integer_Value_Present_Value_Set(
  *
  * @return  true if object-name was retrieved
  */
-bool Integer_Value_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Integer_Value_Object_Name(uint32_t object_instance,
+                               BACNET_CHARACTER_STRING *object_name)
 {
     char text_string[32] = "";
     unsigned int index;
@@ -244,7 +228,8 @@ bool Integer_Value_Object_Name(
 
     index = Integer_Value_Instance_To_Index(object_instance);
     if (index < MAX_INTEGER_VALUES) {
-        sprintf(text_string, "ANALOG VALUE %lu", (unsigned long) object_instance);
+        sprintf(text_string, "ANALOG VALUE %lu",
+                (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
@@ -258,8 +243,7 @@ bool Integer_Value_Object_Name(
  *
  * @return  units property value
  */
-uint16_t Integer_Value_Units(
-    uint32_t instance)
+uint16_t Integer_Value_Units(uint32_t instance)
 {
     unsigned int index;
     uint16_t units = UNITS_NO_UNITS;
@@ -280,9 +264,7 @@ uint16_t Integer_Value_Units(
  *
  * @return true if the units property value was set
  */
-bool Integer_Value_Units_Set(
-    uint32_t instance,
-    uint16_t units)
+bool Integer_Value_Units_Set(uint32_t instance, uint16_t units)
 {
     unsigned int index = 0;
     bool status = false;
@@ -304,15 +286,14 @@ bool Integer_Value_Units_Set(
  *
  * @return  out-of-service property value
  */
-bool Integer_Value_Out_Of_Service(
-    uint32_t instance)
+bool Integer_Value_Out_Of_Service(uint32_t instance)
 {
     unsigned int index = 0;
     bool value = false;
 
     index = Integer_Value_Instance_To_Index(instance);
     if (index < MAX_INTEGER_VALUES) {
-        value= Integer_Value[index].Out_Of_Service;
+        value = Integer_Value[index].Out_Of_Service;
     }
 
     return value;
@@ -326,9 +307,7 @@ bool Integer_Value_Out_Of_Service(
  *
  * @return true if the out-of-service property value was set
  */
-void Integer_Value_Out_Of_Service_Set(
-    uint32_t instance,
-    bool value)
+void Integer_Value_Out_Of_Service_Set(uint32_t instance, bool value)
 {
     unsigned int index = 0;
 
@@ -348,10 +327,9 @@ void Integer_Value_Out_Of_Service_Set(
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int Integer_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
@@ -367,9 +345,8 @@ int Integer_Value_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_INTEGER_VALUE,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_INTEGER_VALUE, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Integer_Value_Object_Name(rpdata->object_instance, &char_string);
@@ -381,7 +358,8 @@ int Integer_Value_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_INTEGER_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            integer_value = Integer_Value_Present_Value(rpdata->object_instance);
+            integer_value =
+                Integer_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_signed(&apdu[0], integer_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -428,17 +406,15 @@ int Integer_Value_Read_Property(
  *
  * @return false if an error is loaded, true if no errors
  */
-bool Integer_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -456,22 +432,22 @@ bool Integer_Value_Write_Property(
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-                status =
+            status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_SIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
-                if (status) {
+                                  &wp_data->error_class, &wp_data->error_code);
+            if (status) {
                 Integer_Value_Present_Value_Set(wp_data->object_instance,
-                        value.type.Signed_Int, wp_data->priority);
+                                                value.type.Signed_Int,
+                                                wp_data->priority);
             }
             break;
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Integer_Value_Out_Of_Service_Set(
-                    wp_data->object_instance,
-                    value.type.Boolean);
+                Integer_Value_Out_Of_Service_Set(wp_data->object_instance,
+                                                 value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -494,8 +470,7 @@ bool Integer_Value_Write_Property(
 /**
  * Initializes the Integer Value object data
  */
-void Integer_Value_Init(
-    void)
+void Integer_Value_Init(void)
 {
     unsigned index = 0;
 

@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Access Door Objects - customize for your use */
 
@@ -32,7 +32,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "wp.h"
 #include "access_door.h"
 #include "handlers.h"
@@ -42,40 +42,30 @@ static bool Access_Door_Initialized = false;
 static ACCESS_DOOR_DESCR ad_descr[MAX_ACCESS_DOORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE,
-    PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
-    PROP_DOOR_PULSE_TIME,
-    PROP_DOOR_EXTENDED_PULSE_TIME,
-    PROP_DOOR_OPEN_TOO_LONG_TIME,
-    -1
-};
+static const int Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                          PROP_OBJECT_NAME,
+                                          PROP_OBJECT_TYPE,
+                                          PROP_PRESENT_VALUE,
+                                          PROP_STATUS_FLAGS,
+                                          PROP_EVENT_STATE,
+                                          PROP_RELIABILITY,
+                                          PROP_OUT_OF_SERVICE,
+                                          PROP_PRIORITY_ARRAY,
+                                          PROP_RELINQUISH_DEFAULT,
+                                          PROP_DOOR_PULSE_TIME,
+                                          PROP_DOOR_EXTENDED_PULSE_TIME,
+                                          PROP_DOOR_OPEN_TOO_LONG_TIME,
+                                          -1};
 
 static const int Properties_Optional[] = {
-    PROP_DOOR_STATUS,
-    PROP_LOCK_STATUS,
-    PROP_SECURED_STATUS,
-    PROP_DOOR_UNLOCK_DELAY_TIME,
-    PROP_DOOR_ALARM_STATE,
-    -1
-};
+    PROP_DOOR_STATUS,      PROP_LOCK_STATUS,
+    PROP_SECURED_STATUS,   PROP_DOOR_UNLOCK_DELAY_TIME,
+    PROP_DOOR_ALARM_STATE, -1};
 
-static const int Properties_Proprietary[] = {
-    -1
-};
+static const int Properties_Proprietary[] = {-1};
 
-void Access_Door_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Access_Door_Property_Lists(const int **pRequired, const int **pOptional,
+                                const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -87,8 +77,7 @@ void Access_Door_Property_Lists(
     return;
 }
 
-void Access_Door_Init(
-    void)
+void Access_Door_Init(void)
 {
     unsigned i, j;
 
@@ -104,10 +93,10 @@ void Access_Door_Init(
             ad_descr[i].door_status = DOOR_STATUS_CLOSED;
             ad_descr[i].lock_status = LOCK_STATUS_LOCKED;
             ad_descr[i].secured_status = DOOR_SECURED_STATUS_SECURED;
-            ad_descr[i].door_pulse_time = 30;   /* 3s */
-            ad_descr[i].door_extended_pulse_time = 50;  /* 5s */
-            ad_descr[i].door_unlock_delay_time = 0;     /* 0s */
-            ad_descr[i].door_open_too_long_time = 300;  /* 30s */
+            ad_descr[i].door_pulse_time = 30;          /* 3s */
+            ad_descr[i].door_extended_pulse_time = 50; /* 5s */
+            ad_descr[i].door_unlock_delay_time = 0;    /* 0s */
+            ad_descr[i].door_open_too_long_time = 300; /* 30s */
             ad_descr[i].door_alarm_state = DOOR_ALARM_STATE_NORMAL;
             for (j = 0; j < BACNET_MAX_PRIORITY; j++) {
                 ad_descr[i].value_active[j] = false;
@@ -123,8 +112,7 @@ void Access_Door_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Access_Door_Valid_Instance(
-    uint32_t object_instance)
+bool Access_Door_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_ACCESS_DOORS)
         return true;
@@ -134,8 +122,7 @@ bool Access_Door_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Access_Door_Count(
-    void)
+unsigned Access_Door_Count(void)
 {
     return MAX_ACCESS_DOORS;
 }
@@ -143,8 +130,7 @@ unsigned Access_Door_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Access_Door_Index_To_Instance(
-    unsigned index)
+uint32_t Access_Door_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -152,8 +138,7 @@ uint32_t Access_Door_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Access_Door_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Access_Door_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCESS_DOORS;
 
@@ -163,8 +148,7 @@ unsigned Access_Door_Instance_To_Index(
     return index;
 }
 
-BACNET_DOOR_VALUE Access_Door_Present_Value(
-    uint32_t object_instance)
+BACNET_DOOR_VALUE Access_Door_Present_Value(uint32_t object_instance)
 {
     unsigned index = 0;
     unsigned i = 0;
@@ -183,12 +167,11 @@ BACNET_DOOR_VALUE Access_Door_Present_Value(
     return value;
 }
 
-unsigned Access_Door_Present_Value_Priority(
-    uint32_t object_instance)
+unsigned Access_Door_Present_Value_Priority(uint32_t object_instance)
 {
-    unsigned index = 0; /* instance to index conversion */
-    unsigned i = 0;     /* loop counter */
-    unsigned priority = 0;      /* return value */
+    unsigned index = 0;    /* instance to index conversion */
+    unsigned i = 0;        /* loop counter */
+    unsigned priority = 0; /* return value */
 
     index = Access_Door_Instance_To_Index(object_instance);
     if (index < MAX_ACCESS_DOORS) {
@@ -203,10 +186,8 @@ unsigned Access_Door_Present_Value_Priority(
     return priority;
 }
 
-bool Access_Door_Present_Value_Set(
-    uint32_t object_instance,
-    BACNET_DOOR_VALUE value,
-    unsigned priority)
+bool Access_Door_Present_Value_Set(uint32_t object_instance,
+                                   BACNET_DOOR_VALUE value, unsigned priority)
 {
     unsigned index = 0;
     bool status = false;
@@ -214,8 +195,7 @@ bool Access_Door_Present_Value_Set(
     index = Access_Door_Instance_To_Index(object_instance);
     if (index < MAX_ACCESS_DOORS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-            (priority != 6 /* reserved */ ) &&
-            (value >= DOOR_VALUE_LOCK) &&
+            (priority != 6 /* reserved */) && (value >= DOOR_VALUE_LOCK) &&
             (value <= DOOR_VALUE_EXTENDED_PULSE_UNLOCK)) {
             ad_descr[index].value_active[priority - 1] = true;
             ad_descr[index].priority_array[priority - 1] = value;
@@ -232,9 +212,8 @@ bool Access_Door_Present_Value_Set(
     return status;
 }
 
-bool Access_Door_Present_Value_Relinquish(
-    uint32_t object_instance,
-    unsigned priority)
+bool Access_Door_Present_Value_Relinquish(uint32_t object_instance,
+                                          unsigned priority)
 {
     unsigned index = 0;
     bool status = false;
@@ -242,7 +221,7 @@ bool Access_Door_Present_Value_Relinquish(
     index = Access_Door_Instance_To_Index(object_instance);
     if (index < MAX_ACCESS_DOORS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-            (priority != 6 /* reserved */ )) {
+            (priority != 6 /* reserved */)) {
             ad_descr[index].value_active[priority - 1] = false;
             /* Note: you could set the physical output here to the next
                highest priority, or to the relinquish default if no
@@ -257,8 +236,7 @@ bool Access_Door_Present_Value_Relinquish(
     return status;
 }
 
-BACNET_DOOR_VALUE Access_Door_Relinquish_Default(
-    uint32_t object_instance)
+BACNET_DOOR_VALUE Access_Door_Relinquish_Default(uint32_t object_instance)
 {
     BACNET_DOOR_VALUE status = -1;
     unsigned index = 0;
@@ -271,24 +249,21 @@ BACNET_DOOR_VALUE Access_Door_Relinquish_Default(
 }
 
 /* note: the object name must be unique within this device */
-bool Access_Door_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Access_Door_Object_Name(uint32_t object_instance,
+                             BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";   /* okay for single thread */
+    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_ACCESS_DOORS) {
-        sprintf(text_string, "ACCESS DOOR %lu",
-            (unsigned long) object_instance);
+        sprintf(text_string, "ACCESS DOOR %lu", (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
     return status;
 }
 
-bool Access_Door_Out_Of_Service(
-    uint32_t instance)
+bool Access_Door_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
     bool oos_flag = false;
@@ -301,9 +276,7 @@ bool Access_Door_Out_Of_Service(
     return oos_flag;
 }
 
-void Access_Door_Out_Of_Service_Set(
-    uint32_t instance,
-    bool oos_flag)
+void Access_Door_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
 
@@ -314,11 +287,10 @@ void Access_Door_Out_Of_Service_Set(
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
-int Access_Door_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index = 0;
@@ -334,9 +306,8 @@ int Access_Door_Read_Property(
     object_index = Access_Door_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ACCESS_DOOR,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_ACCESS_DOOR, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Access_Door_Object_Name(rpdata->object_instance, &char_string);
@@ -348,9 +319,8 @@ int Access_Door_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_ACCESS_DOOR);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                Access_Door_Present_Value(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Access_Door_Present_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -362,14 +332,12 @@ int Access_Door_Read_Property(
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ad_descr[object_index].event_state);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ad_descr[object_index].event_state);
             break;
         case PROP_RELIABILITY:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ad_descr[object_index].reliability);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ad_descr[object_index].reliability);
             break;
         case PROP_OUT_OF_SERVICE:
             state = Access_Door_Out_Of_Service(rpdata->object_instance);
@@ -388,8 +356,8 @@ int Access_Door_Read_Property(
                     if (ad_descr[object_index].value_active[i])
                         len = encode_application_null(&apdu[apdu_len]);
                     else
-                        len =
-                            encode_application_enumerated(&apdu[apdu_len],
+                        len = encode_application_enumerated(
+                            &apdu[apdu_len],
                             ad_descr[object_index].priority_array[i]);
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU)
@@ -406,8 +374,8 @@ int Access_Door_Read_Property(
                     if (ad_descr[object_index].value_active[i])
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
-                        apdu_len =
-                            encode_application_enumerated(&apdu[apdu_len],
+                        apdu_len = encode_application_enumerated(
+                            &apdu[apdu_len],
                             ad_descr[object_index].priority_array[i]);
                     }
                 } else {
@@ -418,49 +386,41 @@ int Access_Door_Read_Property(
             }
             break;
         case PROP_RELINQUISH_DEFAULT:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
+            apdu_len = encode_application_enumerated(
+                &apdu[0],
                 Access_Door_Relinquish_Default(rpdata->object_instance));
             break;
         case PROP_DOOR_STATUS:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ad_descr[object_index].door_status);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ad_descr[object_index].door_status);
             break;
         case PROP_LOCK_STATUS:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ad_descr[object_index].lock_status);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ad_descr[object_index].lock_status);
             break;
         case PROP_SECURED_STATUS:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ad_descr[object_index].secured_status);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ad_descr[object_index].secured_status);
             break;
         case PROP_DOOR_PULSE_TIME:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                ad_descr[object_index].door_pulse_time);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ad_descr[object_index].door_pulse_time);
             break;
         case PROP_DOOR_EXTENDED_PULSE_TIME:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                ad_descr[object_index].door_extended_pulse_time);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ad_descr[object_index].door_extended_pulse_time);
             break;
         case PROP_DOOR_UNLOCK_DELAY_TIME:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                ad_descr[object_index].door_unlock_delay_time);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ad_descr[object_index].door_unlock_delay_time);
             break;
         case PROP_DOOR_OPEN_TOO_LONG_TIME:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                ad_descr[object_index].door_open_too_long_time);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ad_descr[object_index].door_open_too_long_time);
             break;
         case PROP_DOOR_ALARM_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ad_descr[object_index].door_alarm_state);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ad_descr[object_index].door_alarm_state);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -480,18 +440,16 @@ int Access_Door_Read_Property(
 }
 
 /* returns true if successful */
-bool Access_Door_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Access_Door_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     unsigned object_index = 0;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -513,9 +471,9 @@ bool Access_Door_Write_Property(
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                status =
-                    Access_Door_Present_Value_Set(wp_data->object_instance,
-                    value.type.Enumerated, wp_data->priority);
+                status = Access_Door_Present_Value_Set(wp_data->object_instance,
+                                                       value.type.Enumerated,
+                                                       wp_data->priority);
                 if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
@@ -527,13 +485,12 @@ bool Access_Door_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status =
-                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
+                                           &wp_data->error_class,
+                                           &wp_data->error_code);
                 if (status) {
-                    status =
-                        Access_Door_Present_Value_Relinquish
-                        (wp_data->object_instance, wp_data->priority);
+                    status = Access_Door_Present_Value_Relinquish(
+                        wp_data->object_instance, wp_data->priority);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -544,18 +501,17 @@ bool Access_Door_Write_Property(
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Access_Door_Out_Of_Service_Set(wp_data->object_instance,
-                    value.type.Boolean);
+                                               value.type.Boolean);
             }
             break;
         case PROP_DOOR_STATUS:
             if (Access_Door_Out_Of_Service(wp_data->object_instance)) {
-                status =
-                    WPValidateArgType(&value,
-                    BACNET_APPLICATION_TAG_ENUMERATED, &wp_data->error_class,
-                    &wp_data->error_code);
+                status = WPValidateArgType(
+                    &value, BACNET_APPLICATION_TAG_ENUMERATED,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     ad_descr[object_index].door_status = value.type.Enumerated;
                 }
@@ -566,10 +522,9 @@ bool Access_Door_Write_Property(
             break;
         case PROP_LOCK_STATUS:
             if (Access_Door_Out_Of_Service(wp_data->object_instance)) {
-                status =
-                    WPValidateArgType(&value,
-                    BACNET_APPLICATION_TAG_ENUMERATED, &wp_data->error_class,
-                    &wp_data->error_code);
+                status = WPValidateArgType(
+                    &value, BACNET_APPLICATION_TAG_ENUMERATED,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     ad_descr[object_index].lock_status = value.type.Enumerated;
                 }
@@ -580,10 +535,9 @@ bool Access_Door_Write_Property(
             break;
         case PROP_DOOR_ALARM_STATE:
             if (Access_Door_Out_Of_Service(wp_data->object_instance)) {
-                status =
-                    WPValidateArgType(&value,
-                    BACNET_APPLICATION_TAG_ENUMERATED, &wp_data->error_class,
-                    &wp_data->error_code);
+                status = WPValidateArgType(
+                    &value, BACNET_APPLICATION_TAG_ENUMERATED,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     ad_descr[object_index].door_alarm_state =
                         value.type.Enumerated;
@@ -618,17 +572,14 @@ bool Access_Door_Write_Property(
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -638,10 +589,9 @@ bool WPValidateArgType(
     return false;
 }
 
-void testAccessDoor(
-    Test * pTest)
+void testAccessDoor(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -668,8 +618,7 @@ void testAccessDoor(
 }
 
 #ifdef TEST_ACCESS_DOOR
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -681,7 +630,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

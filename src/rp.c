@@ -41,41 +41,37 @@
 
 #if BACNET_SVC_RP_A
 /* encode service */
-int rp_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_encode_apdu(uint8_t *apdu, uint8_t invoke_id,
+                   BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int len = 0;        /* length of each encoding */
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int len = 0;      /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
         apdu[2] = invoke_id;
-        apdu[3] = SERVICE_CONFIRMED_READ_PROPERTY;      /* service choice */
+        apdu[3] = SERVICE_CONFIRMED_READ_PROPERTY; /* service choice */
         apdu_len = 4;
         if (rpdata->object_type <= BACNET_MAX_OBJECT) {
             /* check bounds so that we could create malformed
                messages for testing */
-            len =
-                encode_context_object_id(&apdu[apdu_len], 0,
-                rpdata->object_type, rpdata->object_instance);
+            len = encode_context_object_id(&apdu[apdu_len], 0,
+                                           rpdata->object_type,
+                                           rpdata->object_instance);
             apdu_len += len;
         }
         if (rpdata->object_property <= MAX_BACNET_PROPERTY_ID) {
             /* check bounds so that we could create malformed
                messages for testing */
-            len =
-                encode_context_enumerated(&apdu[apdu_len], 1,
-                rpdata->object_property);
+            len = encode_context_enumerated(&apdu[apdu_len], 1,
+                                            rpdata->object_property);
             apdu_len += len;
         }
         /* optional array index */
         if (rpdata->array_index != BACNET_ARRAY_ALL) {
-            len =
-                encode_context_unsigned(&apdu[apdu_len], 2,
-                rpdata->array_index);
+            len = encode_context_unsigned(&apdu[apdu_len], 2,
+                                          rpdata->array_index);
             apdu_len += len;
         }
     }
@@ -85,17 +81,15 @@ int rp_encode_apdu(
 #endif
 
 /* decode the service request only */
-int rp_decode_service_request(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_decode_service_request(uint8_t *apdu, unsigned apdu_len,
+                              BACNET_READ_PROPERTY_DATA *rpdata)
 {
     unsigned len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint16_t type = 0;  /* for decoding */
-    uint32_t property = 0;      /* for decoding */
-    uint32_t array_value = 0;   /* for decoding */
+    uint16_t type = 0;        /* for decoding */
+    uint32_t property = 0;    /* for decoding */
+    uint32_t array_value = 0; /* for decoding */
 
     /* check for value pointers */
     if (rpdata) {
@@ -112,22 +106,20 @@ int rp_decode_service_request(
             return BACNET_STATUS_REJECT;
         }
         len += decode_object_id(&apdu[len], &type, &rpdata->object_instance);
-        rpdata->object_type = (BACNET_OBJECT_TYPE) type;
+        rpdata->object_type = (BACNET_OBJECT_TYPE)type;
         /* Tag 1: Property ID */
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number,
-            &len_value_type);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number,
+                                           &len_value_type);
         if (tag_number != 1) {
             rpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             return BACNET_STATUS_REJECT;
         }
         len += decode_enumerated(&apdu[len], len_value_type, &property);
-        rpdata->object_property = (BACNET_PROPERTY_ID) property;
+        rpdata->object_property = (BACNET_PROPERTY_ID)property;
         /* Tag 2: Optional Array Index */
         if (len < apdu_len) {
-            len +=
-                decode_tag_number_and_value(&apdu[len], &tag_number,
-                &len_value_type);
+            len += decode_tag_number_and_value(&apdu[len], &tag_number,
+                                               &len_value_type);
             if ((tag_number == 2) && (len < apdu_len)) {
                 len +=
                     decode_unsigned(&apdu[len], len_value_type, &array_value);
@@ -148,38 +140,33 @@ int rp_decode_service_request(
         return BACNET_STATUS_REJECT;
     }
 
-    return (int) len;
+    return (int)len;
 }
 
 /* alternate method to encode the ack without extra buffer */
-int rp_ack_encode_apdu_init(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id,
+                            BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int len = 0;        /* length of each encoding */
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int len = 0;      /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
-        apdu[1] = invoke_id;    /* original invoke id from request */
-        apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY;      /* service choice */
+        apdu[1] = invoke_id;            /* original invoke id from request */
+        apdu[2] = SERVICE_CONFIRMED_READ_PROPERTY; /* service choice */
         apdu_len = 3;
 
         /* service ack follows */
-        len =
-            encode_context_object_id(&apdu[apdu_len], 0, rpdata->object_type,
-            rpdata->object_instance);
+        len = encode_context_object_id(&apdu[apdu_len], 0, rpdata->object_type,
+                                       rpdata->object_instance);
         apdu_len += len;
-        len =
-            encode_context_enumerated(&apdu[apdu_len], 1,
-            rpdata->object_property);
+        len = encode_context_enumerated(&apdu[apdu_len], 1,
+                                        rpdata->object_property);
         apdu_len += len;
         /* context 2 array index is optional */
         if (rpdata->array_index != BACNET_ARRAY_ALL) {
-            len =
-                encode_context_unsigned(&apdu[apdu_len], 2,
-                rpdata->array_index);
+            len = encode_context_unsigned(&apdu[apdu_len], 2,
+                                          rpdata->array_index);
             apdu_len += len;
         }
         len = encode_opening_tag(&apdu[apdu_len], 3);
@@ -190,10 +177,9 @@ int rp_ack_encode_apdu_init(
 }
 
 /* note: encode the application tagged data yourself */
-int rp_ack_encode_apdu_object_property_end(
-    uint8_t * apdu)
+int rp_ack_encode_apdu_object_property_end(uint8_t *apdu)
 {
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
         apdu_len = encode_closing_tag(&apdu[0], 3);
@@ -202,13 +188,11 @@ int rp_ack_encode_apdu_object_property_end(
     return apdu_len;
 }
 
-int rp_ack_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_ack_encode_apdu(uint8_t *apdu, uint8_t invoke_id,
+                       BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int len = 0;        /* length of each encoding */
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int len = 0;      /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
         /* Do the initial encoding */
@@ -223,7 +207,6 @@ int rp_ack_encode_apdu(
     return apdu_len;
 }
 
-
 #if BACNET_SVC_RP_A
 /** Decode the ReadProperty reply and store the result for one Property in a
  *  BACNET_READ_PROPERTY_DATA structure.
@@ -236,18 +219,17 @@ int rp_ack_encode_apdu(
  * @return Number of decoded bytes (could be less than apdu_len),
  * 			or -1 on decoding error.
  */
-int rp_ack_decode_service_request(
-    uint8_t * apdu,
-    int apdu_len,       /* total length of the apdu */
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_ack_decode_service_request(uint8_t *apdu,
+                                  int apdu_len, /* total length of the apdu */
+                                  BACNET_READ_PROPERTY_DATA *rpdata)
 {
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    int tag_len = 0;    /* length of tag decode */
-    int len = 0;        /* total length of decodes */
-    uint16_t object = 0;        /* object type */
-    uint32_t property = 0;      /* for decoding */
-    uint32_t array_value = 0;   /* for decoding */
+    int tag_len = 0;          /* length of tag decode */
+    int len = 0;              /* total length of decodes */
+    uint16_t object = 0;      /* object type */
+    uint32_t property = 0;    /* for decoding */
+    uint32_t array_value = 0; /* for decoding */
 
     /* FIXME: check apdu_len against the len during decode   */
     /* Tag 0: Object ID */
@@ -255,14 +237,14 @@ int rp_ack_decode_service_request(
         return -1;
     len = 1;
     len += decode_object_id(&apdu[len], &object, &rpdata->object_instance);
-    rpdata->object_type = (BACNET_OBJECT_TYPE) object;
+    rpdata->object_type = (BACNET_OBJECT_TYPE)object;
     /* Tag 1: Property ID */
     len +=
         decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number != 1)
         return -1;
     len += decode_enumerated(&apdu[len], len_value_type, &property);
-    rpdata->object_property = (BACNET_PROPERTY_ID) property;
+    rpdata->object_property = (BACNET_PROPERTY_ID)property;
     /* Tag 2: Optional Array Index */
     tag_len =
         decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
@@ -278,7 +260,7 @@ int rp_ack_decode_service_request(
         len++;
         /* don't decode the application tag number or its data here */
         rpdata->application_data = &apdu[len];
-        rpdata->application_data_len = apdu_len - len - 1 /*closing tag */ ;
+        rpdata->application_data_len = apdu_len - len - 1 /*closing tag */;
         /* len includes the data and the closing tag */
         len = apdu_len;
     } else {
@@ -294,11 +276,8 @@ int rp_ack_decode_service_request(
 #include <string.h>
 #include "ctest.h"
 
-int rp_decode_apdu(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    uint8_t * invoke_id,
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id,
+                   BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
     unsigned offset = 0;
@@ -309,25 +288,22 @@ int rp_decode_apdu(
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
         return -1;
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
-    *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
+    *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
     if (apdu[3] != SERVICE_CONFIRMED_READ_PROPERTY)
         return -1;
     offset = 4;
 
     if (apdu_len > offset) {
         len =
-            rp_decode_service_request(&apdu[offset], apdu_len - offset,
-            rpdata);
+            rp_decode_service_request(&apdu[offset], apdu_len - offset, rpdata);
     }
 
     return len;
 }
 
-int rp_ack_decode_apdu(
-    uint8_t * apdu,
-    int apdu_len,       /* total length of the apdu */
-    uint8_t * invoke_id,
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int rp_ack_decode_apdu(uint8_t *apdu,
+                       int apdu_len, /* total length of the apdu */
+                       uint8_t *invoke_id, BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
     int offset = 0;
@@ -342,19 +318,17 @@ int rp_ack_decode_apdu(
         return -1;
     offset = 3;
     if (apdu_len > offset) {
-        len =
-            rp_ack_decode_service_request(&apdu[offset], apdu_len - offset,
-            rpdata);
+        len = rp_ack_decode_service_request(&apdu[offset], apdu_len - offset,
+                                            rpdata);
     }
 
     return len;
 }
 
-void testReadPropertyAck(
-    Test * pTest)
+void testReadPropertyAck(Test *pTest)
 {
-    uint8_t apdu[480] = { 0 };
-    uint8_t apdu2[480] = { 0 };
+    uint8_t apdu[480] = {0};
+    uint8_t apdu2[480] = {0};
     int len = 0;
     int apdu_len = 0;
     uint8_t invoke_id = 1;
@@ -370,17 +344,16 @@ void testReadPropertyAck(
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
     rpdata.array_index = BACNET_ARRAY_ALL;
 
-    rpdata.application_data_len =
-        encode_bacnet_object_id(&apdu2[0], rpdata.object_type,
-        rpdata.object_instance);
+    rpdata.application_data_len = encode_bacnet_object_id(
+        &apdu2[0], rpdata.object_type, rpdata.object_instance);
     rpdata.application_data = &apdu2[0];
 
     len = rp_ack_encode_apdu(&apdu[0], invoke_id, &rpdata);
     ct_test(pTest, len != 0);
     ct_test(pTest, len != -1);
     apdu_len = len;
-    len = rp_ack_decode_apdu(&apdu[0], apdu_len,        /* total length of the apdu */
-        &test_invoke_id, &test_data);
+    len = rp_ack_decode_apdu(&apdu[0], apdu_len, /* total length of the apdu */
+                             &test_invoke_id, &test_data);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
 
@@ -389,22 +362,20 @@ void testReadPropertyAck(
     ct_test(pTest, test_data.object_property == rpdata.object_property);
     ct_test(pTest, test_data.array_index == rpdata.array_index);
     ct_test(pTest,
-        test_data.application_data_len == rpdata.application_data_len);
+            test_data.application_data_len == rpdata.application_data_len);
 
     /* since object property == object_id, decode the application data using
        the appropriate decode function */
     len =
-        decode_object_id(test_data.application_data, &object,
-        &object_instance);
+        decode_object_id(test_data.application_data, &object, &object_instance);
     object_type = object;
     ct_test(pTest, object_type == rpdata.object_type);
     ct_test(pTest, object_instance == rpdata.object_instance);
 }
 
-void testReadProperty(
-    Test * pTest)
+void testReadProperty(Test *pTest)
 {
-    uint8_t apdu[480] = { 0 };
+    uint8_t apdu[480] = {0};
     int len = 0;
     int apdu_len = 0;
     uint8_t invoke_id = 128;
@@ -431,8 +402,7 @@ void testReadProperty(
 }
 
 #ifdef TEST_READ_PROPERTY
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -446,7 +416,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

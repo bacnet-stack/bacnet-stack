@@ -1,34 +1,34 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* command line tool that sends a BACnet service, and displays the reply */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>       /* for time */
+#include <time.h> /* for time */
 #include <errno.h>
 #include "bactext.h"
 #include "iam.h"
@@ -52,7 +52,7 @@
 #include "dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
 /* global variables used in this file */
 static uint32_t Target_File_Object_Instance = BACNET_MAX_INSTANCE;
@@ -65,54 +65,46 @@ static bool End_Of_File_Detected = false;
 static bool Error_Detected = false;
 static uint8_t Request_Invoke_ID = 0;
 
-static void Atomic_Read_File_Error_Handler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class,
-    BACNET_ERROR_CODE error_code)
+static void Atomic_Read_File_Error_Handler(BACNET_ADDRESS *src,
+                                           uint8_t invoke_id,
+                                           BACNET_ERROR_CLASS error_class,
+                                           BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\n",
-            bactext_error_class_name((int) error_class),
-            bactext_error_code_name((int) error_code));
+               bactext_error_class_name((int)error_class),
+               bactext_error_code_name((int)error_code));
         Error_Detected = true;
     }
 }
 
-void MyAbortHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server)
+void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                    uint8_t abort_reason, bool server)
 {
-    (void) server;
+    (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\n",
-            bactext_abort_reason_name((int) abort_reason));
+               bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-void MyRejectHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t reject_reason)
+void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                     uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\n",
-            bactext_reject_reason_name((int) reject_reason));
+               bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
 static void AtomicReadFileAckHandler(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src,
-    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
     int result = 0;
@@ -122,7 +114,8 @@ static void AtomicReadFileAckHandler(
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
-        len = arf_ack_decode_service_request(service_request, service_len, &data);
+        len =
+            arf_ack_decode_service_request(service_request, service_len, &data);
         if ((len > 0) && (data.access == FILE_STREAM_ACCESS)) {
             if (data.type.stream.fileStartPosition == 0) {
                 pFile = fopen(Local_File_Name, "wb");
@@ -130,31 +123,30 @@ static void AtomicReadFileAckHandler(
                 pFile = fopen(Local_File_Name, "rb+");
             }
             if (pFile) {
-                result = fseek(pFile, data.type.stream.fileStartPosition,
-                    SEEK_SET);
+                result =
+                    fseek(pFile, data.type.stream.fileStartPosition, SEEK_SET);
                 if (result == 0) {
                     /* unit to write in bytes -
                        in our case, an octet is one byte */
-                    octets_written = fwrite(
-                        octetstring_value(&data.fileData[0]), 1,
-                        octetstring_length(&data.fileData[0]), pFile);
+                    octets_written =
+                        fwrite(octetstring_value(&data.fileData[0]), 1,
+                               octetstring_length(&data.fileData[0]), pFile);
                     if (octets_written !=
                         octetstring_length(&data.fileData[0])) {
                         fprintf(stderr,
-                            "Unable to write data to file \"%s\".\n",
-                            Local_File_Name);
+                                "Unable to write data to file \"%s\".\n",
+                                Local_File_Name);
                     } else if (octets_written == 0) {
                         fprintf(stderr, "Received 0 byte octet string!.\n");
                     } else {
                         Target_File_Start_Position =
-                            data.type.stream.fileStartPosition +
-                            octets_written;
+                            data.type.stream.fileStartPosition + octets_written;
                         printf("\r%d bytes", (int)Target_File_Start_Position);
                     }
                     fflush(pFile);
                 } else {
                     fprintf(stderr, "Unable to seek to %d!\n",
-                        data.type.stream.fileStartPosition);
+                            data.type.stream.fileStartPosition);
                 }
                 fclose(pFile);
             }
@@ -167,14 +159,12 @@ static void AtomicReadFileAckHandler(
         }
     } else {
         fprintf(stderr, "Address & Invoke ID mismatch! Invoke ID=%d\n",
-            Request_Invoke_ID);
+                Request_Invoke_ID);
     }
 }
 
-static void LocalIAmHandler(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src)
+static void LocalIAmHandler(uint8_t *service_request, uint16_t service_len,
+                            BACNET_ADDRESS *src)
 {
     int len = 0;
     uint32_t device_id = 0;
@@ -182,11 +172,10 @@ static void LocalIAmHandler(
     int segmentation = 0;
     uint16_t vendor_id = 0;
 
-    (void) src;
-    (void) service_len;
-    len =
-        iam_decode_service_request(service_request, &device_id, &max_apdu,
-        &segmentation, &vendor_id);
+    (void)src;
+    (void)service_len;
+    len = iam_decode_service_request(service_request, &device_id, &max_apdu,
+                                     &segmentation, &vendor_id);
     if (len != -1) {
         address_add(device_id, max_apdu, src);
     } else
@@ -195,8 +184,7 @@ static void LocalIAmHandler(
     return;
 }
 
-static void Init_Service_Handlers(
-    void)
+static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is
@@ -206,31 +194,30 @@ static void Init_Service_Handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, LocalIAmHandler);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-        AtomicReadFileAckHandler);
+                                   AtomicReadFileAckHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-        Atomic_Read_File_Error_Handler);
+                           Atomic_Read_File_Error_Handler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
 static void print_usage(char *filename)
 {
-    printf("Usage: %s device-instance file-instance local-name\n",
-        filename);
+    printf("Usage: %s device-instance file-instance local-name\n", filename);
     printf("       [--version][--help]\n");
 }
 
 static void print_help(char *filename)
 {
-    printf("Read a file from a BACnet device and save it locally.\n"
+    printf(
+        "Read a file from a BACnet device and save it locally.\n"
         "device-instance:\n"
         "BACnet Device Object Instance number that you are trying to\n"
         "communicate to.  This number will be used to try and bind with\n"
@@ -252,15 +239,11 @@ static void print_help(char *filename)
         filename);
 }
 
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     /* milliseconds */
+    unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
@@ -282,8 +265,10 @@ int main(
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying conditions.\n"
+            printf(
+                "Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
@@ -299,12 +284,12 @@ int main(
     Local_File_Name = argv[3];
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_File_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "file-instance=%u - it must be less than %u\n",
-            Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
+                Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     /* setup my info */
@@ -317,12 +302,11 @@ int main(
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found =
-        address_bind_request(Target_Device_Object_Instance, &max_apdu,
-        &Target_Address);
+    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
+                                 &Target_Address);
     if (!found) {
         Send_WhoIs(Target_Device_Object_Instance,
-            Target_Device_Object_Instance);
+                   Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -342,9 +326,8 @@ int main(
         }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found =
-                address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                &Target_Address);
+            found = address_bind_request(Target_Device_Object_Instance,
+                                         &max_apdu, &Target_Address);
         }
         if (found) {
             /* calculate the smaller of our APDU size or theirs
@@ -375,9 +358,9 @@ int main(
                 /* the ACK will increment the start position if OK */
                 /* we'll read the file in chunks
                    less than max_apdu to keep unsegmented */
-                invoke_id =
-                    Send_Atomic_Read_File_Stream(Target_Device_Object_Instance,
-                    Target_File_Object_Instance, Target_File_Start_Position,
+                invoke_id = Send_Atomic_Read_File_Stream(
+                    Target_Device_Object_Instance, Target_File_Object_Instance,
+                    Target_File_Start_Position,
                     Target_File_Requested_Octet_Count);
                 Request_Invoke_ID = invoke_id;
             } else if (tsm_invoke_id_failed(invoke_id)) {

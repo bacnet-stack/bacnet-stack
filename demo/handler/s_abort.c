@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <errno.h>
@@ -43,7 +43,6 @@
 #include "handlers.h"
 #include "client.h"
 
-
 /** Encodes an Abort message
  * @param buffer The buffer to build the message for sending.
  * @param dest - Destination address to send the message
@@ -55,14 +54,9 @@
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int abort_encode_pdu(
-    uint8_t * buffer,
-    BACNET_ADDRESS * dest,
-    BACNET_ADDRESS * src,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t invoke_id,
-    BACNET_ABORT_REASON reason,
-    bool server)
+int abort_encode_pdu(uint8_t *buffer, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
+                     BACNET_NPDU_DATA *npdu_data, uint8_t invoke_id,
+                     BACNET_ABORT_REASON reason, bool server)
 {
     int len = 0;
     int pdu_len = 0;
@@ -87,12 +81,9 @@ int abort_encode_pdu(
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int Send_Abort_To_Network(
-    uint8_t * buffer,
-    BACNET_ADDRESS *dest,
-    uint8_t invoke_id,
-    BACNET_ABORT_REASON reason,
-    bool server)
+int Send_Abort_To_Network(uint8_t *buffer, BACNET_ADDRESS *dest,
+                          uint8_t invoke_id, BACNET_ABORT_REASON reason,
+                          bool server)
 {
     int pdu_len = 0;
     BACNET_ADDRESS src;
@@ -100,8 +91,8 @@ int Send_Abort_To_Network(
     BACNET_NPDU_DATA npdu_data;
 
     datalink_get_my_address(&src);
-    pdu_len = abort_encode_pdu(buffer, dest, &src, &npdu_data,
-        invoke_id, reason, server);
+    pdu_len = abort_encode_pdu(buffer, dest, &src, &npdu_data, invoke_id,
+                               reason, server);
     bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
 
     return bytes_sent;

@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Multi-state Output Objects - customize for your use */
 
@@ -32,7 +32,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "rp.h"
 #include "wp.h"
 #include "mso.h"
@@ -51,8 +51,8 @@
 /* how many states? 1 to 254 states, 0 is not allowed */
 #define MULTISTATE_NUMBER_OF_STATES (254)
 /* Here is our Priority Array.*/
-static uint8_t
-    Multistate_Output_Level[MAX_MULTISTATE_OUTPUTS][BACNET_MAX_PRIORITY];
+static uint8_t Multistate_Output_Level[MAX_MULTISTATE_OUTPUTS]
+                                      [BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
 static bool Out_Of_Service[MAX_MULTISTATE_OUTPUTS];
@@ -69,22 +69,16 @@ static const int Multistate_Output_Properties_Required[] = {
     PROP_NUMBER_OF_STATES,
     PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
-    -1
-};
+    -1};
 
-static const int Multistate_Output_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    -1
-};
+static const int Multistate_Output_Properties_Optional[] = {PROP_DESCRIPTION,
+                                                            -1};
 
-static const int Multistate_Output_Properties_Proprietary[] = {
-    -1
-};
+static const int Multistate_Output_Properties_Proprietary[] = {-1};
 
-void Multistate_Output_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Multistate_Output_Property_Lists(const int **pRequired,
+                                      const int **pOptional,
+                                      const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Multistate_Output_Properties_Required;
@@ -96,8 +90,7 @@ void Multistate_Output_Property_Lists(
     return;
 }
 
-void Multistate_Output_Init(
-    void)
+void Multistate_Output_Init(void)
 {
     unsigned i, j;
     static bool initialized = false;
@@ -119,8 +112,7 @@ void Multistate_Output_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Multistate_Output_Valid_Instance(
-    uint32_t object_instance)
+bool Multistate_Output_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_MULTISTATE_OUTPUTS)
         return true;
@@ -130,8 +122,7 @@ bool Multistate_Output_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Multistate_Output_Count(
-    void)
+unsigned Multistate_Output_Count(void)
 {
     return MAX_MULTISTATE_OUTPUTS;
 }
@@ -139,8 +130,7 @@ unsigned Multistate_Output_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Multistate_Output_Index_To_Instance(
-    unsigned index)
+uint32_t Multistate_Output_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -148,8 +138,7 @@ uint32_t Multistate_Output_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Multistate_Output_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Multistate_Output_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_MULTISTATE_OUTPUTS;
 
@@ -159,8 +148,7 @@ unsigned Multistate_Output_Instance_To_Index(
     return index;
 }
 
-uint32_t Multistate_Output_Present_Value(
-    uint32_t object_instance)
+uint32_t Multistate_Output_Present_Value(uint32_t object_instance)
 {
     uint32_t value = MULTISTATE_RELINQUISH_DEFAULT;
     unsigned index = 0;
@@ -180,11 +168,10 @@ uint32_t Multistate_Output_Present_Value(
 }
 
 /* note: the object name must be unique within this device */
-bool Multistate_Output_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Multistate_Output_Object_Name(uint32_t object_instance,
+                                   BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";   /* okay for single thread */
+    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_MULTISTATE_OUTPUTS) {
@@ -195,8 +182,7 @@ bool Multistate_Output_Object_Name(
     return status;
 }
 
-bool Multistate_Output_Out_Of_Service(
-    uint32_t instance)
+bool Multistate_Output_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
     bool oos_flag = false;
@@ -209,9 +195,7 @@ bool Multistate_Output_Out_Of_Service(
     return oos_flag;
 }
 
-void Multistate_Output_Out_Of_Service_Set(
-    uint32_t instance,
-    bool oos_flag)
+void Multistate_Output_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
 
@@ -222,11 +206,10 @@ void Multistate_Output_Out_Of_Service_Set(
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
-int Multistate_Output_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Multistate_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t present_value = 0;
@@ -242,23 +225,21 @@ int Multistate_Output_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0],
-                OBJECT_MULTI_STATE_OUTPUT, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_MULTI_STATE_OUTPUT, rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             Multistate_Output_Object_Name(rpdata->object_instance,
-                &char_string);
+                                          &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                OBJECT_MULTI_STATE_OUTPUT);
+            apdu_len = encode_application_enumerated(&apdu[0],
+                                                     OBJECT_MULTI_STATE_OUTPUT);
             break;
         case PROP_PRESENT_VALUE:
             present_value =
@@ -292,9 +273,8 @@ int Multistate_Output_Read_Property(
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                object_index =
-                    Multistate_Output_Instance_To_Index
-                    (rpdata->object_instance);
+                object_index = Multistate_Output_Instance_To_Index(
+                    rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Multistate_Output_Level[object_index][i] ==
@@ -303,9 +283,8 @@ int Multistate_Output_Read_Property(
                     else {
                         present_value =
                             Multistate_Output_Level[object_index][i];
-                        len =
-                            encode_application_unsigned(&apdu[apdu_len],
-                            present_value);
+                        len = encode_application_unsigned(&apdu[apdu_len],
+                                                          present_value);
                     }
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU)
@@ -318,19 +297,19 @@ int Multistate_Output_Read_Property(
                     }
                 }
             } else {
-                object_index =
-                    Multistate_Output_Instance_To_Index
-                    (rpdata->object_instance);
+                object_index = Multistate_Output_Instance_To_Index(
+                    rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Multistate_Output_Level[object_index]
-                        [rpdata->array_index - 1] == MULTISTATE_NULL)
+                                               [rpdata->array_index - 1] ==
+                        MULTISTATE_NULL)
                         apdu_len = encode_application_null(&apdu[0]);
                     else {
-                        present_value = Multistate_Output_Level[object_index]
-                            [rpdata->array_index - 1];
-                        apdu_len =
-                            encode_application_unsigned(&apdu[0],
-                            present_value);
+                        present_value =
+                            Multistate_Output_Level[object_index]
+                                                   [rpdata->array_index - 1];
+                        apdu_len = encode_application_unsigned(&apdu[0],
+                                                               present_value);
                     }
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -345,9 +324,8 @@ int Multistate_Output_Read_Property(
             apdu_len = encode_application_unsigned(&apdu[0], present_value);
             break;
         case PROP_NUMBER_OF_STATES:
-            apdu_len =
-                encode_application_unsigned(&apdu[apdu_len],
-                MULTISTATE_NUMBER_OF_STATES);
+            apdu_len = encode_application_unsigned(&apdu[apdu_len],
+                                                   MULTISTATE_NUMBER_OF_STATES);
             break;
 
         default:
@@ -369,10 +347,9 @@ int Multistate_Output_Read_Property(
 }
 
 /* returns true if successful */
-bool Multistate_Output_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     unsigned int object_index = 0;
     unsigned int priority = 0;
     uint32_t level = 0;
@@ -380,9 +357,8 @@ bool Multistate_Output_Write_Property(
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -406,21 +382,21 @@ bool Multistate_Output_Write_Property(
                    algorithm and may not be used for other purposes in any
                    object. */
                 if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-                    (priority != 6 /* reserved */ ) &&
+                    (priority != 6 /* reserved */) &&
                     (value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= MULTISTATE_NUMBER_OF_STATES)) {
                     level = value.type.Unsigned_Int;
-                    object_index =
-                        Multistate_Output_Instance_To_Index
-                        (wp_data->object_instance);
+                    object_index = Multistate_Output_Instance_To_Index(
+                        wp_data->object_instance);
                     priority--;
                     Multistate_Output_Level[object_index][priority] =
-                        (uint8_t) level;
+                        (uint8_t)level;
                     /* Note: you could set the physical output here if we
                        are the highest priority.
                        However, if Out of Service is TRUE, then don't set the
                        physical output.  This comment may apply to the
-                       main loop (i.e. check out of service before changing output) */
+                       main loop (i.e. check out of service before changing
+                       output) */
                     status = true;
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
@@ -433,25 +409,25 @@ bool Multistate_Output_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status =
-                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
+                                           &wp_data->error_class,
+                                           &wp_data->error_code);
                 if (status) {
                     level = MULTISTATE_NULL;
-                    object_index =
-                        Multistate_Output_Instance_To_Index
-                        (wp_data->object_instance);
+                    object_index = Multistate_Output_Instance_To_Index(
+                        wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
                         Multistate_Output_Level[object_index][priority] =
-                            (uint8_t) level;
-                        /* Note: you could set the physical output here to the next
-                           highest priority, or to the relinquish default if no
-                           priorities are set.
-                           However, if Out of Service is TRUE, then don't set the
-                           physical output.  This comment may apply to the
-                           main loop (i.e. check out of service before changing output) */
+                            (uint8_t)level;
+                        /* Note: you could set the physical output here to the
+                           next highest priority, or to the relinquish default
+                           if no priorities are set. However, if Out of Service
+                           is TRUE, then don't set the physical output.  This
+                           comment may apply to the
+                           main loop (i.e. check out of service before changing
+                           output) */
                     } else {
                         status = false;
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -463,10 +439,10 @@ bool Multistate_Output_Write_Property(
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Multistate_Output_Out_Of_Service_Set(wp_data->object_instance,
-                    value.type.Boolean);
+                                                     value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -490,17 +466,14 @@ bool Multistate_Output_Write_Property(
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -510,10 +483,9 @@ bool WPValidateArgType(
     return false;
 }
 
-void testMultistateOutput(
-    Test * pTest)
+void testMultistateOutput(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -540,8 +512,7 @@ void testMultistateOutput(
 }
 
 #ifdef TEST_MULTISTATE_OUTPUT
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -553,7 +524,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

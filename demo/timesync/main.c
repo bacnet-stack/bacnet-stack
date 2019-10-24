@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* command line tool that sends a BACnet service, and displays the reply */
 #include <stddef.h>
@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <time.h>       /* for time */
+#include <time.h> /* for time */
 #include <errno.h>
 #include "address.h"
 #include "bactext.h"
@@ -50,38 +50,32 @@
 #include "dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {0};
 /* error flag */
 static bool Error_Detected = false;
 
-void MyAbortHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server)
+void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                    uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    (void) server;
+    (void)src;
+    (void)invoke_id;
+    (void)server;
     printf("BACnet Abort: %s\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
-void MyRejectHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t reject_reason)
+void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                     uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
+    (void)src;
+    (void)invoke_id;
     printf("BACnet Reject: %s\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
-static void Init_Service_Handlers(
-    void)
+static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is
@@ -89,16 +83,15 @@ static void Init_Service_Handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
     /* handle the reply (request) coming in */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-        handler_timesync_utc);
+                                 handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-        handler_timesync);
+                                 handler_timesync);
     /* handle any errors coming back */
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
@@ -112,7 +105,8 @@ static void print_usage(char *filename)
 
 static void print_help(char *filename)
 {
-    printf("Send BACnet TimeSynchronization request.\n"
+    printf(
+        "Send BACnet TimeSynchronization request.\n"
         "\n"
         "--mac A\n"
         "BACnet mac address."
@@ -131,13 +125,19 @@ static void print_help(char *filename)
         "or an IP string with optional port number like 10.1.2.3:47808\n"
         "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
         "\n");
-    printf("Examples:\n"
+    printf(
+        "Examples:\n"
         "Send a TimeSynchronization request to DNET 123:\n"
-        "%s --dnet 123\n", filename);
-    printf("Send a TimeSynchronization request to MAC 10.0.0.1 DNET 123 DADR 5:\n"
-        "%s --mac 10.0.0.1 --dnet 123 --dadr 5\n", filename);
-    printf("Send a TimeSynchronization request to MAC 10.1.2.3:47808:\n"
-        "%s --mac 10.1.2.3:47808\n", filename);
+        "%s --dnet 123\n",
+        filename);
+    printf(
+        "Send a TimeSynchronization request to MAC 10.0.0.1 DNET 123 DADR 5:\n"
+        "%s --mac 10.0.0.1 --dnet 123 --dadr 5\n",
+        filename);
+    printf(
+        "Send a TimeSynchronization request to MAC 10.1.2.3:47808:\n"
+        "%s --mac 10.1.2.3:47808\n",
+        filename);
 #if 0
     /* FIXME: it would be nice to be able to send arbitrary time values */
         "date format: year/month/day:dayofweek (e.g. 2006/4/1:6)\n"
@@ -151,15 +151,11 @@ static void print_help(char *filename)
 #endif
 }
 
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     /* milliseconds */
+    unsigned timeout = 100; /* milliseconds */
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -169,9 +165,9 @@ int main(
     BACNET_DATE bdate;
     BACNET_TIME btime;
     long dnet = -1;
-    BACNET_MAC_ADDRESS mac = { 0 };
-    BACNET_MAC_ADDRESS adr = { 0 };
-    BACNET_ADDRESS dest = { 0 };
+    BACNET_MAC_ADDRESS mac = {0};
+    BACNET_MAC_ADDRESS adr = {0};
+    BACNET_ADDRESS dest = {0};
     bool global_broadcast = true;
     int argi = 0;
     char *filename = NULL;
@@ -186,8 +182,10 @@ int main(
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying conditions.\n"
+            printf(
+                "Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;

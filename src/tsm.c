@@ -66,22 +66,20 @@ static uint8_t Current_Invoke_ID = 1;
 
 static tsm_timeout_function Timeout_Function;
 
-void tsm_set_timeout_handler(
-    tsm_timeout_function pFunction)
+void tsm_set_timeout_handler(tsm_timeout_function pFunction)
 {
     Timeout_Function = pFunction;
 }
 
 /* returns MAX_TSM_TRANSACTIONS if not found */
-static uint8_t tsm_find_invokeID_index(
-    uint8_t invokeID)
+static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
 {
-    unsigned i = 0;     /* counter */
-    uint8_t index = MAX_TSM_TRANSACTIONS;       /* return value */
+    unsigned i = 0;                       /* counter */
+    uint8_t index = MAX_TSM_TRANSACTIONS; /* return value */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == invokeID) {
-            index = (uint8_t) i;
+            index = (uint8_t)i;
             break;
         }
     }
@@ -89,15 +87,14 @@ static uint8_t tsm_find_invokeID_index(
     return index;
 }
 
-static uint8_t tsm_find_first_free_index(
-    void)
+static uint8_t tsm_find_first_free_index(void)
 {
-    unsigned i = 0;     /* counter */
-    uint8_t index = MAX_TSM_TRANSACTIONS;       /* return value */
+    unsigned i = 0;                       /* counter */
+    uint8_t index = MAX_TSM_TRANSACTIONS; /* return value */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == 0) {
-            index = (uint8_t) i;
+            index = (uint8_t)i;
             break;
         }
     }
@@ -105,11 +102,10 @@ static uint8_t tsm_find_first_free_index(
     return index;
 }
 
-bool tsm_transaction_available(
-    void)
+bool tsm_transaction_available(void)
 {
-    bool status = false;        /* return value */
-    unsigned i = 0;     /* counter */
+    bool status = false; /* return value */
+    unsigned i = 0;      /* counter */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == 0) {
@@ -122,11 +118,10 @@ bool tsm_transaction_available(
     return status;
 }
 
-uint8_t tsm_transaction_idle_count(
-    void)
+uint8_t tsm_transaction_idle_count(void)
 {
-    uint8_t count = 0;  /* return value */
-    unsigned i = 0;     /* counter */
+    uint8_t count = 0; /* return value */
+    unsigned i = 0;    /* counter */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if ((TSM_List[i].InvokeID == 0) &&
@@ -141,8 +136,7 @@ uint8_t tsm_transaction_idle_count(
 
 /* sets the invokeID */
 
-void tsm_invokeID_set(
-    uint8_t invokeID)
+void tsm_invokeID_set(uint8_t invokeID)
 {
     if (invokeID == 0) {
         invokeID = 1;
@@ -153,8 +147,7 @@ void tsm_invokeID_set(
 /* gets the next free invokeID,
    and reserves a spot in the table
    returns 0 if none are available */
-uint8_t tsm_next_free_invokeID(
-    void)
+uint8_t tsm_next_free_invokeID(void)
 {
     uint8_t index = 0;
     uint8_t invokeID = 0;
@@ -175,7 +168,8 @@ uint8_t tsm_next_free_invokeID(
                     TSM_List[index].RequestTimer = apdu_timeout();
                     /* update for the next call or check */
                     Current_Invoke_ID++;
-                    /* skip zero - we treat that internally as invalid or no free */
+                    /* skip zero - we treat that internally as invalid or no
+                     * free */
                     if (Current_Invoke_ID == 0) {
                         Current_Invoke_ID = 1;
                     }
@@ -195,12 +189,10 @@ uint8_t tsm_next_free_invokeID(
     return invokeID;
 }
 
-void tsm_set_confirmed_unsegmented_transaction(
-    uint8_t invokeID,
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * ndpu_data,
-    uint8_t * apdu,
-    uint16_t apdu_len)
+void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
+                                               BACNET_ADDRESS *dest,
+                                               BACNET_NPDU_DATA *ndpu_data,
+                                               uint8_t *apdu, uint16_t apdu_len)
 {
     uint16_t j = 0;
     uint8_t index;
@@ -228,12 +220,9 @@ void tsm_set_confirmed_unsegmented_transaction(
 
 /* used to retrieve the transaction payload */
 /* if we wanted to find out what we sent (i.e. when we get an ack) */
-bool tsm_get_transaction_pdu(
-    uint8_t invokeID,
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * ndpu_data,
-    uint8_t * apdu,
-    uint16_t * apdu_len)
+bool tsm_get_transaction_pdu(uint8_t invokeID, BACNET_ADDRESS *dest,
+                             BACNET_NPDU_DATA *ndpu_data, uint8_t *apdu,
+                             uint16_t *apdu_len)
 {
     uint16_t j = 0;
     uint8_t index;
@@ -243,10 +232,11 @@ bool tsm_get_transaction_pdu(
         index = tsm_find_invokeID_index(invokeID);
         /* how much checking is needed?  state?  dest match? just invokeID? */
         if (index < MAX_TSM_TRANSACTIONS) {
-            /* FIXME: we may want to free the transaction so it doesn't timeout */
+            /* FIXME: we may want to free the transaction so it doesn't timeout
+             */
             /* retrieve the transaction */
             /* FIXME: bounds check the pdu_len? */
-            *apdu_len = (uint16_t) TSM_List[index].apdu_len;
+            *apdu_len = (uint16_t)TSM_List[index].apdu_len;
             for (j = 0; j < *apdu_len; j++) {
                 apdu[j] = TSM_List[index].apdu[j];
             }
@@ -260,10 +250,9 @@ bool tsm_get_transaction_pdu(
 }
 
 /* called once a millisecond or slower */
-void tsm_timer_milliseconds(
-    uint16_t milliseconds)
+void tsm_timer_milliseconds(uint16_t milliseconds)
 {
-    unsigned i = 0;     /* counter */
+    unsigned i = 0; /* counter */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].state == TSM_STATE_AWAIT_CONFIRMATION) {
@@ -276,9 +265,9 @@ void tsm_timer_milliseconds(
                 if (TSM_List[i].RetryCount < apdu_retries()) {
                     TSM_List[i].RequestTimer = apdu_timeout();
                     TSM_List[i].RetryCount++;
-                    datalink_send_pdu(&TSM_List[i].dest,
-                        &TSM_List[i].npdu_data, &TSM_List[i].apdu[0],
-                        TSM_List[i].apdu_len);
+                    datalink_send_pdu(&TSM_List[i].dest, &TSM_List[i].npdu_data,
+                                      &TSM_List[i].apdu[0],
+                                      TSM_List[i].apdu_len);
                 } else {
                     /* note: the invoke id has not been cleared yet
                        and this indicates a failed message:
@@ -296,8 +285,7 @@ void tsm_timer_milliseconds(
 }
 
 /* frees the invokeID and sets its state to IDLE */
-void tsm_free_invoke_id(
-    uint8_t invokeID)
+void tsm_free_invoke_id(uint8_t invokeID)
 {
     uint8_t index;
 
@@ -309,11 +297,11 @@ void tsm_free_invoke_id(
 }
 
 /** Check if the invoke ID has been made free by the Transaction State Machine.
- * @param invokeID [in] The invokeID to be checked, normally of last message sent.
+ * @param invokeID [in] The invokeID to be checked, normally of last message
+ * sent.
  * @return True if it is free (done with), False if still pending in the TSM.
  */
-bool tsm_invoke_id_free(
-    uint8_t invokeID)
+bool tsm_invoke_id_free(uint8_t invokeID)
 {
     bool status = true;
     uint8_t index;
@@ -327,12 +315,12 @@ bool tsm_invoke_id_free(
 
 /** See if we failed get a confirmation for the message associated
  *  with this invoke ID.
- * @param invokeID [in] The invokeID to be checked, normally of last message sent.
+ * @param invokeID [in] The invokeID to be checked, normally of last message
+ * sent.
  * @return True if already failed, False if done or segmented or still waiting
  *         for a confirmation.
  */
-bool tsm_invoke_id_failed(
-    uint8_t invokeID)
+bool tsm_invoke_id_failed(uint8_t invokeID)
 {
     bool status = false;
     uint8_t index;
@@ -348,7 +336,6 @@ bool tsm_invoke_id_failed(
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
@@ -358,37 +345,31 @@ bool tsm_invoke_id_failed(
 bool I_Am_Request = true;
 
 /* dummy function stubs */
-int datalink_send_pdu(
-    BACNET_ADDRESS * dest,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t * pdu,
-    unsigned pdu_len)
+int datalink_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
+                      uint8_t *pdu, unsigned pdu_len)
 {
-    (void) dest;
-    (void) npdu_data;
-    (void) pdu;
-    (void) pdu_len;
+    (void)dest;
+    (void)npdu_data;
+    (void)pdu;
+    (void)pdu_len;
 
     return 0;
 }
 
 /* dummy function stubs */
-void datalink_get_broadcast_address(
-    BACNET_ADDRESS * dest)
+void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
 {
-    (void) dest;
+    (void)dest;
 }
 
-void testTSM(
-    Test * pTest)
+void testTSM(Test *pTest)
 {
     /* FIXME: add some unit testing... */
     return;
 }
 
 #ifdef TEST_TSM
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -400,7 +381,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

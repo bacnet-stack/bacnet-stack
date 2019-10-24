@@ -1,35 +1,33 @@
 /**************************************************************************
-*
-* Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 #include "authentication_factor.h"
 #include "bacdcode.h"
 
-
-int bacapp_encode_authentication_factor(
-    uint8_t * apdu,
-    BACNET_AUTHENTICATION_FACTOR * af)
+int bacapp_encode_authentication_factor(uint8_t* apdu,
+                                        BACNET_AUTHENTICATION_FACTOR* af)
 {
     int len;
     int apdu_len = 0;
@@ -56,9 +54,7 @@ int bacapp_encode_authentication_factor(
 }
 
 int bacapp_encode_context_authentication_factor(
-    uint8_t * apdu,
-    uint8_t tag,
-    BACNET_AUTHENTICATION_FACTOR * af)
+    uint8_t* apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR* af)
 {
     int len;
     int apdu_len = 0;
@@ -73,12 +69,10 @@ int bacapp_encode_context_authentication_factor(
     apdu_len += len;
 
     return apdu_len;
-
 }
 
-int bacapp_decode_authentication_factor(
-    uint8_t * apdu,
-    BACNET_AUTHENTICATION_FACTOR * af)
+int bacapp_decode_authentication_factor(uint8_t* apdu,
+                                        BACNET_AUTHENTICATION_FACTOR* af)
 {
     int len;
     int apdu_len = 0;
@@ -109,14 +103,12 @@ int bacapp_decode_authentication_factor(
             apdu_len += len;
     } else
         return -1;
-    
+
     return apdu_len;
 }
 
 int bacapp_decode_context_authentication_factor(
-    uint8_t * apdu,
-    uint8_t tag,
-    BACNET_AUTHENTICATION_FACTOR * af)
+    uint8_t* apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR* af)
 {
     int len = 0;
     int section_length;

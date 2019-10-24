@@ -54,18 +54,18 @@
 #include "iam.h"
 
 #ifdef _WIN32
-#define strncasecmp(x,y,z) _strnicmp(x,y,z)
+#define strncasecmp(x, y, z) _strnicmp(x, y, z)
 #endif
 
 /* define our Data Link Type for libPCAP */
 #define DLT_BACNET_MS_TP 165
 /* local min/max macros */
 #ifndef max
-#define max(a,b) (((a) (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a)(b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
-#define MSTP_HEADER_MAX (2+1+1+1+2+1)
+#define MSTP_HEADER_MAX (2 + 1 + 1 + 1 + 2 + 1)
 
 /* local port data - shared with RS-485 */
 static volatile struct mstp_port_struct_t MSTP_Port;
@@ -133,27 +133,22 @@ struct mstp_statistics {
 static struct mstp_statistics MSTP_Statistics[MAX_MSTP_DEVICES];
 static uint32_t Invalid_Frame_Count;
 
-static uint32_t timeval_diff_ms(
-    struct timeval *old,
-    struct timeval *now)
+static uint32_t timeval_diff_ms(struct timeval *old, struct timeval *now)
 {
     uint32_t ms = 0;
 
     /* convert to milliseconds */
-    ms = (now->tv_sec - old->tv_sec) * 1000 + (now->tv_usec -
-        old->tv_usec) / 1000;
+    ms = (now->tv_sec - old->tv_sec) * 1000 +
+         (now->tv_usec - old->tv_usec) / 1000;
 
     return ms;
 }
 
-static void mstp_monitor_i_am(
-    uint8_t mac,
-    uint8_t * pdu,
-    uint16_t pdu_len)
+static void mstp_monitor_i_am(uint8_t mac, uint8_t *pdu, uint16_t pdu_len)
 {
-    BACNET_ADDRESS src = { 0 };
-    BACNET_ADDRESS dest = { 0 };
-    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_ADDRESS src = {0};
+    BACNET_ADDRESS dest = {0};
+    BACNET_NPDU_DATA npdu_data = {0};
     int apdu_offset = 0;
     uint16_t apdu_len = 0;
     uint8_t *apdu = NULL;
@@ -176,9 +171,8 @@ static void mstp_monitor_i_am(
                 service_choice = apdu[1];
                 service_request = &apdu[2];
                 if (service_choice == SERVICE_UNCONFIRMED_I_AM) {
-                    len =
-                        iam_decode_service_request(service_request, &device_id,
-                        NULL, NULL, NULL);
+                    len = iam_decode_service_request(
+                        service_request, &device_id, NULL, NULL, NULL);
                     if (len != -1) {
                         MSTP_Statistics[mac].device_id = device_id;
                     }
@@ -188,11 +182,10 @@ static void mstp_monitor_i_am(
     }
 }
 
-static void packet_statistics(
-    struct timeval *tv,
-    volatile struct mstp_port_struct_t *mstp_port)
+static void packet_statistics(struct timeval *tv,
+                              volatile struct mstp_port_struct_t *mstp_port)
 {
-    static struct timeval old_tv = { 0 };
+    static struct timeval old_tv = {0};
     static uint8_t old_frame = 255;
     static uint8_t old_src = 255;
     static uint8_t old_dst = 255;
@@ -228,7 +221,7 @@ static void packet_statistics(
                     }
                 }
             } else if ((old_frame == FRAME_TYPE_POLL_FOR_MASTER) &&
-                (old_src == src)) {
+                       (old_src == src)) {
                 /* Tusage_timeout */
                 delta = timeval_diff_ms(&old_tv, tv);
                 if (delta > MSTP_Statistics[src].tusage_timeout) {
@@ -243,9 +236,8 @@ static void packet_statistics(
             break;
         case FRAME_TYPE_POLL_FOR_MASTER:
             if (MSTP_Statistics[src].last_pfm_tokens) {
-                npoll =
-                    MSTP_Statistics[src].token_received_count -
-                    MSTP_Statistics[src].last_pfm_tokens;
+                npoll = MSTP_Statistics[src].token_received_count -
+                        MSTP_Statistics[src].last_pfm_tokens;
                 if (npoll > MSTP_Statistics[src].npoll) {
                     MSTP_Statistics[src].npoll = npoll;
                 }
@@ -297,7 +289,7 @@ static void packet_statistics(
                 if ((mstp_port->DataLength <= mstp_port->InputBufferSize) &&
                     (mstp_port->DataLength > 0)) {
                     mstp_monitor_i_am(src, &mstp_port->InputBuffer[0],
-                        mstp_port->DataLength);
+                                      mstp_port->DataLength);
                 }
             }
             break;
@@ -324,8 +316,7 @@ static void packet_statistics(
     old_tv.tv_usec = tv->tv_usec;
 }
 
-static void packet_statistics_print(
-    void)
+static void packet_statistics_print(void)
 {
     unsigned i; /* loop counter */
     unsigned node_count = 0;
@@ -333,32 +324,32 @@ static void packet_statistics_print(
 
     fprintf(stdout, "\n");
     fprintf(stdout, "==== MS/TP Frame Counts ====\n");
-    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s", "MAC",
-        "Device", "Tokens", "PFM", "RPFM", "DER", "Postpd", "DNER", "TestReq",
-        "TestRsp");
+    fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s", "MAC", "Device",
+            "Tokens", "PFM", "RPFM", "DER", "Postpd", "DNER", "TestReq",
+            "TestRsp");
     fprintf(stdout, "\n");
     for (i = 0; i < MAX_MSTP_DEVICES; i++) {
         /* check for masters or slaves */
-        if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
-            || (MSTP_Statistics[i].pfm_count)) {
+        if ((MSTP_Statistics[i].token_count) ||
+            (MSTP_Statistics[i].der_reply) || (MSTP_Statistics[i].pfm_count)) {
             node_count++;
             fprintf(stdout, "%-8u", i);
             if (MSTP_Statistics[i].device_id <= 4194303) {
                 fprintf(stdout, "%-8lu",
-                    (long unsigned int) MSTP_Statistics[i].device_id);
+                        (long unsigned int)MSTP_Statistics[i].device_id);
             } else {
                 fprintf(stdout, "%-8s", "-");
             }
             fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu",
-                (long unsigned int) MSTP_Statistics[i].token_count,
-                (long unsigned int) MSTP_Statistics[i].pfm_count,
-                (long unsigned int) MSTP_Statistics[i].rpfm_count,
-                (long unsigned int) MSTP_Statistics[i].der_count);
+                    (long unsigned int)MSTP_Statistics[i].token_count,
+                    (long unsigned int)MSTP_Statistics[i].pfm_count,
+                    (long unsigned int)MSTP_Statistics[i].rpfm_count,
+                    (long unsigned int)MSTP_Statistics[i].der_count);
             fprintf(stdout, "%-8lu%-8lu%-8lu%-7lu",
-                (long unsigned int) MSTP_Statistics[i].reply_postponed_count,
-                (long unsigned int) MSTP_Statistics[i].dner_count,
-                (long unsigned int) MSTP_Statistics[i].test_request_count,
-                (long unsigned int) MSTP_Statistics[i].test_response_count);
+                    (long unsigned int)MSTP_Statistics[i].reply_postponed_count,
+                    (long unsigned int)MSTP_Statistics[i].dner_count,
+                    (long unsigned int)MSTP_Statistics[i].test_request_count,
+                    (long unsigned int)MSTP_Statistics[i].test_response_count);
             fprintf(stdout, "\n");
         }
     }
@@ -367,38 +358,37 @@ static void packet_statistics_print(
     fprintf(stdout, "\n");
     fprintf(stdout, "==== MS/TP Usage and Timing Maximums ====\n");
     fprintf(stdout, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-7s", "MAC",
-        "MaxMstr", "Retries", "Npoll", "Self/TT", "Treply", "Tusage", "Trpfm",
-        "Tder", "Tpostpd");
+            "MaxMstr", "Retries", "Npoll", "Self/TT", "Treply", "Tusage",
+            "Trpfm", "Tder", "Tpostpd");
     fprintf(stdout, "\n");
     for (i = 0; i < MAX_MSTP_DEVICES; i++) {
         /* check for masters or slaves */
-        if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
-            || (MSTP_Statistics[i].pfm_count)) {
+        if ((MSTP_Statistics[i].token_count) ||
+            (MSTP_Statistics[i].der_reply) || (MSTP_Statistics[i].pfm_count)) {
             node_count++;
             self_or_ooo_count = MSTP_Statistics[i].self_token_count +
-                MSTP_Statistics[i].ooo_token_count;
+                                MSTP_Statistics[i].ooo_token_count;
             fprintf(stdout, "%-8u", i);
             fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu%-8lu",
-                (long unsigned int) MSTP_Statistics[i].max_master,
-                (long unsigned int) MSTP_Statistics[i].token_retries,
-                (long unsigned int) MSTP_Statistics[i].npoll,
-                self_or_ooo_count,
-                (long unsigned int) MSTP_Statistics[i].token_reply);
+                    (long unsigned int)MSTP_Statistics[i].max_master,
+                    (long unsigned int)MSTP_Statistics[i].token_retries,
+                    (long unsigned int)MSTP_Statistics[i].npoll,
+                    self_or_ooo_count,
+                    (long unsigned int)MSTP_Statistics[i].token_reply);
             fprintf(stdout, "%-8lu%-8lu%-8lu%-7lu",
-                (long unsigned int) MSTP_Statistics[i].tusage_timeout,
-                (long unsigned int) MSTP_Statistics[i].pfm_reply,
-                (long unsigned int) MSTP_Statistics[i].der_reply,
-                (long unsigned int) MSTP_Statistics[i].reply_postponed);
+                    (long unsigned int)MSTP_Statistics[i].tusage_timeout,
+                    (long unsigned int)MSTP_Statistics[i].pfm_reply,
+                    (long unsigned int)MSTP_Statistics[i].der_reply,
+                    (long unsigned int)MSTP_Statistics[i].reply_postponed);
             fprintf(stdout, "\n");
         }
     }
     fprintf(stdout, "Node Count: %u\n", node_count);
     fprintf(stdout, "Invalid Frame Count: %lu\n",
-        (long unsigned int) Invalid_Frame_Count);
+            (long unsigned int)Invalid_Frame_Count);
 }
 
-static void packet_statistics_clear(
-    void)
+static void packet_statistics_clear(void)
 {
     unsigned i = 0;
 
@@ -409,76 +399,63 @@ static void packet_statistics_clear(
     Invalid_Frame_Count = 0;
 }
 
-static uint32_t Timer_Silence(
-    void *pArg)
+static uint32_t Timer_Silence(void *pArg)
 {
     return timer_milliseconds(TIMER_SILENCE);
 }
 
-static void Timer_Silence_Reset(
-    void *pArg)
+static void Timer_Silence_Reset(void *pArg)
 {
     timer_reset(TIMER_SILENCE);
 }
 
 /* functions used by the MS/TP state machine to put or get data */
-uint16_t MSTP_Put_Receive(
-    volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 {
-    (void) mstp_port;
+    (void)mstp_port;
 
     return 0;
 }
 
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
-uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t * mstp_port,
-    unsigned timeout)
-{       /* milliseconds to wait for a packet */
-    (void) mstp_port;
-    (void) timeout;
+uint16_t MSTP_Get_Send(volatile struct mstp_port_struct_t *mstp_port,
+                       unsigned timeout)
+{ /* milliseconds to wait for a packet */
+    (void)mstp_port;
+    (void)timeout;
     return 0;
 }
 
-uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t * mstp_port,
-    unsigned timeout)
-{       /* milliseconds to wait for a packet */
-    (void) mstp_port;
-    (void) timeout;
+uint16_t MSTP_Get_Reply(volatile struct mstp_port_struct_t *mstp_port,
+                        unsigned timeout)
+{ /* milliseconds to wait for a packet */
+    (void)mstp_port;
+    (void)timeout;
     return 0;
 }
 
 static char Capture_Filename[64] = "mstp_20090123091200.cap";
-static FILE *pFile = NULL;      /* stream pointer */
+static FILE *pFile = NULL; /* stream pointer */
 #if defined(_WIN32)
-static HANDLE hPipe = INVALID_HANDLE_VALUE;     /* pipe handle */
-static void named_pipe_create(
-    char *pipe_name)
+static HANDLE hPipe = INVALID_HANDLE_VALUE; /* pipe handle */
+static void named_pipe_create(char *pipe_name)
 {
     if (!Wireshark_Capture) {
         fprintf(stdout, "mstpcap: Creating Named Pipe \"%s\"\n", pipe_name);
     }
     /* create the pipe */
-    while (hPipe == INVALID_HANDLE_VALUE)
-    {
+    while (hPipe == INVALID_HANDLE_VALUE) {
         /* use CreateFile rather than CreateNamedPipe */
-        hPipe = CreateFile(
-            pipe_name,
-            GENERIC_READ |
-            GENERIC_WRITE,
-            0,
-            NULL,
-            OPEN_EXISTING,
-            0,
-            NULL);
+        hPipe = CreateFile(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+                           OPEN_EXISTING, 0, NULL);
         if (hPipe != INVALID_HANDLE_VALUE) {
             break;
         }
         /* if an error occured at handle creation */
         if (!WaitNamedPipe(pipe_name, 20000)) {
-            printf("Could not open pipe: waited for 20sec!\n"
+            printf(
+                "Could not open pipe: waited for 20sec!\n"
                 "If this message was issued before the 20sec finished,\n"
                 "then the pipe doesn't exist!\n");
             Exit_Requested = true;
@@ -488,44 +465,37 @@ static void named_pipe_create(
     ConnectNamedPipe(hPipe, NULL);
 }
 
-size_t data_write(
-    const void *ptr,
-    size_t size,
-    size_t nitems)
+size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
     DWORD cbWritten = 0;
     if (hPipe != INVALID_HANDLE_VALUE) {
-        (void) WriteFile(hPipe, /* handle to pipe  */
-            ptr,        /* buffer to write from  */
-            size * nitems,      /* number of bytes to write  */
-            &cbWritten, /* number of bytes written  */
-            NULL);      /* not overlapped I/O  */
+        (void)WriteFile(hPipe,         /* handle to pipe  */
+                        ptr,           /* buffer to write from  */
+                        size * nitems, /* number of bytes to write  */
+                        &cbWritten,    /* number of bytes written  */
+                        NULL);         /* not overlapped I/O  */
     }
 
     return fwrite(ptr, size, nitems, pFile);
 }
 
-size_t data_write_header(
-    const void *ptr,
-    size_t size,
-    size_t nitems,
-    bool pipe_enable)
+size_t data_write_header(const void *ptr, size_t size, size_t nitems,
+                         bool pipe_enable)
 {
     DWORD cbWritten = 0;
     if (pipe_enable && (hPipe != INVALID_HANDLE_VALUE)) {
-        (void) WriteFile(hPipe, /* handle to pipe  */
-            ptr,        /* buffer to write from  */
-            size * nitems,      /* number of bytes to write  */
-            &cbWritten, /* number of bytes written  */
-            NULL);      /* not overlapped I/O  */
+        (void)WriteFile(hPipe,         /* handle to pipe  */
+                        ptr,           /* buffer to write from  */
+                        size * nitems, /* number of bytes to write  */
+                        &cbWritten,    /* number of bytes written  */
+                        NULL);         /* not overlapped I/O  */
     }
 
     return fwrite(ptr, size, nitems, pFile);
 }
 #else
 static int FD_Pipe = -1;
-static void named_pipe_create(
-    char *name)
+static void named_pipe_create(char *name)
 {
     int rv = 0;
     rv = mkfifo(name, 0666);
@@ -540,10 +510,7 @@ static void named_pipe_create(
     }
 }
 
-size_t data_write(
-    const void *ptr,
-    size_t size,
-    size_t nitems)
+size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
     ssize_t bytes = 0;
     if (FD_Pipe != -1) {
@@ -553,11 +520,8 @@ size_t data_write(
     return fwrite(ptr, size, nitems, pFile);
 }
 
-size_t data_write_header(
-    const void *ptr,
-    size_t size,
-    size_t nitems,
-    bool pipe_enable)
+size_t data_write_header(const void *ptr, size_t size, size_t nitems,
+                         bool pipe_enable)
 {
     ssize_t bytes = 0;
     if (pipe_enable && (FD_Pipe != -1)) {
@@ -568,8 +532,7 @@ size_t data_write_header(
 }
 #endif
 
-static void filename_create(
-    char *filename)
+static void filename_create(char *filename)
 {
     time_t my_time;
     struct tm *today;
@@ -578,60 +541,57 @@ static void filename_create(
         my_time = time(NULL);
         today = localtime(&my_time);
         sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap",
-            1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
-            today->tm_hour, today->tm_min, today->tm_sec);
+                1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
+                today->tm_hour, today->tm_min, today->tm_sec);
     }
 }
 
 /* write packet to file in libpcap format */
-static void write_global_header(
-    const char *filename)
+static void write_global_header(const char *filename)
 {
     static bool pipe_enable = true;     /* don't write more than one header */
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
-    uint16_t version_major = 2; /* major version number */
-    uint16_t version_minor = 4; /* minor version number */
-    int32_t thiszone = 0;       /* GMT to local correction */
-    uint32_t sigfigs = 0;       /* accuracy of timestamps */
-    uint32_t snaplen = 65535;   /* max length of captured packets, in octets */
-    uint32_t network = DLT_BACNET_MS_TP;     /* data link type - BACNET_MS_TP */
+    uint16_t version_major = 2;         /* major version number */
+    uint16_t version_minor = 4;         /* minor version number */
+    int32_t thiszone = 0;               /* GMT to local correction */
+    uint32_t sigfigs = 0;               /* accuracy of timestamps */
+    uint32_t snaplen = 65535; /* max length of captured packets, in octets */
+    uint32_t network = DLT_BACNET_MS_TP; /* data link type - BACNET_MS_TP */
 
     /* create a new file. */
     pFile = fopen(filename, "wb");
     if (pFile) {
-        (void) data_write_header(&magic_number, sizeof(magic_number), 1,
-            pipe_enable);
-        (void) data_write_header(&version_major, sizeof(version_major), 1,
-            pipe_enable);
-        (void) data_write_header(&version_minor, sizeof(version_minor), 1,
-            pipe_enable);
-        (void) data_write_header(&thiszone, sizeof(thiszone), 1, pipe_enable);
-        (void) data_write_header(&sigfigs, sizeof(sigfigs), 1, pipe_enable);
-        (void) data_write_header(&snaplen, sizeof(snaplen), 1, pipe_enable);
-        (void) data_write_header(&network, sizeof(network), 1, pipe_enable);
+        (void)data_write_header(&magic_number, sizeof(magic_number), 1,
+                                pipe_enable);
+        (void)data_write_header(&version_major, sizeof(version_major), 1,
+                                pipe_enable);
+        (void)data_write_header(&version_minor, sizeof(version_minor), 1,
+                                pipe_enable);
+        (void)data_write_header(&thiszone, sizeof(thiszone), 1, pipe_enable);
+        (void)data_write_header(&sigfigs, sizeof(sigfigs), 1, pipe_enable);
+        (void)data_write_header(&snaplen, sizeof(snaplen), 1, pipe_enable);
+        (void)data_write_header(&network, sizeof(network), 1, pipe_enable);
         fflush(pFile);
         if (!Wireshark_Capture) {
             fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
         }
     } else {
         fprintf(stderr, "mstpcap[header]: failed to open %s: %s\n", filename,
-            strerror(errno));
+                strerror(errno));
     }
     if (pipe_enable) {
         pipe_enable = false;
     }
 }
 
-
-static void write_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port,
-    size_t header_len)
+static void write_received_packet(volatile struct mstp_port_struct_t *mstp_port,
+                                  size_t header_len)
 {
-    uint32_t ts_sec = 0;    /* timestamp seconds */
-    uint32_t ts_usec = 0;   /* timestamp microseconds */
-    uint32_t incl_len = 0;  /* number of octets of packet saved in file */
-    uint32_t orig_len = 0;  /* actual length of packet */
-    uint8_t header[MSTP_HEADER_MAX] = {0};  /* MS/TP header */
+    uint32_t ts_sec = 0;   /* timestamp seconds */
+    uint32_t ts_usec = 0;  /* timestamp microseconds */
+    uint32_t incl_len = 0; /* number of octets of packet saved in file */
+    uint32_t orig_len = 0; /* actual length of packet */
+    uint8_t header[MSTP_HEADER_MAX] = {0}; /* MS/TP header */
     struct timeval tv;
     size_t max_data = 0;
 
@@ -643,27 +603,28 @@ static void write_received_packet(
             (mstp_port->ReceivedValidFrameNotForUs)) {
             packet_statistics(&tv, mstp_port);
         }
-        (void) data_write(&ts_sec, sizeof(ts_sec), 1);
-        (void) data_write(&ts_usec, sizeof(ts_usec), 1);
+        (void)data_write(&ts_sec, sizeof(ts_sec), 1);
+        (void)data_write(&ts_usec, sizeof(ts_usec), 1);
         if (mstp_port->ReceivedInvalidFrame) {
             if (mstp_port->Index) {
                 max_data = min(mstp_port->InputBufferSize, mstp_port->Index);
-                incl_len = orig_len = header_len + max_data + 2/* checksum*/;
+                incl_len = orig_len = header_len + max_data + 2 /* checksum*/;
             } else {
                 /* header only */
                 incl_len = orig_len = header_len;
             }
         } else {
             if (mstp_port->DataLength) {
-                max_data = min(mstp_port->InputBufferSize, mstp_port->DataLength);
-                incl_len = orig_len = header_len + max_data + 2/* checksum*/;
+                max_data =
+                    min(mstp_port->InputBufferSize, mstp_port->DataLength);
+                incl_len = orig_len = header_len + max_data + 2 /* checksum*/;
             } else {
                 /* header only - or at least some bytes of the header */
                 incl_len = orig_len = header_len;
             }
         }
-        (void) data_write(&incl_len, sizeof(incl_len), 1);
-        (void) data_write(&orig_len, sizeof(orig_len), 1);
+        (void)data_write(&incl_len, sizeof(incl_len), 1);
+        (void)data_write(&orig_len, sizeof(orig_len), 1);
         if (header_len == 1) {
             header[0] = mstp_port->DataRegister;
         } else if (header_len == 2) {
@@ -679,21 +640,20 @@ static void write_received_packet(
             header[6] = LO_BYTE(mstp_port->DataLength);
             header[7] = mstp_port->HeaderCRCActual;
         }
-        (void) data_write(header, header_len, 1);
+        (void)data_write(header, header_len, 1);
         if (max_data) {
-            (void) data_write(mstp_port->InputBuffer, max_data, 1);
-            (void) data_write((char *) &mstp_port->DataCRCActualMSB, 1, 1);
-            (void) data_write((char *) &mstp_port->DataCRCActualLSB, 1, 1);
+            (void)data_write(mstp_port->InputBuffer, max_data, 1);
+            (void)data_write((char *)&mstp_port->DataCRCActualMSB, 1, 1);
+            (void)data_write((char *)&mstp_port->DataCRCActualLSB, 1, 1);
         }
     } else {
         fprintf(stderr, "mstpcap[packet]: failed to open %s: %s\n",
-            Capture_Filename, strerror(errno));
+                Capture_Filename, strerror(errno));
     }
 }
 
 /* read header from file in libpcap format */
-static bool test_global_header(
-    const char *filename)
+static bool test_global_header(const char *filename)
 {
     uint32_t magic_number = 0;  /* magic number */
     uint16_t version_major = 0; /* major version number */
@@ -758,21 +718,20 @@ static bool test_global_header(
         }
     } else {
         fprintf(stderr, "mstpcap[scan]: failed to open %s: %s\n", filename,
-            strerror(errno));
+                strerror(errno));
         return false;
     }
 
     return true;
 }
 
-static bool read_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port)
+static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
 {
-    uint32_t ts_sec = 0;        /* timestamp seconds */
-    uint32_t ts_usec = 0;       /* timestamp microseconds */
-    uint32_t incl_len = 0;      /* number of octets of packet saved in file */
-    uint32_t orig_len = 0;      /* actual length of packet */
-    uint8_t header[8] = { 0 };  /* MS/TP header */
+    uint32_t ts_sec = 0;     /* timestamp seconds */
+    uint32_t ts_usec = 0;    /* timestamp microseconds */
+    uint32_t incl_len = 0;   /* number of octets of packet saved in file */
+    uint32_t orig_len = 0;   /* actual length of packet */
+    uint8_t header[8] = {0}; /* MS/TP header */
     struct timeval tv;
     size_t count = 0;
     unsigned i = 0;
@@ -841,13 +800,13 @@ static bool read_received_packet(
                 pFile = NULL;
                 return false;
             }
-            count = fread((char *) &mstp_port->DataCRCActualMSB, 1, 1, pFile);
+            count = fread((char *)&mstp_port->DataCRCActualMSB, 1, 1, pFile);
             if (count != 1) {
                 fclose(pFile);
                 pFile = NULL;
                 return false;
             }
-            count = fread((char *) &mstp_port->DataCRCActualLSB, 1, 1, pFile);
+            count = fread((char *)&mstp_port->DataCRCActualLSB, 1, 1, pFile);
             if (count != 1) {
                 fclose(pFile);
                 pFile = NULL;
@@ -855,9 +814,8 @@ static bool read_received_packet(
             }
             mstp_port->DataCRC = 0xFFFF;
             for (i = 0; i < mstp_port->DataLength; i++) {
-                mstp_port->DataCRC =
-                    CRC_Calc_Data(mstp_port->InputBuffer[i],
-                    mstp_port->DataCRC);
+                mstp_port->DataCRC = CRC_Calc_Data(mstp_port->InputBuffer[i],
+                                                   mstp_port->DataCRC);
             }
             mstp_port->DataCRC =
                 CRC_Calc_Data(mstp_port->DataCRCActualMSB, mstp_port->DataCRC);
@@ -878,7 +836,7 @@ static bool read_received_packet(
         if (mstp_port->ReceivedInvalidFrame) {
             Invalid_Frame_Count++;
         } else if ((mstp_port->ReceivedValidFrame) ||
-            (mstp_port->ReceivedValidFrameNotForUs)) {
+                   (mstp_port->ReceivedValidFrameNotForUs)) {
             packet_statistics(&tv, mstp_port);
         }
     } else {
@@ -888,22 +846,20 @@ static bool read_received_packet(
     return true;
 }
 
-static void cleanup(
-    void)
+static void cleanup(void)
 {
     if (!Wireshark_Capture) {
         packet_statistics_print();
     }
     if (pFile) {
-        fflush(pFile);  /* stream pointer */
-        fclose(pFile);  /* stream pointer */
+        fflush(pFile); /* stream pointer */
+        fclose(pFile); /* stream pointer */
     }
     pFile = NULL;
 }
 
 #if defined(_WIN32)
-static BOOL WINAPI CtrlCHandler(
-    DWORD dwCtrlType)
+static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
 {
     dwCtrlType = dwCtrlType;
 
@@ -923,10 +879,9 @@ static BOOL WINAPI CtrlCHandler(
     return TRUE;
 }
 #else
-static void sig_int(
-    int signo)
+static void sig_int(int signo)
 {
-    (void) signo;
+    (void)signo;
     if (FD_Pipe != -1) {
         close(FD_Pipe);
     }
@@ -934,8 +889,7 @@ static void sig_int(
     exit(0);
 }
 
-void signal_init(
-    void)
+void signal_init(void)
 {
     signal(SIGINT, sig_int);
     signal(SIGHUP, sig_int);
@@ -943,8 +897,7 @@ void signal_init(
 }
 #endif
 
-void filename_create_new(
-    void)
+void filename_create_new(void)
 {
     if (pFile) {
         fclose(pFile);
@@ -954,8 +907,7 @@ void filename_create_new(
     write_global_header(&Capture_Filename[0]);
 }
 
-static void print_usage(
-    char *filename)
+static void print_usage(char *filename)
 {
     printf("Usage: %s", filename);
     printf(" [--scan <filename>]\n");
@@ -965,15 +917,19 @@ static void print_usage(
     printf(" [--version][--help]\n");
 }
 
-static void print_help(char *filename) {
-    printf("%s --scan <filename>\n"
+static void print_help(char *filename)
+{
+    printf(
+        "%s --scan <filename>\n"
         "perform statistic analysis on MS/TP capture file.\n",
         filename);
     printf("\n");
-    printf("Captures MS/TP packets from a serial interface\n"
+    printf(
+        "Captures MS/TP packets from a serial interface\n"
         "and saves them to a file. Saves packets in a\n"
         "filename mstp_20090123091200.cap that has data and time.\n"
-        "After receiving 65535 packets, a new file is created.\n" "\n"
+        "After receiving 65535 packets, a new file is created.\n"
+        "\n"
         "Command line options:\n"
         "[--extcap-interface port] - serial interface.\n"
 #if defined(_WIN32)
@@ -992,7 +948,8 @@ static void print_help(char *filename) {
 #endif
         "    Use that name as the interface name in Wireshark.\n");
     printf("\n");
-    printf("%s [--extcap-interfaces][--extcap-dlts][--extcap-config]\n"
+    printf(
+        "%s [--extcap-interfaces][--extcap-dlts][--extcap-config]\n"
         "[--capture][--baud baud][--fifo pipe]\n"
         "[--extcap-interface iface]\n"
         "Usage from Wireshark ExtCap interface\n",
@@ -1000,8 +957,7 @@ static void print_help(char *filename) {
 }
 
 /* initialize some of the variables in the MS/TP Receive structure */
-static void mstp_structure_init(
-    volatile struct mstp_port_struct_t *mstp_port)
+static void mstp_structure_init(volatile struct mstp_port_struct_t *mstp_port)
 {
     if (mstp_port) {
         mstp_port->FrameType = FRAME_TYPE_PROPRIETARY_MAX;
@@ -1019,9 +975,7 @@ static void mstp_structure_init(
 }
 
 /* simple test to packetize the data and print it */
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
     volatile struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
@@ -1053,8 +1007,10 @@ int main(
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("mstpcap %s\n", BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2011-2016 by Steve Karg\n"
-                "This is free software; see the source for copying conditions.\n"
+            printf(
+                "Copyright (C) 2011-2016 by Steve Karg\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
@@ -1070,8 +1026,7 @@ int main(
             if (test_global_header(argv[argi])) {
                 while (read_received_packet(mstp_port)) {
                     packet_count++;
-                    fprintf(stderr, "\r%u packets",
-                        (unsigned) packet_count);
+                    fprintf(stderr, "\r%u packets", (unsigned)packet_count);
                 }
                 if (packet_count) {
                     packet_statistics_print();
@@ -1092,21 +1047,27 @@ int main(
                 printf("An interface must be provided.\n");
                 return 0;
             }
-            printf("dlt {number=%u}{name=BACnet MS/TP}"
+            printf(
+                "dlt {number=%u}{name=BACnet MS/TP}"
                 "{display=BACnet MS/TP}\n",
                 DLT_BACNET_MS_TP);
             Exit_Requested = true;
         }
         if (strcmp(argv[argi], "--extcap-config") == 0) {
-            printf("arg {number=0}{call=--baud}{display=Baud Rate}"
+            printf(
+                "arg {number=0}{call=--baud}{display=Baud Rate}"
                 "{tooltip=Serial port baud rate in bits per second}"
                 "{type=selector}\n");
             printf("value {arg=0}{value=9600}{display=9600}{default=false}\n");
-            printf("value {arg=0}{value=19200}{display=19200}{default=false}\n");
+            printf(
+                "value {arg=0}{value=19200}{display=19200}{default=false}\n");
             printf("value {arg=0}{value=38400}{display=38400}{default=true}\n");
-            printf("value {arg=0}{value=57600}{display=57600}{default=false}\n");
-            printf("value {arg=0}{value=76800}{display=76800}{default=false}\n");
-            printf("value {arg=0}{value=115200}{display=115200}{default=false}\n");
+            printf(
+                "value {arg=0}{value=57600}{display=57600}{default=false}\n");
+            printf(
+                "value {arg=0}{value=76800}{display=76800}{default=false}\n");
+            printf(
+                "value {arg=0}{value=115200}{display=115200}{default=false}\n");
             return 0;
         }
         if (strcmp(argv[argi], "--capture") == 0) {
@@ -1116,7 +1077,8 @@ int main(
         if (strcmp(argv[argi], "--extcap-interface") == 0) {
             argi++;
             if (argi >= argc) {
-                printf("An interface must be provided or "
+                printf(
+                    "An interface must be provided or "
                     "the selection must be displayed.\n");
                 return 0;
             }
@@ -1126,7 +1088,7 @@ int main(
         if (strncasecmp(argv[argi], "com", 3) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
-            if ((argi+1) < argc) {
+            if ((argi + 1) < argc) {
                 argi++;
                 my_baud = strtol(argv[argi], NULL, 0);
                 RS485_Set_Baud_Rate(my_baud);
@@ -1136,7 +1098,7 @@ int main(
         if (strncasecmp(argv[argi], "/dev/", 5) == 0) {
             /* legacy command line options */
             RS485_Set_Interface(argv[argi]);
-            if ((argi+1) < argc) {
+            if ((argi + 1) < argc) {
                 argi++;
                 my_baud = strtol(argv[argi], NULL, 0);
                 RS485_Set_Baud_Rate(my_baud);
@@ -1173,11 +1135,11 @@ int main(
     timer_init();
     if (!Wireshark_Capture) {
         fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
-            RS485_Interface(), (long) RS485_Get_Baud_Rate());
+                RS485_Interface(), (long)RS485_Get_Baud_Rate());
     }
 #if defined(_WIN32)
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
-    SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE);
 #else
     signal_init();
 #endif
@@ -1228,8 +1190,8 @@ int main(
         }
         if (!Wireshark_Capture) {
             if (!(packet_count % 100)) {
-                fprintf(stdout, "\r%hu packets, %hu invalid frames", packet_count,
-                    Invalid_Frame_Count);
+                fprintf(stdout, "\r%hu packets, %hu invalid frames",
+                        packet_count, Invalid_Frame_Count);
             }
             if (packet_count >= 65535) {
                 packet_statistics_print();

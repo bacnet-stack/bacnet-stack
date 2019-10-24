@@ -122,6 +122,11 @@ mstpsnap: ports/linux/mstpsnap.mak
 bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 	$(MAKE) -s -C ports/bdk-atxx4-mstp clean all
 
+pretty:
+	find ./src -iname *.h -o -iname *.c -exec clang-format -i -style=file -fallback-style=none {} \;
+	find ./include -iname *.h -o -iname *.c -exec clang-format -i -style=file -fallback-style=none {} \;
+	find ./demo -iname *.h -o -iname *.c -exec clang-format -i -style=file -fallback-style=none {} \;
+
 clean:
 	$(MAKE) -s -C lib clean
 	$(MAKE) -s -C demo clean

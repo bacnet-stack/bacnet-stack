@@ -13,9 +13,9 @@
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with this program; if not, write to 
+ along with this program; if not, write to
  The Free Software Foundation, Inc.
- 59 Temple Place - Suite 330 
+ 59 Temple Place - Suite 330
  Boston, MA  02111-1307, USA.
 
  As a special exception, if other files instantiate templates or
@@ -39,32 +39,28 @@
 
 #if !defined(__BORLANDC__) && !defined(_MSC_VER)
 #include <ctype.h>
-int stricmp(
-    const char *s1,
-    const char *s2)
+int stricmp(const char *s1, const char *s2)
 {
     unsigned char c1, c2;
 
     do {
-        c1 = (unsigned char) *s1;
-        c2 = (unsigned char) *s2;
-        c1 = (unsigned char) tolower(c1);
-        c2 = (unsigned char) tolower(c2);
+        c1 = (unsigned char)*s1;
+        c2 = (unsigned char)*s2;
+        c1 = (unsigned char)tolower(c1);
+        c2 = (unsigned char)tolower(c2);
         s1++;
         s2++;
     } while ((c1 == c2) && (c1 != '\0'));
 
-    return (int) c1 - c2;
+    return (int)c1 - c2;
 }
 #endif
 #if defined(_MSC_VER)
 #define stricmp _stricmp
 #endif
 
-bool indtext_by_string(
-    INDTEXT_DATA * data_list,
-    const char *search_name,
-    unsigned *found_index)
+bool indtext_by_string(INDTEXT_DATA *data_list, const char *search_name,
+                       unsigned *found_index)
 {
     bool found = false;
     unsigned index = 0;
@@ -87,10 +83,8 @@ bool indtext_by_string(
 }
 
 /* case insensitive version */
-bool indtext_by_istring(
-    INDTEXT_DATA * data_list,
-    const char *search_name,
-    unsigned *found_index)
+bool indtext_by_istring(INDTEXT_DATA *data_list, const char *search_name,
+                        unsigned *found_index)
 {
     bool found = false;
     unsigned index = 0;
@@ -112,10 +106,9 @@ bool indtext_by_istring(
     return found;
 }
 
-unsigned indtext_by_string_default(
-    INDTEXT_DATA * data_list,
-    const char *search_name,
-    unsigned default_index)
+unsigned indtext_by_string_default(INDTEXT_DATA *data_list,
+                                   const char *search_name,
+                                   unsigned default_index)
 {
     unsigned index = 0;
 
@@ -125,10 +118,9 @@ unsigned indtext_by_string_default(
     return index;
 }
 
-unsigned indtext_by_istring_default(
-    INDTEXT_DATA * data_list,
-    const char *search_name,
-    unsigned default_index)
+unsigned indtext_by_istring_default(INDTEXT_DATA *data_list,
+                                    const char *search_name,
+                                    unsigned default_index)
 {
     unsigned index = 0;
 
@@ -138,10 +130,8 @@ unsigned indtext_by_istring_default(
     return index;
 }
 
-const char *indtext_by_index_default(
-    INDTEXT_DATA * data_list,
-    unsigned index,
-    const char *default_string)
+const char *indtext_by_index_default(INDTEXT_DATA *data_list, unsigned index,
+                                     const char *default_string)
 {
     const char *pString = NULL;
 
@@ -159,29 +149,22 @@ const char *indtext_by_index_default(
 }
 
 const char *indtext_by_index_split_default(
-    INDTEXT_DATA * data_list,
-    unsigned index,
-    unsigned split_index,
-    const char *before_split_default_name,
-    const char *default_name)
+    INDTEXT_DATA *data_list, unsigned index, unsigned split_index,
+    const char *before_split_default_name, const char *default_name)
 {
     if (index < split_index)
         return indtext_by_index_default(data_list, index,
-            before_split_default_name);
+                                        before_split_default_name);
     else
         return indtext_by_index_default(data_list, index, default_name);
 }
 
-
-const char *indtext_by_index(
-    INDTEXT_DATA * data_list,
-    unsigned index)
+const char *indtext_by_index(INDTEXT_DATA *data_list, unsigned index)
 {
     return indtext_by_index_default(data_list, index, NULL);
 }
 
-unsigned indtext_count(
-    INDTEXT_DATA * data_list)
+unsigned indtext_count(INDTEXT_DATA *data_list)
 {
     unsigned count = 0; /* return value */
 
@@ -198,17 +181,11 @@ unsigned indtext_count(
 #include <assert.h>
 #include "ctest.h"
 
-static INDTEXT_DATA data_list[] = {
-    {1, "Joshua"},
-    {2, "Mary"},
-    {3, "Anna"},
-    {4, "Christopher"},
-    {5, "Patricia"},
-    {0, NULL}
-};
+static INDTEXT_DATA data_list[] = {{1, "Joshua"},   {2, "Mary"},
+                                   {3, "Anna"},     {4, "Christopher"},
+                                   {5, "Patricia"}, {0, NULL}};
 
-void testIndexText(
-    Test * pTest)
+void testIndexText(Test *pTest)
 {
     unsigned i; /*counter */
     const char *pString;
@@ -224,7 +201,7 @@ void testIndexText(
             ct_test(pTest, valid == true);
             ct_test(pTest, index == i);
             ct_test(pTest, index == indtext_by_string_default(data_list,
-                    pString, index));
+                                                              pString, index));
         }
     }
     ct_test(pTest, indtext_count(data_list) == count);
@@ -238,14 +215,13 @@ void testIndexText(
     ct_test(pTest, indtext_by_istring(data_list, "JOSHUA", NULL) == true);
     ct_test(pTest, indtext_by_istring(data_list, "joshua", NULL) == true);
     valid = indtext_by_istring(data_list, "ANNA", &index);
-    ct_test(pTest, index == indtext_by_istring_default(data_list, "ANNA",
-            index));
+    ct_test(pTest,
+            index == indtext_by_istring_default(data_list, "ANNA", index));
 }
 #endif
 
 #ifdef TEST_INDEX_TEXT
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -258,7 +234,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
 
     ct_destroy(pTest);
 

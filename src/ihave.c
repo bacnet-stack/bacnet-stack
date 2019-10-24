@@ -39,31 +39,28 @@
 
 /** @file ihave.c  Encode/Decode I-Have service */
 
-int ihave_encode_apdu(
-    uint8_t * apdu,
-    BACNET_I_HAVE_DATA * data)
+int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
 {
-    int len = 0;        /* length of each encoding */
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int len = 0;      /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && data) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_I_HAVE;
         apdu_len = 2;
         /* deviceIdentifier */
-        len =
-            encode_application_object_id(&apdu[apdu_len],
-            (int) data->device_id.type, data->device_id.instance);
+        len = encode_application_object_id(&apdu[apdu_len],
+                                           (int)data->device_id.type,
+                                           data->device_id.instance);
         apdu_len += len;
         /* objectIdentifier */
-        len =
-            encode_application_object_id(&apdu[apdu_len],
-            (int) data->object_id.type, data->object_id.instance);
+        len = encode_application_object_id(&apdu[apdu_len],
+                                           (int)data->object_id.type,
+                                           data->object_id.instance);
         apdu_len += len;
         /* objectName */
-        len =
-            encode_application_character_string(&apdu[apdu_len],
-            &data->object_name);
+        len = encode_application_character_string(&apdu[apdu_len],
+                                                  &data->object_name);
         apdu_len += len;
     }
 
@@ -73,44 +70,36 @@ int ihave_encode_apdu(
 #if BACNET_SVC_I_HAVE_A
 
 /* decode the service request only */
-int ihave_decode_service_request(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_I_HAVE_DATA * data)
+int ihave_decode_service_request(uint8_t *apdu, unsigned apdu_len,
+                                 BACNET_I_HAVE_DATA *data)
 {
     int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint16_t decoded_type = 0;  /* for decoding */
+    uint16_t decoded_type = 0; /* for decoding */
 
     if (apdu_len && data) {
         /* deviceIdentifier */
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            len +=
-                decode_object_id(&apdu[len], &decoded_type,
-                &data->device_id.instance);
+            len += decode_object_id(&apdu[len], &decoded_type,
+                                    &data->device_id.instance);
             data->device_id.type = decoded_type;
         } else
             return -1;
         /* objectIdentifier */
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            len +=
-                decode_object_id(&apdu[len], &decoded_type,
-                &data->object_id.instance);
+            len += decode_object_id(&apdu[len], &decoded_type,
+                                    &data->object_id.instance);
             data->object_id.type = decoded_type;
         } else
             return -1;
         /* objectName */
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-            len +=
-                decode_character_string(&apdu[len], len_value,
-                &data->object_name);
+            len += decode_character_string(&apdu[len], len_value,
+                                           &data->object_name);
         } else
             return -1;
     } else
@@ -119,10 +108,8 @@ int ihave_decode_service_request(
     return len;
 }
 
-int ihave_decode_apdu(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_I_HAVE_DATA * data)
+int ihave_decode_apdu(uint8_t *apdu, unsigned apdu_len,
+                      BACNET_I_HAVE_DATA *data)
 {
     int len = 0;
 
@@ -144,11 +131,9 @@ int ihave_decode_apdu(
 #include <string.h>
 #include "ctest.h"
 
-void testIHaveData(
-    Test * pTest,
-    BACNET_I_HAVE_DATA * data)
+void testIHaveData(Test *pTest, BACNET_I_HAVE_DATA *data)
 {
-    uint8_t apdu[480] = { 0 };
+    uint8_t apdu[480] = {0};
     int len = 0;
     int apdu_len = 0;
     BACNET_I_HAVE_DATA test_data;
@@ -163,26 +148,25 @@ void testIHaveData(
     ct_test(pTest, test_data.device_id.instance == data->device_id.instance);
     ct_test(pTest, test_data.object_id.type == data->object_id.type);
     ct_test(pTest, test_data.object_id.instance == data->object_id.instance);
-    ct_test(pTest, characterstring_same(&test_data.object_name,
-            &data->object_name));
+    ct_test(pTest,
+            characterstring_same(&test_data.object_name, &data->object_name));
 }
 
-void testIHave(
-    Test * pTest)
+void testIHave(Test *pTest)
 {
     BACNET_I_HAVE_DATA data;
 
     characterstring_init_ansi(&data.object_name, "Patricia - my love!");
     data.device_id.type = OBJECT_DEVICE;
     for (data.device_id.instance = 1;
-        data.device_id.instance <= BACNET_MAX_INSTANCE;
-        data.device_id.instance <<= 1) {
+         data.device_id.instance <= BACNET_MAX_INSTANCE;
+         data.device_id.instance <<= 1) {
         for (data.object_id.type = OBJECT_ANALOG_INPUT;
-            data.object_id.type < MAX_BACNET_OBJECT_TYPE;
-            data.object_id.type++) {
+             data.object_id.type < MAX_BACNET_OBJECT_TYPE;
+             data.object_id.type++) {
             for (data.object_id.instance = 1;
-                data.object_id.instance <= BACNET_MAX_INSTANCE;
-                data.object_id.instance <<= 1) {
+                 data.object_id.instance <= BACNET_MAX_INSTANCE;
+                 data.object_id.instance <<= 1) {
                 testIHaveData(pTest, &data);
             }
         }
@@ -190,8 +174,7 @@ void testIHave(
 }
 
 #ifdef TEST_I_HAVE
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -203,7 +186,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

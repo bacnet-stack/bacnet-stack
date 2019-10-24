@@ -49,11 +49,7 @@
 /* note: the PROP_PROPERTY_LIST is NOT included in these lists, on purpose */
 
 static const int Default_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE, -1};
 
 static const int Device_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
@@ -76,8 +72,7 @@ static const int Device_Properties_Required[] = {
     PROP_NUMBER_OF_APDU_RETRIES,
     PROP_DEVICE_ADDRESS_BINDING,
     PROP_DATABASE_REVISION,
-    -1
-};
+    -1};
 
 static const int Device_Properties_Optional[] = {
     PROP_LOCATION,
@@ -114,22 +109,19 @@ static const int Device_Properties_Optional[] = {
     PROP_ALIGN_INTERVALS,
     PROP_INTERVAL_OFFSET,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
-static const int Accumulator_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_SCALE,
-    PROP_UNITS,
-    PROP_MAX_PRES_VALUE,
-    -1
-};
+static const int Accumulator_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                                      PROP_OBJECT_NAME,
+                                                      PROP_OBJECT_TYPE,
+                                                      PROP_PRESENT_VALUE,
+                                                      PROP_STATUS_FLAGS,
+                                                      PROP_EVENT_STATE,
+                                                      PROP_OUT_OF_SERVICE,
+                                                      PROP_SCALE,
+                                                      PROP_UNITS,
+                                                      PROP_MAX_PRES_VALUE,
+                                                      -1};
 
 static const int Accumulator_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -155,20 +147,12 @@ static const int Accumulator_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 static const int Analog_Input_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_UNITS,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_UNITS,        -1};
 
 static const int Analog_Input_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -192,22 +176,19 @@ static const int Analog_Input_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
-static const int Analog_Output_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_UNITS,
-    PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
-    -1
-};
+static const int Analog_Output_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                                        PROP_OBJECT_NAME,
+                                                        PROP_OBJECT_TYPE,
+                                                        PROP_PRESENT_VALUE,
+                                                        PROP_STATUS_FLAGS,
+                                                        PROP_EVENT_STATE,
+                                                        PROP_OUT_OF_SERVICE,
+                                                        PROP_UNITS,
+                                                        PROP_PRIORITY_ARRAY,
+                                                        PROP_RELINQUISH_DEFAULT,
+                                                        -1};
 
 static const int Analog_Output_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -230,20 +211,12 @@ static const int Analog_Output_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 static const int Analog_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_UNITS,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_UNITS,        -1};
 
 static const int Analog_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -264,22 +237,19 @@ static const int Analog_Value_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
-static const int Averaging_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_MINIMUM_VALUE,
-    PROP_AVERAGE_VALUE,
-    PROP_MAXIMUM_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_UNITS,
-    -1
-};
+static const int Averaging_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                                    PROP_OBJECT_NAME,
+                                                    PROP_OBJECT_TYPE,
+                                                    PROP_MINIMUM_VALUE,
+                                                    PROP_AVERAGE_VALUE,
+                                                    PROP_MAXIMUM_VALUE,
+                                                    PROP_STATUS_FLAGS,
+                                                    PROP_EVENT_STATE,
+                                                    PROP_OUT_OF_SERVICE,
+                                                    PROP_UNITS,
+                                                    -1};
 
 static const int Averaging_Properties_Optional[] = {
     PROP_PROFILE_NAME,
@@ -292,20 +262,12 @@ static const int Averaging_Properties_Optional[] = {
     PROP_OBJECT_PROPERTY_REFERENCE,
     PROP_WINDOW_INTERVAL,
     PROP_WINDOW_SAMPLES,
-    -1
-};
+    -1};
 
 static const int Binary_Input_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_POLARITY,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_POLARITY,     -1};
 
 static const int Binary_Input_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -328,22 +290,19 @@ static const int Binary_Input_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
-static const int Binary_Output_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_POLARITY,
-    PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
-    -1
-};
+static const int Binary_Output_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                                        PROP_OBJECT_NAME,
+                                                        PROP_OBJECT_TYPE,
+                                                        PROP_PRESENT_VALUE,
+                                                        PROP_STATUS_FLAGS,
+                                                        PROP_EVENT_STATE,
+                                                        PROP_OUT_OF_SERVICE,
+                                                        PROP_POLARITY,
+                                                        PROP_PRIORITY_ARRAY,
+                                                        PROP_RELINQUISH_DEFAULT,
+                                                        -1};
 
 static const int Binary_Output_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -368,19 +327,13 @@ static const int Binary_Output_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 static const int Binary_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,      PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    -1};
 
 static const int Binary_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -406,23 +359,14 @@ static const int Binary_Value_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 static const int Calendar_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_DATE_LIST,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_DATE_LIST,   -1};
 
-static const int Calendar_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_PROFILE_NAME,
-    -1
-};
+static const int Calendar_Properties_Optional[] = {PROP_DESCRIPTION,
+                                                   PROP_PROFILE_NAME, -1};
 
 static const int Channel_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
@@ -436,8 +380,7 @@ static const int Channel_Properties_Required[] = {
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
     PROP_CHANNEL_NUMBER,
     PROP_CONTROL_GROUPS,
-    -1
-};
+    -1};
 
 static const int Channel_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -455,56 +398,34 @@ static const int Channel_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS_CONFIG,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
-static const int Command_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_IN_PROCESS,
-    PROP_ALL_WRITES_SUCCESSFUL,
-    PROP_ACTION,
-    -1
-};
+static const int Command_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                                  PROP_OBJECT_NAME,
+                                                  PROP_OBJECT_TYPE,
+                                                  PROP_PRESENT_VALUE,
+                                                  PROP_IN_PROCESS,
+                                                  PROP_ALL_WRITES_SUCCESSFUL,
+                                                  PROP_ACTION,
+                                                  -1};
 
 static const int Command_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_ACTION_TEXT,
-    PROP_PROFILE_NAME,
-    -1
-};
+    PROP_DESCRIPTION, PROP_ACTION_TEXT, PROP_PROFILE_NAME, -1};
 
 static const int CharacterString_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1};
 
 static const int CharacterString_Value_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_EVENT_STATE,
-    PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE,
-    PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
-    PROP_TIME_DELAY,
-    PROP_NOTIFICATION_CLASS,
-    PROP_ALARM_VALUES,
-    PROP_FAULT_VALUES,
-    PROP_EVENT_ENABLE,
-    PROP_ACKED_TRANSITIONS,
-    PROP_NOTIFY_TYPE,
-    PROP_EVENT_TIME_STAMPS,
-    PROP_EVENT_MESSAGE_TEXTS,
-    PROP_RELIABILITY_EVALUATION_INHIBIT,
-    PROP_PROFILE_NAME,
-    -1
-};
+    PROP_DESCRIPTION,         PROP_EVENT_STATE,
+    PROP_RELIABILITY,         PROP_OUT_OF_SERVICE,
+    PROP_PRIORITY_ARRAY,      PROP_RELINQUISH_DEFAULT,
+    PROP_TIME_DELAY,          PROP_NOTIFICATION_CLASS,
+    PROP_ALARM_VALUES,        PROP_FAULT_VALUES,
+    PROP_EVENT_ENABLE,        PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,         PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS, PROP_RELIABILITY_EVALUATION_INHIBIT,
+    PROP_PROFILE_NAME,        -1};
 
 static const int Lighting_Output_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
@@ -525,8 +446,7 @@ static const int Lighting_Output_Properties_Required[] = {
     PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
     PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
-    -1
-};
+    -1};
 
 static const int Lighting_Output_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -540,8 +460,7 @@ static const int Lighting_Output_Properties_Optional[] = {
     PROP_COV_INCREMENT,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 static const int Load_Control_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
@@ -559,42 +478,25 @@ static const int Load_Control_Properties_Required[] = {
     PROP_ACTUAL_SHED_LEVEL,
     PROP_SHED_LEVELS,
     PROP_SHED_LEVEL_DESCRIPTIONS,
-    -1
-};
+    -1};
 
 static const int Load_Control_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_STATE_DESCRIPTION,
-    PROP_RELIABILITY,
-    PROP_FULL_DUTY_BASELINE,
-    PROP_NOTIFICATION_CLASS,
-    PROP_TIME_DELAY,
-    PROP_EVENT_ENABLE,
-    PROP_ACKED_TRANSITIONS,
-    PROP_NOTIFY_TYPE,
-    PROP_EVENT_TIME_STAMPS,
-    PROP_EVENT_MESSAGE_TEXTS,
-    PROP_RELIABILITY_EVALUATION_INHIBIT,
-    PROP_PROFILE_NAME,
-    -1
-};
+    PROP_DESCRIPTION,         PROP_STATE_DESCRIPTION,
+    PROP_RELIABILITY,         PROP_FULL_DUTY_BASELINE,
+    PROP_NOTIFICATION_CLASS,  PROP_TIME_DELAY,
+    PROP_EVENT_ENABLE,        PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,         PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS, PROP_RELIABILITY_EVALUATION_INHIBIT,
+    PROP_PROFILE_NAME,        -1};
 
 static const int Life_Safety_Point_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_TRACKING_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_RELIABILITY,
-    PROP_MODE,
-    PROP_ACCEPTED_MODES,
-    PROP_SILENCED,
-    PROP_OPERATION_EXPECTED,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER,  PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,        PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,     PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,        PROP_OUT_OF_SERVICE,
+    PROP_RELIABILITY,        PROP_MODE,
+    PROP_ACCEPTED_MODES,     PROP_SILENCED,
+    PROP_OPERATION_EXPECTED, -1};
 
 static const int Life_Safety_Point_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -615,39 +517,22 @@ static const int Life_Safety_Point_Properties_Optional[] = {
     PROP_MEMBER_OF,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 static const int Multistate_Input_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_NUMBER_OF_STATES,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS,     PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1};
 
 static const int Multistate_Input_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_DEVICE_TYPE,
-    PROP_RELIABILITY,
-    PROP_STATE_TEXT,
-    PROP_TIME_DELAY,
-    PROP_NOTIFICATION_CLASS,
-    PROP_ALARM_VALUES,
-    PROP_FAULT_VALUES,
-    PROP_EVENT_ENABLE,
-    PROP_ACKED_TRANSITIONS,
-    PROP_NOTIFY_TYPE,
-    PROP_EVENT_TIME_STAMPS,
-    PROP_EVENT_MESSAGE_TEXTS,
-    PROP_RELIABILITY_EVALUATION_INHIBIT,
-    PROP_PROFILE_NAME,
-    -1
-};
+    PROP_DESCRIPTION,         PROP_DEVICE_TYPE,
+    PROP_RELIABILITY,         PROP_STATE_TEXT,
+    PROP_TIME_DELAY,          PROP_NOTIFICATION_CLASS,
+    PROP_ALARM_VALUES,        PROP_FAULT_VALUES,
+    PROP_EVENT_ENABLE,        PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE,         PROP_EVENT_TIME_STAMPS,
+    PROP_EVENT_MESSAGE_TEXTS, PROP_RELIABILITY_EVALUATION_INHIBIT,
+    PROP_PROFILE_NAME,        -1};
 
 static const int Multistate_Output_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER,
@@ -660,8 +545,7 @@ static const int Multistate_Output_Properties_Required[] = {
     PROP_NUMBER_OF_STATES,
     PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
-    -1
-};
+    -1};
 
 static const int Multistate_Output_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -678,20 +562,12 @@ static const int Multistate_Output_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 static const int Multistate_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_NUMBER_OF_STATES,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS,     PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1};
 
 static const int Multistate_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -710,41 +586,30 @@ static const int Multistate_Value_Properties_Optional[] = {
     PROP_EVENT_MESSAGE_TEXTS,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 static const int Notification_Class_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_NOTIFICATION_CLASS,
-    PROP_PRIORITY,
-    PROP_ACK_REQUIRED,
-    PROP_RECIPIENT_LIST,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,       PROP_NOTIFICATION_CLASS,
+    PROP_PRIORITY,          PROP_ACK_REQUIRED,
+    PROP_RECIPIENT_LIST,    -1};
 
 static const int Notification_Class_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_PROFILE_NAME,
-    -1
-};
+    PROP_DESCRIPTION, PROP_PROFILE_NAME, -1};
 
-static const int Trend_Log_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_ENABLE,
-    PROP_STOP_WHEN_FULL,
-    PROP_BUFFER_SIZE,
-    PROP_LOG_BUFFER,
-    PROP_RECORD_COUNT,
-    PROP_TOTAL_RECORD_COUNT,
-    PROP_EVENT_STATE,
-    PROP_LOGGING_TYPE,
-    PROP_STATUS_FLAGS,
-    -1
-};
+static const int Trend_Log_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                                    PROP_OBJECT_NAME,
+                                                    PROP_OBJECT_TYPE,
+                                                    PROP_ENABLE,
+                                                    PROP_STOP_WHEN_FULL,
+                                                    PROP_BUFFER_SIZE,
+                                                    PROP_LOG_BUFFER,
+                                                    PROP_RECORD_COUNT,
+                                                    PROP_TOTAL_RECORD_COUNT,
+                                                    PROP_EVENT_STATE,
+                                                    PROP_LOGGING_TYPE,
+                                                    PROP_STATUS_FLAGS,
+                                                    -1};
 
 static const int Trend_Log_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -769,39 +634,30 @@ static const int Trend_Log_Properties_Optional[] = {
     PROP_RELIABILITY,
     PROP_RELIABILITY_EVALUATION_INHIBIT,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
-static const int File_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_FILE_TYPE,
-    PROP_FILE_SIZE,
-    PROP_MODIFICATION_DATE,
-    PROP_ARCHIVE,
-    PROP_READ_ONLY,
-    PROP_FILE_ACCESS_METHOD,
-    -1
-};
+static const int File_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                               PROP_OBJECT_NAME,
+                                               PROP_OBJECT_TYPE,
+                                               PROP_FILE_TYPE,
+                                               PROP_FILE_SIZE,
+                                               PROP_MODIFICATION_DATE,
+                                               PROP_ARCHIVE,
+                                               PROP_READ_ONLY,
+                                               PROP_FILE_ACCESS_METHOD,
+                                               -1};
 
 static const int File_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_RECORD_COUNT,
-    PROP_PROFILE_NAME,
-    -1
-};
+    PROP_DESCRIPTION, PROP_RECORD_COUNT, PROP_PROFILE_NAME, -1};
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Integer_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_UNITS,
-    -1
-};
+static const int Integer_Value_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
+                                                        PROP_OBJECT_NAME,
+                                                        PROP_OBJECT_TYPE,
+                                                        PROP_PRESENT_VALUE,
+                                                        PROP_STATUS_FLAGS,
+                                                        PROP_UNITS,
+                                                        -1};
 
 static const int Integer_Value_Properties_Optional[] = {
     PROP_DESCRIPTION,
@@ -832,8 +688,7 @@ static const int Integer_Value_Properties_Optional[] = {
     PROP_MAX_PRES_VALUE,
     PROP_RESOLUTION,
     PROP_PROFILE_NAME,
-    -1
-};
+    -1};
 
 /**
  * Function that returns the list of all Optional properties
@@ -844,10 +699,9 @@ static const int Integer_Value_Properties_Optional[] = {
  * type 'int' that contain BACnet object properties for the given object
  * type.
  */
-const int * property_list_optional(
-    BACNET_OBJECT_TYPE object_type)
+const int *property_list_optional(BACNET_OBJECT_TYPE object_type)
 {
-    const int * pList = NULL;
+    const int *pList = NULL;
 
     switch (object_type) {
         case OBJECT_DEVICE:
@@ -887,8 +741,7 @@ const int * property_list_optional(
             pList = Command_Properties_Optional;
             break;
         case OBJECT_CHARACTERSTRING_VALUE:
-            pList =
-                CharacterString_Value_Properties_Optional;
+            pList = CharacterString_Value_Properties_Optional;
             break;
         case OBJECT_LIGHTING_OUTPUT:
             pList = Lighting_Output_Properties_Optional;
@@ -897,24 +750,19 @@ const int * property_list_optional(
             pList = Load_Control_Properties_Optional;
             break;
         case OBJECT_LIFE_SAFETY_POINT:
-            pList =
-                Life_Safety_Point_Properties_Optional;
+            pList = Life_Safety_Point_Properties_Optional;
             break;
         case OBJECT_MULTI_STATE_INPUT:
-            pList =
-                Multistate_Input_Properties_Optional;
+            pList = Multistate_Input_Properties_Optional;
             break;
         case OBJECT_MULTI_STATE_OUTPUT:
-            pList =
-                Multistate_Output_Properties_Optional;
+            pList = Multistate_Output_Properties_Optional;
             break;
         case OBJECT_MULTI_STATE_VALUE:
-            pList =
-                Multistate_Value_Properties_Optional;
+            pList = Multistate_Value_Properties_Optional;
             break;
         case OBJECT_NOTIFICATION_CLASS:
-            pList =
-                Notification_Class_Properties_Optional;
+            pList = Notification_Class_Properties_Optional;
             break;
         case OBJECT_TRENDLOG:
             pList = Trend_Log_Properties_Optional;
@@ -941,10 +789,9 @@ const int * property_list_optional(
  * type 'int' that contain BACnet object properties for the given object
  * type.
  */
-const int * property_list_required(
-    BACNET_OBJECT_TYPE object_type)
+const int *property_list_required(BACNET_OBJECT_TYPE object_type)
 {
-    const int * pList = NULL;
+    const int *pList = NULL;
 
     switch (object_type) {
         case OBJECT_DEVICE:
@@ -984,8 +831,7 @@ const int * property_list_required(
             pList = Command_Properties_Required;
             break;
         case OBJECT_CHARACTERSTRING_VALUE:
-            pList =
-                CharacterString_Value_Properties_Required;
+            pList = CharacterString_Value_Properties_Required;
             break;
         case OBJECT_LOAD_CONTROL:
             pList = Load_Control_Properties_Required;
@@ -994,24 +840,19 @@ const int * property_list_required(
             pList = Lighting_Output_Properties_Required;
             break;
         case OBJECT_LIFE_SAFETY_POINT:
-            pList =
-                Life_Safety_Point_Properties_Required;
+            pList = Life_Safety_Point_Properties_Required;
             break;
         case OBJECT_MULTI_STATE_INPUT:
-            pList =
-                Multistate_Input_Properties_Required;
+            pList = Multistate_Input_Properties_Required;
             break;
         case OBJECT_MULTI_STATE_OUTPUT:
-            pList =
-                Multistate_Output_Properties_Required;
+            pList = Multistate_Output_Properties_Required;
             break;
         case OBJECT_MULTI_STATE_VALUE:
-            pList =
-                Multistate_Value_Properties_Required;
+            pList = Multistate_Value_Properties_Required;
             break;
         case OBJECT_NOTIFICATION_CLASS:
-            pList =
-                Notification_Class_Properties_Required;
+            pList = Notification_Class_Properties_Required;
             break;
         case OBJECT_TRENDLOG:
             pList = Trend_Log_Properties_Required;
@@ -1039,9 +880,8 @@ const int * property_list_required(
  * type 'int' that contain BACnet object properties for the given object
  * type.
  */
-void property_list_special(
-    BACNET_OBJECT_TYPE object_type,
-    struct special_property_list_t *pPropertyList)
+void property_list_special(BACNET_OBJECT_TYPE object_type,
+                           struct special_property_list_t *pPropertyList)
 {
     if (pPropertyList == NULL) {
         return;
@@ -1060,13 +900,12 @@ void property_list_special(
 }
 
 BACNET_PROPERTY_ID property_list_special_property(
-    BACNET_OBJECT_TYPE object_type,
-    BACNET_PROPERTY_ID special_property,
+    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID special_property,
     unsigned index)
 {
-    int property = -1;  /* return value */
+    int property = -1; /* return value */
     unsigned required, optional, proprietary;
-    struct special_property_list_t PropertyList = { {0} };
+    struct special_property_list_t PropertyList = {{0}};
 
     property_list_special(object_type, &PropertyList);
     required = PropertyList.Required.count;
@@ -1102,21 +941,19 @@ BACNET_PROPERTY_ID property_list_special_property(
         }
     }
 
-    return (BACNET_PROPERTY_ID) property;
+    return (BACNET_PROPERTY_ID)property;
 }
 
-unsigned property_list_special_count(
-    BACNET_OBJECT_TYPE object_type,
-    BACNET_PROPERTY_ID special_property)
+unsigned property_list_special_count(BACNET_OBJECT_TYPE object_type,
+                                     BACNET_PROPERTY_ID special_property)
 {
     unsigned count = 0; /* return value */
-    struct special_property_list_t PropertyList = { {0} };
+    struct special_property_list_t PropertyList = {{0}};
 
     property_list_special(object_type, &PropertyList);
     if (special_property == PROP_ALL) {
-        count =
-            PropertyList.Required.count + PropertyList.Optional.count +
-            PropertyList.Proprietary.count;
+        count = PropertyList.Required.count + PropertyList.Optional.count +
+                PropertyList.Proprietary.count;
     } else if (special_property == PROP_REQUIRED) {
         count = PropertyList.Required.count;
     } else if (special_property == PROP_OPTIONAL) {
@@ -1133,8 +970,7 @@ unsigned property_list_special_count(
  * @param pList - array of type 'int' that is a list of BACnet object
  * properties, terminated by a '-1' value.
  */
-unsigned property_list_count(
-    const int *pList)
+unsigned property_list_count(const int *pList)
 {
     unsigned property_count = 0;
 
@@ -1156,9 +992,7 @@ unsigned property_list_count(
  *
  * @return true if object_property is a member of the property list
  */
-bool property_list_member(
-    const int *pList,
-    int object_property)
+bool property_list_member(const int *pList, int object_property)
 {
     bool status = false;
 
@@ -1185,13 +1019,11 @@ bool property_list_member(
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int property_list_encode(
-    BACNET_READ_PROPERTY_DATA * rpdata,
-    const int *pListRequired,
-    const int *pListOptional,
-    const int *pListProprietary)
+int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
+                         const int *pListRequired, const int *pListOptional,
+                         const int *pListProprietary)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     uint8_t *apdu = NULL;
     int max_apdu_len = 0;
     uint32_t count = 0;
@@ -1220,10 +1052,10 @@ int property_list_encode(
         case PROP_PROPERTY_LIST:
             if (rpdata->array_index == 0) {
                 /* Array element zero is the number of elements in the array */
-                apdu_len =
-                    encode_application_unsigned(&apdu[0], count);
+                apdu_len = encode_application_unsigned(&apdu[0], count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                /* if no index was specified, then try to encode the entire list */
+                /* if no index was specified, then try to encode the entire list
+                 */
                 /* into one packet. */
                 if (required_count > 3) {
                     for (i = 0; i < required_count; i++) {
@@ -1232,9 +1064,8 @@ int property_list_encode(
                             (pListRequired[i] == PROP_OBJECT_NAME)) {
                             continue;
                         } else {
-                            len =
-                                encode_application_enumerated(&apdu[apdu_len],
-                                (uint32_t)pListRequired[i]);
+                            len = encode_application_enumerated(
+                                &apdu[apdu_len], (uint32_t)pListRequired[i]);
                         }
                         /* add it if we have room */
                         if ((apdu_len + len) < max_apdu_len) {
@@ -1249,9 +1080,8 @@ int property_list_encode(
                 }
                 if (optional_count) {
                     for (i = 0; i < optional_count; i++) {
-                        len =
-                            encode_application_enumerated(&apdu[apdu_len],
-                            (uint32_t)pListOptional[i]);
+                        len = encode_application_enumerated(
+                            &apdu[apdu_len], (uint32_t)pListOptional[i]);
                         /* add it if we have room */
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
@@ -1265,9 +1095,8 @@ int property_list_encode(
                 }
                 if (proprietary_count) {
                     for (i = 0; i < proprietary_count; i++) {
-                        len =
-                            encode_application_enumerated(&apdu[apdu_len],
-                            (uint32_t)pListProprietary[i]);
+                        len = encode_application_enumerated(
+                            &apdu[apdu_len], (uint32_t)pListProprietary[i]);
                         /* add it if we have room */
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
@@ -1343,8 +1172,7 @@ int property_list_encode(
 #include <string.h>
 #include "ctest.h"
 
-void testPropList(
-    Test * pTest)
+void testPropList(Test *pTest)
 {
     unsigned i = 0, j = 0;
     unsigned count = 0;
@@ -1352,17 +1180,15 @@ void testPropList(
     unsigned object_id = 0, object_name = 0, object_type = 0;
     struct special_property_list_t property_list = {0};
 
-
     for (i = 0; i < OBJECT_PROPRIETARY_MIN; i++) {
-        count = property_list_special_count((BACNET_OBJECT_TYPE) i, PROP_ALL);
+        count = property_list_special_count((BACNET_OBJECT_TYPE)i, PROP_ALL);
         ct_test(pTest, count >= 3);
         object_id = 0;
         object_name = 0;
         object_type = 0;
         for (j = 0; j < count; j++) {
-            property =
-                property_list_special_property((BACNET_OBJECT_TYPE) i,
-                PROP_ALL, j);
+            property = property_list_special_property((BACNET_OBJECT_TYPE)i,
+                                                      PROP_ALL, j);
             if (property == PROP_OBJECT_TYPE) {
                 object_type++;
             }
@@ -1377,25 +1203,18 @@ void testPropList(
         ct_test(pTest, object_id == 1);
         ct_test(pTest, object_name == 1);
         /* test member function */
-        property_list_special((BACNET_OBJECT_TYPE) i, &property_list);
-        ct_test(pTest,
-            property_list_member(
-                property_list.Required.pList,
-                PROP_OBJECT_TYPE));
-        ct_test(pTest,
-            property_list_member(
-                property_list.Required.pList,
-                PROP_OBJECT_IDENTIFIER));
-        ct_test(pTest,
-            property_list_member(
-                property_list.Required.pList,
-                PROP_OBJECT_NAME));
+        property_list_special((BACNET_OBJECT_TYPE)i, &property_list);
+        ct_test(pTest, property_list_member(property_list.Required.pList,
+                                            PROP_OBJECT_TYPE));
+        ct_test(pTest, property_list_member(property_list.Required.pList,
+                                            PROP_OBJECT_IDENTIFIER));
+        ct_test(pTest, property_list_member(property_list.Required.pList,
+                                            PROP_OBJECT_NAME));
     }
 }
 
 #ifdef TEST_PROPLIST
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -1407,7 +1226,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

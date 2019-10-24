@@ -1,26 +1,26 @@
 /*************************************************************************
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* command line tool that sends a BACnet service, and displays the reply */
 #include <stddef.h>
@@ -28,8 +28,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <time.h>       /* for time */
-#include <ctype.h>      /* for toupper */
+#include <time.h>  /* for time */
+#include <ctype.h> /* for toupper */
 
 #define PRINT_ENABLED 1
 
@@ -55,7 +55,7 @@
 #include "dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
 /* converted command line arguments */
 static bool Target_Broadcast;
@@ -76,51 +76,43 @@ static uint8_t Request_Invoke_ID = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class,
-    BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                           BACNET_ERROR_CLASS error_class,
+                           BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\r\n",
-            bactext_error_class_name((int) error_class),
-            bactext_error_code_name((int) error_code));
+               bactext_error_class_name((int)error_class),
+               bactext_error_code_name((int)error_code));
         Error_Detected = true;
     }
 }
 
-void MyAbortHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server)
+void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                    uint8_t abort_reason, bool server)
 {
-    (void) server;
+    (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\r\n",
-            bactext_abort_reason_name((int) abort_reason));
+               bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-void MyRejectHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t reject_reason)
+void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                     uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\r\n",
-            bactext_reject_reason_name((int) reject_reason));
+               bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
-static void Init_Service_Handlers(
-    void)
+static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is
@@ -130,29 +122,24 @@ static void Init_Service_Handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
     /* handle the data coming back from requests */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
-        handler_unconfirmed_private_transfer);
+                                 handler_unconfirmed_private_transfer);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 10;      /* milliseconds */
+    unsigned timeout = 10; /* milliseconds */
     unsigned max_apdu = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
@@ -166,16 +153,19 @@ int main(
     int args_remaining = 0, tag_value_arg = 0, i = 0;
     BACNET_APPLICATION_TAG property_tag;
     uint8_t context_tag = 0;
-    BACNET_PRIVATE_TRANSFER_DATA private_data = { 0 };
+    BACNET_PRIVATE_TRANSFER_DATA private_data = {0};
     int len = 0;
     bool sent_message = false;
 
     if (argc < 6) {
         filename = filename_remove_path(argv[0]);
-        printf("Usage: %s <device-instance|broadcast|dnet=> vendor-id"
-            " service-number tag value [tag value...]\r\n", filename);
+        printf(
+            "Usage: %s <device-instance|broadcast|dnet=> vendor-id"
+            " service-number tag value [tag value...]\r\n",
+            filename);
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-            printf("device-instance:\r\n"
+            printf(
+                "device-instance:\r\n"
                 "BACnet Device Object Instance number that you are\r\n"
                 "trying to communicate to.  This number will be used\r\n"
                 "to try and bind with the device using Who-Is and\r\n"
@@ -183,29 +173,43 @@ int main(
                 "Device Object 123, the device-instance would be 123.\r\n"
                 "For Global Broadcast, use the word 'broadcast'.\r\n"
                 "For Local Broadcast to a particular DNET n, use 'dnet=n'.\r\n"
-                "\r\n" "vendor_id:\r\n"
+                "\r\n"
+                "vendor_id:\r\n"
                 "the unique vendor identification code for the type of\r\n"
-                "vendor proprietary service to be performed.\r\n" "\r\n"
+                "vendor proprietary service to be performed.\r\n"
+                "\r\n"
                 "service-number (Unsigned32):\r\n"
-                "the desired proprietary service to be performed.\r\n" "\r\n"
-                "tag:\r\n" "Tag is the integer value of the enumeration \r\n"
+                "the desired proprietary service to be performed.\r\n"
+                "\r\n"
+                "tag:\r\n"
+                "Tag is the integer value of the enumeration \r\n"
                 "BACNET_APPLICATION_TAG in bacenum.h.\r\n"
                 "It is the data type of the value that you are sending.\r\n"
-                "For example, if you were transfering a REAL value, you would \r\n"
+                "For example, if you were transfering a REAL value, you would "
+                "\r\n"
                 "use a tag of 4.\r\n"
                 "Context tags are created using two tags in a row.\r\n"
                 "The context tag is preceded by a C.  Ctag tag.\r\n"
-                "C2 4 creates a context 2 tagged REAL.\r\n" "\r\n" "value:\r\n"
+                "C2 4 creates a context 2 tagged REAL.\r\n"
+                "\r\n"
+                "value:\r\n"
                 "The value is an ASCII representation of some type of data\r\n"
                 "that you are transfering.\r\n"
                 "It is encoded using the tag information provided.\r\n"
-                "For example, if you were transferring a REAL value of 100.0,\r\n"
+                "For example, if you were transferring a REAL value of "
+                "100.0,\r\n"
                 "you would use 100.0 as the value.\r\n"
-                "If you were transferring an object identifier for Device 123,\r\n"
-                "you would use 8:123 as the value.\r\n" "\r\n" "Example:\r\n"
-                "If you want to transfer a REAL value of 1.1 to service 23 of \r\n"
-                "vendor 260 in Device 99, you could send the following command:\r\n"
-                "%s 99 260 23 4 1.1\r\n", filename);
+                "If you were transferring an object identifier for Device "
+                "123,\r\n"
+                "you would use 8:123 as the value.\r\n"
+                "\r\n"
+                "Example:\r\n"
+                "If you want to transfer a REAL value of 1.1 to service 23 of "
+                "\r\n"
+                "vendor 260 in Device 99, you could send the following "
+                "command:\r\n"
+                "%s 99 260 23 4 1.1\r\n",
+                filename);
         }
         return 0;
     }
@@ -224,7 +228,7 @@ int main(
     if ((!Target_Broadcast) &&
         (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     args_remaining = (argc - (6 - 2));
@@ -252,12 +256,11 @@ int main(
            i, property_tag, i, value_string); */
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
             fprintf(stderr, "Error: tag=%u - it must be less than %u\r\n",
-                property_tag, MAX_BACNET_APPLICATION_TAG);
+                    property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
-        status =
-            bacapp_parse_application_data(property_tag, value_string,
-            &Target_Object_Property_Value[i]);
+        status = bacapp_parse_application_data(
+            property_tag, value_string, &Target_Object_Property_Value[i]);
         if (!status) {
             /* FIXME: show the expected entry format for the tag */
             fprintf(stderr, "Error: unable to parse the tag value\r\n");
@@ -274,7 +277,7 @@ int main(
     }
     if (args_remaining > 0) {
         fprintf(stderr, "Error: Exceeded %d tag-value pairs.\r\n",
-            MAX_PROPERTY_VALUES);
+                MAX_PROPERTY_VALUES);
         return 1;
     }
     /* setup my info */
@@ -293,12 +296,11 @@ int main(
     } else {
         timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
         /* try to bind with the device */
-        found =
-            address_bind_request(Target_Device_Object_Instance, &max_apdu,
-            &Target_Address);
+        found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
+                                     &Target_Address);
         if (!found) {
             Send_WhoIs(Target_Device_Object_Instance,
-                Target_Device_Object_Instance);
+                       Target_Device_Object_Instance);
         }
     }
     /* loop forever */
@@ -316,25 +318,22 @@ int main(
             break;
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found =
-                address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                &Target_Address);
+            found = address_bind_request(Target_Device_Object_Instance,
+                                         &max_apdu, &Target_Address);
         }
         if (!sent_message) {
             if (found) {
-                len =
-                    bacapp_encode_data(&Service_Parameters[0],
-                    &Target_Object_Property_Value[0]);
+                len = bacapp_encode_data(&Service_Parameters[0],
+                                         &Target_Object_Property_Value[0]);
                 private_data.serviceParameters = &Service_Parameters[0];
                 private_data.serviceParametersLen = len;
                 private_data.vendorID = Target_Vendor_Identifier;
                 private_data.serviceNumber = Target_Service_Number;
-                Send_UnconfirmedPrivateTransfer(&Target_Address,
-                    &private_data);
+                Send_UnconfirmedPrivateTransfer(&Target_Address, &private_data);
                 printf("Sent PrivateTransfer.");
                 if (timeout_seconds) {
                     printf(" Waiting %u seconds.\r\n",
-                        (unsigned) (timeout_seconds - elapsed_seconds));
+                           (unsigned)(timeout_seconds - elapsed_seconds));
                 } else {
                     printf("\r\n");
                 }

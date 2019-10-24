@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Multi-state Value Objects */
 
@@ -32,7 +32,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "rp.h"
 #include "wp.h"
 #include "msv.h"
@@ -63,31 +63,18 @@ static char State_Text[MAX_MULTISTATE_VALUES][MULTISTATE_NUMBER_OF_STATES][64];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_NUMBER_OF_STATES,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,      PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS,     PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_NUMBER_OF_STATES, -1};
 
-static const int Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_STATE_TEXT,
-    -1
-};
+static const int Properties_Optional[] = {PROP_DESCRIPTION, PROP_STATE_TEXT,
+                                          -1};
 
-static const int Properties_Proprietary[] = {
-    -1
-};
+static const int Properties_Proprietary[] = {-1};
 
-void Multistate_Value_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Multistate_Value_Property_Lists(const int **pRequired,
+                                     const int **pOptional,
+                                     const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -99,8 +86,7 @@ void Multistate_Value_Property_Lists(
     return;
 }
 
-void Multistate_Value_Init(
-    void)
+void Multistate_Value_Init(void)
 {
     unsigned int i;
 
@@ -117,8 +103,7 @@ void Multistate_Value_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Multistate_Value_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Multistate_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_MULTISTATE_VALUES;
 
@@ -131,22 +116,19 @@ unsigned Multistate_Value_Instance_To_Index(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Multistate_Value_Index_To_Instance(
-    unsigned index)
+uint32_t Multistate_Value_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Multistate_Value_Count(
-    void)
+unsigned Multistate_Value_Count(void)
 {
     return MAX_MULTISTATE_VALUES;
 }
 
-bool Multistate_Value_Valid_Instance(
-    uint32_t object_instance)
+bool Multistate_Value_Valid_Instance(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
 
@@ -158,8 +140,7 @@ bool Multistate_Value_Valid_Instance(
     return false;
 }
 
-uint32_t Multistate_Value_Present_Value(
-    uint32_t object_instance)
+uint32_t Multistate_Value_Present_Value(uint32_t object_instance)
 {
     uint32_t value = 1;
     unsigned index = 0; /* offset from instance lookup */
@@ -172,9 +153,8 @@ uint32_t Multistate_Value_Present_Value(
     return value;
 }
 
-bool Multistate_Value_Present_Value_Set(
-    uint32_t object_instance,
-    uint32_t value)
+bool Multistate_Value_Present_Value_Set(uint32_t object_instance,
+                                        uint32_t value)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
@@ -185,7 +165,7 @@ bool Multistate_Value_Present_Value_Set(
             if (Present_Value[index] != (uint8_t)value) {
                 Change_Of_Value[index] = true;
             }
-            Present_Value[index] = (uint8_t) value;
+            Present_Value[index] = (uint8_t)value;
             status = true;
         }
     }
@@ -193,8 +173,7 @@ bool Multistate_Value_Present_Value_Set(
     return status;
 }
 
-bool Multistate_Value_Out_Of_Service(
-    uint32_t object_instance)
+bool Multistate_Value_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
     unsigned index = 0;
@@ -207,9 +186,7 @@ bool Multistate_Value_Out_Of_Service(
     return value;
 }
 
-void Multistate_Value_Out_Of_Service_Set(
-    uint32_t object_instance,
-    bool value)
+void Multistate_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     unsigned index = 0;
 
@@ -224,8 +201,7 @@ void Multistate_Value_Out_Of_Service_Set(
     return;
 }
 
-char *Multistate_Value_Description(
-    uint32_t object_instance)
+char *Multistate_Value_Description(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
@@ -238,13 +214,11 @@ char *Multistate_Value_Description(
     return pName;
 }
 
-bool Multistate_Value_Description_Set(
-    uint32_t object_instance,
-    char *new_name)
+bool Multistate_Value_Description_Set(uint32_t object_instance, char *new_name)
 {
-    unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0;       /* loop counter */
-    bool status = false;        /* return value */
+    unsigned index = 0;  /* offset from instance lookup */
+    size_t i = 0;        /* loop counter */
+    bool status = false; /* return value */
 
     index = Multistate_Value_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_VALUES) {
@@ -266,9 +240,8 @@ bool Multistate_Value_Description_Set(
     return status;
 }
 
-bool Multistate_Value_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Multistate_Value_Object_Name(uint32_t object_instance,
+                                  BACNET_CHARACTER_STRING *object_name)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -282,13 +255,11 @@ bool Multistate_Value_Object_Name(
 }
 
 /* note: the object name must be unique within this device */
-bool Multistate_Value_Name_Set(
-    uint32_t object_instance,
-    char *new_name)
+bool Multistate_Value_Name_Set(uint32_t object_instance, char *new_name)
 {
-    unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0;       /* loop counter */
-    bool status = false;        /* return value */
+    unsigned index = 0;  /* offset from instance lookup */
+    size_t i = 0;        /* loop counter */
+    bool status = false; /* return value */
 
     index = Multistate_Value_Instance_To_Index(object_instance);
     if (index < MAX_MULTISTATE_VALUES) {
@@ -311,9 +282,8 @@ bool Multistate_Value_Name_Set(
     return status;
 }
 
-char *Multistate_Value_State_Text(
-    uint32_t object_instance,
-    uint32_t state_index)
+char *Multistate_Value_State_Text(uint32_t object_instance,
+                                  uint32_t state_index)
 {
     unsigned index = 0; /* offset from instance lookup */
     char *pName = NULL; /* return value */
@@ -329,14 +299,12 @@ char *Multistate_Value_State_Text(
 }
 
 /* note: the object name must be unique within this device */
-bool Multistate_Value_State_Text_Set(
-    uint32_t object_instance,
-    uint32_t state_index,
-    char *new_name)
+bool Multistate_Value_State_Text_Set(uint32_t object_instance,
+                                     uint32_t state_index, char *new_name)
 {
-    unsigned index = 0; /* offset from instance lookup */
-    size_t i = 0;       /* loop counter */
-    bool status = false;        /* return value */
+    unsigned index = 0;  /* offset from instance lookup */
+    size_t i = 0;        /* loop counter */
+    bool status = false; /* return value */
 
     index = Multistate_Value_Instance_To_Index(object_instance);
     if ((index < MAX_MULTISTATE_VALUES) && (state_index > 0) &&
@@ -357,11 +325,11 @@ bool Multistate_Value_State_Text_Set(
         }
     }
 
-    return status;;
+    return status;
+    ;
 }
 
-bool Multistate_Value_Change_Of_Value(
-    uint32_t object_instance)
+bool Multistate_Value_Change_Of_Value(uint32_t object_instance)
 {
     bool status = false;
     unsigned index;
@@ -374,8 +342,7 @@ bool Multistate_Value_Change_Of_Value(
     return status;
 }
 
-void Multistate_Value_Change_Of_Value_Clear(
-    uint32_t object_instance)
+void Multistate_Value_Change_Of_Value_Clear(uint32_t object_instance)
 {
     unsigned index;
 
@@ -395,9 +362,8 @@ void Multistate_Value_Change_Of_Value_Clear(
  *
  * @return  true if the value list is encoded
  */
-bool Multistate_Value_Encode_Value_List(
-    uint32_t object_instance,
-    BACNET_PROPERTY_VALUE * value_list)
+bool Multistate_Value_Encode_Value_List(uint32_t object_instance,
+                                        BACNET_PROPERTY_VALUE *value_list)
 {
     bool status = false;
 
@@ -420,17 +386,17 @@ bool Multistate_Value_Encode_Value_List(
         value_list->value.next = NULL;
         bitstring_init(&value_list->value.type.Bit_String);
         bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_IN_ALARM, false);
+                          STATUS_FLAG_IN_ALARM, false);
+        bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_FAULT,
+                          false);
         bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_FAULT, false);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OVERRIDDEN, false);
+                          STATUS_FLAG_OVERRIDDEN, false);
         if (Multistate_Value_Out_Of_Service(object_instance)) {
             bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, true);
+                              STATUS_FLAG_OUT_OF_SERVICE, true);
         } else {
             bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, false);
+                              STATUS_FLAG_OUT_OF_SERVICE, false);
         }
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;
@@ -440,14 +406,11 @@ bool Multistate_Value_Encode_Value_List(
     return status;
 }
 
-
-
 /* return apdu len, or BACNET_STATUS_ERROR on error */
-int Multistate_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t present_value = 0;
@@ -462,28 +425,26 @@ int Multistate_Value_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0],
-                OBJECT_MULTI_STATE_VALUE, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_MULTI_STATE_VALUE, rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-            Multistate_Value_Object_Name(rpdata->object_instance,
-                &char_string);
+            Multistate_Value_Object_Name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
+            characterstring_init_ansi(
+                &char_string,
                 Multistate_Value_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                OBJECT_MULTI_STATE_VALUE);
+            apdu_len = encode_application_enumerated(&apdu[0],
+                                                     OBJECT_MULTI_STATE_VALUE);
             break;
         case PROP_PRESENT_VALUE:
             present_value =
@@ -510,27 +471,25 @@ int Multistate_Value_Read_Property(
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_NUMBER_OF_STATES:
-            apdu_len =
-                encode_application_unsigned(&apdu[apdu_len],
-                MULTISTATE_NUMBER_OF_STATES);
+            apdu_len = encode_application_unsigned(&apdu[apdu_len],
+                                                   MULTISTATE_NUMBER_OF_STATES);
             break;
         case PROP_STATE_TEXT:
             if (rpdata->array_index == 0) {
                 /* Array element zero is the number of elements in the array */
-                apdu_len =
-                    encode_application_unsigned(&apdu[0],
-                    MULTISTATE_NUMBER_OF_STATES);
+                apdu_len = encode_application_unsigned(
+                    &apdu[0], MULTISTATE_NUMBER_OF_STATES);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                /* if no index was specified, then try to encode the entire list */
+                /* if no index was specified, then try to encode the entire list
+                 */
                 /* into one packet. */
                 for (i = 1; i <= MULTISTATE_NUMBER_OF_STATES; i++) {
                     characterstring_init_ansi(&char_string,
-                        Multistate_Value_State_Text(rpdata->object_instance,
-                            i));
+                                              Multistate_Value_State_Text(
+                                                  rpdata->object_instance, i));
                     /* FIXME: this might go beyond MAX_APDU length! */
-                    len =
-                        encode_application_character_string(&apdu[apdu_len],
-                        &char_string);
+                    len = encode_application_character_string(&apdu[apdu_len],
+                                                              &char_string);
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
@@ -543,12 +502,12 @@ int Multistate_Value_Read_Property(
                 }
             } else {
                 if (rpdata->array_index <= MULTISTATE_NUMBER_OF_STATES) {
-                    characterstring_init_ansi(&char_string,
+                    characterstring_init_ansi(
+                        &char_string,
                         Multistate_Value_State_Text(rpdata->object_instance,
-                            rpdata->array_index));
-                    apdu_len =
-                        encode_application_character_string(&apdu[0],
-                        &char_string);
+                                                    rpdata->array_index));
+                    apdu_len = encode_application_character_string(
+                        &apdu[0], &char_string);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -575,17 +534,15 @@ int Multistate_Value_Read_Property(
 }
 
 /* returns true if successful */
-bool Multistate_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -605,11 +562,10 @@ bool Multistate_Value_Write_Property(
         case PROP_PRESENT_VALUE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                status =
-                    Multistate_Value_Present_Value_Set
-                    (wp_data->object_instance, value.type.Unsigned_Int);
+                status = Multistate_Value_Present_Value_Set(
+                    wp_data->object_instance, value.type.Unsigned_Int);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -619,10 +575,10 @@ bool Multistate_Value_Write_Property(
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Multistate_Value_Out_Of_Service_Set(wp_data->object_instance,
-                    value.type.Boolean);
+                                                    value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -645,17 +601,14 @@ bool Multistate_Value_Write_Property(
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -665,10 +618,9 @@ bool WPValidateArgType(
     return false;
 }
 
-void testMultistateInput(
-    Test * pTest)
+void testMultistateInput(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -695,8 +647,7 @@ void testMultistateInput(
 }
 
 #ifdef TEST_MULTISTATE_VALUE
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -708,7 +659,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

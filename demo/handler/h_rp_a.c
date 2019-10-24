@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -46,11 +46,10 @@
 /** For debugging...
  * @param [in] data portion of the ACK
  */
-void rp_ack_print_data(
-    BACNET_READ_PROPERTY_DATA * data)
+void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
 {
-    BACNET_OBJECT_PROPERTY_VALUE object_value;  /* for bacapp printing */
-    BACNET_APPLICATION_DATA_VALUE value;        /* for decode value data */
+    BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
+    BACNET_APPLICATION_DATA_VALUE value;       /* for decode value data */
     int len = 0;
     uint8_t *application_data;
     int application_data_len;
@@ -63,9 +62,8 @@ void rp_ack_print_data(
         /* FIXME: what if application_data_len is bigger than 255? */
         /* value? need to loop until all of the len is gone... */
         for (;;) {
-            len =
-                bacapp_decode_application_data(application_data,
-                (uint8_t) application_data_len, &value);
+            len = bacapp_decode_application_data(
+                application_data, (uint8_t)application_data_len, &value);
             if (first_value && (len < application_data_len)) {
                 first_value = false;
 #if PRINT_ENABLED
@@ -102,7 +100,6 @@ void rp_ack_print_data(
     }
 }
 
-
 /** Handler for a ReadProperty ACK.
  * @ingroup DSRP
  * Doesn't actually do anything, except, for debugging, to
@@ -114,17 +111,15 @@ void rp_ack_print_data(
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_read_property_ack(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src,
-    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+void handler_read_property_ack(uint8_t *service_request, uint16_t service_len,
+                               BACNET_ADDRESS *src,
+                               BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
     BACNET_READ_PROPERTY_DATA data;
 
-    (void) src;
-    (void) service_data;        /* we could use these... */
+    (void)src;
+    (void)service_data; /* we could use these... */
     len = rp_ack_decode_service_request(service_request, service_len, &data);
 #if 0
     fprintf(stderr, "Received Read-Property Ack!\n");
@@ -148,13 +143,11 @@ void handler_read_property_ack(
  * 			or -1 on decoding error.
  */
 int rp_ack_fully_decode_service_request(
-    uint8_t * apdu,
-    int apdu_len,
-    BACNET_READ_ACCESS_DATA * read_access_data)
+    uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)
 {
-    int decoded_len = 0;        /* return value */
+    int decoded_len = 0; /* return value */
     BACNET_READ_PROPERTY_DATA rp1data;
-    BACNET_PROPERTY_REFERENCE *rp1_property;    /* single property */
+    BACNET_PROPERTY_REFERENCE *rp1_property; /* single property */
     BACNET_APPLICATION_DATA_VALUE *value, *old_value;
     uint8_t *vdata;
     int vlen, len;
@@ -174,7 +167,8 @@ int rp_ack_fully_decode_service_request(
         }
         rp1_property->propertyIdentifier = rp1data.object_property;
         rp1_property->propertyArrayIndex = rp1data.array_index;
-        /* Is there no Error case possible here, as there is when decoding RPM? */
+        /* Is there no Error case possible here, as there is when decoding RPM?
+         */
         /* rp1_property->error.error_class = ?? */
         /* rp_ack_decode_service_request() processing already removed the
          * Opening and Closing '3' Tags.
@@ -187,9 +181,8 @@ int rp_ack_fully_decode_service_request(
         old_value = value;
         while (value && vdata && (vlen > 0)) {
             if (IS_CONTEXT_SPECIFIC(*vdata)) {
-                len =
-                    bacapp_decode_context_data(vdata, vlen, value,
-                    rp1_property->propertyIdentifier);
+                len = bacapp_decode_context_data(
+                    vdata, vlen, value, rp1_property->propertyIdentifier);
             } else {
                 len = bacapp_decode_application_data(vdata, vlen, value);
             }

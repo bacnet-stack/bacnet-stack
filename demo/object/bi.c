@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Binary Input Objects customize for your use */
 
@@ -35,7 +35,7 @@
 #include "rp.h"
 #include "wp.h"
 #include "cov.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "bi.h"
 #include "handlers.h"
 
@@ -54,30 +54,16 @@ static BACNET_POLARITY Polarity[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Input_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_POLARITY,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    PROP_POLARITY,     -1};
 
-static const int Binary_Input_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    -1
-};
+static const int Binary_Input_Properties_Optional[] = {PROP_DESCRIPTION, -1};
 
-static const int Binary_Input_Properties_Proprietary[] = {
-    -1
-};
+static const int Binary_Input_Properties_Proprietary[] = {-1};
 
-void Binary_Input_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Binary_Input_Property_Lists(const int **pRequired, const int **pOptional,
+                                 const int **pProprietary)
 {
     if (pRequired) {
         *pRequired = Binary_Input_Properties_Required;
@@ -95,8 +81,7 @@ void Binary_Input_Property_Lists(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Binary_Input_Valid_Instance(
-    uint32_t object_instance)
+bool Binary_Input_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_BINARY_INPUTS) {
         return true;
@@ -107,8 +92,7 @@ bool Binary_Input_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Binary_Input_Count(
-    void)
+unsigned Binary_Input_Count(void)
 {
     return MAX_BINARY_INPUTS;
 }
@@ -116,14 +100,12 @@ unsigned Binary_Input_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Binary_Input_Index_To_Instance(
-    unsigned index)
+uint32_t Binary_Input_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
-void Binary_Input_Init(
-    void)
+void Binary_Input_Init(void)
 {
     static bool initialized = false;
     unsigned i;
@@ -143,8 +125,7 @@ void Binary_Input_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Binary_Input_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Binary_Input_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_INPUTS;
 
@@ -155,8 +136,7 @@ unsigned Binary_Input_Instance_To_Index(
     return index;
 }
 
-BACNET_BINARY_PV Binary_Input_Present_Value(
-    uint32_t object_instance)
+BACNET_BINARY_PV Binary_Input_Present_Value(uint32_t object_instance)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     unsigned index = 0;
@@ -176,8 +156,7 @@ BACNET_BINARY_PV Binary_Input_Present_Value(
     return value;
 }
 
-bool Binary_Input_Out_Of_Service(
-    uint32_t object_instance)
+bool Binary_Input_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
     unsigned index = 0;
@@ -190,8 +169,7 @@ bool Binary_Input_Out_Of_Service(
     return value;
 }
 
-bool Binary_Input_Change_Of_Value(
-    uint32_t object_instance)
+bool Binary_Input_Change_Of_Value(uint32_t object_instance)
 {
     bool status = false;
     unsigned index;
@@ -204,8 +182,7 @@ bool Binary_Input_Change_Of_Value(
     return status;
 }
 
-void Binary_Input_Change_Of_Value_Clear(
-    uint32_t object_instance)
+void Binary_Input_Change_Of_Value_Clear(uint32_t object_instance)
 {
     unsigned index;
 
@@ -225,9 +202,8 @@ void Binary_Input_Change_Of_Value_Clear(
  *
  * @return  true if the value list is encoded
  */
-bool Binary_Input_Encode_Value_List(
-    uint32_t object_instance,
-    BACNET_PROPERTY_VALUE * value_list)
+bool Binary_Input_Encode_Value_List(uint32_t object_instance,
+                                    BACNET_PROPERTY_VALUE *value_list)
 {
     bool status = false;
 
@@ -250,17 +226,17 @@ bool Binary_Input_Encode_Value_List(
         value_list->value.next = NULL;
         bitstring_init(&value_list->value.type.Bit_String);
         bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_IN_ALARM, false);
+                          STATUS_FLAG_IN_ALARM, false);
+        bitstring_set_bit(&value_list->value.type.Bit_String, STATUS_FLAG_FAULT,
+                          false);
         bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_FAULT, false);
-        bitstring_set_bit(&value_list->value.type.Bit_String,
-            STATUS_FLAG_OVERRIDDEN, false);
+                          STATUS_FLAG_OVERRIDDEN, false);
         if (Binary_Input_Out_Of_Service(object_instance)) {
             bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, true);
+                              STATUS_FLAG_OUT_OF_SERVICE, true);
         } else {
             bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, false);
+                              STATUS_FLAG_OUT_OF_SERVICE, false);
         }
         value_list->priority = BACNET_NO_PRIORITY;
         value_list->next = NULL;
@@ -270,9 +246,8 @@ bool Binary_Input_Encode_Value_List(
     return status;
 }
 
-bool Binary_Input_Present_Value_Set(
-    uint32_t object_instance,
-    BACNET_BINARY_PV value)
+bool Binary_Input_Present_Value_Set(uint32_t object_instance,
+                                    BACNET_BINARY_PV value)
 {
     unsigned index = 0;
     bool status = false;
@@ -296,9 +271,7 @@ bool Binary_Input_Present_Value_Set(
     return status;
 }
 
-void Binary_Input_Out_Of_Service_Set(
-    uint32_t object_instance,
-    bool value)
+void Binary_Input_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     unsigned index = 0;
 
@@ -313,26 +286,24 @@ void Binary_Input_Out_Of_Service_Set(
     return;
 }
 
-bool Binary_Input_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Binary_Input_Object_Name(uint32_t object_instance,
+                              BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";   /* okay for single thread */
+    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
     unsigned index = 0;
 
     index = Binary_Input_Instance_To_Index(object_instance);
     if (index < MAX_BINARY_INPUTS) {
         sprintf(text_string, "BINARY INPUT %lu",
-            (unsigned long) object_instance);
+                (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
     return status;
 }
 
-BACNET_POLARITY Binary_Input_Polarity(
-    uint32_t object_instance)
+BACNET_POLARITY Binary_Input_Polarity(uint32_t object_instance)
 {
     BACNET_POLARITY polarity = POLARITY_NORMAL;
     unsigned index = 0;
@@ -345,9 +316,8 @@ BACNET_POLARITY Binary_Input_Polarity(
     return polarity;
 }
 
-bool Binary_Input_Polarity_Set(
-    uint32_t object_instance,
-    BACNET_POLARITY polarity)
+bool Binary_Input_Polarity_Set(uint32_t object_instance,
+                               BACNET_POLARITY polarity)
 {
     bool status = false;
     unsigned index = 0;
@@ -362,10 +332,9 @@ bool Binary_Input_Polarity_Set(
 
 /* return apdu length, or BACNET_STATUS_ERROR on error */
 /* assumption - object already exists, and has been bounds checked */
-int Binary_Input_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
@@ -378,9 +347,8 @@ int Binary_Input_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_BINARY_INPUT,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_BINARY_INPUT, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
@@ -395,9 +363,8 @@ int Binary_Input_Read_Property(
             break;
         case PROP_PRESENT_VALUE:
             /* note: you need to look up the actual value */
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                Binary_Input_Present_Value(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Binary_Input_Present_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
@@ -419,9 +386,8 @@ int Binary_Input_Read_Property(
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_POLARITY:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                Binary_Input_Polarity(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Binary_Input_Polarity(rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -440,17 +406,15 @@ int Binary_Input_Read_Property(
 }
 
 /* returns true if successful */
-bool Binary_Input_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -468,11 +432,12 @@ bool Binary_Input_Write_Property(
         case PROP_PRESENT_VALUE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated <= MAX_BINARY_PV) {
-                    Binary_Input_Present_Value_Set(wp_data->object_instance,
-                        (BACNET_BINARY_PV) value.type.Enumerated);
+                    Binary_Input_Present_Value_Set(
+                        wp_data->object_instance,
+                        (BACNET_BINARY_PV)value.type.Enumerated);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -483,20 +448,21 @@ bool Binary_Input_Write_Property(
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Binary_Input_Out_Of_Service_Set(wp_data->object_instance,
-                    value.type.Boolean);
+                                                value.type.Boolean);
             }
             break;
         case PROP_POLARITY:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
-                    Binary_Input_Polarity_Set(wp_data->object_instance,
-                        (BACNET_POLARITY) value.type.Enumerated);
+                    Binary_Input_Polarity_Set(
+                        wp_data->object_instance,
+                        (BACNET_POLARITY)value.type.Enumerated);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -527,11 +493,9 @@ bool Binary_Input_Write_Property(
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -541,11 +505,10 @@ bool WPValidateArgType(
     return false;
 }
 
-void testBinaryInput(
-    Test * pTest)
+void testBinaryInput(Test *pTest)
 {
     BACNET_READ_PROPERTY_DATA rpdata;
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -571,8 +534,7 @@ void testBinaryInput(
 }
 
 #ifdef TEST_BINARY_INPUT
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -584,7 +546,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

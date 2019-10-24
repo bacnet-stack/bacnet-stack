@@ -37,13 +37,10 @@
 
 /** @file lso.c  BACnet Life Safety Operation encode/decode */
 
-int lso_encode_apdu(
-    uint8_t * apdu,
-    uint8_t invoke_id,
-    BACNET_LSO_DATA * data)
+int lso_encode_apdu(uint8_t *apdu, uint8_t invoke_id, BACNET_LSO_DATA *data)
 {
-    int len = 0;        /* length of each encoding */
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int len = 0;      /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && data) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -55,9 +52,8 @@ int lso_encode_apdu(
         len = encode_context_unsigned(&apdu[apdu_len], 0, data->processId);
         apdu_len += len;
         /* tag 1 - requestingSource */
-        len =
-            encode_context_character_string(&apdu[apdu_len], 1,
-            &data->requestingSrc);
+        len = encode_context_character_string(&apdu[apdu_len], 1,
+                                              &data->requestingSrc);
         apdu_len += len;
         /*
            Operation
@@ -68,9 +64,9 @@ int lso_encode_apdu(
            Object ID
          */
 
-        len =
-            encode_context_object_id(&apdu[apdu_len], 3,
-            (int) data->targetObject.type, data->targetObject.instance);
+        len = encode_context_object_id(&apdu[apdu_len], 3,
+                                       (int)data->targetObject.type,
+                                       data->targetObject.instance);
 
         apdu_len += len;
     }
@@ -78,48 +74,43 @@ int lso_encode_apdu(
     return apdu_len;
 }
 
-int lso_decode_service_request(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_LSO_DATA * data)
+int lso_decode_service_request(uint8_t *apdu, unsigned apdu_len,
+                               BACNET_LSO_DATA *data)
 {
-    int len = 0;        /* return value */
-    int section_length = 0;     /* length returned from decoding */
-    uint32_t operation = 0;     /* handles decoded value */
+    int len = 0;            /* return value */
+    int section_length = 0; /* length returned from decoding */
+    uint32_t operation = 0; /* handles decoded value */
 
     /* check for value pointers */
     if (apdu_len && data) {
         /* Tag 0: Object ID          */
 
-        if ((section_length =
-                decode_context_unsigned(&apdu[len], 0,
-                    &data->processId)) == -1) {
+        if ((section_length = decode_context_unsigned(
+                 &apdu[len], 0, &data->processId)) == -1) {
+            return -1;
+        }
+        len += section_length;
+
+        if ((section_length = decode_context_character_string(
+                 &apdu[len], 1, &data->requestingSrc)) == -1) {
             return -1;
         }
         len += section_length;
 
         if ((section_length =
-                decode_context_character_string(&apdu[len], 1,
-                    &data->requestingSrc)) == -1) {
+                 decode_context_enumerated(&apdu[len], 2, &operation)) == -1) {
             return -1;
         }
-        len += section_length;
-
-        if ((section_length =
-                decode_context_enumerated(&apdu[len], 2, &operation)) == -1) {
-            return -1;
-        }
-        data->operation = (BACNET_LIFE_SAFETY_OPERATION) operation;
+        data->operation = (BACNET_LIFE_SAFETY_OPERATION)operation;
         len += section_length;
 
         /*
          ** This is an optional parameter, so dont fail if it doesnt exist
          */
         if (decode_is_context_tag(&apdu[len], 3)) {
-            if ((section_length =
-                    decode_context_object_id(&apdu[len], 3,
-                        &data->targetObject.type,
-                        &data->targetObject.instance)) == -1) {
+            if ((section_length = decode_context_object_id(
+                     &apdu[len], 3, &data->targetObject.type,
+                     &data->targetObject.instance)) == -1) {
                 return -1;
             }
             len += section_length;
@@ -128,7 +119,6 @@ int lso_decode_service_request(
             data->targetObject.instance = 0;
         }
         return len;
-
     }
 
     return 0;
@@ -140,8 +130,7 @@ int lso_decode_service_request(
 #include "ctest.h"
 #include "bacapp.h"
 
-void testLSO(
-    Test * pTest)
+void testLSO(Test *pTest)
 {
     uint8_t apdu[1000];
     int len;
@@ -150,7 +139,6 @@ void testLSO(
     BACNET_LSO_DATA rxdata;
 
     memset(&rxdata, 0, sizeof(rxdata));
-
 
     characterstring_init_ansi(&data.requestingSrc, "foobar");
     data.operation = LIFE_SAFETY_OP_RESET;
@@ -167,13 +155,11 @@ void testLSO(
     ct_test(pTest, data.targetObject.instance == rxdata.targetObject.instance);
     ct_test(pTest, data.targetObject.type == rxdata.targetObject.type);
     ct_test(pTest, memcmp(data.requestingSrc.value, rxdata.requestingSrc.value,
-            rxdata.requestingSrc.length) == 0);
+                          rxdata.requestingSrc.length) == 0);
 }
 
 #ifdef TEST_LSO
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
     Test *pTest;
     bool rc;
@@ -185,7 +171,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

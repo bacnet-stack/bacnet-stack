@@ -1,35 +1,33 @@
 /**************************************************************************
-*
-* Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 #include "bacdcode.h"
 #include "authentication_factor_format.h"
 
-
 int bacapp_encode_authentication_factor_format(
-    uint8_t * apdu,
-    BACNET_AUTHENTICATION_FACTOR_FORMAT * aff)
+    uint8_t* apdu, BACNET_AUTHENTICATION_FACTOR_FORMAT* aff)
 {
     int len;
     int apdu_len = 0;
@@ -57,9 +55,7 @@ int bacapp_encode_authentication_factor_format(
 }
 
 int bacapp_encode_context_authentication_factor_format(
-    uint8_t * apdu,
-    uint8_t tag,
-    BACNET_AUTHENTICATION_FACTOR_FORMAT * aff)
+    uint8_t* apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR_FORMAT* aff)
 {
     int len;
     int apdu_len = 0;
@@ -74,20 +70,16 @@ int bacapp_encode_context_authentication_factor_format(
     apdu_len += len;
 
     return apdu_len;
-
 }
 
 int bacapp_decode_authentication_factor_format(
-    uint8_t * apdu,
-    BACNET_AUTHENTICATION_FACTOR_FORMAT * aff)
+    uint8_t* apdu, BACNET_AUTHENTICATION_FACTOR_FORMAT* aff)
 {
     int len;
     int apdu_len = 0;
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
-        len =
-            decode_context_enumerated(&apdu[apdu_len], 0,
-            &aff->format_type);
+        len = decode_context_enumerated(&apdu[apdu_len], 0, &aff->format_type);
         if (len < 0)
             return -1;
         else
@@ -101,8 +93,8 @@ int bacapp_decode_authentication_factor_format(
             return -1;
         else
             apdu_len += len;
-        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM)
-            && (aff->vendor_id != 0))
+        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM) &&
+            (aff->vendor_id != 0))
             return -1;
     }
 
@@ -112,8 +104,8 @@ int bacapp_decode_authentication_factor_format(
             return -1;
         else
             apdu_len += len;
-        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM)
-            && (aff->vendor_format != 0))
+        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM) &&
+            (aff->vendor_format != 0))
             return -1;
     }
 
@@ -121,9 +113,7 @@ int bacapp_decode_authentication_factor_format(
 }
 
 int bacapp_decode_context_authentication_factor_format(
-    uint8_t * apdu,
-    uint8_t tag,
-    BACNET_AUTHENTICATION_FACTOR_FORMAT * aff)
+    uint8_t* apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR_FORMAT* aff)
 {
     int len = 0;
     int section_length;
@@ -147,5 +137,4 @@ int bacapp_decode_context_authentication_factor_format(
         len = -1;
     }
     return len;
-
 }

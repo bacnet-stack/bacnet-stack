@@ -52,9 +52,7 @@
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
-int decode_real(
-    uint8_t * apdu,
-    float *real_value)
+int decode_real(uint8_t *apdu, float *real_value)
 {
     union {
         uint8_t byte[4];
@@ -79,30 +77,23 @@ int decode_real(
     return 4;
 }
 
-int decode_real_safe(
-    uint8_t * apdu,
-    uint32_t len_value,
-    float *real_value)
+int decode_real_safe(uint8_t *apdu, uint32_t len_value, float *real_value)
 {
     if (len_value != 4) {
         *real_value = 0.0f;
-        return (int) len_value;
+        return (int)len_value;
     } else {
         return decode_real(apdu, real_value);
     }
 }
 
-int decode_context_real(
-    uint8_t * apdu,
-    uint8_t tag_number,
-    float *real_value)
+int decode_context_real(uint8_t *apdu, uint8_t tag_number, float *real_value)
 {
     uint32_t len_value;
     int len = 0;
 
     if (decode_is_context_tag(&apdu[len], tag_number)) {
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_real(&apdu[len], real_value);
     } else {
         len = -1;
@@ -112,9 +103,7 @@ int decode_context_real(
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_real(
-    float value,
-    uint8_t * apdu)
+int encode_bacnet_real(float value, uint8_t *apdu)
 {
     union {
         uint8_t byte[4];
@@ -142,9 +131,7 @@ int encode_bacnet_real(
 
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
 /* returns the number of apdu bytes consumed */
-int decode_double(
-    uint8_t * apdu,
-    double *double_value)
+int decode_double(uint8_t *apdu, double *double_value)
 {
     union {
         uint8_t byte[8];
@@ -177,14 +164,11 @@ int decode_double(
     return 8;
 }
 
-int decode_double_safe(
-    uint8_t * apdu,
-    uint32_t len_value,
-    double *double_value)
+int decode_double_safe(uint8_t *apdu, uint32_t len_value, double *double_value)
 {
     if (len_value != 8) {
         *double_value = 0.0;
-        return (int) len_value;
+        return (int)len_value;
     } else {
         return decode_double(apdu, double_value);
     }
@@ -192,9 +176,7 @@ int decode_double_safe(
 
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_double(
-    double value,
-    uint8_t * apdu)
+int encode_bacnet_double(double value, uint8_t *apdu)
 {
     union {
         uint8_t byte[8];
@@ -226,17 +208,14 @@ int encode_bacnet_double(
     return 8;
 }
 
-int decode_context_double(
-    uint8_t * apdu,
-    uint8_t tag_number,
-    double *double_value)
+int decode_context_double(uint8_t *apdu, uint8_t tag_number,
+                          double *double_value)
 {
     uint32_t len_value;
     int len = 0;
 
     if (decode_is_context_tag(&apdu[len], tag_number)) {
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_double(&apdu[len], double_value);
     } else {
         len = -1;
@@ -252,11 +231,10 @@ int decode_context_double(
 #include <ctype.h>
 #include "ctest.h"
 
-void testBACreal(
-    Test * pTest)
+void testBACreal(Test *pTest)
 {
     float real_value = 3.14159F, test_real_value = 0.0;
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0, test_len = 0;
 
     len = encode_bacnet_real(real_value, &apdu[0]);
@@ -266,11 +244,10 @@ void testBACreal(
     ct_test(pTest, test_real_value == real_value);
 }
 
-void testBACdouble(
-    Test * pTest)
+void testBACdouble(Test *pTest)
 {
     double double_value = 3.1415927, test_double_value = 0.0;
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0, test_len = 0;
 
     len = encode_bacnet_double(double_value, &apdu[0]);
@@ -281,8 +258,7 @@ void testBACdouble(
 }
 
 #ifdef TEST_BACNET_REAL
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -297,7 +273,7 @@ int main(
     /* configure output */
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

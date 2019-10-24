@@ -41,14 +41,12 @@
 /** @file timesync.c  Encode/Decode TimeSync APDUs  */
 #if BACNET_SVC_TS_A
 /* encode service */
-int timesync_encode_apdu_service(
-    uint8_t * apdu,
-    BACNET_UNCONFIRMED_SERVICE service,
-    BACNET_DATE * my_date,
-    BACNET_TIME * my_time)
+int timesync_encode_apdu_service(uint8_t *apdu,
+                                 BACNET_UNCONFIRMED_SERVICE service,
+                                 BACNET_DATE *my_date, BACNET_TIME *my_time)
 {
-    int len = 0;        /* length of each encoding */
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int len = 0;      /* length of each encoding */
+    int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && my_date && my_time) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
@@ -63,31 +61,24 @@ int timesync_encode_apdu_service(
     return apdu_len;
 }
 
-int timesync_utc_encode_apdu(
-    uint8_t * apdu,
-    BACNET_DATE * my_date,
-    BACNET_TIME * my_time)
+int timesync_utc_encode_apdu(uint8_t *apdu, BACNET_DATE *my_date,
+                             BACNET_TIME *my_time)
 {
-    return timesync_encode_apdu_service(apdu,
-        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, my_date, my_time);
+    return timesync_encode_apdu_service(
+        apdu, SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, my_date, my_time);
 }
 
-int timesync_encode_apdu(
-    uint8_t * apdu,
-    BACNET_DATE * my_date,
-    BACNET_TIME * my_time)
+int timesync_encode_apdu(uint8_t *apdu, BACNET_DATE *my_date,
+                         BACNET_TIME *my_time)
 {
-    return timesync_encode_apdu_service(apdu,
-        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, my_date, my_time);
+    return timesync_encode_apdu_service(
+        apdu, SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, my_date, my_time);
 }
 #endif
 
 /* decode the service request only */
-int timesync_decode_service_request(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_DATE * my_date,
-    BACNET_TIME * my_time)
+int timesync_decode_service_request(uint8_t *apdu, unsigned apdu_len,
+                                    BACNET_DATE *my_date, BACNET_TIME *my_time)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -95,15 +86,13 @@ int timesync_decode_service_request(
 
     if (apdu_len && my_date && my_time) {
         /* date */
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_DATE) {
             len += decode_date(&apdu[len], my_date);
         } else
             return -1;
         /* time */
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_TIME) {
             len += decode_bacnet_time(&apdu[len], my_time);
         } else
@@ -137,10 +126,8 @@ int timesync_decode_service_request(
  *  @return How many bytes were encoded in the buffer, or
  *   BACNET_STATUS_ABORT if the response would not fit within the buffer.
  */
-int timesync_encode_timesync_recipients(
-    uint8_t * apdu,
-    unsigned max_apdu,
-    BACNET_RECIPIENT_LIST * recipient)
+int timesync_encode_timesync_recipients(uint8_t *apdu, unsigned max_apdu,
+                                        BACNET_RECIPIENT_LIST *recipient)
 {
     int len = 0;
     int apdu_len = 0;
@@ -152,9 +139,8 @@ int timesync_encode_timesync_recipients(
         if (pRecipient->tag == 0) {
             if (max_apdu >= (1 + 4)) {
                 /* CHOICE - device [0] BACnetObjectIdentifier */
-                len =
-                    encode_context_object_id(&apdu[apdu_len], 0,
-                    (int)pRecipient->type.device.type,
+                len = encode_context_object_id(
+                    &apdu[apdu_len], 0, (int)pRecipient->type.device.type,
                     pRecipient->type.device.instance);
                 apdu_len += len;
             } else {
@@ -164,8 +150,7 @@ int timesync_encode_timesync_recipients(
             if (pRecipient->type.address.net) {
                 len = (int)(1 + 3 + 2 + pRecipient->type.address.len + 1);
             } else {
-                len =
-                    (int)(1 + 3 + 2 + pRecipient->type.address.mac_len + 1);
+                len = (int)(1 + 3 + 2 + pRecipient->type.address.mac_len + 1);
             }
             if (max_apdu >= (unsigned)len) {
                 /* CHOICE - address [1] BACnetAddress - opening */
@@ -173,9 +158,8 @@ int timesync_encode_timesync_recipients(
                 apdu_len += len;
                 /* network-number Unsigned16, */
                 /* -- A value of 0 indicates the local network */
-                len =
-                    encode_application_unsigned(&apdu[apdu_len],
-                    pRecipient->type.address.net);
+                len = encode_application_unsigned(&apdu[apdu_len],
+                                                  pRecipient->type.address.net);
                 apdu_len += len;
                 /* mac-address OCTET STRING */
                 /* -- A string of length 0 indicates a broadcast */
@@ -183,16 +167,15 @@ int timesync_encode_timesync_recipients(
                     octetstring_init(&octet_string, NULL, 0);
                 } else if (pRecipient->type.address.net) {
                     octetstring_init(&octet_string,
-                        &pRecipient->type.address.adr[0],
-                        pRecipient->type.address.len);
+                                     &pRecipient->type.address.adr[0],
+                                     pRecipient->type.address.len);
                 } else {
                     octetstring_init(&octet_string,
-                        &pRecipient->type.address.mac[0],
-                        pRecipient->type.address.mac_len);
+                                     &pRecipient->type.address.mac[0],
+                                     pRecipient->type.address.mac_len);
                 }
-                len =
-                    encode_application_octet_string(&apdu[apdu_len],
-                    &octet_string);
+                len = encode_application_octet_string(&apdu[apdu_len],
+                                                      &octet_string);
                 apdu_len += len;
                 /* CHOICE - address [1] BACnetAddress - closing */
                 len = encode_closing_tag(&apdu[apdu_len], 1);
@@ -231,10 +214,8 @@ int timesync_encode_timesync_recipients(
  *  @return How many bytes were decoded from the buffer, or
  *   BACNET_STATUS_ABORT if there was a problem decoding the buffer
  */
-int timesync_decode_timesync_recipients(
-    uint8_t * apdu,
-    unsigned max_apdu,
-    BACNET_RECIPIENT_LIST * recipient)
+int timesync_decode_timesync_recipients(uint8_t *apdu, unsigned max_apdu,
+                                        BACNET_RECIPIENT_LIST *recipient)
 {
     int len = 0;
     int apdu_len = 0;
@@ -250,10 +231,9 @@ int timesync_decode_timesync_recipients(
         /* device [0] BACnetObjectIdentifier */
         if (decode_is_context_tag(&apdu[apdu_len], 0)) {
             pRecipient->tag = 0;
-            len =
-                decode_context_object_id(&apdu[apdu_len], 0,
-                &pRecipient->type.device.type,
-                &pRecipient->type.device.instance);
+            len = decode_context_object_id(&apdu[apdu_len], 0,
+                                           &pRecipient->type.device.type,
+                                           &pRecipient->type.device.instance);
             if (len < 0) {
                 return BACNET_STATUS_ABORT;
             }
@@ -262,22 +242,19 @@ int timesync_decode_timesync_recipients(
             apdu_len += 1;
             pRecipient->tag = 1;
             /* network-number Unsigned16 */
-            tag_len =
-                decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
-                &len_value_type);
+            tag_len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
+                                                  &len_value_type);
             apdu_len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 return BACNET_STATUS_ABORT;
             }
-            len =
-                decode_unsigned(&apdu[apdu_len], len_value_type,
-                &unsigned_value);
+            len = decode_unsigned(&apdu[apdu_len], len_value_type,
+                                  &unsigned_value);
             pRecipient->type.address.net = unsigned_value;
             apdu_len += len;
             /* mac-address OCTET STRING */
-            tag_len =
-                decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
-                &len_value_type);
+            tag_len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
+                                                  &len_value_type);
             apdu_len += tag_len;
             if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
                 return BACNET_STATUS_ABORT;
@@ -287,12 +264,12 @@ int timesync_decode_timesync_recipients(
             if (octetstring_length(&octet_string) == 0) {
                 /* -- A string of length 0 indicates a broadcast */
             } else if (pRecipient->type.address.net) {
-                pRecipient->type.address.len =
-                    octetstring_copy_value(&pRecipient->type.address.adr[0],
+                pRecipient->type.address.len = octetstring_copy_value(
+                    &pRecipient->type.address.adr[0],
                     sizeof(pRecipient->type.address.adr), &octet_string);
             } else {
-                pRecipient->type.address.mac_len =
-                    octetstring_copy_value(&pRecipient->type.address.mac[0],
+                pRecipient->type.address.mac_len = octetstring_copy_value(
+                    &pRecipient->type.address.mac[0],
                     sizeof(pRecipient->type.address.mac), &octet_string);
             }
         } else {
@@ -304,51 +281,42 @@ int timesync_decode_timesync_recipients(
     return apdu_len;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-void testTimeSyncRecipientData(
-    Test * pTest,
-    BACNET_RECIPIENT_LIST * recipient1,
-    BACNET_RECIPIENT_LIST * recipient2)
+void testTimeSyncRecipientData(Test *pTest, BACNET_RECIPIENT_LIST *recipient1,
+                               BACNET_RECIPIENT_LIST *recipient2)
 {
     unsigned i = 0;
 
     if (recipient1 && recipient2) {
         ct_test(pTest, recipient1->tag == recipient2->tag);
         if (recipient1->tag == 0) {
-            ct_test(pTest,
-                recipient1->type.device.type == recipient2->type.device.type);
-            ct_test(pTest,
-                recipient1->type.device.instance ==
-                recipient2->type.device.instance);
+            ct_test(pTest, recipient1->type.device.type ==
+                               recipient2->type.device.type);
+            ct_test(pTest, recipient1->type.device.instance ==
+                               recipient2->type.device.instance);
         } else if (recipient1->tag == 1) {
-            ct_test(pTest,
-                recipient1->type.address.net == recipient2->type.address.net);
+            ct_test(pTest, recipient1->type.address.net ==
+                               recipient2->type.address.net);
             if (recipient1->type.address.net == BACNET_BROADCAST_NETWORK) {
-                ct_test(pTest,
-                    recipient1->type.address.mac_len ==
-                    recipient2->type.address.mac_len);
+                ct_test(pTest, recipient1->type.address.mac_len ==
+                                   recipient2->type.address.mac_len);
             } else if (recipient1->type.address.net) {
-                ct_test(pTest,
-                    recipient1->type.address.len ==
-                    recipient2->type.address.len);
+                ct_test(pTest, recipient1->type.address.len ==
+                                   recipient2->type.address.len);
                 for (i = 0; i < recipient1->type.address.len; i++) {
-                    ct_test(pTest,
-                        recipient1->type.address.adr[i] ==
-                        recipient2->type.address.adr[i]);
+                    ct_test(pTest, recipient1->type.address.adr[i] ==
+                                       recipient2->type.address.adr[i]);
                 }
             } else {
-                ct_test(pTest,
-                    recipient1->type.address.mac_len ==
-                    recipient2->type.address.mac_len);
+                ct_test(pTest, recipient1->type.address.mac_len ==
+                                   recipient2->type.address.mac_len);
                 for (i = 0; i < recipient1->type.address.mac_len; i++) {
-                    ct_test(pTest,
-                        recipient1->type.address.mac[i] ==
-                        recipient2->type.address.mac[i]);
+                    ct_test(pTest, recipient1->type.address.mac[i] ==
+                                       recipient2->type.address.mac[i]);
                 }
             }
         } else {
@@ -357,10 +325,9 @@ void testTimeSyncRecipientData(
     }
 }
 
-void testTimeSyncRecipient(
-    Test * pTest)
+void testTimeSyncRecipient(Test *pTest)
 {
-    uint8_t apdu[480] = { 0 };
+    uint8_t apdu[480] = {0};
     int len = 0;
     BACNET_RECIPIENT_LIST recipient[4];
     BACNET_RECIPIENT_LIST test_recipient[4];
@@ -399,25 +366,21 @@ void testTimeSyncRecipient(
     recipient[2].type.address.mac[5] = 0xC1;
     recipient[2].type.address.mac_len = 6;
     /* perform positive test */
-    len =
-        timesync_encode_timesync_recipients(&apdu[0], sizeof(apdu),
-        &recipient[0]);
+    len = timesync_encode_timesync_recipients(&apdu[0], sizeof(apdu),
+                                              &recipient[0]);
     ct_test(pTest, len != BACNET_STATUS_ABORT);
     ct_test(pTest, len > 0);
-    len =
-        timesync_decode_timesync_recipients(&apdu[0], sizeof(apdu),
-        &test_recipient[0]);
+    len = timesync_decode_timesync_recipients(&apdu[0], sizeof(apdu),
+                                              &test_recipient[0]);
     ct_test(pTest, len != BACNET_STATUS_ABORT);
     ct_test(pTest, len > 0);
     testTimeSyncRecipientData(pTest, &recipient[0], &test_recipient[0]);
 }
 
-int timesync_decode_apdu_service(
-    uint8_t * apdu,
-    BACNET_UNCONFIRMED_SERVICE service,
-    unsigned apdu_len,
-    BACNET_DATE * my_date,
-    BACNET_TIME * my_time)
+int timesync_decode_apdu_service(uint8_t *apdu,
+                                 BACNET_UNCONFIRMED_SERVICE service,
+                                 unsigned apdu_len, BACNET_DATE *my_date,
+                                 BACNET_TIME *my_time)
 {
     int len = 0;
 
@@ -430,41 +393,32 @@ int timesync_decode_apdu_service(
         return -1;
     /* optional limits - must be used as a pair */
     if (apdu_len > 2) {
-        len =
-            timesync_decode_service_request(&apdu[2], apdu_len - 2, my_date,
-            my_time);
+        len = timesync_decode_service_request(&apdu[2], apdu_len - 2, my_date,
+                                              my_time);
     }
 
     return len;
 }
 
-int timesync_utc_decode_apdu(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_DATE * my_date,
-    BACNET_TIME * my_time)
+int timesync_utc_decode_apdu(uint8_t *apdu, unsigned apdu_len,
+                             BACNET_DATE *my_date, BACNET_TIME *my_time)
 {
-    return timesync_decode_apdu_service(apdu,
-        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, apdu_len, my_date,
+    return timesync_decode_apdu_service(
+        apdu, SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, apdu_len, my_date,
         my_time);
 }
 
-int timesync_decode_apdu(
-    uint8_t * apdu,
-    unsigned apdu_len,
-    BACNET_DATE * my_date,
-    BACNET_TIME * my_time)
+int timesync_decode_apdu(uint8_t *apdu, unsigned apdu_len, BACNET_DATE *my_date,
+                         BACNET_TIME *my_time)
 {
-    return timesync_decode_apdu_service(apdu,
-        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, apdu_len, my_date, my_time);
+    return timesync_decode_apdu_service(
+        apdu, SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, apdu_len, my_date,
+        my_time);
 }
 
-void testTimeSyncData(
-    Test * pTest,
-    BACNET_DATE * my_date,
-    BACNET_TIME * my_time)
+void testTimeSyncData(Test *pTest, BACNET_DATE *my_date, BACNET_TIME *my_time)
 {
-    uint8_t apdu[480] = { 0 };
+    uint8_t apdu[480] = {0};
     int len = 0;
     int apdu_len = 0;
     BACNET_DATE test_date;
@@ -487,16 +441,15 @@ void testTimeSyncData(
     ct_test(pTest, datetime_compare_date(my_date, &test_date) == 0);
 }
 
-void testTimeSync(
-    Test * pTest)
+void testTimeSync(Test *pTest)
 {
     BACNET_DATE bdate;
     BACNET_TIME btime;
 
-    bdate.year = 2006;  /* AD */
-    bdate.month = 4;    /* 1=Jan */
-    bdate.day = 11;     /* 1..31 */
-    bdate.wday = 1;     /* 1=Monday */
+    bdate.year = 2006; /* AD */
+    bdate.month = 4;   /* 1=Jan */
+    bdate.day = 11;    /* 1..31 */
+    bdate.wday = 1;    /* 1=Monday */
 
     btime.hour = 7;
     btime.min = 0;
@@ -507,8 +460,7 @@ void testTimeSync(
 }
 
 #ifdef TEST_TIMESYNC
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -520,7 +472,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

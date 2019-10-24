@@ -35,8 +35,7 @@
 
 /* function to return true on Big-Endian architectures */
 /* (based on Harbison & Steele) */
-int big_endian(
-    void)
+int big_endian(void)
 {
     union {
         long l;

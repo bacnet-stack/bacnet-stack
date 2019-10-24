@@ -7,8 +7,8 @@
  * @section DESCRIPTION
  *
  * The Channel object is a command object without a priority array, and the
- * present-value property uses a priority array and a single precision floating point
- * data type.
+ * present-value property uses a priority array and a single precision floating
+ * point data type.
  *
  * @section LICENSE
  *
@@ -39,13 +39,13 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "wp.h"
 #include "handlers.h"
 #include "proplist.h"
 #include "lighting.h"
 #include "device.h"
-#if defined (CHANNEL_LIGHTING_COMMAND) || defined (BACAPP_LIGHTING_COMMAND)
+#if defined(CHANNEL_LIGHTING_COMMAND) || defined(BACAPP_LIGHTING_COMMAND)
 #include "lo.h"
 #endif
 /* me! */
@@ -64,7 +64,7 @@
 #endif
 
 struct bacnet_channel_object {
-    bool Out_Of_Service:1;
+    bool Out_Of_Service : 1;
     BACNET_CHANNEL_VALUE Present_Value;
     unsigned Last_Priority;
     BACNET_WRITE_STATUS Write_Status;
@@ -89,16 +89,11 @@ static const int Channel_Properties_Required[] = {
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
     PROP_CHANNEL_NUMBER,
     PROP_CONTROL_GROUPS,
-    -1
-};
+    -1};
 
-static const int Channel_Properties_Optional[] = {
-    -1
-};
+static const int Channel_Properties_Optional[] = {-1};
 
-static const int Channel_Properties_Proprietary[] = {
-    -1
-};
+static const int Channel_Properties_Proprietary[] = {-1};
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -111,9 +106,8 @@ static const int Channel_Properties_Proprietary[] = {
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
-void Channel_Property_Lists(const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Channel_Property_Lists(const int **pRequired, const int **pOptional,
+                            const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Channel_Properties_Required;
@@ -200,7 +194,7 @@ unsigned Channel_Instance_To_Index(uint32_t object_instance)
  * @param  object_instance - object-instance number of the object
  * @return pointer to the BACNET_CHANNEL_VALUE present-value
  */
-BACNET_CHANNEL_VALUE * Channel_Present_Value(uint32_t object_instance)
+BACNET_CHANNEL_VALUE *Channel_Present_Value(uint32_t object_instance)
 {
     unsigned index = 0;
     BACNET_CHANNEL_VALUE *cvalue = NULL;
@@ -352,9 +346,8 @@ unsigned Channel_Reference_List_Member_Count(uint32_t object_instance)
  *
  * @return pointer to member element or NULL if not found
  */
-BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *
-Channel_Reference_List_Member_Element(uint32_t object_instance,
-    unsigned array_index)
+BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *Channel_Reference_List_Member_Element(
+    uint32_t object_instance, unsigned array_index)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
     unsigned count = 0;
@@ -385,8 +378,8 @@ Channel_Reference_List_Member_Element(uint32_t object_instance,
  *
  * @return pointer to member element or NULL if not found
  */
-bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
-    unsigned array_index,
+bool Channel_Reference_List_Member_Element_Set(
+    uint32_t object_instance, unsigned array_index,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
@@ -403,7 +396,7 @@ bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
                 count++;
                 if (count == array_index) {
                     memcpy(pMember, pMemberSrc,
-                        sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+                           sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
                     status = true;
                     break;
                 }
@@ -423,7 +416,8 @@ bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
  * @return array_index - 1-based array index value for added element, or
  * zero if not added
  */
-unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
+unsigned Channel_Reference_List_Member_Element_Add(
+    uint32_t object_instance,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
@@ -441,7 +435,7 @@ unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
                 /* first empty slot */
                 count++;
                 memcpy(pMember, pMemberSrc,
-                    sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
+                       sizeof(BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE));
                 break;
             }
         }
@@ -463,11 +457,8 @@ unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
  * zero if not added
  */
 unsigned Channel_Reference_List_Member_Local_Add(
-    uint32_t object_instance,
-    uint16_t type,
-    uint32_t instance,
-    BACNET_PROPERTY_ID propertyIdentifier,
-    uint32_t arrayIndex)
+    uint32_t object_instance, uint16_t type, uint32_t instance,
+    BACNET_PROPERTY_ID propertyIdentifier, uint32_t arrayIndex)
 {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = {{0}};
 
@@ -478,9 +469,7 @@ unsigned Channel_Reference_List_Member_Local_Add(
     member.deviceIdentifier.type = OBJECT_DEVICE;
     member.deviceIdentifier.instance = Device_Object_Instance_Number();
 
-    return Channel_Reference_List_Member_Element_Add(
-        object_instance,
-        &member);
+    return Channel_Reference_List_Member_Element_Add(object_instance, &member);
 }
 
 /**
@@ -491,16 +480,14 @@ unsigned Channel_Reference_List_Member_Local_Add(
  *
  * @return group number in the array
  */
-uint16_t Channel_Control_Groups_Element(
-    uint32_t object_instance,
-    int32_t array_index)
+uint16_t Channel_Control_Groups_Element(uint32_t object_instance,
+                                        int32_t array_index)
 {
     unsigned index = 0;
     uint16_t value = 0;
 
     index = Channel_Instance_To_Index(object_instance);
-    if ((index < BACNET_CHANNELS_MAX) &&
-        (array_index > 0) &&
+    if ((index < BACNET_CHANNELS_MAX) && (array_index > 0) &&
         (array_index <= CONTROL_GROUPS_MAX)) {
         array_index--;
         value = Channel[index].Control_Groups[array_index];
@@ -518,17 +505,14 @@ uint16_t Channel_Control_Groups_Element(
  *
  * @return true if parameters are value and control group is set
  */
-bool Channel_Control_Groups_Element_Set(
-    uint32_t object_instance,
-    int32_t array_index,
-    uint16_t value)
+bool Channel_Control_Groups_Element_Set(uint32_t object_instance,
+                                        int32_t array_index, uint16_t value)
 {
     bool status = false;
     unsigned index = 0;
 
     index = Channel_Instance_To_Index(object_instance);
-    if ((index < BACNET_CHANNELS_MAX) &&
-        (array_index > 0) &&
+    if ((index < BACNET_CHANNELS_MAX) && (array_index > 0) &&
         (array_index <= CONTROL_GROUPS_MAX)) {
         array_index--;
         Channel[index].Control_Groups[array_index] = value;
@@ -546,8 +530,8 @@ bool Channel_Control_Groups_Element_Set(
  *
  * @return  true if values are able to be copied
  */
-bool Channel_Value_Copy(BACNET_CHANNEL_VALUE * cvalue,
-    BACNET_APPLICATION_DATA_VALUE * value)
+bool Channel_Value_Copy(BACNET_CHANNEL_VALUE *cvalue,
+                        BACNET_APPLICATION_DATA_VALUE *value)
 {
     bool status = false;
 
@@ -555,100 +539,92 @@ bool Channel_Value_Copy(BACNET_CHANNEL_VALUE * cvalue,
         return false;
     }
     switch (value->tag) {
-#if defined (BACAPP_NULL)
+#if defined(BACAPP_NULL)
         case BACNET_APPLICATION_TAG_NULL:
             cvalue->tag = value->tag;
             status = true;
             break;
 #endif
-#if defined (BACAPP_BOOLEAN) && defined (CHANNEL_BOOLEAN)
+#if defined(BACAPP_BOOLEAN) && defined(CHANNEL_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
             cvalue->tag = value->tag;
             cvalue->type.Boolean = value->type.Boolean;
             status = true;
             break;
 #endif
-#if defined (BACAPP_UNSIGNED) && defined (CHANNEL_UNSIGNED)
+#if defined(BACAPP_UNSIGNED) && defined(CHANNEL_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             cvalue->tag = value->tag;
             cvalue->type.Unsigned_Int = value->type.Unsigned_Int;
             status = true;
             break;
 #endif
-#if defined (BACAPP_SIGNED) && defined (CHANNEL_SIGNED)
+#if defined(BACAPP_SIGNED) && defined(CHANNEL_SIGNED)
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             cvalue->tag = value->tag;
             cvalue->type.Signed_Int = value->type.Signed_Int;
             status = true;
             break;
 #endif
-#if defined (BACAPP_REAL) && defined (CHANNEL_REAL)
+#if defined(BACAPP_REAL) && defined(CHANNEL_REAL)
         case BACNET_APPLICATION_TAG_REAL:
             cvalue->tag = value->tag;
             cvalue->type.Real = value->type.Real;
             status = true;
             break;
 #endif
-#if defined (BACAPP_DOUBLE) && defined (CHANNEL_DOUBLE)
+#if defined(BACAPP_DOUBLE) && defined(CHANNEL_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
             cvalue->tag = value->tag;
             cvalue->type.Double = value->type.Double;
             status = true;
             break;
 #endif
-#if defined (BACAPP_OCTET_STRING) && defined (CHANNEL_OCTET_STRING)
+#if defined(BACAPP_OCTET_STRING) && defined(CHANNEL_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
             cvalue->tag = value->tag;
-            octetstring_copy(
-                &cvalue->type.Octet_String,
-                &value->type.Octet_String);
+            octetstring_copy(&cvalue->type.Octet_String,
+                             &value->type.Octet_String);
             status = true;
             break;
 #endif
-#if defined (BACAPP_CHARACTER_STRING) && defined (CHANNEL_CHARACTER_STRING)
+#if defined(BACAPP_CHARACTER_STRING) && defined(CHANNEL_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
             cvalue->tag = value->tag;
-            characterstring_copy(
-                &cvalue->type.Character_String,
-                &value->type.Character_String);
+            characterstring_copy(&cvalue->type.Character_String,
+                                 &value->type.Character_String);
             status = true;
             break;
 #endif
-#if defined (BACAPP_BIT_STRING) && defined (CHANNEL_BIT_STRING)
+#if defined(BACAPP_BIT_STRING) && defined(CHANNEL_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
             cvalue->tag = value->tag;
-            bitstring_copy(
-                &cvalue->type.Bit_String,
-                &value->type.Bit_String);
+            bitstring_copy(&cvalue->type.Bit_String, &value->type.Bit_String);
             status = true;
             break;
 #endif
-#if defined (BACAPP_ENUMERATED) && defined (CHANNEL_ENUMERATED)
+#if defined(BACAPP_ENUMERATED) && defined(CHANNEL_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             cvalue->tag = value->tag;
             cvalue->type.Enumerated = value->type.Enumerated;
             status = true;
             break;
 #endif
-#if defined (BACAPP_DATE) && defined (CHANNEL_DATE)
+#if defined(BACAPP_DATE) && defined(CHANNEL_DATE)
         case BACNET_APPLICATION_TAG_DATE:
             cvalue->tag = value->tag;
-            datetime_date_copy(
-                &cvalue->type.Date,
-                &value->type.Date);
+            datetime_date_copy(&cvalue->type.Date, &value->type.Date);
             apdu_len = encode_application_date(&apdu[0], &value->type.Date);
             status = true;
             break;
 #endif
-#if defined (BACAPP_TIME) && defined (CHANNEL_TIME)
+#if defined(BACAPP_TIME) && defined(CHANNEL_TIME)
         case BACNET_APPLICATION_TAG_TIME:
             cvalue->tag = value->tag;
-            datetime_time_copy(
-                &cvalue->type.Time,
-                &value->type.Time);
+            datetime_time_copy(&cvalue->type.Time, &value->type.Time);
             break;
 #endif
-#if defined (BACAPP_OBJECT_ID) && defined (CHANNEL_OBJECT_ID)
+#if defined(BACAPP_OBJECT_ID) && defined(CHANNEL_OBJECT_ID)
         case BACNET_APPLICATION_TAG_OBJECT_ID:
             cvalue->tag = value->tag;
             cvalue->type.Object_Id.type = value->type.Object_Id.type;
@@ -656,12 +632,11 @@ bool Channel_Value_Copy(BACNET_CHANNEL_VALUE * cvalue,
             status = true;
             break;
 #endif
-#if defined (BACAPP_LIGHTING_COMMAND) && defined (CHANNEL_LIGHTING_COMMAND)
+#if defined(BACAPP_LIGHTING_COMMAND) && defined(CHANNEL_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             cvalue->tag = value->tag;
-            lighting_command_copy(
-                &cvalue->type.Lighting_Command,
-                &value->type.Lighting_Command);
+            lighting_command_copy(&cvalue->type.Lighting_Command,
+                                  &value->type.Lighting_Command);
             status = true;
             break;
 #endif
@@ -682,7 +657,7 @@ bool Channel_Value_Copy(BACNET_CHANNEL_VALUE * cvalue,
  * @return  number of bytes in the APDU, or BACNET_STATUS_ERROR
  */
 int Channel_Value_Encode(uint8_t *apdu, int apdu_max,
-    BACNET_CHANNEL_VALUE * value)
+                         BACNET_CHANNEL_VALUE *value)
 {
     int apdu_len = BACNET_STATUS_ERROR;
 
@@ -693,90 +668,79 @@ int Channel_Value_Encode(uint8_t *apdu, int apdu_max,
         case BACNET_APPLICATION_TAG_NULL:
             apdu_len = encode_application_null(&apdu[0]);
             break;
-#if defined (CHANNEL_BOOLEAN)
+#if defined(CHANNEL_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
-            apdu_len = encode_application_boolean(&apdu[0],
-                value->type.Boolean);
+            apdu_len =
+                encode_application_boolean(&apdu[0], value->type.Boolean);
             break;
 #endif
-#if defined (CHANNEL_UNSIGNED)
+#if defined(CHANNEL_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                value->type.Unsigned_Int);
+                encode_application_unsigned(&apdu[0], value->type.Unsigned_Int);
             break;
 #endif
-#if defined (CHANNEL_SIGNED)
+#if defined(CHANNEL_SIGNED)
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             apdu_len =
-                encode_application_signed(&apdu[0],
-                value->type.Signed_Int);
+                encode_application_signed(&apdu[0], value->type.Signed_Int);
             break;
 #endif
-#if defined (CHANNEL_REAL)
+#if defined(CHANNEL_REAL)
         case BACNET_APPLICATION_TAG_REAL:
             apdu_len = encode_application_real(&apdu[0], value->type.Real);
             break;
 #endif
-#if defined (CHANNEL_DOUBLE)
+#if defined(CHANNEL_DOUBLE)
         case BACNET_APPLICATION_TAG_DOUBLE:
-            apdu_len =
-                encode_application_double(&apdu[0], value->type.Double);
+            apdu_len = encode_application_double(&apdu[0], value->type.Double);
             break;
 #endif
-#if defined (CHANNEL_OCTET_STRING)
+#if defined(CHANNEL_OCTET_STRING)
         case BACNET_APPLICATION_TAG_OCTET_STRING:
-            apdu_len =
-                encode_application_octet_string(&apdu[0],
-                &value->type.Octet_String);
+            apdu_len = encode_application_octet_string(
+                &apdu[0], &value->type.Octet_String);
             break;
 #endif
-#if defined (CHANNEL_CHARACTER_STRING)
+#if defined(CHANNEL_CHARACTER_STRING)
         case BACNET_APPLICATION_TAG_CHARACTER_STRING:
-            apdu_len =
-                encode_application_character_string(&apdu[0],
-                &value->type.Character_String);
+            apdu_len = encode_application_character_string(
+                &apdu[0], &value->type.Character_String);
             break;
 #endif
-#if defined (CHANNEL_BIT_STRING)
+#if defined(CHANNEL_BIT_STRING)
         case BACNET_APPLICATION_TAG_BIT_STRING:
             apdu_len =
-                encode_application_bitstring(&apdu[0],
-                &value->type.Bit_String);
+                encode_application_bitstring(&apdu[0], &value->type.Bit_String);
             break;
 #endif
-#if defined (CHANNEL_ENUMERATED)
+#if defined(CHANNEL_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             apdu_len =
-                encode_application_enumerated(&apdu[0],
-                value->type.Enumerated);
+                encode_application_enumerated(&apdu[0], value->type.Enumerated);
             break;
 #endif
-#if defined (CHANNEL_DATE)
+#if defined(CHANNEL_DATE)
         case BACNET_APPLICATION_TAG_DATE:
-            apdu_len =
-                encode_application_date(&apdu[0], &value->type.Date);
+            apdu_len = encode_application_date(&apdu[0], &value->type.Date);
             break;
 #endif
-#if defined (CHANNEL_TIME)
+#if defined(CHANNEL_TIME)
         case BACNET_APPLICATION_TAG_TIME:
-            apdu_len =
-                encode_application_time(&apdu[0], &value->type.Time);
+            apdu_len = encode_application_time(&apdu[0], &value->type.Time);
             break;
 #endif
-#if defined (CHANNEL_OBJECT_ID)
+#if defined(CHANNEL_OBJECT_ID)
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            apdu_len =
-                encode_application_object_id(&apdu[0],
-                (int) value->type.Object_Id.type,
+            apdu_len = encode_application_object_id(
+                &apdu[0], (int)value->type.Object_Id.type,
                 value->type.Object_Id.instance);
             break;
 #endif
-#if defined (CHANNEL_LIGHTING_COMMAND)
+#if defined(CHANNEL_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-            apdu_len =
-                lighting_command_encode(&apdu[0],
-                &value->type.Lighting_Command);
+            apdu_len = lighting_command_encode(&apdu[0],
+                                               &value->type.Lighting_Command);
             break;
 #endif
         default:
@@ -796,13 +760,11 @@ int Channel_Value_Encode(uint8_t *apdu, int apdu_max,
  *
  * @return  number of bytes in the APDU, or BACNET_STATUS_ERROR if error.
  */
-int Channel_Coerce_Data_Encode(
-    uint8_t * apdu,
-    unsigned max_apdu,
-    BACNET_APPLICATION_DATA_VALUE * value,
-    BACNET_APPLICATION_TAG tag)
+int Channel_Coerce_Data_Encode(uint8_t *apdu, unsigned max_apdu,
+                               BACNET_APPLICATION_DATA_VALUE *value,
+                               BACNET_APPLICATION_TAG tag)
 {
-    int apdu_len = 0;   /* total length of the apdu, return value */
+    int apdu_len = 0; /* total length of the apdu, return value */
     float float_value = 0.0;
     double double_value = 0.0;
     uint32_t unsigned_value = 0;
@@ -812,7 +774,7 @@ int Channel_Coerce_Data_Encode(
     (void)max_apdu;
     if (apdu && value) {
         switch (value->tag) {
-#if defined (BACAPP_NULL)
+#if defined(BACAPP_NULL)
             case BACNET_APPLICATION_TAG_NULL:
                 if (tag == BACNET_APPLICATION_TAG_LIGHTING_COMMAND) {
                     apdu_len = BACNET_STATUS_ERROR;
@@ -823,21 +785,23 @@ int Channel_Coerce_Data_Encode(
                 }
                 break;
 #endif
-#if defined (BACAPP_BOOLEAN)
+#if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                    apdu_len =
-                        encode_application_boolean(&apdu[0], value->type.Boolean);
+                    apdu_len = encode_application_boolean(&apdu[0],
+                                                          value->type.Boolean);
                 } else if (tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                     if (value->type.Boolean) {
                         unsigned_value = 1;
                     }
-                    apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
+                    apdu_len =
+                        encode_application_unsigned(&apdu[0], unsigned_value);
                 } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
                     if (value->type.Boolean) {
                         signed_value = 1;
                     }
-                    apdu_len = encode_application_signed(&apdu[0], signed_value);
+                    apdu_len =
+                        encode_application_signed(&apdu[0], signed_value);
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     if (value->type.Boolean) {
                         float_value = 1;
@@ -847,7 +811,8 @@ int Channel_Coerce_Data_Encode(
                     if (value->type.Boolean) {
                         double_value = 1;
                     }
-                    apdu_len = encode_application_double(&apdu[0], double_value);
+                    apdu_len =
+                        encode_application_double(&apdu[0], double_value);
                 } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                     if (value->type.Boolean) {
                         unsigned_value = 1;
@@ -859,7 +824,7 @@ int Channel_Coerce_Data_Encode(
                 }
                 break;
 #endif
-#if defined (BACAPP_UNSIGNED)
+#if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                     if (value->type.Unsigned_Int) {
@@ -869,38 +834,38 @@ int Channel_Coerce_Data_Encode(
                         encode_application_boolean(&apdu[0], boolean_value);
                 } else if (tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                     unsigned_value = value->type.Unsigned_Int;
-                    apdu_len = encode_application_unsigned(&apdu[0],
-                        unsigned_value);
+                    apdu_len =
+                        encode_application_unsigned(&apdu[0], unsigned_value);
                 } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
                     if (value->type.Unsigned_Int <= 2147483647) {
                         signed_value = value->type.Unsigned_Int;
-                        apdu_len = encode_application_signed(&apdu[0],
-                            signed_value);
+                        apdu_len =
+                            encode_application_signed(&apdu[0], signed_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     if (value->type.Unsigned_Int <= 9999999) {
                         float_value = (float)value->type.Unsigned_Int;
-                        apdu_len = encode_application_real(&apdu[0],
-                            float_value);
+                        apdu_len =
+                            encode_application_real(&apdu[0], float_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
                     double_value = value->type.Unsigned_Int;
-                    apdu_len = encode_application_double(&apdu[0],
-                        double_value);
+                    apdu_len =
+                        encode_application_double(&apdu[0], double_value);
                 } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                     unsigned_value = value->type.Unsigned_Int;
-                    apdu_len = encode_application_enumerated(&apdu[0],
-                        unsigned_value);
+                    apdu_len =
+                        encode_application_enumerated(&apdu[0], unsigned_value);
                 } else {
                     apdu_len = BACNET_STATUS_ERROR;
                 }
                 break;
 #endif
-#if defined (BACAPP_SIGNED)
+#if defined(BACAPP_SIGNED)
             case BACNET_APPLICATION_TAG_SIGNED_INT:
                 if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                     if (value->type.Signed_Int) {
@@ -913,36 +878,36 @@ int Channel_Coerce_Data_Encode(
                         (value->type.Signed_Int <= 2147483647)) {
                         unsigned_value = value->type.Signed_Int;
                         apdu_len = encode_application_unsigned(&apdu[0],
-                            unsigned_value);
+                                                               unsigned_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
                     signed_value = value->type.Signed_Int;
-                    apdu_len = encode_application_signed(&apdu[0],
-                        signed_value);
+                    apdu_len =
+                        encode_application_signed(&apdu[0], signed_value);
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     if (value->type.Signed_Int <= 9999999) {
                         float_value = (float)value->type.Signed_Int;
-                        apdu_len = encode_application_real(&apdu[0],
-                            float_value);
+                        apdu_len =
+                            encode_application_real(&apdu[0], float_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
                     double_value = value->type.Signed_Int;
-                    apdu_len = encode_application_double(&apdu[0],
-                        double_value);
+                    apdu_len =
+                        encode_application_double(&apdu[0], double_value);
                 } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                     unsigned_value = value->type.Signed_Int;
-                    apdu_len = encode_application_enumerated(&apdu[0],
-                        unsigned_value);
+                    apdu_len =
+                        encode_application_enumerated(&apdu[0], unsigned_value);
                 } else {
                     apdu_len = BACNET_STATUS_ERROR;
                 }
                 break;
 #endif
-#if defined (BACAPP_REAL)
+#if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
                 if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                     if (value->type.Real) {
@@ -955,7 +920,7 @@ int Channel_Coerce_Data_Encode(
                         (value->type.Real <= 2147483000.0)) {
                         unsigned_value = (uint32_t)value->type.Real;
                         apdu_len = encode_application_unsigned(&apdu[0],
-                            unsigned_value);
+                                                               unsigned_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
@@ -963,25 +928,24 @@ int Channel_Coerce_Data_Encode(
                     if ((value->type.Real >= -2147483000.0) &&
                         (value->type.Real <= 214783000.0)) {
                         signed_value = (int32_t)value->type.Real;
-                        apdu_len = encode_application_signed(&apdu[0],
-                            signed_value);
+                        apdu_len =
+                            encode_application_signed(&apdu[0], signed_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     float_value = value->type.Real;
-                    apdu_len = encode_application_real(&apdu[0],
-                        float_value);
+                    apdu_len = encode_application_real(&apdu[0], float_value);
                 } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
                     double_value = value->type.Real;
-                    apdu_len = encode_application_double(&apdu[0],
-                        double_value);
+                    apdu_len =
+                        encode_application_double(&apdu[0], double_value);
                 } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                     if ((value->type.Real >= 0.0) &&
                         (value->type.Real <= 2147483000.0)) {
                         unsigned_value = (uint32_t)value->type.Real;
-                        apdu_len = encode_application_enumerated(&apdu[0],
-                            unsigned_value);
+                        apdu_len = encode_application_enumerated(
+                            &apdu[0], unsigned_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
@@ -990,7 +954,7 @@ int Channel_Coerce_Data_Encode(
                 }
                 break;
 #endif
-#if defined (BACAPP_DOUBLE)
+#if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
                 if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                     if (value->type.Double) {
@@ -1003,7 +967,7 @@ int Channel_Coerce_Data_Encode(
                         (value->type.Double <= 2147483000.0)) {
                         unsigned_value = (uint32_t)value->type.Double;
                         apdu_len = encode_application_unsigned(&apdu[0],
-                            unsigned_value);
+                                                               unsigned_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
@@ -1011,8 +975,8 @@ int Channel_Coerce_Data_Encode(
                     if ((value->type.Double >= -2147483000.0) &&
                         (value->type.Double <= 214783000.0)) {
                         signed_value = (int32_t)value->type.Double;
-                        apdu_len = encode_application_signed(&apdu[0],
-                            signed_value);
+                        apdu_len =
+                            encode_application_signed(&apdu[0], signed_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
@@ -1020,21 +984,21 @@ int Channel_Coerce_Data_Encode(
                     if ((value->type.Double >= 3.4E-38) &&
                         (value->type.Double <= 3.4E+38)) {
                         float_value = (float)value->type.Double;
-                        apdu_len = encode_application_real(&apdu[0],
-                            float_value);
+                        apdu_len =
+                            encode_application_real(&apdu[0], float_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
                     double_value = value->type.Double;
-                    apdu_len = encode_application_double(&apdu[0],
-                        double_value);
+                    apdu_len =
+                        encode_application_double(&apdu[0], double_value);
                 } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                     if ((value->type.Double >= 0.0) &&
                         (value->type.Double <= 2147483000.0)) {
                         unsigned_value = (uint32_t)value->type.Double;
-                        apdu_len = encode_application_enumerated(&apdu[0],
-                            unsigned_value);
+                        apdu_len = encode_application_enumerated(
+                            &apdu[0], unsigned_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
@@ -1043,7 +1007,7 @@ int Channel_Coerce_Data_Encode(
                 }
                 break;
 #endif
-#if defined (BACAPP_ENUMERATED)
+#if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
                     if (value->type.Enumerated) {
@@ -1053,47 +1017,46 @@ int Channel_Coerce_Data_Encode(
                         encode_application_boolean(&apdu[0], boolean_value);
                 } else if (tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                     unsigned_value = value->type.Enumerated;
-                    apdu_len = encode_application_unsigned(&apdu[0],
-                        unsigned_value);
+                    apdu_len =
+                        encode_application_unsigned(&apdu[0], unsigned_value);
                 } else if (tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
                     if (value->type.Enumerated <= 2147483647) {
                         signed_value = value->type.Enumerated;
-                        apdu_len = encode_application_signed(&apdu[0],
-                            signed_value);
+                        apdu_len =
+                            encode_application_signed(&apdu[0], signed_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_REAL) {
                     if (value->type.Enumerated <= 9999999) {
                         float_value = (float)value->type.Enumerated;
-                        apdu_len = encode_application_real(&apdu[0],
-                            float_value);
+                        apdu_len =
+                            encode_application_real(&apdu[0], float_value);
                     } else {
                         apdu_len = BACNET_STATUS_ERROR;
                     }
                 } else if (tag == BACNET_APPLICATION_TAG_DOUBLE) {
                     double_value = value->type.Enumerated;
-                    apdu_len = encode_application_double(&apdu[0],
-                        double_value);
+                    apdu_len =
+                        encode_application_double(&apdu[0], double_value);
                 } else if (tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                     unsigned_value = value->type.Enumerated;
-                    apdu_len = encode_application_enumerated(&apdu[0],
-                        unsigned_value);
+                    apdu_len =
+                        encode_application_enumerated(&apdu[0], unsigned_value);
                 } else {
                     apdu_len = BACNET_STATUS_ERROR;
                 }
                 break;
 #endif
-#if defined (BACAPP_LIGHTING_COMMAND)
-        case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
-            if (tag == BACNET_APPLICATION_TAG_LIGHTING_COMMAND) {
-                apdu_len =
-                    lighting_command_encode(&apdu[0],
-                    &value->type.Lighting_Command);
-            } else {
-                apdu_len = BACNET_STATUS_ERROR;
-            }
-            break;
+#if defined(BACAPP_LIGHTING_COMMAND)
+            case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
+                if (tag == BACNET_APPLICATION_TAG_LIGHTING_COMMAND) {
+                    apdu_len = lighting_command_encode(
+                        &apdu[0], &value->type.Lighting_Command);
+                } else {
+                    apdu_len = BACNET_STATUS_ERROR;
+                }
+                break;
 #endif
             default:
                 apdu_len = BACNET_STATUS_ERROR;
@@ -1112,51 +1075,44 @@ int Channel_Coerce_Data_Encode(
  *
  * @return  true if values are within range and present-value is sent.
  */
-bool Channel_Write_Member_Value(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value)
+bool Channel_Write_Member_Value(BACNET_WRITE_PROPERTY_DATA *wp_data,
+                                BACNET_APPLICATION_DATA_VALUE *value)
 {
     bool status = false;
     int apdu_len = 0;
 
     if (wp_data && value) {
         if (((wp_data->object_type == OBJECT_ANALOG_INPUT) ||
-            (wp_data->object_type == OBJECT_ANALOG_OUTPUT) ||
-            (wp_data->object_type == OBJECT_ANALOG_VALUE)) &&
+             (wp_data->object_type == OBJECT_ANALOG_OUTPUT) ||
+             (wp_data->object_type == OBJECT_ANALOG_VALUE)) &&
             (wp_data->object_property == PROP_PRESENT_VALUE) &&
             (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = Channel_Coerce_Data_Encode(
-                wp_data->application_data,
-                wp_data->application_data_len,
-                value,
+                wp_data->application_data, wp_data->application_data_len, value,
                 BACNET_APPLICATION_TAG_REAL);
             if (apdu_len != BACNET_STATUS_ERROR) {
                 wp_data->application_data_len = apdu_len;
                 status = true;
             }
         } else if (((wp_data->object_type == OBJECT_BINARY_INPUT) ||
-            (wp_data->object_type == OBJECT_BINARY_OUTPUT) ||
-            (wp_data->object_type == OBJECT_BINARY_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
-            (wp_data->array_index == BACNET_ARRAY_ALL)) {
+                    (wp_data->object_type == OBJECT_BINARY_OUTPUT) ||
+                    (wp_data->object_type == OBJECT_BINARY_VALUE)) &&
+                   (wp_data->object_property == PROP_PRESENT_VALUE) &&
+                   (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = Channel_Coerce_Data_Encode(
-                wp_data->application_data,
-                wp_data->application_data_len,
-                value,
+                wp_data->application_data, wp_data->application_data_len, value,
                 BACNET_APPLICATION_TAG_ENUMERATED);
             if (apdu_len != BACNET_STATUS_ERROR) {
                 wp_data->application_data_len = apdu_len;
                 status = true;
             }
         } else if (((wp_data->object_type == OBJECT_MULTI_STATE_INPUT) ||
-            (wp_data->object_type == OBJECT_MULTI_STATE_OUTPUT) ||
-            (wp_data->object_type == OBJECT_MULTI_STATE_VALUE)) &&
-            (wp_data->object_property == PROP_PRESENT_VALUE) &&
-            (wp_data->array_index == BACNET_ARRAY_ALL)) {
+                    (wp_data->object_type == OBJECT_MULTI_STATE_OUTPUT) ||
+                    (wp_data->object_type == OBJECT_MULTI_STATE_VALUE)) &&
+                   (wp_data->object_property == PROP_PRESENT_VALUE) &&
+                   (wp_data->array_index == BACNET_ARRAY_ALL)) {
             apdu_len = Channel_Coerce_Data_Encode(
-                wp_data->application_data,
-                wp_data->application_data_len,
-                value,
+                wp_data->application_data, wp_data->application_data_len, value,
                 BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (apdu_len != BACNET_STATUS_ERROR) {
                 wp_data->application_data_len = apdu_len;
@@ -1166,21 +1122,17 @@ bool Channel_Write_Member_Value(
             if ((wp_data->object_property == PROP_PRESENT_VALUE) &&
                 (wp_data->array_index == BACNET_ARRAY_ALL)) {
                 apdu_len = Channel_Coerce_Data_Encode(
-                    wp_data->application_data,
-                    wp_data->application_data_len,
-                    value,
-                    BACNET_APPLICATION_TAG_REAL);
+                    wp_data->application_data, wp_data->application_data_len,
+                    value, BACNET_APPLICATION_TAG_REAL);
                 if (apdu_len != BACNET_STATUS_ERROR) {
                     wp_data->application_data_len = apdu_len;
                     status = true;
                 }
             } else if ((wp_data->object_property == PROP_LIGHTING_COMMAND) &&
-                (wp_data->array_index == BACNET_ARRAY_ALL)) {
+                       (wp_data->array_index == BACNET_ARRAY_ALL)) {
                 apdu_len = Channel_Coerce_Data_Encode(
-                    wp_data->application_data,
-                    wp_data->application_data_len,
-                    value,
-                    BACNET_APPLICATION_TAG_LIGHTING_COMMAND);
+                    wp_data->application_data, wp_data->application_data_len,
+                    value, BACNET_APPLICATION_TAG_LIGHTING_COMMAND);
                 if (apdu_len != BACNET_STATUS_ERROR) {
                     wp_data->application_data_len = apdu_len;
                     status = true;
@@ -1200,10 +1152,9 @@ bool Channel_Write_Member_Value(
  *
  * @return  true if values are within range and present-value is sent.
  */
-static bool Channel_Write_Members(
-    struct bacnet_channel_object * pChannel,
-    BACNET_APPLICATION_DATA_VALUE * value,
-    uint8_t priority)
+static bool Channel_Write_Members(struct bacnet_channel_object *pChannel,
+                                  BACNET_APPLICATION_DATA_VALUE *value,
+                                  uint8_t priority)
 {
     BACNET_WRITE_PROPERTY_DATA wp_data = {0};
     bool status = false;
@@ -1227,8 +1178,7 @@ static bool Channel_Write_Members(
                 wp_data.object_property = pMember->propertyIdentifier;
                 wp_data.array_index = pMember->arrayIndex;
                 wp_data.priority = priority;
-                wp_data.application_data_len =
-                    sizeof(wp_data.application_data);
+                wp_data.application_data_len = sizeof(wp_data.application_data);
                 status = Channel_Write_Member_Value(&wp_data, value);
                 if (status) {
                     status = Device_Write_Property(&wp_data);
@@ -1253,9 +1203,8 @@ static bool Channel_Write_Members(
  *
  * @return  true if values are within range and present-value is sent.
  */
-bool Channel_Present_Value_Set(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value)
+bool Channel_Present_Value_Set(BACNET_WRITE_PROPERTY_DATA *wp_data,
+                               BACNET_APPLICATION_DATA_VALUE *value)
 {
     unsigned index = 0;
     bool status = false;
@@ -1264,11 +1213,11 @@ bool Channel_Present_Value_Set(
     if (index < BACNET_CHANNELS_MAX) {
         if ((wp_data->priority > 0) &&
             (wp_data->priority <= BACNET_MAX_PRIORITY)) {
-            if (wp_data->priority != 6 /* reserved */ ) {
-                status = Channel_Value_Copy(&Channel[index].Present_Value,
-                    value);
+            if (wp_data->priority != 6 /* reserved */) {
+                status =
+                    Channel_Value_Copy(&Channel[index].Present_Value, value);
                 status = Channel_Write_Members(&Channel[index], value,
-                    wp_data->priority);
+                                               wp_data->priority);
                 status = true;
             } else {
                 /* Command priority 6 is reserved for use by Minimum On/Off
@@ -1297,7 +1246,7 @@ bool Channel_Present_Value_Set(
  * @return  true if object-name was retrieved
  */
 bool Channel_Object_Name(uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+                         BACNET_CHARACTER_STRING *object_name)
 {
     char text_string[32] = "";
     bool status = false;
@@ -1305,8 +1254,7 @@ bool Channel_Object_Name(uint32_t object_instance,
 
     index = Channel_Instance_To_Index(object_instance);
     if (index < BACNET_CHANNELS_MAX) {
-        sprintf(text_string, "CHANNEL %lu",
-            (unsigned long) object_instance);
+        sprintf(text_string, "CHANNEL %lu", (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
@@ -1342,8 +1290,7 @@ bool Channel_Out_Of_Service(uint32_t instance)
  *
  * @return true if the out-of-service property value was set
  */
-void Channel_Out_Of_Service_Set(uint32_t instance,
-    bool value)
+void Channel_Out_Of_Service_Set(uint32_t instance, bool value)
 {
     unsigned int index = 0;
 
@@ -1363,13 +1310,13 @@ void Channel_Out_Of_Service_Set(uint32_t instance,
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
+int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    BACNET_CHANNEL_VALUE * cvalue = NULL;
+    BACNET_CHANNEL_VALUE *cvalue = NULL;
     uint32_t unsigned_value = 0;
     unsigned i = 0;
     unsigned count = 0;
@@ -1384,9 +1331,8 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_CHANNEL,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(&apdu[0], OBJECT_CHANNEL,
+                                                    rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Channel_Object_Name(rpdata->object_instance, &char_string);
@@ -1394,8 +1340,7 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_CHANNEL);
+            apdu_len = encode_application_enumerated(&apdu[0], OBJECT_CHANNEL);
             break;
         case PROP_PRESENT_VALUE:
             cvalue = Channel_Present_Value(rpdata->object_instance);
@@ -1406,15 +1351,12 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
             break;
         case PROP_LAST_PRIORITY:
             unsigned_value = Channel_Last_Priority(rpdata->object_instance);
-            apdu_len =
-                encode_application_unsigned(&apdu[0], unsigned_value);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
         case PROP_WRITE_STATUS:
-            unsigned_value =
-                (BACNET_WRITE_STATUS)Channel_Write_Status(
+            unsigned_value = (BACNET_WRITE_STATUS)Channel_Write_Status(
                 rpdata->object_instance);
-            apdu_len =
-                encode_application_enumerated(&apdu[0], unsigned_value);
+            apdu_len = encode_application_enumerated(&apdu[0], unsigned_value);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -1432,18 +1374,20 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
             if (rpdata->array_index == 0) {
                 /* Array element zero is the number of elements in the array */
-                count = Channel_Reference_List_Member_Count(rpdata->object_instance);
+                count = Channel_Reference_List_Member_Count(
+                    rpdata->object_instance);
                 apdu_len = encode_application_unsigned(&apdu[0], count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                /* if no index was specified, then try to encode the entire list */
+                /* if no index was specified, then try to encode the entire list
+                 */
                 /* into one packet. */
-                count = Channel_Reference_List_Member_Count(rpdata->object_instance);
+                count = Channel_Reference_List_Member_Count(
+                    rpdata->object_instance);
                 for (i = 1; i <= count; i++) {
                     pMember = Channel_Reference_List_Member_Element(
                         rpdata->object_instance, i);
-                    len =
-                        bacapp_encode_device_obj_property_ref(&apdu[apdu_len],
-                        pMember);
+                    len = bacapp_encode_device_obj_property_ref(&apdu[apdu_len],
+                                                                pMember);
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
@@ -1456,13 +1400,13 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 }
             } else {
                 /* a specific element was requested */
-                count = Channel_Reference_List_Member_Count(rpdata->object_instance);
+                count = Channel_Reference_List_Member_Count(
+                    rpdata->object_instance);
                 if (rpdata->array_index <= count) {
                     pMember = Channel_Reference_List_Member_Element(
                         rpdata->object_instance, rpdata->array_index);
-                    apdu_len +=
-                        bacapp_encode_device_obj_property_ref(&apdu[0],
-                        pMember);
+                    apdu_len += bacapp_encode_device_obj_property_ref(&apdu[0],
+                                                                      pMember);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -1472,23 +1416,22 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
             break;
         case PROP_CHANNEL_NUMBER:
             unsigned_value = Channel_Number(rpdata->object_instance);
-            apdu_len =
-                encode_application_unsigned(&apdu[0], unsigned_value);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
         case PROP_CONTROL_GROUPS:
             if (rpdata->array_index == 0) {
                 /* Array element zero is the number of elements in the array */
-                apdu_len = encode_application_unsigned(&apdu[0],
-                    CONTROL_GROUPS_MAX);
+                apdu_len =
+                    encode_application_unsigned(&apdu[0], CONTROL_GROUPS_MAX);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                /* if no index was specified, then try to encode the entire list */
+                /* if no index was specified, then try to encode the entire list
+                 */
                 /* into one packet. */
                 for (i = 1; i <= CONTROL_GROUPS_MAX; i++) {
                     unsigned_value = Channel_Control_Groups_Element(
                         rpdata->object_instance, i);
-                    len =
-                        encode_application_unsigned(&apdu[apdu_len],
-                        unsigned_value);
+                    len = encode_application_unsigned(&apdu[apdu_len],
+                                                      unsigned_value);
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
@@ -1504,9 +1447,8 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
                 if (rpdata->array_index <= CONTROL_GROUPS_MAX) {
                     unsigned_value = Channel_Control_Groups_Element(
                         rpdata->object_instance, rpdata->array_index);
-                    apdu_len =
-                        encode_application_unsigned(&apdu[apdu_len],
-                        unsigned_value);
+                    apdu_len = encode_application_unsigned(&apdu[apdu_len],
+                                                           unsigned_value);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -1521,10 +1463,9 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0)
-        && (rpdata->object_property != PROP_PRIORITY_ARRAY)
-        && (rpdata->object_property != PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->object_property != PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -1542,9 +1483,9 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata)
  *
  * @return false if an error is loaded, true if no errors
  */
-bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     int element_len = 0;
@@ -1552,9 +1493,8 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
     uint32_t array_index = 0;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -1576,33 +1516,36 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Channel_Out_Of_Service_Set(wp_data->object_instance,
-                    value.type.Boolean);
+                                           value.type.Boolean);
             }
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-// FIXME: add property handling
-//            status = Channel_List_Of_Object_Property_References_Set(
-//                wp_data,
-//                &value);
+            // FIXME: add property handling
+            //            status =
+            //            Channel_List_Of_Object_Property_References_Set(
+            //                wp_data,
+            //                &value);
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+            wp_data->error_code =
+                ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
             break;
         case PROP_CHANNEL_NUMBER:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Channel_Number_Set(wp_data->object_instance,
-                    value.type.Unsigned_Int);
+                                   value.type.Unsigned_Int);
             }
             break;
         case PROP_CONTROL_GROUPS:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 if (wp_data->array_index == 0) {
-                    /* Array element zero is the number of elements in the array */
+                    /* Array element zero is the number of elements in the array
+                     */
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
@@ -1612,7 +1555,8 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
                     element_len = len;
                     do {
                         if ((element_len > 0) &&
-                            (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+                            (value.tag ==
+                             BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
                             if ((wp_data->array_index <= CONTROL_GROUPS_MAX) &&
                                 (value.type.Unsigned_Int <= 65535)) {
                                 status = Channel_Control_Groups_Element_Set(
@@ -1622,7 +1566,8 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
                             }
                             if (!status) {
                                 wp_data->error_class = ERROR_CLASS_PROPERTY;
-                                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                                wp_data->error_code =
+                                    ERROR_CODE_VALUE_OUT_OF_RANGE;
                                 break;
                             }
                         }
@@ -1631,11 +1576,11 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
                         if (count) {
                             element_len = bacapp_decode_application_data(
                                 &wp_data->application_data[len],
-                                wp_data->application_data_len-len,
-                                &value);
+                                wp_data->application_data_len - len, &value);
                             if (element_len < 0) {
                                 wp_data->error_class = ERROR_CLASS_PROPERTY;
-                                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                                wp_data->error_code =
+                                    ERROR_CODE_VALUE_OUT_OF_RANGE;
                                 break;
                             }
                             len += element_len;
@@ -1645,8 +1590,7 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data)
                     if ((wp_data->array_index <= CONTROL_GROUPS_MAX) &&
                         (value.type.Unsigned_Int <= 65535)) {
                         status = Channel_Control_Groups_Element_Set(
-                            wp_data->object_instance,
-                            wp_data->array_index,
+                            wp_data->object_instance, wp_data->array_index,
                             value.type.Unsigned_Int);
                     }
                     if (!status) {
@@ -1692,11 +1636,10 @@ void Channel_Init(void)
         for (m = 0; m < CHANNEL_MEMBERS_MAX; m++) {
             Channel[i].Members[m].objectIdentifier.type =
                 OBJECT_LIGHTING_OUTPUT;
-            Channel[i].Members[m].objectIdentifier.instance = i+1;
+            Channel[i].Members[m].objectIdentifier.instance = i + 1;
             Channel[i].Members[m].propertyIdentifier = PROP_LIGHTING_COMMAND;
             Channel[i].Members[m].arrayIndex = BACNET_ARRAY_ALL;
-            Channel[i].Members[m].deviceIdentifier.type =
-                OBJECT_DEVICE;
+            Channel[i].Members[m].deviceIdentifier.type = OBJECT_DEVICE;
             Channel[i].Members[m].deviceIdentifier.instance = 0;
         }
         Channel[i].Number = 0;
