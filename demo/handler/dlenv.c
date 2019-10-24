@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* environment variables used for the command line tools */
 #include <stddef.h>
@@ -52,7 +52,6 @@ static long bbmd_mask = 0xFFFFFFFF;
 static int bbmd_result = 0;
 static BBMD_TABLE_ENTRY BBMD_Table_Entry;
 
-
 /* Simple setters for BBMD registration variables. */
 
 /** Sets the IPv4 address for BBMD registration.
@@ -61,8 +60,7 @@ static BBMD_TABLE_ENTRY BBMD_Table_Entry;
  * @param address - IPv4 address (long) of BBMD to register with,
  *                       in network byte order.
  */
-void dlenv_bbmd_address_set(
-    long address)
+void dlenv_bbmd_address_set(long address)
 {
     bbmd_address = address;
 }
@@ -71,8 +69,7 @@ void dlenv_bbmd_address_set(
  * Default if not set is 0xBAC0.
  * @param port - The port number (provided in network byte order).
  */
-void dlenv_bbmd_port_set(
-    int port)
+void dlenv_bbmd_port_set(int port)
 {
     bbmd_port = port;
 }
@@ -81,8 +78,7 @@ void dlenv_bbmd_port_set(
  * Default if not set is 60000 (1000 minutes).
  * @param ttl_secs - The Lease Time, in seconds.
  */
-void dlenv_bbmd_ttl_set(
-    int ttl_secs)
+void dlenv_bbmd_ttl_set(int ttl_secs)
 {
     bbmd_timetolive_seconds = ttl_secs;
 }
@@ -95,8 +91,7 @@ void dlenv_bbmd_ttl_set(
  *         0 if no registration request was made, or
  *         -1 if registration attempt failed.
  */
-int dlenv_bbmd_result(
-    void)
+int dlenv_bbmd_result(void)
 {
     if ((bbmd_result > 0) &&
         (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK))
@@ -120,8 +115,7 @@ int dlenv_bbmd_result(
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
-int dlenv_register_as_foreign_device(
-    void)
+int dlenv_register_as_foreign_device(void)
 {
     int retval = 0;
 #if defined(BACDL_BIP)
@@ -153,17 +147,17 @@ int dlenv_register_as_foreign_device(
         struct in_addr addr;
         addr.s_addr = bbmd_address;
         fprintf(stderr, "Registering with BBMD at %s:%ld for %ld seconds\n",
-            inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
         retval =
-            bvlc_register_with_bbmd(bbmd_address, htons((uint16_t) bbmd_port),
-            (uint16_t) bbmd_timetolive_seconds);
+            bvlc_register_with_bbmd(bbmd_address, htons((uint16_t)bbmd_port),
+                                    (uint16_t)bbmd_timetolive_seconds);
         if (retval < 0)
             fprintf(stderr, "FAILED to Register with BBMD at %s \n",
-                inet_ntoa(addr));
-        BBMD_Timer_Seconds = (uint16_t) bbmd_timetolive_seconds;
+                    inet_ntoa(addr));
+        BBMD_Timer_Seconds = (uint16_t)bbmd_timetolive_seconds;
     } else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
-            sprintf(bbmd_env,"BACNET_BDT_ADDR_%u", entry_number);
+            sprintf(bbmd_env, "BACNET_BDT_ADDR_%u", entry_number);
             pEnv = getenv(bbmd_env);
             if (pEnv) {
                 bbmd_address = bip_getaddrbyname(pEnv);
@@ -173,7 +167,7 @@ int dlenv_register_as_foreign_device(
             }
             if (bbmd_address) {
                 bbmd_port = 0xBAC0;
-                sprintf(bbmd_env,"BACNET_BDT_PORT_%u", entry_number);
+                sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
                     bbmd_port = strtol(pEnv, NULL, 0);
@@ -185,15 +179,15 @@ int dlenv_register_as_foreign_device(
                     bbmd_port = bip_get_port();
                 }
                 bbmd_mask = 0xFFFFFFFF;
-                sprintf(bbmd_env,"BACNET_BDT_MASK_%u", entry_number);
+                sprintf(bbmd_env, "BACNET_BDT_MASK_%u", entry_number);
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
-                    c = sscanf(pEnv, "%3u.%3u.%3u.%3u",
-                        &a[0],&a[1],&a[2],&a[3]);
+                    c = sscanf(pEnv, "%3u.%3u.%3u.%3u", &a[0], &a[1], &a[2],
+                               &a[3]);
                     if (c == 4) {
-                        bbmd_mask =
-                            ((a[0]&0xFF)<<24)|((a[1]&0xFF)<<16)|
-                            ((a[2]&0xFF)<<8)|(a[3]&0xFF);
+                        bbmd_mask = ((a[0] & 0xFF) << 24) |
+                                    ((a[1] & 0xFF) << 16) |
+                                    ((a[2] & 0xFF) << 8) | (a[3] & 0xFF);
                     }
                 }
                 BBMD_Table_Entry.valid = true;
@@ -222,7 +216,7 @@ static void dlenv_network_port_init(void)
     uint32_t test_broadcast = 0;
     uint32_t mask = 0;
     uint16_t port = 0;
-    uint8_t mac[4+2] = {0};
+    uint8_t mac[4 + 2] = {0};
     uint8_t prefix = 0;
 
     Network_Port_Object_Instance_Number_Set(0, instance);
@@ -331,8 +325,7 @@ static void dlenv_network_port_init(void)
  * Call this function to renew our Foreign Device Registration
  * @param elapsed_seconds Number of seconds that have elapsed since last called.
  */
-void dlenv_maintenance_timer(
-    uint16_t elapsed_seconds)
+void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 {
 #if defined(BACDL_BIP)
     if (BBMD_Timer_Seconds) {
@@ -342,11 +335,11 @@ void dlenv_maintenance_timer(
             BBMD_Timer_Seconds -= elapsed_seconds;
         }
         if (BBMD_Timer_Seconds == 0) {
-            (void) dlenv_register_as_foreign_device();
+            (void)dlenv_register_as_foreign_device();
             /* If that failed (negative), maybe just a network issue.
              * If nothing happened (0), may be un/misconfigured.
              * Set up to try again later in all cases. */
-            BBMD_Timer_Seconds = (uint16_t) bbmd_timetolive_seconds;
+            BBMD_Timer_Seconds = (uint16_t)bbmd_timetolive_seconds;
         }
     }
 #endif
@@ -402,8 +395,7 @@ void dlenv_maintenance_timer(
  *     communications.  Default is 47808 (0xBAC0).
  *   - BACNET_BIP6_BROADCAST - FF05::BAC0 or FF02::BAC0 or ...
  */
-void dlenv_init(
-    void)
+void dlenv_init(void)
 {
     char *pEnv = NULL;
 
@@ -419,19 +411,17 @@ void dlenv_init(
     BACNET_IP6_ADDRESS addr;
     pEnv = getenv("BACNET_BIP6_BROADCAST");
     if (pEnv) {
-        bvlc6_address_set(&addr,
-                (uint16_t) strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0, 0,
-                BIP6_MULTICAST_GROUP_ID);
+        bvlc6_address_set(&addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0,
+                          0, BIP6_MULTICAST_GROUP_ID);
         bip6_set_broadcast_addr(&addr);
     } else {
-        bvlc6_address_set(&addr,
-                BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
-                BIP6_MULTICAST_GROUP_ID);
+        bvlc6_address_set(&addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
+                          BIP6_MULTICAST_GROUP_ID);
         bip6_set_broadcast_addr(&addr);
     }
     pEnv = getenv("BACNET_BIP6_PORT");
     if (pEnv) {
-        bip6_set_port((uint16_t) strtol(pEnv, NULL, 0));
+        bip6_set_port((uint16_t)strtol(pEnv, NULL, 0));
     } else {
         bip6_set_port(0xBAC0);
     }
@@ -442,7 +432,7 @@ void dlenv_init(
 #endif
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
-        bip_set_port(htons((uint16_t) strtol(pEnv, NULL, 0)));
+        bip_set_port(htons((uint16_t)strtol(pEnv, NULL, 0)));
     } else {
         /* BIP_Port is statically initialized to 0xBAC0,
          * so if it is different, then it was programmatically altered,
@@ -489,7 +479,7 @@ void dlenv_init(
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {
-        apdu_timeout_set((uint16_t) strtol(pEnv, NULL, 0));
+        apdu_timeout_set((uint16_t)strtol(pEnv, NULL, 0));
     } else {
 #if defined(BACDL_MSTP)
         apdu_timeout_set(60000);
@@ -497,7 +487,7 @@ void dlenv_init(
     }
     pEnv = getenv("BACNET_APDU_RETRIES");
     if (pEnv) {
-        apdu_retries_set((uint8_t) strtol(pEnv, NULL, 0));
+        apdu_retries_set((uint8_t)strtol(pEnv, NULL, 0));
     }
     /* === Initialize the Datalink Here === */
     if (!datalink_init(getenv("BACNET_IFACE"))) {
@@ -506,7 +496,7 @@ void dlenv_init(
 #if (MAX_TSM_TRANSACTIONS)
     pEnv = getenv("BACNET_INVOKE_ID");
     if (pEnv) {
-        tsm_invokeID_set((uint8_t) strtol(pEnv, NULL, 0));
+        tsm_invokeID_set((uint8_t)strtol(pEnv, NULL, 0));
     }
 #endif
     dlenv_network_port_init();

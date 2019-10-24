@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Credential Data Input Objects - customize for your use */
 
@@ -33,7 +33,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "wp.h"
 #include "credential_data_input.h"
 #include "handlers.h"
@@ -44,30 +44,19 @@ static CREDENTIAL_DATA_INPUT_DESCR cdi_descr[MAX_CREDENTIAL_DATA_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE,
-    PROP_SUPPORTED_FORMATS,
-    PROP_UPDATE_TIME,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,      PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,    PROP_SUPPORTED_FORMATS,
+    PROP_UPDATE_TIME,       -1};
 
-static const int Properties_Optional[] = {
-    -1
-};
+static const int Properties_Optional[] = {-1};
 
-static const int Properties_Proprietary[] = {
-    -1
-};
+static const int Properties_Proprietary[] = {-1};
 
-void Credential_Data_Input_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Credential_Data_Input_Property_Lists(const int **pRequired,
+                                          const int **pOptional,
+                                          const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -79,8 +68,7 @@ void Credential_Data_Input_Property_Lists(
     return;
 }
 
-void Credential_Data_Input_Init(
-    void)
+void Credential_Data_Input_Init(void)
 {
     unsigned i;
 
@@ -107,8 +95,7 @@ void Credential_Data_Input_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Credential_Data_Input_Valid_Instance(
-    uint32_t object_instance)
+bool Credential_Data_Input_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_CREDENTIAL_DATA_INPUTS)
         return true;
@@ -118,8 +105,7 @@ bool Credential_Data_Input_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Credential_Data_Input_Count(
-    void)
+unsigned Credential_Data_Input_Count(void)
 {
     return MAX_CREDENTIAL_DATA_INPUTS;
 }
@@ -127,8 +113,7 @@ unsigned Credential_Data_Input_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Credential_Data_Input_Index_To_Instance(
-    unsigned index)
+uint32_t Credential_Data_Input_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -136,8 +121,7 @@ uint32_t Credential_Data_Input_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Credential_Data_Input_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Credential_Data_Input_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_CREDENTIAL_DATA_INPUTS;
 
@@ -148,24 +132,22 @@ unsigned Credential_Data_Input_Instance_To_Index(
 }
 
 /* note: the object name must be unique within this device */
-bool Credential_Data_Input_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Credential_Data_Input_Object_Name(uint32_t object_instance,
+                                       BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";   /* okay for single thread */
+    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_CREDENTIAL_DATA_INPUTS) {
         sprintf(text_string, "CREDENTIAL DATA INPUT %lu",
-            (unsigned long) object_instance);
+                (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
     return status;
 }
 
-bool Credential_Data_Input_Out_Of_Service(
-    uint32_t instance)
+bool Credential_Data_Input_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
     bool oos_flag = false;
@@ -178,9 +160,7 @@ bool Credential_Data_Input_Out_Of_Service(
     return oos_flag;
 }
 
-void Credential_Data_Input_Out_Of_Service_Set(
-    uint32_t instance,
-    bool oos_flag)
+void Credential_Data_Input_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
 
@@ -191,11 +171,10 @@ void Credential_Data_Input_Out_Of_Service_Set(
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
-int Credential_Data_Input_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index = 0;
@@ -212,25 +191,23 @@ int Credential_Data_Input_Read_Property(
         Credential_Data_Input_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0],
-                OBJECT_CREDENTIAL_DATA_INPUT, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_CREDENTIAL_DATA_INPUT,
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Credential_Data_Input_Object_Name(rpdata->object_instance,
-                &char_string);
+                                              &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                OBJECT_CREDENTIAL_DATA_INPUT);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], OBJECT_CREDENTIAL_DATA_INPUT);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len =
-                bacapp_encode_authentication_factor(&apdu[apdu_len],
-                &cdi_descr[object_index].present_value);
+            apdu_len = bacapp_encode_authentication_factor(
+                &apdu[apdu_len], &cdi_descr[object_index].present_value);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -243,9 +220,8 @@ int Credential_Data_Input_Read_Property(
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_RELIABILITY:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                cdi_descr[object_index].reliability);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], cdi_descr[object_index].reliability);
             break;
         case PROP_OUT_OF_SERVICE:
             state =
@@ -254,14 +230,13 @@ int Credential_Data_Input_Read_Property(
             break;
         case PROP_SUPPORTED_FORMATS:
             if (rpdata->array_index == 0) {
-                apdu_len =
-                    encode_application_unsigned(&apdu[0],
-                    cdi_descr[object_index].supported_formats_count);
+                apdu_len = encode_application_unsigned(
+                    &apdu[0], cdi_descr[object_index].supported_formats_count);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 0; i < cdi_descr[object_index].supported_formats_count;
-                    i++) {
-                    len =
-                        bacapp_encode_authentication_factor_format(&apdu[0],
+                     i++) {
+                    len = bacapp_encode_authentication_factor_format(
+                        &apdu[0],
                         &cdi_descr[object_index].supported_formats[i]);
                     if (apdu_len + len < MAX_APDU)
                         apdu_len += len;
@@ -275,10 +250,10 @@ int Credential_Data_Input_Read_Property(
             } else {
                 if (rpdata->array_index <=
                     cdi_descr[object_index].supported_formats_count) {
-                    apdu_len =
-                        bacapp_encode_authentication_factor_format(&apdu[0],
-                        &cdi_descr[object_index].
-                        supported_formats[rpdata->array_index - 1]);
+                    apdu_len = bacapp_encode_authentication_factor_format(
+                        &apdu[0],
+                        &cdi_descr[object_index]
+                             .supported_formats[rpdata->array_index - 1]);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -288,9 +263,8 @@ int Credential_Data_Input_Read_Property(
 
             break;
         case PROP_UPDATE_TIME:
-            apdu_len =
-                bacapp_encode_timestamp(&apdu[0],
-                &cdi_descr[object_index].timestamp);
+            apdu_len = bacapp_encode_timestamp(
+                &apdu[0], &cdi_descr[object_index].timestamp);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -299,8 +273,9 @@ int Credential_Data_Input_Read_Property(
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_SUPPORTED_FORMATS)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) &&
+        (rpdata->object_property != PROP_SUPPORTED_FORMATS) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -310,18 +285,16 @@ int Credential_Data_Input_Read_Property(
 }
 
 /* returns true if successful */
-bool Credential_Data_Input_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     unsigned object_index = 0;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -336,17 +309,18 @@ bool Credential_Data_Input_Write_Property(
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    object_index = Credential_Data_Input_Instance_To_Index(wp_data->object_instance);
+    object_index =
+        Credential_Data_Input_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            if (Credential_Data_Input_Out_Of_Service(wp_data->object_instance)) {
+            if (Credential_Data_Input_Out_Of_Service(
+                    wp_data->object_instance)) {
                 BACNET_AUTHENTICATION_FACTOR tmp;
-                len =
-                    bacapp_decode_authentication_factor(wp_data->
-                    application_data, &tmp);
+                len = bacapp_decode_authentication_factor(
+                    wp_data->application_data, &tmp);
                 if (len > 0) {
                     memcpy(&cdi_descr[object_index].present_value, &tmp,
-                        sizeof(BACNET_AUTHENTICATION_FACTOR));
+                           sizeof(BACNET_AUTHENTICATION_FACTOR));
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -357,14 +331,13 @@ bool Credential_Data_Input_Write_Property(
             }
             break;
         case PROP_RELIABILITY:
-            if (Credential_Data_Input_Out_Of_Service(wp_data->object_instance)) {
-                status =
-                    WPValidateArgType(&value,
-                    BACNET_APPLICATION_TAG_ENUMERATED, &wp_data->error_class,
-                    &wp_data->error_code);
+            if (Credential_Data_Input_Out_Of_Service(
+                    wp_data->object_instance)) {
+                status = WPValidateArgType(
+                    &value, BACNET_APPLICATION_TAG_ENUMERATED,
+                    &wp_data->error_class, &wp_data->error_code);
                 if (status) {
-                    cdi_descr[object_index].reliability =
-                        value.type.Enumerated;
+                    cdi_descr[object_index].reliability = value.type.Enumerated;
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -390,17 +363,14 @@ bool Credential_Data_Input_Write_Property(
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -410,10 +380,9 @@ bool WPValidateArgType(
     return false;
 }
 
-void testCredentialDataInput(
-    Test * pTest)
+void testCredentialDataInput(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -440,8 +409,7 @@ void testCredentialDataInput(
 }
 
 #ifdef TEST_CREDENTIAL_DATA_INPUT
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -453,7 +421,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

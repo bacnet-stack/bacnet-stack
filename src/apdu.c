@@ -45,12 +45,10 @@
 
 /** @file apdu.c  Handles APDU services */
 
-extern int Routed_Device_Service_Approval(
-    BACNET_CONFIRMED_SERVICE service,
-    int service_argument,
-    uint8_t * apdu_buff,
-    uint8_t invoke_id);
-
+extern int Routed_Device_Service_Approval(BACNET_CONFIRMED_SERVICE service,
+                                          int service_argument,
+                                          uint8_t *apdu_buff,
+                                          uint8_t invoke_id);
 
 /* APDU Timeout in Milliseconds */
 static uint16_t Timeout_Milliseconds = 3000;
@@ -60,60 +58,57 @@ static uint8_t Number_Of_Retries = 3;
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
     confirmed_service_supported[MAX_BACNET_CONFIRMED_SERVICE] = {
-    SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM,
-    SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION,
-    SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION,
-    SERVICE_SUPPORTED_GET_ALARM_SUMMARY,
-    SERVICE_SUPPORTED_GET_ENROLLMENT_SUMMARY,
-    SERVICE_SUPPORTED_SUBSCRIBE_COV,
-    SERVICE_SUPPORTED_ATOMIC_READ_FILE,
-    SERVICE_SUPPORTED_ATOMIC_WRITE_FILE,
-    SERVICE_SUPPORTED_ADD_LIST_ELEMENT,
-    SERVICE_SUPPORTED_REMOVE_LIST_ELEMENT,
-    SERVICE_SUPPORTED_CREATE_OBJECT,
-    SERVICE_SUPPORTED_DELETE_OBJECT,
-    SERVICE_SUPPORTED_READ_PROPERTY,
-    SERVICE_SUPPORTED_READ_PROP_CONDITIONAL,
-    SERVICE_SUPPORTED_READ_PROP_MULTIPLE,
-    SERVICE_SUPPORTED_WRITE_PROPERTY,
-    SERVICE_SUPPORTED_WRITE_PROP_MULTIPLE,
-    SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL,
-    SERVICE_SUPPORTED_PRIVATE_TRANSFER,
-    SERVICE_SUPPORTED_TEXT_MESSAGE,
-    SERVICE_SUPPORTED_REINITIALIZE_DEVICE,
-    SERVICE_SUPPORTED_VT_OPEN,
-    SERVICE_SUPPORTED_VT_CLOSE,
-    SERVICE_SUPPORTED_VT_DATA,
-    SERVICE_SUPPORTED_AUTHENTICATE,
-    SERVICE_SUPPORTED_REQUEST_KEY,
-    SERVICE_SUPPORTED_READ_RANGE,
-    SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION,
-    SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY,
-    SERVICE_SUPPORTED_GET_EVENT_INFORMATION
-};
+        SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM,
+        SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION,
+        SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION,
+        SERVICE_SUPPORTED_GET_ALARM_SUMMARY,
+        SERVICE_SUPPORTED_GET_ENROLLMENT_SUMMARY,
+        SERVICE_SUPPORTED_SUBSCRIBE_COV,
+        SERVICE_SUPPORTED_ATOMIC_READ_FILE,
+        SERVICE_SUPPORTED_ATOMIC_WRITE_FILE,
+        SERVICE_SUPPORTED_ADD_LIST_ELEMENT,
+        SERVICE_SUPPORTED_REMOVE_LIST_ELEMENT,
+        SERVICE_SUPPORTED_CREATE_OBJECT,
+        SERVICE_SUPPORTED_DELETE_OBJECT,
+        SERVICE_SUPPORTED_READ_PROPERTY,
+        SERVICE_SUPPORTED_READ_PROP_CONDITIONAL,
+        SERVICE_SUPPORTED_READ_PROP_MULTIPLE,
+        SERVICE_SUPPORTED_WRITE_PROPERTY,
+        SERVICE_SUPPORTED_WRITE_PROP_MULTIPLE,
+        SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL,
+        SERVICE_SUPPORTED_PRIVATE_TRANSFER,
+        SERVICE_SUPPORTED_TEXT_MESSAGE,
+        SERVICE_SUPPORTED_REINITIALIZE_DEVICE,
+        SERVICE_SUPPORTED_VT_OPEN,
+        SERVICE_SUPPORTED_VT_CLOSE,
+        SERVICE_SUPPORTED_VT_DATA,
+        SERVICE_SUPPORTED_AUTHENTICATE,
+        SERVICE_SUPPORTED_REQUEST_KEY,
+        SERVICE_SUPPORTED_READ_RANGE,
+        SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION,
+        SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY,
+        SERVICE_SUPPORTED_GET_EVENT_INFORMATION};
 
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
     unconfirmed_service_supported[MAX_BACNET_UNCONFIRMED_SERVICE] = {
-    SERVICE_SUPPORTED_I_AM,
-    SERVICE_SUPPORTED_I_HAVE,
-    SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION,
-    SERVICE_SUPPORTED_UNCONFIRMED_EVENT_NOTIFICATION,
-    SERVICE_SUPPORTED_UNCONFIRMED_PRIVATE_TRANSFER,
-    SERVICE_SUPPORTED_UNCONFIRMED_TEXT_MESSAGE,
-    SERVICE_SUPPORTED_TIME_SYNCHRONIZATION,
-    SERVICE_SUPPORTED_WHO_HAS,
-    SERVICE_SUPPORTED_WHO_IS,
-    SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION
-};
+        SERVICE_SUPPORTED_I_AM,
+        SERVICE_SUPPORTED_I_HAVE,
+        SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION,
+        SERVICE_SUPPORTED_UNCONFIRMED_EVENT_NOTIFICATION,
+        SERVICE_SUPPORTED_UNCONFIRMED_PRIVATE_TRANSFER,
+        SERVICE_SUPPORTED_UNCONFIRMED_TEXT_MESSAGE,
+        SERVICE_SUPPORTED_TIME_SYNCHRONIZATION,
+        SERVICE_SUPPORTED_WHO_HAS,
+        SERVICE_SUPPORTED_WHO_IS,
+        SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION};
 
 /* Confirmed Function Handlers */
 /* If they are not set, they are handled by a reject message */
 static confirmed_function Confirmed_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
-void apdu_set_confirmed_handler(
-    BACNET_CONFIRMED_SERVICE service_choice,
-    confirmed_function pFunction)
+void apdu_set_confirmed_handler(BACNET_CONFIRMED_SERVICE service_choice,
+                                confirmed_function pFunction)
 {
     if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
         Confirmed_Function[service_choice] = pFunction;
@@ -122,8 +117,7 @@ void apdu_set_confirmed_handler(
 /* Allow the APDU handler to automatically reject */
 static confirmed_function Unrecognized_Service_Handler;
 
-void apdu_set_unrecognized_service_handler_handler(
-    confirmed_function pFunction)
+void apdu_set_unrecognized_service_handler_handler(confirmed_function pFunction)
 {
     Unrecognized_Service_Handler = pFunction;
 }
@@ -133,16 +127,14 @@ void apdu_set_unrecognized_service_handler_handler(
 static unconfirmed_function
     Unconfirmed_Function[MAX_BACNET_UNCONFIRMED_SERVICE];
 
-void apdu_set_unconfirmed_handler(
-    BACNET_UNCONFIRMED_SERVICE service_choice,
-    unconfirmed_function pFunction)
+void apdu_set_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE service_choice,
+                                  unconfirmed_function pFunction)
 {
     if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE)
         Unconfirmed_Function[service_choice] = pFunction;
 }
 
-bool apdu_service_supported(
-    BACNET_SERVICES_SUPPORTED service_supported)
+bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
 {
     int i = 0;
     bool status = false;
@@ -155,12 +147,12 @@ bool apdu_service_supported(
                 found = true;
                 if (Confirmed_Function[i] != NULL) {
 #if BAC_ROUTING
-                    /* Check to see if the current Device supports this service. */
-                    int len =
-                        Routed_Device_Service_Approval(service_supported, 0,
-                        NULL, 0);
+                    /* Check to see if the current Device supports this service.
+                     */
+                    int len = Routed_Device_Service_Approval(service_supported,
+                                                             0, NULL, 0);
                     if (len > 0)
-                        break;  /* Not supported - return false */
+                        break; /* Not supported - return false */
 #endif
 
                     status = true;
@@ -194,9 +186,8 @@ bool apdu_service_supported(
  * @return True if a match was found and index and bIsConfirmed are valid.
  */
 bool apdu_service_supported_to_index(
-    BACNET_SERVICES_SUPPORTED service_supported,
-    size_t * index,
-    bool * bIsConfirmed)
+    BACNET_SERVICES_SUPPORTED service_supported, size_t *index,
+    bool *bIsConfirmed)
 {
     int i = 0;
     bool found = false;
@@ -207,7 +198,7 @@ bool apdu_service_supported_to_index(
         for (i = 0; i < MAX_BACNET_CONFIRMED_SERVICE; i++) {
             if (confirmed_service_supported[i] == service_supported) {
                 found = true;
-                *index = (size_t) i;
+                *index = (size_t)i;
                 *bIsConfirmed = true;
                 break;
             }
@@ -218,7 +209,7 @@ bool apdu_service_supported_to_index(
             for (i = 0; i < MAX_BACNET_UNCONFIRMED_SERVICE; i++) {
                 if (unconfirmed_service_supported[i] == service_supported) {
                     found = true;
-                    *index = (size_t) i;
+                    *index = (size_t)i;
                     break;
                 }
             }
@@ -257,16 +248,15 @@ void apdu_set_confirmed_simple_ack_handler(
             /* Security Services */
         case SERVICE_CONFIRMED_REQUEST_KEY:
             Confirmed_ACK_Function[service_choice] =
-                (confirmed_ack_function) pFunction;
+                (confirmed_ack_function)pFunction;
             break;
         default:
             break;
     }
 }
 
-void apdu_set_confirmed_ack_handler(
-    BACNET_CONFIRMED_SERVICE service_choice,
-    confirmed_ack_function pFunction)
+void apdu_set_confirmed_ack_handler(BACNET_CONFIRMED_SERVICE service_choice,
+                                    confirmed_ack_function pFunction)
 {
     switch (service_choice) {
         case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
@@ -297,9 +287,8 @@ void apdu_set_confirmed_ack_handler(
 
 static error_function Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
-void apdu_set_error_handler(
-    BACNET_CONFIRMED_SERVICE service_choice,
-    error_function pFunction)
+void apdu_set_error_handler(BACNET_CONFIRMED_SERVICE service_choice,
+                            error_function pFunction)
 {
     if (service_choice < MAX_BACNET_CONFIRMED_SERVICE)
         Error_Function[service_choice] = pFunction;
@@ -307,29 +296,25 @@ void apdu_set_error_handler(
 
 static abort_function Abort_Function;
 
-void apdu_set_abort_handler(
-    abort_function pFunction)
+void apdu_set_abort_handler(abort_function pFunction)
 {
     Abort_Function = pFunction;
 }
 
 static reject_function Reject_Function;
 
-void apdu_set_reject_handler(
-    reject_function pFunction)
+void apdu_set_reject_handler(reject_function pFunction)
 {
     Reject_Function = pFunction;
 }
 
 uint16_t apdu_decode_confirmed_service_request(
-    uint8_t * apdu,     /* APDU data */
-    uint16_t apdu_len,
-    BACNET_CONFIRMED_SERVICE_DATA * service_data,
-    uint8_t * service_choice,
-    uint8_t ** service_request,
-    uint16_t * service_request_len)
+    uint8_t *apdu, /* APDU data */
+    uint16_t apdu_len, BACNET_CONFIRMED_SERVICE_DATA *service_data,
+    uint8_t *service_choice, uint8_t **service_request,
+    uint16_t *service_request_len)
 {
-    uint16_t len = 0;   /* counts where we are in PDU */
+    uint16_t len = 0; /* counts where we are in PDU */
 
     service_data->segmented_message = (apdu[0] & BIT(3)) ? true : false;
     service_data->more_follows = (apdu[0] & BIT(2)) ? true : false;
@@ -350,30 +335,25 @@ uint16_t apdu_decode_confirmed_service_request(
     return len;
 }
 
-uint16_t apdu_timeout(
-    void)
+uint16_t apdu_timeout(void)
 {
     return Timeout_Milliseconds;
 }
 
-void apdu_timeout_set(
-    uint16_t milliseconds)
+void apdu_timeout_set(uint16_t milliseconds)
 {
     Timeout_Milliseconds = milliseconds;
 }
 
-uint8_t apdu_retries(
-    void)
+uint8_t apdu_retries(void)
 {
     return Number_Of_Retries;
 }
 
-void apdu_retries_set(
-    uint8_t value)
+void apdu_retries_set(uint8_t value)
 {
     Number_Of_Retries = value;
 }
-
 
 /* When network communications are completely disabled,
    only DeviceCommunicationControl and ReinitializeDevice APDUs
@@ -381,8 +361,7 @@ void apdu_retries_set(
    When the initiation of communications is disabled,
    all APDUs shall be processed and responses returned as
    required... */
-static bool apdu_confirmed_dcc_disabled(
-    uint8_t service_choice)
+static bool apdu_confirmed_dcc_disabled(uint8_t service_choice)
 {
     bool status = false;
 
@@ -407,8 +386,7 @@ static bool apdu_confirmed_dcc_disabled(
    DISABLE_INITIATION, the responding BACnet-user shall
    discontinue the initiation of messages except for I-Am
    requests issued in accordance with the Who-Is service procedure.*/
-static bool apdu_unconfirmed_dcc_disabled(
-    uint8_t service_choice)
+static bool apdu_unconfirmed_dcc_disabled(uint8_t service_choice)
 {
     bool status = false;
 
@@ -439,18 +417,16 @@ static bool apdu_unconfirmed_dcc_disabled(
  * @param apdu [in] The apdu portion of the request, to be processed.
  * @param apdu_len [in] The total (remaining) length of the apdu.
  */
-void apdu_handler(
-    BACNET_ADDRESS * src,
-    uint8_t * apdu,     /* APDU data */
-    uint16_t apdu_len)
+void apdu_handler(BACNET_ADDRESS *src, uint8_t *apdu, /* APDU data */
+                  uint16_t apdu_len)
 {
-    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
-    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = {0};
+    BACNET_CONFIRMED_SERVICE_ACK_DATA service_ack_data = {0};
     uint8_t invoke_id = 0;
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    int len = 0;        /* counts where we are in PDU */
+    int len = 0; /* counts where we are in PDU */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t error_code = 0;
@@ -462,22 +438,25 @@ void apdu_handler(
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                (void)apdu_decode_confirmed_service_request(&apdu[0],
-                    apdu_len, &service_data, &service_choice, &service_request,
-                    &service_request_len);
+                (void)apdu_decode_confirmed_service_request(
+                    &apdu[0], apdu_len, &service_data, &service_choice,
+                    &service_request, &service_request_len);
                 if (apdu_confirmed_dcc_disabled(service_choice)) {
                     /* When network communications are completely disabled,
-                       only DeviceCommunicationControl and ReinitializeDevice APDUs
-                       shall be processed and no messages shall be initiated. */
+                       only DeviceCommunicationControl and ReinitializeDevice
+                       APDUs shall be processed and no messages shall be
+                       initiated. */
                     break;
                 }
                 if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
                     (Confirmed_Function[service_choice]))
-                    Confirmed_Function[service_choice] (service_request,
-                        service_request_len, src, &service_data);
+                    Confirmed_Function[service_choice](service_request,
+                                                       service_request_len, src,
+                                                       &service_data);
                 else if (Unrecognized_Service_Handler)
                     Unrecognized_Service_Handler(service_request,
-                        service_request_len, src, &service_data);
+                                                 service_request_len, src,
+                                                 &service_data);
                 break;
             case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
                 service_choice = apdu[1];
@@ -485,16 +464,16 @@ void apdu_handler(
                 service_request_len = apdu_len - 2;
                 if (apdu_unconfirmed_dcc_disabled(service_choice)) {
                     /* When network communications are disabled,
-                       only DeviceCommunicationControl and ReinitializeDevice APDUs
-                       shall be processed and no messages shall be initiated.
-                       If communications have been initiation disabled, then
-                       WhoIs may be processed. */
+                       only DeviceCommunicationControl and ReinitializeDevice
+                       APDUs shall be processed and no messages shall be
+                       initiated. If communications have been initiation
+                       disabled, then WhoIs may be processed. */
                     break;
                 }
                 if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) {
                     if (Unconfirmed_Function[service_choice])
-                        Unconfirmed_Function[service_choice] (service_request,
-                            service_request_len, src);
+                        Unconfirmed_Function[service_choice](
+                            service_request, service_request_len, src);
                 }
                 break;
             case PDU_TYPE_SIMPLE_ACK:
@@ -523,8 +502,8 @@ void apdu_handler(
                     case SERVICE_CONFIRMED_REQUEST_KEY:
                         if (Confirmed_ACK_Function[service_choice] != NULL) {
                             ((confirmed_simple_ack_function)
-                                Confirmed_ACK_Function[service_choice]) (src,
-                                invoke_id);
+                                 Confirmed_ACK_Function[service_choice])(
+                                src, invoke_id);
                         }
                         tsm_free_invoke_id(invoke_id);
                         break;
@@ -545,7 +524,7 @@ void apdu_handler(
                 }
                 service_choice = apdu[len++];
                 service_request = &apdu[len];
-                service_request_len = apdu_len - (uint16_t) len;
+                service_request_len = apdu_len - (uint16_t)len;
                 switch (service_choice) {
                     case SERVICE_CONFIRMED_GET_ALARM_SUMMARY:
                     case SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY:
@@ -566,8 +545,8 @@ void apdu_handler(
                         /* Security Services */
                     case SERVICE_CONFIRMED_AUTHENTICATE:
                         if (Confirmed_ACK_Function[service_choice] != NULL) {
-                            (Confirmed_ACK_Function[service_choice])
-                                (service_request, service_request_len, src,
+                            (Confirmed_ACK_Function[service_choice])(
+                                service_request, service_request_len, src,
                                 &service_ack_data);
                         }
                         tsm_free_invoke_id(invoke_id);
@@ -586,37 +565,42 @@ void apdu_handler(
                 service_choice = apdu[2];
                 len = 3;
 
-                /* FIXME: Currently special case for C_P_T but there are others which may
-                   need consideration such as ChangeList-Error, CreateObject-Error,
-                   WritePropertyMultiple-Error and VTClose_Error but they may be left as
-                   is for now until support for these services is added */
+                /* FIXME: Currently special case for C_P_T but there are others
+                   which may need consideration such as ChangeList-Error,
+                   CreateObject-Error, WritePropertyMultiple-Error and
+                   VTClose_Error but they may be left as is for now until
+                   support for these services is added */
 
-                if (service_choice == SERVICE_CONFIRMED_PRIVATE_TRANSFER) {     /* skip over opening tag 0 */
+                if (service_choice ==
+                    SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over opening
+                                                             tag 0 */
                     if (decode_is_opening_tag_number(&apdu[len], 0)) {
-                        len++;  /* a tag number of 0 is not extended so only one octet */
+                        len++; /* a tag number of 0 is not extended so only one
+                                  octet */
                     }
                 }
-                len +=
-                    decode_tag_number_and_value(&apdu[len], &tag_number,
-                    &len_value);
+                len += decode_tag_number_and_value(&apdu[len], &tag_number,
+                                                   &len_value);
                 /* FIXME: we could validate that the tag is enumerated... */
                 len += decode_enumerated(&apdu[len], len_value, &error_class);
-                len +=
-                    decode_tag_number_and_value(&apdu[len], &tag_number,
-                    &len_value);
+                len += decode_tag_number_and_value(&apdu[len], &tag_number,
+                                                   &len_value);
                 /* FIXME: we could validate that the tag is enumerated... */
                 len += decode_enumerated(&apdu[len], len_value, &error_code);
 
-                if (service_choice == SERVICE_CONFIRMED_PRIVATE_TRANSFER) {     /* skip over closing tag 0 */
+                if (service_choice ==
+                    SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over closing
+                                                             tag 0 */
                     if (decode_is_closing_tag_number(&apdu[len], 0)) {
-                        len++;  /* a tag number of 0 is not extended so only one octet */
+                        len++; /* a tag number of 0 is not extended so only one
+                                  octet */
                     }
                 }
                 if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
                     if (Error_Function[service_choice])
-                        Error_Function[service_choice] (src, invoke_id,
-                            (BACNET_ERROR_CLASS) error_class,
-                            (BACNET_ERROR_CODE) error_code);
+                        Error_Function[service_choice](
+                            src, invoke_id, (BACNET_ERROR_CLASS)error_class,
+                            (BACNET_ERROR_CODE)error_code);
                 }
                 tsm_free_invoke_id(invoke_id);
                 break;

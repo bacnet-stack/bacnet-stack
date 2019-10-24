@@ -1,36 +1,36 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* command line tool that sends a BACnet BVLC message, and displays the reply */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>       /* for time */
+#include <time.h> /* for time */
 #include <errno.h>
-#include <ctype.h>      /* for toupper */
+#include <ctype.h> /* for toupper */
 #include "bactext.h"
 #include "iam.h"
 #include "address.h"
@@ -53,7 +53,7 @@
 #include "dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
 /* targets interpreted from the command line options */
 static uint32_t Target_BBMD_Address;
@@ -61,34 +61,28 @@ static uint16_t Target_BBMD_Port;
 
 static bool Error_Detected = false;
 
-static void MyAbortHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server)
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                           uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    (void) server;
+    (void)src;
+    (void)invoke_id;
+    (void)server;
     printf("BACnet Abort: %s\r\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t reject_reason)
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                            uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
+    (void)src;
+    (void)invoke_id;
     printf("BACnet Reject: %s\r\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
-static void Init_Service_Handlers(
-    void)
+static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is
@@ -96,11 +90,10 @@ static void Init_Service_Handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
     /* handle any errors coming back */
@@ -108,15 +101,11 @@ static void Init_Service_Handlers(
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     /* milliseconds */
+    unsigned timeout = 100; /* milliseconds */
     time_t total_seconds = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
@@ -129,14 +118,17 @@ int main(
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-        printf
-            ("Send a Read-Broadcast-Distribution-Table message to a BBMD.\r\n"
-            "\r\n" "IP:\r\n"
+        printf(
+            "Send a Read-Broadcast-Distribution-Table message to a BBMD.\r\n"
+            "\r\n"
+            "IP:\r\n"
             "IP address of the BBMD in dotted decimal notation\r\n"
             "[port]\r\n"
-            "optional BACnet/IP port number (default=47808=0xBAC0)\r\n" "\r\n"
+            "optional BACnet/IP port number (default=47808=0xBAC0)\r\n"
+            "\r\n"
             "To send a Read-Broadcast-Distribution-Table message to a BBMD\r\n"
-            "at 192.168.0.1 using port 47808:\r\n" "%s 192.168.0.1 47808\r\n",
+            "at 192.168.0.1 using port 47808:\r\n"
+            "%s 192.168.0.1 47808\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -154,7 +146,7 @@ int main(
             Target_BBMD_Port = htons(port);
         } else {
             fprintf(stderr, "port=%ld - port must be between 0-65535.\r\n",
-                port);
+                    port);
             return 1;
         }
     } else {

@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -63,13 +63,12 @@
 /*@{*/
 
 /** Buffer used for receiving */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
-static void Init_Service_Handlers(
-    void)
+static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is to support dynamic device binding */
@@ -79,41 +78,40 @@ static void Init_Service_Handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-        handler_read_property_multiple);
+                               handler_read_property_multiple);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        handler_write_property);
+                               handler_write_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
-        handler_write_property_multiple);
+                               handler_write_property_multiple);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
-        handler_read_range);
+                               handler_read_range);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-        handler_reinitialize_device);
+                               handler_reinitialize_device);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-        handler_timesync_utc);
+                                 handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-        handler_timesync);
+                                 handler_timesync);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
-        handler_cov_subscribe);
+                               handler_cov_subscribe);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-        handler_ucov_notification);
+                                 handler_ucov_notification);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-        handler_device_communication_control);
+                               handler_device_communication_control);
     /* handle the data coming back from private requests */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
-        handler_unconfirmed_private_transfer);
+                                 handler_unconfirmed_private_transfer);
 }
 
 static void piface_init(void)
 {
-    int hw_addr = 0;   /**< PiFaceDigital hardware address  */
+    int hw_addr = 0; /**< PiFaceDigital hardware address  */
 #ifdef PIFACE_INTERRUPT_ENABLE
     int intenable = 1; /**< Whether or not interrupts are enabled  */
 #endif
@@ -130,10 +128,11 @@ static void piface_init(void)
      * blocking/interrupt methods)
      */
     intenable = pifacedigital_enable_interrupts();
-    if ( intenable == 0) {
+    if (intenable == 0) {
         printf("Interrupts enabled.\n");
     } else {
-        printf("Could not enable interrupts.  "
+        printf(
+            "Could not enable interrupts.  "
             "Try running using sudo to enable PiFaceDigital interrupts.\n");
     }
 #endif
@@ -142,8 +141,8 @@ static void piface_init(void)
 /* track the Piface pin state to react on changes only */
 static bool PiFace_Pin_Status[MAX_BINARY_INPUTS];
 
-/** 
- * Clean up the PiFace interface 
+/**
+ * Clean up the PiFace interface
  */
 static void piface_cleanup(void)
 {
@@ -153,7 +152,7 @@ static void piface_cleanup(void)
 /**
  * Perform a periodic task for the PiFace card
  */
-static void piface_task(void) 
+static void piface_task(void)
 {
     unsigned i = 0;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
@@ -189,7 +188,7 @@ static void piface_task(void)
                 pifacedigital_digital_write(i, 1);
             }
         }
-    }   
+    }
 }
 
 /** Main function of server demo.
@@ -204,30 +203,27 @@ static void piface_task(void)
  * @param argv [in] Takes one argument: the Device Instance #.
  * @return 0 on success.
  */
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 1;       /* milliseconds */
+    unsigned timeout = 1; /* milliseconds */
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
     uint32_t elapsed_milliseconds = 0;
     uint32_t address_binding_tmr = 0;
-        
+
     /* allow the device ID to be set */
     if (argc > 1) {
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
     }
-    printf("BACnet Raspberry Pi PiFace Digital Demo\n" 
+    printf(
+        "BACnet Raspberry Pi PiFace Digital Demo\n"
         "BACnet Stack Version %s\n"
-        "BACnet Device ID: %u\n" 
-        "Max APDU: %d\n", BACnet_Version,
-        Device_Object_Instance_Number(), MAX_APDU);
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
+        BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     /* load any static address bindings to show up
        in our device bindings list */
     address_init();
@@ -253,7 +249,7 @@ int main(
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
-        elapsed_seconds = (uint32_t) (current_seconds - last_seconds);
+        elapsed_seconds = (uint32_t)(current_seconds - last_seconds);
         if (elapsed_seconds) {
             last_seconds = current_seconds;
             dcc_timer_seconds(elapsed_seconds);

@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 /* Acknowledging the contribution of code and ideas used here that
  * came from Paul Chapman's vmac demo project. */
 
@@ -47,10 +47,8 @@
 #include "bvlc.h"
 #endif
 
-
-/** @file h_routed_npdu.c  Handles messages at the NPDU level of the BACnet stack,
- * including routing and network control messages. */
-
+/** @file h_routed_npdu.c  Handles messages at the NPDU level of the BACnet
+ * stack, including routing and network control messages. */
 
 /** Handler to manage the Network Layer Control Messages received in a packet.
  *  This handler is called if the NCPI bit 7 indicates that this packet is a
@@ -61,20 +59,18 @@
  * @param src  [in] The routing source information, if any.
  *                   If src->net and src->len are 0, there is no
  *                   routing source information.
- * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
- * 					 Normally just one valid entry; terminated with a -1 value.
+ * @param DNET_list [in] List of our reachable downstream BACnet Network
+ * numbers. Normally just one valid entry; terminated with a -1 value.
  * @param npdu_data [in] Contains a filled-out structure with information
- * 					 decoded from the NCPI and other NPDU bytes.
+ * 					 decoded from the NCPI and other NPDU
+ * bytes.
  *  @param npdu [in]  Buffer containing the rest of the NPDU, following the
  *  				 bytes that have already been decoded.
  *  @param npdu_len [in] The length of the remaining NPDU message in npdu[].
  */
-static void network_control_handler(
-    BACNET_ADDRESS * src,
-    int *DNET_list,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t * npdu,
-    uint16_t npdu_len)
+static void network_control_handler(BACNET_ADDRESS *src, int *DNET_list,
+                                    BACNET_NPDU_DATA *npdu_data, uint8_t *npdu,
+                                    uint16_t npdu_len)
 {
     uint16_t npdu_offset = 0;
     uint16_t dnet = 0;
@@ -109,8 +105,8 @@ static void network_control_handler(
              * later for congestion control - then it could matter.
              */
             debug_printf("%s for Networks: ",
-                bactext_network_layer_msg_name
-                (NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK));
+                         bactext_network_layer_msg_name(
+                             NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK));
             while (npdu_len >= 2) {
                 len = decode_unsigned16(&npdu[npdu_offset], &dnet);
                 debug_printf("%hu", dnet);
@@ -129,8 +125,8 @@ static void network_control_handler(
             if (npdu_len >= 3) {
                 decode_unsigned16(&npdu[1], &dnet);
                 debug_printf("Received %s for Network: ",
-                    bactext_network_layer_msg_name
-                    (NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK));
+                             bactext_network_layer_msg_name(
+                                 NETWORK_MESSAGE_I_COULD_BE_ROUTER_TO_NETWORK));
                 debug_printf("%hu,  Reason code: %d \n", dnet, npdu[0]);
             }
             break;
@@ -168,8 +164,8 @@ static void network_control_handler(
             break;
         default:
             /* An unrecognized message is bad; send an error response. */
-            Send_Reject_Message_To_Network(src,
-                NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE, DNET_list[0]);
+            Send_Reject_Message_To_Network(
+                src, NETWORK_REJECT_UNKNOWN_MESSAGE_TYPE, DNET_list[0]);
             /* Sending our DNET doesn't make a lot of sense, does it? */
             break;
     }
@@ -186,19 +182,16 @@ static void network_control_handler(
  *
  * @param src [in] The BACNET_ADDRESS of the message's source.
  * @param dest [in] The BACNET_ADDRESS of the message's destination.
- * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
- * 					 Normally just one valid entry; terminated with a -1 value.
+ * @param DNET_list [in] List of our reachable downstream BACnet Network
+ * numbers. Normally just one valid entry; terminated with a -1 value.
  * @param apdu [in] The apdu portion of the request, to be processed.
  * @param apdu_len [in] The total (remaining) length of the apdu.
  */
-static void routed_apdu_handler(
-    BACNET_ADDRESS * src,
-    BACNET_ADDRESS * dest,
-    int *DNET_list,
-    uint8_t * apdu,
-    uint16_t apdu_len)
+static void routed_apdu_handler(BACNET_ADDRESS *src, BACNET_ADDRESS *dest,
+                                int *DNET_list, uint8_t *apdu,
+                                uint16_t apdu_len)
 {
-    int cursor = 0;     /* Starting hint */
+    int cursor = 0; /* Starting hint */
     bool bGotOne = false;
 
     if (!Routed_Device_Is_Valid_Network(dest->net, DNET_list)) {
@@ -220,8 +213,8 @@ static void routed_apdu_handler(
          */
         if (dest->len > 0) {
             Send_Reject_Message_To_Network(src, NETWORK_REJECT_NO_ROUTE,
-                dest->net);
-        }       /* else, silently drop it */
+                                           dest->net);
+        } /* else, silently drop it */
         return;
     }
 
@@ -260,20 +253,17 @@ static void routed_apdu_handler(
  *                   think this project's code has any use for the src info
  *                   on return from this handler, since the response has
  *                   already been sent via the apdu_handler.
- * @param DNET_list [in] List of our reachable downstream BACnet Network numbers.
- * 					 Normally just one valid entry; terminated with a -1 value.
+ * @param DNET_list [in] List of our reachable downstream BACnet Network
+ * numbers. Normally just one valid entry; terminated with a -1 value.
  *  @param pdu [in]  Buffer containing the NPDU and APDU of the received packet.
  *  @param pdu_len [in] The size of the received message in the pdu[] buffer.
  */
-void routing_npdu_handler(
-    BACNET_ADDRESS * src,
-    int *DNET_list,
-    uint8_t * pdu,
-    uint16_t pdu_len)
+void routing_npdu_handler(BACNET_ADDRESS *src, int *DNET_list, uint8_t *pdu,
+                          uint16_t pdu_len)
 {
     int apdu_offset = 0;
-    BACNET_ADDRESS dest = { 0 };
-    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_ADDRESS dest = {0};
+    BACNET_NPDU_DATA npdu_data = {0};
 
     /* only handle the version that we know how to handle */
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
@@ -283,7 +273,8 @@ void routing_npdu_handler(
         } else if (npdu_data.network_layer_message) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
                 network_control_handler(src, DNET_list, &npdu_data,
-                    &pdu[apdu_offset], (uint16_t) (pdu_len - apdu_offset));
+                                        &pdu[apdu_offset],
+                                        (uint16_t)(pdu_len - apdu_offset));
             } else {
                 /* The DNET is set, but we don't support downstream routers,
                  * so we just silently drop this network layer message,
@@ -292,14 +283,14 @@ void routing_npdu_handler(
         } else if (apdu_offset <= pdu_len) {
             if ((dest.net == 0) || (npdu_data.hop_count > 1))
                 routed_apdu_handler(src, &dest, DNET_list, &pdu[apdu_offset],
-                    (uint16_t) (pdu_len - apdu_offset));
+                                    (uint16_t)(pdu_len - apdu_offset));
             /* Else, hop_count bottomed out and we discard this one. */
         }
     } else {
         /* Should we send NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK? */
-        debug_printf
-            ("NPDU: Unsupported BACnet Protocol Version=%u.  Discarded!\n",
-            (unsigned) pdu[0]);
+        debug_printf(
+            "NPDU: Unsupported BACnet Protocol Version=%u.  Discarded!\n",
+            (unsigned)pdu[0]);
     }
 
     return;

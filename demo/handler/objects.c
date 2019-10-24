@@ -44,36 +44,31 @@
 /* list of devices */
 static OS_Keylist Device_List = NULL;
 
-void objects_init(
-    void)
+void objects_init(void)
 {
     if (!Device_List)
         Device_List = Keylist_Create();
 }
 
-int objects_device_count(
-    void)
+int objects_device_count(void)
 {
     objects_init();
     return Keylist_Count(Device_List);
 }
 
-OBJECT_DEVICE_T *objects_device_data(
-    int index)
+OBJECT_DEVICE_T *objects_device_data(int index)
 {
     objects_init();
     return Keylist_Data_Index(Device_List, index);
 }
 
-OBJECT_DEVICE_T *objects_device_by_instance(
-    uint32_t device_instance)
+OBJECT_DEVICE_T *objects_device_by_instance(uint32_t device_instance)
 {
     objects_init();
     return Keylist_Data(Device_List, device_instance);
 }
 
-OBJECT_DEVICE_T *objects_device_new(
-    uint32_t device_instance)
+OBJECT_DEVICE_T *objects_device_new(uint32_t device_instance)
 {
     OBJECT_DEVICE_T *pDevice = NULL;
     KEY key = device_instance;
@@ -93,8 +88,8 @@ OBJECT_DEVICE_T *objects_device_new(
                 Keylist_Data_Add(Device_List, key, pDevice);
             } else {
                 fprintf(stderr,
-                    "Objects: Unable to allocate device %lu buffer\n",
-                    (unsigned long) device_instance);
+                        "Objects: Unable to allocate device %lu buffer\n",
+                        (unsigned long)device_instance);
             }
         }
     }
@@ -102,8 +97,7 @@ OBJECT_DEVICE_T *objects_device_new(
     return pDevice;
 }
 
-OBJECT_DEVICE_T *objects_device_delete(
-    int index)
+OBJECT_DEVICE_T *objects_device_delete(int index)
 {
     OBJECT_DEVICE_T *pDevice = NULL;
     BACNET_OBJECT_ID *pObject;
@@ -112,7 +106,7 @@ OBJECT_DEVICE_T *objects_device_delete(
         pDevice = Keylist_Data_Delete_By_Index(Device_List, index);
         if (pDevice) {
             fprintf(stderr, "Objects: removing device %lu",
-                (unsigned long) pDevice->Object_Identifier.instance);
+                    (unsigned long)pDevice->Object_Identifier.instance);
             if (pDevice->Object_List) {
                 do {
                     pObject =
@@ -137,10 +131,8 @@ OBJECT_DEVICE_T *objects_device_delete(
 #include "ctest.h"
 
 /* test the object creation and deletion */
-void testBACnetObjectsCompare(
-    Test * pTest,
-    OBJECT_DEVICE_T * pDevice,
-    uint32_t device_id)
+void testBACnetObjectsCompare(Test *pTest, OBJECT_DEVICE_T *pDevice,
+                              uint32_t device_id)
 {
     ct_test(pTest, pDevice != NULL);
     if (pDevice) {
@@ -151,8 +143,7 @@ void testBACnetObjectsCompare(
     }
 }
 
-void testBACnetObjects(
-    Test * pTest)
+void testBACnetObjects(Test *pTest)
 {
     uint32_t device_id = 0;
     unsigned test_point = 0;
@@ -175,8 +166,8 @@ void testBACnetObjects(
     for (test_point = 0; test_point < max_test_points; test_point++) {
         device_id = test_point * (BACNET_MAX_INSTANCE / max_test_points);
         pDevice = objects_device_data(test_point);
-        testBACnetObjectsCompare(pTest, pDevice, Keylist_Key(Device_List,
-                test_point));
+        testBACnetObjectsCompare(pTest, pDevice,
+                                 Keylist_Key(Device_List, test_point));
     }
     for (test_point = 0; test_point < max_test_points; test_point++) {
         pDevice = objects_device_delete(0);
@@ -184,8 +175,7 @@ void testBACnetObjects(
 }
 
 #ifdef TEST_OBJECT_LIST
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -198,7 +188,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
 
     ct_destroy(pTest);
 

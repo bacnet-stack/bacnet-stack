@@ -1,26 +1,26 @@
 /*************************************************************************
-* Copyright (C) 2015 B Weitsch
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ * Copyright (C) 2015 B Weitsch
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* command line tool that sends a BACnet service, and displays the reply */
 #include <stddef.h>
@@ -73,45 +73,38 @@ static bool Recieved_Ack = false;
 static bool More_Events = false;
 static BACNET_OBJECT_ID LastReceivedObjectIdentifier;
 
-static void MyErrorHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class,
-    BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                           BACNET_ERROR_CLASS error_class,
+                           BACNET_ERROR_CODE error_code)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\r\n",
-            bactext_error_class_name((int) error_class),
-            bactext_error_code_name((int) error_code));
+               bactext_error_class_name((int)error_class),
+               bactext_error_code_name((int)error_code));
         Error_Detected = true;
     }
 }
 
-void MyAbortHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server)
+void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                    uint8_t abort_reason, bool server)
 {
-    (void) server;
+    (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\r\n",
-            bactext_abort_reason_name((int) abort_reason));
+               bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-void MyRejectHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t reject_reason)
+void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                     uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\r\n",
-            bactext_reject_reason_name((int) reject_reason));
+               bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
@@ -126,32 +119,31 @@ void MyRejectHandler(
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void My_Get_Event_Ack_Handler(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src,
-    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+void My_Get_Event_Ack_Handler(uint8_t *service_request, uint16_t service_len,
+                              BACNET_ADDRESS *src,
+                              BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
     int i;
     BACNET_GET_EVENT_INFORMATION_DATA data[MAX_OBJ_IDS_IN_GE_ACK];
     for (i = 0; i < MAX_OBJ_IDS_IN_GE_ACK - 1; i++)
-        data[i].next = &data[i+1];
+        data[i].next = &data[i + 1];
 
-    printf("Recieved Ack. Saved invoke ID was %i, service returned %i\n", Request_Invoke_ID, service_data->invoke_id);
+    printf("Recieved Ack. Saved invoke ID was %i, service returned %i\n",
+           Request_Invoke_ID, service_data->invoke_id);
 
     if (service_data->invoke_id == Request_Invoke_ID) {
-        len = getevent_ack_decode_service_request(service_request,
-                                                  service_len,
-                                                  &data[0],
-                                                  &More_Events);
-        printf("Decode of Ack returned length %i. MoreEvents flag was %i \n", len, More_Events);
+        len = getevent_ack_decode_service_request(service_request, service_len,
+                                                  &data[0], &More_Events);
+        printf("Decode of Ack returned length %i. MoreEvents flag was %i \n",
+               len, More_Events);
         if (len > 0) {
             ge_ack_print_data(&(data[0]), Target_Device_Object_Instance);
             if (More_Events) {
-                BACNET_GET_EVENT_INFORMATION_DATA * lastData = &(data[0]);
-                    while (lastData->next) lastData = lastData->next;
-                    LastReceivedObjectIdentifier = lastData->objectIdentifier;
+                BACNET_GET_EVENT_INFORMATION_DATA *lastData = &(data[0]);
+                while (lastData->next)
+                    lastData = lastData->next;
+                LastReceivedObjectIdentifier = lastData->objectIdentifier;
             }
         }
     }
@@ -181,18 +173,25 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-static int print_help(char *exe_name){
-    printf("Usage:\n" "\n" "%s device-instance [--help]\n" "\n"
-        "  Send BACnet GetEventInformation service retruequest to given device, and wait\n"
-        "  for responses.\n\n", exe_name);
+static int print_help(char *exe_name)
+{
+    printf(
+        "Usage:\n"
+        "\n"
+        "%s device-instance [--help]\n"
+        "\n"
+        "  Send BACnet GetEventInformation service retruequest to given "
+        "device, and wait\n"
+        "  for responses.\n\n",
+        exe_name);
     return 1;
 }
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0};  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     /* milliseconds */
+    unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
@@ -205,7 +204,7 @@ int main(int argc, char *argv[])
     if (argc <= 1) {
         printf("Usage: %s device-instance\r\n", filename_remove_path(argv[0]));
         return 0;
-    } else if(strcmp(argv[1], "--help") == 0) {
+    } else if (strcmp(argv[1], "--help") == 0) {
         print_help(filename_remove_path(argv[0]));
         return 0;
     }
@@ -221,11 +220,11 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found = address_bind_request(Target_Device_Object_Instance,
-								&max_apdu,
-								&Target_Address);
+    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
+                                 &Target_Address);
     if (!found) {
-        Send_WhoIs(Target_Device_Object_Instance, Target_Device_Object_Instance);
+        Send_WhoIs(Target_Device_Object_Instance,
+                   Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -234,14 +233,16 @@ int main(int argc, char *argv[])
 
         /* at least one second has passed */
         if (current_seconds != last_seconds)
-            tsm_timer_milliseconds((uint16_t) ((current_seconds - last_seconds) * 1000));
+            tsm_timer_milliseconds(
+                (uint16_t)((current_seconds - last_seconds) * 1000));
 
-        if (Error_Detected){break;}
+        if (Error_Detected) {
+            break;
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(Target_Device_Object_Instance,
-                                         &max_apdu,
-                                         &Target_Address);
+                                         &max_apdu, &Target_Address);
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
@@ -249,8 +250,8 @@ int main(int argc, char *argv[])
                 Request_Invoke_ID = Send_GetEvent(&Target_Address, NULL);
             } else if (More_Events) {
                 printf("\nSending another GetEventInformation request ...\n");
-                Request_Invoke_ID = Send_GetEvent(&Target_Address,
-                                                  &LastReceivedObjectIdentifier);
+                Request_Invoke_ID = Send_GetEvent(
+                    &Target_Address, &LastReceivedObjectIdentifier);
                 More_Events = false;
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 if (Recieved_Ack) {

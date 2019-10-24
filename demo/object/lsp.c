@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Life Safety Point Objects - customize for your use */
 
@@ -32,7 +32,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "rp.h"
 #include "wp.h"
 #include "lsp.h"
@@ -45,8 +45,7 @@
 
 /* Here are our stored levels.*/
 static BACNET_LIFE_SAFETY_MODE Life_Safety_Point_Mode[MAX_LIFE_SAFETY_POINTS];
-static BACNET_LIFE_SAFETY_STATE
-    Life_Safety_Point_State[MAX_LIFE_SAFETY_POINTS];
+static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_State[MAX_LIFE_SAFETY_POINTS];
 static BACNET_SILENCED_STATE
     Life_Safety_Point_Silenced_State[MAX_LIFE_SAFETY_POINTS];
 static BACNET_LIFE_SAFETY_OPERATION
@@ -57,30 +56,18 @@ static bool Life_Safety_Point_Out_Of_Service[MAX_LIFE_SAFETY_POINTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Life_Safety_Point_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_TRACKING_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_RELIABILITY,
-    PROP_MODE,
-    PROP_ACCEPTED_MODES,
-    PROP_SILENCED,
-    PROP_OPERATION_EXPECTED,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER,  PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,        PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,     PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,        PROP_OUT_OF_SERVICE,
+    PROP_RELIABILITY,        PROP_MODE,
+    PROP_ACCEPTED_MODES,     PROP_SILENCED,
+    PROP_OPERATION_EXPECTED, -1};
 
-static const int Life_Safety_Point_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    -1
-};
+static const int Life_Safety_Point_Properties_Optional[] = {PROP_DESCRIPTION,
+                                                            -1};
 
-static const int Life_Safety_Point_Properties_Proprietary[] = {
-    -1
-};
+static const int Life_Safety_Point_Properties_Proprietary[] = {-1};
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -93,10 +80,9 @@ static const int Life_Safety_Point_Properties_Proprietary[] = {
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
-void Life_Safety_Point_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Life_Safety_Point_Property_Lists(const int **pRequired,
+                                      const int **pOptional,
+                                      const int **pProprietary)
 {
     if (pRequired) {
         *pRequired = Life_Safety_Point_Properties_Required;
@@ -111,8 +97,7 @@ void Life_Safety_Point_Property_Lists(
     return;
 }
 
-void Life_Safety_Point_Init(
-    void)
+void Life_Safety_Point_Init(void)
 {
     static bool initialized = false;
     unsigned i;
@@ -135,8 +120,7 @@ void Life_Safety_Point_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Life_Safety_Point_Valid_Instance(
-    uint32_t object_instance)
+bool Life_Safety_Point_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_LIFE_SAFETY_POINTS)
         return true;
@@ -146,8 +130,7 @@ bool Life_Safety_Point_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Life_Safety_Point_Count(
-    void)
+unsigned Life_Safety_Point_Count(void)
 {
     return MAX_LIFE_SAFETY_POINTS;
 }
@@ -155,8 +138,7 @@ unsigned Life_Safety_Point_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Life_Safety_Point_Index_To_Instance(
-    unsigned index)
+uint32_t Life_Safety_Point_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -164,8 +146,7 @@ uint32_t Life_Safety_Point_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Life_Safety_Point_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Life_Safety_Point_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_LIFE_SAFETY_POINTS;
 
@@ -189,11 +170,10 @@ static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(
 }
 
 /* note: the object name must be unique within this device */
-bool Life_Safety_Point_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Life_Safety_Point_Object_Name(uint32_t object_instance,
+                                   BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";   /* okay for single thread */
+    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_LIFE_SAFETY_POINTS) {
@@ -205,11 +185,10 @@ bool Life_Safety_Point_Object_Name(
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
-int Life_Safety_Point_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Life_Safety_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_LIFE_SAFETY_STATE present_value = LIFE_SAFETY_STATE_QUIET;
@@ -228,21 +207,19 @@ int Life_Safety_Point_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0],
-                OBJECT_LIFE_SAFETY_POINT, rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_LIFE_SAFETY_POINT, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             Life_Safety_Point_Object_Name(rpdata->object_instance,
-                &char_string);
+                                          &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                OBJECT_LIFE_SAFETY_POINT);
+            apdu_len = encode_application_enumerated(&apdu[0],
+                                                     OBJECT_LIFE_SAFETY_POINT);
             break;
         case PROP_PRESENT_VALUE:
             present_value =
@@ -286,7 +263,7 @@ int Life_Safety_Point_Read_Property(
             break;
         case PROP_ACCEPTED_MODES:
             for (mode = MIN_LIFE_SAFETY_MODE; mode < MAX_LIFE_SAFETY_MODE;
-                mode++) {
+                 mode++) {
                 len = encode_application_enumerated(&apdu[apdu_len], mode);
                 apdu_len += len;
             }
@@ -320,18 +297,16 @@ int Life_Safety_Point_Read_Property(
 }
 
 /* returns true if successful */
-bool Life_Safety_Point_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -349,12 +324,11 @@ bool Life_Safety_Point_Write_Property(
         case PROP_MODE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated <= MAX_LIFE_SAFETY_MODE) {
-                    object_index =
-                        Life_Safety_Point_Instance_To_Index
-                        (wp_data->object_instance);
+                    object_index = Life_Safety_Point_Instance_To_Index(
+                        wp_data->object_instance);
                     Life_Safety_Point_Mode[object_index] =
                         value.type.Enumerated;
                 } else {
@@ -367,17 +341,14 @@ bool Life_Safety_Point_Write_Property(
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                object_index =
-                    Life_Safety_Point_Instance_To_Index
-                    (wp_data->object_instance);
+                object_index = Life_Safety_Point_Instance_To_Index(
+                    wp_data->object_instance);
                 Life_Safety_Point_Out_Of_Service[object_index] =
                     value.type.Boolean;
             }
             break;
-
-
 
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_NAME:
@@ -403,17 +374,14 @@ bool Life_Safety_Point_Write_Property(
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -423,10 +391,9 @@ bool WPValidateArgType(
     return false;
 }
 
-void testLifeSafetyPoint(
-    Test * pTest)
+void testLifeSafetyPoint(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -453,8 +420,7 @@ void testLifeSafetyPoint(
 }
 
 #ifdef TEST_LIFE_SAFETY_POINT
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -466,7 +432,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

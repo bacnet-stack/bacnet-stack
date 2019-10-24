@@ -138,9 +138,7 @@ struct vmac_data *VMAC_Find_By_Key(uint32_t device_id)
  *
  * @return true if the addresses are different
  */
-bool VMAC_Different(
-    struct vmac_data *vmac1,
-    struct vmac_data *vmac2)
+bool VMAC_Different(struct vmac_data *vmac1, struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -171,9 +169,7 @@ bool VMAC_Different(
  *
  * @return true if the addresses are the same
  */
-bool VMAC_Match(
-    struct vmac_data *vmac1,
-    struct vmac_data *vmac2)
+bool VMAC_Match(struct vmac_data *vmac1, struct vmac_data *vmac2)
 {
     bool status = false;
     unsigned int i = 0;
@@ -268,8 +264,7 @@ void VMAC_Init(void)
 #include <string.h>
 #include "ctest.h"
 
-void testVMAC(
-    Test * pTest)
+void testVMAC(Test *pTest)
 {
     uint32_t device_id = 123;
     uint32_t test_device_id = 0;
@@ -304,8 +299,7 @@ void testVMAC(
 }
 
 #ifdef TEST_VMAC
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -317,7 +311,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

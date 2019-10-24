@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Binary Output Objects - customize for your use */
 
@@ -32,7 +32,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "wp.h"
 #include "rp.h"
 #include "bv.h"
@@ -46,39 +46,26 @@
 /* the Relinquish Default value */
 #define RELINQUISH_DEFAULT BINARY_INACTIVE
 /* Here is our Priority Array.*/
-static BACNET_BINARY_PV
-    Binary_Value_Level[MAX_BINARY_VALUES][BACNET_MAX_PRIORITY];
+static BACNET_BINARY_PV Binary_Value_Level[MAX_BINARY_VALUES]
+                                          [BACNET_MAX_PRIORITY];
 /* Writable out-of-service allows others to play with our Present Value */
 /* without changing the physical output */
 static bool Out_Of_Service[MAX_BINARY_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Binary_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    -1
-};
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,       PROP_PRESENT_VALUE,
+    PROP_STATUS_FLAGS,      PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE,    -1};
 
 static const int Binary_Value_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    PROP_PRIORITY_ARRAY,
-    PROP_RELINQUISH_DEFAULT,
-    -1
-};
+    PROP_DESCRIPTION, PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT, -1};
 
-static const int Binary_Value_Properties_Proprietary[] = {
-    -1
-};
+static const int Binary_Value_Properties_Proprietary[] = {-1};
 
-void Binary_Value_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Binary_Value_Property_Lists(const int **pRequired, const int **pOptional,
+                                 const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Binary_Value_Properties_Required;
@@ -90,8 +77,7 @@ void Binary_Value_Property_Lists(
     return;
 }
 
-void Binary_Value_Init(
-    void)
+void Binary_Value_Init(void)
 {
     unsigned i, j;
     static bool initialized = false;
@@ -113,8 +99,7 @@ void Binary_Value_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Binary_Value_Valid_Instance(
-    uint32_t object_instance)
+bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_BINARY_VALUES)
         return true;
@@ -124,8 +109,7 @@ bool Binary_Value_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Binary_Value_Count(
-    void)
+unsigned Binary_Value_Count(void)
 {
     return MAX_BINARY_VALUES;
 }
@@ -133,8 +117,7 @@ unsigned Binary_Value_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Binary_Value_Index_To_Instance(
-    unsigned index)
+uint32_t Binary_Value_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -142,8 +125,7 @@ uint32_t Binary_Value_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Binary_Value_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_VALUES;
 
@@ -153,8 +135,7 @@ unsigned Binary_Value_Instance_To_Index(
     return index;
 }
 
-BACNET_BINARY_PV Binary_Value_Present_Value(
-    uint32_t object_instance)
+BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
 {
     BACNET_BINARY_PV value = RELINQUISH_DEFAULT;
     unsigned index = 0;
@@ -174,24 +155,22 @@ BACNET_BINARY_PV Binary_Value_Present_Value(
 }
 
 /* note: the object name must be unique within this device */
-bool Binary_Value_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Binary_Value_Object_Name(uint32_t object_instance,
+                              BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";   /* okay for single thread */
+    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_BINARY_VALUES) {
         sprintf(text_string, "BINARY VALUE %lu",
-            (unsigned long) object_instance);
+                (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
     return status;
 }
 
-bool Binary_Value_Out_Of_Service(
-    uint32_t instance)
+bool Binary_Value_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
     bool oos_flag = false;
@@ -204,9 +183,7 @@ bool Binary_Value_Out_Of_Service(
     return oos_flag;
 }
 
-void Binary_Value_Out_Of_Service_Set(
-    uint32_t instance,
-    bool oos_flag)
+void Binary_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
 
@@ -217,11 +194,10 @@ void Binary_Value_Out_Of_Service_Set(
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
-int Binary_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
@@ -237,9 +213,8 @@ int Binary_Value_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_BINARY_VALUE,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_BINARY_VALUE, rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
@@ -254,8 +229,7 @@ int Binary_Value_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            present_value =
-                Binary_Value_Present_Value(rpdata->object_instance);
+            present_value = Binary_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -293,9 +267,8 @@ int Binary_Value_Read_Property(
                         len = encode_application_null(&apdu[apdu_len]);
                     else {
                         present_value = Binary_Value_Level[object_index][i];
-                        len =
-                            encode_application_enumerated(&apdu[apdu_len],
-                            present_value);
+                        len = encode_application_enumerated(&apdu[apdu_len],
+                                                            present_value);
                     }
                     /* add it if we have room */
                     if ((apdu_len + len) < MAX_APDU)
@@ -311,15 +284,14 @@ int Binary_Value_Read_Property(
                 object_index =
                     Binary_Value_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (Binary_Value_Level[object_index][rpdata->array_index]
-                        == BINARY_NULL)
+                    if (Binary_Value_Level[object_index][rpdata->array_index] ==
+                        BINARY_NULL)
                         apdu_len = encode_application_null(&apdu[apdu_len]);
                     else {
                         present_value = Binary_Value_Level[object_index]
-                            [rpdata->array_index];
-                        apdu_len =
-                            encode_application_enumerated(&apdu[apdu_len],
-                            present_value);
+                                                          [rpdata->array_index];
+                        apdu_len = encode_application_enumerated(
+                            &apdu[apdu_len], present_value);
                     }
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -350,10 +322,9 @@ int Binary_Value_Read_Property(
 }
 
 /* returns true if successful */
-bool Binary_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     unsigned int object_index = 0;
     unsigned int priority = 0;
     BACNET_BINARY_PV level = BINARY_NULL;
@@ -361,9 +332,8 @@ bool Binary_Value_Write_Property(
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -386,19 +356,19 @@ bool Binary_Value_Write_Property(
                    algorithm and may not be used for other purposes in any
                    object. */
                 if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-                    (priority != 6 /* reserved */ ) &&
+                    (priority != 6 /* reserved */) &&
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
-                    level = (BACNET_BINARY_PV) value.type.Enumerated;
-                    object_index =
-                        Binary_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                    level = (BACNET_BINARY_PV)value.type.Enumerated;
+                    object_index = Binary_Value_Instance_To_Index(
+                        wp_data->object_instance);
                     priority--;
                     Binary_Value_Level[object_index][priority] = level;
                     /* Note: you could set the physical output here if we
                        are the highest priority.
                        However, if Out of Service is TRUE, then don't set the
                        physical output.  This comment may apply to the
-                       main loop (i.e. check out of service before changing output) */
+                       main loop (i.e. check out of service before changing
+                       output) */
                     status = true;
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
@@ -411,24 +381,24 @@ bool Binary_Value_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status =
-                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
+                                           &wp_data->error_class,
+                                           &wp_data->error_code);
                 if (status) {
                     level = BINARY_NULL;
-                    object_index =
-                        Binary_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                    object_index = Binary_Value_Instance_To_Index(
+                        wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
                         Binary_Value_Level[object_index][priority] = level;
-                        /* Note: you could set the physical output here to the next
-                           highest priority, or to the relinquish default if no
-                           priorities are set.
-                           However, if Out of Service is TRUE, then don't set the
-                           physical output.  This comment may apply to the
-                           main loop (i.e. check out of service before changing output) */
+                        /* Note: you could set the physical output here to the
+                           next highest priority, or to the relinquish default
+                           if no priorities are set. However, if Out of Service
+                           is TRUE, then don't set the physical output.  This
+                           comment may apply to the
+                           main loop (i.e. check out of service before changing
+                           output) */
                     } else {
                         status = false;
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -440,10 +410,10 @@ bool Binary_Value_Write_Property(
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Binary_Value_Out_Of_Service_Set(wp_data->object_instance,
-                    value.type.Boolean);
+                                                value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -466,17 +436,14 @@ bool Binary_Value_Write_Property(
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -486,10 +453,9 @@ bool WPValidateArgType(
     return false;
 }
 
-void testBinary_Value(
-    Test * pTest)
+void testBinary_Value(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -516,8 +482,7 @@ void testBinary_Value(
 }
 
 #ifdef TEST_BINARY_VALUE
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -529,7 +494,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

@@ -37,10 +37,9 @@
 
 /** @file filename.c  Function for filename manipulation */
 
-char *filename_remove_path(
-    const char *filename_in)
+char *filename_remove_path(const char *filename_in)
 {
-    char *filename_out = (char *) filename_in;
+    char *filename_out = (char *)filename_in;
 
     /* allow the device ID to be set */
     if (filename_in) {
@@ -53,7 +52,7 @@ char *filename_remove_path(
             filename_out++;
         } else {
             /* no slash in filename */
-            filename_out = (char *) filename_in;
+            filename_out = (char *)filename_in;
         }
     }
 
@@ -66,8 +65,7 @@ char *filename_remove_path(
 
 #include "ctest.h"
 
-void testFilename(
-    Test * pTest)
+void testFilename(Test *pTest)
 {
     char *data1 = "c:\\Joshua\\run";
     char *data2 = "/home/Anna/run";
@@ -91,8 +89,7 @@ void testFilename(
 }
 
 #ifdef TEST_FILENAME
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -105,7 +102,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
 
     ct_destroy(pTest);
 

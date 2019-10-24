@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -42,7 +42,6 @@
 
 /** @file h_wp.c  Handles Write Property requests. */
 
-
 /** Handler for a WriteProperty Service request.
  * @ingroup DSWP
  * This handler will be invoked by apdu_handler() if it has been enabled
@@ -61,11 +60,9 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_write_property(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src,
-    BACNET_CONFIRMED_SERVICE_DATA * service_data)
+void handler_write_property(uint8_t* service_request, uint16_t service_len,
+                            BACNET_ADDRESS* src,
+                            BACNET_CONFIRMED_SERVICE_DATA* service_data)
 {
     BACNET_WRITE_PROPERTY_DATA wp_data;
     int len = 0;
@@ -77,65 +74,63 @@ void handler_write_property(
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len =
-        npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-        &npdu_data);
+    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
+                              &npdu_data);
 #if PRINT_ENABLED
     fprintf(stderr, "WP: Received Request!\n");
 #endif
     if (service_data->segmented_message) {
-        len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
-            true);
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                                service_data->invoke_id,
+                                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Segmented message.  Sending Abort!\n");
 #endif
         goto WP_ABORT;
-    }   /* decode the service request only */
+    } /* decode the service request only */
     len = wp_decode_service_request(service_request, service_len, &wp_data);
 #if PRINT_ENABLED
     if (len > 0)
-        fprintf(stderr,
+        fprintf(
+            stderr,
             "WP: type=%lu instance=%lu property=%lu priority=%lu index=%ld\n",
-            (unsigned long) wp_data.object_type,
-            (unsigned long) wp_data.object_instance,
-            (unsigned long) wp_data.object_property,
-            (unsigned long) wp_data.priority, (long) wp_data.array_index);
+            (unsigned long)wp_data.object_type,
+            (unsigned long)wp_data.object_instance,
+            (unsigned long)wp_data.object_property,
+            (unsigned long)wp_data.priority, (long)wp_data.array_index);
     else
         fprintf(stderr, "WP: Unable to decode Request!\n");
 #endif
     /* bad decoding or something we didn't understand - send an abort */
     if (len <= 0) {
-        len =
-            abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                                service_data->invoke_id, ABORT_REASON_OTHER,
+                                true);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Bad Encoding. Sending Abort!\n");
 #endif
         goto WP_ABORT;
     }
     if (Device_Write_Property(&wp_data)) {
-        len =
-            encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+        len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                                service_data->invoke_id,
+                                SERVICE_CONFIRMED_WRITE_PROPERTY);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Sending Simple Ack!\n");
 #endif
     } else {
-        len =
-            bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-            wp_data.error_class, wp_data.error_code);
+        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                                   service_data->invoke_id,
+                                   SERVICE_CONFIRMED_WRITE_PROPERTY,
+                                   wp_data.error_class, wp_data.error_code);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Sending Error!\n");
 #endif
     }
-  WP_ABORT:
+WP_ABORT:
     pdu_len += len;
-    bytes_sent =
-        datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-        pdu_len);
+    bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
+                                   pdu_len);
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Failed to send PDU (%s)!\n", strerror(errno));
@@ -145,19 +140,15 @@ void handler_write_property(
     return;
 }
 
-
 /** Perform basic validation of Write Property argument based on
  * the assumption that it is a string. Check for correct data type,
  * correct encoding (fixed here as ANSI X34),correct length, and
  * finally if it is allowed to be empty.
  */
 
-bool WPValidateString(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    int iMaxLen,
-    bool bEmptyAllowed,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateString(BACNET_APPLICATION_DATA_VALUE* pValue, int iMaxLen,
+                      bool bEmptyAllowed, BACNET_ERROR_CLASS* pErrorClass,
+                      BACNET_ERROR_CODE* pErrorCode)
 {
     bool bResult;
 
@@ -172,15 +163,15 @@ bool WPValidateString(
         if (characterstring_encoding(&pValue->type.Character_String) ==
             CHARACTER_ANSI_X34) {
             if ((bEmptyAllowed == false) &&
-                (characterstring_length(&pValue->type.Character_String) ==
-                    0)) {
+                (characterstring_length(&pValue->type.Character_String) == 0)) {
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
             } else if ((bEmptyAllowed == false) &&
-                (!characterstring_printable(&pValue->type.Character_String))) {
+                       (!characterstring_printable(
+                           &pValue->type.Character_String))) {
                 /* assumption: non-empty also means must be "printable" */
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
             } else if (characterstring_length(&pValue->type.Character_String) >
-                (uint16_t) iMaxLen) {
+                       (uint16_t)iMaxLen) {
                 *pErrorClass = ERROR_CLASS_RESOURCES;
                 *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             } else
@@ -198,11 +189,9 @@ bool WPValidateString(
  * validation fails. Cuts out reams of repeated code in the object code.
  */
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE* pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS* pErrorClass,
+                       BACNET_ERROR_CODE* pErrorCode)
 {
     bool bResult;
 

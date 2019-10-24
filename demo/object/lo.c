@@ -1,31 +1,31 @@
 /**
-* @file
-* @author Steve Karg
-* @date 2013
-* @brief Lighting Output object
-*
-* @section LICENSE
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*/
+ * @file
+ * @author Steve Karg
+ * @date 2013
+ * @brief Lighting Output object
+ *
+ * @section LICENSE
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -34,7 +34,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "rp.h"
 #include "wp.h"
 #include "lighting.h"
@@ -53,9 +53,9 @@ struct lighting_output_object {
     float Physical_Value;
     BACNET_LIGHTING_COMMAND Lighting_Command;
     BACNET_LIGHTING_IN_PROGRESS In_Progress;
-    bool Out_Of_Service:1;
-    bool Blink_Warn_Enable:1;
-    bool Egress_Active:1;
+    bool Out_Of_Service : 1;
+    bool Blink_Warn_Enable : 1;
+    bool Egress_Active : 1;
     uint32_t Egress_Time;
     uint32_t Default_Fade_Time;
     float Default_Ramp_Rate;
@@ -94,15 +94,10 @@ static const int Lighting_Output_Properties_Required[] = {
     PROP_PRIORITY_ARRAY,
     PROP_RELINQUISH_DEFAULT,
     PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
-    -1
-};
-static const int Lighting_Output_Properties_Optional[] = {
-    -1
-};
+    -1};
+static const int Lighting_Output_Properties_Optional[] = {-1};
 
-static const int Lighting_Output_Properties_Proprietary[] = {
-    -1
-};
+static const int Lighting_Output_Properties_Proprietary[] = {-1};
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -115,10 +110,9 @@ static const int Lighting_Output_Properties_Proprietary[] = {
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
-void Lighting_Output_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Lighting_Output_Property_Lists(const int **pRequired,
+                                    const int **pOptional,
+                                    const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Lighting_Output_Properties_Required;
@@ -137,8 +131,7 @@ void Lighting_Output_Property_Lists(
  *
  * @return  true if the instance is valid, and false if not
  */
-bool Lighting_Output_Valid_Instance(
-    uint32_t object_instance)
+bool Lighting_Output_Valid_Instance(uint32_t object_instance)
 {
     unsigned int index;
 
@@ -155,8 +148,7 @@ bool Lighting_Output_Valid_Instance(
  *
  * @return  Number of Lighting Output objects
  */
-unsigned Lighting_Output_Count(
-    void)
+unsigned Lighting_Output_Count(void)
 {
     return MAX_LIGHTING_OUTPUTS;
 }
@@ -169,8 +161,7 @@ unsigned Lighting_Output_Count(
  *
  * @return  object instance-number for the given index
  */
-uint32_t Lighting_Output_Index_To_Instance(
-    unsigned index)
+uint32_t Lighting_Output_Index_To_Instance(unsigned index)
 {
     uint32_t instance = 1;
 
@@ -188,8 +179,7 @@ uint32_t Lighting_Output_Index_To_Instance(
  * @return  index for the given instance-number, or MAX_LIGHTING_OUTPUTS
  * if not valid.
  */
-unsigned Lighting_Output_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Lighting_Output_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_LIGHTING_OUTPUTS;
 
@@ -210,8 +200,7 @@ unsigned Lighting_Output_Instance_To_Index(
  *
  * @return  present-value of the object
  */
-float Lighting_Output_Present_Value(
-    uint32_t object_instance)
+float Lighting_Output_Present_Value(uint32_t object_instance)
 {
     float value = 0.0;
     unsigned index = 0;
@@ -240,9 +229,8 @@ float Lighting_Output_Present_Value(
  *
  * @return  priority-value of the object
  */
-static float Lighting_Output_Priority_Value(
-    uint32_t object_instance,
-    unsigned priority)
+static float Lighting_Output_Priority_Value(uint32_t object_instance,
+                                            unsigned priority)
 {
     float value = 0.0;
     unsigned index = 0;
@@ -267,9 +255,8 @@ static float Lighting_Output_Priority_Value(
  *
  * @return  true if the priority slot is active
  */
-static bool Lighting_Output_Priority_Active(
-    uint32_t object_instance,
-    unsigned priority)
+static bool Lighting_Output_Priority_Active(uint32_t object_instance,
+                                            unsigned priority)
 {
     bool status = false;
     unsigned index = 0;
@@ -278,7 +265,8 @@ static bool Lighting_Output_Priority_Active(
     if (index < MAX_LIGHTING_OUTPUTS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY)) {
             priority--;
-            if (BIT_CHECK(Lighting_Output[index].Priority_Active_Bits, priority)) {
+            if (BIT_CHECK(Lighting_Output[index].Priority_Active_Bits,
+                          priority)) {
                 status = true;
             }
         }
@@ -294,12 +282,11 @@ static bool Lighting_Output_Priority_Active(
  *
  * @return  active priority 1..16, or 0 if no priority is active
  */
-unsigned Lighting_Output_Present_Value_Priority(
-    uint32_t object_instance)
+unsigned Lighting_Output_Present_Value_Priority(uint32_t object_instance)
 {
-    unsigned index = 0; /* instance to index conversion */
-    unsigned p = 0;     /* loop counter */
-    unsigned priority = 0;      /* return value */
+    unsigned index = 0;    /* instance to index conversion */
+    unsigned p = 0;        /* loop counter */
+    unsigned priority = 0; /* return value */
 
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
@@ -324,10 +311,8 @@ unsigned Lighting_Output_Present_Value_Priority(
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Lighting_Output_Present_Value_Set(
-    uint32_t object_instance,
-    float value,
-    unsigned priority)
+bool Lighting_Output_Present_Value_Set(uint32_t object_instance, float value,
+                                       unsigned priority)
 {
     unsigned index = 0;
     bool status = false;
@@ -335,7 +320,7 @@ bool Lighting_Output_Present_Value_Set(
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-            (priority != 6 /* reserved */ )) {
+            (priority != 6 /* reserved */)) {
             priority--;
             BIT_SET(Lighting_Output[index].Priority_Active_Bits, priority);
             Lighting_Output[index].Priority_Array[priority] = value;
@@ -355,9 +340,8 @@ bool Lighting_Output_Present_Value_Set(
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Lighting_Output_Present_Value_Relinquish(
-    uint32_t object_instance,
-    unsigned priority)
+bool Lighting_Output_Present_Value_Relinquish(uint32_t object_instance,
+                                              unsigned priority)
 {
     unsigned index = 0;
     bool status = false;
@@ -365,7 +349,7 @@ bool Lighting_Output_Present_Value_Relinquish(
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-            (priority != 6 /* reserved */ )) {
+            (priority != 6 /* reserved */)) {
             priority--;
             BIT_CLEAR(Lighting_Output[index].Priority_Active_Bits, priority);
             Lighting_Output[index].Priority_Array[priority] = 0.0;
@@ -386,9 +370,8 @@ bool Lighting_Output_Present_Value_Relinquish(
  *
  * @return  true if object-name was retrieved
  */
-bool Lighting_Output_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Lighting_Output_Object_Name(uint32_t object_instance,
+                                 BACNET_CHARACTER_STRING *object_name)
 {
     char text_string[32] = "";
     bool status = false;
@@ -397,7 +380,7 @@ bool Lighting_Output_Object_Name(
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
         sprintf(text_string, "LIGHTING OUTPUT %lu",
-            (unsigned long) object_instance);
+                (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
@@ -412,9 +395,8 @@ bool Lighting_Output_Object_Name(
  *
  * @return  true if lighting command was set
  */
-bool Lighting_Output_Lighting_Command_Set(
-    uint32_t object_instance,
-    BACNET_LIGHTING_COMMAND *value)
+bool Lighting_Output_Lighting_Command_Set(uint32_t object_instance,
+                                          BACNET_LIGHTING_COMMAND *value)
 {
     bool status = false;
     unsigned index = 0;
@@ -422,9 +404,8 @@ bool Lighting_Output_Lighting_Command_Set(
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
         // FIXME: check lighting command member values
-        status = lighting_command_copy(
-            &Lighting_Output[index].Lighting_Command,
-            value);
+        status = lighting_command_copy(&Lighting_Output[index].Lighting_Command,
+                                       value);
         // FIXME: set all the other values, and get the light levels moving
     }
 
@@ -439,17 +420,16 @@ bool Lighting_Output_Lighting_Command_Set(
  *
  * @return true if lighting command was retrieved
  */
-bool Lighting_Output_Lighting_Command(
-    uint32_t object_instance,
-    BACNET_LIGHTING_COMMAND *value)
+bool Lighting_Output_Lighting_Command(uint32_t object_instance,
+                                      BACNET_LIGHTING_COMMAND *value)
 {
     bool status = false;
     unsigned index = 0;
 
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
-        status = lighting_command_copy(value,
-            &Lighting_Output[index].Lighting_Command);
+        status = lighting_command_copy(
+            value, &Lighting_Output[index].Lighting_Command);
     }
 
     return status;
@@ -485,9 +465,8 @@ BACNET_LIGHTING_IN_PROGRESS Lighting_Output_In_Progress(
  *
  * @return true if value was set
  */
-bool Lighting_Output_In_Progress_Set(
-    uint32_t object_instance,
-    BACNET_LIGHTING_IN_PROGRESS in_progress)
+bool Lighting_Output_In_Progress_Set(uint32_t object_instance,
+                                     BACNET_LIGHTING_IN_PROGRESS in_progress)
 {
     bool status = false;
     unsigned index = 0;
@@ -495,7 +474,6 @@ bool Lighting_Output_In_Progress_Set(
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
         Lighting_Output[index].In_Progress = in_progress;
-
     }
 
     return status;
@@ -508,8 +486,7 @@ bool Lighting_Output_In_Progress_Set(
  *
  * @return the tracking-value of this object instance.
  */
-float Lighting_Output_Tracking_Value(
-    uint32_t object_instance)
+float Lighting_Output_Tracking_Value(uint32_t object_instance)
 {
     float value = 0.0;
     unsigned index = 0;
@@ -531,9 +508,7 @@ float Lighting_Output_Tracking_Value(
  *
  * @return true if value was set
  */
-bool Lighting_Output_Tracking_Value_Set(
-    uint32_t object_instance,
-    float value)
+bool Lighting_Output_Tracking_Value_Set(uint32_t object_instance, float value)
 {
     bool status = false;
     unsigned int index = 0;
@@ -555,8 +530,7 @@ bool Lighting_Output_Tracking_Value_Set(
  *
  * @return the blink-warn-enable property value of this object
  */
-bool Lighting_Output_Blink_Warn_Enable(
-    uint32_t object_instance)
+bool Lighting_Output_Blink_Warn_Enable(uint32_t object_instance)
 {
     bool value = false;
     unsigned index = 0;
@@ -578,9 +552,8 @@ bool Lighting_Output_Blink_Warn_Enable(
  *
  * @return true if value was set
  */
-bool Lighting_Output_Blink_Warn_Enable_Set(
-    uint32_t object_instance,
-    bool enable)
+bool Lighting_Output_Blink_Warn_Enable_Set(uint32_t object_instance,
+                                           bool enable)
 {
     bool status = false;
     unsigned int index = 0;
@@ -602,8 +575,7 @@ bool Lighting_Output_Blink_Warn_Enable_Set(
  *
  * @return the egress-time property value of this object
  */
-uint32_t Lighting_Output_Egress_Time(
-    uint32_t object_instance)
+uint32_t Lighting_Output_Egress_Time(uint32_t object_instance)
 {
     uint32_t value = 0;
     unsigned int index = 0;
@@ -625,9 +597,7 @@ uint32_t Lighting_Output_Egress_Time(
  *
  * @return true if value was set
  */
-bool Lighting_Output_Egress_Time_Set(
-    uint32_t object_instance,
-    uint32_t seconds)
+bool Lighting_Output_Egress_Time_Set(uint32_t object_instance, uint32_t seconds)
 {
     bool status = false;
     unsigned int index = 0;
@@ -649,8 +619,7 @@ bool Lighting_Output_Egress_Time_Set(
  *
  * @return the egress-active property value of this object
  */
-bool Lighting_Output_Egress_Active(
-    uint32_t object_instance)
+bool Lighting_Output_Egress_Active(uint32_t object_instance)
 {
     bool value = false;
     unsigned int index = 0;
@@ -671,8 +640,7 @@ bool Lighting_Output_Egress_Active(
  *
  * @return the fade-time property value of this object
  */
-uint32_t Lighting_Output_Default_Fade_Time(
-    uint32_t object_instance)
+uint32_t Lighting_Output_Default_Fade_Time(uint32_t object_instance)
 {
     uint32_t value = 0;
     unsigned int index = 0;
@@ -694,16 +662,14 @@ uint32_t Lighting_Output_Default_Fade_Time(
  *
  * @return true if value was set
  */
-bool Lighting_Output_Default_Fade_Time_Set(
-    uint32_t object_instance,
-    uint32_t milliseconds)
+bool Lighting_Output_Default_Fade_Time_Set(uint32_t object_instance,
+                                           uint32_t milliseconds)
 {
     bool status = false;
     unsigned int index = 0;
 
     index = Lighting_Output_Instance_To_Index(object_instance);
-    if ((index < MAX_LIGHTING_OUTPUTS) &&
-        (milliseconds >= 100) &&
+    if ((index < MAX_LIGHTING_OUTPUTS) && (milliseconds >= 100) &&
         (milliseconds <= 86400000)) {
         Lighting_Output[index].Default_Fade_Time = milliseconds;
         status = true;
@@ -720,8 +686,7 @@ bool Lighting_Output_Default_Fade_Time_Set(
  *
  * @return the ramp-rate property value of this object
  */
-float Lighting_Output_Default_Ramp_Rate(
-    uint32_t object_instance)
+float Lighting_Output_Default_Ramp_Rate(uint32_t object_instance)
 {
     float value = 0.0;
     unsigned int index = 0;
@@ -743,16 +708,14 @@ float Lighting_Output_Default_Ramp_Rate(
  *
  * @return true if value was set
  */
-bool Lighting_Output_Default_Ramp_Rate_Set(
-    uint32_t object_instance,
-    float percent_per_second)
+bool Lighting_Output_Default_Ramp_Rate_Set(uint32_t object_instance,
+                                           float percent_per_second)
 {
     bool status = false;
     unsigned int index = 0;
 
     index = Lighting_Output_Instance_To_Index(object_instance);
-    if ((index < MAX_LIGHTING_OUTPUTS) &&
-        (percent_per_second >= 0.1) &&
+    if ((index < MAX_LIGHTING_OUTPUTS) && (percent_per_second >= 0.1) &&
         (percent_per_second <= 100.0)) {
         Lighting_Output[index].Default_Ramp_Rate = percent_per_second;
         status = true;
@@ -769,8 +732,7 @@ bool Lighting_Output_Default_Ramp_Rate_Set(
  *
  * @return the default-step-increment property value of this object
  */
-float Lighting_Output_Default_Step_Increment(
-    uint32_t object_instance)
+float Lighting_Output_Default_Step_Increment(uint32_t object_instance)
 {
     float value = 0.0;
     unsigned int index = 0;
@@ -792,16 +754,14 @@ float Lighting_Output_Default_Step_Increment(
  *
  * @return true if value was set
  */
-bool Lighting_Output_Default_Step_Increment_Set(
-    uint32_t object_instance,
-    float step_increment)
+bool Lighting_Output_Default_Step_Increment_Set(uint32_t object_instance,
+                                                float step_increment)
 {
     bool status = false;
     unsigned int index = 0;
 
     index = Lighting_Output_Instance_To_Index(object_instance);
-    if ((index < MAX_LIGHTING_OUTPUTS) &&
-        (step_increment >= 0.1) &&
+    if ((index < MAX_LIGHTING_OUTPUTS) && (step_increment >= 0.1) &&
         (step_increment <= 100.0)) {
         Lighting_Output[index].Default_Step_Increment = step_increment;
         status = true;
@@ -820,8 +780,7 @@ bool Lighting_Output_Default_Step_Increment_Set(
  * @return the lighting-command-default-priority property value of
  * this object
  */
-unsigned Lighting_Output_Default_Priority(
-    uint32_t object_instance)
+unsigned Lighting_Output_Default_Priority(uint32_t object_instance)
 {
     unsigned value = 0;
     unsigned int index = 0;
@@ -843,16 +802,14 @@ unsigned Lighting_Output_Default_Priority(
  *
  * @return true if value was set
  */
-bool Lighting_Output_Default_Priority_Set(
-    uint32_t object_instance,
-    unsigned priority)
+bool Lighting_Output_Default_Priority_Set(uint32_t object_instance,
+                                          unsigned priority)
 {
     bool status = false;
     unsigned int index = 0;
 
     index = Lighting_Output_Instance_To_Index(object_instance);
-    if ((index < MAX_LIGHTING_OUTPUTS) &&
-        (priority >= BACNET_MIN_PRIORITY) &&
+    if ((index < MAX_LIGHTING_OUTPUTS) && (priority >= BACNET_MIN_PRIORITY) &&
         (priority <= BACNET_MAX_PRIORITY)) {
         Lighting_Output[index].Lighting_Command_Default_Priority = priority;
         status = true;
@@ -869,8 +826,7 @@ bool Lighting_Output_Default_Priority_Set(
  *
  * @return  out-of-service property value
  */
-bool Lighting_Output_Out_Of_Service(
-    uint32_t object_instance)
+bool Lighting_Output_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
     unsigned int index = 0;
@@ -891,9 +847,7 @@ bool Lighting_Output_Out_Of_Service(
  *
  * @return true if the out-of-service property value was set
  */
-void Lighting_Output_Out_Of_Service_Set(
-    uint32_t object_instance,
-    bool value)
+void Lighting_Output_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     unsigned int index = 0;
 
@@ -911,8 +865,7 @@ void Lighting_Output_Out_Of_Service_Set(
  *
  * @return  relinquish-default property value
  */
-float Lighting_Output_Relinquish_Default(
-    uint32_t object_instance)
+float Lighting_Output_Relinquish_Default(uint32_t object_instance)
 {
     float value = 0.0;
     unsigned int index = 0;
@@ -934,9 +887,8 @@ float Lighting_Output_Relinquish_Default(
  *
  * @return true if the relinquish-default property value was set
  */
-bool Lighting_Output_Relinquish_Default_Set(
-    uint32_t object_instance,
-    float value)
+bool Lighting_Output_Relinquish_Default_Set(uint32_t object_instance,
+                                            float value)
 {
     bool status = false;
     unsigned int index = 0;
@@ -959,15 +911,14 @@ bool Lighting_Output_Relinquish_Default_Set(
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int Lighting_Output_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_LIGHTING_COMMAND lighting_command;
-    float real_value = (float) 1.414;
+    float real_value = (float)1.414;
     uint32_t unsigned_value = 0;
     unsigned i = 0;
     bool state = false;
@@ -980,9 +931,8 @@ int Lighting_Output_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_LIGHTING_OUTPUT,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_LIGHTING_OUTPUT, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Lighting_Output_Object_Name(rpdata->object_instance, &char_string);
@@ -1003,17 +953,14 @@ int Lighting_Output_Read_Property(
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_LIGHTING_COMMAND:
-            Lighting_Output_Lighting_Command(
-                rpdata->object_instance,
-                &lighting_command);
-            apdu_len = lighting_command_encode(&apdu[0],
-                &lighting_command);
+            Lighting_Output_Lighting_Command(rpdata->object_instance,
+                                             &lighting_command);
+            apdu_len = lighting_command_encode(&apdu[0], &lighting_command);
             break;
         case PROP_IN_PROGRESS:
-            unsigned_value = Lighting_Output_In_Progress(
-                rpdata->object_instance);
-            apdu_len = encode_application_enumerated(&apdu[0],
-                unsigned_value);
+            unsigned_value =
+                Lighting_Output_In_Progress(rpdata->object_instance);
+            apdu_len = encode_application_enumerated(&apdu[0], unsigned_value);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -1033,20 +980,18 @@ int Lighting_Output_Read_Property(
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_EGRESS_TIME:
-            unsigned_value = Lighting_Output_Egress_Time(
-                rpdata->object_instance);
-            apdu_len = encode_application_unsigned(&apdu[0],
-                unsigned_value);
+            unsigned_value =
+                Lighting_Output_Egress_Time(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
         case PROP_EGRESS_ACTIVE:
             state = Lighting_Output_Egress_Active(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_DEFAULT_FADE_TIME:
-            unsigned_value = Lighting_Output_Default_Fade_Time(
-                rpdata->object_instance);
-            apdu_len = encode_application_unsigned(&apdu[0],
-                unsigned_value);
+            unsigned_value =
+                Lighting_Output_Default_Fade_Time(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
         case PROP_DEFAULT_RAMP_RATE:
             real_value =
@@ -1063,17 +1008,17 @@ int Lighting_Output_Read_Property(
             if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet. */
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= BACNET_MAX_PRIORITY; i++) {
-                    if (Lighting_Output_Priority_Active(
-                        rpdata->object_instance, i)) {
+                    if (Lighting_Output_Priority_Active(rpdata->object_instance,
+                                                        i)) {
                         real_value = Lighting_Output_Priority_Value(
                             rpdata->object_instance, i);
-                        len =
-                            encode_application_real(&apdu[apdu_len],
-                            real_value);
+                        len = encode_application_real(&apdu[apdu_len],
+                                                      real_value);
                     } else {
                         len = encode_application_null(&apdu[apdu_len]);
                     }
@@ -1089,15 +1034,12 @@ int Lighting_Output_Read_Property(
                 }
             } else {
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (Lighting_Output_Priority_Active(
-                        rpdata->object_instance,
-                        rpdata->array_index)) {
+                    if (Lighting_Output_Priority_Active(rpdata->object_instance,
+                                                        rpdata->array_index)) {
                         real_value = Lighting_Output_Priority_Value(
-                            rpdata->object_instance,
-                            rpdata->array_index);
-                        len =
-                            encode_application_real(&apdu[apdu_len],
-                            real_value);
+                            rpdata->object_instance, rpdata->array_index);
+                        len = encode_application_real(&apdu[apdu_len],
+                                                      real_value);
                     } else {
                         len = encode_application_null(&apdu[apdu_len]);
                     }
@@ -1109,15 +1051,14 @@ int Lighting_Output_Read_Property(
             }
             break;
         case PROP_RELINQUISH_DEFAULT:
-            real_value = Lighting_Output_Relinquish_Default(
-                    rpdata->object_instance);
+            real_value =
+                Lighting_Output_Relinquish_Default(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
         case PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY:
-            unsigned_value = Lighting_Output_Default_Priority(
-                rpdata->object_instance);
-            apdu_len = encode_application_unsigned(&apdu[0],
-                unsigned_value);
+            unsigned_value =
+                Lighting_Output_Default_Priority(rpdata->object_instance);
+            apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -1145,17 +1086,15 @@ int Lighting_Output_Read_Property(
  *
  * @return false if an error is loaded, true if no errors
  */
-bool Lighting_Output_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -1176,9 +1115,9 @@ bool Lighting_Output_Write_Property(
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                status =
-                    Lighting_Output_Present_Value_Set(wp_data->object_instance,
-                    value.type.Real, wp_data->priority);
+                status = Lighting_Output_Present_Value_Set(
+                    wp_data->object_instance, value.type.Real,
+                    wp_data->priority);
                 if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any
@@ -1190,14 +1129,15 @@ bool Lighting_Output_Write_Property(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status =
-                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
+                                           &wp_data->error_class,
+                                           &wp_data->error_code);
                 if (status) {
                     if (wp_data->priority == 6) {
-                        /* Command priority 6 is reserved for use by Minimum On/Off
-                           algorithm and may not be used for other purposes in any
-                           object.  - Note Lighting_Output_Present_Value_Relinquish()
+                        /* Command priority 6 is reserved for use by Minimum
+                           On/Off algorithm and may not be used for other
+                           purposes in any object.  - Note
+                           Lighting_Output_Present_Value_Relinquish()
                            will have returned false because of this */
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -1215,8 +1155,7 @@ bool Lighting_Output_Write_Property(
         case PROP_LIGHTING_COMMAND:
             if (value.tag == BACNET_APPLICATION_TAG_LIGHTING_COMMAND) {
                 status = Lighting_Output_Lighting_Command_Set(
-                    wp_data->object_instance,
-                    &value.type.Lighting_Command);
+                    wp_data->object_instance, &value.type.Lighting_Command);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1229,11 +1168,10 @@ bool Lighting_Output_Write_Property(
         case PROP_OUT_OF_SERVICE:
             status =
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+                                  &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Lighting_Output_Out_Of_Service_Set(
-                    wp_data->object_instance,
-                    value.type.Boolean);
+                Lighting_Output_Out_Of_Service_Set(wp_data->object_instance,
+                                                   value.type.Boolean);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -1270,13 +1208,11 @@ bool Lighting_Output_Write_Property(
  * @param milliseconds - number of milliseconds elapsed since previously
  * called.  Works best when called about every 10 milliseconds.
  */
-static void Lighting_Output_Ramp_Handler(
-    struct lighting_output_object *pLight,
-    BACNET_LIGHTING_COMMAND *pCommand,
-    uint16_t milliseconds)
+static void Lighting_Output_Ramp_Handler(struct lighting_output_object *pLight,
+                                         BACNET_LIGHTING_COMMAND *pCommand,
+                                         uint16_t milliseconds)
 {
     if (pLight && pCommand) {
-
     }
 }
 
@@ -1288,13 +1224,11 @@ static void Lighting_Output_Ramp_Handler(
  * @param milliseconds - number of milliseconds elapsed since previously
  * called.  Works best when called about every 10 milliseconds.
  */
-static void Lighting_Output_Fade_Handler(
-    struct lighting_output_object *pLight,
-    BACNET_LIGHTING_COMMAND *pCommand,
-    uint16_t milliseconds)
+static void Lighting_Output_Fade_Handler(struct lighting_output_object *pLight,
+                                         BACNET_LIGHTING_COMMAND *pCommand,
+                                         uint16_t milliseconds)
 {
     if (pLight && pCommand) {
-
     }
 }
 
@@ -1305,9 +1239,7 @@ static void Lighting_Output_Fade_Handler(
  * @param milliseconds - number of milliseconds elapsed since previously
  * called.  Works best when called about every 10 milliseconds.
  */
-static void Lighting_Output_Timer_Handler(
-    unsigned index,
-    uint16_t milliseconds)
+static void Lighting_Output_Timer_Handler(unsigned index, uint16_t milliseconds)
 {
     struct lighting_output_object *pLight = NULL;
     BACNET_LIGHTING_COMMAND *pCommand = NULL;
@@ -1352,8 +1284,7 @@ static void Lighting_Output_Timer_Handler(
  * @param milliseconds - number of milliseconds elapsed since previously
  * called.  Works best when called about every 10 milliseconds.
  */
-void Lighting_Output_Timer(
-    uint16_t milliseconds)
+void Lighting_Output_Timer(uint16_t milliseconds)
 {
     unsigned i = 0;
 
@@ -1365,8 +1296,7 @@ void Lighting_Output_Timer(
 /**
  * Initializes the Lighting Output object data
  */
-void Lighting_Output_Init(
-    void)
+void Lighting_Output_Init(void)
 {
     unsigned i, p;
 
@@ -1410,11 +1340,9 @@ void Lighting_Output_Init(
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -1424,10 +1352,9 @@ bool WPValidateArgType(
     return false;
 }
 
-void testLightingOutput(
-    Test * pTest)
+void testLightingOutput(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -1454,8 +1381,7 @@ void testLightingOutput(
 }
 
 #ifdef TEST_LIGHTING_OUTPUT
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -1467,7 +1393,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

@@ -37,8 +37,7 @@
 #include "bacdcode.h"
 #include "bactimevalue.h"
 
-int bacapp_encode_time_value(uint8_t * apdu,
-    BACNET_TIME_VALUE * value)
+int bacapp_encode_time_value(uint8_t* apdu, BACNET_TIME_VALUE* value)
 {
     int len;
     int apdu_len = 0;
@@ -52,9 +51,8 @@ int bacapp_encode_time_value(uint8_t * apdu,
     return apdu_len;
 }
 
-int bacapp_encode_context_time_value(uint8_t * apdu,
-    uint8_t tag_number,
-    BACNET_TIME_VALUE * value)
+int bacapp_encode_context_time_value(uint8_t* apdu, uint8_t tag_number,
+                                     BACNET_TIME_VALUE* value)
 {
     int len;
     int apdu_len = 0;
@@ -71,8 +69,7 @@ int bacapp_encode_context_time_value(uint8_t * apdu,
     return apdu_len;
 }
 
-int bacapp_decode_time_value(uint8_t * apdu,
-    BACNET_TIME_VALUE * value)
+int bacapp_decode_time_value(uint8_t* apdu, BACNET_TIME_VALUE* value)
 {
     int len;
     int apdu_len = 0;
@@ -90,9 +87,8 @@ int bacapp_decode_time_value(uint8_t * apdu,
     return apdu_len;
 }
 
-int bacapp_decode_context_time_value(uint8_t * apdu,
-    uint8_t tag_number,
-    BACNET_TIME_VALUE * value)
+int bacapp_decode_context_time_value(uint8_t* apdu, uint8_t tag_number,
+                                     BACNET_TIME_VALUE* value)
 {
     int len = 0;
     int section_length;

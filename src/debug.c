@@ -32,19 +32,17 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>     /* for standard integer types uint8_t etc. */
-#include <stdbool.h>    /* for the standard bool type. */
-#include <stdio.h>      /* Standard I/O */
-#include <stdlib.h>     /* Standard Library */
+#include <stdint.h>  /* for standard integer types uint8_t etc. */
+#include <stdbool.h> /* for the standard bool type. */
+#include <stdio.h>   /* Standard I/O */
+#include <stdlib.h>  /* Standard Library */
 #include <stdarg.h>
 #include "debug.h"
 
 /** @file debug.c  Debug print function */
 
 #if DEBUG_ENABLED
-void debug_printf(
-    const char *format,
-    ...)
+void debug_printf(const char *format, ...)
 {
     va_list ap;
 
@@ -56,9 +54,7 @@ void debug_printf(
     return;
 }
 #else
-void debug_printf(
-    const char *format,
-    ...)
+void debug_printf(const char *format, ...)
 {
     format = format;
 }

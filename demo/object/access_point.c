@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2015 Nikola Jelic <nikola.jelic@euroicc.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Access Point Objects - customize for your use */
 
@@ -32,7 +32,7 @@
 #include "bacdcode.h"
 #include "bacenum.h"
 #include "bacapp.h"
-#include "config.h"     /* the custom stuff */
+#include "config.h" /* the custom stuff */
 #include "wp.h"
 #include "access_point.h"
 #include "handlers.h"
@@ -60,21 +60,14 @@ static const int Properties_Required[] = {
     PROP_ACCESS_EVENT_CREDENTIAL,
     PROP_ACCESS_DOORS,
     PROP_PRIORITY_FOR_WRITING,
-    -1
-};
+    -1};
 
-static const int Properties_Optional[] = {
-    -1
-};
+static const int Properties_Optional[] = {-1};
 
-static const int Properties_Proprietary[] = {
-    -1
-};
+static const int Properties_Proprietary[] = {-1};
 
-void Access_Point_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+void Access_Point_Property_Lists(const int **pRequired, const int **pOptional,
+                                 const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -86,8 +79,7 @@ void Access_Point_Property_Lists(
     return;
 }
 
-void Access_Point_Init(
-    void)
+void Access_Point_Init(void)
 {
     unsigned i;
 
@@ -98,8 +90,7 @@ void Access_Point_Init(
             ap_descr[i].event_state = EVENT_STATE_NORMAL;
             ap_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
             ap_descr[i].out_of_service = false;
-            ap_descr[i].authentication_status =
-                AUTHENTICATION_STATUS_NOT_READY;
+            ap_descr[i].authentication_status = AUTHENTICATION_STATUS_NOT_READY;
             ap_descr[i].active_authentication_policy = 0;
             ap_descr[i].number_of_authentication_policies = 0;
             ap_descr[i].authorization_mode = AUTHORIZATION_MODE_AUTHORIZE;
@@ -108,7 +99,7 @@ void Access_Point_Init(
             /* access_event_credential should be set to some meaningful value */
             ap_descr[i].num_doors = 0;
             /* fill in the access doors with proper ids */
-            ap_descr[i].priority_for_writing = 16;      /* lowest possible for now */
+            ap_descr[i].priority_for_writing = 16; /* lowest possible for now */
         }
     }
 
@@ -118,8 +109,7 @@ void Access_Point_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Access_Point_Valid_Instance(
-    uint32_t object_instance)
+bool Access_Point_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_ACCESS_POINTS)
         return true;
@@ -129,8 +119,7 @@ bool Access_Point_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Access_Point_Count(
-    void)
+unsigned Access_Point_Count(void)
 {
     return MAX_ACCESS_POINTS;
 }
@@ -138,8 +127,7 @@ unsigned Access_Point_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Access_Point_Index_To_Instance(
-    unsigned index)
+uint32_t Access_Point_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -147,8 +135,7 @@ uint32_t Access_Point_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Access_Point_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Access_Point_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCESS_POINTS;
 
@@ -159,24 +146,22 @@ unsigned Access_Point_Instance_To_Index(
 }
 
 /* note: the object name must be unique within this device */
-bool Access_Point_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+bool Access_Point_Object_Name(uint32_t object_instance,
+                              BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32] = "";   /* okay for single thread */
+    static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_ACCESS_POINTS) {
         sprintf(text_string, "ACCESS POINT %lu",
-            (unsigned long) object_instance);
+                (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
     return status;
 }
 
-bool Access_Point_Out_Of_Service(
-    uint32_t instance)
+bool Access_Point_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
     bool oos_flag = false;
@@ -189,9 +174,7 @@ bool Access_Point_Out_Of_Service(
     return oos_flag;
 }
 
-void Access_Point_Out_Of_Service_Set(
-    uint32_t instance,
-    bool oos_flag)
+void Access_Point_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
 
@@ -202,11 +185,10 @@ void Access_Point_Out_Of_Service_Set(
 }
 
 /* return apdu len, or BACNET_STATUS_ERROR on error */
-int Access_Point_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index = 0;
@@ -222,9 +204,8 @@ int Access_Point_Read_Property(
     object_index = Access_Point_Instance_To_Index(rpdata->object_instance);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ACCESS_POINT,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_ACCESS_POINT, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Access_Point_Object_Name(rpdata->object_instance, &char_string);
@@ -245,69 +226,58 @@ int Access_Point_Read_Property(
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ap_descr[object_index].event_state);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ap_descr[object_index].event_state);
             break;
         case PROP_RELIABILITY:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ap_descr[object_index].reliability);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ap_descr[object_index].reliability);
             break;
         case PROP_OUT_OF_SERVICE:
             state = Access_Point_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         case PROP_AUTHENTICATION_STATUS:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ap_descr[object_index].authentication_status);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ap_descr[object_index].authentication_status);
             break;
         case PROP_ACTIVE_AUTHENTICATION_POLICY:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                ap_descr[object_index].active_authentication_policy);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ap_descr[object_index].active_authentication_policy);
             break;
         case PROP_NUMBER_OF_AUTHENTICATION_POLICIES:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
+            apdu_len = encode_application_unsigned(
+                &apdu[0],
                 ap_descr[object_index].number_of_authentication_policies);
             break;
         case PROP_AUTHORIZATION_MODE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ap_descr[object_index].authorization_mode);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ap_descr[object_index].authorization_mode);
             break;
         case PROP_ACCESS_EVENT:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                ap_descr[object_index].access_event);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], ap_descr[object_index].access_event);
             break;
         case PROP_ACCESS_EVENT_TAG:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                ap_descr[object_index].access_event_tag);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], ap_descr[object_index].access_event_tag);
             break;
         case PROP_ACCESS_EVENT_TIME:
-            apdu_len =
-                bacapp_encode_timestamp(&apdu[0],
-                &ap_descr[object_index].access_event_time);
+            apdu_len = bacapp_encode_timestamp(
+                &apdu[0], &ap_descr[object_index].access_event_time);
             break;
         case PROP_ACCESS_EVENT_CREDENTIAL:
-            apdu_len =
-                bacapp_encode_device_obj_ref(&apdu[0],
-                &ap_descr[object_index].access_event_credential);
+            apdu_len = bacapp_encode_device_obj_ref(
+                &apdu[0], &ap_descr[object_index].access_event_credential);
             break;
         case PROP_ACCESS_DOORS:
             if (rpdata->array_index == 0) {
-                apdu_len =
-                    encode_application_unsigned(&apdu[0],
-                    ap_descr[object_index].num_doors);
+                apdu_len = encode_application_unsigned(
+                    &apdu[0], ap_descr[object_index].num_doors);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 0; i < ap_descr[object_index].num_doors; i++) {
-                    len =
-                        bacapp_encode_device_obj_ref(&apdu[0],
-                        &ap_descr[object_index].access_doors[i]);
+                    len = bacapp_encode_device_obj_ref(
+                        &apdu[0], &ap_descr[object_index].access_doors[i]);
                     if (apdu_len + len < MAX_APDU)
                         apdu_len += len;
                     else {
@@ -319,10 +289,9 @@ int Access_Point_Read_Property(
                 }
             } else {
                 if (rpdata->array_index <= ap_descr[object_index].num_doors) {
-                    apdu_len =
-                        bacapp_encode_device_obj_ref(&apdu[0],
-                        &ap_descr[object_index].access_doors[rpdata->
-                            array_index - 1]);
+                    apdu_len = bacapp_encode_device_obj_ref(
+                        &apdu[0], &ap_descr[object_index]
+                                       .access_doors[rpdata->array_index - 1]);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -348,17 +317,15 @@ int Access_Point_Read_Property(
 }
 
 /* returns true if successful */
-bool Access_Point_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(wp_data->application_data,
+                                         wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -404,17 +371,14 @@ bool Access_Point_Write_Property(
     return status;
 }
 
-
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-bool WPValidateArgType(
-    BACNET_APPLICATION_DATA_VALUE * pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS * pErrorClass,
-    BACNET_ERROR_CODE * pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
+                       BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -424,10 +388,9 @@ bool WPValidateArgType(
     return false;
 }
 
-void testAccessPoint(
-    Test * pTest)
+void testAccessPoint(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t apdu[MAX_APDU] = {0};
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;
@@ -454,8 +417,7 @@ void testAccessPoint(
 }
 
 #ifdef TEST_ACCESS_POINT
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -467,7 +429,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

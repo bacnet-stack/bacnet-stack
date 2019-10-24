@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 /**
  * Code for this project began with code from the demo/server project and
  * Paul Chapman's vmac project.
@@ -60,7 +60,8 @@
 #include "vmac.h"
 #endif
 
-/** @file gateway/main.c  Example virtual gateway application using the BACnet Stack. */
+/** @file gateway/main.c  Example virtual gateway application using the BACnet
+ * Stack. */
 
 /* Prototypes */
 
@@ -70,23 +71,20 @@
 /*@{*/
 
 /** Buffer used for receiving */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
 /** The list of DNETs that our router can reach.
  *  Only one entry since we don't support downstream routers.
  */
 int DNET_list[2] = {
-    VIRTUAL_DNET, -1    /* Need -1 terminator */
+    VIRTUAL_DNET, -1 /* Need -1 terminator */
 };
-
-
 
 /** Initialize the Device Objects and each of the child Object instances.
  * @param first_object_instance Set the first (gateway) Device to this
             instance number, and subsequent devices to incremented values.
  */
-static void Devices_Init(
-    uint32_t first_object_instance)
+static void Devices_Init(uint32_t first_object_instance)
 {
     int i;
     char nameText[MAX_DEV_NAME_LEN];
@@ -95,8 +93,7 @@ static void Devices_Init(
 
     /* Gateway Device has already been initialized.
      * But give it a better Description. */
-    Routed_Device_Set_Description(DEV_DESCR_GATEWAY,
-        strlen(DEV_DESCR_GATEWAY));
+    Routed_Device_Set_Description(DEV_DESCR_GATEWAY, strlen(DEV_DESCR_GATEWAY));
 
     /* Now initialize the remote Device objects. */
     for (i = 1; i < MAX_NUM_DEVICES; i++) {
@@ -111,15 +108,12 @@ static void Devices_Init(
 
         Add_Routed_Device((first_object_instance + i), &name_string, descText);
     }
-
 }
-
 
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
-static void Init_Service_Handlers(
-    uint32_t first_object_instance)
+static void Init_Service_Handlers(uint32_t first_object_instance)
 {
     Device_Init(NULL);
     Routing_Device_Init(first_object_instance);
@@ -131,41 +125,40 @@ static void Init_Service_Handlers(
      * each device in turn.
      */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-        handler_who_is_unicast);
+                                 handler_who_is_unicast);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-        handler_read_property_multiple);
+                               handler_read_property_multiple);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        handler_write_property);
+                               handler_write_property);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
-        handler_read_range);
+                               handler_read_range);
 #if defined(BACFILE)
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-        handler_atomic_read_file);
+                               handler_atomic_read_file);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
-        handler_atomic_write_file);
+                               handler_atomic_write_file);
 #endif
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-        handler_reinitialize_device);
+                               handler_reinitialize_device);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-        handler_timesync_utc);
+                                 handler_timesync_utc);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-        handler_timesync);
+                                 handler_timesync);
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
-        handler_cov_subscribe);
+                               handler_cov_subscribe);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-        handler_ucov_notification);
+                                 handler_ucov_notification);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-        handler_device_communication_control);
+                               handler_device_communication_control);
 }
 
 /** Initialize the BACnet Device Addresses for each Device object.
@@ -176,20 +169,19 @@ static void Init_Service_Handlers(
  * device.) This is sure to be unique! The port number stays the same.
  * - For MS/TP, [Steve inserts a good idea here]
  */
-static void Initialize_Device_Addresses(
-    )
+static void Initialize_Device_Addresses()
 {
-    int i = 0;  /* First entry is Gateway Device */
+    int i = 0; /* First entry is Gateway Device */
     uint32_t virtual_mac = 0;
     DEVICE_OBJECT_DATA *pDev = NULL;
     /* Setup info for the main gateway device first */
     pDev = Get_Routed_Device_Object(i);
 #if defined(BACDL_BIP)
     uint16_t myPort;
-    struct in_addr *netPtr;     /* Lets us cast to this type */
+    struct in_addr *netPtr; /* Lets us cast to this type */
     uint8_t *gatewayMac = NULL;
     uint32_t myAddr = bip_get_addr();
-    gatewayMac = pDev->bacDevAddr.mac;  /* Keep pointer to the main MAC */
+    gatewayMac = pDev->bacDevAddr.mac; /* Keep pointer to the main MAC */
     memcpy(pDev->bacDevAddr.mac, &myAddr, 4);
     myPort = bip_get_port();
     memcpy(&pDev->bacDevAddr.mac[4], &myPort, 2);
@@ -209,7 +201,7 @@ static void Initialize_Device_Addresses(
             continue;
 #if defined(BACDL_BIP)
         virtual_mac = i;
-        netPtr = (struct in_addr *) pDev->bacDevAddr.mac;
+        netPtr = (struct in_addr *)pDev->bacDevAddr.mac;
 #if (MAX_NUM_DEVICES > 0xFFFFFF)
         pDev->bacDevAddr.mac[0] = ((virtual_mac & 0xff000000) >> 24);
 #else
@@ -232,14 +224,13 @@ static void Initialize_Device_Addresses(
         memcpy(&pDev->bacDevAddr.adr[0], &pDev->bacDevAddr.mac[0], 6);
         pDev->bacDevAddr.len = 6;
         printf(" - Routed device [%d] ID %u at %s \n", i,
-            pDev->bacObj.Object_Instance_Number, inet_ntoa(*netPtr));
+               pDev->bacObj.Object_Instance_Number, inet_ntoa(*netPtr));
 #elif defined(BACDL_MSTP)
         /* Todo: set MS/TP net and port #s */
         pDev->bacDevAddr.mac_len = 2;
 #endif
         /* broadcast an I-Am for each routed Device now */
         Send_I_Am(&Handler_Transmit_Buffer[0]);
-
     }
 }
 
@@ -255,15 +246,11 @@ static void Initialize_Device_Addresses(
  * @param argv [in] Takes one argument: the Device Instance #.
  * @return 0 on success.
  */
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 1000;    /* milliseconds */
+    unsigned timeout = 1000; /* milliseconds */
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
@@ -282,13 +269,16 @@ int main(
             (first_object_instance >= BACNET_MAX_INSTANCE)) {
             printf("Error: Invalid Object Instance %s \n", argv[1]);
             printf("Provide a number from 1 to %ul \n",
-                BACNET_MAX_INSTANCE - 1);
+                   BACNET_MAX_INSTANCE - 1);
             exit(1);
         }
     }
-    printf("BACnet Router Demo\n" "BACnet Stack Version %s\n"
-        "BACnet Device ID: %u\n" "Max APDU: %d\n", BACnet_Version,
-        first_object_instance, MAX_APDU);
+    printf(
+        "BACnet Router Demo\n"
+        "BACnet Stack Version %s\n"
+        "BACnet Device ID: %u\n"
+        "Max APDU: %d\n",
+        BACnet_Version, first_object_instance, MAX_APDU);
     Init_Service_Handlers(first_object_instance);
     dlenv_init();
     atexit(datalink_cleanup);

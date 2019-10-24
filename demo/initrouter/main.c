@@ -1,34 +1,34 @@
 /**************************************************************************
-*
-* Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* command line tool that sends a BACnet service, and displays the reply */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>       /* for time */
+#include <time.h> /* for time */
 #include <errno.h>
 #include "bactext.h"
 #include "iam.h"
@@ -52,53 +52,46 @@
 #include "dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU] = {0};
 
 /* target address */
 static BACNET_ADDRESS Target_Router_Address;
 /* static BACNET_ROUTER_PORT *Target_Router_Port_List; */
 
-#define VIRTUAL_DNET  2709      /* your choice of number here */
+#define VIRTUAL_DNET 2709 /* your choice of number here */
 /** The list of DNETs that our router can reach.
  *  Only one entry since we don't support downstream routers.
  */
 int DNET_list[2] = {
-    VIRTUAL_DNET, -1    /* Need -1 terminator */
+    VIRTUAL_DNET, -1 /* Need -1 terminator */
 };
 
 static bool Error_Detected = false;
 
-static void MyAbortHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t abort_reason,
-    bool server)
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                           uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
-    (void) server;
+    (void)src;
+    (void)invoke_id;
+    (void)server;
     printf("BACnet Abort: %s\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
-static void MyRejectHandler(
-    BACNET_ADDRESS * src,
-    uint8_t invoke_id,
-    uint8_t reject_reason)
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+                            uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
-    (void) src;
-    (void) invoke_id;
+    (void)src;
+    (void)invoke_id;
     printf("BACnet Reject: %s\n", bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
-static void My_Router_Handler(
-    BACNET_ADDRESS * src,
-    BACNET_NPDU_DATA * npdu_data,
-    uint8_t * npdu,     /* PDU data */
-    uint16_t npdu_len)
+static void My_Router_Handler(BACNET_ADDRESS *src, BACNET_NPDU_DATA *npdu_data,
+                              uint8_t *npdu, /* PDU data */
+                              uint16_t npdu_len)
 {
     uint16_t npdu_offset = 0;
     uint16_t dnet = 0;
@@ -183,20 +176,19 @@ static void My_Router_Handler(
     }
 }
 
-static void My_NPDU_Handler(
-    BACNET_ADDRESS * src,       /* source address */
-    uint8_t * pdu,      /* PDU data */
-    uint16_t pdu_len)
-{       /* length PDU  */
+static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
+                            uint8_t *pdu,        /* PDU data */
+                            uint16_t pdu_len)
+{ /* length PDU  */
     int apdu_offset = 0;
-    BACNET_ADDRESS dest = { 0 };
-    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_ADDRESS dest = {0};
+    BACNET_NPDU_DATA npdu_data = {0};
 
     apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);
     if (npdu_data.network_layer_message) {
         if (apdu_offset <= pdu_len) {
             My_Router_Handler(src, &npdu_data, &pdu[apdu_offset],
-                (uint16_t) (pdu_len - apdu_offset));
+                              (uint16_t)(pdu_len - apdu_offset));
         }
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
         if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
@@ -205,13 +197,13 @@ static void My_NPDU_Handler(
             /* and we are not a router, so ignore messages with
                routing information cause they are not for us */
             apdu_handler(src, &pdu[apdu_offset],
-                (uint16_t) (pdu_len - apdu_offset));
+                         (uint16_t)(pdu_len - apdu_offset));
         } else {
             if (dest.net) {
                 debug_printf("NPDU: DNET=%d.  Discarded!\n", dest.net);
             } else {
                 debug_printf("NPDU: BACnet Protocol Version=%d.  Discarded!\n",
-                    npdu_data.protocol_version);
+                             npdu_data.protocol_version);
             }
         }
     }
@@ -219,8 +211,7 @@ static void My_NPDU_Handler(
     return;
 }
 
-static void Init_Service_Handlers(
-    void)
+static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is
@@ -228,11 +219,10 @@ static void Init_Service_Handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
     /* handle any errors coming back */
@@ -248,23 +238,27 @@ static void print_usage(char *filename)
 
 static void print_help(char *filename)
 {
-    printf("Send BACnet Initialize-Routing-Table message to a network\n"
+    printf(
+        "Send BACnet Initialize-Routing-Table message to a network\n"
         "and wait for responses.  Displays their network information.\n"
-        "\n" "address:\n"
+        "\n"
+        "address:\n"
         "MAC address in xx:xx:xx:xx:xx:xx format or IP x.x.x.x:port\n"
-        "DNET ID Len Info:\n" "Port-info data:\n" "   DNET:\n"
-        "   Destination network number 0-65534\n" "   ID:\n"
-        "   Port Identifier number 0-255\n" "   Info:\n"
+        "DNET ID Len Info:\n"
+        "Port-info data:\n"
+        "   DNET:\n"
+        "   Destination network number 0-65534\n"
+        "   ID:\n"
+        "   Port Identifier number 0-255\n"
+        "   Info:\n"
         "   Octet string of data, up to 255 octets\n"
         "To query the complete routing table, do not include any port-info.\n"
         "To query using Initialize-Routing-Table message to 192.168.0.18:\n"
-        "%s 192.168.0.18:47808\n", filename);
+        "%s 192.168.0.18:47808\n",
+        filename);
 }
 
-static void address_parse(
-    BACNET_ADDRESS * dst,
-    int argc,
-    char *argv[])
+static void address_parse(BACNET_ADDRESS *dst, int argc, char *argv[])
 {
     unsigned mac[6];
     unsigned port;
@@ -272,9 +266,8 @@ static void address_parse(
     int index = 0;
 
     if (argc > 0) {
-        count =
-            sscanf(argv[0], "%u.%u.%u.%u:%u", &mac[0], &mac[1], &mac[2],
-            &mac[3], &port);
+        count = sscanf(argv[0], "%u.%u.%u.%u:%u", &mac[0], &mac[1], &mac[2],
+                       &mac[3], &port);
         if (count == 5) {
             dst->mac_len = 6;
             for (index = 0; index < 4; index++) {
@@ -282,9 +275,8 @@ static void address_parse(
             }
             encode_unsigned16(&dst->mac[4], port);
         } else {
-            count =
-                sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1], &mac[2],
-                &mac[3], &mac[4], &mac[5]);
+            count = sscanf(argv[0], "%x:%x:%x:%x:%x:%x", &mac[0], &mac[1],
+                           &mac[2], &mac[3], &mac[4], &mac[5]);
             dst->mac_len = count;
             for (index = 0; index < MAX_MAC_LEN; index++) {
                 if (index < count) {
@@ -302,15 +294,11 @@ static void address_parse(
     }
 }
 
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = {0}; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100;     /* milliseconds */
+    unsigned timeout = 100; /* milliseconds */
     time_t total_seconds = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
@@ -328,8 +316,10 @@ int main(
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying conditions.\n"
+            printf(
+                "Copyright (C) 2014 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);

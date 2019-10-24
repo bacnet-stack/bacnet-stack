@@ -1,34 +1,34 @@
 /**************************************************************************
-*
-* Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* command line tool that sends a BACnet service */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>       /* for time */
+#include <time.h> /* for time */
 #include <errno.h>
 #include "bactext.h"
 #include "iam.h"
@@ -52,8 +52,7 @@
 #include "txbuf.h"
 #include "dlenv.h"
 
-static void Init_Service_Handlers(
-    void)
+static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is
@@ -63,16 +62,16 @@ static void Init_Service_Handlers(
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
     /* set the handler for all the services we don't implement
        It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
+                               handler_read_property);
 }
 
 static void print_usage(char *filename)
 {
-    printf("Usage: %s pid object-type object-instance \n"
+    printf(
+        "Usage: %s pid object-type object-instance \n"
         "    event-object-type event-object-instance \n"
         "    sequence-number notification-class priority event-type\n"
         "    [reference-bit-string status-flags message notify-type\n"
@@ -87,7 +86,8 @@ static void print_usage(char *filename)
 static void print_help(char *filename)
 {
     printf("Send BACnet UnconfirmedEventNotification message for a device.\n");
-    printf("--mac A\n"
+    printf(
+        "--mac A\n"
         "Optional BACnet mac address."
         "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
         "or an IP string with optional port number like 10.1.2.3:47808\n"
@@ -99,25 +99,24 @@ static void print_help(char *filename)
         "and 65535 is network broadcast.\n"
         "\n"
         "--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network number.\n"
+        "Optional BACnet mac address on the destination BACnet network "
+        "number.\n"
         "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
         "or an IP string with optional port number like 10.1.2.3:47808\n"
         "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
         "\n");
 }
 
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
     BACNET_EVENT_NOTIFICATION_DATA event_data = {0};
     BACNET_BIT_STRING *pBitString;
     BACNET_CHARACTER_STRING bcstring;
     BACNET_PROPERTY_STATE_TYPE tag = BOOLEAN_VALUE;
     long dnet = -1;
-    BACNET_MAC_ADDRESS mac = { 0 };
-    BACNET_MAC_ADDRESS adr = { 0 };
-    BACNET_ADDRESS dest = { 0 };
+    BACNET_MAC_ADDRESS mac = {0};
+    BACNET_MAC_ADDRESS adr = {0};
+    BACNET_ADDRESS dest = {0};
     bool specific_address = false;
     int argi = 0;
     unsigned int target_args = 0;
@@ -132,8 +131,10 @@ int main(
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2016 by Steve Karg and others.\n"
-                "This is free software; see the source for copying conditions.\n"
+            printf(
+                "Copyright (C) 2016 by Steve Karg and others.\n"
+                "This is free software; see the source for copying "
+                "conditions.\n"
                 "There is NO warranty; not even for MERCHANTABILITY or\n"
                 "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
@@ -183,8 +184,7 @@ int main(
                     strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 6) {
-                event_data.notificationClass =
-                    strtol(argv[argi], NULL, 0);
+                event_data.notificationClass = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 7) {
                 event_data.priority = strtol(argv[argi], NULL, 0);
@@ -195,11 +195,14 @@ int main(
             } else {
                 if (event_data.eventType == EVENT_CHANGE_OF_BITSTRING) {
                     if (target_args == 9) {
-                        pBitString = &event_data.notificationParams.changeOfBitstring.referencedBitString;
+                        pBitString =
+                            &event_data.notificationParams.changeOfBitstring
+                                 .referencedBitString;
                         bitstring_init_ascii(pBitString, argv[argi]);
                         target_args++;
                     } else if (target_args == 10) {
-                        pBitString = &event_data.notificationParams.changeOfBitstring.statusFlags;
+                        pBitString = &event_data.notificationParams
+                                          .changeOfBitstring.statusFlags;
                         bitstring_init_ascii(pBitString, argv[argi]);
                         target_args++;
                     } else if (target_args == 11) {
@@ -225,50 +228,61 @@ int main(
                 } else if (event_data.eventType == EVENT_CHANGE_OF_STATE) {
                     if (target_args == 9) {
                         tag = strtol(argv[argi], NULL, 0);
-                        event_data.notificationParams.changeOfState.newState.tag = tag;
+                        event_data.notificationParams.changeOfState.newState
+                            .tag = tag;
                         target_args++;
                     } else if (target_args == 10) {
                         if (tag == BOOLEAN_VALUE) {
-                            event_data.notificationParams.changeOfState.newState.state.booleanValue =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.booleanValue =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == BINARY_VALUE) {
-                            event_data.notificationParams.changeOfState.newState.state.binaryValue =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.binaryValue =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == EVENT_TYPE) {
-                            event_data.notificationParams.changeOfState.newState.state.eventType =
-                                strtol(argv[argi], NULL, 0);
+                            event_data.notificationParams.changeOfState.newState
+                                .state.eventType = strtol(argv[argi], NULL, 0);
                         } else if (tag == POLARITY) {
-                            event_data.notificationParams.changeOfState.newState.state.polarity =
-                                strtol(argv[argi], NULL, 0);
+                            event_data.notificationParams.changeOfState.newState
+                                .state.polarity = strtol(argv[argi], NULL, 0);
                         } else if (tag == PROGRAM_CHANGE) {
-                            event_data.notificationParams.changeOfState.newState.state.programChange =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.programChange =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == PROGRAM_STATE) {
-                            event_data.notificationParams.changeOfState.newState.state.programState =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.programState =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == REASON_FOR_HALT) {
-                            event_data.notificationParams.changeOfState.newState.state.programError =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.programError =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == RELIABILITY) {
-                            event_data.notificationParams.changeOfState.newState.state.reliability =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.reliability =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == STATE) {
-                            event_data.notificationParams.changeOfState.newState.state.state =
-                                strtol(argv[argi], NULL, 0);
+                            event_data.notificationParams.changeOfState.newState
+                                .state.state = strtol(argv[argi], NULL, 0);
                         } else if (tag == SYSTEM_STATUS) {
-                            event_data.notificationParams.changeOfState.newState.state.systemStatus =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.systemStatus =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == UNITS) {
-                            event_data.notificationParams.changeOfState.newState.state.units =
-                                strtol(argv[argi], NULL, 0);
+                            event_data.notificationParams.changeOfState.newState
+                                .state.units = strtol(argv[argi], NULL, 0);
                         } else if (tag == UNSIGNED_VALUE) {
-                            event_data.notificationParams.changeOfState.newState.state.unsignedValue =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.unsignedValue =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == LIFE_SAFETY_MODE) {
-                            event_data.notificationParams.changeOfState.newState.state.lifeSafetyMode =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.lifeSafetyMode =
                                 strtol(argv[argi], NULL, 0);
                         } else if (tag == LIFE_SAFETY_STATE) {
-                            event_data.notificationParams.changeOfState.newState.state.lifeSafetyState =
+                            event_data.notificationParams.changeOfState.newState
+                                .state.lifeSafetyState =
                                 strtol(argv[argi], NULL, 0);
                         } else {
                             printf("Invalid Change-Of-State Tag\n");
@@ -276,7 +290,8 @@ int main(
                         }
                         target_args++;
                     } else if (target_args == 11) {
-                        pBitString = &event_data.notificationParams.changeOfBitstring.statusFlags;
+                        pBitString = &event_data.notificationParams
+                                          .changeOfBitstring.statusFlags;
                         bitstring_init_ascii(pBitString, argv[argi]);
                         target_args++;
                     } else if (target_args == 12) {
@@ -303,7 +318,8 @@ int main(
                 } else if (event_data.eventType == EVENT_COMMAND_FAILURE) {
                 } else if (event_data.eventType == EVENT_FLOATING_LIMIT) {
                 } else if (event_data.eventType == EVENT_OUT_OF_RANGE) {
-                } else if (event_data.eventType == EVENT_CHANGE_OF_LIFE_SAFETY) {
+                } else if (event_data.eventType ==
+                           EVENT_CHANGE_OF_LIFE_SAFETY) {
                 } else if (event_data.eventType == EVENT_EXTENDED) {
                 } else if (event_data.eventType == EVENT_BUFFER_READY) {
                 } else if (event_data.eventType == EVENT_UNSIGNED_RANGE) {

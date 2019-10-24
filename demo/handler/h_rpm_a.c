@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2008 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -53,16 +53,14 @@
  * 			where the RPM data is to be stored.
  * @return The number of bytes decoded, or -1 on error
  */
-int rpm_ack_decode_service_request(
-    uint8_t * apdu,
-    int apdu_len,
-    BACNET_READ_ACCESS_DATA * read_access_data)
+int rpm_ack_decode_service_request(uint8_t *apdu, int apdu_len,
+                                   BACNET_READ_ACCESS_DATA *read_access_data)
 {
-    int decoded_len = 0;        /* return value */
-    uint32_t error_value = 0;   /* decoded error value */
-    int len = 0;        /* number of bytes returned from decoding */
-    uint8_t tag_number = 0;     /* decoded tag number */
-    uint32_t len_value = 0;     /* decoded length value */
+    int decoded_len = 0;      /* return value */
+    uint32_t error_value = 0; /* decoded error value */
+    int len = 0;              /* number of bytes returned from decoding */
+    uint8_t tag_number = 0;   /* decoded tag number */
+    uint32_t len_value = 0;   /* decoded length value */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -74,9 +72,8 @@ int rpm_ack_decode_service_request(
     rpm_object = read_access_data;
     old_rpm_object = rpm_object;
     while (rpm_object && apdu_len) {
-        len =
-            rpm_ack_decode_object_id(apdu, apdu_len, &rpm_object->object_type,
-            &rpm_object->object_instance);
+        len = rpm_ack_decode_object_id(apdu, apdu_len, &rpm_object->object_type,
+                                       &rpm_object->object_instance);
         if (len <= 0) {
             old_rpm_object->next = NULL;
             free(rpm_object);
@@ -89,9 +86,8 @@ int rpm_ack_decode_service_request(
         rpm_object->listOfProperties = rpm_property;
         old_rpm_property = rpm_property;
         while (rpm_property && apdu_len) {
-            len =
-                rpm_ack_decode_object_property(apdu, apdu_len,
-                &rpm_property->propertyIdentifier,
+            len = rpm_ack_decode_object_property(
+                apdu, apdu_len, &rpm_property->propertyIdentifier,
                 &rpm_property->propertyArrayIndex);
             if (len <= 0) {
                 old_rpm_property->next = NULL;
@@ -117,13 +113,12 @@ int rpm_ack_decode_service_request(
                 old_value = value;
                 while (value && (apdu_len > 0)) {
                     if (IS_CONTEXT_SPECIFIC(*apdu)) {
-                        len =
-                            bacapp_decode_context_data(apdu, apdu_len, value,
+                        len = bacapp_decode_context_data(
+                            apdu, apdu_len, value,
                             rpm_property->propertyIdentifier);
                     } else {
-                        len =
-                            bacapp_decode_application_data(apdu, apdu_len,
-                            value);
+                        len = bacapp_decode_application_data(apdu, apdu_len,
+                                                             value);
                     }
                     /* If len == 0 then it's an empty structure, which is OK. */
                     if (len < 0) {
@@ -201,10 +196,9 @@ int rpm_ack_decode_service_request(
 }
 
 /* for debugging... */
-void rpm_ack_print_data(
-    BACNET_READ_ACCESS_DATA * rpm_data)
+void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
 {
-    BACNET_OBJECT_PROPERTY_VALUE object_value;  /* for bacapp printing */
+    BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
     BACNET_PROPERTY_REFERENCE *listOfProperties;
     BACNET_APPLICATION_DATA_VALUE *value;
     bool array_value = false;
@@ -212,8 +206,8 @@ void rpm_ack_print_data(
     if (rpm_data) {
 #if PRINT_ENABLED
         fprintf(stdout, "%s #%lu\r\n",
-            bactext_object_type_name(rpm_data->object_type),
-            (unsigned long) rpm_data->object_instance);
+                bactext_object_type_name(rpm_data->object_type),
+                (unsigned long)rpm_data->object_instance);
         fprintf(stdout, "{\r\n");
 #endif
         listOfProperties = rpm_data->listOfProperties;
@@ -221,11 +215,11 @@ void rpm_ack_print_data(
 #if PRINT_ENABLED
             if (listOfProperties->propertyIdentifier < 512) {
                 fprintf(stdout, "    %s: ",
-                    bactext_property_name(listOfProperties->
-                        propertyIdentifier));
+                        bactext_property_name(
+                            listOfProperties->propertyIdentifier));
             } else {
                 fprintf(stdout, "    proprietary %u: ",
-                    (unsigned) listOfProperties->propertyIdentifier);
+                        (unsigned)listOfProperties->propertyIdentifier);
             }
 #endif
             if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
@@ -269,10 +263,10 @@ void rpm_ack_print_data(
 #if PRINT_ENABLED
                 /* AccessError */
                 fprintf(stdout, "BACnet Error: %s: %s\r\n",
-                    bactext_error_class_name((int) listOfProperties->
-                        error.error_class),
-                    bactext_error_code_name((int) listOfProperties->
-                        error.error_code));
+                        bactext_error_class_name(
+                            (int)listOfProperties->error.error_class),
+                        bactext_error_code_name(
+                            (int)listOfProperties->error.error_code));
 #endif
             }
             listOfProperties = listOfProperties->next;
@@ -295,10 +289,8 @@ void rpm_ack_print_data(
  *                          decoded from the APDU header of this message.
  */
 void handler_read_property_multiple_ack(
-    uint8_t * service_request,
-    uint16_t service_len,
-    BACNET_ADDRESS * src,
-    BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data)
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
     BACNET_READ_ACCESS_DATA *rpm_data;
@@ -308,14 +300,13 @@ void handler_read_property_multiple_ack(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
 
-    (void) src;
-    (void) service_data;        /* we could use these... */
+    (void)src;
+    (void)service_data; /* we could use these... */
 
     rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
     if (rpm_data) {
-        len =
-            rpm_ack_decode_service_request(service_request, service_len,
-            rpm_data);
+        len = rpm_ack_decode_service_request(service_request, service_len,
+                                             rpm_data);
     }
 #if 1
     fprintf(stderr, "Received Read-Property-Multiple Ack!\n");
