@@ -35,10 +35,10 @@
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
 
-#include "net.h"
-#include "bacdef.h"
-#include "ethernet.h"
-#include "bacint.h"
+#include "bacport.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/datalink/ethernet.h"
+#include "bacnet/bacint.h"
 
 /** @file linux/ethernet.c  Provides Linux-specific functions for BACnet/Ethernet. */
 

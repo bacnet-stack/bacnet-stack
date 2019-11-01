@@ -33,7 +33,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "tc.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* define which timer counter we are using */
 #define MY_TIMER TCE0

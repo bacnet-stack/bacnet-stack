@@ -34,14 +34,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bits.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "dcc.h"
-#include "handlers.h"
+#include "bacnet/bits.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/dcc.h"
+#include "bacnet/basic/services.h"
 /* me */
-#include "apdu.h"
+#include "bacnet/apdu.h"
 
 uint16_t apdu_timeout(
     void)

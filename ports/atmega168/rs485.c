@@ -31,11 +31,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-/*#include "mstp.h" */
+/*#include "bacnet/datalink/mstp.h" */
 
 /* This file has been customized for use with ATMEGA168 */
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* Timers for turning off the TX,RX LED indications */
 static uint8_t LED1_Off_Timer;

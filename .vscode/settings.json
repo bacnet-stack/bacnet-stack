@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "address.h": "c",
+        "config.h": "c",
+        "bacdef.h": "c",
+        "ms-input.h": "c",
+        "msv.h": "c",
+        "nc.h": "c",
+        "bacdcode.h": "c",
+        "access_credential.h": "c"
+    }
+}

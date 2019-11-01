@@ -37,10 +37,10 @@
 #include <stdlib.h>
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
-#include "bacdcode.h"
-#include "config.h"
-#include "bip.h"
-#include "net.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/config.h"
+#include "bacnet/datalink/bip.h"
+#include "bacport.h"
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "Ws2_32.lib")

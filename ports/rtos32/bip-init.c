@@ -34,8 +34,8 @@
 
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
-#include "bacdcode.h"
-#include "bip.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/datalink/bip.h"
 
 static int interface = SOCKET_ERROR;    /* SOCKET_ERROR means no open interface */
 

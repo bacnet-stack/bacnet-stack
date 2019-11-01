@@ -27,15 +27,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "config.h"
-#include "txbuf.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "whois.h"
-#include "iam.h"
-#include "device.h"
-#include "client.h"
-#include "txbuf.h"
+#include "bacnet/config.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/whois.h"
+#include "bacnet/iam.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
 
 bool Send_I_Am_Flag = true;
 

@@ -34,10 +34,10 @@
 
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
-#include "bacdcode.h"
-#include "bip.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/datalink/bip.h"
 #include "eth.h"
-#include "net.h"        /* custom per port */
+#include "bacport.h"        /* custom per port */
 
 static int BIP_Socket = -1;
 /* port to use - stored in host byte order */

@@ -24,9 +24,9 @@
 *********************************************************************/
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
-#include "bacdef.h"
-#include "ethernet.h"
-#include "bacint.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/datalink/ethernet.h"
+#include "bacnet/bacint.h"
 #include "hardware.h"
 
 /** @file rx62n/ethernet.c  Provides Renesas RX62N-specific functions

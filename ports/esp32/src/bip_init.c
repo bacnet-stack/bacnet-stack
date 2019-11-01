@@ -8,7 +8,7 @@
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
 
-#include "bip.h"
+#include "bacnet/datalink/bip.h"
 
 long bip_getaddrbyname(
     const char *host_name)

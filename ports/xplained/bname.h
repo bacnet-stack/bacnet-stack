@@ -25,7 +25,7 @@
 #define BACNET_NAME_H
 
 #include <stdint.h>
-#include "bacstr.h"
+#include "bacnet/bacstr.h"
 
 #ifdef __cplusplus
 extern "C" {

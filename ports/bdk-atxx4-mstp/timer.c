@@ -23,7 +23,7 @@
 *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* generic elapsed timer handling */
 /* interval not to exceed 49.7 days */

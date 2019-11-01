@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 #ifndef F_CPU
 #error "F_CPU must be defined for Timer configuration."

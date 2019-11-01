@@ -1,4 +1,4 @@
-# Main Makefile for BACnet-stack project with GCC
+# Main Makefile for BACnet-stack example applications using GCC
 
 # tools - only if you need them.
 # Most platforms have this already defined
@@ -20,28 +20,52 @@ MY_BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 MY_BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=17
 BACNET_DEFINES ?= $(MY_BACNET_DEFINES)
 
-# un-comment the next line to build in uci integration
-#BACNET_DEFINES += -DBAC_UCI
-#UCI_LIB_DIR ?= /usr/local/lib
+# build in uci integration
+ifeq (${UCI},1)
+BACNET_DEFINES += -DBAC_UCI
+UCI_LIB_DIR ?= /usr/local/lib
+endif
 
-#BACDL_DEFINE=-DBACDL_ETHERNET=1
-#BACDL_DEFINE=-DBACDL_ARCNET=1
-#BACDL_DEFINE=-DBACDL_MSTP=1
-BACDL_DEFINE?=-DBACDL_BIP=1
+# choose a datalink to build the example applications
+ifeq (${BACDL},ethernet)
+BACDL_DEFINE=-DBACDL_ETHERNET=1
+endif
+ifeq (${BACDL},arcnet)
+BACDL_DEFINE=-DBACDL_ARCNET=1
+endif
+ifeq (${BACDL},mstp)
+BACDL_DEFINE=-DBACDL_MSTP=1
+endif
+ifeq (${BACDL},bip)
+BACDL_DEFINE=-DBACDL_BIP=1
+endif
+ifeq (${BACDL},bip6)
+BACDL_DEFINE=-DBACDL_BIP6=1
+endif
+ifeq (${BACDL},)
+BACDL_DEFINE ?= -DBACDL_BIP=1
+BBMD_DEFINE ?= -DBBMD_ENABLED=1
+endif
 
-# Declare your level of BBMD support
-BBMD_DEFINE ?=-DBBMD_ENABLED=1
-#BBMD_DEFINE ?= -DBBMD_ENABLED=0
-#BBMD_DEFINE ?= -DBBMD_CLIENT_ENABLED
+ifeq (${BBMD},server)
+BBMD_DEFINE=-DBBMD_ENABLED=1
+endif
+ifeq (${BBMD},client)
+BBMD_DEFINE=-DBBMD_ENABLED=1
+BBMD_DEFINE=-DBBMD_CLIENT_ENABLED
+endif
 
 # Passing parameters via command line
 MAKE_DEFINE ?=
 
 # Define WEAK_FUNC for [...somebody help here; I can't find any uses of it]
-DEFINES = $(BACNET_DEFINES) $(BACDL_DEFINE) $(BBMD_DEFINE) -DWEAK_FUNC=
-DEFINES += $(MAKE_DEFINE)
+BACNET_DEFINES += $(BACDL_DEFINE)
+BACNET_DEFINES += $(BBMD_DEFINE)
+BACNET_DEFINES += -DWEAK_FUNC=
+BACNET_DEFINES += $(MAKE_DEFINE)
 
-# BACnet Ports Directory
+# Choose a BACnet Ports Directory for the example applications target OS
+# linux, win32, bsd
 BACNET_PORT ?= linux
 
 # Default compiler settings
@@ -55,53 +79,51 @@ ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 DEFINES += -DBIP_DEBUG
 endif
 endif
-CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DEFINES)
 
 # Export the variables defined here to all subprocesses
 # (see http://www.gnu.org/software/automake/manual/make/Special-Targets.html)
 .EXPORT_ALL_VARIABLES:
 
-all: library demos router-ipv6 ${DEMO_LINUX}
-.PHONY : all library demos router gateway router-ipv6 clean test
+# all: demos router-ipv6 ${DEMO_LINUX}
 
-library:
-	$(MAKE) -s -C lib all
+all: server
+.PHONY : all apps router gateway router-ipv6 clean test
 
-demos:
-	$(MAKE) -C demo all
+apps:
+	$(MAKE) -C apps all
 
 gateway:
-	$(MAKE) -B -s -C demo gateway
+	$(MAKE) -B -s -C apps gateway
 
 server:
-	$(MAKE) -j -B -C demo server
+	$(MAKE) -j -s -B -C apps server
 
 mstpcap:
-	$(MAKE) -B -C demo mstpcap
+	$(MAKE) -B -C apps mstpcap
 
-mstpcrc: library
-	$(MAKE) -B -C demo mstpcrc
+mstpcrc:
+	$(MAKE) -B -C apps mstpcrc
 
 iam:
-	$(MAKE) -B -C demo iam
+	$(MAKE) -B -C apps iam
 
 uevent:
-	$(MAKE) -B -C demo uevent
+	$(MAKE) -B -C apps uevent
 
 writepropm:
-	$(MAKE) -s -B -C demo writepropm
+	$(MAKE) -s -B -C apps writepropm
 
 abort:
-	$(MAKE) -B -C demo abort
+	$(MAKE) -B -C apps abort
 
 error:
-	$(MAKE) -B -C demo error
+	$(MAKE) -B -C apps error
 
-router: library
-	$(MAKE) -s -C demo router
+router:
+	$(MAKE) -s -C apps router
 
-router-ipv6: library
-	$(MAKE) -B -s -C demo router-ipv6
+router-ipv6:
+	$(MAKE) -B -s -C apps router-ipv6
 
 # Add "ports" to the build, if desired
 ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x
@@ -123,22 +145,20 @@ bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 	$(MAKE) -s -C ports/bdk-atxx4-mstp clean all
 
 pretty:
-	find ./src -iname *.h -o -iname *.c -exec clang-format -i -style=file -fallback-style=none {} \;
-	find ./include -iname *.h -o -iname *.c -exec clang-format -i -style=file -fallback-style=none {} \;
-	find ./demo -iname *.h -o -iname *.c -exec clang-format -i -style=file -fallback-style=none {} \;
+	find ./src -iname *.h -o -iname *.c -exec \
+	clang-format -i -style=file -fallback-style=none {} \;
+	find ./apps -iname *.h -o -iname *.c -exec \
+	clang-format -i -style=file -fallback-style=none {} \;
 
 clean:
-	$(MAKE) -s -C lib clean
-	$(MAKE) -s -C demo clean
-	$(MAKE) -s -C demo/router clean
-	$(MAKE) -s -C demo/router-ipv6 clean
-	$(MAKE) -s -C demo/gateway clean
+	$(MAKE) -s -C src clean
+	$(MAKE) -s -C apps clean
+	$(MAKE) -s -C apps/router clean
+	$(MAKE) -s -C apps/router-ipv6 clean
+	$(MAKE) -s -C apps/gateway clean
 
 test:
 	$(MAKE) -s -C test clean
 	$(MAKE) -s -C test all
 	$(MAKE) -s -C test report
-	$(MAKE) -s -C demo/object clean
-	$(MAKE) -s -C demo/object all
-	$(MAKE) -s -C demo/object report
 

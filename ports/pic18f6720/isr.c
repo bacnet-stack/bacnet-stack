@@ -25,7 +25,7 @@
 #include "stdint.h"
 #include "hardware.h"
 #include "rs485.h"
-#include "dlmstp.h"
+#include "bacnet/datalink/dlmstp.h"
 
 /* from main.c */
 extern volatile uint8_t Milliseconds;

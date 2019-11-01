@@ -25,21 +25,21 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacstr.h"
-#include "bacenum.h"
-#include "apdu.h"
-#include "dcc.h"
-#include "dlmstp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/apdu.h"
+#include "bacnet/dcc.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
-#include "version.h"
+#include "bacnet/version.h"
 #include "stack.h"
 /* objects */
-#include "device.h"
-#include "av.h"
-#include "bv.h"
-#include "wp.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bv.h"
+#include "bacnet/wp.h"
 
 /* note: you really only need to define variables for
    properties that are writable or that may change.

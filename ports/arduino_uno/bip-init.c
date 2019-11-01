@@ -35,11 +35,11 @@
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
 #include <stdio.h>
-#include "bacdcode.h"
-#include "bip.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/datalink/bip.h"
 #include "socketWrapper.h"
 #include "w5100Wrapper.h"
-//#include "net.h"
+//#include "bacport.h"
 
 /** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
 

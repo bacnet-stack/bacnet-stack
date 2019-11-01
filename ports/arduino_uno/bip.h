@@ -27,8 +27,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacdef.h"
-#include "npdu.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/npdu.h"
 
 /* specific defines for BACnet/IP over Ethernet */
 #define MAX_HEADER (1 + 1 + 2)

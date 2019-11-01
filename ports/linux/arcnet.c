@@ -33,10 +33,10 @@
 ####COPYRIGHTEND####*/
 
 #include <stdint.h>
-#include "bacdef.h"
-#include "npdu.h"
-#include "arcnet.h"
-#include "net.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/npdu.h"
+#include "bacnet/datalink/arcnet.h"
+#include "bacport.h"
 
 /** @file linux/arcnet.c  Provides Linux-specific functions for Arcnet. */
 

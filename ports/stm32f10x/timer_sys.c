@@ -28,8 +28,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
-#include "debug.h"
+#include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/sys/debug.h"
 
 /* counter for the various timers */
 static volatile uint32_t Millisecond_Counter;

@@ -48,13 +48,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "mstp.h"
-#include "dlmstp.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/datalink/dlmstp.h"
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
 #include "rs485.h"
-#include "fifo.h"
+#include "bacnet/basic/sys/fifo.h"
 
 /* details from Serial Communications in Win32 at MSDN */
 
@@ -511,7 +511,7 @@ void RS485_Print_Ports(
 
 #ifdef TEST_RS485
 
-#include "mstpdef.h"
+#include "bacnet/datalink/mstpdef.h"
 
 
 static void test_transmit_task(

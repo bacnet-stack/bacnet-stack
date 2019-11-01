@@ -22,15 +22,17 @@ Add the line
 to `~/.emacs.d/init.el`. Format a source file with `M-x clang-format-region`.
 
 ### CLion
-* Add the .clang-format file to the Kratos root directory as 
-  explained aboveGo to File->Settings->Tools->External Tools 
+* Add the .clang-format file to the root directory as 
+  explained above.  Go to File->Settings->Tools->External Tools 
   and click on the plus sign. A window should pop up. 
   Choose a name, for example "clang-format"
-* For the Tool settings tab I'm using this configuration:
-  - Program: clang-format (you should use the name of your executable here)
-  - Parameters: --style=file -i $FileName$
-  - Working directory: $FileDir$
-Now, with your file open, you can go to Tools->External tools and run the config above. It basically calls clang-format and does inplace formatting using the style define in the first .clang-format file found in a parent directory.
+* For the Tool settings tab use this configuration:
+  - Program: `clang-format` (use the name of your executable here)
+  - Parameters: `--style=file -i $FileName$`
+  - Working directory: `$FileDir$`
+With your file open, go to `Tools->External tools` and run the config above. 
+This calls `clang-format` and does in-place formatting using the style 
+defined in the first `.clang-format` file found in a parent directory.
 
 ### .clang-format file
 

@@ -26,26 +26,26 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>     /* for memmove */
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacstr.h"
-#include "bacenum.h"
-#include "bacapp.h"
-#include "config.h"     /* the custom stuff */
-#include "apdu.h"
-#include "wp.h" /* WriteProperty handling */
-#include "rp.h" /* ReadProperty handling */
-#include "dcc.h"        /* DeviceCommunicationControl handling */
-#include "version.h"
-#include "device.h"     /* me */
-#include "handlers.h"
-#include "datalink.h"
-#include "address.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/apdu.h"
+#include "bacnet/wp.h" /* WriteProperty handling */
+#include "bacnet/rp.h" /* ReadProperty handling */
+#include "bacnet/dcc.h"        /* DeviceCommunicationControl handling */
+#include "bacnet/version.h"
+#include "bacnet/basic/object/device.h"     /* me */
+#include "bacnet/basic/services.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/binding/address.h"
 /* os specfic includes */
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 /* objects */
-#include "device.h"
-#include "bo.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/bo.h"
 
 /* forward prototype */
 int Device_Read_Property_Local(
@@ -88,6 +88,7 @@ static const char *Reinit_Password = "filister";
 static char My_Object_Name[MAX_DEV_NAME_LEN + 1] = "SimpleServer";
 static char Model_Name[MAX_DEV_MOD_LEN + 1] = "RX62N";
 static char Application_Software_Version[MAX_DEV_VER_LEN + 1] = "1.0";
+static const char *BACnet_Version = BACNET_VERSION_TEXT;
 static char Location[MAX_DEV_LOC_LEN + 1] = "USA";
 static char Description[MAX_DEV_DESC_LEN + 1] = "Renesas Rulz!";
 static uint32_t Database_Revision = 0;

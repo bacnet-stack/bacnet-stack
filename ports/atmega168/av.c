@@ -28,13 +28,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "bacapp.h"
-#include "config.h"     /* the custom stuff */
-#include "wp.h"
-#include "av.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/wp.h"
+#include "bacnet/basic/object/av.h"
 
 #if (MAX_ANALOG_VALUES > 10)
 #error Modify the Analog_Value_Name to handle multiple digits

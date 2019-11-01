@@ -5,11 +5,11 @@
  *
  */
 #include <asf.h>
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "rs485.h"
 #include "led.h"
 #include "adc-hdw.h"
-#include "dlmstp.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "bacnet.h"
 
 /**

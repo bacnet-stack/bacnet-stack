@@ -42,7 +42,7 @@
  **********************************************************/
 #include <stdint.h>
 #include "board.h"
-#include "dlmstp.h"
+#include "bacnet/datalink/dlmstp.h"
 
 /* global variable counts interrupts */
 volatile unsigned long Timer_Milliseconds;

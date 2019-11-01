@@ -27,9 +27,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacdef.h"
-#include "rp.h"
-#include "wp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/rp.h"
+#include "bacnet/wp.h"
 
 #ifdef __cplusplus
 extern "C" {

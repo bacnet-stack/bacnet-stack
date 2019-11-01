@@ -46,10 +46,10 @@
 #include <windows.h>
 
 /* local includes */
-#include "bytes.h"
+#include "bacnet/bytes.h"
 #include "rs485.h"
-#include "mstp.h"
-#include "mstptext.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/datalink/mstptext.h"
 #include "crc.h"
 
 #ifndef max

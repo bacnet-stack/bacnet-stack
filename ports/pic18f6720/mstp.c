@@ -49,14 +49,14 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
-#include "mstp.h"
-#include "bytes.h"
-#include "bits.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/bytes.h"
+#include "bacnet/bits.h"
 #include "crc.h"
-#include "bacaddr.h"
+#include "bacnet/bacaddr.h"
 #include "rs485.h"
 #if PRINT_ENABLED
-#include "mstptext.h"
+#include "bacnet/datalink/mstptext.h"
 #endif
 
 /* debug print statements */

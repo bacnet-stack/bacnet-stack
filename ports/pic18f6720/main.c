@@ -31,12 +31,12 @@
 #include "stdint.h"
 #include "hardware.h"
 /* BACnet */
-#include "apdu.h"
-#include "datalink.h"
-#include "dcc.h"
-#include "handlers.h"
-#include "client.h"
-#include "txbuf.h"
+#include "bacnet/apdu.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/dcc.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
 #include "rs485.h"
 
 /* chip configuration data */

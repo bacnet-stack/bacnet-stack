@@ -32,17 +32,18 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
+#include <ifaddrs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
-#include "bacdcode.h"
-#include "config.h"
-#include "bip6.h"
-#include "debug.h"
-#include "device.h"
-#include "net.h"
-#include <ifaddrs.h>
+#include "bacnet/bacdcode.h"
+#include "bacnet/config.h"
+#include "bacnet/datalink/bip6.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/bbmd6/h_bbmd6.h"
+#include "bacport.h"
 
 static void debug_print_ipv6(const char *str, const struct in6_addr * addr) {
    debug_printf( "BIP6: %s %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",

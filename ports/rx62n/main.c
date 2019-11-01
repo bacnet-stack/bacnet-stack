@@ -25,8 +25,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "ethernet.h"
-#include "timer.h"
+#include "bacnet/datalink/ethernet.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "led.h"
 
 /** Main function of BACnet demo for RX62N evaluation board */

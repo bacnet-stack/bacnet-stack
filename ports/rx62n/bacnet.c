@@ -26,18 +26,18 @@
 #include <stdbool.h>
 /* hardware layer includes */
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "led.h"
 /* BACnet Stack includes */
-#include "datalink.h"
-#include "npdu.h"
-#include "handlers.h"
-#include "client.h"
-#include "txbuf.h"
-#include "dcc.h"
-#include "iam.h"
-#include "device.h"
-#include "bo.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/npdu.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/dcc.h"
+#include "bacnet/iam.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/bo.h"
 /* me */
 #include "bacnet.h"
 

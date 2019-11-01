@@ -39,9 +39,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "bacdef.h"
-#include "mstpdef.h"
-#include "dlmstp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/datalink/mstpdef.h"
+#include "bacnet/datalink/dlmstp.h"
 
 struct mstp_port_struct_t {
     MSTP_RECEIVE_STATE receive_state;

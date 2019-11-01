@@ -29,14 +29,14 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "bacapp.h"
-#include "config.h"     /* the custom stuff */
-#include "wp.h"
-#include "av.h"
-#include "handlers.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/wp.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/services.h"
 #include "hardware.h"
 
 #ifndef MAX_ANALOG_VALUES

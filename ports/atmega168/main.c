@@ -26,15 +26,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "rs485.h"
-#include "datalink.h"
-#include "npdu.h"
-#include "handlers.h"
-#include "txbuf.h"
-#include "iam.h"
-#include "device.h"
-#include "av.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/npdu.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/iam.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/av.h"
 
 /* From the WhoIs hander - performed by the DLMSTP module */
 extern bool Send_I_Am_Flag;

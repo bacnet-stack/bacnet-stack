@@ -49,8 +49,8 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
-#include "mstp.h"
-#include "bytes.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/bytes.h"
 #include "crc.h"
 #include "rs485.h"
 

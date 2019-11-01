@@ -27,19 +27,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "config.h"
-#include "txbuf.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacerror.h"
-#include "apdu.h"
-#include "npdu.h"
+#include "bacnet/config.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacerror.h"
+#include "bacnet/apdu.h"
+#include "bacnet/npdu.h"
 #include "abort.h"
-#include "wp.h"
+#include "bacnet/wp.h"
 /* demo objects */
-#include "device.h"
-#include "av.h"
-#include "bv.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bv.h"
 
 /* too big to reside on stack frame for PIC */
 static BACNET_WRITE_PROPERTY_DATA wp_data;

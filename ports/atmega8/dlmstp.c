@@ -36,25 +36,25 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "bacdef.h"
-#include "mstpdef.h"
-#include "dlmstp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/datalink/mstpdef.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
 #include "crc.h"
-#include "npdu.h"
-#include "bits.h"
-#include "bytes.h"
-#include "bacaddr.h"
+#include "bacnet/npdu.h"
+#include "bacnet/bits.h"
+#include "bacnet/bytes.h"
+#include "bacnet/bacaddr.h"
 /* special optimization - I-Am response in this module */
-#include "client.h"
-#include "txbuf.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:
     Only one slave node MS/TP datalink layer
 */
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* The state of the Receive State Machine */
 static MSTP_RECEIVE_STATE Receive_State;

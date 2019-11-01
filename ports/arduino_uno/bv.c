@@ -28,12 +28,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "config.h"     /* the custom stuff */
-#include "wp.h"
-#include "bv.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/wp.h"
+#include "bacnet/basic/object/bv.h"
 
 #if (MAX_BINARY_VALUES > 10)
 #error Modify the Binary_Value_Name to handle multiple digits

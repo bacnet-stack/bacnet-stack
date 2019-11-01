@@ -48,11 +48,11 @@
 #include <signal.h>     /* signal handling functions */
 
 /* local includes */
-#include "bytes.h"
+#include "bacnet/bytes.h"
 #include "rs485.h"
 #include "crc.h"
-#include "mstp.h"
-#include "mstptext.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/datalink/mstptext.h"
 
 /** @file linux/rx_fsm.c  Example app testing MS/TP Rx State Machine on Linux. */
 

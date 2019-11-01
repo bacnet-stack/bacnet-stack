@@ -26,23 +26,23 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>     /* for memmove */
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacstr.h"
-#include "bacenum.h"
-#include "config.h"     /* the custom stuff */
-#include "apdu.h"
-#include "dlmstp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/apdu.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
-#include "ai.h"
-#include "av.h"
-#include "bi.h"
-#include "bv.h"
-#include "rp.h"
-#include "wp.h"
-#include "dcc.h"
-#include "version.h"
-#include "device.h"     /* me */
+#include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bi.h"
+#include "bacnet/basic/object/bv.h"
+#include "bacnet/rp.h"
+#include "bacnet/wp.h"
+#include "bacnet/dcc.h"
+#include "bacnet/version.h"
+#include "bacnet/basic/object/device.h"     /* me */
 
 /* note: you really only need to define variables for
    properties that are writable or that may change.

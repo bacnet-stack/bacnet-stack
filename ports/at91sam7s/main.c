@@ -25,7 +25,7 @@
 *********************************************************************/
 /* hardware specific */
 #include "board.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 /* standard libraries */
 #include <stdlib.h>
 #include <string.h>
@@ -33,17 +33,17 @@
 #include <stdint.h>
 /* BACnet */
 #include "rs485.h"
-#include "datalink.h"
-#include "npdu.h"
-#include "apdu.h"
-#include "dcc.h"
-#include "iam.h"
-#include "handlers.h"
-#include "client.h"
-#include "device.h"
-#include "dcc.h"
-#include "iam.h"
-#include "txbuf.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/npdu.h"
+#include "bacnet/apdu.h"
+#include "bacnet/dcc.h"
+#include "bacnet/iam.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/dcc.h"
+#include "bacnet/iam.h"
+#include "bacnet/basic/tsm/tsm.h"
 
 /*  ******************************************************* */
 /*   FIXME: use header files?     External References */

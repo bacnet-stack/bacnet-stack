@@ -35,7 +35,7 @@
 #if PRINT_ENABLED_RS485
 #include <stdio.h>
 #endif
-#include "mstp.h"
+#include "bacnet/datalink/mstp.h"
 
 /* note: use the RTKernel-C API so that it can use this library */
 

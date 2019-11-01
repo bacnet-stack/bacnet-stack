@@ -23,7 +23,7 @@
 *********************************************************************/
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "led.h"
 
 static struct itimer Off_Delay_Timer_Rx;

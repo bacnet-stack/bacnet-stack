@@ -29,15 +29,15 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <conio.h>      /* for kbhit */
-#include "config.h"
-#include "bacdef.h"
-#include "npdu.h"
-#include "apdu.h"
-#include "device.h"
-#include "handlers.h"
-#include "datalink.h"
-#include "iam.h"
-#include "txbuf.h"
+#include "bacnet/config.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/npdu.h"
+#include "bacnet/apdu.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/iam.h"
+#include "bacnet/basic/tsm/tsm.h"
 
 /* RTOS-32 */
 #include "rtkernel.h"

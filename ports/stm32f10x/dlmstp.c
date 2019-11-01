@@ -36,18 +36,18 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "bacdef.h"
-#include "dlmstp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
 #include "crc.h"
-#include "npdu.h"
-#include "bits.h"
-#include "bacaddr.h"
-#include "timer.h"
-#include "ringbuf.h"
-#include "mstpdef.h"
+#include "bacnet/npdu.h"
+#include "bacnet/bits.h"
+#include "bacnet/bacaddr.h"
+#include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/sys/ringbuf.h"
+#include "bacnet/datalink/mstpdef.h"
 #include "automac.h"
-#include "device.h"
+#include "bacnet/basic/object/device.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:

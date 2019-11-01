@@ -30,35 +30,35 @@
 #include <stdint.h>
 #include <string.h>     /* for memmove */
 #include <time.h>       /* for timezone, localtime */
-#include "datalink.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "bacapp.h"
-#include "config.h"     /* the custom stuff */
-#include "apdu.h"
-#include "wp.h" /* WriteProperty handling */
-#include "rp.h" /* ReadProperty handling */
-#include "dcc.h"        /* DeviceCommunicationControl handling */
-#include "version.h"
-#include "device.h"     /* me */
-#include "handlers.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/apdu.h"
+#include "bacnet/wp.h" /* WriteProperty handling */
+#include "bacnet/rp.h" /* ReadProperty handling */
+#include "bacnet/dcc.h"        /* DeviceCommunicationControl handling */
+#include "bacnet/version.h"
+#include "bacnet/basic/object/device.h"     /* me */
+#include "bacnet/basic/services.h"
 #include "../lib/stack/address.h"
 /* os specfic includes */
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 /* include the device object */
-#include "device.h"
-#include "ai.h"
-#include "bo.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/bo.h"
 
 #if defined(INTRINSIC_REPORTING)
-#include "nc.h"
+#include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
 #if defined(BACFILE)
-#include "bacfile.h"
+#include "bacnet/basic/object/bacfile.h"
 #endif /* defined(BACFILE) */
 #if defined(BAC_UCI)
-#include "ucix.h"
+#include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
 
 

@@ -28,14 +28,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "config.h"
-#include "wp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/config.h"
+#include "bacnet/wp.h"
 #include "hardware.h"
-#include "handlers.h"
-#include "bo.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/object/bo.h"
 
 #ifndef MAX_BINARY_OUTPUTS
 #error Please define MAX_BINARY_OUTPUTS

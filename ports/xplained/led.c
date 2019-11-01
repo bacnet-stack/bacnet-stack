@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include "board.h"
 #include "ioport.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "led.h"
 
 #ifdef CONF_BOARD_ENABLE_RS485_XPLAINED

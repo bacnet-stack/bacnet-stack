@@ -27,9 +27,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacdef.h"
-#include "bacerror.h"
-#include "wp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacerror.h"
+#include "bacnet/wp.h"
 
 #ifndef MAX_ANALOG_VALUES
 #define MAX_ANALOG_VALUES 4

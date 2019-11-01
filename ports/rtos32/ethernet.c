@@ -32,9 +32,9 @@
 #include <clock.h>
 #include <socket.h>
 #include <windows.h>
-#include "ethernet.h"
-#include "bacdcode.h"
-#include "npdu.h"
+#include "bacnet/datalink/ethernet.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/npdu.h"
 
 /* commonly used comparison address for ethernet */
 uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =

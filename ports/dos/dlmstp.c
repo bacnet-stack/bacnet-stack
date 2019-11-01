@@ -36,20 +36,20 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "bacdef.h"
-#include "dlmstp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
 #include "crc.h"
-#include "npdu.h"
-#include "bits.h"
-#include "bytes.h"
-#include "bacaddr.h"
+#include "bacnet/npdu.h"
+#include "bacnet/bits.h"
+#include "bacnet/bytes.h"
+#include "bacnet/bacaddr.h"
 
 /* This file has been customized for use with small microprocessors */
 /* Assumptions:
     Only one MS/TP datalink layer
 */
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /*  The value 255 is used to denote broadcast when used as a */
 /* destination address but is not allowed as a value for a station. */

@@ -8,9 +8,9 @@
 #define BVLCARDUINO_H_
 
 #include <stdint.h>
-#include "bacenum.h"
-#include "bacdef.h"
-#include "npdu.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/npdu.h"
 
 #ifdef __cplusplus
 extern "C" {

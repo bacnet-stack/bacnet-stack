@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "bits.h"
+#include "bacnet/bits.h"
 
 /* This file has been customized for use with ATMEGA168 */
 #if (defined(__ICCAVR__) && (defined(__ATmega168__))) || \
@@ -58,7 +58,7 @@
 #endif
 
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* baud rate */
 static uint32_t RS485_Baud;

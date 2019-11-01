@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* counter for the the timer which wraps every 49.7 days */
 static volatile uint32_t Millisecond_Counter;

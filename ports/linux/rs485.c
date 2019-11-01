@@ -63,9 +63,9 @@
 #include <libgen.h>
 
 /* Local includes */
-#include "mstp.h"
+#include "bacnet/datalink/mstp.h"
 #include "rs485.h"
-#include "fifo.h"
+#include "bacnet/basic/sys/fifo.h"
 
 #include <sys/select.h>
 #include <sys/time.h>

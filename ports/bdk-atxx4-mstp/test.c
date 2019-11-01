@@ -26,12 +26,12 @@
 #include <stdbool.h>
 #include <string.h>
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "serial.h"
 #include "input.h"
-#include "bo.h"
+#include "bacnet/basic/object/bo.h"
 #include "rs485.h"
-#include "dlmstp.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "seeprom.h"
 #include "nvdata.h"
 /* me */

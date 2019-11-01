@@ -36,10 +36,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "bacdef.h"
-#include "bacenum.h"
-#include "wp.h"
-#include "readrange.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/wp.h"
+#include "bacnet/readrange.h"
 
 typedef unsigned (
     *object_count_function) (

@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <process.h>
 
-#include "bip.h"
+#include "bacnet/datalink/bip.h"
 #ifndef HOST
 #include <rtipapi.h>
 #include "netcfg.h"
