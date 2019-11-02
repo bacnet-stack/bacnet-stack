@@ -32,25 +32,18 @@
 #include <errno.h>
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 /* some demo stuff needed */
-#ifndef DEBUG_ENABLED
-#define DEBUG_ENABLED 0
-#endif
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
-#if defined(BACDL_MSTP)
-#include "rs485.h"
-#endif
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
@@ -130,7 +123,7 @@ static void My_Router_Handler(BACNET_ADDRESS *src, BACNET_NPDU_DATA *npdu_data,
     }
 }
 
-void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
+static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
                      uint8_t *pdu,        /* PDU data */
                      uint16_t pdu_len)
 { /* length PDU  */

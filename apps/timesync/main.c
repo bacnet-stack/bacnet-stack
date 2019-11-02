@@ -54,7 +54,7 @@ static uint8_t Rx_Buf[MAX_MPDU] = {0};
 /* error flag */
 static bool Error_Detected = false;
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
@@ -65,7 +65,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */

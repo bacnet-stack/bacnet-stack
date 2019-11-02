@@ -89,7 +89,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     (void)server;
@@ -101,7 +101,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&

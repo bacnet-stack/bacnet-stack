@@ -35,8 +35,6 @@ ifneq (,$(findstring -DBAC_UCI,$(BACNET_DEFINES)))
 OBJS += $(patsubst %.c,%.o,$(wildcard basic/ucix/*.c))
 endif
 
-
-
 all: $(OBJS) Makefile
 
 .c.o:

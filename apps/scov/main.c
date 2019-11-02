@@ -86,7 +86,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     (void)server;
@@ -98,7 +98,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
@@ -109,21 +109,21 @@ void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void My_Unconfirmed_COV_Notification_Handler(uint8_t *service_request,
+static void My_Unconfirmed_COV_Notification_Handler(uint8_t *service_request,
                                              uint16_t service_len,
                                              BACNET_ADDRESS *src)
 {
     handler_ucov_notification(service_request, service_len, src);
 }
 
-void My_Confirmed_COV_Notification_Handler(
+static void My_Confirmed_COV_Notification_Handler(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     handler_ccov_notification(service_request, service_len, src, service_data);
 }
 
-void MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
+static void MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
@@ -160,7 +160,7 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-void cleanup(void)
+static void cleanup(void)
 {
     BACNET_SUBSCRIBE_COV_DATA *cov_data = NULL;
     BACNET_SUBSCRIBE_COV_DATA *cov_data_old = NULL;

@@ -77,6 +77,8 @@ static uint8_t TxBuffer[MAX_MPDU];
 static volatile bool Exit_Requested;
 /* flag to indicate Wireshark is running the show - no stdout or stderr */
 static bool Wireshark_Capture;
+/* placed to track silence on the wire */
+static struct mstimer Silence_Timer;
 
 /* statistics derived from monitoring the network for each node */
 struct mstp_statistics {
@@ -400,12 +402,12 @@ static void packet_statistics_clear(void)
 
 static uint32_t Timer_Silence(void *pArg)
 {
-    return timer_milliseconds(TIMER_SILENCE);
+    return mstimer_remaining(&Silence_Timer);
 }
 
 static void Timer_Silence_Reset(void *pArg)
 {
-    timer_reset(TIMER_SILENCE);
+    mstimer_set(&Silence_Timer, 0);
 }
 
 /* functions used by the MS/TP state machine to put or get data */
@@ -464,7 +466,7 @@ static void named_pipe_create(char *pipe_name)
     ConnectNamedPipe(hPipe, NULL);
 }
 
-size_t data_write(const void *ptr, size_t size, size_t nitems)
+static size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
     DWORD cbWritten = 0;
     if (hPipe != INVALID_HANDLE_VALUE) {
@@ -478,7 +480,7 @@ size_t data_write(const void *ptr, size_t size, size_t nitems)
     return fwrite(ptr, size, nitems, pFile);
 }
 
-size_t data_write_header(const void *ptr, size_t size, size_t nitems,
+static size_t data_write_header(const void *ptr, size_t size, size_t nitems,
                          bool pipe_enable)
 {
     DWORD cbWritten = 0;
@@ -509,7 +511,7 @@ static void named_pipe_create(char *name)
     }
 }
 
-size_t data_write(const void *ptr, size_t size, size_t nitems)
+static size_t data_write(const void *ptr, size_t size, size_t nitems)
 {
     ssize_t bytes = 0;
     if (FD_Pipe != -1) {
@@ -519,7 +521,7 @@ size_t data_write(const void *ptr, size_t size, size_t nitems)
     return fwrite(ptr, size, nitems, pFile);
 }
 
-size_t data_write_header(const void *ptr, size_t size, size_t nitems,
+static size_t data_write_header(const void *ptr, size_t size, size_t nitems,
                          bool pipe_enable)
 {
     ssize_t bytes = 0;
@@ -888,7 +890,7 @@ static void sig_int(int signo)
     exit(0);
 }
 
-void signal_init(void)
+static void signal_init(void)
 {
     signal(SIGINT, sig_int);
     signal(SIGHUP, sig_int);
@@ -896,7 +898,7 @@ void signal_init(void)
 }
 #endif
 
-void filename_create_new(void)
+static void filename_create_new(void)
 {
     if (pFile) {
         fclose(pFile);
@@ -1131,7 +1133,7 @@ int main(int argc, char *argv[])
     }
     atexit(cleanup);
     RS485_Initialize();
-    timer_init();
+    mstimer_init();
     if (!Wireshark_Capture) {
         fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
                 RS485_Interface(), (long)RS485_Get_Baud_Rate());

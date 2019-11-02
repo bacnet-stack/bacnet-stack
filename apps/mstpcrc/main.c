@@ -43,10 +43,10 @@
 #include <ctype.h>
 /* OS specific include*/
 #include "bacport.h"
-#include "bacnet/basic/sys/mstimer.h"
 /* local includes */
 #include "bacnet/bytes.h"
-#include "crc.h"
+#include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/datalink/crc.h"
 #include "bacnet/version.h"
 
 #ifndef max

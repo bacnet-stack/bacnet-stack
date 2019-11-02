@@ -55,7 +55,7 @@ static int Target_Segmentation = SEGMENTATION_NONE;
 /* flag for signalling errors */
 static bool Error_Detected = false;
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     (void)src;
@@ -65,7 +65,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     (void)src;

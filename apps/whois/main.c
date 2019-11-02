@@ -76,7 +76,7 @@ static struct address_table {
     struct address_entry *last;
 } Address_Table = {0};
 
-struct address_entry *alloc_address_entry(void)
+static struct address_entry *alloc_address_entry(void)
 {
     struct address_entry *rval;
     rval = (struct address_entry *)calloc(1, sizeof(struct address_entry));
@@ -89,20 +89,7 @@ struct address_entry *alloc_address_entry(void)
     return rval;
 }
 
-bool bacnet_address_matches(BACNET_ADDRESS *a1, BACNET_ADDRESS *a2)
-{
-    int i = 0;
-    if (a1->net != a2->net)
-        return false;
-    if (a1->len != a2->len)
-        return false;
-    for (; i < a1->len; i++)
-        if (a1->adr[i] != a2->adr[i])
-            return false;
-    return true;
-}
-
-void address_table_add(uint32_t device_id, unsigned max_apdu,
+static void address_table_add(uint32_t device_id, unsigned max_apdu,
                        BACNET_ADDRESS *src)
 {
     struct address_entry *pMatch;
@@ -111,8 +98,9 @@ void address_table_add(uint32_t device_id, unsigned max_apdu,
     pMatch = Address_Table.first;
     while (pMatch) {
         if (pMatch->device_id == device_id) {
-            if (bacnet_address_matches(&pMatch->address, src))
+            if (bacnet_address_same(&pMatch->address, src)) {
                 return;
+            }
             flags |= BAC_ADDRESS_MULT;
             pMatch->Flags |= BAC_ADDRESS_MULT;
         }
@@ -129,7 +117,7 @@ void address_table_add(uint32_t device_id, unsigned max_apdu,
     return;
 }
 
-void my_i_am_handler(uint8_t *service_request, uint16_t service_len,
+static void my_i_am_handler(uint8_t *service_request, uint16_t service_len,
                      BACNET_ADDRESS *src)
 {
     int len = 0;
@@ -173,7 +161,7 @@ void my_i_am_handler(uint8_t *service_request, uint16_t service_len,
     return;
 }
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
@@ -185,7 +173,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
@@ -214,7 +202,7 @@ static void init_service_handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-void print_macaddr(uint8_t *addr, int len)
+static void print_macaddr(uint8_t *addr, int len)
 {
     int j = 0;
 

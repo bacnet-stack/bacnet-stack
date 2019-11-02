@@ -80,7 +80,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     (void)server;
@@ -92,7 +92,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
@@ -115,7 +115,7 @@ void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void My_Read_Property_Multiple_Ack_Handler(
+static void My_Read_Property_Multiple_Ack_Handler(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
@@ -199,7 +199,7 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-void cleanup(void)
+static void cleanup(void)
 {
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;

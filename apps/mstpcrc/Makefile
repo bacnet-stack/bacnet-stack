@@ -1,41 +1,37 @@
-#Makefile to build BACnet Application for the Linux Port
-
-# tools - only if you need them.
-# Most platforms have this already defined
-# CC = gcc
+#Makefile to build BACnet Application
 
 # Executable file name
 TARGET = mstpcrc
 
+SRC = main.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/sys/mstimer.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
+
+# BACNET_PORT, BACNET_PORT_DIR, BACNET_PORT_SRC are defined in common Makefile
+# BACNET_SRC_DIR is defined in common apps Makefile
+# WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile
+# BACNET_DEFINES is defined in common apps Makefile
+# put all the flags together
+INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
+CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
+LFLAGS += -Wl,$(SYSTEM_LIB)
+ifneq (${BACNET_LIB},)
+LFLAGS += -Wl,$(BACNET_LIB)
+endif
+# GCC dead code removal
+CFLAGS += -ffunction-sections -fdata-sections
+LFLAGS += -Wl,--gc-sections
+
+SRCS = $(SRC) $(BACNET_SRC) $(BACNET_PORT_SRC)
+
+OBJS += ${SRCS:.c=.o}
+
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-# This demo seems to be a little unique
-DEFINES = $(BACNET_DEFINES)
-BACNET_SOURCE_DIR = ../../src
-
-#libraries used
-LIBRARIES=-lgcc,-lm
-
-#build for release (default) or debug
-DEBUGGING =
-OPTIMIZATION = -Os
-ifeq (${BUILD},debug)
-OPTIMIZATION = -O0
-DEBUGGING = -g
-endif
-
-# search order for included libraries 
-INCLUDES = -I$(BACNET_INCLUDE_DIR)
-
-SRCS = main.c \
-	${BACNET_PORT_DIR}/timer.c \
-	${BACNET_SOURCE_DIR}/crc.c
-
-OBJS = ${SRCS:.c=.o}
-
+.PHONY: all
 all: Makefile ${TARGET_BIN}
 
-${TARGET_BIN}: ${OBJS} Makefile
+${TARGET_BIN}: ${OBJS}
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
@@ -43,11 +39,14 @@ ${TARGET_BIN}: ${OBJS} Makefile
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
 
+.PHONY: depend
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
+.PHONY: clean
 clean:
 	rm -f core ${TARGET_BIN} ${OBJS} $(TARGET).map
 
+.PHONY: include
 include: .depend

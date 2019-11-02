@@ -26,14 +26,10 @@ BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/h_npdu.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c
 
-BACNET_OBJECT_DIR = ../../src/bacnet/basic/object
-BACNET_OBJECT_SRC = \
-	$(BACNET_OBJECT_DIR)/client/device-client.c \
-	$(BACNET_OBJECT_DIR)/netport.c
-
-SRCS = $(SRC) $(BACNET_SRC) $(BACNET_OBJECT_SRC) $(BACNET_PORT_SRC)
+SRCS = $(SRC) $(BACNET_SRC) $(BACNET_PORT_SRC)
 
 OBJS += ${SRCS:.c=.o}
 

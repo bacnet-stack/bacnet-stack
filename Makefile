@@ -7,7 +7,7 @@
 # all: demos router-ipv6 ${DEMO_LINUX}
 
 .PHONY: all
-all: server
+all: apps
 
 .PHONY: apps
 apps:
@@ -51,10 +51,6 @@ mstpcap:
 
 .PHONY: mstpcrc
 mstpcrc:
-	$(MAKE) -s -C apps $@
-
-.PHONY: iam
-iam:
 	$(MAKE) -s -C apps $@
 
 .PHONY: uevent

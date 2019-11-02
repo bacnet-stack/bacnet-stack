@@ -84,7 +84,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     (void)server;
@@ -96,7 +96,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
@@ -108,7 +108,7 @@ void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyWritePropertyMultipleSimpleAckHandler(BACNET_ADDRESS *src,
+static void MyWritePropertyMultipleSimpleAckHandler(BACNET_ADDRESS *src,
                                              uint8_t invoke_id)
 {
     if (address_match(&Target_Address, src) &&
@@ -141,7 +141,7 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-void cleanup(void)
+static void cleanup(void)
 {
     BACNET_WRITE_ACCESS_DATA *wpm_object;
     BACNET_WRITE_ACCESS_DATA *old_wpm_object;
