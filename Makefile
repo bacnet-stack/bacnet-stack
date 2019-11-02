@@ -11,7 +11,19 @@ all: server
 
 .PHONY: apps
 apps:
-	$(MAKE) -j -C apps all
+	$(MAKE) -s -C apps all
+
+.PHONY: abort
+abort:
+	$(MAKE) -s -C apps abort
+
+.PHONY: dcc
+dcc:
+	$(MAKE) -s -C apps dcc
+
+.PHONY: epics
+epics:
+	$(MAKE) -s -C apps epics
 
 .PHONY: gateway
 gateway:
@@ -19,7 +31,7 @@ gateway:
 
 .PHONY: server
 server:
-	$(MAKE) -j -C apps server
+	$(MAKE) -s -C apps server
 
 .PHONY: mstpcap
 mstpcap:
@@ -40,10 +52,6 @@ uevent:
 .PHONY: writepropm
 writepropm:
 	$(MAKE) -s -C apps writepropm
-
-.PHONY: abort
-abort:
-	$(MAKE) -C apps abort
 
 .PHONY: error
 error:

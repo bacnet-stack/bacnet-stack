@@ -194,40 +194,48 @@ gateway:
 
 .PHONY: server
 server:
-	$(MAKE) -s -b -C server
+	$(MAKE) -s -b -C $@
 
 .PHONY: mstpcap
 mstpcap:
-	$(MAKE) -b -C mstpcap
+	$(MAKE) -b -C $@
 
 .PHONY: mstpcrc
 mstpcrc:
-	$(MAKE) -b -C mstpcrc
-
-.PHONY: iam
-iam:
-	$(MAKE) -b -C iam
-
-.PHONY: uevent
-uevent:
-	$(MAKE) -b -C uevent
+	$(MAKE) -b -C $@
 
 .PHONY: abort
 abort:
-	$(MAKE) -b -C abort
+	$(MAKE) -b -C $@
+
+.PHONY: dcc
+dcc:
+	$(MAKE) -b -C $@
+
+.PHONY: epics
+epics:
+	$(MAKE) -b -C $@
+
+.PHONY: iam
+iam:
+	$(MAKE) -b -C $@
+
+.PHONY: uevent
+uevent:
+	$(MAKE) -b -C $@
 
 .PHONY: error
 error:
-	$(MAKE) -b -C error
+	$(MAKE) -b -C $@
 
 .PHONY: router
 router:
-	$(MAKE) -s -b -C router
+	$(MAKE) -s -b -C $@
 
 .PHONY: router-ipv6
 router-ipv6:
-	$(MAKE) -b -C router-ipv6
+	$(MAKE) -b -C $@
 
 .PHONY: writepropm
 writepropm:
-	$(MAKE) -b -C writepropm
+	$(MAKE) -b -C $@

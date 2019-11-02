@@ -21,14 +21,14 @@ SRC = main.c \
 
 PORT_BIP6_SRC = \
 	$(BACNET_PORT_DIR)/bip6.c \
-	$(BACNET_SOURCE_DIR)/bvlc6.c \
-	$(BACNET_HANDLER_DIR)/h_bbmd6.c \
-	$(BACNET_SOURCE_DIR)/vmac.c
+	$(BACNET_SOURCE_DIR)/bacnet/datalink/bvlc6.c \
+	$(BACNET_HANDLER_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
+	$(BACNET_SOURCE_DIR)/bacnet/basic/bbmd6/vmac.c
 
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_SOURCE_DIR)/bvlc.c \
-	$(BACNET_SOURCE_DIR)/bip.c
+	$(BACNET_SOURCE_DIR)/bacnet/datalink/bvlc.c \
+	$(BACNET_SOURCE_DIR)/bacnet/datalink/bip.c
 
 SRCS = ${SRC} ${PORT_BIP6_SRC} ${PORT_BIP_SRC}
 

@@ -77,7 +77,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
@@ -88,7 +88,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
@@ -98,7 +98,7 @@ void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-void MyDeviceCommunicationControlSimpleAckHandler(BACNET_ADDRESS *src,
+static void MyDeviceCommunicationControlSimpleAckHandler(BACNET_ADDRESS *src,
                                                   uint8_t invoke_id)
 {
     (void)src;
