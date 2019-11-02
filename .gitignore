@@ -44,5 +44,7 @@
 *.hex
 *.elf
 *.emSession
+*.depend
+*.layout
 tags
 test-results.xml
