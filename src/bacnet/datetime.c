@@ -853,8 +853,10 @@ void datetime_wildcard_set(BACNET_DATE_TIME *bdatetime)
  * @param local_time - the BACnet Date and Time structure to hold local time
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
  * @param utc_offset_minutes - number of minutes offset from UTC
- * For example, -6*60 represents 6.00 hours behind UTC/GMT
+ *  Values are positive East of UTC and negative West of UTC
+ *  For example, -6*60 represents 6.00 hours West of UTC
  * @param dst_adjust_minutes - number of minutes to adjust local time
+ *  Values are positive East of UTC and negative West of UTC
  * @return true if the time is converted
  */
 bool datetime_utc_to_local(
@@ -867,8 +869,10 @@ bool datetime_utc_to_local(
 
     if (local_time && utc_time) {
         datetime_copy(local_time, utc_time);
+        utc_offset_minutes *= -1;
         datetime_add_minutes(local_time, utc_offset_minutes);
         if (dst_adjust_minutes != 0) {
+            dst_adjust_minutes *= -1;
             datetime_add_minutes(local_time, dst_adjust_minutes);
         }
         status = true;
@@ -882,8 +886,10 @@ bool datetime_utc_to_local(
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
  * @param local_time - the BACnet Date and Time structure to hold local time
  * @param utc_offset_minutes - number of minutes offset from UTC
- * For example, -6*60 represents 6.00 hours behind UTC/GMT
+ *  Values are positive East of UTC and negative West of UTC
+ *  For example, -6*60 represents 6.00 hours West of UTC
  * @param dst_adjust_minutes - number of minutes to adjust local time
+ *  Values are positive East of UTC and negative West of UTC
  * @return true if the time is converted
  */
 bool datetime_local_to_utc(
@@ -1395,33 +1401,56 @@ static void testDatetimeCodec(Test *pTest)
     ct_test(pTest, datetimeIn.time.hundredths == datetimeOut.time.hundredths);
 }
 
+static void testDatetimeConvertUTCSpecific(
+    Test *pTest,
+    BACNET_DATE_TIME * utc_time,
+    BACNET_DATE_TIME * local_time,
+    int16_t utc_offset_minutes,
+    int8_t dst_adjust_minutes)
+{
+    bool status = false;
+    BACNET_DATE_TIME test_local_time;
+
+    status = datetime_local_to_utc(utc_time, local_time,
+        utc_offset_minutes, dst_adjust_minutes);
+    ct_test(pTest, status);
+    status = datetime_utc_to_local(&test_local_time, utc_time,
+        utc_offset_minutes, dst_adjust_minutes);
+    ct_test(pTest, status);
+    /* validate the conversion */
+    ct_test(pTest, local_time->date.day == test_local_time.date.day);
+    ct_test(pTest, local_time->date.month == test_local_time.date.month);
+    ct_test(pTest, local_time->date.wday == test_local_time.date.wday);
+    ct_test(pTest, local_time->date.year == test_local_time.date.year);
+    ct_test(pTest, local_time->time.hour == test_local_time.time.hour);
+    ct_test(pTest, local_time->time.min == test_local_time.time.min);
+    ct_test(pTest, local_time->time.sec == test_local_time.time.sec);
+    ct_test(pTest, local_time->time.hundredths ==
+        test_local_time.time.hundredths);
+}
 
 static void testDatetimeConvertUTC(Test *pTest)
 {
     BACNET_DATE_TIME local_time;
     BACNET_DATE_TIME utc_time;
-    BACNET_DATE_TIME test_local_time;
-    const int16_t utc_offset_minutes = -6*60;
-    bool status = false;
+    /* values are positive east of UTC and negative west of UTC */
+    int16_t utc_offset_minutes = 0;
+    int8_t dst_adjust_minutes = 0;
 
     datetime_set_date(&local_time.date, 1999, 12, 23);
     datetime_set_time(&local_time.time, 8, 30, 0, 0);
-    status = datetime_local_to_utc(&utc_time, &local_time,
-        utc_offset_minutes, 60);
-    ct_test(pTest, status);
-    status = datetime_utc_to_local(&test_local_time, &utc_time,
-        utc_offset_minutes, -60);
-    ct_test(pTest, status);
-    /* validate the conversion */
-    ct_test(pTest, local_time.date.day == test_local_time.date.day);
-    ct_test(pTest, local_time.date.month == test_local_time.date.month);
-    ct_test(pTest, local_time.date.wday == test_local_time.date.wday);
-    ct_test(pTest, local_time.date.year == test_local_time.date.year);
-    ct_test(pTest, local_time.time.hour == test_local_time.time.hour);
-    ct_test(pTest, local_time.time.min == test_local_time.time.min);
-    ct_test(pTest, local_time.time.sec == test_local_time.time.sec);
-    ct_test(pTest, local_time.time.hundredths ==
-        test_local_time.time.hundredths);
+    testDatetimeConvertUTCSpecific(pTest, &utc_time, &local_time,
+        utc_offset_minutes, dst_adjust_minutes);
+    /* check a timezone West of UTC */
+    utc_offset_minutes = -6*60;
+    dst_adjust_minutes = -60;
+    testDatetimeConvertUTCSpecific(pTest, &utc_time, &local_time,
+        utc_offset_minutes, dst_adjust_minutes);
+    /* check a timezone East of UTC */
+    utc_offset_minutes = 6*60;
+    dst_adjust_minutes = 60;
+    testDatetimeConvertUTCSpecific(pTest, &utc_time, &local_time,
+        utc_offset_minutes, dst_adjust_minutes);
 }
 
 void testDateTime(Test *pTest)
