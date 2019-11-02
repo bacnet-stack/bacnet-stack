@@ -52,6 +52,9 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
+    void ge_ack_print_data(BACNET_GET_EVENT_INFORMATION_DATA* data,
+                           uint32_t device_id);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

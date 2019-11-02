@@ -39,6 +39,7 @@
 #include "bacnet/rpm.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
+#include "bacnet/property.h"
 
 #ifndef BACNET_PROPERTY_LISTS
 #define BACNET_PROPERTY_LISTS 0

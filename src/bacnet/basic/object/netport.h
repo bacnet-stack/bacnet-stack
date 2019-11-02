@@ -240,6 +240,20 @@ extern "C" {
         unsigned dns_index,
         uint8_t *ip_address);
 
+    bool Network_Port_IPv6_DHCP_Server(
+        uint32_t object_instance,
+        BACNET_OCTET_STRING *ip_address);
+    bool Network_Port_IPv6_DHCP_Server_Set(
+        uint32_t object_instance,
+        uint8_t *ip_address);
+
+    bool Network_Port_IPv6_Zone_Index(
+        uint32_t object_instance,
+        BACNET_CHARACTER_STRING *zone_index);
+    bool Network_Port_IPv6_Gateway_Zone_Index_Set(
+        uint32_t object_instance,
+        char *zone_index);
+
     uint16_t Network_Port_BIP6_Port(
         uint32_t object_instance);
     bool Network_Port_BIP6_Port_Set(

@@ -1,29 +1,25 @@
 #Makefile to build BACnet Application for the GCC port
 
-# tools - only if you need them.
-# Most platforms have this already defined
-# CC = gcc
-
 # Executable file name
 TARGET = bacserv
 
+# TARGET_EXT is defined in common Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-# These might be already defined in an previous Makefile
-BACNET_PORT ?= linux
-BACNET_SRC_DIR ?= $(realpath ../../src)
-BACNET_PORT_DIR ?= $(realpath ../../ports/$(BACNET_PORT))
-BACNET_PORT_SRC ?= \
-	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_PORT_DIR)/datetime-init.c \
-	$(BACNET_PORT_DIR)/mstimer-init.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bip.c
-
-# include file search paths
+# BACNET_PORT, BACNET_PORT_DIR, BACNET_PORT_SRC are defined in common Makefile
+# BACNET_SRC_DIR is defined in common apps Makefile
+# WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile
+# BACNET_DEFINES is defined in common apps Makefile
+# put all the flags together
 INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
-CFLAGS += $(INCLUDES)
+CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
+LFLAGS += -Wl,$(SYSTEM_LIB)
+ifneq (${BACNET_LIB},)
+LFLAGS += -Wl,$(BACNET_LIB)
+endif
+# GCC dead code removal
+CFLAGS += -ffunction-sections -fdata-sections
+LFLAGS += -Wl,--gc-sections
 
 BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \

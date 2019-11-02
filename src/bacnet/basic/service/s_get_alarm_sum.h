@@ -42,6 +42,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 uint8_t Send_Get_Alarm_Summary_Address(BACNET_ADDRESS *dest, uint16_t max_apdu);
+uint8_t Send_Get_Alarm_Summary(uint32_t device_id);
 
 #ifdef __cplusplus
 }

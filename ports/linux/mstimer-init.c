@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
+#include <limits.h>
 #include "bacport.h"
 #include "bacnet/basic/sys/mstimer.h"
 
@@ -64,7 +65,7 @@ unsigned long mstimer_now(void)
     unsigned long now = timeGetTime();
     unsigned long delta_time = 0;
 
-    if (Millisecond_Counter[index] <= now) {
+    if (Millisecond_Counter <= now) {
         delta_time = now - Millisecond_Counter;
     } else {
         delta_time = (ULONG_MAX - Millisecond_Counter) + now + 1;

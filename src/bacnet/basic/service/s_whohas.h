@@ -45,6 +45,9 @@ extern "C" {
         int32_t low_limit,
         int32_t high_limit,
         const char *object_name);
+    void Send_WhoHas_Object(int32_t low_limit, int32_t high_limit,
+                            BACNET_OBJECT_TYPE object_type,
+                            uint32_t object_instance);
 
 #ifdef __cplusplus
 }
