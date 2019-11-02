@@ -1,7 +1,5 @@
-#Makefile to build BACnet Application for GCC compiler
-
-TARGET = bacdcc
-SRC = main.c
+# Common Makefile for BACnet command line client tools
+# designed to 'include'
 
 # TARGET_EXT is defined in common Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)

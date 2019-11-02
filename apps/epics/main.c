@@ -38,24 +38,25 @@
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
 #include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
+#include "bacnet/property.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/sys/keylist.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/dlenv.h"
 #include "bacepics.h"
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
@@ -196,7 +197,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     (void)server;
@@ -219,7 +220,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
@@ -240,7 +241,7 @@ void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyReadPropertyAckHandler(uint8_t *service_request, uint16_t service_len,
+static void MyReadPropertyAckHandler(uint8_t *service_request, uint16_t service_len,
                               BACNET_ADDRESS *src,
                               BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
@@ -267,7 +268,7 @@ void MyReadPropertyAckHandler(uint8_t *service_request, uint16_t service_len,
     }
 }
 
-void MyReadPropertyMultipleAckHandler(
+static void MyReadPropertyMultipleAckHandler(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
@@ -339,7 +340,7 @@ static void Init_Service_Handlers(void)
  * @param rpm_property [in] Points to structure holding the Property,
  *                          Value, and Error information.
  */
-void CheckIsWritableProperty(BACNET_OBJECT_TYPE object_type,
+static void CheckIsWritableProperty(BACNET_OBJECT_TYPE object_type,
                              /* uint32_t object_instance, */
                              BACNET_PROPERTY_REFERENCE *rpm_property)
 {
@@ -453,7 +454,7 @@ static const char *protocol_services_supported_text(size_t bit_index)
  * @return True if success.  Or otherwise.
  */
 
-bool PrettyPrintPropertyValue(FILE *stream,
+static bool PrettyPrintPropertyValue(FILE *stream,
                               BACNET_OBJECT_PROPERTY_VALUE *object_value)
 {
     BACNET_APPLICATION_DATA_VALUE *value = NULL;
@@ -528,7 +529,7 @@ bool PrettyPrintPropertyValue(FILE *stream,
  * @param rpm_property [in] Points to structure holding the Property,
  *                          Value, and Error information.
  */
-void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
+static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                            uint32_t object_instance,
                            BACNET_PROPERTY_REFERENCE *rpm_property)
 {
@@ -894,7 +895,7 @@ static uint8_t Read_Properties(uint32_t device_instance,
  *         if the RPM got good data, or GET_PROPERTY_REQUEST if we have to
  *         singly process the list of Properties.
  */
-EPICS_STATES ProcessRPMData(BACNET_READ_ACCESS_DATA *rpm_data,
+static EPICS_STATES ProcessRPMData(BACNET_READ_ACCESS_DATA *rpm_data,
                             EPICS_STATES myState)
 {
     BACNET_READ_ACCESS_DATA *old_rpm_data;
@@ -1018,7 +1019,7 @@ static void print_help(char *filename)
     printf("e.g., bacepics 2701876 > epics-2701876.tpi \n");
 }
 
-int CheckCommandLineArgs(int argc, char *argv[])
+static int CheckCommandLineArgs(int argc, char *argv[])
 {
     int i;
     bool bFoundTarget = false;
@@ -1130,7 +1131,7 @@ int CheckCommandLineArgs(int argc, char *argv[])
     return 0; /* All OK if we reach here */
 }
 
-void PrintHeading()
+static void PrintHeading(void)
 {
     BACNET_APPLICATION_DATA_VALUE *value = NULL;
     BACNET_OBJECT_PROPERTY_VALUE property_value;
@@ -1369,7 +1370,7 @@ void PrintHeading()
     printf("}\n\n");
 }
 
-void Print_Device_Heading(void)
+static void Print_Device_Heading(void)
 {
     printf("List of Objects in Test Device:\n");
     /* Print Opening brace, then kick off the Device Object */
@@ -1378,7 +1379,7 @@ void Print_Device_Heading(void)
 }
 
 /* Initialize fields for a new Object */
-void StartNextObject(BACNET_READ_ACCESS_DATA *rpm_object,
+static void StartNextObject(BACNET_READ_ACCESS_DATA *rpm_object,
                      BACNET_OBJECT_ID *pNewObject)
 {
     BACNET_PROPERTY_REFERENCE *rpm_property;

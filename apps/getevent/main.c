@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
-
 /* core stuff needed */
 #include "bacnet/bacdef.h"
 #include "bacnet/config.h"
@@ -37,22 +36,20 @@
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacport.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/whois.h"
 #include "bacnet/getevent.h"
-
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+/* some port stuff needed */
+#include "bacport.h"
 
 /* Depending on on the max-APDU-length-accepted (varies per device),
    the amount of event entries in the GetEventInformation ACK can sum
@@ -86,7 +83,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     (void)server;
@@ -98,7 +95,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     }
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     if (address_match(&Target_Address, src) &&
@@ -119,7 +116,7 @@ void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void My_Get_Event_Ack_Handler(uint8_t *service_request, uint16_t service_len,
+static void My_Get_Event_Ack_Handler(uint8_t *service_request, uint16_t service_len,
                               BACNET_ADDRESS *src,
                               BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {

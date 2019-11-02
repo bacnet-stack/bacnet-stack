@@ -15,55 +15,63 @@ apps:
 
 .PHONY: abort
 abort:
-	$(MAKE) -s -C apps abort
+	$(MAKE) -s -C apps $@
 
 .PHONY: dcc
 dcc:
-	$(MAKE) -s -C apps dcc
+	$(MAKE) -s -C apps $@
 
 .PHONY: epics
 epics:
-	$(MAKE) -s -C apps epics
-
-.PHONY: gateway
-gateway:
-	$(MAKE) -B -s -C apps gateway
-
-.PHONY: server
-server:
-	$(MAKE) -s -C apps server
-
-.PHONY: mstpcap
-mstpcap:
-	$(MAKE) -B -C apps mstpcap
-
-.PHONY: mstpcrc
-mstpcrc:
-	$(MAKE) -B -C apps mstpcrc
-
-.PHONY: iam
-iam:
-	$(MAKE) -B -C apps iam
-
-.PHONY: uevent
-uevent:
-	$(MAKE) -C apps uevent
-
-.PHONY: writepropm
-writepropm:
-	$(MAKE) -s -C apps writepropm
+	$(MAKE) -s -C apps $@
 
 .PHONY: error
 error:
-	$(MAKE) -C apps error
+	$(MAKE) -s -C apps $@
+
+.PHONY: iam
+iam:
+	$(MAKE) -s -C apps $@
+
+.PHONY: getevent
+getevent:
+	$(MAKE) -s -C apps $@
+
+.PHONY: gateway
+gateway:
+	$(MAKE) -s -C apps $@
+
+.PHONY: server
+server:
+	$(MAKE) -s -C apps $@
+
+.PHONY: mstpcap
+mstpcap:
+	$(MAKE) -s -C apps $@
+
+.PHONY: mstpcrc
+mstpcrc:
+	$(MAKE) -s -C apps $@
+
+.PHONY: iam
+iam:
+	$(MAKE) -s -C apps $@
+
+.PHONY: uevent
+uevent:
+	$(MAKE) -s -C apps $@
+
+.PHONY: writepropm
+writepropm:
+	$(MAKE) -s -C apps $@
 
 .PHONY: router
 router:
-	$(MAKE) -s -C apps router
+	$(MAKE) -s -C apps $@
 
 .PHONY: router-ipv6
 router-ipv6:
-	$(MAKE) -s -C apps router-ipv6
+	$(MAKE) -s -C apps $@
 
 # Add "ports" to the build, if desired
 .PHONY: ports

@@ -32,19 +32,19 @@
 #include <errno.h>
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/object/device.h"
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/filename.h"
-#include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 
 /* parsed command line parameters */
@@ -55,7 +55,7 @@ static uint16_t Target_Service = SERVICE_CONFIRMED_READ_PROPERTY;
 /* flag for signalling errors */
 static bool Error_Detected = false;
 
-void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                     uint8_t abort_reason, bool server)
 {
     (void)src;
@@ -65,7 +65,7 @@ void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
+static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
                      uint8_t reject_reason)
 {
     (void)src;

@@ -216,16 +216,28 @@ dcc:
 epics:
 	$(MAKE) -b -C $@
 
+.PHONY: error
+error:
+	$(MAKE) -b -C $@
+
+.PHONY: getevent
+getevent:
+	$(MAKE) -b -C $@
+
 .PHONY: iam
 iam:
 	$(MAKE) -b -C $@
 
-.PHONY: uevent
-uevent:
+.PHONY: iamrouter
+iamrouter:
 	$(MAKE) -b -C $@
 
-.PHONY: error
-error:
+.PHONY: initrouter
+initrouter:
+	$(MAKE) -b -C $@
+
+.PHONY: uevent
+uevent:
 	$(MAKE) -b -C $@
 
 .PHONY: router
