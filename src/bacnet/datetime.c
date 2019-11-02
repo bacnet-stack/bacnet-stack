@@ -1396,7 +1396,7 @@ static void testDatetimeCodec(Test *pTest)
 }
 
 
-static void testDatetimeCodec(Test *pTest)
+static void testDatetimeConvertUTC(Test *pTest)
 {
     BACNET_DATE_TIME local_time;
     BACNET_DATE_TIME utc_time;
@@ -1450,6 +1450,8 @@ void testDateTime(Test *pTest)
     rc = ct_addTestFunction(pTest, testDayOfYear);
     assert(rc);
     rc = ct_addTestFunction(pTest, testWildcardDateTime);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testDatetimeConvertUTC);
     assert(rc);
 }
 

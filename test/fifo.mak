@@ -1,12 +1,12 @@
 #Makefile to build test case
 CC      = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_FIFO_BUFFER
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/fifo.c \
+SRCS = $(SRC_DIR)/bacnet/basic/sys/fifo.c \
 	ctest.c
 
 TARGET = fifo

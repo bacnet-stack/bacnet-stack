@@ -1,16 +1,16 @@
 #Makefile to build test case
 CC      = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I. -I../ports/linux
+INCLUDES = -I$(SRC_DIR) -I. -I../ports/linux
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_MSTP
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/mstp.c \
-	$(SRC_DIR)/mstptext.c \
-	$(SRC_DIR)/indtext.c \
-	$(SRC_DIR)/crc.c \
-	$(SRC_DIR)/ringbuf.c \
+SRCS = $(SRC_DIR)/bacnet/datalink/mstp.c \
+	$(SRC_DIR)/bacnet/datalink/mstptext.c \
+	$(SRC_DIR)/bacnet/indtext.c \
+	$(SRC_DIR)/bacnet/datalink/crc.c \
+	$(SRC_DIR)/bacnet/basic/sys/ringbuf.c \
 	ctest.c
 
 TARGET = mstp

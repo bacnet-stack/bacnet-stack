@@ -9,14 +9,14 @@ DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_BBMD6
 
 CFLAGS  = -Wall -Wmissing-prototypes $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/bacdcode.c \
-	$(SRC_DIR)/bacint.c \
-	$(SRC_DIR)/bacstr.c \
-	$(SRC_DIR)/bacreal.c \
-	$(SRC_DIR)/bvlc6.c \
-	$(SRC_DIR)/debug.c \
-	$(SRC_DIR)/keylist.c \
-	$(SRC_DIR)/vmac.c \
+SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
+	$(SRC_DIR)/bacnet/bacint.c \
+	$(SRC_DIR)/bacnet/bacstr.c \
+	$(SRC_DIR)/bacnet/bacreal.c \
+	$(SRC_DIR)/bacnet/bvlc6.c \
+	$(SRC_DIR)/bacnet/debug.c \
+	$(SRC_DIR)/bacnet/basic/sys/keylist.c \
+	$(SRC_DIR)/bacnet/basic/bbmd6/vmac.c \
 	$(DEMO_DIR)/h_bbmd6.c \
 	ctest.c
 

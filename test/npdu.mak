@@ -1,18 +1,18 @@
 #Makefile to build test case
 CC      = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_NPDU
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/bacdcode.c \
-	$(SRC_DIR)/bacint.c \
-	$(SRC_DIR)/bacstr.c \
-	$(SRC_DIR)/bacreal.c \
-	$(SRC_DIR)/npdu.c \
-	$(SRC_DIR)/apdu.c \
-	$(SRC_DIR)/dcc.c \
+SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
+	$(SRC_DIR)/bacnet/bacint.c \
+	$(SRC_DIR)/bacnet/bacstr.c \
+	$(SRC_DIR)/bacnet/bacreal.c \
+	$(SRC_DIR)/bacnet/npdu.c \
+	$(SRC_DIR)/bacnet/basic/service/h_apdu.c \
+	$(SRC_DIR)/bacnet/dcc.c \
 	ctest.c
 
 TARGET = npdu

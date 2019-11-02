@@ -8,19 +8,19 @@ DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_ACCESS_CREDENTIAL
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = access_credential.c \
-	$(SRC_DIR)/bacdcode.c \
-	$(SRC_DIR)/bacint.c \
-	$(SRC_DIR)/bacstr.c \
-	$(SRC_DIR)/bacreal.c \
-	$(SRC_DIR)/datetime.c \
-	$(SRC_DIR)/lighting.c \
-	$(SRC_DIR)/bacapp.c \
-	$(SRC_DIR)/bacdevobjpropref.c \
-	$(SRC_DIR)/assigned_access_rights.c \
-	$(SRC_DIR)/authentication_factor.c \
-	$(SRC_DIR)/credential_authentication_factor.c \
-	$(SRC_DIR)/bactext.c \
-	$(SRC_DIR)/indtext.c \
+	$(SRC_DIR)/bacnet/bacdcode.c \
+	$(SRC_DIR)/bacnet/bacint.c \
+	$(SRC_DIR)/bacnet/bacstr.c \
+	$(SRC_DIR)/bacnet/bacreal.c \
+	$(SRC_DIR)/bacnet/datetime.c \
+	$(SRC_DIR)/bacnet/lighting.c \
+	$(SRC_DIR)/bacnet/bacapp.c \
+	$(SRC_DIR)/bacnet/bacdevobjpropref.c \
+	$(SRC_DIR)/bacnet/assigned_access_rights.c \
+	$(SRC_DIR)/bacnet/authentication_factor.c \
+	$(SRC_DIR)/bacnet/credential_authentication_factor.c \
+	$(SRC_DIR)/bacnet/bactext.c \
+	$(SRC_DIR)/bacnet/indtext.c \
 	$(TEST_DIR)/ctest.c
 
 TARGET = access_credential

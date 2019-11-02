@@ -1,19 +1,20 @@
 #Makefile to build unit tests
 CC = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_PROPLIST
 DEFINES += -DBACNET_PROPERTY_LISTS=1
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/proplist.c \
-	$(SRC_DIR)/bacdcode.c \
-	$(SRC_DIR)/bacint.c \
-	$(SRC_DIR)/bacreal.c \
-	$(SRC_DIR)/bacstr.c \
-	$(SRC_DIR)/datetime.c \
-	$(SRC_DIR)/lighting.c \
+SRCS = $(SRC_DIR)/bacnet/proplist.c \
+	$(SRC_DIR)/bacnet/property.c \
+	$(SRC_DIR)/bacnet/bacdcode.c \
+	$(SRC_DIR)/bacnet/bacint.c \
+	$(SRC_DIR)/bacnet/bacreal.c \
+	$(SRC_DIR)/bacnet/bacstr.c \
+	$(SRC_DIR)/bacnet/datetime.c \
+	$(SRC_DIR)/bacnet/lighting.c \
 	ctest.c
 
 TARGET = proplist

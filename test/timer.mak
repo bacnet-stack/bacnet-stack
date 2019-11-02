@@ -1,12 +1,12 @@
 #Makefile to build test case
 CC      = gcc
 SRC_DIR = ../ports/bdk-atxx4-mstp
-INCLUDES = -I../include -I${SRC_DIR} -I.
+INCLUDES = -I$(SRC_DIR) -I${SRC_DIR} -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_TIMER
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/timer.c \
+SRCS = $(SRC_DIR)/bacnet/timer.c \
 	ctest.c
 
 TARGET = timer

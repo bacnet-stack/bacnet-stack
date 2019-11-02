@@ -1,12 +1,12 @@
 #Makefile to build unit tests
 CC = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_INDEX_TEXT
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/indtext.c \
+SRCS = $(SRC_DIR)/bacnet/indtext.c \
 	ctest.c
 
 OBJS = ${SRCS:.c=.o}

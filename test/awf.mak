@@ -2,15 +2,15 @@
 CC      = gcc
 
 SRC_DIR = ../src
-INCLUDES = -I../include -I. -I../demo/object
+INCLUDES = -I$(SRC_DIR) -I. -I../demo/object
 DEFINES = -DBACFILE=1 -DBIG_ENDIAN=0 -DTEST -DTEST_ATOMIC_WRITE_FILE
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/bacdcode.c \
-	$(SRC_DIR)/bacint.c \
-	$(SRC_DIR)/bacstr.c \
-	$(SRC_DIR)/bacreal.c \
-	$(SRC_DIR)/awf.c \
+SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
+	$(SRC_DIR)/bacnet/bacint.c \
+	$(SRC_DIR)/bacnet/bacstr.c \
+	$(SRC_DIR)/bacnet/bacreal.c \
+	$(SRC_DIR)/bacnet/awf.c \
 	ctest.c
 
 OBJS = ${SRCS:.c=.o}

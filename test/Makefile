@@ -18,201 +18,201 @@ report:
 	cat ${LOGFILE}
 
 abort: logfile abort.mak
-	$(MAKE) -s -f abort.mak clean all
+	$(MAKE) -j -f abort.mak clean all
 	( ./abort >> ${LOGFILE} )
-	$(MAKE) -s -f abort.mak clean
+	$(MAKE) -j -f abort.mak clean
 
 address: logfile address.mak
-	$(MAKE) -s -f address.mak clean all
+	$(MAKE) -j -f address.mak clean all
 	( ./address >> ${LOGFILE} )
-	$(MAKE) -s -f address.mak clean
+	$(MAKE) -j -f address.mak clean
 
 arf: logfile arf.mak
-	$(MAKE) -s -f arf.mak clean all
+	$(MAKE) -j -f arf.mak clean all
 	( ./arf >> ${LOGFILE} )
-	$(MAKE) -s -f arf.mak clean
+	$(MAKE) -j -f arf.mak clean
 
 awf: logfile awf.mak
-	$(MAKE) -s -f awf.mak clean all
+	$(MAKE) -j -f awf.mak clean all
 	( ./awf >> ${LOGFILE} )
-	$(MAKE) -s -f awf.mak clean
+	$(MAKE) -j -f awf.mak clean
 
 bacapp: logfile bacapp.mak
-	$(MAKE) -s -f bacapp.mak clean all
+	$(MAKE) -j -f bacapp.mak clean all
 	( ./bacapp >> ${LOGFILE} )
-	$(MAKE) -s -f bacapp.mak clean
+	$(MAKE) -j -f bacapp.mak clean
 
 bacdcode: logfile bacdcode.mak
-	$(MAKE) -s -f bacdcode.mak clean all
+	$(MAKE) -j -f bacdcode.mak clean all
 	( ./bacdcode >> ${LOGFILE} )
-	$(MAKE) -s -f bacdcode.mak clean
+	$(MAKE) -j -f bacdcode.mak clean
 
 bacerror: logfile bacerror.mak
-	$(MAKE) -s -f bacerror.mak clean all
+	$(MAKE) -j -f bacerror.mak clean all
 	( ./bacerror >> ${LOGFILE} )
-	$(MAKE) -s -f bacerror.mak clean
+	$(MAKE) -j -f bacerror.mak clean
 
 bacint: logfile bacint.mak
-	$(MAKE) -s -f bacint.mak clean all
+	$(MAKE) -j -f bacint.mak clean all
 	( ./bacint >> ${LOGFILE} )
-	$(MAKE) -s -f bacint.mak clean
+	$(MAKE) -j -f bacint.mak clean
 
 bacstr: logfile bacstr.mak
-	$(MAKE) -s -f bacstr.mak clean all
+	$(MAKE) -j -f bacstr.mak clean all
 	( ./bacstr >> ${LOGFILE} )
-	$(MAKE) -s -f bacstr.mak clean
+	$(MAKE) -j -f bacstr.mak clean
 
 bvlc6: logfile bvlc6.mak
-	$(MAKE) -s -f bvlc6.mak clean all
+	$(MAKE) -j -f bvlc6.mak clean all
 	( ./bvlc6 >> ${LOGFILE} )
-	$(MAKE) -s -f bvlc6.mak clean
+	$(MAKE) -j -f bvlc6.mak clean
 
 cov: logfile cov.mak
-	$(MAKE) -s -f cov.mak clean all
+	$(MAKE) -j -f cov.mak clean all
 	( ./cov >> ${LOGFILE} )
-	$(MAKE) -s -f cov.mak clean
+	$(MAKE) -j -f cov.mak clean
 
 crc: logfile crc.mak
-	$(MAKE) -s -f crc.mak clean all
+	$(MAKE) -j -f crc.mak clean all
 	( ./crc >> ${LOGFILE} )
-	$(MAKE) -s -f crc.mak clean
+	$(MAKE) -j -f crc.mak clean
 
 datetime: logfile datetime.mak
-	$(MAKE) -s -f datetime.mak clean all
+	$(MAKE) -j -f datetime.mak clean all
 	( ./datetime >> ${LOGFILE} )
-	$(MAKE) -s -f datetime.mak clean
+	$(MAKE) -j -f datetime.mak clean
 
 dcc: logfile dcc.mak
-	$(MAKE) -s -f dcc.mak clean all
+	$(MAKE) -j -f dcc.mak clean all
 	( ./dcc >> ${LOGFILE} )
-	$(MAKE) -s -f dcc.mak clean
+	$(MAKE) -j -f dcc.mak clean
 
 event: logfile event.mak
-	$(MAKE) -s -f event.mak clean all
+	$(MAKE) -j -f event.mak clean all
 	( ./event >> ${LOGFILE} )
-	$(MAKE) -s -f event.mak clean
+	$(MAKE) -j -f event.mak clean
 
 filename: logfile filename.mak
-	$(MAKE) -s -f filename.mak clean all
+	$(MAKE) -j -f filename.mak clean all
 	( ./filename >> ${LOGFILE} )
-	$(MAKE) -s -f filename.mak clean
+	$(MAKE) -j -f filename.mak clean
 
 fifo: logfile fifo.mak
-	$(MAKE) -s -f fifo.mak clean all
+	$(MAKE) -j -f fifo.mak clean all
 	( ./fifo >> ${LOGFILE} )
-	$(MAKE) -s -f fifo.mak clean
+	$(MAKE) -j -f fifo.mak clean
 
 getevent: logfile getevent.mak
-	$(MAKE) -s -f getevent.mak clean all
+	$(MAKE) -j -f getevent.mak clean all
 	( ./getevent >> ${LOGFILE} )
-	$(MAKE) -s -f getevent.mak clean
+	$(MAKE) -j -f getevent.mak clean
 
 iam: logfile iam.mak
-	$(MAKE) -s -f iam.mak clean all
+	$(MAKE) -j -f iam.mak clean all
 	( ./iam >> ${LOGFILE} )
-	$(MAKE) -s -f iam.mak clean
+	$(MAKE) -j -f iam.mak clean
 
 ihave: logfile ihave.mak
-	$(MAKE) -s -f ihave.mak clean all
+	$(MAKE) -j -f ihave.mak clean all
 	( ./ihave >> ${LOGFILE} )
-	$(MAKE) -s -f ihave.mak clean
+	$(MAKE) -j -f ihave.mak clean
 
 indtext: logfile indtext.mak
-	$(MAKE) -s -f indtext.mak clean all
+	$(MAKE) -j -f indtext.mak clean all
 	( ./indtext >> ${LOGFILE} )
-	$(MAKE) -s -f indtext.mak clean
+	$(MAKE) -j -f indtext.mak clean
 
 keylist: logfile keylist.mak
-	$(MAKE) -s -f keylist.mak clean all
+	$(MAKE) -j -f keylist.mak clean all
 	( ./keylist >> ${LOGFILE} )
-	$(MAKE) -s -f keylist.mak clean
+	$(MAKE) -j -f keylist.mak clean
 
 key: logfile key.mak
-	$(MAKE) -s -f key.mak clean all
+	$(MAKE) -j -f key.mak clean all
 	( ./key >> ${LOGFILE} )
-	$(MAKE) -s -f key.mak clean
+	$(MAKE) -j -f key.mak clean
 
 lighting: logfile lighting.mak
-	$(MAKE) -s -f lighting.mak clean all
+	$(MAKE) -j -f lighting.mak clean all
 	( ./lighting >> ${LOGFILE} )
-	$(MAKE) -s -f lighting.mak clean
+	$(MAKE) -j -f lighting.mak clean
 
 lso: logfile lso.mak
-	$(MAKE) -s -f lso.mak clean all
+	$(MAKE) -j -f lso.mak clean all
 	( ./lso >> ${LOGFILE} )
-	$(MAKE) -s -f lso.mak clean
+	$(MAKE) -j -f lso.mak clean
 
 memcopy: logfile memcopy.mak
-	$(MAKE) -s -f memcopy.mak clean all
+	$(MAKE) -j -f memcopy.mak clean all
 	( ./memcopy >> ${LOGFILE} )
-	$(MAKE) -s -f memcopy.mak clean
+	$(MAKE) -j -f memcopy.mak clean
 
 npdu: logfile npdu.mak
-	$(MAKE) -s -f npdu.mak clean all
+	$(MAKE) -j -f npdu.mak clean all
 	( ./npdu >> ${LOGFILE} )
-	$(MAKE) -s -f npdu.mak clean
+	$(MAKE) -j -f npdu.mak clean
 
 proplist: logfile proplist.mak
-	$(MAKE) -s -f proplist.mak clean all
+	$(MAKE) -j -f proplist.mak clean all
 	( ./proplist >> ${LOGFILE} )
-	$(MAKE) -s -f proplist.mak clean
+	$(MAKE) -j -f proplist.mak clean
 
 ptransfer: logfile ptransfer.mak
-	$(MAKE) -s -f ptransfer.mak clean all
+	$(MAKE) -j -f ptransfer.mak clean all
 	( ./ptransfer >> ${LOGFILE} )
-	$(MAKE) -s -f ptransfer.mak clean
+	$(MAKE) -j -f ptransfer.mak clean
 
 rd: logfile rd.mak
-	$(MAKE) -s -f rd.mak clean all
+	$(MAKE) -j -f rd.mak clean all
 	( ./rd >> ${LOGFILE} )
-	$(MAKE) -s -f rd.mak clean
+	$(MAKE) -j -f rd.mak clean
 
 reject: logfile reject.mak
-	$(MAKE) -s -f reject.mak clean all
+	$(MAKE) -j -f reject.mak clean all
 	( ./reject >> ${LOGFILE} )
-	$(MAKE) -s -f reject.mak clean
+	$(MAKE) -j -f reject.mak clean
 
 ringbuf: logfile ringbuf.mak
-	$(MAKE) -s -f ringbuf.mak clean all
+	$(MAKE) -j -f ringbuf.mak clean all
 	( ./ringbuf >> ${LOGFILE} )
-	$(MAKE) -s -f ringbuf.mak clean
+	$(MAKE) -j -f ringbuf.mak clean
 
 rp: logfile rp.mak
-	$(MAKE) -s -f rp.mak clean all
+	$(MAKE) -j -f rp.mak clean all
 	( ./rp >> ${LOGFILE} )
-	$(MAKE) -s -f rp.mak clean
+	$(MAKE) -j -f rp.mak clean
 
 rpm: logfile rpm.mak
-	$(MAKE) -s -f rpm.mak clean all
+	$(MAKE) -j -f rpm.mak clean all
 	( ./rpm >> ${LOGFILE} )
-	$(MAKE) -s -f rpm.mak clean
+	$(MAKE) -j -f rpm.mak clean
 
 sbuf: logfile sbuf.mak
-	$(MAKE) -s -f sbuf.mak clean all
+	$(MAKE) -j -f sbuf.mak clean all
 	( ./sbuf >> ${LOGFILE} )
-	$(MAKE) -s -f sbuf.mak clean
+	$(MAKE) -j -f sbuf.mak clean
 
 timesync: logfile timesync.mak
-	$(MAKE) -s -f timesync.mak clean all
+	$(MAKE) -j -f timesync.mak clean all
 	( ./timesync >> ${LOGFILE} )
-	$(MAKE) -s -f timesync.mak clean
+	$(MAKE) -j -f timesync.mak clean
 
 vmac: logfile vmac.mak
-	$(MAKE) -s -f vmac.mak clean all
+	$(MAKE) -j -f vmac.mak clean all
 	( ./vmac >> ${LOGFILE} )
-	$(MAKE) -s -f vmac.mak clean
+	$(MAKE) -j -f vmac.mak clean
 
 whohas: logfile whohas.mak
-	$(MAKE) -s -f whohas.mak clean all
+	$(MAKE) -j -f whohas.mak clean all
 	( ./whohas >> ${LOGFILE} )
-	$(MAKE) -s -f whohas.mak clean
+	$(MAKE) -j -f whohas.mak clean
 
 whois: logfile whois.mak
-	$(MAKE) -s -f whois.mak clean all
+	$(MAKE) -j -f whois.mak clean all
 	( ./whois >> ${LOGFILE} )
-	$(MAKE) -s -f whois.mak clean
+	$(MAKE) -j -f whois.mak clean
 
 wp: logfile wp.mak
-	$(MAKE) -s -f wp.mak clean all
+	$(MAKE) -j -f wp.mak clean all
 	( ./wp >> ${LOGFILE} )
-	$(MAKE) -s -f wp.mak clean
+	$(MAKE) -j -f wp.mak clean

@@ -14,22 +14,22 @@ DEFINES += -DBACNET_PROPERTY_LISTS=1
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
 SRCS = device.c \
-	$(SRC_DIR)/bacdcode.c \
-	$(SRC_DIR)/bacint.c \
-	$(SRC_DIR)/bacstr.c \
-	$(SRC_DIR)/bacreal.c \
-	$(SRC_DIR)/datetime.c \
-	$(SRC_DIR)/bacapp.c \
-	$(SRC_DIR)/bacdevobjpropref.c \
-	$(SRC_DIR)/bactext.c \
-	$(SRC_DIR)/indtext.c \
-	$(SRC_DIR)/proplist.c \
-	$(SRC_DIR)/lighting.c \
-	$(SRC_DIR)/apdu.c \
-	$(SRC_DIR)/address.c \
-	$(SRC_DIR)/bacaddr.c \
-	$(SRC_DIR)/dcc.c \
-	$(SRC_DIR)/version.c \
+	$(SRC_DIR)/bacnet/bacdcode.c \
+	$(SRC_DIR)/bacnet/bacint.c \
+	$(SRC_DIR)/bacnet/bacstr.c \
+	$(SRC_DIR)/bacnet/bacreal.c \
+	$(SRC_DIR)/bacnet/datetime.c \
+	$(SRC_DIR)/bacnet/bacapp.c \
+	$(SRC_DIR)/bacnet/bacdevobjpropref.c \
+	$(SRC_DIR)/bacnet/bactext.c \
+	$(SRC_DIR)/bacnet/indtext.c \
+	$(SRC_DIR)/bacnet/proplist.c \
+	$(SRC_DIR)/bacnet/lighting.c \
+	$(SRC_DIR)/bacnet/basic/service/h_apdu.c \
+	$(SRC_DIR)/bacnet/address.c \
+	$(SRC_DIR)/bacnet/bacaddr.c \
+	$(SRC_DIR)/bacnet/dcc.c \
+	$(SRC_DIR)/bacnet/version.c \
 	$(TEST_DIR)/ctest.c
 
 TARGET = device
