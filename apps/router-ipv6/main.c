@@ -38,22 +38,24 @@
 
 #include "bacnet/bacdef.h"
 #include "bacnet/config.h"
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/bactext.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/iam.h"
 #include "bacnet/arf.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/binding/address.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
-#include "bacnet/basic/services.h"
-#include "bacport.h"
 #include "bacnet/version.h"
-
+/* some demo modules we use */
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/basic/services.h"
+/* port agnostic file */
+#include "bacport.h"
 /* our datalink layers */
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/datalink/bip6.h"
+#include "bacnet/basic/bbmd6/h_bbmd6.h"
 #undef MAX_HEADER
 #undef MAX_MPDU
 #include "bacnet/datalink/bip.h"
@@ -344,36 +346,6 @@ static int datalink_send_pdu(uint16_t snet, BACNET_ADDRESS *dest,
     return bytes_sent;
 }
 
-/** Initialize an npdu_data structure with given parameters and good defaults,
- * and add the Network Layer Message fields.
- * The name is a misnomer, as it doesn't do any actual encoding here.
- * @see npdu_encode_npdu_data for a simpler version to use when sending an
- *           APDU instead of a Network Layer Message.
- *
- * @param npdu_data [out] Returns a filled-out structure with information
- * 					 provided by the other arguments and
- * good defaults.
- * @param network_message_type [in] The type of Network Layer Message.
- * @param data_expecting_reply [in] True if message should have a reply.
- * @param priority [in] One of the 4 priorities defined in section 6.2.2,
- *                      like B'11' = Life Safety message
- */
-static void npdu_encode_npdu_network(
-    BACNET_NPDU_DATA *npdu_data,
-    BACNET_NETWORK_MESSAGE_TYPE network_message_type, bool data_expecting_reply,
-    BACNET_MESSAGE_PRIORITY priority)
-{
-    if (npdu_data) {
-        npdu_data->data_expecting_reply = data_expecting_reply;
-        npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
-        npdu_data->network_layer_message = true; /* false if APDU */
-        npdu_data->network_message_type = network_message_type; /* optional */
-        npdu_data->vendor_id = 0; /* optional, if net message type is > 0x80 */
-        npdu_data->priority = priority;
-        npdu_data->hop_count = HOP_COUNT_DEFAULT;
-    }
-}
-
 /**
  * Broadcast an I-am-router-to-network message
  *
@@ -446,7 +418,7 @@ static void send_i_am_router_to_network(uint16_t snet, uint16_t net)
  *  Optionally may designate a particular router destination,
  *  especially when ACKing receipt of this message type.
  */
-void send_initialize_routing_table_ack(uint8_t snet, BACNET_ADDRESS *dst)
+static void send_initialize_routing_table_ack(uint8_t snet, BACNET_ADDRESS *dst)
 {
     BACNET_ADDRESS dest;
     bool data_expecting_reply = false;
@@ -505,7 +477,7 @@ void send_initialize_routing_table_ack(uint8_t snet, BACNET_ADDRESS *dst)
  *                 destination.
  * @param reject_reason [in] One of the BACNET_NETWORK_REJECT_REASONS codes.
  */
-void send_reject_message_to_network(uint16_t snet, BACNET_ADDRESS *dst,
+static void send_reject_message_to_network(uint16_t snet, BACNET_ADDRESS *dst,
                                     uint8_t reject_reason, uint16_t dnet)
 {
     BACNET_ADDRESS dest;
@@ -1113,7 +1085,7 @@ static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
     return TRUE;
 }
 
-void control_c_hooks(void)
+static void control_c_hooks(void)
 {
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
     SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE);
@@ -1126,14 +1098,14 @@ static void sig_int(int signo)
     exit(0);
 }
 
-void signal_init(void)
+static void signal_init(void)
 {
     signal(SIGINT, sig_int);
     signal(SIGHUP, sig_int);
     signal(SIGTERM, sig_int);
 }
 
-void control_c_hooks(void)
+static void control_c_hooks(void)
 {
     signal_init();
 }

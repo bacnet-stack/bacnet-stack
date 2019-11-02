@@ -9,51 +9,70 @@ TARGET = bacroute
 
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-CFLAGS += -DPRINT_ENABLED=1
-
-BACNET_SOURCE_DIR = ../../src
-BACNET_HANDLER_DIR = ../handler
-BACNET_OBJECT_DIR = ../object
-
+# BACNET_PORT, BACNET_PORT_DIR, BACNET_PORT_SRC are defined in common Makefile
+# BACNET_SRC_DIR is defined in common apps Makefile
+BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
-	$(BACNET_OBJECT_DIR)/device-client.c
+	$(BACNET_OBJECT_DIR)/client/device-client.c
 
 PORT_BIP6_SRC = \
 	$(BACNET_PORT_DIR)/bip6.c \
-	$(BACNET_SOURCE_DIR)/bacnet/datalink/bvlc6.c \
-	$(BACNET_HANDLER_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
-	$(BACNET_SOURCE_DIR)/bacnet/basic/bbmd6/vmac.c
+	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c
 
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_SOURCE_DIR)/bacnet/datalink/bvlc.c \
-	$(BACNET_SOURCE_DIR)/bacnet/datalink/bip.c
+	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bip.c
 
-SRCS = ${SRC} ${PORT_BIP6_SRC} ${PORT_BIP_SRC}
+# WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile
+# BACNET_DEFINES is defined in common apps Makefile
+# put all the flags together
+INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
+CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
+LFLAGS += -Wl,$(SYSTEM_LIB)
+ifneq (${BACNET_LIB},)
+LFLAGS += -Wl,$(BACNET_LIB)
+endif
+# GCC dead code removal
+CFLAGS += -ffunction-sections -fdata-sections
+LFLAGS += -Wl,--gc-sections
 
-OBJS = ${SRCS:.c=.o}
+BACNET_SRC ?= \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
+	$(BACNET_SRC_DIR)/bacnet/basic/npdu/h_routed_npdu.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c
 
-all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
+SRCS = ${SRC} $(BACNET_SRC) ${PORT_BIP6_SRC} ${PORT_BIP_SRC}
 
-${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
+OBJS += ${SRCS:.c=.o}
+
+.PHONY: all
+all: Makefile ${TARGET_BIN}
+
+${TARGET_BIN}: ${OBJS}
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
 
-lib: ${BACNET_LIB_TARGET}
-
-${BACNET_LIB_TARGET}:
-	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) )
-
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
 
+.PHONY: depend
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
+.PHONY: clean
 clean:
-	rm -f core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET} $(TARGET).map
+	rm -f core ${TARGET_BIN} ${OBJS} $(TARGET).map
 
+.PHONY: include
 include: .depend
