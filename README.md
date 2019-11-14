@@ -103,8 +103,7 @@ http://lists.sourceforge.net/mailman/listinfo/bacnet-developers
 I hope that you get your BACnet Device working!  If not, join us on the 
 mailing list and we can help.
 
-Steve Karg
-Birmingham, Alabama USA
+Steve Karg, Birmingham, Alabama USA
 skarg@users.sourceforge.net
 
 ASHRAE® and BACnet® are registered trademarks of the 
