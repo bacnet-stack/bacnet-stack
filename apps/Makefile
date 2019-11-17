@@ -104,6 +104,17 @@ BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=17
 
+# put all the flags together
+INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
+CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
+LFLAGS += -Wl,$(SYSTEM_LIB)
+ifneq (${BACNET_LIB},)
+LFLAGS += -Wl,$(BACNET_LIB)
+endif
+# GCC dead code removal
+CFLAGS += -ffunction-sections -fdata-sections
+LFLAGS += -Wl,--gc-sections
+
 PORT_ARCNET_SRC = \
 	$(BACNET_PORT_DIR)/arcnet.c
 
@@ -159,6 +170,16 @@ BACNET_PORT_SRC += \
 	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c \
 	$(BACNET_PORT_DIR)/mstimer-init.c \
 	$(BACNET_PORT_DIR)/datetime-init.c \
+
+BACNET_SRC ?= \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
+	$(BACNET_SRC_DIR)/bacnet/basic/npdu/h_npdu.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c
 
 .EXPORT_ALL_VARIABLES:
 

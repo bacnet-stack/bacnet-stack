@@ -3,7 +3,8 @@
 # Executable file name
 TARGET = mstpcrc
 
-SRC = main.c \
+SRCS = main.c \
+	${BACNET_PORT_DIR}/mstimer-init.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/sys/mstimer.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
 
@@ -21,8 +22,6 @@ endif
 # GCC dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
 LFLAGS += -Wl,--gc-sections
-
-SRCS = $(SRC) $(BACNET_SRC) $(BACNET_PORT_SRC)
 
 OBJS += ${SRCS:.c=.o}
 
