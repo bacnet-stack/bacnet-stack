@@ -52,11 +52,14 @@
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int error_encode_pdu(uint8_t *buffer, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
-                     BACNET_NPDU_DATA *npdu_data, uint8_t invoke_id,
-                     BACNET_CONFIRMED_SERVICE service,
-                     BACNET_ERROR_CLASS error_class,
-                     BACNET_ERROR_CODE error_code)
+int error_encode_pdu(uint8_t *buffer,
+    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t invoke_id,
+    BACNET_CONFIRMED_SERVICE service,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
     int len = 0;
     int pdu_len = 0;
@@ -66,8 +69,8 @@ int error_encode_pdu(uint8_t *buffer, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
     pdu_len = npdu_encode_pdu(&buffer[0], dest, src, npdu_data);
 
     /* encode the APDU portion of the packet */
-    len = bacerror_encode_apdu(&buffer[pdu_len], invoke_id, service,
-                               error_class, error_code);
+    len = bacerror_encode_apdu(
+        &buffer[pdu_len], invoke_id, service, error_class, error_code);
     pdu_len += len;
 
     return pdu_len;
@@ -82,10 +85,12 @@ int error_encode_pdu(uint8_t *buffer, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int Send_Error_To_Network(uint8_t *buffer, BACNET_ADDRESS *dest,
-                          uint8_t invoke_id, BACNET_CONFIRMED_SERVICE service,
-                          BACNET_ERROR_CLASS error_class,
-                          BACNET_ERROR_CODE error_code)
+int Send_Error_To_Network(uint8_t *buffer,
+    BACNET_ADDRESS *dest,
+    uint8_t invoke_id,
+    BACNET_CONFIRMED_SERVICE service,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
     int pdu_len = 0;
     BACNET_ADDRESS src;
@@ -94,7 +99,7 @@ int Send_Error_To_Network(uint8_t *buffer, BACNET_ADDRESS *dest,
 
     datalink_get_my_address(&src);
     pdu_len = error_encode_pdu(buffer, dest, &src, &npdu_data, invoke_id,
-                               service, error_class, error_code);
+        service, error_class, error_code);
     bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
 
     return bytes_sent;

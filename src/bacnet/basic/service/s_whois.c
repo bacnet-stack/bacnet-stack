@@ -56,8 +56,8 @@
  * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
  * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
  */
-void Send_WhoIs_To_Network(BACNET_ADDRESS* target_address, int32_t low_limit,
-                           int32_t high_limit)
+void Send_WhoIs_To_Network(
+    BACNET_ADDRESS *target_address, int32_t low_limit, int32_t high_limit)
 {
     int len = 0;
     int pdu_len = 0;
@@ -69,18 +69,18 @@ void Send_WhoIs_To_Network(BACNET_ADDRESS* target_address, int32_t low_limit,
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
 
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], target_address,
-                              &my_address, &npdu_data);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], target_address, &my_address, &npdu_data);
     /* encode the APDU portion of the packet */
-    len = whois_encode_apdu(&Handler_Transmit_Buffer[pdu_len], low_limit,
-                            high_limit);
+    len = whois_encode_apdu(
+        &Handler_Transmit_Buffer[pdu_len], low_limit, high_limit);
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(target_address, &npdu_data,
-                                   &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent = datalink_send_pdu(
+        target_address, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Who-Is Request (%s)!\n",
-                strerror(errno));
+        fprintf(
+            stderr, "Failed to Send Who-Is Request (%s)!\n", strerror(errno));
 #endif
 }
 
@@ -157,8 +157,8 @@ void Send_WhoIs_Local(int32_t low_limit, int32_t high_limit)
  * @param low_limit [in] Device Instance Low Range, 0 - 4,194,303 or -1
  * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
  */
-void Send_WhoIs_Remote(BACNET_ADDRESS* target_address, int32_t low_limit,
-                       int32_t high_limit)
+void Send_WhoIs_Remote(
+    BACNET_ADDRESS *target_address, int32_t low_limit, int32_t high_limit)
 {
     if (!dcc_communication_enabled())
         return;

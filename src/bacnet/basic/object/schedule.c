@@ -43,26 +43,18 @@
 
 SCHEDULE_DESCR Schedule_Descr[MAX_SCHEDULES];
 
-static const int Schedule_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_EFFECTIVE_PERIOD,
-    PROP_SCHEDULE_DEFAULT,
-    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
-    PROP_PRIORITY_FOR_WRITING,
-    PROP_STATUS_FLAGS,
-    PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE,
-    -1};
+static const int Schedule_Properties_Required[]
+    = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+          PROP_PRESENT_VALUE, PROP_EFFECTIVE_PERIOD, PROP_SCHEDULE_DEFAULT,
+          PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES, PROP_PRIORITY_FOR_WRITING,
+          PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_OUT_OF_SERVICE, -1 };
 
-static const int Schedule_Properties_Optional[] = {PROP_WEEKLY_SCHEDULE, -1};
+static const int Schedule_Properties_Optional[] = { PROP_WEEKLY_SCHEDULE, -1 };
 
-static const int Schedule_Properties_Proprietary[] = {-1};
+static const int Schedule_Properties_Proprietary[] = { -1 };
 
-void Schedule_Property_Lists(const int **pRequired, const int **pOptional,
-                             const int **pProprietary)
+void Schedule_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Schedule_Properties_Required;
@@ -91,10 +83,10 @@ void Schedule_Init(void)
         Schedule_Descr[i].Present_Value = &Schedule_Descr[i].Schedule_Default;
         Schedule_Descr[i].Schedule_Default.context_specific = false;
         Schedule_Descr[i].Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
-        Schedule_Descr[i].Schedule_Default.type.Real =
-            21.0; /* 21 C, room temperature */
-        Schedule_Descr[i].obj_prop_ref_cnt =
-            0; /* no references, add as needed */
+        Schedule_Descr[i].Schedule_Default.type.Real
+            = 21.0; /* 21 C, room temperature */
+        Schedule_Descr[i].obj_prop_ref_cnt
+            = 0; /* no references, add as needed */
         Schedule_Descr[i].Priority_For_Writing = 16; /* lowest priority */
         Schedule_Descr[i].Out_Of_Service = false;
     }
@@ -129,8 +121,8 @@ unsigned Schedule_Instance_To_Index(uint32_t instance)
     return index;
 }
 
-bool Schedule_Object_Name(uint32_t object_instance,
-                          BACNET_CHARACTER_STRING *object_name)
+bool Schedule_Object_Name(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = ""; /* okay for single thread */
     unsigned int index;
@@ -172,8 +164,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     int i;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL)
+        || (rpdata->application_data_len == 0)) {
         return 0;
     }
 
@@ -186,13 +178,13 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     apdu = rpdata->application_data;
     switch ((int)rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0], OBJECT_SCHEDULE,
-                                                    rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_SCHEDULE, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Schedule_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_SCHEDULE);
@@ -210,10 +202,10 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                suitable time for
                     review by all interested parties. Say 6 months -> September
                2016 */
-            apdu_len =
-                encode_application_date(&apdu[0], &CurrentSC->Start_Date);
-            apdu_len +=
-                encode_application_date(&apdu[apdu_len], &CurrentSC->End_Date);
+            apdu_len
+                = encode_application_date(&apdu[0], &CurrentSC->Start_Date);
+            apdu_len += encode_application_date(
+                &apdu[apdu_len], &CurrentSC->End_Date);
             break;
         case PROP_WEEKLY_SCHEDULE:
             if (rpdata->array_index == 0) /* count, always 7 */
@@ -224,8 +216,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
                     for (i = 0; i < CurrentSC->Weekly_Schedule[day].TV_Count;
                          i++) {
-                        apdu_len += bacapp_encode_time_value(
-                            &apdu[apdu_len],
+                        apdu_len += bacapp_encode_time_value(&apdu[apdu_len],
                             &CurrentSC->Weekly_Schedule[day].Time_Values[i]);
                     }
                     apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
@@ -234,8 +225,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 int day = rpdata->array_index - 1;
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
                 for (i = 0; i < CurrentSC->Weekly_Schedule[day].TV_Count; i++) {
-                    apdu_len += bacapp_encode_time_value(
-                        &apdu[apdu_len],
+                    apdu_len += bacapp_encode_time_value(&apdu[apdu_len],
                         &CurrentSC->Weekly_Schedule[day].Time_Values[i]);
                 }
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
@@ -246,8 +236,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_SCHEDULE_DEFAULT:
-            apdu_len =
-                bacapp_encode_data(&apdu[0], &CurrentSC->Schedule_Default);
+            apdu_len
+                = bacapp_encode_data(&apdu[0], &CurrentSC->Schedule_Default);
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
             for (i = 0; i < CurrentSC->obj_prop_ref_cnt; i++) {
@@ -282,8 +272,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                suitable time for
                     review by all interested parties. Say 6 months -> September
                2016 */
-            apdu_len =
-                encode_application_boolean(&apdu[0], CurrentSC->Out_Of_Service);
+            apdu_len = encode_application_boolean(
+                &apdu[0], CurrentSC->Out_Of_Service);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -292,8 +282,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
 
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_WEEKLY_SCHEDULE) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_WEEKLY_SCHEDULE)
+        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -323,8 +313,8 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
        remove this comment when my changes accepted after suitable time for
             review by all interested parties. Say 6 months -> September 2016 */
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
-                                         wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -349,12 +339,11 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                suitable time for
                     review by all interested parties. Say 6 months -> September
                2016 */
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                                  &wp_data->error_class, &wp_data->error_code);
+            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                Schedule_Out_Of_Service_Set(wp_data->object_instance,
-                                            value.type.Boolean);
+                Schedule_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
 
@@ -386,16 +375,16 @@ bool Schedule_In_Effective_Period(SCHEDULE_DESCR *desc, BACNET_DATE *date)
     bool res = false;
 
     if (desc && date) {
-        if (datetime_wildcard_compare_date(&desc->Start_Date, date) <= 0 &&
-            datetime_wildcard_compare_date(&desc->End_Date, date) >= 0)
+        if (datetime_wildcard_compare_date(&desc->Start_Date, date) <= 0
+            && datetime_wildcard_compare_date(&desc->End_Date, date) >= 0)
             res = true;
     }
 
     return res;
 }
 
-void Schedule_Recalculate_PV(SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday,
-                             BACNET_TIME *time)
+void Schedule_Recalculate_PV(
+    SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, BACNET_TIME *time)
 {
     int i;
     desc->Present_Value = NULL;
@@ -409,16 +398,16 @@ void Schedule_Recalculate_PV(SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday,
        this yourself, please ping us at info@connect-ex.com, we may be able to
        broker an early release on a case-by-case basis. */
 
-    for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count &&
-                desc->Present_Value == NULL;
+    for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count
+         && desc->Present_Value == NULL;
          i++) {
         int diff = datetime_wildcard_compare_time(
             time, &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time);
-        if (diff >= 0 &&
-            desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag !=
-                BACNET_APPLICATION_TAG_NULL) {
-            desc->Present_Value =
-                &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value;
+        if (diff >= 0
+            && desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag
+                != BACNET_APPLICATION_TAG_NULL) {
+            desc->Present_Value
+                = &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value;
         }
     }
 
@@ -434,7 +423,7 @@ void Schedule_Recalculate_PV(SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday,
 void testSchedule(Test *pTest)
 {
     BACNET_READ_PROPERTY_DATA rpdata;
-    uint8_t apdu[MAX_APDU] = {0};
+    uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;

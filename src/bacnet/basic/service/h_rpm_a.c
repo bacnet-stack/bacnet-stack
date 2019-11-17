@@ -51,8 +51,8 @@
  * 			where the RPM data is to be stored.
  * @return The number of bytes decoded, or -1 on error
  */
-int rpm_ack_decode_service_request(uint8_t *apdu, int apdu_len,
-                                   BACNET_READ_ACCESS_DATA *read_access_data)
+int rpm_ack_decode_service_request(
+    uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)
 {
     int decoded_len = 0;      /* return value */
     uint32_t error_value = 0; /* decoded error value */
@@ -71,7 +71,7 @@ int rpm_ack_decode_service_request(uint8_t *apdu, int apdu_len,
     old_rpm_object = rpm_object;
     while (rpm_object && apdu_len) {
         len = rpm_ack_decode_object_id(apdu, apdu_len, &rpm_object->object_type,
-                                       &rpm_object->object_instance);
+            &rpm_object->object_instance);
         if (len <= 0) {
             old_rpm_object->next = NULL;
             free(rpm_object);
@@ -84,8 +84,8 @@ int rpm_ack_decode_service_request(uint8_t *apdu, int apdu_len,
         rpm_object->listOfProperties = rpm_property;
         old_rpm_property = rpm_property;
         while (rpm_property && apdu_len) {
-            len = rpm_ack_decode_object_property(
-                apdu, apdu_len, &rpm_property->propertyIdentifier,
+            len = rpm_ack_decode_object_property(apdu, apdu_len,
+                &rpm_property->propertyIdentifier,
                 &rpm_property->propertyArrayIndex);
             if (len <= 0) {
                 old_rpm_property->next = NULL;
@@ -111,12 +111,11 @@ int rpm_ack_decode_service_request(uint8_t *apdu, int apdu_len,
                 old_value = value;
                 while (value && (apdu_len > 0)) {
                     if (IS_CONTEXT_SPECIFIC(*apdu)) {
-                        len = bacapp_decode_context_data(
-                            apdu, apdu_len, value,
+                        len = bacapp_decode_context_data(apdu, apdu_len, value,
                             rpm_property->propertyIdentifier);
                     } else {
-                        len = bacapp_decode_application_data(apdu, apdu_len,
-                                                             value);
+                        len = bacapp_decode_application_data(
+                            apdu, apdu_len, value);
                     }
                     /* If len == 0 then it's an empty structure, which is OK. */
                     if (len < 0) {
@@ -134,8 +133,8 @@ int rpm_ack_decode_service_request(uint8_t *apdu, int apdu_len,
                         break;
                     } else {
                         old_value = value;
-                        value =
-                            calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+                        value
+                            = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                         old_value->next = value;
                     }
                 }
@@ -145,8 +144,8 @@ int rpm_ack_decode_service_request(uint8_t *apdu, int apdu_len,
                 apdu_len--;
                 apdu++;
                 /* decode the class and code sequence */
-                len =
-                    decode_tag_number_and_value(apdu, &tag_number, &len_value);
+                len = decode_tag_number_and_value(
+                    apdu, &tag_number, &len_value);
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
@@ -156,8 +155,8 @@ int rpm_ack_decode_service_request(uint8_t *apdu, int apdu_len,
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
-                len =
-                    decode_tag_number_and_value(apdu, &tag_number, &len_value);
+                len = decode_tag_number_and_value(
+                    apdu, &tag_number, &len_value);
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
@@ -204,8 +203,8 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
     if (rpm_data) {
 #if PRINT_ENABLED
         fprintf(stdout, "%s #%lu\r\n",
-                bactext_object_type_name(rpm_data->object_type),
-                (unsigned long)rpm_data->object_instance);
+            bactext_object_type_name(rpm_data->object_type),
+            (unsigned long)rpm_data->object_instance);
         fprintf(stdout, "{\r\n");
 #endif
         listOfProperties = rpm_data->listOfProperties;
@@ -213,11 +212,11 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
 #if PRINT_ENABLED
             if (listOfProperties->propertyIdentifier < 512) {
                 fprintf(stdout, "    %s: ",
-                        bactext_property_name(
-                            listOfProperties->propertyIdentifier));
+                    bactext_property_name(
+                        listOfProperties->propertyIdentifier));
             } else {
                 fprintf(stdout, "    proprietary %u: ",
-                        (unsigned)listOfProperties->propertyIdentifier);
+                    (unsigned)listOfProperties->propertyIdentifier);
             }
 #endif
             if (listOfProperties->propertyArrayIndex != BACNET_ARRAY_ALL) {
@@ -238,10 +237,10 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
                 object_value.object_type = rpm_data->object_type;
                 object_value.object_instance = rpm_data->object_instance;
                 while (value) {
-                    object_value.object_property =
-                        listOfProperties->propertyIdentifier;
-                    object_value.array_index =
-                        listOfProperties->propertyArrayIndex;
+                    object_value.object_property
+                        = listOfProperties->propertyIdentifier;
+                    object_value.array_index
+                        = listOfProperties->propertyArrayIndex;
                     object_value.value = value;
                     bacapp_print_value(stdout, &object_value);
 #if PRINT_ENABLED
@@ -261,10 +260,10 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
 #if PRINT_ENABLED
                 /* AccessError */
                 fprintf(stdout, "BACnet Error: %s: %s\r\n",
-                        bactext_error_class_name(
-                            (int)listOfProperties->error.error_class),
-                        bactext_error_code_name(
-                            (int)listOfProperties->error.error_code));
+                    bactext_error_class_name(
+                        (int)listOfProperties->error.error_class),
+                    bactext_error_code_name(
+                        (int)listOfProperties->error.error_code));
 #endif
             }
             listOfProperties = listOfProperties->next;
@@ -286,8 +285,9 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_read_property_multiple_ack(
-    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
+void handler_read_property_multiple_ack(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
@@ -303,8 +303,8 @@ void handler_read_property_multiple_ack(
 
     rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
     if (rpm_data) {
-        len = rpm_ack_decode_service_request(service_request, service_len,
-                                             rpm_data);
+        len = rpm_ack_decode_service_request(
+            service_request, service_len, rpm_data);
     }
 #if 1
     fprintf(stderr, "Received Read-Property-Multiple Ack!\n");

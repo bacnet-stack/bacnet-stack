@@ -55,8 +55,8 @@ static uint16_t Target_Service = SERVICE_CONFIRMED_READ_PROPERTY;
 /* flag for signalling errors */
 static bool Error_Detected = false;
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)src;
     (void)invoke_id;
@@ -65,8 +65,8 @@ static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     (void)src;
     (void)invoke_id;
@@ -84,8 +84,8 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
     /* handle any errors coming back */
@@ -96,7 +96,7 @@ static void Init_Service_Handlers(void)
 static void print_usage(char *filename)
 {
     printf("Usage: %s [error-class error-code service-number invoke-id]\n",
-           filename);
+        filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
@@ -123,26 +123,25 @@ static void print_help(char *filename)
         "or an IP string with optional port number like 10.1.2.3:47808\n"
         "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
         "\n");
-    printf(
-        "error-class:\n"
-        "    number from 0 to 65535\n"
-        "error-code:\n"
-        "    number from 0 to 65535\n"
-        "service-number:\n"
-        "    number from 0 to 65535 for BACnet Services\n"
-        "invoke-id:\n"
-        "    number from 1 to 255\n"
-        "Example:\n"
-        "%s 3 2 1\n",
+    printf("error-class:\n"
+           "    number from 0 to 65535\n"
+           "error-code:\n"
+           "    number from 0 to 65535\n"
+           "service-number:\n"
+           "    number from 0 to 65535 for BACnet Services\n"
+           "invoke-id:\n"
+           "    number from 1 to 255\n"
+           "Example:\n"
+           "%s 3 2 1\n",
         filename);
 }
 
 int main(int argc, char *argv[])
 {
     long dnet = -1;
-    BACNET_MAC_ADDRESS mac = {0};
-    BACNET_MAC_ADDRESS adr = {0};
-    BACNET_ADDRESS dest = {0};
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
     bool specific_address = false;
     int argi = 0;
     unsigned int target_args = 0;
@@ -157,12 +156,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2016 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2016 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
         if (strcmp(argv[argi], "--mac") == 0) {
@@ -242,8 +240,7 @@ int main(int argc, char *argv[])
     atexit(datalink_cleanup);
     /* send the request */
     Send_Error_To_Network(&Handler_Transmit_Buffer[0], &dest, Target_Invoke_ID,
-                          Target_Service, Target_Error_Class,
-                          Target_Error_Code);
+        Target_Service, Target_Error_Class, Target_Error_Code);
 
     return 0;
 }

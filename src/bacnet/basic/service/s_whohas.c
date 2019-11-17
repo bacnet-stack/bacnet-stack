@@ -52,8 +52,8 @@
  * @param high_limit [in] Device Instance High Range, 0 - 4,194,303 or -1
  * @param object_name [in] The Name of the desired Object.
  */
-void Send_WhoHas_Name(int32_t low_limit, int32_t high_limit,
-                      const char *object_name)
+void Send_WhoHas_Name(
+    int32_t low_limit, int32_t high_limit, const char *object_name)
 {
     int len = 0;
     int pdu_len = 0;
@@ -71,8 +71,8 @@ void Send_WhoHas_Name(int32_t low_limit, int32_t high_limit,
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
-                              &npdu_data);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
 
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
@@ -82,12 +82,12 @@ void Send_WhoHas_Name(int32_t low_limit, int32_t high_limit,
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
     /* send the data */
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
-                                   &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent = datalink_send_pdu(
+        &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",
-                strerror(errno));
+        fprintf(
+            stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
 #endif
 }
 
@@ -102,9 +102,10 @@ void Send_WhoHas_Name(int32_t low_limit, int32_t high_limit,
  * @param object_type [in] The BACNET_OBJECT_TYPE of the desired Object.
  * @param object_instance [in] The ID of the desired Object.
  */
-void Send_WhoHas_Object(int32_t low_limit, int32_t high_limit,
-                        BACNET_OBJECT_TYPE object_type,
-                        uint32_t object_instance)
+void Send_WhoHas_Object(int32_t low_limit,
+    int32_t high_limit,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
 {
     int len = 0;
     int pdu_len = 0;
@@ -122,8 +123,8 @@ void Send_WhoHas_Object(int32_t low_limit, int32_t high_limit,
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest, &my_address,
-                              &npdu_data);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
 
     /* encode the APDU portion of the packet */
     data.low_limit = low_limit;
@@ -133,11 +134,11 @@ void Send_WhoHas_Object(int32_t low_limit, int32_t high_limit,
     data.object.identifier.instance = object_instance;
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(&dest, &npdu_data,
-                                   &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent = datalink_send_pdu(
+        &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
-        fprintf(stderr, "Failed to Send Who-Has Request (%s)!\n",
-                strerror(errno));
+        fprintf(
+            stderr, "Failed to Send Who-Has Request (%s)!\n", strerror(errno));
 #endif
 }

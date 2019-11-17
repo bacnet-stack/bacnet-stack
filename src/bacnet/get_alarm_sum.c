@@ -43,7 +43,7 @@
 #include "bacnet/npdu.h"
 
 /* encode service */
-int get_alarm_summary_encode_apdu(uint8_t* apdu, uint8_t invoke_id)
+int get_alarm_summary_encode_apdu(uint8_t *apdu, uint8_t invoke_id)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -65,7 +65,7 @@ int get_alarm_summary_encode_apdu(uint8_t* apdu, uint8_t invoke_id)
  *
  * @return number of bytes encoded
  */
-int get_alarm_summary_ack_encode_apdu_init(uint8_t* apdu, uint8_t invoke_id)
+int get_alarm_summary_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -87,9 +87,9 @@ int get_alarm_summary_ack_encode_apdu_init(uint8_t* apdu, uint8_t invoke_id)
  *
  * @return number of bytes encoded, or BACNET_STATUS_ERROR if an error.
  */
-int get_alarm_summary_ack_encode_apdu_data(
-    uint8_t* apdu, size_t max_apdu,
-    BACNET_GET_ALARM_SUMMARY_DATA* get_alarm_data)
+int get_alarm_summary_ack_encode_apdu_data(uint8_t *apdu,
+    size_t max_apdu,
+    BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -97,12 +97,12 @@ int get_alarm_summary_ack_encode_apdu_data(
         apdu_len = BACNET_STATUS_ERROR;
     } else if (max_apdu >= 10) {
         /* tag 0 - Object Identifier */
-        apdu_len += encode_application_object_id(
-            &apdu[apdu_len], (int)get_alarm_data->objectIdentifier.type,
+        apdu_len += encode_application_object_id(&apdu[apdu_len],
+            (int)get_alarm_data->objectIdentifier.type,
             get_alarm_data->objectIdentifier.instance);
         /* tag 1 - Alarm State */
-        apdu_len += encode_application_enumerated(&apdu[apdu_len],
-                                                  get_alarm_data->alarmState);
+        apdu_len += encode_application_enumerated(
+            &apdu[apdu_len], get_alarm_data->alarmState);
         /* tag 2 - Acknowledged Transitions */
         apdu_len += encode_application_bitstring(
             &apdu[apdu_len], &get_alarm_data->acknowledgedTransitions);
@@ -121,9 +121,9 @@ int get_alarm_summary_ack_encode_apdu_data(
  *
  * @return number of bytes decoded, or BACNET_STATUS_ERROR if an error.
  */
-int get_alarm_summary_ack_decode_apdu_data(
-    uint8_t* apdu, size_t max_apdu,
-    BACNET_GET_ALARM_SUMMARY_DATA* get_alarm_data)
+int get_alarm_summary_ack_decode_apdu_data(uint8_t *apdu,
+    size_t max_apdu,
+    BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     BACNET_APPLICATION_DATA_VALUE value;
@@ -143,8 +143,8 @@ int get_alarm_summary_ack_decode_apdu_data(
         apdu_len += bacapp_decode_application_data(
             &apdu[apdu_len], (unsigned int)(max_apdu - apdu_len), &value);
         if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-            get_alarm_data->alarmState =
-                (BACNET_EVENT_STATE)value.type.Enumerated;
+            get_alarm_data->alarmState
+                = (BACNET_EVENT_STATE)value.type.Enumerated;
         } else {
             return BACNET_STATUS_ERROR;
         }

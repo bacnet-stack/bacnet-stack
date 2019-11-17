@@ -103,8 +103,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    send_network_message(NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, msg_data,
-                         &buff, NULL);
+    send_network_message(
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, msg_data, &buff, NULL);
 
     while (true) {
         if (kbhit()) {
@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
                     print_msg(bacmsg);
 
                     if (is_network_msg(bacmsg)) {
-                        buff_len =
-                            process_network_message(bacmsg, msg_data, &buff);
+                        buff_len
+                            = process_network_message(bacmsg, msg_data, &buff);
                         if (buff_len == 0) {
                             free_data(bacmsg->data);
                             break;
@@ -159,18 +159,18 @@ int main(int argc, char *argv[])
                         if (is_network_msg(bacmsg)) {
                             msg_data->ref_count = 1;
                             send_to_msgbox(msg_src, &msg_storage);
-                        } else if (msg_data->dest.net !=
-                                   BACNET_BROADCAST_NETWORK) {
+                        } else if (msg_data->dest.net
+                            != BACNET_BROADCAST_NETWORK) {
                             msg_data->ref_count = 1;
-                            port =
-                                find_dnet(msg_data->dest.net, &msg_data->dest);
+                            port = find_dnet(
+                                msg_data->dest.net, &msg_data->dest);
                             send_to_msgbox(port->port_id, &msg_storage);
                         } else {
                             port = head;
                             msg_data->ref_count = port_count - 1;
                             while (port != NULL) {
-                                if (port->port_id == msg_src ||
-                                    port->state == FINISHED) {
+                                if (port->port_id == msg_src
+                                    || port->state == FINISHED) {
                                     port = port->next;
                                     continue;
                                 }
@@ -232,7 +232,7 @@ bool read_config(char *filepath)
     /* open configuration file */
     if (!config_read_file(&cfg, filepath)) {
         PRINT(ERROR, "Config file error: %d - %s\n", config_error_line(&cfg),
-              config_error_text(&cfg));
+            config_error_text(&cfg));
         config_destroy(&cfg);
         return false;
     }
@@ -272,8 +272,8 @@ bool read_config(char *filepath)
 
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
-                    current->iface =
-                        (char *)malloc((strlen(iface) + 1) * sizeof(char));
+                    current->iface
+                        = (char *)malloc((strlen(iface) + 1) * sizeof(char));
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -281,13 +281,13 @@ bool read_config(char *filepath)
                     if (fd) {
                         struct ifreq ifr;
                         strncpy(ifr.ifr_name, current->iface,
-                                sizeof(ifr.ifr_name) - 1);
+                            sizeof(ifr.ifr_name) - 1);
                         result = ioctl(fd, SIOCGIFADDR, &ifr);
                         if (result != -1) {
                             close(fd);
                         } else {
                             PRINT(ERROR,
-                                  "Error: Invalid interface for BIP device\n");
+                                "Error: Invalid interface for BIP device\n");
                             return false;
                         }
                     }
@@ -301,8 +301,8 @@ bool read_config(char *filepath)
                 } else {
                     current->params.bip_params.port = 0xBAC0;
                 }
-                result =
-                    config_setting_lookup_int(port, "network", (int *)&param);
+                result
+                    = config_setting_lookup_int(port, "network", (int *)&param);
                 if (result) {
                     current->route_info.net = param;
                 } else {
@@ -314,8 +314,8 @@ bool read_config(char *filepath)
 
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
-                    current->iface =
-                        (char *)malloc((strlen(iface) + 1) * sizeof(char));
+                    current->iface
+                        = (char *)malloc((strlen(iface) + 1) * sizeof(char));
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -324,7 +324,7 @@ bool read_config(char *filepath)
                         close(fd);
                     } else {
                         PRINT(ERROR,
-                              "Error: Invalid interface for MSTP device\n");
+                            "Error: Invalid interface for MSTP device\n");
                         return false;
                     }
                 } else {
@@ -338,15 +338,15 @@ bool read_config(char *filepath)
                     current->route_info.mac[0] = 127;
                     current->route_info.mac_len = 1;
                 }
-                result = config_setting_lookup_int(port, "max_master",
-                                                   (int *)&param);
+                result = config_setting_lookup_int(
+                    port, "max_master", (int *)&param);
                 if (result) {
                     current->params.mstp_params.max_master = param;
                 } else {
                     current->params.mstp_params.max_master = 127;
                 }
-                result = config_setting_lookup_int(port, "max_frames",
-                                                   (int *)&param);
+                result = config_setting_lookup_int(
+                    port, "max_frames", (int *)&param);
                 if (result) {
                     current->params.mstp_params.max_frames = param;
                 } else {
@@ -358,8 +358,8 @@ bool read_config(char *filepath)
                 } else {
                     current->params.mstp_params.baudrate = 9600;
                 }
-                result =
-                    config_setting_lookup_string(port, "parity", &str_param);
+                result
+                    = config_setting_lookup_string(port, "parity", &str_param);
                 if (result) {
                     switch (str_param[0]) {
                         case 'E':
@@ -375,22 +375,22 @@ bool read_config(char *filepath)
                 } else {
                     current->params.mstp_params.parity = PARITY_NONE;
                 }
-                result =
-                    config_setting_lookup_int(port, "databits", (int *)&param);
+                result = config_setting_lookup_int(
+                    port, "databits", (int *)&param);
                 if (result && param >= 5 && param <= 8) {
                     current->params.mstp_params.databits = param;
                 } else {
                     current->params.mstp_params.databits = 8;
                 }
-                result =
-                    config_setting_lookup_int(port, "stopbits", (int *)&param);
+                result = config_setting_lookup_int(
+                    port, "stopbits", (int *)&param);
                 if (result && param >= 1 && param <= 2) {
                     current->params.mstp_params.stopbits = param;
                 } else {
                     current->params.mstp_params.stopbits = 1;
                 }
-                result =
-                    config_setting_lookup_int(port, "network", (int *)&param);
+                result
+                    = config_setting_lookup_int(port, "network", (int *)&param);
                 if (result) {
                     current->route_info.net = param;
                 } else {
@@ -418,17 +418,17 @@ bool parse_cmd(int argc, char *argv[])
     const char *bipString = "p:n:D:";
     const char *mstpString = "m:b:p:d:s:n:D:";
     const struct option Options[] = {
-        {"config", required_argument, NULL, 'c'},
-        {"device", required_argument, NULL, 'D'},
-        {"network", required_argument, NULL, 'n'},
-        {"port", required_argument, NULL, 'P'},
-        {"mac", required_argument, NULL, 'm'},
-        {"baud", required_argument, NULL, 'b'},
-        {"parity", required_argument, NULL, 'p'},
-        {"databits", required_argument, NULL, 'd'},
-        {"stopbits", required_argument, NULL, 's'},
-        {"help", no_argument, NULL, 'h'},
-        {NULL, no_argument, NULL, 0},
+        { "config", required_argument, NULL, 'c' },
+        { "device", required_argument, NULL, 'D' },
+        { "network", required_argument, NULL, 'n' },
+        { "port", required_argument, NULL, 'P' },
+        { "mac", required_argument, NULL, 'm' },
+        { "baud", required_argument, NULL, 'b' },
+        { "parity", required_argument, NULL, 'p' },
+        { "databits", required_argument, NULL, 'd' },
+        { "stopbits", required_argument, NULL, 's' },
+        { "help", no_argument, NULL, 'h' },
+        { NULL, no_argument, NULL, 0 },
     };
 
     int opt, dev_opt, index, result, fd;
@@ -485,29 +485,29 @@ bool parse_cmd(int argc, char *argv[])
                     if (fd) {
                         struct ifreq ifr;
                         strncpy(ifr.ifr_name, current->iface,
-                                sizeof(ifr.ifr_name) - 1);
+                            sizeof(ifr.ifr_name) - 1);
                         result = ioctl(fd, SIOCGIFADDR, &ifr);
                         if (result != -1) {
                             close(fd);
                         } else {
                             PRINT(ERROR,
-                                  "Error: Invalid interface for BIP device \n");
+                                "Error: Invalid interface for BIP device \n");
                             return false;
                         }
                     }
 
-                    dev_opt =
-                        getopt_long(argc, argv, bipString, Options, &index);
+                    dev_opt
+                        = getopt_long(argc, argv, bipString, Options, &index);
                     while (dev_opt != -1 && dev_opt != 'd') {
                         switch (dev_opt) {
                             case 'P':
                                 result = atoi(optarg);
                                 if (result) {
-                                    current->params.bip_params.port =
-                                        (uint16_t)result;
+                                    current->params.bip_params.port
+                                        = (uint16_t)result;
                                 } else {
-                                    current->params.bip_params.port =
-                                        0xBAC0; /* 47808 */
+                                    current->params.bip_params.port
+                                        = 0xBAC0; /* 47808 */
                                 }
                                 break;
                             case 'n':
@@ -519,8 +519,8 @@ bool parse_cmd(int argc, char *argv[])
                                 }
                                 break;
                         }
-                        dev_opt =
-                            getopt_long(argc, argv, bipString, Options, &index);
+                        dev_opt = getopt_long(
+                            argc, argv, bipString, Options, &index);
                     }
                     opt = dev_opt;
                 } else if (strcmp(optarg, "mstp") == 0) {
@@ -538,7 +538,7 @@ bool parse_cmd(int argc, char *argv[])
                         close(fd);
                     } else {
                         PRINT(ERROR,
-                              "Error: Invalid interface for MSTP device\n");
+                            "Error: Invalid interface for MSTP device\n");
                         return false;
                     }
 
@@ -553,65 +553,65 @@ bool parse_cmd(int argc, char *argv[])
                     current->params.mstp_params.stopbits = 1;
                     current->route_info.net = get_next_free_dnet();
 
-                    dev_opt =
-                        getopt_long(argc, argv, mstpString, Options, &index);
+                    dev_opt
+                        = getopt_long(argc, argv, mstpString, Options, &index);
                     while (dev_opt != -1 && dev_opt != 'D') {
                         switch (dev_opt) {
                             case 'm':
                                 result = atoi(optarg);
                                 if (result) {
-                                    current->route_info.mac[0] =
-                                        (uint8_t)result;
+                                    current->route_info.mac[0]
+                                        = (uint8_t)result;
                                 }
                                 if (argv[optind][0] != '-') {
-                                    current->params.mstp_params.max_master =
-                                        (uint8_t)atoi(argv[optind]);
-                                    if (current->params.mstp_params.max_master <
-                                        current->route_info.mac[0])
-                                        current->params.mstp_params.max_master =
-                                            current->route_info.mac[0];
+                                    current->params.mstp_params.max_master
+                                        = (uint8_t)atoi(argv[optind]);
+                                    if (current->params.mstp_params.max_master
+                                        < current->route_info.mac[0])
+                                        current->params.mstp_params.max_master
+                                            = current->route_info.mac[0];
 
                                     if (argv[optind + 1][0] != '-') {
-                                        current->params.mstp_params.max_frames =
-                                            (uint8_t)atoi(argv[optind + 1]);
+                                        current->params.mstp_params.max_frames
+                                            = (uint8_t)atoi(argv[optind + 1]);
                                     }
                                 }
                                 break;
                             case 'b':
                                 result = atoi(optarg);
                                 if (result) {
-                                    current->params.mstp_params.baudrate =
-                                        (uint32_t)result;
+                                    current->params.mstp_params.baudrate
+                                        = (uint32_t)result;
                                 }
                                 break;
                             case 'p':
                                 switch (optarg[0]) {
                                     case 'E':
-                                        current->params.mstp_params.parity =
-                                            PARITY_EVEN;
+                                        current->params.mstp_params.parity
+                                            = PARITY_EVEN;
                                         break;
                                     case 'O':
-                                        current->params.mstp_params.parity =
-                                            PARITY_ODD;
+                                        current->params.mstp_params.parity
+                                            = PARITY_ODD;
                                         break;
                                     default:
-                                        current->params.mstp_params.parity =
-                                            PARITY_NONE;
+                                        current->params.mstp_params.parity
+                                            = PARITY_NONE;
                                         break;
                                 }
                                 break;
                             case 'd':
                                 result = atoi(optarg);
                                 if (result >= 5 && result <= 8) {
-                                    current->params.mstp_params.databits =
-                                        (uint8_t)result;
+                                    current->params.mstp_params.databits
+                                        = (uint8_t)result;
                                 }
                                 break;
                             case 's':
                                 result = atoi(optarg);
                                 if (result >= 1 && result <= 2) {
-                                    current->params.mstp_params.stopbits =
-                                        (uint8_t)result;
+                                    current->params.mstp_params.stopbits
+                                        = (uint8_t)result;
                                 }
                                 break;
                             case 'n':
@@ -621,8 +621,8 @@ bool parse_cmd(int argc, char *argv[])
                                 }
                                 break;
                         }
-                        dev_opt = getopt_long(argc, argv, mstpString, Options,
-                                              &index);
+                        dev_opt = getopt_long(
+                            argc, argv, mstpString, Options, &index);
                     }
                     opt = dev_opt;
                 } else {
@@ -774,16 +774,16 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
         /* if received from another router save real source address (not other
          * router source address) */
-        if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK &&
-            data->src.net != addr.net)
+        if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK
+            && data->src.net != addr.net)
             memmove(&data->src, &addr, sizeof(BACNET_ADDRESS));
 
         /* encode both source and destination for broadcast and router-to-router
          * communication */
-        if (data->dest.net == BACNET_BROADCAST_NETWORK ||
-            destport->route_info.net != data->dest.net) {
-            npdu_len =
-                npdu_encode_pdu(npdu, &data->dest, &data->src, &npdu_data);
+        if (data->dest.net == BACNET_BROADCAST_NETWORK
+            || destport->route_info.net != data->dest.net) {
+            npdu_len
+                = npdu_encode_pdu(npdu, &data->dest, &data->src, &npdu_data);
         } else {
             npdu_len = npdu_encode_pdu(npdu, NULL, &data->src, &npdu_data);
         }
@@ -793,7 +793,7 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         *buff = (uint8_t *)malloc(buff_len);
         memmove(*buff, npdu, npdu_len); /* copy newly formed NPDU */
         memmove(*buff + npdu_len, &data->pdu[apdu_offset],
-                apdu_len); /* copy APDU */
+            apdu_len); /* copy APDU */
 
     } else {
         /* request net search */

@@ -63,7 +63,7 @@
 /*@{*/
 
 /** Buffer used for receiving */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
@@ -84,32 +84,32 @@ static void Init_Service_Handlers(void)
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-                               handler_read_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-                               handler_write_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
-                               handler_write_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
-                               handler_read_range);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-                               handler_reinitialize_device);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-                                 handler_timesync_utc);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-                                 handler_timesync);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
-                               handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-                                 handler_ucov_notification);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-                               handler_device_communication_control);
+        handler_device_communication_control);
     /* handle the data coming back from private requests */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
-                                 handler_unconfirmed_private_transfer);
+        handler_unconfirmed_private_transfer);
 }
 
 static void piface_init(void)
@@ -134,9 +134,8 @@ static void piface_init(void)
     if (intenable == 0) {
         printf("Interrupts enabled.\n");
     } else {
-        printf(
-            "Could not enable interrupts.  "
-            "Try running using sudo to enable PiFaceDigital interrupts.\n");
+        printf("Could not enable interrupts.  "
+               "Try running using sudo to enable PiFaceDigital interrupts.\n");
     }
 #endif
 }
@@ -208,7 +207,7 @@ static void piface_task(void)
  */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 1; /* milliseconds */
     time_t last_seconds = 0;
@@ -221,11 +220,10 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
     }
-    printf(
-        "BACnet Raspberry Pi PiFace Digital Demo\n"
-        "BACnet Stack Version %s\n"
-        "BACnet Device ID: %u\n"
-        "Max APDU: %d\n",
+    printf("BACnet Raspberry Pi PiFace Digital Demo\n"
+           "BACnet Stack Version %s\n"
+           "BACnet Device ID: %u\n"
+           "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     /* load any static address bindings to show up
        in our device bindings list */

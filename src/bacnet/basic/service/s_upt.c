@@ -42,8 +42,8 @@
 
 /** @file s_upt.c  Send an Unconfirmed Private Transfer request. */
 
-int Send_UnconfirmedPrivateTransfer(BACNET_ADDRESS* dest,
-                                    BACNET_PRIVATE_TRANSFER_DATA* private_data)
+int Send_UnconfirmedPrivateTransfer(
+    BACNET_ADDRESS *dest, BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -57,20 +57,20 @@ int Send_UnconfirmedPrivateTransfer(BACNET_ADDRESS* dest,
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest, &my_address,
-                              &npdu_data);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], dest, &my_address, &npdu_data);
 
     /* encode the APDU portion of the packet */
-    len =
-        uptransfer_encode_apdu(&Handler_Transmit_Buffer[pdu_len], private_data);
+    len = uptransfer_encode_apdu(
+        &Handler_Transmit_Buffer[pdu_len], private_data);
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(dest, &npdu_data,
-                                   &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent = datalink_send_pdu(
+        dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
         fprintf(stderr,
-                "Failed to Send UnconfirmedPrivateTransfer Request (%s)!\n",
-                strerror(errno));
+            "Failed to Send UnconfirmedPrivateTransfer Request (%s)!\n",
+            strerror(errno));
 #endif
     }
 

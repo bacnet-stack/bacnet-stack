@@ -57,7 +57,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
@@ -70,49 +70,50 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                           BACNET_ERROR_CLASS error_class,
-                           BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\n",
-               bactext_error_class_name((int)error_class),
-               bactext_error_code_name((int)error_code));
+            bactext_error_class_name((int)error_class),
+            bactext_error_code_name((int)error_code));
         Error_Detected = true;
         /* FIXME: WPM error has extra data for first failed write. */
     }
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\n",
-               bactext_abort_reason_name((int)abort_reason));
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
+        printf(
+            "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\n",
-               bactext_reject_reason_name((int)reject_reason));
+            bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
-static void MyWritePropertyMultipleSimpleAckHandler(BACNET_ADDRESS *src,
-                                             uint8_t invoke_id)
+static void MyWritePropertyMultipleSimpleAckHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("\nWriteProperty Acknowledged!\n");
     }
 }
@@ -129,11 +130,10 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the data coming back from confirmed requests */
-    apdu_set_confirmed_simple_ack_handler(
-        SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
+    apdu_set_confirmed_simple_ack_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
         MyWritePropertyMultipleSimpleAckHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
@@ -165,10 +165,9 @@ static void cleanup(void)
 
 static void print_usage(char *filename)
 {
-    printf(
-        "Usage: %s device-instance object-type object-instance "
-        "property[index] priority tag value [property[index] priority tag "
-        "value]\n",
+    printf("Usage: %s device-instance object-type object-instance "
+           "property[index] priority tag value [property[index] priority tag "
+           "value]\n",
         filename);
     printf("       [--version][--help]\n");
 }
@@ -235,18 +234,17 @@ static void print_help(char *filename)
         "the demo to use this kind of table - but I also wanted to be able\n"
         "to do negative testing by passing the wrong tag and have the server\n"
         "return a reject message.\n\n");
-    printf(
-        "Example:\n"
-        "If you want send a value of 100 to the Present-Value in\n"
-        "Analog Output 44 and 45 of Device 123 at priority 16,\n"
-        "send the following command:\n"
-        "%s 123 1 44 85 16 4 100 1 45 85 16 4 100\n",
+    printf("Example:\n"
+           "If you want send a value of 100 to the Present-Value in\n"
+           "Analog Output 44 and 45 of Device 123 at priority 16,\n"
+           "send the following command:\n"
+           "%s 123 1 44 85 16 4 100 1 45 85 16 4 100\n",
         filename);
 }
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
@@ -256,7 +254,7 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
-    uint8_t buffer[MAX_PDU] = {0};
+    uint8_t buffer[MAX_PDU] = { 0 };
     BACNET_WRITE_ACCESS_DATA *wpm_object;
     BACNET_PROPERTY_VALUE *wpm_property;
     char *value_string = NULL;
@@ -278,12 +276,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2017 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2017 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
     }
@@ -295,7 +292,7 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\n",
-                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     atexit(cleanup);
@@ -317,7 +314,7 @@ int main(int argc, char *argv[])
         }
         if (wpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
             fprintf(stderr, "object-type=%u - it must be less than %u\n",
-                    wpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
+                wpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
             return 1;
         }
         wpm_object->object_instance = strtol(argv[tag_value_arg], NULL, 0);
@@ -332,7 +329,7 @@ int main(int argc, char *argv[])
         }
         if (wpm_object->object_instance > BACNET_MAX_INSTANCE) {
             fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-                    wpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
+                wpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
             return 1;
         }
         do {
@@ -341,21 +338,21 @@ int main(int argc, char *argv[])
             if (wpm_property) {
                 /* Property[index] */
                 scan_count = sscanf(argv[tag_value_arg], "%u[%u]", &property_id,
-                                    &property_array_index);
+                    &property_array_index);
                 tag_value_arg++;
                 args_remaining--;
                 if (scan_count > 0) {
                     wpm_property->propertyIdentifier = property_id;
                     if (Verbose) {
                         printf("property-identifier=%u, array-index=%u\n",
-                               property_id, property_array_index);
+                            property_id, property_array_index);
                     }
-                    if (wpm_property->propertyIdentifier >
-                        MAX_BACNET_PROPERTY_ID) {
+                    if (wpm_property->propertyIdentifier
+                        > MAX_BACNET_PROPERTY_ID) {
                         fprintf(stderr,
-                                "property=%u - it must be less than %u\n",
-                                wpm_property->propertyIdentifier,
-                                MAX_BACNET_PROPERTY_ID + 1);
+                            "property=%u - it must be less than %u\n",
+                            wpm_property->propertyIdentifier,
+                            MAX_BACNET_PROPERTY_ID + 1);
                         return 1;
                     }
                 }
@@ -366,12 +363,12 @@ int main(int argc, char *argv[])
                 }
                 if (args_remaining <= 0) {
                     fprintf(stderr,
-                            "Error: missing priority and tag value pair.\n");
+                        "Error: missing priority and tag value pair.\n");
                     return 1;
                 }
                 /* Priority */
-                wpm_property->priority =
-                    (uint8_t)strtol(argv[tag_value_arg], NULL, 0);
+                wpm_property->priority
+                    = (uint8_t)strtol(argv[tag_value_arg], NULL, 0);
                 tag_value_arg++;
                 args_remaining--;
                 if (Verbose) {
@@ -384,8 +381,8 @@ int main(int argc, char *argv[])
                 /* Tag + Value */
                 /* special case for context tagged values */
                 if (toupper(argv[tag_value_arg][0]) == 'C') {
-                    context_tag =
-                        (uint8_t)strtol(&argv[tag_value_arg][1], NULL, 0);
+                    context_tag
+                        = (uint8_t)strtol(&argv[tag_value_arg][1], NULL, 0);
                     tag_value_arg++;
                     args_remaining--;
                     wpm_property->value.context_tag = context_tag;
@@ -397,8 +394,8 @@ int main(int argc, char *argv[])
                 tag_value_arg++;
                 args_remaining--;
                 if (args_remaining <= 0) {
-                    fprintf(stderr,
-                            "Error: missing value for tag-value pair\n");
+                    fprintf(
+                        stderr, "Error: missing value for tag-value pair\n");
                     return 1;
                 }
                 value_string = argv[tag_value_arg];
@@ -409,7 +406,7 @@ int main(int argc, char *argv[])
                 }
                 if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
                     fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
-                            property_tag, MAX_BACNET_APPLICATION_TAG);
+                        property_tag, MAX_BACNET_APPLICATION_TAG);
                     return 1;
                 }
                 status = bacapp_parse_application_data(
@@ -442,16 +439,16 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                                 &Target_Address);
+    found = address_bind_request(
+        Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (found) {
         if (Verbose) {
             printf("Found Device %u in address_cache.\n",
-                   Target_Device_Object_Instance);
+                Target_Device_Object_Instance);
         }
     } else {
-        Send_WhoIs(Target_Device_Object_Instance,
-                   Target_Device_Object_Instance);
+        Send_WhoIs(
+            Target_Device_Object_Instance, Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -465,14 +462,14 @@ int main(int argc, char *argv[])
             break;
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found = address_bind_request(Target_Device_Object_Instance,
-                                         &max_apdu, &Target_Address);
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
                 if (Verbose) {
                     printf("Sending WritePropertyMultiple to Device %u.\n",
-                           Target_Device_Object_Instance);
+                        Target_Device_Object_Instance);
                 }
                 Request_Invoke_ID = Send_Write_Property_Multiple_Request(
                     &buffer[0], sizeof(buffer), Target_Device_Object_Instance,

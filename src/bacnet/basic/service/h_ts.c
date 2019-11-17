@@ -65,17 +65,17 @@ static void show_bacnet_date_time(BACNET_DATE *bdate, BACNET_TIME *btime)
 }
 #endif
 
-void handler_timesync(uint8_t *service_request, uint16_t service_len,
-                      BACNET_ADDRESS *src)
+void handler_timesync(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     int len = 0;
-    BACNET_DATE bdate = {0};
-    BACNET_TIME btime = {0};
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
 
     (void)src;
     (void)service_len;
-    len = timesync_decode_service_request(service_request, service_len, &bdate,
-                                          &btime);
+    len = timesync_decode_service_request(
+        service_request, service_len, &bdate, &btime);
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
             /* fixme: only set the time if off by some amount */
@@ -92,8 +92,8 @@ void handler_timesync(uint8_t *service_request, uint16_t service_len,
     return;
 }
 
-void handler_timesync_utc(uint8_t *service_request, uint16_t service_len,
-                          BACNET_ADDRESS *src)
+void handler_timesync_utc(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     int len = 0;
     BACNET_DATE bdate;
@@ -101,8 +101,8 @@ void handler_timesync_utc(uint8_t *service_request, uint16_t service_len,
 
     (void)src;
     (void)service_len;
-    len = timesync_decode_service_request(service_request, service_len, &bdate,
-                                          &btime);
+    len = timesync_decode_service_request(
+        service_request, service_len, &bdate, &btime);
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
 #if PRINT_ENABLED
@@ -133,8 +133,8 @@ void handler_timesync_utc(uint8_t *service_request, uint16_t service_len,
  */
 int handler_timesync_encode_recipients(uint8_t *apdu, int max_apdu)
 {
-    return timesync_encode_timesync_recipients(apdu, max_apdu,
-                                               &Time_Sync_Recipients[0]);
+    return timesync_encode_timesync_recipients(
+        apdu, max_apdu, &Time_Sync_Recipients[0]);
 }
 #endif
 
@@ -161,8 +161,7 @@ static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
         if (Time_Sync_Recipients[index].tag == 1) {
             if (status) {
                 Send_TimeSync_Remote(&Time_Sync_Recipients[index].type.address,
-                                     &current_date_time->date,
-                                     &current_date_time->time);
+                    &current_date_time->date, &current_date_time->time);
             }
         }
     }
@@ -170,8 +169,8 @@ static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
 #endif
 
 #if defined(BACNET_TIME_MASTER)
-static void handler_timesync_update(uint32_t device_interval,
-                                    BACNET_DATE_TIME *current_date_time)
+static void handler_timesync_update(
+    uint32_t device_interval, BACNET_DATE_TIME *current_date_time)
 {
     uint32_t current_minutes = 0;
     uint32_t next_minutes = 0;
@@ -208,8 +207,8 @@ static void handler_timesync_update(uint32_t device_interval,
             /* Interval_Minutes = 1  2  3  4  5  6  8  9  10  12  15  16
                18  20  24  30  32  36  40  45  48  60  72  80  90  96  120
                144  160  180  240  288  360  480  720  1440   */
-            current_minutes =
-                datetime_minutes_since_midnight(&Next_Sync_Time.time);
+            current_minutes
+                = datetime_minutes_since_midnight(&Next_Sync_Time.time);
             interval = current_minutes / device_interval;
             interval++;
             next_minutes = interval * device_interval;
@@ -229,8 +228,8 @@ static void handler_timesync_update(uint32_t device_interval,
 #endif
 
 #if defined(BACNET_TIME_MASTER)
-bool handler_timesync_recipient_address_set(unsigned index,
-                                            BACNET_ADDRESS *address)
+bool handler_timesync_recipient_address_set(
+    unsigned index, BACNET_ADDRESS *address)
 {
     bool status = false;
 

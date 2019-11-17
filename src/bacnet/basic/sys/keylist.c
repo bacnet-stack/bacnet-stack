@@ -209,8 +209,8 @@ void *Keylist_Data_Delete_By_Index(OS_Keylist list, int index)
     struct Keylist_Node *node;
     void *data = NULL;
 
-    if (list && list->array && list->count && (index >= 0) &&
-        (index < list->count)) {
+    if (list && list->array && list->count && (index >= 0)
+        && (index < list->count)) {
         node = list->array[index];
         if (node)
             data = node->data;
@@ -303,8 +303,8 @@ void *Keylist_Data_Index(OS_Keylist list, int index)
 {
     struct Keylist_Node *node = NULL;
 
-    if (list && list->array && list->count && (index >= 0) &&
-        (index < list->count))
+    if (list && list->array && list->count && (index >= 0)
+        && (index < list->count))
         node = list->array[index];
 
     return node ? node->data : NULL;
@@ -316,8 +316,8 @@ KEY Keylist_Key(OS_Keylist list, int index)
     KEY key = 0; /* return value */
     struct Keylist_Node *node;
 
-    if (list && list->array && list->count && (index >= 0) &&
-        (index < list->count)) {
+    if (list && list->array && list->count && (index >= 0)
+        && (index < list->count)) {
         node = list->array[index];
         if (node)
             key = node->key;

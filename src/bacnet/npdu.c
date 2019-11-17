@@ -126,8 +126,10 @@ ABORT.indication               Yes         Yes         Yes        No
  * 		   NPDU section.
  *         If 0 or negative, there were problems with the data or encoding.
  */
-int npdu_encode_pdu(uint8_t *npdu, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
-                    BACNET_NPDU_DATA *npdu_data)
+int npdu_encode_pdu(uint8_t *npdu,
+    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data)
 {
     int len = 0;   /* return value - number of octets loaded in this function */
     uint8_t i = 0; /* counter  */
@@ -264,15 +266,15 @@ is expected for the service being issued.
  *                      like B'11' = Life Safety message
  */
 void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
-                           bool data_expecting_reply,
-                           BACNET_MESSAGE_PRIORITY priority)
+    bool data_expecting_reply,
+    BACNET_MESSAGE_PRIORITY priority)
 {
     if (npdu_data) {
         npdu_data->data_expecting_reply = data_expecting_reply;
         npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
         npdu_data->network_layer_message = false; /* false if APDU */
-        npdu_data->network_message_type =
-            NETWORK_MESSAGE_INVALID; /* optional */
+        npdu_data->network_message_type
+            = NETWORK_MESSAGE_INVALID; /* optional */
         npdu_data->vendor_id = 0; /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
         npdu_data->hop_count = HOP_COUNT_DEFAULT;
@@ -302,8 +304,10 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
  * be more bytes left in the NPDU; if not a network msg, the APDU follows. If 0
  * or negative, there were problems with the data or arguments.
  */
-int npdu_decode(uint8_t *npdu, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
-                BACNET_NPDU_DATA *npdu_data)
+int npdu_decode(uint8_t *npdu,
+    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data)
 {
     int len = 0;   /* return value - number of octets loaded in this function */
     uint8_t i = 0; /* counter */
@@ -423,8 +427,8 @@ int npdu_decode(uint8_t *npdu, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
         /* Indicates that the NSDU conveys a network layer message. */
         /* Message Type field is present. */
         if (npdu_data->network_layer_message) {
-            npdu_data->network_message_type =
-                (BACNET_NETWORK_MESSAGE_TYPE)npdu[len++];
+            npdu_data->network_message_type
+                = (BACNET_NETWORK_MESSAGE_TYPE)npdu[len++];
             /* Message Type field contains a value in the range 0x80 - 0xFF, */
             /* then a Vendor ID field shall be present */
             if (npdu_data->network_message_type >= 0x80)
@@ -446,15 +450,15 @@ int npdu_decode(uint8_t *npdu, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
 
 void testNPDU2(Test *pTest)
 {
-    uint8_t pdu[480] = {0};
-    BACNET_ADDRESS dest = {0};
-    BACNET_ADDRESS src = {0};
-    BACNET_ADDRESS npdu_dest = {0};
-    BACNET_ADDRESS npdu_src = {0};
+    uint8_t pdu[480] = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_ADDRESS npdu_dest = { 0 };
+    BACNET_ADDRESS npdu_src = { 0 };
     int len = 0;
     bool data_expecting_reply = true;
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
-    BACNET_NPDU_DATA npdu_data = {0};
+    BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0; /* counter */
     int npdu_len = 0;
     bool network_layer_message = false;                   /* false if APDU */
@@ -510,15 +514,15 @@ void testNPDU2(Test *pTest)
 
 void testNPDU1(Test *pTest)
 {
-    uint8_t pdu[480] = {0};
-    BACNET_ADDRESS dest = {0};
-    BACNET_ADDRESS src = {0};
-    BACNET_ADDRESS npdu_dest = {0};
-    BACNET_ADDRESS npdu_src = {0};
+    uint8_t pdu[480] = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_ADDRESS npdu_dest = { 0 };
+    BACNET_ADDRESS npdu_src = { 0 };
     int len = 0;
     bool data_expecting_reply = false;
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
-    BACNET_NPDU_DATA npdu_data = {0};
+    BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0; /* counter */
     int npdu_len = 0;
     bool network_layer_message = false;                   /* false if APDU */
@@ -570,8 +574,8 @@ void tsm_free_invoke_id(uint8_t invokeID)
     (void)invokeID;
 }
 
-void iam_handler(uint8_t *service_request, uint16_t service_len,
-                 BACNET_ADDRESS *src)
+void iam_handler(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     (void)service_request;
     (void)service_len;

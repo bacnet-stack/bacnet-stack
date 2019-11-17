@@ -61,9 +61,10 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_write_property(uint8_t* service_request, uint16_t service_len,
-                            BACNET_ADDRESS* src,
-                            BACNET_CONFIRMED_SERVICE_DATA* service_data)
+void handler_write_property(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     BACNET_WRITE_PROPERTY_DATA wp_data;
     int len = 0;
@@ -75,15 +76,15 @@ void handler_write_property(uint8_t* service_request, uint16_t service_len,
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-                              &npdu_data);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
 #if PRINT_ENABLED
     fprintf(stderr, "WP: Received Request!\n");
 #endif
     if (service_data->segmented_message) {
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                service_data->invoke_id,
-                                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Segmented message.  Sending Abort!\n");
 #endif
@@ -92,8 +93,7 @@ void handler_write_property(uint8_t* service_request, uint16_t service_len,
     len = wp_decode_service_request(service_request, service_len, &wp_data);
 #if PRINT_ENABLED
     if (len > 0)
-        fprintf(
-            stderr,
+        fprintf(stderr,
             "WP: type=%lu instance=%lu property=%lu priority=%lu index=%ld\n",
             (unsigned long)wp_data.object_type,
             (unsigned long)wp_data.object_instance,
@@ -105,8 +105,7 @@ void handler_write_property(uint8_t* service_request, uint16_t service_len,
     /* bad decoding or something we didn't understand - send an abort */
     if (len <= 0) {
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                service_data->invoke_id, ABORT_REASON_OTHER,
-                                true);
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Bad Encoding. Sending Abort!\n");
 #endif
@@ -114,24 +113,22 @@ void handler_write_property(uint8_t* service_request, uint16_t service_len,
     }
     if (Device_Write_Property(&wp_data)) {
         len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                                service_data->invoke_id,
-                                SERVICE_CONFIRMED_WRITE_PROPERTY);
+            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Sending Simple Ack!\n");
 #endif
     } else {
         len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                   service_data->invoke_id,
-                                   SERVICE_CONFIRMED_WRITE_PROPERTY,
-                                   wp_data.error_class, wp_data.error_code);
+            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+            wp_data.error_class, wp_data.error_code);
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Sending Error!\n");
 #endif
     }
 WP_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-                                   pdu_len);
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Failed to send PDU (%s)!\n", strerror(errno));
@@ -147,9 +144,11 @@ WP_ABORT:
  * finally if it is allowed to be empty.
  */
 
-bool WPValidateString(BACNET_APPLICATION_DATA_VALUE* pValue, int iMaxLen,
-                      bool bEmptyAllowed, BACNET_ERROR_CLASS* pErrorClass,
-                      BACNET_ERROR_CODE* pErrorCode)
+bool WPValidateString(BACNET_APPLICATION_DATA_VALUE *pValue,
+    int iMaxLen,
+    bool bEmptyAllowed,
+    BACNET_ERROR_CLASS *pErrorClass,
+    BACNET_ERROR_CODE *pErrorCode)
 {
     bool bResult;
 
@@ -161,18 +160,19 @@ bool WPValidateString(BACNET_APPLICATION_DATA_VALUE* pValue, int iMaxLen,
     *pErrorClass = ERROR_CLASS_PROPERTY;
 
     if (pValue->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-        if (characterstring_encoding(&pValue->type.Character_String) ==
-            CHARACTER_ANSI_X34) {
-            if ((bEmptyAllowed == false) &&
-                (characterstring_length(&pValue->type.Character_String) == 0)) {
+        if (characterstring_encoding(&pValue->type.Character_String)
+            == CHARACTER_ANSI_X34) {
+            if ((bEmptyAllowed == false)
+                && (characterstring_length(&pValue->type.Character_String)
+                       == 0)) {
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            } else if ((bEmptyAllowed == false) &&
-                       (!characterstring_printable(
-                           &pValue->type.Character_String))) {
+            } else if ((bEmptyAllowed == false)
+                && (!characterstring_printable(
+                       &pValue->type.Character_String))) {
                 /* assumption: non-empty also means must be "printable" */
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            } else if (characterstring_length(&pValue->type.Character_String) >
-                       (uint16_t)iMaxLen) {
+            } else if (characterstring_length(&pValue->type.Character_String)
+                > (uint16_t)iMaxLen) {
                 *pErrorClass = ERROR_CLASS_RESOURCES;
                 *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             } else
@@ -190,9 +190,10 @@ bool WPValidateString(BACNET_APPLICATION_DATA_VALUE* pValue, int iMaxLen,
  * validation fails. Cuts out reams of repeated code in the object code.
  */
 
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE* pValue,
-                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS* pErrorClass,
-                       BACNET_ERROR_CODE* pErrorCode)
+bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS *pErrorClass,
+    BACNET_ERROR_CODE *pErrorCode)
 {
     bool bResult;
 

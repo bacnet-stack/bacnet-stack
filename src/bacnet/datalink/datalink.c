@@ -67,11 +67,13 @@ bool (*datalink_init)(char *ifname);
  * @param pdu_len [in] Number of bytes in the pdu buffer.
  * @return Number of bytes sent on success, negative number on failure.
  */
-int (*datalink_send_pdu)(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
-                         uint8_t *pdu, unsigned pdu_len);
+int (*datalink_send_pdu)(BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len);
 
-uint16_t (*datalink_receive)(BACNET_ADDRESS *src, uint8_t *pdu,
-                             uint16_t max_pdu, unsigned timeout);
+uint16_t (*datalink_receive)(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout);
 
 /** Function template to close the DataLink services and perform any cleanup.
  * @ingroup DLTemplates
@@ -138,14 +140,16 @@ void datalink_set(char *datalink_string)
 #endif
 
 #if defined(BACDL_NONE)
-int datalink_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
-                      uint8_t *pdu, unsigned pdu_len)
+int datalink_send_pdu(BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len)
 {
     return 0;
 }
 
-uint16_t datalink_receive(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu,
-                          unsigned timeout)
+uint16_t datalink_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
 {
     return 0;
 }

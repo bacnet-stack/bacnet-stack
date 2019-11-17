@@ -51,9 +51,10 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_unrecognized_service(uint8_t* service_request,
-                                  uint16_t service_len, BACNET_ADDRESS* src,
-                                  BACNET_CONFIRMED_SERVICE_DATA* service_data)
+void handler_unrecognized_service(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -67,16 +68,15 @@ void handler_unrecognized_service(uint8_t* service_request,
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-                              &npdu_data);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     /* encode the APDU portion of the packet */
     len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                             service_data->invoke_id,
-                             REJECT_REASON_UNRECOGNIZED_SERVICE);
+        service_data->invoke_id, REJECT_REASON_UNRECOGNIZED_SERVICE);
     pdu_len += len;
     /* send the data */
-    bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-                                   pdu_len);
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent > 0) {
 #if PRINT_ENABLED
         fprintf(stderr, "Sent Reject!\n");

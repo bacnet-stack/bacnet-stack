@@ -56,8 +56,8 @@
  * @param service_len [in] The length of the service_request.
  * @param src [in] BACNET_ADDRESS of the source of the message (unused)
  */
-void handler_ucov_notification(uint8_t *service_request, uint16_t service_len,
-                               BACNET_ADDRESS *src)
+void handler_ucov_notification(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
@@ -74,14 +74,13 @@ void handler_ucov_notification(uint8_t *service_request, uint16_t service_len,
     fprintf(stderr, "UCOV: Received Notification!\n");
 #endif
     /* decode the service request only */
-    len = cov_notify_decode_service_request(service_request, service_len,
-                                            &cov_data);
+    len = cov_notify_decode_service_request(
+        service_request, service_len, &cov_data);
 #if PRINT_ENABLED
     if (len > 0) {
         fprintf(stderr, "UCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
         fprintf(stderr, "instance=%u ", cov_data.initiatingDeviceIdentifier);
-        fprintf(
-            stderr, "%s %u ",
+        fprintf(stderr, "%s %u ",
             bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
             cov_data.monitoredObjectIdentifier.instance);
         fprintf(stderr, "time remaining=%u seconds ", cov_data.timeRemaining);
@@ -90,12 +89,11 @@ void handler_ucov_notification(uint8_t *service_request, uint16_t service_len,
         while (pProperty_value) {
             fprintf(stderr, "UCOV: ");
             if (pProperty_value->propertyIdentifier < 512) {
-                fprintf(
-                    stderr, "%s ",
+                fprintf(stderr, "%s ",
                     bactext_property_name(pProperty_value->propertyIdentifier));
             } else {
                 fprintf(stderr, "proprietary %u ",
-                        pProperty_value->propertyIdentifier);
+                    pProperty_value->propertyIdentifier);
             }
             if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
                 fprintf(stderr, "%u ", pProperty_value->propertyArrayIndex);

@@ -93,8 +93,8 @@ void dlenv_bbmd_ttl_set(int ttl_secs)
  */
 int dlenv_bbmd_result(void)
 {
-    if ((bbmd_result > 0) &&
-        (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK))
+    if ((bbmd_result > 0)
+        && (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK))
         return -1;
     /* Else, show our send: */
     return bbmd_result;
@@ -120,7 +120,7 @@ int dlenv_register_as_foreign_device(void)
     int retval = 0;
 #if defined(BACDL_BIP)
     char *pEnv = NULL;
-    unsigned a[4] = {0};
+    unsigned a[4] = { 0 };
     char bbmd_env[32] = "";
     unsigned entry_number = 0;
     int c;
@@ -147,13 +147,12 @@ int dlenv_register_as_foreign_device(void)
         struct in_addr addr;
         addr.s_addr = bbmd_address;
         fprintf(stderr, "Registering with BBMD at %s:%ld for %ld seconds\n",
-                inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-        retval =
-            bvlc_register_with_bbmd(bbmd_address, htons((uint16_t)bbmd_port),
-                                    (uint16_t)bbmd_timetolive_seconds);
+            inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
+        retval = bvlc_register_with_bbmd(bbmd_address,
+            htons((uint16_t)bbmd_port), (uint16_t)bbmd_timetolive_seconds);
         if (retval < 0)
             fprintf(stderr, "FAILED to Register with BBMD at %s \n",
-                    inet_ntoa(addr));
+                inet_ntoa(addr));
         BBMD_Timer_Seconds = (uint16_t)bbmd_timetolive_seconds;
     } else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
@@ -182,12 +181,12 @@ int dlenv_register_as_foreign_device(void)
                 sprintf(bbmd_env, "BACNET_BDT_MASK_%u", entry_number);
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
-                    c = sscanf(pEnv, "%3u.%3u.%3u.%3u", &a[0], &a[1], &a[2],
-                               &a[3]);
+                    c = sscanf(
+                        pEnv, "%3u.%3u.%3u.%3u", &a[0], &a[1], &a[2], &a[3]);
                     if (c == 4) {
-                        bbmd_mask = ((a[0] & 0xFF) << 24) |
-                                    ((a[1] & 0xFF) << 16) |
-                                    ((a[2] & 0xFF) << 8) | (a[3] & 0xFF);
+                        bbmd_mask = ((a[0] & 0xFF) << 24)
+                            | ((a[1] & 0xFF) << 16) | ((a[2] & 0xFF) << 8)
+                            | (a[3] & 0xFF);
                     }
                 }
                 BBMD_Table_Entry.valid = true;
@@ -216,7 +215,7 @@ static void dlenv_network_port_init(void)
     uint32_t test_broadcast = 0;
     uint32_t mask = 0;
     uint16_t port = 0;
-    uint8_t mac[4 + 2] = {0};
+    uint8_t mac[4 + 2] = { 0 };
     uint8_t prefix = 0;
 
     Network_Port_Object_Instance_Number_Set(0, instance);
@@ -255,7 +254,7 @@ static void dlenv_network_port_init(void)
 static void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
-    uint8_t mac[1] = {0};
+    uint8_t mac[1] = { 0 };
 
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "MS/TP Port");
@@ -283,8 +282,8 @@ static void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
     uint8_t prefix = 0;
-    BACNET_ADDRESS addr = {0};
-    BACNET_IP6_ADDRESS addr6 = {0};
+    BACNET_ADDRESS addr = { 0 };
+    BACNET_IP6_ADDRESS addr6 = { 0 };
 
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IPv6 Port");
@@ -412,11 +411,11 @@ void dlenv_init(void)
     pEnv = getenv("BACNET_BIP6_BROADCAST");
     if (pEnv) {
         bvlc6_address_set(&addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0,
-                          0, BIP6_MULTICAST_GROUP_ID);
+            0, BIP6_MULTICAST_GROUP_ID);
         bip6_set_broadcast_addr(&addr);
     } else {
         bvlc6_address_set(&addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
-                          BIP6_MULTICAST_GROUP_ID);
+            BIP6_MULTICAST_GROUP_ID);
         bip6_set_broadcast_addr(&addr);
     }
     pEnv = getenv("BACNET_BIP6_PORT");

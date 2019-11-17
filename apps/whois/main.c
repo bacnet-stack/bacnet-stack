@@ -54,7 +54,7 @@
 #include "bacport.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
 static int32_t Target_Object_Instance_Min = -1;
@@ -74,7 +74,7 @@ struct address_entry {
 static struct address_table {
     struct address_entry *first;
     struct address_entry *last;
-} Address_Table = {0};
+} Address_Table = { 0 };
 
 static struct address_entry *alloc_address_entry(void)
 {
@@ -89,8 +89,8 @@ static struct address_entry *alloc_address_entry(void)
     return rval;
 }
 
-static void address_table_add(uint32_t device_id, unsigned max_apdu,
-                       BACNET_ADDRESS *src)
+static void address_table_add(
+    uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
 {
     struct address_entry *pMatch;
     uint8_t flags = 0;
@@ -117,8 +117,8 @@ static void address_table_add(uint32_t device_id, unsigned max_apdu,
     return;
 }
 
-static void my_i_am_handler(uint8_t *service_request, uint16_t service_len,
-                     BACNET_ADDRESS *src)
+static void my_i_am_handler(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     int len = 0;
     uint32_t device_id = 0;
@@ -128,8 +128,8 @@ static void my_i_am_handler(uint8_t *service_request, uint16_t service_len,
     unsigned i = 0;
 
     (void)service_len;
-    len = iam_decode_service_request(service_request, &device_id, &max_apdu,
-                                     &segmentation, &vendor_id);
+    len = iam_decode_service_request(
+        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
 #if PRINT_ENABLED
     fprintf(stderr, "Received I-Am Request");
 #endif
@@ -138,9 +138,9 @@ static void my_i_am_handler(uint8_t *service_request, uint16_t service_len,
         fprintf(stderr, " from %lu, MAC = ", (unsigned long)device_id);
         if ((src->mac_len == 6) && (src->len == 0)) {
             fprintf(stderr, "%u.%u.%u.%u %02X%02X\n", (unsigned)src->mac[0],
-                    (unsigned)src->mac[1], (unsigned)src->mac[2],
-                    (unsigned)src->mac[3], (unsigned)src->mac[4],
-                    (unsigned)src->mac[5]);
+                (unsigned)src->mac[1], (unsigned)src->mac[2],
+                (unsigned)src->mac[3], (unsigned)src->mac[4],
+                (unsigned)src->mac[5]);
         } else {
             for (i = 0; i < src->mac_len; i++) {
                 fprintf(stderr, "%02X", (unsigned)src->mac[i]);
@@ -161,26 +161,26 @@ static void my_i_am_handler(uint8_t *service_request, uint16_t service_len,
     return;
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
     (void)server;
-    fprintf(stderr, "BACnet Abort: %s\n",
-            bactext_abort_reason_name(abort_reason));
+    fprintf(
+        stderr, "BACnet Abort: %s\n", bactext_abort_reason_name(abort_reason));
     Error_Detected = true;
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
     fprintf(stderr, "BACnet Reject: %s\n",
-            bactext_reject_reason_name(reject_reason));
+        bactext_reject_reason_name(reject_reason));
     Error_Detected = true;
 }
 
@@ -193,8 +193,8 @@ static void init_service_handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, my_i_am_handler);
     /* handle any errors coming back */
@@ -231,7 +231,7 @@ static void print_address_cache(void)
        so these must be compatible. */
 
     printf(";%-7s  %-20s %-5s %-20s %-4s\n", "Device", "MAC (hex)", "SNET",
-           "SADR (hex)", "APDU");
+        "SADR (hex)", "APDU");
     printf(";-------- -------------------- ----- -------------------- ----\n");
 
     addr = Address_Table.first;
@@ -273,68 +273,59 @@ static void print_usage(char *filename)
 
 static void print_help(char *filename)
 {
-    printf(
-        "Send BACnet WhoIs service request to a device or multiple\n"
-        "devices, and wait for responses. Displays any devices found\n"
-        "and their network information.\n"
-        "\n"
-        "device-instance:\n"
-        "BACnet Device Object Instance number that you are trying\n"
-        "to send a Who-Is service request. The value should be in\n"
-        "the range of 0 to 4194303. A range of values can also be\n"
-        "specified by using a minimum value and a maximum value.\n"
-        "\n");
-    printf(
-        "--mac A\n"
-        "BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n"
-        "--dnet N\n"
-        "BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n"
-        "\n"
-        "--dadr A\n"
-        "BACnet mac address on the destination BACnet network number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n");
-    printf(
-        "Send a WhoIs request to DNET 123:\n"
-        "%s --dnet 123\n",
+    printf("Send BACnet WhoIs service request to a device or multiple\n"
+           "devices, and wait for responses. Displays any devices found\n"
+           "and their network information.\n"
+           "\n"
+           "device-instance:\n"
+           "BACnet Device Object Instance number that you are trying\n"
+           "to send a Who-Is service request. The value should be in\n"
+           "the range of 0 to 4194303. A range of values can also be\n"
+           "specified by using a minimum value and a maximum value.\n"
+           "\n");
+    printf("--mac A\n"
+           "BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n"
+           "--dnet N\n"
+           "BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n"
+           "\n"
+           "--dadr A\n"
+           "BACnet mac address on the destination BACnet network number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n");
+    printf("Send a WhoIs request to DNET 123:\n"
+           "%s --dnet 123\n",
         filename);
-    printf(
-        "Send a WhoIs request to MAC 10.0.0.1 DNET 123 DADR 05h:\n"
-        "%s --mac 10.0.0.1 --dnet 123 --dadr 05\n",
+    printf("Send a WhoIs request to MAC 10.0.0.1 DNET 123 DADR 05h:\n"
+           "%s --mac 10.0.0.1 --dnet 123 --dadr 05\n",
         filename);
-    printf(
-        "Send a WhoIs request to MAC 10.1.2.3:47808:\n"
-        "%s --mac 10.1.2.3:47808\n",
+    printf("Send a WhoIs request to MAC 10.1.2.3:47808:\n"
+           "%s --mac 10.1.2.3:47808\n",
         filename);
-    printf(
-        "Send a WhoIs request to Device 123:\n"
-        "%s 123\n",
+    printf("Send a WhoIs request to Device 123:\n"
+           "%s 123\n",
         filename);
-    printf(
-        "Send a WhoIs request to Devices from 1000 to 9000:\n"
-        "%s 1000 9000\n",
+    printf("Send a WhoIs request to Devices from 1000 to 9000:\n"
+           "%s 1000 9000\n",
         filename);
-    printf(
-        "Send a WhoIs request to Devices from 1000 to 9000 on DNET 123:\n"
-        "%s 1000 9000 --dnet 123\n",
+    printf("Send a WhoIs request to Devices from 1000 to 9000 on DNET 123:\n"
+           "%s 1000 9000 --dnet 123\n",
         filename);
-    printf(
-        "Send a WhoIs request to all devices:\n"
-        "%s\n",
+    printf("Send a WhoIs request to all devices:\n"
+           "%s\n",
         filename);
 }
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     time_t total_seconds = 0;
@@ -343,9 +334,9 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     long dnet = -1;
-    BACNET_MAC_ADDRESS mac = {0};
-    BACNET_MAC_ADDRESS adr = {0};
-    BACNET_ADDRESS dest = {0};
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
     bool global_broadcast = true;
     int argi = 0;
     unsigned int target_args = 0;
@@ -361,12 +352,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
         if (strcmp(argv[argi], "--mac") == 0) {
@@ -390,8 +380,8 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                Target_Object_Instance_Min = Target_Object_Instance_Max =
-                    strtol(argv[argi], NULL, 0);
+                Target_Object_Instance_Min = Target_Object_Instance_Max
+                    = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 1) {
                 Target_Object_Instance_Max = strtol(argv[argi], NULL, 0);
@@ -436,12 +426,12 @@ int main(int argc, char *argv[])
     }
     if (Target_Object_Instance_Min > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance-min=%u - it must be less than %u\n",
-                Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
+            Target_Object_Instance_Min, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (Target_Object_Instance_Max > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance-max=%u - it must be less than %u\n",
-                Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
+            Target_Object_Instance_Max, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     /* setup my info */
@@ -454,8 +444,8 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    Send_WhoIs_To_Network(&dest, Target_Object_Instance_Min,
-                          Target_Object_Instance_Max);
+    Send_WhoIs_To_Network(
+        &dest, Target_Object_Instance_Min, Target_Object_Instance_Max);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */

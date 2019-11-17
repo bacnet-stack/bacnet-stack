@@ -42,8 +42,11 @@
 /** @file iam.c  Encode/Decode I-Am service */
 
 /* encode I-Am service */
-int iam_encode_apdu(uint8_t *apdu, uint32_t device_id, unsigned max_apdu,
-                    int segmentation, uint16_t vendor_id)
+int iam_encode_apdu(uint8_t *apdu,
+    uint32_t device_id,
+    unsigned max_apdu,
+    int segmentation,
+    uint16_t vendor_id)
 {
     int len = 0;      /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -52,13 +55,13 @@ int iam_encode_apdu(uint8_t *apdu, uint32_t device_id, unsigned max_apdu,
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_I_AM; /* service choice */
         apdu_len = 2;
-        len = encode_application_object_id(&apdu[apdu_len], OBJECT_DEVICE,
-                                           device_id);
+        len = encode_application_object_id(
+            &apdu[apdu_len], OBJECT_DEVICE, device_id);
         apdu_len += len;
         len = encode_application_unsigned(&apdu[apdu_len], max_apdu);
         apdu_len += len;
-        len = encode_application_enumerated(&apdu[apdu_len],
-                                            (uint32_t)segmentation);
+        len = encode_application_enumerated(
+            &apdu[apdu_len], (uint32_t)segmentation);
         apdu_len += len;
         len = encode_application_unsigned(&apdu[apdu_len], vendor_id);
         apdu_len += len;
@@ -67,9 +70,11 @@ int iam_encode_apdu(uint8_t *apdu, uint32_t device_id, unsigned max_apdu,
     return apdu_len;
 }
 
-int iam_decode_service_request(uint8_t *apdu, uint32_t *pDevice_id,
-                               unsigned *pMax_apdu, int *pSegmentation,
-                               uint16_t *pVendor_id)
+int iam_decode_service_request(uint8_t *apdu,
+    uint32_t *pDevice_id,
+    unsigned *pMax_apdu,
+    int *pSegmentation,
+    uint16_t *pVendor_id)
 {
     int len = 0;
     int apdu_len = 0;         /* total length of the apdu, return value */
@@ -130,8 +135,11 @@ int iam_decode_service_request(uint8_t *apdu, uint32_t *pDevice_id,
 #include <string.h>
 #include "ctest.h"
 
-int iam_decode_apdu(uint8_t *apdu, uint32_t *pDevice_id, unsigned *pMax_apdu,
-                    int *pSegmentation, uint16_t *pVendor_id)
+int iam_decode_apdu(uint8_t *apdu,
+    uint32_t *pDevice_id,
+    unsigned *pMax_apdu,
+    int *pSegmentation,
+    uint16_t *pVendor_id)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -143,15 +151,15 @@ int iam_decode_apdu(uint8_t *apdu, uint32_t *pDevice_id, unsigned *pMax_apdu,
         return -1;
     if (apdu[1] != SERVICE_UNCONFIRMED_I_AM)
         return -1;
-    apdu_len = iam_decode_service_request(&apdu[2], pDevice_id, pMax_apdu,
-                                          pSegmentation, pVendor_id);
+    apdu_len = iam_decode_service_request(
+        &apdu[2], pDevice_id, pMax_apdu, pSegmentation, pVendor_id);
 
     return apdu_len;
 }
 
 void testIAm(Test *pTest)
 {
-    uint8_t apdu[480] = {0};
+    uint8_t apdu[480] = { 0 };
     int len = 0;
     uint32_t device_id = 42;
     unsigned max_apdu = 480;
@@ -162,12 +170,12 @@ void testIAm(Test *pTest)
     int test_segmentation = 0;
     uint16_t test_vendor_id = 0;
 
-    len =
-        iam_encode_apdu(&apdu[0], device_id, max_apdu, segmentation, vendor_id);
+    len = iam_encode_apdu(
+        &apdu[0], device_id, max_apdu, segmentation, vendor_id);
     ct_test(pTest, len != 0);
 
     len = iam_decode_apdu(&apdu[0], &test_device_id, &test_max_apdu,
-                          &test_segmentation, &test_vendor_id);
+        &test_segmentation, &test_vendor_id);
 
     ct_test(pTest, len != -1);
     ct_test(pTest, test_device_id == device_id);

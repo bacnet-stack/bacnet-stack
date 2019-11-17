@@ -51,9 +51,13 @@
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int abort_encode_pdu(uint8_t *buffer, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
-                     BACNET_NPDU_DATA *npdu_data, uint8_t invoke_id,
-                     BACNET_ABORT_REASON reason, bool server)
+int abort_encode_pdu(uint8_t *buffer,
+    BACNET_ADDRESS *dest,
+    BACNET_ADDRESS *src,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t invoke_id,
+    BACNET_ABORT_REASON reason,
+    bool server)
 {
     int len = 0;
     int pdu_len = 0;
@@ -78,9 +82,11 @@ int abort_encode_pdu(uint8_t *buffer, BACNET_ADDRESS *dest, BACNET_ADDRESS *src,
  *
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int Send_Abort_To_Network(uint8_t *buffer, BACNET_ADDRESS *dest,
-                          uint8_t invoke_id, BACNET_ABORT_REASON reason,
-                          bool server)
+int Send_Abort_To_Network(uint8_t *buffer,
+    BACNET_ADDRESS *dest,
+    uint8_t invoke_id,
+    BACNET_ABORT_REASON reason,
+    bool server)
 {
     int pdu_len = 0;
     BACNET_ADDRESS src;
@@ -88,8 +94,8 @@ int Send_Abort_To_Network(uint8_t *buffer, BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA npdu_data;
 
     datalink_get_my_address(&src);
-    pdu_len = abort_encode_pdu(buffer, dest, &src, &npdu_data, invoke_id,
-                               reason, server);
+    pdu_len = abort_encode_pdu(
+        buffer, dest, &src, &npdu_data, invoke_id, reason, server);
     bytes_sent = datalink_send_pdu(dest, &npdu_data, &buffer[0], pdu_len);
 
     return bytes_sent;

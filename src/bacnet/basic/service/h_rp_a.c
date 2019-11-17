@@ -109,9 +109,10 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_read_property_ack(uint8_t *service_request, uint16_t service_len,
-                               BACNET_ADDRESS *src,
-                               BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+void handler_read_property_ack(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
     BACNET_READ_PROPERTY_DATA data;

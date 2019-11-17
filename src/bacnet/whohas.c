@@ -51,23 +51,22 @@ int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
         apdu[1] = SERVICE_UNCONFIRMED_WHO_HAS; /* service choice */
         apdu_len = 2;
         /* optional limits - must be used as a pair */
-        if ((data->low_limit >= 0) &&
-            (data->low_limit <= BACNET_MAX_INSTANCE) &&
-            (data->high_limit >= 0) &&
-            (data->high_limit <= BACNET_MAX_INSTANCE)) {
+        if ((data->low_limit >= 0) && (data->low_limit <= BACNET_MAX_INSTANCE)
+            && (data->high_limit >= 0)
+            && (data->high_limit <= BACNET_MAX_INSTANCE)) {
             len = encode_context_unsigned(&apdu[apdu_len], 0, data->low_limit);
             apdu_len += len;
             len = encode_context_unsigned(&apdu[apdu_len], 1, data->high_limit);
             apdu_len += len;
         }
         if (data->is_object_name) {
-            len = encode_context_character_string(&apdu[apdu_len], 3,
-                                                  &data->object.name);
+            len = encode_context_character_string(
+                &apdu[apdu_len], 3, &data->object.name);
             apdu_len += len;
         } else {
             len = encode_context_object_id(&apdu[apdu_len], 2,
-                                           (int)data->object.identifier.type,
-                                           data->object.identifier.instance);
+                (int)data->object.identifier.type,
+                data->object.identifier.instance);
             apdu_len += len;
         }
     }
@@ -76,8 +75,8 @@ int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
 }
 
 /* decode the service request only */
-int whohas_decode_service_request(uint8_t *apdu, unsigned apdu_len,
-                                  BACNET_WHO_HAS_DATA *data)
+int whohas_decode_service_request(
+    uint8_t *apdu, unsigned apdu_len, BACNET_WHO_HAS_DATA *data)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -88,15 +87,15 @@ int whohas_decode_service_request(uint8_t *apdu, unsigned apdu_len,
     if (apdu_len && data) {
         /* optional limits - must be used as a pair */
         if (decode_is_context_tag(&apdu[len], 0)) {
-            len += decode_tag_number_and_value(&apdu[len], &tag_number,
-                                               &len_value);
+            len += decode_tag_number_and_value(
+                &apdu[len], &tag_number, &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             if (decoded_value <= BACNET_MAX_INSTANCE)
                 data->low_limit = decoded_value;
             if (!decode_is_context_tag(&apdu[len], 1))
                 return -1;
-            len += decode_tag_number_and_value(&apdu[len], &tag_number,
-                                               &len_value);
+            len += decode_tag_number_and_value(
+                &apdu[len], &tag_number, &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
             if (decoded_value <= BACNET_MAX_INSTANCE)
                 data->high_limit = decoded_value;
@@ -107,19 +106,19 @@ int whohas_decode_service_request(uint8_t *apdu, unsigned apdu_len,
         /* object id */
         if (decode_is_context_tag(&apdu[len], 2)) {
             data->is_object_name = false;
-            len += decode_tag_number_and_value(&apdu[len], &tag_number,
-                                               &len_value);
-            len += decode_object_id(&apdu[len], &decoded_type,
-                                    &data->object.identifier.instance);
+            len += decode_tag_number_and_value(
+                &apdu[len], &tag_number, &len_value);
+            len += decode_object_id(
+                &apdu[len], &decoded_type, &data->object.identifier.instance);
             data->object.identifier.type = decoded_type;
         }
         /* object name */
         else if (decode_is_context_tag(&apdu[len], 3)) {
             data->is_object_name = true;
-            len += decode_tag_number_and_value(&apdu[len], &tag_number,
-                                               &len_value);
-            len += decode_character_string(&apdu[len], len_value,
-                                           &data->object.name);
+            len += decode_tag_number_and_value(
+                &apdu[len], &tag_number, &len_value);
+            len += decode_character_string(
+                &apdu[len], len_value, &data->object.name);
         }
         /* missing required parameters */
         else
@@ -134,8 +133,8 @@ int whohas_decode_service_request(uint8_t *apdu, unsigned apdu_len,
 #include <string.h>
 #include "ctest.h"
 
-int whohas_decode_apdu(uint8_t *apdu, unsigned apdu_len,
-                       BACNET_WHO_HAS_DATA *data)
+int whohas_decode_apdu(
+    uint8_t *apdu, unsigned apdu_len, BACNET_WHO_HAS_DATA *data)
 {
     int len = 0;
 
@@ -156,7 +155,7 @@ int whohas_decode_apdu(uint8_t *apdu, unsigned apdu_len,
 
 void testWhoHasData(Test *pTest, BACNET_WHO_HAS_DATA *data)
 {
-    uint8_t apdu[480] = {0};
+    uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
     BACNET_WHO_HAS_DATA test_data;
@@ -172,15 +171,16 @@ void testWhoHasData(Test *pTest, BACNET_WHO_HAS_DATA *data)
     ct_test(pTest, test_data.is_object_name == data->is_object_name);
     /* Object ID */
     if (data->is_object_name == false) {
-        ct_test(pTest, test_data.object.identifier.type ==
-                           data->object.identifier.type);
-        ct_test(pTest, test_data.object.identifier.instance ==
-                           data->object.identifier.instance);
+        ct_test(pTest,
+            test_data.object.identifier.type == data->object.identifier.type);
+        ct_test(pTest,
+            test_data.object.identifier.instance
+                == data->object.identifier.instance);
     }
     /* Object Name */
     else {
-        ct_test(pTest, characterstring_same(&test_data.object.name,
-                                            &data->object.name));
+        ct_test(pTest,
+            characterstring_same(&test_data.object.name, &data->object.name));
     }
 }
 

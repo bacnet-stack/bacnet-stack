@@ -132,8 +132,8 @@ void bvlc_bdt_backup_local(void)
         return;
 
     fseek(bdt_file_ptr, 0, SEEK_SET);
-    fwrite(BBMD_Table, sizeof(BBMD_TABLE_ENTRY), MAX_BBMD_ENTRIES,
-           bdt_file_ptr);
+    fwrite(
+        BBMD_Table, sizeof(BBMD_TABLE_ENTRY), MAX_BBMD_ENTRIES, bdt_file_ptr);
     fflush(bdt_file_ptr);
 }
 
@@ -155,11 +155,11 @@ void bvlc_bdt_restore_local(void)
         size_t entries = 0;
 
         entries = fread(BBMD_Table_tmp, sizeof(BBMD_TABLE_ENTRY),
-                        MAX_BBMD_ENTRIES, bdt_file_ptr);
+            MAX_BBMD_ENTRIES, bdt_file_ptr);
         if (entries == MAX_BBMD_ENTRIES)
             /* success reading the BDT table. */
             memcpy(BBMD_Table, BBMD_Table_tmp,
-                   sizeof(BBMD_TABLE_ENTRY) * MAX_BBMD_ENTRIES);
+                sizeof(BBMD_TABLE_ENTRY) * MAX_BBMD_ENTRIES);
     }
 }
 #else
@@ -204,8 +204,8 @@ void bvlc_maintenance_timer(time_t seconds)
  *
  * @return number of bytes decoded
  */
-static void bvlc_internet_to_bacnet_address(BACNET_ADDRESS *src,
-                                            struct sockaddr_in *sin)
+static void bvlc_internet_to_bacnet_address(
+    BACNET_ADDRESS *src, struct sockaddr_in *sin)
 {
     if (src && sin) {
         memcpy(&src->mac[0], &sin->sin_addr.s_addr, 4);
@@ -233,8 +233,8 @@ static void bvlc_internet_to_bacnet_address(BACNET_ADDRESS *src,
  *
  * @return number of bytes encoded
  */
-static int bvlc_encode_bip_address(uint8_t *pdu, struct in_addr *address,
-                                   uint16_t port)
+static int bvlc_encode_bip_address(
+    uint8_t *pdu, struct in_addr *address, uint16_t port)
 {
     int len = 0;
 
@@ -255,8 +255,8 @@ static int bvlc_encode_bip_address(uint8_t *pdu, struct in_addr *address,
  *
  * @return number of bytes decoded
  */
-static int bvlc_decode_bip_address(uint8_t *pdu, struct in_addr *address,
-                                   uint16_t *port)
+static int bvlc_decode_bip_address(
+    uint8_t *pdu, struct in_addr *address, uint16_t *port)
 {
     int len = 0;
 
@@ -278,8 +278,8 @@ static int bvlc_decode_bip_address(uint8_t *pdu, struct in_addr *address,
  *
  * @return number of bytes encoded
  */
-static int bvlc_encode_address_entry(uint8_t *pdu, struct in_addr *address,
-                                     uint16_t port, struct in_addr *mask)
+static int bvlc_encode_address_entry(
+    uint8_t *pdu, struct in_addr *address, uint16_t port, struct in_addr *mask)
 {
     int len = 0;
 
@@ -377,10 +377,10 @@ int bvlc_encode_read_bdt(uint8_t *pdu)
  */
 int bvlc_bbmd_read_bdt(uint32_t bbmd_address, uint16_t bbmd_port)
 {
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
     int rv = 0;
-    struct sockaddr_in bbmd = {0};
+    struct sockaddr_in bbmd = { 0 };
 
     mtu_len = bvlc_encode_read_bdt(mtu);
     if (mtu_len > 0) {
@@ -447,9 +447,9 @@ static int bvlc_encode_read_bdt_ack(uint8_t *pdu, uint16_t max_pdu)
                 pdu_len = 0;
                 break;
             }
-            len = bvlc_encode_address_entry(
-                &pdu[pdu_len], &BBMD_Table[i].dest_address,
-                BBMD_Table[i].dest_port, &BBMD_Table[i].broadcast_mask);
+            len = bvlc_encode_address_entry(&pdu[pdu_len],
+                &BBMD_Table[i].dest_address, BBMD_Table[i].dest_port,
+                &BBMD_Table[i].broadcast_mask);
             pdu_len += len;
         }
     }
@@ -467,9 +467,11 @@ static int bvlc_encode_read_bdt_ack(uint8_t *pdu, uint16_t max_pdu)
  *
  * @return number of bytes encoded
  */
-static int bvlc_encode_forwarded_npdu(uint8_t *pdu, uint16_t max_pdu,
-                                      struct sockaddr_in *sin, uint8_t *npdu,
-                                      unsigned npdu_length)
+static int bvlc_encode_forwarded_npdu(uint8_t *pdu,
+    uint16_t max_pdu,
+    struct sockaddr_in *sin,
+    uint8_t *npdu,
+    unsigned npdu_length)
 {
     int len = 0;
 
@@ -485,8 +487,8 @@ static int bvlc_encode_forwarded_npdu(uint8_t *pdu, uint16_t max_pdu,
             encode_unsigned16(&pdu[2], (uint16_t)(4 + 6 + npdu_length));
             len = 4;
             /* 6-octet address encoding */
-            len += bvlc_encode_bip_address(&pdu[len], &sin->sin_addr,
-                                           sin->sin_port);
+            len += bvlc_encode_bip_address(
+                &pdu[len], &sin->sin_addr, sin->sin_port);
             for (i = 0; i < npdu_length; i++) {
                 pdu[len] = npdu[i];
                 len++;
@@ -580,8 +582,7 @@ static int bvlc_encode_read_fdt_ack(uint8_t *pdu, uint16_t max_pdu)
                 break;
             }
             len = bvlc_encode_bip_address(&pdu[pdu_len],
-                                          &FD_Table[i].dest_address,
-                                          FD_Table[i].dest_port);
+                &FD_Table[i].dest_address, FD_Table[i].dest_port);
             pdu_len += len;
             len = encode_unsigned16(&pdu[pdu_len], FD_Table[i].time_to_live);
             pdu_len += len;
@@ -634,8 +635,8 @@ int bvlc_encode_delete_fdt_entry(uint8_t *pdu, uint32_t address, uint16_t port)
  *
  * @return number of bytes encoded
  */
-int bvlc_encode_original_unicast_npdu(uint8_t *pdu, uint8_t *npdu,
-                                      unsigned npdu_length)
+int bvlc_encode_original_unicast_npdu(
+    uint8_t *pdu, uint8_t *npdu, unsigned npdu_length)
 {
     int len = 0;    /* return value */
     unsigned i = 0; /* loop counter */
@@ -668,8 +669,8 @@ int bvlc_encode_original_unicast_npdu(uint8_t *pdu, uint8_t *npdu,
  *
  * @return number of bytes encoded
  */
-int bvlc_encode_original_broadcast_npdu(uint8_t *pdu, uint8_t *npdu,
-                                        unsigned npdu_length)
+int bvlc_encode_original_broadcast_npdu(
+    uint8_t *pdu, uint8_t *npdu, unsigned npdu_length)
 {
     int len = 0;    /* return value */
     unsigned i = 0; /* loop counter */
@@ -742,8 +743,8 @@ static bool bvlc_create_bdt(uint8_t *npdu, uint16_t npdu_length)
  *
  * @return true if the Foreign Device was added
  */
-static bool bvlc_register_foreign_device(struct sockaddr_in *sin,
-                                         uint16_t time_to_live)
+static bool bvlc_register_foreign_device(
+    struct sockaddr_in *sin, uint16_t time_to_live)
 {
     unsigned i = 0;
     bool status = false;
@@ -751,8 +752,8 @@ static bool bvlc_register_foreign_device(struct sockaddr_in *sin,
     /* am I here already?  If so, update my time to live... */
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid) {
-            if ((FD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr) &&
-                (FD_Table[i].dest_port == sin->sin_port)) {
+            if ((FD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr)
+                && (FD_Table[i].dest_port == sin->sin_port)) {
                 status = true;
                 FD_Table[i].time_to_live = time_to_live;
                 /*  Upon receipt of a BVLL Register-Foreign-Device message,
@@ -789,8 +790,8 @@ static bool bvlc_register_foreign_device(struct sockaddr_in *sin,
  */
 static bool bvlc_delete_foreign_device(uint8_t *pdu, uint16_t pdu_len)
 {
-    struct sockaddr_in sin = {0}; /* the ip address */
-    bool status = false;          /* return value */
+    struct sockaddr_in sin = { 0 }; /* the ip address */
+    bool status = false;            /* return value */
     unsigned i = 0;
 
     if (pdu_len < 6) {
@@ -799,8 +800,8 @@ static bool bvlc_delete_foreign_device(uint8_t *pdu, uint16_t pdu_len)
     bvlc_decode_bip_address(pdu, &sin.sin_addr, &sin.sin_port);
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid) {
-            if ((FD_Table[i].dest_address.s_addr == sin.sin_addr.s_addr) &&
-                (FD_Table[i].dest_port == sin.sin_port)) {
+            if ((FD_Table[i].dest_address.s_addr == sin.sin_addr.s_addr)
+                && (FD_Table[i].dest_port == sin.sin_port)) {
                 FD_Table[i].valid = false;
                 FD_Table[i].seconds_remaining = 0;
                 status = true;
@@ -826,7 +827,7 @@ static bool bvlc_delete_foreign_device(uint8_t *pdu, uint16_t pdu_len)
  */
 int bvlc_send_mpdu(struct sockaddr_in *dest, uint8_t *mtu, uint16_t mtu_len)
 {
-    struct sockaddr_in bvlc_dest = {0};
+    struct sockaddr_in bvlc_dest = { 0 };
 
     /* assumes that the driver has already been initialized */
     if (bip_socket() < 0) {
@@ -839,7 +840,7 @@ int bvlc_send_mpdu(struct sockaddr_in *dest, uint8_t *mtu, uint16_t mtu_len)
     memset(&(bvlc_dest.sin_zero), '\0', 8);
     /* Send the packet */
     return sendto(bip_socket(), (char *)mtu, mtu_len, 0,
-                  (struct sockaddr *)&bvlc_dest, sizeof(struct sockaddr));
+        (struct sockaddr *)&bvlc_dest, sizeof(struct sockaddr));
 }
 
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
@@ -851,13 +852,13 @@ int bvlc_send_mpdu(struct sockaddr_in *dest, uint8_t *mtu, uint16_t mtu_len)
  * @param npdu_length - length of the NPDU
  * @param original - was the message an original (not forwarded)
  */
-static void bvlc_bdt_forward_npdu(struct sockaddr_in *sin, uint8_t *npdu,
-                                  uint16_t npdu_length, bool original)
+static void bvlc_bdt_forward_npdu(
+    struct sockaddr_in *sin, uint8_t *npdu, uint16_t npdu_length, bool original)
 {
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
     unsigned i = 0; /* loop counter */
-    struct sockaddr_in bip_dest = {0};
+    struct sockaddr_in bip_dest = { 0 };
 
     /* If we are forwarding an original broadcast message and the NAT
      * handling is enabled, change the source address to NAT routers
@@ -883,32 +884,31 @@ static void bvlc_bdt_forward_npdu(struct sockaddr_in *sin, uint8_t *npdu,
                sent is formed by inverting the broadcast distribution
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
-            bip_dest.sin_addr.s_addr = ((~BBMD_Table[i].broadcast_mask.s_addr) |
-                                        BBMD_Table[i].dest_address.s_addr);
+            bip_dest.sin_addr.s_addr = ((~BBMD_Table[i].broadcast_mask.s_addr)
+                | BBMD_Table[i].dest_address.s_addr);
             bip_dest.sin_port = BBMD_Table[i].dest_port;
             /* don't send to my broadcast address and same port */
-            if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr()) &&
-                (bip_dest.sin_port == bip_get_port())) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr())
+                && (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             /* don't send to my ip address and same port */
-            if ((bip_dest.sin_addr.s_addr == bip_get_addr()) &&
-                (bip_dest.sin_port == bip_get_port())) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_addr())
+                && (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             /* NAT router port forwards BACnet packets from global IP to us.
              * Packets sent to that global IP by us would end up back, creating
              * a loop.
              */
-            if (BVLC_NAT_Handling &&
-                (bip_dest.sin_addr.s_addr == BVLC_Global_Address.s_addr) &&
-                (bip_dest.sin_port == bip_get_port())) {
+            if (BVLC_NAT_Handling
+                && (bip_dest.sin_addr.s_addr == BVLC_Global_Address.s_addr)
+                && (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
             debug_printf("BVLC: BDT Sent Forwarded-NPDU to %s:%04X\n",
-                         inet_ntoa(bip_dest.sin_addr),
-                         ntohs(bip_dest.sin_port));
+                inet_ntoa(bip_dest.sin_addr), ntohs(bip_dest.sin_port));
         }
     }
 
@@ -923,12 +923,12 @@ static void bvlc_bdt_forward_npdu(struct sockaddr_in *sin, uint8_t *npdu,
  * @param max_npdu - amount of space available in the NPDU
  * @param npdu_length - reported length of the NPDU
  */
-static void bvlc_forward_npdu(struct sockaddr_in *sin, uint8_t *npdu,
-                              uint16_t npdu_length)
+static void bvlc_forward_npdu(
+    struct sockaddr_in *sin, uint8_t *npdu, uint16_t npdu_length)
 {
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
-    struct sockaddr_in bip_dest = {0};
+    struct sockaddr_in bip_dest = { 0 };
 
     mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(
         &mtu[0], (uint16_t)sizeof(mtu), sin, npdu, npdu_length);
@@ -946,13 +946,13 @@ static void bvlc_forward_npdu(struct sockaddr_in *sin, uint8_t *npdu,
  * @param npdu_length - reported length of the NPDU
  * @param original - was the message an original (not forwarded)
  */
-static void bvlc_fdt_forward_npdu(struct sockaddr_in *sin, uint8_t *npdu,
-                                  uint16_t npdu_length, bool original)
+static void bvlc_fdt_forward_npdu(
+    struct sockaddr_in *sin, uint8_t *npdu, uint16_t npdu_length, bool original)
 {
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
     unsigned i = 0; /* loop counter */
-    struct sockaddr_in bip_dest = {0};
+    struct sockaddr_in bip_dest = { 0 };
 
     /* If we are forwarding an original broadcast message and the NAT
      * handling is enabled, change the source address to NAT routers
@@ -978,28 +978,27 @@ static void bvlc_fdt_forward_npdu(struct sockaddr_in *sin, uint8_t *npdu,
             bip_dest.sin_addr.s_addr = FD_Table[i].dest_address.s_addr;
             bip_dest.sin_port = FD_Table[i].dest_port;
             /* don't send to my ip address and same port */
-            if ((bip_dest.sin_addr.s_addr == bip_get_addr()) &&
-                (bip_dest.sin_port == bip_get_port())) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_addr())
+                && (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             /* don't send to src ip address and same port */
-            if ((bip_dest.sin_addr.s_addr == sin->sin_addr.s_addr) &&
-                (bip_dest.sin_port == sin->sin_port)) {
+            if ((bip_dest.sin_addr.s_addr == sin->sin_addr.s_addr)
+                && (bip_dest.sin_port == sin->sin_port)) {
                 continue;
             }
             /* NAT router port forwards BACnet packets from global IP to us.
              * Packets sent to that global IP by us would end up back, creating
              * a loop.
              */
-            if (BVLC_NAT_Handling &&
-                (bip_dest.sin_addr.s_addr == BVLC_Global_Address.s_addr) &&
-                (bip_dest.sin_port == bip_get_port())) {
+            if (BVLC_NAT_Handling
+                && (bip_dest.sin_addr.s_addr == BVLC_Global_Address.s_addr)
+                && (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
             debug_printf("BVLC: FDT Sent Forwarded-NPDU to %s:%04X\n",
-                         inet_ntoa(bip_dest.sin_addr),
-                         ntohs(bip_dest.sin_port));
+                inet_ntoa(bip_dest.sin_addr), ntohs(bip_dest.sin_port));
         }
     }
 
@@ -1018,7 +1017,7 @@ static int bvlc_send_result(
     struct sockaddr_in *dest, /* the destination address */
     BACNET_BVLC_RESULT result_code)
 {
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = (uint16_t)bvlc_encode_bvlc_result(&mtu[0], result_code);
@@ -1038,7 +1037,7 @@ static int bvlc_send_result(
  */
 static int bvlc_send_bdt(struct sockaddr_in *dest)
 {
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = (uint16_t)bvlc_encode_read_bdt_ack(&mtu[0], sizeof(mtu));
@@ -1057,7 +1056,7 @@ static int bvlc_send_bdt(struct sockaddr_in *dest)
  */
 static int bvlc_send_fdt(struct sockaddr_in *dest)
 {
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = (uint16_t)bvlc_encode_read_fdt_ack(&mtu[0], sizeof(mtu));
@@ -1082,14 +1081,14 @@ static bool bvlc_bdt_member_mask_is_unicast(struct sockaddr_in *sin)
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (BBMD_Table[i].valid) {
             /* Skip ourself*/
-            if ((BBMD_Table[i].dest_address.s_addr == bip_get_addr()) &&
-                (BBMD_Table[i].dest_port == bip_get_port())) {
+            if ((BBMD_Table[i].dest_address.s_addr == bip_get_addr())
+                && (BBMD_Table[i].dest_port == bip_get_port())) {
                 continue;
             }
 
             /* find the source address in the table */
-            if ((BBMD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr) &&
-                (BBMD_Table[i].dest_port == sin->sin_port)) {
+            if ((BBMD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr)
+                && (BBMD_Table[i].dest_port == sin->sin_port)) {
                 /* unicast mask? */
                 if (BBMD_Table[i].broadcast_mask.s_addr == 0xFFFFFFFFL) {
                     unicast = true;
@@ -1111,16 +1110,16 @@ static bool bvlc_bdt_member_mask_is_unicast(struct sockaddr_in *sin)
  *
  * @return Number of bytes received, or 0 if none or timeout.
  */
-uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
-                      unsigned timeout)
+uint16_t bvlc_receive(
+    BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu, unsigned timeout)
 {
     uint16_t npdu_len = 0; /* return value */
     fd_set read_fds;
     int max = 0;
     struct timeval select_timeout;
-    struct sockaddr_in sin = {0};
-    struct sockaddr_in original_sin = {0};
-    struct sockaddr_in dest = {0};
+    struct sockaddr_in sin = { 0 };
+    struct sockaddr_in original_sin = { 0 };
+    struct sockaddr_in dest = { 0 };
     socklen_t sin_len = sizeof(sin);
     int received_bytes = 0;
     uint16_t result_code = 0;
@@ -1138,8 +1137,8 @@ uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
        a select. */
     if (timeout >= 1000) {
         select_timeout.tv_sec = timeout / 1000;
-        select_timeout.tv_usec =
-            1000 * (timeout - select_timeout.tv_sec * 1000);
+        select_timeout.tv_usec
+            = 1000 * (timeout - select_timeout.tv_sec * 1000);
     } else {
         select_timeout.tv_sec = 0;
         select_timeout.tv_usec = 1000 * timeout;
@@ -1150,7 +1149,7 @@ uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
         received_bytes = recvfrom(bip_socket(), (char *)&npdu[0], max_npdu, 0,
-                                  (struct sockaddr *)&sin, &sin_len);
+            (struct sockaddr *)&sin, &sin_len);
     } else {
         return 0;
     }
@@ -1256,11 +1255,10 @@ uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
                 return 0;
             }
             /* decode the 4 byte original address and 2 byte port */
-            bvlc_decode_bip_address(&npdu[4], &original_sin.sin_addr,
-                                    &original_sin.sin_port);
+            bvlc_decode_bip_address(
+                &npdu[4], &original_sin.sin_addr, &original_sin.sin_port);
             debug_printf("BVLC: Received Forwarded-NPDU from %s:%04X.\n",
-                         inet_ntoa(original_sin.sin_addr),
-                         ntohs(original_sin.sin_port));
+                inet_ntoa(original_sin.sin_addr), ntohs(original_sin.sin_port));
             npdu_len -= 6;
             /*  Broadcast locally if received via unicast from a BDT member */
             if (bvlc_bdt_member_mask_is_unicast(&sin)) {
@@ -1277,7 +1275,7 @@ uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
             dest.sin_port = original_sin.sin_port;
             bvlc_fdt_forward_npdu(&dest, &npdu[4 + 6], npdu_len, false);
             debug_printf("BVLC: Received Forwarded-NPDU from %s:%04X.\n",
-                         inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
+                inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
             bvlc_internet_to_bacnet_address(src, &dest);
             if (npdu_len < max_npdu) {
                 /* shift the buffer to return a valid NPDU */
@@ -1324,8 +1322,8 @@ uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
                with a result code of X'0040' indicating that the read attempt
                has failed. */
             if (bvlc_send_fdt(&sin) <= 0) {
-                bvlc_send_result(&sin,
-                                 BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK);
+                bvlc_send_result(
+                    &sin, BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK);
             }
             /* not an NPDU */
             npdu_len = 0;
@@ -1356,9 +1354,8 @@ uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
             npdu_len = 0;
             break;
         case BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK:
-            debug_printf(
-                "BVLC: Received Distribute-Broadcast-to-Network from "
-                "%s:%04X.\n",
+            debug_printf("BVLC: Received Distribute-Broadcast-to-Network from "
+                         "%s:%04X.\n",
                 inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
             /* Upon receipt of a BVLL Distribute-Broadcast-To-Network message
                from a foreign device, the receiving BBMD shall transmit a
@@ -1380,13 +1377,13 @@ uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
             break;
         case BVLC_ORIGINAL_UNICAST_NPDU:
             debug_printf("BVLC: Received Original-Unicast-NPDU.\n");
-            if ((sin.sin_addr.s_addr == bip_get_addr()) &&
-                (sin.sin_port == bip_get_port())) {
+            if ((sin.sin_addr.s_addr == bip_get_addr())
+                && (sin.sin_port == bip_get_port())) {
                 /* ignore messages from me */
                 npdu_len = 0;
-            } else if (BVLC_NAT_Handling &&
-                       (sin.sin_addr.s_addr == BVLC_Global_Address.s_addr) &&
-                       (sin.sin_port == bip_get_port())) {
+            } else if (BVLC_NAT_Handling
+                && (sin.sin_addr.s_addr == BVLC_Global_Address.s_addr)
+                && (sin.sin_port == bip_get_port())) {
                 /* If the BBMD is behind a NAT router, the router forwards
                    packets from global IP and BACnet port to us. */
                 npdu_len = 0;
@@ -1449,11 +1446,13 @@ uint16_t bvlc_receive(BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu,
  *
  * @return returns number of bytes sent on success, negative number on failure
  */
-int bvlc_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
-                  uint8_t *pdu, unsigned pdu_len)
+int bvlc_send_pdu(BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len)
 {
-    struct sockaddr_in bvlc_dest = {0};
-    uint8_t mtu[MAX_MPDU] = {0};
+    struct sockaddr_in bvlc_dest = { 0 };
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
     /* addr and port in network format */
     struct in_addr address;
@@ -1522,8 +1521,8 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
  * @return Number of bytes encoded) on success,
  *         or 0 if no encoding occurred.
  */
-static int bvlc_encode_register_foreign_device(uint8_t *pdu,
-                                               uint16_t time_to_live_seconds)
+static int bvlc_encode_register_foreign_device(
+    uint8_t *pdu, uint16_t time_to_live_seconds)
 {
     int len = 0;
 
@@ -1550,10 +1549,10 @@ static int bvlc_encode_register_foreign_device(uint8_t *pdu,
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
-int bvlc_register_with_bbmd(uint32_t bbmd_address, uint16_t bbmd_port,
-                            uint16_t time_to_live_seconds)
+int bvlc_register_with_bbmd(
+    uint32_t bbmd_address, uint16_t bbmd_port, uint16_t time_to_live_seconds)
 {
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
     int retval = 0;
 
@@ -1581,8 +1580,8 @@ int bvlc_register_with_bbmd(uint32_t bbmd_address, uint16_t bbmd_port,
  * @return Non-zero BVLC_RESULT_ code if we sent a response (NAK) to this
  *      BVLC message.  If zero, may need further processing.
  */
-int bvlc_for_non_bbmd(struct sockaddr_in *sout, uint8_t *npdu,
-                      uint16_t received_bytes)
+int bvlc_for_non_bbmd(
+    struct sockaddr_in *sout, uint8_t *npdu, uint16_t received_bytes)
 {
     uint16_t result_code = 0; /* aka, BVLC_RESULT_SUCCESSFUL_COMPLETION */
 
@@ -1720,10 +1719,10 @@ bool bvlc_add_bdt_entry_local(BBMD_TABLE_ENTRY *entry)
         }
 
         /* Make sure that we are not adding a duplicate */
-        if (BBMD_Table[i].dest_address.s_addr == entry->dest_address.s_addr &&
-            BBMD_Table[i].broadcast_mask.s_addr ==
-                entry->broadcast_mask.s_addr &&
-            BBMD_Table[i].dest_port == entry->dest_port) {
+        if (BBMD_Table[i].dest_address.s_addr == entry->dest_address.s_addr
+            && BBMD_Table[i].broadcast_mask.s_addr
+                == entry->broadcast_mask.s_addr
+            && BBMD_Table[i].dest_port == entry->dest_port) {
             return false;
         }
     }
@@ -1785,7 +1784,7 @@ static void bvlc_bacnet_to_internet_address(
 
 void testBIPAddress(Test *pTest)
 {
-    uint8_t apdu[50] = {0};
+    uint8_t apdu[50] = { 0 };
     uint32_t value = 0, test_value = 0;
     int len = 0, test_len = 0;
     struct in_addr address;
@@ -1804,8 +1803,8 @@ void testInternetAddress(Test *pTest)
 {
     BACNET_ADDRESS src;
     BACNET_ADDRESS test_src;
-    struct sockaddr_in sin = {0};
-    struct sockaddr_in test_sin = {0};
+    struct sockaddr_in sin = { 0 };
+    struct sockaddr_in test_sin = { 0 };
 
     sin.sin_port = htons(0xBAC0);
     sin.sin_addr.s_addr = inet_addr("192.168.0.1");

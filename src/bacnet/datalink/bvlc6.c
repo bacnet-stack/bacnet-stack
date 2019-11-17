@@ -49,8 +49,8 @@
  *
  * @return number of bytes encoded
  */
-int bvlc6_encode_header(uint8_t *pdu, uint16_t pdu_size, uint8_t message_type,
-                        uint16_t length)
+int bvlc6_encode_header(
+    uint8_t *pdu, uint16_t pdu_size, uint8_t message_type, uint16_t length)
 {
     int bytes_encoded = 0;
 
@@ -76,8 +76,8 @@ int bvlc6_encode_header(uint8_t *pdu, uint16_t pdu_size, uint8_t message_type,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_header(uint8_t *pdu, uint16_t pdu_len, uint8_t *message_type,
-                        uint16_t *length)
+int bvlc6_decode_header(
+    uint8_t *pdu, uint16_t pdu_len, uint8_t *message_type, uint16_t *length)
 {
     int bytes_consumed = 0;
 
@@ -119,15 +119,15 @@ int bvlc6_decode_header(uint8_t *pdu, uint16_t pdu_len, uint8_t *message_type,
  *                                  X'00A0' Delete-Foreign-Device-Table-Entry
  * NAK X'00C0' Distribute-Broadcast-To-Network NAK
  */
-int bvlc6_encode_result(uint8_t *pdu, uint16_t pdu_size, uint32_t vmac,
-                        uint16_t result_code)
+int bvlc6_encode_result(
+    uint8_t *pdu, uint16_t pdu_size, uint32_t vmac, uint16_t result_code)
 {
     int bytes_encoded = 0;
     const uint16_t length = 9;
 
     if (pdu && (pdu_size >= 9) && (vmac <= 0xFFFFFF)) {
-        bytes_encoded =
-            bvlc6_encode_header(pdu, pdu_size, BVLC6_RESULT, length);
+        bytes_encoded
+            = bvlc6_encode_header(pdu, pdu_size, BVLC6_RESULT, length);
         if (bytes_encoded == 4) {
             encode_unsigned24(&pdu[4], vmac);
             encode_unsigned16(&pdu[7], result_code);
@@ -147,8 +147,8 @@ int bvlc6_encode_result(uint8_t *pdu, uint16_t pdu_size, uint32_t vmac,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_result(uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac,
-                        uint16_t *result_code)
+int bvlc6_decode_result(
+    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac, uint16_t *result_code)
 {
     int bytes_consumed = 0;
 
@@ -186,17 +186,20 @@ int bvlc6_decode_result(uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac,
  * Destination-Virtual-Address: 3-octets
  * BACnet NPDU:                 Variable length
  */
-int bvlc6_encode_original_unicast(uint8_t *pdu, uint16_t pdu_size,
-                                  uint32_t vmac_src, uint32_t vmac_dst,
-                                  uint8_t *npdu, uint16_t npdu_len)
+int bvlc6_encode_original_unicast(uint8_t *pdu,
+    uint16_t pdu_size,
+    uint32_t vmac_src,
+    uint32_t vmac_dst,
+    uint8_t *npdu,
+    uint16_t npdu_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 10;
     uint16_t i = 0;
 
     length += npdu_len;
-    if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF) &&
-        (vmac_dst <= 0xFFFFFF)) {
+    if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF)
+        && (vmac_dst <= 0xFFFFFF)) {
         bytes_encoded = bvlc6_encode_header(
             pdu, pdu_size, BVLC6_ORIGINAL_UNICAST_NPDU, length);
         if (bytes_encoded == 4) {
@@ -226,10 +229,13 @@ int bvlc6_encode_original_unicast(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_original_unicast(uint8_t *pdu, uint16_t pdu_len,
-                                  uint32_t *vmac_src, uint32_t *vmac_dst,
-                                  uint8_t *npdu, uint16_t npdu_size,
-                                  uint16_t *npdu_len)
+int bvlc6_decode_original_unicast(uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac_src,
+    uint32_t *vmac_dst,
+    uint8_t *npdu,
+    uint16_t npdu_size,
+    uint16_t *npdu_len)
 {
     int bytes_consumed = 0;
     uint16_t length = 0;
@@ -276,9 +282,11 @@ int bvlc6_decode_original_unicast(uint8_t *pdu, uint16_t pdu_len,
  * Source-Virtual-Address:      3-octets
  * BACnet NPDU:                 Variable length
  */
-int bvlc6_encode_original_broadcast(uint8_t *pdu, uint16_t pdu_size,
-                                    uint32_t vmac, uint8_t *npdu,
-                                    uint16_t npdu_len)
+int bvlc6_encode_original_broadcast(uint8_t *pdu,
+    uint16_t pdu_size,
+    uint32_t vmac,
+    uint8_t *npdu,
+    uint16_t npdu_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 7;
@@ -313,9 +321,12 @@ int bvlc6_encode_original_broadcast(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_original_broadcast(uint8_t *pdu, uint16_t pdu_len,
-                                    uint32_t *vmac, uint8_t *npdu,
-                                    uint16_t npdu_size, uint16_t *npdu_len)
+int bvlc6_decode_original_broadcast(uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac,
+    uint8_t *npdu,
+    uint16_t npdu_size,
+    uint16_t *npdu_len)
 {
     int bytes_consumed = 0;
     uint16_t length = 0;
@@ -359,16 +370,16 @@ int bvlc6_decode_original_broadcast(uint8_t *pdu, uint16_t pdu_len,
  * Source-Virtual-Address:      3-octets
  * Target-Virtual-Address:      3-octets
  */
-int bvlc6_encode_address_resolution(uint8_t *pdu, uint16_t pdu_size,
-                                    uint32_t vmac_src, uint32_t vmac_target)
+int bvlc6_encode_address_resolution(
+    uint8_t *pdu, uint16_t pdu_size, uint32_t vmac_src, uint32_t vmac_target)
 {
     int bytes_encoded = 0;
     uint16_t length = 10;
 
-    if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF) &&
-        (vmac_target <= 0xFFFFFF)) {
-        bytes_encoded = bvlc6_encode_header(pdu, pdu_size,
-                                            BVLC6_ADDRESS_RESOLUTION, length);
+    if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF)
+        && (vmac_target <= 0xFFFFFF)) {
+        bytes_encoded = bvlc6_encode_header(
+            pdu, pdu_size, BVLC6_ADDRESS_RESOLUTION, length);
         if (bytes_encoded == 4) {
             encode_unsigned24(&pdu[4], vmac_src);
             encode_unsigned24(&pdu[7], vmac_target);
@@ -388,8 +399,8 @@ int bvlc6_encode_address_resolution(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_address_resolution(uint8_t *pdu, uint16_t pdu_len,
-                                    uint32_t *vmac_src, uint32_t *vmac_target)
+int bvlc6_decode_address_resolution(
+    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src, uint32_t *vmac_target)
 {
     int bytes_consumed = 0;
 
@@ -419,8 +430,8 @@ int bvlc6_decode_address_resolution(uint8_t *pdu, uint16_t pdu_len,
  *
  * @return number of bytes encoded
  */
-int bvlc6_encode_address(uint8_t *pdu, uint16_t pdu_size,
-                         BACNET_IP6_ADDRESS *bip6_address)
+int bvlc6_encode_address(
+    uint8_t *pdu, uint16_t pdu_size, BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_encoded = 0;
     uint16_t length = BIP6_ADDRESS_MAX;
@@ -445,8 +456,8 @@ int bvlc6_encode_address(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_address(uint8_t *pdu, uint16_t pdu_len,
-                         BACNET_IP6_ADDRESS *bip6_address)
+int bvlc6_decode_address(
+    uint8_t *pdu, uint16_t pdu_len, BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_consumed = 0;
     uint16_t length = BIP6_ADDRESS_MAX;
@@ -541,9 +552,15 @@ bool bvlc6_address_different(BACNET_IP6_ADDRESS *dst, BACNET_IP6_ADDRESS *src)
  *
  * @return true if the address is set
  */
-bool bvlc6_address_set(BACNET_IP6_ADDRESS *addr, uint16_t addr0, uint16_t addr1,
-                       uint16_t addr2, uint16_t addr3, uint16_t addr4,
-                       uint16_t addr5, uint16_t addr6, uint16_t addr7)
+bool bvlc6_address_set(BACNET_IP6_ADDRESS *addr,
+    uint16_t addr0,
+    uint16_t addr1,
+    uint16_t addr2,
+    uint16_t addr3,
+    uint16_t addr4,
+    uint16_t addr5,
+    uint16_t addr6,
+    uint16_t addr7)
 {
     bool status = false;
 
@@ -581,10 +598,15 @@ bool bvlc6_address_set(BACNET_IP6_ADDRESS *addr, uint16_t addr0, uint16_t addr1,
  *
  * @return true if the address is set
  */
-bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr, uint16_t *addr0,
-                       uint16_t *addr1, uint16_t *addr2, uint16_t *addr3,
-                       uint16_t *addr4, uint16_t *addr5, uint16_t *addr6,
-                       uint16_t *addr7)
+bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr,
+    uint16_t *addr0,
+    uint16_t *addr1,
+    uint16_t *addr2,
+    uint16_t *addr3,
+    uint16_t *addr4,
+    uint16_t *addr5,
+    uint16_t *addr6,
+    uint16_t *addr7)
 {
     bool status = false;
 
@@ -683,17 +705,18 @@ bool bvlc6_vmac_address_get(BACNET_ADDRESS *addr, uint32_t *device_id)
  * Target-Virtual-Address:          3-octets
  * Original-Source-B/IPv6-Address  18-octets
  */
-int bvlc6_encode_forwarded_address_resolution(uint8_t *pdu, uint16_t pdu_size,
-                                              uint32_t vmac_src,
-                                              uint32_t vmac_target,
-                                              BACNET_IP6_ADDRESS *bip6_address)
+int bvlc6_encode_forwarded_address_resolution(uint8_t *pdu,
+    uint16_t pdu_size,
+    uint32_t vmac_src,
+    uint32_t vmac_target,
+    BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_encoded = 0;
     uint16_t length = 0x001C;
     uint16_t offset = 0;
 
-    if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF) &&
-        (vmac_target <= 0xFFFFFF) && bip6_address) {
+    if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF)
+        && (vmac_target <= 0xFFFFFF) && bip6_address) {
         bytes_encoded = bvlc6_encode_header(
             pdu, pdu_size, BVLC6_FORWARDED_ADDRESS_RESOLUTION, length);
         if (bytes_encoded == 4) {
@@ -720,10 +743,11 @@ int bvlc6_encode_forwarded_address_resolution(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_forwarded_address_resolution(uint8_t *pdu, uint16_t pdu_len,
-                                              uint32_t *vmac_src,
-                                              uint32_t *vmac_target,
-                                              BACNET_IP6_ADDRESS *bip6_address)
+int bvlc6_decode_forwarded_address_resolution(uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac_src,
+    uint32_t *vmac_target,
+    BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_consumed = 0;
     const uint16_t length = 3 + 3 + BIP6_ADDRESS_MAX;
@@ -756,18 +780,20 @@ int bvlc6_decode_forwarded_address_resolution(uint8_t *pdu, uint16_t pdu_len,
  *
  * @return number of bytes encoded
  */
-static int bvlc6_encode_address_ack(uint8_t message_type, uint8_t *pdu,
-                                    uint16_t pdu_size, uint32_t vmac_src,
-                                    uint32_t vmac_dst)
+static int bvlc6_encode_address_ack(uint8_t message_type,
+    uint8_t *pdu,
+    uint16_t pdu_size,
+    uint32_t vmac_src,
+    uint32_t vmac_dst)
 {
     int bytes_encoded = 0;
     const uint16_t length = 10;
     uint16_t offset = 0;
 
-    if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF) &&
-        (vmac_dst <= 0xFFFFFF)) {
-        bytes_encoded =
-            bvlc6_encode_header(pdu, pdu_size, message_type, length);
+    if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF)
+        && (vmac_dst <= 0xFFFFFF)) {
+        bytes_encoded
+            = bvlc6_encode_header(pdu, pdu_size, message_type, length);
         if (bytes_encoded == 4) {
             offset = 4;
             encode_unsigned24(&pdu[offset], vmac_src);
@@ -798,11 +824,11 @@ static int bvlc6_encode_address_ack(uint8_t message_type, uint8_t *pdu,
  * Source-Virtual-Address:      3-octets
  * Destination-Virtual-Address: 3-octets
  */
-int bvlc6_encode_address_resolution_ack(uint8_t *pdu, uint16_t pdu_size,
-                                        uint32_t vmac_src, uint32_t vmac_dst)
+int bvlc6_encode_address_resolution_ack(
+    uint8_t *pdu, uint16_t pdu_size, uint32_t vmac_src, uint32_t vmac_dst)
 {
-    return bvlc6_encode_address_ack(BVLC6_ADDRESS_RESOLUTION_ACK, pdu, pdu_size,
-                                    vmac_src, vmac_dst);
+    return bvlc6_encode_address_ack(
+        BVLC6_ADDRESS_RESOLUTION_ACK, pdu, pdu_size, vmac_src, vmac_dst);
 }
 
 /** Decode the BVLC Address-Resolution-Ack message
@@ -814,8 +840,8 @@ int bvlc6_encode_address_resolution_ack(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_address_resolution_ack(uint8_t *pdu, uint16_t pdu_len,
-                                        uint32_t *vmac_src, uint32_t *vmac_dst)
+int bvlc6_decode_address_resolution_ack(
+    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src, uint32_t *vmac_dst)
 {
     int bytes_consumed = 0;
     const uint16_t length = 6;
@@ -851,8 +877,8 @@ int bvlc6_decode_address_resolution_ack(uint8_t *pdu, uint16_t pdu_len,
  * BVLC Length:                 2-octets  X'0007' Length of the BVLL message
  * Source-Virtual-Address:      3-octets
  */
-int bvlc6_encode_virtual_address_resolution(uint8_t *pdu, uint16_t pdu_size,
-                                            uint32_t vmac_src)
+int bvlc6_encode_virtual_address_resolution(
+    uint8_t *pdu, uint16_t pdu_size, uint32_t vmac_src)
 {
     int bytes_encoded = 0;
     const uint16_t length = 7;
@@ -877,8 +903,8 @@ int bvlc6_encode_virtual_address_resolution(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_virtual_address_resolution(uint8_t *pdu, uint16_t pdu_len,
-                                            uint32_t *vmac_src)
+int bvlc6_decode_virtual_address_resolution(
+    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src)
 {
     int bytes_consumed = 0;
 
@@ -909,12 +935,11 @@ int bvlc6_decode_virtual_address_resolution(uint8_t *pdu, uint16_t pdu_len,
  * Source-Virtual-Address:      3-octets
  * Destination-Virtual-Address: 3-octets
  */
-int bvlc6_encode_virtual_address_resolution_ack(uint8_t *pdu, uint16_t pdu_size,
-                                                uint32_t vmac_src,
-                                                uint32_t vmac_dst)
+int bvlc6_encode_virtual_address_resolution_ack(
+    uint8_t *pdu, uint16_t pdu_size, uint32_t vmac_src, uint32_t vmac_dst)
 {
     return bvlc6_encode_address_ack(BVLC6_VIRTUAL_ADDRESS_RESOLUTION_ACK, pdu,
-                                    pdu_size, vmac_src, vmac_dst);
+        pdu_size, vmac_src, vmac_dst);
 }
 
 /** Decode the BVLC Virtual-Address-Resolution-Ack message
@@ -926,12 +951,11 @@ int bvlc6_encode_virtual_address_resolution_ack(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_virtual_address_resolution_ack(uint8_t *pdu, uint16_t pdu_len,
-                                                uint32_t *vmac_src,
-                                                uint32_t *vmac_dst)
+int bvlc6_decode_virtual_address_resolution_ack(
+    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src, uint32_t *vmac_dst)
 {
-    return bvlc6_decode_address_resolution_ack(pdu, pdu_len, vmac_src,
-                                               vmac_dst);
+    return bvlc6_decode_address_resolution_ack(
+        pdu, pdu_len, vmac_src, vmac_dst);
 }
 
 /** Encode the BVLC Forwarded-NPDU message
@@ -957,10 +981,12 @@ int bvlc6_decode_virtual_address_resolution_ack(uint8_t *pdu, uint16_t pdu_len,
  * Original-Source-B-IPv6-Address:      18-octets
  * BACnet NPDU from Originating Device:  N-octets (N=L-25)
  */
-int bvlc6_encode_forwarded_npdu(uint8_t *pdu, uint16_t pdu_size,
-                                uint32_t vmac_src,
-                                BACNET_IP6_ADDRESS *bip6_address, uint8_t *npdu,
-                                uint16_t npdu_len)
+int bvlc6_encode_forwarded_npdu(uint8_t *pdu,
+    uint16_t pdu_size,
+    uint32_t vmac_src,
+    BACNET_IP6_ADDRESS *bip6_address,
+    uint8_t *npdu,
+    uint16_t npdu_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 1 + 1 + 2 + 3 + BIP6_ADDRESS_MAX;
@@ -969,8 +995,8 @@ int bvlc6_encode_forwarded_npdu(uint8_t *pdu, uint16_t pdu_size,
 
     length += npdu_len;
     if (pdu && (pdu_size >= length) && (vmac_src <= 0xFFFFFF)) {
-        bytes_encoded =
-            bvlc6_encode_header(pdu, pdu_size, BVLC6_FORWARDED_NPDU, length);
+        bytes_encoded
+            = bvlc6_encode_header(pdu, pdu_size, BVLC6_FORWARDED_NPDU, length);
         if (bytes_encoded == 4) {
             offset = 4;
             encode_unsigned24(&pdu[offset], vmac_src);
@@ -1001,10 +1027,13 @@ int bvlc6_encode_forwarded_npdu(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_forwarded_npdu(uint8_t *pdu, uint16_t pdu_len,
-                                uint32_t *vmac_src,
-                                BACNET_IP6_ADDRESS *bip6_address, uint8_t *npdu,
-                                uint16_t npdu_size, uint16_t *npdu_len)
+int bvlc6_decode_forwarded_npdu(uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac_src,
+    BACNET_IP6_ADDRESS *bip6_address,
+    uint8_t *npdu,
+    uint16_t npdu_size,
+    uint16_t *npdu_len)
 {
     int bytes_consumed = 0;
     uint16_t length = 0;
@@ -1055,9 +1084,8 @@ int bvlc6_decode_forwarded_npdu(uint8_t *pdu, uint16_t pdu_len,
  * Source-Virtual-Address:      3-octets
  * Time-to-Live:                2-octets  T       Time-to-Live T, in seconds
  */
-int bvlc6_encode_register_foreign_device(uint8_t *pdu, uint16_t pdu_size,
-                                         uint32_t vmac_src,
-                                         uint16_t ttl_seconds)
+int bvlc6_encode_register_foreign_device(
+    uint8_t *pdu, uint16_t pdu_size, uint32_t vmac_src, uint16_t ttl_seconds)
 {
     int bytes_encoded = 0;
     const uint16_t length = 9;
@@ -1087,9 +1115,8 @@ int bvlc6_encode_register_foreign_device(uint8_t *pdu, uint16_t pdu_size,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_register_foreign_device(uint8_t *pdu, uint16_t pdu_len,
-                                         uint32_t *vmac_src,
-                                         uint16_t *ttl_seconds)
+int bvlc6_decode_register_foreign_device(
+    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src, uint16_t *ttl_seconds)
 {
     int bytes_consumed = 0;
     const uint16_t length = 5;
@@ -1128,8 +1155,9 @@ int bvlc6_decode_register_foreign_device(uint8_t *pdu, uint16_t pdu_len,
  * Source-Virtual-Address:      3-octets
  * FDT Entry:                  18-octets
  */
-int bvlc6_encode_delete_foreign_device(
-    uint8_t *pdu, uint16_t pdu_size, uint32_t vmac_src,
+int bvlc6_encode_delete_foreign_device(uint8_t *pdu,
+    uint16_t pdu_size,
+    uint32_t vmac_src,
     BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
 {
     int bytes_encoded = 0;
@@ -1144,13 +1172,13 @@ int bvlc6_encode_delete_foreign_device(
             encode_unsigned24(&pdu[offset], vmac_src);
             offset += 3;
             if (fdt_entry) {
-                bvlc6_encode_address(&pdu[offset], pdu_size - offset,
-                                     &fdt_entry->bip6_address);
+                bvlc6_encode_address(
+                    &pdu[offset], pdu_size - offset, &fdt_entry->bip6_address);
                 offset += BIP6_ADDRESS_MAX;
                 encode_unsigned16(&pdu[offset], fdt_entry->ttl_seconds);
                 offset += 2;
-                encode_unsigned16(&pdu[offset],
-                                  fdt_entry->ttl_seconds_remaining);
+                encode_unsigned16(
+                    &pdu[offset], fdt_entry->ttl_seconds_remaining);
                 bytes_encoded = (int)length;
             }
         }
@@ -1168,8 +1196,9 @@ int bvlc6_encode_delete_foreign_device(
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_delete_foreign_device(
-    uint8_t *pdu, uint16_t pdu_len, uint32_t *vmac_src,
+int bvlc6_decode_delete_foreign_device(uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac_src,
     BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
 {
     int bytes_consumed = 0;
@@ -1184,8 +1213,8 @@ int bvlc6_decode_delete_foreign_device(
         }
         offset += 3;
         if (fdt_entry) {
-            bvlc6_decode_address(&pdu[offset], pdu_len - offset,
-                                 &fdt_entry->bip6_address);
+            bvlc6_decode_address(
+                &pdu[offset], pdu_len - offset, &fdt_entry->bip6_address);
             offset += BIP6_ADDRESS_MAX;
             decode_unsigned16(&pdu[offset], &fdt_entry->ttl_seconds);
             offset += 2;
@@ -1215,8 +1244,8 @@ int bvlc6_decode_delete_foreign_device(
  * BVLC Length:                 2-octets  L       Length of the BVLL message
  * Security Wrapper:            Variable length
  */
-int bvlc6_encode_secure_bvll(uint8_t *pdu, uint16_t pdu_size, uint8_t *sbuf,
-                             uint16_t sbuf_len)
+int bvlc6_encode_secure_bvll(
+    uint8_t *pdu, uint16_t pdu_size, uint8_t *sbuf, uint16_t sbuf_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 4;
@@ -1224,8 +1253,8 @@ int bvlc6_encode_secure_bvll(uint8_t *pdu, uint16_t pdu_size, uint8_t *sbuf,
 
     length += sbuf_len;
     if (pdu && (pdu_size >= length)) {
-        bytes_encoded =
-            bvlc6_encode_header(pdu, pdu_size, BVLC6_SECURE_BVLL, length);
+        bytes_encoded
+            = bvlc6_encode_header(pdu, pdu_size, BVLC6_SECURE_BVLL, length);
         if (bytes_encoded == 4) {
             if (sbuf && sbuf_len) {
                 for (i = 0; i < sbuf_len; i++) {
@@ -1249,8 +1278,11 @@ int bvlc6_encode_secure_bvll(uint8_t *pdu, uint16_t pdu_size, uint8_t *sbuf,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_secure_bvll(uint8_t *pdu, uint16_t pdu_len, uint8_t *sbuf,
-                             uint16_t sbuf_size, uint16_t *sbuf_len)
+int bvlc6_decode_secure_bvll(uint8_t *pdu,
+    uint16_t pdu_len,
+    uint8_t *sbuf,
+    uint16_t sbuf_size,
+    uint16_t *sbuf_len)
 {
     int bytes_consumed = 0;
     uint16_t i = 0;
@@ -1293,9 +1325,10 @@ int bvlc6_decode_secure_bvll(uint8_t *pdu, uint16_t pdu_len, uint8_t *sbuf,
  * BACnet NPDU from Originating Device:  Variable length
  */
 int bvlc6_encode_distribute_broadcast_to_network(uint8_t *pdu,
-                                                 uint16_t pdu_size,
-                                                 uint32_t vmac, uint8_t *npdu,
-                                                 uint16_t npdu_len)
+    uint16_t pdu_size,
+    uint32_t vmac,
+    uint8_t *npdu,
+    uint16_t npdu_len)
 {
     int bytes_encoded = 0;
     uint16_t length = 7;
@@ -1330,10 +1363,12 @@ int bvlc6_encode_distribute_broadcast_to_network(uint8_t *pdu,
  *
  * @return number of bytes decoded
  */
-int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu, uint16_t pdu_len,
-                                                 uint32_t *vmac, uint8_t *npdu,
-                                                 uint16_t npdu_size,
-                                                 uint16_t *npdu_len)
+int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu,
+    uint16_t pdu_len,
+    uint32_t *vmac,
+    uint8_t *npdu,
+    uint16_t npdu_size,
+    uint16_t *npdu_len)
 {
     int bytes_consumed = 0;
     uint16_t length = 0;
@@ -1363,8 +1398,9 @@ int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu, uint16_t pdu_len,
 #include <string.h>
 #include "ctest.h"
 
-static void test_BVLC6_Address(Test *pTest, BACNET_IP6_ADDRESS *bip6_address_1,
-                               BACNET_IP6_ADDRESS *bip6_address_2)
+static void test_BVLC6_Address(Test *pTest,
+    BACNET_IP6_ADDRESS *bip6_address_1,
+    BACNET_IP6_ADDRESS *bip6_address_2)
 {
     unsigned i = 0;
 
@@ -1372,15 +1408,18 @@ static void test_BVLC6_Address(Test *pTest, BACNET_IP6_ADDRESS *bip6_address_1,
         ct_test(pTest, bip6_address_1->port == bip6_address_2->port);
         for (i = 0; i < IP6_ADDRESS_MAX; i++) {
             ct_test(pTest,
-                    bip6_address_1->address[i] == bip6_address_2->address[i]);
+                bip6_address_1->address[i] == bip6_address_2->address[i]);
         }
     }
 
     return;
 }
 
-static int test_BVLC6_Header(Test *pTest, uint8_t *pdu, uint16_t pdu_len,
-                             uint8_t *message_type, uint16_t *length)
+static int test_BVLC6_Header(Test *pTest,
+    uint8_t *pdu,
+    uint16_t pdu_len,
+    uint8_t *message_type,
+    uint16_t *length)
 
 {
     int bytes_consumed = 0;
@@ -1395,10 +1434,10 @@ static int test_BVLC6_Header(Test *pTest, uint8_t *pdu, uint16_t pdu_len,
     return bytes_consumed;
 }
 
-static void test_BVLC6_Result_Code(Test *pTest, uint32_t vmac,
-                                   uint16_t result_code)
+static void test_BVLC6_Result_Code(
+    Test *pTest, uint32_t vmac, uint16_t result_code)
 {
-    uint8_t pdu[50] = {0};
+    uint8_t pdu[50] = { 0 };
     uint32_t test_vmac = 0;
     uint16_t test_result_code = 0;
     uint8_t message_type = 0;
@@ -1411,8 +1450,8 @@ static void test_BVLC6_Result_Code(Test *pTest, uint32_t vmac,
     ct_test(pTest, test_len == 4);
     ct_test(pTest, message_type == BVLC6_RESULT);
     ct_test(pTest, length == 9);
-    test_len +=
-        bvlc6_decode_result(&pdu[4], length - 4, &test_vmac, &test_result_code);
+    test_len += bvlc6_decode_result(
+        &pdu[4], length - 4, &test_vmac, &test_result_code);
     ct_test(pTest, len == test_len);
     ct_test(pTest, vmac == test_vmac);
     ct_test(pTest, result_code == test_result_code);
@@ -1423,13 +1462,12 @@ static void test_BVLC6_Result_Code(Test *pTest, uint32_t vmac,
 static void test_BVLC6_Result(Test *pTest)
 {
     uint32_t vmac = 0;
-    uint16_t result_code[6] = {
-        BVLC6_RESULT_SUCCESSFUL_COMPLETION,
+    uint16_t result_code[6] = { BVLC6_RESULT_SUCCESSFUL_COMPLETION,
         BVLC6_RESULT_ADDRESS_RESOLUTION_NAK,
         BVLC6_RESULT_VIRTUAL_ADDRESS_RESOLUTION_NAK,
         BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK,
         BVLC6_RESULT_DELETE_FOREIGN_DEVICE_NAK,
-        BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK};
+        BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK };
     unsigned int i = 0;
 
     vmac = 4194303;
@@ -1438,13 +1476,14 @@ static void test_BVLC6_Result(Test *pTest)
     }
 }
 
-static void test_BVLC6_Original_Unicast_NPDU_Message(Test *pTest, uint8_t *npdu,
-                                                     uint16_t npdu_len,
-                                                     uint32_t vmac_src,
-                                                     uint32_t vmac_dst)
+static void test_BVLC6_Original_Unicast_NPDU_Message(Test *pTest,
+    uint8_t *npdu,
+    uint16_t npdu_len,
+    uint32_t vmac_src,
+    uint32_t vmac_dst)
 {
-    uint8_t test_npdu[50] = {0};
-    uint8_t pdu[60] = {0};
+    uint8_t test_npdu[50] = { 0 };
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac_src = 0;
     uint32_t test_vmac_dst = 0;
     uint16_t test_npdu_len = 0;
@@ -1453,17 +1492,17 @@ static void test_BVLC6_Original_Unicast_NPDU_Message(Test *pTest, uint8_t *npdu,
     int len = 0, msg_len = 0, test_len = 0;
     uint16_t i = 0;
 
-    len = bvlc6_encode_original_unicast(pdu, sizeof(pdu), vmac_src, vmac_dst,
-                                        npdu, npdu_len);
+    len = bvlc6_encode_original_unicast(
+        pdu, sizeof(pdu), vmac_src, vmac_dst, npdu, npdu_len);
     msg_len = 10 + npdu_len;
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
     ct_test(pTest, message_type == BVLC6_ORIGINAL_UNICAST_NPDU);
     ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_original_unicast(
-        &pdu[4], length - 4, &test_vmac_src, &test_vmac_dst, test_npdu,
-        sizeof(test_npdu), &test_npdu_len);
+    test_len
+        += bvlc6_decode_original_unicast(&pdu[4], length - 4, &test_vmac_src,
+            &test_vmac_dst, test_npdu, sizeof(test_npdu), &test_npdu_len);
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac_src == test_vmac_src);
@@ -1476,14 +1515,14 @@ static void test_BVLC6_Original_Unicast_NPDU_Message(Test *pTest, uint8_t *npdu,
 
 static void test_BVLC6_Original_Unicast_NPDU(Test *pTest)
 {
-    uint8_t npdu[50] = {0};
+    uint8_t npdu[50] = { 0 };
     uint32_t vmac_src = 0;
     uint32_t vmac_dst = 0;
     uint16_t npdu_len = 0;
     uint16_t i = 0;
 
-    test_BVLC6_Original_Unicast_NPDU_Message(pTest, npdu, npdu_len, vmac_src,
-                                             vmac_dst);
+    test_BVLC6_Original_Unicast_NPDU_Message(
+        pTest, npdu, npdu_len, vmac_src, vmac_dst);
     /* now with some NPDU data */
     for (i = 0; i < sizeof(npdu); i++) {
         npdu[i] = i;
@@ -1491,17 +1530,15 @@ static void test_BVLC6_Original_Unicast_NPDU(Test *pTest)
     npdu_len = sizeof(npdu);
     vmac_src = 4194303;
     vmac_dst = 4194302;
-    test_BVLC6_Original_Unicast_NPDU_Message(pTest, npdu, npdu_len, vmac_src,
-                                             vmac_dst);
+    test_BVLC6_Original_Unicast_NPDU_Message(
+        pTest, npdu, npdu_len, vmac_src, vmac_dst);
 }
 
-static void test_BVLC6_Original_Broadcast_NPDU_Message(Test *pTest,
-                                                       uint8_t *npdu,
-                                                       uint16_t npdu_len,
-                                                       uint32_t vmac)
+static void test_BVLC6_Original_Broadcast_NPDU_Message(
+    Test *pTest, uint8_t *npdu, uint16_t npdu_len, uint32_t vmac)
 {
-    uint8_t test_npdu[50] = {0};
-    uint8_t pdu[60] = {0};
+    uint8_t test_npdu[50] = { 0 };
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac = 0;
     uint16_t test_npdu_len = 0;
     uint8_t message_type = 0;
@@ -1509,8 +1546,8 @@ static void test_BVLC6_Original_Broadcast_NPDU_Message(Test *pTest,
     int len = 0, msg_len = 0, test_len = 0;
     uint16_t i = 0;
 
-    len =
-        bvlc6_encode_original_broadcast(pdu, sizeof(pdu), vmac, npdu, npdu_len);
+    len = bvlc6_encode_original_broadcast(
+        pdu, sizeof(pdu), vmac, npdu, npdu_len);
     msg_len = 7 + npdu_len;
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
@@ -1518,8 +1555,7 @@ static void test_BVLC6_Original_Broadcast_NPDU_Message(Test *pTest,
     ct_test(pTest, message_type == BVLC6_ORIGINAL_BROADCAST_NPDU);
     ct_test(pTest, length == msg_len);
     test_len += bvlc6_decode_original_broadcast(&pdu[4], length - 4, &test_vmac,
-                                                test_npdu, sizeof(test_npdu),
-                                                &test_npdu_len);
+        test_npdu, sizeof(test_npdu), &test_npdu_len);
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac == test_vmac);
@@ -1531,7 +1567,7 @@ static void test_BVLC6_Original_Broadcast_NPDU_Message(Test *pTest,
 
 static void test_BVLC6_Original_Broadcast_NPDU(Test *pTest)
 {
-    uint8_t npdu[50] = {0};
+    uint8_t npdu[50] = { 0 };
     uint32_t vmac = 0;
     uint16_t npdu_len = 0;
     uint16_t i = 0;
@@ -1546,11 +1582,10 @@ static void test_BVLC6_Original_Broadcast_NPDU(Test *pTest)
     test_BVLC6_Original_Broadcast_NPDU_Message(pTest, npdu, npdu_len, vmac);
 }
 
-static void test_BVLC6_Address_Resolution_Message(Test *pTest,
-                                                  uint32_t vmac_src,
-                                                  uint32_t vmac_target)
+static void test_BVLC6_Address_Resolution_Message(
+    Test *pTest, uint32_t vmac_src, uint32_t vmac_target)
 {
-    uint8_t pdu[60] = {0};
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac_src = 0;
     uint32_t test_vmac_target = 0;
     uint8_t message_type = 0;
@@ -1558,8 +1593,8 @@ static void test_BVLC6_Address_Resolution_Message(Test *pTest,
     int len = 0, test_len = 0;
     const int msg_len = 10;
 
-    len = bvlc6_encode_address_resolution(pdu, sizeof(pdu), vmac_src,
-                                          vmac_target);
+    len = bvlc6_encode_address_resolution(
+        pdu, sizeof(pdu), vmac_src, vmac_target);
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
@@ -1584,12 +1619,13 @@ static void test_BVLC6_Address_Resolution(Test *pTest)
     test_BVLC6_Address_Resolution_Message(pTest, vmac_src, vmac_target);
 }
 
-static void test_BVLC6_Forwarded_Address_Resolution_Message(
-    Test *pTest, uint32_t vmac_src, uint32_t vmac_dst,
+static void test_BVLC6_Forwarded_Address_Resolution_Message(Test *pTest,
+    uint32_t vmac_src,
+    uint32_t vmac_dst,
     BACNET_IP6_ADDRESS *bip6_address)
 {
-    BACNET_IP6_ADDRESS test_bip6_address = {{0}};
-    uint8_t pdu[60] = {0};
+    BACNET_IP6_ADDRESS test_bip6_address = { { 0 } };
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac_src = 0;
     uint32_t test_vmac_dst = 0;
     uint8_t message_type = 0;
@@ -1597,16 +1633,15 @@ static void test_BVLC6_Forwarded_Address_Resolution_Message(
     int len = 0, test_len = 0;
     const int msg_len = 4 + 3 + 3 + BIP6_ADDRESS_MAX;
 
-    len = bvlc6_encode_forwarded_address_resolution(pdu, sizeof(pdu), vmac_src,
-                                                    vmac_dst, bip6_address);
+    len = bvlc6_encode_forwarded_address_resolution(
+        pdu, sizeof(pdu), vmac_src, vmac_dst, bip6_address);
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
     ct_test(pTest, message_type == BVLC6_FORWARDED_ADDRESS_RESOLUTION);
     ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_forwarded_address_resolution(
-        &pdu[4], length - 4, &test_vmac_src, &test_vmac_dst,
-        &test_bip6_address);
+    test_len += bvlc6_decode_forwarded_address_resolution(&pdu[4], length - 4,
+        &test_vmac_src, &test_vmac_dst, &test_bip6_address);
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac_src == test_vmac_src);
@@ -1616,13 +1651,13 @@ static void test_BVLC6_Forwarded_Address_Resolution_Message(
 
 static void test_BVLC6_Forwarded_Address_Resolution(Test *pTest)
 {
-    BACNET_IP6_ADDRESS bip6_address = {{0}};
+    BACNET_IP6_ADDRESS bip6_address = { { 0 } };
     uint32_t vmac_src = 0;
     uint32_t vmac_target = 0;
     uint16_t i = 0;
 
-    test_BVLC6_Forwarded_Address_Resolution_Message(pTest, vmac_src,
-                                                    vmac_target, &bip6_address);
+    test_BVLC6_Forwarded_Address_Resolution_Message(
+        pTest, vmac_src, vmac_target, &bip6_address);
     /* now with some address data */
     for (i = 0; i < sizeof(bip6_address.address); i++) {
         bip6_address.address[i] = i;
@@ -1630,15 +1665,14 @@ static void test_BVLC6_Forwarded_Address_Resolution(Test *pTest)
     bip6_address.port = 47808;
     vmac_src = 4194303;
     vmac_target = 4194302;
-    test_BVLC6_Forwarded_Address_Resolution_Message(pTest, vmac_src,
-                                                    vmac_target, &bip6_address);
+    test_BVLC6_Forwarded_Address_Resolution_Message(
+        pTest, vmac_src, vmac_target, &bip6_address);
 }
 
-static void test_BVLC6_Address_Resolution_Ack_Message(Test *pTest,
-                                                      uint32_t vmac_src,
-                                                      uint32_t vmac_dst)
+static void test_BVLC6_Address_Resolution_Ack_Message(
+    Test *pTest, uint32_t vmac_src, uint32_t vmac_dst)
 {
-    uint8_t pdu[60] = {0};
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac_src = 0;
     uint32_t test_vmac_dst = 0;
     uint8_t message_type = 0;
@@ -1646,8 +1680,8 @@ static void test_BVLC6_Address_Resolution_Ack_Message(Test *pTest,
     int len = 0, test_len = 0;
     const int msg_len = 10;
 
-    len = bvlc6_encode_address_resolution_ack(pdu, sizeof(pdu), vmac_src,
-                                              vmac_dst);
+    len = bvlc6_encode_address_resolution_ack(
+        pdu, sizeof(pdu), vmac_src, vmac_dst);
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
@@ -1672,10 +1706,10 @@ static void test_BVLC6_Address_Resolution_Ack(Test *pTest)
     test_BVLC6_Address_Resolution_Ack_Message(pTest, vmac_src, vmac_dst);
 }
 
-static void test_BVLC6_Virtual_Address_Resolution_Message(Test *pTest,
-                                                          uint32_t vmac_src)
+static void test_BVLC6_Virtual_Address_Resolution_Message(
+    Test *pTest, uint32_t vmac_src)
 {
-    uint8_t pdu[60] = {0};
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac_src = 0;
     uint8_t message_type = 0;
     uint16_t length = 0;
@@ -1688,8 +1722,8 @@ static void test_BVLC6_Virtual_Address_Resolution_Message(Test *pTest,
     ct_test(pTest, test_len == 4);
     ct_test(pTest, message_type == BVLC6_VIRTUAL_ADDRESS_RESOLUTION);
     ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_virtual_address_resolution(&pdu[4], length - 4,
-                                                        &test_vmac_src);
+    test_len += bvlc6_decode_virtual_address_resolution(
+        &pdu[4], length - 4, &test_vmac_src);
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac_src == test_vmac_src);
@@ -1704,11 +1738,10 @@ static void test_BVLC6_Virtual_Address_Resolution(Test *pTest)
     test_BVLC6_Virtual_Address_Resolution_Message(pTest, vmac_src);
 }
 
-static void test_BVLC6_Virtual_Address_Resolution_Ack_Message(Test *pTest,
-                                                              uint32_t vmac_src,
-                                                              uint32_t vmac_dst)
+static void test_BVLC6_Virtual_Address_Resolution_Ack_Message(
+    Test *pTest, uint32_t vmac_src, uint32_t vmac_dst)
 {
-    uint8_t pdu[60] = {0};
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac_src = 0;
     uint32_t test_vmac_dst = 0;
     uint8_t message_type = 0;
@@ -1716,8 +1749,8 @@ static void test_BVLC6_Virtual_Address_Resolution_Ack_Message(Test *pTest,
     int len = 0, test_len = 0;
     const int msg_len = 10;
 
-    len = bvlc6_encode_virtual_address_resolution_ack(pdu, sizeof(pdu),
-                                                      vmac_src, vmac_dst);
+    len = bvlc6_encode_virtual_address_resolution_ack(
+        pdu, sizeof(pdu), vmac_src, vmac_dst);
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
@@ -1736,31 +1769,32 @@ static void test_BVLC6_Virtual_Address_Resolution_Ack(Test *pTest)
     uint32_t vmac_src = 0;
     uint32_t vmac_dst = 0;
 
-    test_BVLC6_Virtual_Address_Resolution_Ack_Message(pTest, vmac_src,
-                                                      vmac_dst);
+    test_BVLC6_Virtual_Address_Resolution_Ack_Message(
+        pTest, vmac_src, vmac_dst);
     vmac_src = 4194303;
     vmac_dst = 4194302;
-    test_BVLC6_Virtual_Address_Resolution_Ack_Message(pTest, vmac_src,
-                                                      vmac_dst);
+    test_BVLC6_Virtual_Address_Resolution_Ack_Message(
+        pTest, vmac_src, vmac_dst);
 }
 
-static void test_BVLC6_Forwarded_NPDU_Message(Test *pTest, uint8_t *npdu,
-                                              uint16_t npdu_len,
-                                              uint32_t vmac_src,
-                                              BACNET_IP6_ADDRESS *bip6_address)
+static void test_BVLC6_Forwarded_NPDU_Message(Test *pTest,
+    uint8_t *npdu,
+    uint16_t npdu_len,
+    uint32_t vmac_src,
+    BACNET_IP6_ADDRESS *bip6_address)
 {
-    uint8_t test_npdu[50] = {0};
-    uint8_t pdu[75] = {0};
+    uint8_t test_npdu[50] = { 0 };
+    uint8_t pdu[75] = { 0 };
     uint32_t test_vmac_src = 0;
-    BACNET_IP6_ADDRESS test_bip6_address = {{0}};
+    BACNET_IP6_ADDRESS test_bip6_address = { { 0 } };
     uint16_t test_npdu_len = 0;
     uint8_t message_type = 0;
     uint16_t length = 0;
     int len = 0, msg_len = 0, test_len = 0;
     uint16_t i = 0;
 
-    len = bvlc6_encode_forwarded_npdu(pdu, sizeof(pdu), vmac_src, bip6_address,
-                                      npdu, npdu_len);
+    len = bvlc6_encode_forwarded_npdu(
+        pdu, sizeof(pdu), vmac_src, bip6_address, npdu, npdu_len);
     msg_len = 1 + 1 + 2 + 3 + BIP6_ADDRESS_MAX + npdu_len;
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
@@ -1768,8 +1802,7 @@ static void test_BVLC6_Forwarded_NPDU_Message(Test *pTest, uint8_t *npdu,
     ct_test(pTest, message_type == BVLC6_FORWARDED_NPDU);
     ct_test(pTest, length == msg_len);
     test_len += bvlc6_decode_forwarded_npdu(&pdu[4], length - 4, &test_vmac_src,
-                                            &test_bip6_address, test_npdu,
-                                            sizeof(test_npdu), &test_npdu_len);
+        &test_bip6_address, test_npdu, sizeof(test_npdu), &test_npdu_len);
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac_src == test_vmac_src);
@@ -1782,14 +1815,14 @@ static void test_BVLC6_Forwarded_NPDU_Message(Test *pTest, uint8_t *npdu,
 
 static void test_BVLC6_Forwarded_NPDU(Test *pTest)
 {
-    uint8_t npdu[50] = {0};
+    uint8_t npdu[50] = { 0 };
     uint32_t vmac_src = 0;
-    BACNET_IP6_ADDRESS bip6_address = {{0}};
+    BACNET_IP6_ADDRESS bip6_address = { { 0 } };
     uint16_t npdu_len = 0;
     uint16_t i = 0;
 
-    test_BVLC6_Forwarded_NPDU_Message(pTest, npdu, npdu_len, vmac_src,
-                                      &bip6_address);
+    test_BVLC6_Forwarded_NPDU_Message(
+        pTest, npdu, npdu_len, vmac_src, &bip6_address);
     for (i = 0; i < sizeof(bip6_address.address); i++) {
         bip6_address.address[i] = i;
     }
@@ -1800,15 +1833,14 @@ static void test_BVLC6_Forwarded_NPDU(Test *pTest)
     }
     npdu_len = sizeof(npdu);
     vmac_src = 4194303;
-    test_BVLC6_Forwarded_NPDU_Message(pTest, npdu, npdu_len, vmac_src,
-                                      &bip6_address);
+    test_BVLC6_Forwarded_NPDU_Message(
+        pTest, npdu, npdu_len, vmac_src, &bip6_address);
 }
 
-static void test_BVLC6_Register_Foreign_Device_Message(Test *pTest,
-                                                       uint32_t vmac_src,
-                                                       uint16_t ttl_seconds)
+static void test_BVLC6_Register_Foreign_Device_Message(
+    Test *pTest, uint32_t vmac_src, uint16_t ttl_seconds)
 {
-    uint8_t pdu[60] = {0};
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac_src = 0;
     uint16_t test_ttl_seconds = 0;
     uint8_t message_type = 0;
@@ -1816,8 +1848,8 @@ static void test_BVLC6_Register_Foreign_Device_Message(Test *pTest,
     int len = 0, test_len = 0;
     const int msg_len = 9;
 
-    len = bvlc6_encode_register_foreign_device(pdu, sizeof(pdu), vmac_src,
-                                               ttl_seconds);
+    len = bvlc6_encode_register_foreign_device(
+        pdu, sizeof(pdu), vmac_src, ttl_seconds);
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
@@ -1842,20 +1874,20 @@ static void test_BVLC6_Register_Foreign_Device(Test *pTest)
     test_BVLC6_Register_Foreign_Device_Message(pTest, vmac_src, ttl_seconds);
 }
 
-static void test_BVLC6_Delete_Foreign_Device_Message(
-    Test *pTest, uint32_t vmac_src,
+static void test_BVLC6_Delete_Foreign_Device_Message(Test *pTest,
+    uint32_t vmac_src,
     BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
 {
-    uint8_t pdu[64] = {0};
+    uint8_t pdu[64] = { 0 };
     uint32_t test_vmac_src = 0;
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY test_fdt_entry = {0};
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY test_fdt_entry = { 0 };
     uint8_t message_type = 0;
     uint16_t length = 0;
     int len = 0, test_len = 0;
     const int msg_len = 0x0019;
 
-    len = bvlc6_encode_delete_foreign_device(pdu, sizeof(pdu), vmac_src,
-                                             fdt_entry);
+    len = bvlc6_encode_delete_foreign_device(
+        pdu, sizeof(pdu), vmac_src, fdt_entry);
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
@@ -1866,17 +1898,18 @@ static void test_BVLC6_Delete_Foreign_Device_Message(
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac_src == test_vmac_src);
-    test_BVLC6_Address(pTest, &fdt_entry->bip6_address,
-                       &test_fdt_entry.bip6_address);
+    test_BVLC6_Address(
+        pTest, &fdt_entry->bip6_address, &test_fdt_entry.bip6_address);
     ct_test(pTest, fdt_entry->ttl_seconds == test_fdt_entry.ttl_seconds);
-    ct_test(pTest, fdt_entry->ttl_seconds_remaining ==
-                       test_fdt_entry.ttl_seconds_remaining);
+    ct_test(pTest,
+        fdt_entry->ttl_seconds_remaining
+            == test_fdt_entry.ttl_seconds_remaining);
 }
 
 static void test_BVLC6_Delete_Foreign_Device(Test *pTest)
 {
     uint32_t vmac_src = 0;
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = {0};
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { 0 };
     unsigned int i = 0;
 
     /* test with zeros */
@@ -1893,11 +1926,11 @@ static void test_BVLC6_Delete_Foreign_Device(Test *pTest)
     test_BVLC6_Delete_Foreign_Device_Message(pTest, vmac_src, &fdt_entry);
 }
 
-static void test_BVLC6_Secure_BVLL_Message(Test *pTest, uint8_t *sbuf,
-                                           uint16_t sbuf_len)
+static void test_BVLC6_Secure_BVLL_Message(
+    Test *pTest, uint8_t *sbuf, uint16_t sbuf_len)
 {
-    uint8_t test_sbuf[50] = {0};
-    uint8_t pdu[60] = {0};
+    uint8_t test_sbuf[50] = { 0 };
+    uint8_t pdu[60] = { 0 };
     uint16_t test_sbuf_len = 0;
     uint8_t message_type = 0;
     uint16_t length = 0;
@@ -1911,8 +1944,8 @@ static void test_BVLC6_Secure_BVLL_Message(Test *pTest, uint8_t *sbuf,
     ct_test(pTest, test_len == 4);
     ct_test(pTest, message_type == BVLC6_SECURE_BVLL);
     ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_secure_bvll(&pdu[4], length - 4, test_sbuf,
-                                         sizeof(test_sbuf), &test_sbuf_len);
+    test_len += bvlc6_decode_secure_bvll(
+        &pdu[4], length - 4, test_sbuf, sizeof(test_sbuf), &test_sbuf_len);
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, sbuf_len == test_sbuf_len);
@@ -1923,7 +1956,7 @@ static void test_BVLC6_Secure_BVLL_Message(Test *pTest, uint8_t *sbuf,
 
 static void test_BVLC6_Secure_BVLL(Test *pTest)
 {
-    uint8_t sbuf[50] = {0};
+    uint8_t sbuf[50] = { 0 };
     uint16_t sbuf_len = 0;
     uint16_t i = 0;
 
@@ -1939,8 +1972,8 @@ static void test_BVLC6_Secure_BVLL(Test *pTest)
 static void test_BVLC6_Distribute_Broadcast_To_Network_Message(
     Test *pTest, uint8_t *npdu, uint16_t npdu_len, uint32_t vmac)
 {
-    uint8_t test_npdu[50] = {0};
-    uint8_t pdu[60] = {0};
+    uint8_t test_npdu[50] = { 0 };
+    uint8_t pdu[60] = { 0 };
     uint32_t test_vmac = 0;
     uint16_t test_npdu_len = 0;
     uint8_t message_type = 0;
@@ -1948,17 +1981,16 @@ static void test_BVLC6_Distribute_Broadcast_To_Network_Message(
     int len = 0, msg_len = 0, test_len = 0;
     uint16_t i = 0;
 
-    len = bvlc6_encode_distribute_broadcast_to_network(pdu, sizeof(pdu), vmac,
-                                                       npdu, npdu_len);
+    len = bvlc6_encode_distribute_broadcast_to_network(
+        pdu, sizeof(pdu), vmac, npdu, npdu_len);
     msg_len = 7 + npdu_len;
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
     ct_test(pTest, message_type == BVLC6_DISTRIBUTE_BROADCAST_TO_NETWORK);
     ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_distribute_broadcast_to_network(
-        &pdu[4], length - 4, &test_vmac, test_npdu, sizeof(test_npdu),
-        &test_npdu_len);
+    test_len += bvlc6_decode_distribute_broadcast_to_network(&pdu[4],
+        length - 4, &test_vmac, test_npdu, sizeof(test_npdu), &test_npdu_len);
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac == test_vmac);
@@ -1970,28 +2002,28 @@ static void test_BVLC6_Distribute_Broadcast_To_Network_Message(
 
 static void test_BVLC6_Distribute_Broadcast_To_Network(Test *pTest)
 {
-    uint8_t npdu[50] = {0};
+    uint8_t npdu[50] = { 0 };
     uint32_t vmac = 0;
     uint16_t npdu_len = 0;
     uint16_t i = 0;
 
-    test_BVLC6_Distribute_Broadcast_To_Network_Message(pTest, npdu, npdu_len,
-                                                       vmac);
+    test_BVLC6_Distribute_Broadcast_To_Network_Message(
+        pTest, npdu, npdu_len, vmac);
     /* now with some NPDU data */
     for (i = 0; i < sizeof(npdu); i++) {
         npdu[i] = i;
     }
     npdu_len = sizeof(npdu);
     vmac = 4194303;
-    test_BVLC6_Distribute_Broadcast_To_Network_Message(pTest, npdu, npdu_len,
-                                                       vmac);
+    test_BVLC6_Distribute_Broadcast_To_Network_Message(
+        pTest, npdu, npdu_len, vmac);
 }
 
 static void test_BVLC6_Address_Copy(Test *pTest)
 {
     unsigned int i = 0;
-    BACNET_IP6_ADDRESS src = {{0}};
-    BACNET_IP6_ADDRESS dst = {{0}};
+    BACNET_IP6_ADDRESS src = { { 0 } };
+    BACNET_IP6_ADDRESS dst = { { 0 } };
     bool status = false;
 
     /* test with zeros */
@@ -2025,7 +2057,7 @@ static void test_BVLC6_Address_Copy(Test *pTest)
 static void test_BVLC6_Address_Get_Set(Test *pTest)
 {
     uint16_t i = 0;
-    BACNET_IP6_ADDRESS src = {{0}};
+    BACNET_IP6_ADDRESS src = { { 0 } };
     uint16_t group = 1;
     uint16_t test_group = 0;
     bool status = false;
@@ -2033,8 +2065,8 @@ static void test_BVLC6_Address_Get_Set(Test *pTest)
     for (i = 0; i < 16; i++) {
         status = bvlc6_address_set(&src, group, 0, 0, 0, 0, 0, 0, 0);
         ct_test(pTest, status);
-        status = bvlc6_address_get(&src, &test_group, NULL, NULL, NULL, NULL,
-                                   NULL, NULL, NULL);
+        status = bvlc6_address_get(
+            &src, &test_group, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
         ct_test(pTest, status);
         ct_test(pTest, group == test_group);
         group = group << 1;

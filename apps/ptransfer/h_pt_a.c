@@ -57,8 +57,8 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     if (cBlockNum >= MY_MAX_BLOCK)
         return;
 
-    tag_len =
-        decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
+    tag_len = decode_tag_number_and_value(
+        &pData[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
         return;
@@ -66,8 +66,8 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
     Response.cMyByte1 = (char)ulTemp;
 
-    tag_len =
-        decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
+    tag_len = decode_tag_number_and_value(
+        &pData[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
         return;
@@ -75,23 +75,23 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
     Response.cMyByte2 = (char)ulTemp;
 
-    tag_len =
-        decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
+    tag_len = decode_tag_number_and_value(
+        &pData[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_REAL)
         return;
 
     iLen += decode_real(&pData[iLen], &Response.fMyReal);
 
-    tag_len =
-        decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
+    tag_len = decode_tag_number_and_value(
+        &pData[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_CHARACTER_STRING)
         return;
 
     iLen += decode_character_string(&pData[iLen], len_value_type, &bsName);
-    strncpy((char *)Response.sMyString, characterstring_value(&bsName),
-            MY_MAX_STR);
+    strncpy(
+        (char *)Response.sMyString, characterstring_value(&bsName), MY_MAX_STR);
     Response.sMyString[MY_MAX_STR] = '\0'; /* Make sure it is nul terminated */
 
     printf("Private Transfer Read Block Response\n");
@@ -116,8 +116,8 @@ static void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
 
     /* Error code is returned for read and write operations */
 
-    tag_len = decode_tag_number_and_value(&data->serviceParameters[iLen],
-                                          &tag_number, &len_value_type);
+    tag_len = decode_tag_number_and_value(
+        &data->serviceParameters[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
 #if PRINT_ENABLED
@@ -125,8 +125,8 @@ static void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
 #endif
         return;
     }
-    iLen += decode_unsigned(&data->serviceParameters[iLen], len_value_type,
-                            &uiErrorCode);
+    iLen += decode_unsigned(
+        &data->serviceParameters[iLen], len_value_type, &uiErrorCode);
 
     if (data->serviceNumber == MY_SVC_READ) { /* Read I/O block so should be
                                                  full block of data or error */
@@ -145,18 +145,18 @@ static void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
                 return;
             }
 
-            iLen += decode_unsigned(&data->serviceParameters[iLen],
-                                    len_value_type, &ulTemp);
+            iLen += decode_unsigned(
+                &data->serviceParameters[iLen], len_value_type, &ulTemp);
             cBlockNumber = (char)ulTemp;
             DecodeBlock(cBlockNumber, &data->serviceParameters[iLen]);
         } else { /* Read error */
             printf("Private Transfer read operation returned error code: %lu\n",
-                   (unsigned long)uiErrorCode);
+                (unsigned long)uiErrorCode);
             return;
         }
     } else { /* Write I/O block - should just be an OK type message */
         printf("Private Transfer write operation returned error code: %lu\n",
-               (unsigned long)uiErrorCode);
+            (unsigned long)uiErrorCode);
     }
 }
 
@@ -166,8 +166,9 @@ static void ProcessPTA(BACNET_PRIVATE_TRANSFER_DATA *data)
  * and decide what to do next...
  */
 
-void handler_conf_private_trans_ack(
-    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
+void handler_conf_private_trans_ack(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     BACNET_PRIVATE_TRANSFER_DATA data;
@@ -189,8 +190,7 @@ void handler_conf_private_trans_ack(
     printf("Received Confirmed Private Transfer Ack!\n");
 #endif
 
-    len = ptransfer_decode_service_request(
-        service_request, service_len,
+    len = ptransfer_decode_service_request(service_request, service_len,
         &data); /* Same decode for ack as for service request! */
     if (len < 0) {
 #if PRINT_ENABLED

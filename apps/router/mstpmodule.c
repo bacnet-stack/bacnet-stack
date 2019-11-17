@@ -44,8 +44,8 @@
 void *dl_mstp_thread(void *pArgs)
 {
     ROUTER_PORT *port = (ROUTER_PORT *)pArgs;
-    struct mstp_port_struct_t mstp_port = {(MSTP_RECEIVE_STATE)0};
-    volatile SHARED_MSTP_DATA shared_port_data = {0};
+    struct mstp_port_struct_t mstp_port = { (MSTP_RECEIVE_STATE)0 };
+    volatile SHARED_MSTP_DATA shared_port_data = { 0 };
     uint16_t pdu_len;
     uint8_t shutdown = 0;
 
@@ -121,7 +121,7 @@ void *dl_mstp_thread(void *pArgs)
                     }
 
                     dlmstp_send_pdu(&mstp_port, &(msg_data->dest),
-                                    msg_data->pdu, msg_data->pdu_len);
+                        msg_data->pdu, msg_data->pdu_len);
 
                     check_data(msg_data);
 
@@ -144,16 +144,15 @@ void *dl_mstp_thread(void *pArgs)
 
             if (pdu_len > 0) {
                 msg_data = (MSG_DATA *)malloc(sizeof(MSG_DATA));
-                memmove(
-                    &(msg_data->src),
+                memmove(&(msg_data->src),
                     (const void *)&(shared_port_data.Receive_Packet.address),
                     sizeof(shared_port_data.Receive_Packet.address));
                 msg_data->src.adr[0] = msg_data->src.mac[0];
                 msg_data->src.len = 1;
                 msg_data->pdu = (uint8_t *)malloc(pdu_len);
                 memmove(msg_data->pdu,
-                        (const void *)&(shared_port_data.Receive_Packet.pdu),
-                        pdu_len);
+                    (const void *)&(shared_port_data.Receive_Packet.pdu),
+                    pdu_len);
                 msg_data->pdu_len = pdu_len;
 
                 msg_storage.type = DATA;

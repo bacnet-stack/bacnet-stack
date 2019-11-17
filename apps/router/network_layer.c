@@ -88,9 +88,9 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
             int i;
             for (i = 0; i < net_count; i++) {
                 decode_unsigned16(&data->pdu[apdu_offset + 2 * i],
-                                  &net); /* decode received NET values */
+                    &net); /* decode received NET values */
                 add_dnet(&srcport->route_info, net,
-                         data->src); /* and update routing table */
+                    data->src); /* and update routing table */
             }
             break;
         }
@@ -125,11 +125,11 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                 while (net_count--) {
                     int i = 1;
                     decode_unsigned16(&data->pdu[apdu_offset + i],
-                                      &net); /* decode received NET values */
+                        &net); /* decode received NET values */
                     add_dnet(&srcport->route_info, net,
-                             data->src); /* and update routing table */
-                    if (data->pdu[apdu_offset + i + 3] >
-                        0) /* find next NET value */
+                        data->src); /* and update routing table */
+                    if (data->pdu[apdu_offset + i + 3]
+                        > 0) /* find next NET value */
                         i = data->pdu[apdu_offset + i + 3] + 4;
                     else
                         i = i + 4;
@@ -148,11 +148,11 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                 while (net_count--) {
                     int i = 1;
                     decode_unsigned16(&data->pdu[apdu_offset + i],
-                                      &net); /* decode received NET values */
+                        &net); /* decode received NET values */
                     add_dnet(&srcport->route_info, net,
-                             data->src); /* and update routing table */
-                    if (data->pdu[apdu_offset + i + 3] >
-                        0) /* find next NET value */
+                        data->src); /* and update routing table */
+                    if (data->pdu[apdu_offset + i + 3]
+                        > 0) /* find next NET value */
                         i = data->pdu[apdu_offset + i + 3] + 4;
                     else
                         i = i + 4;
@@ -180,8 +180,8 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
             /* security messages */
             break;
         case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
-            buff_len = create_network_message(NETWORK_MESSAGE_NETWORK_NUMBER_IS,
-                                              data, buff, &buff);
+            buff_len = create_network_message(
+                NETWORK_MESSAGE_NETWORK_NUMBER_IS, data, buff, &buff);
             break;
 
         default:
@@ -193,8 +193,10 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 }
 
 uint16_t create_network_message(
-    BACNET_NETWORK_MESSAGE_TYPE network_message_type, MSG_DATA *data,
-    uint8_t **buff, void *val)
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+    MSG_DATA *data,
+    uint8_t **buff,
+    void *val)
 {
     int16_t buff_len;
     bool data_expecting_reply = false;
@@ -229,20 +231,20 @@ uint16_t create_network_message(
                 DNET *dnet;
                 while (port != NULL) {
                     if (port->route_info.net != data->src.net) {
-                        buff_len += encode_unsigned16(*buff + buff_len,
-                                                      port->route_info.net);
+                        buff_len += encode_unsigned16(
+                            *buff + buff_len, port->route_info.net);
                         dnet = port->route_info.dnets;
                         while (dnet != NULL) {
-                            buff_len +=
-                                encode_unsigned16(*buff + buff_len, dnet->net);
+                            buff_len += encode_unsigned16(
+                                *buff + buff_len, dnet->net);
                             dnet = dnet->next;
                         }
                         port = port->next;
                     } else {
                         dnet = port->route_info.dnets;
                         while (dnet != NULL) {
-                            buff_len +=
-                                encode_unsigned16(*buff + buff_len, dnet->net);
+                            buff_len += encode_unsigned16(
+                                *buff + buff_len, dnet->net);
                             dnet = dnet->next;
                         }
                         port = port->next;
@@ -267,8 +269,8 @@ uint16_t create_network_message(
                     uint8_t portID = 1;
 
                     while (port != NULL) {
-                        buff_len += encode_unsigned16(*buff + buff_len,
-                                                      port->route_info.net);
+                        buff_len += encode_unsigned16(
+                            *buff + buff_len, port->route_info.net);
                         (*buff)[buff_len++] = portID++;
                         (*buff)[buff_len++] = 0;
                         port = port->next;
@@ -307,7 +309,9 @@ uint16_t create_network_message(
 }
 
 void send_network_message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
-                          MSG_DATA *data, uint8_t **buff, void *val)
+    MSG_DATA *data,
+    uint8_t **buff,
+    void *val)
 {
     BACMSG msg;
     ROUTER_PORT *port = head;
@@ -340,8 +344,8 @@ void send_network_message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
 }
 
 void init_npdu(BACNET_NPDU_DATA *npdu_data,
-               BACNET_NETWORK_MESSAGE_TYPE network_message_type,
-               bool data_expecting_reply)
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+    bool data_expecting_reply)
 {
     if (npdu_data) {
         npdu_data->data_expecting_reply = data_expecting_reply;

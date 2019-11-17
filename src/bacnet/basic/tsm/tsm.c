@@ -49,7 +49,7 @@
 
 /** @file tsm.c  BACnet Transaction State Machine operations  */
 /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-uint8_t Handler_Transmit_Buffer[MAX_PDU] = {0};
+uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
 #if (MAX_TSM_TRANSACTIONS)
 /* Really only needed for segmented messages */
@@ -126,8 +126,8 @@ uint8_t tsm_transaction_idle_count(void)
     unsigned i = 0;    /* counter */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
-        if ((TSM_List[i].InvokeID == 0) &&
-            (TSM_List[i].state == TSM_STATE_IDLE)) {
+        if ((TSM_List[i].InvokeID == 0)
+            && (TSM_List[i].state == TSM_STATE_IDLE)) {
             /* one is available! */
             count++;
         }
@@ -192,9 +192,10 @@ uint8_t tsm_next_free_invokeID(void)
 }
 
 void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
-                                               BACNET_ADDRESS *dest,
-                                               BACNET_NPDU_DATA *ndpu_data,
-                                               uint8_t *apdu, uint16_t apdu_len)
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *ndpu_data,
+    uint8_t *apdu,
+    uint16_t apdu_len)
 {
     uint16_t j = 0;
     uint8_t index;
@@ -222,9 +223,11 @@ void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
 
 /* used to retrieve the transaction payload */
 /* if we wanted to find out what we sent (i.e. when we get an ack) */
-bool tsm_get_transaction_pdu(uint8_t invokeID, BACNET_ADDRESS *dest,
-                             BACNET_NPDU_DATA *ndpu_data, uint8_t *apdu,
-                             uint16_t *apdu_len)
+bool tsm_get_transaction_pdu(uint8_t invokeID,
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *ndpu_data,
+    uint8_t *apdu,
+    uint16_t *apdu_len)
 {
     uint16_t j = 0;
     uint8_t index;
@@ -268,8 +271,7 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
                     TSM_List[i].RequestTimer = apdu_timeout();
                     TSM_List[i].RetryCount++;
                     datalink_send_pdu(&TSM_List[i].dest, &TSM_List[i].npdu_data,
-                                      &TSM_List[i].apdu[0],
-                                      TSM_List[i].apdu_len);
+                        &TSM_List[i].apdu[0], TSM_List[i].apdu_len);
                 } else {
                     /* note: the invoke id has not been cleared yet
                        and this indicates a failed message:
@@ -347,8 +349,10 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
 bool I_Am_Request = true;
 
 /* dummy function stubs */
-int datalink_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
-                      uint8_t *pdu, unsigned pdu_len)
+int datalink_send_pdu(BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len)
 {
     (void)dest;
     (void)npdu_data;

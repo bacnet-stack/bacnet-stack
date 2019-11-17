@@ -72,7 +72,7 @@ uint8_t datetime_month_days(uint16_t year, uint8_t month)
 {
     /* note: start with a zero in the first element to save us from a
        month - 1 calculation in the lookup */
-    int month_days[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    int month_days[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
     /* return value */
     uint8_t days = 0;
 
@@ -92,8 +92,8 @@ bool datetime_ymd_is_valid(uint16_t year, uint8_t month, uint8_t day)
     uint8_t monthdays = 0; /* days in a month */
 
     monthdays = datetime_month_days(year, month);
-    if ((year >= BACNET_EPOCH_YEAR) && (monthdays > 0) && (day >= 1) &&
-        (day <= monthdays)) {
+    if ((year >= BACNET_EPOCH_YEAR) && (monthdays > 0) && (day >= 1)
+        && (day <= monthdays)) {
         status = true;
     }
 
@@ -126,8 +126,8 @@ static uint32_t day_of_year(uint16_t year, uint8_t month, uint8_t day)
     return (days);
 }
 
-static void day_of_year_into_md(uint32_t days, uint16_t year, uint8_t *pMonth,
-                                uint8_t *pDay)
+static void day_of_year_into_md(
+    uint32_t days, uint16_t year, uint8_t *pMonth, uint8_t *pDay)
 {
     uint8_t month = 1;
     uint8_t day = 0;
@@ -149,8 +149,8 @@ static void day_of_year_into_md(uint32_t days, uint16_t year, uint8_t *pMonth,
     return;
 }
 
-void datetime_day_of_year_into_date(uint32_t days, uint16_t year,
-                                    BACNET_DATE *bdate)
+void datetime_day_of_year_into_date(
+    uint32_t days, uint16_t year, BACNET_DATE *bdate)
 {
     uint8_t month = 0;
     uint8_t day = 0;
@@ -200,8 +200,8 @@ uint32_t datetime_days_since_epoch(BACNET_DATE *bdate)
     return days;
 }
 
-static void days_since_epoch_into_ymd(uint32_t days, uint16_t *pYear,
-                                      uint8_t *pMonth, uint8_t *pDay)
+static void days_since_epoch_into_ymd(
+    uint32_t days, uint16_t *pYear, uint8_t *pMonth, uint8_t *pDay)
 {
     uint16_t year = BACNET_EPOCH_YEAR;
     uint8_t month = 1;
@@ -259,8 +259,8 @@ bool datetime_time_is_valid(BACNET_TIME *btime)
     bool status = false;
 
     if (btime) {
-        if ((btime->hour < 24) && (btime->min < 60) && (btime->sec < 60) &&
-            (btime->hundredths < 100)) {
+        if ((btime->hour < 24) && (btime->min < 60) && (btime->sec < 60)
+            && (btime->hundredths < 100)) {
             status = true;
         }
     }
@@ -380,8 +380,8 @@ int datetime_wildcard_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
                     diff = (int)time1->sec - (int)time2->sec;
                 }
                 if (diff == 0) {
-                    if ((time1->hundredths != 0xFF) &&
-                        (time2->hundredths != 0xFF)) {
+                    if ((time1->hundredths != 0xFF)
+                        && (time2->hundredths != 0xFF)) {
                         diff = (int)time1->hundredths - (int)time2->hundredths;
                     }
                 }
@@ -392,15 +392,15 @@ int datetime_wildcard_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
     return diff;
 }
 
-int datetime_wildcard_compare(BACNET_DATE_TIME *datetime1,
-                              BACNET_DATE_TIME *datetime2)
+int datetime_wildcard_compare(
+    BACNET_DATE_TIME *datetime1, BACNET_DATE_TIME *datetime2)
 {
     int diff = 0;
 
     diff = datetime_wildcard_compare_date(&datetime1->date, &datetime2->date);
     if (diff == 0) {
-        diff =
-            datetime_wildcard_compare_time(&datetime1->time, &datetime2->time);
+        diff = datetime_wildcard_compare_time(
+            &datetime1->time, &datetime2->time);
     }
 
     return diff;
@@ -426,15 +426,15 @@ void datetime_copy_time(BACNET_TIME *dest_time, BACNET_TIME *src_time)
     }
 }
 
-void datetime_copy(BACNET_DATE_TIME *dest_datetime,
-                   BACNET_DATE_TIME *src_datetime)
+void datetime_copy(
+    BACNET_DATE_TIME *dest_datetime, BACNET_DATE_TIME *src_datetime)
 {
     datetime_copy_time(&dest_datetime->time, &src_datetime->time);
     datetime_copy_date(&dest_datetime->date, &src_datetime->date);
 }
 
-void datetime_set_date(BACNET_DATE *bdate, uint16_t year, uint8_t month,
-                       uint8_t day)
+void datetime_set_date(
+    BACNET_DATE *bdate, uint16_t year, uint8_t month, uint8_t day)
 {
     if (bdate) {
         bdate->year = year;
@@ -444,8 +444,11 @@ void datetime_set_date(BACNET_DATE *bdate, uint16_t year, uint8_t month,
     }
 }
 
-void datetime_set_time(BACNET_TIME *btime, uint8_t hour, uint8_t minute,
-                       uint8_t seconds, uint8_t hundredths)
+void datetime_set_time(BACNET_TIME *btime,
+    uint8_t hour,
+    uint8_t minute,
+    uint8_t seconds,
+    uint8_t hundredths)
 {
     if (btime) {
         btime->hour = hour;
@@ -455,8 +458,8 @@ void datetime_set_time(BACNET_TIME *btime, uint8_t hour, uint8_t minute,
     }
 }
 
-void datetime_set(BACNET_DATE_TIME *bdatetime, BACNET_DATE *bdate,
-                  BACNET_TIME *btime)
+void datetime_set(
+    BACNET_DATE_TIME *bdatetime, BACNET_DATE *bdate, BACNET_TIME *btime)
 {
     if (bdate && btime && bdatetime) {
         bdatetime->time.hour = btime->hour;
@@ -470,9 +473,14 @@ void datetime_set(BACNET_DATE_TIME *bdatetime, BACNET_DATE *bdate,
     }
 }
 
-void datetime_set_values(BACNET_DATE_TIME *bdatetime, uint16_t year,
-                         uint8_t month, uint8_t day, uint8_t hour,
-                         uint8_t minute, uint8_t seconds, uint8_t hundredths)
+void datetime_set_values(BACNET_DATE_TIME *bdatetime,
+    uint16_t year,
+    uint8_t month,
+    uint8_t day,
+    uint8_t hour,
+    uint8_t minute,
+    uint8_t seconds,
+    uint8_t hundredths)
 {
     if (bdatetime) {
         bdatetime->date.year = year;
@@ -486,8 +494,8 @@ void datetime_set_values(BACNET_DATE_TIME *bdatetime, uint16_t year,
     }
 }
 
-static uint32_t seconds_since_midnight(uint8_t hours, uint8_t minutes,
-                                       uint8_t seconds)
+static uint32_t seconds_since_midnight(
+    uint8_t hours, uint8_t minutes, uint8_t seconds)
 {
     return ((hours * 60 * 60) + (minutes * 60) + seconds);
 }
@@ -497,9 +505,8 @@ static uint16_t minutes_since_midnight(uint8_t hours, uint8_t minutes)
     return ((hours * 60) + minutes);
 }
 
-static void seconds_since_midnight_into_hms(uint32_t seconds, uint8_t *pHours,
-                                            uint8_t *pMinutes,
-                                            uint8_t *pSeconds)
+static void seconds_since_midnight_into_hms(
+    uint32_t seconds, uint8_t *pHours, uint8_t *pMinutes, uint8_t *pSeconds)
 {
     uint8_t hour = 0;
     uint8_t minute = 0;
@@ -563,10 +570,9 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
     int32_t days = 0;
 
     /* convert bdatetime to seconds and days */
-    bdatetime_minutes =
-        seconds_since_midnight(bdatetime->time.hour, bdatetime->time.min,
-                               bdatetime->time.sec) /
-        60;
+    bdatetime_minutes = seconds_since_midnight(bdatetime->time.hour,
+                            bdatetime->time.min, bdatetime->time.sec)
+        / 60;
     bdatetime_days = datetime_days_since_epoch(&bdatetime->date);
 
     /* more minutes than in a day? */
@@ -597,8 +603,7 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
 
     /* convert bdatetime from seconds and days */
     seconds_since_midnight_into_hms(bdatetime_minutes * 60,
-                                    &bdatetime->time.hour, &bdatetime->time.min,
-                                    NULL);
+        &bdatetime->time.hour, &bdatetime->time.min, NULL);
     datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
 }
 
@@ -783,14 +788,14 @@ bool datetime_wildcard(BACNET_DATE_TIME *bdatetime)
     bool wildcard_present = false;
 
     if (bdatetime) {
-        if (datetime_wildcard_year(&bdatetime->date) &&
-            datetime_wildcard_month(&bdatetime->date) &&
-            datetime_wildcard_day(&bdatetime->date) &&
-            datetime_wildcard_weekday(&bdatetime->date) &&
-            datetime_wildcard_hour(&bdatetime->time) &&
-            datetime_wildcard_minute(&bdatetime->time) &&
-            datetime_wildcard_second(&bdatetime->time) &&
-            datetime_wildcard_hundredths(&bdatetime->time)) {
+        if (datetime_wildcard_year(&bdatetime->date)
+            && datetime_wildcard_month(&bdatetime->date)
+            && datetime_wildcard_day(&bdatetime->date)
+            && datetime_wildcard_weekday(&bdatetime->date)
+            && datetime_wildcard_hour(&bdatetime->time)
+            && datetime_wildcard_minute(&bdatetime->time)
+            && datetime_wildcard_second(&bdatetime->time)
+            && datetime_wildcard_hundredths(&bdatetime->time)) {
             wildcard_present = true;
         }
     }
@@ -807,12 +812,12 @@ bool datetime_wildcard_present(BACNET_DATE_TIME *bdatetime)
     bool wildcard_present = false;
 
     if (bdatetime) {
-        if (datetime_wildcard_year(&bdatetime->date) ||
-            (bdatetime->date.month > 12) || (bdatetime->date.day > 31) ||
-            datetime_wildcard_hour(&bdatetime->time) ||
-            datetime_wildcard_minute(&bdatetime->time) ||
-            datetime_wildcard_second(&bdatetime->time) ||
-            datetime_wildcard_hundredths(&bdatetime->time)) {
+        if (datetime_wildcard_year(&bdatetime->date)
+            || (bdatetime->date.month > 12) || (bdatetime->date.day > 31)
+            || datetime_wildcard_hour(&bdatetime->time)
+            || datetime_wildcard_minute(&bdatetime->time)
+            || datetime_wildcard_second(&bdatetime->time)
+            || datetime_wildcard_hundredths(&bdatetime->time)) {
             wildcard_present = true;
         }
     }
@@ -859,9 +864,8 @@ void datetime_wildcard_set(BACNET_DATE_TIME *bdatetime)
  *  Values are positive East of UTC and negative West of UTC
  * @return true if the time is converted
  */
-bool datetime_utc_to_local(
-    BACNET_DATE_TIME * local_time,
-    BACNET_DATE_TIME * utc_time,
+bool datetime_utc_to_local(BACNET_DATE_TIME *local_time,
+    BACNET_DATE_TIME *utc_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes)
 {
@@ -892,9 +896,8 @@ bool datetime_utc_to_local(
  *  Values are positive East of UTC and negative West of UTC
  * @return true if the time is converted
  */
-bool datetime_local_to_utc(
-    BACNET_DATE_TIME * utc_time,
-    BACNET_DATE_TIME * local_time,
+bool datetime_local_to_utc(BACNET_DATE_TIME *utc_time,
+    BACNET_DATE_TIME *local_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes)
 {
@@ -912,7 +915,6 @@ bool datetime_local_to_utc(
     return status;
 }
 
-
 int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
 {
     int len = 0;
@@ -928,8 +930,8 @@ int bacapp_encode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
     return apdu_len;
 }
 
-int bacapp_encode_context_datetime(uint8_t *apdu, uint8_t tag_number,
-                                   BACNET_DATE_TIME *value)
+int bacapp_encode_context_datetime(
+    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -952,14 +954,14 @@ int bacapp_decode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
     int len = 0;
     int section_len;
 
-    if (-1 ==
-        (section_len = decode_application_date(&apdu[len], &value->date))) {
+    if (-1
+        == (section_len = decode_application_date(&apdu[len], &value->date))) {
         return -1;
     }
     len += section_len;
 
-    if (-1 ==
-        (section_len = decode_application_time(&apdu[len], &value->time))) {
+    if (-1
+        == (section_len = decode_application_time(&apdu[len], &value->time))) {
         return -1;
     }
 
@@ -968,8 +970,8 @@ int bacapp_decode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
     return len;
 }
 
-int bacapp_decode_context_datetime(uint8_t *apdu, uint8_t tag_number,
-                                   BACNET_DATE_TIME *value)
+int bacapp_decode_context_datetime(
+    uint8_t *apdu, uint8_t tag_number, BACNET_DATE_TIME *value)
 {
     int apdu_len = 0;
     int len;
@@ -1066,10 +1068,10 @@ static void testBACnetDateTimeSeconds(Test *pTest)
         for (minute = 0; minute < 60; minute += 3) {
             for (second = 0; second < 60; second += 17) {
                 seconds = seconds_since_midnight(hour, minute, second);
-                seconds_since_midnight_into_hms(seconds, &test_hour,
-                                                &test_minute, &test_second);
-                test_seconds =
-                    seconds_since_midnight(test_hour, test_minute, test_second);
+                seconds_since_midnight_into_hms(
+                    seconds, &test_hour, &test_minute, &test_second);
+                test_seconds = seconds_since_midnight(
+                    test_hour, test_minute, test_second);
                 ct_test(pTest, seconds == test_seconds);
             }
         }
@@ -1329,8 +1331,8 @@ static void testDateEpoch(Test *pTest)
         for (month = 1; month <= 12; month++) {
             for (day = 1; day <= datetime_month_days(year, month); day++) {
                 days = days_since_epoch(year, month, day);
-                days_since_epoch_into_ymd(days, &test_year, &test_month,
-                                          &test_day);
+                days_since_epoch_into_ymd(
+                    days, &test_year, &test_month, &test_day);
                 ct_test(pTest, year == test_year);
                 ct_test(pTest, month == test_month);
                 ct_test(pTest, day == test_day);
@@ -1401,21 +1403,20 @@ static void testDatetimeCodec(Test *pTest)
     ct_test(pTest, datetimeIn.time.hundredths == datetimeOut.time.hundredths);
 }
 
-static void testDatetimeConvertUTCSpecific(
-    Test *pTest,
-    BACNET_DATE_TIME * utc_time,
-    BACNET_DATE_TIME * local_time,
+static void testDatetimeConvertUTCSpecific(Test *pTest,
+    BACNET_DATE_TIME *utc_time,
+    BACNET_DATE_TIME *local_time,
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes)
 {
     bool status = false;
     BACNET_DATE_TIME test_local_time;
 
-    status = datetime_local_to_utc(utc_time, local_time,
-        utc_offset_minutes, dst_adjust_minutes);
+    status = datetime_local_to_utc(
+        utc_time, local_time, utc_offset_minutes, dst_adjust_minutes);
     ct_test(pTest, status);
-    status = datetime_utc_to_local(&test_local_time, utc_time,
-        utc_offset_minutes, dst_adjust_minutes);
+    status = datetime_utc_to_local(
+        &test_local_time, utc_time, utc_offset_minutes, dst_adjust_minutes);
     ct_test(pTest, status);
     /* validate the conversion */
     ct_test(pTest, local_time->date.day == test_local_time.date.day);
@@ -1425,8 +1426,8 @@ static void testDatetimeConvertUTCSpecific(
     ct_test(pTest, local_time->time.hour == test_local_time.time.hour);
     ct_test(pTest, local_time->time.min == test_local_time.time.min);
     ct_test(pTest, local_time->time.sec == test_local_time.time.sec);
-    ct_test(pTest, local_time->time.hundredths ==
-        test_local_time.time.hundredths);
+    ct_test(
+        pTest, local_time->time.hundredths == test_local_time.time.hundredths);
 }
 
 static void testDatetimeConvertUTC(Test *pTest)
@@ -1439,18 +1440,18 @@ static void testDatetimeConvertUTC(Test *pTest)
 
     datetime_set_date(&local_time.date, 1999, 12, 23);
     datetime_set_time(&local_time.time, 8, 30, 0, 0);
-    testDatetimeConvertUTCSpecific(pTest, &utc_time, &local_time,
-        utc_offset_minutes, dst_adjust_minutes);
+    testDatetimeConvertUTCSpecific(
+        pTest, &utc_time, &local_time, utc_offset_minutes, dst_adjust_minutes);
     /* check a timezone West of UTC */
-    utc_offset_minutes = -6*60;
+    utc_offset_minutes = -6 * 60;
     dst_adjust_minutes = -60;
-    testDatetimeConvertUTCSpecific(pTest, &utc_time, &local_time,
-        utc_offset_minutes, dst_adjust_minutes);
+    testDatetimeConvertUTCSpecific(
+        pTest, &utc_time, &local_time, utc_offset_minutes, dst_adjust_minutes);
     /* check a timezone East of UTC */
-    utc_offset_minutes = 6*60;
+    utc_offset_minutes = 6 * 60;
     dst_adjust_minutes = 60;
-    testDatetimeConvertUTCSpecific(pTest, &utc_time, &local_time,
-        utc_offset_minutes, dst_adjust_minutes);
+    testDatetimeConvertUTCSpecific(
+        pTest, &utc_time, &local_time, utc_offset_minutes, dst_adjust_minutes);
 }
 
 void testDateTime(Test *pTest)

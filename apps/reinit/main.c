@@ -52,7 +52,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
@@ -62,20 +62,21 @@ static char *Reinitialize_Password = NULL;
 
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                           BACNET_ERROR_CLASS error_class,
-                           BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
     printf("BACnet Error: %s: %s\r\n", bactext_error_class_name(error_class),
-           bactext_error_code_name(error_code));
+        bactext_error_code_name(error_code));
     Error_Detected = true;
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -85,8 +86,8 @@ static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -95,8 +96,8 @@ static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-static void MyReinitializeDeviceSimpleAckHandler(BACNET_ADDRESS *src,
-                                          uint8_t invoke_id)
+static void MyReinitializeDeviceSimpleAckHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id)
 {
     (void)src;
     (void)invoke_id;
@@ -115,21 +116,21 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack coming back */
     apdu_set_confirmed_simple_ack_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-                                          MyReinitializeDeviceSimpleAckHandler);
+        MyReinitializeDeviceSimpleAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-                           MyErrorHandler);
+    apdu_set_error_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
@@ -142,21 +143,20 @@ int main(int argc, char *argv[])
 
     if (argc < 3) {
         /* note: priority 16 and 0 should produce the same end results... */
-        printf(
-            "Usage: %s device-instance state [password]\r\n"
-            "Send BACnet ReinitializeDevice service to device.\r\n"
-            "\r\n"
-            "The device-instance can be 0 to %d.\r\n"
-            "Possible state values:\r\n"
-            "  0=coldstart\r\n"
-            "  1=warmstart\r\n"
-            "  2=startbackup\r\n"
-            "  3=endbackup\r\n"
-            "  4=startrestore\r\n"
-            "  5=endrestore\r\n"
-            "  6=abortrestore\r\n"
-            "The optional password is a character string of 1 to 20 "
-            "characters.\r\n",
+        printf("Usage: %s device-instance state [password]\r\n"
+               "Send BACnet ReinitializeDevice service to device.\r\n"
+               "\r\n"
+               "The device-instance can be 0 to %d.\r\n"
+               "Possible state values:\r\n"
+               "  0=coldstart\r\n"
+               "  1=warmstart\r\n"
+               "  2=startbackup\r\n"
+               "  3=endbackup\r\n"
+               "  4=startrestore\r\n"
+               "  5=endrestore\r\n"
+               "  6=abortrestore\r\n"
+               "The optional password is a character string of 1 to 20 "
+               "characters.\r\n",
             filename_remove_path(argv[0]), BACNET_MAX_INSTANCE - 1);
         return 0;
     }
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
 
@@ -183,11 +183,11 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                                 &Target_Address);
+    found = address_bind_request(
+        Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (!found) {
-        Send_WhoIs(Target_Device_Object_Instance,
-                   Target_Device_Object_Instance);
+        Send_WhoIs(
+            Target_Device_Object_Instance, Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -208,8 +208,8 @@ int main(int argc, char *argv[])
             break;
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found = address_bind_request(Target_Device_Object_Instance,
-                                         &max_apdu, &Target_Address);
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
         if (found) {
             if (invoke_id == 0) {

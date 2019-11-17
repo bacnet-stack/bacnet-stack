@@ -64,18 +64,18 @@
 #define MY_SVC_READ 0
 #define MY_SVC_WRITE 1
 
-#define MY_ERR_OK			0
-#define MY_ERR_BAD_INDEX	1
+#define MY_ERR_OK 0
+#define MY_ERR_BAD_INDEX 1
 
 typedef struct MyData {
     uint8_t cMyByte1;
     uint8_t cMyByte2;
     float fMyReal;
-    int8_t sMyString[MY_MAX_STR + 1];   /* A little extra for the nul */
+    int8_t sMyString[MY_MAX_STR + 1]; /* A little extra for the nul */
 } DATABLOCK;
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
@@ -85,39 +85,40 @@ static int Target_Mode = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                           BACNET_ERROR_CLASS error_class,
-                           BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
     printf("BACnet Error: %s: %s\r\n",
-           bactext_error_class_name((int)error_class),
-           bactext_error_code_name((int)error_code));
+        bactext_error_class_name((int)error_class),
+        bactext_error_code_name((int)error_code));
     /*    Error_Detected = true; */
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
     (void)server;
-    printf("BACnet Abort: %s\r\n",
-           bactext_abort_reason_name((int)abort_reason));
+    printf(
+        "BACnet Abort: %s\r\n", bactext_abort_reason_name((int)abort_reason));
     Error_Detected = true;
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
     (void)invoke_id;
     printf("BACnet Reject: %s\r\n",
-           bactext_reject_reason_name((int)reject_reason));
+        bactext_reject_reason_name((int)reject_reason));
     Error_Detected = true;
 }
 
@@ -133,17 +134,17 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
 
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
-                               handler_conf_private_trans);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, handler_conf_private_trans);
     /* handle the data coming back from confirmed requests */
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                                   handler_read_property_ack);
+    apdu_set_confirmed_ack_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property_ack);
 
-    apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
-                                   handler_conf_private_trans_ack);
+    apdu_set_confirmed_ack_handler(
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, handler_conf_private_trans_ack);
 
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
@@ -152,26 +153,22 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
-            len += encode_application_unsigned(
-                &pt_req_buffer[len], block_number); /* The block number */
-            len += encode_application_unsigned(
-                &pt_req_buffer[len],
-                block->cMyByte1); /* And Then the block contents */
-            len += encode_application_unsigned(&pt_req_buffer[len],
-                                               block->cMyByte2);
-            len += encode_application_real(&pt_req_buffer[len], block->fMyReal);
-            characterstring_init_ansi(&bsTemp, (char *)block->sMyString);
-            len += encode_application_character_string(&pt_req_buffer[len],
-                                                       &bsTemp);
-        }
+len += encode_application_unsigned(
+    &pt_req_buffer[len], block_number); /* The block number */
+len += encode_application_unsigned(
+    &pt_req_buffer[len], block->cMyByte1); /* And Then the block contents */
+len += encode_application_unsigned(&pt_req_buffer[len], block->cMyByte2);
+len += encode_application_real(&pt_req_buffer[len], block->fMyReal);
+characterstring_init_ansi(&bsTemp, (char *)block->sMyString);
+len += encode_application_character_string(&pt_req_buffer[len], &bsTemp);
+}
 
-        pt_block.serviceParameters = &pt_req_buffer[0];
-        pt_block.serviceParametersLen = len;
-
+pt_block.serviceParameters = &pt_req_buffer[0];
+pt_block.serviceParametersLen = len;
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
@@ -186,12 +183,11 @@ int main(int argc, char *argv[])
     int iType = 0;
     int iKey;
 
-    if (((argc != 2) && (argc != 3)) ||
-        ((argc >= 2) && (strcmp(argv[1], "--help") == 0))) {
+    if (((argc != 2) && (argc != 3))
+        || ((argc >= 2) && (strcmp(argv[1], "--help") == 0))) {
         printf("%s\n", argv[0]);
-        printf(
-            "Usage: %s server local-device-instance\r\n       or\r\n"
-            "       %s remote-device-instance\r\n",
+        printf("Usage: %s server local-device-instance\r\n       or\r\n"
+               "       %s remote-device-instance\r\n",
             filename_remove_path(argv[0]), filename_remove_path(argv[0]));
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf(
@@ -226,7 +222,7 @@ int main(int argc, char *argv[])
 
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
 
@@ -278,11 +274,11 @@ int main(int argc, char *argv[])
         }
     } else {
         /* try to bind with the device */
-        found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                                     &Target_Address);
+        found = address_bind_request(
+            Target_Device_Object_Instance, &max_apdu, &Target_Address);
         if (!found) {
-            Send_WhoIs(Target_Device_Object_Instance,
-                       Target_Device_Object_Instance);
+            Send_WhoIs(
+                Target_Device_Object_Instance, Target_Device_Object_Instance);
         }
         /* loop forever */
         for (;;) {
@@ -304,8 +300,8 @@ int main(int argc, char *argv[])
                 break;
             /* wait until the device is bound, or timeout and quit */
             if (!found)
-                found = address_bind_request(Target_Device_Object_Instance,
-                                             &max_apdu, &Target_Address);
+                found = address_bind_request(
+                    Target_Device_Object_Instance, &max_apdu, &Target_Address);
             if (found) {
                 if (invoke_id == 0) { /* Safe to send a new request */
                     switch (iType) {
@@ -313,11 +309,11 @@ int main(int argc, char *argv[])
                             NewData.cMyByte1 = iCount;
                             NewData.cMyByte2 = 255 - iCount;
                             NewData.fMyReal = (float)iCount;
-                            strcpy((char *)NewData.sMyString,
-                                   "Test Data - [x]");
+                            strcpy(
+                                (char *)NewData.sMyString, "Test Data - [x]");
                             NewData.sMyString[13] = 'a' + iCount;
                             pt_write_block_to_server()
-                            printf("Sending block %d\n", iCount);
+                                printf("Sending block %d\n", iCount);
                             invoke_id = Send_Private_Transfer_Request(
                                 Target_Device_Object_Instance, BACNET_VENDOR_ID,
                                 1, iCount, &NewData);
@@ -350,9 +346,8 @@ int main(int argc, char *argv[])
                                 case 3:
                                 case 5:
                                 case 7:
-                                    printf(
-                                        "Requesting block %d with invalid "
-                                        "Vendor ID\n",
+                                    printf("Requesting block %d with invalid "
+                                           "Vendor ID\n",
                                         iCount);
                                     invoke_id = Send_Private_Transfer_Request(
                                         Target_Device_Object_Instance,

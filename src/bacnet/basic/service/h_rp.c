@@ -64,9 +64,10 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_read_property(uint8_t* service_request, uint16_t service_len,
-                           BACNET_ADDRESS* src,
-                           BACNET_CONFIRMED_SERVICE_DATA* service_data)
+void handler_read_property(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     BACNET_READ_PROPERTY_DATA rpdata;
     int len = 0;
@@ -83,8 +84,8 @@ void handler_read_property(uint8_t* service_request, uint16_t service_len,
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    npdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-                               &npdu_data);
+    npdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = BACNET_STATUS_ABORT;
@@ -108,17 +109,17 @@ void handler_read_property(uint8_t* service_request, uint16_t service_len,
         goto RP_FAILURE;
     }
     /* Test for case of indefinite Device object instance */
-    if ((rpdata.object_type == OBJECT_DEVICE) &&
-        (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
+    if ((rpdata.object_type == OBJECT_DEVICE)
+        && (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
         rpdata.object_instance = Device_Object_Instance_Number();
     }
 
-    apdu_len = rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[npdu_len],
-                                       service_data->invoke_id, &rpdata);
+    apdu_len = rp_ack_encode_apdu_init(
+        &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id, &rpdata);
     /* configure our storage */
     rpdata.application_data = &Handler_Transmit_Buffer[npdu_len + apdu_len];
-    rpdata.application_data_len =
-        sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
+    rpdata.application_data_len
+        = sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
     len = Device_Read_Property(&rpdata);
     if (len >= 0) {
         apdu_len += len;
@@ -158,23 +159,22 @@ void handler_read_property(uint8_t* service_request, uint16_t service_len,
 RP_FAILURE:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
-            apdu_len = abort_encode_apdu(
-                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
+            apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id,
                 abort_convert_error_code(rpdata.error_code), true);
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Abort!\n");
 #endif
         } else if (len == BACNET_STATUS_ERROR) {
-            apdu_len = bacerror_encode_apdu(
-                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
-                SERVICE_CONFIRMED_READ_PROPERTY, rpdata.error_class,
-                rpdata.error_code);
+            apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+                rpdata.error_class, rpdata.error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Error!\n");
 #endif
         } else if (len == BACNET_STATUS_REJECT) {
-            apdu_len = reject_encode_apdu(
-                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
+            apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                service_data->invoke_id,
                 reject_convert_error_code(rpdata.error_code));
 #if PRINT_ENABLED
             fprintf(stderr, "RP: Sending Reject!\n");
@@ -183,8 +183,8 @@ RP_FAILURE:
     }
 
     pdu_len = npdu_len + apdu_len;
-    bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-                                   pdu_len);
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

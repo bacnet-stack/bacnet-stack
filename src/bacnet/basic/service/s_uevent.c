@@ -40,8 +40,8 @@
  * @param dest [in] The destination address information (may be a broadcast).
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int Send_UEvent_Notify(uint8_t* buffer, BACNET_EVENT_NOTIFICATION_DATA* data,
-                       BACNET_ADDRESS* dest)
+int Send_UEvent_Notify(
+    uint8_t *buffer, BACNET_EVENT_NOTIFICATION_DATA *data, BACNET_ADDRESS *dest)
 {
     int len = 0;
     int pdu_len = 0;

@@ -51,7 +51,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
 static uint32_t Target_File_Object_Instance = 4194303;
@@ -65,12 +65,12 @@ static bool Error_Detected = false;
 static uint8_t Current_Invoke_ID = 0;
 
 static void Atomic_Write_File_Error_Handler(BACNET_ADDRESS *src,
-                                            uint8_t invoke_id,
-                                            BACNET_ERROR_CLASS error_class,
-                                            BACNET_ERROR_CODE error_code)
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Current_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Current_Invoke_ID)) {
         printf("\r\nBACnet Error!\r\n");
         printf("Error Class: %s\r\n", bactext_error_class_name(error_class));
         printf("Error Code: %s\r\n", bactext_error_code_name(error_code));
@@ -78,31 +78,31 @@ static void Atomic_Write_File_Error_Handler(BACNET_ADDRESS *src,
     }
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Current_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Current_Invoke_ID)) {
         printf("BACnet Abort: %s\r\n",
-               bactext_abort_reason_name((int)abort_reason));
+            bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Current_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Current_Invoke_ID)) {
         printf("BACnet Reject: %s\r\n",
-               bactext_reject_reason_name((int)reject_reason));
+            bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
-static void LocalIAmHandler(uint8_t *service_request, uint16_t service_len,
-                            BACNET_ADDRESS *src)
+static void LocalIAmHandler(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     int len = 0;
     uint32_t device_id = 0;
@@ -112,8 +112,8 @@ static void LocalIAmHandler(uint8_t *service_request, uint16_t service_len,
 
     (void)src;
     (void)service_len;
-    len = iam_decode_service_request(service_request, &device_id, &max_apdu,
-                                     &segmentation, &vendor_id);
+    len = iam_decode_service_request(
+        service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
     if (len != -1) {
         address_add(device_id, max_apdu, src);
     } else
@@ -134,18 +134,18 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
-                           Atomic_Write_File_Error_Handler);
+    apdu_set_error_handler(
+        SERVICE_CONFIRMED_ATOMIC_WRITE_FILE, Atomic_Write_File_Error_Handler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
@@ -165,9 +165,8 @@ int main(int argc, char *argv[])
 
     if (argc < 4) {
         /* FIXME: what about access method - record or stream? */
-        printf(
-            "%s device-instance file-instance local-name [octet count] [pad "
-            "value]\r\n",
+        printf("%s device-instance file-instance local-name [octet count] [pad "
+               "value]\r\n",
             filename_remove_path(argv[0]));
         return 0;
     }
@@ -177,12 +176,12 @@ int main(int argc, char *argv[])
     Local_File_Name = argv[3];
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (Target_File_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "file-instance=%u - it must be less than %u\r\n",
-                Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
+            Target_File_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (argc > 4) {
@@ -202,11 +201,11 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                                 &Target_Address);
+    found = address_bind_request(
+        Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (!found) {
-        Send_WhoIs(Target_Device_Object_Instance,
-                   Target_Device_Object_Instance);
+        Send_WhoIs(
+            Target_Device_Object_Instance, Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -226,8 +225,8 @@ int main(int argc, char *argv[])
         }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found = address_bind_request(Target_Device_Object_Instance,
-                                         &max_apdu, &Target_Address);
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
         if (found) {
             if (Target_File_Requested_Octet_Count) {
@@ -269,13 +268,13 @@ int main(int argc, char *argv[])
                 if (pFile) {
                     (void)fseek(pFile, fileStartPosition, SEEK_SET);
                     len = fread(octetstring_value(&fileData), 1,
-                                requestedOctetCount, pFile);
+                        requestedOctetCount, pFile);
                     if (len < requestedOctetCount) {
                         End_Of_File_Detected = true;
                         if (pad_byte) {
                             memset(octetstring_value(&fileData) + len + 1,
-                                   (int)Target_File_Requested_Octet_Pad_Byte,
-                                   requestedOctetCount - len);
+                                (int)Target_File_Requested_Octet_Pad_Byte,
+                                requestedOctetCount - len);
                             len = requestedOctetCount;
                         }
                     }

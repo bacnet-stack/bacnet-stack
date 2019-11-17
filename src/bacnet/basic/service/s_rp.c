@@ -58,12 +58,12 @@
  * @return invoke id of outgoing message, or 0 if device is not bound or no tsm
  * available
  */
-uint8_t Send_Read_Property_Request_Address(BACNET_ADDRESS* dest,
-                                           uint16_t max_apdu,
-                                           BACNET_OBJECT_TYPE object_type,
-                                           uint32_t object_instance,
-                                           BACNET_PROPERTY_ID object_property,
-                                           uint32_t array_index)
+uint8_t Send_Read_Property_Request_Address(BACNET_ADDRESS *dest,
+    uint16_t max_apdu,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    uint32_t array_index)
 {
     BACNET_ADDRESS my_address;
     uint8_t invoke_id = 0;
@@ -85,15 +85,15 @@ uint8_t Send_Read_Property_Request_Address(BACNET_ADDRESS* dest,
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], dest,
-                                  &my_address, &npdu_data);
+        pdu_len = npdu_encode_pdu(
+            &Handler_Transmit_Buffer[0], dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
         data.object_type = object_type;
         data.object_instance = object_instance;
         data.object_property = object_property;
         data.array_index = array_index;
-        len =
-            rp_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
+        len = rp_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
@@ -101,15 +101,14 @@ uint8_t Send_Read_Property_Request_Address(BACNET_ADDRESS* dest,
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((uint16_t)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(
-                invoke_id, dest, &npdu_data, &Handler_Transmit_Buffer[0],
-                (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(invoke_id, dest,
+                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
 #if PRINT_ENABLED
                 fprintf(stderr, "Failed to Send ReadProperty Request (%s)!\n",
-                        strerror(errno));
+                    strerror(errno));
 #endif
             }
         } else {
@@ -117,8 +116,8 @@ uint8_t Send_Read_Property_Request_Address(BACNET_ADDRESS* dest,
             invoke_id = 0;
 #if PRINT_ENABLED
             fprintf(stderr,
-                    "Failed to Send ReadProperty Request "
-                    "(exceeds destination maximum APDU)!\n");
+                "Failed to Send ReadProperty Request "
+                "(exceeds destination maximum APDU)!\n");
 #endif
         }
     }
@@ -142,12 +141,12 @@ uint8_t Send_Read_Property_Request_Address(BACNET_ADDRESS* dest,
  * available
  */
 uint8_t Send_Read_Property_Request(uint32_t device_id, /* destination device */
-                                   BACNET_OBJECT_TYPE object_type,
-                                   uint32_t object_instance,
-                                   BACNET_PROPERTY_ID object_property,
-                                   uint32_t array_index)
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    uint32_t array_index)
 {
-    BACNET_ADDRESS dest = {0};
+    BACNET_ADDRESS dest = { 0 };
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
@@ -155,9 +154,8 @@ uint8_t Send_Read_Property_Request(uint32_t device_id, /* destination device */
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
     if (status) {
-        invoke_id = Send_Read_Property_Request_Address(
-            &dest, max_apdu, object_type, object_instance, object_property,
-            array_index);
+        invoke_id = Send_Read_Property_Request_Address(&dest, max_apdu,
+            object_type, object_instance, object_property, array_index);
     }
 
     return invoke_id;

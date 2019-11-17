@@ -27,7 +27,7 @@
 #include "bacnet/bacdcode.h"
 
 int bacapp_encode_credential_authentication_factor(
-    uint8_t* apdu, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR* caf)
+    uint8_t *apdu, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *caf)
 {
     int len;
     int apdu_len = 0;
@@ -49,7 +49,7 @@ int bacapp_encode_credential_authentication_factor(
 }
 
 int bacapp_encode_context_credential_authentication_factor(
-    uint8_t* apdu, uint8_t tag, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR* caf)
+    uint8_t *apdu, uint8_t tag, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *caf)
 {
     int len;
     int apdu_len = 0;
@@ -67,7 +67,7 @@ int bacapp_encode_context_credential_authentication_factor(
 }
 
 int bacapp_decode_credential_authentication_factor(
-    uint8_t* apdu, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR* caf)
+    uint8_t *apdu, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *caf)
 {
     int len;
     int apdu_len = 0;
@@ -95,15 +95,15 @@ int bacapp_decode_credential_authentication_factor(
 }
 
 int bacapp_decode_context_credential_authentication_factor(
-    uint8_t* apdu, uint8_t tag, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR* caf)
+    uint8_t *apdu, uint8_t tag, BACNET_CREDENTIAL_AUTHENTICATION_FACTOR *caf)
 {
     int len = 0;
     int section_length;
 
     if (decode_is_opening_tag_number(&apdu[len], tag)) {
         len++;
-        section_length =
-            bacapp_decode_credential_authentication_factor(&apdu[len], caf);
+        section_length
+            = bacapp_decode_credential_authentication_factor(&apdu[len], caf);
 
         if (section_length == -1) {
             len = -1;

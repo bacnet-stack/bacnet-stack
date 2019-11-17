@@ -59,8 +59,8 @@ int stricmp(const char *s1, const char *s2)
 #define stricmp _stricmp
 #endif
 
-bool indtext_by_string(INDTEXT_DATA *data_list, const char *search_name,
-                       unsigned *found_index)
+bool indtext_by_string(
+    INDTEXT_DATA *data_list, const char *search_name, unsigned *found_index)
 {
     bool found = false;
     unsigned index = 0;
@@ -83,8 +83,8 @@ bool indtext_by_string(INDTEXT_DATA *data_list, const char *search_name,
 }
 
 /* case insensitive version */
-bool indtext_by_istring(INDTEXT_DATA *data_list, const char *search_name,
-                        unsigned *found_index)
+bool indtext_by_istring(
+    INDTEXT_DATA *data_list, const char *search_name, unsigned *found_index)
 {
     bool found = false;
     unsigned index = 0;
@@ -106,9 +106,8 @@ bool indtext_by_istring(INDTEXT_DATA *data_list, const char *search_name,
     return found;
 }
 
-unsigned indtext_by_string_default(INDTEXT_DATA *data_list,
-                                   const char *search_name,
-                                   unsigned default_index)
+unsigned indtext_by_string_default(
+    INDTEXT_DATA *data_list, const char *search_name, unsigned default_index)
 {
     unsigned index = 0;
 
@@ -118,9 +117,8 @@ unsigned indtext_by_string_default(INDTEXT_DATA *data_list,
     return index;
 }
 
-unsigned indtext_by_istring_default(INDTEXT_DATA *data_list,
-                                    const char *search_name,
-                                    unsigned default_index)
+unsigned indtext_by_istring_default(
+    INDTEXT_DATA *data_list, const char *search_name, unsigned default_index)
 {
     unsigned index = 0;
 
@@ -130,8 +128,8 @@ unsigned indtext_by_istring_default(INDTEXT_DATA *data_list,
     return index;
 }
 
-const char *indtext_by_index_default(INDTEXT_DATA *data_list, unsigned index,
-                                     const char *default_string)
+const char *indtext_by_index_default(
+    INDTEXT_DATA *data_list, unsigned index, const char *default_string)
 {
     const char *pString = NULL;
 
@@ -148,13 +146,15 @@ const char *indtext_by_index_default(INDTEXT_DATA *data_list, unsigned index,
     return pString ? pString : default_string;
 }
 
-const char *indtext_by_index_split_default(
-    INDTEXT_DATA *data_list, unsigned index, unsigned split_index,
-    const char *before_split_default_name, const char *default_name)
+const char *indtext_by_index_split_default(INDTEXT_DATA *data_list,
+    unsigned index,
+    unsigned split_index,
+    const char *before_split_default_name,
+    const char *default_name)
 {
     if (index < split_index)
-        return indtext_by_index_default(data_list, index,
-                                        before_split_default_name);
+        return indtext_by_index_default(
+            data_list, index, before_split_default_name);
     else
         return indtext_by_index_default(data_list, index, default_name);
 }
@@ -181,9 +181,8 @@ unsigned indtext_count(INDTEXT_DATA *data_list)
 #include <assert.h>
 #include "ctest.h"
 
-static INDTEXT_DATA data_list[] = {{1, "Joshua"},   {2, "Mary"},
-                                   {3, "Anna"},     {4, "Christopher"},
-                                   {5, "Patricia"}, {0, NULL}};
+static INDTEXT_DATA data_list[] = { { 1, "Joshua" }, { 2, "Mary" },
+    { 3, "Anna" }, { 4, "Christopher" }, { 5, "Patricia" }, { 0, NULL } };
 
 void testIndexText(Test *pTest)
 {
@@ -200,8 +199,8 @@ void testIndexText(Test *pTest)
             valid = indtext_by_string(data_list, pString, &index);
             ct_test(pTest, valid == true);
             ct_test(pTest, index == i);
-            ct_test(pTest, index == indtext_by_string_default(data_list,
-                                                              pString, index));
+            ct_test(pTest,
+                index == indtext_by_string_default(data_list, pString, index));
         }
     }
     ct_test(pTest, indtext_count(data_list) == count);
@@ -215,8 +214,8 @@ void testIndexText(Test *pTest)
     ct_test(pTest, indtext_by_istring(data_list, "JOSHUA", NULL) == true);
     ct_test(pTest, indtext_by_istring(data_list, "joshua", NULL) == true);
     valid = indtext_by_istring(data_list, "ANNA", &index);
-    ct_test(pTest,
-            index == indtext_by_istring_default(data_list, "ANNA", index));
+    ct_test(
+        pTest, index == indtext_by_istring_default(data_list, "ANNA", index));
 }
 #endif
 

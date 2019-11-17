@@ -62,8 +62,8 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
 }
 
 int main(int argc, char *argv[])
@@ -187,34 +187,33 @@ int main(int argc, char *argv[])
 
     if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-                cov_data.initiatingDeviceIdentifier, BACNET_MAX_INSTANCE);
+            cov_data.initiatingDeviceIdentifier, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.type >= MAX_BACNET_OBJECT_TYPE) {
         fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-                cov_data.monitoredObjectIdentifier.type,
-                MAX_BACNET_OBJECT_TYPE);
+            cov_data.monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE);
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
-                cov_data.monitoredObjectIdentifier.instance,
-                BACNET_MAX_INSTANCE + 1);
+            cov_data.monitoredObjectIdentifier.instance,
+            BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (cov_data.listOfValues->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
         fprintf(stderr, "property-identifier=%u - it must be less than %u\r\n",
-                cov_data.listOfValues->propertyIdentifier,
-                MAX_BACNET_PROPERTY_ID + 1);
+            cov_data.listOfValues->propertyIdentifier,
+            MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
     if (tag >= MAX_BACNET_APPLICATION_TAG) {
         fprintf(stderr, "tag=%u - it must be less than %u\r\n", tag,
-                MAX_BACNET_APPLICATION_TAG);
+            MAX_BACNET_APPLICATION_TAG);
         return 1;
     }
-    status = bacapp_parse_application_data(tag, value_string,
-                                           &cov_data.listOfValues->value);
+    status = bacapp_parse_application_data(
+        tag, value_string, &cov_data.listOfValues->value);
     if (!status) {
         /* FIXME: show the expected entry format for the tag */
         fprintf(stderr, "unable to parse the tag value\r\n");
@@ -226,7 +225,7 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
     Send_UCOV_Notify(&Handler_Transmit_Buffer[0],
-                     sizeof(Handler_Transmit_Buffer), &cov_data);
+        sizeof(Handler_Transmit_Buffer), &cov_data);
 
     return 0;
 }

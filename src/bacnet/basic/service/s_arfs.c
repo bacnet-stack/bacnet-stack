@@ -42,9 +42,10 @@
 
 /** @file s_arfs.c  Send part of an Atomic Read File Stream. */
 
-uint8_t Send_Atomic_Read_File_Stream(uint32_t device_id, uint32_t file_instance,
-                                     int fileStartPosition,
-                                     unsigned requestedOctetCount)
+uint8_t Send_Atomic_Read_File_Stream(uint32_t device_id,
+    uint32_t file_instance,
+    int fileStartPosition,
+    unsigned requestedOctetCount)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -76,10 +77,10 @@ uint8_t Send_Atomic_Read_File_Stream(uint32_t device_id, uint32_t file_instance,
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-                                  &my_address, &npdu_data);
-        len = arf_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
-                              &data);
+        pdu_len = npdu_encode_pdu(
+            &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+        len = arf_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
         pdu_len += len;
         /* will the APDU fit the target device?
            note: if there is a bottleneck router in between
@@ -87,23 +88,22 @@ uint8_t Send_Atomic_Read_File_Stream(uint32_t device_id, uint32_t file_instance,
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(
-                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
-                (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
+                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0)
                 fprintf(stderr, "Failed to Send AtomicReadFile Request (%s)!\n",
-                        strerror(errno));
+                    strerror(errno));
 #endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
             fprintf(stderr,
-                    "Failed to Send AtomicReadFile Request "
-                    "(payload exceeds destination maximum APDU)!\n");
+                "Failed to Send AtomicReadFile Request "
+                "(payload exceeds destination maximum APDU)!\n");
 #endif
         }
     }

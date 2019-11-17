@@ -35,8 +35,8 @@
  */
 void mstimer_set(struct mstimer *t, unsigned long interval)
 {
-  t->interval = interval;
-  t->start = mstimer_now();
+    t->interval = interval;
+    t->start = mstimer_now();
 }
 
 /**
@@ -53,7 +53,7 @@ void mstimer_set(struct mstimer *t, unsigned long interval)
  */
 void mstimer_reset(struct mstimer *t)
 {
-  t->start += t->interval;
+    t->start += t->interval;
 }
 
 /**
@@ -70,7 +70,7 @@ void mstimer_reset(struct mstimer *t)
  */
 void mstimer_restart(struct mstimer *t)
 {
-  t->start = mstimer_now();
+    t->start = mstimer_now();
 }
 
 /**
@@ -100,5 +100,5 @@ int mstimer_expired(struct mstimer *t)
  */
 unsigned long mstimer_remaining(struct mstimer *t)
 {
-  return t->start + t->interval - mstimer_now();
+    return t->start + t->interval - mstimer_now();
 }

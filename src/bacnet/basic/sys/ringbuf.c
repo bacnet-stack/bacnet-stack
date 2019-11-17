@@ -196,12 +196,12 @@ volatile uint8_t *Ringbuf_Peek_Next(RING_BUFFER const *b, uint8_t *data_element)
         /* Use (b->head-1) here to avoid walking off end of ring */
         for (index = b->tail; index < b->head - 1; index++) {
             /* Find the specified data_element */
-            this_element =
-                b->buffer + ((index % b->element_count) * b->element_size);
+            this_element
+                = b->buffer + ((index % b->element_count) * b->element_size);
             if (data_element == this_element) {
                 /* Found the current element, get the next one on the list */
-                next_element = b->buffer + (((index + 1) % b->element_count) *
-                                            b->element_size);
+                next_element = b->buffer
+                    + (((index + 1) % b->element_count) * b->element_size);
                 break;
             }
         }
@@ -247,8 +247,8 @@ bool Ringbuf_Pop(RING_BUFFER *b, uint8_t *data_element)
  * @param  data_element - element of data that is loaded with data from ring
  * @return true if data was copied, false if list is empty
  */
-bool Ringbuf_Pop_Element(RING_BUFFER *b, uint8_t *this_element,
-                         uint8_t *data_element)
+bool Ringbuf_Pop_Element(
+    RING_BUFFER *b, uint8_t *this_element, uint8_t *data_element)
 {
     bool status = false;                /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
@@ -259,8 +259,8 @@ bool Ringbuf_Pop_Element(RING_BUFFER *b, uint8_t *this_element,
     if (!Ringbuf_Empty(b) && this_element != NULL) {
         for (index = b->tail; index < b->head; index++) {
             /* Find the specified data_element */
-            ring_data =
-                b->buffer + ((index % b->element_count) * b->element_size);
+            ring_data
+                = b->buffer + ((index % b->element_count) * b->element_size);
             if (this_element == ring_data) {
                 /* Found the specified element, copy the data if required */
                 this_index = index;
@@ -276,10 +276,10 @@ bool Ringbuf_Pop_Element(RING_BUFFER *b, uint8_t *this_element,
             /* Found a match, move elements up the list to fill the gap */
             for (index = this_index; index > b->tail; index--) {
                 /* Get pointers to current and previous data_elements */
-                ring_data =
-                    b->buffer + ((index % b->element_count) * b->element_size);
-                prev_data = b->buffer + (((index - 1) % b->element_count) *
-                                         b->element_size);
+                ring_data = b->buffer
+                    + ((index % b->element_count) * b->element_size);
+                prev_data = b->buffer
+                    + (((index - 1) % b->element_count) * b->element_size);
                 for (i = 0; i < b->element_size; i++) {
                     ring_data[i] = prev_data[i];
                 }
@@ -434,8 +434,10 @@ static bool isPowerOfTwo(unsigned int x)
  *
  * @return  true if ring buffer was initialized
  */
-bool Ringbuf_Init(RING_BUFFER *b, volatile uint8_t *buffer,
-                  unsigned element_size, unsigned element_count)
+bool Ringbuf_Init(RING_BUFFER *b,
+    volatile uint8_t *buffer,
+    unsigned element_size,
+    unsigned element_count)
 {
     bool status = false;
 
@@ -468,9 +470,11 @@ bool Ringbuf_Init(RING_BUFFER *b, volatile uint8_t *buffer,
  * @param  element_size - size of one data element
  * @param  element_count - number of data elements in the store
  */
-static void testRingAroundBuffer(Test *pTest, RING_BUFFER *test_buffer,
-                                 uint8_t *data_element, unsigned element_size,
-                                 unsigned element_count)
+static void testRingAroundBuffer(Test *pTest,
+    RING_BUFFER *test_buffer,
+    uint8_t *data_element,
+    unsigned element_size,
+    unsigned element_count)
 {
     volatile uint8_t *test_data;
     unsigned index;
@@ -516,8 +520,11 @@ static void testRingAroundBuffer(Test *pTest, RING_BUFFER *test_buffer,
  * @param  element_size - size of one data element
  * @param  element_count - number of data elements in the store
  */
-static bool testRingBuf(Test *pTest, uint8_t *data_store, uint8_t *data_element,
-                        unsigned element_size, unsigned element_count)
+static bool testRingBuf(Test *pTest,
+    uint8_t *data_store,
+    uint8_t *data_element,
+    unsigned element_size,
+    unsigned element_count)
 {
     RING_BUFFER test_buffer;
     volatile uint8_t *test_data;
@@ -525,8 +532,8 @@ static bool testRingBuf(Test *pTest, uint8_t *data_store, uint8_t *data_element,
     unsigned data_index;
     bool status;
 
-    status =
-        Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
+    status
+        = Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
     if (!status) {
         return false;
     }
@@ -588,15 +595,15 @@ static bool testRingBuf(Test *pTest, uint8_t *data_store, uint8_t *data_element,
     Ringbuf_Depth_Reset(&test_buffer);
     ct_test(pTest, Ringbuf_Depth(&test_buffer) == 0);
 
-    testRingAroundBuffer(pTest, &test_buffer, data_element, element_size,
-                         element_count);
+    testRingAroundBuffer(
+        pTest, &test_buffer, data_element, element_size, element_count);
 
     /* adjust the internal index of Ringbuf to test unsigned wrapping */
     test_buffer.head = UINT_MAX - 1;
     test_buffer.tail = UINT_MAX - 1;
 
-    testRingAroundBuffer(pTest, &test_buffer, data_element, element_size,
-                         element_count);
+    testRingAroundBuffer(
+        pTest, &test_buffer, data_element, element_size, element_count);
 
     return true;
 }
@@ -613,7 +620,7 @@ void testRingBufSizeSmall(Test *pTest)
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
     status = testRingBuf(pTest, data_store, data_element, sizeof(data_element),
-                         sizeof(data_store) / sizeof(data_element));
+        sizeof(data_store) / sizeof(data_element));
     ct_test(pTest, status);
 }
 
@@ -629,7 +636,7 @@ void testRingBufSizeLarge(Test *pTest)
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(99)];
 
     status = testRingBuf(pTest, data_store, data_element, sizeof(data_element),
-                         sizeof(data_store) / sizeof(data_element));
+        sizeof(data_store) / sizeof(data_element));
     ct_test(pTest, status);
 }
 
@@ -645,7 +652,7 @@ void testRingBufSizeInvalid(Test *pTest)
     uint8_t data_store[sizeof(data_element) * 99];
 
     status = testRingBuf(pTest, data_store, data_element, sizeof(data_element),
-                         sizeof(data_store) / sizeof(data_element));
+        sizeof(data_store) / sizeof(data_element));
     ct_test(pTest, status == false);
 }
 
@@ -669,17 +676,19 @@ void testRingBufPowerOfTwo(Test *pTest)
  * @param  element_size - size of one data element
  * @param  element_count - number of data elements in the store
  */
-static bool testRingBufNextElement(Test *pTest, uint8_t *data_store,
-                                   uint8_t *data_element, unsigned element_size,
-                                   unsigned element_count)
+static bool testRingBufNextElement(Test *pTest,
+    uint8_t *data_store,
+    uint8_t *data_element,
+    unsigned element_size,
+    unsigned element_count)
 {
     RING_BUFFER test_buffer;
     volatile uint8_t *test_data;
     unsigned index;
     unsigned data_index;
     bool status;
-    status =
-        Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
+    status
+        = Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
     if (!status) {
         return false;
     }
@@ -773,8 +782,7 @@ void testRingBufNextElementSizeSmall(Test *pTest)
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
     status = testRingBufNextElement(pTest, data_store, data_element,
-                                    sizeof(data_element),
-                                    sizeof(data_store) / sizeof(data_element));
+        sizeof(data_element), sizeof(data_store) / sizeof(data_element));
     ct_test(pTest, status);
 }
 

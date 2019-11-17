@@ -46,9 +46,10 @@
 /* that someone can read from us.  It is common to */
 /* use the description as the file name. */
 #if defined(BACFILE)
-void handler_atomic_read_file_ack(
-    uint8_t* service_request, uint16_t service_len, BACNET_ADDRESS* src,
-    BACNET_CONFIRMED_SERVICE_ACK_DATA* service_data)
+void handler_atomic_read_file_ack(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
     BACNET_ATOMIC_READ_FILE_DATA data;

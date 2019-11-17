@@ -76,7 +76,7 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 #if !defined(BAC_ROUTING)
 #ifdef _MSC_VER
-#pragma message This file should not be included in the build unless \
+#pragma message This file should not be included in the build unless           \
     BAC_ROUTING is enabled.
 #else
 #warning This file should not be included in the build unless BAC_ROUTING is enabled.
@@ -116,8 +116,8 @@ uint16_t iCurrent_Device_Idx = 0;
  *         or -1 if there isn't enough room to add this Device.
  */
 uint16_t Add_Routed_Device(uint32_t Object_Instance,
-                           BACNET_CHARACTER_STRING *sObject_Name,
-                           const char *sDescription)
+    BACNET_CHARACTER_STRING *sObject_Name,
+    const char *sDescription)
 {
     int i = Num_Managed_Devices;
     if (i < MAX_NUM_DEVICES) {
@@ -128,11 +128,10 @@ uint16_t Add_Routed_Device(uint32_t Object_Instance,
         pDev->bacObj.Object_Instance_Number = Object_Instance;
         if (sObject_Name != NULL)
             Routed_Device_Set_Object_Name(sObject_Name->encoding,
-                                          sObject_Name->value,
-                                          sObject_Name->length);
+                sObject_Name->value, sObject_Name->length);
         else
-            Routed_Device_Set_Object_Name(CHARACTER_UTF8, "No Name",
-                                          strlen("No Name"));
+            Routed_Device_Set_Object_Name(
+                CHARACTER_UTF8, "No Name", strlen("No Name"));
         if (sDescription != NULL)
             Routed_Device_Set_Description(sDescription, strlen(sDescription));
         else
@@ -194,7 +193,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address)
 {
     if (my_address) {
         memcpy(my_address, &Devices[iCurrent_Device_Idx].bacDevAddr,
-               sizeof(BACNET_ADDRESS));
+            sizeof(BACNET_ADDRESS));
     }
 }
 
@@ -215,8 +214,8 @@ void routed_get_my_address(BACNET_ADDRESS *my_address)
  *         meaning MAC broadcast, so it's an automatic match).
  *         Else False if no match or invalid idx is given.
  */
-bool Routed_Device_Address_Lookup(int idx, uint8_t address_len,
-                                  uint8_t *mac_adress)
+bool Routed_Device_Address_Lookup(
+    int idx, uint8_t address_len, uint8_t *mac_adress)
 {
     bool result = false;
     DEVICE_OBJECT_DATA *pDev = &Devices[idx];
@@ -305,8 +304,8 @@ bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
         if (idx == 0) /* Step over this case (starting point) */
             idx = 1;
         while (idx < MAX_NUM_DEVICES) {
-            bSuccess =
-                Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
+            bSuccess
+                = Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
             if (bSuccess)
                 break; /* We don't need to keep looking */
         }
@@ -381,8 +380,8 @@ bool Routed_Device_Valid_Object_Instance_Number(uint32_t object_id)
     return bResult;
 }
 
-bool Routed_Device_Name(uint32_t object_instance,
-                        BACNET_CHARACTER_STRING *object_name)
+bool Routed_Device_Name(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
     if (object_instance == pDev->bacObj.Object_Instance_Number) {
@@ -405,8 +404,8 @@ int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     uint8_t *apdu = NULL;
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL)
+        || (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -417,17 +416,17 @@ int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(&char_string, pDev->bacObj.Object_Name);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string, pDev->Description);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DATABASE_REVISION:
-            apdu_len =
-                encode_application_unsigned(&apdu[0], pDev->Database_Revision);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], pDev->Database_Revision);
             break;
         default:
             apdu_len = Device_Read_Property_Local(rpdata);
@@ -444,8 +443,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
-                                         wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -453,8 +452,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_OBJECT_LIST)
+        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
@@ -462,13 +461,12 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_OBJECT_ID,
-                                  &wp_data->error_class, &wp_data->error_code);
+            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_OBJECT_ID,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Routed_Device_Set_Object_Instance_Number(
-                        value.type.Object_Id.instance))) {
+                if ((value.type.Object_Id.type == OBJECT_DEVICE)
+                    && (Routed_Device_Set_Object_Instance_Number(
+                           value.type.Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world
                      * know */
                 } else {
@@ -479,9 +477,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status =
-                WPValidateString(&value, MAX_DEV_NAME_LEN, false,
-                                 &wp_data->error_class, &wp_data->error_code);
+            status = WPValidateString(&value, MAX_DEV_NAME_LEN, false,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Routed_Device_Set_Object_Name(
                     characterstring_encoding(&value.type.Character_String),
@@ -529,8 +526,8 @@ bool Routed_Device_Set_Object_Instance_Number(uint32_t object_id)
  * @param object_name [in] Character String for the new Object Name.
  * @return True if succeed in updating Object Name, else False.
  */
-bool Routed_Device_Set_Object_Name(uint8_t encoding, const char *value,
-                                   size_t length)
+bool Routed_Device_Set_Object_Name(
+    uint8_t encoding, const char *value, size_t length)
 {
     bool status = false; /*return value */
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
@@ -585,8 +582,9 @@ void Routed_Device_Inc_Database_Revision(void)
  *          else 0 if service is approved for the current device.
  */
 int Routed_Device_Service_Approval(BACNET_CONFIRMED_SERVICE service,
-                                   int service_argument, uint8_t *apdu_buff,
-                                   uint8_t invoke_id)
+    int service_argument,
+    uint8_t *apdu_buff,
+    uint8_t invoke_id)
 {
     int len = 0;
     switch (service) {
@@ -594,9 +592,8 @@ int Routed_Device_Service_Approval(BACNET_CONFIRMED_SERVICE service,
             /* If not the gateway device, we don't support RD */
             if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL)
-                    len =
-                        reject_encode_apdu(apdu_buff, invoke_id,
-                                           REJECT_REASON_UNRECOGNIZED_SERVICE);
+                    len = reject_encode_apdu(apdu_buff, invoke_id,
+                        REJECT_REASON_UNRECOGNIZED_SERVICE);
                 else
                     len = 1; /* Non-zero return */
             }
@@ -605,9 +602,8 @@ int Routed_Device_Service_Approval(BACNET_CONFIRMED_SERVICE service,
             /* If not the gateway device, we don't support DCC */
             if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL)
-                    len =
-                        reject_encode_apdu(apdu_buff, invoke_id,
-                                           REJECT_REASON_UNRECOGNIZED_SERVICE);
+                    len = reject_encode_apdu(apdu_buff, invoke_id,
+                        REJECT_REASON_UNRECOGNIZED_SERVICE);
                 else
                     len = 1; /* Non-zero return */
             }

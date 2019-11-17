@@ -53,7 +53,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* targets interpreted from the command line options */
 static uint32_t Target_BBMD_Address;
@@ -61,8 +61,8 @@ static uint16_t Target_BBMD_Port;
 
 static bool Error_Detected = false;
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                           uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -72,8 +72,8 @@ static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                            uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -92,8 +92,8 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
     /* handle any errors coming back */
@@ -103,7 +103,7 @@ static void Init_Service_Handlers(void)
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     time_t total_seconds = 0;
@@ -145,8 +145,8 @@ int main(int argc, char *argv[])
         if ((port > 0) && (port <= 65535)) {
             Target_BBMD_Port = htons(port);
         } else {
-            fprintf(stderr, "port=%ld - port must be between 0-65535.\r\n",
-                    port);
+            fprintf(
+                stderr, "port=%ld - port must be between 0-65535.\r\n", port);
             return 1;
         }
     } else {

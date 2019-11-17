@@ -40,8 +40,8 @@
 /** @file wp.c  Encode/Decode BACnet Write Property APDUs  */
 #if BACNET_SVC_WP_A
 /* encode service */
-int wp_encode_apdu(uint8_t *apdu, uint8_t invoke_id,
-                   BACNET_WRITE_PROPERTY_DATA *wpdata)
+int wp_encode_apdu(
+    uint8_t *apdu, uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0;      /* total length of the apdu, return value */
@@ -52,16 +52,16 @@ int wp_encode_apdu(uint8_t *apdu, uint8_t invoke_id,
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_WRITE_PROPERTY; /* service choice */
         apdu_len = 4;
-        len = encode_context_object_id(&apdu[apdu_len], 0, wpdata->object_type,
-                                       wpdata->object_instance);
+        len = encode_context_object_id(
+            &apdu[apdu_len], 0, wpdata->object_type, wpdata->object_instance);
         apdu_len += len;
-        len = encode_context_enumerated(&apdu[apdu_len], 1,
-                                        wpdata->object_property);
+        len = encode_context_enumerated(
+            &apdu[apdu_len], 1, wpdata->object_property);
         apdu_len += len;
         /* optional array index; ALL is -1 which is assumed when missing */
         if (wpdata->array_index != BACNET_ARRAY_ALL) {
-            len = encode_context_unsigned(&apdu[apdu_len], 2,
-                                          wpdata->array_index);
+            len = encode_context_unsigned(
+                &apdu[apdu_len], 2, wpdata->array_index);
             apdu_len += len;
         }
         /* propertyValue */
@@ -87,8 +87,8 @@ int wp_encode_apdu(uint8_t *apdu, uint8_t invoke_id,
 /* decode the service request only */
 /* FIXME: there could be various error messages returned
    using unique values less than zero */
-int wp_decode_service_request(uint8_t *apdu, unsigned apdu_len,
-                              BACNET_WRITE_PROPERTY_DATA *wpdata)
+int wp_decode_service_request(
+    uint8_t *apdu, unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int len = 0;
     int tag_len = 0;
@@ -107,8 +107,8 @@ int wp_decode_service_request(uint8_t *apdu, unsigned apdu_len,
         len += decode_object_id(&apdu[len], &type, &wpdata->object_instance);
         wpdata->object_type = (BACNET_OBJECT_TYPE)type;
         /* Tag 1: Property ID */
-        len += decode_tag_number_and_value(&apdu[len], &tag_number,
-                                           &len_value_type);
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         if (tag_number != 1)
             return -1;
         len += decode_enumerated(&apdu[len], len_value_type, &property);
@@ -116,8 +116,8 @@ int wp_decode_service_request(uint8_t *apdu, unsigned apdu_len,
         /* Tag 2: Optional Array Index */
         /* note: decode without incrementing len so we can check for opening tag
          */
-        tag_len = decode_tag_number_and_value(&apdu[len], &tag_number,
-                                              &len_value_type);
+        tag_len = decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         if (tag_number == 2) {
             len += tag_len;
             len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
@@ -145,14 +145,14 @@ int wp_decode_service_request(uint8_t *apdu, unsigned apdu_len,
         /* Tag 4: optional Priority - assumed MAX if not explicitly set */
         wpdata->priority = BACNET_MAX_PRIORITY;
         if ((unsigned)len < apdu_len) {
-            tag_len = decode_tag_number_and_value(&apdu[len], &tag_number,
-                                                  &len_value_type);
+            tag_len = decode_tag_number_and_value(
+                &apdu[len], &tag_number, &len_value_type);
             if (tag_number == 4) {
                 len += tag_len;
-                len = decode_unsigned(&apdu[len], len_value_type,
-                                      &unsigned_value);
-                if ((unsigned_value >= BACNET_MIN_PRIORITY) &&
-                    (unsigned_value <= BACNET_MAX_PRIORITY)) {
+                len = decode_unsigned(
+                    &apdu[len], len_value_type, &unsigned_value);
+                if ((unsigned_value >= BACNET_MIN_PRIORITY)
+                    && (unsigned_value <= BACNET_MAX_PRIORITY)) {
                     wpdata->priority = (uint8_t)unsigned_value;
                 } else
                     return -5;
@@ -168,8 +168,10 @@ int wp_decode_service_request(uint8_t *apdu, unsigned apdu_len,
 #include <string.h>
 #include "ctest.h"
 
-int wp_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id,
-                   BACNET_WRITE_PROPERTY_DATA *wpdata)
+int wp_decode_apdu(uint8_t *apdu,
+    unsigned apdu_len,
+    uint8_t *invoke_id,
+    BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int len = 0;
     unsigned offset = 0;
@@ -186,8 +188,8 @@ int wp_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id,
     offset = 4;
 
     if (apdu_len > offset) {
-        len =
-            wp_decode_service_request(&apdu[offset], apdu_len - offset, wpdata);
+        len = wp_decode_service_request(
+            &apdu[offset], apdu_len - offset, wpdata);
     }
 
     return len;
@@ -195,17 +197,17 @@ int wp_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id,
 
 void testWritePropertyTag(Test *pTest, BACNET_APPLICATION_DATA_VALUE *value)
 {
-    BACNET_WRITE_PROPERTY_DATA wpdata = {0};
-    BACNET_WRITE_PROPERTY_DATA test_data = {0};
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_WRITE_PROPERTY_DATA test_data = { 0 };
     BACNET_APPLICATION_DATA_VALUE test_value;
-    uint8_t apdu[480] = {0};
+    uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
 
-    wpdata.application_data_len =
-        bacapp_encode_application_data(&wpdata.application_data[0], value);
+    wpdata.application_data_len
+        = bacapp_encode_application_data(&wpdata.application_data[0], value);
     len = wp_encode_apdu(&apdu[0], invoke_id, &wpdata);
     ct_test(pTest, len != 0);
     /* decode the data */
@@ -218,8 +220,7 @@ void testWritePropertyTag(Test *pTest, BACNET_APPLICATION_DATA_VALUE *value)
     ct_test(pTest, test_data.array_index == wpdata.array_index);
     /* decode the application value of the request */
     len = bacapp_decode_application_data(test_data.application_data,
-                                         test_data.application_data_len,
-                                         &test_value);
+        test_data.application_data_len, &test_value);
     ct_test(pTest, test_value.tag == value->tag);
     switch (test_value.tag) {
         case BACNET_APPLICATION_TAG_NULL:
@@ -229,23 +230,23 @@ void testWritePropertyTag(Test *pTest, BACNET_APPLICATION_DATA_VALUE *value)
             break;
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             ct_test(pTest,
-                    test_value.type.Unsigned_Int == value->type.Unsigned_Int);
+                test_value.type.Unsigned_Int == value->type.Unsigned_Int);
             break;
         case BACNET_APPLICATION_TAG_SIGNED_INT:
-            ct_test(pTest,
-                    test_value.type.Signed_Int == value->type.Signed_Int);
+            ct_test(
+                pTest, test_value.type.Signed_Int == value->type.Signed_Int);
             break;
         case BACNET_APPLICATION_TAG_REAL:
             ct_test(pTest, test_value.type.Real == value->type.Real);
             break;
         case BACNET_APPLICATION_TAG_ENUMERATED:
-            ct_test(pTest,
-                    test_value.type.Enumerated == value->type.Enumerated);
+            ct_test(
+                pTest, test_value.type.Enumerated == value->type.Enumerated);
             break;
         case BACNET_APPLICATION_TAG_DATE:
             ct_test(pTest, test_value.type.Date.year == value->type.Date.year);
-            ct_test(pTest,
-                    test_value.type.Date.month == value->type.Date.month);
+            ct_test(
+                pTest, test_value.type.Date.month == value->type.Date.month);
             ct_test(pTest, test_value.type.Date.day == value->type.Date.day);
             ct_test(pTest, test_value.type.Date.wday == value->type.Date.wday);
             break;
@@ -253,14 +254,15 @@ void testWritePropertyTag(Test *pTest, BACNET_APPLICATION_DATA_VALUE *value)
             ct_test(pTest, test_value.type.Time.hour == value->type.Time.hour);
             ct_test(pTest, test_value.type.Time.min == value->type.Time.min);
             ct_test(pTest, test_value.type.Time.sec == value->type.Time.sec);
-            ct_test(pTest, test_value.type.Time.hundredths ==
-                               value->type.Time.hundredths);
+            ct_test(pTest,
+                test_value.type.Time.hundredths == value->type.Time.hundredths);
             break;
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            ct_test(pTest, test_value.type.Object_Id.type ==
-                               value->type.Object_Id.type);
-            ct_test(pTest, test_value.type.Object_Id.instance ==
-                               value->type.Object_Id.instance);
+            ct_test(pTest,
+                test_value.type.Object_Id.type == value->type.Object_Id.type);
+            ct_test(pTest,
+                test_value.type.Object_Id.instance
+                    == value->type.Object_Id.instance);
             break;
         default:
             break;

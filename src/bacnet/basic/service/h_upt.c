@@ -52,9 +52,9 @@ void private_transfer_print_data(BACNET_PRIVATE_TRANSFER_DATA *private_data)
     if (private_data) {
 #if PRINT_ENABLED
         printf("PrivateTransfer:vendorID=%u\r\n",
-               (unsigned)private_data->vendorID);
+            (unsigned)private_data->vendorID);
         printf("PrivateTransfer:serviceNumber=%lu\r\n",
-               (unsigned long)private_data->serviceNumber);
+            (unsigned long)private_data->serviceNumber);
 #endif
         application_data = private_data->serviceParameters;
         application_data_len = private_data->serviceParametersLen;
@@ -99,9 +99,8 @@ void private_transfer_print_data(BACNET_PRIVATE_TRANSFER_DATA *private_data)
     }
 }
 
-void handler_unconfirmed_private_transfer(uint8_t *service_request,
-                                          uint16_t service_len,
-                                          BACNET_ADDRESS *src)
+void handler_unconfirmed_private_transfer(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     BACNET_PRIVATE_TRANSFER_DATA private_data;
     int len = 0;
@@ -109,8 +108,8 @@ void handler_unconfirmed_private_transfer(uint8_t *service_request,
 #if PRINT_ENABLED
     fprintf(stderr, "Received Unconfirmed Private Transfer Request!\n");
 #endif
-    len = ptransfer_decode_service_request(service_request, service_len,
-                                           &private_data);
+    len = ptransfer_decode_service_request(
+        service_request, service_len, &private_data);
     if (len >= 0) {
         private_transfer_print_data(&private_data);
     }

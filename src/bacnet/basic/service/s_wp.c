@@ -44,12 +44,13 @@
 
 /** returns the invoke ID for confirmed request, or zero on failure */
 uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
-                                         BACNET_OBJECT_TYPE object_type,
-                                         uint32_t object_instance,
-                                         BACNET_PROPERTY_ID object_property,
-                                         uint8_t* application_data,
-                                         int application_data_len,
-                                         uint8_t priority, uint32_t array_index)
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    uint8_t *application_data,
+    int application_data_len,
+    uint8_t priority,
+    uint32_t array_index)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -74,8 +75,8 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-                                  &my_address, &npdu_data);
+        pdu_len = npdu_encode_pdu(
+            &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
         data.object_type = object_type;
         data.object_instance = object_instance;
@@ -83,10 +84,10 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
         data.array_index = array_index;
         data.application_data_len = application_data_len;
         memcpy(&data.application_data[0], &application_data[0],
-               application_data_len);
+            application_data_len);
         data.priority = priority;
-        len =
-            wp_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
+        len = wp_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between
@@ -94,23 +95,22 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(
-                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
-                (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
+                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0)
                 fprintf(stderr, "Failed to Send WriteProperty Request (%s)!\n",
-                        strerror(errno));
+                    strerror(errno));
 #endif
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
 #if PRINT_ENABLED
             fprintf(stderr,
-                    "Failed to Send WriteProperty Request "
-                    "(exceeds destination maximum APDU)!\n");
+                "Failed to Send WriteProperty Request "
+                "(exceeds destination maximum APDU)!\n");
 #endif
         }
     }
@@ -134,23 +134,24 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
  * @return invoke id of outgoing message, or 0 on failure.
  */
 uint8_t Send_Write_Property_Request(uint32_t device_id,
-                                    BACNET_OBJECT_TYPE object_type,
-                                    uint32_t object_instance,
-                                    BACNET_PROPERTY_ID object_property,
-                                    BACNET_APPLICATION_DATA_VALUE* object_value,
-                                    uint8_t priority, uint32_t array_index)
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID object_property,
+    BACNET_APPLICATION_DATA_VALUE *object_value,
+    uint8_t priority,
+    uint32_t array_index)
 {
-    uint8_t application_data[MAX_APDU] = {0};
+    uint8_t application_data[MAX_APDU] = { 0 };
     int apdu_len = 0, len = 0;
 
     while (object_value) {
 #if PRINT_ENABLED_DEBUG
         fprintf(stderr,
-                "WriteProperty service: "
-                "%s tag=%d\n",
-                (object_value->context_specific ? "context" : "application"),
-                (int)(object_value->context_specific ? object_value->context_tag
-                                                     : object_value->tag));
+            "WriteProperty service: "
+            "%s tag=%d\n",
+            (object_value->context_specific ? "context" : "application"),
+            (int)(object_value->context_specific ? object_value->context_tag
+                                                 : object_value->tag));
 #endif
         len = bacapp_encode_data(&application_data[apdu_len], object_value);
         if ((len + apdu_len) < MAX_APDU) {
@@ -161,7 +162,7 @@ uint8_t Send_Write_Property_Request(uint32_t device_id,
         object_value = object_value->next;
     }
 
-    return Send_Write_Property_Request_Data(
-        device_id, object_type, object_instance, object_property,
-        &application_data[0], apdu_len, priority, array_index);
+    return Send_Write_Property_Request_Data(device_id, object_type,
+        object_instance, object_property, &application_data[0], apdu_len,
+        priority, array_index);
 }

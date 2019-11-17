@@ -41,8 +41,8 @@
  * @param service_len [in] Length of the service_request message.
  * @param src [in] The BACNET_ADDRESS of the message's source.
  */
-void handler_i_have(uint8_t* service_request, uint16_t service_len,
-                    BACNET_ADDRESS* src)
+void handler_i_have(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     int len = 0;
     BACNET_I_HAVE_DATA data;
@@ -53,10 +53,10 @@ void handler_i_have(uint8_t* service_request, uint16_t service_len,
     if (len != -1) {
 #if PRINT_ENABLED
         fprintf(stderr, "I-Have: %s %lu from %s %lu!\r\n",
-                bactext_object_type_name(data.object_id.type),
-                (unsigned long)data.object_id.instance,
-                bactext_object_type_name(data.device_id.type),
-                (unsigned long)data.device_id.instance);
+            bactext_object_type_name(data.object_id.type),
+            (unsigned long)data.object_id.instance,
+            bactext_object_type_name(data.device_id.type),
+            (unsigned long)data.device_id.instance);
 #endif
     } else {
 #if PRINT_ENABLED

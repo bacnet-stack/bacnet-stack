@@ -48,17 +48,17 @@ static get_event_info_function Get_Event_Info[MAX_BACNET_OBJECT_TYPE];
 
 /** print eventState
  */
-void ge_ack_print_data(BACNET_GET_EVENT_INFORMATION_DATA* data,
-                       uint32_t device_id)
+void ge_ack_print_data(
+    BACNET_GET_EVENT_INFORMATION_DATA *data, uint32_t device_id)
 {
-    BACNET_GET_EVENT_INFORMATION_DATA* act_data = data;
-    const char* state_strs[] = {"NO", "FA", "ON", "HL", "LL"};
+    BACNET_GET_EVENT_INFORMATION_DATA *act_data = data;
+    const char *state_strs[] = { "NO", "FA", "ON", "HL", "LL" };
     printf("DeviceID\tType\tInstance\teventState\n");
     printf("--------------- ------- --------------- ---------------\n");
     int count = 0;
     while (act_data) {
-        printf(
-            "%u\t\t%u\t%u\t\t%s\n", device_id, act_data->objectIdentifier.type,
+        printf("%u\t\t%u\t%u\t\t%s\n", device_id,
+            act_data->objectIdentifier.type,
             act_data->objectIdentifier.instance, state_strs[data->eventState]);
         act_data = act_data->next;
         count++;
@@ -66,17 +66,18 @@ void ge_ack_print_data(BACNET_GET_EVENT_INFORMATION_DATA* data,
     printf("\n%u\t Total\n", count);
 }
 
-void handler_get_event_information_set(BACNET_OBJECT_TYPE object_type,
-                                       get_event_info_function pFunction)
+void handler_get_event_information_set(
+    BACNET_OBJECT_TYPE object_type, get_event_info_function pFunction)
 {
     if (object_type < MAX_BACNET_OBJECT_TYPE) {
         Get_Event_Info[object_type] = pFunction;
     }
 }
 
-void handler_get_event_information(uint8_t* service_request,
-                                   uint16_t service_len, BACNET_ADDRESS* src,
-                                   BACNET_CONFIRMED_SERVICE_DATA* service_data)
+void handler_get_event_information(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -99,35 +100,33 @@ void handler_get_event_information(uint8_t* service_request,
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-                              &npdu_data);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
     if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                service_data->invoke_id,
-                                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
         fprintf(stderr,
-                "GetEventInformation: "
-                "Segmented message. Sending Abort!\n");
+            "GetEventInformation: "
+            "Segmented message. Sending Abort!\n");
 #endif
         goto GET_EVENT_ABORT;
     }
 
-    len = getevent_decode_service_request(service_request, service_len,
-                                          &object_id);
+    len = getevent_decode_service_request(
+        service_request, service_len, &object_id);
     if (len < 0) {
         /* bad decoding - send an abort */
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                service_data->invoke_id, ABORT_REASON_OTHER,
-                                true);
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
         fprintf(stderr, "GetEventInformation: Bad Encoding.  Sending Abort!\n");
 #endif
         goto GET_EVENT_ABORT;
     }
-    len = getevent_ack_encode_apdu_init(
-        &Handler_Transmit_Buffer[pdu_len],
+    len = getevent_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
         sizeof(Handler_Transmit_Buffer) - pdu_len, service_data->invoke_id);
     if (len <= 0) {
         error = true;
@@ -143,10 +142,11 @@ void handler_get_event_information(uint8_t* service_request,
                     /* encode GetEvent_data only when type of object_id has max
                      * value */
                     if (object_id.type != MAX_BACNET_OBJECT_TYPE) {
-                        if ((object_id.type ==
-                             getevent_data.objectIdentifier.type) &&
-                            (object_id.instance ==
-                             getevent_data.objectIdentifier.instance)) {
+                        if ((object_id.type
+                                == getevent_data.objectIdentifier.type)
+                            && (object_id.instance
+                                   == getevent_data.objectIdentifier
+                                          .instance)) {
                             /* found 'Last Received Object Identifier'
                                so should set type of object_id to max value */
                             object_id.type = MAX_BACNET_OBJECT_TYPE;
@@ -164,14 +164,14 @@ void handler_get_event_information(uint8_t* service_request,
                         goto GET_EVENT_ERROR;
                     }
                     apdu_len += len;
-                    if ((apdu_len >= service_data->max_resp - 2) ||
-                        (apdu_len >= MAX_APDU - 2)) {
+                    if ((apdu_len >= service_data->max_resp - 2)
+                        || (apdu_len >= MAX_APDU - 2)) {
                         /* Device must be able to fit minimum
                            one event information.
                            Length of one event informations needs
                            more than 50 octets. */
-                        if ((service_data->max_resp < 128) ||
-                            (MAX_APDU < 128)) {
+                        if ((service_data->max_resp < 128)
+                            || (MAX_APDU < 128)) {
                             len = BACNET_STATUS_ABORT;
                             error = true;
                             goto GET_EVENT_ERROR;
@@ -188,8 +188,7 @@ void handler_get_event_information(uint8_t* service_request,
             }
         }
     }
-    len = getevent_ack_encode_apdu_end(
-        &Handler_Transmit_Buffer[pdu_len],
+    len = getevent_ack_encode_apdu_end(&Handler_Transmit_Buffer[pdu_len],
         sizeof(Handler_Transmit_Buffer) - pdu_len, more_events);
     if (len <= 0) {
         error = true;
@@ -200,23 +199,23 @@ void handler_get_event_information(uint8_t* service_request,
 #endif
 GET_EVENT_ERROR:
     if (error) {
-        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-                                  &npdu_data);
+        pdu_len = npdu_encode_pdu(
+            &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
 
         if (len == -2) {
             /* BACnet APDU too small to fit data, so proper response is Abort */
-            len = abort_encode_apdu(
-                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
+            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id,
                 ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
             fprintf(stderr,
-                    "GetEventInformation: "
-                    "Reply too big to fit into APDU!\n");
+                "GetEventInformation: "
+                "Reply too big to fit into APDU!\n");
 #endif
         } else {
-            len = bacerror_encode_apdu(
-                &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
-                SERVICE_CONFIRMED_READ_PROPERTY, error_class, error_code);
+            len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
+                error_class, error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "GetEventInformation: Sending Error!\n");
 #endif
@@ -224,8 +223,8 @@ GET_EVENT_ERROR:
     }
 GET_EVENT_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-                                   pdu_len);
+    bytes_sent = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr, "Failed to send PDU (%s)!\n", strerror(errno));

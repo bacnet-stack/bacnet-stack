@@ -88,8 +88,8 @@ OBJECT_DEVICE_T *objects_device_new(uint32_t device_instance)
                 Keylist_Data_Add(Device_List, key, pDevice);
             } else {
                 fprintf(stderr,
-                        "Objects: Unable to allocate device %lu buffer\n",
-                        (unsigned long)device_instance);
+                    "Objects: Unable to allocate device %lu buffer\n",
+                    (unsigned long)device_instance);
             }
         }
     }
@@ -106,11 +106,11 @@ OBJECT_DEVICE_T *objects_device_delete(int index)
         pDevice = Keylist_Data_Delete_By_Index(Device_List, index);
         if (pDevice) {
             fprintf(stderr, "Objects: removing device %lu",
-                    (unsigned long)pDevice->Object_Identifier.instance);
+                (unsigned long)pDevice->Object_Identifier.instance);
             if (pDevice->Object_List) {
                 do {
-                    pObject =
-                        Keylist_Data_Delete_By_Index(pDevice->Object_List, 0);
+                    pObject
+                        = Keylist_Data_Delete_By_Index(pDevice->Object_List, 0);
                     /* free any dynamic memory used */
                     if (pObject) {
                         free(pObject);
@@ -131,8 +131,8 @@ OBJECT_DEVICE_T *objects_device_delete(int index)
 #include "ctest.h"
 
 /* test the object creation and deletion */
-void testBACnetObjectsCompare(Test *pTest, OBJECT_DEVICE_T *pDevice,
-                              uint32_t device_id)
+void testBACnetObjectsCompare(
+    Test *pTest, OBJECT_DEVICE_T *pDevice, uint32_t device_id)
 {
     ct_test(pTest, pDevice != NULL);
     if (pDevice) {
@@ -166,8 +166,8 @@ void testBACnetObjects(Test *pTest)
     for (test_point = 0; test_point < max_test_points; test_point++) {
         device_id = test_point * (BACNET_MAX_INSTANCE / max_test_points);
         pDevice = objects_device_data(test_point);
-        testBACnetObjectsCompare(pTest, pDevice,
-                                 Keylist_Key(Device_List, test_point));
+        testBACnetObjectsCompare(
+            pTest, pDevice, Keylist_Key(Device_List, test_point));
     }
     for (test_point = 0; test_point < max_test_points; test_point++) {
         pDevice = objects_device_delete(0);

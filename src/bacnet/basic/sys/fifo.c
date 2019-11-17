@@ -342,11 +342,11 @@ void FIFO_Init(FIFO_BUFFER *b, volatile uint8_t *buffer, unsigned buffer_len)
 void testFIFOBuffer(Test *pTest)
 {
     /* FIFO data structure */
-    FIFO_BUFFER test_buffer = {0};
+    FIFO_BUFFER test_buffer = { 0 };
     /* FIFO data store. Note:  size must be a power of two! */
-    volatile uint8_t data_store[64] = {0};
-    uint8_t add_data[40] = {"RoseSteveLouPatRachelJessicaDaniAmyHerb"};
-    uint8_t test_add_data[40] = {0};
+    volatile uint8_t data_store[64] = { 0 };
+    uint8_t add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
+    uint8_t test_add_data[40] = { 0 };
     uint8_t test_data = 0;
     unsigned index = 0;
     unsigned count = 0;

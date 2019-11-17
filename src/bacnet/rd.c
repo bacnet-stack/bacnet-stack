@@ -40,9 +40,10 @@
 /** @file rd.c  Encode/Decode Reinitialize Device APDUs */
 #if BACNET_SVC_RD_A
 /* encode service */
-int rd_encode_apdu(uint8_t *apdu, uint8_t invoke_id,
-                   BACNET_REINITIALIZED_STATE state,
-                   BACNET_CHARACTER_STRING *password)
+int rd_encode_apdu(uint8_t *apdu,
+    uint8_t invoke_id,
+    BACNET_REINITIALIZED_STATE state,
+    BACNET_CHARACTER_STRING *password)
 {
     int len = 0;      /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -68,9 +69,10 @@ int rd_encode_apdu(uint8_t *apdu, uint8_t invoke_id,
 #endif
 
 /* decode the service request only */
-int rd_decode_service_request(uint8_t *apdu, unsigned apdu_len,
-                              BACNET_REINITIALIZED_STATE *state,
-                              BACNET_CHARACTER_STRING *password)
+int rd_decode_service_request(uint8_t *apdu,
+    unsigned apdu_len,
+    BACNET_REINITIALIZED_STATE *state,
+    BACNET_CHARACTER_STRING *password)
 {
     unsigned len = 0;
     uint8_t tag_number = 0;
@@ -82,8 +84,8 @@ int rd_decode_service_request(uint8_t *apdu, unsigned apdu_len,
         /* Tag 0: reinitializedStateOfDevice */
         if (!decode_is_context_tag(&apdu[len], 0))
             return -1;
-        len += decode_tag_number_and_value(&apdu[len], &tag_number,
-                                           &len_value_type);
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value);
         if (state)
             *state = (BACNET_REINITIALIZED_STATE)value;
@@ -91,10 +93,10 @@ int rd_decode_service_request(uint8_t *apdu, unsigned apdu_len,
         if (len < apdu_len) {
             if (!decode_is_context_tag(&apdu[len], 1))
                 return -1;
-            len += decode_tag_number_and_value(&apdu[len], &tag_number,
-                                               &len_value_type);
-            len +=
-                decode_character_string(&apdu[len], len_value_type, password);
+            len += decode_tag_number_and_value(
+                &apdu[len], &tag_number, &len_value_type);
+            len += decode_character_string(
+                &apdu[len], len_value_type, password);
         }
     }
 
@@ -106,9 +108,11 @@ int rd_decode_service_request(uint8_t *apdu, unsigned apdu_len,
 #include <string.h>
 #include "ctest.h"
 
-int rd_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id,
-                   BACNET_REINITIALIZED_STATE *state,
-                   BACNET_CHARACTER_STRING *password)
+int rd_decode_apdu(uint8_t *apdu,
+    unsigned apdu_len,
+    uint8_t *invoke_id,
+    BACNET_REINITIALIZED_STATE *state,
+    BACNET_CHARACTER_STRING *password)
 {
     int len = 0;
     unsigned offset = 0;
@@ -125,8 +129,8 @@ int rd_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id,
     offset = 4;
 
     if (apdu_len > offset) {
-        len = rd_decode_service_request(&apdu[offset], apdu_len - offset, state,
-                                        password);
+        len = rd_decode_service_request(
+            &apdu[offset], apdu_len - offset, state, password);
     }
 
     return len;
@@ -134,7 +138,7 @@ int rd_decode_apdu(uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id,
 
 void test_ReinitializeDevice(Test *pTest)
 {
-    uint8_t apdu[480] = {0};
+    uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
     uint8_t invoke_id = 128;
@@ -150,8 +154,8 @@ void test_ReinitializeDevice(Test *pTest)
     ct_test(pTest, len != 0);
     apdu_len = len;
 
-    len = rd_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_state,
-                         &test_password);
+    len = rd_decode_apdu(
+        &apdu[0], apdu_len, &test_invoke_id, &test_state, &test_password);
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest, test_state == state);

@@ -49,12 +49,12 @@
 
 /* global variables used in this file */
 #define MAX_ROUTER_DNETS 64
-static int Target_Router_Networks[MAX_ROUTER_DNETS] = {-1};
+static int Target_Router_Networks[MAX_ROUTER_DNETS] = { -1 };
 
 static bool Error_Detected = false;
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -64,8 +64,8 @@ static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
     Error_Detected = true;
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
     (void)src;
@@ -84,8 +84,8 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the reply (request) coming back */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_add);
     /* handle any errors coming back */
@@ -101,16 +101,15 @@ static void print_usage(char *filename)
 
 static void print_help(char *filename)
 {
-    printf(
-        "Send BACnet I-Am-Router-To-Network message for \n"
-        "one or more networks.\n"
-        "\nDNET:\n"
-        "BACnet destination network number 0-65534\n"
-        "To send a I-Am-Router-To-Network message for DNET 86:\n"
-        "%s 86\n"
-        "To send a I-Am-Router-To-Network message for multiple DNETs\n"
-        "use the following command:\n"
-        "%s 86 42 24 14\n",
+    printf("Send BACnet I-Am-Router-To-Network message for \n"
+           "one or more networks.\n"
+           "\nDNET:\n"
+           "BACnet destination network number 0-65534\n"
+           "To send a I-Am-Router-To-Network message for DNET 86:\n"
+           "%s 86\n"
+           "To send a I-Am-Router-To-Network message for multiple DNETs\n"
+           "use the following command:\n"
+           "%s 86 42 24 14\n",
         filename, filename);
 }
 
@@ -129,12 +128,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
         }
     }
@@ -146,18 +144,18 @@ int main(int argc, char *argv[])
     if (argc > 1) {
         for (arg_count = 1; arg_count < argc; arg_count++) {
             if (arg_count > MAX_ROUTER_DNETS) {
-                fprintf(stderr, "Limited to %u DNETS.  Sorry!\n",
-                        MAX_ROUTER_DNETS);
+                fprintf(
+                    stderr, "Limited to %u DNETS.  Sorry!\n", MAX_ROUTER_DNETS);
                 break;
             }
-            Target_Router_Networks[arg_count - 1] =
-                strtol(argv[arg_count], NULL, 0);
+            Target_Router_Networks[arg_count - 1]
+                = strtol(argv[arg_count], NULL, 0);
             /* mark the end of list */
             Target_Router_Networks[arg_count] = -1;
             /* invalid DNET? */
             if (Target_Router_Networks[arg_count - 1] >= 65535) {
                 fprintf(stderr, "DNET=%u - it must be less than %u\n",
-                        Target_Router_Networks[arg_count - 1], 65535);
+                    Target_Router_Networks[arg_count - 1], 65535);
                 return 1;
             }
         }

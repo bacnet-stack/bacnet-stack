@@ -54,30 +54,22 @@ typedef struct {
 #endif
 
 static BACNET_FILE_LISTING BACnet_File_Listing[] = {
-    {0, "temp_0.txt"},
-    {1, "temp_1.txt"},
-    {2, "temp_2.txt"},
-    {0, NULL} /* last file indication */
+    { 0, "temp_0.txt" }, { 1, "temp_1.txt" }, { 2, "temp_2.txt" },
+    { 0, NULL } /* last file indication */
 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int bacfile_Properties_Required[] = {PROP_OBJECT_IDENTIFIER,
-                                                  PROP_OBJECT_NAME,
-                                                  PROP_OBJECT_TYPE,
-                                                  PROP_FILE_TYPE,
-                                                  PROP_FILE_SIZE,
-                                                  PROP_MODIFICATION_DATE,
-                                                  PROP_ARCHIVE,
-                                                  PROP_READ_ONLY,
-                                                  PROP_FILE_ACCESS_METHOD,
-                                                  -1};
+static const int bacfile_Properties_Required[]
+    = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+          PROP_FILE_TYPE, PROP_FILE_SIZE, PROP_MODIFICATION_DATE, PROP_ARCHIVE,
+          PROP_READ_ONLY, PROP_FILE_ACCESS_METHOD, -1 };
 
-static const int bacfile_Properties_Optional[] = {PROP_DESCRIPTION, -1};
+static const int bacfile_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int bacfile_Properties_Proprietary[] = {-1};
+static const int bacfile_Properties_Proprietary[] = { -1 };
 
-void BACfile_Property_Lists(const int **pRequired, const int **pOptional,
-                            const int **pProprietary)
+void BACfile_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = bacfile_Properties_Required;
@@ -106,8 +98,8 @@ static char *bacfile_name(uint32_t instance)
     return filename;
 }
 
-bool bacfile_object_name(uint32_t instance,
-                         BACNET_CHARACTER_STRING *object_name)
+bool bacfile_object_name(
+    uint32_t instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
     char *filename = NULL;
@@ -190,42 +182,42 @@ unsigned bacfile_file_size(uint32_t object_instance)
 int bacfile_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    char text_string[32] = {""};
+    char text_string[32] = { "" };
     BACNET_CHARACTER_STRING char_string;
     BACNET_DATE bdate;
     BACNET_TIME btime;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL)
+        || (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(&apdu[0], OBJECT_FILE,
-                                                    rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_FILE, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             sprintf(text_string, "FILE %lu",
-                    (unsigned long)rpdata->object_instance);
+                (unsigned long)rpdata->object_instance);
             characterstring_init_ansi(&char_string, text_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_FILE);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                                      bacfile_name(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            characterstring_init_ansi(
+                &char_string, bacfile_name(rpdata->object_instance));
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FILE_TYPE:
             characterstring_init_ansi(&char_string, "TEXT");
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FILE_SIZE:
             apdu_len = encode_application_unsigned(
@@ -293,8 +285,8 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
-                                         wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -310,9 +302,8 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                property shall be logical TRUE only if no changes have been
                made to the file data by internal processes or through File
                Access Services since the last time the object was archived. */
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                                  &wp_data->error_class, &wp_data->error_code);
+            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Boolean) {
                     /* FIXME: do something to wp_data->object_instance */
@@ -325,9 +316,9 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* If the file size can be changed by writing to the file,
                and File_Access_Method is STREAM_ACCESS, then this property
                shall be writable. */
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                                  &wp_data->error_class, &wp_data->error_code);
+            status
+                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                    &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 /* FIXME: do something with value.type.Unsigned
                    to wp_data->object_instance */
@@ -378,31 +369,30 @@ uint32_t bacfile_instance(char *filename)
 /* when the request was sent */
 uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
 {
-    BACNET_NPDU_DATA npdu_data = {0}; /* dummy for getting npdu length */
-    BACNET_CONFIRMED_SERVICE_DATA service_data = {0};
+    BACNET_NPDU_DATA npdu_data = { 0 }; /* dummy for getting npdu length */
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
-    BACNET_ADDRESS dest;         /* where the original packet was destined */
-    uint8_t apdu[MAX_PDU] = {0}; /* original APDU packet */
-    uint16_t apdu_len = 0;       /* original APDU packet length */
-    int len = 0;                 /* apdu header length */
-    BACNET_ATOMIC_READ_FILE_DATA data = {0};
+    BACNET_ADDRESS dest;           /* where the original packet was destined */
+    uint8_t apdu[MAX_PDU] = { 0 }; /* original APDU packet */
+    uint16_t apdu_len = 0;         /* original APDU packet length */
+    int len = 0;                   /* apdu header length */
+    BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     uint32_t object_instance = BACNET_MAX_INSTANCE + 1; /* return value */
     bool found = false;
 
-    found = tsm_get_transaction_pdu(invokeID, &dest, &npdu_data, &apdu[0],
-                                    &apdu_len);
+    found = tsm_get_transaction_pdu(
+        invokeID, &dest, &npdu_data, &apdu[0], &apdu_len);
     if (found) {
-        if (!npdu_data.network_layer_message &&
-            npdu_data.data_expecting_reply &&
-            (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
-            len = apdu_decode_confirmed_service_request(
-                &apdu[0], apdu_len, &service_data, &service_choice,
-                &service_request, &service_request_len);
+        if (!npdu_data.network_layer_message && npdu_data.data_expecting_reply
+            && (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+            len = apdu_decode_confirmed_service_request(&apdu[0], apdu_len,
+                &service_data, &service_choice, &service_request,
+                &service_request_len);
             if (service_choice == SERVICE_CONFIRMED_ATOMIC_READ_FILE) {
-                len = arf_decode_service_request(service_request,
-                                                 service_request_len, &data);
+                len = arf_decode_service_request(
+                    service_request, service_request_len, &data);
                 if (len > 0) {
                     if (data.object_type == OBJECT_FILE)
                         object_instance = data.object_instance;
@@ -429,7 +419,7 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
         if (pFile) {
             (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
             len = fread(octetstring_value(&data->fileData[0]), 1,
-                        data->type.stream.requestedOctetCount, pFile);
+                data->type.stream.requestedOctetCount, pFile);
             if (len < data->type.stream.requestedOctetCount)
                 data->endOfFile = true;
             else
@@ -471,11 +461,12 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
         }
         if (pFile) {
             if (data->type.stream.fileStartPosition != -1) {
-                (void)fseek(pFile, data->type.stream.fileStartPosition,
-                            SEEK_SET);
+                (void)fseek(
+                    pFile, data->type.stream.fileStartPosition, SEEK_SET);
             }
             if (fwrite(octetstring_value(&data->fileData[0]),
-                       octetstring_length(&data->fileData[0]), 1, pFile) != 1) {
+                    octetstring_length(&data->fileData[0]), 1, pFile)
+                != 1) {
                 /* do something if it fails? */
             }
             fclose(pFile);
@@ -510,8 +501,8 @@ bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
             pFile = fopen(pFilename, "rb+");
         }
         if (pFile) {
-            if ((data->type.record.fileStartRecord != -1) &&
-                (data->type.record.fileStartRecord > 0)) {
+            if ((data->type.record.fileStartRecord != -1)
+                && (data->type.record.fileStartRecord > 0)) {
                 for (i = 0; i < (uint32_t)data->type.record.fileStartRecord;
                      i++) {
                     pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
@@ -522,8 +513,8 @@ bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
             }
             for (i = 0; i < data->type.record.returnedRecordCount; i++) {
                 if (fwrite(octetstring_value(&data->fileData[i]),
-                           octetstring_length(&data->fileData[i]), 1,
-                           pFile) != 1) {
+                        octetstring_length(&data->fileData[i]), 1, pFile)
+                    != 1) {
                     /* do something if it fails? */
                 }
             }
@@ -534,8 +525,8 @@ bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
     return found;
 }
 
-bool bacfile_read_ack_stream_data(uint32_t instance,
-                                  BACNET_ATOMIC_READ_FILE_DATA *data)
+bool bacfile_read_ack_stream_data(
+    uint32_t instance, BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     bool found = false;
     FILE *pFile = NULL;
@@ -548,10 +539,11 @@ bool bacfile_read_ack_stream_data(uint32_t instance,
         if (pFile) {
             (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
             if (fwrite(octetstring_value(&data->fileData[0]),
-                       octetstring_length(&data->fileData[0]), 1, pFile) != 1) {
+                    octetstring_length(&data->fileData[0]), 1, pFile)
+                != 1) {
 #if PRINT_ENABLED
                 fprintf(stderr, "Failed to write to %s (%lu)!\n", pFilename,
-                        (unsigned long)instance);
+                    (unsigned long)instance);
 #endif
             }
             fclose(pFile);
@@ -561,14 +553,14 @@ bool bacfile_read_ack_stream_data(uint32_t instance,
     return found;
 }
 
-bool bacfile_read_ack_record_data(uint32_t instance,
-                                  BACNET_ATOMIC_READ_FILE_DATA *data)
+bool bacfile_read_ack_record_data(
+    uint32_t instance, BACNET_ATOMIC_READ_FILE_DATA *data)
 {
     bool found = false;
     FILE *pFile = NULL;
     char *pFilename = NULL;
     uint32_t i = 0;
-    char dummy_data[MAX_OCTET_STRING_BYTES] = {0};
+    char dummy_data[MAX_OCTET_STRING_BYTES] = { 0 };
     char *pData = NULL;
 
     pFilename = bacfile_name(instance);
@@ -587,11 +579,11 @@ bool bacfile_read_ack_record_data(uint32_t instance,
             }
             for (i = 0; i < data->type.record.RecordCount; i++) {
                 if (fwrite(octetstring_value(&data->fileData[i]),
-                           octetstring_length(&data->fileData[i]), 1,
-                           pFile) != 1) {
+                        octetstring_length(&data->fileData[i]), 1, pFile)
+                    != 1) {
 #if PRINT_ENABLED
                     fprintf(stderr, "Failed to write to %s (%lu)!\n", pFilename,
-                            (unsigned long)instance);
+                        (unsigned long)instance);
 #endif
                 }
             }

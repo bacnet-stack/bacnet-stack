@@ -51,18 +51,17 @@ static char Object_Name[MAX_CHARACTERSTRING_VALUES][64];
 static char Object_Description[MAX_CHARACTERSTRING_VALUES][64];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,     PROP_STATUS_FLAGS, -1};
+static const int Properties_Required[]
+    = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+          PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, -1 };
 
-static const int Properties_Optional[] = {PROP_EVENT_STATE, PROP_OUT_OF_SERVICE,
-                                          PROP_DESCRIPTION, -1};
+static const int Properties_Optional[]
+    = { PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
 
-static const int Properties_Proprietary[] = {-1};
+static const int Properties_Proprietary[] = { -1 };
 
-void CharacterString_Value_Property_Lists(const int **pRequired,
-                                          const int **pOptional,
-                                          const int **pProprietary)
+void CharacterString_Value_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -81,9 +80,9 @@ void CharacterString_Value_Init(void)
     /* initialize all Present Values */
     for (i = 0; i < MAX_CHARACTERSTRING_VALUES; i++) {
         snprintf(&Object_Name[i][0], sizeof(Object_Name[i]),
-                 "CHARACTER STRING VALUE %u", i + 1);
+            "CHARACTER STRING VALUE %u", i + 1);
         snprintf(&Object_Description[i][0], sizeof(Object_Description[i]),
-                 "A Character String Value Example");
+            "A Character String Value Example");
         characterstring_init_ansi(&Present_Value[i], "");
     }
 
@@ -131,8 +130,8 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
-bool CharacterString_Value_Present_Value(uint32_t object_instance,
-                                         BACNET_CHARACTER_STRING *object_name)
+bool CharacterString_Value_Present_Value(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
     unsigned index = 0; /* offset from instance lookup */
@@ -172,8 +171,8 @@ bool CharacterString_Value_Out_Of_Service(uint32_t object_instance)
     return value;
 }
 
-static void CharacterString_Value_Out_Of_Service_Set(uint32_t object_instance,
-                                                     bool value)
+static void CharacterString_Value_Out_Of_Service_Set(
+    uint32_t object_instance, bool value)
 {
     unsigned index = 0;
 
@@ -198,8 +197,8 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
     return pName;
 }
 
-bool CharacterString_Value_Description_Set(uint32_t object_instance,
-                                           char *new_name)
+bool CharacterString_Value_Description_Set(
+    uint32_t object_instance, char *new_name)
 {
     unsigned index = 0;  /* offset from instance lookup */
     size_t i = 0;        /* loop counter */
@@ -225,8 +224,8 @@ bool CharacterString_Value_Description_Set(uint32_t object_instance,
     return status;
 }
 
-bool CharacterString_Value_Object_Name(uint32_t object_instance,
-                                       BACNET_CHARACTER_STRING *object_name)
+bool CharacterString_Value_Object_Name(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
@@ -277,41 +276,39 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL)
+        || (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len = encode_application_object_id(
-                &apdu[0], OBJECT_CHARACTERSTRING_VALUE,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(&apdu[0],
+                OBJECT_CHARACTERSTRING_VALUE, rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-            CharacterString_Value_Object_Name(rpdata->object_instance,
-                                              &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            CharacterString_Value_Object_Name(
+                rpdata->object_instance, &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(
-                &char_string,
+            characterstring_init_ansi(&char_string,
                 CharacterString_Value_Description(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(
                 &apdu[0], OBJECT_CHARACTERSTRING_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            CharacterString_Value_Present_Value(rpdata->object_instance,
-                                                &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            CharacterString_Value_Present_Value(
+                rpdata->object_instance, &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
@@ -320,18 +317,18 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             if (CharacterString_Value_Out_Of_Service(rpdata->object_instance)) {
-                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                                  true);
+                bitstring_set_bit(
+                    &bit_string, STATUS_FLAG_OUT_OF_SERVICE, true);
             } else {
-                bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                                  false);
+                bitstring_set_bit(
+                    &bit_string, STATUS_FLAG_OUT_OF_SERVICE, false);
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
         case PROP_EVENT_STATE:
             /* note: see the details in the standard on how to use this */
-            apdu_len =
-                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len
+                = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
             object_index = CharacterString_Value_Instance_To_Index(
@@ -346,8 +343,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT)
+        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -364,8 +361,8 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
-                                         wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -375,9 +372,9 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = WPValidateArgType(
-                &value, BACNET_APPLICATION_TAG_CHARACTER_STRING,
-                &wp_data->error_class, &wp_data->error_code);
+            status = WPValidateArgType(&value,
+                BACNET_APPLICATION_TAG_CHARACTER_STRING, &wp_data->error_class,
+                &wp_data->error_code);
             if (status) {
                 status = CharacterString_Value_Present_Value_Set(
                     wp_data->object_instance, &value.type.Character_String);
@@ -388,9 +385,8 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                                  &wp_data->error_class, &wp_data->error_code);
+            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
+                &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 CharacterString_Value_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
@@ -420,8 +416,9 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #include "ctest.h"
 
 bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
-                       BACNET_ERROR_CODE *pErrorCode)
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS *pErrorClass,
+    BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -433,7 +430,7 @@ bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
 
 void testCharacterStringValue(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = {0};
+    uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;

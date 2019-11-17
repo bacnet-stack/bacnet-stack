@@ -96,8 +96,9 @@ bool property_list_member(const int *pList, int object_property)
  * BACNET_STATUS_ERROR on error.
  */
 int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
-                         const int *pListRequired, const int *pListOptional,
-                         const int *pListProprietary)
+    const int *pListRequired,
+    const int *pListOptional,
+    const int *pListProprietary)
 {
     int apdu_len = 0; /* return value */
     uint8_t *apdu = NULL;
@@ -118,8 +119,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
         /* less the 3 always required properties */
         count -= 3;
     }
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL)
+        || (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -135,9 +136,9 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                 /* into one packet. */
                 if (required_count > 3) {
                     for (i = 0; i < required_count; i++) {
-                        if ((pListRequired[i] == PROP_OBJECT_TYPE) ||
-                            (pListRequired[i] == PROP_OBJECT_IDENTIFIER) ||
-                            (pListRequired[i] == PROP_OBJECT_NAME)) {
+                        if ((pListRequired[i] == PROP_OBJECT_TYPE)
+                            || (pListRequired[i] == PROP_OBJECT_IDENTIFIER)
+                            || (pListRequired[i] == PROP_OBJECT_NAME)) {
                             continue;
                         } else {
                             len = encode_application_enumerated(
@@ -147,8 +148,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
                         } else {
-                            rpdata->error_code =
-                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            rpdata->error_code
+                                = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
@@ -162,8 +163,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
                         } else {
-                            rpdata->error_code =
-                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            rpdata->error_code
+                                = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
@@ -177,8 +178,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                         if ((apdu_len + len) < max_apdu_len) {
                             apdu_len += len;
                         } else {
-                            rpdata->error_code =
-                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            rpdata->error_code
+                                = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
@@ -189,9 +190,9 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                     count = 0;
                     if (required_count > 3) {
                         for (i = 0; i < required_count; i++) {
-                            if ((pListRequired[i] == PROP_OBJECT_TYPE) ||
-                                (pListRequired[i] == PROP_OBJECT_IDENTIFIER) ||
-                                (pListRequired[i] == PROP_OBJECT_NAME)) {
+                            if ((pListRequired[i] == PROP_OBJECT_TYPE)
+                                || (pListRequired[i] == PROP_OBJECT_IDENTIFIER)
+                                || (pListRequired[i] == PROP_OBJECT_NAME)) {
                                 continue;
                             } else {
                                 count++;

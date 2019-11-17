@@ -208,8 +208,8 @@ int encode_bacnet_double(double value, uint8_t *apdu)
     return 8;
 }
 
-int decode_context_double(uint8_t *apdu, uint8_t tag_number,
-                          double *double_value)
+int decode_context_double(
+    uint8_t *apdu, uint8_t tag_number, double *double_value)
 {
     uint32_t len_value;
     int len = 0;
@@ -234,7 +234,7 @@ int decode_context_double(uint8_t *apdu, uint8_t tag_number,
 void testBACreal(Test *pTest)
 {
     float real_value = 3.14159F, test_real_value = 0.0;
-    uint8_t apdu[MAX_APDU] = {0};
+    uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
 
     len = encode_bacnet_real(real_value, &apdu[0]);
@@ -247,7 +247,7 @@ void testBACreal(Test *pTest)
 void testBACdouble(Test *pTest)
 {
     double double_value = 3.1415927, test_double_value = 0.0;
-    uint8_t apdu[MAX_APDU] = {0};
+    uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
 
     len = encode_bacnet_double(double_value, &apdu[0]);

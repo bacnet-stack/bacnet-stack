@@ -58,7 +58,7 @@
 #endif
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
@@ -79,46 +79,48 @@ static BACNET_ADDRESS Target_Address;
 /* needed for return value of main application */
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                           BACNET_ERROR_CLASS error_class,
-                           BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\n",
-               bactext_error_class_name((int)error_class),
-               bactext_error_code_name((int)error_code));
+            bactext_error_class_name((int)error_class),
+            bactext_error_code_name((int)error_code));
         Error_Detected = true;
     }
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\n",
-               bactext_abort_reason_name((int)abort_reason));
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
+        printf(
+            "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\n",
-               bactext_reject_reason_name((int)reject_reason));
+            bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
-static void MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
+static void MyWritePropertySimpleAckHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("\nWriteProperty Acknowledged!\n");
     }
 }
@@ -135,11 +137,11 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack coming back */
-    apdu_set_confirmed_simple_ack_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-                                          MyWritePropertySimpleAckHandler);
+    apdu_set_confirmed_simple_ack_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, MyWritePropertySimpleAckHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_WRITE_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -148,9 +150,8 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(char *filename)
 {
-    printf(
-        "Usage: %s device-instance object-type object-instance "
-        "property priority index tag value [tag value...]\n",
+    printf("Usage: %s device-instance object-type object-instance "
+           "property priority index tag value [tag value...]\n",
         filename);
 }
 
@@ -229,7 +230,7 @@ static void print_help(char *filename)
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
@@ -253,14 +254,13 @@ int main(int argc, char *argv[])
             return 0;
         }
         if (strcmp(argv[argi], "--version") == 0) {
-            printf("%s %s\n", filename_remove_path(argv[0]),
-                   BACNET_VERSION_TEXT);
             printf(
-                "Copyright (C) 2014 by Steve Karg\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+                "%s %s\n", filename_remove_path(argv[0]), BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2014 by Steve Karg\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
     }
@@ -279,22 +279,22 @@ int main(int argc, char *argv[])
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\n",
-                Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (Target_Object_Type > MAX_BACNET_OBJECT_TYPE) {
         fprintf(stderr, "object-type=%u - it must be less than %u\n",
-                Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
+            Target_Object_Type, MAX_BACNET_OBJECT_TYPE + 1);
         return 1;
     }
     if (Target_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-                Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
+            Target_Object_Instance, BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (Target_Object_Property > MAX_BACNET_PROPERTY_ID) {
         fprintf(stderr, "property=%u - it must be less than %u\n",
-                Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
+            Target_Object_Property, MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
     args_remaining = (argc - 7);
@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
            i, property_tag, i, value_string); */
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
             fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
-                    property_tag, MAX_BACNET_APPLICATION_TAG);
+                property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
         status = bacapp_parse_application_data(
@@ -337,8 +337,8 @@ int main(int argc, char *argv[])
         }
         Target_Object_Property_Value[i].next = NULL;
         if (i > 0) {
-            Target_Object_Property_Value[i - 1].next =
-                &Target_Object_Property_Value[i];
+            Target_Object_Property_Value[i - 1].next
+                = &Target_Object_Property_Value[i];
         }
         if (args_remaining <= 0) {
             break;
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
     }
     if (args_remaining > 0) {
         fprintf(stderr, "Error: Exceeded %d tag-value pairs.\n",
-                MAX_PROPERTY_VALUES);
+            MAX_PROPERTY_VALUES);
         return 1;
     }
     /* setup my info */
@@ -359,11 +359,11 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                                 &Target_Address);
+    found = address_bind_request(
+        Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (!found) {
-        Send_WhoIs(Target_Device_Object_Instance,
-                   Target_Device_Object_Instance);
+        Send_WhoIs(
+            Target_Device_Object_Instance, Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -378,8 +378,8 @@ int main(int argc, char *argv[])
             break;
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found = address_bind_request(Target_Device_Object_Instance,
-                                         &max_apdu, &Target_Address);
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
         if (found) {
             if (Request_Invoke_ID == 0) {

@@ -28,7 +28,7 @@
 #include "bacnet/access_rule.h"
 #include "bacnet/bacdcode.h"
 
-int bacapp_encode_access_rule(uint8_t* apdu, BACNET_ACCESS_RULE* rule)
+int bacapp_encode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
 {
     int len;
     int apdu_len = 0;
@@ -37,21 +37,21 @@ int bacapp_encode_access_rule(uint8_t* apdu, BACNET_ACCESS_RULE* rule)
     apdu_len += len;
 
     if (rule->time_range_specifier == TIME_RANGE_SPECIFIER_SPECIFIED) {
-        len = bacapp_encode_context_device_obj_property_ref(&apdu[apdu_len], 1,
-                                                            &rule->time_range);
+        len = bacapp_encode_context_device_obj_property_ref(
+            &apdu[apdu_len], 1, &rule->time_range);
         if (len > 0)
             apdu_len += len;
         else
             return -1;
     }
 
-    len =
-        encode_context_enumerated(&apdu[apdu_len], 2, rule->location_specifier);
+    len = encode_context_enumerated(
+        &apdu[apdu_len], 2, rule->location_specifier);
     apdu_len += len;
 
     if (rule->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {
-        len = bacapp_encode_context_device_obj_property_ref(&apdu[apdu_len], 3,
-                                                            &rule->location);
+        len = bacapp_encode_context_device_obj_property_ref(
+            &apdu[apdu_len], 3, &rule->location);
         if (len > 0)
             apdu_len += len;
         else
@@ -64,8 +64,8 @@ int bacapp_encode_access_rule(uint8_t* apdu, BACNET_ACCESS_RULE* rule)
     return apdu_len;
 }
 
-int bacapp_encode_context_access_rule(uint8_t* apdu, uint8_t tag_number,
-                                      BACNET_ACCESS_RULE* rule)
+int bacapp_encode_context_access_rule(
+    uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *rule)
 {
     int len;
     int apdu_len = 0;
@@ -82,14 +82,14 @@ int bacapp_encode_context_access_rule(uint8_t* apdu, uint8_t tag_number,
     return apdu_len;
 }
 
-int bacapp_decode_access_rule(uint8_t* apdu, BACNET_ACCESS_RULE* rule)
+int bacapp_decode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
 {
     int len;
     int apdu_len = 0;
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
-        len = decode_context_enumerated(&apdu[apdu_len], 0,
-                                        &rule->time_range_specifier);
+        len = decode_context_enumerated(
+            &apdu[apdu_len], 0, &rule->time_range_specifier);
         if (len < 0)
             return -1;
         else
@@ -110,8 +110,8 @@ int bacapp_decode_access_rule(uint8_t* apdu, BACNET_ACCESS_RULE* rule)
     }
 
     if (decode_is_context_tag(&apdu[apdu_len], 2)) {
-        len = decode_context_enumerated(&apdu[apdu_len], 2,
-                                        &rule->location_specifier);
+        len = decode_context_enumerated(
+            &apdu[apdu_len], 2, &rule->location_specifier);
         if (len < 0)
             return -1;
         else
@@ -143,8 +143,8 @@ int bacapp_decode_access_rule(uint8_t* apdu, BACNET_ACCESS_RULE* rule)
     return apdu_len;
 }
 
-int bacapp_decode_context_access_rule(uint8_t* apdu, uint8_t tag_number,
-                                      BACNET_ACCESS_RULE* rule)
+int bacapp_decode_context_access_rule(
+    uint8_t *apdu, uint8_t tag_number, BACNET_ACCESS_RULE *rule)
 {
     int len = 0;
     int section_length;

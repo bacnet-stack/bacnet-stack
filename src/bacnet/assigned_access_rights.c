@@ -26,14 +26,14 @@
 #include "bacnet/assigned_access_rights.h"
 #include "bacnet/bacdcode.h"
 
-int bacapp_encode_assigned_access_rights(uint8_t* apdu,
-                                         BACNET_ASSIGNED_ACCESS_RIGHTS* aar)
+int bacapp_encode_assigned_access_rights(
+    uint8_t *apdu, BACNET_ASSIGNED_ACCESS_RIGHTS *aar)
 {
     int len;
     int apdu_len = 0;
 
-    len = bacapp_encode_context_device_obj_ref(&apdu[apdu_len], 0,
-                                               &aar->assigned_access_rights);
+    len = bacapp_encode_context_device_obj_ref(
+        &apdu[apdu_len], 0, &aar->assigned_access_rights);
     if (len < 0)
         return -1;
     else
@@ -49,7 +49,7 @@ int bacapp_encode_assigned_access_rights(uint8_t* apdu,
 }
 
 int bacapp_encode_context_assigned_access_rights(
-    uint8_t* apdu, uint8_t tag, BACNET_ASSIGNED_ACCESS_RIGHTS* aar)
+    uint8_t *apdu, uint8_t tag, BACNET_ASSIGNED_ACCESS_RIGHTS *aar)
 {
     int len;
     int apdu_len = 0;
@@ -66,8 +66,8 @@ int bacapp_encode_context_assigned_access_rights(
     return apdu_len;
 }
 
-int bacapp_decode_assigned_access_rights(uint8_t* apdu,
-                                         BACNET_ASSIGNED_ACCESS_RIGHTS* aar)
+int bacapp_decode_assigned_access_rights(
+    uint8_t *apdu, BACNET_ASSIGNED_ACCESS_RIGHTS *aar)
 {
     int len;
     int apdu_len = 0;
@@ -95,7 +95,7 @@ int bacapp_decode_assigned_access_rights(uint8_t* apdu,
 }
 
 int bacapp_decode_context_assigned_access_rights(
-    uint8_t* apdu, uint8_t tag, BACNET_ASSIGNED_ACCESS_RIGHTS* aar)
+    uint8_t *apdu, uint8_t tag, BACNET_ASSIGNED_ACCESS_RIGHTS *aar)
 {
     int len = 0;
     int section_length;

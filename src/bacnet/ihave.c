@@ -50,17 +50,15 @@ int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
         apdu_len = 2;
         /* deviceIdentifier */
         len = encode_application_object_id(&apdu[apdu_len],
-                                           (int)data->device_id.type,
-                                           data->device_id.instance);
+            (int)data->device_id.type, data->device_id.instance);
         apdu_len += len;
         /* objectIdentifier */
         len = encode_application_object_id(&apdu[apdu_len],
-                                           (int)data->object_id.type,
-                                           data->object_id.instance);
+            (int)data->object_id.type, data->object_id.instance);
         apdu_len += len;
         /* objectName */
-        len = encode_application_character_string(&apdu[apdu_len],
-                                                  &data->object_name);
+        len = encode_application_character_string(
+            &apdu[apdu_len], &data->object_name);
         apdu_len += len;
     }
 
@@ -70,8 +68,8 @@ int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
 #if BACNET_SVC_I_HAVE_A
 
 /* decode the service request only */
-int ihave_decode_service_request(uint8_t *apdu, unsigned apdu_len,
-                                 BACNET_I_HAVE_DATA *data)
+int ihave_decode_service_request(
+    uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
 {
     int len = 0;
     uint8_t tag_number = 0;
@@ -82,24 +80,24 @@ int ihave_decode_service_request(uint8_t *apdu, unsigned apdu_len,
         /* deviceIdentifier */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            len += decode_object_id(&apdu[len], &decoded_type,
-                                    &data->device_id.instance);
+            len += decode_object_id(
+                &apdu[len], &decoded_type, &data->device_id.instance);
             data->device_id.type = decoded_type;
         } else
             return -1;
         /* objectIdentifier */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
-            len += decode_object_id(&apdu[len], &decoded_type,
-                                    &data->object_id.instance);
+            len += decode_object_id(
+                &apdu[len], &decoded_type, &data->object_id.instance);
             data->object_id.type = decoded_type;
         } else
             return -1;
         /* objectName */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-            len += decode_character_string(&apdu[len], len_value,
-                                           &data->object_name);
+            len += decode_character_string(
+                &apdu[len], len_value, &data->object_name);
         } else
             return -1;
     } else
@@ -108,8 +106,8 @@ int ihave_decode_service_request(uint8_t *apdu, unsigned apdu_len,
     return len;
 }
 
-int ihave_decode_apdu(uint8_t *apdu, unsigned apdu_len,
-                      BACNET_I_HAVE_DATA *data)
+int ihave_decode_apdu(
+    uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
 {
     int len = 0;
 
@@ -133,7 +131,7 @@ int ihave_decode_apdu(uint8_t *apdu, unsigned apdu_len,
 
 void testIHaveData(Test *pTest, BACNET_I_HAVE_DATA *data)
 {
-    uint8_t apdu[480] = {0};
+    uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
     BACNET_I_HAVE_DATA test_data;
@@ -149,7 +147,7 @@ void testIHaveData(Test *pTest, BACNET_I_HAVE_DATA *data)
     ct_test(pTest, test_data.object_id.type == data->object_id.type);
     ct_test(pTest, test_data.object_id.instance == data->object_id.instance);
     ct_test(pTest,
-            characterstring_same(&test_data.object_name, &data->object_name));
+        characterstring_same(&test_data.object_name, &data->object_name));
 }
 
 void testIHave(Test *pTest)

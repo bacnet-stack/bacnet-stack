@@ -55,7 +55,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* converted command line arguments */
 static bool Target_Broadcast;
@@ -76,38 +76,39 @@ static uint8_t Request_Invoke_ID = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                           BACNET_ERROR_CLASS error_class,
-                           BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\r\n",
-               bactext_error_class_name((int)error_class),
-               bactext_error_code_name((int)error_code));
+            bactext_error_class_name((int)error_class),
+            bactext_error_code_name((int)error_code));
         Error_Detected = true;
     }
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\r\n",
-               bactext_abort_reason_name((int)abort_reason));
+            bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\r\n",
-               bactext_reject_reason_name((int)reject_reason));
+            bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
@@ -124,11 +125,11 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the data coming back from requests */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
-                                 handler_unconfirmed_private_transfer);
+        handler_unconfirmed_private_transfer);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -137,7 +138,7 @@ static void Init_Service_Handlers(void)
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 10; /* milliseconds */
     unsigned max_apdu = 0;
@@ -153,15 +154,14 @@ int main(int argc, char *argv[])
     int args_remaining = 0, tag_value_arg = 0, i = 0;
     BACNET_APPLICATION_TAG property_tag;
     uint8_t context_tag = 0;
-    BACNET_PRIVATE_TRANSFER_DATA private_data = {0};
+    BACNET_PRIVATE_TRANSFER_DATA private_data = { 0 };
     int len = 0;
     bool sent_message = false;
 
     if (argc < 6) {
         filename = filename_remove_path(argv[0]);
-        printf(
-            "Usage: %s <device-instance|broadcast|dnet=> vendor-id"
-            " service-number tag value [tag value...]\r\n",
+        printf("Usage: %s <device-instance|broadcast|dnet=> vendor-id"
+               " service-number tag value [tag value...]\r\n",
             filename);
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
             printf(
@@ -225,10 +225,10 @@ int main(int argc, char *argv[])
     }
     Target_Vendor_Identifier = strtol(argv[2], NULL, 0);
     Target_Service_Number = strtol(argv[3], NULL, 0);
-    if ((!Target_Broadcast) &&
-        (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
+    if ((!Target_Broadcast)
+        && (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     args_remaining = (argc - (6 - 2));
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
            i, property_tag, i, value_string); */
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
             fprintf(stderr, "Error: tag=%u - it must be less than %u\r\n",
-                    property_tag, MAX_BACNET_APPLICATION_TAG);
+                property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
         status = bacapp_parse_application_data(
@@ -268,8 +268,8 @@ int main(int argc, char *argv[])
         }
         Target_Object_Property_Value[i].next = NULL;
         if (i > 0) {
-            Target_Object_Property_Value[i - 1].next =
-                &Target_Object_Property_Value[i];
+            Target_Object_Property_Value[i - 1].next
+                = &Target_Object_Property_Value[i];
         }
         if (args_remaining <= 0) {
             break;
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
     }
     if (args_remaining > 0) {
         fprintf(stderr, "Error: Exceeded %d tag-value pairs.\r\n",
-                MAX_PROPERTY_VALUES);
+            MAX_PROPERTY_VALUES);
         return 1;
     }
     /* setup my info */
@@ -296,11 +296,11 @@ int main(int argc, char *argv[])
     } else {
         timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
         /* try to bind with the device */
-        found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                                     &Target_Address);
+        found = address_bind_request(
+            Target_Device_Object_Instance, &max_apdu, &Target_Address);
         if (!found) {
-            Send_WhoIs(Target_Device_Object_Instance,
-                       Target_Device_Object_Instance);
+            Send_WhoIs(
+                Target_Device_Object_Instance, Target_Device_Object_Instance);
         }
     }
     /* loop forever */
@@ -318,13 +318,13 @@ int main(int argc, char *argv[])
             break;
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found = address_bind_request(Target_Device_Object_Instance,
-                                         &max_apdu, &Target_Address);
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
         if (!sent_message) {
             if (found) {
-                len = bacapp_encode_data(&Service_Parameters[0],
-                                         &Target_Object_Property_Value[0]);
+                len = bacapp_encode_data(
+                    &Service_Parameters[0], &Target_Object_Property_Value[0]);
                 private_data.serviceParameters = &Service_Parameters[0];
                 private_data.serviceParametersLen = len;
                 private_data.vendorID = Target_Vendor_Identifier;
@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
                 printf("Sent PrivateTransfer.");
                 if (timeout_seconds) {
                     printf(" Waiting %u seconds.\r\n",
-                           (unsigned)(timeout_seconds - elapsed_seconds));
+                        (unsigned)(timeout_seconds - elapsed_seconds));
                 } else {
                     printf("\r\n");
                 }

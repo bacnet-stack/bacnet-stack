@@ -42,17 +42,16 @@ static bool Access_User_Initialized = false;
 static ACCESS_USER_DESCR au_descr[MAX_ACCESS_USERS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,  PROP_OBJECT_TYPE,
-    PROP_GLOBAL_IDENTIFIER, PROP_STATUS_FLAGS, PROP_RELIABILITY,
-    PROP_USER_TYPE,         PROP_CREDENTIALS,  -1};
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_GLOBAL_IDENTIFIER,
+    PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_USER_TYPE, PROP_CREDENTIALS, -1 };
 
-static const int Properties_Optional[] = {-1};
+static const int Properties_Optional[] = { -1 };
 
-static const int Properties_Proprietary[] = {-1};
+static const int Properties_Proprietary[] = { -1 };
 
-void Access_User_Property_Lists(const int **pRequired, const int **pOptional,
-                                const int **pProprietary)
+void Access_User_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -72,8 +71,8 @@ void Access_User_Init(void)
         Access_User_Initialized = true;
 
         for (i = 0; i < MAX_ACCESS_USERS; i++) {
-            au_descr[i].global_identifier =
-                0; /* set to some meaningful value */
+            au_descr[i].global_identifier
+                = 0; /* set to some meaningful value */
             au_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
             au_descr[i].user_type = ACCESS_USER_TYPE_PERSON;
             au_descr[i].credentials_count = 0;
@@ -124,8 +123,8 @@ unsigned Access_User_Instance_To_Index(uint32_t object_instance)
 }
 
 /* note: the object name must be unique within this device */
-bool Access_User_Object_Name(uint32_t object_instance,
-                             BACNET_CHARACTER_STRING *object_name)
+bool Access_User_Object_Name(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
@@ -149,8 +148,8 @@ int Access_User_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned i = 0;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL)
+        || (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -162,12 +161,12 @@ int Access_User_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Access_User_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_ACCESS_USER);
+            apdu_len
+                = encode_application_enumerated(&apdu[0], OBJECT_ACCESS_USER);
             break;
         case PROP_GLOBAL_IDENTIFIER:
             apdu_len = encode_application_unsigned(
@@ -196,8 +195,8 @@ int Access_User_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (apdu_len + len < MAX_APDU)
                     apdu_len += len;
                 else {
-                    rpdata->error_code =
-                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpdata->error_code
+                        = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
                     break;
                 }
@@ -228,8 +227,8 @@ bool Access_User_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned object_index = 0;
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
-                                         wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -246,12 +245,12 @@ bool Access_User_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index = Access_User_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                                  &wp_data->error_class, &wp_data->error_code);
+            status
+                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                    &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                au_descr[object_index].global_identifier =
-                    value.type.Unsigned_Int;
+                au_descr[object_index].global_identifier
+                    = value.type.Unsigned_Int;
             }
             break;
 
@@ -280,8 +279,9 @@ bool Access_User_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #include "ctest.h"
 
 bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
-                       BACNET_ERROR_CODE *pErrorCode)
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS *pErrorClass,
+    BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -293,7 +293,7 @@ bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
 
 void testAccessUser(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = {0};
+    uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;

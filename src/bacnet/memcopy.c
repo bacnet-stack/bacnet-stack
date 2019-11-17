@@ -105,10 +105,11 @@ size_t memcopy(void *dest, void *src, size_t offset, size_t len, size_t max)
  * @return returns zero if there is not enough space, or returns
  * the number of bytes copied.
  */
-size_t memcopy(void *dest, void *src,
-               size_t offset, /* where in dest to put the data */
-               size_t len,    /* amount of data to copy */
-               size_t max)
+size_t memcopy(void *dest,
+    void *src,
+    size_t offset, /* where in dest to put the data */
+    size_t len,    /* amount of data to copy */
+    size_t max)
 { /* total size of destination */
     if (memcopylen(offset, max, len)) {
         memcpy(&((char *)dest)[offset], src, len);
@@ -138,8 +139,8 @@ void test_memcopy(Test *pTest)
     ct_test(pTest, memcmp(&buffer[0], &data1[0], len) == 0);
     len = memcopy(&buffer[0], &data2[0], len, sizeof(data2), sizeof(buffer));
     ct_test(pTest, len == sizeof(data2));
-    len = memcopy(&buffer[0], &big_buffer[0], 1, sizeof(big_buffer),
-                  sizeof(buffer));
+    len = memcopy(
+        &buffer[0], &big_buffer[0], 1, sizeof(big_buffer), sizeof(buffer));
     ct_test(pTest, len == 0);
 }
 

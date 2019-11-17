@@ -56,7 +56,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* global variables used in this file */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
@@ -67,39 +67,40 @@ static BACNET_ADDRESS Target_Address;
 /* needed for return value of main application */
 static bool Error_Detected = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                           BACNET_ERROR_CLASS error_class,
-                           BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\n",
-               bactext_error_class_name((int)error_class),
-               bactext_error_code_name((int)error_code));
+            bactext_error_class_name((int)error_class),
+            bactext_error_code_name((int)error_code));
         Error_Detected = true;
     }
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\n",
-               bactext_abort_reason_name((int)abort_reason));
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
+        printf(
+            "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\n",
-               bactext_reject_reason_name((int)reject_reason));
+            bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
@@ -115,8 +116,9 @@ static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-static void My_Read_Property_Multiple_Ack_Handler(
-    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
+static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
@@ -127,12 +129,12 @@ static void My_Read_Property_Multiple_Ack_Handler(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
 
-    if (address_match(&Target_Address, src) &&
-        (service_data->invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (service_data->invoke_id == Request_Invoke_ID)) {
         rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
         if (rpm_data) {
-            len = rpm_ack_decode_service_request(service_request, service_len,
-                                                 rpm_data);
+            len = rpm_ack_decode_service_request(
+                service_request, service_len, rpm_data);
         }
         if (len > 0) {
             while (rpm_data) {
@@ -188,11 +190,11 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the data coming back from confirmed requests */
     apdu_set_confirmed_ack_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-                                   My_Read_Property_Multiple_Ack_Handler);
+        My_Read_Property_Multiple_Ack_Handler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -223,67 +225,65 @@ static void cleanup(void)
 
 static void print_usage(char *filename)
 {
-    printf(
-        "Usage: %s device-instance object-type object-instance "
-        "property[index][,property[index]] [object-type ...]\n",
+    printf("Usage: %s device-instance object-type object-instance "
+           "property[index][,property[index]] [object-type ...]\n",
         filename);
     printf("       [--version][--help]\n");
 }
 
 static void print_help(char *filename)
 {
-    printf(
-        "Read one or more properties from one or more objects\n"
-        "in a BACnet device and print the value(s).\n"
-        "device-instance:\n"
-        "BACnet Device Object Instance number that you are\n"
-        "trying to communicate to.  This number will be used\n"
-        "to try and bind with the device using Who-Is and\n"
-        "I-Am services.  For example, if you were reading\n"
-        "Device Object 123, the device-instance would be 123.\n"
-        "\nobject-type:\n"
-        "The object type is the integer value of the enumeration\n"
-        "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
-        "that you are reading.  For example if you were\n"
-        "reading Analog Output 2, the object-type would be 1.\n"
-        "\nobject-instance:\n"
-        "This is the object instance number of the object that\n"
-        "you are reading.  For example, if you were reading\n"
-        "Analog Output 2, the object-instance would be 2.\n"
-        "\nproperty:\n"
-        "The property is an integer value of the enumeration\n"
-        "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
-        "you are reading.  For example, if you were reading the\n"
-        "Present Value property, use 85 as the property.\n"
-        "\n[index]:\n"
-        "This optional integer parameter is the index number of \n"
-        "an array property.  Individual elements of an array can\n"
-        "be read.  If this parameter is missing and the property\n"
-        "is an array, the entire array will be read.\n"
-        "\nExample:\n"
-        "If you want read the PRESENT_VALUE property and various\n"
-        "array elements of the PRIORITY_ARRAY in Device 123\n"
-        "Analog Output object 99, use the following command:\n"
-        "%s 123 1 99 85,87[0],87\n"
-        "If you want read the PRESENT_VALUE property in objects\n"
-        "Analog Input 77 and Analog Input 78 in Device 123\n"
-        "use the following command:\n"
-        "%s 123 0 77 85 0 78 85\n"
-        "If you want read the ALL property in\n"
-        "Device object 123, you would use the following command:\n"
-        "%s 123 8 123 8\n"
-        "If you want read the OPTIONAL property in\n"
-        "Device object 123, you would use the following command:\n"
-        "%s 123 8 123 80\n"
-        "If you want read the REQUIRED property in\n"
-        "Device object 123, you would use the following command:\n"
-        "%s 123 8 123 105\n",
+    printf("Read one or more properties from one or more objects\n"
+           "in a BACnet device and print the value(s).\n"
+           "device-instance:\n"
+           "BACnet Device Object Instance number that you are\n"
+           "trying to communicate to.  This number will be used\n"
+           "to try and bind with the device using Who-Is and\n"
+           "I-Am services.  For example, if you were reading\n"
+           "Device Object 123, the device-instance would be 123.\n"
+           "\nobject-type:\n"
+           "The object type is the integer value of the enumeration\n"
+           "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
+           "that you are reading.  For example if you were\n"
+           "reading Analog Output 2, the object-type would be 1.\n"
+           "\nobject-instance:\n"
+           "This is the object instance number of the object that\n"
+           "you are reading.  For example, if you were reading\n"
+           "Analog Output 2, the object-instance would be 2.\n"
+           "\nproperty:\n"
+           "The property is an integer value of the enumeration\n"
+           "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
+           "you are reading.  For example, if you were reading the\n"
+           "Present Value property, use 85 as the property.\n"
+           "\n[index]:\n"
+           "This optional integer parameter is the index number of \n"
+           "an array property.  Individual elements of an array can\n"
+           "be read.  If this parameter is missing and the property\n"
+           "is an array, the entire array will be read.\n"
+           "\nExample:\n"
+           "If you want read the PRESENT_VALUE property and various\n"
+           "array elements of the PRIORITY_ARRAY in Device 123\n"
+           "Analog Output object 99, use the following command:\n"
+           "%s 123 1 99 85,87[0],87\n"
+           "If you want read the PRESENT_VALUE property in objects\n"
+           "Analog Input 77 and Analog Input 78 in Device 123\n"
+           "use the following command:\n"
+           "%s 123 0 77 85 0 78 85\n"
+           "If you want read the ALL property in\n"
+           "Device object 123, you would use the following command:\n"
+           "%s 123 8 123 8\n"
+           "If you want read the OPTIONAL property in\n"
+           "Device object 123, you would use the following command:\n"
+           "%s 123 8 123 80\n"
+           "If you want read the REQUIRED property in\n"
+           "Device object 123, you would use the following command:\n"
+           "%s 123 8 123 105\n",
         filename, filename, filename, filename, filename);
 }
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
-    uint8_t buffer[MAX_PDU] = {0};
+    uint8_t buffer[MAX_PDU] = { 0 };
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
     char *property_token = NULL;
@@ -312,12 +312,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
     }
@@ -329,7 +328,7 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\n",
-                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     atexit(cleanup);
@@ -348,7 +347,7 @@ int main(int argc, char *argv[])
         }
         if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
             fprintf(stderr, "object-type=%u - it must be less than %u\n",
-                    rpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
+                rpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
             return 1;
         }
         rpm_object->object_instance = strtol(argv[tag_value_arg], NULL, 0);
@@ -360,7 +359,7 @@ int main(int argc, char *argv[])
         }
         if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
             fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-                    rpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
+                rpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
             return 1;
         }
         rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
@@ -368,14 +367,14 @@ int main(int argc, char *argv[])
         property_token = strtok(argv[tag_value_arg], ",");
         /* add all the properties and optional index to our list */
         while (rpm_property) {
-            scan_count = sscanf(property_token, "%u[%u]", &property_id,
-                                &property_array_index);
+            scan_count = sscanf(
+                property_token, "%u[%u]", &property_id, &property_array_index);
             if (scan_count > 0) {
                 rpm_property->propertyIdentifier = property_id;
                 if (rpm_property->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
                     fprintf(stderr, "property=%u - it must be less than %u\n",
-                            rpm_property->propertyIdentifier,
-                            MAX_BACNET_PROPERTY_ID + 1);
+                        rpm_property->propertyIdentifier,
+                        MAX_BACNET_PROPERTY_ID + 1);
                     return 1;
                 }
             }
@@ -387,8 +386,8 @@ int main(int argc, char *argv[])
             /* is there another property? */
             property_token = strtok(NULL, ",");
             if (property_token) {
-                rpm_property->next =
-                    calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+                rpm_property->next
+                    = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
                 rpm_property = rpm_property->next;
             } else {
                 rpm_property->next = NULL;
@@ -416,11 +415,11 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                                 &Target_Address);
+    found = address_bind_request(
+        Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (!found) {
-        Send_WhoIs(Target_Device_Object_Instance,
-                   Target_Device_Object_Instance);
+        Send_WhoIs(
+            Target_Device_Object_Instance, Target_Device_Object_Instance);
     }
     /* loop forever */
     for (;;) {
@@ -434,8 +433,8 @@ int main(int argc, char *argv[])
             break;
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found = address_bind_request(Target_Device_Object_Instance,
-                                         &max_apdu, &Target_Address);
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
         if (found) {
             if (Request_Invoke_ID == 0) {

@@ -55,7 +55,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /* converted command line arguments */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
@@ -73,60 +73,62 @@ BACNET_SUBSCRIBE_COV_DATA *COV_Subscribe_Data = NULL;
 static bool Simple_Ack_Detected = false;
 static bool Cancel_Requested = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                           BACNET_ERROR_CLASS error_class,
-                           BACNET_ERROR_CODE error_code)
+static void MyErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\r\n",
-               bactext_error_class_name((int)error_class),
-               bactext_error_code_name((int)error_code));
+            bactext_error_class_name((int)error_class),
+            bactext_error_code_name((int)error_code));
         Error_Detected = true;
     }
 }
 
-static void MyAbortHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                    uint8_t abort_reason, bool server)
+static void MyAbortHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\r\n",
-               bactext_abort_reason_name((int)abort_reason));
+            bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
 }
 
-static void MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id,
-                     uint8_t reject_reason)
+static void MyRejectHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\r\n",
-               bactext_reject_reason_name((int)reject_reason));
+            bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
 }
 
-static void My_Unconfirmed_COV_Notification_Handler(uint8_t *service_request,
-                                             uint16_t service_len,
-                                             BACNET_ADDRESS *src)
+static void My_Unconfirmed_COV_Notification_Handler(
+    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
     handler_ucov_notification(service_request, service_len, src);
 }
 
-static void My_Confirmed_COV_Notification_Handler(
-    uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src,
+static void My_Confirmed_COV_Notification_Handler(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     handler_ccov_notification(service_request, service_len, src, service_data);
 }
 
-static void MyWritePropertySimpleAckHandler(BACNET_ADDRESS *src, uint8_t invoke_id)
+static void MyWritePropertySimpleAckHandler(
+    BACNET_ADDRESS *src, uint8_t invoke_id)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src)
+        && (invoke_id == Request_Invoke_ID)) {
         printf("SubscribeCOV Acknowledged!\r\n");
         Simple_Ack_Detected = true;
     }
@@ -144,16 +146,16 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the data coming back from COV subscriptions */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_COV_NOTIFICATION,
-                               My_Confirmed_COV_Notification_Handler);
+        My_Confirmed_COV_Notification_Handler);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-                                 My_Unconfirmed_COV_Notification_Handler);
+        My_Unconfirmed_COV_Notification_Handler);
     /* handle the Simple ack coming back from SubscribeCOV */
-    apdu_set_confirmed_simple_ack_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
-                                          MyWritePropertySimpleAckHandler);
+    apdu_set_confirmed_simple_ack_handler(
+        SERVICE_CONFIRMED_SUBSCRIBE_COV, MyWritePropertySimpleAckHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
@@ -175,7 +177,7 @@ static void cleanup(void)
 
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
@@ -201,54 +203,52 @@ int main(int argc, char *argv[])
     }
     if (print_usage_terse) {
         filename = filename_remove_path(argv[0]);
-        printf(
-            "Usage: %s device-id object-type object-instance "
-            "process-id <[un]confirmed lifetime|cancel>\r\n",
+        printf("Usage: %s device-id object-type object-instance "
+               "process-id <[un]confirmed lifetime|cancel>\r\n",
             filename);
         if (!print_usage_verbose) {
             return 0;
         }
     }
     if (print_usage_verbose) {
-        printf(
-            "\r\n"
-            "device-id:\r\n"
-            "The subscriber BACnet Device Object Instance number.\r\n"
-            "\r\n"
-            "object-type:\r\n"
-            "The monitored object type is the integer value of the\r\n"
-            "enumeration BACNET_OBJECT_TYPE in bacenum.h.  For example,\r\n"
-            "if you were monitoring Analog Output 2, the object-type\r\n"
-            "would be 1.\r\n"
-            "\r\n"
-            "object-instance:\r\n"
-            "The monitored object instance number.\r\n"
-            "\r\n"
-            "process-id:\r\n"
-            "Process Identifier for this COV subscription.\r\n"
-            "\r\n"
-            "confirmed:\r\n"
-            "Optional flag to subscribe using Confirmed notifications.\r\n"
-            "Use the word \'confirmed\' or \'unconfirmed\'.\r\n"
-            "\r\n"
-            "lifetime:\r\n"
-            "Optional subscription lifetime is conveyed in seconds.\r\n"
-            "\r\n"
-            "cancel:\r\n"
-            "Use the word \'cancel\' instead of confirm and lifetime.\r\n"
-            "This shall indicate a cancellation request.\r\n"
-            "\r\n"
-            "Example:\r\n"
-            "If you want subscribe to Device 123 Analog Input 9 object\r\n"
-            "using confirmed COV notifications for 5 minutes,\r\n"
-            "you could send the following command:\r\n"
-            "%s 123 0 9 1 confirmed 600\r\n"
-            "To send the same COV subscription request for unconfirmed\r\n"
-            "notifications, send the following command:\r\n"
-            "%s 123 0 9 1 unconfirmed 600\r\n"
-            "To cancel the same COV subscription request,\r\n"
-            "send the following command:\r\n"
-            "%s 123 0 9 1 cancel\r\n",
+        printf("\r\n"
+               "device-id:\r\n"
+               "The subscriber BACnet Device Object Instance number.\r\n"
+               "\r\n"
+               "object-type:\r\n"
+               "The monitored object type is the integer value of the\r\n"
+               "enumeration BACNET_OBJECT_TYPE in bacenum.h.  For example,\r\n"
+               "if you were monitoring Analog Output 2, the object-type\r\n"
+               "would be 1.\r\n"
+               "\r\n"
+               "object-instance:\r\n"
+               "The monitored object instance number.\r\n"
+               "\r\n"
+               "process-id:\r\n"
+               "Process Identifier for this COV subscription.\r\n"
+               "\r\n"
+               "confirmed:\r\n"
+               "Optional flag to subscribe using Confirmed notifications.\r\n"
+               "Use the word \'confirmed\' or \'unconfirmed\'.\r\n"
+               "\r\n"
+               "lifetime:\r\n"
+               "Optional subscription lifetime is conveyed in seconds.\r\n"
+               "\r\n"
+               "cancel:\r\n"
+               "Use the word \'cancel\' instead of confirm and lifetime.\r\n"
+               "This shall indicate a cancellation request.\r\n"
+               "\r\n"
+               "Example:\r\n"
+               "If you want subscribe to Device 123 Analog Input 9 object\r\n"
+               "using confirmed COV notifications for 5 minutes,\r\n"
+               "you could send the following command:\r\n"
+               "%s 123 0 9 1 confirmed 600\r\n"
+               "To send the same COV subscription request for unconfirmed\r\n"
+               "notifications, send the following command:\r\n"
+               "%s 123 0 9 1 unconfirmed 600\r\n"
+               "To cancel the same COV subscription request,\r\n"
+               "send the following command:\r\n"
+               "%s 123 0 9 1 cancel\r\n",
             filename, filename, filename);
         return 0;
     }
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
-                Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
     atexit(cleanup);
@@ -265,21 +265,21 @@ int main(int argc, char *argv[])
     argi = 2;
     while (cov_data) {
         cov_data->monitoredObjectIdentifier.type = strtol(argv[argi], NULL, 0);
-        if (cov_data->monitoredObjectIdentifier.type >=
-            MAX_BACNET_OBJECT_TYPE) {
+        if (cov_data->monitoredObjectIdentifier.type
+            >= MAX_BACNET_OBJECT_TYPE) {
             fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
-                    cov_data->monitoredObjectIdentifier.type,
-                    MAX_BACNET_OBJECT_TYPE);
+                cov_data->monitoredObjectIdentifier.type,
+                MAX_BACNET_OBJECT_TYPE);
             return 1;
         }
         argi++;
-        cov_data->monitoredObjectIdentifier.instance =
-            strtol(argv[argi], NULL, 0);
-        if (cov_data->monitoredObjectIdentifier.instance >
-            BACNET_MAX_INSTANCE) {
+        cov_data->monitoredObjectIdentifier.instance
+            = strtol(argv[argi], NULL, 0);
+        if (cov_data->monitoredObjectIdentifier.instance
+            > BACNET_MAX_INSTANCE) {
             fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
-                    cov_data->monitoredObjectIdentifier.instance,
-                    BACNET_MAX_INSTANCE + 1);
+                cov_data->monitoredObjectIdentifier.instance,
+                BACNET_MAX_INSTANCE + 1);
             return 1;
         }
         argi++;
@@ -325,11 +325,11 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
     /* try to bind with the device */
-    found = address_bind_request(Target_Device_Object_Instance, &max_apdu,
-                                 &Target_Address);
+    found = address_bind_request(
+        Target_Device_Object_Instance, &max_apdu, &Target_Address);
     if (!found) {
-        Send_WhoIs(Target_Device_Object_Instance,
-                   Target_Device_Object_Instance);
+        Send_WhoIs(
+            Target_Device_Object_Instance, Target_Device_Object_Instance);
     }
     /* start at the beginning of the subscribe list */
     cov_data = COV_Subscribe_Data;
@@ -351,8 +351,8 @@ int main(int argc, char *argv[])
         }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
-            found = address_bind_request(Target_Device_Object_Instance,
-                                         &max_apdu, &Target_Address);
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
@@ -362,18 +362,17 @@ int main(int argc, char *argv[])
                 } else {
                     Cancel_Requested = false;
                 }
-                Target_Device_Process_Identifier =
-                    cov_data->subscriberProcessIdentifier;
-                Request_Invoke_ID =
-                    Send_COV_Subscribe(Target_Device_Object_Instance, cov_data);
-                if (!cov_data->cancellationRequest &&
-                    (timeout_seconds < cov_data->lifetime)) {
+                Target_Device_Process_Identifier
+                    = cov_data->subscriberProcessIdentifier;
+                Request_Invoke_ID = Send_COV_Subscribe(
+                    Target_Device_Object_Instance, cov_data);
+                if (!cov_data->cancellationRequest
+                    && (timeout_seconds < cov_data->lifetime)) {
                     /* increase the timeout to the longest lifetime */
                     timeout_seconds = cov_data->lifetime;
                 }
-                printf(
-                    "Sent SubscribeCOV request. "
-                    " Waiting up to %u seconds....\r\n",
+                printf("Sent SubscribeCOV request. "
+                       " Waiting up to %u seconds....\r\n",
                     (unsigned)(timeout_seconds - elapsed_seconds));
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 if (cov_data->next) {

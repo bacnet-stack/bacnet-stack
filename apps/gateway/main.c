@@ -71,7 +71,7 @@
 /*@{*/
 
 /** Buffer used for receiving */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /** The list of DNETs that our router can reach.
  *  Only one entry since we don't support downstream routers.
@@ -127,41 +127,41 @@ static void Init_Service_Handlers(uint32_t first_object_instance)
      * Don't need the routed versions, since the npdu handler calls
      * each device in turn.
      */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS,
-                                 handler_who_is_unicast);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_WHO_IS, handler_who_is_unicast);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* set the handler for all the services we don't implement */
     /* It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-                               handler_read_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-                               handler_write_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
-                               handler_read_range);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
 #if defined(BACFILE)
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-                               handler_atomic_read_file);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
-                               handler_atomic_write_file);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_WRITE_FILE, handler_atomic_write_file);
 #endif
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-                               handler_reinitialize_device);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-                                 handler_timesync_utc);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-                                 handler_timesync);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
-                               handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-                                 handler_ucov_notification);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-                               handler_device_communication_control);
+        handler_device_communication_control);
 }
 
 /** Initialize the BACnet Device Addresses for each Device object.
@@ -227,7 +227,7 @@ static void Initialize_Device_Addresses()
         memcpy(&pDev->bacDevAddr.adr[0], &pDev->bacDevAddr.mac[0], 6);
         pDev->bacDevAddr.len = 6;
         printf(" - Routed device [%d] ID %u at %s \n", i,
-               pDev->bacObj.Object_Instance_Number, inet_ntoa(*netPtr));
+            pDev->bacObj.Object_Instance_Number, inet_ntoa(*netPtr));
 #elif defined(BACDL_MSTP)
         /* Todo: set MS/TP net and port #s */
         pDev->bacDevAddr.mac_len = 2;
@@ -251,7 +251,7 @@ static void Initialize_Device_Addresses()
  */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 1000; /* milliseconds */
     time_t last_seconds = 0;
@@ -268,19 +268,18 @@ int main(int argc, char *argv[])
     /* allow the device ID to be set */
     if (argc > 1) {
         first_object_instance = strtol(argv[1], NULL, 0);
-        if ((first_object_instance == 0) ||
-            (first_object_instance >= BACNET_MAX_INSTANCE)) {
+        if ((first_object_instance == 0)
+            || (first_object_instance >= BACNET_MAX_INSTANCE)) {
             printf("Error: Invalid Object Instance %s \n", argv[1]);
-            printf("Provide a number from 1 to %ul \n",
-                   BACNET_MAX_INSTANCE - 1);
+            printf(
+                "Provide a number from 1 to %ul \n", BACNET_MAX_INSTANCE - 1);
             exit(1);
         }
     }
-    printf(
-        "BACnet Router Demo\n"
-        "BACnet Stack Version %s\n"
-        "BACnet Device ID: %u\n"
-        "Max APDU: %d\n",
+    printf("BACnet Router Demo\n"
+           "BACnet Stack Version %s\n"
+           "BACnet Device ID: %u\n"
+           "Max APDU: %d\n",
         BACnet_Version, first_object_instance, MAX_APDU);
     Init_Service_Handlers(first_object_instance);
     dlenv_init();

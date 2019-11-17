@@ -42,18 +42,17 @@ static bool Access_Zone_Initialized = false;
 static ACCESS_ZONE_DESCR az_descr[MAX_ACCESS_ZONES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,     PROP_OBJECT_TYPE,
-    PROP_GLOBAL_IDENTIFIER, PROP_OCCUPANCY_STATE, PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,       PROP_RELIABILITY,     PROP_OUT_OF_SERVICE,
-    PROP_ENTRY_POINTS,      PROP_EXIT_POINTS,     -1};
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_GLOBAL_IDENTIFIER,
+    PROP_OCCUPANCY_STATE, PROP_STATUS_FLAGS, PROP_EVENT_STATE, PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE, PROP_ENTRY_POINTS, PROP_EXIT_POINTS, -1 };
 
-static const int Properties_Optional[] = {-1};
+static const int Properties_Optional[] = { -1 };
 
-static const int Properties_Proprietary[] = {-1};
+static const int Properties_Proprietary[] = { -1 };
 
-void Access_Zone_Property_Lists(const int **pRequired, const int **pOptional,
-                                const int **pProprietary)
+void Access_Zone_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -73,8 +72,8 @@ void Access_Zone_Init(void)
         Access_Zone_Initialized = true;
 
         for (i = 0; i < MAX_ACCESS_ZONES; i++) {
-            az_descr[i].global_identifier =
-                0; /* set to some meaningful value */
+            az_descr[i].global_identifier
+                = 0; /* set to some meaningful value */
             az_descr[i].occupancy_state = ACCESS_ZONE_OCCUPANCY_STATE_DISABLED;
             az_descr[i].event_state = EVENT_STATE_NORMAL;
             az_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
@@ -128,8 +127,8 @@ unsigned Access_Zone_Instance_To_Index(uint32_t object_instance)
 }
 
 /* note: the object name must be unique within this device */
-bool Access_Zone_Object_Name(uint32_t object_instance,
-                             BACNET_CHARACTER_STRING *object_name)
+bool Access_Zone_Object_Name(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
@@ -177,8 +176,8 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL)
+        || (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -190,12 +189,12 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Access_Zone_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_ACCESS_ZONE);
+            apdu_len
+                = encode_application_enumerated(&apdu[0], OBJECT_ACCESS_ZONE);
             break;
         case PROP_GLOBAL_IDENTIFIER:
             apdu_len = encode_application_unsigned(
@@ -233,8 +232,8 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (apdu_len + len < MAX_APDU)
                     apdu_len += len;
                 else {
-                    rpdata->error_code =
-                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpdata->error_code
+                        = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
                     break;
                 }
@@ -247,8 +246,8 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (apdu_len + len < MAX_APDU)
                     apdu_len += len;
                 else {
-                    rpdata->error_code =
-                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpdata->error_code
+                        = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
                     break;
                 }
@@ -279,8 +278,8 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned object_index = 0;
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
-                                         wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -297,19 +296,19 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index = Access_Zone_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                                  &wp_data->error_class, &wp_data->error_code);
+            status
+                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                    &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                az_descr[object_index].global_identifier =
-                    value.type.Unsigned_Int;
+                az_descr[object_index].global_identifier
+                    = value.type.Unsigned_Int;
             }
             break;
         case PROP_RELIABILITY:
             if (Access_Zone_Out_Of_Service(wp_data->object_instance)) {
-                status = WPValidateArgType(
-                    &value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = WPValidateArgType(&value,
+                    BACNET_APPLICATION_TAG_ENUMERATED, &wp_data->error_class,
+                    &wp_data->error_code);
                 if (status) {
                     az_descr[object_index].reliability = value.type.Enumerated;
                 }
@@ -345,8 +344,9 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #include "ctest.h"
 
 bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
-                       BACNET_ERROR_CODE *pErrorCode)
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS *pErrorClass,
+    BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -358,7 +358,7 @@ bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
 
 void testAccessZone(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = {0};
+    uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;

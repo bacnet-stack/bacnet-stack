@@ -42,32 +42,20 @@ static bool Access_Point_Initialized = false;
 static ACCESS_POINT_DESCR ap_descr[MAX_ACCESS_POINTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE,
-    PROP_AUTHENTICATION_STATUS,
-    PROP_ACTIVE_AUTHENTICATION_POLICY,
-    PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
-    PROP_AUTHORIZATION_MODE,
-    PROP_ACCESS_EVENT,
-    PROP_ACCESS_EVENT_TAG,
-    PROP_ACCESS_EVENT_TIME,
-    PROP_ACCESS_EVENT_CREDENTIAL,
-    PROP_ACCESS_DOORS,
-    PROP_PRIORITY_FOR_WRITING,
-    -1};
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_STATUS_FLAGS, PROP_EVENT_STATE,
+    PROP_RELIABILITY, PROP_OUT_OF_SERVICE, PROP_AUTHENTICATION_STATUS,
+    PROP_ACTIVE_AUTHENTICATION_POLICY, PROP_NUMBER_OF_AUTHENTICATION_POLICIES,
+    PROP_AUTHORIZATION_MODE, PROP_ACCESS_EVENT, PROP_ACCESS_EVENT_TAG,
+    PROP_ACCESS_EVENT_TIME, PROP_ACCESS_EVENT_CREDENTIAL, PROP_ACCESS_DOORS,
+    PROP_PRIORITY_FOR_WRITING, -1 };
 
-static const int Properties_Optional[] = {-1};
+static const int Properties_Optional[] = { -1 };
 
-static const int Properties_Proprietary[] = {-1};
+static const int Properties_Proprietary[] = { -1 };
 
-void Access_Point_Property_Lists(const int **pRequired, const int **pOptional,
-                                 const int **pProprietary)
+void Access_Point_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -146,15 +134,15 @@ unsigned Access_Point_Instance_To_Index(uint32_t object_instance)
 }
 
 /* note: the object name must be unique within this device */
-bool Access_Point_Object_Name(uint32_t object_instance,
-                              BACNET_CHARACTER_STRING *object_name)
+bool Access_Point_Object_Name(
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     static char text_string[32] = ""; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_ACCESS_POINTS) {
-        sprintf(text_string, "ACCESS POINT %lu",
-                (unsigned long)object_instance);
+        sprintf(
+            text_string, "ACCESS POINT %lu", (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
@@ -196,8 +184,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
-        (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL)
+        || (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -209,12 +197,12 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Access_Point_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            apdu_len
+                = encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], OBJECT_ACCESS_POINT);
+            apdu_len
+                = encode_application_enumerated(&apdu[0], OBJECT_ACCESS_POINT);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -246,8 +234,7 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], ap_descr[object_index].active_authentication_policy);
             break;
         case PROP_NUMBER_OF_AUTHENTICATION_POLICIES:
-            apdu_len = encode_application_unsigned(
-                &apdu[0],
+            apdu_len = encode_application_unsigned(&apdu[0],
                 ap_descr[object_index].number_of_authentication_policies);
             break;
         case PROP_AUTHORIZATION_MODE:
@@ -281,17 +268,17 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if (apdu_len + len < MAX_APDU)
                         apdu_len += len;
                     else {
-                        rpdata->error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code
+                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
             } else {
                 if (rpdata->array_index <= ap_descr[object_index].num_doors) {
-                    apdu_len = bacapp_encode_device_obj_ref(
-                        &apdu[0], &ap_descr[object_index]
-                                       .access_doors[rpdata->array_index - 1]);
+                    apdu_len = bacapp_encode_device_obj_ref(&apdu[0],
+                        &ap_descr[object_index]
+                             .access_doors[rpdata->array_index - 1]);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -306,8 +293,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACCESS_DOORS) &&
-        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACCESS_DOORS)
+        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -324,8 +311,8 @@ bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len = bacapp_decode_application_data(wp_data->application_data,
-                                         wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -334,8 +321,8 @@ bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_ACCESS_DOORS) &&
-        (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_ACCESS_DOORS)
+        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
@@ -377,8 +364,9 @@ bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #include "ctest.h"
 
 bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-                       uint8_t ucExpectedTag, BACNET_ERROR_CLASS *pErrorClass,
-                       BACNET_ERROR_CODE *pErrorCode)
+    uint8_t ucExpectedTag,
+    BACNET_ERROR_CLASS *pErrorClass,
+    BACNET_ERROR_CODE *pErrorCode)
 {
     pValue = pValue;
     ucExpectedTag = ucExpectedTag;
@@ -390,7 +378,7 @@ bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
 
 void testAccessPoint(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU] = {0};
+    uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     uint32_t len_value = 0;
     uint8_t tag_number = 0;

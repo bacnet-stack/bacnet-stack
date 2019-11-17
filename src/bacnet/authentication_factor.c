@@ -26,8 +26,8 @@
 #include "bacnet/authentication_factor.h"
 #include "bacnet/bacdcode.h"
 
-int bacapp_encode_authentication_factor(uint8_t* apdu,
-                                        BACNET_AUTHENTICATION_FACTOR* af)
+int bacapp_encode_authentication_factor(
+    uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len;
     int apdu_len = 0;
@@ -54,7 +54,7 @@ int bacapp_encode_authentication_factor(uint8_t* apdu,
 }
 
 int bacapp_encode_context_authentication_factor(
-    uint8_t* apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR* af)
+    uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len;
     int apdu_len = 0;
@@ -71,8 +71,8 @@ int bacapp_encode_context_authentication_factor(
     return apdu_len;
 }
 
-int bacapp_decode_authentication_factor(uint8_t* apdu,
-                                        BACNET_AUTHENTICATION_FACTOR* af)
+int bacapp_decode_authentication_factor(
+    uint8_t *apdu, BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len;
     int apdu_len = 0;
@@ -108,7 +108,7 @@ int bacapp_decode_authentication_factor(uint8_t* apdu,
 }
 
 int bacapp_decode_context_authentication_factor(
-    uint8_t* apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR* af)
+    uint8_t *apdu, uint8_t tag, BACNET_AUTHENTICATION_FACTOR *af)
 {
     int len = 0;
     int section_length;

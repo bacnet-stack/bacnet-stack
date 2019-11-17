@@ -50,8 +50,8 @@ int whois_encode_apdu(uint8_t *apdu, int32_t low_limit, int32_t high_limit)
         apdu[1] = SERVICE_UNCONFIRMED_WHO_IS; /* service choice */
         apdu_len = 2;
         /* optional limits - must be used as a pair */
-        if ((low_limit >= 0) && (low_limit <= BACNET_MAX_INSTANCE) &&
-            (high_limit >= 0) && (high_limit <= BACNET_MAX_INSTANCE)) {
+        if ((low_limit >= 0) && (low_limit <= BACNET_MAX_INSTANCE)
+            && (high_limit >= 0) && (high_limit <= BACNET_MAX_INSTANCE)) {
             len = encode_context_unsigned(&apdu[apdu_len], 0, low_limit);
             apdu_len += len;
             len = encode_context_unsigned(&apdu[apdu_len], 1, high_limit);
@@ -63,8 +63,8 @@ int whois_encode_apdu(uint8_t *apdu, int32_t low_limit, int32_t high_limit)
 }
 
 /* decode the service request only */
-int whois_decode_service_request(uint8_t *apdu, unsigned apdu_len,
-                                 int32_t *pLow_limit, int32_t *pHigh_limit)
+int whois_decode_service_request(
+    uint8_t *apdu, unsigned apdu_len, int32_t *pLow_limit, int32_t *pHigh_limit)
 {
     unsigned int len = 0;
     uint8_t tag_number = 0;
@@ -85,14 +85,14 @@ int whois_decode_service_request(uint8_t *apdu, unsigned apdu_len,
                 }
             }
             if (apdu_len > (unsigned)len) {
-                len += decode_tag_number_and_value(&apdu[len], &tag_number,
-                                                   &len_value);
+                len += decode_tag_number_and_value(
+                    &apdu[len], &tag_number, &len_value);
                 if (tag_number != 1) {
                     return BACNET_STATUS_ERROR;
                 }
                 if (apdu_len > (unsigned)len) {
-                    len +=
-                        decode_unsigned(&apdu[len], len_value, &decoded_value);
+                    len += decode_unsigned(
+                        &apdu[len], len_value, &decoded_value);
                     if (decoded_value <= BACNET_MAX_INSTANCE) {
                         if (pHigh_limit) {
                             *pHigh_limit = decoded_value;
@@ -125,8 +125,8 @@ int whois_decode_service_request(uint8_t *apdu, unsigned apdu_len,
 #include <string.h>
 #include "ctest.h"
 
-int whois_decode_apdu(uint8_t *apdu, unsigned apdu_len, int32_t *pLow_limit,
-                      int32_t *pHigh_limit)
+int whois_decode_apdu(
+    uint8_t *apdu, unsigned apdu_len, int32_t *pLow_limit, int32_t *pHigh_limit)
 {
     int len = 0;
 
@@ -143,8 +143,8 @@ int whois_decode_apdu(uint8_t *apdu, unsigned apdu_len, int32_t *pLow_limit,
         if (apdu[1] != SERVICE_UNCONFIRMED_WHO_IS) {
             return BACNET_STATUS_ERROR;
         }
-        len = whois_decode_service_request(&apdu[2], apdu_len - 2, pLow_limit,
-                                           pHigh_limit);
+        len = whois_decode_service_request(
+            &apdu[2], apdu_len - 2, pLow_limit, pHigh_limit);
     }
 
     return len;
@@ -152,7 +152,7 @@ int whois_decode_apdu(uint8_t *apdu, unsigned apdu_len, int32_t *pLow_limit,
 
 void testWhoIs(Test *pTest)
 {
-    uint8_t apdu[480] = {0};
+    uint8_t apdu[480] = { 0 };
     int len = 0;
     int apdu_len = 0;
     int32_t low_limit = -1;
@@ -165,8 +165,8 @@ void testWhoIs(Test *pTest)
     ct_test(pTest, len > 0);
     apdu_len = len;
 
-    len = whois_decode_apdu(&apdu[0], apdu_len, &test_low_limit,
-                            &test_high_limit);
+    len = whois_decode_apdu(
+        &apdu[0], apdu_len, &test_low_limit, &test_high_limit);
     ct_test(pTest, len != BACNET_STATUS_ERROR);
     ct_test(pTest, test_low_limit == low_limit);
     ct_test(pTest, test_high_limit == high_limit);
@@ -179,8 +179,8 @@ void testWhoIs(Test *pTest)
             len = whois_encode_apdu(&apdu[0], low_limit, high_limit);
             apdu_len = len;
             ct_test(pTest, len > 0);
-            len = whois_decode_apdu(&apdu[0], apdu_len, &test_low_limit,
-                                    &test_high_limit);
+            len = whois_decode_apdu(
+                &apdu[0], apdu_len, &test_low_limit, &test_high_limit);
             ct_test(pTest, len != BACNET_STATUS_ERROR);
             ct_test(pTest, test_low_limit == low_limit);
             ct_test(pTest, test_high_limit == high_limit);
@@ -198,8 +198,8 @@ void testWhoIs(Test *pTest)
     len = whois_encode_apdu(&apdu[0], low_limit, high_limit);
     ct_test(pTest, len > 0);
     apdu_len = len;
-    len = whois_decode_apdu(&apdu[0], apdu_len, &test_low_limit,
-                            &test_high_limit);
+    len = whois_decode_apdu(
+        &apdu[0], apdu_len, &test_low_limit, &test_high_limit);
     ct_test(pTest, len != BACNET_STATUS_ERROR);
     ct_test(pTest, test_low_limit == low_limit);
     ct_test(pTest, test_high_limit == high_limit);

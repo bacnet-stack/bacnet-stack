@@ -162,8 +162,8 @@ static void filename_create(char *filename)
         my_time = time(NULL);
         today = localtime(&my_time);
         sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap",
-                1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
-                today->tm_hour, today->tm_min, today->tm_sec);
+            1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
+            today->tm_hour, today->tm_min, today->tm_sec);
     }
 }
 
@@ -192,7 +192,7 @@ static void write_global_header(const char *filename)
         fprintf(stdout, "mstpcap: saving capture to %s\n", filename);
     } else {
         fprintf(stderr, "mstpcap[header]: failed to open %s: %s\n", filename,
-                strerror(errno));
+            strerror(errno));
     }
 }
 
@@ -216,7 +216,7 @@ static void write_received_packet(uint8_t *buffer, unsigned length)
         (void)fwrite(buffer, length, 1, pFile);
     } else {
         fprintf(stderr, "mstpcrc[packet]: failed to open %s: %s\n",
-                Capture_Filename, strerror(errno));
+            Capture_Filename, strerror(errno));
     }
 }
 

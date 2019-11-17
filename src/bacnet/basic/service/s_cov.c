@@ -53,9 +53,11 @@
  * @param cov_data [in]  The COV update information to be encoded.
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int ucov_notify_encode_pdu(uint8_t* buffer, unsigned buffer_len,
-                           BACNET_ADDRESS* dest, BACNET_NPDU_DATA* npdu_data,
-                           BACNET_COV_DATA* cov_data)
+int ucov_notify_encode_pdu(uint8_t *buffer,
+    unsigned buffer_len,
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    BACNET_COV_DATA *cov_data)
 {
     int len = 0;
     int pdu_len = 0;
@@ -69,8 +71,8 @@ int ucov_notify_encode_pdu(uint8_t* buffer, unsigned buffer_len,
     pdu_len = npdu_encode_pdu(&buffer[0], dest, &my_address, npdu_data);
 
     /* encode the APDU portion of the packet */
-    len = ucov_notify_encode_apdu(&buffer[pdu_len], buffer_len - pdu_len,
-                                  cov_data);
+    len = ucov_notify_encode_apdu(
+        &buffer[pdu_len], buffer_len - pdu_len, cov_data);
     if (len) {
         pdu_len += len;
     } else {
@@ -88,16 +90,16 @@ int ucov_notify_encode_pdu(uint8_t* buffer, unsigned buffer_len,
  * @param cov_data [in]  The COV update information to be encoded.
  * @return Size of the message sent (bytes), or a negative value on error.
  */
-int Send_UCOV_Notify(uint8_t* buffer, unsigned buffer_len,
-                     BACNET_COV_DATA* cov_data)
+int Send_UCOV_Notify(
+    uint8_t *buffer, unsigned buffer_len, BACNET_COV_DATA *cov_data)
 {
     int pdu_len = 0;
     BACNET_ADDRESS dest;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    pdu_len =
-        ucov_notify_encode_pdu(buffer, buffer_len, &dest, &npdu_data, cov_data);
+    pdu_len = ucov_notify_encode_pdu(
+        buffer, buffer_len, &dest, &npdu_data, cov_data);
     bytes_sent = datalink_send_pdu(&dest, &npdu_data, &buffer[0], pdu_len);
 
     return bytes_sent;
@@ -111,8 +113,8 @@ int Send_UCOV_Notify(uint8_t* buffer, unsigned buffer_len,
  * @return invoke id of outgoing message, or 0 if communication is disabled or
  *         no slot is available from the tsm for sending.
  */
-uint8_t Send_COV_Subscribe(uint32_t device_id,
-                           BACNET_SUBSCRIBE_COV_DATA* cov_data)
+uint8_t Send_COV_Subscribe(
+    uint32_t device_id, BACNET_SUBSCRIBE_COV_DATA *cov_data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -136,11 +138,10 @@ uint8_t Send_COV_Subscribe(uint32_t device_id,
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-                                  &my_address, &npdu_data);
+        pdu_len = npdu_encode_pdu(
+            &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
-        len = cov_subscribe_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len],
+        len = cov_subscribe_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
             sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
         pdu_len += len;
         /* will it fit in the sender?
@@ -149,15 +150,14 @@ uint8_t Send_COV_Subscribe(uint32_t device_id,
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(
-                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
-                (uint16_t)pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
+                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
             bytes_sent = datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
             if (bytes_sent <= 0) {
 #if PRINT_ENABLED
                 fprintf(stderr, "Failed to Send SubscribeCOV Request (%s)!\n",
-                        strerror(errno));
+                    strerror(errno));
 #endif
             }
         } else {
@@ -165,8 +165,8 @@ uint8_t Send_COV_Subscribe(uint32_t device_id,
             invoke_id = 0;
 #if PRINT_ENABLED
             fprintf(stderr,
-                    "Failed to Send SubscribeCOV Request "
-                    "(exceeds destination maximum APDU)!\n");
+                "Failed to Send SubscribeCOV Request "
+                "(exceeds destination maximum APDU)!\n");
 #endif
         }
     }

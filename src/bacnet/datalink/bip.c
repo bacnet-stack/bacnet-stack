@@ -109,8 +109,8 @@ uint16_t bip_get_port(void)
     return BIP_Port;
 }
 
-static int bip_decode_bip_address(
-    BACNET_ADDRESS *bac_addr, struct in_addr *address, /* in network format */
+static int bip_decode_bip_address(BACNET_ADDRESS *bac_addr,
+    struct in_addr *address, /* in network format */
     uint16_t *port)
 { /* in network format */
     int len = 0;
@@ -133,13 +133,13 @@ static int bip_decode_bip_address(
  * @param pdu_len [in] Number of bytes in the pdu buffer.
  * @return Number of bytes sent on success, negative number on failure.
  */
-int bip_send_pdu(BACNET_ADDRESS *dest,        /* destination address */
-                 BACNET_NPDU_DATA *npdu_data, /* network information */
-                 uint8_t *pdu, /* any data to be sent - may be null */
-                 unsigned pdu_len)
+int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+    BACNET_NPDU_DATA *npdu_data,       /* network information */
+    uint8_t *pdu,                      /* any data to be sent - may be null */
+    unsigned pdu_len)
 { /* number of bytes of data */
     struct sockaddr_in bip_dest;
-    uint8_t mtu[MAX_MPDU] = {0};
+    uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int bytes_sent = 0;
     /* addr and port in host format */
@@ -179,14 +179,14 @@ int bip_send_pdu(BACNET_ADDRESS *dest,        /* destination address */
     bip_dest.sin_port = port;
     memset(&(bip_dest.sin_zero), '\0', 8);
     mtu_len = 2;
-    mtu_len += encode_unsigned16(&mtu[mtu_len],
-                                 (uint16_t)(pdu_len + 4 /*inclusive */));
+    mtu_len += encode_unsigned16(
+        &mtu[mtu_len], (uint16_t)(pdu_len + 4 /*inclusive */));
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
 
     /* Send the packet */
     bytes_sent = sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
-                        (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
+        (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 
     return bytes_sent;
 }
@@ -203,10 +203,9 @@ int bip_send_pdu(BACNET_ADDRESS *dest,        /* destination address */
  * @param timeout [in] The number of milliseconds to wait for a packet.
  * @return The number of octets (remaining) in the PDU, or zero on failure.
  */
-uint16_t bip_receive(
-    BACNET_ADDRESS *src, /* source address */
-    uint8_t *pdu,        /* PDU data */
-    uint16_t max_pdu,    /* amount of space available in the PDU  */
+uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
+    uint8_t *pdu,                         /* PDU data */
+    uint16_t max_pdu, /* amount of space available in the PDU  */
     unsigned timeout)
 {
     int received_bytes = 0;
@@ -214,7 +213,7 @@ uint16_t bip_receive(
     fd_set read_fds;
     int max = 0;
     struct timeval select_timeout;
-    struct sockaddr_in sin = {0};
+    struct sockaddr_in sin = { 0 };
     socklen_t sin_len = sizeof(sin);
     uint16_t i = 0;
     int function = 0;
@@ -228,8 +227,8 @@ uint16_t bip_receive(
        a select. */
     if (timeout >= 1000) {
         select_timeout.tv_sec = timeout / 1000;
-        select_timeout.tv_usec =
-            1000 * (timeout - select_timeout.tv_sec * 1000);
+        select_timeout.tv_usec
+            = 1000 * (timeout - select_timeout.tv_sec * 1000);
     } else {
         select_timeout.tv_sec = 0;
         select_timeout.tv_usec = 1000 * timeout;
@@ -240,7 +239,7 @@ uint16_t bip_receive(
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
         received_bytes = recvfrom(BIP_Socket, (char *)&pdu[0], max_pdu, 0,
-                                  (struct sockaddr *)&sin, &sin_len);
+            (struct sockaddr *)&sin, &sin_len);
     else
         return 0;
 
@@ -266,11 +265,11 @@ uint16_t bip_receive(
     }
 
     function = bvlc_get_function_code(); /* aka, pdu[1] */
-    if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
-        (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
+    if ((function == BVLC_ORIGINAL_UNICAST_NPDU)
+        || (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
-        if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
-            (sin.sin_port == BIP_Port)) {
+        if ((sin.sin_addr.s_addr == BIP_Address.s_addr)
+            && (sin.sin_port == BIP_Port)) {
             pdu_len = 0;
 #if 0
             fprintf(stderr, "BIP: src is me. Discarded!\n");
@@ -313,8 +312,8 @@ uint16_t bip_receive(
     } else if (function == BVLC_FORWARDED_NPDU) {
         memcpy(&sin.sin_addr.s_addr, &pdu[4], 4);
         memcpy(&sin.sin_port, &pdu[8], 2);
-        if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
-            (sin.sin_port == BIP_Port)) {
+        if ((sin.sin_addr.s_addr == BIP_Address.s_addr)
+            && (sin.sin_port == BIP_Port)) {
             /* ignore messages from me */
             pdu_len = 0;
         } else {

@@ -62,13 +62,13 @@
  *  @param pdu [in]  Buffer containing the NPDU and APDU of the received packet.
  *  @param pdu_len [in] The size of the received message in the pdu[] buffer.
  */
-void npdu_handler(BACNET_ADDRESS* src, /* source address */
-                  uint8_t* pdu,        /* PDU data */
-                  uint16_t pdu_len)
+void npdu_handler(BACNET_ADDRESS *src, /* source address */
+    uint8_t *pdu,                      /* PDU data */
+    uint16_t pdu_len)
 { /* length PDU  */
     int apdu_offset = 0;
-    BACNET_ADDRESS dest = {0};
-    BACNET_NPDU_DATA npdu_data = {0};
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
 
     /* only handle the version that we know how to handle */
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
@@ -83,15 +83,15 @@ void npdu_handler(BACNET_ADDRESS* src, /* source address */
                 /* only handle the version that we know how to handle */
                 /* and we are not a router, so ignore messages with
                    routing information cause they are not for us */
-                if ((dest.net == BACNET_BROADCAST_NETWORK) &&
-                    ((pdu[apdu_offset] & 0xF0) ==
-                     PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+                if ((dest.net == BACNET_BROADCAST_NETWORK)
+                    && ((pdu[apdu_offset] & 0xF0)
+                           == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
                     /* hack for 5.4.5.1 - IDLE */
                     /* ConfirmedBroadcastReceived */
                     /* then enter IDLE - ignore the PDU */
                 } else {
                     apdu_handler(src, &pdu[apdu_offset],
-                                 (uint16_t)(pdu_len - apdu_offset));
+                        (uint16_t)(pdu_len - apdu_offset));
                 }
             } else {
 #if PRINT_ENABLED
@@ -102,7 +102,7 @@ void npdu_handler(BACNET_ADDRESS* src, /* source address */
     } else {
 #if PRINT_ENABLED
         printf("NPDU: BACnet Protocol Version=%u.  Discarded!\n",
-               (unsigned)pdu[0]);
+            (unsigned)pdu[0]);
 #endif
     }
 

@@ -60,9 +60,10 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_ACK_DATA information
  * decoded from the APDU header of this message.
  */
-void get_event_ack_handler(uint8_t *service_request, uint16_t service_len,
-                           BACNET_ADDRESS *src,
-                           BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+void get_event_ack_handler(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     uint8_t i = 0;
     uint16_t apdu_len = 0;

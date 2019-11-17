@@ -64,9 +64,10 @@
  * @param service_data [in] The BACNET_CONFIRMED_SERVICE_DATA information
  *                          decoded from the APDU header of this message.
  */
-void handler_reinitialize_device(uint8_t* service_request, uint16_t service_len,
-                                 BACNET_ADDRESS* src,
-                                 BACNET_CONFIRMED_SERVICE_DATA* service_data)
+void handler_reinitialize_device(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
     BACNET_REINITIALIZE_DEVICE_DATA rd_data;
     int len = 0;
@@ -77,29 +78,28 @@ void handler_reinitialize_device(uint8_t* service_request, uint16_t service_len,
     /* encode the NPDU portion of the packet */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], src, &my_address,
-                              &npdu_data);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
 #if PRINT_ENABLED
     fprintf(stderr, "ReinitializeDevice!\n");
 #endif
     if (service_data->segmented_message) {
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                service_data->invoke_id,
-                                ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
+            service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
+            true);
 #if PRINT_ENABLED
-        fprintf(stderr,
-                "ReinitializeDevice: Sending Abort - segmented message.\n");
+        fprintf(
+            stderr, "ReinitializeDevice: Sending Abort - segmented message.\n");
 #endif
         goto RD_ABORT;
     }
     /* decode the service request only */
-    len = rd_decode_service_request(service_request, service_len,
-                                    &rd_data.state, &rd_data.password);
+    len = rd_decode_service_request(
+        service_request, service_len, &rd_data.state, &rd_data.password);
 #if PRINT_ENABLED
     if (len > 0) {
         fprintf(stderr, "ReinitializeDevice: state=%u password=%s\n",
-                (unsigned)rd_data.state,
-                characterstring_value(&rd_data.password));
+            (unsigned)rd_data.state, characterstring_value(&rd_data.password));
     } else {
         fprintf(stderr, "ReinitializeDevice: Unable to decode request!\n");
     }
@@ -107,22 +107,20 @@ void handler_reinitialize_device(uint8_t* service_request, uint16_t service_len,
     /* bad decoding or something we didn't understand - send an abort */
     if (len < 0) {
         len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                service_data->invoke_id, ABORT_REASON_OTHER,
-                                true);
+            service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
-        fprintf(stderr,
-                "ReinitializeDevice: Sending Abort - could not decode.\n");
+        fprintf(
+            stderr, "ReinitializeDevice: Sending Abort - could not decode.\n");
 #endif
         goto RD_ABORT;
     }
     /* check the data from the request */
     if (rd_data.state >= BACNET_REINIT_MAX) {
         len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                 service_data->invoke_id,
-                                 REJECT_REASON_UNDEFINED_ENUMERATION);
+            service_data->invoke_id, REJECT_REASON_UNDEFINED_ENUMERATION);
 #if PRINT_ENABLED
         fprintf(stderr,
-                "ReinitializeDevice: Sending Reject - undefined enumeration\n");
+            "ReinitializeDevice: Sending Reject - undefined enumeration\n");
 #endif
     } else {
 #if BAC_ROUTING
@@ -136,16 +134,14 @@ void handler_reinitialize_device(uint8_t* service_request, uint16_t service_len,
 
         if (Device_Reinitialize(&rd_data)) {
             len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-                                    service_data->invoke_id,
-                                    SERVICE_CONFIRMED_REINITIALIZE_DEVICE);
+                service_data->invoke_id, SERVICE_CONFIRMED_REINITIALIZE_DEVICE);
 #if PRINT_ENABLED
             fprintf(stderr, "ReinitializeDevice: Sending Simple Ack!\n");
 #endif
         } else {
             len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                       service_data->invoke_id,
-                                       SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-                                       rd_data.error_class, rd_data.error_code);
+                service_data->invoke_id, SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
+                rd_data.error_class, rd_data.error_code);
 #if PRINT_ENABLED
             fprintf(stderr, "ReinitializeDevice: Sending Error.\n");
 #endif
@@ -153,12 +149,12 @@ void handler_reinitialize_device(uint8_t* service_request, uint16_t service_len,
     }
 RD_ABORT:
     pdu_len += len;
-    len = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
-                            pdu_len);
+    len = datalink_send_pdu(
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (len <= 0) {
 #if PRINT_ENABLED
         fprintf(stderr, "ReinitializeDevice: Failed to send PDU (%s)!\n",
-                strerror(errno));
+            strerror(errno));
 #endif
     }
 

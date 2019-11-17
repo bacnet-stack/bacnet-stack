@@ -94,9 +94,10 @@ static void PrintReadRangeData(BACNET_READ_RANGE_DATA *data)
     }
 }
 
-void handler_read_range_ack(uint8_t *service_request, uint16_t service_len,
-                            BACNET_ADDRESS *src,
-                            BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+void handler_read_range_ack(uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
     BACNET_READ_RANGE_DATA data;

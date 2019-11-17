@@ -135,8 +135,8 @@ void address_remove_device(uint32_t device_id)
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0)
+            && (pMatch->device_id == device_id)) {
             pMatch->Flags = 0;
             if (index < Top_Protected_Entry) {
                 Top_Protected_Entry--;
@@ -168,15 +168,16 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
     if (Top_Protected_Entry > (MAX_ADDRESS_CACHE - 1)) {
         return pCandidate;
     }
-    ulTime =
-        BAC_ADDR_FOREVER - 1; /* Longest possible non static time to live */
+    ulTime
+        = BAC_ADDR_FOREVER - 1; /* Longest possible non static time to live */
 
     /* First pass - try only in use and bound entries */
 
     pMatch = &Address_Cache[Top_Protected_Entry];
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ |
-                              BAC_ADDR_STATIC)) == BAC_ADDR_IN_USE) {
+        if ((pMatch->Flags
+                & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC))
+            == BAC_ADDR_IN_USE) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
                 pCandidate = pMatch;
@@ -187,17 +188,17 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
 
     if (pCandidate != NULL) { /* Found something to free up */
         pCandidate->Flags = BAC_ADDR_RESERVED;
-        pCandidate->TimeToLive =
-            BAC_ADDR_SHORT_TIME; /* only reserve it for a short while */
+        pCandidate->TimeToLive
+            = BAC_ADDR_SHORT_TIME; /* only reserve it for a short while */
         return (pCandidate);
     }
 
     /* Second pass - try in use and un bound as last resort */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags &
-             (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC)) ==
-            ((uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
+        if ((pMatch->Flags
+                & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC))
+            == ((uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
             if (pMatch->TimeToLive <= ulTime) { /* Shorter lived entry found */
                 ulTime = pMatch->TimeToLive;
                 pCandidate = pMatch;
@@ -208,8 +209,8 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
 
     if (pCandidate != NULL) { /* Found something to free up */
         pCandidate->Flags = BAC_ADDR_RESERVED;
-        pCandidate->TimeToLive =
-            BAC_ADDR_SHORT_TIME; /* only reserve it for a short while */
+        pCandidate->TimeToLive
+            = BAC_ADDR_SHORT_TIME; /* only reserve it for a short while */
     }
 
     return (pCandidate);
@@ -244,7 +245,7 @@ void address_mac_init(BACNET_MAC_ADDRESS *mac, uint8_t *adr, uint8_t len)
  */
 bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, char *arg)
 {
-    unsigned a[6] = {0}, p = 0;
+    unsigned a[6] = { 0 }, p = 0;
     uint16_t port = 0;
     int c;
     bool status = false;
@@ -268,7 +269,7 @@ bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, char *arg)
         status = true;
     } else {
         c = sscanf(arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3],
-                   &a[4], &a[5]);
+            &a[4], &a[5]);
         if (c == 6) {
             mac->adr[0] = a[0];
             mac->adr[1] = a[1];
@@ -301,14 +302,14 @@ static const char *Address_Cache_Filename = "address_cache";
 
 static void address_file_init(const char *pFilename)
 {
-    FILE *pFile = NULL;    /* stream pointer */
-    char line[256] = {""}; /* holds line from file */
+    FILE *pFile = NULL;      /* stream pointer */
+    char line[256] = { "" }; /* holds line from file */
     long device_id = 0;
     unsigned snet = 0;
     unsigned max_apdu = 0;
-    char mac_string[80] = {""}, sadr_string[80] = {""};
-    BACNET_ADDRESS src = {0};
-    BACNET_MAC_ADDRESS mac = {0};
+    char mac_string[80] = { "" }, sadr_string[80] = { "" };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_MAC_ADDRESS mac = { 0 };
     int index = 0;
 
     pFile = fopen(pFilename, "r");
@@ -317,8 +318,8 @@ static void address_file_init(const char *pFilename)
             /* ignore comments */
             if (line[0] != ';') {
                 if (sscanf(line, "%7ld %79s %5u %79s %4u", &device_id,
-                           &mac_string[0], &snet, &sadr_string[0],
-                           &max_apdu) == 5) {
+                        &mac_string[0], &snet, &sadr_string[0], &max_apdu)
+                    == 5) {
                     if (address_mac_from_ascii(&mac, mac_string)) {
                         src.mac_len = mac.len;
                         for (index = 0; index < MAX_MAC_LEN; index++) {
@@ -341,7 +342,7 @@ static void address_file_init(const char *pFilename)
                     }
                     address_add((uint32_t)device_id, max_apdu, &src);
                     address_set_device_TTL((uint32_t)device_id, 0,
-                                           true); /* Mark as static entry */
+                        true); /* Mark as static entry */
                 }
             }
         }
@@ -388,15 +389,15 @@ void address_init_partial(void)
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & BAC_ADDR_IN_USE) !=
-            0) { /* It's in use so let's check further */
-            if (((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0) ||
-                (pMatch->TimeToLive == 0))
+        if ((pMatch->Flags & BAC_ADDR_IN_USE)
+            != 0) { /* It's in use so let's check further */
+            if (((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0)
+                || (pMatch->TimeToLive == 0))
                 pMatch->Flags = 0;
         }
 
-        if ((pMatch->Flags & BAC_ADDR_RESERVED) !=
-            0) { /* Reserved entries should be cleared */
+        if ((pMatch->Flags & BAC_ADDR_RESERVED)
+            != 0) { /* Reserved entries should be cleared */
             pMatch->Flags = 0;
         }
 
@@ -416,17 +417,17 @@ void address_init_partial(void)
  * to avoid breaking the current API.                                       *
  ****************************************************************************/
 
-void address_set_device_TTL(uint32_t device_id, uint32_t TimeOut,
-                            bool StaticFlag)
+void address_set_device_TTL(
+    uint32_t device_id, uint32_t TimeOut, bool StaticFlag)
 {
     struct Address_Cache_Entry *pMatch;
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
-            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) ==
-                0) { /* If bound then we have either static or normaal */
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0)
+            && (pMatch->device_id == device_id)) {
+            if ((pMatch->Flags & BAC_ADDR_BIND_REQ)
+                == 0) { /* If bound then we have either static or normaal */
                 if (StaticFlag) {
                     pMatch->Flags |= BAC_ADDR_STATIC;
                     pMatch->TimeToLive = BAC_ADDR_FOREVER;
@@ -435,8 +436,8 @@ void address_set_device_TTL(uint32_t device_id, uint32_t TimeOut,
                     pMatch->TimeToLive = TimeOut;
                 }
             } else {
-                pMatch->TimeToLive =
-                    TimeOut; /* For unbound we can only set the time to live */
+                pMatch->TimeToLive = TimeOut; /* For unbound we can only set the
+                                                 time to live */
             }
             break; /* Exit now if found at all - bound or unbound */
         }
@@ -444,18 +445,18 @@ void address_set_device_TTL(uint32_t device_id, uint32_t TimeOut,
     }
 }
 
-bool address_get_by_device(uint32_t device_id, unsigned *max_apdu,
-                           BACNET_ADDRESS *src)
+bool address_get_by_device(
+    uint32_t device_id, unsigned *max_apdu, BACNET_ADDRESS *src)
 {
     struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
-            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) ==
-                0) { /* If bound then fetch data */
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0)
+            && (pMatch->device_id == device_id)) {
+            if ((pMatch->Flags & BAC_ADDR_BIND_REQ)
+                == 0) { /* If bound then fetch data */
                 bacnet_address_copy(src, &pMatch->address);
                 *max_apdu = pMatch->max_apdu;
                 found = true; /* Prove we found it */
@@ -477,8 +478,8 @@ bool address_get_device_id(BACNET_ADDRESS *src, uint32_t *device_id)
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE) { /* If bound */
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))
+            == BAC_ADDR_IN_USE) { /* If bound */
             if (bacnet_address_same(&pMatch->address, src)) {
                 if (device_id) {
                     *device_id = pMatch->device_id;
@@ -511,28 +512,28 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
     /* existing device or bind request outstanding - update address */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0)
+            && (pMatch->device_id == device_id)) {
             bacnet_address_copy(&pMatch->address, src);
             pMatch->max_apdu = max_apdu;
 
             /* Pick the right time to live */
 
-            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) !=
-                0) /* Bind requested so long time */
+            if ((pMatch->Flags & BAC_ADDR_BIND_REQ)
+                != 0) /* Bind requested so long time */
                 pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
-            else if ((pMatch->Flags & BAC_ADDR_STATIC) !=
-                     0) /* Static already so make sure it never expires */
+            else if ((pMatch->Flags & BAC_ADDR_STATIC)
+                != 0) /* Static already so make sure it never expires */
                 pMatch->TimeToLive = BAC_ADDR_FOREVER;
-            else if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) !=
-                     0) /* Opportunistic entry so leave on short fuse */
+            else if ((pMatch->Flags & BAC_ADDR_SHORT_TTL)
+                != 0) /* Opportunistic entry so leave on short fuse */
                 pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
             else
-                pMatch->TimeToLive =
-                    BAC_ADDR_LONG_TIME; /* Renewing existing entry */
+                pMatch->TimeToLive
+                    = BAC_ADDR_LONG_TIME; /* Renewing existing entry */
 
-            pMatch->Flags &=
-                ~BAC_ADDR_BIND_REQ; /* Clear bind request flag just in case */
+            pMatch->Flags &= ~BAC_ADDR_BIND_REQ; /* Clear bind request flag just
+                                                    in case */
             found = true;
             break;
         }
@@ -548,9 +549,9 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
                 pMatch->device_id = device_id;
                 pMatch->max_apdu = max_apdu;
                 bacnet_address_copy(&pMatch->address, src);
-                pMatch->TimeToLive =
-                    BAC_ADDR_SHORT_TIME; /* Opportunistic entry so leave on
-                                            short fuse */
+                pMatch->TimeToLive
+                    = BAC_ADDR_SHORT_TIME; /* Opportunistic entry so leave on
+                                              short fuse */
                 found = true;
                 break;
             }
@@ -575,8 +576,10 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
 
 /* returns true if device is already bound */
 /* also returns the address and max apdu if already bound */
-bool address_device_bind_request(uint32_t device_id, uint32_t *device_ttl,
-                                 unsigned *max_apdu, BACNET_ADDRESS *src)
+bool address_device_bind_request(uint32_t device_id,
+    uint32_t *device_ttl,
+    unsigned *max_apdu,
+    BACNET_ADDRESS *src)
 {
     bool found = false; /* return value */
     struct Address_Cache_Entry *pMatch;
@@ -584,8 +587,8 @@ bool address_device_bind_request(uint32_t device_id, uint32_t *device_ttl,
     /* existing device - update address info if currently bound */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0)
+            && (pMatch->device_id == device_id)) {
             if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) { /* Already bound */
                 found = true;
                 if (src) {
@@ -597,13 +600,14 @@ bool address_device_bind_request(uint32_t device_id, uint32_t *device_ttl,
                 if (device_ttl) {
                     *device_ttl = pMatch->TimeToLive;
                 }
-                if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) !=
-                    0) { /* Was picked up opportunistacilly */
-                    pMatch->Flags &=
-                        ~BAC_ADDR_SHORT_TTL; /* Convert to normal entry  */
-                    pMatch->TimeToLive =
-                        BAC_ADDR_LONG_TIME; /* And give it a decent time to live
-                                             */
+                if ((pMatch->Flags & BAC_ADDR_SHORT_TTL)
+                    != 0) { /* Was picked up opportunistacilly */
+                    pMatch->Flags
+                        &= ~BAC_ADDR_SHORT_TTL; /* Convert to normal entry  */
+                    pMatch->TimeToLive
+                        = BAC_ADDR_LONG_TIME; /* And give it a decent time to
+                                               * live
+                                               */
                 }
             }
             return (
@@ -641,22 +645,22 @@ bool address_device_bind_request(uint32_t device_id, uint32_t *device_ttl,
 
 /* returns true if device is already bound */
 /* also returns the address and max apdu if already bound */
-bool address_bind_request(uint32_t device_id, unsigned *max_apdu,
-                          BACNET_ADDRESS *src)
+bool address_bind_request(
+    uint32_t device_id, unsigned *max_apdu, BACNET_ADDRESS *src)
 {
     return address_device_bind_request(device_id, NULL, max_apdu, src);
 }
 
-void address_add_binding(uint32_t device_id, unsigned max_apdu,
-                         BACNET_ADDRESS *src)
+void address_add_binding(
+    uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
 {
     struct Address_Cache_Entry *pMatch;
 
     /* existing device or bind request - update address */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0)
+            && (pMatch->device_id == device_id)) {
             bacnet_address_copy(&pMatch->address, src);
             pMatch->max_apdu = max_apdu;
             /* Clear bind request flag in case it was set */
@@ -673,17 +677,19 @@ void address_add_binding(uint32_t device_id, unsigned max_apdu,
     return;
 }
 
-bool address_device_get_by_index(unsigned index, uint32_t *device_id,
-                                 uint32_t *device_ttl, unsigned *max_apdu,
-                                 BACNET_ADDRESS *src)
+bool address_device_get_by_index(unsigned index,
+    uint32_t *device_id,
+    uint32_t *device_ttl,
+    unsigned *max_apdu,
+    BACNET_ADDRESS *src)
 {
     struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
 
     if (index < MAX_ADDRESS_CACHE) {
         pMatch = &Address_Cache[index];
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE) {
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))
+            == BAC_ADDR_IN_USE) {
             if (src) {
                 bacnet_address_copy(src, &pMatch->address);
             }
@@ -703,8 +709,10 @@ bool address_device_get_by_index(unsigned index, uint32_t *device_id,
     return found;
 }
 
-bool address_get_by_index(unsigned index, uint32_t *device_id,
-                          unsigned *max_apdu, BACNET_ADDRESS *src)
+bool address_get_by_index(unsigned index,
+    uint32_t *device_id,
+    unsigned *max_apdu,
+    BACNET_ADDRESS *src)
 {
     return address_device_get_by_index(index, device_id, NULL, max_apdu, src);
 }
@@ -717,8 +725,8 @@ unsigned address_count(void)
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         /* Only count bound entries */
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE)
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))
+            == BAC_ADDR_IN_USE)
             count++;
 
         pMatch++;
@@ -745,25 +753,25 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
     /* look for matching address */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE) {
-            iLen += encode_application_object_id(&apdu[iLen], OBJECT_DEVICE,
-                                                 pMatch->device_id);
-            iLen +=
-                encode_application_unsigned(&apdu[iLen], pMatch->address.net);
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))
+            == BAC_ADDR_IN_USE) {
+            iLen += encode_application_object_id(
+                &apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
+            iLen += encode_application_unsigned(
+                &apdu[iLen], pMatch->address.net);
 
             /* pick the appropriate type of entry from the cache */
 
             if (pMatch->address.len != 0) {
-                octetstring_init(&MAC_Address, pMatch->address.adr,
-                                 pMatch->address.len);
-                iLen +=
-                    encode_application_octet_string(&apdu[iLen], &MAC_Address);
+                octetstring_init(
+                    &MAC_Address, pMatch->address.adr, pMatch->address.len);
+                iLen += encode_application_octet_string(
+                    &apdu[iLen], &MAC_Address);
             } else {
-                octetstring_init(&MAC_Address, pMatch->address.mac,
-                                 pMatch->address.mac_len);
-                iLen +=
-                    encode_application_octet_string(&apdu[iLen], &MAC_Address);
+                octetstring_init(
+                    &MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
+                iLen += encode_application_octet_string(
+                    &apdu[iLen], &MAC_Address);
             }
         }
         pMatch++;
@@ -833,8 +841,8 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         pRequest->Range.RefIndex = 1; /* Starting at the beginning */
     }
 
-    if (pRequest->Count <
-        0) { /* negative count means work from index backwards */
+    if (pRequest->Count
+        < 0) { /* negative count means work from index backwards */
         /*
          * Convert from end index/negative count to
          * start index/positive count and then process as
@@ -849,10 +857,10 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
          */
 
         iTemp = pRequest->Range.RefIndex; /* pull out and convert to signed */
-        iTemp +=
-            pRequest->Count + 1; /* Adjust backwards, remember count is -ve */
-        if (iTemp <
-            1) { /* if count is too much, return from 1 to start index */
+        iTemp += pRequest->Count
+            + 1; /* Adjust backwards, remember count is -ve */
+        if (iTemp
+            < 1) { /* if count is too much, return from 1 to start index */
             pRequest->Count = pRequest->Range.RefIndex;
             pRequest->Range.RefIndex = 1;
         } else { /* Otherwise adjust the start index and make count +ve */
@@ -863,25 +871,25 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
     /* From here on in we only have a starting point and a positive count */
 
-    if (pRequest->Range.RefIndex >
-        uiTotal) /* Nothing to return as we are past the end of the list */
+    if (pRequest->Range.RefIndex
+        > uiTotal) /* Nothing to return as we are past the end of the list */
         return (0);
 
-    uiTarget = pRequest->Range.RefIndex + pRequest->Count -
-               1;           /* Index of last required entry */
+    uiTarget = pRequest->Range.RefIndex + pRequest->Count
+        - 1;                /* Index of last required entry */
     if (uiTarget > uiTotal) /* Capped at end of list if necessary */
         uiTarget = uiTotal;
 
     pMatch = Address_Cache;
     uiIndex = 1;
-    while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
-           BAC_ADDR_IN_USE) /* Find first bound entry */
+    while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))
+        != BAC_ADDR_IN_USE) /* Find first bound entry */
         pMatch++;
 
     /* Seek to start position */
     while (uiIndex != pRequest->Range.RefIndex) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE) { /* Only count bound entries */
+        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))
+            == BAC_ADDR_IN_USE) { /* Only count bound entries */
             pMatch++;
             uiIndex++;
         } else
@@ -895,28 +903,28 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
              * Can't fit any more in! We just set the result flag to say there
              * was more and drop out of the loop early
              */
-            bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS,
-                              true);
+            bitstring_set_bit(
+                &pRequest->ResultFlags, RESULT_FLAG_MORE_ITEMS, true);
             break;
         }
 
         iTemp = (int32_t)encode_application_object_id(
             &apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
-        iTemp += encode_application_unsigned(&apdu[iLen + iTemp],
-                                             pMatch->address.net);
+        iTemp += encode_application_unsigned(
+            &apdu[iLen + iTemp], pMatch->address.net);
 
         /* pick the appropriate type of entry from the cache */
 
         if (pMatch->address.len != 0) {
-            octetstring_init(&MAC_Address, pMatch->address.adr,
-                             pMatch->address.len);
-            iTemp += encode_application_octet_string(&apdu[iLen + iTemp],
-                                                     &MAC_Address);
+            octetstring_init(
+                &MAC_Address, pMatch->address.adr, pMatch->address.len);
+            iTemp += encode_application_octet_string(
+                &apdu[iLen + iTemp], &MAC_Address);
         } else {
-            octetstring_init(&MAC_Address, pMatch->address.mac,
-                             pMatch->address.mac_len);
-            iTemp += encode_application_octet_string(&apdu[iLen + iTemp],
-                                                     &MAC_Address);
+            octetstring_init(
+                &MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
+            iTemp += encode_application_octet_string(
+                &apdu[iLen + iTemp], &MAC_Address);
         }
 
         uiRemaining -= iTemp; /* Reduce the remaining space */
@@ -927,8 +935,8 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         pMatch++;
         pRequest->ItemCount++; /* Chalk up another one for the response count */
 
-        while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
-               BAC_ADDR_IN_USE) /* Find next bound entry */
+        while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))
+            != BAC_ADDR_IN_USE) /* Find next bound entry */
             pMatch++;
     }
 
@@ -955,9 +963,10 @@ void address_cache_timer(uint16_t uSeconds)
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if (((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_RESERVED)) != 0) &&
-            ((pMatch->Flags & BAC_ADDR_STATIC) ==
-             0)) { /* Check all entries holding a slot except statics */
+        if (((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_RESERVED)) != 0)
+            && ((pMatch->Flags & BAC_ADDR_STATIC)
+                   == 0)) { /* Check all entries holding a slot except statics
+                             */
             if (pMatch->TimeToLive >= uSeconds)
                 pMatch->TimeToLive -= uSeconds;
             else
@@ -988,8 +997,10 @@ static void set_address(unsigned index, BACNET_ADDRESS *dest)
     }
 }
 
-static void set_file_address(const char *pFilename, uint32_t device_id,
-                             BACNET_ADDRESS *dest, uint16_t max_apdu)
+static void set_file_address(const char *pFilename,
+    uint32_t device_id,
+    BACNET_ADDRESS *dest,
+    uint16_t max_apdu)
 {
     unsigned i;
     FILE *pFile = NULL;
@@ -1023,10 +1034,10 @@ static void set_file_address(const char *pFilename, uint32_t device_id,
 #ifdef BACNET_ADDRESS_CACHE_FILE
 void testAddressFile(Test *pTest)
 {
-    BACNET_ADDRESS src = {0};
+    BACNET_ADDRESS src = { 0 };
     uint32_t device_id = 0;
     unsigned max_apdu = 480;
-    BACNET_ADDRESS test_address = {0};
+    BACNET_ADDRESS test_address = { 0 };
     unsigned test_max_apdu = 0;
 
     /* create a fake address */
@@ -1039,8 +1050,8 @@ void testAddressFile(Test *pTest)
     set_file_address(Address_Cache_Filename, device_id, &src, max_apdu);
     /* retrieve it from the file, and see if we can find it */
     address_file_init(Address_Cache_Filename);
-    ct_test(pTest,
-            address_get_by_device(device_id, &test_max_apdu, &test_address));
+    ct_test(
+        pTest, address_get_by_device(device_id, &test_max_apdu, &test_address));
     ct_test(pTest, test_max_apdu == max_apdu);
     ct_test(pTest, bacnet_address_same(&test_address, &src));
 
@@ -1060,8 +1071,8 @@ void testAddressFile(Test *pTest)
     set_file_address(Address_Cache_Filename, device_id, &src, max_apdu);
     /* retrieve it from the file, and see if we can find it */
     address_file_init(Address_Cache_Filename);
-    ct_test(pTest,
-            address_get_by_device(device_id, &test_max_apdu, &test_address));
+    ct_test(
+        pTest, address_get_by_device(device_id, &test_max_apdu, &test_address));
     ct_test(pTest, test_max_apdu == max_apdu);
     ct_test(pTest, bacnet_address_same(&test_address, &src));
 }
@@ -1090,12 +1101,13 @@ void testAddress(Test *pTest)
         device_id = i * 255;
         set_address(i, &src);
         /* test the lookup by device id */
-        ct_test(pTest, address_get_by_device(device_id, &test_max_apdu,
-                                             &test_address));
+        ct_test(pTest,
+            address_get_by_device(device_id, &test_max_apdu, &test_address));
         ct_test(pTest, test_max_apdu == max_apdu);
         ct_test(pTest, bacnet_address_same(&test_address, &src));
-        ct_test(pTest, address_get_by_index(i, &test_device_id, &test_max_apdu,
-                                            &test_address));
+        ct_test(pTest,
+            address_get_by_index(
+                i, &test_device_id, &test_max_apdu, &test_address));
         ct_test(pTest, test_device_id == device_id);
         ct_test(pTest, test_max_apdu == max_apdu);
         ct_test(pTest, bacnet_address_same(&test_address, &src));
@@ -1108,8 +1120,8 @@ void testAddress(Test *pTest)
     for (i = 0; i < MAX_ADDRESS_CACHE; i++) {
         device_id = i * 255;
         address_remove_device(device_id);
-        ct_test(pTest, !address_get_by_device(device_id, &test_max_apdu,
-                                              &test_address));
+        ct_test(pTest,
+            !address_get_by_device(device_id, &test_max_apdu, &test_address));
         count = address_count();
         ct_test(pTest, count == (MAX_ADDRESS_CACHE - i - 1));
     }

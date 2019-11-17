@@ -64,20 +64,19 @@ static void Init_Service_Handlers(void)
        It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
 }
 
 static void print_usage(char *filename)
 {
-    printf(
-        "Usage: %s pid object-type object-instance \n"
-        "    event-object-type event-object-instance \n"
-        "    sequence-number notification-class priority event-type\n"
-        "    [reference-bit-string status-flags message notify-type\n"
-        "     ack-required from-state to-state]\n"
-        "    [new-state status-flags message notify-type\n"
-        "     ack-required from-state to-state]\n",
+    printf("Usage: %s pid object-type object-instance \n"
+           "    event-object-type event-object-instance \n"
+           "    sequence-number notification-class priority event-type\n"
+           "    [reference-bit-string status-flags message notify-type\n"
+           "     ack-required from-state to-state]\n"
+           "    [new-state status-flags message notify-type\n"
+           "     ack-required from-state to-state]\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
@@ -86,37 +85,36 @@ static void print_usage(char *filename)
 static void print_help(char *filename)
 {
     printf("Send BACnet UnconfirmedEventNotification message for a device.\n");
-    printf(
-        "--mac A\n"
-        "Optional BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n"
-        "--dnet N\n"
-        "Optional BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n"
-        "\n"
-        "--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network "
-        "number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n");
+    printf("--mac A\n"
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n"
+           "--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n"
+           "\n"
+           "--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n");
 }
 
 int main(int argc, char *argv[])
 {
-    BACNET_EVENT_NOTIFICATION_DATA event_data = {0};
+    BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
     BACNET_BIT_STRING *pBitString;
     BACNET_CHARACTER_STRING bcstring;
     BACNET_PROPERTY_STATE_TYPE tag = BOOLEAN_VALUE;
     long dnet = -1;
-    BACNET_MAC_ADDRESS mac = {0};
-    BACNET_MAC_ADDRESS adr = {0};
-    BACNET_ADDRESS dest = {0};
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
     bool specific_address = false;
     int argi = 0;
     unsigned int target_args = 0;
@@ -131,12 +129,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2016 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2016 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
         if (strcmp(argv[argi], "--mac") == 0) {
@@ -163,25 +160,25 @@ int main(int argc, char *argv[])
                 event_data.processIdentifier = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 1) {
-                event_data.initiatingObjectIdentifier.type =
-                    strtol(argv[argi], NULL, 0);
+                event_data.initiatingObjectIdentifier.type
+                    = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 2) {
-                event_data.initiatingObjectIdentifier.instance =
-                    strtol(argv[argi], NULL, 0);
+                event_data.initiatingObjectIdentifier.instance
+                    = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 3) {
-                event_data.eventObjectIdentifier.type =
-                    strtol(argv[argi], NULL, 0);
+                event_data.eventObjectIdentifier.type
+                    = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 4) {
-                event_data.eventObjectIdentifier.instance =
-                    strtol(argv[argi], NULL, 0);
+                event_data.eventObjectIdentifier.instance
+                    = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 5) {
                 event_data.timeStamp.tag = TIME_STAMP_SEQUENCE;
-                event_data.timeStamp.value.sequenceNum =
-                    strtol(argv[argi], NULL, 0);
+                event_data.timeStamp.value.sequenceNum
+                    = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 6) {
                 event_data.notificationClass = strtol(argv[argi], NULL, 0);
@@ -195,9 +192,9 @@ int main(int argc, char *argv[])
             } else {
                 if (event_data.eventType == EVENT_CHANGE_OF_BITSTRING) {
                     if (target_args == 9) {
-                        pBitString =
-                            &event_data.notificationParams.changeOfBitstring
-                                 .referencedBitString;
+                        pBitString
+                            = &event_data.notificationParams.changeOfBitstring
+                                   .referencedBitString;
                         bitstring_init_ascii(pBitString, argv[argi]);
                         target_args++;
                     } else if (target_args == 10) {
@@ -228,62 +225,66 @@ int main(int argc, char *argv[])
                 } else if (event_data.eventType == EVENT_CHANGE_OF_STATE) {
                     if (target_args == 9) {
                         tag = strtol(argv[argi], NULL, 0);
-                        event_data.notificationParams.changeOfState.newState
-                            .tag = tag;
+                        event_data.notificationParams.changeOfState.newState.tag
+                            = tag;
                         target_args++;
                     } else if (target_args == 10) {
                         if (tag == BOOLEAN_VALUE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.booleanValue =
-                                strtol(argv[argi], NULL, 0);
+                                .state.booleanValue
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == BINARY_VALUE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.binaryValue =
-                                strtol(argv[argi], NULL, 0);
+                                .state.binaryValue
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == EVENT_TYPE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.eventType = strtol(argv[argi], NULL, 0);
+                                .state.eventType
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == POLARITY) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.polarity = strtol(argv[argi], NULL, 0);
+                                .state.polarity
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == PROGRAM_CHANGE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.programChange =
-                                strtol(argv[argi], NULL, 0);
+                                .state.programChange
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == PROGRAM_STATE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.programState =
-                                strtol(argv[argi], NULL, 0);
+                                .state.programState
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == REASON_FOR_HALT) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.programError =
-                                strtol(argv[argi], NULL, 0);
+                                .state.programError
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == RELIABILITY) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.reliability =
-                                strtol(argv[argi], NULL, 0);
+                                .state.reliability
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == STATE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.state = strtol(argv[argi], NULL, 0);
+                                .state.state
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == SYSTEM_STATUS) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.systemStatus =
-                                strtol(argv[argi], NULL, 0);
+                                .state.systemStatus
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == UNITS) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.units = strtol(argv[argi], NULL, 0);
+                                .state.units
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == UNSIGNED_VALUE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.unsignedValue =
-                                strtol(argv[argi], NULL, 0);
+                                .state.unsignedValue
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == LIFE_SAFETY_MODE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.lifeSafetyMode =
-                                strtol(argv[argi], NULL, 0);
+                                .state.lifeSafetyMode
+                                = strtol(argv[argi], NULL, 0);
                         } else if (tag == LIFE_SAFETY_STATE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.lifeSafetyState =
-                                strtol(argv[argi], NULL, 0);
+                                .state.lifeSafetyState
+                                = strtol(argv[argi], NULL, 0);
                         } else {
                             printf("Invalid Change-Of-State Tag\n");
                             return 1;
@@ -318,8 +319,8 @@ int main(int argc, char *argv[])
                 } else if (event_data.eventType == EVENT_COMMAND_FAILURE) {
                 } else if (event_data.eventType == EVENT_FLOATING_LIMIT) {
                 } else if (event_data.eventType == EVENT_OUT_OF_RANGE) {
-                } else if (event_data.eventType ==
-                           EVENT_CHANGE_OF_LIFE_SAFETY) {
+                } else if (event_data.eventType
+                    == EVENT_CHANGE_OF_LIFE_SAFETY) {
                 } else if (event_data.eventType == EVENT_EXTENDED) {
                 } else if (event_data.eventType == EVENT_BUFFER_READY) {
                 } else if (event_data.eventType == EVENT_UNSIGNED_RANGE) {

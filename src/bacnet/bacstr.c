@@ -55,8 +55,8 @@ void bitstring_init(BACNET_BIT_STRING *bit_string)
     }
 }
 
-void bitstring_set_bit(BACNET_BIT_STRING *bit_string, uint8_t bit_number,
-                       bool value)
+void bitstring_set_bit(
+    BACNET_BIT_STRING *bit_string, uint8_t bit_number, bool value)
 {
     uint8_t byte_number = bit_number / 8;
     uint8_t bit_mask = 1;
@@ -127,8 +127,8 @@ uint8_t bitstring_octet(BACNET_BIT_STRING *bit_string, uint8_t octet_index)
     return octet;
 }
 
-bool bitstring_set_octet(BACNET_BIT_STRING *bit_string, uint8_t index,
-                         uint8_t octet)
+bool bitstring_set_octet(
+    BACNET_BIT_STRING *bit_string, uint8_t index, uint8_t octet)
 {
     bool status = false;
 
@@ -142,8 +142,8 @@ bool bitstring_set_octet(BACNET_BIT_STRING *bit_string, uint8_t index,
     return status;
 }
 
-bool bitstring_set_bits_used(BACNET_BIT_STRING *bit_string, uint8_t bytes_used,
-                             uint8_t unused_bits)
+bool bitstring_set_bits_used(
+    BACNET_BIT_STRING *bit_string, uint8_t bytes_used, uint8_t unused_bits)
 {
     bool status = false;
 
@@ -183,16 +183,16 @@ bool bitstring_copy(BACNET_BIT_STRING *dest, BACNET_BIT_STRING *src)
 }
 
 /* returns true if the same length and contents */
-bool bitstring_same(BACNET_BIT_STRING *bitstring1,
-                    BACNET_BIT_STRING *bitstring2)
+bool bitstring_same(
+    BACNET_BIT_STRING *bitstring1, BACNET_BIT_STRING *bitstring2)
 {
     int i = 0; /* loop counter */
     int bytes_used = 0;
     uint8_t compare_mask = 0;
 
     if (bitstring1 && bitstring2) {
-        if ((bitstring1->bits_used == bitstring2->bits_used) &&
-            (bitstring1->bits_used / 8 <= MAX_BITSTRING_BYTES)) {
+        if ((bitstring1->bits_used == bitstring2->bits_used)
+            && (bitstring1->bits_used / 8 <= MAX_BITSTRING_BYTES)) {
             bytes_used = (int)(bitstring1->bits_used / 8);
             compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
 
@@ -201,8 +201,8 @@ bool bitstring_same(BACNET_BIT_STRING *bitstring1,
                     return false;
                 }
             }
-            if ((bitstring1->value[bytes_used] & compare_mask) !=
-                (bitstring2->value[bytes_used] & compare_mask)) {
+            if ((bitstring1->value[bytes_used] & compare_mask)
+                != (bitstring2->value[bytes_used] & compare_mask)) {
                 return false;
             } else {
                 return true;
@@ -262,7 +262,9 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
 /* returns false if the string exceeds capacity
    initialize by using value=NULL */
 bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
-                          uint8_t encoding, const char *value, size_t length)
+    uint8_t encoding,
+    const char *value,
+    size_t length)
 {
     bool status = false; /* return value */
     size_t i;            /* counter */
@@ -294,28 +296,27 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
     return status;
 }
 
-bool characterstring_init_ansi(BACNET_CHARACTER_STRING *char_string,
-                               const char *value)
+bool characterstring_init_ansi(
+    BACNET_CHARACTER_STRING *char_string, const char *value)
 {
-    return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
-                                value ? strlen(value) : 0);
+    return characterstring_init(
+        char_string, CHARACTER_ANSI_X34, value, value ? strlen(value) : 0);
 }
 
-bool characterstring_copy(BACNET_CHARACTER_STRING *dest,
-                          BACNET_CHARACTER_STRING *src)
+bool characterstring_copy(
+    BACNET_CHARACTER_STRING *dest, BACNET_CHARACTER_STRING *src)
 {
     return characterstring_init(dest, characterstring_encoding(src),
-                                characterstring_value(src),
-                                characterstring_length(src));
+        characterstring_value(src), characterstring_length(src));
 }
 
-bool characterstring_ansi_copy(char *dest, size_t dest_max_len,
-                               BACNET_CHARACTER_STRING *src)
+bool characterstring_ansi_copy(
+    char *dest, size_t dest_max_len, BACNET_CHARACTER_STRING *src)
 {
     size_t i; /* counter */
 
-    if (dest && src && (src->encoding == CHARACTER_ANSI_X34) &&
-        (src->length < dest_max_len)) {
+    if (dest && src && (src->encoding == CHARACTER_ANSI_X34)
+        && (src->length < dest_max_len)) {
         for (i = 0; i < dest_max_len; i++) {
             if (i < src->length) {
                 dest[i] = src->value[i];
@@ -330,15 +331,15 @@ bool characterstring_ansi_copy(char *dest, size_t dest_max_len,
 }
 
 /* returns true if the character encoding and string contents are the same */
-bool characterstring_same(BACNET_CHARACTER_STRING *dest,
-                          BACNET_CHARACTER_STRING *src)
+bool characterstring_same(
+    BACNET_CHARACTER_STRING *dest, BACNET_CHARACTER_STRING *src)
 {
     size_t i; /* counter */
     bool same_status = false;
 
     if (src && dest) {
-        if ((src->length == dest->length) &&
-            (src->encoding == dest->encoding)) {
+        if ((src->length == dest->length)
+            && (src->encoding == dest->encoding)) {
             same_status = true;
             for (i = 0; (i < src->length) && same_status; i++) {
                 if (src->value[i] != dest->value[i]) {
@@ -365,8 +366,8 @@ bool characterstring_ansi_same(BACNET_CHARACTER_STRING *dest, const char *src)
     bool same_status = false;
 
     if (src && dest) {
-        if ((dest->length == strlen(src)) &&
-            (dest->encoding == CHARACTER_ANSI_X34)) {
+        if ((dest->length == strlen(src))
+            && (dest->encoding == CHARACTER_ANSI_X34)) {
             same_status = true;
             for (i = 0; (i < dest->length) && same_status; i++) {
                 if (src[i] != dest->value[i]) {
@@ -390,8 +391,8 @@ bool characterstring_ansi_same(BACNET_CHARACTER_STRING *dest, const char *src)
 }
 
 /* returns false if the string exceeds capacity */
-bool characterstring_append(BACNET_CHARACTER_STRING *char_string,
-                            const char *value, size_t length)
+bool characterstring_append(
+    BACNET_CHARACTER_STRING *char_string, const char *value, size_t length)
 {
     size_t i;            /* counter */
     bool status = false; /* return value */
@@ -412,8 +413,8 @@ bool characterstring_append(BACNET_CHARACTER_STRING *char_string,
 /* This function sets a new length without changing the value.
    If length exceeds capacity, no modification happens and
    function returns false.  */
-bool characterstring_truncate(BACNET_CHARACTER_STRING *char_string,
-                              size_t length)
+bool characterstring_truncate(
+    BACNET_CHARACTER_STRING *char_string, size_t length)
 {
     bool status = false; /* return value */
 
@@ -476,8 +477,8 @@ uint8_t characterstring_encoding(BACNET_CHARACTER_STRING *char_string)
 }
 
 /* returns the encoding. */
-bool characterstring_set_encoding(BACNET_CHARACTER_STRING *char_string,
-                                  uint8_t encoding)
+bool characterstring_set_encoding(
+    BACNET_CHARACTER_STRING *char_string, uint8_t encoding)
 {
     bool status = false;
 
@@ -510,8 +511,8 @@ bool characterstring_printable(BACNET_CHARACTER_STRING *char_string)
             status = true;
             for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
                 if (i < char_string->length) {
-                    if ((char_string->value[i] < 0x20) ||
-                        (char_string->value[i] > 0x7E)) {
+                    if ((char_string->value[i] < 0x20)
+                        || (char_string->value[i] > 0x7E)) {
                         status = false;
                     }
                 } else {
@@ -529,18 +530,17 @@ bool characterstring_printable(BACNET_CHARACTER_STRING *char_string)
 /* Basic UTF-8 manipulation routines
   by Jeff Bezanson
   placed in the public domain Fall 2005 */
-static const char trailingBytesForUTF8[256] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
+static const char trailingBytesForUTF8[256] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
 
 /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
    length is in bytes, since without knowing whether the string is valid
@@ -643,8 +643,8 @@ bool characterstring_valid(BACNET_CHARACTER_STRING *char_string)
 #if BACNET_USE_OCTETSTRING
 /* returns false if the string exceeds capacity
    initialize by using value=NULL */
-bool octetstring_init(BACNET_OCTET_STRING *octet_string, uint8_t *value,
-                      size_t length)
+bool octetstring_init(
+    BACNET_OCTET_STRING *octet_string, uint8_t *value, size_t length)
 {
     bool status = false; /* return value */
     size_t i;            /* counter */
@@ -674,8 +674,8 @@ bool octetstring_init(BACNET_OCTET_STRING *octet_string, uint8_t *value,
 #if PRINT_ENABLED
 /* converts an null terminated ASCII Hex string to an octet string.
    returns true if successfully converted and fits; false if too long */
-bool octetstring_init_ascii_hex(BACNET_OCTET_STRING *octet_string,
-                                const char *ascii_hex)
+bool octetstring_init_ascii_hex(
+    BACNET_OCTET_STRING *octet_string, const char *ascii_hex)
 {
     bool status = false; /* return value */
     unsigned index = 0;  /* offset into buffer */
@@ -721,14 +721,14 @@ bool octetstring_init_ascii_hex(BACNET_OCTET_STRING *octet_string,
 
 bool octetstring_copy(BACNET_OCTET_STRING *dest, BACNET_OCTET_STRING *src)
 {
-    return octetstring_init(dest, octetstring_value(src),
-                            octetstring_length(src));
+    return octetstring_init(
+        dest, octetstring_value(src), octetstring_length(src));
 }
 
 /* returns the number of bytes copied, or 0 if the dest
    cannot hold entire octetstring value */
-size_t octetstring_copy_value(uint8_t *dest, size_t length,
-                              BACNET_OCTET_STRING *src)
+size_t octetstring_copy_value(
+    uint8_t *dest, size_t length, BACNET_OCTET_STRING *src)
 {
     size_t bytes_copied = 0;
     size_t i; /* counter */
@@ -746,8 +746,8 @@ size_t octetstring_copy_value(uint8_t *dest, size_t length,
 }
 
 /* returns false if the string exceeds capacity */
-bool octetstring_append(BACNET_OCTET_STRING *octet_string, uint8_t *value,
-                        size_t length)
+bool octetstring_append(
+    BACNET_OCTET_STRING *octet_string, uint8_t *value, size_t length)
 {
     size_t i;            /* counter */
     bool status = false; /* return value */
@@ -821,14 +821,14 @@ size_t octetstring_capacity(BACNET_OCTET_STRING *octet_string)
 }
 
 /* returns true if the same length and contents */
-bool octetstring_value_same(BACNET_OCTET_STRING *octet_string1,
-                            BACNET_OCTET_STRING *octet_string2)
+bool octetstring_value_same(
+    BACNET_OCTET_STRING *octet_string1, BACNET_OCTET_STRING *octet_string2)
 {
     size_t i = 0; /* loop counter */
 
     if (octet_string1 && octet_string2) {
-        if ((octet_string1->length == octet_string2->length) &&
-            (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
+        if ((octet_string1->length == octet_string2->length)
+            && (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
             for (i = 0; i < octet_string1->length; i++) {
                 if (octet_string1->value[i] != octet_string2->value[i]) {
                     return false;
@@ -905,7 +905,7 @@ void testBitString(Test *pTest)
          * be different */
         bitstring_set_bit(&bit_string2, 0, !bitstring_bit(&bit_string, 0));
         bitstring_set_bit(&bit_string3, max_bit - 1,
-                          !bitstring_bit(&bit_string, max_bit - 1));
+            !bitstring_bit(&bit_string, max_bit - 1));
         ct_test(pTest, !bitstring_same(&bit_string, &bit_string2));
         ct_test(pTest, !bitstring_same(&bit_string, &bit_string3));
     }
@@ -927,22 +927,22 @@ void testCharacterString(Test *pTest)
     status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL, 0);
     ct_test(pTest, status == true);
     ct_test(pTest, characterstring_length(&bacnet_string) == 0);
-    ct_test(pTest,
-            characterstring_encoding(&bacnet_string) == CHARACTER_ANSI_X34);
+    ct_test(
+        pTest, characterstring_encoding(&bacnet_string) == CHARACTER_ANSI_X34);
     /* bounds check */
     status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL,
-                                  characterstring_capacity(&bacnet_string) + 1);
+        characterstring_capacity(&bacnet_string) + 1);
     ct_test(pTest, status == false);
     status = characterstring_truncate(
         &bacnet_string, characterstring_capacity(&bacnet_string) + 1);
     ct_test(pTest, status == false);
-    status = characterstring_truncate(&bacnet_string,
-                                      characterstring_capacity(&bacnet_string));
+    status = characterstring_truncate(
+        &bacnet_string, characterstring_capacity(&bacnet_string));
     ct_test(pTest, status == true);
 
     test_length = strlen(test_value);
-    status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34,
-                                  &test_value[0], test_length);
+    status = characterstring_init(
+        &bacnet_string, CHARACTER_ANSI_X34, &test_value[0], test_length);
     ct_test(pTest, status == true);
     value = characterstring_value(&bacnet_string);
     length = characterstring_length(&bacnet_string);
@@ -951,8 +951,8 @@ void testCharacterString(Test *pTest)
         ct_test(pTest, value[i] == test_value[i]);
     }
     test_length = strlen(test_append_value);
-    status = characterstring_append(&bacnet_string, &test_append_value[0],
-                                    test_length);
+    status = characterstring_append(
+        &bacnet_string, &test_append_value[0], test_length);
     strcat(test_append_string, test_value);
     strcat(test_append_string, test_append_value);
     test_length = strlen(test_append_string);
@@ -986,17 +986,17 @@ void testOctetString(Test *pTest)
         ct_test(pTest, value[i] == 0);
     }
     /* bounds check */
-    status = octetstring_init(&bacnet_string, NULL,
-                              octetstring_capacity(&bacnet_string) + 1);
+    status = octetstring_init(
+        &bacnet_string, NULL, octetstring_capacity(&bacnet_string) + 1);
     ct_test(pTest, status == false);
-    status = octetstring_init(&bacnet_string, NULL,
-                              octetstring_capacity(&bacnet_string));
+    status = octetstring_init(
+        &bacnet_string, NULL, octetstring_capacity(&bacnet_string));
     ct_test(pTest, status == true);
-    status = octetstring_truncate(&bacnet_string,
-                                  octetstring_capacity(&bacnet_string) + 1);
+    status = octetstring_truncate(
+        &bacnet_string, octetstring_capacity(&bacnet_string) + 1);
     ct_test(pTest, status == false);
-    status = octetstring_truncate(&bacnet_string,
-                                  octetstring_capacity(&bacnet_string));
+    status = octetstring_truncate(
+        &bacnet_string, octetstring_capacity(&bacnet_string));
     ct_test(pTest, status == true);
 
     test_length = strlen((char *)test_value);
@@ -1010,8 +1010,8 @@ void testOctetString(Test *pTest)
     }
 
     test_length = strlen((char *)test_append_value);
-    status =
-        octetstring_append(&bacnet_string, &test_append_value[0], test_length);
+    status = octetstring_append(
+        &bacnet_string, &test_append_value[0], test_length);
     strcat((char *)test_append_string, (char *)test_value);
     strcat((char *)test_append_string, (char *)test_append_value);
     test_length = strlen((char *)test_append_string);

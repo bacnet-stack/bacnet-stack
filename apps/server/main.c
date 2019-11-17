@@ -70,7 +70,7 @@
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
 /** Buffer used for receiving */
-static uint8_t Rx_Buf[MAX_MPDU] = {0};
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
@@ -101,45 +101,45 @@ static void Init_Service_Handlers(void)
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-                               handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-                               handler_read_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-                               handler_write_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
-                               handler_write_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_RANGE,
-                               handler_read_range);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
 #if defined(BACFILE)
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_READ_FILE,
-                               handler_atomic_read_file);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ATOMIC_WRITE_FILE,
-                               handler_atomic_write_file);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ATOMIC_WRITE_FILE, handler_atomic_write_file);
 #endif
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-                               handler_reinitialize_device);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION,
-                                 handler_timesync_utc);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION,
-                                 handler_timesync);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
-                               handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_COV_NOTIFICATION,
-                                 handler_ucov_notification);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-                               handler_device_communication_control);
+        handler_device_communication_control);
     /* handle the data coming back from private requests */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
-                                 handler_unconfirmed_private_transfer);
+        handler_unconfirmed_private_transfer);
 #if defined(INTRINSIC_REPORTING)
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
-                               handler_alarm_ack);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_GET_EVENT_INFORMATION,
-                               handler_get_event_information);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_GET_ALARM_SUMMARY,
-                               handler_get_alarm_summary);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, handler_alarm_ack);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_GET_EVENT_INFORMATION, handler_get_event_information);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_GET_ALARM_SUMMARY, handler_get_alarm_summary);
 #endif /* defined(INTRINSIC_REPORTING) */
 #if defined(BACNET_TIME_MASTER)
     handler_timesync_init();
@@ -154,21 +154,18 @@ static void print_usage(const char *filename)
 
 static void print_help(const char *filename)
 {
-    printf(
-        "Simulate a BACnet server device\n"
-        "device-instance:\n"
-        "BACnet Device Object Instance number that you are\n"
-        "trying simulate.\n"
-        "device-name:\n"
-        "The Device object-name is the text name for the device.\n"
-        "\nExample:\n");
-    printf(
-        "To simulate Device 123, use the following command:\n"
-        "%s 123\n",
+    printf("Simulate a BACnet server device\n"
+           "device-instance:\n"
+           "BACnet Device Object Instance number that you are\n"
+           "trying simulate.\n"
+           "device-name:\n"
+           "The Device object-name is the text name for the device.\n"
+           "\nExample:\n");
+    printf("To simulate Device 123, use the following command:\n"
+           "%s 123\n",
         filename);
-    printf(
-        "To simulate Device 123 named Fred, use following command:\n"
-        "%s 123 Fred\n",
+    printf("To simulate Device 123 named Fred, use following command:\n"
+           "%s 123 Fred\n",
         filename);
 }
 
@@ -186,7 +183,7 @@ static void print_help(const char *filename)
  */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = {0}; /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 1; /* milliseconds */
     time_t last_seconds = 0;
@@ -214,12 +211,11 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf(
-                "Copyright (C) 2014 by Steve Karg and others.\n"
-                "This is free software; see the source for copying "
-                "conditions.\n"
-                "There is NO warranty; not even for MERCHANTABILITY or\n"
-                "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            printf("Copyright (C) 2014 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
     }
@@ -245,11 +241,10 @@ int main(int argc, char *argv[])
     ucix_cleanup(ctx);
 #endif /* defined(BAC_UCI) */
 
-    printf(
-        "BACnet Server Demo\n"
-        "BACnet Stack Version %s\n"
-        "BACnet Device ID: %u\n"
-        "Max APDU: %d\n",
+    printf("BACnet Server Demo\n"
+           "BACnet Stack Version %s\n"
+           "BACnet Device ID: %u\n"
+           "Max APDU: %d\n",
         BACnet_Version, Device_Object_Instance_Number(), MAX_APDU);
     /* load any static address bindings to show up
        in our device bindings list */

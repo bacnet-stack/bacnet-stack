@@ -43,9 +43,11 @@
 
 /** @file s_ptransfer.c  Send a Private Transfer request. */
 
-uint8_t Send_Private_Transfer_Request(uint32_t device_id, uint16_t vendor_id,
-                                      uint32_t service_number,
-                                      unsigned int block_number, char *block)
+uint8_t Send_Private_Transfer_Request(uint32_t device_id,
+    uint16_t vendor_id,
+    uint32_t service_number,
+    unsigned int block_number,
+    char *block)
 { /* NULL=optional */
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -73,49 +75,48 @@ uint8_t Send_Private_Transfer_Request(uint32_t device_id, uint16_t vendor_id,
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], &dest,
-                                  &my_address, &npdu_data);
+        pdu_len = npdu_encode_pdu(
+            &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
         private_data.vendorID = vendor_id;
         private_data.serviceNumber = service_number;
-        len =
-            uptransfer_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &private_data);
+        len = uptransfer_encode_apdu(
+            &Handler_Transmit_Buffer[pdu_len], &private_data);
         pdu_len += len;
 
         if (service_number == MY_SVC_READ) {
         } else {
-        len = ptransfer_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                                    invoke_id, &pt_block);
-        pdu_len += len;
+            len = ptransfer_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len], invoke_id, &pt_block);
+            pdu_len += len;
 
-        /* will it fit in the sender?
-           note: if there is a bottleneck router in between
-           us and the destination, we won't know unless
-           we have a way to check for that and update the
-           max_apdu in the address binding table. */
+            /* will it fit in the sender?
+               note: if there is a bottleneck router in between
+               us and the destination, we won't know unless
+               we have a way to check for that and update the
+               max_apdu in the address binding table. */
 
-        if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(
-                invoke_id, &dest, &npdu_data, &Handler_Transmit_Buffer[0],
-                (uint16_t)pdu_len);
-            bytes_sent = datalink_send_pdu(
-                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+            if ((unsigned)pdu_len < max_apdu) {
+                tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
+                    &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
+                bytes_sent = datalink_send_pdu(
+                    &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr,
+                if (bytes_sent <= 0)
+                    fprintf(stderr,
                         "Failed to Send Private Transfer Request (%s)!\n",
                         strerror(errno));
 #endif
-        } else {
-            tsm_free_invoke_id(invoke_id);
-            invoke_id = 0;
+            } else {
+                tsm_free_invoke_id(invoke_id);
+                invoke_id = 0;
 #if PRINT_ENABLED
-            fprintf(stderr,
+                fprintf(stderr,
                     "Failed to Send Private Transfer Request "
                     "(exceeds destination maximum APDU)!\n");
 #endif
+            }
         }
-    }
 
-    return invoke_id;
-}
+        return invoke_id;
+    }

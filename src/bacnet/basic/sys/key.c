@@ -67,8 +67,8 @@ void testKeys(Test *pTest)
 void testKeySample(Test *pTest)
 {
     int type, id;
-    int type_list[] = {0, 1, KEY_TYPE_MAX / 2, KEY_TYPE_MAX - 1, -1};
-    int id_list[] = {0, 1, KEY_ID_MAX / 2, KEY_ID_MAX - 1, -1};
+    int type_list[] = { 0, 1, KEY_TYPE_MAX / 2, KEY_TYPE_MAX - 1, -1 };
+    int id_list[] = { 0, 1, KEY_ID_MAX / 2, KEY_ID_MAX - 1, -1 };
     int type_index = 0;
     int id_index = 0;
     int decoded_type, decoded_id;

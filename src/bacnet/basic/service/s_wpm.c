@@ -56,9 +56,10 @@
  * @return invoke id of outgoing message, or 0 if device is not bound or no tsm
  * available
  */
-uint8_t Send_Write_Property_Multiple_Request(
-    uint8_t* pdu, size_t max_pdu, uint32_t device_id,
-    BACNET_WRITE_ACCESS_DATA* write_access_data)
+uint8_t Send_Write_Property_Multiple_Request(uint8_t *pdu,
+    size_t max_pdu,
+    uint32_t device_id,
+    BACNET_WRITE_ACCESS_DATA *write_access_data)
 {
     BACNET_ADDRESS dest;
     BACNET_ADDRESS my_address;
@@ -86,8 +87,8 @@ uint8_t Send_Write_Property_Multiple_Request(
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
         pdu_len = npdu_encode_pdu(&pdu[0], &dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
-        len = wpm_encode_apdu(&pdu[pdu_len], max_pdu - pdu_len, invoke_id,
-                              write_access_data);
+        len = wpm_encode_apdu(
+            &pdu[pdu_len], max_pdu - pdu_len, invoke_id, write_access_data);
         pdu_len += len;
 
         /* will it fit in the sender?
@@ -102,8 +103,8 @@ uint8_t Send_Write_Property_Multiple_Request(
 #if PRINT_ENABLED
             if (bytes_sent <= 0) {
                 fprintf(stderr,
-                        "Failed to Send WritePropertyMultiple Request (%s)!\n",
-                        strerror(errno));
+                    "Failed to Send WritePropertyMultiple Request (%s)!\n",
+                    strerror(errno));
             }
 #endif
         } else {
@@ -111,8 +112,8 @@ uint8_t Send_Write_Property_Multiple_Request(
             invoke_id = 0;
 #if PRINT_ENABLED
             fprintf(stderr,
-                    "Failed to Send WritePropertyMultiple Request "
-                    "(exceeds destination maximum APDU)!\n");
+                "Failed to Send WritePropertyMultiple Request "
+                "(exceeds destination maximum APDU)!\n");
 #endif
         }
     }
