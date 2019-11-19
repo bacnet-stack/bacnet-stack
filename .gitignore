@@ -48,3 +48,5 @@
 *.layout
 tags
 test-results.xml
+.vscode/*
+
