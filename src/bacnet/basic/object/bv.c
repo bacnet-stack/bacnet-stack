@@ -65,12 +65,15 @@ static const int Binary_Value_Properties_Proprietary[] = { -1 };
 void Binary_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Binary_Value_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Binary_Value_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Binary_Value_Properties_Proprietary;
+    }
 
     return;
 }
@@ -99,8 +102,9 @@ void Binary_Value_Init(void)
 /* given instance exists */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_BINARY_VALUES) {
         return true;
+    }
 
     return false;
 }
@@ -127,8 +131,9 @@ unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_VALUES;
 
-    if (object_instance < MAX_BINARY_VALUES)
+    if (object_instance < MAX_BINARY_VALUES) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -251,27 +256,28 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet. */
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index =
                     Binary_Value_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
-                    if (Binary_Value_Level[object_index][i] == BINARY_NULL)
+                    if (Binary_Value_Level[object_index][i] == BINARY_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
-                    else {
+                    } else {
                         present_value = Binary_Value_Level[object_index][i];
                         len = encode_application_enumerated(
                             &apdu[apdu_len], present_value);
                     }
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
@@ -283,9 +289,9 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     Binary_Value_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Binary_Value_Level[object_index][rpdata->array_index] ==
-                        BINARY_NULL)
+                        BINARY_NULL) {
                         apdu_len = encode_application_null(&apdu[apdu_len]);
-                    else {
+                    } else {
                         present_value = Binary_Value_Level[object_index]
                                                           [rpdata->array_index];
                         apdu_len = encode_application_enumerated(

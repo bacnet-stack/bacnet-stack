@@ -72,12 +72,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Analog_Output_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -105,8 +108,9 @@ void Analog_Output_Init(void)
 /* given instance exists */
 bool Analog_Output_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ANALOG_OUTPUTS)
+    if (object_instance < MAX_ANALOG_OUTPUTS) {
         return true;
+    }
 
     return false;
 }
@@ -133,8 +137,9 @@ unsigned Analog_Output_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ANALOG_OUTPUTS;
 
-    if (object_instance < MAX_ANALOG_OUTPUTS)
+    if (object_instance < MAX_ANALOG_OUTPUTS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -323,27 +328,28 @@ int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet. */
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index =
                     Analog_Output_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
-                    if (Analog_Output_Level[object_index][i] == AO_LEVEL_NULL)
+                    if (Analog_Output_Level[object_index][i] == AO_LEVEL_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
-                    else {
+                    } else {
                         real_value = Analog_Output_Level[object_index][i];
                         len = encode_application_real(
                             &apdu[apdu_len], real_value);
                     }
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
@@ -355,9 +361,9 @@ int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     Analog_Output_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Analog_Output_Level[object_index][rpdata->array_index -
-                            1] == AO_LEVEL_NULL)
+                            1] == AO_LEVEL_NULL) {
                         apdu_len = encode_application_null(&apdu[0]);
-                    else {
+                    } else {
                         real_value =
                             Analog_Output_Level[object_index]
                                                [rpdata->array_index - 1];

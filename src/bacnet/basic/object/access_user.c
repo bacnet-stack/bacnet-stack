@@ -53,12 +53,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Access_User_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -88,8 +91,9 @@ void Access_User_Init(void)
 /* given instance exists */
 bool Access_User_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ACCESS_USERS)
+    if (object_instance < MAX_ACCESS_USERS) {
         return true;
+    }
 
     return false;
 }
@@ -116,8 +120,9 @@ unsigned Access_User_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCESS_USERS;
 
-    if (object_instance < MAX_ACCESS_USERS)
+    if (object_instance < MAX_ACCESS_USERS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -192,9 +197,9 @@ int Access_User_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             for (i = 0; i < au_descr[object_index].credentials_count; i++) {
                 len = bacapp_encode_device_obj_ref(
                     &apdu[0], &au_descr[object_index].credentials[i]);
-                if (apdu_len + len < MAX_APDU)
+                if (apdu_len + len < MAX_APDU) {
                     apdu_len += len;
-                else {
+                } else {
                     rpdata->error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;

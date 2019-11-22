@@ -124,12 +124,14 @@ void bvlc_bdt_backup_local(void)
     static FILE *bdt_file_ptr = NULL;
 
     /* only try opening the file if not already opened previously */
-    if (!bdt_file_ptr)
+    if (!bdt_file_ptr) {
         bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "wb");
+    }
 
     /* if error opening file for writing -> silently abort */
-    if (!bdt_file_ptr)
+    if (!bdt_file_ptr) {
         return;
+    }
 
     fseek(bdt_file_ptr, 0, SEEK_SET);
     fwrite(
@@ -142,12 +144,14 @@ void bvlc_bdt_restore_local(void)
     static FILE *bdt_file_ptr = NULL;
 
     /* only try opening the file if not already opened previously */
-    if (!bdt_file_ptr)
+    if (!bdt_file_ptr) {
         bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "rb");
+    }
 
     /* if error opening file for reading -> silently abort */
-    if (!bdt_file_ptr)
+    if (!bdt_file_ptr) {
         return;
+    }
 
     fseek(bdt_file_ptr, 0, SEEK_SET);
     {
@@ -156,10 +160,11 @@ void bvlc_bdt_restore_local(void)
 
         entries = fread(BBMD_Table_tmp, sizeof(BBMD_TABLE_ENTRY),
             MAX_BBMD_ENTRIES, bdt_file_ptr);
-        if (entries == MAX_BBMD_ENTRIES)
+        if (entries == MAX_BBMD_ENTRIES) {
             /* success reading the BDT table. */
             memcpy(BBMD_Table, BBMD_Table_tmp,
                 sizeof(BBMD_TABLE_ENTRY) * MAX_BBMD_ENTRIES);
+        }
     }
 }
 #else
@@ -1670,8 +1675,9 @@ int bvlc_get_bdt_local(const BBMD_TABLE_ENTRY **table)
 {
     int count = 0;
 
-    if (table == NULL)
+    if (table == NULL) {
         return -1;
+    }
 
     *table = BBMD_Table;
 
@@ -1708,8 +1714,9 @@ bool bvlc_add_bdt_entry_local(BBMD_TABLE_ENTRY *entry)
     bool found = false;
     int i = 0;
 
-    if (entry == NULL)
+    if (entry == NULL) {
         return false;
+    }
 
     /* Find first empty slot */
     for (i = 0; i < MAX_BBMD_ENTRIES; ++i) {
@@ -1727,8 +1734,9 @@ bool bvlc_add_bdt_entry_local(BBMD_TABLE_ENTRY *entry)
         }
     }
 
-    if (!found)
+    if (!found) {
         return false;
+    }
 
     /* Copy new entry to the empty slot */
     BBMD_Table[i] = *entry;

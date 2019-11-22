@@ -65,8 +65,9 @@ void Send_I_Have(uint32_t device_id,
 
     datalink_get_my_address(&my_address);
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return;
+    }
     /* Who-Has is a global broadcast */
     datalink_get_broadcast_address(&dest);
     /* encode the NPDU portion of the packet */

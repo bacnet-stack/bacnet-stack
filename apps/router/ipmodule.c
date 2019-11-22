@@ -159,8 +159,9 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
     }
 
     ip_data->socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (ip_data->socket < 0)
+    if (ip_data->socket < 0) {
         return false;
+    }
 
     /* setup socket options */
 
@@ -215,8 +216,9 @@ int dl_ip_send(
     int buff_len = 0;
     int bytes_sent = 0;
 
-    if (data->socket < 0)
+    if (data->socket < 0) {
         return -1;
+    }
 
     data->buff[0] = BVLL_TYPE_BACNET_IP;
     bip_dest.sin_family = AF_INET;
@@ -260,8 +262,9 @@ int dl_ip_recv(
     socklen_t sin_len = sizeof(sin);
 
     /* make sure the socket is open */
-    if (data->socket < 0)
+    if (data->socket < 0) {
         return 0;
+    }
 
     if (timeout >= 1000) {
         select_timeout.tv_sec = timeout / 1000;
@@ -283,11 +286,12 @@ int dl_ip_recv(
 #else
     int ret = select(data->socket + 1, &read_fds, NULL, NULL, &select_timeout);
     /* see if there is a packet for us */
-    if (ret > 0)
+    if (ret > 0) {
         received_bytes = recvfrom(data->socket, (char *)&data->buff[0],
             data->max_buff, 0, (struct sockaddr *)&sin, &sin_len);
-    else
+    } else {
         return 0;
+    }
 #endif
     PRINT(DEBUG, "received from %s\n", inet_ntoa(sin.sin_addr));
 
@@ -377,10 +381,12 @@ int dl_ip_recv(
 void dl_ip_cleanup(IP_DATA *ip_data)
 {
     /* free buffer */
-    if (ip_data->buff)
+    if (ip_data->buff) {
         free(ip_data->buff);
+    }
     /* close socket */
-    if (ip_data->socket > 0)
+    if (ip_data->socket > 0) {
         close(ip_data->socket);
+    }
     return;
 }

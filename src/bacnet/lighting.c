@@ -133,8 +133,9 @@ int lighting_command_decode(
     /* check for value pointers */
     if (apdu_max_len && data) {
         /* Tag 0: operation */
-        if (!decode_is_context_tag(&apdu[apdu_len], 0))
+        if (!decode_is_context_tag(&apdu[apdu_len], 0)) {
             return BACNET_STATUS_ERROR;
+        }
         len = decode_tag_number_and_value(
             &apdu[apdu_len], &tag_number, &len_value_type);
         apdu_len += len;

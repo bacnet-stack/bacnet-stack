@@ -75,26 +75,30 @@ int cl_encode_apdu(uint8_t *apdu, BACNET_ACTION_LIST *bcl)
         bcl->Device_Id.instance <= BACNET_MAX_INSTANCE) {
         len = encode_context_object_id(
             &apdu[apdu_len], 0, bcl->Device_Id.type, bcl->Device_Id.instance);
-        if (len < 0)
+        if (len < 0) {
             return BACNET_STATUS_REJECT;
+        }
         apdu_len += len;
     }
     /* TODO: Check for object type and instance limits */
     len = encode_context_object_id(
         &apdu[apdu_len], 1, bcl->Object_Id.type, bcl->Object_Id.instance);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     apdu_len += len;
     len =
         encode_context_enumerated(&apdu[apdu_len], 2, bcl->Property_Identifier);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     apdu_len += len;
     if (bcl->Property_Array_Index != BACNET_ARRAY_ALL) {
         len = encode_context_unsigned(
             &apdu[apdu_len], 3, bcl->Property_Array_Index);
-        if (len < 0)
+        if (len < 0) {
             return BACNET_STATUS_REJECT;
+        }
         apdu_len += len;
     }
 
@@ -108,37 +112,44 @@ int cl_encode_apdu(uint8_t *apdu, BACNET_ACTION_LIST *bcl)
        September 2016 */
 
     len = encode_opening_tag(&apdu[apdu_len], 4);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     apdu_len += len;
     len = bacapp_encode_application_data(&apdu[apdu_len], &bcl->Value);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     apdu_len += len;
     len = encode_closing_tag(&apdu[apdu_len], 4);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     apdu_len += len;
 
     if (bcl->Priority != BACNET_NO_PRIORITY) {
         len = encode_context_unsigned(&apdu[apdu_len], 5, bcl->Priority);
-        if (len < 0)
+        if (len < 0) {
             return BACNET_STATUS_REJECT;
+        }
         apdu_len += len;
     }
     if (bcl->Post_Delay != 0xFFFFFFFFU) {
         len = encode_context_unsigned(&apdu[apdu_len], 6, bcl->Post_Delay);
-        if (len < 0)
+        if (len < 0) {
             return BACNET_STATUS_REJECT;
+        }
         apdu_len += len;
     }
     len = encode_context_boolean(&apdu[apdu_len], 7, bcl->Quit_On_Failure);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     apdu_len += len;
     len = encode_context_boolean(&apdu[apdu_len], 8, bcl->Write_Successful);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     apdu_len += len;
 
     return apdu_len;
@@ -159,28 +170,34 @@ int cl_decode_apdu(uint8_t *apdu,
         dec_len++;
         len = decode_object_id(
             &apdu[dec_len], &bcl->Device_Id.type, &bcl->Device_Id.instance);
-        if (len < 0)
+        if (len < 0) {
             return BACNET_STATUS_REJECT;
+        }
         dec_len += len;
     }
-    if (!decode_is_context_tag(&apdu[dec_len++], 1))
+    if (!decode_is_context_tag(&apdu[dec_len++], 1)) {
         return BACNET_STATUS_REJECT;
+    }
     len = decode_object_id(
         &apdu[dec_len], &bcl->Object_Id.type, &bcl->Object_Id.instance);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     dec_len += len;
     len = decode_tag_number_and_value(
         &apdu[dec_len], &tag_number, &len_value_type);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     dec_len += len;
-    if (tag_number != 2)
+    if (tag_number != 2) {
         return BACNET_STATUS_REJECT;
+    }
     len = decode_enumerated(
         &apdu[dec_len], len_value_type, &bcl->Property_Identifier);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     dec_len += len;
     if (decode_is_context_tag(&apdu[dec_len], 3)) {
         len = decode_tag_number_and_value(
@@ -188,14 +205,16 @@ int cl_decode_apdu(uint8_t *apdu,
         dec_len += len;
         len = decode_unsigned(
             &apdu[dec_len], len_value_type, &bcl->Property_Array_Index);
-        if (len < 0)
+        if (len < 0) {
             return BACNET_STATUS_REJECT;
+        }
         dec_len += len;
     } else {
         bcl->Property_Array_Index = BACNET_ARRAY_ALL;
     }
-    if (!decode_is_context_tag(&apdu[dec_len], 4))
+    if (!decode_is_context_tag(&apdu[dec_len], 4)) {
         return BACNET_STATUS_REJECT;
+    }
     bcl->Value.context_specific = true;
     bcl->Value.context_tag = 4;
     bcl->Value.tag = tag;
@@ -258,16 +277,18 @@ int cl_decode_apdu(uint8_t *apdu,
             return BACNET_STATUS_REJECT;
             break;
     }
-    if (len > 0)
+    if (len > 0) {
         dec_len += len;
+    }
     if (decode_is_context_tag(&apdu[dec_len], 5)) {
         uint32_t priority_dec;
         len = decode_tag_number_and_value(
             &apdu[dec_len], &tag_number, &len_value_type);
         dec_len += len;
         len = decode_unsigned(&apdu[dec_len], len_value_type, &priority_dec);
-        if (len < 0)
+        if (len < 0) {
             return BACNET_STATUS_REJECT;
+        }
         bcl->Priority = (uint8_t)priority_dec;
         dec_len += len;
     } else {
@@ -278,8 +299,9 @@ int cl_decode_apdu(uint8_t *apdu,
             &apdu[dec_len], &tag_number, &len_value_type);
         dec_len += len;
         len = decode_unsigned(&apdu[dec_len], len_value_type, &bcl->Post_Delay);
-        if (len < 0)
+        if (len < 0) {
             return BACNET_STATUS_REJECT;
+        }
         dec_len += len;
     } else {
         bcl->Post_Delay = 0xFFFFFFFFU;
@@ -288,15 +310,17 @@ int cl_decode_apdu(uint8_t *apdu,
         return BACNET_STATUS_REJECT;
     }
     len = decode_context_boolean2(&apdu[dec_len], 7, &bcl->Quit_On_Failure);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     dec_len += len;
     if (!decode_is_context_tag(&apdu[dec_len], 8)) {
         return BACNET_STATUS_REJECT;
     }
     len = decode_context_boolean2(&apdu[dec_len], 8, &bcl->Write_Successful);
-    if (len < 0)
+    if (len < 0) {
         return BACNET_STATUS_REJECT;
+    }
     dec_len += len;
     if (dec_len < apdu_len) {
         return BACNET_STATUS_REJECT;
@@ -330,12 +354,15 @@ static const int Command_Properties_Proprietary[] = { -1 };
 void Command_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Command_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Command_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Command_Properties_Proprietary;
+    }
 
     return;
 }
@@ -365,8 +392,9 @@ bool Command_Valid_Instance(uint32_t object_instance)
     unsigned int index;
 
     index = Command_Instance_To_Index(object_instance);
-    if (index < MAX_COMMANDS)
+    if (index < MAX_COMMANDS) {
         return true;
+    }
 
     return false;
 }
@@ -407,8 +435,9 @@ unsigned Command_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_COMMANDS;
 
-    if (object_instance < MAX_COMMANDS)
+    if (object_instance < MAX_COMMANDS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -634,10 +663,10 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_ACTION:
             /* TODO */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], MAX_COMMAND_ACTIONS);
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 int i;
                 for (i = 0; i < MAX_COMMAND_ACTIONS; i++) {
                     BACNET_ACTION_LIST *Curr_CL_Member =

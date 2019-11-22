@@ -83,25 +83,29 @@ int ihave_decode_service_request(
             len += decode_object_id(
                 &apdu[len], &decoded_type, &data->device_id.instance);
             data->device_id.type = decoded_type;
-        } else
+        } else {
             return -1;
+        }
         /* objectIdentifier */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
             len += decode_object_id(
                 &apdu[len], &decoded_type, &data->object_id.instance);
             data->object_id.type = decoded_type;
-        } else
+        } else {
             return -1;
+        }
         /* objectName */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             len += decode_character_string(
                 &apdu[len], len_value, &data->object_name);
-        } else
+        } else {
             return -1;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     return len;
 }
@@ -111,13 +115,16 @@ int ihave_decode_apdu(
 {
     int len = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) {
         return -1;
-    if (apdu[1] != SERVICE_UNCONFIRMED_I_HAVE)
+    }
+    if (apdu[1] != SERVICE_UNCONFIRMED_I_HAVE) {
         return -1;
+    }
     len = ihave_decode_service_request(&apdu[2], apdu_len - 2, data);
 
     return len;

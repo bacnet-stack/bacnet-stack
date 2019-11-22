@@ -94,8 +94,9 @@ void dlenv_bbmd_ttl_set(int ttl_secs)
 int dlenv_bbmd_result(void)
 {
     if ((bbmd_result > 0) &&
-        (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK))
+        (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK)) {
         return -1;
+    }
     /* Else, show our send: */
     return bbmd_result;
 }
@@ -150,9 +151,10 @@ int dlenv_register_as_foreign_device(void)
             inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
         retval = bvlc_register_with_bbmd(bbmd_address,
             htons((uint16_t)bbmd_port), (uint16_t)bbmd_timetolive_seconds);
-        if (retval < 0)
+        if (retval < 0) {
             fprintf(stderr, "FAILED to Register with BBMD at %s \n",
                 inet_ntoa(addr));
+        }
         BBMD_Timer_Seconds = (uint16_t)bbmd_timetolive_seconds;
     } else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
@@ -439,8 +441,9 @@ void dlenv_init(void)
          * Unless it is set below 1024, since:
          * "The range for well-known ports managed by the IANA is 0-1023."
          */
-        if (ntohs(bip_get_port()) < 1024)
+        if (ntohs(bip_get_port()) < 1024) {
             bip_set_port(htons(0xBAC0));
+        }
     }
     pEnv = getenv("BACNET_IP_NAT_ADDR");
     if (pEnv) {

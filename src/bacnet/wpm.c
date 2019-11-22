@@ -152,8 +152,9 @@ int wpm_decode_object_property(
         if (tag_number == 3) {
             len += decode_unsigned(&apdu[len], len_value, &ulVal);
             wp_data->priority = ulVal;
-        } else
+        } else {
             len--;
+        }
     } else {
         wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
         return BACNET_STATUS_REJECT;
@@ -318,8 +319,9 @@ int wpm_error_ack_encode_apdu(
         len +=
             encode_context_enumerated(&apdu[len], 1, wp_data->object_property);
 
-        if (wp_data->array_index != BACNET_ARRAY_ALL)
+        if (wp_data->array_index != BACNET_ARRAY_ALL) {
             len += encode_context_unsigned(&apdu[len], 2, wp_data->array_index);
+        }
         len += encode_closing_tag(&apdu[len], 1);
     }
     return len;

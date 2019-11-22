@@ -371,9 +371,10 @@ int main(int argc, char *argv[])
         current_seconds = time(NULL);
 
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+        }
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
@@ -389,9 +390,9 @@ int main(int argc, char *argv[])
                     &Target_Object_Property_Value[0],
                     Target_Object_Property_Priority,
                     Target_Object_Property_Index);
-            } else if (tsm_invoke_id_free(Request_Invoke_ID))
+            } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
-            else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
+            } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                 fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;

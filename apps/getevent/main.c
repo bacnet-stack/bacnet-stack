@@ -230,9 +230,10 @@ int main(int argc, char *argv[])
         current_seconds = time(NULL);
 
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+        }
 
         if (Error_Detected) {
             break;

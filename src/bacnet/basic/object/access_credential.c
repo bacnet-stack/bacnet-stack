@@ -57,12 +57,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Access_Credential_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -96,8 +99,9 @@ void Access_Credential_Init(void)
 /* given instance exists */
 bool Access_Credential_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ACCESS_CREDENTIALS)
+    if (object_instance < MAX_ACCESS_CREDENTIALS) {
         return true;
+    }
 
     return false;
 }
@@ -124,8 +128,9 @@ unsigned Access_Credential_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCESS_CREDENTIALS;
 
-    if (object_instance < MAX_ACCESS_CREDENTIALS)
+    if (object_instance < MAX_ACCESS_CREDENTIALS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -202,9 +207,9 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             for (i = 0; i < ac_descr[object_index].reasons_count; i++) {
                 len = encode_application_enumerated(
                     &apdu[0], ac_descr[object_index].reason_for_disable[i]);
-                if (apdu_len + len < MAX_APDU)
+                if (apdu_len + len < MAX_APDU) {
                     apdu_len += len;
-                else {
+                } else {
                     rpdata->error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
@@ -221,9 +226,9 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                      i++) {
                     len = bacapp_encode_credential_authentication_factor(
                         &apdu[0], &ac_descr[object_index].auth_factors[i]);
-                    if (apdu_len + len < MAX_APDU)
+                    if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
@@ -266,9 +271,9 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                      i++) {
                     len = bacapp_encode_assigned_access_rights(&apdu[0],
                         &ac_descr[object_index].assigned_access_rights[i]);
-                    if (apdu_len + len < MAX_APDU)
+                    if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;

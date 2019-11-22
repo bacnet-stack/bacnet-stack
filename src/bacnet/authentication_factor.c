@@ -33,22 +33,25 @@ int bacapp_encode_authentication_factor(
     int apdu_len = 0;
 
     len = encode_context_enumerated(&apdu[apdu_len], 0, af->format_type);
-    if (len < 0)
+    if (len < 0) {
         return -1;
-    else
+    } else {
         apdu_len += len;
+    }
 
     len = encode_context_unsigned(&apdu[apdu_len], 1, af->format_class);
-    if (len < 0)
+    if (len < 0) {
         return -1;
-    else
+    } else {
         apdu_len += len;
+    }
 
     len = encode_context_octet_string(&apdu[apdu_len], 2, &af->value);
-    if (len < 0)
+    if (len < 0) {
         return -1;
-    else
+    } else {
         apdu_len += len;
+    }
 
     return apdu_len;
 }
@@ -79,30 +82,36 @@ int bacapp_decode_authentication_factor(
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
         len = decode_context_enumerated(&apdu[apdu_len], 0, &af->format_type);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     if (decode_is_context_tag(&apdu[apdu_len], 1)) {
         len = decode_context_unsigned(&apdu[apdu_len], 1, &af->format_class);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     if (decode_is_context_tag(&apdu[apdu_len], 2)) {
         len = decode_context_octet_string(&apdu[apdu_len], 2, &af->value);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     return apdu_len;
 }

@@ -114,10 +114,12 @@ int reject_decode_service_request(uint8_t *apdu,
     int len = 0;
 
     if (apdu_len) {
-        if (invoke_id)
+        if (invoke_id) {
             *invoke_id = apdu[0];
-        if (reject_reason)
+        }
+        if (reject_reason) {
             *reject_reason = apdu[1];
+        }
     }
 
     return len;

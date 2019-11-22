@@ -79,10 +79,11 @@ int abort_encode_apdu(
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
-        if (server)
+        if (server) {
             apdu[0] = PDU_TYPE_ABORT | 1;
-        else
+        } else {
             apdu[0] = PDU_TYPE_ABORT;
+        }
         apdu[1] = invoke_id;
         apdu[2] = abort_reason;
         apdu_len = 3;
@@ -99,10 +100,12 @@ int abort_decode_service_request(
     int len = 0;
 
     if (apdu_len > 0) {
-        if (invoke_id)
+        if (invoke_id) {
             *invoke_id = apdu[0];
-        if (abort_reason)
+        }
+        if (abort_reason) {
             *abort_reason = apdu[1];
+        }
     }
 
     return len;

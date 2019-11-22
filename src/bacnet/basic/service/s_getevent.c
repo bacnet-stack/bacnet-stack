@@ -96,8 +96,9 @@ uint8_t Send_GetEvent_Global(void)
 {
     BACNET_ADDRESS dest;
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return -1;
+    }
 
     datalink_get_broadcast_address(&dest);
 

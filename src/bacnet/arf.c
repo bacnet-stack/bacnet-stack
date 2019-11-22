@@ -92,8 +92,9 @@ int arf_decode_service_request(
     if (apdu_len && data) {
         len =
             decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
-        if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
+        if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID) {
             return -1;
+        }
         len += decode_object_id(&apdu[len], &type, &data->object_instance);
         data->object_type = (BACNET_OBJECT_TYPE)type;
         if (decode_is_opening_tag_number(&apdu[len], 0)) {
@@ -104,20 +105,23 @@ int arf_decode_service_request(
             tag_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
                 return -1;
+            }
             len += decode_signed(&apdu[len], len_value_type,
                 &data->type.stream.fileStartPosition);
             /* requestedOctetCount */
             tag_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 return -1;
+            }
             len += decode_unsigned(&apdu[len], len_value_type,
                 &data->type.stream.requestedOctetCount);
-            if (!decode_is_closing_tag_number(&apdu[len], 0))
+            if (!decode_is_closing_tag_number(&apdu[len], 0)) {
                 return -1;
+            }
             /* a tag number is not extended so only one octet */
             len++;
         } else if (decode_is_opening_tag_number(&apdu[len], 1)) {
@@ -128,24 +132,28 @@ int arf_decode_service_request(
             tag_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
                 return -1;
+            }
             len += decode_signed(
                 &apdu[len], len_value_type, &data->type.record.fileStartRecord);
             /* RecordCount */
             tag_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 return -1;
+            }
             len += decode_unsigned(
                 &apdu[len], len_value_type, &data->type.record.RecordCount);
-            if (!decode_is_closing_tag_number(&apdu[len], 1))
+            if (!decode_is_closing_tag_number(&apdu[len], 1)) {
                 return -1;
+            }
             /* a tag number is not extended so only one octet */
             len++;
-        } else
+        } else {
             return -1;
+        }
     }
 
     return len;
@@ -159,15 +167,18 @@ int arf_decode_apdu(uint8_t *apdu,
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -1;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_READ_FILE)
+    if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_READ_FILE) {
         return -1;
+    }
     offset = 4;
 
     if (apdu_len > offset) {
@@ -330,14 +341,17 @@ int arf_ack_decode_apdu(uint8_t *apdu,
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
+    if (apdu[0] != PDU_TYPE_COMPLEX_ACK) {
         return -1;
+    }
     *invoke_id = apdu[1]; /* invoke id - filled in by net layer */
-    if (apdu[2] != SERVICE_CONFIRMED_ATOMIC_READ_FILE)
+    if (apdu[2] != SERVICE_CONFIRMED_ATOMIC_READ_FILE) {
         return -1;
+    }
     offset = 3;
 
     if (apdu_len > offset) {

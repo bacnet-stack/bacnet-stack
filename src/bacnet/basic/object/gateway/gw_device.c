@@ -126,20 +126,23 @@ uint16_t Add_Routed_Device(uint32_t Object_Instance,
         iCurrent_Device_Idx = i;
         pDev->bacObj.mObject_Type = OBJECT_DEVICE;
         pDev->bacObj.Object_Instance_Number = Object_Instance;
-        if (sObject_Name != NULL)
+        if (sObject_Name != NULL) {
             Routed_Device_Set_Object_Name(sObject_Name->encoding,
                 sObject_Name->value, sObject_Name->length);
-        else
+        } else {
             Routed_Device_Set_Object_Name(
                 CHARACTER_UTF8, "No Name", strlen("No Name"));
-        if (sDescription != NULL)
+        }
+        if (sDescription != NULL) {
             Routed_Device_Set_Description(sDescription, strlen(sDescription));
-        else
+        } else {
             Routed_Device_Set_Description("No Descr", strlen("No Descr"));
+        }
         pDev->Database_Revision = 0; /* Reset/Initialize now */
         return i;
-    } else
+    } else {
         return -1;
+    }
 }
 
 /** Return the Device Object descriptive data for the indicated entry.
@@ -153,13 +156,14 @@ uint16_t Add_Routed_Device(uint32_t Object_Instance,
  */
 DEVICE_OBJECT_DATA *Get_Routed_Device_Object(int idx)
 {
-    if (idx == -1)
+    if (idx == -1) {
         return &Devices[iCurrent_Device_Idx];
-    else if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+    } else if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
         iCurrent_Device_Idx = idx;
         return &Devices[idx];
-    } else
+    } else {
         return NULL;
+    }
 }
 
 /** Return the BACnet address for the indicated entry.
@@ -173,13 +177,14 @@ DEVICE_OBJECT_DATA *Get_Routed_Device_Object(int idx)
  */
 BACNET_ADDRESS *Get_Routed_Device_Address(int idx)
 {
-    if (idx == -1)
+    if (idx == -1) {
         return &Devices[iCurrent_Device_Idx].bacDevAddr;
-    else if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+    } else if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
         iCurrent_Device_Idx = idx;
         return &Devices[idx].bacDevAddr;
-    } else
+    } else {
         return NULL;
+    }
 }
 
 /** Get the currently active BACnet address.
@@ -228,8 +233,9 @@ bool Routed_Device_Address_Lookup(
             result = true;
         } else if (mac_adress != NULL) {
             for (i = 0; i < address_len; i++) {
-                if (pDev->bacDevAddr.mac[i] != mac_adress[i])
+                if (pDev->bacDevAddr.mac[i] != mac_adress[i]) {
                     break;
+                }
             }
             if (i == address_len) { /* Success! */
                 iCurrent_Device_Idx = idx;
@@ -274,13 +280,13 @@ bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
     /* First, see if the index is out of range.
      * Eg, last call to GetNext may have been the last successful one.
      */
-    if ((idx < 0) || (idx >= MAX_NUM_DEVICES))
+    if ((idx < 0) || (idx >= MAX_NUM_DEVICES)) {
         idx = -1;
 
-    /* Next, see if it's a BACnet broadcast.
-     * For broadcasts, all Devices get a chance at it.
-     */
-    else if (dest->net == BACNET_BROADCAST_NETWORK) {
+        /* Next, see if it's a BACnet broadcast.
+         * For broadcasts, all Devices get a chance at it.
+         */
+    } else if (dest->net == BACNET_BROADCAST_NETWORK) {
         /* Just take the entry indexed by the cursor */
         bSuccess = Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
     }
@@ -301,22 +307,25 @@ bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
      * For broadcasts, all Devices get a chance at it.
      */
     else if (dest->net == dnet) {
-        if (idx == 0) /* Step over this case (starting point) */
+        if (idx == 0) { /* Step over this case (starting point) */
             idx = 1;
+        }
         while (idx < MAX_NUM_DEVICES) {
             bSuccess =
                 Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
-            if (bSuccess)
+            if (bSuccess) {
                 break; /* We don't need to keep looking */
+            }
         }
     }
 
-    if (!bSuccess)
+    if (!bSuccess) {
         *cursor = -1;
-    else if (idx == MAX_NUM_DEVICES) /* No more to GetNext */
+    } else if (idx == MAX_NUM_DEVICES) { /* No more to GetNext */
         *cursor = -1;
-    else
+    } else {
         *cursor = idx;
+    }
     return bSuccess;
 }
 
@@ -338,16 +347,17 @@ bool Routed_Device_Is_Valid_Network(uint16_t dest_net, int *DNET_list)
     bool bSuccess = false;
 
     /* First, see if it's a BACnet broadcast (automatic pass). */
-    if (dest_net == BACNET_BROADCAST_NETWORK)
+    if (dest_net == BACNET_BROADCAST_NETWORK) {
         bSuccess = true;
-    /* Or see if it's for the main Gateway Device, because
-     * there's no routing info.
-     */
-    else if (dest_net == 0)
+        /* Or see if it's for the main Gateway Device, because
+         * there's no routing info.
+         */
+    } else if (dest_net == 0) {
         bSuccess = true;
-    /* Or see if matches our virtual DNET */
-    else if (dest_net == dnet)
+        /* Or see if matches our virtual DNET */
+    } else if (dest_net == dnet) {
         bSuccess = true;
+    }
 
     return bSuccess;
 }
@@ -374,8 +384,9 @@ bool Routed_Device_Valid_Object_Instance_Number(uint32_t object_id)
     bool bResult = false;
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
-    if (pDev->bacObj.Object_Instance_Number == object_id)
+    if (pDev->bacObj.Object_Instance_Number == object_id) {
         bResult = true;
+    }
 
     return bResult;
 }
@@ -514,8 +525,9 @@ bool Routed_Device_Set_Object_Instance_Number(uint32_t object_id)
         /* Make the change and update the database revision */
         Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number = object_id;
         Routed_Device_Inc_Database_Revision();
-    } else
+    } else {
         status = false;
+    }
 
     return status;
 }
@@ -591,21 +603,23 @@ int Routed_Device_Service_Approval(BACNET_CONFIRMED_SERVICE service,
         case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
             /* If not the gateway device, we don't support RD */
             if (iCurrent_Device_Idx > 0) {
-                if (apdu_buff != NULL)
+                if (apdu_buff != NULL) {
                     len = reject_encode_apdu(apdu_buff, invoke_id,
                         REJECT_REASON_UNRECOGNIZED_SERVICE);
-                else
+                } else {
                     len = 1; /* Non-zero return */
+                }
             }
             break;
         case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
             /* If not the gateway device, we don't support DCC */
             if (iCurrent_Device_Idx > 0) {
-                if (apdu_buff != NULL)
+                if (apdu_buff != NULL) {
                     len = reject_encode_apdu(apdu_buff, invoke_id,
                         REJECT_REASON_UNRECOGNIZED_SERVICE);
-                else
+                } else {
                     len = 1; /* Non-zero return */
+                }
             }
             break;
         default:

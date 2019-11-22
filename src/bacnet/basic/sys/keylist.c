@@ -77,23 +77,26 @@ static int CheckArraySize(OS_Keylist list)
     const int chunk = 8; /* minimum number of nodes to allocate memory for */
     struct Keylist_Node **new_array; /* new array of nodes, if needed */
     int i; /* counter */
-    if (!list)
+    if (!list) {
         return FALSE;
+    }
 
     /* indicates the need for more memory allocation */
-    if (list->count == list->size)
+    if (list->count == list->size) {
         new_size = list->size + chunk;
 
-    /* allow for shrinking memory */
-    else if ((list->size > chunk) && (list->count < (list->size - chunk)))
+        /* allow for shrinking memory */
+    } else if ((list->size > chunk) && (list->count < (list->size - chunk))) {
         new_size = list->size - chunk;
+    }
     if (new_size) {
         /* Allocate more room for node pointer array */
         new_array = calloc((size_t)new_size, sizeof(new_array));
 
         /* See if we got the memory we wanted */
-        if (!new_array)
+        if (!new_array) {
             return FALSE;
+        }
 
         /* copy the nodes from the old array to the new array */
         if (list->array) {
@@ -133,14 +136,16 @@ static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
         /* A binary search */
         index = (left + right) / 2;
         node = list->array[index];
-        if (!node)
+        if (!node) {
             break;
+        }
         current_key = node->key;
-        if (key < current_key)
+        if (key < current_key) {
             right = index - 1;
 
-        else
+        } else {
             left = index + 1;
+        }
     } while ((key != current_key) && (left <= right));
     if (key == current_key) {
         status = TRUE;
@@ -149,11 +154,12 @@ static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
 
     else {
         /* where the index should be */
-        if (key > current_key)
+        if (key > current_key) {
             *pIndex = index + 1;
 
-        else
+        } else {
             *pIndex = index;
+        }
     }
     return (status);
 }
@@ -173,12 +179,14 @@ int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
         if (list->count) {
             (void)FindIndex(list, key, &index);
             /* Add to the beginning of the list */
-            if (index < 0)
+            if (index < 0) {
                 index = 0;
 
-            /* Add to the end of the list */
-            else if (index > list->count)
-                index = list->count;
+                /* Add to the end of the list */
+            } else {
+                if
+            }
+            (index > list->count) index = list->count;
 
             /* Move all the items up to make room for the new one */
             for (i = list->count; i > index; i--) {
@@ -232,8 +240,9 @@ void *Keylist_Data_Delete_By_Index(OS_Keylist list, int index)
             }
         }
         list->count--;
-        if (node)
+        if (node) {
             free(node);
+        }
 
         /* potentially reduce the size of the array */
         (void)CheckArraySize(list);

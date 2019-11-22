@@ -70,12 +70,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Multistate_Input_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -101,8 +104,9 @@ unsigned Multistate_Input_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_MULTISTATE_INPUTS;
 
-    if (object_instance < MAX_MULTISTATE_INPUTS)
+    if (object_instance < MAX_MULTISTATE_INPUTS) {
         index = object_instance;
+    }
 
     return index;
 }

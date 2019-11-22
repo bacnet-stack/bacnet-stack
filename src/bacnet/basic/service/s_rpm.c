@@ -68,14 +68,16 @@ uint8_t Send_Read_Property_Multiple_Request(uint8_t *pdu,
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return 0;
+    }
 
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
     /* is there a tsm available? */
-    if (status)
+    if (status) {
         invoke_id = tsm_next_free_invokeID();
+    }
     if (invoke_id) {
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);

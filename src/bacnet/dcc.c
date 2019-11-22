@@ -92,13 +92,15 @@ uint32_t dcc_duration_seconds(void)
 void dcc_timer_seconds(uint32_t seconds)
 {
     if (DCC_Time_Duration_Seconds) {
-        if (DCC_Time_Duration_Seconds > seconds)
+        if (DCC_Time_Duration_Seconds > seconds) {
             DCC_Time_Duration_Seconds -= seconds;
-        else
+        } else {
             DCC_Time_Duration_Seconds = 0;
+        }
         /* just expired - do something */
-        if (DCC_Time_Duration_Seconds == 0)
+        if (DCC_Time_Duration_Seconds == 0) {
             DCC_Enable_Disable = COMMUNICATION_ENABLE;
+        }
     }
 }
 

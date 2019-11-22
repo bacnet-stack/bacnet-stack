@@ -74,12 +74,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Multistate_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -105,8 +108,9 @@ unsigned Multistate_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_MULTISTATE_VALUES;
 
-    if (object_instance < MAX_MULTISTATE_VALUES)
+    if (object_instance < MAX_MULTISTATE_VALUES) {
         index = object_instance;
+    }
 
     return index;
 }

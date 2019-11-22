@@ -466,8 +466,9 @@ int main(int argc, char *argv[])
 #endif
         }
         total_seconds += elapsed_seconds;
-        if (total_seconds > timeout_seconds)
+        if (total_seconds > timeout_seconds) {
             break;
+        }
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }

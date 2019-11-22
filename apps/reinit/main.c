@@ -164,8 +164,9 @@ int main(int argc, char *argv[])
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     Reinitialize_State = strtol(argv[2], NULL, 0);
     /* optional password */
-    if (argc > 3)
+    if (argc > 3) {
         Reinitialize_Password = argv[3];
+    }
 
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
@@ -202,8 +203,9 @@ int main(int argc, char *argv[])
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+        }
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
@@ -216,9 +218,9 @@ int main(int argc, char *argv[])
                 invoke_id = Send_Reinitialize_Device_Request(
                     Target_Device_Object_Instance, Reinitialize_State,
                     Reinitialize_Password);
-            } else if (tsm_invoke_id_free(invoke_id))
+            } else if (tsm_invoke_id_free(invoke_id)) {
                 break;
-            else if (tsm_invoke_id_failed(invoke_id)) {
+            } else if (tsm_invoke_id_failed(invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\r\n");
                 tsm_free_invoke_id(invoke_id);
                 /* try again or abort? */

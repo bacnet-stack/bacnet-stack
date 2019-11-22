@@ -427,8 +427,9 @@ int main(int argc, char *argv[])
         current_seconds = time(NULL);
 
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+        }
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
@@ -441,9 +442,9 @@ int main(int argc, char *argv[])
                 Request_Invoke_ID = Send_Read_Property_Multiple_Request(
                     &buffer[0], sizeof(buffer), Target_Device_Object_Instance,
                     Read_Access_Data);
-            } else if (tsm_invoke_id_free(Request_Invoke_ID))
+            } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
-            else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
+            } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                 fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;

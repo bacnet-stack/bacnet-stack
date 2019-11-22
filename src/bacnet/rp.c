@@ -127,8 +127,10 @@ int rp_decode_service_request(
                 rpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
                 return BACNET_STATUS_REJECT;
             }
-        } else
-            rpdata->array_index = BACNET_ARRAY_ALL;
+        } else {
+            rpdata;
+        }
+        ->array_index = BACNET_ARRAY_ALL;
     }
 
     if (len < apdu_len) {
@@ -232,16 +234,18 @@ int rp_ack_decode_service_request(uint8_t *apdu,
 
     /* FIXME: check apdu_len against the len during decode   */
     /* Tag 0: Object ID */
-    if (!decode_is_context_tag(&apdu[0], 0))
+    if (!decode_is_context_tag(&apdu[0], 0)) {
         return -1;
+    }
     len = 1;
     len += decode_object_id(&apdu[len], &object, &rpdata->object_instance);
     rpdata->object_type = (BACNET_OBJECT_TYPE)object;
     /* Tag 1: Property ID */
     len +=
         decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
-    if (tag_number != 1)
+    if (tag_number != 1) {
         return -1;
+    }
     len += decode_enumerated(&apdu[len], len_value_type, &property);
     rpdata->object_property = (BACNET_PROPERTY_ID)property;
     /* Tag 2: Optional Array Index */
@@ -251,8 +255,9 @@ int rp_ack_decode_service_request(uint8_t *apdu,
         len += tag_len;
         len += decode_unsigned(&apdu[len], len_value_type, &array_value);
         rpdata->array_index = array_value;
-    } else
+    } else {
         rpdata->array_index = BACNET_ARRAY_ALL;
+    }
     /* Tag 3: opening context tag */
     if (decode_is_opening_tag_number(&apdu[len], 3)) {
         /* a tag number of 3 is not extended so only one octet */

@@ -97,39 +97,41 @@ uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
 {
     uint8_t octet = 0;
 
-    if (max_segs < 2)
+    if (max_segs < 2) {
         octet = 0;
-    else if (max_segs < 4)
+    } else if (max_segs < 4) {
         octet = 0x10;
-    else if (max_segs < 8)
+    } else if (max_segs < 8) {
         octet = 0x20;
-    else if (max_segs < 16)
+    } else if (max_segs < 16) {
         octet = 0x30;
-    else if (max_segs < 32)
+    } else if (max_segs < 32) {
         octet = 0x40;
-    else if (max_segs < 64)
+    } else if (max_segs < 64) {
         octet = 0x50;
-    else if (max_segs == 64)
+    } else if (max_segs == 64) {
         octet = 0x60;
-    else
+    } else {
         octet = 0x70;
+    }
 
     /* max_apdu must be 50 octets minimum */
-    if (max_apdu <= 50)
+    if (max_apdu <= 50) {
         octet |= 0x00;
-    else if (max_apdu <= 128)
+    } else if (max_apdu <= 128) {
         octet |= 0x01;
-    /*fits in a LonTalk frame */
-    else if (max_apdu <= 206)
+        /*fits in a LonTalk frame */
+    } else if (max_apdu <= 206) {
         octet |= 0x02;
-    /*fits in an ARCNET or MS/TP frame */
-    else if (max_apdu <= 480)
+        /*fits in an ARCNET or MS/TP frame */
+    } else if (max_apdu <= 480) {
         octet |= 0x03;
-    else if (max_apdu <= 1024)
+    } else if (max_apdu <= 1024) {
         octet |= 0x04;
-    /* fits in an ISO 8802-3 frame */
-    else if (max_apdu <= 1476)
+        /* fits in an ISO 8802-3 frame */
+    } else if (max_apdu <= 1476) {
         octet |= 0x05;
+    }
 
     return octet;
 }
@@ -213,8 +215,9 @@ int encode_tag(uint8_t *apdu,
     int len = 1; /* return value */
 
     apdu[0] = 0;
-    if (context_specific)
+    if (context_specific) {
         apdu[0] = BIT3;
+    }
 
     /* additional tag byte after this byte */
     /* for extended tag byte */
@@ -1588,10 +1591,11 @@ int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
     /* network number */
     apdu_len += encode_application_unsigned(&apdu[apdu_len], destination->net);
     /* encode mac address as an octet-string */
-    if (destination->len != 0)
+    if (destination->len != 0) {
         octetstring_init(&mac_addr, destination->adr, destination->len);
-    else
+    } else {
         octetstring_init(&mac_addr, destination->mac, destination->mac_len);
+    }
     apdu_len += encode_application_octet_string(&apdu[apdu_len], &mac_addr);
     return apdu_len;
 }

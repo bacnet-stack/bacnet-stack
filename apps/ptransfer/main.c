@@ -213,10 +213,11 @@ int main(int argc, char *argv[])
         return 0;
     }
     /* decode the command line parameters */
-    if (_stricmp(argv[1], "server") == 0)
+    if (_stricmp(argv[1], "server") == 0) {
         Target_Mode = 1;
-    else
+    } else {
         Target_Mode = 0;
+    }
 
     Target_Device_Object_Instance = strtol(argv[1 + Target_Mode], NULL, 0);
 
@@ -227,10 +228,12 @@ int main(int argc, char *argv[])
     }
 
     /* setup my info */
-    if (Target_Mode)
+    if (Target_Mode) {
         Device_Set_Object_Instance_Number(Target_Device_Object_Instance);
-    else
-        Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
+    } else {
+        Device_Set_Object_Instance_Number
+    }
+    (BACNET_MAX_INSTANCE);
 
     address_init();
     Init_Service_Handlers();
@@ -293,9 +296,10 @@ int main(int argc, char *argv[])
                 npdu_handler(&src, &Rx_Buf[0], pdu_len);
             }
             /* at least one second has passed */
-            if (current_seconds != last_seconds)
+            if (current_seconds != last_seconds) {
                 tsm_timer_milliseconds(
                     ((current_seconds - last_seconds) * 1000));
+            }
             if (Error_Detected)
                 break;
             /* wait until the device is bound, or timeout and quit */
@@ -367,8 +371,9 @@ int main(int argc, char *argv[])
                         iCount = 0;
                         invoke_id = 0;
 
-                        if (iType > 2)
+                        if (iType > 2) {
                             break;
+                        }
                     }
                 } else if (tsm_invoke_id_failed(invoke_id)) {
                     fprintf(stderr, "\rError: TSM Timeout!\r\n");

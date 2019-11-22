@@ -102,12 +102,15 @@ static const int Lighting_Output_Properties_Proprietary[] = { -1 };
 void Lighting_Output_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Lighting_Output_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Lighting_Output_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Lighting_Output_Properties_Proprietary;
+    }
 
     return;
 }
@@ -1011,9 +1014,9 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                         len = encode_application_null(&apdu[apdu_len]);
                     }
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;

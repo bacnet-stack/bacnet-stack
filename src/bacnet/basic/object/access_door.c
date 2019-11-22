@@ -57,12 +57,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Access_Door_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -104,8 +107,9 @@ void Access_Door_Init(void)
 /* given instance exists */
 bool Access_Door_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ACCESS_DOORS)
+    if (object_instance < MAX_ACCESS_DOORS) {
         return true;
+    }
 
     return false;
 }
@@ -132,8 +136,9 @@ unsigned Access_Door_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCESS_DOORS;
 
-    if (object_instance < MAX_ACCESS_DOORS)
+    if (object_instance < MAX_ACCESS_DOORS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -335,23 +340,25 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet. */
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
-                    if (ad_descr[object_index].value_active[i])
+                    if (ad_descr[object_index].value_active[i]) {
                         len = encode_application_null(&apdu[apdu_len]);
-                    else
+                    } else {
                         len = encode_application_enumerated(&apdu[apdu_len],
                             ad_descr[object_index].priority_array[i]);
+                    }
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
@@ -360,9 +367,9 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 }
             } else {
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (ad_descr[object_index].value_active[i])
+                    if (ad_descr[object_index].value_active[i]) {
                         apdu_len = encode_application_null(&apdu[0]);
-                    else {
+                    } else {
                         apdu_len =
                             encode_application_enumerated(&apdu[apdu_len],
                                 ad_descr[object_index].priority_array[i]);

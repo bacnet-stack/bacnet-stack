@@ -98,8 +98,9 @@ void handler_get_alarm_summary(uint8_t *service_request,
                     if (len <= 0) {
                         error = true;
                         goto GET_ALARM_SUMMARY_ERROR;
-                    } else
+                    } else {
                         apdu_len += len;
+                    }
                 } else if (alarm_value < 0) {
                     break;
                 }

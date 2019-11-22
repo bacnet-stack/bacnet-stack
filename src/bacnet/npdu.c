@@ -143,24 +143,27 @@ int npdu_encode_pdu(uint8_t *npdu,
         /*          Message Type field is present. */
         /*        0 indicates that the NSDU contains a BACnet APDU. */
         /*          Message Type field is absent. */
-        if (npdu_data->network_layer_message)
+        if (npdu_data->network_layer_message) {
             npdu[1] |= BIT7;
+        }
         /*Bit 6: Reserved. Shall be zero. */
         /*Bit 5: Destination specifier where: */
         /* 0 = DNET, DLEN, DADR, and Hop Count absent */
         /* 1 = DNET, DLEN, and Hop Count present */
         /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
         /* DLEN > 0 specifies length of DADR field */
-        if (dest && dest->net)
+        if (dest && dest->net) {
             npdu[1] |= BIT5;
+        }
         /* Bit 4: Reserved. Shall be zero. */
         /* Bit 3: Source specifier where: */
         /* 0 =  SNET, SLEN, and SADR absent */
         /* 1 =  SNET, SLEN, and SADR present */
         /* SLEN = 0 Invalid */
         /* SLEN > 0 specifies length of SADR field */
-        if (src && src->net && src->len)
+        if (src && src->net && src->len) {
             npdu[1] |= BIT3;
+        }
         /* Bit 2: The value of this bit corresponds to the */
         /* data_expecting_reply parameter in the N-UNITDATA primitives. */
         /* 1 indicates that a BACnet-Confirmed-Request-PDU, */
@@ -169,8 +172,9 @@ int npdu_encode_pdu(uint8_t *npdu,
         /* 0 indicates that other than a BACnet-Confirmed-Request-PDU, */
         /* a segment of a BACnet-ComplexACK-PDU, */
         /* or a network layer message expecting a reply is present. */
-        if (npdu_data->data_expecting_reply)
+        if (npdu_data->data_expecting_reply) {
             npdu[1] |= BIT2;
+        }
         /* Bits 1,0: Network priority where: */
         /* B'11' = Life Safety message */
         /* B'10' = Critical Equipment message */
@@ -212,8 +216,9 @@ int npdu_encode_pdu(uint8_t *npdu,
             len++;
             /* Message Type field contains a value in the range 0x80 - 0xFF, */
             /* then a Vendor ID field shall be present */
-            if (npdu_data->network_message_type >= 0x80)
+            if (npdu_data->network_message_type >= 0x80) {
                 len += encode_unsigned16(&npdu[len], npdu_data->vendor_id);
+            }
         }
     }
 
@@ -367,8 +372,9 @@ int npdu_decode(uint8_t *npdu,
 
                 for (i = 0; i < dlen; i++) {
                     mac_octet = npdu[len++];
-                    if (dest)
+                    if (dest) {
                         dest->adr[i] = mac_octet;
+                    }
                 }
             }
         }
@@ -400,8 +406,9 @@ int npdu_decode(uint8_t *npdu,
 
                 for (i = 0; i < slen; i++) {
                     mac_octet = npdu[len++];
-                    if (src)
+                    if (src) {
                         src->adr[i] = mac_octet;
+                    }
                 }
             }
         } else if (src) {
@@ -409,8 +416,9 @@ int npdu_decode(uint8_t *npdu,
              * function set it to BACNET_BROADCAST_NETWORK, (eg, for
              * BVLC_ORIGINAL_BROADCAST_NPDU) then don't stomp on that.
              */
-            if (src->net != BACNET_BROADCAST_NETWORK)
+            if (src->net != BACNET_BROADCAST_NETWORK) {
                 src->net = 0;
+            }
             src->len = 0;
             for (i = 0; i < MAX_MAC_LEN; i++) {
                 src->adr[i] = 0;
@@ -431,8 +439,9 @@ int npdu_decode(uint8_t *npdu,
                 (BACNET_NETWORK_MESSAGE_TYPE)npdu[len++];
             /* Message Type field contains a value in the range 0x80 - 0xFF, */
             /* then a Vendor ID field shall be present */
-            if (npdu_data->network_message_type >= 0x80)
+            if (npdu_data->network_message_type >= 0x80) {
                 len += decode_unsigned16(&npdu[len], &npdu_data->vendor_id);
+            }
         } else {
             /* Since npdu_data->network_layer_message is false,
              * it doesn't much matter what we set here; this is safe: */

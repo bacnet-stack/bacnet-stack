@@ -58,8 +58,9 @@ void Send_TimeSync_Remote(
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return;
+    }
 
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */
@@ -109,8 +110,9 @@ void Send_TimeSyncUTC_Remote(
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return;
+    }
 
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */

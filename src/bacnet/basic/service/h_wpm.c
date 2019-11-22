@@ -138,9 +138,11 @@ void handler_write_property_multiple(uint8_t *service_request,
                             &service_request[decode_len], 1)) {
                         tag_number = 1;
                         decode_len++;
-                    } else
-                        tag_number = 0; /* it was not tag 1, decode next
-                                           Property Identifier ... */
+                    } else {
+                        tag_number = 0;
+                    } /* it was not tag 1, decode next
+                                                                Property
+                         Identifier ... */
 
                 } while (tag_number != 1); /* end decoding List of Properties
                                               for "that" object */

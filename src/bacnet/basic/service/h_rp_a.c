@@ -123,8 +123,9 @@ void handler_read_property_ack(uint8_t *service_request,
 #if 0
     fprintf(stderr, "Received Read-Property Ack!\n");
 #endif
-    if (len > 0)
+    if (len > 0) {
         rp_ack_print_data(&data);
+    }
 }
 
 /** Decode the received RP data into a linked list of the results, with the

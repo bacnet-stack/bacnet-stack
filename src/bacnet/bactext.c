@@ -1303,13 +1303,14 @@ INDTEXT_DATA network_layer_msg_names[] = {
 
 const char *bactext_network_layer_msg_name(unsigned index)
 {
-    if (index <= 0x7F)
+    if (index <= 0x7F) {
         return indtext_by_index_default(
             network_layer_msg_names, index, ASHRAE_Reserved_String);
-    else if (index < NETWORK_MESSAGE_INVALID)
+    } else if (index < NETWORK_MESSAGE_INVALID) {
         return Vendor_Proprietary_String;
-    else
+    } else {
         return "Invalid Network Layer Message";
+    }
 }
 
 INDTEXT_DATA life_safety_state_names[] = { { LIFE_SAFETY_STATE_QUIET, "quiet" },
@@ -1338,11 +1339,12 @@ INDTEXT_DATA life_safety_state_names[] = { { LIFE_SAFETY_STATE_QUIET, "quiet" },
 
 const char *bactext_life_safety_state_name(unsigned index)
 {
-    if (index < MAX_LIFE_SAFETY_STATE)
+    if (index < MAX_LIFE_SAFETY_STATE) {
         return indtext_by_index_default(
             life_safety_state_names, index, ASHRAE_Reserved_String);
-    else
+    } else {
         return "Invalid Safety State Message";
+    }
 }
 
 INDTEXT_DATA lighting_in_progress[] = { { BACNET_LIGHTING_IDLE, "idle" },
@@ -1353,11 +1355,12 @@ INDTEXT_DATA lighting_in_progress[] = { { BACNET_LIGHTING_IDLE, "idle" },
 
 const char *bactext_lighting_in_progress(unsigned index)
 {
-    if (index < MAX_BACNET_LIGHTING_IN_PROGRESS)
+    if (index < MAX_BACNET_LIGHTING_IN_PROGRESS) {
         return indtext_by_index_default(
             lighting_in_progress, index, ASHRAE_Reserved_String);
-    else
+    } else {
         return "Invalid Lighting In Progress Message";
+    }
 }
 
 INDTEXT_DATA lighting_transition[] = { { BACNET_LIGHTING_TRANSITION_IDLE,
@@ -1367,11 +1370,12 @@ INDTEXT_DATA lighting_transition[] = { { BACNET_LIGHTING_TRANSITION_IDLE,
 
 const char *bactext_lighting_transition(unsigned index)
 {
-    if (index < MAX_BACNET_LIGHTING_TRANSITION)
+    if (index < MAX_BACNET_LIGHTING_TRANSITION) {
         return indtext_by_index_default(
             lighting_transition, index, ASHRAE_Reserved_String);
-    else
+    } else {
         return "Invalid Lighting Transition Message";
+    }
 }
 
 INDTEXT_DATA bacnet_lighting_operation_names[] = {
@@ -1387,13 +1391,14 @@ INDTEXT_DATA bacnet_lighting_operation_names[] = {
 
 const char *bactext_lighting_operation_name(unsigned index)
 {
-    if (index < BACNET_LIGHTS_PROPRIETARY_FIRST)
+    if (index < BACNET_LIGHTS_PROPRIETARY_FIRST) {
         return indtext_by_index_default(
             network_layer_msg_names, index, ASHRAE_Reserved_String);
-    else if (index <= BACNET_LIGHTS_PROPRIETARY_LAST)
+    } else if (index <= BACNET_LIGHTS_PROPRIETARY_LAST) {
         return Vendor_Proprietary_String;
-    else
+    } else {
         return "Invalid BACnetLightingOperation";
+    }
 }
 
 INDTEXT_DATA bacnet_device_communications_names[] = {

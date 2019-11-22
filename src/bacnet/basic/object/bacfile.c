@@ -71,12 +71,15 @@ static const int bacfile_Properties_Proprietary[] = { -1 };
 void BACfile_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = bacfile_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = bacfile_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = bacfile_Properties_Proprietary;
+    }
 
     return;
 }
@@ -395,8 +398,9 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
                 len = arf_decode_service_request(
                     service_request, service_request_len, &data);
                 if (len > 0) {
-                    if (data.object_type == OBJECT_FILE)
+                    if (data.object_type == OBJECT_FILE) {
                         object_instance = data.object_instance;
+                    }
                 }
             }
         }
@@ -421,10 +425,11 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
             (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
             len = fread(octetstring_value(&data->fileData[0]), 1,
                 data->type.stream.requestedOctetCount, pFile);
-            if (len < data->type.stream.requestedOctetCount)
+            if (len < data->type.stream.requestedOctetCount) {
                 data->endOfFile = true;
-            else
+            } else {
                 data->endOfFile = false;
+            }
             octetstring_truncate(&data->fileData[0], len);
             fclose(pFile);
         } else {

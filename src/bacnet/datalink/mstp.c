@@ -205,8 +205,9 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer, /* where frame is loaded */
     uint16_t index = 0; /* used to load the data portion of the frame */
 
     /* not enough to do a header */
-    if (buffer_len < 8)
+    if (buffer_len < 8) {
         return 0;
+    }
 
     buffer[0] = 0x55;
     buffer[1] = 0xFF;
@@ -238,8 +239,9 @@ uint16_t MSTP_Create_Frame(uint8_t *buffer, /* where frame is loaded */
             index++;
             buffer[index] = crc16 >> 8;
             index++;
-        } else
+        } else {
             return 0;
+        }
     }
 
     return index; /* returns the frame length */

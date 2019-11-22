@@ -99,30 +99,38 @@ bool address_match(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
     uint8_t i = 0;
     uint8_t max_len = 0;
 
-    if (dest->mac_len != src->mac_len)
+    if (dest->mac_len != src->mac_len) {
         return false;
-    max_len = dest->mac_len;
-    if (max_len > MAX_MAC_LEN)
-        max_len = MAX_MAC_LEN;
-    for (i = 0; i < max_len; i++) {
-        if (dest->mac[i] != src->mac[i])
-            return false;
     }
-    if (dest->net != src->net)
+    max_len = dest->mac_len;
+    if (max_len > MAX_MAC_LEN) {
+        max_len = MAX_MAC_LEN;
+    }
+    for (i = 0; i < max_len; i++) {
+        if (dest->mac[i] != src->mac[i]) {
+            return false;
+        }
+    }
+    if (dest->net != src->net) {
         return false;
+    }
 
     /* if local, ignore remaining fields */
-    if (dest->net == 0)
+    if (dest->net == 0) {
         return true;
+    }
 
-    if (dest->len != src->len)
+    if (dest->len != src->len) {
         return false;
+    }
     max_len = dest->len;
-    if (max_len > MAX_MAC_LEN)
+    if (max_len > MAX_MAC_LEN) {
         max_len = MAX_MAC_LEN;
+    }
     for (i = 0; i < max_len; i++) {
-        if (dest->adr[i] != src->adr[i])
+        if (dest->adr[i] != src->adr[i]) {
             return false;
+        }
     }
 
     return true;
@@ -392,8 +400,9 @@ void address_init_partial(void)
         if ((pMatch->Flags & BAC_ADDR_IN_USE) !=
             0) { /* It's in use so let's check further */
             if (((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0) ||
-                (pMatch->TimeToLive == 0))
+                (pMatch->TimeToLive == 0)) {
                 pMatch->Flags = 0;
+            }
         }
 
         if ((pMatch->Flags & BAC_ADDR_RESERVED) !=
@@ -520,17 +529,18 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
             /* Pick the right time to live */
 
             if ((pMatch->Flags & BAC_ADDR_BIND_REQ) !=
-                0) /* Bind requested so long time */
+                0) { /* Bind requested so long time */
                 pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
-            else if ((pMatch->Flags & BAC_ADDR_STATIC) !=
-                0) /* Static already so make sure it never expires */
+            } else if ((pMatch->Flags & BAC_ADDR_STATIC) !=
+                0) { /* Static already so make sure it never expires */
                 pMatch->TimeToLive = BAC_ADDR_FOREVER;
-            else if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) !=
-                0) /* Opportunistic entry so leave on short fuse */
+            } else if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) !=
+                0) { /* Opportunistic entry so leave on short fuse */
                 pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
-            else
+            } else {
                 pMatch->TimeToLive =
                     BAC_ADDR_LONG_TIME; /* Renewing existing entry */
+            }
 
             pMatch->Flags &= ~BAC_ADDR_BIND_REQ; /* Clear bind request flag just
                                                     in case */
@@ -726,8 +736,9 @@ unsigned address_count(void)
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         /* Only count bound entries */
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE)
+            BAC_ADDR_IN_USE) {
             count++;
+        }
 
         pMatch++;
     }
@@ -828,8 +839,9 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
     pRequest->ItemCount = 0; /* Start out with nothing */
     uiTotal = address_count(); /* What do we have to work with here ? */
-    if (uiTotal == 0) /* Bail out now if nowt */
+    if (uiTotal == 0) { /* Bail out now if nowt */
         return (0);
+    }
 
     if (pRequest->RequestType == RR_READ_ALL) {
         /*
@@ -872,19 +884,22 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     /* From here on in we only have a starting point and a positive count */
 
     if (pRequest->Range.RefIndex >
-        uiTotal) /* Nothing to return as we are past the end of the list */
+        uiTotal) { /* Nothing to return as we are past the end of the list */
         return (0);
+    }
 
     uiTarget = pRequest->Range.RefIndex + pRequest->Count -
         1; /* Index of last required entry */
-    if (uiTarget > uiTotal) /* Capped at end of list if necessary */
+    if (uiTarget > uiTotal) { /* Capped at end of list if necessary */
         uiTarget = uiTotal;
+    }
 
     pMatch = Address_Cache;
     uiIndex = 1;
     while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
-        BAC_ADDR_IN_USE) /* Find first bound entry */
+        BAC_ADDR_IN_USE) { /* Find first bound entry */
         pMatch++;
+    }
 
     /* Seek to start position */
     while (uiIndex != pRequest->Range.RefIndex) {
@@ -892,8 +907,9 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             BAC_ADDR_IN_USE) { /* Only count bound entries */
             pMatch++;
             uiIndex++;
-        } else
+        } else {
             pMatch++;
+        }
     }
 
     uiFirst = uiIndex; /* Record where we started from */
@@ -936,16 +952,19 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         pRequest->ItemCount++; /* Chalk up another one for the response count */
 
         while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
-            BAC_ADDR_IN_USE) /* Find next bound entry */
+            BAC_ADDR_IN_USE) { /* Find next bound entry */
             pMatch++;
+        }
     }
 
     /* Set remaining result flags if necessary */
-    if (uiFirst == 1)
+    if (uiFirst == 1) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+    }
 
-    if (uiLast == uiTotal)
+    if (uiLast == uiTotal) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
+    }
 
     return (iLen);
 }
@@ -967,10 +986,11 @@ void address_cache_timer(uint16_t uSeconds)
             ((pMatch->Flags & BAC_ADDR_STATIC) ==
                 0)) { /* Check all entries holding a slot except statics
                        */
-            if (pMatch->TimeToLive >= uSeconds)
+            if (pMatch->TimeToLive >= uSeconds) {
                 pMatch->TimeToLive -= uSeconds;
-            else
+            } else {
                 pMatch->Flags = 0;
+            }
         }
 
         pMatch++;

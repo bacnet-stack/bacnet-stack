@@ -33,17 +33,19 @@ int bacapp_encode_credential_authentication_factor(
     int apdu_len = 0;
 
     len = encode_context_enumerated(&apdu[apdu_len], 0, caf->disable);
-    if (len < 0)
+    if (len < 0) {
         return -1;
-    else
+    } else {
         apdu_len += len;
+    }
 
     len = bacapp_encode_context_authentication_factor(
         &apdu[apdu_len], 1, &caf->authentication_factor);
-    if (len < 0)
+    if (len < 0) {
         return -1;
-    else
+    } else {
         apdu_len += len;
+    }
 
     return apdu_len;
 }
@@ -74,22 +76,26 @@ int bacapp_decode_credential_authentication_factor(
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
         len = decode_context_enumerated(&apdu[apdu_len], 0, &caf->disable);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     if (decode_is_context_tag(&apdu[apdu_len], 1)) {
         len = bacapp_decode_context_authentication_factor(
             &apdu[apdu_len], 1, &caf->authentication_factor);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     return apdu_len;
 }

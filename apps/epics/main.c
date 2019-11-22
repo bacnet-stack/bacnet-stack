@@ -475,10 +475,11 @@ static bool PrettyPrintPropertyValue(
         for (i = 0; i < len; i++) {
             fprintf(stream, "%s",
                 bitstring_bit(&value->type.Bit_String, (uint8_t)i) ? "T" : "F");
-            if (i < len - 1)
+            if (i < len - 1) {
                 fprintf(stream, ",");
-            else
+            } else {
                 fprintf(stream, " ");
+            }
             /* Tried with 8 per line, but with the comments, got way too long.
              */
             if ((i == (len - 1)) || ((i % 4) == 3)) { /* line break every 4 */
@@ -959,10 +960,10 @@ static EPICS_STATES ProcessRPMData(
     }
 
     /* Now determine the next state */
-    if (myState == GET_HEADING_RESPONSE)
+    if (myState == GET_HEADING_RESPONSE) {
         nextState = PRINT_HEADING;
-    /* press ahead with or without the data */
-    else if (bSuccess && (myState == GET_ALL_RESPONSE))
+        /* press ahead with or without the data */
+    } else if (bSuccess && (myState == GET_ALL_RESPONSE))
         nextState = NEXT_OBJECT;
     else if (bSuccess) { /* and GET_LIST_OF_ALL_RESPONSE */
         /* Now append the properties we waited on. */
@@ -1094,8 +1095,9 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                             Target_Address.len = 0; /* No src address */
                             Provided_Targ_MAC = true;
                             break;
-                        } else
+                        } else {
                             printf("ERROR: invalid Target MAC %s \n", argv[i]);
+                        }
                         /* And fall through to print_usage */
                     }
                     /* Either break or fall through, as above */
@@ -1815,8 +1817,9 @@ int main(int argc, char *argv[])
 
     } while (myObject.type < MAX_BACNET_OBJECT_TYPE);
 
-    if (Error_Count > 0)
+    if (Error_Count > 0) {
         fprintf(stdout, "\r-- Found %d Errors \n", Error_Count);
+    }
 
     /* Closing brace for all Objects, if we got any, and closing footer  */
     if (myState != INITIAL_BINDING) {

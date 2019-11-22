@@ -84,12 +84,15 @@ static const int Trend_Log_Properties_Proprietary[] = { -1 };
 void Trend_Log_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Trend_Log_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Trend_Log_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Trend_Log_Properties_Proprietary;
+    }
 
     return;
 }
@@ -182,10 +185,11 @@ void Trend_Log_Init(void)
                 Logs[iLog][iEntry].Datum.fReal =
                     (float)(iEntry + (iLog * TL_MAX_ENTRIES));
                 /* Put status flags with every second log */
-                if ((iLog & 1) == 0)
+                if ((iLog & 1) == 0) {
                     Logs[iLog][iEntry].ucStatus = 128;
-                else
+                } else {
                     Logs[iLog][iEntry].ucStatus = 0;
+                }
                 tClock += 900; /* advance 15 minutes */
             }
 
@@ -726,9 +730,10 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     /* We only log to 1 sec accuracy so must divide by 100
                      * before passing it on */
                     CurrentLog->ulLogInterval = value.type.Unsigned_Int / 100;
-                    if (0 == CurrentLog->ulLogInterval)
+                    if (0 == CurrentLog->ulLogInterval) {
                         CurrentLog->ulLogInterval =
                             1; /* Interval of 0 is not a good idea */
+                    }
                 }
             }
             break;
@@ -826,12 +831,14 @@ void TL_Insert_Status_Rec(int iLog, BACNET_LOG_STATUS eStatus, bool bState)
      * into the bitstring structure later on when we have to encode them */
     switch (eStatus) {
         case LOG_STATUS_LOG_DISABLED:
-            if (bState)
+            if (bState) {
                 TempRec.Datum.ucLogStatus = 1 << LOG_STATUS_LOG_DISABLED;
+            }
             break;
         case LOG_STATUS_BUFFER_PURGED:
-            if (bState)
+            if (bState) {
                 TempRec.Datum.ucLogStatus = 1 << LOG_STATUS_BUFFER_PURGED;
+            }
             break;
         case LOG_STATUS_LOG_INTERRUPTED:
             TempRec.Datum.ucLogStatus = 1 << LOG_STATUS_LOG_INTERRUPTED;
@@ -841,13 +848,15 @@ void TL_Insert_Status_Rec(int iLog, BACNET_LOG_STATUS eStatus, bool bState)
     }
 
     Logs[iLog][CurrentLog->iIndex++] = TempRec;
-    if (CurrentLog->iIndex >= TL_MAX_ENTRIES)
+    if (CurrentLog->iIndex >= TL_MAX_ENTRIES) {
         CurrentLog->iIndex = 0;
+    }
 
     CurrentLog->ulTotalRecordCount++;
 
-    if (CurrentLog->ulRecordCount < TL_MAX_ENTRIES)
+    if (CurrentLog->ulRecordCount < TL_MAX_ENTRIES) {
         CurrentLog->ulRecordCount++;
+    }
 }
 
 /*****************************************************************************
@@ -887,12 +896,14 @@ bool TL_Is_Enabled(int iLog)
 #endif
         if ((CurrentLog->ucTimeFlags & TL_T_START_WILD) != 0) {
             /* wild card start time */
-            if (tNow > CurrentLog->tStopTime)
+            if (tNow > CurrentLog->tStopTime) {
                 bStatus = false;
+            }
         } else if ((CurrentLog->ucTimeFlags & TL_T_STOP_WILD) != 0) {
             /* wild card stop time */
-            if (tNow < CurrentLog->tStartTime)
+            if (tNow < CurrentLog->tStartTime) {
                 bStatus = false;
+            }
         } else {
 #if 0
             printf("\nCurrent - %u, Start - %u, Stop - %u\n",
@@ -901,8 +912,9 @@ bool TL_Is_Enabled(int iLog)
 #endif
             /* No wildcards so use both times */
             if ((tNow < CurrentLog->tStartTime) ||
-                (tNow > CurrentLog->tStopTime))
+                (tNow > CurrentLog->tStopTime)) {
                 bStatus = false;
+            }
         }
     }
 
@@ -957,10 +969,11 @@ void TL_Local_Time_To_BAC(BACNET_DATE_TIME *DestTime, time_t SourceTime)
     /* BACnet is 1 to 7 = Monday to Sunday
      * Windows is days from Sunday 0 - 6 so we
      * have to adjust */
-    if (TempTime->tm_wday == 0)
+    if (TempTime->tm_wday == 0) {
         DestTime->date.wday = 7;
-    else
+    } else {
         DestTime->date.wday = (uint8_t)TempTime->tm_wday;
+    }
     DestTime->time.hour = (uint8_t)TempTime->tm_hour;
     DestTime->time.min = (uint8_t)TempTime->tm_min;
     DestTime->time.sec = (uint8_t)TempTime->tm_sec;
@@ -999,14 +1012,16 @@ int rr_trend_log_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
     /* Bail out now if nowt - should never happen for a Trend Log but ... */
     if (LogInfo[Trend_Log_Instance_To_Index(pRequest->object_instance)]
-            .ulRecordCount == 0)
+            .ulRecordCount == 0) {
         return (0);
+    }
 
     if ((pRequest->RequestType == RR_BY_POSITION) ||
-        (pRequest->RequestType == RR_READ_ALL))
+        (pRequest->RequestType == RR_READ_ALL)) {
         return (TL_encode_by_position(apdu, pRequest));
-    else if (pRequest->RequestType == RR_BY_SEQUENCE)
+    } else if (pRequest->RequestType == RR_BY_SEQUENCE) {
         return (TL_encode_by_sequence(apdu, pRequest));
+    }
 
     return (TL_encode_by_time(apdu, pRequest));
 }
@@ -1075,15 +1090,17 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     /* From here on in we only have a starting point and a positive count */
 
     if (pRequest->Range.RefIndex >
-        CurrentLog->ulRecordCount) /* Nothing to return as we are past the end
+        CurrentLog->ulRecordCount) { /* Nothing to return as we are past the end
                                       of the list */
         return (0);
+    }
 
     uiTarget = pRequest->Range.RefIndex + pRequest->Count -
         1; /* Index of last required entry */
     if (uiTarget >
-        CurrentLog->ulRecordCount) /* Capped at end of list if necessary */
+        CurrentLog->ulRecordCount) { /* Capped at end of list if necessary */
         uiTarget = CurrentLog->ulRecordCount;
+    }
 
     uiIndex = pRequest->Range.RefIndex;
     uiFirst = uiIndex; /* Record where we started from */
@@ -1108,11 +1125,13 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     }
 
     /* Set remaining result flags if necessary */
-    if (uiFirst == 1)
+    if (uiFirst == 1) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+    }
 
-    if (uiLast == CurrentLog->ulRecordCount)
+    if (uiLast == CurrentLog->ulRecordCount) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
+    }
 
     return (iLen);
 }
@@ -1163,54 +1182,68 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         uiEnd = pRequest->Range.RefSeqNum + pRequest->Count - 1;
     }
     /* See if we have any wrap around situations */
-    if (uiBegin > uiEnd)
+    if (uiBegin > uiEnd) {
         bWrapReq = true;
-    if (uiFirstSeq > CurrentLog->ulTotalRecordCount)
+    }
+    if (uiFirstSeq > CurrentLog->ulTotalRecordCount) {
         bWrapLog = true;
+    }
 
     if ((bWrapReq == false) && (bWrapLog == false)) { /* Simple case no wraps */
         /* If no overlap between request range and buffer contents bail out */
-        if ((uiEnd < uiFirstSeq) || (uiBegin > CurrentLog->ulTotalRecordCount))
+        if ((uiEnd < uiFirstSeq) ||
+            (uiBegin > CurrentLog->ulTotalRecordCount)) {
             return (0);
+        }
 
         /* Truncate range if necessary so it is guaranteed to lie
          * between the first and last sequence numbers in the buffer
          * inclusive.
          */
-        if (uiBegin < uiFirstSeq)
+        if (uiBegin < uiFirstSeq) {
             uiBegin = uiFirstSeq;
+        }
 
-        if (uiEnd > CurrentLog->ulTotalRecordCount)
+        if (uiEnd > CurrentLog->ulTotalRecordCount) {
             uiEnd = CurrentLog->ulTotalRecordCount;
+        }
     } else { /* There are wrap arounds to contend with */
         /* First check for non overlap condition as it is common to all */
-        if ((uiBegin > CurrentLog->ulTotalRecordCount) && (uiEnd < uiFirstSeq))
+        if ((uiBegin > CurrentLog->ulTotalRecordCount) &&
+            (uiEnd < uiFirstSeq)) {
             return (0);
+        }
 
         if (bWrapLog == false) { /* Only request range wraps */
             if (uiEnd < uiFirstSeq) {
                 uiEnd = CurrentLog->ulTotalRecordCount;
-                if (uiBegin < uiFirstSeq)
+                if (uiBegin < uiFirstSeq) {
                     uiBegin = uiFirstSeq;
+                }
             } else {
                 uiBegin = uiFirstSeq;
-                if (uiEnd > CurrentLog->ulTotalRecordCount)
+                if (uiEnd > CurrentLog->ulTotalRecordCount) {
                     uiEnd = CurrentLog->ulTotalRecordCount;
+                }
             }
         } else if (bWrapReq == false) { /* Only log wraps */
             if (uiBegin > CurrentLog->ulTotalRecordCount) {
-                if (uiBegin > uiFirstSeq)
+                if (uiBegin > uiFirstSeq) {
                     uiBegin = uiFirstSeq;
+                }
             } else {
-                if (uiEnd > CurrentLog->ulTotalRecordCount)
+                if (uiEnd > CurrentLog->ulTotalRecordCount) {
                     uiEnd = CurrentLog->ulTotalRecordCount;
+                }
             }
         } else { /* Both wrap */
-            if (uiBegin < uiFirstSeq)
+            if (uiBegin < uiFirstSeq) {
                 uiBegin = uiFirstSeq;
+            }
 
-            if (uiEnd > CurrentLog->ulTotalRecordCount)
+            if (uiEnd > CurrentLog->ulTotalRecordCount) {
                 uiEnd = CurrentLog->ulTotalRecordCount;
+            }
         }
     }
 
@@ -1242,11 +1275,13 @@ int TL_encode_by_sequence(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     }
 
     /* Set remaining result flags if necessary */
-    if (uiFirst == 1)
+    if (uiFirst == 1) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+    }
 
-    if (uiLast == CurrentLog->ulRecordCount)
+    if (uiLast == CurrentLog->ulRecordCount) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
+    }
 
     pRequest->FirstSequence = uiBegin;
 
@@ -1282,10 +1317,11 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
     tRefTime = TL_BAC_Time_To_Local(&pRequest->Range.RefTime);
     /* Find correct position for oldest entry in log */
-    if (CurrentLog->ulRecordCount < TL_MAX_ENTRIES)
+    if (CurrentLog->ulRecordCount < TL_MAX_ENTRIES) {
         uiIndex = 0;
-    else
+    } else {
         uiIndex = CurrentLog->iIndex;
+    }
 
     if (pRequest->Count < 0) {
         /* Start at end of log and look for record which has
@@ -1297,13 +1333,15 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         for (;;) {
             if (Logs[pRequest->object_instance]
                     [(uiIndex + iCount) % TL_MAX_ENTRIES]
-                        .tTimeStamp < tRefTime)
+                        .tTimeStamp < tRefTime) {
                 break;
+            }
 
             uiFirstSeq--;
             iCount--;
-            if (iCount < 0)
+            if (iCount < 0) {
                 return (0);
+            }
         }
 
         /* We have an and point for our request,
@@ -1337,13 +1375,15 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         for (;;) {
             if (Logs[pRequest->object_instance]
                     [(uiIndex + iCount) % TL_MAX_ENTRIES]
-                        .tTimeStamp > tRefTime)
+                        .tTimeStamp > tRefTime) {
                 break;
+            }
 
             uiFirstSeq++;
             iCount++;
-            if ((uint32_t)iCount == CurrentLog->ulRecordCount)
+            if ((uint32_t)iCount == CurrentLog->ulRecordCount) {
                 return (0);
+            }
         }
     }
 
@@ -1374,16 +1414,19 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
         if (uiIndex >
             CurrentLog
-                ->ulRecordCount) /* Finish up if we hit the end of the log */
+                ->ulRecordCount) { /* Finish up if we hit the end of the log */
             break;
+        }
     }
 
     /* Set remaining result flags if necessary */
-    if (uiFirst == 1)
+    if (uiFirst == 1) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, true);
+    }
 
-    if (uiLast == CurrentLog->ulRecordCount)
+    if (uiLast == CurrentLog->ulRecordCount) {
         bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_LAST_ITEM, true);
+    }
 
     pRequest->FirstSequence = uiFirstSeq;
 
@@ -1401,11 +1444,12 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
     /* Convert from BACnet 1 based to 0 based array index and then
      * handle wrap around of the circular buffer */
 
-    if (LogInfo[iLog].ulRecordCount < TL_MAX_ENTRIES)
+    if (LogInfo[iLog].ulRecordCount < TL_MAX_ENTRIES) {
         pSource = &Logs[iLog][(iEntry - 1) % TL_MAX_ENTRIES];
-    else
+    } else {
         pSource =
             &Logs[iLog][(LogInfo[iLog].iIndex + iEntry - 1) % TL_MAX_ENTRIES];
+    }
 
     iLen = 0;
     /* First stick the time stamp in with tag [0] */
@@ -1460,9 +1504,10 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
                 (pSource->Datum.Bits.ucLen >> 4) & 0x0F,
                 pSource->Datum.Bits.ucLen & 0x0F);
             for (ucCount = pSource->Datum.Bits.ucLen >> 4; ucCount > 0;
-                 ucCount--)
+                 ucCount--) {
                 bitstring_set_octet(&TempBits, ucCount - 1,
                     pSource->Datum.Bits.ucStore[ucCount - 1]);
+            }
 
             iLen += encode_context_bitstring(
                 &apdu[iLen], pSource->ucRecType, &TempBits);
@@ -1625,15 +1670,17 @@ static void TL_fetch_property(int iLog)
                         (8 - (bitstring_bits_used(&TempBits) % 8)) & 7;
                     /* Fetch the octets with the bits directly */
                     for (ucCount = 0; ucCount < bitstring_bytes_used(&TempBits);
-                         ucCount++)
+                         ucCount++) {
                         TempRec.Datum.Bits.ucStore[ucCount] =
                             bitstring_octet(&TempBits, ucCount);
+                    }
                 } else {
                     /* We will only use the first 4 octets to save space */
                     TempRec.Datum.Bits.ucLen = 4 << 4;
-                    for (ucCount = 0; ucCount < 4; ucCount++)
+                    for (ucCount = 0; ucCount < 4; ucCount++) {
                         TempRec.Datum.Bits.ucStore[ucCount] =
                             bitstring_octet(&TempBits, ucCount);
+                    }
                 }
                 break;
 
@@ -1658,13 +1705,15 @@ static void TL_fetch_property(int iLog)
     }
 
     Logs[iLog][CurrentLog->iIndex++] = TempRec;
-    if (CurrentLog->iIndex >= TL_MAX_ENTRIES)
+    if (CurrentLog->iIndex >= TL_MAX_ENTRIES) {
         CurrentLog->iIndex = 0;
+    }
 
     CurrentLog->ulTotalRecordCount++;
 
-    if (CurrentLog->ulRecordCount < TL_MAX_ENTRIES)
+    if (CurrentLog->ulRecordCount < TL_MAX_ENTRIES) {
         CurrentLog->ulRecordCount++;
+    }
 }
 
 /****************************************************************************

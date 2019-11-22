@@ -722,8 +722,9 @@ int bacapp_decode_context_data(uint8_t *apdu,
             } else {
                 apdu_len = BACNET_STATUS_ERROR;
             }
-        } else if (tag_len == 1) /* and is a Closing tag */
+        } else if (tag_len == 1) { /* and is a Closing tag */
             apdu_len = 0; /* Don't advance over that closing tag. */
+        }
     }
 
     return apdu_len;
@@ -896,13 +897,15 @@ int bacapp_data_len(
             if (IS_OPENING_TAG(apdu[apdu_len])) {
                 len = decode_tag_number_and_value(
                     &apdu[apdu_len], &tag_number, &value);
-                if (tag_number == opening_tag_number)
+                if (tag_number == opening_tag_number) {
                     opening_tag_number_counter++;
+                }
             } else if (IS_CLOSING_TAG(apdu[apdu_len])) {
                 len = decode_tag_number_and_value(
                     &apdu[apdu_len], &tag_number, &value);
-                if (tag_number == opening_tag_number)
+                if (tag_number == opening_tag_number) {
                     opening_tag_number_counter--;
+                }
             } else if (IS_CONTEXT_SPECIFIC(apdu[apdu_len])) {
                 /* context-specific tagged data */
                 len = bacapp_decode_context_data_len(

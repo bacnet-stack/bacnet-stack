@@ -387,12 +387,15 @@ static const int Device_Properties_Proprietary[] = { -1 };
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Device_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Device_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Device_Properties_Proprietary;
+    }
 
     return;
 }
@@ -549,8 +552,9 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
         /* Make the change and update the database revision */
         Object_Instance_Number = object_id;
         Device_Inc_Database_Revision();
-    } else
+    } else {
         status = false;
+    }
 
     return status;
 }
@@ -1188,13 +1192,15 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
             /* Array element zero is the number of objects in the list */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len = encode_application_unsigned(&apdu[0], count);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet.  Note that more than likely you will have */
-            /* to return an error if the number of encoded objects exceeds */
-            /* your maximum APDU size. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet.  Note that more than likely you will have */
+                /* to return an error if the number of encoded objects exceeds
+                 */
+                /* your maximum APDU size. */
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= count; i++) {
                     found = Device_Object_List_Identifier(
                         i, &object_type, &instance);

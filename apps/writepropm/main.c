@@ -456,8 +456,9 @@ int main(int argc, char *argv[])
         current_seconds = time(NULL);
 
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
+        }
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */

@@ -92,14 +92,16 @@ int timesync_decode_service_request(uint8_t *apdu,
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_DATE) {
             len += decode_date(&apdu[len], my_date);
-        } else
+        } else {
             return -1;
+        }
         /* time */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_TIME) {
             len += decode_bacnet_time(&apdu[len], my_time);
-        } else
+        } else {
             return -1;
+        }
     }
 
     return len;

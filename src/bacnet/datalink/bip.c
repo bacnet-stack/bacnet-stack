@@ -219,8 +219,9 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     int function = 0;
 
     /* Make sure the socket is open */
-    if (BIP_Socket < 0)
+    if (BIP_Socket < 0) {
         return 0;
+    }
 
     /* we could just use a non-blocking socket, but that consumes all
        the CPU time.  We can use a timeout; it is only supported as
@@ -237,11 +238,12 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     FD_SET(BIP_Socket, &read_fds);
     max = BIP_Socket;
     /* see if there is a packet for us */
-    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
+    if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
         received_bytes = recvfrom(BIP_Socket, (char *)&pdu[0], max_pdu, 0,
             (struct sockaddr *)&sin, &sin_len);
-    else
+    } else {
         return 0;
+    }
 
     /* See if there is a problem */
     if (received_bytes < 0) {
@@ -249,12 +251,14 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     }
 
     /* no problem, just no bytes */
-    if (received_bytes == 0)
+    if (received_bytes == 0) {
         return 0;
+    }
 
     /* the signature of a BACnet/IP packet */
-    if (pdu[0] != BVLL_TYPE_BACNET_IP)
+    if (pdu[0] != BVLL_TYPE_BACNET_IP) {
         return 0;
+    }
 
     if (bvlc_for_non_bbmd(&sin, pdu, received_bytes) > 0) {
         /* Handled, usually with a NACK. */

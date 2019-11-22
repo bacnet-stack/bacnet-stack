@@ -64,8 +64,9 @@ void Send_WhoHas_Name(
     BACNET_ADDRESS my_address;
 
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return;
+    }
     /* Who-Has is a global broadcast */
     datalink_get_broadcast_address(&dest);
     datalink_get_my_address(&my_address);
@@ -116,8 +117,9 @@ void Send_WhoHas_Object(int32_t low_limit,
     BACNET_ADDRESS my_address;
 
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return;
+    }
     /* Who-Has is a global broadcast */
     datalink_get_broadcast_address(&dest);
     datalink_get_my_address(&my_address);

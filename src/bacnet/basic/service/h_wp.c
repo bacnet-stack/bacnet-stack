@@ -173,12 +173,15 @@ bool WPValidateString(BACNET_APPLICATION_DATA_VALUE *pValue,
                 (uint16_t)iMaxLen) {
                 *pErrorClass = ERROR_CLASS_RESOURCES;
                 *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-            } else
+            } else {
                 bResult = true; /* It's all good! */
-        } else
+            }
+        } else {
             *pErrorCode = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
-    } else
+        }
+    } else {
         *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
+    }
 
     return (bResult);
 }

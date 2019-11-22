@@ -216,12 +216,15 @@ static const int Device_Properties_Proprietary[] = { -1 };
 void Device_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Device_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Device_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Device_Properties_Proprietary;
+    }
 
     return;
 }

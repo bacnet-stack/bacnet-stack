@@ -106,8 +106,9 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS bcastDest;
 
-    if (iArgs == NULL)
+    if (iArgs == NULL) {
         return 0; /* Can't do anything here */
+    }
 
     /* If dst was NULL, get our (local net) broadcast MAC address. */
     if (dst == NULL) {
@@ -115,8 +116,9 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         dst = &bcastDest;
     }
 
-    if (network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE)
+    if (network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE) {
         data_expecting_reply = true; /* DER in this one case */
+    }
     npdu_encode_npdu_network(&npdu_data, network_message_type,
         data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
 
@@ -194,12 +196,13 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
             break; /* Will never reach this line */
     }
 
-    if (dst != NULL)
+    if (dst != NULL) {
         debug_printf("Sending %s message to BACnet network %u \n",
             bactext_network_layer_msg_name(network_message_type), dst->net);
-    else
+    } else {
         debug_printf("Sending %s message to local BACnet network \n",
             bactext_network_layer_msg_name(network_message_type));
+    }
 
     /* Now send the message */
     bytes_sent = datalink_send_pdu(

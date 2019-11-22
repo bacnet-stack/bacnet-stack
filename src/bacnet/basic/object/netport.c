@@ -1985,10 +1985,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
         case PROP_IP_DNS_SERVER:
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 /* Array element zero is the number of objects in the list */
                 apdu_len = encode_application_unsigned(&apdu[0], BIP_DNS_MAX);
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 /* if no index was specified, then try to encode the entire list
                  */
                 /* into one packet. */
@@ -2055,10 +2055,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
         case PROP_IPV6_DNS_SERVER:
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 /* Array element zero is the number of objects in the list */
                 apdu_len = encode_application_unsigned(&apdu[0], BIP_DNS_MAX);
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 /* if no index was specified, then try to encode the entire list
                  */
                 /* into one packet. */

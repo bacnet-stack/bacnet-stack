@@ -110,6 +110,7 @@ void handler_read_range_ack(uint8_t *service_request,
     fprintf(stderr, "Received ReadRange Ack!\n");
 #endif
 
-    if (len > 0)
+    if (len > 0) {
         PrintReadRangeData(&data);
+    }
 }

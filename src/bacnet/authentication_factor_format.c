@@ -33,23 +33,26 @@ int bacapp_encode_authentication_factor_format(
     int apdu_len = 0;
 
     len = encode_context_enumerated(&apdu[apdu_len], 0, aff->format_type);
-    if (len < 0)
+    if (len < 0) {
         return -1;
-    else
+    } else {
         apdu_len += len;
+    }
 
     if (aff->format_type == AUTHENTICATION_FACTOR_CUSTOM) {
         len = encode_context_unsigned(&apdu[apdu_len], 1, aff->vendor_id);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
+        }
 
         len = encode_context_unsigned(&apdu[apdu_len], 2, aff->vendor_format);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
+        }
     }
     return apdu_len;
 }
@@ -80,33 +83,39 @@ int bacapp_decode_authentication_factor_format(
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
         len = decode_context_enumerated(&apdu[apdu_len], 0, &aff->format_type);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     if (decode_is_context_tag(&apdu[apdu_len], 1)) {
         len = decode_context_unsigned(&apdu[apdu_len], 1, &aff->vendor_id);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
+        }
         if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM) &&
-            (aff->vendor_id != 0))
+            (aff->vendor_id != 0)) {
             return -1;
+        }
     }
 
     if (decode_is_context_tag(&apdu[apdu_len], 2)) {
         len = decode_context_unsigned(&apdu[apdu_len], 2, &aff->vendor_format);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
+        }
         if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM) &&
-            (aff->vendor_format != 0))
+            (aff->vendor_format != 0)) {
             return -1;
+        }
     }
 
     return apdu_len;

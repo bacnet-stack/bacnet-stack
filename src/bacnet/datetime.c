@@ -62,10 +62,11 @@
 
 bool datetime_is_leap_year(uint16_t year)
 {
-    if ((year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0))
+    if ((year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0)) {
         return (true);
-    else
+    } else {
         return (false);
+    }
 }
 
 uint8_t datetime_month_days(uint16_t year, uint8_t month)
@@ -178,8 +179,9 @@ static uint32_t days_since_epoch(uint16_t year, uint8_t month, uint8_t day)
     if (datetime_ymd_is_valid(year, month, day)) {
         for (years = BACNET_EPOCH_YEAR; years < year; years++) {
             days += 365;
-            if (datetime_is_leap_year(years))
+            if (datetime_is_leap_year(years)) {
                 days++;
+            }
         }
         days += day_of_year(year, month, day);
         /* 'days since' is one less */
@@ -208,11 +210,13 @@ static void days_since_epoch_into_ymd(
     uint8_t day = 1;
 
     while (days >= 365) {
-        if ((datetime_is_leap_year(year)) && (days == 365))
+        if ((datetime_is_leap_year(year)) && (days == 365)) {
             break;
+        }
         days -= 365;
-        if (datetime_is_leap_year(year))
+        if (datetime_is_leap_year(year)) {
             --days;
+        }
         year++;
     }
 
@@ -223,12 +227,15 @@ static void days_since_epoch_into_ymd(
 
     day = (uint8_t)(day + days);
 
-    if (pYear)
+    if (pYear) {
         *pYear = year;
-    if (pMonth)
+    }
+    if (pMonth) {
         *pMonth = month;
-    if (pDay)
+    }
+    if (pDay) {
         *pDay = day;
+    }
 
     return;
 }
@@ -516,12 +523,15 @@ static void seconds_since_midnight_into_hms(
     minute = (uint8_t)(seconds / 60);
     seconds -= (minute * 60);
 
-    if (pHours)
+    if (pHours) {
         *pHours = hour;
-    if (pMinutes)
+    }
+    if (pMinutes) {
         *pMinutes = minute;
-    if (pSeconds)
+    }
+    if (pSeconds) {
         *pSeconds = (uint8_t)seconds;
+    }
 }
 
 /** Calculates the number of seconds since midnight

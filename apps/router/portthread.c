@@ -36,8 +36,9 @@ ROUTER_PORT *find_snet(MSGBOX_ID id)
     ROUTER_PORT *port = head;
 
     while (port != NULL) {
-        if (port->port_id == id)
+        if (port->port_id == id) {
             return port;
+        }
         port = port->next;
     }
 
@@ -92,8 +93,9 @@ void add_dnet(RT_ENTRY *route_info, uint16_t net, BACNET_ADDRESS addr)
         route_info->dnets->next = NULL;
     } else {
         while (dnet != NULL) {
-            if (dnet->net == net) /* make sure NETs are not repeated */
+            if (dnet->net == net) { /* make sure NETs are not repeated */
                 return;
+            }
             tmp = dnet;
             dnet = dnet->next;
         }

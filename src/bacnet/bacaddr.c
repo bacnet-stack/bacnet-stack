@@ -62,31 +62,39 @@ bool bacnet_address_same(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
     uint8_t i = 0; /* loop counter */
     uint8_t max_len = 0; /* used for dynamic max */
 
-    if (dest == src) /* same ? */
+    if (dest == src) { /* same ? */
         return true;
+    }
 
-    if (dest->net != src->net)
+    if (dest->net != src->net) {
         return false;
+    }
 
-    if (dest->len != src->len)
+    if (dest->len != src->len) {
         return false;
+    }
 
     max_len = dest->len;
-    if (max_len > MAX_MAC_LEN)
+    if (max_len > MAX_MAC_LEN) {
         max_len = MAX_MAC_LEN;
+    }
     for (i = 0; i < max_len; i++) {
-        if (dest->adr[i] != src->adr[i])
+        if (dest->adr[i] != src->adr[i]) {
             return false;
+        }
     }
     if (dest->net == 0) {
-        if (dest->mac_len != src->mac_len)
+        if (dest->mac_len != src->mac_len) {
             return false;
+        }
         max_len = dest->mac_len;
-        if (max_len > MAX_MAC_LEN)
+        if (max_len > MAX_MAC_LEN) {
             max_len = MAX_MAC_LEN;
+        }
         for (i = 0; i < max_len; i++) {
-            if (dest->mac[i] != src->mac[i])
+            if (dest->mac[i] != src->mac[i]) {
                 return false;
+            }
         }
     }
     return true;

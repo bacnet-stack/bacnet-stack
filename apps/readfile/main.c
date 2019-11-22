@@ -179,8 +179,9 @@ static void LocalIAmHandler(
         service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
     if (len != -1) {
         address_add(device_id, max_apdu, src);
-    } else
+    } else {
         fprintf(stderr, "!\n");
+    }
 
     return;
 }

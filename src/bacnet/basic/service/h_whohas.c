@@ -91,12 +91,13 @@ void handler_who_has(
     (void)src;
     len = whohas_decode_service_request(service_request, service_len, &data);
     if (len > 0) {
-        if ((data.low_limit == -1) || (data.high_limit == -1))
+        if ((data.low_limit == -1) || (data.high_limit == -1)) {
             directed_to_me = true;
-        else if ((Device_Object_Instance_Number() >=
-                     (uint32_t)data.low_limit) &&
-            (Device_Object_Instance_Number() <= (uint32_t)data.high_limit))
+        } else if ((Device_Object_Instance_Number() >=
+                       (uint32_t)data.low_limit) &&
+            (Device_Object_Instance_Number() <= (uint32_t)data.high_limit)) {
             directed_to_me = true;
+        }
         if (directed_to_me) {
             match_name_or_object(&data);
         }

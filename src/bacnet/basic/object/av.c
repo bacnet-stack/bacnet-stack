@@ -66,12 +66,15 @@ static const int Analog_Value_Properties_Proprietary[] = { -1 };
 void Analog_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Analog_Value_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Analog_Value_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Analog_Value_Properties_Proprietary;
+    }
 
     return;
 }
@@ -118,8 +121,9 @@ void Analog_Value_Init(void)
 /* given instance exists */
 bool Analog_Value_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ANALOG_VALUES)
+    if (object_instance < MAX_ANALOG_VALUES) {
         return true;
+    }
 
     return false;
 }
@@ -146,8 +150,9 @@ unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ANALOG_VALUES;
 
-    if (object_instance < MAX_ANALOG_VALUES)
+    if (object_instance < MAX_ANALOG_VALUES) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -389,10 +394,11 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     apdu = rpdata->application_data;
 
     object_index = Analog_Value_Instance_To_Index(rpdata->object_instance);
-    if (object_index < MAX_ANALOG_VALUES)
+    if (object_index < MAX_ANALOG_VALUES) {
         CurrentAV = &AV_Descr[object_index];
-    else
+    } else {
         return BACNET_STATUS_ERROR;
+    }
 
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -616,10 +622,11 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     object_index = Analog_Value_Instance_To_Index(wp_data->object_instance);
-    if (object_index < MAX_ANALOG_VALUES)
+    if (object_index < MAX_ANALOG_VALUES) {
         CurrentAV = &AV_Descr[object_index];
-    else
+    } else {
         return false;
+    }
 
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:

@@ -261,10 +261,11 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].state == TSM_STATE_AWAIT_CONFIRMATION) {
-            if (TSM_List[i].RequestTimer > milliseconds)
+            if (TSM_List[i].RequestTimer > milliseconds) {
                 TSM_List[i].RequestTimer -= milliseconds;
-            else
+            } else {
                 TSM_List[i].RequestTimer = 0;
+            }
             /* AWAIT_CONFIRMATION */
             if (TSM_List[i].RequestTimer == 0) {
                 if (TSM_List[i].RetryCount < apdu_retries()) {
@@ -311,8 +312,9 @@ bool tsm_invoke_id_free(uint8_t invokeID)
     uint8_t index;
 
     index = tsm_find_invokeID_index(invokeID);
-    if (index < MAX_TSM_TRANSACTIONS)
+    if (index < MAX_TSM_TRANSACTIONS) {
         status = false;
+    }
 
     return status;
 }
@@ -333,8 +335,9 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
     if (index < MAX_TSM_TRANSACTIONS) {
         /* a valid invoke ID and the state is IDLE is a
            message that failed to confirm */
-        if (TSM_List[index].state == TSM_STATE_IDLE)
+        if (TSM_List[index].state == TSM_STATE_IDLE) {
             status = true;
+        }
     }
 
     return status;

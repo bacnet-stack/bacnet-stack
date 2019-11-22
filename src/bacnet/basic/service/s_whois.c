@@ -96,8 +96,9 @@ void Send_WhoIs_Global(int32_t low_limit, int32_t high_limit)
 {
     BACNET_ADDRESS dest;
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return;
+    }
 
     /* Who-Is is a global broadcast */
     datalink_get_broadcast_address(&dest);
@@ -119,8 +120,9 @@ void Send_WhoIs_Local(int32_t low_limit, int32_t high_limit)
     char temp[6];
     int loop;
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return;
+    }
 
     /* Who-Is is a global broadcast */
     datalink_get_broadcast_address(&dest);
@@ -160,8 +162,9 @@ void Send_WhoIs_Local(int32_t low_limit, int32_t high_limit)
 void Send_WhoIs_Remote(
     BACNET_ADDRESS *target_address, int32_t low_limit, int32_t high_limit)
 {
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return;
+    }
 
     Send_WhoIs_To_Network(target_address, low_limit, high_limit);
 }

@@ -164,10 +164,11 @@ int decode_signed8(uint8_t *apdu, int32_t *value)
 {
     if (value) {
         /* negative - bit 7 is set */
-        if (apdu[0] & 0x80)
+        if (apdu[0] & 0x80) {
             *value = 0xFFFFFF00;
-        else
+        } else {
             *value = 0;
+        }
         *value |= ((int32_t)(((int32_t)apdu[0]) & 0x000000ff));
     }
 
@@ -186,10 +187,11 @@ int decode_signed16(uint8_t *apdu, int32_t *value)
 {
     if (value) {
         /* negative - bit 7 is set */
-        if (apdu[0] & 0x80)
+        if (apdu[0] & 0x80) {
             *value = 0xFFFF0000;
-        else
+        } else {
             *value = 0;
+        }
         *value |= ((int32_t)((((int32_t)apdu[0]) << 8) & 0x0000ff00));
         *value |= ((int32_t)(((int32_t)apdu[1]) & 0x000000ff));
     }
@@ -210,10 +212,11 @@ int decode_signed24(uint8_t *apdu, int32_t *value)
 {
     if (value) {
         /* negative - bit 7 is set */
-        if (apdu[0] & 0x80)
+        if (apdu[0] & 0x80) {
             *value = 0xFF000000;
-        else
+        } else {
             *value = 0;
+        }
         *value |= ((int32_t)((((int32_t)apdu[0]) << 16) & 0x00ff0000));
         *value |= ((int32_t)((((int32_t)apdu[1]) << 8) & 0x0000ff00));
         *value |= ((int32_t)(((int32_t)apdu[2]) & 0x000000ff));

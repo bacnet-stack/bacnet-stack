@@ -102,15 +102,17 @@ int wp_decode_service_request(
     /* check for value pointers */
     if (apdu_len && wpdata) {
         /* Tag 0: Object ID          */
-        if (!decode_is_context_tag(&apdu[len++], 0))
+        if (!decode_is_context_tag(&apdu[len++], 0)) {
             return -1;
+        }
         len += decode_object_id(&apdu[len], &type, &wpdata->object_instance);
         wpdata->object_type = (BACNET_OBJECT_TYPE)type;
         /* Tag 1: Property ID */
         len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);
-        if (tag_number != 1)
+        if (tag_number != 1) {
             return -1;
+        }
         len += decode_enumerated(&apdu[len], len_value_type, &property);
         wpdata->object_property = (BACNET_PROPERTY_ID)property;
         /* Tag 2: Optional Array Index */
@@ -122,11 +124,14 @@ int wp_decode_service_request(
             len += tag_len;
             len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
             wpdata->array_index = unsigned_value;
-        } else
-            wpdata->array_index = BACNET_ARRAY_ALL;
+        } else {
+            wpdata;
+        }
+        ->array_index = BACNET_ARRAY_ALL;
         /* Tag 3: opening context tag */
-        if (!decode_is_opening_tag_number(&apdu[len], 3))
+        if (!decode_is_opening_tag_number(&apdu[len], 3)) {
             return -1;
+        }
         /* determine the length of the data blob */
         wpdata->application_data_len = bacapp_data_len(
             &apdu[len], apdu_len - len, (BACNET_PROPERTY_ID)property);
@@ -138,8 +143,9 @@ int wp_decode_service_request(
         }
         /* add on the data length */
         len += wpdata->application_data_len;
-        if (!decode_is_closing_tag_number(&apdu[len], 3))
+        if (!decode_is_closing_tag_number(&apdu[len], 3)) {
             return -2;
+        }
         /* a tag number of 3 is not extended so only one octet */
         len++;
         /* Tag 4: optional Priority - assumed MAX if not explicitly set */
@@ -154,8 +160,9 @@ int wp_decode_service_request(
                 if ((unsigned_value >= BACNET_MIN_PRIORITY) &&
                     (unsigned_value <= BACNET_MAX_PRIORITY)) {
                     wpdata->priority = (uint8_t)unsigned_value;
-                } else
+                } else {
                     return -5;
+                }
             }
         }
     }

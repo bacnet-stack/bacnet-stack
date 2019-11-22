@@ -583,40 +583,46 @@ bool utf8_isvalid(const char *str, size_t length)
         switch (ab) {
                 /* Check for xx00 000x */
             case 1:
-                if ((c & 0x3e) == 0)
+                if ((c & 0x3e) == 0) {
                     return false;
+                }
                 continue; /* We know there aren't any more bytes to check */
 
                 /* Check for 1110 0000, xx0x xxxx */
             case 2:
-                if (c == 0xe0 && (*p & 0x20) == 0)
+                if (c == 0xe0 && (*p & 0x20) == 0) {
                     return false;
+                }
                 break;
 
                 /* Check for 1111 0000, xx00 xxxx */
             case 3:
-                if (c == 0xf0 && (*p & 0x30) == 0)
+                if (c == 0xf0 && (*p & 0x30) == 0) {
                     return false;
+                }
                 break;
 
                 /* Check for 1111 1000, xx00 0xxx */
             case 4:
-                if (c == 0xf8 && (*p & 0x38) == 0)
+                if (c == 0xf8 && (*p & 0x38) == 0) {
                     return false;
+                }
                 break;
 
                 /* Check for leading 0xfe or 0xff,
                    and then for 1111 1100, xx00 00xx */
             case 5:
-                if (c == 0xfe || c == 0xff || (c == 0xfc && (*p & 0x3c) == 0))
+                if (c == 0xfe || c == 0xff || (c == 0xfc && (*p & 0x3c) == 0)) {
                     return false;
+                }
                 break;
         }
 
         /* Check for valid bytes after the 2nd, if any; all must start 10 */
         while (--ab > 0) {
-            if ((*(++p) & 0xc0) != 0x80)
+            if ((*(++p) & 0xc0) != 0x80) {
                 return false;
+            }
         }
     }
 

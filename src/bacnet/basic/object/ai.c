@@ -66,12 +66,15 @@ static const int Properties_Proprietary[] = { 9997, 9998, 9999, -1 };
 void Analog_Input_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -122,8 +125,9 @@ bool Analog_Input_Valid_Instance(uint32_t object_instance)
     unsigned int index;
 
     index = Analog_Input_Instance_To_Index(object_instance);
-    if (index < MAX_ANALOG_INPUTS)
+    if (index < MAX_ANALOG_INPUTS) {
         return true;
+    }
 
     return false;
 }
@@ -150,8 +154,9 @@ unsigned Analog_Input_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ANALOG_INPUTS;
 
-    if (object_instance < MAX_ANALOG_INPUTS)
+    if (object_instance < MAX_ANALOG_INPUTS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -371,10 +376,11 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
 
     object_index = Analog_Input_Instance_To_Index(rpdata->object_instance);
-    if (object_index < MAX_ANALOG_INPUTS)
+    if (object_index < MAX_ANALOG_INPUTS) {
         CurrentAI = &AI_Descr[object_index];
-    else
+    } else {
         return BACNET_STATUS_ERROR;
+    }
 
     apdu = rpdata->application_data;
     switch ((int)rpdata->object_property) {

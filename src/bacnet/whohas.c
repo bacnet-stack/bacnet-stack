@@ -91,15 +91,18 @@ int whohas_decode_service_request(
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-            if (decoded_value <= BACNET_MAX_INSTANCE)
+            if (decoded_value <= BACNET_MAX_INSTANCE) {
                 data->low_limit = decoded_value;
-            if (!decode_is_context_tag(&apdu[len], 1))
+            }
+            if (!decode_is_context_tag(&apdu[len], 1)) {
                 return -1;
+            }
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
             len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-            if (decoded_value <= BACNET_MAX_INSTANCE)
+            if (decoded_value <= BACNET_MAX_INSTANCE) {
                 data->high_limit = decoded_value;
+            }
         } else {
             data->low_limit = -1;
             data->high_limit = -1;
@@ -122,8 +125,9 @@ int whohas_decode_service_request(
                 &apdu[len], len_value, &data->object.name);
         }
         /* missing required parameters */
-        else
+        else {
             return -1;
+        }
     }
 
     return len;

@@ -59,14 +59,16 @@ uint8_t Send_Atomic_Write_File_Stream(uint32_t device_id,
     BACNET_ATOMIC_WRITE_FILE_DATA data;
 
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return 0;
+    }
 
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);
     /* is there a tsm available? */
-    if (status)
+    if (status) {
         invoke_id = tsm_next_free_invokeID();
+    }
     if (invoke_id) {
         /* load the data for the encoding */
         data.object_type = OBJECT_FILE;

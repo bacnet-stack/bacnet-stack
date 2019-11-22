@@ -87,45 +87,56 @@ int iam_decode_service_request(uint8_t *apdu,
     /* OBJECT ID - object id */
     len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
     apdu_len += len;
-    if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
+    if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID) {
         return -1;
+    }
     len = decode_object_id(&apdu[apdu_len], &object_type, &object_instance);
     apdu_len += len;
-    if (object_type != OBJECT_DEVICE)
+    if (object_type != OBJECT_DEVICE) {
         return -1;
-    if (pDevice_id)
+    }
+    if (pDevice_id) {
         *pDevice_id = object_instance;
+    }
     /* MAX APDU - unsigned */
     len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
     apdu_len += len;
-    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
         return -1;
+    }
     len = decode_unsigned(&apdu[apdu_len], len_value, &decoded_value);
     apdu_len += len;
-    if (pMax_apdu)
+    if (pMax_apdu) {
         *pMax_apdu = (unsigned)decoded_value;
+    }
     /* Segmentation - enumerated */
     len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
     apdu_len += len;
-    if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED)
+    if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
         return -1;
+    }
     len = decode_enumerated(&apdu[apdu_len], len_value, &decoded_value);
     apdu_len += len;
-    if (decoded_value >= MAX_BACNET_SEGMENTATION)
+    if (decoded_value >= MAX_BACNET_SEGMENTATION) {
         return -1;
-    if (pSegmentation)
+    }
+    if (pSegmentation) {
         *pSegmentation = (int)decoded_value;
+    }
     /* Vendor ID - unsigned16 */
     len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
     apdu_len += len;
-    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+    if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
         return -1;
+    }
     len = decode_unsigned(&apdu[apdu_len], len_value, &decoded_value);
     apdu_len += len;
-    if (decoded_value > 0xFFFF)
+    if (decoded_value > 0xFFFF) {
         return -1;
-    if (pVendor_id)
+    }
+    if (pVendor_id) {
         *pVendor_id = (uint16_t)decoded_value;
+    }
 
     return apdu_len;
 }

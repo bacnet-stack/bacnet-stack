@@ -101,12 +101,15 @@ static const int Channel_Properties_Proprietary[] = { -1 };
 void Channel_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Channel_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Channel_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Channel_Properties_Proprietary;
+    }
 
     return;
 }

@@ -82,9 +82,10 @@ int rpm_encode_apdu_object_property(
     if (apdu) {
         apdu_len = encode_context_enumerated(&apdu[0], 0, object_property);
         /* optional array index */
-        if (array_index != BACNET_ARRAY_ALL)
+        if (array_index != BACNET_ARRAY_ALL) {
             apdu_len +=
                 encode_context_unsigned(&apdu[apdu_len], 1, array_index);
+        }
     }
 
     return apdu_len;
@@ -222,8 +223,9 @@ int rpm_decode_object_end(uint8_t *apdu, unsigned apdu_len)
     int len = 0; /* total length of the apdu, return value */
 
     if (apdu && apdu_len) {
-        if (decode_is_closing_tag_number(apdu, 1) == true)
+        if (decode_is_closing_tag_number(apdu, 1) == true) {
             len = 1;
+        }
     }
 
     return len;
@@ -330,9 +332,10 @@ int rpm_ack_encode_apdu_object_property(
         /* Tag 2: propertyIdentifier */
         apdu_len = encode_context_enumerated(&apdu[0], 2, object_property);
         /* Tag 3: optional propertyArrayIndex */
-        if (array_index != BACNET_ARRAY_ALL)
+        if (array_index != BACNET_ARRAY_ALL) {
             apdu_len +=
                 encode_context_unsigned(&apdu[apdu_len], 3, array_index);
+        }
     }
 
     return apdu_len;
@@ -402,14 +405,17 @@ int rpm_ack_decode_object_id(uint8_t *apdu,
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {
         /* Tag 0: objectIdentifier */
-        if (!decode_is_context_tag(&apdu[len++], 0))
+        if (!decode_is_context_tag(&apdu[len++], 0)) {
             return -1;
+        }
         len += decode_object_id(&apdu[len], &type, object_instance);
-        if (object_type)
+        if (object_type) {
             *object_type = (BACNET_OBJECT_TYPE)type;
+        }
         /* Tag 1: listOfResults */
-        if (!decode_is_opening_tag_number(&apdu[len], 1))
+        if (!decode_is_opening_tag_number(&apdu[len], 1)) {
             return -1;
+        }
         len++; /* opening tag is only one octet */
     }
 
@@ -422,8 +428,9 @@ int rpm_ack_decode_object_end(uint8_t *apdu, unsigned apdu_len)
     int len = 0; /* total length of the apdu, return value */
 
     if (apdu && apdu_len) {
-        if (decode_is_closing_tag_number(apdu, 1))
+        if (decode_is_closing_tag_number(apdu, 1)) {
             len = 1;
+        }
     }
 
     return len;
@@ -444,15 +451,18 @@ int rpm_ack_decode_object_property(uint8_t *apdu,
     /* check for valid pointers */
     if (apdu && apdu_len && object_property && array_index) {
         /* Tag 2: propertyIdentifier */
-        if (!IS_CONTEXT_SPECIFIC(apdu[len]))
+        if (!IS_CONTEXT_SPECIFIC(apdu[len])) {
             return -1;
+        }
         len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);
-        if (tag_number != 2)
+        if (tag_number != 2) {
             return -1;
+        }
         len += decode_enumerated(&apdu[len], len_value_type, &property);
-        if (object_property)
+        if (object_property) {
             *object_property = (BACNET_PROPERTY_ID)property;
+        }
         /* Tag 3: Optional propertyArrayIndex */
         if ((len < apdu_len) && IS_CONTEXT_SPECIFIC(apdu[len]) &&
             (!IS_CLOSING_TAG(apdu[len]))) {

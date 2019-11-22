@@ -73,12 +73,15 @@ static const int Multistate_Output_Properties_Proprietary[] = { -1 };
 void Multistate_Output_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Multistate_Output_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Multistate_Output_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Multistate_Output_Properties_Proprietary;
+    }
 
     return;
 }
@@ -107,8 +110,9 @@ void Multistate_Output_Init(void)
 /* given instance exists */
 bool Multistate_Output_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_MULTISTATE_OUTPUTS)
+    if (object_instance < MAX_MULTISTATE_OUTPUTS) {
         return true;
+    }
 
     return false;
 }
@@ -135,8 +139,9 @@ unsigned Multistate_Output_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_MULTISTATE_OUTPUTS;
 
-    if (object_instance < MAX_MULTISTATE_OUTPUTS)
+    if (object_instance < MAX_MULTISTATE_OUTPUTS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -260,29 +265,30 @@ int Multistate_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet. */
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 object_index = Multistate_Output_Instance_To_Index(
                     rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Multistate_Output_Level[object_index][i] ==
-                        MULTISTATE_NULL)
+                        MULTISTATE_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
-                    else {
+                    } else {
                         present_value =
                             Multistate_Output_Level[object_index][i];
                         len = encode_application_unsigned(
                             &apdu[apdu_len], present_value);
                     }
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
@@ -295,9 +301,9 @@ int Multistate_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Multistate_Output_Level[object_index]
                                                [rpdata->array_index - 1] ==
-                        MULTISTATE_NULL)
+                        MULTISTATE_NULL) {
                         apdu_len = encode_application_null(&apdu[0]);
-                    else {
+                    } else {
                         present_value =
                             Multistate_Output_Level[object_index]
                                                    [rpdata->array_index - 1];

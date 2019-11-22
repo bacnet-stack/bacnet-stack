@@ -146,12 +146,15 @@ static const int Load_Control_Properties_Proprietary[] = { -1 };
 void Load_Control_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Load_Control_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Load_Control_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Load_Control_Properties_Proprietary;
+    }
 
     return;
 }
@@ -191,8 +194,9 @@ void Load_Control_Init(void)
 /* given instance exists */
 bool Load_Control_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_LOAD_CONTROLS)
+    if (object_instance < MAX_LOAD_CONTROLS) {
         return true;
+    }
 
     return false;
 }
@@ -219,8 +223,9 @@ unsigned Load_Control_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_LOAD_CONTROLS;
 
-    if (object_instance < MAX_LOAD_CONTROLS)
+    if (object_instance < MAX_LOAD_CONTROLS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -303,8 +308,9 @@ static float Requested_Shed_Level_Value(int object_index)
         default:
             for (i = 0; i < MAX_SHED_LEVELS; i++) {
                 if (Shed_Levels[object_index][i] <=
-                    Requested_Shed_Level[object_index].value.level)
+                    Requested_Shed_Level[object_index].value.level) {
                     shed_level_index = i;
+                }
             }
             requested_level = Shed_Level_Values[shed_level_index];
             break;
@@ -420,19 +426,22 @@ void Load_Control_State_Machine(int object_index)
                 switch (Requested_Shed_Level[object_index].type) {
                     case BACNET_SHED_TYPE_PERCENT:
                         if (Requested_Shed_Level[object_index].value.percent ==
-                            DEFAULT_VALUE_PERCENT)
+                            DEFAULT_VALUE_PERCENT) {
                             Load_Control_State[object_index] = SHED_INACTIVE;
+                        }
                         break;
                     case BACNET_SHED_TYPE_AMOUNT:
                         if (Requested_Shed_Level[object_index].value.amount ==
-                            DEFAULT_VALUE_AMOUNT)
+                            DEFAULT_VALUE_AMOUNT) {
                             Load_Control_State[object_index] = SHED_INACTIVE;
+                        }
                         break;
                     case BACNET_SHED_TYPE_LEVEL:
                     default:
                         if (Requested_Shed_Level[object_index].value.level ==
-                            DEFAULT_VALUE_LEVEL)
+                            DEFAULT_VALUE_LEVEL) {
                             Load_Control_State[object_index] = SHED_INACTIVE;
+                        }
                         break;
                 }
                 if (Load_Control_State[object_index] == SHED_INACTIVE) {
@@ -768,21 +777,22 @@ int Load_Control_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_SHED_LEVELS:
             /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], MAX_SHED_LEVELS);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet. */
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 apdu_len = 0;
                 for (i = 0; i < MAX_SHED_LEVELS; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     len = encode_application_unsigned(
                         &apdu[apdu_len], Shed_Levels[object_index][i]);
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
@@ -802,12 +812,13 @@ int Load_Control_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_SHED_LEVEL_DESCRIPTIONS:
             /* Array element zero is the number of elements in the array */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len =
                     encode_application_unsigned(&apdu[0], MAX_SHED_LEVELS);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet. */
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 apdu_len = 0;
                 for (i = 0; i < MAX_SHED_LEVELS; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
@@ -816,9 +827,9 @@ int Load_Control_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     len = encode_application_character_string(
                         &apdu[apdu_len], &char_string);
                     /* add it if we have room */
-                    if ((apdu_len + len) < MAX_APDU)
+                    if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;

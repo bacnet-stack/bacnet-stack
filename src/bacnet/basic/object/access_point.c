@@ -57,12 +57,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Access_Point_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -99,8 +102,9 @@ void Access_Point_Init(void)
 /* given instance exists */
 bool Access_Point_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ACCESS_POINTS)
+    if (object_instance < MAX_ACCESS_POINTS) {
         return true;
+    }
 
     return false;
 }
@@ -127,8 +131,9 @@ unsigned Access_Point_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCESS_POINTS;
 
-    if (object_instance < MAX_ACCESS_POINTS)
+    if (object_instance < MAX_ACCESS_POINTS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -265,9 +270,9 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 for (i = 0; i < ap_descr[object_index].num_doors; i++) {
                     len = bacapp_encode_device_obj_ref(
                         &apdu[0], &ap_descr[object_index].access_doors[i]);
-                    if (apdu_len + len < MAX_APDU)
+                    if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;

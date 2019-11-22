@@ -34,16 +34,18 @@ int bacapp_encode_assigned_access_rights(
 
     len = bacapp_encode_context_device_obj_ref(
         &apdu[apdu_len], 0, &aar->assigned_access_rights);
-    if (len < 0)
+    if (len < 0) {
         return -1;
-    else
+    } else {
         apdu_len += len;
+    }
 
     len = encode_context_boolean(&apdu[apdu_len], 1, aar->enable);
-    if (len < 0)
+    if (len < 0) {
         return -1;
-    else
+    } else {
         apdu_len += len;
+    }
 
     return apdu_len;
 }
@@ -75,21 +77,25 @@ int bacapp_decode_assigned_access_rights(
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
         len = bacapp_decode_context_device_obj_ref(
             &apdu[apdu_len], 0, &aar->assigned_access_rights);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     if (decode_is_context_tag(&apdu[apdu_len], 1)) {
         len = decode_context_boolean2(&apdu[apdu_len], 1, &aar->enable);
-        if (len < 0)
+        if (len < 0) {
             return -1;
-        else
+        } else {
             apdu_len += len;
-    } else
+        }
+    } else {
         return -1;
+    }
 
     return apdu_len;
 }

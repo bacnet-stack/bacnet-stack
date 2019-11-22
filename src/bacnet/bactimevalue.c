@@ -75,13 +75,15 @@ int bacapp_decode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
     int apdu_len = 0;
 
     len = decode_application_time(&apdu[apdu_len], &value->Time);
-    if (len <= 0)
+    if (len <= 0) {
         return -1;
+    }
     apdu_len += len;
 
     len = bacapp_decode_application_data(&apdu[apdu_len], 2048, &value->Value);
-    if (len <= 0)
+    if (len <= 0) {
         return -1;
+    }
     apdu_len += len;
 
     return apdu_len;
@@ -93,21 +95,24 @@ int bacapp_decode_context_time_value(
     int len = 0;
     int section_length;
 
-    if (decode_is_opening_tag_number(&apdu[len], tag_number))
+    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
         len++;
-    else
+    } else {
         return -1;
+    }
 
     section_length = bacapp_decode_time_value(&apdu[len], value);
-    if (section_length > 0)
+    if (section_length > 0) {
         len += section_length;
-    else
+    } else {
         return -1;
+    }
 
-    if (decode_is_closing_tag_number(&apdu[len], tag_number))
+    if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
         len++;
-    else
+    } else {
         return -1;
+    }
 
     return len;
 }

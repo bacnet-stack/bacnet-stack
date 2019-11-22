@@ -239,8 +239,9 @@ int main(int argc, char *argv[])
             break;
         /* increment timer - exit if timed out */
         elapsed_seconds += (current_seconds - last_seconds);
-        if (elapsed_seconds > timeout_seconds)
+        if (elapsed_seconds > timeout_seconds) {
             break;
+        }
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }

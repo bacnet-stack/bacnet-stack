@@ -75,8 +75,9 @@ int getevent_decode_service_request(uint8_t *apdu,
     /* check for value pointers */
     if (apdu_len && lastReceivedObjectIdentifier) {
         /* Tag 0: Object ID - optional */
-        if (!decode_is_context_tag(&apdu[len++], 0))
+        if (!decode_is_context_tag(&apdu[len++], 0)) {
             return -1;
+        }
         len += decode_object_id(&apdu[len], &lastReceivedObjectIdentifier->type,
             &lastReceivedObjectIdentifier->instance);
     }
@@ -279,10 +280,11 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
         if (decode_is_context_tag(&apdu[len], 1)) {
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            if (len_value == 1)
+            if (len_value == 1) {
                 *moreEvents = decode_context_boolean(&apdu[len++]);
-            else
+            } else {
                 *moreEvents = false;
+            }
         } else {
             return -1;
         }

@@ -63,8 +63,9 @@ uint8_t Send_Private_Transfer_Request(uint32_t device_id,
     BACNET_PRIVATE_TRANSFER_DATA private_data;
 
     /* if we are forbidden to send, don't send! */
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return 0;
+    }
 
     /* is the device bound? */
     status = address_get_by_device(device_id, &max_apdu, &dest);

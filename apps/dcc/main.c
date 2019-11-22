@@ -242,9 +242,10 @@ int main(int argc, char *argv[])
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
-        if (current_seconds != last_seconds)
+        if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+        }
         if (Error_Detected)
             break;
         /* wait until the device is bound, or timeout and quit */
@@ -258,9 +259,9 @@ int main(int argc, char *argv[])
                     Target_Device_Object_Instance,
                     Communication_Timeout_Minutes, Communication_State,
                     Communication_Password);
-            } else if (tsm_invoke_id_free(invoke_id))
+            } else if (tsm_invoke_id_free(invoke_id)) {
                 break;
-            else if (tsm_invoke_id_failed(invoke_id)) {
+            } else if (tsm_invoke_id_failed(invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(invoke_id);
                 /* try again or abort? */

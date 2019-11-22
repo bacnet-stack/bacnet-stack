@@ -119,8 +119,9 @@ void Life_Safety_Point_Init(void)
 /* given instance exists */
 bool Life_Safety_Point_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_LIFE_SAFETY_POINTS)
+    if (object_instance < MAX_LIFE_SAFETY_POINTS) {
         return true;
+    }
 
     return false;
 }
@@ -147,8 +148,9 @@ unsigned Life_Safety_Point_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_LIFE_SAFETY_POINTS;
 
-    if (object_instance < MAX_LIFE_SAFETY_POINTS)
+    if (object_instance < MAX_LIFE_SAFETY_POINTS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -160,8 +162,9 @@ static BACNET_LIFE_SAFETY_STATE Life_Safety_Point_Present_Value(
     unsigned index = 0;
 
     index = Life_Safety_Point_Instance_To_Index(object_instance);
-    if (index < MAX_LIFE_SAFETY_POINTS)
+    if (index < MAX_LIFE_SAFETY_POINTS) {
         present_value = Life_Safety_Point_State[index];
+    }
 
     return present_value;
 }

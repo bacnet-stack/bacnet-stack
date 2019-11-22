@@ -54,12 +54,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Access_Zone_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -92,8 +95,9 @@ void Access_Zone_Init(void)
 /* given instance exists */
 bool Access_Zone_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ACCESS_ZONES)
+    if (object_instance < MAX_ACCESS_ZONES) {
         return true;
+    }
 
     return false;
 }
@@ -120,8 +124,9 @@ unsigned Access_Zone_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCESS_ZONES;
 
-    if (object_instance < MAX_ACCESS_ZONES)
+    if (object_instance < MAX_ACCESS_ZONES) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -229,9 +234,9 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             for (i = 0; i < az_descr[object_index].entry_points_count; i++) {
                 len = bacapp_encode_device_obj_ref(
                     &apdu[0], &az_descr[object_index].entry_points[i]);
-                if (apdu_len + len < MAX_APDU)
+                if (apdu_len + len < MAX_APDU) {
                     apdu_len += len;
-                else {
+                } else {
                     rpdata->error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
@@ -243,9 +248,9 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             for (i = 0; i < az_descr[object_index].exit_points_count; i++) {
                 len = bacapp_encode_device_obj_ref(
                     &apdu[0], &az_descr[object_index].exit_points[i]);
-                if (apdu_len + len < MAX_APDU)
+                if (apdu_len + len < MAX_APDU) {
                     apdu_len += len;
-                else {
+                } else {
                     rpdata->error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;

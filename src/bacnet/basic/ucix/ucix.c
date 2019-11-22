@@ -57,8 +57,9 @@ struct uci_context *ucix_init(const char *config_file)
 struct uci_context *ucix_init_path(const char *path, const char *config_file)
 {
     struct uci_context *ctx = uci_alloc_context();
-    if (path)
+    if (path) {
         uci_set_confdir(ctx, path);
+    }
     if (uci_load(ctx, config_file, NULL) != UCI_OK) {
         fprintf(
             stderr, "%s/%s is missing or corrupt\n", ctx->savedir, config_file);
@@ -89,8 +90,9 @@ const char *ucix_get_option(
 {
     struct uci_element *e = NULL;
     const char *value = NULL;
-    if (ucix_get_ptr(ctx, p, s, o, NULL))
+    if (ucix_get_ptr(ctx, p, s, o, NULL)) {
         return NULL;
+    }
     if (!(ptr.flags & UCI_LOOKUP_COMPLETE))
         return NULL;
     e = ptr.last;
@@ -124,16 +126,18 @@ int ucix_get_option_int(struct uci_context *ctx,
     const char *tmp = ucix_get_option(ctx, p, s, o);
     int ret = def;
 
-    if (tmp)
+    if (tmp) {
         ret = atoi(tmp);
+    }
     return ret;
 }
 
 void ucix_add_section(
     struct uci_context *ctx, const char *p, const char *s, const char *t)
 {
-    if (ucix_get_ptr(ctx, p, s, NULL, t))
+    if (ucix_get_ptr(ctx, p, s, NULL, t)) {
         return;
+    }
     uci_set(ctx, &ptr);
 }
 
@@ -143,8 +147,9 @@ void ucix_add_option(struct uci_context *ctx,
     const char *o,
     const char *t)
 {
-    if (ucix_get_ptr(ctx, p, s, o, (t) ? (t) : ("")))
+    if (ucix_get_ptr(ctx, p, s, o, (t) ? (t) : (""))) {
         return;
+    }
     uci_set(ctx, &ptr);
 }
 
@@ -159,15 +164,17 @@ void ucix_add_option_int(
 void ucix_del(
     struct uci_context *ctx, const char *p, const char *s, const char *o)
 {
-    if (!ucix_get_ptr(ctx, p, s, o, NULL))
+    if (!ucix_get_ptr(ctx, p, s, o, NULL)) {
         uci_delete(ctx, &ptr);
+    }
 }
 
 void ucix_revert(
     struct uci_context *ctx, const char *p, const char *s, const char *o)
 {
-    if (!ucix_get_ptr(ctx, p, s, o, NULL))
+    if (!ucix_get_ptr(ctx, p, s, o, NULL)) {
         uci_revert(ctx, &ptr);
+    }
 }
 
 void ucix_for_each_section_type(struct uci_context *ctx,
@@ -177,15 +184,17 @@ void ucix_for_each_section_type(struct uci_context *ctx,
     void *priv)
 {
     struct uci_element *e;
-    if (ucix_get_ptr(ctx, p, NULL, NULL, NULL))
+    if (ucix_get_ptr(ctx, p, NULL, NULL, NULL)) {
         return;
+    }
     uci_foreach_element(&ptr.p->sections,
         e) if (!strcmp(t, uci_to_section(e)->type)) cb(e->name, priv);
 }
 
 int ucix_commit(struct uci_context *ctx, const char *p)
 {
-    if (ucix_get_ptr(ctx, p, NULL, NULL, NULL))
+    if (ucix_get_ptr(ctx, p, NULL, NULL, NULL)) {
         return 1;
+    }
     return uci_commit(ctx, &ptr.p, false);
 }

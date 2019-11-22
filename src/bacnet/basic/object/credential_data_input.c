@@ -55,12 +55,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Credential_Data_Input_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+    }
 
     return;
 }
@@ -94,8 +97,9 @@ void Credential_Data_Input_Init(void)
 /* given instance exists */
 bool Credential_Data_Input_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_CREDENTIAL_DATA_INPUTS)
+    if (object_instance < MAX_CREDENTIAL_DATA_INPUTS) {
         return true;
+    }
 
     return false;
 }
@@ -122,8 +126,9 @@ unsigned Credential_Data_Input_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_CREDENTIAL_DATA_INPUTS;
 
-    if (object_instance < MAX_CREDENTIAL_DATA_INPUTS)
+    if (object_instance < MAX_CREDENTIAL_DATA_INPUTS) {
         index = object_instance;
+    }
 
     return index;
 }
@@ -233,9 +238,9 @@ int Credential_Data_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                      i++) {
                     len = bacapp_encode_authentication_factor_format(&apdu[0],
                         &cdi_descr[object_index].supported_formats[i]);
-                    if (apdu_len + len < MAX_APDU)
+                    if (apdu_len + len < MAX_APDU) {
                         apdu_len += len;
-                    else {
+                    } else {
                         rpdata->error_code =
                             ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;

@@ -56,12 +56,15 @@ static const int Schedule_Properties_Proprietary[] = { -1 };
 void Schedule_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Schedule_Properties_Required;
-    if (pOptional)
+    }
+    if (pOptional) {
         *pOptional = Schedule_Properties_Optional;
-    if (pProprietary)
+    }
+    if (pProprietary) {
         *pProprietary = Schedule_Properties_Proprietary;
+    }
 }
 
 void Schedule_Init(void)
@@ -95,10 +98,11 @@ void Schedule_Init(void)
 bool Schedule_Valid_Instance(uint32_t object_instance)
 {
     unsigned int index = Schedule_Instance_To_Index(object_instance);
-    if (index < MAX_SCHEDULES)
+    if (index < MAX_SCHEDULES) {
         return true;
-    else
+    } else {
         return false;
+    }
 }
 
 unsigned Schedule_Count(void)
@@ -115,8 +119,9 @@ unsigned Schedule_Instance_To_Index(uint32_t instance)
 {
     unsigned index = MAX_SCHEDULES;
 
-    if (instance < MAX_SCHEDULES)
+    if (instance < MAX_SCHEDULES) {
         index = instance;
+    }
 
     return index;
 }
@@ -170,10 +175,11 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
 
     object_index = Schedule_Instance_To_Index(rpdata->object_instance);
-    if (object_index < MAX_SCHEDULES)
+    if (object_index < MAX_SCHEDULES) {
         CurrentSC = &Schedule_Descr[object_index];
-    else
+    } else {
         return BACNET_STATUS_ERROR;
+    }
 
     apdu = rpdata->application_data;
     switch ((int)rpdata->object_property) {
@@ -208,9 +214,10 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_date(&apdu[apdu_len], &CurrentSC->End_Date);
             break;
         case PROP_WEEKLY_SCHEDULE:
-            if (rpdata->array_index == 0) /* count, always 7 */
+            if (rpdata->array_index == 0) { /* count, always 7 */
                 apdu_len = encode_application_unsigned(&apdu[0], 7);
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) { /* full array */
+            } else if (rpdata->array_index ==
+                BACNET_ARRAY_ALL) { /* full array */
                 int day;
                 for (day = 0; day < 7; day++) {
                     apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
@@ -376,8 +383,9 @@ bool Schedule_In_Effective_Period(SCHEDULE_DESCR *desc, BACNET_DATE *date)
 
     if (desc && date) {
         if (datetime_wildcard_compare_date(&desc->Start_Date, date) <= 0 &&
-            datetime_wildcard_compare_date(&desc->End_Date, date) >= 0)
+            datetime_wildcard_compare_date(&desc->End_Date, date) >= 0) {
             res = true;
+        }
     }
 
     return res;
@@ -411,8 +419,9 @@ void Schedule_Recalculate_PV(
         }
     }
 
-    if (desc->Present_Value == NULL)
+    if (desc->Present_Value == NULL) {
         desc->Present_Value = &desc->Schedule_Default;
+    }
 }
 
 #ifdef TEST

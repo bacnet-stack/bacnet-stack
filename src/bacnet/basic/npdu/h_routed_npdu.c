@@ -142,9 +142,9 @@ static void network_control_handler(BACNET_ADDRESS *src,
              */
             if (npdu_len > 0) {
                 /* If Number of Ports is 0, broadcast our "full" table */
-                if (npdu[0] == 0)
+                if (npdu[0] == 0) {
                     Send_Initialize_Routing_Table_Ack(NULL, DNET_list);
-                else {
+                } else {
                     /* If they sent us a list, just politely ACK it
                      * with no routing list of our own.  But we don't DO
                      * anything with the info, either.
@@ -207,8 +207,9 @@ static void routed_apdu_handler(BACNET_ADDRESS *src,
 #if defined(BACDL_BIP)
         /* If wasn't unicast to us, must have been one of the bcast types.
          * Drop it. */
-        if (bvlc_get_function_code() != BVLC_ORIGINAL_UNICAST_NPDU)
+        if (bvlc_get_function_code() != BVLC_ORIGINAL_UNICAST_NPDU) {
             return;
+        }
 #endif
         /* Upper level handlers knew that this was sent as a bcast,
          * but our only other way to guess at that here is if the dest->adr
@@ -224,8 +225,9 @@ static void routed_apdu_handler(BACNET_ADDRESS *src,
     while (Routed_Device_GetNext(dest, DNET_list, &cursor)) {
         apdu_handler(src, apdu, apdu_len);
         bGotOne = true;
-        if (cursor < 0) /* If no more matches, */
+        if (cursor < 0) { /* If no more matches, */
             break; /* We don't need to keep looking */
+        }
     }
     if (!bGotOne) {
         /* Just silently drop this packet. */
@@ -283,9 +285,10 @@ void routing_npdu_handler(
                  * since only routers can handle it (even if for our DNET) */
             }
         } else if (apdu_offset <= pdu_len) {
-            if ((dest.net == 0) || (npdu_data.hop_count > 1))
+            if ((dest.net == 0) || (npdu_data.hop_count > 1)) {
                 routed_apdu_handler(src, &dest, DNET_list, &pdu[apdu_offset],
                     (uint16_t)(pdu_len - apdu_offset));
+            }
             /* Else, hop_count bottomed out and we discard this one. */
         }
     } else {

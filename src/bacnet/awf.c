@@ -101,8 +101,9 @@ int awf_decode_service_request(
     if (apdu_len && data) {
         len =
             decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
-        if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
+        if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID) {
             return -1;
+        }
         len += decode_object_id(&apdu[len], &type, &data->object_instance);
         data->object_type = (BACNET_OBJECT_TYPE)type;
         if (decode_is_opening_tag_number(&apdu[len], 0)) {
@@ -113,24 +114,27 @@ int awf_decode_service_request(
             tag_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
                 return -1;
+            }
             len += decode_signed(&apdu[len], len_value_type, &signed_value);
             data->type.stream.fileStartPosition = signed_value;
             /* fileData */
             tag_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
+            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
                 return -1;
+            }
             decoded_len = decode_octet_string(
                 &apdu[len], len_value_type, &data->fileData[0]);
             if ((uint32_t)decoded_len != len_value_type) {
                 return -1;
             }
             len += decoded_len;
-            if (!decode_is_closing_tag_number(&apdu[len], 0))
+            if (!decode_is_closing_tag_number(&apdu[len], 0)) {
                 return -1;
+            }
             /* a tag number is not extended so only one octet */
             len++;
         } else if (decode_is_opening_tag_number(&apdu[len], 1)) {
@@ -141,16 +145,18 @@ int awf_decode_service_request(
             tag_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
                 return -1;
+            }
             len += decode_signed(&apdu[len], len_value_type, &signed_value);
             data->type.record.fileStartRecord = signed_value;
             /* returnedRecordCount */
             tag_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
+            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 return -1;
+            }
             len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
             data->type.record.returnedRecordCount = unsigned_value;
             /* fileData */
@@ -158,8 +164,9 @@ int awf_decode_service_request(
                 tag_len = decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value_type);
                 len += tag_len;
-                if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING)
+                if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
                     return -1;
+                }
                 decoded_len = decode_octet_string(
                     &apdu[len], len_value_type, &data->fileData[i]);
                 if ((uint32_t)decoded_len != len_value_type) {
@@ -167,12 +174,14 @@ int awf_decode_service_request(
                 }
                 len += decoded_len;
             }
-            if (!decode_is_closing_tag_number(&apdu[len], 1))
+            if (!decode_is_closing_tag_number(&apdu[len], 1)) {
                 return -1;
+            }
             /* a tag number is not extended so only one octet */
             len++;
-        } else
+        } else {
             return -1;
+        }
     }
 
     return len;
@@ -186,15 +195,18 @@ int awf_decode_apdu(uint8_t *apdu,
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+    if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
         return -1;
+    }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
-    if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_WRITE_FILE)
+    if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_WRITE_FILE) {
         return -1;
+    }
     offset = 4;
 
     if (apdu_len > offset) {
@@ -252,8 +264,9 @@ int awf_ack_decode_service_request(
             data->access = FILE_RECORD_ACCESS;
             len += decode_signed(
                 &apdu[len], len_value_type, &data->type.record.fileStartRecord);
-        } else
+        } else {
             return -1;
+        }
     }
 
     return len;
@@ -267,14 +280,17 @@ int awf_ack_decode_apdu(uint8_t *apdu,
     int len = 0;
     unsigned offset = 0;
 
-    if (!apdu)
+    if (!apdu) {
         return -1;
+    }
     /* optional checking - most likely was already done prior to this call */
-    if (apdu[0] != PDU_TYPE_COMPLEX_ACK)
+    if (apdu[0] != PDU_TYPE_COMPLEX_ACK) {
         return -1;
+    }
     *invoke_id = apdu[1]; /* invoke id - filled in by net layer */
-    if (apdu[2] != SERVICE_CONFIRMED_ATOMIC_WRITE_FILE)
+    if (apdu[2] != SERVICE_CONFIRMED_ATOMIC_WRITE_FILE) {
         return -1;
+    }
     offset = 3;
 
     if (apdu_len > offset) {

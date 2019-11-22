@@ -76,8 +76,9 @@ bool indtext_by_string(
         }
     }
 
-    if (found && found_index)
+    if (found && found_index) {
         *found_index = index;
+    }
 
     return found;
 }
@@ -100,8 +101,9 @@ bool indtext_by_istring(
         }
     }
 
-    if (found && found_index)
+    if (found && found_index) {
         *found_index = index;
+    }
 
     return found;
 }
@@ -111,8 +113,9 @@ unsigned indtext_by_string_default(
 {
     unsigned index = 0;
 
-    if (!indtext_by_string(data_list, search_name, &index))
+    if (!indtext_by_string(data_list, search_name, &index)) {
         index = default_index;
+    }
 
     return index;
 }
@@ -122,8 +125,9 @@ unsigned indtext_by_istring_default(
 {
     unsigned index = 0;
 
-    if (!indtext_by_istring(data_list, search_name, &index))
+    if (!indtext_by_istring(data_list, search_name, &index)) {
         index = default_index;
+    }
 
     return index;
 }
@@ -152,11 +156,12 @@ const char *indtext_by_index_split_default(INDTEXT_DATA *data_list,
     const char *before_split_default_name,
     const char *default_name)
 {
-    if (index < split_index)
+    if (index < split_index) {
         return indtext_by_index_default(
             data_list, index, before_split_default_name);
-    else
+    } else {
         return indtext_by_index_default(data_list, index, default_name);
+    }
 }
 
 const char *indtext_by_index(INDTEXT_DATA *data_list, unsigned index)

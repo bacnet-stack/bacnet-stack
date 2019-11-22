@@ -51,8 +51,9 @@ int Send_UnconfirmedPrivateTransfer(
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
 
-    if (!dcc_communication_enabled())
+    if (!dcc_communication_enabled()) {
         return bytes_sent;
+    }
 
     datalink_get_my_address(&my_address);
     /* encode the NPDU portion of the packet */

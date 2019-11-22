@@ -666,8 +666,9 @@ bool init_router()
     ROUTER_PORT *port;
 
     msgboxid = create_msgbox();
-    if (msgboxid == INVALID_MSGBOX_ID)
+    if (msgboxid == INVALID_MSGBOX_ID) {
         return false;
+    }
 
     port = head;
     /* add main message box id to all ports */
@@ -702,8 +703,9 @@ void cleanup()
     ROUTER_PORT *port;
     BACMSG msg;
 
-    if (head == NULL)
+    if (head == NULL) {
         return;
+    }
 
     msg.origin = head->main_id;
     msg.type = SERVICE;
@@ -714,8 +716,9 @@ void cleanup()
     /* send shutdown message to all router ports */
     port = head;
     while (port != NULL) {
-        if (port->state == RUNNING)
+        if (port->state == RUNNING) {
             send_to_msgbox(port->port_id, &msg);
+        }
         port = port->next;
     }
 
@@ -741,8 +744,9 @@ void print_msg(BACMSG *msg)
 
         if (data->pdu_len) {
             PRINT(DEBUG, "Message PDU: ");
-            for (i = 0; i < data->pdu_len; i++)
+            for (i = 0; i < data->pdu_len; i++) {
                 PRINT(DEBUG, "%02X ", data->pdu[i]);
+            }
             PRINT(DEBUG, "\n");
         }
     }

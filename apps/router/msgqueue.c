@@ -73,10 +73,11 @@ BACMSG *recv_from_msgbox(MSGBOX_ID src, BACMSG *msg)
 
 void del_msgbox(MSGBOX_ID msgboxid)
 {
-    if (msgboxid == INVALID_MSGBOX_ID)
+    if (msgboxid == INVALID_MSGBOX_ID) {
         return;
-    else
+    } else {
         msgctl(msgboxid, IPC_RMID, NULL);
+    }
 }
 
 void free_data(MSG_DATA *data)

@@ -46,8 +46,9 @@ static OS_Keylist Device_List = NULL;
 
 void objects_init(void)
 {
-    if (!Device_List)
+    if (!Device_List) {
         Device_List = Keylist_Create();
+    }
 }
 
 int objects_device_count(void)
