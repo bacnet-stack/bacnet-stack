@@ -101,6 +101,12 @@ pretty:
 	find ./apps -iname *.h -o -iname *.c -exec \
 	clang-format -i -style=file -fallback-style=none {} \;
 
+.PHONY : tidy
+tidy:
+	find ./src -iname *.h -o -iname *.c -exec \
+	clang-tidy {} -fix-errors -checks="readability-braces-around-statements" \
+	-- -Isrc -Iports/linux \;
+
 .PHONY: clean
 clean:
 	$(MAKE) -s -C src clean
