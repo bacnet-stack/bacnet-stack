@@ -125,9 +125,8 @@ int wp_decode_service_request(
             len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
             wpdata->array_index = unsigned_value;
         } else {
-            wpdata;
+            wpdata->array_index = BACNET_ARRAY_ALL;
         }
-        ->array_index = BACNET_ARRAY_ALL;
         /* Tag 3: opening context tag */
         if (!decode_is_opening_tag_number(&apdu[len], 3)) {
             return -1;

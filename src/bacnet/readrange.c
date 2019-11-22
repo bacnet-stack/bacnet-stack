@@ -369,9 +369,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         len += decode_unsigned(&apdu[len], len_value_type, &array_value);
         rrdata->array_index = array_value;
     } else {
-        rrdata;
+        rrdata->array_index = BACNET_ARRAY_ALL;
     }
-    ->array_index = BACNET_ARRAY_ALL;
 
     /* Tag 3: Result Flags */
     len +=

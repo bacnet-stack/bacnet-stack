@@ -128,9 +128,8 @@ int rp_decode_service_request(
                 return BACNET_STATUS_REJECT;
             }
         } else {
-            rpdata;
+            rpdata->array_index = BACNET_ARRAY_ALL;
         }
-        ->array_index = BACNET_ARRAY_ALL;
     }
 
     if (len < apdu_len) {

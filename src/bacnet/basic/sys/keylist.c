@@ -178,16 +178,14 @@ int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
         /* figure out where to put the new node */
         if (list->count) {
             (void)FindIndex(list, key, &index);
-            /* Add to the beginning of the list */
             if (index < 0) {
+                /* Add to the beginning of the list */
                 index = 0;
 
+            } else if (index > list->count) {
                 /* Add to the end of the list */
-            } else {
-                if
+                index = list->count;
             }
-            (index > list->count) index = list->count;
-
             /* Move all the items up to make room for the new one */
             for (i = list->count; i > index; i--) {
                 list->array[i] = list->array[i - 1];
@@ -226,13 +224,11 @@ void *Keylist_Data_Delete_By_Index(OS_Keylist list, int index)
         /* move the nodes to account for the deleted one */
         if (list->count == 1) {
             /* There is no node shifting to do */
-        }
-        /* We are the last one */
-        else if (index == (list->count - 1)) {
+        } else if (index == (list->count - 1)) {
+            /* We are the last one */
             /* There is no node shifting to do */
-        }
-        /* Move all the nodes down one */
-        else {
+        } else {
+            /* Move all the nodes down one */
             int i; /* counter */
             int count = list->count - 1;
             for (i = index; i < count; i++) {
