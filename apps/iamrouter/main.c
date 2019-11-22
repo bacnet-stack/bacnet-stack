@@ -148,8 +148,8 @@ int main(int argc, char *argv[])
                     stderr, "Limited to %u DNETS.  Sorry!\n", MAX_ROUTER_DNETS);
                 break;
             }
-            Target_Router_Networks[arg_count - 1]
-                = strtol(argv[arg_count], NULL, 0);
+            Target_Router_Networks[arg_count - 1] =
+                strtol(argv[arg_count], NULL, 0);
             /* mark the end of list */
             Target_Router_Networks[arg_count] = -1;
             /* invalid DNET? */

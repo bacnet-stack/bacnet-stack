@@ -90,8 +90,8 @@ static unsigned RPM_Object_Property_Count(
     unsigned count = 0; /* return value */
 
     if (special_property == PROP_ALL) {
-        count = pPropertyList->Required.count + pPropertyList->Optional.count
-            + pPropertyList->Proprietary.count;
+        count = pPropertyList->Required.count + pPropertyList->Optional.count +
+            pPropertyList->Proprietary.count;
     } else if (special_property == PROP_REQUIRED) {
         count = pPropertyList->Required.count;
     } else if (special_property == PROP_OPTIONAL) {
@@ -138,8 +138,8 @@ static int RPM_Encode_Property(
         /* error was returned - encode that for the response */
         len = rpm_ack_encode_apdu_object_property_error(
             &Temp_Buf[0], rpdata.error_class, rpdata.error_code);
-        copy_len
-            = memcopy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len, max_apdu);
+        copy_len =
+            memcopy(&apdu[0], &Temp_Buf[0], offset + apdu_len, len, max_apdu);
 
         if (copy_len == 0) {
             rpmdata->error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
@@ -232,8 +232,8 @@ void handler_read_property_multiple(uint8_t *service_request,
         }
 
         /* Test for case of indefinite Device object instance */
-        if ((rpmdata.object_type == OBJECT_DEVICE)
-            && (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
+        if ((rpmdata.object_type == OBJECT_DEVICE) &&
+            (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
             rpmdata.object_instance = Device_Object_Instance_Number();
         }
 
@@ -266,9 +266,9 @@ void handler_read_property_multiple(uint8_t *service_request,
             }
             decode_len += len;
             /* handle the special properties */
-            if ((rpmdata.object_property == PROP_ALL)
-                || (rpmdata.object_property == PROP_REQUIRED)
-                || (rpmdata.object_property == PROP_OPTIONAL)) {
+            if ((rpmdata.object_property == PROP_ALL) ||
+                (rpmdata.object_property == PROP_REQUIRED) ||
+                (rpmdata.object_property == PROP_OPTIONAL)) {
                 struct special_property_list_t property_list;
                 unsigned property_count = 0;
                 unsigned index = 0;
@@ -286,8 +286,8 @@ void handler_read_property_multiple(uint8_t *service_request,
                         fprintf(
                             stderr, "RPM: Too full to encode property!\r\n");
 #endif
-                        rpmdata.error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpmdata.error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         error = BACNET_STATUS_ABORT;
                         goto RPM_FAILURE;
                     }
@@ -301,8 +301,8 @@ void handler_read_property_multiple(uint8_t *service_request,
 #if PRINT_ENABLED
                         fprintf(stderr, "RPM: Too full to encode error!\r\n");
 #endif
-                        rpmdata.error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpmdata.error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         error = BACNET_STATUS_ABORT;
                         goto RPM_FAILURE;
                     }
@@ -365,8 +365,8 @@ void handler_read_property_multiple(uint8_t *service_request,
 #if PRINT_ENABLED
                     fprintf(stderr, "RPM: Too full to encode object end!\r\n");
 #endif
-                    rpmdata.error_code
-                        = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpmdata.error_code =
+                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     error = BACNET_STATUS_ABORT;
                     goto RPM_FAILURE;
                 } else {

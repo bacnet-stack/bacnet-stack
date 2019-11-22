@@ -849,8 +849,8 @@ static void routed_apdu_handler(uint16_t snet,
         npdu->hop_count--;
         routed_src_address(&router_src, snet, src);
         /* encode both source and destination for broadcast */
-        npdu_len
-            = npdu_encode_pdu(&Tx_Buffer[0], &local_dest, &router_src, npdu);
+        npdu_len =
+            npdu_encode_pdu(&Tx_Buffer[0], &local_dest, &router_src, npdu);
         memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
         /* send to my other ports */
         debug_printf("Routing a BROADCAST from %u\n", (unsigned)snet);
@@ -880,8 +880,8 @@ static void routed_apdu_handler(uint16_t snet,
             local_dest.net = 0;
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            npdu_len = npdu_encode_pdu(
-                &Tx_Buffer[0], &local_dest, &router_src, npdu);
+            npdu_len =
+                npdu_encode_pdu(&Tx_Buffer[0], &local_dest, &router_src, npdu);
             memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
             datalink_send_pdu(port->net, &local_dest, npdu, &Tx_Buffer[0],
                 npdu_len + apdu_len);
@@ -897,8 +897,8 @@ static void routed_apdu_handler(uint16_t snet,
                 discarded. */
             npdu->hop_count--;
             routed_src_address(&router_src, snet, src);
-            npdu_len = npdu_encode_pdu(
-                &Tx_Buffer[0], &remote_dest, &router_src, npdu);
+            npdu_len =
+                npdu_encode_pdu(&Tx_Buffer[0], &remote_dest, &router_src, npdu);
             memmove(&Tx_Buffer[npdu_len], apdu, apdu_len);
             datalink_send_pdu(port->net, &remote_dest, npdu, &Tx_Buffer[0],
                 npdu_len + apdu_len);
@@ -958,14 +958,14 @@ static void my_routing_npdu_handler(
                  * since only routers can handle it (even if for our DNET) */
             }
         } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
-            if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)
-                || (npdu_data.hop_count > 1)) {
+            if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK) ||
+                (npdu_data.hop_count > 1)) {
                 /* only handle the version that we know how to handle */
                 /* and we are not a router, so ignore messages with
                    routing information cause they are not for us */
-                if ((dest.net == BACNET_BROADCAST_NETWORK)
-                    && ((pdu[apdu_offset] & 0xF0)
-                           == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+                if ((dest.net == BACNET_BROADCAST_NETWORK) &&
+                    ((pdu[apdu_offset] & 0xF0) ==
+                        PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
                     /* hack for 5.4.5.1 - IDLE */
                     /* ConfirmedBroadcastReceived */
                     /* then enter IDLE - ignore the PDU */
@@ -973,8 +973,8 @@ static void my_routing_npdu_handler(
                     routed_apdu_handler(snet, &npdu_data, src, &dest,
                         &pdu[apdu_offset], (uint16_t)(pdu_len - apdu_offset));
                     /* add a Device object and application layer */
-                    if ((dest.net == 0)
-                        || (dest.net == BACNET_BROADCAST_NETWORK)) {
+                    if ((dest.net == 0) ||
+                        (dest.net == BACNET_BROADCAST_NETWORK)) {
                         apdu_handler(src, &pdu[apdu_offset],
                             (uint16_t)(pdu_len - apdu_offset));
                     }

@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <time.h>  /* for time */
+#include <time.h> /* for time */
 #include <ctype.h> /* for tupper */
 #if defined(WIN32) || defined(__BORLANDC__)
 #include <conio.h>
@@ -183,8 +183,8 @@ int main(int argc, char *argv[])
     int iType = 0;
     int iKey;
 
-    if (((argc != 2) && (argc != 3))
-        || ((argc >= 2) && (strcmp(argv[1], "--help") == 0))) {
+    if (((argc != 2) && (argc != 3)) ||
+        ((argc >= 2) && (strcmp(argv[1], "--help") == 0))) {
         printf("%s\n", argv[0]);
         printf("Usage: %s server local-device-instance\r\n       or\r\n"
                "       %s remote-device-instance\r\n",

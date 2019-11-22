@@ -70,8 +70,8 @@ static void Atomic_Read_File_Error_Handler(BACNET_ADDRESS *src,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
@@ -83,8 +83,8 @@ static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf(
             "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
@@ -94,8 +94,8 @@ static void MyAbortHandler(
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
@@ -113,10 +113,10 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
     FILE *pFile = NULL; /* stream pointer */
     size_t octets_written = 0;
 
-    if (address_match(&Target_Address, src)
-        && (service_data->invoke_id == Request_Invoke_ID)) {
-        len = arf_ack_decode_service_request(
-            service_request, service_len, &data);
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len =
+            arf_ack_decode_service_request(service_request, service_len, &data);
         if ((len > 0) && (data.access == FILE_STREAM_ACCESS)) {
             if (data.type.stream.fileStartPosition == 0) {
                 pFile = fopen(Local_File_Name, "wb");
@@ -124,25 +124,24 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                 pFile = fopen(Local_File_Name, "rb+");
             }
             if (pFile) {
-                result = fseek(
-                    pFile, data.type.stream.fileStartPosition, SEEK_SET);
+                result =
+                    fseek(pFile, data.type.stream.fileStartPosition, SEEK_SET);
                 if (result == 0) {
                     /* unit to write in bytes -
                        in our case, an octet is one byte */
-                    octets_written
-                        = fwrite(octetstring_value(&data.fileData[0]), 1,
+                    octets_written =
+                        fwrite(octetstring_value(&data.fileData[0]), 1,
                             octetstring_length(&data.fileData[0]), pFile);
-                    if (octets_written
-                        != octetstring_length(&data.fileData[0])) {
+                    if (octets_written !=
+                        octetstring_length(&data.fileData[0])) {
                         fprintf(stderr,
                             "Unable to write data to file \"%s\".\n",
                             Local_File_Name);
                     } else if (octets_written == 0) {
                         fprintf(stderr, "Received 0 byte octet string!.\n");
                     } else {
-                        Target_File_Start_Position
-                            = data.type.stream.fileStartPosition
-                            + octets_written;
+                        Target_File_Start_Position =
+                            data.type.stream.fileStartPosition + octets_written;
                         printf("\r%d bytes", (int)Target_File_Start_Position);
                     }
                     fflush(pFile);
@@ -359,10 +358,10 @@ int main(int argc, char *argv[])
                 /* the ACK will increment the start position if OK */
                 /* we'll read the file in chunks
                    less than max_apdu to keep unsegmented */
-                invoke_id = Send_Atomic_Read_File_Stream(
-                    Target_Device_Object_Instance, Target_File_Object_Instance,
-                    Target_File_Start_Position,
-                    Target_File_Requested_Octet_Count);
+                invoke_id =
+                    Send_Atomic_Read_File_Stream(Target_Device_Object_Instance,
+                        Target_File_Object_Instance, Target_File_Start_Position,
+                        Target_File_Requested_Octet_Count);
                 Request_Invoke_ID = invoke_id;
             } else if (tsm_invoke_id_failed(invoke_id)) {
                 fprintf(stderr, "\rError: TSM Timeout!\n");

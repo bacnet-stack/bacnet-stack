@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <time.h>  /* for time */
+#include <time.h> /* for time */
 #include <ctype.h> /* for toupper */
 
 #define PRINT_ENABLED 1
@@ -81,8 +81,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\r\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
@@ -94,8 +94,8 @@ static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\r\n",
             bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
@@ -105,8 +105,8 @@ static void MyAbortHandler(
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\r\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
@@ -225,8 +225,8 @@ int main(int argc, char *argv[])
     }
     Target_Vendor_Identifier = strtol(argv[2], NULL, 0);
     Target_Service_Number = strtol(argv[3], NULL, 0);
-    if ((!Target_Broadcast)
-        && (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
+    if ((!Target_Broadcast) &&
+        (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
@@ -268,8 +268,8 @@ int main(int argc, char *argv[])
         }
         Target_Object_Property_Value[i].next = NULL;
         if (i > 0) {
-            Target_Object_Property_Value[i - 1].next
-                = &Target_Object_Property_Value[i];
+            Target_Object_Property_Value[i - 1].next =
+                &Target_Object_Property_Value[i];
         }
         if (args_remaining <= 0) {
             break;

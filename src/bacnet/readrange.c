@@ -97,8 +97,8 @@ int rr_encode_apdu(
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 3);
                 apdu_len += encode_application_unsigned(
                     &apdu[apdu_len], rrdata->Range.RefIndex);
-                apdu_len += encode_application_signed(
-                    &apdu[apdu_len], rrdata->Count);
+                apdu_len +=
+                    encode_application_signed(&apdu[apdu_len], rrdata->Count);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 3);
                 break;
 
@@ -106,8 +106,8 @@ int rr_encode_apdu(
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 6);
                 apdu_len += encode_application_unsigned(
                     &apdu[apdu_len], rrdata->Range.RefSeqNum);
-                apdu_len += encode_application_signed(
-                    &apdu[apdu_len], rrdata->Count);
+                apdu_len +=
+                    encode_application_signed(&apdu[apdu_len], rrdata->Count);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 6);
                 break;
 
@@ -117,8 +117,8 @@ int rr_encode_apdu(
                     &apdu[apdu_len], &rrdata->Range.RefTime.date);
                 apdu_len += encode_application_time(
                     &apdu[apdu_len], &rrdata->Range.RefTime.time);
-                apdu_len += encode_application_signed(
-                    &apdu[apdu_len], rrdata->Count);
+                apdu_len +=
+                    encode_application_signed(&apdu[apdu_len], rrdata->Count);
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 7);
                 break;
 
@@ -172,11 +172,11 @@ int rr_decode_service_request(
                 &apdu[len], &tag_number, &len_value_type);
             if (tag_number == 2) {
                 len += TagLen;
-                len += decode_unsigned(
-                    &apdu[len], len_value_type, &UnsignedTemp);
+                len +=
+                    decode_unsigned(&apdu[len], len_value_type, &UnsignedTemp);
                 rrdata->array_index = UnsignedTemp;
-                rrdata->Overhead
-                    += RR_INDEX_OVERHEAD; /* Allow for this in the response */
+                rrdata->Overhead +=
+                    RR_INDEX_OVERHEAD; /* Allow for this in the response */
             }
         }
         /* And/or optional range selection- Tags 3, 6 and 7 */
@@ -276,12 +276,12 @@ int rr_decode_service_request(
 int rr_ack_encode_apdu(
     uint8_t *apdu, uint8_t invoke_id, BACNET_READ_RANGE_DATA *rrdata)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
-        apdu[1] = invoke_id;            /* original invoke id from request */
+        apdu[1] = invoke_id; /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_READ_RANGE; /* service choice */
         apdu_len = 3;
         /* service ack follows */
@@ -295,11 +295,11 @@ int rr_ack_encode_apdu(
                 &apdu[apdu_len], 2, rrdata->array_index);
         }
         /* Context 3 BACnet Result Flags */
-        apdu_len += encode_context_bitstring(
-            &apdu[apdu_len], 3, &rrdata->ResultFlags);
+        apdu_len +=
+            encode_context_bitstring(&apdu[apdu_len], 3, &rrdata->ResultFlags);
         /* Context 4 Item Count */
-        apdu_len
-            += encode_context_unsigned(&apdu[apdu_len], 4, rrdata->ItemCount);
+        apdu_len +=
+            encode_context_unsigned(&apdu[apdu_len], 4, rrdata->ItemCount);
         /* Context 5 Property list - reading the standard it looks like an empty
          * list still requires an opening and closing tag as the tagged
          * parameter is not optional
@@ -312,8 +312,9 @@ int rr_ack_encode_apdu(
         }
         apdu_len += encode_closing_tag(&apdu[apdu_len], 5);
 
-        if ((rrdata->ItemCount != 0) && (rrdata->RequestType != RR_BY_POSITION)
-            && (rrdata->RequestType != RR_READ_ALL)) {
+        if ((rrdata->ItemCount != 0) &&
+            (rrdata->RequestType != RR_BY_POSITION) &&
+            (rrdata->RequestType != RR_READ_ALL)) {
             /* Context 6 Sequence number of first item */
             apdu_len += encode_context_unsigned(
                 &apdu[apdu_len], 6, rrdata->FirstSequence);
@@ -334,10 +335,10 @@ int rr_ack_decode_service_request(uint8_t *apdu,
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     int tag_len = 0; /* length of tag decode */
-    int len = 0;     /* total length of decodes */
+    int len = 0; /* total length of decodes */
     int start_len;
-    uint16_t object = 0;      /* object type */
-    uint32_t property = 0;    /* for decoding */
+    uint16_t object = 0; /* object type */
+    uint32_t property = 0; /* for decoding */
     uint32_t array_value = 0; /* for decoding */
 
     /* FIXME: check apdu_len against the len during decode   */
@@ -349,16 +350,16 @@ int rr_ack_decode_service_request(uint8_t *apdu,
     rrdata->object_type = (BACNET_OBJECT_TYPE)object;
 
     /* Tag 1: Property ID */
-    len += decode_tag_number_and_value(
-        &apdu[len], &tag_number, &len_value_type);
+    len +=
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number != 1)
         return -1;
     len += decode_enumerated(&apdu[len], len_value_type, &property);
     rrdata->object_property = (BACNET_PROPERTY_ID)property;
 
     /* Tag 2: Optional Array Index */
-    tag_len
-        = decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    tag_len =
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number == 2) {
         len += tag_len;
         len += decode_unsigned(&apdu[len], len_value_type, &array_value);
@@ -367,16 +368,16 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         rrdata->array_index = BACNET_ARRAY_ALL;
 
     /* Tag 3: Result Flags */
-    len += decode_tag_number_and_value(
-        &apdu[len], &tag_number, &len_value_type);
+    len +=
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number != 3)
         return -1;
 
     len += decode_bitstring(&apdu[len], len_value_type, &rrdata->ResultFlags);
 
     /* Tag 4: Item count */
-    len += decode_tag_number_and_value(
-        &apdu[len], &tag_number, &len_value_type);
+    len +=
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number != 4)
         return -1;
 
@@ -389,8 +390,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         rrdata->application_data = &apdu[len];
         start_len = len;
         while (len < apdu_len) {
-            if (IS_CONTEXT_SPECIFIC(apdu[len])
-                && (decode_is_closing_tag_number(&apdu[len], 5))) {
+            if (IS_CONTEXT_SPECIFIC(apdu[len]) &&
+                (decode_is_closing_tag_number(&apdu[len], 5))) {
                 rrdata->application_data_len = len - start_len;
                 len++; /* Step over single byte closing tag */
                 break;
@@ -399,8 +400,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
                 len += decode_tag_number_and_value(
                     &apdu[len], NULL, &len_value_type);
                 len += len_value_type; /* Skip over data value as well */
-                if (len >= apdu_len)   /* APDU is exhausted so we have failed to
-                                          find closing tag */
+                if (len >= apdu_len) /* APDU is exhausted so we have failed to
+                                        find closing tag */
                     return (-1);
             }
         }
@@ -414,8 +415,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         if (tag_number != 6)
             return -1;
 
-        len += decode_unsigned(
-            &apdu[len], len_value_type, &rrdata->FirstSequence);
+        len +=
+            decode_unsigned(&apdu[len], len_value_type, &rrdata->FirstSequence);
     }
 
     len = apdu_len; /* There should be nothing left to see here */

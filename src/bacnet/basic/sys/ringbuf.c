@@ -196,12 +196,12 @@ volatile uint8_t *Ringbuf_Peek_Next(RING_BUFFER const *b, uint8_t *data_element)
         /* Use (b->head-1) here to avoid walking off end of ring */
         for (index = b->tail; index < b->head - 1; index++) {
             /* Find the specified data_element */
-            this_element
-                = b->buffer + ((index % b->element_count) * b->element_size);
+            this_element =
+                b->buffer + ((index % b->element_count) * b->element_size);
             if (data_element == this_element) {
                 /* Found the current element, get the next one on the list */
-                next_element = b->buffer
-                    + (((index + 1) % b->element_count) * b->element_size);
+                next_element = b->buffer +
+                    (((index + 1) % b->element_count) * b->element_size);
                 break;
             }
         }
@@ -219,9 +219,9 @@ volatile uint8_t *Ringbuf_Peek_Next(RING_BUFFER const *b, uint8_t *data_element)
  */
 bool Ringbuf_Pop(RING_BUFFER *b, uint8_t *data_element)
 {
-    bool status = false;                /* return value */
+    bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
-    unsigned i;                         /* loop counter */
+    unsigned i; /* loop counter */
 
     if (!Ringbuf_Empty(b)) {
         ring_data = b->buffer;
@@ -250,17 +250,17 @@ bool Ringbuf_Pop(RING_BUFFER *b, uint8_t *data_element)
 bool Ringbuf_Pop_Element(
     RING_BUFFER *b, uint8_t *this_element, uint8_t *data_element)
 {
-    bool status = false;                /* return value */
+    bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
     volatile uint8_t *prev_data;
-    unsigned index;                /* list index */
+    unsigned index; /* list index */
     unsigned this_index = b->head; /* index of element to remove */
-    unsigned i;                    /* loop counter */
+    unsigned i; /* loop counter */
     if (!Ringbuf_Empty(b) && this_element != NULL) {
         for (index = b->tail; index < b->head; index++) {
             /* Find the specified data_element */
-            ring_data
-                = b->buffer + ((index % b->element_count) * b->element_size);
+            ring_data =
+                b->buffer + ((index % b->element_count) * b->element_size);
             if (this_element == ring_data) {
                 /* Found the specified element, copy the data if required */
                 this_index = index;
@@ -276,10 +276,10 @@ bool Ringbuf_Pop_Element(
             /* Found a match, move elements up the list to fill the gap */
             for (index = this_index; index > b->tail; index--) {
                 /* Get pointers to current and previous data_elements */
-                ring_data = b->buffer
-                    + ((index % b->element_count) * b->element_size);
-                prev_data = b->buffer
-                    + (((index - 1) % b->element_count) * b->element_size);
+                ring_data =
+                    b->buffer + ((index % b->element_count) * b->element_size);
+                prev_data = b->buffer +
+                    (((index - 1) % b->element_count) * b->element_size);
                 for (i = 0; i < b->element_size; i++) {
                     ring_data[i] = prev_data[i];
                 }
@@ -301,9 +301,9 @@ bool Ringbuf_Pop_Element(
  */
 bool Ringbuf_Put(RING_BUFFER *b, uint8_t *data_element)
 {
-    bool status = false;                /* return value */
+    bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
-    unsigned i;                         /* loop counter */
+    unsigned i; /* loop counter */
 
     if (b && data_element) {
         /* limit the amount of elements that we accept */
@@ -335,9 +335,9 @@ bool Ringbuf_Put(RING_BUFFER *b, uint8_t *data_element)
  */
 bool Ringbuf_Put_Front(RING_BUFFER *b, uint8_t *data_element)
 {
-    bool status = false;                /* return value */
+    bool status = false; /* return value */
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
-    unsigned i = 0;                     /* loop counter */
+    unsigned i = 0; /* loop counter */
 
     if (b && data_element) {
         /* limit the amount of elements that we accept */
@@ -532,8 +532,8 @@ static bool testRingBuf(Test *pTest,
     unsigned data_index;
     bool status;
 
-    status
-        = Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
+    status =
+        Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
     if (!status) {
         return false;
     }
@@ -687,8 +687,8 @@ static bool testRingBufNextElement(Test *pTest,
     unsigned index;
     unsigned data_index;
     bool status;
-    status
-        = Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
+    status =
+        Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
     if (!status) {
         return false;
     }

@@ -131,7 +131,7 @@ int npdu_encode_pdu(uint8_t *npdu,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data)
 {
-    int len = 0;   /* return value - number of octets loaded in this function */
+    int len = 0; /* return value - number of octets loaded in this function */
     uint8_t i = 0; /* counter  */
 
     if (npdu && npdu_data) {
@@ -273,8 +273,8 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
         npdu_data->data_expecting_reply = data_expecting_reply;
         npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
         npdu_data->network_layer_message = false; /* false if APDU */
-        npdu_data->network_message_type
-            = NETWORK_MESSAGE_INVALID; /* optional */
+        npdu_data->network_message_type =
+            NETWORK_MESSAGE_INVALID; /* optional */
         npdu_data->vendor_id = 0; /* optional, if net message type is > 0x80 */
         npdu_data->priority = priority;
         npdu_data->hop_count = HOP_COUNT_DEFAULT;
@@ -309,7 +309,7 @@ int npdu_decode(uint8_t *npdu,
     BACNET_ADDRESS *src,
     BACNET_NPDU_DATA *npdu_data)
 {
-    int len = 0;   /* return value - number of octets loaded in this function */
+    int len = 0; /* return value - number of octets loaded in this function */
     uint8_t i = 0; /* counter */
     uint16_t src_net = 0;
     uint16_t dest_net = 0;
@@ -427,8 +427,8 @@ int npdu_decode(uint8_t *npdu,
         /* Indicates that the NSDU conveys a network layer message. */
         /* Message Type field is present. */
         if (npdu_data->network_layer_message) {
-            npdu_data->network_message_type
-                = (BACNET_NETWORK_MESSAGE_TYPE)npdu[len++];
+            npdu_data->network_message_type =
+                (BACNET_NETWORK_MESSAGE_TYPE)npdu[len++];
             /* Message Type field contains a value in the range 0x80 - 0xFF, */
             /* then a Vendor ID field shall be present */
             if (npdu_data->network_message_type >= 0x80)
@@ -461,7 +461,7 @@ void testNPDU2(Test *pTest)
     BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0; /* counter */
     int npdu_len = 0;
-    bool network_layer_message = false;                   /* false if APDU */
+    bool network_layer_message = false; /* false if APDU */
     BACNET_NETWORK_MESSAGE_TYPE network_message_type = 0; /* optional */
     uint16_t vendor_id = 0; /* optional, if net message type is > 0x80 */
 
@@ -525,7 +525,7 @@ void testNPDU1(Test *pTest)
     BACNET_NPDU_DATA npdu_data = { 0 };
     int i = 0; /* counter */
     int npdu_len = 0;
-    bool network_layer_message = false;                   /* false if APDU */
+    bool network_layer_message = false; /* false if APDU */
     BACNET_NETWORK_MESSAGE_TYPE network_message_type = 0; /* optional */
     uint16_t vendor_id = 0; /* optional, if net message type is > 0x80 */
 

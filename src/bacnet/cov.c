@@ -51,7 +51,7 @@ Unconfirmed COV Notification
 static int notify_encode_apdu(
     uint8_t *apdu, unsigned max_apdu_len, BACNET_COV_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
     BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
     BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
@@ -127,7 +127,7 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_COV_DATA *data)
 {
-    int len = 0;                        /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = BACNET_STATUS_ERROR; /* return value */
 
     if (apdu && data && memcopylen(0, max_apdu_len, 4)) {
@@ -136,8 +136,8 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
         apdu[2] = invoke_id;
         apdu[3] = SERVICE_CONFIRMED_COV_NOTIFICATION;
         apdu_len = 4;
-        len = notify_encode_apdu(
-            &apdu[apdu_len], max_apdu_len - apdu_len, data);
+        len =
+            notify_encode_apdu(&apdu[apdu_len], max_apdu_len - apdu_len, data);
         if (len < 0) {
             /* return the error */
             apdu_len = len;
@@ -152,15 +152,15 @@ int ccov_notify_encode_apdu(uint8_t *apdu,
 int ucov_notify_encode_apdu(
     uint8_t *apdu, unsigned max_apdu_len, BACNET_COV_DATA *data)
 {
-    int len = 0;                        /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = BACNET_STATUS_ERROR; /* return value */
 
     if (apdu && data && memcopylen(0, max_apdu_len, 2)) {
         apdu[0] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST;
         apdu[1] = SERVICE_UNCONFIRMED_COV_NOTIFICATION; /* service choice */
         apdu_len = 2;
-        len = notify_encode_apdu(
-            &apdu[apdu_len], max_apdu_len - apdu_len, data);
+        len =
+            notify_encode_apdu(&apdu[apdu_len], max_apdu_len - apdu_len, data);
         if (len < 0) {
             /* return the error */
             apdu_len = len;
@@ -181,9 +181,9 @@ int cov_notify_decode_service_request(
     int app_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint32_t decoded_value = 0;          /* for decoding */
-    uint16_t decoded_type = 0;           /* for decoding */
-    uint32_t property = 0;               /* for decoding */
+    uint32_t decoded_value = 0; /* for decoding */
+    uint16_t decoded_type = 0; /* for decoding */
+    uint32_t property = 0; /* for decoding */
     BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
     BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
 
@@ -335,7 +335,7 @@ int cov_subscribe_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_SUBSCRIBE_COV_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && data) {
@@ -380,7 +380,7 @@ int cov_subscribe_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
-    uint16_t decoded_type = 0;  /* for decoding */
+    uint16_t decoded_type = 0; /* for decoding */
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */
@@ -411,8 +411,8 @@ int cov_subscribe_decode_service_request(
                 data->cancellationRequest = false;
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
-                data->issueConfirmedNotifications
-                    = decode_context_boolean(&apdu[len]);
+                data->issueConfirmedNotifications =
+                    decode_context_boolean(&apdu[len]);
                 len += len_value;
             } else {
                 data->cancellationRequest = true;
@@ -458,7 +458,7 @@ int cov_subscribe_property_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_SUBSCRIBE_COV_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && data) {
@@ -517,8 +517,8 @@ int cov_subscribe_property_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
-    uint16_t decoded_type = 0;  /* for decoding */
-    uint32_t property = 0;      /* for decoding */
+    uint16_t decoded_type = 0; /* for decoding */
+    uint32_t property = 0; /* for decoding */
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */
@@ -547,8 +547,8 @@ int cov_subscribe_property_decode_service_request(
             data->cancellationRequest = false;
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            data->issueConfirmedNotifications
-                = decode_context_boolean(&apdu[len]);
+            data->issueConfirmedNotifications =
+                decode_context_boolean(&apdu[len]);
             len++;
         } else {
             data->cancellationRequest = true;
@@ -574,8 +574,8 @@ int cov_subscribe_property_decode_service_request(
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
             len += decode_enumerated(&apdu[len], len_value, &property);
-            data->monitoredProperty.propertyIdentifier
-                = (BACNET_PROPERTY_ID)property;
+            data->monitoredProperty.propertyIdentifier =
+                (BACNET_PROPERTY_ID)property;
         } else {
             data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             return BACNET_STATUS_REJECT;
@@ -760,17 +760,17 @@ void testCOVNotifyData(
     BACNET_PROPERTY_VALUE *test_value = NULL;
 
     ct_test(pTest,
-        test_data->subscriberProcessIdentifier
-            == data->subscriberProcessIdentifier);
+        test_data->subscriberProcessIdentifier ==
+            data->subscriberProcessIdentifier);
     ct_test(pTest,
-        test_data->initiatingDeviceIdentifier
-            == data->initiatingDeviceIdentifier);
+        test_data->initiatingDeviceIdentifier ==
+            data->initiatingDeviceIdentifier);
     ct_test(pTest,
-        test_data->monitoredObjectIdentifier.type
-            == data->monitoredObjectIdentifier.type);
+        test_data->monitoredObjectIdentifier.type ==
+            data->monitoredObjectIdentifier.type);
     ct_test(pTest,
-        test_data->monitoredObjectIdentifier.instance
-            == data->monitoredObjectIdentifier.instance);
+        test_data->monitoredObjectIdentifier.instance ==
+            data->monitoredObjectIdentifier.instance);
     ct_test(pTest, test_data->timeRemaining == data->timeRemaining);
     /* test the listOfValues in some clever manner */
     value = data->listOfValues;
@@ -865,22 +865,22 @@ void testCOVSubscribeData(Test *pTest,
     BACNET_SUBSCRIBE_COV_DATA *test_data)
 {
     ct_test(pTest,
-        test_data->subscriberProcessIdentifier
-            == data->subscriberProcessIdentifier);
+        test_data->subscriberProcessIdentifier ==
+            data->subscriberProcessIdentifier);
     ct_test(pTest,
-        test_data->monitoredObjectIdentifier.type
-            == data->monitoredObjectIdentifier.type);
+        test_data->monitoredObjectIdentifier.type ==
+            data->monitoredObjectIdentifier.type);
     ct_test(pTest,
-        test_data->monitoredObjectIdentifier.instance
-            == data->monitoredObjectIdentifier.instance);
+        test_data->monitoredObjectIdentifier.instance ==
+            data->monitoredObjectIdentifier.instance);
     ct_test(pTest, test_data->cancellationRequest == data->cancellationRequest);
     if (test_data->cancellationRequest != data->cancellationRequest) {
         printf("cancellation request failed!\n");
     }
     if (!test_data->cancellationRequest) {
         ct_test(pTest,
-            test_data->issueConfirmedNotifications
-                == data->issueConfirmedNotifications);
+            test_data->issueConfirmedNotifications ==
+                data->issueConfirmedNotifications);
         ct_test(pTest, test_data->lifetime == data->lifetime);
     }
 }
@@ -891,11 +891,11 @@ void testCOVSubscribePropertyData(Test *pTest,
 {
     testCOVSubscribeData(pTest, data, test_data);
     ct_test(pTest,
-        test_data->monitoredProperty.propertyIdentifier
-            == data->monitoredProperty.propertyIdentifier);
+        test_data->monitoredProperty.propertyIdentifier ==
+            data->monitoredProperty.propertyIdentifier);
     ct_test(pTest,
-        test_data->monitoredProperty.propertyArrayIndex
-            == data->monitoredProperty.propertyArrayIndex);
+        test_data->monitoredProperty.propertyArrayIndex ==
+            data->monitoredProperty.propertyArrayIndex);
     ct_test(pTest, test_data->covIncrementPresent == data->covIncrementPresent);
     if (test_data->covIncrementPresent) {
         ct_test(pTest, test_data->covIncrement == data->covIncrement);

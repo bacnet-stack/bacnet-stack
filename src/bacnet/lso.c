@@ -40,7 +40,7 @@
 
 int lso_encode_apdu(uint8_t *apdu, uint8_t invoke_id, BACNET_LSO_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && data) {
@@ -77,7 +77,7 @@ int lso_encode_apdu(uint8_t *apdu, uint8_t invoke_id, BACNET_LSO_DATA *data)
 int lso_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_LSO_DATA *data)
 {
-    int len = 0;            /* return value */
+    int len = 0; /* return value */
     int section_length = 0; /* length returned from decoding */
     uint32_t operation = 0; /* handles decoded value */
 
@@ -85,23 +85,20 @@ int lso_decode_service_request(
     if (apdu_len && data) {
         /* Tag 0: Object ID          */
 
-        if ((section_length
-                = decode_context_unsigned(&apdu[len], 0, &data->processId))
-            == -1) {
+        if ((section_length = decode_context_unsigned(
+                 &apdu[len], 0, &data->processId)) == -1) {
             return -1;
         }
         len += section_length;
 
         if ((section_length = decode_context_character_string(
-                 &apdu[len], 1, &data->requestingSrc))
-            == -1) {
+                 &apdu[len], 1, &data->requestingSrc)) == -1) {
             return -1;
         }
         len += section_length;
 
-        if ((section_length
-                = decode_context_enumerated(&apdu[len], 2, &operation))
-            == -1) {
+        if ((section_length = decode_context_enumerated(
+                 &apdu[len], 2, &operation)) == -1) {
             return -1;
         }
         data->operation = (BACNET_LIFE_SAFETY_OPERATION)operation;
@@ -112,8 +109,8 @@ int lso_decode_service_request(
          */
         if (decode_is_context_tag(&apdu[len], 3)) {
             if ((section_length = decode_context_object_id(&apdu[len], 3,
-                     &data->targetObject.type, &data->targetObject.instance))
-                == -1) {
+                     &data->targetObject.type, &data->targetObject.instance)) ==
+                -1) {
                 return -1;
             }
             len += section_length;
@@ -159,8 +156,7 @@ void testLSO(Test *pTest)
     ct_test(pTest, data.targetObject.type == rxdata.targetObject.type);
     ct_test(pTest,
         memcmp(data.requestingSrc.value, rxdata.requestingSrc.value,
-            rxdata.requestingSrc.length)
-            == 0);
+            rxdata.requestingSrc.length) == 0);
 }
 
 #ifdef TEST_LSO

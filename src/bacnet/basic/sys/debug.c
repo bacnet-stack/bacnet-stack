@@ -32,10 +32,10 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>  /* for standard integer types uint8_t etc. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
-#include <stdio.h>   /* Standard I/O */
-#include <stdlib.h>  /* Standard Library */
+#include <stdio.h> /* Standard I/O */
+#include <stdlib.h> /* Standard Library */
 #include <stdarg.h>
 #include "bacnet/basic/sys/debug.h"
 

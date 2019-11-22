@@ -66,8 +66,8 @@ static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_NUMBER_OF_STATES, -1 };
 
-static const int Properties_Optional[]
-    = { PROP_DESCRIPTION, PROP_STATE_TEXT, -1 };
+static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_STATE_TEXT,
+    -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -214,8 +214,8 @@ char *Multistate_Value_Description(uint32_t object_instance)
 
 bool Multistate_Value_Description_Set(uint32_t object_instance, char *new_name)
 {
-    unsigned index = 0;  /* offset from instance lookup */
-    size_t i = 0;        /* loop counter */
+    unsigned index = 0; /* offset from instance lookup */
+    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = Multistate_Value_Instance_To_Index(object_instance);
@@ -255,8 +255,8 @@ bool Multistate_Value_Object_Name(
 /* note: the object name must be unique within this device */
 bool Multistate_Value_Name_Set(uint32_t object_instance, char *new_name)
 {
-    unsigned index = 0;  /* offset from instance lookup */
-    size_t i = 0;        /* loop counter */
+    unsigned index = 0; /* offset from instance lookup */
+    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = Multistate_Value_Instance_To_Index(object_instance);
@@ -287,8 +287,8 @@ char *Multistate_Value_State_Text(
     char *pName = NULL; /* return value */
 
     index = Multistate_Value_Instance_To_Index(object_instance);
-    if ((index < MAX_MULTISTATE_VALUES) && (state_index > 0)
-        && (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
+    if ((index < MAX_MULTISTATE_VALUES) && (state_index > 0) &&
+        (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
         state_index--;
         pName = State_Text[index][state_index];
     }
@@ -300,13 +300,13 @@ char *Multistate_Value_State_Text(
 bool Multistate_Value_State_Text_Set(
     uint32_t object_instance, uint32_t state_index, char *new_name)
 {
-    unsigned index = 0;  /* offset from instance lookup */
-    size_t i = 0;        /* loop counter */
+    unsigned index = 0; /* offset from instance lookup */
+    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = Multistate_Value_Instance_To_Index(object_instance);
-    if ((index < MAX_MULTISTATE_VALUES) && (state_index > 0)
-        && (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
+    if ((index < MAX_MULTISTATE_VALUES) && (state_index > 0) &&
+        (state_index <= MULTISTATE_NUMBER_OF_STATES)) {
         state_index--;
         status = true;
         if (new_name) {
@@ -371,8 +371,8 @@ bool Multistate_Value_Encode_Value_List(
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
         value_list->value.next = NULL;
-        value_list->value.type.Enumerated
-            = Multistate_Value_Present_Value(object_instance);
+        value_list->value.type.Enumerated =
+            Multistate_Value_Present_Value(object_instance);
         value_list->priority = BACNET_NO_PRIORITY;
         value_list = value_list->next;
     }
@@ -416,8 +416,8 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -430,22 +430,22 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
             Multistate_Value_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
                 Multistate_Value_Description(rpdata->object_instance));
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(
                 &apdu[0], OBJECT_MULTI_STATE_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            present_value
-                = Multistate_Value_Present_Value(rpdata->object_instance);
+            present_value =
+                Multistate_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_unsigned(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -460,8 +460,8 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_EVENT_STATE:
             /* note: see the details in the standard on how to use this */
-            apdu_len
-                = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
             state = Multistate_Value_Out_Of_Service(rpdata->object_instance);
@@ -491,8 +491,8 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if ((apdu_len + len) < MAX_APDU) {
                         apdu_len += len;
                     } else {
-                        rpdata->error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
@@ -518,9 +518,9 @@ int Multistate_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT)
-        && (rpdata->object_property != PROP_PRIORITY_ARRAY)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT) &&
+        (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -546,9 +546,9 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_STATE_TEXT)
-        && (wp_data->object_property != PROP_PRIORITY_ARRAY)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_STATE_TEXT) &&
+        (wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -556,8 +556,8 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 status = Multistate_Value_Present_Value_Set(

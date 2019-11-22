@@ -32,10 +32,10 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdio.h>   /* for standard i/o, like printing */
-#include <stdint.h>  /* for standard integer types uint8_t etc. */
+#include <stdio.h> /* for standard i/o, like printing */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
-#include <string.h>  /* for memcpy */
+#include <string.h> /* for memcpy */
 #include "bacnet/bacdcode.h"
 #include "bacnet/datalink/bip6.h"
 #include "bacnet/datalink/bvlc6.h"
@@ -622,16 +622,16 @@ static int handler_bbmd6_for_non_bbmd(BACNET_IP6_ADDRESS *addr,
     uint16_t offset = 0;
     BACNET_IP6_ADDRESS fwd_address = { { 0 } };
 
-    header_len
-        = bvlc6_decode_header(mtu, mtu_len, &message_type, &message_length);
+    header_len =
+        bvlc6_decode_header(mtu, mtu_len, &message_type, &message_length);
     if (header_len == 4) {
         BVLC6_Function_Code = message_type;
         pdu = &mtu[header_len];
         pdu_len = mtu_len - header_len;
         switch (BVLC6_Function_Code) {
             case BVLC6_RESULT:
-                function_len = bvlc6_decode_result(
-                    pdu, pdu_len, &vmac_src, &result_code);
+                function_len =
+                    bvlc6_decode_result(pdu, pdu_len, &vmac_src, &result_code);
                 if (function_len) {
                     BVLC6_Result_Code = result_code;
                     /* The Virtual MAC address table shall be updated
@@ -792,16 +792,16 @@ static int handler_bbmd6_for_bbmd(BACNET_IP6_ADDRESS *addr,
     uint16_t offset = 0;
     BACNET_IP6_ADDRESS fwd_address = { { 0 } };
 
-    header_len
-        = bvlc6_decode_header(mtu, mtu_len, &message_type, &message_length);
+    header_len =
+        bvlc6_decode_header(mtu, mtu_len, &message_type, &message_length);
     if (header_len == 4) {
         BVLC6_Function_Code = message_type;
         pdu = &mtu[header_len];
         pdu_len = mtu_len - header_len;
         switch (BVLC6_Function_Code) {
             case BVLC6_RESULT:
-                function_len = bvlc6_decode_result(
-                    pdu, pdu_len, &vmac_src, &result_code);
+                function_len =
+                    bvlc6_decode_result(pdu, pdu_len, &vmac_src, &result_code);
                 if (function_len) {
                     BVLC6_Result_Code = result_code;
                     /* The Virtual MAC address table shall be updated
@@ -1116,8 +1116,8 @@ static void test_BBMD_Result(Test *pTest)
     addr.port = 0xBAC0;
     bvlc6_vmac_address_set(&src, vmac_src);
     for (i = 0; i < 6; i++) {
-        mtu_len = bvlc6_encode_result(
-            &mtu[0], sizeof(mtu), vmac_src, result_code[i]);
+        mtu_len =
+            bvlc6_encode_result(&mtu[0], sizeof(mtu), vmac_src, result_code[i]);
         result = handler_bbmd6_for_non_bbmd(&addr, &src, &mtu[0], mtu_len);
         /* validate that the result is handled (0) */
         ct_test(pTest, result == 0);

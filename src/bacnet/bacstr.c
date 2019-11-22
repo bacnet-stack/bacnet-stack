@@ -40,7 +40,7 @@
 #include "bacnet/bits.h"
 #if PRINT_ENABLED
 #include <stdlib.h> /* for strtol */
-#include <ctype.h>  /* for isalnum */
+#include <ctype.h> /* for isalnum */
 #endif
 
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
@@ -191,8 +191,8 @@ bool bitstring_same(
     uint8_t compare_mask = 0;
 
     if (bitstring1 && bitstring2) {
-        if ((bitstring1->bits_used == bitstring2->bits_used)
-            && (bitstring1->bits_used / 8 <= MAX_BITSTRING_BYTES)) {
+        if ((bitstring1->bits_used == bitstring2->bits_used) &&
+            (bitstring1->bits_used / 8 <= MAX_BITSTRING_BYTES)) {
             bytes_used = (int)(bitstring1->bits_used / 8);
             compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
 
@@ -201,8 +201,8 @@ bool bitstring_same(
                     return false;
                 }
             }
-            if ((bitstring1->value[bytes_used] & compare_mask)
-                != (bitstring2->value[bytes_used] & compare_mask)) {
+            if ((bitstring1->value[bytes_used] & compare_mask) !=
+                (bitstring2->value[bytes_used] & compare_mask)) {
                 return false;
             } else {
                 return true;
@@ -220,7 +220,7 @@ bool bitstring_same(
 bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
 {
     bool status = false; /* return value */
-    unsigned index = 0;  /* offset into buffer */
+    unsigned index = 0; /* offset into buffer */
     uint8_t bit_number = 0;
 
     if (bit_string) {
@@ -267,7 +267,7 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
     size_t length)
 {
     bool status = false; /* return value */
-    size_t i;            /* counter */
+    size_t i; /* counter */
 
     if (char_string) {
         char_string->length = 0;
@@ -315,8 +315,8 @@ bool characterstring_ansi_copy(
 {
     size_t i; /* counter */
 
-    if (dest && src && (src->encoding == CHARACTER_ANSI_X34)
-        && (src->length < dest_max_len)) {
+    if (dest && src && (src->encoding == CHARACTER_ANSI_X34) &&
+        (src->length < dest_max_len)) {
         for (i = 0; i < dest_max_len; i++) {
             if (i < src->length) {
                 dest[i] = src->value[i];
@@ -338,8 +338,8 @@ bool characterstring_same(
     bool same_status = false;
 
     if (src && dest) {
-        if ((src->length == dest->length)
-            && (src->encoding == dest->encoding)) {
+        if ((src->length == dest->length) &&
+            (src->encoding == dest->encoding)) {
             same_status = true;
             for (i = 0; (i < src->length) && same_status; i++) {
                 if (src->value[i] != dest->value[i]) {
@@ -366,8 +366,8 @@ bool characterstring_ansi_same(BACNET_CHARACTER_STRING *dest, const char *src)
     bool same_status = false;
 
     if (src && dest) {
-        if ((dest->length == strlen(src))
-            && (dest->encoding == CHARACTER_ANSI_X34)) {
+        if ((dest->length == strlen(src)) &&
+            (dest->encoding == CHARACTER_ANSI_X34)) {
             same_status = true;
             for (i = 0; (i < dest->length) && same_status; i++) {
                 if (src[i] != dest->value[i]) {
@@ -394,7 +394,7 @@ bool characterstring_ansi_same(BACNET_CHARACTER_STRING *dest, const char *src)
 bool characterstring_append(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t length)
 {
-    size_t i;            /* counter */
+    size_t i; /* counter */
     bool status = false; /* return value */
 
     if (char_string) {
@@ -504,15 +504,15 @@ X'20' - X'7E'.*/
 bool characterstring_printable(BACNET_CHARACTER_STRING *char_string)
 {
     bool status = false; /* return value */
-    size_t i;            /* counter */
+    size_t i; /* counter */
 
     if (char_string) {
         if (char_string->encoding == CHARACTER_ANSI_X34) {
             status = true;
             for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
                 if (i < char_string->length) {
-                    if ((char_string->value[i] < 0x20)
-                        || (char_string->value[i] > 0x7E)) {
+                    if ((char_string->value[i] < 0x20) ||
+                        (char_string->value[i] > 0x7E)) {
                         status = false;
                     }
                 } else {
@@ -647,7 +647,7 @@ bool octetstring_init(
     BACNET_OCTET_STRING *octet_string, uint8_t *value, size_t length)
 {
     bool status = false; /* return value */
-    size_t i;            /* counter */
+    size_t i; /* counter */
 
     if (octet_string && (length <= MAX_OCTET_STRING_BYTES)) {
         octet_string->length = 0;
@@ -678,7 +678,7 @@ bool octetstring_init_ascii_hex(
     BACNET_OCTET_STRING *octet_string, const char *ascii_hex)
 {
     bool status = false; /* return value */
-    unsigned index = 0;  /* offset into buffer */
+    unsigned index = 0; /* offset into buffer */
     uint8_t value = 0;
     char hex_pair_string[3] = "";
 
@@ -749,7 +749,7 @@ size_t octetstring_copy_value(
 bool octetstring_append(
     BACNET_OCTET_STRING *octet_string, uint8_t *value, size_t length)
 {
-    size_t i;            /* counter */
+    size_t i; /* counter */
     bool status = false; /* return value */
 
     if (octet_string) {
@@ -827,8 +827,8 @@ bool octetstring_value_same(
     size_t i = 0; /* loop counter */
 
     if (octet_string1 && octet_string2) {
-        if ((octet_string1->length == octet_string2->length)
-            && (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
+        if ((octet_string1->length == octet_string2->length) &&
+            (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
             for (i = 0; i < octet_string1->length; i++) {
                 if (octet_string1->value[i] != octet_string2->value[i]) {
                     return false;
@@ -1010,8 +1010,8 @@ void testOctetString(Test *pTest)
     }
 
     test_length = strlen((char *)test_append_value);
-    status = octetstring_append(
-        &bacnet_string, &test_append_value[0], test_length);
+    status =
+        octetstring_append(&bacnet_string, &test_append_value[0], test_length);
     strcat((char *)test_append_string, (char *)test_value);
     strcat((char *)test_append_string, (char *)test_append_value);
     test_length = strlen((char *)test_append_string);

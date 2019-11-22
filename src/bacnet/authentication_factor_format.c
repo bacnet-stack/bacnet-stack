@@ -93,8 +93,8 @@ int bacapp_decode_authentication_factor_format(
             return -1;
         else
             apdu_len += len;
-        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM)
-            && (aff->vendor_id != 0))
+        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM) &&
+            (aff->vendor_id != 0))
             return -1;
     }
 
@@ -104,8 +104,8 @@ int bacapp_decode_authentication_factor_format(
             return -1;
         else
             apdu_len += len;
-        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM)
-            && (aff->vendor_format != 0))
+        if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM) &&
+            (aff->vendor_format != 0))
             return -1;
     }
 
@@ -120,8 +120,8 @@ int bacapp_decode_context_authentication_factor_format(
 
     if (decode_is_opening_tag_number(&apdu[len], tag)) {
         len++;
-        section_length
-            = bacapp_decode_authentication_factor_format(&apdu[len], aff);
+        section_length =
+            bacapp_decode_authentication_factor_format(&apdu[len], aff);
 
         if (section_length == -1) {
             len = -1;

@@ -117,8 +117,8 @@ uint8_t CRC_Calc_Header(uint8_t dataValue, uint8_t crcValue)
     crc = crcValue ^ dataValue; /* XOR C7..C0 with D7..D0 */
 
     /* Exclusive OR the terms in the table (top down) */
-    crc = crc ^ (crc << 1) ^ (crc << 2) ^ (crc << 3) ^ (crc << 4) ^ (crc << 5)
-        ^ (crc << 6) ^ (crc << 7);
+    crc = crc ^ (crc << 1) ^ (crc << 2) ^ (crc << 3) ^ (crc << 4) ^ (crc << 5) ^
+        (crc << 6) ^ (crc << 7);
 
     /* Combine bits shifted out left hand end */
     return (crc & 0xfe) ^ ((crc >> 8) & 1);
@@ -136,8 +136,8 @@ uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
     crcLow = (crcValue & 0xff) ^ dataValue; /* XOR C7..C0 with D7..D0 */
 
     /* Exclusive OR the terms in the table (top down) */
-    return (crcValue >> 8) ^ (crcLow << 8) ^ (crcLow << 3) ^ (crcLow << 12)
-        ^ (crcLow >> 4) ^ (crcLow & 0x0f) ^ ((crcLow & 0x0f) << 7);
+    return (crcValue >> 8) ^ (crcLow << 8) ^ (crcLow << 3) ^ (crcLow << 12) ^
+        (crcLow >> 4) ^ (crcLow & 0x0f) ^ ((crcLow & 0x0f) << 7);
 }
 #endif
 
@@ -151,7 +151,7 @@ uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
 void testCRC8(Test *pTest)
 {
     uint8_t crc = 0xff; /* accumulates the crc value */
-    uint8_t frame_crc;  /* appended to the end of the frame */
+    uint8_t frame_crc; /* appended to the end of the frame */
 
     crc = CRC_Calc_Header(0x00, crc);
     ct_test(pTest, crc == 0x55);

@@ -71,8 +71,8 @@ void Access_User_Init(void)
         Access_User_Initialized = true;
 
         for (i = 0; i < MAX_ACCESS_USERS; i++) {
-            au_descr[i].global_identifier
-                = 0; /* set to some meaningful value */
+            au_descr[i].global_identifier =
+                0; /* set to some meaningful value */
             au_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
             au_descr[i].user_type = ACCESS_USER_TYPE_PERSON;
             au_descr[i].credentials_count = 0;
@@ -148,8 +148,8 @@ int Access_User_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned i = 0;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -161,12 +161,12 @@ int Access_User_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Access_User_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_ACCESS_USER);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_ACCESS_USER);
             break;
         case PROP_GLOBAL_IDENTIFIER:
             apdu_len = encode_application_unsigned(
@@ -195,8 +195,8 @@ int Access_User_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (apdu_len + len < MAX_APDU)
                     apdu_len += len;
                 else {
-                    rpdata->error_code
-                        = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpdata->error_code =
+                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
                     break;
                 }
@@ -245,12 +245,12 @@ bool Access_User_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index = Access_User_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                au_descr[object_index].global_identifier
-                    = value.type.Unsigned_Int;
+                au_descr[object_index].global_identifier =
+                    value.type.Unsigned_Int;
             }
             break;
 

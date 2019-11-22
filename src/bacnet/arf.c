@@ -90,8 +90,8 @@ int arf_decode_service_request(
 
     /* check for value pointers */
     if (apdu_len && data) {
-        len = decode_tag_number_and_value(
-            &apdu[0], &tag_number, &len_value_type);
+        len =
+            decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
             return -1;
         len += decode_object_id(&apdu[len], &type, &data->object_instance);
@@ -171,8 +171,8 @@ int arf_decode_apdu(uint8_t *apdu,
     offset = 4;
 
     if (apdu_len > offset) {
-        len = arf_decode_service_request(
-            &apdu[offset], apdu_len - offset, data);
+        len =
+            arf_decode_service_request(&apdu[offset], apdu_len - offset, data);
     }
 
     return len;
@@ -191,8 +191,8 @@ int arf_ack_encode_apdu(
         apdu[2] = SERVICE_CONFIRMED_ATOMIC_READ_FILE; /* service choice */
         apdu_len = 3;
         /* endOfFile */
-        apdu_len
-            += encode_application_boolean(&apdu[apdu_len], data->endOfFile);
+        apdu_len +=
+            encode_application_boolean(&apdu[apdu_len], data->endOfFile);
         switch (data->access) {
             case FILE_STREAM_ACCESS:
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
@@ -235,8 +235,8 @@ int arf_ack_decode_service_request(
 
     /* check for value pointers */
     if (apdu_len && data) {
-        len = decode_tag_number_and_value(
-            &apdu[0], &tag_number, &len_value_type);
+        len =
+            decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_BOOLEAN) {
             return -1;
         }
@@ -374,31 +374,29 @@ void testAtomicReadFileAckAccess(
     ct_test(pTest, test_data.access == data->access);
     if (test_data.access == FILE_STREAM_ACCESS) {
         ct_test(pTest,
-            test_data.type.stream.fileStartPosition
-                == data->type.stream.fileStartPosition);
+            test_data.type.stream.fileStartPosition ==
+                data->type.stream.fileStartPosition);
         ct_test(pTest,
-            octetstring_length(&test_data.fileData[0])
-                == octetstring_length(&data->fileData[0]));
+            octetstring_length(&test_data.fileData[0]) ==
+                octetstring_length(&data->fileData[0]));
         ct_test(pTest,
             memcmp(octetstring_value(&test_data.fileData[0]),
                 octetstring_value(&data->fileData[0]),
-                octetstring_length(&test_data.fileData[0]))
-                == 0);
+                octetstring_length(&test_data.fileData[0])) == 0);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         ct_test(pTest,
-            test_data.type.record.fileStartRecord
-                == data->type.record.fileStartRecord);
+            test_data.type.record.fileStartRecord ==
+                data->type.record.fileStartRecord);
         ct_test(pTest,
             test_data.type.record.RecordCount == data->type.record.RecordCount);
         for (i = 0; i < data->type.record.RecordCount; i++) {
             ct_test(pTest,
-                octetstring_length(&test_data.fileData[i])
-                    == octetstring_length(&data->fileData[i]));
+                octetstring_length(&test_data.fileData[i]) ==
+                    octetstring_length(&data->fileData[i]));
             ct_test(pTest,
                 memcmp(octetstring_value(&test_data.fileData[i]),
                     octetstring_value(&data->fileData[i]),
-                    octetstring_length(&test_data.fileData[i]))
-                    == 0);
+                    octetstring_length(&test_data.fileData[i])) == 0);
         }
     }
 }
@@ -449,15 +447,15 @@ void testAtomicReadFileAccess(Test *pTest, BACNET_ATOMIC_READ_FILE_DATA *data)
     ct_test(pTest, test_data.access == data->access);
     if (test_data.access == FILE_STREAM_ACCESS) {
         ct_test(pTest,
-            test_data.type.stream.fileStartPosition
-                == data->type.stream.fileStartPosition);
+            test_data.type.stream.fileStartPosition ==
+                data->type.stream.fileStartPosition);
         ct_test(pTest,
-            test_data.type.stream.requestedOctetCount
-                == data->type.stream.requestedOctetCount);
+            test_data.type.stream.requestedOctetCount ==
+                data->type.stream.requestedOctetCount);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         ct_test(pTest,
-            test_data.type.record.fileStartRecord
-                == data->type.record.fileStartRecord);
+            test_data.type.record.fileStartRecord ==
+                data->type.record.fileStartRecord);
         ct_test(pTest,
             test_data.type.record.RecordCount == data->type.record.RecordCount);
     }

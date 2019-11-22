@@ -92,8 +92,8 @@ uint8_t Send_Read_Property_Request_Address(BACNET_ADDRESS *dest,
         data.object_instance = object_instance;
         data.object_property = object_property;
         data.array_index = array_index;
-        len = rp_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
+        len =
+            rp_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between

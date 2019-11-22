@@ -108,7 +108,7 @@ size_t memcopy(void *dest, void *src, size_t offset, size_t len, size_t max)
 size_t memcopy(void *dest,
     void *src,
     size_t offset, /* where in dest to put the data */
-    size_t len,    /* amount of data to copy */
+    size_t len, /* amount of data to copy */
     size_t max)
 { /* total size of destination */
     if (memcopylen(offset, max, len)) {

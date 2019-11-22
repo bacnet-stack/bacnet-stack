@@ -61,8 +61,8 @@ static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
         sprintf(msg, "BACnet Abort: %s",
             bactext_abort_reason_name((int)abort_reason));
@@ -73,8 +73,8 @@ static void MyAbortHandler(
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
         sprintf(msg, "BACnet Reject: %s",
             bactext_reject_reason_name((int)reject_reason));
@@ -87,8 +87,8 @@ static void My_Error_Handler(BACNET_ADDRESS *src,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
         sprintf(msg, "BACnet Error: %s: %s",
             bactext_error_class_name((int)error_class),
@@ -110,7 +110,7 @@ void rp_ack_extract_data(BACNET_READ_PROPERTY_DATA *data)
     char ackString[MAX_ACK_STRING] = "";
     char *pAckString = &ackString[0];
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
-    BACNET_APPLICATION_DATA_VALUE value;       /* for decode value data */
+    BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
     int len = 0;
     uint8_t *application_data;
     int application_data_len;
@@ -188,10 +188,10 @@ void rpm_ack_extract_data(BACNET_READ_ACCESS_DATA *rpm_data)
                 object_value.object_type = rpm_data->object_type;
                 object_value.object_instance = rpm_data->object_instance;
                 while (value) {
-                    object_value.object_property
-                        = listOfProperties->propertyIdentifier;
-                    object_value.array_index
-                        = listOfProperties->propertyArrayIndex;
+                    object_value.object_property =
+                        listOfProperties->propertyIdentifier;
+                    object_value.array_index =
+                        listOfProperties->propertyArrayIndex;
                     object_value.value = value;
                     bacapp_snprintf_value(pAckString,
                         MAX_ACK_STRING - (pAckString - ackString),
@@ -237,14 +237,14 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
     int len = 0;
     BACNET_ATOMIC_READ_FILE_DATA data;
 
-    if (address_match(&Target_Address, src)
-        && (service_data->invoke_id == Request_Invoke_ID)) {
-        len = arf_ack_decode_service_request(
-            service_request, service_len, &data);
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len =
+            arf_ack_decode_service_request(service_request, service_len, &data);
         if (len > 0) {
             /* validate the parameters before storing data */
-            if ((data.access == FILE_STREAM_ACCESS)
-                && (service_data->invoke_id == Request_Invoke_ID)) {
+            if ((data.access == FILE_STREAM_ACCESS) &&
+                (service_data->invoke_id == Request_Invoke_ID)) {
                 char msg[32];
                 uint8_t *pFileData;
                 int i;
@@ -285,10 +285,10 @@ static void My_Read_Property_Ack_Handler(uint8_t *service_request,
     int len = 0;
     BACNET_READ_PROPERTY_DATA data;
 
-    if (address_match(&Target_Address, src)
-        && (service_data->invoke_id == Request_Invoke_ID)) {
-        len = rp_ack_decode_service_request(
-            service_request, service_len, &data);
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len =
+            rp_ack_decode_service_request(service_request, service_len, &data);
         if (len > 0) {
             rp_ack_extract_data(&data);
         }
@@ -319,8 +319,8 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
 
-    if (address_match(&Target_Address, src)
-        && (service_data->invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
         rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
         if (rpm_data) {
             len = rpm_ack_decode_service_request(
@@ -370,8 +370,8 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
 
 void My_Write_Property_SimpleAck_Handler(BACNET_ADDRESS *src, uint8_t invoke_id)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         __LogAnswer("WriteProperty Acknowledged!", 0);
     }
 }
@@ -546,8 +546,8 @@ int BacnetReadPropertyMultiple(int deviceInstanceNumber, ...)
     /* Get the variable argument list from the stack */
     Inline_Stack_Vars;
     int rpmIndex = 1;
-    BACNET_READ_ACCESS_DATA *rpm_object
-        = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
+    BACNET_READ_ACCESS_DATA *rpm_object =
+        calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
     BACNET_READ_ACCESS_DATA *Read_Access_Data = rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
     uint8_t buffer[MAX_PDU] = { 0 };
@@ -841,8 +841,8 @@ int BacnetTimeSync(int deviceInstanceNumber,
     my_time.tm_mday = day;
     my_time.tm_mon = month - 1;
     my_time.tm_year = year - 1900;
-    my_time.tm_wday = 0;  /* does not matter */
-    my_time.tm_yday = 0;  /* does not matter */
+    my_time.tm_wday = 0; /* does not matter */
+    my_time.tm_yday = 0; /* does not matter */
     my_time.tm_isdst = 0; /* does not matter */
 
     aTime = mktime(&my_time);

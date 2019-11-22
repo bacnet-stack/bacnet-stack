@@ -51,12 +51,12 @@ static char Object_Name[MAX_CHARACTERSTRING_VALUES][64];
 static char Object_Description[MAX_CHARACTERSTRING_VALUES][64];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[]
-    = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-          PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, -1 };
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
+    -1 };
 
-static const int Properties_Optional[]
-    = { PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
+static const int Properties_Optional[] = { PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
 
 static const int Properties_Proprietary[] = { -1 };
 
@@ -200,8 +200,8 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
 bool CharacterString_Value_Description_Set(
     uint32_t object_instance, char *new_name)
 {
-    unsigned index = 0;  /* offset from instance lookup */
-    size_t i = 0;        /* loop counter */
+    unsigned index = 0; /* offset from instance lookup */
+    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
@@ -241,8 +241,8 @@ bool CharacterString_Value_Object_Name(
 /* note: the object name must be unique within this device */
 bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
 {
-    unsigned index = 0;  /* offset from instance lookup */
-    size_t i = 0;        /* loop counter */
+    unsigned index = 0; /* offset from instance lookup */
+    size_t i = 0; /* loop counter */
     bool status = false; /* return value */
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
@@ -276,8 +276,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -291,14 +291,14 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_NAME:
             CharacterString_Value_Object_Name(
                 rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string,
                 CharacterString_Value_Description(rpdata->object_instance));
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(
@@ -307,8 +307,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_PRESENT_VALUE:
             CharacterString_Value_Present_Value(
                 rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_STATUS_FLAGS:
             /* note: see the details in the standard on how to use these */
@@ -327,8 +327,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_EVENT_STATE:
             /* note: see the details in the standard on how to use this */
-            apdu_len
-                = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
             object_index = CharacterString_Value_Instance_To_Index(
@@ -343,8 +343,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_STATE_TEXT) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;

@@ -34,7 +34,7 @@
 
 #ifdef TEST_PACKET
 uint8_t test_packet[] = { 0x81, 0x0a, 0x00, 0x16, /* BVLC header */
-    0x01, 0x24, 0x00, 0x01, 0x01, 0x0b, 0xff,     /* NPDU */
+    0x01, 0x24, 0x00, 0x01, 0x01, 0x0b, 0xff, /* NPDU */
     0x00, 0x03, 0x01, 0x0c, 0x0c, 0x00, 0x00, 0x00, 0x02, 0x19,
     0x55 }; /* APDU */
 #endif
@@ -146,8 +146,8 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
     ip_data->port = htons(port->params.bip_params.port);
 
     /* get local address */
-    status = get_local_address_ioctl(
-        port->iface, &ip_data->local_addr, SIOCGIFADDR);
+    status =
+        get_local_address_ioctl(port->iface, &ip_data->local_addr, SIOCGIFADDR);
     if (status < 0) {
         return false;
     }
@@ -265,8 +265,8 @@ int dl_ip_recv(
 
     if (timeout >= 1000) {
         select_timeout.tv_sec = timeout / 1000;
-        select_timeout.tv_usec
-            = 1000 * (timeout - select_timeout.tv_sec * 1000);
+        select_timeout.tv_usec =
+            1000 * (timeout - select_timeout.tv_sec * 1000);
     } else {
         select_timeout.tv_sec = 0;
         select_timeout.tv_usec = 1000 * timeout;
@@ -303,8 +303,8 @@ int dl_ip_recv(
     switch (data->buff[1]) {
         case BVLC_ORIGINAL_UNICAST_NPDU:
         case BVLC_ORIGINAL_BROADCAST_NPDU: {
-            if ((sin.sin_addr.s_addr == data->local_addr.s_addr)
-                && (sin.sin_port == data->port)) {
+            if ((sin.sin_addr.s_addr == data->local_addr.s_addr) &&
+                (sin.sin_port == data->port)) {
                 buff_len = 0;
 
                 PRINT(DEBUG, "BIP: src is me. Discarded!\n");
@@ -339,8 +339,8 @@ int dl_ip_recv(
         case BVLC_FORWARDED_NPDU: {
             memcpy(&sin.sin_addr.s_addr, &data->buff[4], 4);
             memcpy(&sin.sin_port, &data->buff[8], 2);
-            if ((sin.sin_addr.s_addr == data->local_addr.s_addr)
-                && (sin.sin_port == data->port)) {
+            if ((sin.sin_addr.s_addr == data->local_addr.s_addr) &&
+                (sin.sin_port == data->port)) {
                 buff_len = 0;
             } else {
                 src->mac_len = 6;

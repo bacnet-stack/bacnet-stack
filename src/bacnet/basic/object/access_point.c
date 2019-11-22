@@ -184,8 +184,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -197,12 +197,12 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Access_Point_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_ACCESS_POINT);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_ACCESS_POINT);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -268,8 +268,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if (apdu_len + len < MAX_APDU)
                         apdu_len += len;
                     else {
-                        rpdata->error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
@@ -293,8 +293,8 @@ int Access_Point_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACCESS_DOORS)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACCESS_DOORS) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -321,8 +321,8 @@ bool Access_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_ACCESS_DOORS)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_ACCESS_DOORS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;

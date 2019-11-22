@@ -42,7 +42,7 @@
 void private_transfer_print_data(BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
-    BACNET_APPLICATION_DATA_VALUE value;       /* for decode value data */
+    BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
     int len = 0;
     uint8_t *application_data;
     int application_data_len;

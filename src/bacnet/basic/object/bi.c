@@ -212,8 +212,8 @@ bool Binary_Input_Encode_Value_List(
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
         value_list->value.next = NULL;
-        value_list->value.type.Enumerated
-            = Binary_Input_Present_Value(object_instance);
+        value_list->value.type.Enumerated =
+            Binary_Input_Present_Value(object_instance);
         value_list->priority = BACNET_NO_PRIORITY;
         value_list = value_list->next;
     }
@@ -339,8 +339,8 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint8_t *apdu = NULL;
     bool state = false;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -353,12 +353,12 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_DESCRIPTION:
             /* note: object name must be unique in our device */
             Binary_Input_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_BINARY_INPUT);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_BINARY_INPUT);
             break;
         case PROP_PRESENT_VALUE:
             /* note: you need to look up the actual value */
@@ -377,8 +377,8 @@ int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_EVENT_STATE:
             /* note: see the details in the standard on how to use this */
-            apdu_len
-                = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
             state = Binary_Input_Out_Of_Service(rpdata->object_instance);
@@ -429,8 +429,8 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated <= MAX_BINARY_PV) {
@@ -452,8 +452,8 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_POLARITY:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {

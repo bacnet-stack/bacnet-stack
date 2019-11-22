@@ -88,12 +88,12 @@ uint8_t datetime_month_days(uint16_t year, uint8_t month)
 
 bool datetime_ymd_is_valid(uint16_t year, uint8_t month, uint8_t day)
 {
-    bool status = false;   /* true if value date */
+    bool status = false; /* true if value date */
     uint8_t monthdays = 0; /* days in a month */
 
     monthdays = datetime_month_days(year, month);
-    if ((year >= BACNET_EPOCH_YEAR) && (monthdays > 0) && (day >= 1)
-        && (day <= monthdays)) {
+    if ((year >= BACNET_EPOCH_YEAR) && (monthdays > 0) && (day >= 1) &&
+        (day <= monthdays)) {
         status = true;
     }
 
@@ -113,7 +113,7 @@ bool datetime_date_is_valid(BACNET_DATE *bdate)
 
 static uint32_t day_of_year(uint16_t year, uint8_t month, uint8_t day)
 {
-    uint32_t days = 0;  /* return value */
+    uint32_t days = 0; /* return value */
     uint8_t months = 0; /* loop counter for months */
 
     if (datetime_ymd_is_valid(year, month, day)) {
@@ -172,7 +172,7 @@ uint32_t datetime_day_of_year(BACNET_DATE *bdate)
 
 static uint32_t days_since_epoch(uint16_t year, uint8_t month, uint8_t day)
 {
-    uint32_t days = 0;  /* return value */
+    uint32_t days = 0; /* return value */
     uint16_t years = 0; /* loop counter for years */
 
     if (datetime_ymd_is_valid(year, month, day)) {
@@ -259,8 +259,8 @@ bool datetime_time_is_valid(BACNET_TIME *btime)
     bool status = false;
 
     if (btime) {
-        if ((btime->hour < 24) && (btime->min < 60) && (btime->sec < 60)
-            && (btime->hundredths < 100)) {
+        if ((btime->hour < 24) && (btime->min < 60) && (btime->sec < 60) &&
+            (btime->hundredths < 100)) {
             status = true;
         }
     }
@@ -380,8 +380,8 @@ int datetime_wildcard_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
                     diff = (int)time1->sec - (int)time2->sec;
                 }
                 if (diff == 0) {
-                    if ((time1->hundredths != 0xFF)
-                        && (time2->hundredths != 0xFF)) {
+                    if ((time1->hundredths != 0xFF) &&
+                        (time2->hundredths != 0xFF)) {
                         diff = (int)time1->hundredths - (int)time2->hundredths;
                     }
                 }
@@ -399,8 +399,8 @@ int datetime_wildcard_compare(
 
     diff = datetime_wildcard_compare_date(&datetime1->date, &datetime2->date);
     if (diff == 0) {
-        diff = datetime_wildcard_compare_time(
-            &datetime1->time, &datetime2->time);
+        diff =
+            datetime_wildcard_compare_time(&datetime1->time, &datetime2->time);
     }
 
     return diff;
@@ -571,8 +571,8 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
 
     /* convert bdatetime to seconds and days */
     bdatetime_minutes = seconds_since_midnight(bdatetime->time.hour,
-                            bdatetime->time.min, bdatetime->time.sec)
-        / 60;
+                            bdatetime->time.min, bdatetime->time.sec) /
+        60;
     bdatetime_days = datetime_days_since_epoch(&bdatetime->date);
 
     /* more minutes than in a day? */
@@ -788,14 +788,14 @@ bool datetime_wildcard(BACNET_DATE_TIME *bdatetime)
     bool wildcard_present = false;
 
     if (bdatetime) {
-        if (datetime_wildcard_year(&bdatetime->date)
-            && datetime_wildcard_month(&bdatetime->date)
-            && datetime_wildcard_day(&bdatetime->date)
-            && datetime_wildcard_weekday(&bdatetime->date)
-            && datetime_wildcard_hour(&bdatetime->time)
-            && datetime_wildcard_minute(&bdatetime->time)
-            && datetime_wildcard_second(&bdatetime->time)
-            && datetime_wildcard_hundredths(&bdatetime->time)) {
+        if (datetime_wildcard_year(&bdatetime->date) &&
+            datetime_wildcard_month(&bdatetime->date) &&
+            datetime_wildcard_day(&bdatetime->date) &&
+            datetime_wildcard_weekday(&bdatetime->date) &&
+            datetime_wildcard_hour(&bdatetime->time) &&
+            datetime_wildcard_minute(&bdatetime->time) &&
+            datetime_wildcard_second(&bdatetime->time) &&
+            datetime_wildcard_hundredths(&bdatetime->time)) {
             wildcard_present = true;
         }
     }
@@ -812,12 +812,12 @@ bool datetime_wildcard_present(BACNET_DATE_TIME *bdatetime)
     bool wildcard_present = false;
 
     if (bdatetime) {
-        if (datetime_wildcard_year(&bdatetime->date)
-            || (bdatetime->date.month > 12) || (bdatetime->date.day > 31)
-            || datetime_wildcard_hour(&bdatetime->time)
-            || datetime_wildcard_minute(&bdatetime->time)
-            || datetime_wildcard_second(&bdatetime->time)
-            || datetime_wildcard_hundredths(&bdatetime->time)) {
+        if (datetime_wildcard_year(&bdatetime->date) ||
+            (bdatetime->date.month > 12) || (bdatetime->date.day > 31) ||
+            datetime_wildcard_hour(&bdatetime->time) ||
+            datetime_wildcard_minute(&bdatetime->time) ||
+            datetime_wildcard_second(&bdatetime->time) ||
+            datetime_wildcard_hundredths(&bdatetime->time)) {
             wildcard_present = true;
         }
     }
@@ -954,14 +954,14 @@ int bacapp_decode_datetime(uint8_t *apdu, BACNET_DATE_TIME *value)
     int len = 0;
     int section_len;
 
-    if (-1
-        == (section_len = decode_application_date(&apdu[len], &value->date))) {
+    if (-1 ==
+        (section_len = decode_application_date(&apdu[len], &value->date))) {
         return -1;
     }
     len += section_len;
 
-    if (-1
-        == (section_len = decode_application_time(&apdu[len], &value->time))) {
+    if (-1 ==
+        (section_len = decode_application_time(&apdu[len], &value->time))) {
         return -1;
     }
 
@@ -1070,8 +1070,8 @@ static void testBACnetDateTimeSeconds(Test *pTest)
                 seconds = seconds_since_midnight(hour, minute, second);
                 seconds_since_midnight_into_hms(
                     seconds, &test_hour, &test_minute, &test_second);
-                test_seconds = seconds_since_midnight(
-                    test_hour, test_minute, test_second);
+                test_seconds =
+                    seconds_since_midnight(test_hour, test_minute, test_second);
                 ct_test(pTest, seconds == test_seconds);
             }
         }

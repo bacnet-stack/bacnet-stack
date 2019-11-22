@@ -43,11 +43,11 @@
 
 SCHEDULE_DESCR Schedule_Descr[MAX_SCHEDULES];
 
-static const int Schedule_Properties_Required[]
-    = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-          PROP_PRESENT_VALUE, PROP_EFFECTIVE_PERIOD, PROP_SCHEDULE_DEFAULT,
-          PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES, PROP_PRIORITY_FOR_WRITING,
-          PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_OUT_OF_SERVICE, -1 };
+static const int Schedule_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE,
+    PROP_EFFECTIVE_PERIOD, PROP_SCHEDULE_DEFAULT,
+    PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES, PROP_PRIORITY_FOR_WRITING,
+    PROP_STATUS_FLAGS, PROP_RELIABILITY, PROP_OUT_OF_SERVICE, -1 };
 
 static const int Schedule_Properties_Optional[] = { PROP_WEEKLY_SCHEDULE, -1 };
 
@@ -83,10 +83,10 @@ void Schedule_Init(void)
         Schedule_Descr[i].Present_Value = &Schedule_Descr[i].Schedule_Default;
         Schedule_Descr[i].Schedule_Default.context_specific = false;
         Schedule_Descr[i].Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
-        Schedule_Descr[i].Schedule_Default.type.Real
-            = 21.0; /* 21 C, room temperature */
-        Schedule_Descr[i].obj_prop_ref_cnt
-            = 0; /* no references, add as needed */
+        Schedule_Descr[i].Schedule_Default.type.Real =
+            21.0; /* 21 C, room temperature */
+        Schedule_Descr[i].obj_prop_ref_cnt =
+            0; /* no references, add as needed */
         Schedule_Descr[i].Priority_For_Writing = 16; /* lowest priority */
         Schedule_Descr[i].Out_Of_Service = false;
     }
@@ -164,8 +164,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     int i;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
 
@@ -183,8 +183,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Schedule_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_SCHEDULE);
@@ -202,10 +202,10 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                suitable time for
                     review by all interested parties. Say 6 months -> September
                2016 */
-            apdu_len
-                = encode_application_date(&apdu[0], &CurrentSC->Start_Date);
-            apdu_len += encode_application_date(
-                &apdu[apdu_len], &CurrentSC->End_Date);
+            apdu_len =
+                encode_application_date(&apdu[0], &CurrentSC->Start_Date);
+            apdu_len +=
+                encode_application_date(&apdu[apdu_len], &CurrentSC->End_Date);
             break;
         case PROP_WEEKLY_SCHEDULE:
             if (rpdata->array_index == 0) /* count, always 7 */
@@ -236,8 +236,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_SCHEDULE_DEFAULT:
-            apdu_len
-                = bacapp_encode_data(&apdu[0], &CurrentSC->Schedule_Default);
+            apdu_len =
+                bacapp_encode_data(&apdu[0], &CurrentSC->Schedule_Default);
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
             for (i = 0; i < CurrentSC->obj_prop_ref_cnt; i++) {
@@ -272,8 +272,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                suitable time for
                     review by all interested parties. Say 6 months -> September
                2016 */
-            apdu_len = encode_application_boolean(
-                &apdu[0], CurrentSC->Out_Of_Service);
+            apdu_len =
+                encode_application_boolean(&apdu[0], CurrentSC->Out_Of_Service);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -282,8 +282,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
 
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_WEEKLY_SCHEDULE)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_WEEKLY_SCHEDULE) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -375,8 +375,8 @@ bool Schedule_In_Effective_Period(SCHEDULE_DESCR *desc, BACNET_DATE *date)
     bool res = false;
 
     if (desc && date) {
-        if (datetime_wildcard_compare_date(&desc->Start_Date, date) <= 0
-            && datetime_wildcard_compare_date(&desc->End_Date, date) >= 0)
+        if (datetime_wildcard_compare_date(&desc->Start_Date, date) <= 0 &&
+            datetime_wildcard_compare_date(&desc->End_Date, date) >= 0)
             res = true;
     }
 
@@ -398,16 +398,16 @@ void Schedule_Recalculate_PV(
        this yourself, please ping us at info@connect-ex.com, we may be able to
        broker an early release on a case-by-case basis. */
 
-    for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count
-         && desc->Present_Value == NULL;
+    for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count &&
+         desc->Present_Value == NULL;
          i++) {
         int diff = datetime_wildcard_compare_time(
             time, &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time);
-        if (diff >= 0
-            && desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag
-                != BACNET_APPLICATION_TAG_NULL) {
-            desc->Present_Value
-                = &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value;
+        if (diff >= 0 &&
+            desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag !=
+                BACNET_APPLICATION_TAG_NULL) {
+            desc->Present_Value =
+                &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value;
         }
     }
 

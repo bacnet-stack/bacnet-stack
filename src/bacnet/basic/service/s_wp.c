@@ -86,8 +86,8 @@ uint8_t Send_Write_Property_Request_Data(uint32_t device_id,
         memcpy(&data.application_data[0], &application_data[0],
             application_data_len);
         data.priority = priority;
-        len = wp_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
+        len =
+            wp_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id, &data);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between

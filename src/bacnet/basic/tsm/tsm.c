@@ -76,7 +76,7 @@ void tsm_set_timeout_handler(tsm_timeout_function pFunction)
 /* returns MAX_TSM_TRANSACTIONS if not found */
 static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
 {
-    unsigned i = 0;                       /* counter */
+    unsigned i = 0; /* counter */
     uint8_t index = MAX_TSM_TRANSACTIONS; /* return value */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
@@ -91,7 +91,7 @@ static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
 
 static uint8_t tsm_find_first_free_index(void)
 {
-    unsigned i = 0;                       /* counter */
+    unsigned i = 0; /* counter */
     uint8_t index = MAX_TSM_TRANSACTIONS; /* return value */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
@@ -107,7 +107,7 @@ static uint8_t tsm_find_first_free_index(void)
 bool tsm_transaction_available(void)
 {
     bool status = false; /* return value */
-    unsigned i = 0;      /* counter */
+    unsigned i = 0; /* counter */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
         if (TSM_List[i].InvokeID == 0) {
@@ -123,11 +123,11 @@ bool tsm_transaction_available(void)
 uint8_t tsm_transaction_idle_count(void)
 {
     uint8_t count = 0; /* return value */
-    unsigned i = 0;    /* counter */
+    unsigned i = 0; /* counter */
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
-        if ((TSM_List[i].InvokeID == 0)
-            && (TSM_List[i].state == TSM_STATE_IDLE)) {
+        if ((TSM_List[i].InvokeID == 0) &&
+            (TSM_List[i].state == TSM_STATE_IDLE)) {
             /* one is available! */
             count++;
         }

@@ -45,8 +45,8 @@
    we need to count down in seconds. */
 /* infinite time duration is defined as 0 */
 static uint32_t DCC_Time_Duration_Seconds = 0;
-static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable
-    = COMMUNICATION_ENABLE;
+static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable =
+    COMMUNICATION_ENABLE;
 /* password is optionally supported */
 
 BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(void)
@@ -128,8 +128,8 @@ int dcc_encode_apdu(uint8_t *apdu,
     uint16_t timeDuration, /* 0=optional */
     BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
     BACNET_CHARACTER_STRING *password)
-{                     /* NULL=optional */
-    int len = 0;      /* length of each encoding */
+{ /* NULL=optional */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
@@ -204,8 +204,8 @@ int dcc_decode_service_request(uint8_t *apdu,
             }
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
-            len += decode_character_string(
-                &apdu[len], len_value_type, password);
+            len +=
+                decode_character_string(&apdu[len], len_value_type, password);
         } else if (password) {
             characterstring_init_ansi(password, NULL);
         }

@@ -73,8 +73,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
@@ -86,8 +86,8 @@ static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf(
             "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
@@ -97,8 +97,8 @@ static void MyAbortHandler(
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
@@ -124,10 +124,10 @@ static void My_Read_Property_Ack_Handler(uint8_t *service_request,
     int len = 0;
     BACNET_READ_PROPERTY_DATA data;
 
-    if (address_match(&Target_Address, src)
-        && (service_data->invoke_id == Request_Invoke_ID)) {
-        len = rp_ack_decode_service_request(
-            service_request, service_len, &data);
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len =
+            rp_ack_decode_service_request(service_request, service_len, &data);
         if (len < 0) {
             printf("<decode failed!>\n");
         } else {
@@ -376,8 +376,8 @@ int main(int argc, char *argv[])
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
-                Request_Invoke_ID
-                    = Send_Read_Property_Request(Target_Device_Object_Instance,
+                Request_Invoke_ID =
+                    Send_Read_Property_Request(Target_Device_Object_Instance,
                         Target_Object_Type, Target_Object_Instance,
                         Target_Object_Property, Target_Object_Index);
             } else if (tsm_invoke_id_free(Request_Invoke_ID))

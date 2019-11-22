@@ -45,8 +45,8 @@ int bacapp_encode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
             return -1;
     }
 
-    len = encode_context_enumerated(
-        &apdu[apdu_len], 2, rule->location_specifier);
+    len =
+        encode_context_enumerated(&apdu[apdu_len], 2, rule->location_specifier);
     apdu_len += len;
 
     if (rule->location_specifier == LOCATION_SPECIFIER_SPECIFIED) {

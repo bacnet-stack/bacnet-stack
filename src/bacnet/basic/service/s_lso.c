@@ -72,8 +72,8 @@ uint8_t Send_Life_Safety_Operation_Data(
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
         pdu_len = npdu_encode_pdu(
             &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
-        len = lso_encode_apdu(
-            &Handler_Transmit_Buffer[pdu_len], invoke_id, data);
+        len =
+            lso_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id, data);
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between

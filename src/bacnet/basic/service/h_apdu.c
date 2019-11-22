@@ -60,42 +60,40 @@ static uint8_t Number_Of_Retries = 3;
 
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
-    confirmed_service_supported[MAX_BACNET_CONFIRMED_SERVICE]
-    = { SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM,
-          SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION,
-          SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION,
-          SERVICE_SUPPORTED_GET_ALARM_SUMMARY,
-          SERVICE_SUPPORTED_GET_ENROLLMENT_SUMMARY,
-          SERVICE_SUPPORTED_SUBSCRIBE_COV, SERVICE_SUPPORTED_ATOMIC_READ_FILE,
-          SERVICE_SUPPORTED_ATOMIC_WRITE_FILE,
-          SERVICE_SUPPORTED_ADD_LIST_ELEMENT,
-          SERVICE_SUPPORTED_REMOVE_LIST_ELEMENT,
-          SERVICE_SUPPORTED_CREATE_OBJECT, SERVICE_SUPPORTED_DELETE_OBJECT,
-          SERVICE_SUPPORTED_READ_PROPERTY,
-          SERVICE_SUPPORTED_READ_PROP_CONDITIONAL,
-          SERVICE_SUPPORTED_READ_PROP_MULTIPLE,
-          SERVICE_SUPPORTED_WRITE_PROPERTY,
-          SERVICE_SUPPORTED_WRITE_PROP_MULTIPLE,
-          SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL,
-          SERVICE_SUPPORTED_PRIVATE_TRANSFER, SERVICE_SUPPORTED_TEXT_MESSAGE,
-          SERVICE_SUPPORTED_REINITIALIZE_DEVICE, SERVICE_SUPPORTED_VT_OPEN,
-          SERVICE_SUPPORTED_VT_CLOSE, SERVICE_SUPPORTED_VT_DATA,
-          SERVICE_SUPPORTED_AUTHENTICATE, SERVICE_SUPPORTED_REQUEST_KEY,
-          SERVICE_SUPPORTED_READ_RANGE, SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION,
-          SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY,
-          SERVICE_SUPPORTED_GET_EVENT_INFORMATION };
+    confirmed_service_supported[MAX_BACNET_CONFIRMED_SERVICE] = {
+        SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM,
+        SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION,
+        SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION,
+        SERVICE_SUPPORTED_GET_ALARM_SUMMARY,
+        SERVICE_SUPPORTED_GET_ENROLLMENT_SUMMARY,
+        SERVICE_SUPPORTED_SUBSCRIBE_COV, SERVICE_SUPPORTED_ATOMIC_READ_FILE,
+        SERVICE_SUPPORTED_ATOMIC_WRITE_FILE, SERVICE_SUPPORTED_ADD_LIST_ELEMENT,
+        SERVICE_SUPPORTED_REMOVE_LIST_ELEMENT, SERVICE_SUPPORTED_CREATE_OBJECT,
+        SERVICE_SUPPORTED_DELETE_OBJECT, SERVICE_SUPPORTED_READ_PROPERTY,
+        SERVICE_SUPPORTED_READ_PROP_CONDITIONAL,
+        SERVICE_SUPPORTED_READ_PROP_MULTIPLE, SERVICE_SUPPORTED_WRITE_PROPERTY,
+        SERVICE_SUPPORTED_WRITE_PROP_MULTIPLE,
+        SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL,
+        SERVICE_SUPPORTED_PRIVATE_TRANSFER, SERVICE_SUPPORTED_TEXT_MESSAGE,
+        SERVICE_SUPPORTED_REINITIALIZE_DEVICE, SERVICE_SUPPORTED_VT_OPEN,
+        SERVICE_SUPPORTED_VT_CLOSE, SERVICE_SUPPORTED_VT_DATA,
+        SERVICE_SUPPORTED_AUTHENTICATE, SERVICE_SUPPORTED_REQUEST_KEY,
+        SERVICE_SUPPORTED_READ_RANGE, SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION,
+        SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY,
+        SERVICE_SUPPORTED_GET_EVENT_INFORMATION
+    };
 
 /* a simple table for crossing the services supported */
 static BACNET_SERVICES_SUPPORTED
-    unconfirmed_service_supported[MAX_BACNET_UNCONFIRMED_SERVICE]
-    = { SERVICE_SUPPORTED_I_AM, SERVICE_SUPPORTED_I_HAVE,
-          SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION,
-          SERVICE_SUPPORTED_UNCONFIRMED_EVENT_NOTIFICATION,
-          SERVICE_SUPPORTED_UNCONFIRMED_PRIVATE_TRANSFER,
-          SERVICE_SUPPORTED_UNCONFIRMED_TEXT_MESSAGE,
-          SERVICE_SUPPORTED_TIME_SYNCHRONIZATION, SERVICE_SUPPORTED_WHO_HAS,
-          SERVICE_SUPPORTED_WHO_IS,
-          SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION };
+    unconfirmed_service_supported[MAX_BACNET_UNCONFIRMED_SERVICE] = {
+        SERVICE_SUPPORTED_I_AM, SERVICE_SUPPORTED_I_HAVE,
+        SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION,
+        SERVICE_SUPPORTED_UNCONFIRMED_EVENT_NOTIFICATION,
+        SERVICE_SUPPORTED_UNCONFIRMED_PRIVATE_TRANSFER,
+        SERVICE_SUPPORTED_UNCONFIRMED_TEXT_MESSAGE,
+        SERVICE_SUPPORTED_TIME_SYNCHRONIZATION, SERVICE_SUPPORTED_WHO_HAS,
+        SERVICE_SUPPORTED_WHO_IS, SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION
+    };
 
 /* Confirmed Function Handlers */
 /* If they are not set, they are handled by a reject message */
@@ -242,8 +240,8 @@ void apdu_set_confirmed_simple_ack_handler(
         case SERVICE_CONFIRMED_VT_CLOSE:
             /* Security Services */
         case SERVICE_CONFIRMED_REQUEST_KEY:
-            Confirmed_ACK_Function[service_choice]
-                = (confirmed_ack_function)pFunction;
+            Confirmed_ACK_Function[service_choice] =
+                (confirmed_ack_function)pFunction;
             break;
         default:
             break;
@@ -314,8 +312,8 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
 
     service_data->segmented_message = (apdu[0] & BIT(3)) ? true : false;
     service_data->more_follows = (apdu[0] & BIT(2)) ? true : false;
-    service_data->segmented_response_accepted
-        = (apdu[0] & BIT(1)) ? true : false;
+    service_data->segmented_response_accepted =
+        (apdu[0] & BIT(1)) ? true : false;
     service_data->max_segs = decode_max_segs(apdu[1]);
     service_data->max_resp = decode_max_apdu(apdu[1]);
     service_data->invoke_id = apdu[2];
@@ -445,8 +443,8 @@ void apdu_handler(BACNET_ADDRESS *src,
                        initiated. */
                     break;
                 }
-                if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE)
-                    && (Confirmed_Function[service_choice]))
+                if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
+                    (Confirmed_Function[service_choice]))
                     Confirmed_Function[service_choice](service_request,
                         service_request_len, src, &service_data);
                 else if (Unrecognized_Service_Handler)
@@ -507,10 +505,10 @@ void apdu_handler(BACNET_ADDRESS *src,
                 }
                 break;
             case PDU_TYPE_COMPLEX_ACK:
-                service_ack_data.segmented_message
-                    = (apdu[0] & BIT(3)) ? true : false;
-                service_ack_data.more_follows
-                    = (apdu[0] & BIT(2)) ? true : false;
+                service_ack_data.segmented_message =
+                    (apdu[0] & BIT(3)) ? true : false;
+                service_ack_data.more_follows =
+                    (apdu[0] & BIT(2)) ? true : false;
                 invoke_id = service_ack_data.invoke_id = apdu[1];
                 len = 2;
                 if (service_ack_data.segmented_message) {
@@ -566,9 +564,9 @@ void apdu_handler(BACNET_ADDRESS *src,
                    VTClose_Error but they may be left as is for now until
                    support for these services is added */
 
-                if (service_choice
-                    == SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over
-                                                                opening tag 0 */
+                if (service_choice ==
+                    SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over
+                                                             opening tag 0 */
                     if (decode_is_opening_tag_number(&apdu[len], 0)) {
                         len++; /* a tag number of 0 is not extended so only one
                                   octet */
@@ -583,9 +581,9 @@ void apdu_handler(BACNET_ADDRESS *src,
                 /* FIXME: we could validate that the tag is enumerated... */
                 len += decode_enumerated(&apdu[len], len_value, &error_code);
 
-                if (service_choice
-                    == SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over
-                                                                closing tag 0 */
+                if (service_choice ==
+                    SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over
+                                                             closing tag 0 */
                     if (decode_is_closing_tag_number(&apdu[len], 0)) {
                         len++; /* a tag number of 0 is not extended so only one
                                   octet */

@@ -105,9 +105,9 @@ void handler_write_property_multiple(uint8_t *service_request,
                      * Array Index' */
                     /* (4) a 'Property Value'; and (5) an optional 'Priority'.
                      */
-                    len = wpm_decode_object_property(
-                        &service_request[decode_len], service_len - decode_len,
-                        &wp_data);
+                    len =
+                        wpm_decode_object_property(&service_request[decode_len],
+                            service_len - decode_len, &wp_data);
                     if (len > 0) {
                         decode_len += len;
 #if PRINT_ENABLED
@@ -175,8 +175,8 @@ WPM_ABORT:
             fprintf(stderr, "WPM: Sending Abort!\n");
 #endif
         } else if (len == BACNET_STATUS_ERROR) {
-            apdu_len
-                = wpm_error_ack_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+            apdu_len =
+                wpm_error_ack_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
                     service_data->invoke_id, &wp_data);
 #if PRINT_ENABLED
             fprintf(stderr, "WPM: Sending Error!\n");

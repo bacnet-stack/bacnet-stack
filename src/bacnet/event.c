@@ -42,7 +42,7 @@
 int uevent_notify_encode_apdu(
     uint8_t *apdu, BACNET_EVENT_NOTIFICATION_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
@@ -65,7 +65,7 @@ int uevent_notify_encode_apdu(
 int cevent_notify_encode_apdu(
     uint8_t *apdu, uint8_t invoke_id, BACNET_EVENT_NOTIFICATION_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
@@ -90,7 +90,7 @@ int cevent_notify_encode_apdu(
 int event_notify_encode_service_request(
     uint8_t *apdu, BACNET_EVENT_NOTIFICATION_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
@@ -229,10 +229,10 @@ int event_notify_encode_service_request(
                                 break;
 
                             case CHANGE_OF_VALUE_BITS:
-                                len = encode_context_bitstring(&apdu[apdu_len],
-                                    0,
-                                    &data->notificationParams.changeOfValue
-                                         .newValue.changedBits);
+                                len =
+                                    encode_context_bitstring(&apdu[apdu_len], 0,
+                                        &data->notificationParams.changeOfValue
+                                             .newValue.changedBits);
                                 apdu_len += len;
                                 break;
 
@@ -404,8 +404,7 @@ int event_notify_decode_service_request(
     if (apdu_len && data) {
         /* tag 0 - processIdentifier */
         if ((section_length = decode_context_unsigned(
-                 &apdu[len], 0, &data->processIdentifier))
-            == -1) {
+                 &apdu[len], 0, &data->processIdentifier)) == -1) {
             return -1;
         } else {
             len += section_length;
@@ -414,8 +413,7 @@ int event_notify_decode_service_request(
         /* tag 1 - initiatingObjectIdentifier */
         if ((section_length = decode_context_object_id(&apdu[len], 1,
                  &data->initiatingObjectIdentifier.type,
-                 &data->initiatingObjectIdentifier.instance))
-            == -1) {
+                 &data->initiatingObjectIdentifier.instance)) == -1) {
             return -1;
         } else {
             len += section_length;
@@ -423,31 +421,28 @@ int event_notify_decode_service_request(
         /* tag 2 - eventObjectIdentifier */
         if ((section_length = decode_context_object_id(&apdu[len], 2,
                  &data->eventObjectIdentifier.type,
-                 &data->eventObjectIdentifier.instance))
-            == -1) {
+                 &data->eventObjectIdentifier.instance)) == -1) {
             return -1;
         } else {
             len += section_length;
         }
         /* tag 3 - timeStamp */
         if ((section_length = bacapp_decode_context_timestamp(
-                 &apdu[len], 3, &data->timeStamp))
-            == -1) {
+                 &apdu[len], 3, &data->timeStamp)) == -1) {
             return -1;
         } else {
             len += section_length;
         }
         /* tag 4 - noticicationClass */
         if ((section_length = decode_context_unsigned(
-                 &apdu[len], 4, &data->notificationClass))
-            == -1) {
+                 &apdu[len], 4, &data->notificationClass)) == -1) {
             return -1;
         } else {
             len += section_length;
         }
         /* tag 5 - priority */
-        if ((section_length = decode_context_unsigned(&apdu[len], 5, &value))
-            == -1) {
+        if ((section_length = decode_context_unsigned(&apdu[len], 5, &value)) ==
+            -1) {
             return -1;
         } else {
             if (value > 0xff) {
@@ -458,8 +453,8 @@ int event_notify_decode_service_request(
             }
         }
         /* tag 6 - eventType */
-        if ((section_length = decode_context_enumerated(&apdu[len], 6, &value))
-            == -1) {
+        if ((section_length =
+                    decode_context_enumerated(&apdu[len], 6, &value)) == -1) {
             return -1;
         } else {
             data->eventType = (BACNET_EVENT_TYPE)value;
@@ -470,8 +465,7 @@ int event_notify_decode_service_request(
         if (decode_is_context_tag(&apdu[len], 7)) {
             if (data->messageText != NULL) {
                 if ((section_length = decode_context_character_string(
-                         &apdu[len], 7, data->messageText))
-                    == -1) {
+                         &apdu[len], 7, data->messageText)) == -1) {
                     /*FIXME This is an optional parameter */
                     return -1;
                 } else {
@@ -487,8 +481,8 @@ int event_notify_decode_service_request(
         }
 
         /* tag 8 - notifyType */
-        if ((section_length = decode_context_enumerated(&apdu[len], 8, &value))
-            == -1) {
+        if ((section_length =
+                    decode_context_enumerated(&apdu[len], 8, &value)) == -1) {
             return -1;
         } else {
             data->notifyType = (BACNET_NOTIFY_TYPE)value;
@@ -498,17 +492,16 @@ int event_notify_decode_service_request(
             case NOTIFY_ALARM:
             case NOTIFY_EVENT:
                 /* tag 9 - ackRequired */
-                section_length = decode_context_boolean2(
-                    &apdu[len], 9, &data->ackRequired);
+                section_length =
+                    decode_context_boolean2(&apdu[len], 9, &data->ackRequired);
                 if (section_length == -1) {
                     return -1;
                 }
                 len += section_length;
 
                 /* tag 10 - fromState */
-                if ((section_length
-                        = decode_context_enumerated(&apdu[len], 10, &value))
-                    == -1) {
+                if ((section_length = decode_context_enumerated(
+                         &apdu[len], 10, &value)) == -1) {
                     return -1;
                 } else {
                     data->fromState = (BACNET_EVENT_STATE)value;
@@ -523,8 +516,8 @@ int event_notify_decode_service_request(
                 break;
         }
         /* tag 11 - toState */
-        if ((section_length = decode_context_enumerated(&apdu[len], 11, &value))
-            == -1) {
+        if ((section_length =
+                    decode_context_enumerated(&apdu[len], 11, &value)) == -1) {
             return -1;
         } else {
             data->toState = (BACNET_EVENT_STATE)value;
@@ -548,20 +541,20 @@ int event_notify_decode_service_request(
 
                 switch (data->eventType) {
                     case EVENT_CHANGE_OF_BITSTRING:
-                        if (-1
-                            == (section_length = decode_context_bitstring(
-                                    &apdu[len], 0,
-                                    &data->notificationParams.changeOfBitstring
-                                         .referencedBitString))) {
+                        if (-1 ==
+                            (section_length = decode_context_bitstring(
+                                 &apdu[len], 0,
+                                 &data->notificationParams.changeOfBitstring
+                                      .referencedBitString))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_bitstring(&apdu[len], 1,
-                                       &data->notificationParams
-                                            .changeOfBitstring.statusFlags))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_bitstring(&apdu[len], 1,
+                                        &data->notificationParams
+                                             .changeOfBitstring.statusFlags))) {
                             return -1;
                         }
                         len += section_length;
@@ -569,21 +562,21 @@ int event_notify_decode_service_request(
                         break;
 
                     case EVENT_CHANGE_OF_STATE:
-                        if (-1
-                            == (section_length
-                                   = bacapp_decode_context_property_state(
-                                       &apdu[len], 0,
-                                       &data->notificationParams.changeOfState
-                                            .newState))) {
+                        if (-1 ==
+                            (section_length =
+                                    bacapp_decode_context_property_state(
+                                        &apdu[len], 0,
+                                        &data->notificationParams.changeOfState
+                                             .newState))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_bitstring(&apdu[len], 1,
-                                       &data->notificationParams.changeOfState
-                                            .statusFlags))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_bitstring(&apdu[len], 1,
+                                        &data->notificationParams.changeOfState
+                                             .statusFlags))) {
                             return -1;
                         }
                         len += section_length;
@@ -598,30 +591,30 @@ int event_notify_decode_service_request(
 
                         if (decode_is_context_tag(
                                 &apdu[len], CHANGE_OF_VALUE_BITS)) {
-                            if (-1
-                                == (section_length = decode_context_bitstring(
-                                        &apdu[len], 0,
-                                        &data->notificationParams.changeOfValue
-                                             .newValue.changedBits))) {
+                            if (-1 ==
+                                (section_length = decode_context_bitstring(
+                                     &apdu[len], 0,
+                                     &data->notificationParams.changeOfValue
+                                          .newValue.changedBits))) {
                                 return -1;
                             }
 
                             len += section_length;
-                            data->notificationParams.changeOfValue.tag
-                                = CHANGE_OF_VALUE_BITS;
+                            data->notificationParams.changeOfValue.tag =
+                                CHANGE_OF_VALUE_BITS;
                         } else if (decode_is_context_tag(
                                        &apdu[len], CHANGE_OF_VALUE_REAL)) {
-                            if (-1
-                                == (section_length = decode_context_real(
-                                        &apdu[len], 1,
-                                        &data->notificationParams.changeOfValue
-                                             .newValue.changeValue))) {
+                            if (-1 ==
+                                (section_length = decode_context_real(
+                                     &apdu[len], 1,
+                                     &data->notificationParams.changeOfValue
+                                          .newValue.changeValue))) {
                                 return -1;
                             }
 
                             len += section_length;
-                            data->notificationParams.changeOfValue.tag
-                                = CHANGE_OF_VALUE_REAL;
+                            data->notificationParams.changeOfValue.tag =
+                                CHANGE_OF_VALUE_REAL;
                         } else {
                             return -1;
                         }
@@ -630,183 +623,177 @@ int event_notify_decode_service_request(
                         }
                         len++;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_bitstring(&apdu[len], 1,
-                                       &data->notificationParams.changeOfValue
-                                            .statusFlags))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_bitstring(&apdu[len], 1,
+                                        &data->notificationParams.changeOfValue
+                                             .statusFlags))) {
                             return -1;
                         }
                         len += section_length;
                         break;
 
                     case EVENT_FLOATING_LIMIT:
-                        if (-1
-                            == (section_length
-                                   = decode_context_real(&apdu[len], 0,
-                                       &data->notificationParams.floatingLimit
-                                            .referenceValue))) {
+                        if (-1 ==
+                            (section_length = decode_context_real(&apdu[len], 0,
+                                 &data->notificationParams.floatingLimit
+                                      .referenceValue))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_bitstring(&apdu[len], 1,
-                                       &data->notificationParams.floatingLimit
-                                            .statusFlags))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_bitstring(&apdu[len], 1,
+                                        &data->notificationParams.floatingLimit
+                                             .statusFlags))) {
                             return -1;
                         }
                         len += section_length;
-                        if (-1
-                            == (section_length
-                                   = decode_context_real(&apdu[len], 2,
-                                       &data->notificationParams.floatingLimit
-                                            .setPointValue))) {
+                        if (-1 ==
+                            (section_length = decode_context_real(&apdu[len], 2,
+                                 &data->notificationParams.floatingLimit
+                                      .setPointValue))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_real(&apdu[len], 3,
-                                       &data->notificationParams.floatingLimit
-                                            .errorLimit))) {
+                        if (-1 ==
+                            (section_length = decode_context_real(&apdu[len], 3,
+                                 &data->notificationParams.floatingLimit
+                                      .errorLimit))) {
                             return -1;
                         }
                         len += section_length;
                         break;
 
                     case EVENT_OUT_OF_RANGE:
-                        if (-1
-                            == (section_length
-                                   = decode_context_real(&apdu[len], 0,
-                                       &data->notificationParams.outOfRange
-                                            .exceedingValue))) {
+                        if (-1 ==
+                            (section_length = decode_context_real(&apdu[len], 0,
+                                 &data->notificationParams.outOfRange
+                                      .exceedingValue))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_bitstring(&apdu[len], 1,
-                                       &data->notificationParams.outOfRange
-                                            .statusFlags))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_bitstring(&apdu[len], 1,
+                                        &data->notificationParams.outOfRange
+                                             .statusFlags))) {
                             return -1;
                         }
                         len += section_length;
-                        if (-1
-                            == (section_length
-                                   = decode_context_real(&apdu[len], 2,
-                                       &data->notificationParams.outOfRange
-                                            .deadband))) {
+                        if (-1 ==
+                            (section_length = decode_context_real(&apdu[len], 2,
+                                 &data->notificationParams.outOfRange
+                                      .deadband))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_real(&apdu[len], 3,
-                                       &data->notificationParams.outOfRange
-                                            .exceededLimit))) {
+                        if (-1 ==
+                            (section_length = decode_context_real(&apdu[len], 3,
+                                 &data->notificationParams.outOfRange
+                                      .exceededLimit))) {
                             return -1;
                         }
                         len += section_length;
                         break;
 
                     case EVENT_CHANGE_OF_LIFE_SAFETY:
-                        if (-1
-                            == (section_length = decode_context_enumerated(
-                                    &apdu[len], 0, &value))) {
+                        if (-1 ==
+                            (section_length = decode_context_enumerated(
+                                 &apdu[len], 0, &value))) {
                             return -1;
                         }
-                        data->notificationParams.changeOfLifeSafety.newState
-                            = (BACNET_LIFE_SAFETY_STATE)value;
+                        data->notificationParams.changeOfLifeSafety.newState =
+                            (BACNET_LIFE_SAFETY_STATE)value;
                         len += section_length;
 
-                        if (-1
-                            == (section_length = decode_context_enumerated(
-                                    &apdu[len], 1, &value))) {
+                        if (-1 ==
+                            (section_length = decode_context_enumerated(
+                                 &apdu[len], 1, &value))) {
                             return -1;
                         }
-                        data->notificationParams.changeOfLifeSafety.newMode
-                            = (BACNET_LIFE_SAFETY_MODE)value;
+                        data->notificationParams.changeOfLifeSafety.newMode =
+                            (BACNET_LIFE_SAFETY_MODE)value;
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_bitstring(&apdu[len], 2,
-                                       &data->notificationParams
-                                            .changeOfLifeSafety.statusFlags))) {
+                        if (-1 ==
+                            (section_length = decode_context_bitstring(
+                                 &apdu[len], 2,
+                                 &data->notificationParams.changeOfLifeSafety
+                                      .statusFlags))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length = decode_context_enumerated(
-                                    &apdu[len], 3, &value))) {
+                        if (-1 ==
+                            (section_length = decode_context_enumerated(
+                                 &apdu[len], 3, &value))) {
                             return -1;
                         }
                         data->notificationParams.changeOfLifeSafety
-                            .operationExpected
-                            = (BACNET_LIFE_SAFETY_OPERATION)value;
+                            .operationExpected =
+                            (BACNET_LIFE_SAFETY_OPERATION)value;
                         len += section_length;
                         break;
 
                     case EVENT_BUFFER_READY:
-                        if (-1
-                            == (section_length
-                                   = bacapp_decode_context_device_obj_property_ref(
-                                       &apdu[len], 0,
-                                       &data->notificationParams.bufferReady
-                                            .bufferProperty))) {
+                        if (-1 ==
+                            (section_length =
+                                    bacapp_decode_context_device_obj_property_ref(
+                                        &apdu[len], 0,
+                                        &data->notificationParams.bufferReady
+                                             .bufferProperty))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_unsigned(&apdu[len], 1,
-                                       &data->notificationParams.bufferReady
-                                            .previousNotification))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_unsigned(&apdu[len], 1,
+                                        &data->notificationParams.bufferReady
+                                             .previousNotification))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_unsigned(&apdu[len], 2,
-                                       &data->notificationParams.bufferReady
-                                            .currentNotification))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_unsigned(&apdu[len], 2,
+                                        &data->notificationParams.bufferReady
+                                             .currentNotification))) {
                             return -1;
                         }
                         len += section_length;
                         break;
 
                     case EVENT_UNSIGNED_RANGE:
-                        if (-1
-                            == (section_length
-                                   = decode_context_unsigned(&apdu[len], 0,
-                                       &data->notificationParams.unsignedRange
-                                            .exceedingValue))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_unsigned(&apdu[len], 0,
+                                        &data->notificationParams.unsignedRange
+                                             .exceedingValue))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_bitstring(&apdu[len], 1,
-                                       &data->notificationParams.unsignedRange
-                                            .statusFlags))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_bitstring(&apdu[len], 1,
+                                        &data->notificationParams.unsignedRange
+                                             .statusFlags))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1
-                            == (section_length
-                                   = decode_context_unsigned(&apdu[len], 2,
-                                       &data->notificationParams.unsignedRange
-                                            .exceededLimit))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_unsigned(&apdu[len], 2,
+                                        &data->notificationParams.unsignedRange
+                                             .exceededLimit))) {
                             return -1;
                         }
                         len += section_length;
@@ -852,14 +839,14 @@ void testBaseEventState(Test *pTest)
 {
     ct_test(pTest, data.processIdentifier == data2.processIdentifier);
     ct_test(pTest,
-        data.initiatingObjectIdentifier.instance
-            == data2.initiatingObjectIdentifier.instance);
+        data.initiatingObjectIdentifier.instance ==
+            data2.initiatingObjectIdentifier.instance);
     ct_test(pTest,
-        data.initiatingObjectIdentifier.type
-            == data2.initiatingObjectIdentifier.type);
+        data.initiatingObjectIdentifier.type ==
+            data2.initiatingObjectIdentifier.type);
     ct_test(pTest,
-        data.eventObjectIdentifier.instance
-            == data2.eventObjectIdentifier.instance);
+        data.eventObjectIdentifier.instance ==
+            data2.eventObjectIdentifier.instance);
     ct_test(pTest,
         data.eventObjectIdentifier.type == data2.eventObjectIdentifier.type);
     ct_test(pTest, data.notificationClass == data2.notificationClass);
@@ -882,51 +869,51 @@ void testBaseEventState(Test *pTest)
     switch (data.timeStamp.tag) {
         case TIME_STAMP_SEQUENCE:
             ct_test(pTest,
-                data.timeStamp.value.sequenceNum
-                    == data2.timeStamp.value.sequenceNum);
+                data.timeStamp.value.sequenceNum ==
+                    data2.timeStamp.value.sequenceNum);
             break;
 
         case TIME_STAMP_DATETIME:
             ct_test(pTest,
-                data.timeStamp.value.dateTime.time.hour
-                    == data2.timeStamp.value.dateTime.time.hour);
+                data.timeStamp.value.dateTime.time.hour ==
+                    data2.timeStamp.value.dateTime.time.hour);
             ct_test(pTest,
-                data.timeStamp.value.dateTime.time.min
-                    == data2.timeStamp.value.dateTime.time.min);
+                data.timeStamp.value.dateTime.time.min ==
+                    data2.timeStamp.value.dateTime.time.min);
             ct_test(pTest,
-                data.timeStamp.value.dateTime.time.sec
-                    == data2.timeStamp.value.dateTime.time.sec);
+                data.timeStamp.value.dateTime.time.sec ==
+                    data2.timeStamp.value.dateTime.time.sec);
             ct_test(pTest,
-                data.timeStamp.value.dateTime.time.hundredths
-                    == data2.timeStamp.value.dateTime.time.hundredths);
+                data.timeStamp.value.dateTime.time.hundredths ==
+                    data2.timeStamp.value.dateTime.time.hundredths);
 
             ct_test(pTest,
-                data.timeStamp.value.dateTime.date.day
-                    == data2.timeStamp.value.dateTime.date.day);
+                data.timeStamp.value.dateTime.date.day ==
+                    data2.timeStamp.value.dateTime.date.day);
             ct_test(pTest,
-                data.timeStamp.value.dateTime.date.month
-                    == data2.timeStamp.value.dateTime.date.month);
+                data.timeStamp.value.dateTime.date.month ==
+                    data2.timeStamp.value.dateTime.date.month);
             ct_test(pTest,
-                data.timeStamp.value.dateTime.date.wday
-                    == data2.timeStamp.value.dateTime.date.wday);
+                data.timeStamp.value.dateTime.date.wday ==
+                    data2.timeStamp.value.dateTime.date.wday);
             ct_test(pTest,
-                data.timeStamp.value.dateTime.date.year
-                    == data2.timeStamp.value.dateTime.date.year);
+                data.timeStamp.value.dateTime.date.year ==
+                    data2.timeStamp.value.dateTime.date.year);
             break;
 
         case TIME_STAMP_TIME:
             ct_test(pTest,
-                data.timeStamp.value.time.hour
-                    == data2.timeStamp.value.time.hour);
+                data.timeStamp.value.time.hour ==
+                    data2.timeStamp.value.time.hour);
             ct_test(pTest,
-                data.timeStamp.value.time.min
-                    == data2.timeStamp.value.time.min);
+                data.timeStamp.value.time.min ==
+                    data2.timeStamp.value.time.min);
             ct_test(pTest,
-                data.timeStamp.value.time.sec
-                    == data2.timeStamp.value.time.sec);
+                data.timeStamp.value.time.sec ==
+                    data2.timeStamp.value.time.sec);
             ct_test(pTest,
-                data.timeStamp.value.time.hundredths
-                    == data2.timeStamp.value.time.hundredths);
+                data.timeStamp.value.time.hundredths ==
+                    data2.timeStamp.value.time.hundredths);
             break;
 
         default:
@@ -963,8 +950,8 @@ void testEventEventState(Test *pTest)
 
     data.eventType = EVENT_CHANGE_OF_STATE;
     data.notificationParams.changeOfState.newState.tag = UNITS;
-    data.notificationParams.changeOfState.newState.state.units
-        = UNITS_SQUARE_METERS;
+    data.notificationParams.changeOfState.newState.state.units =
+        UNITS_SQUARE_METERS;
 
     bitstring_init(&data.notificationParams.changeOfState.statusFlags);
     bitstring_set_bit(&data.notificationParams.changeOfState.statusFlags,
@@ -984,11 +971,11 @@ void testEventEventState(Test *pTest)
     testBaseEventState(pTest);
 
     ct_test(pTest,
-        data.notificationParams.changeOfState.newState.tag
-            == data2.notificationParams.changeOfState.newState.tag);
+        data.notificationParams.changeOfState.newState.tag ==
+            data2.notificationParams.changeOfState.newState.tag);
     ct_test(pTest,
-        data.notificationParams.changeOfState.newState.state.units
-            == data2.notificationParams.changeOfState.newState.state.units);
+        data.notificationParams.changeOfState.newState.state.units ==
+            data2.notificationParams.changeOfState.newState.state.units);
 
     ct_test(pTest,
         bitstring_same(&data.notificationParams.changeOfState.statusFlags,
@@ -1026,11 +1013,11 @@ void testEventEventState(Test *pTest)
     ct_test(pTest, inLen == outLen);
     testBaseEventState(pTest);
     ct_test(pTest,
-        data.notificationParams.changeOfState.newState.tag
-            == data2.notificationParams.changeOfState.newState.tag);
+        data.notificationParams.changeOfState.newState.tag ==
+            data2.notificationParams.changeOfState.newState.tag);
     ct_test(pTest,
-        data.notificationParams.changeOfState.newState.state.units
-            == data2.notificationParams.changeOfState.newState.state.units);
+        data.notificationParams.changeOfState.newState.state.units ==
+            data2.notificationParams.changeOfState.newState.state.units);
 
     /**********************************************************************************/
     /**********************************************************************************/
@@ -1134,12 +1121,12 @@ void testEventEventState(Test *pTest)
             &data2.notificationParams.changeOfValue.statusFlags));
 
     ct_test(pTest,
-        data.notificationParams.changeOfValue.tag
-            == data2.notificationParams.changeOfValue.tag);
+        data.notificationParams.changeOfValue.tag ==
+            data2.notificationParams.changeOfValue.tag);
 
     ct_test(pTest,
-        data.notificationParams.changeOfValue.newValue.changeValue
-            == data2.notificationParams.changeOfValue.newValue.changeValue);
+        data.notificationParams.changeOfValue.newValue.changeValue ==
+            data2.notificationParams.changeOfValue.newValue.changeValue);
 
     /*
      ** Event Type = EVENT_CHANGE_OF_VALUE - bitstring value
@@ -1172,8 +1159,8 @@ void testEventEventState(Test *pTest)
             &data2.notificationParams.changeOfValue.statusFlags));
 
     ct_test(pTest,
-        data.notificationParams.changeOfValue.tag
-            == data2.notificationParams.changeOfValue.tag);
+        data.notificationParams.changeOfValue.tag ==
+            data2.notificationParams.changeOfValue.tag);
 
     ct_test(pTest,
         bitstring_same(
@@ -1217,16 +1204,16 @@ void testEventEventState(Test *pTest)
     testBaseEventState(pTest);
 
     ct_test(pTest,
-        data.notificationParams.floatingLimit.referenceValue
-            == data2.notificationParams.floatingLimit.referenceValue);
+        data.notificationParams.floatingLimit.referenceValue ==
+            data2.notificationParams.floatingLimit.referenceValue);
 
     ct_test(pTest,
-        data.notificationParams.floatingLimit.setPointValue
-            == data2.notificationParams.floatingLimit.setPointValue);
+        data.notificationParams.floatingLimit.setPointValue ==
+            data2.notificationParams.floatingLimit.setPointValue);
 
     ct_test(pTest,
-        data.notificationParams.floatingLimit.errorLimit
-            == data2.notificationParams.floatingLimit.errorLimit);
+        data.notificationParams.floatingLimit.errorLimit ==
+            data2.notificationParams.floatingLimit.errorLimit);
     ct_test(pTest,
         bitstring_same(&data.notificationParams.floatingLimit.statusFlags,
             &data2.notificationParams.floatingLimit.statusFlags));
@@ -1268,16 +1255,16 @@ void testEventEventState(Test *pTest)
     testBaseEventState(pTest);
 
     ct_test(pTest,
-        data.notificationParams.outOfRange.deadband
-            == data2.notificationParams.outOfRange.deadband);
+        data.notificationParams.outOfRange.deadband ==
+            data2.notificationParams.outOfRange.deadband);
 
     ct_test(pTest,
-        data.notificationParams.outOfRange.exceededLimit
-            == data2.notificationParams.outOfRange.exceededLimit);
+        data.notificationParams.outOfRange.exceededLimit ==
+            data2.notificationParams.outOfRange.exceededLimit);
 
     ct_test(pTest,
-        data.notificationParams.outOfRange.exceedingValue
-            == data2.notificationParams.outOfRange.exceedingValue);
+        data.notificationParams.outOfRange.exceedingValue ==
+            data2.notificationParams.outOfRange.exceedingValue);
     ct_test(pTest,
         bitstring_same(&data.notificationParams.outOfRange.statusFlags,
             &data2.notificationParams.outOfRange.statusFlags));
@@ -1293,11 +1280,11 @@ void testEventEventState(Test *pTest)
      ** Event Type = EVENT_CHANGE_OF_LIFE_SAFETY
      */
     data.eventType = EVENT_CHANGE_OF_LIFE_SAFETY;
-    data.notificationParams.changeOfLifeSafety.newState
-        = LIFE_SAFETY_STATE_ALARM;
+    data.notificationParams.changeOfLifeSafety.newState =
+        LIFE_SAFETY_STATE_ALARM;
     data.notificationParams.changeOfLifeSafety.newMode = LIFE_SAFETY_MODE_ARMED;
-    data.notificationParams.changeOfLifeSafety.operationExpected
-        = LIFE_SAFETY_OP_RESET;
+    data.notificationParams.changeOfLifeSafety.operationExpected =
+        LIFE_SAFETY_OP_RESET;
 
     bitstring_init(&data.notificationParams.changeOfLifeSafety.statusFlags);
 
@@ -1321,16 +1308,16 @@ void testEventEventState(Test *pTest)
     testBaseEventState(pTest);
 
     ct_test(pTest,
-        data.notificationParams.changeOfLifeSafety.newMode
-            == data2.notificationParams.changeOfLifeSafety.newMode);
+        data.notificationParams.changeOfLifeSafety.newMode ==
+            data2.notificationParams.changeOfLifeSafety.newMode);
 
     ct_test(pTest,
-        data.notificationParams.changeOfLifeSafety.newState
-            == data2.notificationParams.changeOfLifeSafety.newState);
+        data.notificationParams.changeOfLifeSafety.newState ==
+            data2.notificationParams.changeOfLifeSafety.newState);
 
     ct_test(pTest,
-        data.notificationParams.changeOfLifeSafety.operationExpected
-            == data2.notificationParams.changeOfLifeSafety.operationExpected);
+        data.notificationParams.changeOfLifeSafety.operationExpected ==
+            data2.notificationParams.changeOfLifeSafety.operationExpected);
 
     ct_test(pTest,
         bitstring_same(&data.notificationParams.changeOfLifeSafety.statusFlags,
@@ -1372,12 +1359,12 @@ void testEventEventState(Test *pTest)
     testBaseEventState(pTest);
 
     ct_test(pTest,
-        data.notificationParams.unsignedRange.exceedingValue
-            == data2.notificationParams.unsignedRange.exceedingValue);
+        data.notificationParams.unsignedRange.exceedingValue ==
+            data2.notificationParams.unsignedRange.exceedingValue);
 
     ct_test(pTest,
-        data.notificationParams.unsignedRange.exceededLimit
-            == data2.notificationParams.unsignedRange.exceededLimit);
+        data.notificationParams.unsignedRange.exceededLimit ==
+            data2.notificationParams.unsignedRange.exceededLimit);
 
     ct_test(pTest,
         bitstring_same(&data.notificationParams.unsignedRange.statusFlags,
@@ -1396,16 +1383,16 @@ void testEventEventState(Test *pTest)
     data.eventType = EVENT_BUFFER_READY;
     data.notificationParams.bufferReady.previousNotification = 1234;
     data.notificationParams.bufferReady.currentNotification = 2345;
-    data.notificationParams.bufferReady.bufferProperty.deviceIdentifier.type
-        = OBJECT_DEVICE;
-    data.notificationParams.bufferReady.bufferProperty.deviceIdentifier.instance
-        = 500;
-    data.notificationParams.bufferReady.bufferProperty.objectIdentifier.type
-        = OBJECT_ANALOG_INPUT;
-    data.notificationParams.bufferReady.bufferProperty.objectIdentifier.instance
-        = 100;
-    data.notificationParams.bufferReady.bufferProperty.propertyIdentifier
-        = PROP_PRESENT_VALUE;
+    data.notificationParams.bufferReady.bufferProperty.deviceIdentifier.type =
+        OBJECT_DEVICE;
+    data.notificationParams.bufferReady.bufferProperty.deviceIdentifier
+        .instance = 500;
+    data.notificationParams.bufferReady.bufferProperty.objectIdentifier.type =
+        OBJECT_ANALOG_INPUT;
+    data.notificationParams.bufferReady.bufferProperty.objectIdentifier
+        .instance = 100;
+    data.notificationParams.bufferReady.bufferProperty.propertyIdentifier =
+        PROP_PRESENT_VALUE;
     data.notificationParams.bufferReady.bufferProperty.arrayIndex = 0;
 
     memset(buffer, 0, MAX_APDU);
@@ -1419,43 +1406,45 @@ void testEventEventState(Test *pTest)
     testBaseEventState(pTest);
 
     ct_test(pTest,
-        data.notificationParams.bufferReady.previousNotification
-            == data2.notificationParams.bufferReady.previousNotification);
+        data.notificationParams.bufferReady.previousNotification ==
+            data2.notificationParams.bufferReady.previousNotification);
 
     ct_test(pTest,
-        data.notificationParams.bufferReady.currentNotification
-            == data2.notificationParams.bufferReady.currentNotification);
-
-    ct_test(pTest,
-        data.notificationParams.bufferReady.bufferProperty.deviceIdentifier.type
-            == data2.notificationParams.bufferReady.bufferProperty
-                   .deviceIdentifier.type);
+        data.notificationParams.bufferReady.currentNotification ==
+            data2.notificationParams.bufferReady.currentNotification);
 
     ct_test(pTest,
         data.notificationParams.bufferReady.bufferProperty.deviceIdentifier
-                .instance
-            == data2.notificationParams.bufferReady.bufferProperty
-                   .deviceIdentifier.instance);
+                .type ==
+            data2.notificationParams.bufferReady.bufferProperty.deviceIdentifier
+                .type);
+
+    ct_test(pTest,
+        data.notificationParams.bufferReady.bufferProperty.deviceIdentifier
+                .instance ==
+            data2.notificationParams.bufferReady.bufferProperty.deviceIdentifier
+                .instance);
 
     ct_test(pTest,
         data.notificationParams.bufferReady.bufferProperty.objectIdentifier
-                .instance
-            == data2.notificationParams.bufferReady.bufferProperty
-                   .objectIdentifier.instance);
+                .instance ==
+            data2.notificationParams.bufferReady.bufferProperty.objectIdentifier
+                .instance);
 
     ct_test(pTest,
-        data.notificationParams.bufferReady.bufferProperty.objectIdentifier.type
-            == data2.notificationParams.bufferReady.bufferProperty
-                   .objectIdentifier.type);
+        data.notificationParams.bufferReady.bufferProperty.objectIdentifier
+                .type ==
+            data2.notificationParams.bufferReady.bufferProperty.objectIdentifier
+                .type);
 
     ct_test(pTest,
-        data.notificationParams.bufferReady.bufferProperty.propertyIdentifier
-            == data2.notificationParams.bufferReady.bufferProperty
-                   .propertyIdentifier);
+        data.notificationParams.bufferReady.bufferProperty.propertyIdentifier ==
+            data2.notificationParams.bufferReady.bufferProperty
+                .propertyIdentifier);
 
     ct_test(pTest,
-        data.notificationParams.bufferReady.bufferProperty.arrayIndex
-            == data2.notificationParams.bufferReady.bufferProperty.arrayIndex);
+        data.notificationParams.bufferReady.bufferProperty.arrayIndex ==
+            data2.notificationParams.bufferReady.bufferProperty.arrayIndex);
 }
 
 #ifdef TEST_EVENT

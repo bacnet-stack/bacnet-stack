@@ -207,8 +207,8 @@ static void handler_timesync_update(
             /* Interval_Minutes = 1  2  3  4  5  6  8  9  10  12  15  16
                18  20  24  30  32  36  40  45  48  60  72  80  90  96  120
                144  160  180  240  288  360  480  720  1440   */
-            current_minutes
-                = datetime_minutes_since_midnight(&Next_Sync_Time.time);
+            current_minutes =
+                datetime_minutes_since_midnight(&Next_Sync_Time.time);
             interval = current_minutes / device_interval;
             interval++;
             next_minutes = interval * device_interval;

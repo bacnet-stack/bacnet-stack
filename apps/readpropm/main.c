@@ -72,8 +72,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
@@ -85,8 +85,8 @@ static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf(
             "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
@@ -97,8 +97,8 @@ static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
     /* FIXME: verify src and invoke id */
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
@@ -129,8 +129,8 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
 
-    if (address_match(&Target_Address, src)
-        && (service_data->invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
         rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
         if (rpm_data) {
             len = rpm_ack_decode_service_request(
@@ -386,8 +386,8 @@ int main(int argc, char *argv[])
             /* is there another property? */
             property_token = strtok(NULL, ",");
             if (property_token) {
-                rpm_property->next
-                    = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+                rpm_property->next =
+                    calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
                 rpm_property = rpm_property->next;
             } else {
                 rpm_property->next = NULL;

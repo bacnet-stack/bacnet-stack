@@ -71,8 +71,8 @@ int cl_encode_apdu(uint8_t *apdu, BACNET_ACTION_LIST *bcl)
     int len = 0;
     int apdu_len = 0;
 
-    if (bcl->Device_Id.instance >= 0
-        && bcl->Device_Id.instance <= BACNET_MAX_INSTANCE) {
+    if (bcl->Device_Id.instance >= 0 &&
+        bcl->Device_Id.instance <= BACNET_MAX_INSTANCE) {
         len = encode_context_object_id(
             &apdu[apdu_len], 0, bcl->Device_Id.type, bcl->Device_Id.instance);
         if (len < 0)
@@ -85,8 +85,8 @@ int cl_encode_apdu(uint8_t *apdu, BACNET_ACTION_LIST *bcl)
     if (len < 0)
         return BACNET_STATUS_REJECT;
     apdu_len += len;
-    len = encode_context_enumerated(
-        &apdu[apdu_len], 2, bcl->Property_Identifier);
+    len =
+        encode_context_enumerated(&apdu[apdu_len], 2, bcl->Property_Identifier);
     if (len < 0)
         return BACNET_STATUS_REJECT;
     apdu_len += len;
@@ -590,8 +590,8 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint16_t apdu_max = 0;
     COMMAND_DESCR *CurrentCommand;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu_max = rpdata->application_data_len;
@@ -612,8 +612,8 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             Command_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_OBJECT_TYPE:
@@ -635,13 +635,13 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_ACTION:
             /* TODO */
             if (rpdata->array_index == 0)
-                apdu_len = encode_application_unsigned(
-                    &apdu[0], MAX_COMMAND_ACTIONS);
+                apdu_len =
+                    encode_application_unsigned(&apdu[0], MAX_COMMAND_ACTIONS);
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 int i;
                 for (i = 0; i < MAX_COMMAND_ACTIONS; i++) {
-                    BACNET_ACTION_LIST *Curr_CL_Member
-                        = &CurrentCommand->Action[0];
+                    BACNET_ACTION_LIST *Curr_CL_Member =
+                        &CurrentCommand->Action[0];
                     /* another loop, for aditional actions in the list */
                     for (; Curr_CL_Member != NULL;
                          Curr_CL_Member = Curr_CL_Member->next) {
@@ -650,10 +650,10 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                         apdu_len += len;
                         /* assume the next one is of the same length, which need
                          * not be the case */
-                        if ((i != MAX_COMMAND_ACTIONS - 1)
-                            && (apdu_len + len) >= apdu_max) {
-                            rpdata->error_code
-                                = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        if ((i != MAX_COMMAND_ACTIONS - 1) &&
+                            (apdu_len + len) >= apdu_max) {
+                            rpdata->error_code =
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
@@ -661,8 +661,8 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 }
             } else {
                 if (rpdata->array_index < MAX_COMMAND_ACTIONS) {
-                    BACNET_ACTION_LIST *Curr_CL_Member
-                        = &CurrentCommand->Action[rpdata->array_index];
+                    BACNET_ACTION_LIST *Curr_CL_Member =
+                        &CurrentCommand->Action[rpdata->array_index];
                     /* another loop, for aditional actions in the list */
                     for (; Curr_CL_Member != NULL;
                          Curr_CL_Member = Curr_CL_Member->next) {
@@ -672,8 +672,8 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                         /* assume the next one is of the same length, which need
                          * not be the case */
                         if ((apdu_len + len) >= apdu_max) {
-                            rpdata->error_code
-                                = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            rpdata->error_code =
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
@@ -692,8 +692,8 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACTION)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_ACTION) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -728,8 +728,8 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_ACTION)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_ACTION) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
@@ -741,8 +741,8 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch ((int)wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 if (value.type.Unsigned_Int >= MAX_COMMAND_ACTIONS) {

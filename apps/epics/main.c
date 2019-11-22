@@ -132,12 +132,13 @@ struct property_value_list_t {
     int32_t property_id;
     BACNET_APPLICATION_DATA_VALUE *value;
 };
-static struct property_value_list_t Property_Value_List[]
-    = { { PROP_VENDOR_NAME, NULL }, { PROP_MODEL_NAME, NULL },
-          { PROP_MAX_APDU_LENGTH_ACCEPTED, NULL },
-          { PROP_PROTOCOL_SERVICES_SUPPORTED, NULL },
-          { PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, NULL },
-          { PROP_DESCRIPTION, NULL }, { -1, NULL } };
+static struct property_value_list_t Property_Value_List[] = {
+    { PROP_VENDOR_NAME, NULL }, { PROP_MODEL_NAME, NULL },
+    { PROP_MAX_APDU_LENGTH_ACCEPTED, NULL },
+    { PROP_PROTOCOL_SERVICES_SUPPORTED, NULL },
+    { PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, NULL }, { PROP_DESCRIPTION, NULL },
+    { -1, NULL }
+};
 
 static BACNET_APPLICATION_DATA_VALUE *object_property_value(int32_t property_id)
 {
@@ -181,8 +182,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
         if (ShowValues) {
             fprintf(stderr, "-- BACnet Error: %s: %s\n",
@@ -200,8 +201,8 @@ static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
         /* It is normal for this to fail, so don't print. */
         if ((myState != GET_ALL_RESPONSE) && !IsLongArray && ShowValues) {
@@ -212,8 +213,8 @@ static void MyAbortHandler(
         Error_Detected = true;
         Last_Error_Class = ERROR_CLASS_SERVICES;
         if (abort_reason < MAX_BACNET_ABORT_REASON)
-            Last_Error_Code
-                = (ERROR_CODE_ABORT_BUFFER_OVERFLOW - 1) + abort_reason;
+            Last_Error_Code =
+                (ERROR_CODE_ABORT_BUFFER_OVERFLOW - 1) + abort_reason;
         else
             Last_Error_Code = ERROR_CODE_ABORT_OTHER;
     }
@@ -222,8 +223,8 @@ static void MyAbortHandler(
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
 #if PRINT_ERRORS
         if (ShowValues) {
             fprintf(stderr, "BACnet Reject: %s\n",
@@ -233,8 +234,8 @@ static void MyRejectHandler(
         Error_Detected = true;
         Last_Error_Class = ERROR_CLASS_SERVICES;
         if (reject_reason < MAX_BACNET_REJECT_REASON)
-            Last_Error_Code
-                = (ERROR_CODE_REJECT_BUFFER_OVERFLOW - 1) + reject_reason;
+            Last_Error_Code =
+                (ERROR_CODE_REJECT_BUFFER_OVERFLOW - 1) + reject_reason;
         else
             Last_Error_Code = ERROR_CODE_REJECT_OTHER;
     }
@@ -248,8 +249,8 @@ static void MyReadPropertyAckHandler(uint8_t *service_request,
     int len = 0;
     BACNET_READ_ACCESS_DATA *rp_data;
 
-    if (address_match(&Target_Address, src)
-        && (service_data->invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
         rp_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
         if (rp_data) {
             len = rp_ack_fully_decode_service_request(
@@ -276,8 +277,8 @@ static void MyReadPropertyMultipleAckHandler(uint8_t *service_request,
     int len = 0;
     BACNET_READ_ACCESS_DATA *rpm_data;
 
-    if (address_match(&Target_Address, src)
-        && (service_data->invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
         rpm_data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
         if (rpm_data) {
             len = rpm_ack_decode_service_request(
@@ -346,26 +347,26 @@ static void CheckIsWritableProperty(BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_REFERENCE *rpm_property)
 {
     bool bIsWritable = false;
-    if ((object_type == OBJECT_ANALOG_OUTPUT)
-        || (object_type == OBJECT_BINARY_OUTPUT)
-        || (object_type == OBJECT_COMMAND)
-        || (object_type == OBJECT_MULTI_STATE_OUTPUT)
-        || (object_type == OBJECT_ACCESS_DOOR)) {
+    if ((object_type == OBJECT_ANALOG_OUTPUT) ||
+        (object_type == OBJECT_BINARY_OUTPUT) ||
+        (object_type == OBJECT_COMMAND) ||
+        (object_type == OBJECT_MULTI_STATE_OUTPUT) ||
+        (object_type == OBJECT_ACCESS_DOOR)) {
         if (rpm_property->propertyIdentifier == PROP_PRESENT_VALUE) {
             bIsWritable = true;
         }
     } else if (object_type == OBJECT_AVERAGING) {
-        if ((rpm_property->propertyIdentifier == PROP_ATTEMPTED_SAMPLES)
-            || (rpm_property->propertyIdentifier == PROP_WINDOW_INTERVAL)
-            || (rpm_property->propertyIdentifier == PROP_WINDOW_SAMPLES)) {
+        if ((rpm_property->propertyIdentifier == PROP_ATTEMPTED_SAMPLES) ||
+            (rpm_property->propertyIdentifier == PROP_WINDOW_INTERVAL) ||
+            (rpm_property->propertyIdentifier == PROP_WINDOW_SAMPLES)) {
             bIsWritable = true;
         }
     } else if (object_type == OBJECT_FILE) {
         if (rpm_property->propertyIdentifier == PROP_ARCHIVE) {
             bIsWritable = true;
         }
-    } else if ((object_type == OBJECT_LIFE_SAFETY_POINT)
-        || (object_type == OBJECT_LIFE_SAFETY_ZONE)) {
+    } else if ((object_type == OBJECT_LIFE_SAFETY_POINT) ||
+        (object_type == OBJECT_LIFE_SAFETY_ZONE)) {
         if (rpm_property->propertyIdentifier == PROP_MODE) {
             bIsWritable = true;
         }
@@ -377,38 +378,38 @@ static void CheckIsWritableProperty(BACNET_OBJECT_TYPE object_type,
         if (rpm_property->propertyIdentifier == PROP_ADJUST_VALUE) {
             bIsWritable = true;
         }
-    } else if ((object_type == OBJECT_TRENDLOG)
-        || (object_type == OBJECT_EVENT_LOG)
-        || (object_type == OBJECT_TREND_LOG_MULTIPLE)) {
-        if ((rpm_property->propertyIdentifier == PROP_ENABLE)
-            || (rpm_property->propertyIdentifier == PROP_RECORD_COUNT)) {
+    } else if ((object_type == OBJECT_TRENDLOG) ||
+        (object_type == OBJECT_EVENT_LOG) ||
+        (object_type == OBJECT_TREND_LOG_MULTIPLE)) {
+        if ((rpm_property->propertyIdentifier == PROP_ENABLE) ||
+            (rpm_property->propertyIdentifier == PROP_RECORD_COUNT)) {
             bIsWritable = true;
         }
     } else if (object_type == OBJECT_LOAD_CONTROL) {
-        if ((rpm_property->propertyIdentifier == PROP_REQUESTED_SHED_LEVEL)
-            || (rpm_property->propertyIdentifier == PROP_START_TIME)
-            || (rpm_property->propertyIdentifier == PROP_SHED_DURATION)
-            || (rpm_property->propertyIdentifier == PROP_DUTY_WINDOW)
-            || (rpm_property->propertyIdentifier == PROP_SHED_LEVELS)) {
+        if ((rpm_property->propertyIdentifier == PROP_REQUESTED_SHED_LEVEL) ||
+            (rpm_property->propertyIdentifier == PROP_START_TIME) ||
+            (rpm_property->propertyIdentifier == PROP_SHED_DURATION) ||
+            (rpm_property->propertyIdentifier == PROP_DUTY_WINDOW) ||
+            (rpm_property->propertyIdentifier == PROP_SHED_LEVELS)) {
             bIsWritable = true;
         }
-    } else if ((object_type == OBJECT_ACCESS_ZONE)
-        || (object_type == OBJECT_ACCESS_USER)
-        || (object_type == OBJECT_ACCESS_RIGHTS)
-        || (object_type == OBJECT_ACCESS_CREDENTIAL)) {
+    } else if ((object_type == OBJECT_ACCESS_ZONE) ||
+        (object_type == OBJECT_ACCESS_USER) ||
+        (object_type == OBJECT_ACCESS_RIGHTS) ||
+        (object_type == OBJECT_ACCESS_CREDENTIAL)) {
         if (rpm_property->propertyIdentifier == PROP_GLOBAL_IDENTIFIER) {
             bIsWritable = true;
         }
     } else if (object_type == OBJECT_NETWORK_SECURITY) {
-        if ((rpm_property->propertyIdentifier
-                == PROP_BASE_DEVICE_SECURITY_POLICY)
-            || (rpm_property->propertyIdentifier
-                   == PROP_NETWORK_ACCESS_SECURITY_POLICIES)
-            || (rpm_property->propertyIdentifier == PROP_SECURITY_TIME_WINDOW)
-            || (rpm_property->propertyIdentifier == PROP_PACKET_REORDER_TIME)
-            || (rpm_property->propertyIdentifier == PROP_LAST_KEY_SERVER)
-            || (rpm_property->propertyIdentifier == PROP_SECURITY_PDU_TIMEOUT)
-            || (rpm_property->propertyIdentifier == PROP_DO_NOT_HIDE)) {
+        if ((rpm_property->propertyIdentifier ==
+                PROP_BASE_DEVICE_SECURITY_POLICY) ||
+            (rpm_property->propertyIdentifier ==
+                PROP_NETWORK_ACCESS_SECURITY_POLICIES) ||
+            (rpm_property->propertyIdentifier == PROP_SECURITY_TIME_WINDOW) ||
+            (rpm_property->propertyIdentifier == PROP_PACKET_REORDER_TIME) ||
+            (rpm_property->propertyIdentifier == PROP_LAST_KEY_SERVER) ||
+            (rpm_property->propertyIdentifier == PROP_SECURITY_PDU_TIMEOUT) ||
+            (rpm_property->propertyIdentifier == PROP_DO_NOT_HIDE)) {
             bIsWritable = true;
         }
     }
@@ -428,8 +429,8 @@ static const char *protocol_services_supported_text(size_t bit_index)
     bool found = false;
     const char *services_text = "unknown";
 
-    found = apdu_service_supported_to_index(
-        bit_index, &text_index, &is_confirmed);
+    found =
+        apdu_service_supported_to_index(bit_index, &text_index, &is_confirmed);
     if (found) {
         if (is_confirmed) {
             services_text = bactext_confirmed_service_name(text_index);
@@ -466,9 +467,9 @@ static bool PrettyPrintPropertyValue(
 
     value = object_value->value;
     property = object_value->object_property;
-    if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING)
-        && ((property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED)
-               || (property == PROP_PROTOCOL_SERVICES_SUPPORTED))) {
+    if ((value != NULL) && (value->tag == BACNET_APPLICATION_TAG_BIT_STRING) &&
+        ((property == PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED) ||
+            (property == PROP_PROTOCOL_SERVICES_SUPPORTED))) {
         len = bitstring_bits_used(&value->type.Bit_String);
         fprintf(stream, "( \n        ");
         for (i = 0; i < len; i++) {
@@ -567,8 +568,8 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                      * print anything for them.  To achieve this, swap
                      * out the Property for a non-existent Property
                      * and catch that below.  */
-                    rpm_property->propertyIdentifier
-                        = PROP_PROTOCOL_CONFORMANCE_CLASS;
+                    rpm_property->propertyIdentifier =
+                        PROP_PROTOCOL_CONFORMANCE_CLASS;
                     break;
                 }
                 if (object_type == OBJECT_DATETIME_VALUE)
@@ -597,19 +598,18 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
             case PROP_SUBORDINATE_ANNOTATIONS:
             case PROP_SUBORDINATE_LIST:
                 if (Using_Walked_List) {
-                    if ((rpm_property->propertyArrayIndex == 0)
-                        && (value->tag
-                               == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
+                    if ((rpm_property->propertyArrayIndex == 0) &&
+                        (value->tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
                         /* Grab the value of the Object List length - don't
                          * print it! */
                         Walked_List_Length = value->type.Unsigned_Int;
-                        if (rpm_property->propertyIdentifier
-                            == PROP_OBJECT_LIST)
+                        if (rpm_property->propertyIdentifier ==
+                            PROP_OBJECT_LIST)
                             Object_List_Length = value->type.Unsigned_Int;
                         break;
                     } else
-                        assert(Walked_List_Index
-                            == (uint32_t)rpm_property->propertyArrayIndex);
+                        assert(Walked_List_Index ==
+                            (uint32_t)rpm_property->propertyArrayIndex);
                 } else {
                     Walked_List_Index++;
                     /* If we got the whole Object List array in one RP call,
@@ -638,10 +638,10 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
 
                 if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
                     if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag
-                            == BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
-                                                                     not right
-                                                                     here */
+                        assert(value->tag ==
+                            BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
+                                                                  not right
+                                                                  here */
                         break;
                     }
                     /* Store the object list so we can interrogate
@@ -651,14 +651,14 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                     /* We don't have anything to put in the data pointer
                      * yet, so just leave it null.  The key is Key here. */
                     Keylist_Data_Add(Object_List, object_list_element, NULL);
-                } else if (rpm_property->propertyIdentifier
-                    == PROP_STATE_TEXT) {
+                } else if (rpm_property->propertyIdentifier ==
+                    PROP_STATE_TEXT) {
                     /* Make sure it fits within 31 chars for original VTS3
                      * limitation. If longer, take first 15 dash, and last 15
                      * chars. */
                     if (value->type.Character_String.length > 31) {
-                        int iLast15idx
-                            = value->type.Character_String.length - 15;
+                        int iLast15idx =
+                            value->type.Character_String.length - 15;
                         value->type.Character_String.value[15] = '-';
                         memcpy(&value->type.Character_String.value[16],
                             &value->type.Character_String.value[iLast15idx],
@@ -666,13 +666,13 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         value->type.Character_String.value[31] = 0;
                         value->type.Character_String.length = 31;
                     }
-                } else if (rpm_property->propertyIdentifier
-                    == PROP_SUBORDINATE_LIST) {
+                } else if (rpm_property->propertyIdentifier ==
+                    PROP_SUBORDINATE_LIST) {
                     if (value->tag != BACNET_APPLICATION_TAG_OBJECT_ID) {
-                        assert(value->tag
-                            == BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
-                                                                     not right
-                                                                     here */
+                        assert(value->tag ==
+                            BACNET_APPLICATION_TAG_OBJECT_ID); /* Something
+                                                                  not right
+                                                                  here */
                         break;
                     }
                     /* TODO: handle Sequence of { Device ObjID, Object ID }, */
@@ -687,8 +687,8 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                 if (isSequence)
                     fprintf(stdout, "}");
 
-                if ((Walked_List_Index < Walked_List_Length)
-                    || (value->next != NULL)) {
+                if ((Walked_List_Index < Walked_List_Length) ||
+                    (value->next != NULL)) {
                     /* There are more. */
                     fprintf(stdout, ", ");
                     if (!(Walked_List_Index % 3))
@@ -710,9 +710,8 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
             default:
                 /* First, if this is a date type, it needs a different format
                  * for VTS, so pretty print it. */
-                if (ShowValues
-                    && (object_value.value->tag
-                           == BACNET_APPLICATION_TAG_DATE)) {
+                if (ShowValues &&
+                    (object_value.value->tag == BACNET_APPLICATION_TAG_DATE)) {
                     /* This would be PROP_LOCAL_DATE, or OBJECT_DATETIME_VALUE,
                      * or OBJECT_DATE_VALUE                     */
                     PrettyPrintPropertyValue(stdout, &object_value);
@@ -820,8 +819,8 @@ static uint8_t Read_Properties(
     struct special_property_list_t PropertyListStruct;
     unsigned int i = 0, j = 0;
 
-    if ((!Has_RPM && (Property_List_Index == 0))
-        || (Property_List_Length == 0)) {
+    if ((!Has_RPM && (Property_List_Index == 0)) ||
+        (Property_List_Length == 0)) {
         /* If we failed to get the Properties with RPM, just settle for what we
          * know is the fixed list of Required and Optional properties.
          * In practice, this should only happen for simple devices that don't
@@ -829,8 +828,8 @@ static uint8_t Read_Properties(
          */
         property_list_special(pMyObject->type, &PropertyListStruct);
         if (Optional_Properties) {
-            Property_List_Length = PropertyListStruct.Required.count
-                + PropertyListStruct.Optional.count;
+            Property_List_Length = PropertyListStruct.Required.count +
+                PropertyListStruct.Optional.count;
         } else {
             Property_List_Length = PropertyListStruct.Required.count;
         }
@@ -925,8 +924,8 @@ static EPICS_STATES ProcessRPMData(
                         bHasStructuredViewList = true;
                         break;
                     default:
-                        Property_List[Property_List_Index]
-                            = rpm_property->propertyIdentifier;
+                        Property_List[Property_List_Index] =
+                            rpm_property->propertyIdentifier;
                         Property_List_Index++;
                         Property_List_Length++;
                         break;
@@ -1083,9 +1082,9 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                         int count;
                         /* loop counter */
                         unsigned j;
-                        count = sscanf(argv[i], "%2x:%2x:%2x:%2x:%2x:%2x",
-                            &mac[0], &mac[1], &mac[2], &mac[3], &mac[4],
-                            &mac[5]);
+                        count =
+                            sscanf(argv[i], "%2x:%2x:%2x:%2x:%2x:%2x", &mac[0],
+                                &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
                         if (count == 6) { /* success */
                             Target_Address.mac_len = count;
                             for (j = 0; j < 6; j++) {
@@ -1142,8 +1141,8 @@ static void PrintHeading(void)
     printf("-- http://sourceforge.net/projects/bacnet/ \n");
     printf("-- \n--\n\n");
     value = object_property_value(PROP_VENDOR_NAME);
-    if ((value != NULL)
-        && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
+    if ((value != NULL) &&
+        (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         printf("Vendor Name: \"%s\"\n",
             characterstring_value(&value->type.Character_String));
     } else {
@@ -1152,8 +1151,8 @@ static void PrintHeading(void)
 
     value = object_property_value(PROP_MODEL_NAME);
     /* Best we can do with Product Name and Model Number is use the same text */
-    if ((value != NULL)
-        && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
+    if ((value != NULL) &&
+        (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         printf("Product Name: \"%s\"\n",
             characterstring_value(&value->type.Character_String));
         printf("Product Model Number: \"%s\"\n",
@@ -1164,8 +1163,8 @@ static void PrintHeading(void)
     }
 
     value = object_property_value(PROP_DESCRIPTION);
-    if ((value != NULL)
-        && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
+    if ((value != NULL) &&
+        (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         printf("Product Description: \"%s\"\n\n",
             characterstring_value(&value->type.Character_String));
     } else {
@@ -1574,10 +1573,9 @@ int main(int argc, char *argv[])
                     npdu_handler(&src, &Rx_Buf[0], pdu_len);
                 }
 
-                if ((Read_Property_Multiple_Data.new_data)
-                    && (Request_Invoke_ID
-                           == Read_Property_Multiple_Data.service_data
-                                  .invoke_id)) {
+                if ((Read_Property_Multiple_Data.new_data) &&
+                    (Request_Invoke_ID ==
+                        Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
                     myState = ProcessRPMData(
                         Read_Property_Multiple_Data.rpm_data, myState);
@@ -1595,14 +1593,14 @@ int main(int argc, char *argv[])
                         myState = PRINT_HEADING;
                     /* just press ahead without the data */
                     else if (Error_Detected) {
-                        if (Last_Error_Code
-                            == ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE) {
+                        if (Last_Error_Code ==
+                            ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE) {
                             /* The normal case for Device Object */
                             /* Was it because the Device can't do RPM? */
                             Has_RPM = false;
                             myState = GET_PROPERTY_REQUEST;
-                        } else if (Last_Error_Code
-                            == ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED) {
+                        } else if (Last_Error_Code ==
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED) {
                             myState = GET_PROPERTY_REQUEST;
                             StartNextObject(rpm_object, &myObject);
                         } else if (myState == GET_ALL_RESPONSE)
@@ -1648,8 +1646,8 @@ int main(int argc, char *argv[])
                 /* Update times; aids single-step debugging */
                 last_seconds = current_seconds;
                 elapsed_seconds = 0;
-                Request_Invoke_ID
-                    = Read_Properties(Target_Device_Object_Instance, &myObject);
+                Request_Invoke_ID =
+                    Read_Properties(Target_Device_Object_Instance, &myObject);
                 if (Request_Invoke_ID == 0) {
                     /* Reached the end of the list. */
                     myState = NEXT_OBJECT; /* Move on to the next. */
@@ -1666,10 +1664,9 @@ int main(int argc, char *argv[])
                     npdu_handler(&src, &Rx_Buf[0], pdu_len);
                 }
 
-                if ((Read_Property_Multiple_Data.new_data)
-                    && (Request_Invoke_ID
-                           == Read_Property_Multiple_Data.service_data
-                                  .invoke_id)) {
+                if ((Read_Property_Multiple_Data.new_data) &&
+                    (Request_Invoke_ID ==
+                        Read_Property_Multiple_Data.service_data.invoke_id)) {
                     Read_Property_Multiple_Data.new_data = false;
                     PrintReadPropertyData(
                         Read_Property_Multiple_Data.rpm_data->object_type,
@@ -1699,9 +1696,8 @@ int main(int argc, char *argv[])
                     elapsed_seconds = 0;
                     myState = GET_PROPERTY_REQUEST;
                     if (Error_Detected) {
-                        if ((Last_Error_Class != ERROR_CLASS_PROPERTY)
-                            && (Last_Error_Code
-                                   != ERROR_CODE_UNKNOWN_PROPERTY)) {
+                        if ((Last_Error_Class != ERROR_CLASS_PROPERTY) &&
+                            (Last_Error_Code != ERROR_CODE_UNKNOWN_PROPERTY)) {
                             if (IsLongArray) {
                                 /* Change to using a Walked List and retry this
                                  * property */
@@ -1716,8 +1712,8 @@ int main(int argc, char *argv[])
                                 fprintf(stdout, " \n");
                                 Error_Count++;
                                 Property_List_Index++;
-                                if (Property_List_Index
-                                    >= Property_List_Length) {
+                                if (Property_List_Index >=
+                                    Property_List_Length) {
                                     /* Give up and move on to the next. */
                                     myState = NEXT_OBJECT;
                                 }
@@ -1742,8 +1738,8 @@ int main(int argc, char *argv[])
                     /* Don't think we'll ever actually reach this point. */
                     elapsed_seconds = 0;
                     Request_Invoke_ID = 0;
-                    myState
-                        = NEXT_OBJECT; /* Give up and move on to the next. */
+                    myState =
+                        NEXT_OBJECT; /* Give up and move on to the next. */
                     Error_Count++;
                 }
                 break;

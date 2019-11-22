@@ -145,9 +145,8 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
         }
         switch (value->tag) {
             case TIME_STAMP_TIME:
-                if ((section_len = decode_context_bacnet_time(
-                         &apdu[len], TIME_STAMP_TIME, &value->value.time))
-                    == -1) {
+                if ((section_len = decode_context_bacnet_time(&apdu[len],
+                         TIME_STAMP_TIME, &value->value.time)) == -1) {
                     return -1;
                 } else {
                     len += section_len;
@@ -155,9 +154,8 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
                 break;
 
             case TIME_STAMP_SEQUENCE:
-                if ((section_len = decode_context_unsigned(
-                         &apdu[len], TIME_STAMP_SEQUENCE, &sequenceNum))
-                    == -1) {
+                if ((section_len = decode_context_unsigned(&apdu[len],
+                         TIME_STAMP_SEQUENCE, &sequenceNum)) == -1) {
                     return -1;
                 } else {
                     if (sequenceNum <= 0xffff) {
@@ -171,8 +169,7 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 
             case TIME_STAMP_DATETIME:
                 if ((section_len = bacapp_decode_context_datetime(&apdu[len],
-                         TIME_STAMP_DATETIME, &value->value.dateTime))
-                    == -1) {
+                         TIME_STAMP_DATETIME, &value->value.dateTime)) == -1) {
                     return -1;
                 } else {
                     len += section_len;
@@ -233,8 +230,8 @@ void testTimestampSequence(Test *pTest)
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, testTimestampIn.tag == testTimestampOut.tag);
     ct_test(pTest,
-        testTimestampIn.value.sequenceNum
-            == testTimestampOut.value.sequenceNum);
+        testTimestampIn.value.sequenceNum ==
+            testTimestampOut.value.sequenceNum);
 }
 
 void testTimestampTime(Test *pTest)
@@ -265,8 +262,8 @@ void testTimestampTime(Test *pTest)
     ct_test(pTest,
         testTimestampIn.value.time.sec == testTimestampOut.value.time.sec);
     ct_test(pTest,
-        testTimestampIn.value.time.hundredths
-            == testTimestampOut.value.time.hundredths);
+        testTimestampIn.value.time.hundredths ==
+            testTimestampOut.value.time.hundredths);
 }
 
 void testTimestampTimeDate(Test *pTest)
@@ -296,30 +293,30 @@ void testTimestampTimeDate(Test *pTest)
     ct_test(pTest, inLen == outLen);
     ct_test(pTest, testTimestampIn.tag == testTimestampOut.tag);
     ct_test(pTest,
-        testTimestampIn.value.dateTime.time.hour
-            == testTimestampOut.value.dateTime.time.hour);
+        testTimestampIn.value.dateTime.time.hour ==
+            testTimestampOut.value.dateTime.time.hour);
     ct_test(pTest,
-        testTimestampIn.value.dateTime.time.min
-            == testTimestampOut.value.dateTime.time.min);
+        testTimestampIn.value.dateTime.time.min ==
+            testTimestampOut.value.dateTime.time.min);
     ct_test(pTest,
-        testTimestampIn.value.dateTime.time.sec
-            == testTimestampOut.value.dateTime.time.sec);
+        testTimestampIn.value.dateTime.time.sec ==
+            testTimestampOut.value.dateTime.time.sec);
     ct_test(pTest,
-        testTimestampIn.value.dateTime.time.hundredths
-            == testTimestampOut.value.dateTime.time.hundredths);
+        testTimestampIn.value.dateTime.time.hundredths ==
+            testTimestampOut.value.dateTime.time.hundredths);
 
     ct_test(pTest,
-        testTimestampIn.value.dateTime.date.year
-            == testTimestampOut.value.dateTime.date.year);
+        testTimestampIn.value.dateTime.date.year ==
+            testTimestampOut.value.dateTime.date.year);
     ct_test(pTest,
-        testTimestampIn.value.dateTime.date.month
-            == testTimestampOut.value.dateTime.date.month);
+        testTimestampIn.value.dateTime.date.month ==
+            testTimestampOut.value.dateTime.date.month);
     ct_test(pTest,
-        testTimestampIn.value.dateTime.date.wday
-            == testTimestampOut.value.dateTime.date.wday);
+        testTimestampIn.value.dateTime.date.wday ==
+            testTimestampOut.value.dateTime.date.wday);
     ct_test(pTest,
-        testTimestampIn.value.dateTime.date.day
-            == testTimestampOut.value.dateTime.date.day);
+        testTimestampIn.value.dateTime.date.day ==
+            testTimestampOut.value.dateTime.date.day);
 }
 
 #ifdef TEST_TIME_STAMP

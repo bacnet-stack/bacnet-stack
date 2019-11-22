@@ -160,25 +160,25 @@ int main(int argc, char *argv[])
                 event_data.processIdentifier = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 1) {
-                event_data.initiatingObjectIdentifier.type
-                    = strtol(argv[argi], NULL, 0);
+                event_data.initiatingObjectIdentifier.type =
+                    strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 2) {
-                event_data.initiatingObjectIdentifier.instance
-                    = strtol(argv[argi], NULL, 0);
+                event_data.initiatingObjectIdentifier.instance =
+                    strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 3) {
-                event_data.eventObjectIdentifier.type
-                    = strtol(argv[argi], NULL, 0);
+                event_data.eventObjectIdentifier.type =
+                    strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 4) {
-                event_data.eventObjectIdentifier.instance
-                    = strtol(argv[argi], NULL, 0);
+                event_data.eventObjectIdentifier.instance =
+                    strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 5) {
                 event_data.timeStamp.tag = TIME_STAMP_SEQUENCE;
-                event_data.timeStamp.value.sequenceNum
-                    = strtol(argv[argi], NULL, 0);
+                event_data.timeStamp.value.sequenceNum =
+                    strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 6) {
                 event_data.notificationClass = strtol(argv[argi], NULL, 0);
@@ -192,9 +192,9 @@ int main(int argc, char *argv[])
             } else {
                 if (event_data.eventType == EVENT_CHANGE_OF_BITSTRING) {
                     if (target_args == 9) {
-                        pBitString
-                            = &event_data.notificationParams.changeOfBitstring
-                                   .referencedBitString;
+                        pBitString =
+                            &event_data.notificationParams.changeOfBitstring
+                                 .referencedBitString;
                         bitstring_init_ascii(pBitString, argv[argi]);
                         target_args++;
                     } else if (target_args == 10) {
@@ -225,66 +225,62 @@ int main(int argc, char *argv[])
                 } else if (event_data.eventType == EVENT_CHANGE_OF_STATE) {
                     if (target_args == 9) {
                         tag = strtol(argv[argi], NULL, 0);
-                        event_data.notificationParams.changeOfState.newState.tag
-                            = tag;
+                        event_data.notificationParams.changeOfState.newState
+                            .tag = tag;
                         target_args++;
                     } else if (target_args == 10) {
                         if (tag == BOOLEAN_VALUE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.booleanValue
-                                = strtol(argv[argi], NULL, 0);
+                                .state.booleanValue =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == BINARY_VALUE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.binaryValue
-                                = strtol(argv[argi], NULL, 0);
+                                .state.binaryValue =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == EVENT_TYPE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.eventType
-                                = strtol(argv[argi], NULL, 0);
+                                .state.eventType = strtol(argv[argi], NULL, 0);
                         } else if (tag == POLARITY) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.polarity
-                                = strtol(argv[argi], NULL, 0);
+                                .state.polarity = strtol(argv[argi], NULL, 0);
                         } else if (tag == PROGRAM_CHANGE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.programChange
-                                = strtol(argv[argi], NULL, 0);
+                                .state.programChange =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == PROGRAM_STATE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.programState
-                                = strtol(argv[argi], NULL, 0);
+                                .state.programState =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == REASON_FOR_HALT) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.programError
-                                = strtol(argv[argi], NULL, 0);
+                                .state.programError =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == RELIABILITY) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.reliability
-                                = strtol(argv[argi], NULL, 0);
+                                .state.reliability =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == STATE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.state
-                                = strtol(argv[argi], NULL, 0);
+                                .state.state = strtol(argv[argi], NULL, 0);
                         } else if (tag == SYSTEM_STATUS) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.systemStatus
-                                = strtol(argv[argi], NULL, 0);
+                                .state.systemStatus =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == UNITS) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.units
-                                = strtol(argv[argi], NULL, 0);
+                                .state.units = strtol(argv[argi], NULL, 0);
                         } else if (tag == UNSIGNED_VALUE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.unsignedValue
-                                = strtol(argv[argi], NULL, 0);
+                                .state.unsignedValue =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == LIFE_SAFETY_MODE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.lifeSafetyMode
-                                = strtol(argv[argi], NULL, 0);
+                                .state.lifeSafetyMode =
+                                strtol(argv[argi], NULL, 0);
                         } else if (tag == LIFE_SAFETY_STATE) {
                             event_data.notificationParams.changeOfState.newState
-                                .state.lifeSafetyState
-                                = strtol(argv[argi], NULL, 0);
+                                .state.lifeSafetyState =
+                                strtol(argv[argi], NULL, 0);
                         } else {
                             printf("Invalid Change-Of-State Tag\n");
                             return 1;
@@ -319,8 +315,8 @@ int main(int argc, char *argv[])
                 } else if (event_data.eventType == EVENT_COMMAND_FAILURE) {
                 } else if (event_data.eventType == EVENT_FLOATING_LIMIT) {
                 } else if (event_data.eventType == EVENT_OUT_OF_RANGE) {
-                } else if (event_data.eventType
-                    == EVENT_CHANGE_OF_LIFE_SAFETY) {
+                } else if (event_data.eventType ==
+                    EVENT_CHANGE_OF_LIFE_SAFETY) {
                 } else if (event_data.eventType == EVENT_EXTENDED) {
                 } else if (event_data.eventType == EVENT_BUFFER_READY) {
                 } else if (event_data.eventType == EVENT_UNSIGNED_RANGE) {

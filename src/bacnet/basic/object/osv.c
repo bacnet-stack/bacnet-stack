@@ -47,12 +47,13 @@
 OCTETSTRING_VALUE_DESCR AV_Descr[MAX_OCTETSTRING_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int OctetString_Value_Properties_Required[]
-    = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-          PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, -1 };
+static const int OctetString_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, -1
+};
 
-static const int OctetString_Value_Properties_Optional[]
-    = { PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
+static const int OctetString_Value_Properties_Optional[] = { PROP_EVENT_STATE,
+    PROP_OUT_OF_SERVICE, PROP_DESCRIPTION, -1 };
 
 static const int OctetString_Value_Properties_Proprietary[] = { -1 };
 
@@ -183,8 +184,8 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint8_t *apdu = NULL;
     OCTETSTRING_VALUE_DESCR *CurrentAV;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
 
@@ -206,8 +207,8 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_DESCRIPTION:
             OctetString_Value_Object_Name(
                 rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_OBJECT_TYPE:
@@ -216,8 +217,8 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_PRESENT_VALUE:
-            real_value
-                = OctetString_Value_Present_Value(rpdata->object_instance);
+            real_value =
+                OctetString_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_octet_string(&apdu[0], real_value);
             break;
 
@@ -233,8 +234,8 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_EVENT_STATE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
 
         case PROP_OUT_OF_SERVICE:
@@ -248,9 +249,9 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY)
-        && (rpdata->object_property != PROP_EVENT_TIME_STAMPS)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -278,16 +279,16 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY)
-        && (wp_data->object_property != PROP_EVENT_TIME_STAMPS)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    object_index
-        = OctetString_Value_Instance_To_Index(wp_data->object_instance);
+    object_index =
+        OctetString_Value_Instance_To_Index(wp_data->object_instance);
     if (object_index < MAX_OCTETSTRING_VALUES)
         CurrentAV = &AV_Descr[object_index];
     else

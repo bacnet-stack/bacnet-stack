@@ -73,10 +73,10 @@ static struct Keylist *KeylistCreate(void)
 /* returns TRUE if success, FALSE if failed */
 static int CheckArraySize(OS_Keylist list)
 {
-    int new_size = 0;    /* set it up so that no size change is the default */
+    int new_size = 0; /* set it up so that no size change is the default */
     const int chunk = 8; /* minimum number of nodes to allocate memory for */
     struct Keylist_Node **new_array; /* new array of nodes, if needed */
-    int i;                           /* counter */
+    int i; /* counter */
     if (!list)
         return FALSE;
 
@@ -118,11 +118,11 @@ static int CheckArraySize(OS_Keylist list)
 static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
 {
     struct Keylist_Node *node; /* holds the new node */
-    int left = 0;              /* the left branch of tree, beginning of list */
-    int right = 0;             /* the right branch on the tree, end of list */
-    int index = 0;             /* our current search place in the array */
-    KEY current_key = 0;       /* place holder for current node key */
-    int status = FALSE;        /* return value */
+    int left = 0; /* the left branch of tree, beginning of list */
+    int right = 0; /* the right branch on the tree, end of list */
+    int index = 0; /* our current search place in the array */
+    KEY current_key = 0; /* place holder for current node key */
+    int status = FALSE; /* return value */
     if (!list || !list->array || !list->count) {
         *pIndex = 0;
         return (FALSE);
@@ -165,8 +165,8 @@ static int FindIndex(OS_Keylist list, KEY key, int *pIndex)
 int Keylist_Data_Add(OS_Keylist list, KEY key, void *data)
 {
     struct Keylist_Node *node; /* holds the new node */
-    int index = -1;            /* return value */
-    int i;                     /* counts through the array */
+    int index = -1; /* return value */
+    int i; /* counts through the array */
 
     if (list && CheckArraySize(list)) {
         /* figure out where to put the new node */
@@ -209,8 +209,8 @@ void *Keylist_Data_Delete_By_Index(OS_Keylist list, int index)
     struct Keylist_Node *node;
     void *data = NULL;
 
-    if (list && list->array && list->count && (index >= 0)
-        && (index < list->count)) {
+    if (list && list->array && list->count && (index >= 0) &&
+        (index < list->count)) {
         node = list->array[index];
         if (node)
             data = node->data;
@@ -246,7 +246,7 @@ void *Keylist_Data_Delete_By_Index(OS_Keylist list, int index)
 void *Keylist_Data_Delete(OS_Keylist list, KEY key)
 {
     void *data = NULL; /* return value */
-    int index;         /* where the node is in the array */
+    int index; /* where the node is in the array */
 
     if (list) {
         if (FindIndex(list, key, &index))
@@ -260,7 +260,7 @@ void *Keylist_Data_Delete(OS_Keylist list, KEY key)
 void *Keylist_Data_Pop(OS_Keylist list)
 {
     void *data = NULL; /* return value */
-    int index;         /* position in the array */
+    int index; /* position in the array */
 
     if (list && list->count) {
         index = list->count - 1;
@@ -303,8 +303,8 @@ void *Keylist_Data_Index(OS_Keylist list, int index)
 {
     struct Keylist_Node *node = NULL;
 
-    if (list && list->array && list->count && (index >= 0)
-        && (index < list->count))
+    if (list && list->array && list->count && (index >= 0) &&
+        (index < list->count))
         node = list->array[index];
 
     return node ? node->data : NULL;
@@ -316,8 +316,8 @@ KEY Keylist_Key(OS_Keylist list, int index)
     KEY key = 0; /* return value */
     struct Keylist_Node *node;
 
-    if (list && list->array && list->count && (index >= 0)
-        && (index < list->count)) {
+    if (list && list->array && list->count && (index >= 0) &&
+        (index < list->count)) {
         node = list->array[index];
         if (node)
             key = node->key;

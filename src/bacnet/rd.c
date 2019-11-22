@@ -45,7 +45,7 @@ int rd_encode_apdu(uint8_t *apdu,
     BACNET_REINITIALIZED_STATE state,
     BACNET_CHARACTER_STRING *password)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
@@ -95,8 +95,8 @@ int rd_decode_service_request(uint8_t *apdu,
                 return -1;
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
-            len += decode_character_string(
-                &apdu[len], len_value_type, password);
+            len +=
+                decode_character_string(&apdu[len], len_value_type, password);
         }
     }
 

@@ -47,12 +47,14 @@
 POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int PositiveInteger_Value_Properties_Required[]
-    = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-          PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_UNITS, -1 };
+static const int PositiveInteger_Value_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_UNITS, -1
+};
 
-static const int PositiveInteger_Value_Properties_Optional[]
-    = { PROP_OUT_OF_SERVICE, -1 };
+static const int PositiveInteger_Value_Properties_Optional[] = {
+    PROP_OUT_OF_SERVICE, -1
+};
 
 static const int PositiveInteger_Value_Properties_Proprietary[] = { -1 };
 
@@ -181,15 +183,15 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     uint8_t *apdu = NULL;
     POSITIVEINTEGER_VALUE_DESCR *CurrentAV;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
 
     apdu = rpdata->application_data;
 
-    object_index
-        = PositiveInteger_Value_Instance_To_Index(rpdata->object_instance);
+    object_index =
+        PositiveInteger_Value_Instance_To_Index(rpdata->object_instance);
     if (object_index < MAX_POSITIVEINTEGER_VALUES)
         CurrentAV = &PIV_Descr[object_index];
     else
@@ -204,8 +206,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_NAME:
             PositiveInteger_Value_Object_Name(
                 rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_OBJECT_TYPE:
@@ -230,8 +232,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_UNITS:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], CurrentAV->Units);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], CurrentAV->Units);
             break;
             /* 	BACnet Testing Observed Incident oi00109
                     Positive Integer Value / Units returned wrong datatype -
@@ -253,9 +255,9 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY)
-        && (rpdata->object_property != PROP_EVENT_TIME_STAMPS)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -283,16 +285,16 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY)
-        && (wp_data->object_property != PROP_EVENT_TIME_STAMPS)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    object_index
-        = PositiveInteger_Value_Instance_To_Index(wp_data->object_instance);
+    object_index =
+        PositiveInteger_Value_Instance_To_Index(wp_data->object_instance);
     if (object_index < MAX_POSITIVEINTEGER_VALUES)
         CurrentAV = &PIV_Descr[object_index];
     else

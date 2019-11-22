@@ -142,11 +142,10 @@ void handler_get_event_information(uint8_t *service_request,
                     /* encode GetEvent_data only when type of object_id has max
                      * value */
                     if (object_id.type != MAX_BACNET_OBJECT_TYPE) {
-                        if ((object_id.type
-                                == getevent_data.objectIdentifier.type)
-                            && (object_id.instance
-                                   == getevent_data.objectIdentifier
-                                          .instance)) {
+                        if ((object_id.type ==
+                                getevent_data.objectIdentifier.type) &&
+                            (object_id.instance ==
+                                getevent_data.objectIdentifier.instance)) {
                             /* found 'Last Received Object Identifier'
                                so should set type of object_id to max value */
                             object_id.type = MAX_BACNET_OBJECT_TYPE;
@@ -164,14 +163,14 @@ void handler_get_event_information(uint8_t *service_request,
                         goto GET_EVENT_ERROR;
                     }
                     apdu_len += len;
-                    if ((apdu_len >= service_data->max_resp - 2)
-                        || (apdu_len >= MAX_APDU - 2)) {
+                    if ((apdu_len >= service_data->max_resp - 2) ||
+                        (apdu_len >= MAX_APDU - 2)) {
                         /* Device must be able to fit minimum
                            one event information.
                            Length of one event informations needs
                            more than 50 octets. */
-                        if ((service_data->max_resp < 128)
-                            || (MAX_APDU < 128)) {
+                        if ((service_data->max_resp < 128) ||
+                            (MAX_APDU < 128)) {
                             len = BACNET_STATUS_ABORT;
                             error = true;
                             goto GET_EVENT_ERROR;

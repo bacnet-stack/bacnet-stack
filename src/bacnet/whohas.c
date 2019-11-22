@@ -43,7 +43,7 @@
 
 int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && data) {
@@ -51,9 +51,10 @@ int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
         apdu[1] = SERVICE_UNCONFIRMED_WHO_HAS; /* service choice */
         apdu_len = 2;
         /* optional limits - must be used as a pair */
-        if ((data->low_limit >= 0) && (data->low_limit <= BACNET_MAX_INSTANCE)
-            && (data->high_limit >= 0)
-            && (data->high_limit <= BACNET_MAX_INSTANCE)) {
+        if ((data->low_limit >= 0) &&
+            (data->low_limit <= BACNET_MAX_INSTANCE) &&
+            (data->high_limit >= 0) &&
+            (data->high_limit <= BACNET_MAX_INSTANCE)) {
             len = encode_context_unsigned(&apdu[apdu_len], 0, data->low_limit);
             apdu_len += len;
             len = encode_context_unsigned(&apdu[apdu_len], 1, data->high_limit);
@@ -82,7 +83,7 @@ int whohas_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
-    uint16_t decoded_type = 0;  /* for decoding */
+    uint16_t decoded_type = 0; /* for decoding */
 
     if (apdu_len && data) {
         /* optional limits - must be used as a pair */
@@ -174,8 +175,8 @@ void testWhoHasData(Test *pTest, BACNET_WHO_HAS_DATA *data)
         ct_test(pTest,
             test_data.object.identifier.type == data->object.identifier.type);
         ct_test(pTest,
-            test_data.object.identifier.instance
-                == data->object.identifier.instance);
+            test_data.object.identifier.instance ==
+                data->object.identifier.instance);
     }
     /* Object Name */
     else {

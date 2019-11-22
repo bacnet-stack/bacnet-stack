@@ -123,8 +123,8 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     /* We don't need src information, since a message can't originate from
      * our downstream BACnet network.
      */
-    pdu_len
-        = npdu_encode_pdu(&Handler_Transmit_Buffer[0], dst, NULL, &npdu_data);
+    pdu_len =
+        npdu_encode_pdu(&Handler_Transmit_Buffer[0], dst, NULL, &npdu_data);
 
     /* Now encode the optional payload bytes, per message type */
     switch (network_message_type) {

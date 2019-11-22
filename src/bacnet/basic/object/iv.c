@@ -59,12 +59,12 @@ struct integer_object {
 struct integer_object Integer_Value[MAX_INTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Integer_Value_Properties_Required[]
-    = { PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
-          PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_UNITS, -1 };
+static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
+    PROP_UNITS, -1 };
 
-static const int Integer_Value_Properties_Optional[]
-    = { PROP_OUT_OF_SERVICE, -1 };
+static const int Integer_Value_Properties_Optional[] = { PROP_OUT_OF_SERVICE,
+    -1 };
 
 static const int Integer_Value_Properties_Proprietary[] = { -1 };
 
@@ -333,8 +333,8 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int32_t integer_value = 0.0;
     bool state = false;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
 
@@ -346,16 +346,16 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Integer_Value_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_INTEGER_VALUE);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_INTEGER_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            integer_value
-                = Integer_Value_Present_Value(rpdata->object_instance);
+            integer_value =
+                Integer_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_signed(&apdu[0], integer_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -382,9 +382,9 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY)
-        && (rpdata->object_property != PROP_EVENT_TIME_STAMPS)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -418,9 +418,9 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY)
-        && (wp_data->object_property != PROP_EVENT_TIME_STAMPS)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -428,8 +428,8 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_SIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_SIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 Integer_Value_Present_Value_Set(wp_data->object_instance,

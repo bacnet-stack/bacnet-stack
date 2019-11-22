@@ -64,30 +64,29 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         /* We try and do some of the more generic error checking here to cut
          * down on duplication of effort */
 
-        if ((pRequest->RequestType == RR_BY_POSITION)
-            && (pRequest->Range.RefIndex
-                   == 0)) { /* First index is 1 so can't accept 0 */
-            pRequest->error_code
-                = ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
-                                       so... */
-        } else if (((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0)
-            && (pRequest->array_index != 0)
-            && (pRequest->array_index != BACNET_ARRAY_ALL)) {
+        if ((pRequest->RequestType == RR_BY_POSITION) &&
+            (pRequest->Range.RefIndex ==
+                0)) { /* First index is 1 so can't accept 0 */
+            pRequest->error_code =
+                ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
+                                     so... */
+        } else if (((PropInfo.RequestTypes & RR_ARRAY_OF_LISTS) == 0) &&
+            (pRequest->array_index != 0) &&
+            (pRequest->array_index != BACNET_ARRAY_ALL)) {
             /* Array access attempted on a non array property */
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        } else if ((pRequest->RequestType != RR_READ_ALL)
-            && ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
+        } else if ((pRequest->RequestType != RR_READ_ALL) &&
+            ((PropInfo.RequestTypes & pRequest->RequestType) == 0)) {
             /* By Time or By Sequence not supported - By Position is always
              * required */
-            pRequest->error_code
-                = ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
-                                       so... */
-        } else if ((pRequest->Count == 0)
-            && (pRequest->RequestType
-                   != RR_READ_ALL)) { /* Count cannot be zero */
-            pRequest->error_code
-                = ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
-                                       so... */
+            pRequest->error_code =
+                ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
+                                     so... */
+        } else if ((pRequest->Count == 0) &&
+            (pRequest->RequestType != RR_READ_ALL)) { /* Count cannot be zero */
+            pRequest->error_code =
+                ERROR_CODE_OTHER; /* I couldn't see anything more appropriate
+                                     so... */
         } else if (PropInfo.Handler != NULL) {
             apdu_len = PropInfo.Handler(apdu, pRequest);
         }

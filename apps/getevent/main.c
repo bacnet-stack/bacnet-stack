@@ -75,8 +75,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\r\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
@@ -88,8 +88,8 @@ static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\r\n",
             bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
@@ -99,8 +99,8 @@ static void MyAbortHandler(
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\r\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;

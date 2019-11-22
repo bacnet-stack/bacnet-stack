@@ -94,8 +94,8 @@ int encode_security_wrapper(
     /* begin encryption starting from destination device instance */
     enc_begin = curr;
     /* destination device instance */
-    curr
-        += encode_unsigned24(&apdu[curr], wrapper->destination_device_instance);
+    curr +=
+        encode_unsigned24(&apdu[curr], wrapper->destination_device_instance);
     /* dst address */
     curr += encode_unsigned16(&apdu[curr], wrapper->dnet);
     apdu[curr++] = wrapper->dlen;
@@ -112,8 +112,8 @@ int encode_security_wrapper(
         /* authentication data */
         curr += encode_unsigned16(&apdu[curr], wrapper->user_id);
         apdu[curr++] = wrapper->user_role;
-        if ((wrapper->authentication_mechanism >= 1)
-            && (wrapper->authentication_mechanism <= 199)) {
+        if ((wrapper->authentication_mechanism >= 1) &&
+            (wrapper->authentication_mechanism <= 199)) {
             curr += encode_unsigned16(
                 &apdu[curr], wrapper->authentication_data_length + 5);
             memcpy(&apdu[curr], wrapper->authentication_data,
@@ -210,8 +210,8 @@ int encode_security_response(uint8_t *apdu, BACNET_SECURITY_RESPONSE *resp)
                 &apdu[curr], resp->response.unknown_key.original_key);
             break;
         case SEC_RESP_UNKNOWN_KEY_REVISION:
-            apdu[curr++]
-                = resp->response.unknown_key_revision.original_key_revision;
+            apdu[curr++] =
+                resp->response.unknown_key_revision.original_key_revision;
             break;
         case SEC_RESP_TOO_MANY_KEYS:
             apdu[curr++] = resp->response.too_many_keys.max_num_of_keys;
@@ -436,8 +436,8 @@ int decode_security_wrapper_safe(int bytes_before,
             wrapper->padding_len - 2);
     }
     /* destination device instance */
-    curr += decode_unsigned24(
-        &apdu[curr], &wrapper->destination_device_instance);
+    curr +=
+        decode_unsigned24(&apdu[curr], &wrapper->destination_device_instance);
     /* dst address */
     curr += decode_unsigned16(&apdu[curr], &wrapper->dnet);
     wrapper->dlen = apdu[curr++];
@@ -454,8 +454,8 @@ int decode_security_wrapper_safe(int bytes_before,
         /* authentication data */
         curr += decode_unsigned16(&apdu[curr], &wrapper->user_id);
         wrapper->user_role = apdu[curr++];
-        if ((wrapper->authentication_mechanism >= 1)
-            && (wrapper->authentication_mechanism <= 199)) {
+        if ((wrapper->authentication_mechanism >= 1) &&
+            (wrapper->authentication_mechanism <= 199)) {
             curr += decode_unsigned16(
                 &apdu[curr], &wrapper->authentication_data_length);
             wrapper->authentication_data_length -= 5;
@@ -546,8 +546,8 @@ int decode_security_response_safe(
                 return -1;
             }
             resp->response.incorrect_key.number_of_keys = apdu[curr++];
-            if (apdu_len_remaining - 10
-                < resp->response.incorrect_key.number_of_keys * 2) {
+            if (apdu_len_remaining - 10 <
+                resp->response.incorrect_key.number_of_keys * 2) {
                 return -1;
             }
             for (i = 0; i < (int)resp->response.incorrect_key.number_of_keys;
@@ -561,14 +561,12 @@ int decode_security_response_safe(
                 return -1;
             }
             resp->response.unknown_authentication_type
-                .original_authentication_type
-                = apdu[curr++];
+                .original_authentication_type = apdu[curr++];
             curr += decode_unsigned16(&apdu[curr],
                 &resp->response.unknown_authentication_type.vendor_id);
             if (resp->response.unknown_authentication_type
-                        .original_authentication_type
-                    < 200
-                && resp->response.unknown_authentication_type.vendor_id != 0) {
+                        .original_authentication_type < 200 &&
+                resp->response.unknown_authentication_type.vendor_id != 0) {
                 return -1;
             }
             break;
@@ -583,8 +581,8 @@ int decode_security_response_safe(
             if (apdu_len_remaining < 10) {
                 return -1;
             }
-            resp->response.unknown_key_revision.original_key_revision
-                = apdu[curr++];
+            resp->response.unknown_key_revision.original_key_revision =
+                apdu[curr++];
             break;
         case SEC_RESP_TOO_MANY_KEYS:
             if (apdu_len_remaining < 10) {
@@ -653,8 +651,8 @@ int decode_key_entry_safe(
     }
     curr += decode_unsigned16(&apdu[curr], &entry->key_identifier);
     entry->key_len = apdu[curr++];
-    if (apdu_len_remaining - 3 < entry->key_len
-        || entry->key_len > MAX_KEY_LEN) {
+    if (apdu_len_remaining - 3 < entry->key_len ||
+        entry->key_len > MAX_KEY_LEN) {
         return -1;
     }
     memcpy(entry->key, &apdu[curr], entry->key_len);
@@ -702,10 +700,10 @@ int decode_update_key_set_safe(
             return -1;
         }
         key_set->set_key_revision[0] = apdu[curr++];
-        curr
-            += decode_unsigned32(&apdu[curr], &key_set->set_activation_time[0]);
-        curr
-            += decode_unsigned32(&apdu[curr], &key_set->set_expiration_time[0]);
+        curr +=
+            decode_unsigned32(&apdu[curr], &key_set->set_activation_time[0]);
+        curr +=
+            decode_unsigned32(&apdu[curr], &key_set->set_expiration_time[0]);
     }
     if (key_set->set_ck[0]) {
         if (apdu_len_remaining - curr < 1) {
@@ -729,10 +727,10 @@ int decode_update_key_set_safe(
             return -1;
         }
         key_set->set_key_revision[1] = apdu[curr++];
-        curr
-            += decode_unsigned32(&apdu[curr], &key_set->set_activation_time[1]);
-        curr
-            += decode_unsigned32(&apdu[curr], &key_set->set_expiration_time[1]);
+        curr +=
+            decode_unsigned32(&apdu[curr], &key_set->set_activation_time[1]);
+        curr +=
+            decode_unsigned32(&apdu[curr], &key_set->set_expiration_time[1]);
     }
     if (key_set->set_ck[1]) {
         if (apdu_len_remaining - curr < 1) {

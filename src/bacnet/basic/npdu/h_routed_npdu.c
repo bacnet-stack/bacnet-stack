@@ -225,7 +225,7 @@ static void routed_apdu_handler(BACNET_ADDRESS *src,
         apdu_handler(src, apdu, apdu_len);
         bGotOne = true;
         if (cursor < 0) /* If no more matches, */
-            break;      /* We don't need to keep looking */
+            break; /* We don't need to keep looking */
     }
     if (!bGotOne) {
         /* Just silently drop this packet. */

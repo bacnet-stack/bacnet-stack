@@ -44,7 +44,7 @@ int getevent_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
@@ -91,7 +91,7 @@ int getevent_ack_encode_apdu_init(
 
     if (apdu && (max_apdu >= 4)) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
-        apdu[1] = invoke_id;            /* original invoke id from request */
+        apdu[1] = invoke_id; /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_GET_EVENT_INFORMATION;
         apdu_len = 3;
         /* service ack follows */
@@ -174,7 +174,7 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
 {
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    int len = 0;             /* total length of decodes */
+    int len = 0; /* total length of decodes */
     uint32_t enum_value = 0; /* for decoding */
     BACNET_GET_EVENT_INFORMATION_DATA *event_data;
     unsigned i = 0; /* counter */
@@ -407,11 +407,11 @@ void testGetEventInformationAck(Test *pTest)
     ct_test(pTest, test_invoke_id == invoke_id);
 
     ct_test(pTest,
-        event_data.objectIdentifier.type
-            == test_event_data.objectIdentifier.type);
+        event_data.objectIdentifier.type ==
+            test_event_data.objectIdentifier.type);
     ct_test(pTest,
-        event_data.objectIdentifier.instance
-            == test_event_data.objectIdentifier.instance);
+        event_data.objectIdentifier.instance ==
+            test_event_data.objectIdentifier.instance);
 
     ct_test(pTest, event_data.eventState == test_event_data.eventState);
 }
@@ -438,11 +438,11 @@ void testGetEventInformation(Test *pTest)
     ct_test(pTest, len != -1);
     ct_test(pTest, test_invoke_id == invoke_id);
     ct_test(pTest,
-        test_lastReceivedObjectIdentifier.type
-            == lastReceivedObjectIdentifier.type);
+        test_lastReceivedObjectIdentifier.type ==
+            lastReceivedObjectIdentifier.type);
     ct_test(pTest,
-        test_lastReceivedObjectIdentifier.instance
-            == lastReceivedObjectIdentifier.instance);
+        test_lastReceivedObjectIdentifier.instance ==
+            lastReceivedObjectIdentifier.instance);
 
     return;
 }

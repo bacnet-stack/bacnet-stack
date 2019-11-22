@@ -143,8 +143,8 @@ void handler_atomic_read_file(uint8_t *service_request,
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
-            if (data.type.stream.requestedOctetCount
-                < octetstring_capacity(&data.fileData[0])) {
+            if (data.type.stream.requestedOctetCount <
+                octetstring_capacity(&data.fileData[0])) {
                 bacfile_read_stream_data(&data);
 #if PRINT_ENABLED
                 fprintf(stderr, "ARF: Stream offset %d, %d octets.\n",
@@ -164,8 +164,8 @@ void handler_atomic_read_file(uint8_t *service_request,
 #endif
             }
         } else if (data.access == FILE_RECORD_ACCESS) {
-            if (data.type.record.fileStartRecord
-                >= BACNET_READ_FILE_RECORD_COUNT) {
+            if (data.type.record.fileStartRecord >=
+                BACNET_READ_FILE_RECORD_COUNT) {
                 error_class = ERROR_CLASS_SERVICES;
                 error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                 error = true;

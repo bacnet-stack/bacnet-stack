@@ -57,8 +57,8 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     if (cBlockNum >= MY_MAX_BLOCK)
         return;
 
-    tag_len = decode_tag_number_and_value(
-        &pData[iLen], &tag_number, &len_value_type);
+    tag_len =
+        decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
         return;
@@ -66,8 +66,8 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
     Response.cMyByte1 = (char)ulTemp;
 
-    tag_len = decode_tag_number_and_value(
-        &pData[iLen], &tag_number, &len_value_type);
+    tag_len =
+        decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT)
         return;
@@ -75,16 +75,16 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
     Response.cMyByte2 = (char)ulTemp;
 
-    tag_len = decode_tag_number_and_value(
-        &pData[iLen], &tag_number, &len_value_type);
+    tag_len =
+        decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_REAL)
         return;
 
     iLen += decode_real(&pData[iLen], &Response.fMyReal);
 
-    tag_len = decode_tag_number_and_value(
-        &pData[iLen], &tag_number, &len_value_type);
+    tag_len =
+        decode_tag_number_and_value(&pData[iLen], &tag_number, &len_value_type);
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_CHARACTER_STRING)
         return;

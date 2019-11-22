@@ -62,8 +62,8 @@ BACMSG *recv_from_msgbox(MSGBOX_ID src, BACMSG *msg)
 {
     int recv_bytes;
 
-    recv_bytes
-        = msgrcv(src, msg, sizeof(BACMSG) - sizeof(MSGTYPE), 0, IPC_NOWAIT);
+    recv_bytes =
+        msgrcv(src, msg, sizeof(BACMSG) - sizeof(MSGTYPE), 0, IPC_NOWAIT);
     if (recv_bytes > 0) {
         return msg;
     } else {

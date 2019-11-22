@@ -139,8 +139,8 @@ static uint32_t timeval_diff_ms(struct timeval *old, struct timeval *now)
     uint32_t ms = 0;
 
     /* convert to milliseconds */
-    ms = (now->tv_sec - old->tv_sec) * 1000
-        + (now->tv_usec - old->tv_usec) / 1000;
+    ms = (now->tv_sec - old->tv_sec) * 1000 +
+        (now->tv_usec - old->tv_usec) / 1000;
 
     return ms;
 }
@@ -162,13 +162,13 @@ static void mstp_monitor_i_am(uint8_t mac, uint8_t *pdu, uint16_t pdu_len)
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
         MSTP_Fill_BACnet_Address(&src, mac);
         apdu_offset = npdu_decode(&pdu[0], &dest, &src, &npdu_data);
-        if ((!npdu_data.network_layer_message) && (apdu_offset > 0)
-            && (apdu_offset < pdu_len) && (src.net == 0)) {
+        if ((!npdu_data.network_layer_message) && (apdu_offset > 0) &&
+            (apdu_offset < pdu_len) && (src.net == 0)) {
             apdu_len = pdu_len - apdu_offset;
             apdu = &pdu[apdu_offset];
             pdu_type = apdu[0] & 0xF0;
-            if ((pdu_type == PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST)
-                && (apdu_len >= 2)) {
+            if ((pdu_type == PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) &&
+                (apdu_len >= 2)) {
                 service_choice = apdu[1];
                 service_request = &apdu[2];
                 if (service_choice == SERVICE_UNCONFIRMED_I_AM) {
@@ -221,8 +221,8 @@ static void packet_statistics(
                         MSTP_Statistics[src].token_reply = delta;
                     }
                 }
-            } else if ((old_frame == FRAME_TYPE_POLL_FOR_MASTER)
-                && (old_src == src)) {
+            } else if ((old_frame == FRAME_TYPE_POLL_FOR_MASTER) &&
+                (old_src == src)) {
                 /* Tusage_timeout */
                 delta = timeval_diff_ms(&old_tv, tv);
                 if (delta > MSTP_Statistics[src].tusage_timeout) {
@@ -237,14 +237,14 @@ static void packet_statistics(
             break;
         case FRAME_TYPE_POLL_FOR_MASTER:
             if (MSTP_Statistics[src].last_pfm_tokens) {
-                npoll = MSTP_Statistics[src].token_received_count
-                    - MSTP_Statistics[src].last_pfm_tokens;
+                npoll = MSTP_Statistics[src].token_received_count -
+                    MSTP_Statistics[src].last_pfm_tokens;
                 if (npoll > MSTP_Statistics[src].npoll) {
                     MSTP_Statistics[src].npoll = npoll;
                 }
             }
-            MSTP_Statistics[src].last_pfm_tokens
-                = MSTP_Statistics[src].token_received_count;
+            MSTP_Statistics[src].last_pfm_tokens =
+                MSTP_Statistics[src].token_received_count;
             MSTP_Statistics[src].pfm_count++;
             if (dst > MSTP_Statistics[src].max_master) {
                 MSTP_Statistics[src].max_master = dst;
@@ -277,18 +277,18 @@ static void packet_statistics(
             break;
         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
             MSTP_Statistics[src].dner_count++;
-            if ((old_frame == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY)
-                && (old_dst == src)) {
+            if ((old_frame == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) &&
+                (old_dst == src)) {
                 /* DER response time */
                 delta = timeval_diff_ms(&old_tv, tv);
                 if (delta > MSTP_Statistics[src].der_reply) {
                     MSTP_Statistics[src].der_reply = delta;
                 }
             }
-            if ((mstp_port->ReceivedValidFrame)
-                || (mstp_port->ReceivedValidFrameNotForUs)) {
-                if ((mstp_port->DataLength <= mstp_port->InputBufferSize)
-                    && (mstp_port->DataLength > 0)) {
+            if ((mstp_port->ReceivedValidFrame) ||
+                (mstp_port->ReceivedValidFrameNotForUs)) {
+                if ((mstp_port->DataLength <= mstp_port->InputBufferSize) &&
+                    (mstp_port->DataLength > 0)) {
                     mstp_monitor_i_am(
                         src, &mstp_port->InputBuffer[0], mstp_port->DataLength);
                 }
@@ -296,8 +296,8 @@ static void packet_statistics(
             break;
         case FRAME_TYPE_REPLY_POSTPONED:
             MSTP_Statistics[src].reply_postponed_count++;
-            if ((old_frame == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY)
-                && (old_dst == src)) {
+            if ((old_frame == FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY) &&
+                (old_dst == src)) {
                 /* Postponed response time */
                 delta = timeval_diff_ms(&old_tv, tv);
                 if (delta > MSTP_Statistics[src].reply_postponed) {
@@ -330,8 +330,8 @@ static void packet_statistics_print(void)
     fprintf(stdout, "\n");
     for (i = 0; i < MAX_MSTP_DEVICES; i++) {
         /* check for masters or slaves */
-        if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
-            || (MSTP_Statistics[i].pfm_count)) {
+        if ((MSTP_Statistics[i].token_count) ||
+            (MSTP_Statistics[i].der_reply) || (MSTP_Statistics[i].pfm_count)) {
             node_count++;
             fprintf(stdout, "%-8u", i);
             if (MSTP_Statistics[i].device_id <= 4194303) {
@@ -363,11 +363,11 @@ static void packet_statistics_print(void)
     fprintf(stdout, "\n");
     for (i = 0; i < MAX_MSTP_DEVICES; i++) {
         /* check for masters or slaves */
-        if ((MSTP_Statistics[i].token_count) || (MSTP_Statistics[i].der_reply)
-            || (MSTP_Statistics[i].pfm_count)) {
+        if ((MSTP_Statistics[i].token_count) ||
+            (MSTP_Statistics[i].der_reply) || (MSTP_Statistics[i].pfm_count)) {
             node_count++;
-            self_or_ooo_count = MSTP_Statistics[i].self_token_count
-                + MSTP_Statistics[i].ooo_token_count;
+            self_or_ooo_count = MSTP_Statistics[i].self_token_count +
+                MSTP_Statistics[i].ooo_token_count;
             fprintf(stdout, "%-8u", i);
             fprintf(stdout, "%-8lu%-8lu%-8lu%-8lu%-8lu",
                 (long unsigned int)MSTP_Statistics[i].max_master,
@@ -468,10 +468,10 @@ static size_t data_write(const void *ptr, size_t size, size_t nitems)
     DWORD cbWritten = 0;
     if (hPipe != INVALID_HANDLE_VALUE) {
         (void)WriteFile(hPipe, /* handle to pipe  */
-            ptr,               /* buffer to write from  */
-            size * nitems,     /* number of bytes to write  */
-            &cbWritten,        /* number of bytes written  */
-            NULL);             /* not overlapped I/O  */
+            ptr, /* buffer to write from  */
+            size * nitems, /* number of bytes to write  */
+            &cbWritten, /* number of bytes written  */
+            NULL); /* not overlapped I/O  */
     }
 
     return fwrite(ptr, size, nitems, pFile);
@@ -483,10 +483,10 @@ static size_t data_write_header(
     DWORD cbWritten = 0;
     if (pipe_enable && (hPipe != INVALID_HANDLE_VALUE)) {
         (void)WriteFile(hPipe, /* handle to pipe  */
-            ptr,               /* buffer to write from  */
-            size * nitems,     /* number of bytes to write  */
-            &cbWritten,        /* number of bytes written  */
-            NULL);             /* not overlapped I/O  */
+            ptr, /* buffer to write from  */
+            size * nitems, /* number of bytes to write  */
+            &cbWritten, /* number of bytes written  */
+            NULL); /* not overlapped I/O  */
     }
 
     return fwrite(ptr, size, nitems, pFile);
@@ -547,12 +547,12 @@ static void filename_create(char *filename)
 /* write packet to file in libpcap format */
 static void write_global_header(const char *filename)
 {
-    static bool pipe_enable = true;     /* don't write more than one header */
+    static bool pipe_enable = true; /* don't write more than one header */
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
-    uint16_t version_major = 2;         /* major version number */
-    uint16_t version_minor = 4;         /* minor version number */
-    int32_t thiszone = 0;               /* GMT to local correction */
-    uint32_t sigfigs = 0;               /* accuracy of timestamps */
+    uint16_t version_major = 2; /* major version number */
+    uint16_t version_minor = 4; /* minor version number */
+    int32_t thiszone = 0; /* GMT to local correction */
+    uint32_t sigfigs = 0; /* accuracy of timestamps */
     uint32_t snaplen = 65535; /* max length of captured packets, in octets */
     uint32_t network = DLT_BACNET_MS_TP; /* data link type - BACNET_MS_TP */
 
@@ -585,8 +585,8 @@ static void write_global_header(const char *filename)
 static void write_received_packet(
     volatile struct mstp_port_struct_t *mstp_port, size_t header_len)
 {
-    uint32_t ts_sec = 0;   /* timestamp seconds */
-    uint32_t ts_usec = 0;  /* timestamp microseconds */
+    uint32_t ts_sec = 0; /* timestamp seconds */
+    uint32_t ts_usec = 0; /* timestamp microseconds */
     uint32_t incl_len = 0; /* number of octets of packet saved in file */
     uint32_t orig_len = 0; /* actual length of packet */
     uint8_t header[MSTP_HEADER_MAX] = { 0 }; /* MS/TP header */
@@ -597,8 +597,8 @@ static void write_received_packet(
         gettimeofday(&tv, NULL);
         ts_sec = tv.tv_sec;
         ts_usec = tv.tv_usec;
-        if ((mstp_port->ReceivedValidFrame)
-            || (mstp_port->ReceivedValidFrameNotForUs)) {
+        if ((mstp_port->ReceivedValidFrame) ||
+            (mstp_port->ReceivedValidFrameNotForUs)) {
             packet_statistics(&tv, mstp_port);
         }
         (void)data_write(&ts_sec, sizeof(ts_sec), 1);
@@ -613,8 +613,8 @@ static void write_received_packet(
             }
         } else {
             if (mstp_port->DataLength) {
-                max_data
-                    = min(mstp_port->InputBufferSize, mstp_port->DataLength);
+                max_data =
+                    min(mstp_port->InputBufferSize, mstp_port->DataLength);
                 incl_len = orig_len = header_len + max_data + 2 /* checksum*/;
             } else {
                 /* header only - or at least some bytes of the header */
@@ -653,13 +653,13 @@ static void write_received_packet(
 /* read header from file in libpcap format */
 static bool test_global_header(const char *filename)
 {
-    uint32_t magic_number = 0;  /* magic number */
+    uint32_t magic_number = 0; /* magic number */
     uint16_t version_major = 0; /* major version number */
     uint16_t version_minor = 0; /* minor version number */
-    int32_t thiszone = 0;       /* GMT to local correction */
-    uint32_t sigfigs = 0;       /* accuracy of timestamps */
-    uint32_t snaplen = 0;       /* max length of captured packets, in octets */
-    uint32_t network = 0;       /* data link type - BACNET_MS_TP */
+    int32_t thiszone = 0; /* GMT to local correction */
+    uint32_t sigfigs = 0; /* accuracy of timestamps */
+    uint32_t snaplen = 0; /* max length of captured packets, in octets */
+    uint32_t network = 0; /* data link type - BACNET_MS_TP */
     size_t count = 0;
 
     /* open existing file. */
@@ -725,10 +725,10 @@ static bool test_global_header(const char *filename)
 
 static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
 {
-    uint32_t ts_sec = 0;       /* timestamp seconds */
-    uint32_t ts_usec = 0;      /* timestamp microseconds */
-    uint32_t incl_len = 0;     /* number of octets of packet saved in file */
-    uint32_t orig_len = 0;     /* actual length of packet */
+    uint32_t ts_sec = 0; /* timestamp seconds */
+    uint32_t ts_usec = 0; /* timestamp microseconds */
+    uint32_t incl_len = 0; /* number of octets of packet saved in file */
+    uint32_t orig_len = 0; /* actual length of packet */
     uint8_t header[8] = { 0 }; /* MS/TP header */
     struct timeval tv;
     size_t count = 0;
@@ -774,8 +774,8 @@ static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
         mstp_port->HeaderCRCActual = header[7];
         mstp_port->HeaderCRC = 0xFF;
         for (i = 2; i < 8; i++) {
-            mstp_port->HeaderCRC
-                = CRC_Calc_Header(header[i], mstp_port->HeaderCRC);
+            mstp_port->HeaderCRC =
+                CRC_Calc_Header(header[i], mstp_port->HeaderCRC);
         }
         if (mstp_port->HeaderCRC == 0x55) {
             mstp_port->ReceivedValidFrame = true;
@@ -791,8 +791,8 @@ static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
         if (orig_len > 8) {
             /* packet includes data */
             mstp_port->DataLength = orig_len - 8 - 2;
-            count = fread(
-                mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
+            count =
+                fread(mstp_port->InputBuffer, mstp_port->DataLength, 1, pFile);
             if (count != 1) {
                 fclose(pFile);
                 pFile = NULL;
@@ -815,10 +815,10 @@ static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
                 mstp_port->DataCRC = CRC_Calc_Data(
                     mstp_port->InputBuffer[i], mstp_port->DataCRC);
             }
-            mstp_port->DataCRC = CRC_Calc_Data(
-                mstp_port->DataCRCActualMSB, mstp_port->DataCRC);
-            mstp_port->DataCRC = CRC_Calc_Data(
-                mstp_port->DataCRCActualLSB, mstp_port->DataCRC);
+            mstp_port->DataCRC =
+                CRC_Calc_Data(mstp_port->DataCRCActualMSB, mstp_port->DataCRC);
+            mstp_port->DataCRC =
+                CRC_Calc_Data(mstp_port->DataCRCActualLSB, mstp_port->DataCRC);
             if (mstp_port->DataCRC == 0xF0B8) {
                 mstp_port->ReceivedInvalidFrame = false;
                 mstp_port->ReceivedValidFrame = true;
@@ -833,8 +833,8 @@ static bool read_received_packet(volatile struct mstp_port_struct_t *mstp_port)
         }
         if (mstp_port->ReceivedInvalidFrame) {
             Invalid_Frame_Count++;
-        } else if ((mstp_port->ReceivedValidFrame)
-            || (mstp_port->ReceivedValidFrameNotForUs)) {
+        } else if ((mstp_port->ReceivedValidFrame) ||
+            (mstp_port->ReceivedValidFrameNotForUs)) {
             packet_statistics(&tv, mstp_port);
         }
     } else {

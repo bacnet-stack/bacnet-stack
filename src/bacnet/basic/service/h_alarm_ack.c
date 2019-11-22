@@ -136,8 +136,8 @@ void handler_alarm_ack(uint8_t *service_request,
             service_data->invoke_id, SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM,
             ERROR_CLASS_OBJECT, ERROR_CODE_UNKNOWN_OBJECT);
     } else if (Alarm_Ack[data.eventObjectIdentifier.type]) {
-        ack_result
-            = Alarm_Ack[data.eventObjectIdentifier.type](&data, &error_code);
+        ack_result =
+            Alarm_Ack[data.eventObjectIdentifier.type](&data, &error_code);
 
         switch (ack_result) {
             case 1:

@@ -109,8 +109,8 @@ OBJECT_DEVICE_T *objects_device_delete(int index)
                 (unsigned long)pDevice->Object_Identifier.instance);
             if (pDevice->Object_List) {
                 do {
-                    pObject
-                        = Keylist_Data_Delete_By_Index(pDevice->Object_List, 0);
+                    pObject =
+                        Keylist_Data_Delete_By_Index(pDevice->Object_List, 0);
                     /* free any dynamic memory used */
                     if (pObject) {
                         free(pObject);

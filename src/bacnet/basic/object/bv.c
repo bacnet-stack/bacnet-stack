@@ -57,8 +57,8 @@ static const int Binary_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
 
-static const int Binary_Value_Properties_Optional[]
-    = { PROP_DESCRIPTION, PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT, -1 };
+static const int Binary_Value_Properties_Optional[] = { PROP_DESCRIPTION,
+    PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT, -1 };
 
 static const int Binary_Value_Properties_Proprietary[] = { -1 };
 
@@ -204,8 +204,8 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -219,12 +219,12 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             Binary_Value_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
             break;
         case PROP_PRESENT_VALUE:
             present_value = Binary_Value_Present_Value(rpdata->object_instance);
@@ -242,8 +242,8 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_EVENT_STATE:
             /* note: see the details in the standard on how to use this */
-            apdu_len
-                = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
             state = Binary_Value_Out_Of_Service(rpdata->object_instance);
@@ -252,13 +252,13 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_PRIORITY_ARRAY:
             /* Array element zero is the number of elements in the array */
             if (rpdata->array_index == 0)
-                apdu_len = encode_application_unsigned(
-                    &apdu[0], BACNET_MAX_PRIORITY);
+                apdu_len =
+                    encode_application_unsigned(&apdu[0], BACNET_MAX_PRIORITY);
             /* if no index was specified, then try to encode the entire list */
             /* into one packet. */
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                object_index
-                    = Binary_Value_Instance_To_Index(rpdata->object_instance);
+                object_index =
+                    Binary_Value_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Binary_Value_Level[object_index][i] == BINARY_NULL)
@@ -272,18 +272,18 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if ((apdu_len + len) < MAX_APDU)
                         apdu_len += len;
                     else {
-                        rpdata->error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
             } else {
-                object_index
-                    = Binary_Value_Instance_To_Index(rpdata->object_instance);
+                object_index =
+                    Binary_Value_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
-                    if (Binary_Value_Level[object_index][rpdata->array_index]
-                        == BINARY_NULL)
+                    if (Binary_Value_Level[object_index][rpdata->array_index] ==
+                        BINARY_NULL)
                         apdu_len = encode_application_null(&apdu[apdu_len]);
                     else {
                         present_value = Binary_Value_Level[object_index]
@@ -309,8 +309,8 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -340,8 +340,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
@@ -353,9 +353,9 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
-                if (priority && (priority <= BACNET_MAX_PRIORITY)
-                    && (priority != 6 /* reserved */)
-                    && (value.type.Enumerated <= MAX_BINARY_PV)) {
+                if (priority && (priority <= BACNET_MAX_PRIORITY) &&
+                    (priority != 6 /* reserved */) &&
+                    (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV)value.type.Enumerated;
                     object_index = Binary_Value_Instance_To_Index(
                         wp_data->object_instance);

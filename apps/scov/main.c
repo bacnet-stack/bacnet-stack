@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <time.h>  /* for time */
+#include <time.h> /* for time */
 #include <ctype.h> /* for toupper */
 
 #define PRINT_ENABLED 1
@@ -78,8 +78,8 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
     BACNET_ERROR_CLASS error_class,
     BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Error: %s: %s\r\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
@@ -91,8 +91,8 @@ static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     (void)server;
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Abort: %s\r\n",
             bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
@@ -102,8 +102,8 @@ static void MyAbortHandler(
 static void MyRejectHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("BACnet Reject: %s\r\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
@@ -127,8 +127,8 @@ static void My_Confirmed_COV_Notification_Handler(uint8_t *service_request,
 static void MyWritePropertySimpleAckHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id)
 {
-    if (address_match(&Target_Address, src)
-        && (invoke_id == Request_Invoke_ID)) {
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
         printf("SubscribeCOV Acknowledged!\r\n");
         Simple_Ack_Detected = true;
     }
@@ -265,18 +265,18 @@ int main(int argc, char *argv[])
     argi = 2;
     while (cov_data) {
         cov_data->monitoredObjectIdentifier.type = strtol(argv[argi], NULL, 0);
-        if (cov_data->monitoredObjectIdentifier.type
-            >= MAX_BACNET_OBJECT_TYPE) {
+        if (cov_data->monitoredObjectIdentifier.type >=
+            MAX_BACNET_OBJECT_TYPE) {
             fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
                 cov_data->monitoredObjectIdentifier.type,
                 MAX_BACNET_OBJECT_TYPE);
             return 1;
         }
         argi++;
-        cov_data->monitoredObjectIdentifier.instance
-            = strtol(argv[argi], NULL, 0);
-        if (cov_data->monitoredObjectIdentifier.instance
-            > BACNET_MAX_INSTANCE) {
+        cov_data->monitoredObjectIdentifier.instance =
+            strtol(argv[argi], NULL, 0);
+        if (cov_data->monitoredObjectIdentifier.instance >
+            BACNET_MAX_INSTANCE) {
             fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
                 cov_data->monitoredObjectIdentifier.instance,
                 BACNET_MAX_INSTANCE + 1);
@@ -362,12 +362,12 @@ int main(int argc, char *argv[])
                 } else {
                     Cancel_Requested = false;
                 }
-                Target_Device_Process_Identifier
-                    = cov_data->subscriberProcessIdentifier;
-                Request_Invoke_ID = Send_COV_Subscribe(
-                    Target_Device_Object_Instance, cov_data);
-                if (!cov_data->cancellationRequest
-                    && (timeout_seconds < cov_data->lifetime)) {
+                Target_Device_Process_Identifier =
+                    cov_data->subscriberProcessIdentifier;
+                Request_Invoke_ID =
+                    Send_COV_Subscribe(Target_Device_Object_Instance, cov_data);
+                if (!cov_data->cancellationRequest &&
+                    (timeout_seconds < cov_data->lifetime)) {
                     /* increase the timeout to the longest lifetime */
                     timeout_seconds = cov_data->lifetime;
                 }

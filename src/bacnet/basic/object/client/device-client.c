@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h> /* for memmove */
-#include <time.h>   /* for timezone, localtime */
+#include <time.h> /* for timezone, localtime */
 /* OS specific include*/
 #include "bacport.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -549,9 +549,9 @@ bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
         check_id = Device_Object_List_Identifier(i, &type, &instance);
         if (check_id) {
             pObject = Device_Objects_Find_Functions(type);
-            if ((pObject != NULL) && (pObject->Object_Name != NULL)
-                && (pObject->Object_Name(instance, &object_name2)
-                       && characterstring_same(object_name1, &object_name2))) {
+            if ((pObject != NULL) && (pObject->Object_Name != NULL) &&
+                (pObject->Object_Name(instance, &object_name2) &&
+                    characterstring_same(object_name1, &object_name2))) {
                 found = true;
                 if (object_type) {
                     *object_type = type;
@@ -760,7 +760,7 @@ uint32_t Device_Interval_Offset(void)
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    int len = 0;      /* apdu len intermediate value */
+    int len = 0; /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t i = 0;
@@ -771,8 +771,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     struct object_functions *pObject = NULL;
     bool found = false;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -782,48 +782,48 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
-            apdu_len = encode_application_character_string(
-                &apdu[0], &My_Object_Name);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &My_Object_Name);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_DEVICE);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string, Description);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SYSTEM_STATUS:
             apdu_len = encode_application_enumerated(&apdu[0], System_Status);
             break;
         case PROP_VENDOR_NAME:
             characterstring_init_ansi(&char_string, Vendor_Name);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_VENDOR_IDENTIFIER:
             apdu_len = encode_application_unsigned(&apdu[0], Vendor_Identifier);
             break;
         case PROP_MODEL_NAME:
             characterstring_init_ansi(&char_string, Model_Name);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FIRMWARE_REVISION:
             characterstring_init_ansi(&char_string, BACnet_Version);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_APPLICATION_SOFTWARE_VERSION:
             characterstring_init_ansi(
                 &char_string, Application_Software_Version);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_LOCATION:
             characterstring_init_ansi(&char_string, Location);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_PROTOCOL_VERSION:
             apdu_len = encode_application_unsigned(
@@ -884,8 +884,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                          * entry */
                         if ((i != count) && (apdu_len + len) >= MAX_APDU) {
                             /* Abort response */
-                            rpdata->error_code
-                                = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            rpdata->error_code =
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             apdu_len = BACNET_STATUS_ABORT;
                             break;
                         }
@@ -933,12 +933,12 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #if defined(BACDL_MSTP)
         case PROP_MAX_INFO_FRAMES:
-            apdu_len = encode_application_unsigned(
-                &apdu[0], dlmstp_max_info_frames());
+            apdu_len =
+                encode_application_unsigned(&apdu[0], dlmstp_max_info_frames());
             break;
         case PROP_MAX_MASTER:
-            apdu_len
-                = encode_application_unsigned(&apdu[0], dlmstp_max_master());
+            apdu_len =
+                encode_application_unsigned(&apdu[0], dlmstp_max_master());
             break;
 #endif
         case PROP_ACTIVE_COV_SUBSCRIPTIONS:
@@ -950,8 +950,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_OBJECT_LIST) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -979,8 +979,8 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     pObject = Device_Objects_Find_Functions(rpdata->object_type);
     if (pObject != NULL) {
-        if (pObject->Object_Valid_Instance
-            && pObject->Object_Valid_Instance(rpdata->object_instance)) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(rpdata->object_instance)) {
             if (pObject->Object_Read_Property) {
                 apdu_len = pObject->Object_Read_Property(rpdata);
             }

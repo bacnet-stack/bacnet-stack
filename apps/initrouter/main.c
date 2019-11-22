@@ -178,7 +178,7 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
 }
 
 static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
-    uint8_t *pdu,                                /* PDU data */
+    uint8_t *pdu, /* PDU data */
     uint16_t pdu_len)
 { /* length PDU  */
     int apdu_offset = 0;
@@ -192,8 +192,8 @@ static void My_NPDU_Handler(BACNET_ADDRESS *src, /* source address */
                 (uint16_t)(pdu_len - apdu_offset));
         }
     } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
-        if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION)
-            && ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK))) {
+        if ((npdu_data.protocol_version == BACNET_PROTOCOL_VERSION) &&
+            ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK))) {
             /* only handle the version that we know how to handle */
             /* and we are not a router, so ignore messages with
                routing information cause they are not for us */

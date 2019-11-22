@@ -47,8 +47,8 @@ int bacapp_decode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
     uint32_t enumValue;
     uint8_t tagnum;
 
-    section_length
-        = decode_tag_number_and_value(&apdu[len], &tagnum, &len_value_type);
+    section_length =
+        decode_tag_number_and_value(&apdu[len], &tagnum, &len_value_type);
 
     if (-1 == section_length) {
         return -1;
@@ -61,116 +61,116 @@ int bacapp_decode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
             break;
 
         case BINARY_VALUE:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.binaryValue = (BACNET_BINARY_PV)enumValue;
             break;
 
         case EVENT_TYPE:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.eventType = (BACNET_EVENT_TYPE)enumValue;
             break;
 
         case POLARITY:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.polarity = (BACNET_POLARITY)enumValue;
             break;
 
         case PROGRAM_CHANGE:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.programChange = (BACNET_PROGRAM_REQUEST)enumValue;
             break;
 
         case PROGRAM_STATE:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.programState = (BACNET_PROGRAM_STATE)enumValue;
             break;
 
         case REASON_FOR_HALT:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.programError = (BACNET_PROGRAM_ERROR)enumValue;
             break;
 
         case RELIABILITY:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.reliability = (BACNET_RELIABILITY)enumValue;
             break;
 
         case STATE:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.state = (BACNET_EVENT_STATE)enumValue;
             break;
 
         case SYSTEM_STATUS:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.systemStatus = (BACNET_DEVICE_STATUS)enumValue;
             break;
 
         case UNITS:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.units = (BACNET_ENGINEERING_UNITS)enumValue;
             break;
 
         case UNSIGNED_VALUE:
-            if (-1
-                == (section_length = decode_unsigned(&apdu[len], len_value_type,
-                        &value->state.unsignedValue))) {
+            if (-1 ==
+                (section_length = decode_unsigned(&apdu[len], len_value_type,
+                     &value->state.unsignedValue))) {
                 return -1;
             }
             break;
 
         case LIFE_SAFETY_MODE:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.lifeSafetyMode = (BACNET_LIFE_SAFETY_MODE)enumValue;
             break;
 
         case LIFE_SAFETY_STATE:
-            if (-1
-                == (section_length = decode_enumerated(
-                        &apdu[len], len_value_type, &enumValue))) {
+            if (-1 ==
+                (section_length = decode_enumerated(
+                     &apdu[len], len_value_type, &enumValue))) {
                 return -1;
             }
             value->state.lifeSafetyState = (BACNET_LIFE_SAFETY_STATE)enumValue;
@@ -256,8 +256,8 @@ int bacapp_encode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
                 break;
 
             case STATE:
-                len = encode_context_enumerated(
-                    &apdu[0], 8, value->state.state);
+                len =
+                    encode_context_enumerated(&apdu[0], 8, value->state.state);
                 break;
 
             case SYSTEM_STATUS:
@@ -266,8 +266,8 @@ int bacapp_encode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
                 break;
 
             case UNITS:
-                len = encode_context_enumerated(
-                    &apdu[0], 10, value->state.units);
+                len =
+                    encode_context_enumerated(&apdu[0], 10, value->state.units);
                 break;
 
             case UNSIGNED_VALUE:

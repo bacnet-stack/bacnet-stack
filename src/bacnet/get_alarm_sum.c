@@ -71,7 +71,7 @@ int get_alarm_summary_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
 
     if (apdu) {
         apdu[0] = PDU_TYPE_COMPLEX_ACK; /* complex ACK service */
-        apdu[1] = invoke_id;            /* original invoke id from request */
+        apdu[1] = invoke_id; /* original invoke id from request */
         apdu[2] = SERVICE_CONFIRMED_GET_ALARM_SUMMARY;
         apdu_len = 3;
     }
@@ -143,8 +143,8 @@ int get_alarm_summary_ack_decode_apdu_data(uint8_t *apdu,
         apdu_len += bacapp_decode_application_data(
             &apdu[apdu_len], (unsigned int)(max_apdu - apdu_len), &value);
         if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
-            get_alarm_data->alarmState
-                = (BACNET_EVENT_STATE)value.type.Enumerated;
+            get_alarm_data->alarmState =
+                (BACNET_EVENT_STATE)value.type.Enumerated;
         } else {
             return BACNET_STATUS_ERROR;
         }

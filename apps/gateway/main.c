@@ -268,8 +268,8 @@ int main(int argc, char *argv[])
     /* allow the device ID to be set */
     if (argc > 1) {
         first_object_instance = strtol(argv[1], NULL, 0);
-        if ((first_object_instance == 0)
-            || (first_object_instance >= BACNET_MAX_INSTANCE)) {
+        if ((first_object_instance == 0) ||
+            (first_object_instance >= BACNET_MAX_INSTANCE)) {
             printf("Error: Invalid Object Instance %s \n", argv[1]);
             printf(
                 "Provide a number from 1 to %ul \n", BACNET_MAX_INSTANCE - 1);

@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h> /* for memmove */
-#include <time.h>   /* for timezone, localtime */
+#include <time.h> /* for timezone, localtime */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
@@ -76,7 +76,7 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 #if !defined(BAC_ROUTING)
 #ifdef _MSC_VER
-#pragma message This file should not be included in the build unless           \
+#pragma message This file should not be included in the build unless \
     BAC_ROUTING is enabled.
 #else
 #warning This file should not be included in the build unless BAC_ROUTING is enabled.
@@ -304,8 +304,8 @@ bool Routed_Device_GetNext(BACNET_ADDRESS *dest, int *DNET_list, int *cursor)
         if (idx == 0) /* Step over this case (starting point) */
             idx = 1;
         while (idx < MAX_NUM_DEVICES) {
-            bSuccess
-                = Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
+            bSuccess =
+                Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
             if (bSuccess)
                 break; /* We don't need to keep looking */
         }
@@ -404,8 +404,8 @@ int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     uint8_t *apdu = NULL;
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -416,17 +416,17 @@ int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(&char_string, pDev->bacObj.Object_Name);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(&char_string, pDev->Description);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_DATABASE_REVISION:
-            apdu_len = encode_application_unsigned(
-                &apdu[0], pDev->Database_Revision);
+            apdu_len =
+                encode_application_unsigned(&apdu[0], pDev->Database_Revision);
             break;
         default:
             apdu_len = Device_Read_Property_Local(rpdata);
@@ -452,8 +452,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_OBJECT_LIST)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_OBJECT_LIST) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
@@ -464,9 +464,9 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_OBJECT_ID,
                 &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                if ((value.type.Object_Id.type == OBJECT_DEVICE)
-                    && (Routed_Device_Set_Object_Instance_Number(
-                           value.type.Object_Id.instance))) {
+                if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
+                    (Routed_Device_Set_Object_Instance_Number(
+                        value.type.Object_Id.instance))) {
                     /* FIXME: we could send an I-Am broadcast to let the world
                      * know */
                 } else {

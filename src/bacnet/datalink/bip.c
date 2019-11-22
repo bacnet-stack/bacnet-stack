@@ -32,7 +32,7 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>  /* for standard integer types uint8_t etc. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -134,8 +134,8 @@ static int bip_decode_bip_address(BACNET_ADDRESS *bac_addr,
  * @return Number of bytes sent on success, negative number on failure.
  */
 int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
-    BACNET_NPDU_DATA *npdu_data,       /* network information */
-    uint8_t *pdu,                      /* any data to be sent - may be null */
+    BACNET_NPDU_DATA *npdu_data, /* network information */
+    uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
 { /* number of bytes of data */
     struct sockaddr_in bip_dest;
@@ -204,7 +204,7 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
  * @return The number of octets (remaining) in the PDU, or zero on failure.
  */
 uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
-    uint8_t *pdu,                         /* PDU data */
+    uint8_t *pdu, /* PDU data */
     uint16_t max_pdu, /* amount of space available in the PDU  */
     unsigned timeout)
 {
@@ -227,8 +227,8 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
        a select. */
     if (timeout >= 1000) {
         select_timeout.tv_sec = timeout / 1000;
-        select_timeout.tv_usec
-            = 1000 * (timeout - select_timeout.tv_sec * 1000);
+        select_timeout.tv_usec =
+            1000 * (timeout - select_timeout.tv_sec * 1000);
     } else {
         select_timeout.tv_sec = 0;
         select_timeout.tv_usec = 1000 * timeout;
@@ -265,11 +265,11 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     }
 
     function = bvlc_get_function_code(); /* aka, pdu[1] */
-    if ((function == BVLC_ORIGINAL_UNICAST_NPDU)
-        || (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
+    if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
+        (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
         /* ignore messages from me */
-        if ((sin.sin_addr.s_addr == BIP_Address.s_addr)
-            && (sin.sin_port == BIP_Port)) {
+        if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
+            (sin.sin_port == BIP_Port)) {
             pdu_len = 0;
 #if 0
             fprintf(stderr, "BIP: src is me. Discarded!\n");
@@ -312,8 +312,8 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     } else if (function == BVLC_FORWARDED_NPDU) {
         memcpy(&sin.sin_addr.s_addr, &pdu[4], 4);
         memcpy(&sin.sin_port, &pdu[8], 2);
-        if ((sin.sin_addr.s_addr == BIP_Address.s_addr)
-            && (sin.sin_port == BIP_Port)) {
+        if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
+            (sin.sin_port == BIP_Port)) {
             /* ignore messages from me */
             pdu_len = 0;
         } else {
@@ -363,7 +363,7 @@ void bip_get_my_address(BACNET_ADDRESS *my_address)
 }
 
 void bip_get_broadcast_address(BACNET_ADDRESS *dest)
-{              /* destination address */
+{ /* destination address */
     int i = 0; /* counter */
 
     if (dest) {

@@ -61,8 +61,8 @@ int Send_UnconfirmedPrivateTransfer(
         &Handler_Transmit_Buffer[0], dest, &my_address, &npdu_data);
 
     /* encode the APDU portion of the packet */
-    len = uptransfer_encode_apdu(
-        &Handler_Transmit_Buffer[pdu_len], private_data);
+    len =
+        uptransfer_encode_apdu(&Handler_Transmit_Buffer[pdu_len], private_data);
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
         dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);

@@ -40,8 +40,8 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <libconfig.h> /* read config files */
-#include <unistd.h>    /* for getopt */
-#include <termios.h>   /* used in kbhit() */
+#include <unistd.h> /* for getopt */
+#include <termios.h> /* used in kbhit() */
 #include <getopt.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -131,8 +131,8 @@ int main(int argc, char *argv[])
                     print_msg(bacmsg);
 
                     if (is_network_msg(bacmsg)) {
-                        buff_len
-                            = process_network_message(bacmsg, msg_data, &buff);
+                        buff_len =
+                            process_network_message(bacmsg, msg_data, &buff);
                         if (buff_len == 0) {
                             free_data(bacmsg->data);
                             break;
@@ -159,18 +159,18 @@ int main(int argc, char *argv[])
                         if (is_network_msg(bacmsg)) {
                             msg_data->ref_count = 1;
                             send_to_msgbox(msg_src, &msg_storage);
-                        } else if (msg_data->dest.net
-                            != BACNET_BROADCAST_NETWORK) {
+                        } else if (msg_data->dest.net !=
+                            BACNET_BROADCAST_NETWORK) {
                             msg_data->ref_count = 1;
-                            port = find_dnet(
-                                msg_data->dest.net, &msg_data->dest);
+                            port =
+                                find_dnet(msg_data->dest.net, &msg_data->dest);
                             send_to_msgbox(port->port_id, &msg_storage);
                         } else {
                             port = head;
                             msg_data->ref_count = port_count - 1;
                             while (port != NULL) {
-                                if (port->port_id == msg_src
-                                    || port->state == FINISHED) {
+                                if (port->port_id == msg_src ||
+                                    port->state == FINISHED) {
                                     port = port->next;
                                     continue;
                                 }
@@ -272,8 +272,8 @@ bool read_config(char *filepath)
 
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
-                    current->iface
-                        = (char *)malloc((strlen(iface) + 1) * sizeof(char));
+                    current->iface =
+                        (char *)malloc((strlen(iface) + 1) * sizeof(char));
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -301,8 +301,8 @@ bool read_config(char *filepath)
                 } else {
                     current->params.bip_params.port = 0xBAC0;
                 }
-                result
-                    = config_setting_lookup_int(port, "network", (int *)&param);
+                result =
+                    config_setting_lookup_int(port, "network", (int *)&param);
                 if (result) {
                     current->route_info.net = param;
                 } else {
@@ -314,8 +314,8 @@ bool read_config(char *filepath)
 
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
-                    current->iface
-                        = (char *)malloc((strlen(iface) + 1) * sizeof(char));
+                    current->iface =
+                        (char *)malloc((strlen(iface) + 1) * sizeof(char));
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -358,8 +358,8 @@ bool read_config(char *filepath)
                 } else {
                     current->params.mstp_params.baudrate = 9600;
                 }
-                result
-                    = config_setting_lookup_string(port, "parity", &str_param);
+                result =
+                    config_setting_lookup_string(port, "parity", &str_param);
                 if (result) {
                     switch (str_param[0]) {
                         case 'E':
@@ -375,22 +375,22 @@ bool read_config(char *filepath)
                 } else {
                     current->params.mstp_params.parity = PARITY_NONE;
                 }
-                result = config_setting_lookup_int(
-                    port, "databits", (int *)&param);
+                result =
+                    config_setting_lookup_int(port, "databits", (int *)&param);
                 if (result && param >= 5 && param <= 8) {
                     current->params.mstp_params.databits = param;
                 } else {
                     current->params.mstp_params.databits = 8;
                 }
-                result = config_setting_lookup_int(
-                    port, "stopbits", (int *)&param);
+                result =
+                    config_setting_lookup_int(port, "stopbits", (int *)&param);
                 if (result && param >= 1 && param <= 2) {
                     current->params.mstp_params.stopbits = param;
                 } else {
                     current->params.mstp_params.stopbits = 1;
                 }
-                result
-                    = config_setting_lookup_int(port, "network", (int *)&param);
+                result =
+                    config_setting_lookup_int(port, "network", (int *)&param);
                 if (result) {
                     current->route_info.net = param;
                 } else {
@@ -496,18 +496,18 @@ bool parse_cmd(int argc, char *argv[])
                         }
                     }
 
-                    dev_opt
-                        = getopt_long(argc, argv, bipString, Options, &index);
+                    dev_opt =
+                        getopt_long(argc, argv, bipString, Options, &index);
                     while (dev_opt != -1 && dev_opt != 'd') {
                         switch (dev_opt) {
                             case 'P':
                                 result = atoi(optarg);
                                 if (result) {
-                                    current->params.bip_params.port
-                                        = (uint16_t)result;
+                                    current->params.bip_params.port =
+                                        (uint16_t)result;
                                 } else {
-                                    current->params.bip_params.port
-                                        = 0xBAC0; /* 47808 */
+                                    current->params.bip_params.port =
+                                        0xBAC0; /* 47808 */
                                 }
                                 break;
                             case 'n':
@@ -519,8 +519,8 @@ bool parse_cmd(int argc, char *argv[])
                                 }
                                 break;
                         }
-                        dev_opt = getopt_long(
-                            argc, argv, bipString, Options, &index);
+                        dev_opt =
+                            getopt_long(argc, argv, bipString, Options, &index);
                     }
                     opt = dev_opt;
                 } else if (strcmp(optarg, "mstp") == 0) {
@@ -553,65 +553,65 @@ bool parse_cmd(int argc, char *argv[])
                     current->params.mstp_params.stopbits = 1;
                     current->route_info.net = get_next_free_dnet();
 
-                    dev_opt
-                        = getopt_long(argc, argv, mstpString, Options, &index);
+                    dev_opt =
+                        getopt_long(argc, argv, mstpString, Options, &index);
                     while (dev_opt != -1 && dev_opt != 'D') {
                         switch (dev_opt) {
                             case 'm':
                                 result = atoi(optarg);
                                 if (result) {
-                                    current->route_info.mac[0]
-                                        = (uint8_t)result;
+                                    current->route_info.mac[0] =
+                                        (uint8_t)result;
                                 }
                                 if (argv[optind][0] != '-') {
-                                    current->params.mstp_params.max_master
-                                        = (uint8_t)atoi(argv[optind]);
-                                    if (current->params.mstp_params.max_master
-                                        < current->route_info.mac[0])
-                                        current->params.mstp_params.max_master
-                                            = current->route_info.mac[0];
+                                    current->params.mstp_params.max_master =
+                                        (uint8_t)atoi(argv[optind]);
+                                    if (current->params.mstp_params.max_master <
+                                        current->route_info.mac[0])
+                                        current->params.mstp_params.max_master =
+                                            current->route_info.mac[0];
 
                                     if (argv[optind + 1][0] != '-') {
-                                        current->params.mstp_params.max_frames
-                                            = (uint8_t)atoi(argv[optind + 1]);
+                                        current->params.mstp_params.max_frames =
+                                            (uint8_t)atoi(argv[optind + 1]);
                                     }
                                 }
                                 break;
                             case 'b':
                                 result = atoi(optarg);
                                 if (result) {
-                                    current->params.mstp_params.baudrate
-                                        = (uint32_t)result;
+                                    current->params.mstp_params.baudrate =
+                                        (uint32_t)result;
                                 }
                                 break;
                             case 'p':
                                 switch (optarg[0]) {
                                     case 'E':
-                                        current->params.mstp_params.parity
-                                            = PARITY_EVEN;
+                                        current->params.mstp_params.parity =
+                                            PARITY_EVEN;
                                         break;
                                     case 'O':
-                                        current->params.mstp_params.parity
-                                            = PARITY_ODD;
+                                        current->params.mstp_params.parity =
+                                            PARITY_ODD;
                                         break;
                                     default:
-                                        current->params.mstp_params.parity
-                                            = PARITY_NONE;
+                                        current->params.mstp_params.parity =
+                                            PARITY_NONE;
                                         break;
                                 }
                                 break;
                             case 'd':
                                 result = atoi(optarg);
                                 if (result >= 5 && result <= 8) {
-                                    current->params.mstp_params.databits
-                                        = (uint8_t)result;
+                                    current->params.mstp_params.databits =
+                                        (uint8_t)result;
                                 }
                                 break;
                             case 's':
                                 result = atoi(optarg);
                                 if (result >= 1 && result <= 2) {
-                                    current->params.mstp_params.stopbits
-                                        = (uint8_t)result;
+                                    current->params.mstp_params.stopbits =
+                                        (uint8_t)result;
                                 }
                                 break;
                             case 'n':
@@ -774,16 +774,16 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
         /* if received from another router save real source address (not other
          * router source address) */
-        if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK
-            && data->src.net != addr.net)
+        if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK &&
+            data->src.net != addr.net)
             memmove(&data->src, &addr, sizeof(BACNET_ADDRESS));
 
         /* encode both source and destination for broadcast and router-to-router
          * communication */
-        if (data->dest.net == BACNET_BROADCAST_NETWORK
-            || destport->route_info.net != data->dest.net) {
-            npdu_len
-                = npdu_encode_pdu(npdu, &data->dest, &data->src, &npdu_data);
+        if (data->dest.net == BACNET_BROADCAST_NETWORK ||
+            destport->route_info.net != data->dest.net) {
+            npdu_len =
+                npdu_encode_pdu(npdu, &data->dest, &data->src, &npdu_data);
         } else {
             npdu_len = npdu_encode_pdu(npdu, NULL, &data->src, &npdu_data);
         }

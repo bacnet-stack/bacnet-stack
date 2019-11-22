@@ -72,8 +72,8 @@ void Access_Rights_Init(void)
         Access_Rights_Initialized = true;
 
         for (i = 0; i < MAX_ACCESS_RIGHTSS; i++) {
-            ar_descr[i].global_identifier
-                = 0; /* set to some meaningful value */
+            ar_descr[i].global_identifier =
+                0; /* set to some meaningful value */
             ar_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
             ar_descr[i].enable = false;
             ar_descr[i].negative_access_rules_count = 0;
@@ -151,8 +151,8 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned i = 0;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -164,12 +164,12 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Access_Rights_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_ACCESS_RIGHTS);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_ACCESS_RIGHTS);
             break;
         case PROP_GLOBAL_IDENTIFIER:
             apdu_len = encode_application_unsigned(
@@ -204,15 +204,15 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if (apdu_len + len < MAX_APDU)
                         apdu_len += len;
                     else {
-                        rpdata->error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
             } else {
-                if (rpdata->array_index
-                    <= ar_descr[object_index].negative_access_rules_count) {
+                if (rpdata->array_index <=
+                    ar_descr[object_index].negative_access_rules_count) {
                     apdu_len = bacapp_encode_access_rule(&apdu[0],
                         &ar_descr[object_index]
                              .negative_access_rules[rpdata->array_index - 1]);
@@ -236,15 +236,15 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if (apdu_len + len < MAX_APDU)
                         apdu_len += len;
                     else {
-                        rpdata->error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
             } else {
-                if (rpdata->array_index
-                    <= ar_descr[object_index].positive_access_rules_count) {
+                if (rpdata->array_index <=
+                    ar_descr[object_index].positive_access_rules_count) {
                     apdu_len = bacapp_encode_access_rule(&apdu[0],
                         &ar_descr[object_index]
                              .positive_access_rules[rpdata->array_index - 1]);
@@ -262,10 +262,10 @@ int Access_Rights_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0)
-        && (rpdata->object_property != PROP_NEGATIVE_ACCESS_RULES)
-        && (rpdata->object_property != PROP_POSITIVE_ACCESS_RULES)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) &&
+        (rpdata->object_property != PROP_NEGATIVE_ACCESS_RULES) &&
+        (rpdata->object_property != PROP_POSITIVE_ACCESS_RULES) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -293,9 +293,9 @@ bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_NEGATIVE_ACCESS_RULES)
-        && (wp_data->object_property != PROP_POSITIVE_ACCESS_RULES)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_NEGATIVE_ACCESS_RULES) &&
+        (wp_data->object_property != PROP_POSITIVE_ACCESS_RULES) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
@@ -303,12 +303,12 @@ bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index = Access_Rights_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                ar_descr[object_index].global_identifier
-                    = value.type.Unsigned_Int;
+                ar_descr[object_index].global_identifier =
+                    value.type.Unsigned_Int;
             }
             break;
         case PROP_OBJECT_IDENTIFIER:

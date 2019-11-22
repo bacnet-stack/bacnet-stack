@@ -42,7 +42,7 @@
 /* encode I-Am service  - use -1 for limit if you want unlimited */
 int whois_encode_apdu(uint8_t *apdu, int32_t low_limit, int32_t high_limit)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
@@ -50,8 +50,8 @@ int whois_encode_apdu(uint8_t *apdu, int32_t low_limit, int32_t high_limit)
         apdu[1] = SERVICE_UNCONFIRMED_WHO_IS; /* service choice */
         apdu_len = 2;
         /* optional limits - must be used as a pair */
-        if ((low_limit >= 0) && (low_limit <= BACNET_MAX_INSTANCE)
-            && (high_limit >= 0) && (high_limit <= BACNET_MAX_INSTANCE)) {
+        if ((low_limit >= 0) && (low_limit <= BACNET_MAX_INSTANCE) &&
+            (high_limit >= 0) && (high_limit <= BACNET_MAX_INSTANCE)) {
             len = encode_context_unsigned(&apdu[apdu_len], 0, low_limit);
             apdu_len += len;
             len = encode_context_unsigned(&apdu[apdu_len], 1, high_limit);
@@ -91,8 +91,8 @@ int whois_decode_service_request(
                     return BACNET_STATUS_ERROR;
                 }
                 if (apdu_len > (unsigned)len) {
-                    len += decode_unsigned(
-                        &apdu[len], len_value, &decoded_value);
+                    len +=
+                        decode_unsigned(&apdu[len], len_value, &decoded_value);
                     if (decoded_value <= BACNET_MAX_INSTANCE) {
                         if (pHigh_limit) {
                             *pHigh_limit = decoded_value;

@@ -48,7 +48,7 @@ int iam_encode_apdu(uint8_t *apdu,
     int segmentation,
     uint16_t vendor_id)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
@@ -77,7 +77,7 @@ int iam_decode_service_request(uint8_t *apdu,
     uint16_t *pVendor_id)
 {
     int len = 0;
-    int apdu_len = 0;         /* total length of the apdu, return value */
+    int apdu_len = 0; /* total length of the apdu, return value */
     uint16_t object_type = 0; /* should be a Device Object */
     uint32_t object_instance = 0;
     uint8_t tag_number = 0;
@@ -170,8 +170,8 @@ void testIAm(Test *pTest)
     int test_segmentation = 0;
     uint16_t test_vendor_id = 0;
 
-    len = iam_encode_apdu(
-        &apdu[0], device_id, max_apdu, segmentation, vendor_id);
+    len =
+        iam_encode_apdu(&apdu[0], device_id, max_apdu, segmentation, vendor_id);
     ct_test(pTest, len != 0);
 
     len = iam_decode_apdu(&apdu[0], &test_device_id, &test_max_apdu,

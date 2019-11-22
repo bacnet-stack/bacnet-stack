@@ -32,7 +32,7 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>  /* for standard integer types uint8_t etc. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
 #include <time.h>
 #include "bacnet/bacenum.h"
@@ -638,7 +638,7 @@ int bvlc_encode_delete_fdt_entry(uint8_t *pdu, uint32_t address, uint16_t port)
 int bvlc_encode_original_unicast_npdu(
     uint8_t *pdu, uint8_t *npdu, unsigned npdu_length)
 {
-    int len = 0;    /* return value */
+    int len = 0; /* return value */
     unsigned i = 0; /* loop counter */
     uint16_t BVLC_length = 0;
 
@@ -672,7 +672,7 @@ int bvlc_encode_original_unicast_npdu(
 int bvlc_encode_original_broadcast_npdu(
     uint8_t *pdu, uint8_t *npdu, unsigned npdu_length)
 {
-    int len = 0;    /* return value */
+    int len = 0; /* return value */
     unsigned i = 0; /* loop counter */
     uint16_t BVLC_length = 0;
 
@@ -752,8 +752,8 @@ static bool bvlc_register_foreign_device(
     /* am I here already?  If so, update my time to live... */
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid) {
-            if ((FD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr)
-                && (FD_Table[i].dest_port == sin->sin_port)) {
+            if ((FD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr) &&
+                (FD_Table[i].dest_port == sin->sin_port)) {
                 status = true;
                 FD_Table[i].time_to_live = time_to_live;
                 /*  Upon receipt of a BVLL Register-Foreign-Device message,
@@ -791,7 +791,7 @@ static bool bvlc_register_foreign_device(
 static bool bvlc_delete_foreign_device(uint8_t *pdu, uint16_t pdu_len)
 {
     struct sockaddr_in sin = { 0 }; /* the ip address */
-    bool status = false;            /* return value */
+    bool status = false; /* return value */
     unsigned i = 0;
 
     if (pdu_len < 6) {
@@ -800,8 +800,8 @@ static bool bvlc_delete_foreign_device(uint8_t *pdu, uint16_t pdu_len)
     bvlc_decode_bip_address(pdu, &sin.sin_addr, &sin.sin_port);
     for (i = 0; i < MAX_FD_ENTRIES; i++) {
         if (FD_Table[i].valid) {
-            if ((FD_Table[i].dest_address.s_addr == sin.sin_addr.s_addr)
-                && (FD_Table[i].dest_port == sin.sin_port)) {
+            if ((FD_Table[i].dest_address.s_addr == sin.sin_addr.s_addr) &&
+                (FD_Table[i].dest_port == sin.sin_port)) {
                 FD_Table[i].valid = false;
                 FD_Table[i].seconds_remaining = 0;
                 status = true;
@@ -884,26 +884,26 @@ static void bvlc_bdt_forward_npdu(
                sent is formed by inverting the broadcast distribution
                mask in the BDT entry and logically ORing it with the
                BBMD address of the same entry. */
-            bip_dest.sin_addr.s_addr = ((~BBMD_Table[i].broadcast_mask.s_addr)
-                | BBMD_Table[i].dest_address.s_addr);
+            bip_dest.sin_addr.s_addr = ((~BBMD_Table[i].broadcast_mask.s_addr) |
+                BBMD_Table[i].dest_address.s_addr);
             bip_dest.sin_port = BBMD_Table[i].dest_port;
             /* don't send to my broadcast address and same port */
-            if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr())
-                && (bip_dest.sin_port == bip_get_port())) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_broadcast_addr()) &&
+                (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             /* don't send to my ip address and same port */
-            if ((bip_dest.sin_addr.s_addr == bip_get_addr())
-                && (bip_dest.sin_port == bip_get_port())) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_addr()) &&
+                (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             /* NAT router port forwards BACnet packets from global IP to us.
              * Packets sent to that global IP by us would end up back, creating
              * a loop.
              */
-            if (BVLC_NAT_Handling
-                && (bip_dest.sin_addr.s_addr == BVLC_Global_Address.s_addr)
-                && (bip_dest.sin_port == bip_get_port())) {
+            if (BVLC_NAT_Handling &&
+                (bip_dest.sin_addr.s_addr == BVLC_Global_Address.s_addr) &&
+                (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
@@ -978,22 +978,22 @@ static void bvlc_fdt_forward_npdu(
             bip_dest.sin_addr.s_addr = FD_Table[i].dest_address.s_addr;
             bip_dest.sin_port = FD_Table[i].dest_port;
             /* don't send to my ip address and same port */
-            if ((bip_dest.sin_addr.s_addr == bip_get_addr())
-                && (bip_dest.sin_port == bip_get_port())) {
+            if ((bip_dest.sin_addr.s_addr == bip_get_addr()) &&
+                (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             /* don't send to src ip address and same port */
-            if ((bip_dest.sin_addr.s_addr == sin->sin_addr.s_addr)
-                && (bip_dest.sin_port == sin->sin_port)) {
+            if ((bip_dest.sin_addr.s_addr == sin->sin_addr.s_addr) &&
+                (bip_dest.sin_port == sin->sin_port)) {
                 continue;
             }
             /* NAT router port forwards BACnet packets from global IP to us.
              * Packets sent to that global IP by us would end up back, creating
              * a loop.
              */
-            if (BVLC_NAT_Handling
-                && (bip_dest.sin_addr.s_addr == BVLC_Global_Address.s_addr)
-                && (bip_dest.sin_port == bip_get_port())) {
+            if (BVLC_NAT_Handling &&
+                (bip_dest.sin_addr.s_addr == BVLC_Global_Address.s_addr) &&
+                (bip_dest.sin_port == bip_get_port())) {
                 continue;
             }
             bvlc_send_mpdu(&bip_dest, mtu, mtu_len);
@@ -1081,14 +1081,14 @@ static bool bvlc_bdt_member_mask_is_unicast(struct sockaddr_in *sin)
     for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
         if (BBMD_Table[i].valid) {
             /* Skip ourself*/
-            if ((BBMD_Table[i].dest_address.s_addr == bip_get_addr())
-                && (BBMD_Table[i].dest_port == bip_get_port())) {
+            if ((BBMD_Table[i].dest_address.s_addr == bip_get_addr()) &&
+                (BBMD_Table[i].dest_port == bip_get_port())) {
                 continue;
             }
 
             /* find the source address in the table */
-            if ((BBMD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr)
-                && (BBMD_Table[i].dest_port == sin->sin_port)) {
+            if ((BBMD_Table[i].dest_address.s_addr == sin->sin_addr.s_addr) &&
+                (BBMD_Table[i].dest_port == sin->sin_port)) {
                 /* unicast mask? */
                 if (BBMD_Table[i].broadcast_mask.s_addr == 0xFFFFFFFFL) {
                     unicast = true;
@@ -1137,8 +1137,8 @@ uint16_t bvlc_receive(
        a select. */
     if (timeout >= 1000) {
         select_timeout.tv_sec = timeout / 1000;
-        select_timeout.tv_usec
-            = 1000 * (timeout - select_timeout.tv_sec * 1000);
+        select_timeout.tv_usec =
+            1000 * (timeout - select_timeout.tv_sec * 1000);
     } else {
         select_timeout.tv_sec = 0;
         select_timeout.tv_usec = 1000 * timeout;
@@ -1377,13 +1377,13 @@ uint16_t bvlc_receive(
             break;
         case BVLC_ORIGINAL_UNICAST_NPDU:
             debug_printf("BVLC: Received Original-Unicast-NPDU.\n");
-            if ((sin.sin_addr.s_addr == bip_get_addr())
-                && (sin.sin_port == bip_get_port())) {
+            if ((sin.sin_addr.s_addr == bip_get_addr()) &&
+                (sin.sin_port == bip_get_port())) {
                 /* ignore messages from me */
                 npdu_len = 0;
-            } else if (BVLC_NAT_Handling
-                && (sin.sin_addr.s_addr == BVLC_Global_Address.s_addr)
-                && (sin.sin_port == bip_get_port())) {
+            } else if (BVLC_NAT_Handling &&
+                (sin.sin_addr.s_addr == BVLC_Global_Address.s_addr) &&
+                (sin.sin_port == bip_get_port())) {
                 /* If the BBMD is behind a NAT router, the router forwards
                    packets from global IP and BACnet port to us. */
                 npdu_len = 0;
@@ -1719,10 +1719,10 @@ bool bvlc_add_bdt_entry_local(BBMD_TABLE_ENTRY *entry)
         }
 
         /* Make sure that we are not adding a duplicate */
-        if (BBMD_Table[i].dest_address.s_addr == entry->dest_address.s_addr
-            && BBMD_Table[i].broadcast_mask.s_addr
-                == entry->broadcast_mask.s_addr
-            && BBMD_Table[i].dest_port == entry->dest_port) {
+        if (BBMD_Table[i].dest_address.s_addr == entry->dest_address.s_addr &&
+            BBMD_Table[i].broadcast_mask.s_addr ==
+                entry->broadcast_mask.s_addr &&
+            BBMD_Table[i].dest_port == entry->dest_port) {
             return false;
         }
     }

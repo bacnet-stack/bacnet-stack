@@ -99,8 +99,8 @@ int awf_decode_service_request(
 
     /* check for value pointers */
     if (apdu_len && data) {
-        len = decode_tag_number_and_value(
-            &apdu[0], &tag_number, &len_value_type);
+        len =
+            decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
         if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID)
             return -1;
         len += decode_object_id(&apdu[len], &type, &data->object_instance);
@@ -198,8 +198,8 @@ int awf_decode_apdu(uint8_t *apdu,
     offset = 4;
 
     if (apdu_len > offset) {
-        len = awf_decode_service_request(
-            &apdu[offset], apdu_len - offset, data);
+        len =
+            awf_decode_service_request(&apdu[offset], apdu_len - offset, data);
     }
 
     return len;
@@ -242,8 +242,8 @@ int awf_ack_decode_service_request(
 
     /* check for value pointers */
     if (apdu_len && data) {
-        len = decode_tag_number_and_value(
-            &apdu[0], &tag_number, &len_value_type);
+        len =
+            decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
         if (tag_number == 0) {
             data->access = FILE_STREAM_ACCESS;
             len += decode_signed(&apdu[len], len_value_type,
@@ -310,24 +310,23 @@ void testAtomicWriteFileAccess(Test *pTest, BACNET_ATOMIC_WRITE_FILE_DATA *data)
     ct_test(pTest, test_data.access == data->access);
     if (test_data.access == FILE_STREAM_ACCESS) {
         ct_test(pTest,
-            test_data.type.stream.fileStartPosition
-                == data->type.stream.fileStartPosition);
+            test_data.type.stream.fileStartPosition ==
+                data->type.stream.fileStartPosition);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         ct_test(pTest,
-            test_data.type.record.fileStartRecord
-                == data->type.record.fileStartRecord);
+            test_data.type.record.fileStartRecord ==
+                data->type.record.fileStartRecord);
         ct_test(pTest,
-            test_data.type.record.returnedRecordCount
-                == data->type.record.returnedRecordCount);
+            test_data.type.record.returnedRecordCount ==
+                data->type.record.returnedRecordCount);
     }
     ct_test(pTest,
-        octetstring_length(&test_data.fileData[0])
-            == octetstring_length(&data->fileData[0]));
+        octetstring_length(&test_data.fileData[0]) ==
+            octetstring_length(&data->fileData[0]));
     ct_test(pTest,
         memcmp(octetstring_value(&test_data.fileData[0]),
             octetstring_value(&data->fileData[0]),
-            octetstring_length(&test_data.fileData[0]))
-            == 0);
+            octetstring_length(&test_data.fileData[0])) == 0);
 }
 
 void testAtomicWriteFile(Test *pTest)
@@ -374,12 +373,12 @@ void testAtomicWriteFileAckAccess(
     ct_test(pTest, test_data.access == data->access);
     if (test_data.access == FILE_STREAM_ACCESS) {
         ct_test(pTest,
-            test_data.type.stream.fileStartPosition
-                == data->type.stream.fileStartPosition);
+            test_data.type.stream.fileStartPosition ==
+                data->type.stream.fileStartPosition);
     } else if (test_data.access == FILE_RECORD_ACCESS) {
         ct_test(pTest,
-            test_data.type.record.fileStartRecord
-                == data->type.record.fileStartRecord);
+            test_data.type.record.fileStartRecord ==
+                data->type.record.fileStartRecord);
     }
 }
 

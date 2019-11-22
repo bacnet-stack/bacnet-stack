@@ -59,8 +59,8 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
 static BACNET_ADDRESS Target_Address;
 static uint16_t Communication_Timeout_Minutes = 0;
-static BACNET_COMMUNICATION_ENABLE_DISABLE Communication_State
-    = COMMUNICATION_ENABLE;
+static BACNET_COMMUNICATION_ENABLE_DISABLE Communication_State =
+    COMMUNICATION_ENABLE;
 static char *Communication_Password = NULL;
 
 static bool Error_Detected = false;

@@ -89,8 +89,8 @@ static void ProcessPT(BACNET_PRIVATE_TRANSFER_DATA *data)
             /* Signal success */
             iLen += encode_application_unsigned(&IOBufferPT[iLen], MY_ERR_OK);
             /* Followed by the block number */
-            iLen
-                += encode_application_unsigned(&IOBufferPT[iLen], cBlockNumber);
+            iLen +=
+                encode_application_unsigned(&IOBufferPT[iLen], cBlockNumber);
             /* And Then the block contents */
             iLen += encode_application_unsigned(
                 &IOBufferPT[iLen], MyData[(int8_t)cBlockNumber].cMyByte1);
@@ -100,8 +100,8 @@ static void ProcessPT(BACNET_PRIVATE_TRANSFER_DATA *data)
                 &IOBufferPT[iLen], MyData[(int8_t)cBlockNumber].fMyReal);
             characterstring_init_ansi(
                 &bsTemp, (char *)MyData[(int8_t)cBlockNumber].sMyString);
-            iLen += encode_application_character_string(
-                &IOBufferPT[iLen], &bsTemp);
+            iLen +=
+                encode_application_character_string(&IOBufferPT[iLen], &bsTemp);
         } else {
             /* Write operation */
             /*  Write block consists of the block number
@@ -238,8 +238,8 @@ void handler_conf_private_trans(uint8_t *service_request,
        In theory we could support others
        for compatability purposes but these
        interfaces are rarely documented... */
-    if ((data.vendorID == BACNET_VENDOR_ID)
-        && (data.serviceNumber <= MY_SVC_WRITE)) {
+    if ((data.vendorID == BACNET_VENDOR_ID) &&
+        (data.serviceNumber <= MY_SVC_WRITE)) {
         /* We only try to understand our own IDs and service numbers */
         /* Will either return a result block or an app level status block */
         ProcessPT(&data);

@@ -41,7 +41,7 @@
 
 int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && data) {

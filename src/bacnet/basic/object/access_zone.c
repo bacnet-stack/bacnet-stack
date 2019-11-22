@@ -72,8 +72,8 @@ void Access_Zone_Init(void)
         Access_Zone_Initialized = true;
 
         for (i = 0; i < MAX_ACCESS_ZONES; i++) {
-            az_descr[i].global_identifier
-                = 0; /* set to some meaningful value */
+            az_descr[i].global_identifier =
+                0; /* set to some meaningful value */
             az_descr[i].occupancy_state = ACCESS_ZONE_OCCUPANCY_STATE_DISABLED;
             az_descr[i].event_state = EVENT_STATE_NORMAL;
             az_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
@@ -176,8 +176,8 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -189,12 +189,12 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Access_Zone_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_ACCESS_ZONE);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_ACCESS_ZONE);
             break;
         case PROP_GLOBAL_IDENTIFIER:
             apdu_len = encode_application_unsigned(
@@ -232,8 +232,8 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (apdu_len + len < MAX_APDU)
                     apdu_len += len;
                 else {
-                    rpdata->error_code
-                        = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpdata->error_code =
+                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
                     break;
                 }
@@ -246,8 +246,8 @@ int Access_Zone_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (apdu_len + len < MAX_APDU)
                     apdu_len += len;
                 else {
-                    rpdata->error_code
-                        = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpdata->error_code =
+                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
                     break;
                 }
@@ -296,19 +296,19 @@ bool Access_Zone_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index = Access_Zone_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                az_descr[object_index].global_identifier
-                    = value.type.Unsigned_Int;
+                az_descr[object_index].global_identifier =
+                    value.type.Unsigned_Int;
             }
             break;
         case PROP_RELIABILITY:
             if (Access_Zone_Out_Of_Service(wp_data->object_instance)) {
-                status = WPValidateArgType(&value,
-                    BACNET_APPLICATION_TAG_ENUMERATED, &wp_data->error_class,
-                    &wp_data->error_code);
+                status =
+                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+                        &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     az_descr[object_index].reliability = value.type.Enumerated;
                 }

@@ -52,14 +52,14 @@ static const int Analog_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
     PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_UNITS, -1 };
 
-static const int Analog_Value_Properties_Optional[]
-    = { PROP_DESCRIPTION, PROP_COV_INCREMENT,
+static const int Analog_Value_Properties_Optional[] = { PROP_DESCRIPTION,
+    PROP_COV_INCREMENT,
 #if defined(INTRINSIC_REPORTING)
-          PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT,
-          PROP_LOW_LIMIT, PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE,
-          PROP_ACKED_TRANSITIONS, PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
+    PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT, PROP_LOW_LIMIT,
+    PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE, PROP_ACKED_TRANSITIONS,
+    PROP_NOTIFY_TYPE, PROP_EVENT_TIME_STAMPS,
 #endif
-          -1 };
+    -1 };
 
 static const int Analog_Value_Properties_Proprietary[] = { -1 };
 
@@ -281,8 +281,8 @@ bool Analog_Value_Encode_Value_List(
         value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_REAL;
-        value_list->value.type.Real
-            = Analog_Value_Present_Value(object_instance);
+        value_list->value.type.Real =
+            Analog_Value_Present_Value(object_instance);
         value_list->value.next = NULL;
         value_list->priority = BACNET_NO_PRIORITY;
         value_list = value_list->next;
@@ -381,8 +381,8 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned i = 0;
 #endif
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
 
@@ -403,13 +403,13 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
             Analog_Value_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
             break;
 
         case PROP_PRESENT_VALUE:
@@ -435,11 +435,11 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
         case PROP_EVENT_STATE:
 #if defined(INTRINSIC_REPORTING)
-            apdu_len = encode_application_enumerated(
-                &apdu[0], CurrentAV->Event_State);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], CurrentAV->Event_State);
 #else
-            apdu_len
-                = encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
 #endif
             break;
 
@@ -449,19 +449,19 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_UNITS:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], CurrentAV->Units);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], CurrentAV->Units);
             break;
 
         case PROP_COV_INCREMENT:
-            apdu_len
-                = encode_application_real(&apdu[0], CurrentAV->COV_Increment);
+            apdu_len =
+                encode_application_real(&apdu[0], CurrentAV->COV_Increment);
             break;
 
 #if defined(INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
-            apdu_len
-                = encode_application_unsigned(&apdu[0], CurrentAV->Time_Delay);
+            apdu_len =
+                encode_application_unsigned(&apdu[0], CurrentAV->Time_Delay);
             break;
 
         case PROP_NOTIFICATION_CLASS:
@@ -547,21 +547,21 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if ((apdu_len + len) < MAX_APDU)
                         apdu_len += len;
                     else {
-                        rpdata->error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
             } else if (rpdata->array_index <= MAX_BACNET_EVENT_TRANSITION) {
-                apdu_len
-                    = encode_opening_tag(&apdu[apdu_len], TIME_STAMP_DATETIME);
+                apdu_len =
+                    encode_opening_tag(&apdu[apdu_len], TIME_STAMP_DATETIME);
                 apdu_len += encode_application_date(&apdu[apdu_len],
                     &CurrentAV->Event_Time_Stamps[rpdata->array_index].date);
                 apdu_len += encode_application_time(&apdu[apdu_len],
                     &CurrentAV->Event_Time_Stamps[rpdata->array_index].time);
-                apdu_len
-                    += encode_closing_tag(&apdu[apdu_len], TIME_STAMP_DATETIME);
+                apdu_len +=
+                    encode_closing_tag(&apdu[apdu_len], TIME_STAMP_DATETIME);
             } else {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
                 rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -577,9 +577,9 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY)
-        && (rpdata->object_property != PROP_EVENT_TIME_STAMPS)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
+        (rpdata->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -607,9 +607,9 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_PRIORITY_ARRAY)
-        && (wp_data->object_property != PROP_EVENT_TIME_STAMPS)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
+        (wp_data->object_property != PROP_EVENT_TIME_STAMPS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
@@ -656,8 +656,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_UNITS:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
                 CurrentAV->Units = value.type.Enumerated;
@@ -681,8 +681,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 #if defined(INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
 
             if (status) {
@@ -692,8 +692,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_NOTIFICATION_CLASS:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
 
             if (status) {
@@ -729,8 +729,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_LIMIT_ENABLE:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
                     &wp_data->error_class, &wp_data->error_code);
 
             if (status) {
@@ -745,8 +745,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_EVENT_ENABLE:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
                     &wp_data->error_class, &wp_data->error_code);
 
             if (status) {
@@ -761,8 +761,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_NOTIFY_TYPE:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
                     &wp_data->error_class, &wp_data->error_code);
 
             if (status) {
@@ -860,11 +860,11 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                    Limit_Enable property, and
                    (c) the TO-OFFNORMAL flag must be set in the Event_Enable
                    property. */
-                if ((PresentVal > CurrentAV->High_Limit)
-                    && ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE)
-                           == EVENT_HIGH_LIMIT_ENABLE)
-                    && ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL)
-                           == EVENT_ENABLE_TO_OFFNORMAL)) {
+                if ((PresentVal > CurrentAV->High_Limit) &&
+                    ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ==
+                        EVENT_HIGH_LIMIT_ENABLE) &&
+                    ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ==
+                        EVENT_ENABLE_TO_OFFNORMAL)) {
                     if (!CurrentAV->Remaining_Time_Delay)
                         CurrentAV->Event_State = EVENT_STATE_HIGH_LIMIT;
                     else
@@ -879,11 +879,11 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                    set in the Limit_Enable property, and
                    (c) the TO-NORMAL flag must be set in the Event_Enable
                    property. */
-                if ((PresentVal < CurrentAV->Low_Limit)
-                    && ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE)
-                           == EVENT_LOW_LIMIT_ENABLE)
-                    && ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL)
-                           == EVENT_ENABLE_TO_OFFNORMAL)) {
+                if ((PresentVal < CurrentAV->Low_Limit) &&
+                    ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) ==
+                        EVENT_LOW_LIMIT_ENABLE) &&
+                    ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_OFFNORMAL) ==
+                        EVENT_ENABLE_TO_OFFNORMAL)) {
                     if (!CurrentAV->Remaining_Time_Delay)
                         CurrentAV->Event_State = EVENT_STATE_LOW_LIMIT;
                     else
@@ -903,11 +903,12 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                    the HighLimitEnable flag must be set in the Limit_Enable
                    property, and (c) the TO-NORMAL flag must be set in the
                    Event_Enable property. */
-                if ((PresentVal < CurrentAV->High_Limit - CurrentAV->Deadband)
-                    && ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE)
-                           == EVENT_HIGH_LIMIT_ENABLE)
-                    && ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL)
-                           == EVENT_ENABLE_TO_NORMAL)) {
+                if ((PresentVal <
+                        CurrentAV->High_Limit - CurrentAV->Deadband) &&
+                    ((CurrentAV->Limit_Enable & EVENT_HIGH_LIMIT_ENABLE) ==
+                        EVENT_HIGH_LIMIT_ENABLE) &&
+                    ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
+                        EVENT_ENABLE_TO_NORMAL)) {
                     if (!CurrentAV->Remaining_Time_Delay)
                         CurrentAV->Event_State = EVENT_STATE_NORMAL;
                     else
@@ -928,11 +929,11 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                    set in the Limit_Enable property, and
                    (c) the TO-NORMAL flag must be set in the Event_Enable
                    property. */
-                if ((PresentVal > CurrentAV->Low_Limit + CurrentAV->Deadband)
-                    && ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE)
-                           == EVENT_LOW_LIMIT_ENABLE)
-                    && ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL)
-                           == EVENT_ENABLE_TO_NORMAL)) {
+                if ((PresentVal > CurrentAV->Low_Limit + CurrentAV->Deadband) &&
+                    ((CurrentAV->Limit_Enable & EVENT_LOW_LIMIT_ENABLE) ==
+                        EVENT_LOW_LIMIT_ENABLE) &&
+                    ((CurrentAV->Event_Enable & EVENT_ENABLE_TO_NORMAL) ==
+                        EVENT_ENABLE_TO_NORMAL)) {
                     if (!CurrentAV->Remaining_Time_Delay)
                         CurrentAV->Event_State = EVENT_STATE_NORMAL;
                     else
@@ -945,7 +946,7 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 
             default:
                 return; /* shouldn't happen */
-        }               /* switch (FromState) */
+        } /* switch (FromState) */
 
         ToState = CurrentAV->Event_State;
 
@@ -1011,18 +1012,18 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
             switch (ToState) {
                 case EVENT_STATE_HIGH_LIMIT:
                 case EVENT_STATE_LOW_LIMIT:
-                    CurrentAV->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL]
-                        = event_data.timeStamp.value.dateTime;
+                    CurrentAV->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL] =
+                        event_data.timeStamp.value.dateTime;
                     break;
 
                 case EVENT_STATE_FAULT:
-                    CurrentAV->Event_Time_Stamps[TRANSITION_TO_FAULT]
-                        = event_data.timeStamp.value.dateTime;
+                    CurrentAV->Event_Time_Stamps[TRANSITION_TO_FAULT] =
+                        event_data.timeStamp.value.dateTime;
                     break;
 
                 case EVENT_STATE_NORMAL:
-                    CurrentAV->Event_Time_Stamps[TRANSITION_TO_NORMAL]
-                        = event_data.timeStamp.value.dateTime;
+                    CurrentAV->Event_Time_Stamps[TRANSITION_TO_NORMAL] =
+                        event_data.timeStamp.value.dateTime;
                     break;
             }
         }
@@ -1049,8 +1050,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         /* Event Values */
         if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
             /* Value that exceeded a limit. */
-            event_data.notificationParams.outOfRange.exceedingValue
-                = PresentVal;
+            event_data.notificationParams.outOfRange.exceedingValue =
+                PresentVal;
             /* Status_Flags of the referenced object. */
             bitstring_init(
                 &event_data.notificationParams.outOfRange.statusFlags);
@@ -1067,44 +1068,41 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 &event_data.notificationParams.outOfRange.statusFlags,
                 STATUS_FLAG_OUT_OF_SERVICE, CurrentAV->Out_Of_Service);
             /* Deadband used for limit checking. */
-            event_data.notificationParams.outOfRange.deadband
-                = CurrentAV->Deadband;
+            event_data.notificationParams.outOfRange.deadband =
+                CurrentAV->Deadband;
             /* Limit that was exceeded. */
-            event_data.notificationParams.outOfRange.exceededLimit
-                = ExceededLimit;
+            event_data.notificationParams.outOfRange.exceededLimit =
+                ExceededLimit;
         }
 
         /* add data from notification class */
         Notification_Class_common_reporting_function(&event_data);
 
         /* Ack required */
-        if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION)
-            && (event_data.ackRequired == true)) {
+        if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION) &&
+            (event_data.ackRequired == true)) {
             switch (event_data.toState) {
                 case EVENT_STATE_OFFNORMAL:
                 case EVENT_STATE_HIGH_LIMIT:
                 case EVENT_STATE_LOW_LIMIT:
                     CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL]
-                        .bIsAcked
-                        = false;
+                        .bIsAcked = false;
                     CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL]
-                        .Time_Stamp
-                        = event_data.timeStamp.value.dateTime;
+                        .Time_Stamp = event_data.timeStamp.value.dateTime;
                     break;
 
                 case EVENT_STATE_FAULT:
-                    CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked
-                        = false;
-                    CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].Time_Stamp
-                        = event_data.timeStamp.value.dateTime;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
+                        false;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT]
+                        .Time_Stamp = event_data.timeStamp.value.dateTime;
                     break;
 
                 case EVENT_STATE_NORMAL:
-                    CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked
-                        = false;
                     CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL]
-                        .Time_Stamp
-                        = event_data.timeStamp.value.dateTime;
+                        .bIsAcked = false;
+                    CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL]
+                        .Time_Stamp = event_data.timeStamp.value.dateTime;
                     break;
             }
         }
@@ -1127,23 +1125,22 @@ int Analog_Value_Event_Information(
 
         /* Acked_Transitions property, which has at least one of the bits
            (TO-OFFNORMAL, TO-FAULT, TONORMAL) set to FALSE. */
-        IsNotAckedTransitions
-            = (AV_Descr[index]
-                      .Acked_Transitions[TRANSITION_TO_OFFNORMAL]
-                      .bIsAcked
-                  == false)
-            | (AV_Descr[index].Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked
-                  == false)
-            | (AV_Descr[index].Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked
-                  == false);
+        IsNotAckedTransitions =
+            (AV_Descr[index]
+                    .Acked_Transitions[TRANSITION_TO_OFFNORMAL]
+                    .bIsAcked == false) |
+            (AV_Descr[index].Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
+                false) |
+            (AV_Descr[index].Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
+                false);
     } else
         return -1; /* end of list  */
 
     if ((IsActiveEvent) || (IsNotAckedTransitions)) {
         /* Object Identifier */
         getevent_data->objectIdentifier.type = OBJECT_ANALOG_VALUE;
-        getevent_data->objectIdentifier.instance
-            = Analog_Value_Index_To_Instance(index);
+        getevent_data->objectIdentifier.instance =
+            Analog_Value_Index_To_Instance(index);
         /* Event State */
         getevent_data->eventState = AV_Descr[index].Event_State;
         /* Acknowledged Transitions */
@@ -1162,8 +1159,8 @@ int Analog_Value_Event_Information(
         /* Event Time Stamps */
         for (i = 0; i < 3; i++) {
             getevent_data->eventTimeStamps[i].tag = TIME_STAMP_DATETIME;
-            getevent_data->eventTimeStamps[i].value.dateTime
-                = AV_Descr[index].Event_Time_Stamps[i];
+            getevent_data->eventTimeStamps[i].value.dateTime =
+                AV_Descr[index].Event_Time_Stamps[i];
         }
         /* Notify Type */
         getevent_data->notifyType = AV_Descr[index].Notify_Type;
@@ -1207,8 +1204,8 @@ int Analog_Value_Alarm_Ack(
         case EVENT_STATE_OFFNORMAL:
         case EVENT_STATE_HIGH_LIMIT:
         case EVENT_STATE_LOW_LIMIT:
-            if (CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked
-                == false) {
+            if (CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL]
+                    .bIsAcked == false) {
                 if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
@@ -1216,15 +1213,14 @@ int Analog_Value_Alarm_Ack(
                 if (datetime_compare(
                         &CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL]
                              .Time_Stamp,
-                        &alarmack_data->eventTimeStamp.value.dateTime)
-                    > 0) {
+                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
 
                 /* Clean transitions flag. */
-                CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked
-                    = true;
+                CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked =
+                    true;
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1232,8 +1228,8 @@ int Analog_Value_Alarm_Ack(
             break;
 
         case EVENT_STATE_FAULT:
-            if (CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked
-                == false) {
+            if (CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked ==
+                false) {
                 if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
@@ -1241,15 +1237,14 @@ int Analog_Value_Alarm_Ack(
                 if (datetime_compare(
                         &CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL]
                              .Time_Stamp,
-                        &alarmack_data->eventTimeStamp.value.dateTime)
-                    > 0) {
+                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
 
                 /* Clean transitions flag. */
-                CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked
-                    = true;
+                CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
+                    true;
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1257,8 +1252,8 @@ int Analog_Value_Alarm_Ack(
             break;
 
         case EVENT_STATE_NORMAL:
-            if (CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked
-                == false) {
+            if (CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked ==
+                false) {
                 if (alarmack_data->eventTimeStamp.tag != TIME_STAMP_DATETIME) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
@@ -1266,15 +1261,14 @@ int Analog_Value_Alarm_Ack(
                 if (datetime_compare(
                         &CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT]
                              .Time_Stamp,
-                        &alarmack_data->eventTimeStamp.value.dateTime)
-                    > 0) {
+                        &alarmack_data->eventTimeStamp.value.dateTime) > 0) {
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
 
                 /* Clean transitions flag. */
-                CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked
-                    = true;
+                CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
+                    true;
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1300,12 +1294,12 @@ int Analog_Value_Alarm_Summary(
     if (index < MAX_ANALOG_VALUES) {
         /* Event_State is not equal to NORMAL  and
            Notify_Type property value is ALARM */
-        if ((AV_Descr[index].Event_State != EVENT_STATE_NORMAL)
-            && (AV_Descr[index].Notify_Type == NOTIFY_ALARM)) {
+        if ((AV_Descr[index].Event_State != EVENT_STATE_NORMAL) &&
+            (AV_Descr[index].Notify_Type == NOTIFY_ALARM)) {
             /* Object Identifier */
             getalarm_data->objectIdentifier.type = OBJECT_ANALOG_VALUE;
-            getalarm_data->objectIdentifier.instance
-                = Analog_Value_Index_To_Instance(index);
+            getalarm_data->objectIdentifier.instance =
+                Analog_Value_Index_To_Instance(index);
             /* Alarm State */
             getalarm_data->alarmState = AV_Descr[index].Event_State;
             /* Acknowledged Transitions */

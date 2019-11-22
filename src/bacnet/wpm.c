@@ -70,8 +70,8 @@ int wpm_decode_object_id(
                 wp_data->object_instance = object_instance;
                 apdu_len -= len;
             } else {
-                wp_data->error_code
-                    = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+                wp_data->error_code =
+                    ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
                 return BACNET_STATUS_REJECT;
             }
         } else {
@@ -184,8 +184,8 @@ int wpm_encode_apdu_object_begin(
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu_len = encode_context_object_id(
-            &apdu[0], 0, object_type, object_instance);
+        apdu_len =
+            encode_context_object_id(&apdu[0], 0, object_type, object_instance);
         /* Tag 1: sequence of WriteAccessSpecification */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
     }
@@ -211,8 +211,8 @@ int wpm_encode_apdu_object_property(
     int len = 0;
 
     if (apdu) {
-        apdu_len
-            = encode_context_enumerated(&apdu[0], 0, wpdata->object_property);
+        apdu_len =
+            encode_context_enumerated(&apdu[0], 0, wpdata->object_property);
         /* optional array index */
         if (wpdata->array_index != BACNET_ARRAY_ALL) {
             apdu_len += encode_context_unsigned(
@@ -225,8 +225,8 @@ int wpm_encode_apdu_object_property(
         }
         apdu_len += encode_closing_tag(&apdu[apdu_len], 2);
         if (wpdata->priority != BACNET_NO_PRIORITY) {
-            apdu_len += encode_context_unsigned(
-                &apdu[apdu_len], 3, wpdata->priority);
+            apdu_len +=
+                encode_context_unsigned(&apdu[apdu_len], 3, wpdata->priority);
         }
     }
 
@@ -241,8 +241,8 @@ int wpm_encode_apdu(uint8_t *apdu,
     int apdu_len = 0;
     int len = 0;
     BACNET_WRITE_ACCESS_DATA *wpm_object; /* current object */
-    uint8_t apdu_temp[MAX_APDU];          /* temp for data before copy */
-    BACNET_PROPERTY_VALUE *wpm_property;  /* current property */
+    uint8_t apdu_temp[MAX_APDU]; /* temp for data before copy */
+    BACNET_PROPERTY_VALUE *wpm_property; /* current property */
     BACNET_WRITE_PROPERTY_DATA
     wpdata; /* for compatibility with wpm_encode_apdu_object_property
                function */
@@ -264,8 +264,8 @@ int wpm_encode_apdu(uint8_t *apdu,
                 wpdata.object_property = wpm_property->propertyIdentifier;
                 wpdata.array_index = wpm_property->propertyArrayIndex;
                 wpdata.priority = wpm_property->priority;
-                wpdata.application_data_len
-                    = bacapp_encode_data(&apdu_temp[0], &wpm_property->value);
+                wpdata.application_data_len =
+                    bacapp_encode_data(&apdu_temp[0], &wpm_property->value);
                 memcpy(&wpdata.application_data[0], &apdu_temp[0],
                     (size_t)wpdata.application_data_len);
                 len = wpm_encode_apdu_object_property(&apdu[apdu_len], &wpdata);
@@ -315,8 +315,8 @@ int wpm_error_ack_encode_apdu(
         len += encode_opening_tag(&apdu[len], 1);
         len += encode_context_object_id(
             &apdu[len], 0, wp_data->object_type, wp_data->object_instance);
-        len += encode_context_enumerated(
-            &apdu[len], 1, wp_data->object_property);
+        len +=
+            encode_context_enumerated(&apdu[len], 1, wp_data->object_property);
 
         if (wp_data->array_index != BACNET_ARRAY_ALL)
             len += encode_context_unsigned(&apdu[len], 2, wp_data->array_index);

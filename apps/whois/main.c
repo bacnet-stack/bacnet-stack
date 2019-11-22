@@ -380,8 +380,8 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                Target_Object_Instance_Min = Target_Object_Instance_Max
-                    = strtol(argv[argi], NULL, 0);
+                Target_Object_Instance_Min = Target_Object_Instance_Max =
+                    strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 1) {
                 Target_Object_Instance_Max = strtol(argv[argi], NULL, 0);

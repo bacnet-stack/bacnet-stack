@@ -119,8 +119,8 @@ static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_NETWORK_NUMBER, PROP_NETWORK_NUMBER_QUALITY, PROP_CHANGES_PENDING,
     PROP_APDU_LENGTH, PROP_LINK_SPEED, -1 };
 
-static const int Ethernet_Port_Properties_Optional[]
-    = { PROP_MAC_ADDRESS, PROP_MAX_APDU_LENGTH_ACCEPTED, -1 };
+static const int Ethernet_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
+    PROP_MAX_APDU_LENGTH_ACCEPTED, -1 };
 
 static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
     PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, -1 };
@@ -135,13 +135,13 @@ static const int BIP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
 #endif
     -1 };
 
-static const int BIP6_Port_Properties_Optional[]
-    = { PROP_MAC_ADDRESS, PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_BACNET_IPV6_MODE,
-          PROP_IPV6_ADDRESS, PROP_IPV6_PREFIX_LENGTH, PROP_BACNET_IPV6_UDP_PORT,
-          PROP_IPV6_DEFAULT_GATEWAY, PROP_BACNET_IPV6_MULTICAST_ADDRESS,
-          PROP_IPV6_DNS_SERVER, PROP_IPV6_AUTO_ADDRESSING_ENABLE,
-          PROP_IPV6_DHCP_LEASE_TIME, PROP_IPV6_DHCP_LEASE_TIME_REMAINING,
-          PROP_IPV6_DHCP_SERVER, PROP_IPV6_ZONE_INDEX, -1 };
+static const int BIP6_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
+    PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_BACNET_IPV6_MODE, PROP_IPV6_ADDRESS,
+    PROP_IPV6_PREFIX_LENGTH, PROP_BACNET_IPV6_UDP_PORT,
+    PROP_IPV6_DEFAULT_GATEWAY, PROP_BACNET_IPV6_MULTICAST_ADDRESS,
+    PROP_IPV6_DNS_SERVER, PROP_IPV6_AUTO_ADDRESSING_ENABLE,
+    PROP_IPV6_DHCP_LEASE_TIME, PROP_IPV6_DHCP_LEASE_TIME_REMAINING,
+    PROP_IPV6_DHCP_SERVER, PROP_IPV6_ZONE_INDEX, -1 };
 
 static const int Network_Port_Properties_Proprietary[] = { -1 };
 
@@ -591,8 +591,8 @@ bool Network_Port_MAC_Address(
         switch (Object_List[index].Network_Type) {
             case PORT_TYPE_ETHERNET:
                 mac = &Object_List[index].Network.Ethernet.MAC_Address[0];
-                mac_len
-                    = sizeof(Object_List[index].Network.Ethernet.MAC_Address);
+                mac_len =
+                    sizeof(Object_List[index].Network.Ethernet.MAC_Address);
                 break;
             case PORT_TYPE_MSTP:
                 mac = &Object_List[index].Network.MSTP.MAC_Address;
@@ -643,8 +643,8 @@ bool Network_Port_MAC_Address_Set(
         switch (Object_List[index].Network_Type) {
             case PORT_TYPE_ETHERNET:
                 mac_dest = &Object_List[index].Network.Ethernet.MAC_Address[0];
-                mac_size
-                    = sizeof(Object_List[index].Network.Ethernet.MAC_Address);
+                mac_size =
+                    sizeof(Object_List[index].Network.Ethernet.MAC_Address);
                 break;
             case PORT_TYPE_MSTP:
                 mac_dest = &Object_List[index].Network.MSTP.MAC_Address;
@@ -1377,8 +1377,8 @@ bool Network_Port_IPv6_Address_Set(
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6)
-            && (ip_address)) {
+        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
+            (ip_address)) {
             for (i = 0; i < IPV6_ADDR_SIZE; i++) {
                 Object_List[index].Network.IPv6.IP_Address[i] = ip_address[i];
             }
@@ -1487,8 +1487,8 @@ bool Network_Port_IPv6_Gateway_Set(
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6)
-            && (ip_address)) {
+        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
+            (ip_address)) {
             for (i = 0; i < IPV6_ADDR_SIZE; i++) {
                 Object_List[index].Network.IPv6.IP_Gateway[i] = ip_address[i];
             }
@@ -1550,11 +1550,11 @@ bool Network_Port_IPv6_DNS_Server_Set(
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6)
-            && (dns_index < BIP_DNS_MAX) && (ip_address)) {
+        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
+            (dns_index < BIP_DNS_MAX) && (ip_address)) {
             for (i = 0; i < IPV6_ADDR_SIZE; i++) {
-                Object_List[index].Network.IPv6.IP_DNS_Server[dns_index][i]
-                    = ip_address[i];
+                Object_List[index].Network.IPv6.IP_DNS_Server[dns_index][i] =
+                    ip_address[i];
             }
         }
     }
@@ -1608,11 +1608,11 @@ bool Network_Port_IPv6_Multicast_Address_Set(
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6)
-            && (ip_address)) {
+        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
+            (ip_address)) {
             for (i = 0; i < IPV6_ADDR_SIZE; i++) {
-                Object_List[index].Network.IPv6.IP_Multicast_Address[i]
-                    = ip_address[i];
+                Object_List[index].Network.IPv6.IP_Multicast_Address[i] =
+                    ip_address[i];
             }
         }
     }
@@ -1666,11 +1666,11 @@ bool Network_Port_IPv6_DHCP_Server_Set(
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6)
-            && (ip_address)) {
+        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
+            (ip_address)) {
             for (i = 0; i < IPV6_ADDR_SIZE; i++) {
-                Object_List[index].Network.IPv6.IP_DHCP_Server[i]
-                    = ip_address[i];
+                Object_List[index].Network.IPv6.IP_DHCP_Server[i] =
+                    ip_address[i];
             }
         }
     }
@@ -1773,8 +1773,8 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6)
-            && (zone_index)) {
+        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
+            (zone_index)) {
             snprintf(&Object_List[index].Network.IPv6.Zone_Index[0],
                 ZONE_INDEX_SIZE, "%s", zone_index);
         }
@@ -1853,27 +1853,27 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
-    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_MSTP)
-        && property_list_member(
-               MSTP_Port_Properties_Optional, rpdata->object_property)) {
+    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_MSTP) &&
+        property_list_member(
+            MSTP_Port_Properties_Optional, rpdata->object_property)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         return BACNET_STATUS_ERROR;
     }
-    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_BIP)
-        && property_list_member(
-               BIP_Port_Properties_Optional, rpdata->object_property)) {
+    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_BIP) &&
+        property_list_member(
+            BIP_Port_Properties_Optional, rpdata->object_property)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         return BACNET_STATUS_ERROR;
     }
-    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_BIP6)
-        && property_list_member(
-               BIP6_Port_Properties_Optional, rpdata->object_property)) {
+    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_BIP6) &&
+        property_list_member(
+            BIP6_Port_Properties_Optional, rpdata->object_property)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         return BACNET_STATUS_ERROR;
@@ -1886,18 +1886,18 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Network_Port_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len
-                = encode_application_enumerated(&apdu[0], OBJECT_NETWORK_PORT);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_NETWORK_PORT);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-            if (Network_Port_Reliability(rpdata->object_instance)
-                == RELIABILITY_NO_FAULT_DETECTED) {
+            if (Network_Port_Reliability(rpdata->object_instance) ==
+                RELIABILITY_NO_FAULT_DETECTED) {
                 bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             } else {
                 bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, true);
@@ -2007,8 +2007,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 index = rpdata->array_index - 1;
                 Network_Port_IP_DNS_Server(
                     rpdata->object_instance, index, &octet_string);
-                apdu_len
-                    = encode_application_octet_string(&apdu[0], &octet_string);
+                apdu_len =
+                    encode_application_octet_string(&apdu[0], &octet_string);
             } else {
                 /* index was specified, but out of range */
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -2077,8 +2077,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 index = rpdata->array_index - 1;
                 Network_Port_IPv6_DNS_Server(
                     rpdata->object_instance, index, &octet_string);
-                apdu_len
-                    = encode_application_octet_string(&apdu[0], &octet_string);
+                apdu_len =
+                    encode_application_octet_string(&apdu[0], &octet_string);
             } else {
                 /* index was specified, but out of range */
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -2102,8 +2102,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_IPV6_ZONE_INDEX:
             Network_Port_IPv6_Zone_Index(rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -2144,13 +2144,13 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    if ((wp_data->object_property != PROP_LINK_SPEEDS)
-        && (wp_data->object_property != PROP_IP_DNS_SERVER)
-        && (wp_data->object_property != PROP_IPV6_DNS_SERVER)
-        && (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS)
-        && (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS_CONFIG)
-        && (wp_data->object_property != PROP_TAGS)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_LINK_SPEEDS) &&
+        (wp_data->object_property != PROP_IP_DNS_SERVER) &&
+        (wp_data->object_property != PROP_IPV6_DNS_SERVER) &&
+        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS) &&
+        (wp_data->object_property != PROP_EVENT_MESSAGE_TEXTS_CONFIG) &&
+        (wp_data->object_property != PROP_TAGS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;

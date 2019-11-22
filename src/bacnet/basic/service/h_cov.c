@@ -119,8 +119,8 @@ static void cov_address_remove_unused(void)
         if (COV_Addresses[cov_index].valid) {
             found = false;
             for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
-                if ((COV_Subscriptions[index].flag.valid)
-                    && (COV_Subscriptions[index].dest_index == cov_index)) {
+                if ((COV_Subscriptions[index].flag.valid) &&
+                    (COV_Subscriptions[index].dest_index == cov_index)) {
                     found = true;
                     break;
                 }
@@ -276,8 +276,8 @@ static int cov_encode_subscription(
         &apdu[apdu_len], 2, cov_subscription->flag.issueConfirmedNotifications);
     apdu_len += len;
     /* TimeRemaining [3] Unsigned, */
-    len = encode_context_unsigned(
-        &apdu[apdu_len], 3, cov_subscription->lifetime);
+    len =
+        encode_context_unsigned(&apdu[apdu_len], 3, cov_subscription->lifetime);
     apdu_len += len;
 
     return apdu_len;
@@ -328,8 +328,8 @@ void handler_cov_init(void)
         COV_Subscriptions[index].flag.valid = false;
         COV_Subscriptions[index].dest_index = -1;
         COV_Subscriptions[index].subscriberProcessIdentifier = 0;
-        COV_Subscriptions[index].monitoredObjectIdentifier.type
-            = OBJECT_ANALOG_INPUT;
+        COV_Subscriptions[index].monitoredObjectIdentifier.type =
+            OBJECT_ANALOG_INPUT;
         COV_Subscriptions[index].monitoredObjectIdentifier.instance = 0;
         COV_Subscriptions[index].flag.issueConfirmedNotifications = false;
         COV_Subscriptions[index].invokeID = 0;
@@ -366,13 +366,13 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
                 /* skip address matching - we don't have an address */
                 address_match = true;
             }
-            if ((COV_Subscriptions[index].monitoredObjectIdentifier.type
-                    == cov_data->monitoredObjectIdentifier.type)
-                && (COV_Subscriptions[index].monitoredObjectIdentifier.instance
-                       == cov_data->monitoredObjectIdentifier.instance)
-                && (COV_Subscriptions[index].subscriberProcessIdentifier
-                       == cov_data->subscriberProcessIdentifier)
-                && address_match) {
+            if ((COV_Subscriptions[index].monitoredObjectIdentifier.type ==
+                    cov_data->monitoredObjectIdentifier.type) &&
+                (COV_Subscriptions[index].monitoredObjectIdentifier.instance ==
+                    cov_data->monitoredObjectIdentifier.instance) &&
+                (COV_Subscriptions[index].subscriberProcessIdentifier ==
+                    cov_data->subscriberProcessIdentifier) &&
+                address_match) {
                 existing_entry = true;
                 if (cov_data->cancellationRequest) {
                     COV_Subscriptions[index].flag.valid = false;
@@ -380,8 +380,8 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
                     cov_address_remove_unused();
                 } else {
                     COV_Subscriptions[index].dest_index = cov_address_add(src);
-                    COV_Subscriptions[index].flag.issueConfirmedNotifications
-                        = cov_data->issueConfirmedNotifications;
+                    COV_Subscriptions[index].flag.issueConfirmedNotifications =
+                        cov_data->issueConfirmedNotifications;
                     COV_Subscriptions[index].lifetime = cov_data->lifetime;
                     COV_Subscriptions[index].flag.send_requested = true;
                 }
@@ -397,20 +397,20 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
             }
         }
     }
-    if (!existing_entry && (first_invalid_index >= 0)
-        && (!cov_data->cancellationRequest)) {
+    if (!existing_entry && (first_invalid_index >= 0) &&
+        (!cov_data->cancellationRequest)) {
         index = first_invalid_index;
         found = true;
         COV_Subscriptions[index].flag.valid = true;
         COV_Subscriptions[index].dest_index = cov_address_add(src);
-        COV_Subscriptions[index].monitoredObjectIdentifier.type
-            = cov_data->monitoredObjectIdentifier.type;
-        COV_Subscriptions[index].monitoredObjectIdentifier.instance
-            = cov_data->monitoredObjectIdentifier.instance;
-        COV_Subscriptions[index].subscriberProcessIdentifier
-            = cov_data->subscriberProcessIdentifier;
-        COV_Subscriptions[index].flag.issueConfirmedNotifications
-            = cov_data->issueConfirmedNotifications;
+        COV_Subscriptions[index].monitoredObjectIdentifier.type =
+            cov_data->monitoredObjectIdentifier.type;
+        COV_Subscriptions[index].monitoredObjectIdentifier.instance =
+            cov_data->monitoredObjectIdentifier.instance;
+        COV_Subscriptions[index].subscriberProcessIdentifier =
+            cov_data->subscriberProcessIdentifier;
+        COV_Subscriptions[index].flag.issueConfirmedNotifications =
+            cov_data->issueConfirmedNotifications;
         COV_Subscriptions[index].invokeID = 0;
         COV_Subscriptions[index].lifetime = cov_data->lifetime;
         COV_Subscriptions[index].flag.send_requested = true;
@@ -467,13 +467,13 @@ static bool cov_send_request(BACNET_COV_SUBSCRIPTION *cov_subscription,
     pdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], dest, &my_address, &npdu_data);
     /* load the COV data structure for outgoing message */
-    cov_data.subscriberProcessIdentifier
-        = cov_subscription->subscriberProcessIdentifier;
+    cov_data.subscriberProcessIdentifier =
+        cov_subscription->subscriberProcessIdentifier;
     cov_data.initiatingDeviceIdentifier = Device_Object_Instance_Number();
-    cov_data.monitoredObjectIdentifier.type
-        = cov_subscription->monitoredObjectIdentifier.type;
-    cov_data.monitoredObjectIdentifier.instance
-        = cov_subscription->monitoredObjectIdentifier.instance;
+    cov_data.monitoredObjectIdentifier.type =
+        cov_subscription->monitoredObjectIdentifier.type;
+    cov_data.monitoredObjectIdentifier.instance =
+        cov_subscription->monitoredObjectIdentifier.instance;
     cov_data.timeRemaining = cov_subscription->lifetime;
     cov_data.listOfValues = value_list;
     if (cov_subscription->flag.issueConfirmedNotifications) {
@@ -606,8 +606,7 @@ bool handler_cov_fsm(void)
         COV_STATE_CLEAR,
         COV_STATE_FREE,
         COV_STATE_SEND
-    } cov_task_state
-        = COV_STATE_IDLE;
+    } cov_task_state = COV_STATE_IDLE;
 
     switch (cov_task_state) {
         case COV_STATE_IDLE:
@@ -619,8 +618,8 @@ bool handler_cov_fsm(void)
             if (COV_Subscriptions[index].flag.valid) {
                 object_type = (BACNET_OBJECT_TYPE)COV_Subscriptions[index]
                                   .monitoredObjectIdentifier.type;
-                object_instance = COV_Subscriptions[index]
-                                      .monitoredObjectIdentifier.instance;
+                object_instance =
+                    COV_Subscriptions[index].monitoredObjectIdentifier.instance;
                 status = Device_COV(object_type, object_instance);
                 if (status) {
                     COV_Subscriptions[index].flag.send_requested = true;
@@ -637,12 +636,12 @@ bool handler_cov_fsm(void)
             break;
         case COV_STATE_CLEAR:
             /* clear the COV flag after checking all subscriptions */
-            if ((COV_Subscriptions[index].flag.valid)
-                && (COV_Subscriptions[index].flag.send_requested)) {
+            if ((COV_Subscriptions[index].flag.valid) &&
+                (COV_Subscriptions[index].flag.send_requested)) {
                 object_type = (BACNET_OBJECT_TYPE)COV_Subscriptions[index]
                                   .monitoredObjectIdentifier.type;
-                object_instance = COV_Subscriptions[index]
-                                      .monitoredObjectIdentifier.instance;
+                object_instance =
+                    COV_Subscriptions[index].monitoredObjectIdentifier.instance;
                 Device_COV_Clear(object_type, object_instance);
             }
             index++;
@@ -653,9 +652,9 @@ bool handler_cov_fsm(void)
             break;
         case COV_STATE_FREE:
             /* confirmed notification house keeping */
-            if ((COV_Subscriptions[index].flag.valid)
-                && (COV_Subscriptions[index].flag.issueConfirmedNotifications)
-                && (COV_Subscriptions[index].invokeID)) {
+            if ((COV_Subscriptions[index].flag.valid) &&
+                (COV_Subscriptions[index].flag.issueConfirmedNotifications) &&
+                (COV_Subscriptions[index].invokeID)) {
                 if (tsm_invoke_id_free(COV_Subscriptions[index].invokeID)) {
                     COV_Subscriptions[index].invokeID = 0;
                 } else if (tsm_invoke_id_failed(
@@ -672,8 +671,8 @@ bool handler_cov_fsm(void)
             break;
         case COV_STATE_SEND:
             /* send any COVs that are requested */
-            if ((COV_Subscriptions[index].flag.valid)
-                && (COV_Subscriptions[index].flag.send_requested)) {
+            if ((COV_Subscriptions[index].flag.valid) &&
+                (COV_Subscriptions[index].flag.send_requested)) {
                 send = true;
                 if (COV_Subscriptions[index].flag.issueConfirmedNotifications) {
                     if (COV_Subscriptions[index].invokeID != 0) {

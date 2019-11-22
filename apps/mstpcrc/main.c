@@ -64,7 +64,7 @@ static unsigned CRC_Size = 8;
 static bool MSTP_Cap = false;
 static bool MSTP_Text_File = false;
 static char Capture_Filename[64] = "mstp_20090123091200.cap";
-static FILE *pFile = NULL;      /* stream pointer */
+static FILE *pFile = NULL; /* stream pointer */
 static FILE *pText_File = NULL; /* stream pointer */
 
 /******************************************************************
@@ -171,12 +171,12 @@ static void filename_create(char *filename)
 static void write_global_header(const char *filename)
 {
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
-    uint16_t version_major = 2;         /* major version number */
-    uint16_t version_minor = 4;         /* minor version number */
-    int32_t thiszone = 0;               /* GMT to local correction */
-    uint32_t sigfigs = 0;               /* accuracy of timestamps */
+    uint16_t version_major = 2; /* major version number */
+    uint16_t version_minor = 4; /* minor version number */
+    int32_t thiszone = 0; /* GMT to local correction */
+    uint32_t sigfigs = 0; /* accuracy of timestamps */
     uint32_t snaplen = 65535; /* max length of captured packets, in octets */
-    uint32_t network = 165;   /* data link type - BACNET_MS_TP */
+    uint32_t network = 165; /* data link type - BACNET_MS_TP */
 
     /* create a new file. */
     pFile = fopen(filename, "wb");
@@ -198,8 +198,8 @@ static void write_global_header(const char *filename)
 
 static void write_received_packet(uint8_t *buffer, unsigned length)
 {
-    uint32_t ts_sec;   /* timestamp seconds */
-    uint32_t ts_usec;  /* timestamp microseconds */
+    uint32_t ts_sec; /* timestamp seconds */
+    uint32_t ts_usec; /* timestamp microseconds */
     uint32_t incl_len; /* number of octets of packet saved in file */
     uint32_t orig_len; /* actual length of packet */
     struct timeval tv;

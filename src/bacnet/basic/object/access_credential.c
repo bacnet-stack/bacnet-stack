@@ -75,8 +75,8 @@ void Access_Credential_Init(void)
         Access_Credential_Initialized = true;
 
         for (i = 0; i < MAX_ACCESS_CREDENTIALS; i++) {
-            ac_descr[i].global_identifier
-                = 0; /* set to some meaningful value */
+            ac_descr[i].global_identifier =
+                0; /* set to some meaningful value */
             ac_descr[i].reliability = RELIABILITY_NO_FAULT_DETECTED;
             ac_descr[i].credential_status = false;
             ac_descr[i].reasons_count = 0;
@@ -157,8 +157,8 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned i = 0;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL)
-        || (rpdata->application_data_len == 0)) {
+    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
         return 0;
     }
     apdu = rpdata->application_data;
@@ -171,8 +171,8 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_NAME:
             Access_Credential_Object_Name(
                 rpdata->object_instance, &char_string);
-            apdu_len
-                = encode_application_character_string(&apdu[0], &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(
@@ -205,8 +205,8 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (apdu_len + len < MAX_APDU)
                     apdu_len += len;
                 else {
-                    rpdata->error_code
-                        = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    rpdata->error_code =
+                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     apdu_len = BACNET_STATUS_ABORT;
                     break;
                 }
@@ -224,19 +224,19 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if (apdu_len + len < MAX_APDU)
                         apdu_len += len;
                     else {
-                        rpdata->error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
             } else {
-                if (rpdata->array_index
-                    <= ac_descr[object_index].auth_factors_count) {
-                    apdu_len = bacapp_encode_credential_authentication_factor(
-                        &apdu[0],
-                        &ac_descr[object_index]
-                             .auth_factors[rpdata->array_index - 1]);
+                if (rpdata->array_index <=
+                    ac_descr[object_index].auth_factors_count) {
+                    apdu_len =
+                        bacapp_encode_credential_authentication_factor(&apdu[0],
+                            &ac_descr[object_index]
+                                 .auth_factors[rpdata->array_index - 1]);
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -269,15 +269,15 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if (apdu_len + len < MAX_APDU)
                         apdu_len += len;
                     else {
-                        rpdata->error_code
-                            = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                         apdu_len = BACNET_STATUS_ABORT;
                         break;
                     }
                 }
             } else {
-                if (rpdata->array_index
-                    <= ac_descr[object_index].assigned_access_rights_count) {
+                if (rpdata->array_index <=
+                    ac_descr[object_index].assigned_access_rights_count) {
                     apdu_len = bacapp_encode_assigned_access_rights(&apdu[0],
                         &ac_descr[object_index]
                              .assigned_access_rights[rpdata->array_index - 1]);
@@ -295,10 +295,10 @@ int Access_Credential_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0)
-        && (rpdata->object_property != PROP_AUTHENTICATION_FACTORS)
-        && (rpdata->object_property != PROP_ASSIGNED_ACCESS_RIGHTS)
-        && (rpdata->array_index != BACNET_ARRAY_ALL)) {
+    if ((apdu_len >= 0) &&
+        (rpdata->object_property != PROP_AUTHENTICATION_FACTORS) &&
+        (rpdata->object_property != PROP_ASSIGNED_ACCESS_RIGHTS) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         apdu_len = BACNET_STATUS_ERROR;
@@ -326,23 +326,23 @@ bool Access_Credential_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     /*  only array properties can have array options */
-    if ((wp_data->object_property != PROP_AUTHENTICATION_FACTORS)
-        && (wp_data->object_property != PROP_ASSIGNED_ACCESS_RIGHTS)
-        && (wp_data->array_index != BACNET_ARRAY_ALL)) {
+    if ((wp_data->object_property != PROP_AUTHENTICATION_FACTORS) &&
+        (wp_data->object_property != PROP_ASSIGNED_ACCESS_RIGHTS) &&
+        (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
-    object_index
-        = Access_Credential_Instance_To_Index(wp_data->object_instance);
+    object_index =
+        Access_Credential_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status
-                = WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            status =
+                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                ac_descr[object_index].global_identifier
-                    = value.type.Unsigned_Int;
+                ac_descr[object_index].global_identifier =
+                    value.type.Unsigned_Int;
             }
             break;
         case PROP_OBJECT_IDENTIFIER:

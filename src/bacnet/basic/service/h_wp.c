@@ -160,19 +160,17 @@ bool WPValidateString(BACNET_APPLICATION_DATA_VALUE *pValue,
     *pErrorClass = ERROR_CLASS_PROPERTY;
 
     if (pValue->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-        if (characterstring_encoding(&pValue->type.Character_String)
-            == CHARACTER_ANSI_X34) {
-            if ((bEmptyAllowed == false)
-                && (characterstring_length(&pValue->type.Character_String)
-                       == 0)) {
+        if (characterstring_encoding(&pValue->type.Character_String) ==
+            CHARACTER_ANSI_X34) {
+            if ((bEmptyAllowed == false) &&
+                (characterstring_length(&pValue->type.Character_String) == 0)) {
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            } else if ((bEmptyAllowed == false)
-                && (!characterstring_printable(
-                       &pValue->type.Character_String))) {
+            } else if ((bEmptyAllowed == false) &&
+                (!characterstring_printable(&pValue->type.Character_String))) {
                 /* assumption: non-empty also means must be "printable" */
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            } else if (characterstring_length(&pValue->type.Character_String)
-                > (uint16_t)iMaxLen) {
+            } else if (characterstring_length(&pValue->type.Character_String) >
+                (uint16_t)iMaxLen) {
                 *pErrorClass = ERROR_CLASS_RESOURCES;
                 *pErrorCode = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             } else

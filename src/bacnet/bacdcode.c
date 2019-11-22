@@ -498,8 +498,8 @@ int encode_application_boolean(uint8_t *apdu, bool boolean_value)
     if (boolean_value) {
         len_value = 1;
     }
-    len = encode_tag(
-        &apdu[0], BACNET_APPLICATION_TAG_BOOLEAN, false, len_value);
+    len =
+        encode_tag(&apdu[0], BACNET_APPLICATION_TAG_BOOLEAN, false, len_value);
 
     return len;
 }
@@ -639,8 +639,8 @@ int decode_context_bitstring(
     uint32_t len_value;
     int len = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)
-        && !decode_is_closing_tag(&apdu[len])) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_bitstring(&apdu[len], len_value, bit_string);
     } else {
@@ -663,8 +663,8 @@ int encode_bitstring(uint8_t *apdu, BACNET_BIT_STRING *bit_string)
         apdu[len++] = 0;
     } else {
         used_bytes = bitstring_bytes_used(bit_string);
-        remaining_used_bits = (uint8_t)(
-            bitstring_bits_used(bit_string) - ((used_bytes - 1) * 8));
+        remaining_used_bits =
+            (uint8_t)(bitstring_bits_used(bit_string) - ((used_bytes - 1) * 8));
         /* number of unused bits in the subsequent final octet */
         apdu[len++] = (uint8_t)(8 - remaining_used_bits);
         for (i = 0; i < used_bytes; i++) {
@@ -711,8 +711,8 @@ int decode_object_id(uint8_t *apdu, uint16_t *object_type, uint32_t *instance)
     int len = 0;
 
     len = decode_unsigned32(apdu, &value);
-    *object_type
-        = (uint16_t)(((value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
+    *object_type =
+        (uint16_t)(((value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
     *instance = (value & BACNET_MAX_INSTANCE);
 
     return len;
@@ -755,8 +755,8 @@ int encode_bacnet_object_id(uint8_t *apdu, int object_type, uint32_t instance)
     int len = 0;
 
     type = (uint32_t)object_type;
-    value = ((type & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS)
-        | (instance & BACNET_MAX_INSTANCE);
+    value = ((type & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) |
+        (instance & BACNET_MAX_INSTANCE);
     len = encode_unsigned32(apdu, value);
 
     return len;
@@ -887,8 +887,8 @@ int decode_context_octet_string(
     bool status = false;
     uint32_t len_value = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)
-        && !decode_is_closing_tag(&apdu[len])) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
 
         status = octetstring_init(octet_string, &apdu[len], len_value);
@@ -946,8 +946,8 @@ int encode_application_character_string(
     int len = 0;
     int string_len = 0;
 
-    string_len
-        = (int)characterstring_length(char_string) + 1 /* for encoding */;
+    string_len =
+        (int)characterstring_length(char_string) + 1 /* for encoding */;
     len = encode_tag(&apdu[0], BACNET_APPLICATION_TAG_CHARACTER_STRING, false,
         (uint32_t)string_len);
     if ((len + string_len) < MAX_APDU) {
@@ -965,8 +965,8 @@ int encode_context_character_string(
     int len = 0;
     int string_len = 0;
 
-    string_len
-        = (int)characterstring_length(char_string) + 1 /* for encoding */;
+    string_len =
+        (int)characterstring_length(char_string) + 1 /* for encoding */;
     len += encode_tag(&apdu[0], tag_number, true, (uint32_t)string_len);
     if ((len + string_len) < MAX_APDU) {
         len += encode_bacnet_character_string(&apdu[len], char_string);
@@ -1002,8 +1002,8 @@ int decode_context_character_string(
     bool status = false;
     uint32_t len_value = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)
-        && !decode_is_closing_tag(&apdu[len])) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
 
         status = characterstring_init(
@@ -1054,8 +1054,8 @@ int decode_context_unsigned(uint8_t *apdu, uint8_t tag_number, uint32_t *value)
     uint32_t len_value;
     int len = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)
-        && !decode_is_closing_tag(&apdu[len])) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_unsigned(&apdu[len], len_value, value);
     } else {
@@ -1145,8 +1145,8 @@ int decode_context_enumerated(uint8_t *apdu, uint8_t tag_value, uint32_t *value)
     uint8_t tag_number;
     uint32_t len_value;
 
-    if (decode_is_context_tag(&apdu[len], tag_value)
-        && !decode_is_closing_tag(&apdu[len])) {
+    if (decode_is_context_tag(&apdu[len], tag_value) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_enumerated(&apdu[len], len_value, value);
     } else {
@@ -1236,8 +1236,8 @@ int decode_context_signed(uint8_t *apdu, uint8_t tag_number, int32_t *value)
     uint32_t len_value;
     int len = 0;
 
-    if (decode_is_context_tag(&apdu[len], tag_number)
-        && !decode_is_closing_tag(&apdu[len])) {
+    if (decode_is_context_tag(&apdu[len], tag_number) &&
+        !decode_is_closing_tag(&apdu[len])) {
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         len += decode_signed(&apdu[len], len_value, value);
     } else {
@@ -1320,8 +1320,8 @@ int encode_application_real(uint8_t *apdu, float value)
 
     /* assumes that the tag only consumes 1 octet */
     len = encode_bacnet_real(value, &apdu[1]);
-    len += encode_tag(
-        &apdu[0], BACNET_APPLICATION_TAG_REAL, false, (uint32_t)len);
+    len +=
+        encode_tag(&apdu[0], BACNET_APPLICATION_TAG_REAL, false, (uint32_t)len);
 
     return len;
 }
@@ -1387,8 +1387,8 @@ int encode_application_time(uint8_t *apdu, BACNET_TIME *btime)
 
     /* assumes that the tag only consumes 1 octet */
     len = encode_bacnet_time(&apdu[1], btime);
-    len += encode_tag(
-        &apdu[0], BACNET_APPLICATION_TAG_TIME, false, (uint32_t)len);
+    len +=
+        encode_tag(&apdu[0], BACNET_APPLICATION_TAG_TIME, false, (uint32_t)len);
 
     return len;
 }
@@ -1500,8 +1500,8 @@ int encode_application_date(uint8_t *apdu, BACNET_DATE *bdate)
 
     /* assumes that the tag only consumes 1 octet */
     len = encode_bacnet_date(&apdu[1], bdate);
-    len += encode_tag(
-        &apdu[0], BACNET_APPLICATION_TAG_DATE, false, (uint32_t)len);
+    len +=
+        encode_tag(&apdu[0], BACNET_APPLICATION_TAG_DATE, false, (uint32_t)len);
 
     return len;
 }
@@ -1608,8 +1608,8 @@ int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
     BACNET_OCTET_STRING mac_addr = { 0 };
 
     /* network number */
-    tag_len
-        = decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    tag_len =
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     len += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
         return BACNET_STATUS_ERROR;
@@ -1617,8 +1617,8 @@ int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
     len += decode_unsigned(&apdu[len], len_value_type, &data_unsigned);
     destination->net = data_unsigned;
     /* encode mac address as an octet-string */
-    tag_len
-        = decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+    tag_len =
+        decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     len += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
         return BACNET_STATUS_ERROR;
@@ -1703,11 +1703,11 @@ static int get_apdu_len(bool extended_tag, uint32_t value)
 
 static void print_apdu(uint8_t *pBlock, uint32_t num)
 {
-    size_t lines = 0;        /* number of lines to print */
-    size_t line = 0;         /* line of text counter */
-    size_t last_line = 0;    /* line on which the last text resided */
+    size_t lines = 0; /* number of lines to print */
+    size_t line = 0; /* line of text counter */
+    size_t last_line = 0; /* line on which the last text resided */
     unsigned long count = 0; /* address to print */
-    unsigned int i = 0;      /* counter */
+    unsigned int i = 0; /* counter */
 
     if (pBlock && num) {
         /* how many lines to print? */
@@ -1721,8 +1721,8 @@ static void print_apdu(uint8_t *pBlock, uint32_t num)
             printf("%08lX: ", count);
             /* hex representation */
             for (i = 0; i < 16; i++) {
-                if (((line == (lines - 1)) && (i <= last_line))
-                    || (line != (lines - 1))) {
+                if (((line == (lines - 1)) && (i <= last_line)) ||
+                    (line != (lines - 1))) {
                     printf("%02X ", (unsigned)(0x00FF & pBlock[i]));
                 } else {
                     printf("-- ");
@@ -1731,8 +1731,8 @@ static void print_apdu(uint8_t *pBlock, uint32_t num)
             printf(" ");
             /* print the characters if valid */
             for (i = 0; i < 16; i++) {
-                if (((line == (lines - 1)) && (i <= last_line))
-                    || (line != (lines - 1))) {
+                if (((line == (lines - 1)) && (i <= last_line)) ||
+                    (line != (lines - 1))) {
                     if (isprint(pBlock[i])) {
                         printf("%c", pBlock[i]);
                     } else {
@@ -2084,8 +2084,8 @@ static void testBACDCodeOctetString(Test *pTest)
         test_value[i] = '0' + (i % 10);
         status = octetstring_init(&octet_string, test_value, i);
         ct_test(pTest, status == true);
-        apdu_len
-            = encode_application_octet_string(&encoded_array[0], &octet_string);
+        apdu_len =
+            encode_application_octet_string(&encoded_array[0], &octet_string);
         len = decode_tag_number_and_value(
             &encoded_array[0], &tag_number, &len_value);
         ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OCTET_STRING);
@@ -2183,9 +2183,8 @@ static void testBACDCodeObject(Test *pTest)
             ct_test(pTest, decoded_instance == instance);
             encode_bacnet_object_id(&object_array[0], type, instance);
             ct_test(pTest,
-                memcmp(
-                    &object_array[0], &encoded_array[0], sizeof(object_array))
-                    == 0);
+                memcmp(&object_array[0], &encoded_array[0],
+                    sizeof(object_array)) == 0);
         }
     }
 
@@ -2656,8 +2655,8 @@ static void testObjectIDContextDecodes(Test *pTest)
     ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
 
     inLen = encode_context_object_id(apdu, large_context_tag, in_type, in_id);
-    outLen
-        = decode_context_object_id(apdu, large_context_tag, &out_type, &out_id);
+    outLen =
+        decode_context_object_id(apdu, large_context_tag, &out_type, &out_id);
     outLen2 = decode_context_object_id(
         apdu, large_context_tag - 1, &out_type, &out_id);
 
@@ -2692,8 +2691,8 @@ static void testCharacterStringContextDecodes(Test *pTest)
 
     inLen = encode_context_character_string(apdu, large_context_tag, &in);
     outLen = decode_context_character_string(apdu, large_context_tag, &out);
-    outLen2
-        = decode_context_character_string(apdu, large_context_tag - 1, &out);
+    outLen2 =
+        decode_context_character_string(apdu, large_context_tag - 1, &out);
 
     ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
     ct_test(pTest, inLen == outLen);

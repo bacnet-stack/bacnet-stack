@@ -53,7 +53,7 @@
 int lighting_command_encode(uint8_t *apdu, BACNET_LIGHTING_COMMAND *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
-    int len = 0;      /* total length of the apdu, return value */
+    int len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
         len = encode_context_enumerated(&apdu[apdu_len], 0, data->operation);
@@ -138,8 +138,8 @@ int lighting_command_decode(
         len = decode_tag_number_and_value(
             &apdu[apdu_len], &tag_number, &len_value_type);
         apdu_len += len;
-        len = decode_enumerated(
-            &apdu[apdu_len], len_value_type, &unsigned_value);
+        len =
+            decode_enumerated(&apdu[apdu_len], len_value_type, &unsigned_value);
         if (len > 0) {
             data->operation = unsigned_value;
         }
@@ -252,22 +252,22 @@ bool lighting_command_same(
     bool status = false;
 
     if (dst && src) {
-        if ((dst->operation == src->operation)
-            && (dst->use_target_level == src->use_target_level)
-            && (dst->use_ramp_rate == src->use_ramp_rate)
-            && (dst->use_step_increment == src->use_step_increment)
-            && (dst->use_fade_time == src->use_fade_time)
-            && (dst->use_priority == src->use_priority)) {
+        if ((dst->operation == src->operation) &&
+            (dst->use_target_level == src->use_target_level) &&
+            (dst->use_ramp_rate == src->use_ramp_rate) &&
+            (dst->use_step_increment == src->use_step_increment) &&
+            (dst->use_fade_time == src->use_fade_time) &&
+            (dst->use_priority == src->use_priority)) {
             status = true;
-            if ((dst->use_target_level)
-                && (dst->target_level != src->target_level)) {
+            if ((dst->use_target_level) &&
+                (dst->target_level != src->target_level)) {
                 status = false;
             }
             if ((dst->use_ramp_rate) && (dst->ramp_rate != src->ramp_rate)) {
                 status = false;
             }
-            if ((dst->use_step_increment)
-                && (dst->step_increment != src->step_increment)) {
+            if ((dst->use_step_increment) &&
+                (dst->step_increment != src->step_increment)) {
                 status = false;
             }
             if ((dst->use_fade_time) && (dst->fade_time != src->fade_time)) {

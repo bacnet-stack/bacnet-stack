@@ -54,11 +54,11 @@
 int rpm_ack_decode_service_request(
     uint8_t *apdu, int apdu_len, BACNET_READ_ACCESS_DATA *read_access_data)
 {
-    int decoded_len = 0;      /* return value */
+    int decoded_len = 0; /* return value */
     uint32_t error_value = 0; /* decoded error value */
-    int len = 0;              /* number of bytes returned from decoding */
-    uint8_t tag_number = 0;   /* decoded tag number */
-    uint32_t len_value = 0;   /* decoded length value */
+    int len = 0; /* number of bytes returned from decoding */
+    uint8_t tag_number = 0; /* decoded tag number */
+    uint32_t len_value = 0; /* decoded length value */
     BACNET_READ_ACCESS_DATA *rpm_object;
     BACNET_READ_ACCESS_DATA *old_rpm_object;
     BACNET_PROPERTY_REFERENCE *rpm_property;
@@ -133,8 +133,8 @@ int rpm_ack_decode_service_request(
                         break;
                     } else {
                         old_value = value;
-                        value
-                            = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+                        value =
+                            calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                         old_value->next = value;
                     }
                 }
@@ -144,8 +144,8 @@ int rpm_ack_decode_service_request(
                 apdu_len--;
                 apdu++;
                 /* decode the class and code sequence */
-                len = decode_tag_number_and_value(
-                    apdu, &tag_number, &len_value);
+                len =
+                    decode_tag_number_and_value(apdu, &tag_number, &len_value);
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
@@ -155,8 +155,8 @@ int rpm_ack_decode_service_request(
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
-                len = decode_tag_number_and_value(
-                    apdu, &tag_number, &len_value);
+                len =
+                    decode_tag_number_and_value(apdu, &tag_number, &len_value);
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
@@ -237,10 +237,10 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
                 object_value.object_type = rpm_data->object_type;
                 object_value.object_instance = rpm_data->object_instance;
                 while (value) {
-                    object_value.object_property
-                        = listOfProperties->propertyIdentifier;
-                    object_value.array_index
-                        = listOfProperties->propertyArrayIndex;
+                    object_value.object_property =
+                        listOfProperties->propertyIdentifier;
+                    object_value.array_index =
+                        listOfProperties->propertyArrayIndex;
                     object_value.value = value;
                     bacapp_print_value(stdout, &object_value);
 #if PRINT_ENABLED

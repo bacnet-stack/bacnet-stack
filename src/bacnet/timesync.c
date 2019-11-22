@@ -46,7 +46,7 @@ int timesync_encode_apdu_service(uint8_t *apdu,
     BACNET_DATE *my_date,
     BACNET_TIME *my_time)
 {
-    int len = 0;      /* length of each encoding */
+    int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu && my_date && my_time) {
@@ -267,12 +267,12 @@ int timesync_decode_timesync_recipients(
             if (octetstring_length(&octet_string) == 0) {
                 /* -- A string of length 0 indicates a broadcast */
             } else if (pRecipient->type.address.net) {
-                pRecipient->type.address.len
-                    = octetstring_copy_value(&pRecipient->type.address.adr[0],
+                pRecipient->type.address.len =
+                    octetstring_copy_value(&pRecipient->type.address.adr[0],
                         sizeof(pRecipient->type.address.adr), &octet_string);
             } else {
-                pRecipient->type.address.mac_len
-                    = octetstring_copy_value(&pRecipient->type.address.mac[0],
+                pRecipient->type.address.mac_len =
+                    octetstring_copy_value(&pRecipient->type.address.mac[0],
                         sizeof(pRecipient->type.address.mac), &octet_string);
             }
         } else {
@@ -301,32 +301,32 @@ void testTimeSyncRecipientData(Test *pTest,
             ct_test(pTest,
                 recipient1->type.device.type == recipient2->type.device.type);
             ct_test(pTest,
-                recipient1->type.device.instance
-                    == recipient2->type.device.instance);
+                recipient1->type.device.instance ==
+                    recipient2->type.device.instance);
         } else if (recipient1->tag == 1) {
             ct_test(pTest,
                 recipient1->type.address.net == recipient2->type.address.net);
             if (recipient1->type.address.net == BACNET_BROADCAST_NETWORK) {
                 ct_test(pTest,
-                    recipient1->type.address.mac_len
-                        == recipient2->type.address.mac_len);
+                    recipient1->type.address.mac_len ==
+                        recipient2->type.address.mac_len);
             } else if (recipient1->type.address.net) {
                 ct_test(pTest,
-                    recipient1->type.address.len
-                        == recipient2->type.address.len);
+                    recipient1->type.address.len ==
+                        recipient2->type.address.len);
                 for (i = 0; i < recipient1->type.address.len; i++) {
                     ct_test(pTest,
-                        recipient1->type.address.adr[i]
-                            == recipient2->type.address.adr[i]);
+                        recipient1->type.address.adr[i] ==
+                            recipient2->type.address.adr[i]);
                 }
             } else {
                 ct_test(pTest,
-                    recipient1->type.address.mac_len
-                        == recipient2->type.address.mac_len);
+                    recipient1->type.address.mac_len ==
+                        recipient2->type.address.mac_len);
                 for (i = 0; i < recipient1->type.address.mac_len; i++) {
                     ct_test(pTest,
-                        recipient1->type.address.mac[i]
-                            == recipient2->type.address.mac[i]);
+                        recipient1->type.address.mac[i] ==
+                            recipient2->type.address.mac[i]);
                 }
             }
         } else {
@@ -461,9 +461,9 @@ void testTimeSync(Test *pTest)
     BACNET_TIME btime;
 
     bdate.year = 2006; /* AD */
-    bdate.month = 4;   /* 1=Jan */
-    bdate.day = 11;    /* 1..31 */
-    bdate.wday = 1;    /* 1=Monday */
+    bdate.month = 4; /* 1=Jan */
+    bdate.day = 11; /* 1..31 */
+    bdate.wday = 1; /* 1=Monday */
 
     btime.hour = 7;
     btime.min = 0;

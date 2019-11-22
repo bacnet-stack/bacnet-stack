@@ -128,8 +128,8 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                         &net); /* decode received NET values */
                     add_dnet(&srcport->route_info, net,
                         data->src); /* and update routing table */
-                    if (data->pdu[apdu_offset + i + 3]
-                        > 0) /* find next NET value */
+                    if (data->pdu[apdu_offset + i + 3] >
+                        0) /* find next NET value */
                         i = data->pdu[apdu_offset + i + 3] + 4;
                     else
                         i = i + 4;
@@ -151,8 +151,8 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                         &net); /* decode received NET values */
                     add_dnet(&srcport->route_info, net,
                         data->src); /* and update routing table */
-                    if (data->pdu[apdu_offset + i + 3]
-                        > 0) /* find next NET value */
+                    if (data->pdu[apdu_offset + i + 3] >
+                        0) /* find next NET value */
                         i = data->pdu[apdu_offset + i + 3] + 4;
                     else
                         i = i + 4;
@@ -235,16 +235,16 @@ uint16_t create_network_message(
                             *buff + buff_len, port->route_info.net);
                         dnet = port->route_info.dnets;
                         while (dnet != NULL) {
-                            buff_len += encode_unsigned16(
-                                *buff + buff_len, dnet->net);
+                            buff_len +=
+                                encode_unsigned16(*buff + buff_len, dnet->net);
                             dnet = dnet->next;
                         }
                         port = port->next;
                     } else {
                         dnet = port->route_info.dnets;
                         while (dnet != NULL) {
-                            buff_len += encode_unsigned16(
-                                *buff + buff_len, dnet->net);
+                            buff_len +=
+                                encode_unsigned16(*buff + buff_len, dnet->net);
                             dnet = dnet->next;
                         }
                         port = port->next;

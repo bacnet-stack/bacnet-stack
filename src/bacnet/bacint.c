@@ -131,20 +131,20 @@ int encode_unsigned64(uint8_t *buffer, uint64_t value)
 int decode_unsigned64(uint8_t *buffer, uint64_t *value)
 {
     if (value) {
-        *value
-            = ((uint64_t)((((uint64_t)buffer[0]) << 56) & 0xff00000000000000));
-        *value
-            |= ((uint64_t)((((uint64_t)buffer[1]) << 48) & 0x00ff000000000000));
-        *value
-            |= ((uint64_t)((((uint64_t)buffer[2]) << 40) & 0x0000ff0000000000));
-        *value
-            |= ((uint64_t)((((uint64_t)buffer[3]) << 32) & 0x000000ff00000000));
-        *value
-            |= ((uint64_t)((((uint64_t)buffer[4]) << 24) & 0x00000000ff000000));
-        *value
-            |= ((uint64_t)((((uint64_t)buffer[5]) << 16) & 0x0000000000ff0000));
-        *value
-            |= ((uint64_t)((((uint64_t)buffer[6]) << 8) & 0x000000000000ff00));
+        *value =
+            ((uint64_t)((((uint64_t)buffer[0]) << 56) & 0xff00000000000000));
+        *value |=
+            ((uint64_t)((((uint64_t)buffer[1]) << 48) & 0x00ff000000000000));
+        *value |=
+            ((uint64_t)((((uint64_t)buffer[2]) << 40) & 0x0000ff0000000000));
+        *value |=
+            ((uint64_t)((((uint64_t)buffer[3]) << 32) & 0x000000ff00000000));
+        *value |=
+            ((uint64_t)((((uint64_t)buffer[4]) << 24) & 0x00000000ff000000));
+        *value |=
+            ((uint64_t)((((uint64_t)buffer[5]) << 16) & 0x0000000000ff0000));
+        *value |=
+            ((uint64_t)((((uint64_t)buffer[6]) << 8) & 0x000000000000ff00));
         *value |= ((uint64_t)(((uint64_t)buffer[7]) & 0x00000000000000ff));
     }
 
