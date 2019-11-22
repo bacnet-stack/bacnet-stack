@@ -1,15 +1,15 @@
 ---
 BasedOnStyle: WebKit
 BinPackParameters: false
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
-AlignTrailingComments: true
+AlignEscapedNewlines: Left
 PointerAlignment: Right
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
-AlwaysBreakAfterReturnType: None
 BreakBeforeBraces: Linux
+BreakBeforeBinaryOperators: None
+KeepEmptyLinesAtTheStartOfBlocks: false
+PenaltyBreakBeforeFirstCallParameter: 1
 IndentCaseLabels: true
 IndentWidth: 4
 UseTab: Never
