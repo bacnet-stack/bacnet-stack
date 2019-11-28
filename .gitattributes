@@ -4,19 +4,29 @@
 # Explicitly declare text files you want to always be normalized and converted
 # to native line endings on checkout.
 *.c text
+*.cpp text
+*.cxx text
 *.h text
+*.hpp text
 *.s text
 Makefile.* text
 Makefile text
 *.mak text
 *.MAK text
 *.xml text
+*.aps text
 *.mcp text
+*.hwp text
 *.lkr text
 *.lua text
 *.txt text
+*.htm text
 .cproject text
 .project text
+.gdbinit text
+.slintrc text
+*.sh text
+README.* text
 
 # Declare files that will always have CRLF line endings on checkout.
 *.sln text eol=crlf
