@@ -191,7 +191,9 @@ int main(int argc, char *argv[])
     uint32_t elapsed_seconds = 0;
     uint32_t elapsed_milliseconds = 0;
     uint32_t address_binding_tmr = 0;
+#if defined(INTRINSIC_REPORTING)
     uint32_t recipient_scan_tmr = 0;
+#endif
 #if defined(BACNET_TIME_MASTER)
     BACNET_DATE_TIME bdatetime;
 #endif

@@ -1363,8 +1363,10 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     int object_type = 0;
     uint32_t object_instance = 0;
+    int result = 0;
+#if defined(BACNET_TIME_MASTER)
     uint32_t minutes = 0;
-    int temp;
+#endif
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -1432,12 +1434,13 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
                     &wp_data->error_class, &wp_data->error_code);
             if (status) {
-                temp = Device_Set_System_Status(
+                result = Device_Set_System_Status(
                     (BACNET_DEVICE_STATUS)value.type.Enumerated, false);
-                if (temp != 0) {
+                if (result != 0) {
+                    /* result: - 0 = ok, -1 = bad value, -2 = not allowed */
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    if (temp == -1) {
+                    if (result == -1) {
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     } else {
                         wp_data->error_code =
