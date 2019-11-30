@@ -9,6 +9,10 @@
 .PHONY: all
 all: apps
 
+.PHONY: win32
+win32:
+	$(MAKE) BACNET_PORT=win32 -C apps all
+
 .PHONY: apps
 apps:
 	$(MAKE) -s -C apps all

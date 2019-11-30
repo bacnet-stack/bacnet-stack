@@ -170,6 +170,92 @@ static struct object_functions *Device_Objects_Find_Functions(
     return (NULL);
 }
 
+/** For a given object type, returns the special property list.
+ * This function is used for ReadPropertyMultiple calls which want
+ * just Required, just Optional, or All properties.
+ * @ingroup ObjIntf
+ *
+ * @param object_type [in] The desired BACNET_OBJECT_TYPE whose properties
+ *            are to be listed.
+ * @param pPropertyList [out] Reference to the structure which will, on return,
+ *            list, separately, the Required, Optional, and Proprietary object
+ *            properties with their counts.
+ */
+void Device_Objects_Property_List(BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    struct special_property_list_t *pPropertyList)
+{
+    struct object_functions *pObject = NULL;
+
+    (void)object_instance;
+    pPropertyList->Required.pList = NULL;
+    pPropertyList->Optional.pList = NULL;
+    pPropertyList->Proprietary.pList = NULL;
+
+    /* If we can find an entry for the required object type
+     * and there is an Object_List_RPM fn ptr then call it
+     * to populate the pointers to the individual list counters.
+     */
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
+        pObject->Object_RPM_List(&pPropertyList->Required.pList,
+            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
+    }
+
+    /* Fetch the counts if available otherwise zero them */
+    pPropertyList->Required.count = pPropertyList->Required.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Required.pList);
+
+    pPropertyList->Optional.count = pPropertyList->Optional.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Optional.pList);
+
+    pPropertyList->Proprietary.count = pPropertyList->Proprietary.pList == NULL
+        ? 0
+        : property_list_count(pPropertyList->Proprietary.pList);
+
+    return;
+}
+
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Device_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_SYSTEM_STATUS, PROP_VENDOR_NAME,
+    PROP_VENDOR_IDENTIFIER, PROP_MODEL_NAME, PROP_FIRMWARE_REVISION,
+    PROP_APPLICATION_SOFTWARE_VERSION, PROP_PROTOCOL_VERSION,
+    PROP_PROTOCOL_REVISION, PROP_PROTOCOL_SERVICES_SUPPORTED,
+    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED, PROP_OBJECT_LIST,
+    PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_SEGMENTATION_SUPPORTED,
+    PROP_APDU_TIMEOUT, PROP_NUMBER_OF_APDU_RETRIES, PROP_DEVICE_ADDRESS_BINDING,
+    PROP_DATABASE_REVISION, -1 };
+
+static const int Device_Properties_Optional[] = {
+#if defined(BACDL_MSTP)
+    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
+#endif
+    PROP_DESCRIPTION, PROP_LOCATION, PROP_ACTIVE_COV_SUBSCRIPTIONS,
+    -1
+};
+
+static const int Device_Properties_Proprietary[] = { -1 };
+
+void Device_Property_Lists(
+    const int **pRequired, const int **pOptional, const int **pProprietary)
+{
+    if (pRequired) {
+        *pRequired = Device_Properties_Required;
+    }
+    if (pOptional) {
+        *pOptional = Device_Properties_Optional;
+    }
+    if (pProprietary) {
+        *pProprietary = Device_Properties_Proprietary;
+    }
+
+    return;
+}
+
 unsigned Device_Count(void)
 {
     return 1;

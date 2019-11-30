@@ -173,9 +173,10 @@ BACNET_PORT_SRC += \
 
 BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
+
+BACNET_BASIC_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/h_npdu.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
@@ -198,7 +199,7 @@ endif
 endif
 
 ifeq (${BACNET_PORT},win32)
-	SUBDIRS += ptransfer mstpcap mstpcrc
+	SUBDIRS += mstpcap mstpcrc
 endif
 
 .PHONY: all clean
@@ -207,7 +208,7 @@ TARGETS = all clean
 $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
-	$(MAKE) -s -b -C $(subst ., , $@)
+	$(MAKE) -b -C $(subst ., , $@)
 
 .PHONY: gateway
 gateway:
