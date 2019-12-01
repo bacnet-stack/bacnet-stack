@@ -7,8 +7,8 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\bacepics" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Debug\" />
+				<Option output="bin/Debug/bacepics" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -16,8 +16,8 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\bacepics" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Release\" />
+				<Option output="bin/Release/bacepics" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -29,23 +29,268 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-Wmissing-declarations" />
 			<Add option="-Wall" />
-			<Add option="-fexceptions" />
+			<Add option="-m32" />
+			<Add option="-ffunction-sections" />
+			<Add option="-fdata-sections" />
 			<Add option="-DBACDL_BIP" />
 			<Add option="-DPRINT_ENABLED=1" />
 			<Add option="-DBACAPP_ALL" />
+			<Add option="-DBACFILE" />
+			<Add option="-DBACNET_TIME_MASTER" />
+			<Add option="-DBACNET_PROPERTY_LISTS=1" />
+			<Add option="-DBACNET_PROTOCOL_REVISION=17" />
+			<Add option="-D_NO_OLDNAMES" />
 			<Add directory="." />
-			<Add directory="..\..\include" />
-			<Add directory="..\handler" />
-			<Add directory="..\object" />
-			<Add directory="..\..\ports\win32" />
+			<Add directory="../../ports/win32" />
+			<Add directory="../../src" />
 		</Compiler>
 		<Linker>
-			<Add library="..\..\lib\libbacnet.a" />
+			<Add option="-static" />
+			<Add option="-m32" />
+			<Add option="-Wl,--gc-sections" />
 			<Add library="ws2_32" />
 			<Add library="iphlpapi" />
+			<Add library="gcc" />
+			<Add library="m" />
+			<Add library="winmm" />
 		</Linker>
-		<Unit filename="..\object\device-client.c">
+		<Unit filename="../../ports/win32/bip-init.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../ports/win32/datetime-init.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../ports/win32/mstimer-init.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/abort.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/access_rule.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/alarm_ack.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/arf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/assigned_access_rights.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/authentication_factor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/authentication_factor_format.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/awf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacaddr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacapp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacdcode.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacdevobjpropref.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacerror.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacprop.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacpropstates.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacreal.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bacstr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bactext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/bactimevalue.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/binding/address.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/npdu/h_npdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/object/client/device-client.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/object/netport.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/h_apdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/h_iam.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/h_noserv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/h_rp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/h_rp_a.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/h_rpm_a.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/h_whois.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/s_iam.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/s_rp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/s_rpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/service/s_whois.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/bigend.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/debug.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/fifo.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/filename.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/key.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/keylist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/mstimer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/ringbuf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/sys/sbuf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/basic/tsm/tsm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/cov.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/credential_authentication_factor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/datalink/bip.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/datalink/bvlc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/datalink/dlenv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/datetime.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/dcc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/event.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/get_alarm_sum.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/getevent.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/iam.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/ihave.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/indtext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/lighting.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/lso.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/memcopy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/npdu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/property.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/proplist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/ptransfer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/rd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/readrange.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/reject.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/rp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/rpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/timestamp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/timesync.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/whohas.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/whois.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/wp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../src/bacnet/wpm.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="main.c">
