@@ -81,6 +81,8 @@ void Send_WhoIs_To_Network(
     if (bytes_sent <= 0)
         fprintf(
             stderr, "Failed to Send Who-Is Request (%s)!\n", strerror(errno));
+#else
+    (void)bytes_sent;
 #endif
 }
 

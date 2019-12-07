@@ -76,9 +76,9 @@ static void my_callback(void)
                     /* disable any one-shot timers */
                     Callback_Data[i].callback = NULL;
                 }
-            }            
+            }
         }
-    }        
+    }
 }
 
 /**
@@ -86,7 +86,7 @@ static void my_callback(void)
  *
  * @return the current milliseconds count
  */
-uint32_t timer_milliseconds(void)
+uint32_t mstimer_milliseconds(void)
 {
     uint32_t timer_value; /* return value */
 
@@ -123,7 +123,7 @@ bool timer_callback(
             status = true;
             break;
         }
-    }                    
+    }
     tc_set_overflow_interrupt_level(&MY_TIMER, TC_INT_LVL_LO);
 
     return status;
@@ -155,7 +155,7 @@ bool timer_callback_oneshot(
             status = true;
             break;
         }
-    }                    
+    }
     tc_set_overflow_interrupt_level(&MY_TIMER, TC_INT_LVL_LO);
 
     return status;

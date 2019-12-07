@@ -42,6 +42,7 @@ void mstimer_reset(struct mstimer *t);
 void mstimer_restart(struct mstimer *t);
 int mstimer_expired(struct mstimer *t);
 unsigned long mstimer_remaining(struct mstimer *t);
+unsigned long mstimer_interval(struct mstimer *t);
 /* HAL implementation */
 unsigned long mstimer_now(void);
 void mstimer_init(void);

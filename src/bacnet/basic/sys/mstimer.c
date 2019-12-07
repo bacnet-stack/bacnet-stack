@@ -102,3 +102,18 @@ unsigned long mstimer_remaining(struct mstimer *t)
 {
     return t->start + t->interval - mstimer_now();
 }
+
+/**
+ * The value of the interval
+ *
+ * This function returns the interval value
+ *
+ * @param t A pointer to the timer
+ *
+ * @return The interval value
+ *
+ */
+unsigned long mstimer_interval(struct mstimer *t)
+{
+    return t->interval;
+}

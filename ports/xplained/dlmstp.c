@@ -40,7 +40,7 @@
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
 #include "rs485.h"
-#include "crc.h"
+#include "bacnet/datalink/crc.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bits.h"
 #include "bacnet/bytes.h"

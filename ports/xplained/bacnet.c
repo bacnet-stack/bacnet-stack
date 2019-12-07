@@ -32,13 +32,13 @@
 #include "led.h"
 #include "adc-hdw.h"
 /* BACnet Stack includes */
-#include "bacnet/datalink/datalink.h"
 #include "bacnet/npdu.h"
+#include "bacnet/dcc.h"
+#include "bacnet/iam.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/dcc.h"
-#include "bacnet/iam.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/sys/ringbuf.h"
@@ -63,16 +63,16 @@ static RING_BUFFER Receive_Queue;
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
 /* timer for device communications control */
-static struct itimer DCC_Timer;
+static struct mstimer DCC_Timer;
 #define DCC_CYCLE_SECONDS 1
 /* timer for COV */
-static struct itimer COV_Timer;
+static struct mstimer COV_Timer;
 #define COV_CYCLE_SECONDS 1
 /* timer for TSM */
-static struct itimer TSM_Timer;
+static struct mstimer TSM_Timer;
 #define TSM_CYCLE_SECONDS 1
 /* timer for Reinit */
-static struct itimer Reinit_Timer;
+static struct mstimer Reinit_Timer;
 /* buffer for incoming packets */
 static uint8_t PDUBuffer[MAX_MPDU];
 
@@ -88,14 +88,14 @@ static void reinit_task(void)
     state = Device_Reinitialized_State();
     if (state == BACNET_REINIT_IDLE) {
         /* set timer to never expire */
-        timer_interval_infinity(&Reinit_Timer);
-    } else if (timer_interval_active(&Reinit_Timer)) {
-        if (timer_interval_expired(&Reinit_Timer)) {
+        mstimer_set(&Reinit_Timer, 0);
+    } else if (mstimer_interval(&Reinit_Timer) > 0) {
+        if (mstimer_expired(&Reinit_Timer)) {
             /* reset MCU via watchdog timeout */
             wdt_reset_mcu();
         }
     } else {
-        timer_interval_start_seconds(&Reinit_Timer, 3);
+        mstimer_set(&Reinit_Timer, 3000);
     }
 }
 
@@ -164,14 +164,14 @@ void bacnet_task(void)
         Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
     /* handle the timers */
-    if (timer_interval_expired(&DCC_Timer)) {
-        timer_interval_reset(&DCC_Timer);
+    if (mstimer_expired(&DCC_Timer)) {
+        mstimer_reset(&DCC_Timer);
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
         led_on_interval(LED_DEBUG,500);
     }
-    if (timer_interval_expired(&TSM_Timer)) {
-        timer_interval_reset(&TSM_Timer);
-        tsm_timer_milliseconds(timer_interval(&TSM_Timer));
+    if (mstimer_expired(&TSM_Timer)) {
+        mstimer_reset(&TSM_Timer);
+        tsm_timer_milliseconds(mstimer_interval(&TSM_Timer));
     }
     reinit_task();
 	bacnet_test_task();
@@ -221,11 +221,11 @@ void bacnet_init(void)
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
-    timer_interval_start_seconds(&DCC_Timer, DCC_CYCLE_SECONDS);
+    mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS*1000);
     /* start the cyclic 1 second timer for COV */
-    timer_interval_start_seconds(&COV_Timer, COV_CYCLE_SECONDS);
+    mstimer_set(&COV_Timer, COV_CYCLE_SECONDS*1000);
     /* start the cyclic 1 second timer for TSM */
-    timer_interval_start_seconds(&TSM_Timer, TSM_CYCLE_SECONDS);
+    mstimer_set(&TSM_Timer, TSM_CYCLE_SECONDS*1000);
 	for (i = 0; i < MAX_ANALOG_INPUTS; i++) {
         Analog_Input_Units_Set(
             Analog_Input_Index_To_Instance(i),
