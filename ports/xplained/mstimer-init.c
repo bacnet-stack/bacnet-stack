@@ -47,12 +47,12 @@
 static volatile uint32_t Millisecond_Counter;
 
 /* callback data structure */
-struct timer_data_t {
+struct mstimer_data_t {
     volatile uint32_t interval;
     volatile uint32_t milliseconds;
-    timer_callback_function callback;
+    mstimer_callback_function callback;
 };
-static volatile struct timer_data_t Callback_Data[TIMER_CALLBACK_MAX];
+static volatile struct mstimer_data_t Callback_Data[TIMER_CALLBACK_MAX];
 
 /**
  * Handles the interrupt from the timer
@@ -86,7 +86,7 @@ static void my_callback(void)
  *
  * @return the current milliseconds count
  */
-uint32_t mstimer_milliseconds(void)
+uint32_t mstimer_now(void)
 {
     uint32_t timer_value; /* return value */
 
@@ -105,8 +105,8 @@ uint32_t mstimer_milliseconds(void)
  *
  * @return true if successfully added and enabled
  */
-bool timer_callback(
-    timer_callback_function callback,
+bool mstimer_callback(
+    mstimer_callback_function callback,
     uint32_t milliseconds)
 {
     bool status = false;
@@ -130,41 +130,9 @@ bool timer_callback(
 }
 
 /**
- * Configures and enables a one-shot callback function
- *
- * @param callback - pointer to a #timer_callback_function function
- * @param milliseconds - how long to wait before calling the function
- *
- * @return true if successfully added and enabled
- */
-bool timer_callback_oneshot(
-    timer_callback_function callback,
-    uint32_t milliseconds)
-{
-    bool status = false;
-    uint32_t now, i;
-
-    tc_set_overflow_interrupt_level(&MY_TIMER, TC_INT_LVL_OFF);
-    now = Millisecond_Counter;
-    for (i = 0; i < TIMER_CALLBACK_MAX; i++) {
-        if (Callback_Data[i].callback == NULL) {
-            /* set the first expiration time */
-            Callback_Data[i].milliseconds = now + milliseconds;
-            Callback_Data[i].interval = 0;
-            Callback_Data[i].callback = callback;
-            status = true;
-            break;
-        }
-    }
-    tc_set_overflow_interrupt_level(&MY_TIMER, TC_INT_LVL_LO);
-
-    return status;
-}
-
-/**
  * Timer setup for 1 millisecond timer
  */
-void timer_init(void)
+void mstimer_init(void)
 {
     unsigned long period;
 

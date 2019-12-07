@@ -69,7 +69,7 @@ static FIFO_BUFFER Transmit_Queue;
 /* baud rate of the UART interface */
 static uint32_t Baud_Rate;
 /* timer for measuring line silence */
-static struct etimer Silence_Timer;
+static struct mstimer Silence_Timer;
 /* flag to track RTS status */
 static volatile bool RTS_Status;
 
@@ -78,7 +78,7 @@ static volatile bool RTS_Status;
  */
 void rs485_silence_reset(void)
 {
-    timer_elapsed_start(&Silence_Timer);
+    mstimer_set(&Silence_Timer, 0);
 }
 
 /**
@@ -90,7 +90,7 @@ void rs485_silence_reset(void)
  */
 bool rs485_silence_elapsed(uint32_t interval)
 {
-    return timer_elapsed_milliseconds(&Silence_Timer, interval);
+    return (mstimer_remaining(&Silence_Timer) > interval);
 }
 
 /**
@@ -154,7 +154,7 @@ static uint16_t rs485_turnaround_time(void)
  */
 bool rs485_turnaround_elapsed(void)
 {
-    return timer_elapsed_milliseconds(&Silence_Timer, rs485_turnaround_time());
+    return (mstimer_remaining(&Silence_Timer) > rs485_turnaround_time());
 }
 
 /**
@@ -222,7 +222,7 @@ bool rs485_bytes_send(uint8_t * buffer,
         status = FIFO_Add(&Transmit_Queue, buffer, nbytes);
         if (start_required && status) {
             rs485_rts_enable(true);
-            timer_elapsed_start(&Silence_Timer);
+            rs485_silence_reset();
             ch = FIFO_Get(&Transmit_Queue);
             usart_clear_tx_complete(&RS485_USART);
             usart_set_tx_interrupt_level(&RS485_USART, USART_INT_LVL_LO);
@@ -322,12 +322,12 @@ void rs485_init(void)
     FIFO_Init(&Transmit_Queue, &Transmit_Queue_Data[0],
         (unsigned) sizeof(Transmit_Queue_Data));
     /* initialize the silence timer */
-    timer_elapsed_start(&Silence_Timer);
+    rs485_silence_reset();
     /* configure the TX pin */
     ioport_configure_pin(RS485_TXD,
         IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
     /* configure the RX pin */
-    ioport_configure_pin(RS485_RXD, 
+    ioport_configure_pin(RS485_RXD,
 		IOPORT_DIR_INPUT);
     /* configure the RTS pins */
     ioport_configure_pin(RS485_RE,

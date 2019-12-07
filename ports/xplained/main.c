@@ -23,7 +23,7 @@ int main(void)
     sysclk_init();
     board_init();
     pmic_init();
-    timer_init();
+    mstimer_init();
     rs485_init();
     led_init();
 	adc_init();
@@ -41,7 +41,7 @@ int main(void)
     rs485_baud_rate_set(38400);
     bacnet_init();
     /*  run forever - timed tasks */
-    timer_callback(bacnet_task_timed, 5);
+    mstimer_callback(bacnet_task_timed, 5);
     for (;;) {
         bacnet_task();
         led_task();

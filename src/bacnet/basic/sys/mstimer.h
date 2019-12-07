@@ -33,6 +33,8 @@ struct mstimer {
   unsigned long interval;
 };
 
+typedef void (*mstimer_callback_function) (void);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -45,6 +47,9 @@ unsigned long mstimer_remaining(struct mstimer *t);
 unsigned long mstimer_interval(struct mstimer *t);
 /* HAL implementation */
 unsigned long mstimer_now(void);
+bool mstimer_callback(
+    mstimer_callback_function callback,
+    uint32_t milliseconds);
 void mstimer_init(void);
 
 #ifdef __cplusplus

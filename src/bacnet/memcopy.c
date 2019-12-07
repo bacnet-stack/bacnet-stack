@@ -41,7 +41,7 @@
  */
 #include <stddef.h>
 #include <string.h>
-#include "memcopy.h"
+#include "bacnet/memcopy.h"
 
 /**
  * Tests to see if the number of bytes is available from an offset
