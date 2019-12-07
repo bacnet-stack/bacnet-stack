@@ -38,7 +38,7 @@
 static uint8_t Receive_Buffer_Data[512];
 static FIFO_BUFFER Receive_Buffer;
 /* amount of silence on the wire */
-static struct etimer Silence_Timer;
+static struct mstimer Silence_Timer;
 /* baud rate */
 static uint32_t Baud_Rate = 38400;
 
@@ -61,7 +61,7 @@ static uint32_t Baud_Rate = 38400;
 void rs485_silence_reset(
     void)
 {
-    timer_elapsed_start(&Silence_Timer);
+    mstimer_set(&Silence_Timer, 0);
 }
 
 /*************************************************************************
@@ -72,7 +72,7 @@ void rs485_silence_reset(
 bool rs485_silence_elapsed(
     uint32_t interval)
 {
-    return timer_elapsed_milliseconds(&Silence_Timer, interval);
+    return (mstimer_remaining(&Silence_Timer) > interval);
 }
 
 /*************************************************************************
@@ -101,7 +101,7 @@ static uint16_t rs485_turnaround_time(
 bool rs485_turnaround_elapsed(
     void)
 {
-    return timer_elapsed_milliseconds(&Silence_Timer, rs485_turnaround_time());
+    return (mstimer_remaining(&Silence_Timer) > rs485_turnaround_time());
 }
 
 
@@ -166,7 +166,7 @@ void rs485_byte_send(
 {
     led_tx_on_interval(10);
     USART_SendData(USART2, tx_byte);
-    timer_elapsed_start(&Silence_Timer);
+    rs485_silence_reset();
 }
 
 /*************************************************************************
@@ -219,7 +219,7 @@ void rs485_bytes_send(
         /* do nothing - wait until the entire frame in the
            Transmit Shift Register has been shifted out */
     }
-    timer_elapsed_start(&Silence_Timer);
+    rs485_silence_reset();
 
     return;
 }
@@ -352,5 +352,5 @@ void rs485_init(
 
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
         (unsigned) sizeof(Receive_Buffer_Data));
-    timer_elapsed_start(&Silence_Timer);
+    rs485_silence_reset();
 }

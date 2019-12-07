@@ -108,7 +108,7 @@ void lse_init(
 int main(
     void)
 {
-    struct itimer Blink_Timer;
+    struct mstimer Blink_Timer;
 
     /*At this stage the microcontroller clock setting is already configured,
        this is done through SystemInit() function which is called from startup
@@ -120,14 +120,14 @@ int main(
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
         RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOE,
         ENABLE);
-    timer_init();
+    mstimer_init();
     lse_init();
     led_init();
     bacnet_init();
-    timer_interval_start(&Blink_Timer, 125);
+    mstimer_set(&Blink_Timer, 125);
     for (;;) {
-        if (timer_interval_expired(&Blink_Timer)) {
-            timer_interval_reset(&Blink_Timer);
+        if (mstimer_expired(&Blink_Timer)) {
+            mstimer_reset(&Blink_Timer);
             led_ld3_toggle();
         }
         led_task();

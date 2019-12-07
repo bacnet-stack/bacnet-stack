@@ -61,7 +61,7 @@ static void timer_debug_off(
 * Returns: none
 * Notes: none
 *************************************************************************/
-void timer_debug_toggle(
+static void timer_debug_toggle(
     void)
 {
     static bool state = false;
@@ -93,7 +93,7 @@ void SysTick_Handler(
 * Returns: none
 * Notes: none
 *************************************************************************/
-uint32_t timer_milliseconds(
+uint32_t mstimer_now(
     void)
 {
     return Millisecond_Counter;
@@ -104,7 +104,7 @@ uint32_t timer_milliseconds(
 * Returns: none
 * Notes: peripheral frequency defined in hardware.h
 *************************************************************************/
-void timer_init(
+void mstimer_init(
     void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
