@@ -38,46 +38,28 @@
 /* define which timer counter we are using */
 #define MY_TIMER TCE0
 
-/* number of callbacks supported */
-#ifndef TIMER_CALLBACK_MAX
-#define TIMER_CALLBACK_MAX 8
-#endif
-
 /* counter for the base timer */
 static volatile uint32_t Millisecond_Counter;
-
-/* callback data structure */
-struct mstimer_data_t {
-    volatile uint32_t interval;
-    volatile uint32_t milliseconds;
-    mstimer_callback_function callback;
-};
-static volatile struct mstimer_data_t Callback_Data[TIMER_CALLBACK_MAX];
+/* callback data head of list */
+static volatile struct mstimer_callback_data_t *Callback_Head;
 
 /**
  * Handles the interrupt from the timer
  */
 static void my_callback(void)
 {
-    uint32_t now, t, interval, i;
+    struct mstimer_callback_data_t *cb;
 
     Millisecond_Counter++;
-    now = Millisecond_Counter;
-    for (i = 0; i < TIMER_CALLBACK_MAX; i++) {
-        /* check for callback */
-        if (Callback_Data[i].callback) {
-            t = Callback_Data[i].milliseconds;
-            if (now >= t) {
-                Callback_Data[i].callback();
-                interval = Callback_Data[i].interval;
-                if (interval) {
-                    Callback_Data[i].milliseconds = now + interval;
-                } else {
-                    /* disable any one-shot timers */
-                    Callback_Data[i].callback = NULL;
-                }
+    cb = (struct mstimer_callback_data_t *)Callback_Head;
+    while (cb) {
+        if (mstimer_expired(&cb->timer)) {
+            cb->callback();
+            if (mstimer_interval(&cb->timer) > 0) {
+                mstimer_reset(&cb->timer);
             }
         }
+        cb = cb->next;
     }
 }
 
@@ -86,7 +68,7 @@ static void my_callback(void)
  *
  * @return the current milliseconds count
  */
-uint32_t mstimer_now(void)
+unsigned long mstimer_now(void)
 {
     uint32_t timer_value; /* return value */
 
@@ -100,33 +82,38 @@ uint32_t mstimer_now(void)
 /**
  * Configures and enables a repeating callback function
  *
+ * @param new_cb - pointer to #mstimer_callback_data_t
  * @param callback - pointer to a #timer_callback_function function
  * @param milliseconds - how often to call the function
  *
  * @return true if successfully added and enabled
  */
-bool mstimer_callback(
+void mstimer_callback(
+    struct mstimer_callback_data_t *new_cb,
     mstimer_callback_function callback,
-    uint32_t milliseconds)
+    unsigned long milliseconds)
 {
-    bool status = false;
-    uint32_t now, i;
+    struct mstimer_callback_data_t *cb;
 
     tc_set_overflow_interrupt_level(&MY_TIMER, TC_INT_LVL_OFF);
-    now = Millisecond_Counter;
-    for (i = 0; i < TIMER_CALLBACK_MAX; i++) {
-        if (Callback_Data[i].callback == NULL) {
-            Callback_Data[i].interval = milliseconds;
-            /* set the first expiration time */
-            Callback_Data[i].milliseconds = now + milliseconds;
-            Callback_Data[i].callback = callback;
-            status = true;
-            break;
+    if (new_cb) {
+        new_cb->callback = callback;
+        mstimer_set(&new_cb->timer, milliseconds);
+    }
+    if (Callback_Head) {
+        cb = (struct mstimer_callback_data_t *)Callback_Head;
+        while (cb) {
+            if (!cb->next) {
+                cb->next = new_cb;
+                break;
+            } else {
+                cb = cb->next;
+            }
         }
+    } else {
+        Callback_Head = new_cb;
     }
     tc_set_overflow_interrupt_level(&MY_TIMER, TC_INT_LVL_LO);
-
-    return status;
 }
 
 /**
