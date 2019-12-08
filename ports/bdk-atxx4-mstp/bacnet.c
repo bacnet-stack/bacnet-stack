@@ -52,7 +52,7 @@
 /* MAC Address of MS/TP */
 static uint8_t MSTP_MAC_Address;
 /* timer for device communications control */
-static struct itimer DCC_Timer;
+static struct mstimer DCC_Timer;
 #define DCC_CYCLE_SECONDS 1
 
 static bool seeprom_version_test(
@@ -140,7 +140,7 @@ void bacnet_init(
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
-    timer_interval_start_seconds(&DCC_Timer, DCC_CYCLE_SECONDS);
+    mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS*1000);
     /* Hello World! */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 }
@@ -208,8 +208,8 @@ void bacnet_task(
         }
     }
     /* handle the communication timer */
-    if (timer_interval_expired(&DCC_Timer)) {
-        timer_interval_reset(&DCC_Timer);
+    if (mstimer_expired(&DCC_Timer)) {
+        mstimer_reset(&DCC_Timer);
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
     }
     /* handle the messaging */

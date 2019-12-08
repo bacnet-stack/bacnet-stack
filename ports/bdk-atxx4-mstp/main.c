@@ -57,7 +57,7 @@ int main(
 #else
     watchdog_init(0);
 #endif
-    timer_init();
+    mstimer_init();
     adc_init();
     input_init();
     seeprom_init();

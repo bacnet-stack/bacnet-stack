@@ -47,7 +47,7 @@ const char * const binary_string[BINARY_STRING_MAX] = {
 };
 
 /* timer for test task */
-static struct itimer Test_Timer;
+static struct mstimer Test_Timer;
 /* MAC Address of MS/TP */
 static uint8_t MSTP_MAC_Address;
 
@@ -59,7 +59,7 @@ void test_init(
 #else
     serial_baud_rate_set(9600);
 #endif
-    timer_interval_start_seconds(&Test_Timer, 1);
+    mstimer_set(&Test_Timer, 1*1000);
     /* configure a port pin as output */
 #if (BDK_VERSION==4)
     BIT_SET(DDRD, DDB5);
@@ -147,8 +147,8 @@ static inline void test_pin_toggle(
 void test_task(
     void)
 {
-    if (timer_interval_expired(&Test_Timer)) {
-        timer_interval_reset(&Test_Timer);
+    if (mstimer_expired(&Test_Timer)) {
+        mstimer_reset(&Test_Timer);
         MSTP_MAC_Address = MSTP_MAC_Address;
     }
 }
@@ -161,8 +161,8 @@ void test_task(
     uint8_t data_register = 0;
     uint16_t id = 0;
 
-    if (timer_interval_expired(&Test_Timer)) {
-        timer_interval_reset(&Test_Timer);
+    if (mstimer_expired(&Test_Timer)) {
+        mstimer_reset(&Test_Timer);
         sprintf(Send_Buffer, "BACnet: 0000000\r\n");
         MSTP_MAC_Address = input_address();
         Send_Buffer[8] = (MSTP_MAC_Address & BIT0) ? '1' : '0';

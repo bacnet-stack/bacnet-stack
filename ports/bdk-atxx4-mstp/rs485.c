@@ -51,7 +51,7 @@ static uint32_t Baud_Rate = 9600;
 static uint8_t Receive_Buffer_Data[128];
 static FIFO_BUFFER Receive_Buffer;
 
-static struct etimer Silence_Timer;
+static struct mstimer Silence_Timer;
 
 /****************************************************************************
 * DESCRIPTION: Determines the amount of silence time elapsed
@@ -61,7 +61,7 @@ static struct etimer Silence_Timer;
 bool rs485_silence_time_elapsed(
     uint16_t milliseconds)
 {
-    return timer_elapsed_milliseconds_short(&Silence_Timer, milliseconds);
+    return (mstimer_remaining(&Silence_Timer) > milliseconds);
 }
 
 /****************************************************************************
@@ -72,7 +72,7 @@ bool rs485_silence_time_elapsed(
 void rs485_silence_time_reset(
     void)
 {
-    timer_elapsed_start(&Silence_Timer);
+    mstimer_set(&Silence_Timer, 0);
 }
 
 /****************************************************************************
@@ -226,7 +226,7 @@ void rs485_bytes_send(
     }
     /* Clear the Transmit Complete flag by writing a one to it. */
     BIT_SET(UCSR0A, TXC0);
-    timer_elapsed_start(&Silence_Timer);
+    rs485_silence_time_reset();
     led_off_delay(LED_5, 1);
 
     return;
@@ -363,7 +363,7 @@ void rs485_init(
 {
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
         (unsigned) sizeof(Receive_Buffer_Data));
-    timer_elapsed_start(&Silence_Timer);
+    rs485_silence_time_reset();
     rs485_rts_init();
     rs485_usart_init();
     rs485_init_nvdata();
