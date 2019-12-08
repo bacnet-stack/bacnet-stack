@@ -49,4 +49,8 @@
 tags
 test-results.xml
 .vscode/*
-
+.vs/*
+Debug/*
+settings/*
+.xml
+bin/*
