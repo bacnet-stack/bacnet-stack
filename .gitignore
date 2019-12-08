@@ -17,6 +17,7 @@
 *.config
 *.pbd
 *.ewd
+*.ewt
 *.d
 *.r90
 *.r90
@@ -48,9 +49,11 @@
 *.layout
 tags
 test-results.xml
-.vscode/*
-.vs/*
-Debug/*
-settings/*
-.xml
-bin/*
+.vscode/
+.vs/
+Debug/
+settings/
+*.componentinfo.xml
+bin/
+Backup*
+BACnet_BDT_table
