@@ -83,9 +83,13 @@ void mstimer_restart(struct mstimer *t)
  * @return Non-zero if the timer has expired, zero otherwise.
  */
 int mstimer_expired(struct mstimer *t)
-{
-    return ((unsigned long)((mstimer_now()) - (t->start + t->interval)) <
-        ((unsigned long)(~((unsigned long)0)) >> 1));
+{ 
+    if (t->interval) {
+        return ((unsigned long)((mstimer_now()) - (t->start + t->interval)) <
+            ((unsigned long)(~((unsigned long)0)) >> 1));
+    }
+    
+    return 0;
 }
 /*---------------------------------------------------------------------------*/
 /**

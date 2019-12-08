@@ -148,7 +148,7 @@ bool rs485_byte_available(
         if (data_register) {
             *data_register = FIFO_Get(&Receive_Buffer);
         }
-        timer_elapsed_start(&Silence_Timer);
+        rs485_silence_reset();
         data_available = true;
         led_rx_on_interval(10);
     }

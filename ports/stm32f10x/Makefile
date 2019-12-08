@@ -40,9 +40,10 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_whohas.c \
 	$(BACNET_BASIC)/service/h_whois.c \
 	$(BACNET_BASIC)/service/h_wp.c \
-	$(BACNET_BASIC)/service/noserv.c \
+	$(BACNET_BASIC)/service/h_noserv.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
+	$(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c
 

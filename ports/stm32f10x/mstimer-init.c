@@ -32,35 +32,30 @@
 #include "bacnet/basic/sys/debug.h"
 
 /* counter for the various timers */
-static volatile uint32_t Millisecond_Counter;
+static volatile unsigned long Millisecond_Counter;
+static volatile struct mstimer_callback_data_t *Callback_Head;
 
-/*************************************************************************
-* Description: Activate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
+/**
+ * Activate the LED
+ */
 static void timer_debug_on(
     void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_13, Bit_SET);
 }
 
-/*************************************************************************
-* Description: Activate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
+/**
+ * Deactivate the LED
+ */
 static void timer_debug_off(
     void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_13, Bit_RESET);
 }
 
-/*************************************************************************
-* Description: Toggle the state of the setup LED
-* Returns: none
-* Notes: none
-*************************************************************************/
+/**
+ * Toggle the state of the debug LED
+ */
 static void timer_debug_toggle(
     void)
 {
@@ -75,35 +70,78 @@ static void timer_debug_toggle(
     }
 }
 
-/*************************************************************************
-* Description: Interrupt Service Routine
-* Returns: nothing
-* Notes: reserved name for ISR handlers
-*************************************************************************/
+/**
+ * Handles the interrupt from the timer
+ */
 void SysTick_Handler(
     void)
 {
+    struct mstimer_callback_data_t *cb;
+
     /* increment the tick count */
     Millisecond_Counter++;
+    cb = (struct mstimer_callback_data_t *)Callback_Head;
+    while (cb) {
+        if (mstimer_expired(&cb->timer)) {
+            cb->callback();
+            if (mstimer_interval(&cb->timer) > 0) {
+                mstimer_reset(&cb->timer);
+            }
+        }
+        cb = cb->next;
+    }
     timer_debug_toggle();
 }
 
-/*************************************************************************
-* Description: returns the current millisecond count
-* Returns: none
-* Notes: none
-*************************************************************************/
-uint32_t mstimer_now(
+/**
+ * Returns the continuous milliseconds count, which rolls over
+ *
+ * @return the current milliseconds count
+ */
+unsigned long mstimer_now(
     void)
 {
     return Millisecond_Counter;
 }
 
-/*************************************************************************
-* Description: Timer setup for 1 millisecond timer
-* Returns: none
-* Notes: peripheral frequency defined in hardware.h
-*************************************************************************/
+/**
+ * Configures and enables a repeating callback function
+ *
+ * @param cb - pointer to a #mstimer_callback_data_t
+ * @param callback - pointer to a #timer_callback_function function
+ * @param milliseconds - how often to call the function
+ *
+ * @return true if successfully added and enabled
+ */
+void mstimer_callback(
+    struct mstimer_callback_data_t *new_cb,
+    mstimer_callback_function callback,
+    unsigned long milliseconds)
+{
+    struct mstimer_callback_data_t *cb;
+
+    if (new_cb) {
+        new_cb->callback = callback;
+        mstimer_set(&new_cb->timer, milliseconds);
+    }
+    if (Callback_Head) {
+        cb = (struct mstimer_callback_data_t *)Callback_Head;
+        while (cb) {
+            if (!cb->next) {
+                cb->next = new_cb;
+                break;
+            } else {
+                cb = cb->next;
+            }
+        }
+    } else {
+        Callback_Head = new_cb;
+    }
+}
+
+/**
+ * Timer setup for 1 millisecond timer
+ */
 void mstimer_init(
     void)
 {

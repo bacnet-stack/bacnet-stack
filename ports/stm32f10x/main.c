@@ -65,7 +65,7 @@ void lse_init(
     void)
 {
     uint32_t LSE_Delay = 0;
-    struct etimer Delay_Timer;
+    struct mstimer Delay_Timer;
 
     /* Enable access to the backup register => LSE can be enabled */
     PWR_BackupAccessCmd(ENABLE);
@@ -75,8 +75,8 @@ void lse_init(
     /* Check the LSE Status */
     while (1) {
         if (LSE_Delay < LSE_FAIL_FLAG) {
-            timer_elapsed_start(&Delay_Timer);
-            while (!timer_elapsed_milliseconds(&Delay_Timer, 500)) {
+            mstimer_set(&Delay_Timer, 0);
+            while (mstimer_remaining(&Delay_Timer) <  500) {
                 /* do nothing */
             }
             /* check whether LSE is ready, with 4 seconds timeout */

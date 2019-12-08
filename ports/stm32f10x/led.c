@@ -26,8 +26,8 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "led.h"
 
-static struct itimer Off_Delay_Timer_Rx;
-static struct itimer Off_Delay_Timer_Tx;
+static struct mstimer Off_Delay_Timer_Rx;
+static struct mstimer Off_Delay_Timer_Tx;
 static bool Rx_State;
 static bool Tx_State;
 static bool LD3_State;
@@ -41,7 +41,7 @@ void led_tx_on(
     void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_15, Bit_SET);
-    timer_interval_no_expire(&Off_Delay_Timer_Tx);
+    mstimer_set(&Off_Delay_Timer_Tx, 0);
     Tx_State = true;
 }
 
@@ -54,7 +54,7 @@ void led_rx_on(
     void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_14, Bit_SET);
-    timer_interval_no_expire(&Off_Delay_Timer_Rx);
+    mstimer_set(&Off_Delay_Timer_Rx, 0);
     Rx_State = true;
 }
 
@@ -67,7 +67,7 @@ void led_tx_off(
     void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_15, Bit_RESET);
-    timer_interval_no_expire(&Off_Delay_Timer_Tx);
+    mstimer_set(&Off_Delay_Timer_Tx, 0);
     Tx_State = false;
 }
 
@@ -80,7 +80,7 @@ void led_rx_off(
     void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_14, Bit_RESET);
-    timer_interval_no_expire(&Off_Delay_Timer_Rx);
+    mstimer_set(&Off_Delay_Timer_Rx, 0);
     Rx_State = false;
 }
 
@@ -144,7 +144,7 @@ void led_rx_toggle(
 void led_rx_off_delay(
     uint32_t delay_ms)
 {
-    timer_interval_start(&Off_Delay_Timer_Rx, delay_ms);
+    mstimer_set(&Off_Delay_Timer_Rx, delay_ms);
 }
 
 /*************************************************************************
@@ -155,7 +155,7 @@ void led_rx_off_delay(
 void led_tx_off_delay(
     uint32_t delay_ms)
 {
-    timer_interval_start(&Off_Delay_Timer_Tx, delay_ms);
+    mstimer_set(&Off_Delay_Timer_Tx, delay_ms);
 }
 
 /*************************************************************************
@@ -167,7 +167,7 @@ void led_rx_on_interval(
     uint16_t interval_ms)
 {
     led_rx_on();
-    timer_interval_start(&Off_Delay_Timer_Rx, interval_ms);
+    mstimer_set(&Off_Delay_Timer_Rx, interval_ms);
 }
 
 /*************************************************************************
@@ -179,7 +179,7 @@ void led_tx_on_interval(
     uint16_t interval_ms)
 {
     led_tx_on();
-    timer_interval_start(&Off_Delay_Timer_Tx, interval_ms);
+    mstimer_set(&Off_Delay_Timer_Tx, interval_ms);
 }
 
 /*************************************************************************
@@ -190,12 +190,12 @@ void led_tx_on_interval(
 void led_task(
     void)
 {
-    if (timer_interval_expired(&Off_Delay_Timer_Rx)) {
-        timer_interval_no_expire(&Off_Delay_Timer_Rx);
+    if (mstimer_expired(&Off_Delay_Timer_Rx)) {
+        mstimer_set(&Off_Delay_Timer_Rx, 0);
         led_rx_off();
     }
-    if (timer_interval_expired(&Off_Delay_Timer_Tx)) {
-        timer_interval_no_expire(&Off_Delay_Timer_Tx);
+    if (mstimer_expired(&Off_Delay_Timer_Tx)) {
+        mstimer_set(&Off_Delay_Timer_Tx, 0);
         led_tx_off();
     }
 }
