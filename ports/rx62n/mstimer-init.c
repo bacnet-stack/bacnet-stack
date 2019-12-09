@@ -28,7 +28,6 @@
 
 /* counter for the the timer which wraps every 49.7 days */
 static volatile uint32_t Millisecond_Counter;
-static volatile uint8_t Millisecond_Counter_Byte;
 /* forward prototype for interrupt service routine */
 void int_cmt0_isr(
     void);
@@ -42,7 +41,6 @@ static void timer_interrupt_handler(
     void)
 {
     Millisecond_Counter++;
-    Millisecond_Counter_Byte++;
 }
 
 /*************************************************************************
@@ -61,25 +59,14 @@ void int_cmt0_isr(
 * Returns: none
 * Notes: This method only disables the timer overflow interrupt.
 *************************************************************************/
-uint32_t timer_milliseconds(
+unsigned long mstimer_now(
     void)
 {
-    uint32_t timer_value;       /* return value */
+    unsigned long timer_value;       /* return value */
 
     timer_value = Millisecond_Counter;
 
     return timer_value;
-}
-
-/*************************************************************************
-* Description: returns the current millisecond count
-* Returns: none
-* Notes: This method only disables the timer overflow interrupt.
-*************************************************************************/
-uint8_t timer_milliseconds_byte(
-    void)
-{
-    return Millisecond_Counter;
 }
 
 /*************************************************************************
