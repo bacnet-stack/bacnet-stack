@@ -35,7 +35,7 @@
 
 /* This file has been customized for use with ATMEGA168 */
 #include "hardware.h"
-#include "bacnet/basic/sys/mstimer.h"
+#include "timer.h"
 
 /* Timers for turning off the TX,RX LED indications */
 static uint8_t LED1_Off_Timer;

@@ -26,7 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "bacnet/basic/sys/mstimer.h"
+#include "timer.h"
 #include "rs485.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/npdu.h"

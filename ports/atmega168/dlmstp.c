@@ -40,7 +40,7 @@
 #include "bacnet/datalink/mstpdef.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
-#include "crc.h"
+#include "bacnet/datalink/crc.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bits.h"
 #include "bacnet/bytes.h"
@@ -54,7 +54,7 @@
     Only one MS/TP datalink layer
 */
 #include "hardware.h"
-#include "bacnet/basic/sys/mstimer.h"
+#include "timer.h"
 
 /* The state of the Receive State Machine */
 static MSTP_RECEIVE_STATE Receive_State;

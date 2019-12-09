@@ -30,10 +30,8 @@ AVRDUDE_PORT = /dev/ttyUSB0
 
 # Source locations
 BACNET_CORE = ../../src
-BACNET_INCLUDE = ../../include
-BACNET_HANDLER = ../../demo/handler
-BACNET_OBJECT = ../../demo/object
-BACNET_DEMO = ../../demo
+BACNET_INCLUDE = $(BACNET_CORE)
+BACNET_BASIC = $(BACNET_CORE)/basic
 
 # local files for this project
 CSRC = main.c \
@@ -50,14 +48,14 @@ CSRC = main.c \
 	h_wp.c
 
 # common demo files needed
-DEMOSRC = $(BACNET_DEMO)/handler/txbuf.c \
-	$(BACNET_DEMO)/handler/h_npdu.c \
-	$(BACNET_DEMO)/handler/s_iam.c \
-	$(BACNET_DEMO)/handler/noserv.c
+BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
+	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/service/s_iam.c \
+	$(BACNET_BASIC)/service/h_noserv.c
 
 # core BACnet stack files
 CORESRC =  \
-	$(BACNET_CORE)/crc.c \
+	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/bacdcode.c \
 	$(BACNET_CORE)/bacint.c \
@@ -73,34 +71,12 @@ CORESRC =  \
 	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacapp.c
 
-#	$(BACNET_CORE)/version.c
-#	$(BACNET_CORE)/bacprop.c \
-#	$(BACNET_CORE)/bactext.c \
-#	$(BACNET_CORE)/datetime.c \
-#	$(BACNET_CORE)/indtext.c \
-#	$(BACNET_CORE)/bigend.c \
-#	$(BACNET_CORE)/arf.c \
-#	$(BACNET_CORE)/awf.c \
-#	$(BACNET_CORE)/cov.c \
-#	$(BACNET_CORE)/dcc.c \
-#	$(BACNET_CORE)/iam/iam_client.c \
-#	$(BACNET_CORE)/ihave.c \
-#	$(BACNET_CORE)/rd.c \
-#	$(BACNET_CORE)/rpm.c \
-#	$(BACNET_CORE)/timesync.c \
-#	$(BACNET_CORE)/whohas.c \
-#	$(BACNET_CORE)/filename.c \
-#	$(BACNET_CORE)/tsm.c \
-#	$(BACNET_CORE)/address.c \
-
 ## Include Directories
 INCLUDES = -I. -I$(BACNET_INCLUDE)
-INCLUDES += -I$(BACNET_OBJECT)
-INCLUDES += -I$(BACNET_HANDLER)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)
-DEMOOBJ = $(DEMOSRC:.c=.o)
+BASICOBJ = $(BASICSRC:.c=.o)
 COREOBJ = $(CORESRC:.c=.o)
 
 LIBRARY = lib$(TARGET).a
@@ -156,7 +132,7 @@ HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 ## Objects that must be built in order to link
-OBJECTS = $(COBJ) $(DEMOOBJ)
+OBJECTS = $(COBJ) $(BASICOBJ)
 #OBJECTS = $(COBJ)
 
 ## Build
