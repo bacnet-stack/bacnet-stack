@@ -25,7 +25,7 @@
 *********************************************************************/
 /* hardware specific */
 #include "board.h"
-#include "bacnet/basic/sys/mstimer.h"
+#include "timer.h"
 /* standard libraries */
 #include <stdlib.h>
 #include <string.h>

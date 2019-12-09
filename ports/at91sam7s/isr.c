@@ -16,6 +16,7 @@
 /*  Taken from the Yahoo LPC2000 User's Group - Files Section 'UT050418A.ZIP' */
 /*  Specifically, the module armVIC.c with the include file references removed */
 /*  ********************************************************************************************** */
+#include "at91sam7s256.h"
 #include "isr.h"
 
 #define IRQ_MASK 0x00000080

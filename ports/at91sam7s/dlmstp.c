@@ -39,14 +39,14 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstpdef.h"
-#include "rs485.h"
-#include "crc.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bits.h"
 #include "bacnet/bytes.h"
 #include "bacnet/bacaddr.h"
 #include "bacnet/basic/sys/ringbuf.h"
-#include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/datalink/crc.h"
+#include "rs485.h"
+#include "timer.h"
 #include "board.h"
 
 /* This file has been customized for use with small microprocessors */
