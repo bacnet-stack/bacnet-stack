@@ -24,11 +24,11 @@
 #ifndef DATALINK_H
 #define DATALINK_H
 
-#include "config.h"
-#include "bacdef.h"
+#include "bacnet/config.h"
+#include "bacnet/bacdef.h"
 
 #if defined(BACDL_ETHERNET)
-#include "ethernet.h"
+#include "bacnet/datalink/ethernet.h"
 
 #define datalink_init ethernet_init
 #define datalink_send_pdu ethernet_send_pdu
@@ -38,7 +38,7 @@
 #define datalink_get_my_address ethernet_get_my_address
 
 #elif defined(BACDL_ARCNET)
-#include "arcnet.h"
+#include "bacnet/datalink/arcnet.h"
 
 #define datalink_init arcnet_init
 #define datalink_send_pdu arcnet_send_pdu
@@ -48,7 +48,7 @@
 #define datalink_get_my_address arcnet_get_my_address
 
 #elif defined(BACDL_MSTP)
-#include "dlmstp.h"
+#include "bacnet/datalink/dlmstp.h"
 
 #define datalink_init dlmstp_init
 #define datalink_send_pdu dlmstp_send_pdu
@@ -58,7 +58,7 @@
 #define datalink_get_my_address dlmstp_get_my_address
 
 #elif defined(BACDL_BIP)
-#include "bip.h"
+#include "bacnet/datalink/bip.h"
 #include "bvlc-arduino.h"
 
 #define datalink_init bip_init
@@ -79,7 +79,7 @@ extern void routed_get_my_address(BACNET_ADDRESS * my_address);
 #endif
 
 #else /* Ie, BACDL_ALL */
-#include "npdu.h"
+#include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)

@@ -38,9 +38,9 @@
 #include <direct.h>
 #include <io.h>
 
-#include "bacdef.h"
-#include "ethernet.h"
-#include "bacdcode.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/datalink/ethernet.h"
+#include "bacnet/bacdcode.h"
 
 
 /* Uses WinPCap to access raw ethernet */

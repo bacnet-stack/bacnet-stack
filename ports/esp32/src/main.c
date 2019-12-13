@@ -2,21 +2,21 @@
 // Copyleft  F.Chaxel 2017
 //
 
-#include "config.h"
-#include "txbuf.h"
-#include "client.h"
+#include "bacnet/config.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/services.h"
 
-#include "handlers.h"
-#include "datalink.h"
-#include "dcc.h"
-#include "tsm.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/dcc.h"
+#include "bacnet/basic/tsm/tsm.h"
 // conflict filename address.h with another file in default include paths
 #include "../lib/stack/address.h"
-#include "bip.h"
+#include "bacnet/datalink/bip.h"
 
-#include "device.h"
-#include "ai.h"
-#include "bo.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/bo.h"
 
 #include "esp_log.h"
 #include "esp_wifi.h"

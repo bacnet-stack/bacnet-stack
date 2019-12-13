@@ -27,19 +27,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "config.h"
-#include "txbuf.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacerror.h"
-#include "apdu.h"
-#include "npdu.h"
-#include "abort.h"
-#include "wp.h"
+#include "bacnet/config.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacerror.h"
+#include "bacnet/apdu.h"
+#include "bacnet/npdu.h"
+#include "bacnet/abort.h"
+#include "bacnet/wp.h"
 /* demo objects */
-#include "device.h"
-#include "av.h"
-#include "bv.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bv.h"
 
 /* too big to reside on stack frame for PIC */
 static BACNET_WRITE_PROPERTY_DATA wp_data;
@@ -53,8 +54,6 @@ void handler_write_property(
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
-    BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     int bytes_sent = 0;
     BACNET_ADDRESS my_address;
 
@@ -77,9 +76,11 @@ void handler_write_property(
             service_data->invoke_id, ABORT_REASON_SEGMENTATION_NOT_SUPPORTED,
             true);
     } else {
+        wp_data.error_class = ERROR_CLASS_OBJECT;
+        wp_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
         switch (wp_data.object_type) {
             case OBJECT_DEVICE:
-                if (Device_Write_Property(&wp_data, &error_class, &error_code)) {
+                if (Device_Write_Property(&wp_data)) {
                     len =
                         encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
@@ -88,13 +89,12 @@ void handler_write_property(
                     len =
                         bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
-                        SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                        error_code);
+                        SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
+                        wp_data.error_code);
                 }
                 break;
             case OBJECT_ANALOG_VALUE:
-                if (Analog_Value_Write_Property(&wp_data, &error_class,
-                        &error_code)) {
+                if (Analog_Value_Write_Property(&wp_data)) {
                     len =
                         encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
@@ -103,13 +103,12 @@ void handler_write_property(
                     len =
                         bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
-                        SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                        error_code);
+                        SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
+                        wp_data.error_code);
                 }
                 break;
             case OBJECT_BINARY_VALUE:
-                if (Binary_Value_Write_Property(&wp_data, &error_class,
-                        &error_code)) {
+                if (Binary_Value_Write_Property(&wp_data)) {
                     len =
                         encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
@@ -118,15 +117,15 @@ void handler_write_property(
                     len =
                         bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                         service_data->invoke_id,
-                        SERVICE_CONFIRMED_WRITE_PROPERTY, error_class,
-                        error_code);
+                        SERVICE_CONFIRMED_WRITE_PROPERTY, wp_data.error_class,
+                        wp_data.error_code);
                 }
                 break;
             default:
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-                    error_class, error_code);
+                    wp_data.error_class, wp_data.error_code);
                 break;
         }
     }

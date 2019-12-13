@@ -5,10 +5,8 @@ TARGET=bacnet
 
 BACNET_DIR = ../..
 BACNET_CORE = $(BACNET_DIR)/src
-BACNET_DEMO = $(BACNET_DIR)/demo
-BACNET_INCLUDE = $(BACNET_DIR)/include
-BACNET_OBJECT = $(BACNET_DIR)/demo/object
-BACNET_HANDLER = $(BACNET_DIR)/demo/handler
+BACNET_BASIC = $(BACNET_DIR)/basic
+BACNET_INCLUDE = $(BACNET_CORE)
 PLATFORM_DIR = .
 LIBRARY_STM32 = ./drivers/src
 LIBRARY_STM32_INCLUDES = ./drivers/inc
@@ -18,8 +16,6 @@ INCLUDES = -I$(PLATFORM_DIR)
 INCLUDES += -I$(LIBRARY_STM32_INCLUDES)
 INCLUDES += -I$(LIBRARY_CMSIS)
 INCLUDES += -I$(BACNET_INCLUDE)
-INCLUDES += -I$(BACNET_OBJECT)
-INCLUDES += -I$(BACNET_HANDLER)
 
 PLATFORM_SRC = \
 	$(PLATFORM_DIR)/main.c \
@@ -32,26 +28,27 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/rs485.c \
 	$(PLATFORM_DIR)/stm32f10x_it.c \
 	$(PLATFORM_DIR)/system_stm32f10x.c \
-	$(PLATFORM_DIR)/timer.c \
-	$(PLATFORM_DIR)/timer_sys.c
+	$(PLATFORM_DIR)/timer-init.c
 
-DEMO_SRC = \
-	$(BACNET_DEMO)/handler/h_dcc.c \
-	$(BACNET_DEMO)/handler/h_npdu.c \
-	$(BACNET_DEMO)/handler/h_rd.c \
-	$(BACNET_DEMO)/handler/h_rp.c \
-	$(BACNET_DEMO)/handler/h_rpm.c \
-	$(BACNET_DEMO)/handler/h_whohas.c \
-	$(BACNET_DEMO)/handler/h_whois.c \
-	$(BACNET_DEMO)/handler/h_wp.c \
-	$(BACNET_DEMO)/handler/noserv.c \
-	$(BACNET_DEMO)/handler/s_iam.c \
-	$(BACNET_DEMO)/handler/s_ihave.c \
-	$(BACNET_DEMO)/handler/txbuf.c
+BASIC_SRC = \
+	$(BACNET_BASIC)/service/h_dcc.c \
+	$(BACNET_BASIC)/service/h_apdu.c \
+	$(BACNET_BASIC)/service/h_npdu.c \
+	$(BACNET_BASIC)/service/h_rd.c \
+	$(BACNET_BASIC)/service/h_rp.c \
+	$(BACNET_BASIC)/service/h_rpm.c \
+	$(BACNET_BASIC)/service/h_whohas.c \
+	$(BACNET_BASIC)/service/h_whois.c \
+	$(BACNET_BASIC)/service/h_wp.c \
+	$(BACNET_BASIC)/service/h_noserv.c \
+	$(BACNET_BASIC)/service/s_iam.c \
+	$(BACNET_BASIC)/service/s_ihave.c \
+	$(BACNET_BASIC)/tsm/tsm.c \
+	$(BACNET_BASIC)/sys/ringbuf.c \
+	$(BACNET_BASIC)/sys/fifo.c
 
 BACNET_SRC = \
 	$(BACNET_CORE)/abort.c \
-	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
@@ -59,9 +56,8 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_CORE)/crc.c \
+	$(BACNET_BASIC)/datalink/crc.c \
 	$(BACNET_CORE)/dcc.c \
-	$(BACNET_CORE)/fifo.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/lighting.c \
@@ -70,7 +66,6 @@ BACNET_SRC = \
 	$(BACNET_CORE)/proplist.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/reject.c \
-	$(BACNET_CORE)/ringbuf.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/whohas.c \
@@ -104,7 +99,7 @@ STM32_SRC = \
 	$(LIBRARY_STM32)/syscalls.c
 
 CSRC = $(PLATFORM_SRC)
-CSRC += $(DEMO_SRC)
+CSRC += $(BASIC_SRC)
 CSRC += $(BACNET_SRC)
 CSRC += $(STM32_SRC)
 

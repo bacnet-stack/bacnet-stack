@@ -68,13 +68,11 @@ endif
 
 # Source locations
 BACNET_CORE = ../../src
-BACNET_INCLUDE = ../../include
-BACNET_HANDLER = ../../demo/handler
-BACNET_OBJECT = ../../demo/object
-BACNET_DEMO = ../../demo
+BACNET_INCLUDE = $(BACNET_CORE)
+BACNET_BASIC = $(BACNET_CORE)/basic
 
 # local files for this project
-CSRC = main.c \
+HALSRC = main.c \
 	fuses.c \
 	init.c \
 	stack.c \
@@ -82,8 +80,7 @@ CSRC = main.c \
 	input.c \
 	serial.c \
 	rs485.c \
-	timer2.c \
-	timer.c \
+	mstimer-init.c \
 	led.c \
 	eeprom.c \
 	seeprom.c \
@@ -99,23 +96,27 @@ CSRC = main.c \
 	bo.c
 
 # common demo files needed
-DEMOSRC = $(BACNET_DEMO)/handler/h_dcc.c \
-	$(BACNET_DEMO)/handler/h_npdu.c \
-	$(BACNET_DEMO)/handler/h_rd.c \
-	$(BACNET_DEMO)/handler/h_rp.c \
-	$(BACNET_DEMO)/handler/h_rpm.c \
-	$(BACNET_DEMO)/handler/h_whohas.c \
-	$(BACNET_DEMO)/handler/h_whois.c \
-	$(BACNET_DEMO)/handler/h_wp.c \
-	$(BACNET_DEMO)/handler/noserv.c \
-	$(BACNET_DEMO)/handler/s_iam.c \
-	$(BACNET_DEMO)/handler/s_ihave.c \
-	$(BACNET_DEMO)/handler/txbuf.c
+BASICSRC = $(BACNET_BASIC)/service/h_dcc.c \
+	$(BACNET_BASIC)/service/h_apdu.c \
+	$(BACNET_BASIC)/service/h_rd.c \
+	$(BACNET_BASIC)/service/h_rp.c \
+	$(BACNET_BASIC)/service/h_rpm.c \
+	$(BACNET_BASIC)/service/h_whohas.c \
+	$(BACNET_BASIC)/service/h_whois.c \
+	$(BACNET_BASIC)/service/h_wp.c \
+	$(BACNET_BASIC)/service/h_noserv.c \
+	$(BACNET_BASIC)/service/s_iam.c \
+	$(BACNET_BASIC)/service/s_ihave.c \
+	$(BACNET_BASIC)/sys/fifo.c \
+	$(BACNET_BASIC)/sys/mstimer.c \
+	$(BACNET_BASIC)/sys/ringbuf.c \
+	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/tsm/tsm.c
 
 # core BACnet stack files
 CORESRC =  \
+	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/abort.c \
-	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
@@ -123,16 +124,13 @@ CORESRC =  \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_CORE)/crc.c \
 	$(BACNET_CORE)/dcc.c \
-	$(BACNET_CORE)/fifo.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/npdu.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/reject.c \
-	$(BACNET_CORE)/ringbuf.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/whohas.c \
@@ -157,11 +155,11 @@ CORESRC =  \
 #	$(BACNET_CORE)/address.c \
 
 ## Include Directories
-INCLUDES = -I. -I$(BACNET_INCLUDE) -I$(BACNET_HANDLER) -I$(BACNET_OBJECT)
+INCLUDES = -I. -I$(BACNET_INCLUDE)
 
 # Source to Object conversion
-COBJ = $(CSRC:%.c=%.o)
-DEMOOBJ = $(DEMOSRC:.c=.o)
+HALOBJ = $(HALSRC:%.c=%.o)
+BASICOBJ = $(BASICSRC:.c=.o)
 COREOBJ = $(CORESRC:.c=.o)
 
 LIBRARY = lib$(TARGET).a
@@ -327,7 +325,7 @@ AVRDUDE_INSTALL = $(AVRDUDE_WRITE_FLASH)
 #AVRDUDE_INSTALL += $(AVRDUDE_WRITE_FUSES)
 
 ## Objects not in library that must be built in order to link
-OBJECTS = $(COBJ) $(DEMOOBJ)
+OBJECTS = $(HALOBJ) $(BASICOBJ)
 
 ## Build
 TARGET_ELF=$(TARGET).elf
@@ -370,7 +368,7 @@ size: ${TARGET_ELF}
 	@${SIZE} ${SIZE_OPTIONS} ${TARGET_ELF}
 
 lint:
-	$(LINT) -exportlocal -D$(LINT_MCU) $(BFLAGS) $(CSRC)
+	$(LINT) -exportlocal -D$(LINT_MCU) $(BFLAGS) $(HALSRC)
 
 install: $(TARGET_ELF)
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_INSTALL)

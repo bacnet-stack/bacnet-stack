@@ -1,12 +1,12 @@
 #Makefile to build filename tests
 CC = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_FILENAME
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/filename.c \
+SRCS = $(SRC_DIR)/bacnet/basic/sys/filename.c \
 	ctest.c
 
 OBJS = ${SRCS:.c=.o}

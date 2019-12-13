@@ -24,19 +24,19 @@
 #ifndef DLMSTP_LINUX_H
 #define DLMSTP_LINUX_H
 
-#include "mstp.h"
-/*#include "dlmstp.h" */
+#include "bacnet/datalink/mstp.h"
+/*#include "bacnet/datalink/dlmstp.h" */
 #include "bits/pthreadtypes.h"
 #include <semaphore.h>
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacdef.h"
-#include "npdu.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/npdu.h"
 #include <termios.h>
-#include "fifo.h"
-#include "ringbuf.h"
+#include "bacnet/basic/sys/fifo.h"
+#include "bacnet/basic/sys/ringbuf.h"
 /* defines specific to MS/TP */
 /* preamble+type+dest+src+len+crc8+crc16 */
 #define MAX_HEADER (2+1+1+1+2+1+2)

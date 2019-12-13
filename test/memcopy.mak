@@ -1,12 +1,12 @@
 #Makefile to build test case
 CC      = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_MEM_COPY
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/memcopy.c \
+SRCS = $(SRC_DIR)/bacnet/memcopy.c \
 	ctest.c
 
 TARGET = memcopy

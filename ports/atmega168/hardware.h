@@ -38,7 +38,7 @@
 #endif
 #endif
 #include "iar2gcc.h"
-#include "avr035.h"
+#include "bacnet/bits.h"
 
 #define LED_NPDU_INIT() BIT_SET(DDRD, DDD5)
 #define LED_NPDU_ON() BIT_CLEAR(PORTD, PD5)

@@ -26,25 +26,28 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacstr.h"
-#include "bacenum.h"
-#include "apdu.h"
-#include "dcc.h"
-#include "datalink.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/apdu.h"
+#include "bacnet/dcc.h"
+#include "bacnet/datalink/datalink.h"
 #include "rs485.h"
-#include "version.h"
+#include "bacnet/version.h"
 #include "nvdata.h"
 #include "stack.h"
-#include "handlers.h"
+#include "bacnet/basic/services.h"
 #include "bname.h"
 /* objects */
-#include "device.h"
-#include "ai.h"
-#include "av.h"
-#include "bi.h"
-#include "bo.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/ai.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bi.h"
+#include "bacnet/basic/object/bo.h"
+
+/* current version of the BACnet stack */
+static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
 /* forward prototype */
 int Device_Read_Property_Local(

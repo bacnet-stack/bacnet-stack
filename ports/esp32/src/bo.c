@@ -28,15 +28,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "bacapp.h"
-#include "config.h"     /* the custom stuff */
-#include "rp.h"
-#include "wp.h"
-#include "bo.h"
-#include "handlers.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/rp.h"
+#include "bacnet/wp.h"
+#include "bacnet/basic/object/bo.h"
+#include "bacnet/basic/services.h"
 
 #ifndef MAX_BINARY_OUTPUTS
 #define MAX_BINARY_OUTPUTS 1

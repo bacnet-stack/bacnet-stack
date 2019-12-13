@@ -33,13 +33,13 @@
 ####COPYRIGHTEND####*/
 #include <stdint.h>     /* for standard integer types uint8_t etc. */
 #include <stdbool.h>    /* for the standard bool type. */
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacint.h"
-#include "bip.h"
-#include "bvlc.h"
-#include "handlers.h"
-#include "net.h"        /* custom per port */
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacint.h"
+#include "bacnet/datalink/bip.h"
+#include "bacnet/datalink/bvlc.h"
+#include "bacnet/basic/services.h"
+#include "bacport.h"        /* custom per port */
 
 /** @file bip.c  Configuration and Operations for BACnet/IP */
 

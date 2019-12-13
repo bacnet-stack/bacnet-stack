@@ -9,8 +9,8 @@
 #include <stdbool.h>
 
 #include "bvlc-arduino.h"
-#include "bip.h"
-#include "bacint.h"
+#include "bacnet/datalink/bip.h"
+#include "bacnet/bacint.h"
 #include "socketWrapper.h"
 #include "w5100Wrapper.h"
 

@@ -14,13 +14,13 @@
  */
 #include <stdbool.h>
 #include <stdint.h>
-#include "datalink.h"
-#include "npdu.h"
-#include "handlers.h"
-#include "txbuf.h"
-#include "iam.h"
-#include "device.h"
-#include "av.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/npdu.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/iam.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/av.h"
 #include "uart.h"
 #include "w5100Wrapper.h"
 #include "Arduino.h"

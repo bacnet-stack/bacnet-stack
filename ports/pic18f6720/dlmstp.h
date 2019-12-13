@@ -38,8 +38,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "bacdef.h"
-#include "npdu.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/npdu.h"
 
 /* defines specific to MS/TP */
 #define MAX_HEADER (2+1+1+1+2+1)

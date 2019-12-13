@@ -23,28 +23,23 @@
 *
 *********************************************************************/
 
+#include <process.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
-#ifdef __BORLANDC__
-#include <process.h>
-#endif
-#include "bacdef.h"
-#include "bacaddr.h"
-#include "mstp.h"
-#include "dlmstp.h"
+#include <string.h>
+#include "bacnet/bacdef.h"
+#include "bacnet/bacaddr.h"
+#include "bacnet/bits.h"
+#include "bacnet/npdu.h"
+#include "bacnet/basic/sys/ringbuf.h"
+#include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/datalink/dlmstp.h"
+#include "bacport.h"
 #include "rs485.h"
-#include "npdu.h"
-#include "bits.h"
-#include "ringbuf.h"
-#include "timer.h"
-
-#define WIN32_LEAN_AND_MEAN
-#define STRICT 1
-#include <windows.h>
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
@@ -70,18 +65,20 @@ static uint16_t Treply_timeout = 260;
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
 static uint8_t Tusage_timeout = 50;
+/* local timer for tracking silence on the wire */
+static struct mstimer Silence_Timer;
 
 /* Timer that indicates line silence - and functions */
 static uint32_t Timer_Silence(
     void *pArg)
 {
-    return timer_milliseconds(TIMER_SILENCE);
+    return mstimer_remaining(&Silence_Timer);
 }
 
 static void Timer_Silence_Reset(
     void *pArg)
 {
-    timer_reset(TIMER_SILENCE);
+    mstimer_set(&Silence_Timer, 0);
 }
 
 void dlmstp_cleanup(
@@ -592,7 +589,7 @@ bool dlmstp_init(
         exit(1);
     }
     /* initialize hardware */
-    timer_init();
+    mstimer_set(&Silence_Timer, 0);
     if (ifname) {
         RS485_Set_Interface(ifname);
     }

@@ -17,6 +17,7 @@
 *.config
 *.pbd
 *.ewd
+*.ewt
 *.d
 *.r90
 *.r90
@@ -44,5 +45,15 @@
 *.hex
 *.elf
 *.emSession
+*.depend
+*.layout
 tags
 test-results.xml
+.vscode/
+.vs/
+Debug/
+settings/
+*.componentinfo.xml
+bin/
+Backup*
+BACnet_BDT_table

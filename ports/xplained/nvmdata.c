@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "nvmdata.h"
-#include "dlmstp.h"
-#include "device.h"
+#include "bacnet/datalink/dlmstp.h"
+#include "bacnet/basic/object/device.h"
 
 /**
 * Initializes the non-volatile memory module

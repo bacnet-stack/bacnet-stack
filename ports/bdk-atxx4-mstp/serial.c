@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "hardware.h"
-#include "fifo.h"
+#include "bacnet/basic/sys/fifo.h"
 #include "serial.h"
 
 /* baud rate */

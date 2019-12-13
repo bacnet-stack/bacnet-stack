@@ -29,12 +29,12 @@
 #if PRINT_ENABLED
 #include <stdio.h>
 #endif
-#include "bacdef.h"
-#include "mstp.h"
-#include "dlmstp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
-#include "npdu.h"
-#include "handlers.h"
+#include "bacnet/npdu.h"
+#include "bacnet/basic/services.h"
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;

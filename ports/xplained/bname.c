@@ -26,11 +26,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacstr.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
 #include "nvmdata.h"
-#include "device.h"
+#include "bacnet/basic/object/device.h"
 #include "bname.h"
 
 /*************************************************************************

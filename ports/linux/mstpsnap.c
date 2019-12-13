@@ -39,16 +39,16 @@
 #include <string.h>
 #include <errno.h>
 /* OS specific include*/
-#include "net.h"
-#include "timer.h"
+#include "bacport.h"
+#include "bacnet/basic/sys/mstimer.h"
 /* local includes */
-#include "bytes.h"
+#include "bacnet/bytes.h"
 #include "rs485.h"
 #include "crc.h"
-#include "mstp.h"
-#include "dlmstp.h"
-#include "mstptext.h"
-#include "bacint.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/datalink/dlmstp.h"
+#include "bacnet/datalink/mstptext.h"
+#include "bacnet/bacint.h"
 
 /** @file linux/mstpsnap.c  Example application testing BACnet MS/TP on Linux. */
 

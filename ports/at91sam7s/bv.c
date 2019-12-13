@@ -28,12 +28,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "config.h"     /* the custom stuff */
-#include "bv.h"
-#include "handlers.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/basic/object/bv.h"
+#include "bacnet/basic/services.h"
 
 #ifndef MAX_BINARY_VALUES
 #define MAX_BINARY_VALUES 8

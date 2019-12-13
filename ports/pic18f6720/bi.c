@@ -28,13 +28,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "config.h"
-#include "wp.h"
-#include "rp.h"
-#include "bi.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/config.h"
+#include "bacnet/wp.h"
+#include "bacnet/rp.h"
+#include "bacnet/basic/object/bi.h"
 
 #define MAX_BINARY_INPUTS 8
 

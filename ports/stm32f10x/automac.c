@@ -25,11 +25,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "config.h"
-#include "mstpdef.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/config.h"
+#include "bacnet/datalink/mstpdef.h"
 #include "automac.h"
 
 /* MS/TP Auto MAC address functionality */

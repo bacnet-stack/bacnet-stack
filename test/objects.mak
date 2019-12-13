@@ -1,14 +1,14 @@
 #Makefile to build test case
 CC      = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_OBJECT_LIST
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/objects.c \
-	$(SRC_DIR)/keylist.c \
-	$(SRC_DIR)/key.c \
+SRCS = $(SRC_DIR)/bacnet/objects.c \
+	$(SRC_DIR)/bacnet/basic/sys/keylist.c \
+	$(SRC_DIR)/bacnet/basic/sys/key.c \
 	ctest.c
 
 TARGET = rp

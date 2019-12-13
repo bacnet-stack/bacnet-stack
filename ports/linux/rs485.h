@@ -37,7 +37,7 @@
 #define RS485_H
 
 #include <stdint.h>
-#include "mstp.h"
+#include "bacnet/datalink/mstp.h"
 
 #ifdef __cplusplus
 extern "C" {

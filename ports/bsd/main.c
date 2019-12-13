@@ -29,22 +29,22 @@
 #include <signal.h>
 #include <time.h>
 #include <stdbool.h>
-#include "config.h"
-#include "address.h"
-#include "bacdef.h"
-#include "handlers.h"
-#include "client.h"
-#include "bacdcode.h"
-#include "npdu.h"
-#include "apdu.h"
-#include "iam.h"
-#include "tsm.h"
-#include "device.h"
-#include "bacfile.h"
-#include "datalink.h"
-#include "net.h"
-#include "txbuf.h"
-#include "dlenv.h"
+#include "bacnet/config.h"
+#include "bacnet/basic/binding/address.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/npdu.h"
+#include "bacnet/apdu.h"
+#include "bacnet/iam.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/bacfile.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacport.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/dlenv.h"
 
 /** @file bsd/main.c  Example application using the BACnet Stack on BSD/MAC OS X. */
 

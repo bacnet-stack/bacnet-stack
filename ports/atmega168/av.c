@@ -28,13 +28,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "bacapp.h"
-#include "config.h"     /* the custom stuff */
-#include "wp.h"
-#include "av.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bacapp.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/wp.h"
+#include "bacnet/basic/object/av.h"
+
+#ifndef MAX_ANALOG_VALUES
+#define MAX_ANALOG_VALUES 10
+#endif
 
 #if (MAX_ANALOG_VALUES > 10)
 #error Modify the Analog_Value_Name to handle multiple digits
@@ -92,28 +96,25 @@ char *Analog_Value_Name(
 }
 
 /* return apdu len, or -1 on error */
-int Analog_Value_Encode_Property_APDU(
-    uint8_t * apdu,
-    uint32_t object_instance,
-    BACNET_PROPERTY_ID property,
-    uint32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+int Analog_Value_Read_Property(
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = 0;   /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index;
+    uint8_t *apdu;
 
-    switch (property) {
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len =
                 encode_application_object_id(&apdu[0], OBJECT_ANALOG_VALUE,
-                object_instance);
+                rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(&char_string,
-                Analog_Value_Name(object_instance));
+                Analog_Value_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -122,7 +123,8 @@ int Analog_Value_Encode_Property_APDU(
                 encode_application_enumerated(&apdu[0], OBJECT_ANALOG_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            object_index = Analog_Value_Instance_To_Index(object_instance);
+            object_index = Analog_Value_Instance_To_Index(
+                rpdata->object_instance);
             apdu_len =
                 encode_application_real(&apdu[0],
                 AV_Present_Value[object_index]);
@@ -146,16 +148,17 @@ int Analog_Value_Encode_Property_APDU(
             apdu_len = encode_application_enumerated(&apdu[0], UNITS_PERCENT);
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            apdu_len = -1;
+            rpdata->error_class = ERROR_CLASS_PROPERTY;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            apdu_len = BACNET_STATUS_ERROR;
             break;
     }
     /*  only array properties can have array options */
-    if ((apdu_len >= 0) && (array_index != BACNET_ARRAY_ALL)) {
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
-        apdu_len = -1;
+    if ((apdu_len >= 0) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;
@@ -163,9 +166,7 @@ int Analog_Value_Encode_Property_APDU(
 
 /* returns true if successful */
 bool Analog_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_WRITE_PROPERTY_DATA * wp_data)
 {
     bool status = false;        /* return value */
     unsigned int object_index = 0;
@@ -173,8 +174,8 @@ bool Analog_Value_Write_Property(
     BACNET_APPLICATION_DATA_VALUE value;
 
     if (!Analog_Value_Valid_Instance(wp_data->object_instance)) {
-        *error_class = ERROR_CLASS_OBJECT;
-        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
     /* decode the some of the request */
@@ -184,15 +185,15 @@ bool Analog_Value_Write_Property(
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
     if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         /*  only array properties can have array options */
-        *error_class = ERROR_CLASS_PROPERTY;
-        *error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
     switch (wp_data->object_property) {
@@ -203,8 +204,8 @@ bool Analog_Value_Write_Property(
                 AV_Present_Value[object_index] = value.type.Real;
                 status = true;
             } else {
-                *error_class = ERROR_CLASS_PROPERTY;
-                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -215,12 +216,12 @@ bool Analog_Value_Write_Property(
         case PROP_OUT_OF_SERVICE:
         case PROP_DESCRIPTION:
         case PROP_PRIORITY_ARRAY:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
-            *error_class = ERROR_CLASS_PROPERTY;
-            *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;
     }
 

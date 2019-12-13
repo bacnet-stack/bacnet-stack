@@ -29,17 +29,17 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-#include "bacdef.h"
-#include "bacaddr.h"
-#include "mstp.h"
-/*#include "dlmstp.h" */
+#include "bacnet/bacdef.h"
+#include "bacnet/bacaddr.h"
+#include "bacnet/datalink/mstp.h"
+/*#include "bacnet/datalink/dlmstp.h" */
 #include "dlmstp_linux.h"
 #include "rs485.h"
-#include "npdu.h"
-#include "bits.h"
+#include "bacnet/npdu.h"
+#include "bacnet/bits.h"
 /* OS Specific include */
-#include "net.h"
-#include "ringbuf.h"
+#include "bacport.h"
+#include "bacnet/basic/sys/ringbuf.h"
 
 /** @file linux/dlmstp.c  Provides Linux-specific DataLink functions for MS/TP. */
 

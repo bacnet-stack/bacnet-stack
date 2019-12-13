@@ -27,63 +27,53 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include "config.h"
-#include "txbuf.h"
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacerror.h"
-#include "apdu.h"
-#include "npdu.h"
-#include "abort.h"
-#include "rp.h"
+#include "bacnet/config.h"
+#include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/datalink/datalink.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacerror.h"
+#include "bacnet/apdu.h"
+#include "bacnet/npdu.h"
+#include "bacnet/abort.h"
+#include "bacnet/rp.h"
 /* demo objects */
-#include "device.h"
-#include "av.h"
-#include "bv.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/av.h"
+#include "bacnet/basic/object/bv.h"
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
 int Encode_Property_APDU(
     uint8_t * apdu,
-    BACNET_READ_PROPERTY_DATA * rp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_READ_PROPERTY_DATA * rpdata)
 {
     int apdu_len = -1;
 
     /* handle each object type */
-    switch (rp_data->object_type) {
+    switch (rpdata->object_type) {
         case OBJECT_DEVICE:
             /* Test for case of indefinite Device object instance */
-            if (rp_data->object_instance == BACNET_MAX_INSTANCE) {
-                rp_data->object_instance = Device_Object_Instance_Number();
+            if (rpdata->object_instance == BACNET_MAX_INSTANCE) {
+                rpdata->object_instance = Device_Object_Instance_Number();
             }
-            if (Device_Valid_Object_Instance_Number(rp_data->object_instance)) {
-                apdu_len =
-                    Device_Encode_Property_APDU(&apdu[0],
-                    rp_data->object_instance, rp_data->object_property,
-                    rp_data->array_index, error_class, error_code);
+            if (Device_Valid_Object_Instance_Number(rpdata->object_instance)) {
+                apdu_len = Device_Read_Property(rpdata);
             }
             break;
         case OBJECT_ANALOG_VALUE:
-            if (Analog_Value_Valid_Instance(rp_data->object_instance)) {
-                apdu_len =
-                    Analog_Value_Encode_Property_APDU(&apdu[0],
-                    rp_data->object_instance, rp_data->object_property,
-                    rp_data->array_index, error_class, error_code);
+            if (Analog_Value_Valid_Instance(rpdata->object_instance)) {
+                apdu_len = Analog_Value_Read_Property(rpdata);
             }
             break;
         case OBJECT_BINARY_VALUE:
-            if (Binary_Value_Valid_Instance(rp_data->object_instance)) {
-                apdu_len =
-                    Binary_Value_Encode_Property_APDU(&apdu[0],
-                    rp_data->object_instance, rp_data->object_property,
-                    rp_data->array_index, error_class, error_code);
+            if (Binary_Value_Valid_Instance(rpdata->object_instance)) {
+                apdu_len = Binary_Value_Read_Property(rpdata);
             }
             break;
         default:
-            *error_class = ERROR_CLASS_OBJECT;
-            *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+            rpdata->error_class = ERROR_CLASS_OBJECT;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
             break;
     }
 
@@ -103,8 +93,6 @@ void handler_read_property(
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
-    BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
 
     /* encode the NPDU portion of the packet */
@@ -134,9 +122,11 @@ void handler_read_property(
         rp_ack_encode_apdu_init(&Handler_Transmit_Buffer[pdu_len],
         service_data->invoke_id, &data);
     /* FIXME: add buffer len as passed into function or use smart buffer */
+    data.error_class = ERROR_CLASS_OBJECT;
+    data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
     property_len =
         Encode_Property_APDU(&Handler_Transmit_Buffer[pdu_len + ack_len],
-        &data, &error_class, &error_code);
+        &data);
     if (property_len >= 0) {
         len =
             rp_ack_encode_apdu_object_property_end(&Handler_Transmit_Buffer
@@ -155,7 +145,7 @@ void handler_read_property(
                 len =
                     bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id, SERVICE_CONFIRMED_READ_PROPERTY,
-                    error_class, error_code);
+                    data.error_class, data.error_code);
                 break;
         }
     }

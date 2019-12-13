@@ -27,19 +27,19 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacstr.h"
-#include "bacenum.h"
-#include "apdu.h"
-#include "dcc.h"
-#include "datalink.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/apdu.h"
+#include "bacnet/dcc.h"
+#include "bacnet/datalink/datalink.h"
 #include "rs485.h"
-#include "version.h"
-#include "handlers.h"
+#include "bacnet/version.h"
+#include "bacnet/basic/services.h"
 /* objects */
-#include "device.h"
-#include "bo.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/bo.h"
 
 /* forward prototype */
 int Device_Read_Property_Local(
@@ -81,6 +81,7 @@ static BACNET_CHARACTER_STRING My_Object_Name;
 static uint32_t Database_Revision;
 static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
 static const char *Reinit_Password = "stm32-challenge";
+static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Device_Properties_Required[] = {

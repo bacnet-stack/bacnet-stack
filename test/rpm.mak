@@ -1,24 +1,24 @@
 #Makefile to build test case
 CC      = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I.
+INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_READ_PROPERTY_MULTIPLE
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/bacdcode.c \
-	$(SRC_DIR)/bacint.c \
-	$(SRC_DIR)/bacstr.c \
-	$(SRC_DIR)/bacreal.c \
-	$(SRC_DIR)/bacerror.c \
-	$(SRC_DIR)/bacapp.c \
-	$(SRC_DIR)/bacdevobjpropref.c \
-	$(SRC_DIR)/bactext.c \
-	$(SRC_DIR)/indtext.c \
-	$(SRC_DIR)/datetime.c \
-	$(SRC_DIR)/lighting.c \
-	$(SRC_DIR)/memcopy.c \
-	$(SRC_DIR)/rpm.c \
+SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
+	$(SRC_DIR)/bacnet/bacint.c \
+	$(SRC_DIR)/bacnet/bacstr.c \
+	$(SRC_DIR)/bacnet/bacreal.c \
+	$(SRC_DIR)/bacnet/bacerror.c \
+	$(SRC_DIR)/bacnet/bacapp.c \
+	$(SRC_DIR)/bacnet/bacdevobjpropref.c \
+	$(SRC_DIR)/bacnet/bactext.c \
+	$(SRC_DIR)/bacnet/indtext.c \
+	$(SRC_DIR)/bacnet/datetime.c \
+	$(SRC_DIR)/bacnet/lighting.c \
+	$(SRC_DIR)/bacnet/memcopy.c \
+	$(SRC_DIR)/bacnet/rpm.c \
 	ctest.c
 
 TARGET = rpm

@@ -31,9 +31,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include "hardware.h"
-#include "mstp.h"
+#include "bacnet/datalink/mstp.h"
 #include "rs485.h"
-#include "fifo.h"
+#include "bacnet/basic/sys/fifo.h"
 
 /* public port info */
 extern volatile struct mstp_port_struct_t MSTP_Port;

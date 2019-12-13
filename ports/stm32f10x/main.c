@@ -26,8 +26,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "rs485.h"
 #include "led.h"
 #include "bacnet.h"
@@ -65,7 +65,7 @@ void lse_init(
     void)
 {
     uint32_t LSE_Delay = 0;
-    struct etimer Delay_Timer;
+    struct mstimer Delay_Timer;
 
     /* Enable access to the backup register => LSE can be enabled */
     PWR_BackupAccessCmd(ENABLE);
@@ -75,8 +75,8 @@ void lse_init(
     /* Check the LSE Status */
     while (1) {
         if (LSE_Delay < LSE_FAIL_FLAG) {
-            timer_elapsed_start(&Delay_Timer);
-            while (!timer_elapsed_milliseconds(&Delay_Timer, 500)) {
+            mstimer_set(&Delay_Timer, 0);
+            while (mstimer_remaining(&Delay_Timer) <  500) {
                 /* do nothing */
             }
             /* check whether LSE is ready, with 4 seconds timeout */
@@ -108,7 +108,7 @@ void lse_init(
 int main(
     void)
 {
-    struct itimer Blink_Timer;
+    struct mstimer Blink_Timer;
 
     /*At this stage the microcontroller clock setting is already configured,
        this is done through SystemInit() function which is called from startup
@@ -120,14 +120,14 @@ int main(
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
         RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOE,
         ENABLE);
-    timer_init();
+    mstimer_init();
     lse_init();
     led_init();
     bacnet_init();
-    timer_interval_start(&Blink_Timer, 125);
+    mstimer_set(&Blink_Timer, 125);
     for (;;) {
-        if (timer_interval_expired(&Blink_Timer)) {
-            timer_interval_reset(&Blink_Timer);
+        if (mstimer_expired(&Blink_Timer)) {
+            mstimer_reset(&Blink_Timer);
             led_ld3_toggle();
         }
         led_task();

@@ -1,12 +1,12 @@
 #Makefile to build CRC tests
 CC      = gcc
 SRC_DIR = ../src
-INCLUDES = -I../include -I. -I../demo/object 
+INCLUDES = -I$(SRC_DIR) -I. -I../demo/object 
 DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_CRC
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/crc.c \
+SRCS = $(SRC_DIR)/bacnet/datalink/crc.c \
 	ctest.c
 
 OBJS = ${SRCS:.c=.o}

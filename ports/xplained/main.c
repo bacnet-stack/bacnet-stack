@@ -5,12 +5,14 @@
  *
  */
 #include <asf.h>
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "rs485.h"
 #include "led.h"
 #include "adc-hdw.h"
-#include "dlmstp.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "bacnet.h"
+
+static struct mstimer_callback_data_t BACnet_Callback;
 
 /**
  * \brief Main function.
@@ -23,7 +25,7 @@ int main(void)
     sysclk_init();
     board_init();
     pmic_init();
-    timer_init();
+    mstimer_init();
     rs485_init();
     led_init();
 	adc_init();
@@ -41,7 +43,7 @@ int main(void)
     rs485_baud_rate_set(38400);
     bacnet_init();
     /*  run forever - timed tasks */
-    timer_callback(bacnet_task_timed, 5);
+    mstimer_callback(&BACnet_Callback, bacnet_task_timed, 5);
     for (;;) {
         bacnet_task();
         led_task();

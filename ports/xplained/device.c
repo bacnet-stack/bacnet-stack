@@ -26,23 +26,23 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacstr.h"
-#include "bacenum.h"
-#include "apdu.h"
-#include "dcc.h"
-#include "datalink.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/apdu.h"
+#include "bacnet/dcc.h"
+#include "bacnet/datalink/datalink.h"
 #include "rs485.h"
-#include "version.h"
+#include "bacnet/version.h"
 #include "nvmdata.h"
-#include "handlers.h"
+#include "bacnet/basic/services.h"
 #include "bname.h"
 #include "stack.h"
 #include "nvmdata.h"
 /* objects */
-#include "device.h"
-#include "ai.h"
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/ai.h"
 
 /* forward prototype */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA * rpdata);

@@ -29,13 +29,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "bacdef.h"
-#include "bacaddr.h"
-#include "mstp.h"
-#include "dlmstp.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacaddr.h"
+#include "bacnet/datalink/mstp.h"
+#include "bacnet/datalink/dlmstp.h"
 #include "rs485.h"
-#include "npdu.h"
-#include "bits.h"
+#include "bacnet/npdu.h"
+#include "bacnet/bits.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1

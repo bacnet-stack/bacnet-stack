@@ -23,10 +23,10 @@
 *********************************************************************/
 #include <stdint.h>
 #include "hardware.h"
-#include "timer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "led.h"
 
-static struct itimer Off_Delay_Timer[MAX_LEDS];
+static struct mstimer Off_Delay_Timer[MAX_LEDS];
 static bool LED_Status[MAX_LEDS];
 
 #define LED_OFF             (0)
@@ -82,7 +82,7 @@ void led_on(
     }
     if (index < MAX_LEDS) {
         LED_Status[index] = LED_ON;
-        timer_interval_no_expire(&Off_Delay_Timer[index]);
+        mstimer_set(&Off_Delay_Timer[index], 0);
     }
 }
 
@@ -136,7 +136,7 @@ void led_off(
     }
     if (index < MAX_LEDS) {
         LED_Status[index] = LED_OFF;
-        timer_interval_no_expire(&Off_Delay_Timer[index]);
+        mstimer_set(&Off_Delay_Timer[index], 0);
     }
 }
 
@@ -182,7 +182,7 @@ void led_off_delay(
     uint32_t delay_ms)
 {
     if (index < MAX_LEDS) {
-        timer_interval_start(&Off_Delay_Timer[index], delay_ms);
+        mstimer_set(&Off_Delay_Timer[index], delay_ms);
     }
 }
 
@@ -197,7 +197,7 @@ void led_on_interval(
 {
     if (index < MAX_LEDS) {
         led_on(index);
-        timer_interval_start(&Off_Delay_Timer[index], interval_ms);
+        mstimer_set(&Off_Delay_Timer[index], interval_ms);
     }
 }
 
@@ -212,9 +212,11 @@ void led_task(
     uint8_t i;  /* loop counter */
 
     for (i = 0; i < MAX_LEDS; i++) {
-        if (timer_interval_expired(&Off_Delay_Timer[i])) {
-            timer_interval_no_expire(&Off_Delay_Timer[i]);
-            led_off(i);
+        if (mstimer_interval(&Off_Delay_Timer[i]) > 0) {
+            if (mstimer_expired(&Off_Delay_Timer[i])) {
+                mstimer_set(&Off_Delay_Timer[i], 0);
+                led_off(i);
+            }
         }
     }
 }

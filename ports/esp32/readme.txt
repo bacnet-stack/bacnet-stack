@@ -61,6 +61,6 @@ Modify
 A lot of Warning will be issued at compile time due to the redefinition of BIT macros.
 Could be removes by placing a #ifndef #BIT0 .. #endif arround the BIT macro in bits.h, 
 and moving to the top of include list
-	#include "datalink.h" in tsm.c, s_iam and in device.c
-	#include "net.h" in bip.c and in bip.h (redondant include in bip.c)
-	#include "bvlc.h" in bvlc.c
+	#include "bacnet/datalink/datalink.h" in tsm.c, s_iam and in device.c
+	#include "bacport.h" in bip.c and in bip.h (redondant include in bip.c)
+	#include "bacnet/datalink/bvlc.h" in bvlc.c

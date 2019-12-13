@@ -25,10 +25,8 @@ BACNET_FLAGS += -DCRC_USE_TABLE
 #BACNET_FLAGS += -DDLMSTP_TEST
 
 BACNET_CORE = ../../src
-BACNET_DEMO = ../../demo
-BACNET_INCLUDE = ../../include
-BACNET_OBJECT = ../../demo/object
-BACNET_HANDLER = ../../demo/handler
+BACNET_BASIC = $(BACNET_CORE)/basic
+BACNET_INCLUDE = $(BACNET_CORE)
 INCLUDES = -I.
 INCLUDES += -I$(BACNET_INCLUDE)
 INCLUDES += -I$(BACNET_OBJECT)
@@ -66,21 +64,22 @@ DEMOSRC = ai.c \
 	bi.c \
 	bv.c \
 	device.c \
-	$(BACNET_DEMO)/handler/txbuf.c \
-	$(BACNET_DEMO)/handler/noserv.c \
-	$(BACNET_DEMO)/handler/h_npdu.c \
-	$(BACNET_DEMO)/handler/h_whohas.c \
-	$(BACNET_DEMO)/handler/h_whois.c \
-	$(BACNET_DEMO)/handler/h_rd.c \
-	$(BACNET_DEMO)/handler/h_rp.c \
-	$(BACNET_DEMO)/handler/h_rpm.c \
-	$(BACNET_DEMO)/handler/h_wp.c \
-	$(BACNET_DEMO)/handler/h_dcc.c \
-	$(BACNET_DEMO)/handler/s_iam.c \
-	$(BACNET_DEMO)/handler/s_ihave.c
+	$(BACNET_BASIC)/tsm/tsm.c \
+	$(BACNET_BASIC)/sys/ringbuf.c \
+	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/service/h_noserv.c \
+	$(BACNET_BASIC)/service/h_apdu.c \
+	$(BACNET_BASIC)/service/h_whohas.c \
+	$(BACNET_BASIC)/service/h_whois.c \
+	$(BACNET_BASIC)/service/h_rd.c \
+	$(BACNET_BASIC)/service/h_rp.c \
+	$(BACNET_BASIC)/service/h_rpm.c \
+	$(BACNET_BASIC)/service/h_wp.c \
+	$(BACNET_BASIC)/service/h_dcc.c \
+	$(BACNET_BASIC)/service/s_iam.c \
+	$(BACNET_BASIC)/service/s_ihave.c
 
 CORESRC = $(BACNET_CORE)/abort.c \
-	$(BACNET_CORE)/apdu.c \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
@@ -88,7 +87,7 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_CORE)/crc.c \
+	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
@@ -99,7 +98,6 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/proplist.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/reject.c \
-	$(BACNET_CORE)/ringbuf.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/version.c \

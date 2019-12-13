@@ -30,16 +30,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "bacdef.h"
-#include "bacdcode.h"
-#include "bacenum.h"
-#include "bactext.h"
-#include "config.h"     /* the custom stuff */
-#include "device.h"
-#include "handlers.h"
-#include "proplist.h"
-#include "timestamp.h"
-#include "ai.h"
+#include "bacnet/bacdef.h"
+#include "bacnet/bacdcode.h"
+#include "bacnet/bacenum.h"
+#include "bacnet/bactext.h"
+#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/basic/object/device.h"
+#include "bacnet/basic/services.h"
+#include "bacnet/proplist.h"
+#include "bacnet/timestamp.h"
+#include "bacnet/basic/object/ai.h"
 
 
 #ifndef MAX_ANALOG_INPUTS

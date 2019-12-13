@@ -27,8 +27,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "config.h"
-#include "datalink.h"
+#include "bacnet/config.h"
+#include "bacnet/datalink/datalink.h"
 
 extern uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
