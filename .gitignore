@@ -57,3 +57,4 @@ settings/
 bin/
 Backup*
 BACnet_BDT_table
+address_cache
