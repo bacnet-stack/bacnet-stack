@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "bacnet/bacdcode.h"
-#include "bacnet/bacsec.h"
+#include "bacnet/datalink/bacsec.h"
 
 BACNET_KEY_IDENTIFIER_ALGORITHM key_algorithm(uint16_t id)
 {
