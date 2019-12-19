@@ -58,3 +58,5 @@ bin/
 Backup*
 BACnet_BDT_table
 address_cache
+/build/*
+CMakeLists.txt.user
