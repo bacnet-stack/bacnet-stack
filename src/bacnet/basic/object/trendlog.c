@@ -1726,8 +1726,7 @@ void trend_log_timer(uint16_t uSeconds)
     int iCount = 0;
     time_t tNow = 0;
 
-    /* unused parameter */
-    uSeconds = uSeconds;
+    (void)uSeconds;
     /* use OS to get the current time */
     tNow = time(NULL);
     for (iCount = 0; iCount < MAX_TREND_LOGS; iCount++) {

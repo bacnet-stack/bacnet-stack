@@ -65,7 +65,7 @@ void handler_ucov_notification(
     int len = 0;
 
     /* src not needed for this application */
-    src = src;
+    (void)src;
     /* create linked list to store data if more
        than one property value is expected */
     bacapp_property_value_list_init(&property_value[0], MAX_COV_PROPERTIES);

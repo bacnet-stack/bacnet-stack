@@ -54,7 +54,7 @@ static int pt_encode_apdu(uint8_t *apdu,
         }
     */
     /* unused parameter */
-    max_apdu = max_apdu;
+    (void)max_apdu;
     if (apdu) {
         len =
             encode_context_unsigned(&apdu[apdu_len], 0, private_data->vendorID);

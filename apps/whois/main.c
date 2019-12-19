@@ -252,7 +252,7 @@ static void print_address_cache(void)
         } else {
             print_macaddr(&local_sadr, 1);
         }
-        printf(" %-4hu ", addr->max_apdu);
+        printf(" %-4u ", (unsigned)addr->max_apdu);
         printf("\n");
 
         addr = addr->next;

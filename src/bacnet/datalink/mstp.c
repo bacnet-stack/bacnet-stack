@@ -72,7 +72,7 @@
 #else
 static inline void printf_receive(const char *format, ...)
 {
-    format = format;
+    (void)format;
 }
 #endif
 
@@ -81,7 +81,7 @@ static inline void printf_receive(const char *format, ...)
 #else
 static inline void printf_receive_data(const char *format, ...)
 {
-    format = format;
+    (void)format;
 }
 #endif
 
@@ -90,7 +90,7 @@ static inline void printf_receive_data(const char *format, ...)
 #else
 static inline void printf_receive_error(const char *format, ...)
 {
-    format = format;
+    (void)format;
 }
 #endif
 
@@ -99,7 +99,7 @@ static inline void printf_receive_error(const char *format, ...)
 #else
 static inline void printf_master(const char *format, ...)
 {
-    format = format;
+    (void)format;
 }
 #endif
 

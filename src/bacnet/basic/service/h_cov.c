@@ -212,8 +212,7 @@ static int cov_encode_subscription(
     BACNET_OCTET_STRING octet_string;
     BACNET_ADDRESS *dest = NULL;
 
-    /* FIXME: unused parameter */
-    max_apdu = max_apdu;
+    (void)max_apdu;
     if (!cov_subscription) {
         return 0;
     }

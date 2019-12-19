@@ -513,7 +513,7 @@ static size_t data_write(const void *ptr, size_t size, size_t nitems)
     ssize_t bytes = 0;
     if (FD_Pipe != -1) {
         bytes = write(FD_Pipe, ptr, size * nitems);
-        bytes = bytes;
+        (void)bytes;
     }
     return fwrite(ptr, size, nitems, pFile);
 }
@@ -524,7 +524,7 @@ static size_t data_write_header(
     ssize_t bytes = 0;
     if (pipe_enable && (FD_Pipe != -1)) {
         bytes = write(FD_Pipe, ptr, size * nitems);
-        bytes = bytes;
+        (void)bytes;
     }
     return fwrite(ptr, size, nitems, pFile);
 }
@@ -1181,8 +1181,8 @@ int main(int argc, char *argv[])
         }
         if (!Wireshark_Capture) {
             if (!(packet_count % 100)) {
-                fprintf(stdout, "\r%hu packets, %hu invalid frames",
-                    packet_count, Invalid_Frame_Count);
+                fprintf(stdout, "\r%u packets, %u invalid frames",
+                    (unsigned)packet_count, (unsigned)Invalid_Frame_Count);
             }
             if (packet_count >= 65535) {
                 packet_statistics_print();
