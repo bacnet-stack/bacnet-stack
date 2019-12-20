@@ -223,7 +223,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     { PROP_CONTROLLED_VARIABLE_REFERENCE, "controlled-variable-reference" },
     { PROP_CONTROLLED_VARIABLE_UNITS, "controlled-variable-units" },
     { PROP_CONTROLLED_VARIABLE_VALUE, "controlled-variable-value" },
-    { PROP_COV_INCREMENT, "COV-increment" }, { PROP_DATE_LIST, "datelist" },
+    { PROP_COV_INCREMENT, "cov-increment" }, { PROP_DATE_LIST, "datelist" },
     { PROP_DAYLIGHT_SAVINGS_STATUS, "daylight-savings-status" },
     { PROP_DEADBAND, "deadband" },
     { PROP_DERIVATIVE_CONSTANT, "derivative-constant" },
