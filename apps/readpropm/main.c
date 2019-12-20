@@ -242,10 +242,12 @@ static void print_help(char *filename)
            "I-Am services.  For example, if you were reading\n"
            "Device Object 123, the device-instance would be 123.\n"
            "\nobject-type:\n"
-           "The object type is the integer value of the enumeration\n"
-           "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
-           "that you are reading.  For example if you were\n"
-           "reading Analog Output 2, the object-type would be 1.\n"
+           "The object type is object that you are reading. It\n"
+           "can be defined either as the object-type name string\n"
+           "as defined in the BACnet specification, or as the\n"
+           "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+           "in bacenum.h. For example if you were reading Analog\n"
+           "Output 2, the object-type would be analog-output or 1.\n"
            "\nobject-instance:\n"
            "This is the object instance number of the object that\n"
            "you are reading.  For example, if you were reading\n"
@@ -263,22 +265,28 @@ static void print_help(char *filename)
            "\nExample:\n"
            "If you want read the PRESENT_VALUE property and various\n"
            "array elements of the PRIORITY_ARRAY in Device 123\n"
-           "Analog Output object 99, use the following command:\n"
+           "Analog Output object 99, use one of the following commands:\n"
+           "%s 123 analog-output 99 85,87[0],87\n"
            "%s 123 1 99 85,87[0],87\n"
            "If you want read the PRESENT_VALUE property in objects\n"
            "Analog Input 77 and Analog Input 78 in Device 123\n"
-           "use the following command:\n"
+           "use one of the following commands:\n"
+           "%s 123 analog-input 77 85 analog-input 78 85\n"
            "%s 123 0 77 85 0 78 85\n"
            "If you want read the ALL property in\n"
-           "Device object 123, you would use the following command:\n"
+           "Device object 123, you would use one of the following commands:\n"
+           "%s 123 device 123 8\n"
            "%s 123 8 123 8\n"
            "If you want read the OPTIONAL property in\n"
-           "Device object 123, you would use the following command:\n"
+           "Device object 123, you would use one of the following commands:\n"
+           "%s 123 device 123 80\n"
            "%s 123 8 123 80\n"
            "If you want read the REQUIRED property in\n"
-           "Device object 123, you would use the following command:\n"
+           "Device object 123, you would one of use the following commands:\n"
+           "%s 123 device 123 105\n"
            "%s 123 8 123 105\n",
-        filename, filename, filename, filename, filename);
+        filename, filename, filename, filename, filename, filename, filename,
+        filename, filename, filename);
 }
 
 int main(int argc, char *argv[])
@@ -338,7 +346,12 @@ int main(int argc, char *argv[])
     arg_sets = 0;
     while (rpm_object) {
         tag_value_arg = 2 + (arg_sets * 3);
-        rpm_object->object_type = strtol(argv[tag_value_arg], NULL, 0);
+        if (bactext_object_type_strtol(
+                argv[tag_value_arg], &rpm_object->object_type) == false) {
+            fprintf(
+                stderr, "Error: object-type=%s invalid\n", argv[tag_value_arg]);
+            return 1;
+        }
         tag_value_arg++;
         args_remaining--;
         if (args_remaining <= 0) {

@@ -165,10 +165,12 @@ static void print_help(char *filename)
         "writing to Device Object 123, the device-instance would be 123.\n"
         "\n"
         "object-type:\n"
-        "The object type is the integer value of the enumeration\n"
-        "BACNET_OBJECT_TYPE in bacenum.h.  It is the object that you are\n"
-        "writing to.  For example if you were writing to Analog Output 2, \n"
-        "the object-type would be 1.\n"
+        "The object type is object that you are reading. It\n"
+        "can be defined either as the object-type name string\n"
+        "as defined in the BACnet specification, or as the\n"
+        "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+        "in bacenum.h. For example if you were reading Analog\n"
+        "Output 2, the object-type would be analog-output or 1.\n"
         "\n"
         "object-instance:\n"
         "This is the object instance number of the object that you are \n"
@@ -176,10 +178,12 @@ static void print_help(char *filename)
         "the object-instance would be 2.\n"
         "\n"
         "property:\n"
-        "The property is an integer value of the enumeration \n"
-        "BACNET_PROPERTY_ID in bacenum.h.  It is the property you are \n"
-        "writing to.  For example, if you were writing to the Present Value\n"
-        "property, you would use 85 as the property.\n"
+        "The property of the object that you are reading. It\n"
+        "can be defined either as the property name string as\n"
+        "defined in the BACnet specification, or as an integer\n"
+        "value of the enumeration BACNET_PROPERTY_ID in\n"
+        "bacenum.h. For example, if you were reading the Present\n"
+        "Value property, use present-value or 85 as the property.\n"
         "\n"
         "priority:\n"
         "This parameter is used for setting the priority of the\n"
@@ -221,11 +225,13 @@ static void print_help(char *filename)
         "\nExample:\n"
         "If you want send a value of 100 to the Present-Value in\n"
         "Analog Output 0 of Device 123 at priority 16,\n"
-        "send the following command:\n"
+        "send the one of following commands:\n"
+        "%s 123 analog-output 0 present-value 16 -1 4 100\n"
         "%s 123 1 0 85 16 -1 4 100\n"
         "To send a relinquish command to the same object:\n"
+        "%s 123 analog-output 0 present-value 16 -1 0 0\n"
         "%s 123 1 0 85 16 -1 0 0\n",
-        filename, filename);
+        filename, filename, filename, filename);
 }
 
 int main(int argc, char *argv[])
@@ -270,9 +276,15 @@ int main(int argc, char *argv[])
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    Target_Object_Type = strtol(argv[2], NULL, 0);
+    if (bactext_object_type_strtol(argv[2], &Target_Object_Type) == false) {
+        fprintf(stderr, "object-type=%s invalid\n", argv[2]);
+        return 1;
+    }
     Target_Object_Instance = strtol(argv[3], NULL, 0);
-    Target_Object_Property = strtol(argv[4], NULL, 0);
+    if (bactext_property_strtol(argv[4], &Target_Object_Property) == false) {
+        fprintf(stderr, "property=%s invalid\n", argv[4]);
+        return 1;
+    }
     Target_Object_Property_Priority = (uint8_t)strtol(argv[5], NULL, 0);
     Target_Object_Property_Index = strtol(argv[6], NULL, 0);
     if (Target_Object_Property_Index == -1)

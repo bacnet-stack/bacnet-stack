@@ -184,10 +184,12 @@ static void print_help(char *filename)
         "I-Am services.  For example, if you were writing\n"
         "Device Object 123, the device-instance would be 123.\n"
         "\nobject-type:\n"
-        "The object type is the integer value of the enumeration\n"
-        "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
-        "that you are writing.  For example if you were\n"
-        "writing Analog Output 2, the object-type would be 1.\n"
+        "The object type is object that you are reading. It\n"
+        "can be defined either as the object-type name string\n"
+        "as defined in the BACnet specification, or as the\n"
+        "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+        "in bacenum.h. For example if you were reading Analog\n"
+        "Output 2, the object-type would be analog-output or 1.\n"
         "\nobject-instance:\n"
         "This is the object instance number of the object that\n"
         "you are writing.  For example, if you were writing\n"
@@ -302,7 +304,12 @@ int main(int argc, char *argv[])
     arg_sets = 0;
     while (wpm_object) {
         tag_value_arg = 2 + (arg_sets * 6);
-        wpm_object->object_type = strtol(argv[tag_value_arg], NULL, 0);
+        if (bactext_object_type_strtol(
+                argv[tag_value_arg], &wpm_object->object_type) == false) {
+            fprintf(
+                stderr, "Error: object-type=%s invalid\n", argv[tag_value_arg]);
+            return 1;
+        }
         tag_value_arg++;
         args_remaining--;
         if (Verbose) {
