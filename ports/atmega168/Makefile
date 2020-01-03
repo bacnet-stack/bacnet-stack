@@ -29,8 +29,8 @@ AVRDUDE_PROGRAMMERID = avrispmkII
 AVRDUDE_PORT = /dev/ttyUSB0
 
 # Source locations
-BACNET_CORE = ../../src
-BACNET_INCLUDE = $(BACNET_CORE)
+BACNET_SRC = ../../src
+BACNET_CORE = $(BACNET_SRC)/bacnet
 BACNET_BASIC = $(BACNET_CORE)/basic
 
 # local files for this project
@@ -72,7 +72,7 @@ CORESRC =  \
 	$(BACNET_CORE)/bacapp.c
 
 ## Include Directories
-INCLUDES = -I. -I$(BACNET_INCLUDE)
+INCLUDES = -I. -I$(BACNET_SRC) -I$(BACNET_CORE)
 
 # Source to Object conversion
 COBJ = $(CSRC:.c=.o)

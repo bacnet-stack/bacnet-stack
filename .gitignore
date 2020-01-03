@@ -44,6 +44,7 @@
 *.7z
 *.hex
 *.elf
+*.eep
 *.emSession
 *.depend
 *.layout
