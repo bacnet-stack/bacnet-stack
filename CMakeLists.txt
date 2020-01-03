@@ -1,14 +1,24 @@
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(bacnet-stack LANGUAGES C)
+project(bacnet-stack VERSION 0.8.6 LANGUAGES C)
 
-option(BACNET_STACK_BUILD_APPS
-       "build apps"
-       OFF)
+#
+# options
+#
 
-option(BAC_ROUTING
-       "enable bac routing"
-       OFF)
+option(
+  BACNET_STACK_BUILD_APPS
+  "build apps"
+  OFF)
+
+option(
+  BAC_ROUTING
+  "enable bac routing"
+  OFF)
+
+#
+# sources
+#
 
 set(BACNETSTACK_SRCS
     ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/abort.c
@@ -349,50 +359,66 @@ set(BACNETSTACK_SRCS
     ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/wpm.h)
 
 if(LINUX)
-  list(APPEND BACNETSTACK_SRCS
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/arcnet.c
-              # ${CMAKE_CURRENT_LIST_DIR}/ports/linux/bip6.c
-              # ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rx_fsm.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/bip-init.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp_linux.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp_linux.h
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/ethernet.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/mstpsnap.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/net.h
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rs485.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rs485.h
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/timer.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/linux/timer.h)
+  list(
+    APPEND BACNETSTACK_SRCS
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/arcnet.c
+           # ${CMAKE_CURRENT_LIST_DIR}/ports/linux/bip6.c
+           # ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rx_fsm.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/bip-init.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp_linux.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp_linux.h
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/ethernet.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/mstpsnap.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/net.h
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rs485.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rs485.h
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/timer.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/timer.h)
 elseif(WIN32)
-  list(APPEND BACNETSTACK_SRCS
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bacport.h
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bip6.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bip-init.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/datetime-init.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp.cbp
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp-mm.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/ethernet.c
-              # ${CMAKE_CURRENT_LIST_DIR}/ports/win32/main.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/mstimer-init.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rs485.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rs485.h
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rx_fsm.c
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rx_fsm.cbp
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/stdbool.h
-              ${CMAKE_CURRENT_LIST_DIR}/ports/win32/stdint.h)
+  list(
+    APPEND BACNETSTACK_SRCS
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bacport.h
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bip6.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bip-init.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/datetime-init.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp.cbp
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp-mm.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/ethernet.c
+           # ${CMAKE_CURRENT_LIST_DIR}/ports/win32/main.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/mstimer-init.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rs485.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rs485.h
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rx_fsm.c
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rx_fsm.cbp
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/stdbool.h
+           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/stdint.h)
 endif()
 
+#
+# library
+#
+
 add_library(${PROJECT_NAME} ${BACNETSTACK_SRCS})
-target_include_directories(${PROJECT_NAME}
-                           PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/>
-                                  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/bacnet/>
-                                  $<INSTALL_INTERFACE:include/bacnet/>
-                                  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ports/linux/>)
-target_compile_definitions(${PROJECT_NAME}
-                           PUBLIC
-                           $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>)
+target_include_directories(
+  ${PROJECT_NAME}
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/bacnet/>
+         $<INSTALL_INTERFACE:include/bacnet/>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ports/linux/>)
+target_compile_definitions(
+  ${PROJECT_NAME}
+  PUBLIC
+  $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>)
+add_library(
+  ${PROJECT_NAME}::${PROJECT_NAME}
+  ALIAS
+  ${PROJECT_NAME})
+
+#
+# examples
+#
 
 if(BACNET_STACK_BUILD_APPS)
   message(STATUS "BACNET: compilinng also apps")
@@ -464,8 +490,38 @@ if(BACNET_STACK_BUILD_APPS)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
 endif()
 
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/ DESTINATION include/bacnet FILES_MATCHING PATTERN "*.h")
+#
+# install
+#
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+set(BACNET_STACK_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 install(TARGETS ${PROJECT_NAME}
-        RUNTIME DESTINATION bin
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib PERMISSIONS WORLD_READ)
+        EXPORT ${PROJECT_NAME}Targets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+
+install(EXPORT ${PROJECT_NAME}Targets
+        DESTINATION ${BACNET_STACK_CONFIG_INSTALL_DIR}
+        NAMESPACE ${PROJECT_NAME}::
+        COMPONENT dev)
+
+configure_package_config_file(cmake/Config.cmake.in
+                              ${PROJECT_NAME}Config.cmake
+                              INSTALL_DESTINATION
+                              ${BACNET_STACK_CONFIG_INSTALL_DIR})
+write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake
+                                 COMPATIBILITY SameMajorVersion)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+        DESTINATION ${BACNET_STACK_CONFIG_INSTALL_DIR}
+        COMPONENT dev)
+
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/src/bacnet
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        COMPONENT dev
+        FILES_MATCHING
+        PATTERN "*.h")
+ 

@@ -16,3 +16,7 @@ enable_markup: False
 
 # If arglists are longer than this, break them always
 max_subargs_per_line: 1
+
+max_pargs_hwrap: 2
+
+max_subgroups_hwrap: 2
