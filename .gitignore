@@ -48,6 +48,7 @@
 *.emSession
 *.depend
 *.layout
+*.dmp
 tags
 test-results.xml
 .vscode/

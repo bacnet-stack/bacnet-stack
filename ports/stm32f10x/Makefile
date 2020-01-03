@@ -4,9 +4,10 @@
 TARGET=bacnet
 
 BACNET_DIR = ../..
-BACNET_CORE = $(BACNET_DIR)/src
-BACNET_BASIC = $(BACNET_DIR)/basic
-BACNET_INCLUDE = $(BACNET_CORE)
+BACNET_SRC := $(BACNET_DIR)/src
+BACNET_CORE := $(BACNET_SRC)/bacnet
+BACNET_BASIC := $(BACNET_CORE)/basic
+BACNET_INCLUDE := $(BACNET_SRC)
 PLATFORM_DIR = .
 LIBRARY_STM32 = ./drivers/src
 LIBRARY_STM32_INCLUDES = ./drivers/inc
@@ -28,12 +29,12 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/rs485.c \
 	$(PLATFORM_DIR)/stm32f10x_it.c \
 	$(PLATFORM_DIR)/system_stm32f10x.c \
-	$(PLATFORM_DIR)/timer-init.c
+	$(PLATFORM_DIR)/mstimer-init.c
 
 BASIC_SRC = \
 	$(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/h_apdu.c \
-	$(BACNET_BASIC)/service/h_npdu.c \
+	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/service/h_rd.c \
 	$(BACNET_BASIC)/service/h_rp.c \
 	$(BACNET_BASIC)/service/h_rpm.c \
@@ -45,7 +46,8 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/s_ihave.c \
 	$(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
-	$(BACNET_BASIC)/sys/fifo.c
+	$(BACNET_BASIC)/sys/fifo.c \
+	$(BACNET_BASIC)/sys/mstimer.c
 
 BACNET_SRC = \
 	$(BACNET_CORE)/abort.c \
@@ -56,7 +58,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
-	$(BACNET_BASIC)/datalink/crc.c \
+	$(BACNET_CORE)/datalink/crc.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
