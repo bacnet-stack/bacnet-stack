@@ -185,7 +185,10 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     { OBJECT_CHANNEL, "channel" },
     { OBJECT_LIGHTING_OUTPUT, "lighting-output" },
     { OBJECT_BINARY_LIGHTING_OUTPUT, "binary-lighting-output" },
-    { OBJECT_NETWORK_PORT, "network-port" }, { 0, NULL }
+    { OBJECT_NETWORK_PORT, "network-port" },
+    { OBJECT_ELEVATOR_GROUP, "elevator-group" },
+    { OBJECT_ESCALATOR, "escalator" }, { OBJECT_LIFT, "lift" },
+    { OBJECT_STAGING, "staging" }, { 0, NULL }
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
        Enumerated values 128-1023 may be used by others subject to
        the procedures and constraints described in Clause 23. */

@@ -107,6 +107,10 @@
     /* from 135-2016 version of the BACnet Standard */
 #define MAX_ASHRAE_OBJECT_TYPE 60
 #define MAX_BACNET_SERVICES_SUPPORTED 44
+#elif (BACNET_PROTOCOL_REVISION == 20)
+    /* Addendum 135-2016bd  */
+#define MAX_ASHRAE_OBJECT_TYPE 61
+#define MAX_BACNET_SERVICES_SUPPORTED 44
 #else
 #error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
 #endif
