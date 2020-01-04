@@ -85,106 +85,115 @@ int awf_encode_apdu(
 
 /* decode the service request only */
 int awf_decode_service_request(
-    uint8_t *apdu, unsigned apdu_len, BACNET_ATOMIC_WRITE_FILE_DATA *data)
+    uint8_t *apdu, unsigned apdu_len_max, BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
     int len = 0;
-    int tag_len = 0;
-    int decoded_len = 0;
-    uint8_t tag_number = 0;
-    uint32_t len_value_type = 0;
-    int32_t signed_value = 0;
-    uint32_t unsigned_value = 0;
-    uint16_t type = 0; /* for decoding */
+    int apdu_len = BACNET_STATUS_ERROR;
+    uint16_t object_type = 0;
+    uint32_t object_instance = 0;
     uint32_t i = 0;
 
     /* check for value pointers */
-    if (apdu_len && data) {
-        len =
-            decode_tag_number_and_value(&apdu[0], &tag_number, &len_value_type);
-        if (tag_number != BACNET_APPLICATION_TAG_OBJECT_ID) {
-            return -1;
-        }
-        len += decode_object_id(&apdu[len], &type, &data->object_instance);
-        data->object_type = (BACNET_OBJECT_TYPE)type;
-        if (decode_is_opening_tag_number(&apdu[len], 0)) {
+    if ((apdu_len_max == 0) || (!data)) {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacnet_object_id_application_decode(
+        &apdu[0], apdu_len_max, &object_type, &object_instance);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    data->object_type = (BACNET_OBJECT_TYPE)object_type;
+    data->object_instance = object_instance;
+    apdu_len = len;
+    if (apdu_len < apdu_len_max) {
+        if (decode_is_opening_tag_number(&apdu[apdu_len], 0)) {
             data->access = FILE_STREAM_ACCESS;
-            /* a tag number of 2 is not extended so only one octet */
-            len++;
+            /* a tag number of 0 is not extended so only one octet */
+            apdu_len++;
             /* fileStartPosition */
-            tag_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
-                return -1;
+            if (apdu_len >= apdu_len_max) {
+                return BACNET_STATUS_ERROR;
             }
-            len += decode_signed(&apdu[len], len_value_type, &signed_value);
-            data->type.stream.fileStartPosition = signed_value;
+            len = bacnet_signed_application_decode(&apdu[apdu_len],
+                apdu_len_max - apdu_len, &data->type.stream.fileStartPosition);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
             /* fileData */
-            tag_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
-                return -1;
+            if (apdu_len >= apdu_len_max) {
+                return BACNET_STATUS_ERROR;
             }
-            decoded_len = decode_octet_string(
-                &apdu[len], len_value_type, &data->fileData[0]);
-            if ((uint32_t)decoded_len != len_value_type) {
-                return -1;
+            len = bacnet_octet_string_application_decode(
+                &apdu[apdu_len], apdu_len_max, &data->fileData[0]);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
             }
-            len += decoded_len;
-            if (!decode_is_closing_tag_number(&apdu[len], 0)) {
-                return -1;
+            apdu_len += len;
+            /* closing tag */
+            if (apdu_len >= apdu_len_max) {
+                return BACNET_STATUS_ERROR;
             }
-            /* a tag number is not extended so only one octet */
-            len++;
-        } else if (decode_is_opening_tag_number(&apdu[len], 1)) {
+            if (!decode_is_closing_tag_number(&apdu[apdu_len], 0)) {
+                return BACNET_STATUS_ERROR;
+            }
+            /* a tag number of 0 is not extended so only one octet */
+            apdu_len++;
+        } else if (decode_is_opening_tag_number(&apdu[apdu_len], 1)) {
             data->access = FILE_RECORD_ACCESS;
-            /* a tag number is not extended so only one octet */
-            len++;
+            /* a tag number of 0 is not extended so only one octet */
+            apdu_len++;
             /* fileStartRecord */
-            tag_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_SIGNED_INT) {
-                return -1;
+            if (apdu_len >= apdu_len_max) {
+                return BACNET_STATUS_ERROR;
             }
-            len += decode_signed(&apdu[len], len_value_type, &signed_value);
-            data->type.record.fileStartRecord = signed_value;
+            len = bacnet_signed_application_decode(&apdu[apdu_len],
+                apdu_len_max - apdu_len, &data->type.record.fileStartRecord);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
             /* returnedRecordCount */
-            tag_len = decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len += tag_len;
-            if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                return -1;
+            if (apdu_len >= apdu_len_max) {
+                return BACNET_STATUS_ERROR;
             }
-            len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
-            data->type.record.returnedRecordCount = unsigned_value;
+            len = bacnet_unsigned_application_decode(&apdu[apdu_len],
+                apdu_len_max, &data->type.record.returnedRecordCount);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            if (apdu_len >= apdu_len_max) {
+                return BACNET_STATUS_ERROR;
+            }
             /* fileData */
             for (i = 0; i < data->type.record.returnedRecordCount; i++) {
-                tag_len = decode_tag_number_and_value(
-                    &apdu[len], &tag_number, &len_value_type);
-                len += tag_len;
-                if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
-                    return -1;
+                if (i < BACNET_WRITE_FILE_RECORD_COUNT) {
+                    len = bacnet_octet_string_application_decode(
+                        &apdu[apdu_len], apdu_len_max, &data->fileData[i]);
+                    if (len <= 0) {
+                        return BACNET_STATUS_ERROR;
+                    }
+                    apdu_len += len;
+                    /* closing tag or another record */
+                    if (apdu_len >= apdu_len_max) {
+                        return BACNET_STATUS_ERROR;
+                    }
+                } else {
+                    return BACNET_STATUS_ERROR;
                 }
-                decoded_len = decode_octet_string(
-                    &apdu[len], len_value_type, &data->fileData[i]);
-                if ((uint32_t)decoded_len != len_value_type) {
-                    return -1;
-                }
-                len += decoded_len;
             }
-            if (!decode_is_closing_tag_number(&apdu[len], 1)) {
-                return -1;
+            if (!decode_is_closing_tag_number(&apdu[apdu_len], 1)) {
+                return BACNET_STATUS_ERROR;
             }
-            /* a tag number is not extended so only one octet */
-            len++;
+            /* tag number 1 is not extended so only one octet */
+            apdu_len++;
         } else {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
     }
 
-    return len;
+    return apdu_len;
 }
 
 int awf_decode_apdu(uint8_t *apdu,
@@ -196,16 +205,16 @@ int awf_decode_apdu(uint8_t *apdu,
     unsigned offset = 0;
 
     if (!apdu) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
     *invoke_id = apdu[2]; /* invoke id - filled in by net layer */
     if (apdu[3] != SERVICE_CONFIRMED_ATOMIC_WRITE_FILE) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     offset = 4;
 
@@ -265,7 +274,7 @@ int awf_ack_decode_service_request(
             len += decode_signed(
                 &apdu[len], len_value_type, &data->type.record.fileStartRecord);
         } else {
-            return -1;
+            return BACNET_STATUS_ERROR;
         }
     }
 
@@ -281,15 +290,15 @@ int awf_ack_decode_apdu(uint8_t *apdu,
     unsigned offset = 0;
 
     if (!apdu) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     /* optional checking - most likely was already done prior to this call */
     if (apdu[0] != PDU_TYPE_COMPLEX_ACK) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     *invoke_id = apdu[1]; /* invoke id - filled in by net layer */
     if (apdu[2] != SERVICE_CONFIRMED_ATOMIC_WRITE_FILE) {
-        return -1;
+        return BACNET_STATUS_ERROR;
     }
     offset = 3;
 
@@ -320,7 +329,7 @@ void testAtomicWriteFileAccess(Test *pTest, BACNET_ATOMIC_WRITE_FILE_DATA *data)
     apdu_len = len;
 
     len = awf_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
-    ct_test(pTest, len != -1);
+    ct_test(pTest, len != BACNET_STATUS_ERROR);
     ct_test(pTest, test_data.object_type == data->object_type);
     ct_test(pTest, test_data.object_instance == data->object_instance);
     ct_test(pTest, test_data.access == data->access);
@@ -385,7 +394,14 @@ void testAtomicWriteFileAckAccess(
     apdu_len = len;
 
     len = awf_decode_apdu(&apdu[0], apdu_len, &test_invoke_id, &test_data);
-    ct_test(pTest, len != -1);
+    if (len == BACNET_STATUS_ERROR) {
+        if (data->access == FILE_STREAM_ACCESS) {
+            printf("testing FILE_STREAM_ACCESS failed decode\n");
+        } else if (data->access == FILE_RECORD_ACCESS) {
+            printf("testing FILE_RECORD_ACCESS failed decode\n");
+        }
+    }
+    ct_test(pTest, len != BACNET_STATUS_ERROR);
     ct_test(pTest, test_data.access == data->access);
     if (test_data.access == FILE_STREAM_ACCESS) {
         ct_test(pTest,
@@ -413,6 +429,39 @@ void testAtomicWriteFileAck(Test *pTest)
     return;
 }
 
+void testAtomicWriteFileMalformed(Test *pTest)
+{
+    uint8_t apdu[480] = { 0 };
+    /* payloads with malformation */
+    uint8_t payload_1[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e, 0x35, 0xff,
+        0x5e, 0xd5, 0xc0, 0x85, 0x0a, 0x62, 0x64, 0x0a, 0x0f };
+    uint8_t payload_2[] = { 0xc4, 0x02, 0x80, 0x00, 0x00, 0x0e, 0x35, 0xff,
+        0xc4, 0x4d, 0x92, 0xd9, 0x0a, 0x62, 0x64, 0x0a, 0x0f, 0x0f, 0x0f, 0x0f,
+        0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+        0x0f };
+    BACNET_ATOMIC_WRITE_FILE_DATA data = { 0 };
+    int len = 0;
+    uint8_t test_invoke_id = 0;
+
+    len = awf_decode_apdu(NULL, sizeof(apdu), &test_invoke_id, &data);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    len = awf_decode_apdu(apdu, sizeof(apdu), &test_invoke_id, &data);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+    apdu[1] = 0;
+    apdu[2] = 1;
+    len = awf_decode_apdu(apdu, sizeof(apdu), &test_invoke_id, &data);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    apdu[2] = SERVICE_CONFIRMED_ATOMIC_WRITE_FILE;
+    len = awf_decode_apdu(apdu, sizeof(apdu), &test_invoke_id, &data);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    /* malformed payload testing */
+    len = awf_decode_service_request(payload_1, sizeof(payload_1), &data);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    len = awf_decode_service_request(payload_2, sizeof(payload_2), &data);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+}
+
 #ifdef TEST_ATOMIC_WRITE_FILE
 int main(void)
 {
@@ -424,6 +473,8 @@ int main(void)
     rc = ct_addTestFunction(pTest, testAtomicWriteFile);
     assert(rc);
     rc = ct_addTestFunction(pTest, testAtomicWriteFileAck);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testAtomicWriteFileMalformed);
     assert(rc);
 
     ct_setStream(pTest, stdout);
