@@ -44,6 +44,9 @@
 #endif
 
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
+#ifndef BACNET_STRING_UTF8_VALIDATION
+#define BACNET_STRING_UTF8_VALIDATION 1
+#endif
 
 void bitstring_init(BACNET_BIT_STRING *bit_string)
 {
@@ -527,6 +530,7 @@ bool characterstring_printable(BACNET_CHARACTER_STRING *char_string)
     return status;
 }
 
+#if BACNET_STRING_UTF8_VALIDATION
 /* Basic UTF-8 manipulation routines
   by Jeff Bezanson
   placed in the public domain Fall 2005 */
@@ -628,6 +632,14 @@ bool utf8_isvalid(const char *str, size_t length)
 
     return true;
 }
+#else
+bool utf8_isvalid(const char *str, size_t length)
+{
+    (void)str;
+    (void)length;
+    return true;
+}
+#endif
 
 bool characterstring_valid(BACNET_CHARACTER_STRING *char_string)
 {
@@ -855,7 +867,7 @@ bool octetstring_value_same(
 #include <time.h>
 #include "ctest.h"
 
-void testBitString(Test *pTest)
+static void testBitString(Test *pTest)
 {
     uint8_t bit = 0;
     int max_bit;
@@ -917,7 +929,7 @@ void testBitString(Test *pTest)
     }
 }
 
-void testCharacterString(Test *pTest)
+static void testCharacterString(Test *pTest)
 {
     BACNET_CHARACTER_STRING bacnet_string;
     char *value = "Joshua,Mary,Anna,Christopher";
@@ -971,7 +983,7 @@ void testCharacterString(Test *pTest)
     }
 }
 
-void testOctetString(Test *pTest)
+static void testOctetString(Test *pTest)
 {
     BACNET_OCTET_STRING bacnet_string;
     uint8_t *value = NULL;
@@ -1030,20 +1042,26 @@ void testOctetString(Test *pTest)
     }
 }
 
-#ifdef TEST_BACSTR
-int main(void)
+void testBACnetStrings(Test *pTest)
 {
-    Test *pTest;
     bool rc;
 
-    pTest = ct_create("BACnet Strings", NULL);
-    /* individual tests */
+    /* add individual tests */
     rc = ct_addTestFunction(pTest, testBitString);
     assert(rc);
     rc = ct_addTestFunction(pTest, testCharacterString);
     assert(rc);
     rc = ct_addTestFunction(pTest, testOctetString);
     assert(rc);
+}
+
+#ifdef TEST_BACSTR
+int main(void)
+{
+    Test *pTest;
+
+    pTest = ct_create("BACnet Strings", NULL);
+    testBACnetStrings(pTest);
     /* configure output */
     ct_setStream(pTest, stdout);
     ct_run(pTest);
