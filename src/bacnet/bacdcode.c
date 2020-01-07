@@ -1037,7 +1037,11 @@ int decode_context_octet_string(
         !decode_is_closing_tag(&apdu[len])) {
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
 
-        status = octetstring_init(octet_string, &apdu[len], len_value);
+        if (len_value > 0) {
+            status = octetstring_init(octet_string, &apdu[len], len_value);
+        } else {
+            status = octetstring_init(octet_string, NULL, 0);
+        }
 
         if (status) {
             len += len_value;

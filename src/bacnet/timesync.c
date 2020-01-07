@@ -264,7 +264,11 @@ int timesync_decode_timesync_recipients(
             if (tag_number != BACNET_APPLICATION_TAG_OCTET_STRING) {
                 return BACNET_STATUS_ABORT;
             }
-            len = decode_octet_string(&apdu[0], len_value_type, &octet_string);
+            len = bacnet_octet_string_decode(&apdu[apdu_len],
+                max_apdu, len_value_type, &octet_string);
+            if (len < 0) {
+                return BACNET_STATUS_ERROR;
+            }
             apdu_len += len;
             if (octetstring_length(&octet_string) == 0) {
                 /* -- A string of length 0 indicates a broadcast */
