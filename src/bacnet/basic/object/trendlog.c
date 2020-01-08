@@ -49,7 +49,7 @@
 #define MAX_TREND_LOGS 8
 #endif
 
-TL_DATA_REC Logs[MAX_TREND_LOGS][TL_MAX_ENTRIES];
+static TL_DATA_REC Logs[MAX_TREND_LOGS][TL_MAX_ENTRIES];
 static TL_LOG_INFO LogInfo[MAX_TREND_LOGS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */

@@ -45,7 +45,7 @@
 #define MAX_ANALOG_VALUES 4
 #endif
 
-ANALOG_VALUE_DESCR AV_Descr[MAX_ANALOG_VALUES];
+static ANALOG_VALUE_DESCR AV_Descr[MAX_ANALOG_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Analog_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,

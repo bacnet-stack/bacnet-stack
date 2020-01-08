@@ -110,7 +110,7 @@ struct object_data {
 #ifndef BACNET_NETWORK_PORTS_MAX
 #define BACNET_NETWORK_PORTS_MAX 1
 #endif
-struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
+static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,

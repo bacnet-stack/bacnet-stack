@@ -56,7 +56,7 @@ struct integer_object {
     int32_t Present_Value;
     uint16_t Units;
 };
-struct integer_object Integer_Value[MAX_INTEGER_VALUES];
+static struct integer_object Integer_Value[MAX_INTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Integer_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,

@@ -73,7 +73,7 @@ struct bacnet_channel_object {
     uint32_t Control_Groups[CONTROL_GROUPS_MAX];
 };
 
-struct bacnet_channel_object Channel[BACNET_CHANNELS_MAX];
+static struct bacnet_channel_object Channel[BACNET_CHANNELS_MAX];
 
 /* These arrays are used by the ReadPropertyMultiple handler
    property-list property (as of protocol-revision 14) */

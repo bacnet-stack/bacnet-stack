@@ -44,7 +44,7 @@
 #define MAX_POSITIVEINTEGER_VALUES 4
 #endif
 
-POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
+static POSITIVEINTEGER_VALUE_DESCR PIV_Descr[MAX_POSITIVEINTEGER_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int PositiveInteger_Value_Properties_Required[] = {

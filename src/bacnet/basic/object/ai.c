@@ -45,7 +45,7 @@
 #define MAX_ANALOG_INPUTS 4
 #endif
 
-ANALOG_INPUT_DESCR AI_Descr[MAX_ANALOG_INPUTS];
+static ANALOG_INPUT_DESCR AI_Descr[MAX_ANALOG_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,

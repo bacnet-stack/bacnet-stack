@@ -41,7 +41,7 @@
 #define MAX_SCHEDULES 4
 #endif
 
-SCHEDULE_DESCR Schedule_Descr[MAX_SCHEDULES];
+static SCHEDULE_DESCR Schedule_Descr[MAX_SCHEDULES];
 
 static const int Schedule_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE,
