@@ -12,7 +12,7 @@ project(
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"
-  ON)
+  OFF)
 
 option(
   BAC_ROUTING

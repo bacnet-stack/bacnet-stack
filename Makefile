@@ -118,6 +118,7 @@ clean:
 	$(MAKE) -s -C apps/router clean
 	$(MAKE) -s -C apps/router-ipv6 clean
 	$(MAKE) -s -C apps/gateway clean
+	$(MAKE) -s -C test clean
 
 .PHONY: test
 test:

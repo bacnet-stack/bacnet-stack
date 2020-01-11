@@ -162,58 +162,84 @@ int dcc_encode_apdu(uint8_t *apdu,
 
 /* decode the service request only */
 int dcc_decode_service_request(uint8_t *apdu,
-    unsigned apdu_len,
+    unsigned apdu_len_max,
     uint16_t *timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE *enable_disable,
     BACNET_CHARACTER_STRING *password)
 {
+    int apdu_len = 0;
     unsigned len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint32_t value32 = 0;
 
-    /* check for value pointers */
-    if (apdu_len) {
-        /* Tag 0: timeDuration, in minutes --optional--
-         * But if not included, take it as indefinite,
-         * which we return as "very large" */
-        if (decode_is_context_tag(&apdu[len], 0)) {
-            len += decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len += decode_unsigned(&apdu[len], len_value_type, &value32);
-            if (timeDuration) {
-                *timeDuration = (uint16_t)value32;
+    if (apdu_len_max) {
+        /* Tag 0: timeDuration, in minutes --optional-- */
+        len = bacnet_unsigned_context_decode(
+            &apdu[apdu_len], apdu_len_max - apdu_len, 0, &value32);
+        if (len > 0) {
+            apdu_len += len;
+            if (value32 <= UINT16_MAX) {
+                if (timeDuration) {
+                    *timeDuration = (uint16_t)value32;
+                }
+            } else {
+                return BACNET_STATUS_ERROR;
             }
+        } else if (len < 0) {
+            return BACNET_STATUS_ERROR;
         } else if (timeDuration) {
             /* zero indicates infinite duration and
                results in no timeout */
             *timeDuration = 0;
         }
-        /* Tag 1: enable_disable */
-        if (!decode_is_context_tag(&apdu[len], 1)) {
-            return -1;
-        }
-        len += decode_tag_number_and_value(
-            &apdu[len], &tag_number, &len_value_type);
-        len += decode_enumerated(&apdu[len], len_value_type, &value32);
-        if (enable_disable) {
-            *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE)value32;
-        }
-        /* Tag 2: password --optional-- */
-        if (len < apdu_len) {
-            if (!decode_is_context_tag(&apdu[len], 2)) {
-                return -1;
+        if (apdu_len < apdu_len_max) {
+            /* Tag 1: enable_disable */
+            len = bacnet_enumerated_context_decode(
+                &apdu[apdu_len], apdu_len_max - apdu_len, 1, &value32);
+            if (len > 0) {
+                apdu_len += len;
+                if (enable_disable) {
+                    *enable_disable =
+                        (BACNET_COMMUNICATION_ENABLE_DISABLE)value32;
+                }
+            } else {
+                return BACNET_STATUS_ERROR;
             }
-            len += decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value_type);
-            len +=
-                decode_character_string(&apdu[len], len_value_type, password);
+        }
+        if (apdu_len < apdu_len_max) {
+            /* Tag 2: password --optional-- */
+            if (!decode_is_context_tag(&apdu[apdu_len], 2)) {
+                /* since this is the last value of the packet,
+                   if there is data here it must be the specific
+                   context tag number or result in an error */
+                return BACNET_STATUS_ERROR;
+            }
+            len = bacnet_tag_number_and_value_decode(&apdu[apdu_len],
+                apdu_len_max - apdu_len, &tag_number, &len_value_type);
+            if (len > 0) {
+                apdu_len += len;
+                if (apdu_len < apdu_len_max) {
+                    len = bacnet_character_string_decode(&apdu[apdu_len],
+                        apdu_len_max - apdu_len, len_value_type, password);
+                    if (len > 0) {
+                        apdu_len += len;
+                    } else {
+                        return BACNET_STATUS_ERROR;
+                    }
+                } else {
+                    return BACNET_STATUS_ERROR;
+                }
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
         } else if (password) {
+            /* no optional password - set to NULL */
             characterstring_init_ansi(password, NULL);
         }
     }
 
-    return (int)len;
+    return apdu_len;
 }
 
 #ifdef TEST
@@ -299,6 +325,47 @@ void test_DeviceCommunicationControl(Test *pTest)
     return;
 }
 
+void test_DeviceCommunicationControlMalformedData(Test *pTest)
+{
+    /* payload with enable-disable, and password with wrong characterstring
+     * length */
+    uint8_t payload_1[] = { 0x19, 0x00, 0x2a, 0x00, 0x41 };
+    /* payload with enable-disable, and password with wrong characterstring
+     * length */
+    uint8_t payload_2[] = { 0x19, 0x00, 0x2d, 0x55, 0x00, 0x66, 0x69, 0x73,
+        0x74, 0x65, 0x72 };
+    /* payload with enable-disable - wrong context tag number for password */
+    uint8_t payload_3[] = { 0x19, 0x01, 0x3d, 0x09, 0x00, 0x66, 0x69, 0x73,
+        0x74, 0x65, 0x72 };
+    /* payload with duration, enable-disable, and password */
+    uint8_t payload_4[] = { 0x00, 0x05, 0xf1, 0x11, 0x0a, 0x00, 0x19, 0x00,
+        0x2d, 0x09, 0x00, 0x66, 0x69, 0x73, 0x74, 0x65, 0x72 };
+    /* payload submitted with bug report */
+    uint8_t payload_5[] = { 0x0d, 0xff, 0x80, 0x00, 0x03, 0x1a, 0x0a, 0x19,
+        0x00, 0x2a, 0x00, 0x41 };
+    int len = 0;
+    uint8_t test_invoke_id = 0;
+    uint16_t test_timeDuration = 0;
+    BACNET_COMMUNICATION_ENABLE_DISABLE test_enable_disable;
+    BACNET_CHARACTER_STRING test_password;
+
+    len = dcc_decode_apdu(&payload_1[0], sizeof(payload_1), &test_invoke_id,
+        &test_timeDuration, &test_enable_disable, &test_password);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    len = dcc_decode_apdu(&payload_2[0], sizeof(payload_2), &test_invoke_id,
+        &test_timeDuration, &test_enable_disable, &test_password);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    len = dcc_decode_apdu(&payload_3[0], sizeof(payload_3), &test_invoke_id,
+        &test_timeDuration, &test_enable_disable, &test_password);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    len = dcc_decode_apdu(&payload_4[0], sizeof(payload_4), &test_invoke_id,
+        &test_timeDuration, &test_enable_disable, &test_password);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    len = dcc_decode_apdu(&payload_5[0], sizeof(payload_5), &test_invoke_id,
+        &test_timeDuration, &test_enable_disable, &test_password);
+    ct_test(pTest, len == BACNET_STATUS_ERROR);
+}
+
 #ifdef TEST_DEVICE_COMMUNICATION_CONTROL
 int main(void)
 {
@@ -308,6 +375,9 @@ int main(void)
     pTest = ct_create("BACnet DeviceCommunicationControl", NULL);
     /* individual tests */
     rc = ct_addTestFunction(pTest, test_DeviceCommunicationControl);
+    assert(rc);
+    rc =
+        ct_addTestFunction(pTest, test_DeviceCommunicationControlMalformedData);
     assert(rc);
 
     ct_setStream(pTest, stdout);

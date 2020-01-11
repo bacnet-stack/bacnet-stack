@@ -44,9 +44,11 @@
 *.7z
 *.hex
 *.elf
+*.eep
 *.emSession
 *.depend
 *.layout
+*.dmp
 tags
 test-results.xml
 .vscode/

@@ -517,6 +517,11 @@ typedef enum {
     PROP_SUBORDINATE_RELATIONSHIPS = 489,
     PROP_DEFAULT_SUBORDINATE_RELATIONSHIP = 490,
     PROP_REPRESENTS = 491,
+    PROP_DEFAULT_PRESENT_VALUE = 492,
+    PROP_PRESENT_STAGE = 493,
+    PROP_STAGES = 494,
+    PROP_STAGE_NAMES = 495,
+    PROP_TARGET_REFERENCES = 496,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
@@ -1222,6 +1227,10 @@ typedef enum {
     OBJECT_LIGHTING_OUTPUT = 54,        /* Addendum 2010-i */
     OBJECT_BINARY_LIGHTING_OUTPUT = 55, /* Addendum 135-2012az */
     OBJECT_NETWORK_PORT = 56,   /* Addendum 135-2012az */
+    OBJECT_ELEVATOR_GROUP = 57,   /* Addendum 135-2012aq */
+    OBJECT_ESCALATOR = 58,   /* Addendum 135-2012aq */
+    OBJECT_LIFT = 59,   /* Addendum 135-2012aq */
+    OBJECT_STAGING = 60,   /* Addendum 135-2016bd */
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */

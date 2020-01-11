@@ -18,28 +18,33 @@ LFLAGS += $(LIBS)
 endif
 
 #DEFINES = $(BACNET_DEFINES) -DBACDL_MSTP -DBACDL_BIP
-BACNET_SOURCE_DIR = ../../src
+SOURCE_DIR = ../../src
+BACNET_SOURCE_DIR = ${SOURCE_DIR}/bacnet
 
 SRCS = main.c \
 	${BACNET_PORT_DIR}/rs485.c \
-	${BACNET_PORT_DIR}/timer.c \
+	${BACNET_PORT_DIR}/mstimer-init.c \
 	${BACNET_PORT_DIR}/bip-init.c \
 	${BACNET_PORT_DIR}/dlmstp_linux.c \
-	${BACNET_SOURCE_DIR}/bip.c \
-	${BACNET_SOURCE_DIR}/bvlc.c \
-	${BACNET_SOURCE_DIR}/fifo.c \
-	${BACNET_SOURCE_DIR}/mstp.c \
-	${BACNET_SOURCE_DIR}/mstptext.c \
-	${BACNET_SOURCE_DIR}/debug.c \
+	${BACNET_SOURCE_DIR}/datalink/bip.c \
+	${BACNET_SOURCE_DIR}/datalink/bvlc.c \
+	${BACNET_SOURCE_DIR}/basic/sys/fifo.c \
+	${BACNET_SOURCE_DIR}/datalink/mstp.c \
+	${BACNET_SOURCE_DIR}/datalink/mstptext.c \
+	${BACNET_SOURCE_DIR}/basic/sys/debug.c \
 	${BACNET_SOURCE_DIR}/indtext.c \
-	${BACNET_SOURCE_DIR}/ringbuf.c \
-	${BACNET_SOURCE_DIR}/crc.c \
+	${BACNET_SOURCE_DIR}/basic/sys/ringbuf.c \
+	${BACNET_SOURCE_DIR}/datalink/crc.c \
+	${BACNET_SOURCE_DIR}/bacint.c \
+	${BACNET_SOURCE_DIR}/npdu.c \
+	${BACNET_SOURCE_DIR}/bacaddr.c \
 	mstpmodule.c \
 	ipmodule.c \
 	portthread.c \
 	msgqueue.c \
 	network_layer.c
 	
+CFLAGS = -I${SOURCE_DIR} -I${BACNET_PORT_DIR}
 
 OBJS = ${SRCS:.c=.o}
 
