@@ -371,10 +371,14 @@ set(BACNETSTACK_SRCS
     src/bacnet/wpm.c
     src/bacnet/wpm.h)
 
+set(BACNET_PORT_DIRECTORY_PATH "")
+
 if(${CMAKE_SYSTEM_NAME}
    STREQUAL
    "Linux")
   message(STATUS "BACNET: building for linux")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux/)
+
   list(
     APPEND BACNETSTACK_SRCS
            ports/linux/arcnet.c
@@ -395,6 +399,8 @@ endif()
 
 if(WIN32)
   message(STATUS "BACNET: building for win32")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32/)
+
   list(
     APPEND BACNETSTACK_SRCS
            ports/win32/bacport.h
@@ -419,11 +425,7 @@ endif()
 add_library(${PROJECT_NAME} ${BACNETSTACK_SRCS})
 target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/>
                                                   $<INSTALL_INTERFACE:include/bacnet/>)
-if(LINUX)
-  target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ports/linux/>)
-elseif(WIN32)
-  target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ports/win32/>)
-endif()
+target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}/>)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
                                                   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>)
@@ -583,6 +585,13 @@ install(
 
 install(
   DIRECTORY src/bacnet
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT dev
+  FILES_MATCHING
+  PATTERN "*.h")
+
+install(
+  DIRECTORY ${BACNET_PORT_DIRECTORY_PATH}
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   COMPONENT dev
   FILES_MATCHING
