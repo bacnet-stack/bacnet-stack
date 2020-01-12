@@ -390,11 +390,9 @@ if(${CMAKE_SYSTEM_NAME}
            ports/linux/dlmstp_linux.h
            ports/linux/ethernet.c
            ports/linux/mstpsnap.c
-           ports/linux/net.h
+           ports/linux/bacport.h
            ports/linux/rs485.c
-           ports/linux/rs485.h
-           ports/linux/timer.c
-           ports/linux/timer.h)
+           ports/linux/rs485.h )
 endif()
 
 if(WIN32)
