@@ -12,7 +12,7 @@ project(
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"
-  OFF)
+  ON)
 
 option(
   BAC_ROUTING
@@ -29,6 +29,32 @@ option(
   "compile the piface app"
   OFF)
 
+option(
+  BACDL_ETHERNET
+  "compile with ethernet support"
+  OFF)
+
+option(
+  BACDL_MSTP
+  "compile with mstp support"
+  OFF)
+
+option(
+  BACDL_ARCNET
+  "compile with arcnet support"
+  OFF)
+
+option(
+  BACDL_BIP
+  "compile with ip support"
+  ON)
+
+option(
+  BACDL_BIP6
+  "compile with ipv6 support"
+  OFF)
+
+set(BACNET_PROTOCOL_REVISION 19)
 
 message(STATUS "BACNET: using cmake ${CMAKE_VERSION}")
 message(STATUS "BACNET: CMAKE_C_COMPILER_ID \"${CMAKE_C_COMPILER_ID}\"")
@@ -36,6 +62,12 @@ message(STATUS "BACNET: CMAKE_C_COMPILER_VERSION \"${CMAKE_C_COMPILER_VERSION}\"
 message(STATUS "BACNET: CMAKE_CXX_COMPILER_ID \"${CMAKE_CXX_COMPILER_ID}\"")
 message(STATUS "BACNET: CMAKE_CXX_COMPILER_VERSION \"${CMAKE_CXX_COMPILER_VERSION}\"")
 message(STATUS "BACNET: CMAKE_INSTALL_PREFIX \"${CMAKE_INSTALL_PREFIX}\"")
+message(STATUS "BACNET: BACNET_PROTOCOL_REVISION \"${BACNET_PROTOCOL_REVISION}\"")
+message(STATUS "BACNET: BACDL_BIP6 \"${BACDL_BIP6}\"")
+message(STATUS "BACNET: BACDL_BIP \"${BACDL_BIP}\"")
+message(STATUS "BACNET: BACDL_ARCNET \"${BACDL_ARCNET}\"")
+message(STATUS "BACNET: BACDL_MSTP \"${BACDL_MSTP}\"")
+message(STATUS "BACNET: BACDL_ETHERNET \"${BACDL_ETHERNET}\"")
 
 #
 # sources
@@ -85,10 +117,10 @@ set(BACNETSTACK_SRCS
     src/bacnet/bactext.h
     src/bacnet/bactimevalue.c
     src/bacnet/bactimevalue.h
-    src/bacnet/basic/bbmd6/h_bbmd6.c
-    src/bacnet/basic/bbmd6/h_bbmd6.h
-    src/bacnet/basic/bbmd6/vmac.c
-    src/bacnet/basic/bbmd6/vmac.h
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
     src/bacnet/basic/binding/address.c
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c
@@ -125,7 +157,7 @@ set(BACNETSTACK_SRCS
     src/bacnet/basic/object/bv.h
     src/bacnet/basic/object/channel.c
     src/bacnet/basic/object/channel.h
-    src/bacnet/basic/object/client/device-client.c
+    # src/bacnet/basic/object/client/device-client.c
     src/bacnet/basic/object/command.c
     src/bacnet/basic/object/command.h
     src/bacnet/basic/object/credential_data_input.c
@@ -306,21 +338,21 @@ set(BACNETSTACK_SRCS
     src/bacnet/datalink/bacsec.c
     src/bacnet/datalink/bacsec.h
     src/bacnet/datalink/bip6.h
-    src/bacnet/datalink/bip.c
-    src/bacnet/datalink/bip.h
-    src/bacnet/datalink/bvlc6.c
-    src/bacnet/datalink/bvlc6.h
-    src/bacnet/datalink/bvlc.c
-    src/bacnet/datalink/bvlc.h
-    src/bacnet/datalink/crc.c
-    src/bacnet/datalink/crc.h
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.h>
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.c>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.c>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.h>
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.h>
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
     src/bacnet/datalink/datalink.c
     src/bacnet/datalink/datalink.h
     src/bacnet/datalink/dlenv.c
     src/bacnet/datalink/dlenv.h
     src/bacnet/datalink/dlmstp.h
     src/bacnet/datalink/ethernet.h
-    src/bacnet/datalink/mstp.c
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstp.h>
     src/bacnet/datalink/mstpdef.h
     src/bacnet/datalink/mstp.h
     src/bacnet/datalink/mstptext.c
@@ -393,17 +425,18 @@ if(${CMAKE_SYSTEM_NAME}
 
   list(
     APPEND BACNETSTACK_SRCS
-           ports/linux/arcnet.c
-           # ports/linux/bip6.c
-           # ports/linux/rx_fsm.c
-           ports/linux/bip-init.c
-           ports/linux/dlmstp.c
-           ports/linux/dlmstp_linux.c
-           ports/linux/dlmstp_linux.h
-           ports/linux/ethernet.c
            ports/linux/bacport.h
-           ports/linux/rs485.c
-           ports/linux/rs485.h)
+           ports/linux/datetime-init.c
+           $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
+           $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
+           $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
+           # ports/linux/rx_fsm.c
+           $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>)
 
 endif()
 
@@ -414,16 +447,16 @@ if(WIN32)
   list(
     APPEND BACNETSTACK_SRCS
            ports/win32/bacport.h
-           #  ports/win32/bip6.c
+           $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
+           $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
            # ports/win32/rx_fsm.c
-           ports/win32/bip-init.c
            ports/win32/datetime-init.c
-           #  ports/win32/dlmstp.c
+           $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
            #  ports/win32/dlmstp-mm.c
-           #  ports/win32/ethernet.c
+           $<$<BOOL:${BACDL_ETHERNET}>:ports/win32/ethernet.c>
            ports/win32/mstimer-init.c
-           ports/win32/rs485.c
-           ports/win32/rs485.h
+           $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>
            ports/win32/stdbool.h
            ports/win32/stdint.h)
 endif()
@@ -444,8 +477,13 @@ endif()
 # library
 #
 
+find_package(Threads)
+
 add_library(${PROJECT_NAME})
-target_sources(${PROJECT_NAME} PRIVATE ${BACNETSTACK_SRCS})
+target_sources(
+  ${PROJECT_NAME}
+  PRIVATE
+  ${BACNETSTACK_SRCS})
 target_include_directories(
   ${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/>
@@ -454,9 +492,16 @@ target_include_directories(
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
-  $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
-  $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>)
-target_link_libraries(${PROJECT_NAME} PUBLIC $<$<BOOL:${WIN32}>:-lwsock32>)
+  -DBACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
+  $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
+  $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
+  $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
+  $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
+  $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
+  $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
+  PRIVATE
+  -DPRINT_ENABLED=1)
+target_link_libraries(${PROJECT_NAME} PUBLIC $<$<BOOL:${WIN32}>:wsock32> Threads::Threads)
 
 add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
@@ -482,8 +527,8 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(error apps/error/main.c)
   target_link_libraries(error PRIVATE ${PROJECT_NAME})
 
-  add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
-  target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
+  # add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
+  # target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
 
   add_executable(getevent apps/getevent/main.c)
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
@@ -497,27 +542,29 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(initrouter apps/initrouter/main.c)
   target_link_libraries(initrouter PRIVATE ${PROJECT_NAME})
 
-  add_executable(mstpcap apps/mstpcap/main.c)
-  target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
+  if(BACDL_MSTP)
+    add_executable(mstpcap apps/mstpcap/main.c)
+    target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
 
-  add_executable(mstpcrc apps/mstpcrc/main.c)
-  target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
+    add_executable(mstpcrc apps/mstpcrc/main.c)
+    target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
+  endif()
 
   if(BACNET_BUILD_PIFACE_APP)
     add_executable(piface apps/piface/main.c apps/piface/device.c)
     target_link_libraries(piface PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_PIFACE_APP)
 
-  add_executable(
-    ptransfer
-    apps/ptransfer/main.c
-    apps/ptransfer/h_pt_a.h
-    apps/ptransfer/h_pt_a.c
-    apps/ptransfer/h_pt.h
-    apps/ptransfer/h_pt.c
-    apps/ptransfer/s_ptransfer.h
-    apps/ptransfer/s_ptransfer.c)
-  target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
+  # add_executable(
+  #   ptransfer
+  #   apps/ptransfer/main.c
+  #   apps/ptransfer/h_pt_a.h
+  #   apps/ptransfer/h_pt_a.c
+  #   apps/ptransfer/h_pt.h
+  #   apps/ptransfer/h_pt.c
+  #   apps/ptransfer/s_ptransfer.h
+  #   apps/ptransfer/s_ptransfer.c)
+  # target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
 
   add_executable(readbdt apps/readbdt/main.c)
   target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
@@ -537,12 +584,33 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(reinit apps/reinit/main.c)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
 
-  add_executable(router apps/router/main.c)
-  target_link_libraries(router PRIVATE ${PROJECT_NAME})
+  if(BACDL_MSTP)
+    add_executable(
+      router
+      apps/router/ipmodule.c
+      apps/router/ipmodule.h
+      apps/router/main.c
+      apps/router/msgqueue.c
+      apps/router/msgqueue.h
+      apps/router/mstpmodule.c
+      apps/router/mstpmodule.h
+      apps/router/network_layer.c
+      apps/router/network_layer.h
+      apps/router/portthread.c
+      apps/router/portthread.h)
 
-  add_executable(router-ipv6 apps/router-ipv6/main.c)
-  target_link_libraries(router-ipv6 PRIVATE ${PROJECT_NAME})
+    target_link_libraries(
+      router
+      PRIVATE ${PROJECT_NAME}
+              # needs libconfig
+              -lconfig)
+  endif()
 
+  if(BACDL_BIP6)
+    add_executable(router-ipv6 apps/router-ipv6/main.c)
+    target_link_libraries(router-ipv6 PRIVATE ${PROJECT_NAME})
+  endif()
+  
   add_executable(scov apps/scov/main.c)
   target_link_libraries(scov PRIVATE ${PROJECT_NAME})
 

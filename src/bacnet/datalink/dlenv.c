@@ -39,6 +39,11 @@
 #include "bacnet/basic/object/netport.h"
 #endif
 
+#if defined(BACDL_BIP6)
+#include "bacnet/datalink/bvlc6.h"
+#include "bacnet/datalink/bip6.h"
+#endif
+
 /** @file dlenv.c  Initialize the DataLink configuration. */
 
 #if defined(BACDL_BIP)
