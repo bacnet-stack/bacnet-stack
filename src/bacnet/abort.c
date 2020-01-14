@@ -60,6 +60,12 @@ BACNET_ABORT_REASON abort_convert_error_code(BACNET_ERROR_CODE error_code)
         case ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED:
             abort_code = ABORT_REASON_SEGMENTATION_NOT_SUPPORTED;
             break;
+        case ERROR_CODE_ABORT_SECURITY_ERROR:
+            abort_code = ABORT_REASON_SECURITY_ERROR;
+            break;
+        case ERROR_CODE_ABORT_INSUFFICIENT_SECURITY:
+            abort_code = ABORT_REASON_INSUFFICIENT_SECURITY;
+            break;
         case ERROR_CODE_ABORT_PROPRIETARY:
             abort_code = ABORT_REASON_PROPRIETARY_FIRST;
             break;
@@ -70,6 +76,48 @@ BACNET_ABORT_REASON abort_convert_error_code(BACNET_ERROR_CODE error_code)
     }
 
     return (abort_code);
+}
+
+/* Helper function to avoid needing additional entries in service data
+ * structures when passing back abort status. Convert from error code to abort
+ * code. Anything not defined converts to ABORT_REASON_OTHER. Will need
+ * reworking if it is required to return proprietary abort codes.
+ */
+BACNET_ERROR_CODE abort_convert_to_error_code(BACNET_ABORT_REASON abort_code)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_ABORT_OTHER;
+
+    switch (abort_code) {
+        case ABORT_REASON_BUFFER_OVERFLOW:
+            error_code = ERROR_CODE_ABORT_BUFFER_OVERFLOW;
+            break;
+        case ABORT_REASON_INVALID_APDU_IN_THIS_STATE:
+            error_code = ERROR_CODE_ABORT_INVALID_APDU_IN_THIS_STATE;
+            break;
+        case ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK:
+            error_code = ERROR_CODE_ABORT_PREEMPTED_BY_HIGHER_PRIORITY_TASK;
+            break;
+        case ABORT_REASON_SEGMENTATION_NOT_SUPPORTED:
+            error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            break;
+        case ABORT_REASON_SECURITY_ERROR:
+            error_code = ERROR_CODE_ABORT_SECURITY_ERROR;
+            break;
+        case ABORT_REASON_INSUFFICIENT_SECURITY:
+            error_code = ERROR_CODE_ABORT_INSUFFICIENT_SECURITY;
+            break;
+        case ABORT_REASON_OTHER:
+            error_code = ERROR_CODE_ABORT_OTHER;
+            break;
+        default:
+            if ((abort_code >= ABORT_REASON_PROPRIETARY_FIRST) &&
+                (abort_code <= ABORT_REASON_PROPRIETARY_LAST)) {
+                error_code = ERROR_CODE_ABORT_PROPRIETARY;
+            }
+            break;
+    }
+
+    return (error_code);
 }
 
 /* encode service */
@@ -118,7 +166,7 @@ int abort_decode_service_request(
 #include "ctest.h"
 
 /* decode the whole APDU - mainly used for unit testing */
-int abort_decode_apdu(uint8_t *apdu,
+static int abort_decode_apdu(uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *abort_reason,
@@ -145,7 +193,7 @@ int abort_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-void testAbortAPDU(
+static void testAbortAPDU(
     Test *pTest, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
     uint8_t apdu[480] = { 0 };
@@ -168,7 +216,7 @@ void testAbortAPDU(
     return;
 }
 
-void testAbort(Test *pTest)
+static void testAbortEncodeDecode(Test *pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -213,6 +261,32 @@ void testAbort(Test *pTest)
             testAbortAPDU(pTest, invoke_id, abort_reason, true);
         }
     }
+}
+
+static void testAbortError(Test *pTest)
+{
+    int i;
+    BACNET_ERROR_CODE error_code;
+    BACNET_ABORT_REASON abort_code;
+    BACNET_ABORT_REASON test_abort_code;
+
+    for (i = 0; i < MAX_BACNET_ABORT_REASON; i++) {
+        abort_code = (BACNET_ABORT_REASON)i;
+        error_code = abort_convert_to_error_code(abort_code);
+        test_abort_code = abort_convert_error_code(error_code);
+        if (test_abort_code != abort_code) {
+            printf("Abort: result=%u abort-code=%u\n",
+                test_abort_code,
+                abort_code);
+        }
+        ct_test(pTest, test_abort_code == abort_code);
+    }
+}
+
+void testAbort(Test *pTest)
+{
+    testAbortEncodeDecode(pTest);
+    testAbortError(pTest);
 }
 
 #ifdef TEST_ABORT
