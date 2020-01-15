@@ -45,6 +45,10 @@ getevent:
 gateway:
 	$(MAKE) -s -C apps $@
 
+.PHONY: gateway-win32
+gateway-win32:
+	$(MAKE) BACNET_PORT=win32 -C apps gateway
+
 .PHONY: server
 server:
 	$(MAKE) -s -C apps $@

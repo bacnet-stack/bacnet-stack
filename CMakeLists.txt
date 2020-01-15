@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(bacnet-stack VERSION 0.8.6 LANGUAGES C)
+project(
+  bacnet-stack
+  VERSION 0.8.6
+  LANGUAGES C)
 
 #
 # options
@@ -9,408 +12,497 @@ project(bacnet-stack VERSION 0.8.6 LANGUAGES C)
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"
-  OFF)
+  ON)
 
 option(
   BAC_ROUTING
   "enable bac routing"
+  ON)
+
+option(
+  BACNET_PROPERTY_LISTS
+  "enable property lists"
+  ON)
+
+option(
+  BACNET_BUILD_PIFACE_APP
+  "compile the piface app"
   OFF)
+
+option(
+  BACDL_ETHERNET
+  "compile with ethernet support"
+  OFF)
+
+option(
+  BACDL_MSTP
+  "compile with mstp support"
+  OFF)
+
+option(
+  BACDL_ARCNET
+  "compile with arcnet support"
+  OFF)
+
+option(
+  BACDL_BIP
+  "compile with ip support"
+  ON)
+
+option(
+  BACDL_BIP6
+  "compile with ipv6 support"
+  OFF)
+
+set(BACNET_PROTOCOL_REVISION 19)
+
+message(STATUS "BACNET: using cmake ${CMAKE_VERSION}")
+message(STATUS "BACNET: CMAKE_C_COMPILER_ID \"${CMAKE_C_COMPILER_ID}\"")
+message(STATUS "BACNET: CMAKE_C_COMPILER_VERSION \"${CMAKE_C_COMPILER_VERSION}\"")
+message(STATUS "BACNET: CMAKE_CXX_COMPILER_ID \"${CMAKE_CXX_COMPILER_ID}\"")
+message(STATUS "BACNET: CMAKE_CXX_COMPILER_VERSION \"${CMAKE_CXX_COMPILER_VERSION}\"")
+message(STATUS "BACNET: CMAKE_INSTALL_PREFIX \"${CMAKE_INSTALL_PREFIX}\"")
+message(STATUS "BACNET: BACNET_PROTOCOL_REVISION \"${BACNET_PROTOCOL_REVISION}\"")
+message(STATUS "BACNET: BACDL_BIP6 \"${BACDL_BIP6}\"")
+message(STATUS "BACNET: BACDL_BIP \"${BACDL_BIP}\"")
+message(STATUS "BACNET: BACDL_ARCNET \"${BACDL_ARCNET}\"")
+message(STATUS "BACNET: BACDL_MSTP \"${BACDL_MSTP}\"")
+message(STATUS "BACNET: BACDL_ETHERNET \"${BACDL_ETHERNET}\"")
 
 #
 # sources
 #
 
 set(BACNETSTACK_SRCS
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/abort.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/abort.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/access_rule.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/access_rule.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/alarm_ack.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/alarm_ack.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/apdu.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/arf.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/arf.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/assigned_access_rights.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/assigned_access_rights.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/authentication_factor.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/authentication_factor_format.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/authentication_factor_format.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/authentication_factor.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/awf.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/awf.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacaddr.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacaddr.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacapp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacapp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacdcode.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacdcode.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacdef.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacdevobjpropref.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacdevobjpropref.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacenum.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacerror.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacerror.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacint.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacint.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacprop.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacprop.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacpropstates.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacpropstates.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacreal.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacreal.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacstr.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bacstr.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bactext.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bactext.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bactimevalue.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bactimevalue.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/bbmd6/h_bbmd6.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/bbmd6/h_bbmd6.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/bbmd6/vmac.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/bbmd6/vmac.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/binding/address.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/binding/address.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/npdu/h_npdu.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/npdu/h_npdu.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/npdu/h_routed_npdu.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/npdu/h_routed_npdu.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/npdu/s_router.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/npdu/s_router.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_credential.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_credential.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_door.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_door.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_point.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_point.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_rights.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_rights.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_user.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_user.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_zone.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/access_zone.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/ai.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/ai.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/ao.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/ao.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/av.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/av.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/bacfile.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/bacfile.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/bi.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/bi.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/bo.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/bo.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/bv.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/bv.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/channel.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/channel.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/client/device-client.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/command.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/command.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/credential_data_input.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/credential_data_input.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/csv.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/csv.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/device.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/device.h
-    $<$<BOOL:${BAC_ROUTING}>:${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/gateway/gw_device.c>
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/iv.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/iv.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/lc.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/lc.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/lo.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/lo.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/lsp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/lsp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/Makefile
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/ms-input.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/ms-input.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/mso.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/mso.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/msv.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/msv.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/nc.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/nc.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/netport.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/netport.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/objects.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/objects.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/osv.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/osv.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/piv.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/piv.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/schedule.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/schedule.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/trendlog.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/object/trendlog.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_alarm_ack.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_alarm_ack.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_apdu.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_apdu.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_arf_a.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_arf_a.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_arf.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_arf.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_awf.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_awf.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_ccov.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_ccov.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_cov.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_cov.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_dcc.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_dcc.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_gas_a.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_gas_a.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_get_alarm_sum.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_get_alarm_sum.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_getevent_a.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_getevent_a.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_getevent.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_getevent.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_iam.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_iam.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_ihave.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_ihave.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_lso.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_lso.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_noserv.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_noserv.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rd.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rd.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rp_a.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rp_a.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rpm_a.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rpm_a.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rpm.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rpm.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rr_a.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rr_a.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rr.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_rr.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_ts.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_ts.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_ucov.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_ucov.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_upt.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_upt.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_whohas.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_whohas.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_whois.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_whois.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_wp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_wp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_wpm.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/h_wpm.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_abort.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_abort.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_ack_alarm.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_ack_alarm.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_arfs.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_arfs.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_awfs.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_awfs.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_cevent.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_cevent.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_cov.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_cov.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_dcc.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_dcc.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_error.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_error.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_get_alarm_sum.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_get_alarm_sum.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_get_event.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_getevent.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_get_event.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_getevent.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_iam.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_iam.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_ihave.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_ihave.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_lso.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_lso.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_rd.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_rd.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_readrange.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_readrange.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_rp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_rp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_rpm.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_rpm.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_ts.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_ts.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_uevent.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_uevent.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_upt.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_upt.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_whohas.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_whohas.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_whois.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_whois.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_wp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_wp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_wpm.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/service/s_wpm.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/services.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/bigend.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/bigend.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/debug.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/debug.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/fifo.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/fifo.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/filename.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/filename.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/key.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/key.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/keylist.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/keylist.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/mstimer.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/mstimer.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/ringbuf.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/ringbuf.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/sbuf.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/sys/sbuf.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/tsm/tsm.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/basic/tsm/tsm.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bits.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/bytes.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/config.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/cov.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/cov.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/credential_authentication_factor.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/credential_authentication_factor.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/arcnet.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bacsec.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bacsec.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bip6.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bip.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bip.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bvlc6.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bvlc6.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bvlc.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/bvlc.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/crc.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/crc.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/datalink.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/datalink.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/dlenv.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/dlenv.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/dlmstp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/ethernet.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/mstp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/mstpdef.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/mstp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/mstptext.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datalink/mstptext.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datetime.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/datetime.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/dcc.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/dcc.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/event.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/event.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/get_alarm_sum.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/get_alarm_sum.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/getevent.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/getevent.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/iam.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/iam.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/ihave.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/ihave.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/indtext.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/indtext.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/lighting.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/lighting.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/lso.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/lso.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/memcopy.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/memcopy.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/npdu.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/npdu.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/property.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/property.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/proplist.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/proplist.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/ptransfer.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/ptransfer.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/rd.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/rd.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/readrange.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/readrange.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/reject.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/reject.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/rp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/rp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/rpm.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/rpm.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/timestamp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/timestamp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/timesync.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/timesync.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/version.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/whohas.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/whohas.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/whois.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/whois.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/wp.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/wp.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/wpm.c
-    ${CMAKE_CURRENT_LIST_DIR}/src/bacnet/wpm.h)
+    src/bacnet/abort.c
+    src/bacnet/abort.h
+    src/bacnet/access_rule.c
+    src/bacnet/access_rule.h
+    src/bacnet/alarm_ack.c
+    src/bacnet/alarm_ack.h
+    src/bacnet/apdu.h
+    src/bacnet/arf.c
+    src/bacnet/arf.h
+    src/bacnet/assigned_access_rights.c
+    src/bacnet/assigned_access_rights.h
+    src/bacnet/authentication_factor.c
+    src/bacnet/authentication_factor_format.c
+    src/bacnet/authentication_factor_format.h
+    src/bacnet/authentication_factor.h
+    src/bacnet/awf.c
+    src/bacnet/awf.h
+    src/bacnet/bacaddr.c
+    src/bacnet/bacaddr.h
+    src/bacnet/bacapp.c
+    src/bacnet/bacapp.h
+    src/bacnet/bacdcode.c
+    src/bacnet/bacdcode.h
+    src/bacnet/bacdef.h
+    src/bacnet/bacdevobjpropref.c
+    src/bacnet/bacdevobjpropref.h
+    src/bacnet/bacenum.h
+    src/bacnet/bacerror.c
+    src/bacnet/bacerror.h
+    src/bacnet/bacint.c
+    src/bacnet/bacint.h
+    src/bacnet/bacprop.c
+    src/bacnet/bacprop.h
+    src/bacnet/bacpropstates.c
+    src/bacnet/bacpropstates.h
+    src/bacnet/bacreal.c
+    src/bacnet/bacreal.h
+    src/bacnet/bacstr.c
+    src/bacnet/bacstr.h
+    src/bacnet/bactext.c
+    src/bacnet/bactext.h
+    src/bacnet/bactimevalue.c
+    src/bacnet/bactimevalue.h
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
+    src/bacnet/basic/binding/address.c
+    src/bacnet/basic/binding/address.h
+    src/bacnet/basic/npdu/h_npdu.c
+    src/bacnet/basic/npdu/h_npdu.h
+    src/bacnet/basic/npdu/h_routed_npdu.c
+    src/bacnet/basic/npdu/h_routed_npdu.h
+    src/bacnet/basic/npdu/s_router.c
+    src/bacnet/basic/npdu/s_router.h
+    src/bacnet/basic/object/access_credential.c
+    src/bacnet/basic/object/access_credential.h
+    src/bacnet/basic/object/access_door.c
+    src/bacnet/basic/object/access_door.h
+    src/bacnet/basic/object/access_point.c
+    src/bacnet/basic/object/access_point.h
+    src/bacnet/basic/object/access_rights.c
+    src/bacnet/basic/object/access_rights.h
+    src/bacnet/basic/object/access_user.c
+    src/bacnet/basic/object/access_user.h
+    src/bacnet/basic/object/access_zone.c
+    src/bacnet/basic/object/access_zone.h
+    src/bacnet/basic/object/ai.c
+    src/bacnet/basic/object/ai.h
+    src/bacnet/basic/object/ao.c
+    src/bacnet/basic/object/ao.h
+    src/bacnet/basic/object/av.c
+    src/bacnet/basic/object/av.h
+    src/bacnet/basic/object/bacfile.c
+    src/bacnet/basic/object/bacfile.h
+    src/bacnet/basic/object/bi.c
+    src/bacnet/basic/object/bi.h
+    src/bacnet/basic/object/bo.c
+    src/bacnet/basic/object/bo.h
+    src/bacnet/basic/object/bv.c
+    src/bacnet/basic/object/bv.h
+    src/bacnet/basic/object/channel.c
+    src/bacnet/basic/object/channel.h
+    # src/bacnet/basic/object/client/device-client.c
+    src/bacnet/basic/object/command.c
+    src/bacnet/basic/object/command.h
+    src/bacnet/basic/object/credential_data_input.c
+    src/bacnet/basic/object/credential_data_input.h
+    src/bacnet/basic/object/csv.c
+    src/bacnet/basic/object/csv.h
+    src/bacnet/basic/object/device.c
+    src/bacnet/basic/object/device.h
+    $<$<BOOL:${BAC_ROUTING}>:src/bacnet/basic/object/gateway/gw_device.c>
+    src/bacnet/basic/object/iv.c
+    src/bacnet/basic/object/iv.h
+    src/bacnet/basic/object/lc.c
+    src/bacnet/basic/object/lc.h
+    src/bacnet/basic/object/lo.c
+    src/bacnet/basic/object/lo.h
+    src/bacnet/basic/object/lsp.c
+    src/bacnet/basic/object/lsp.h
+    src/bacnet/basic/object/Makefile
+    src/bacnet/basic/object/ms-input.c
+    src/bacnet/basic/object/ms-input.h
+    src/bacnet/basic/object/mso.c
+    src/bacnet/basic/object/mso.h
+    src/bacnet/basic/object/msv.c
+    src/bacnet/basic/object/msv.h
+    src/bacnet/basic/object/nc.c
+    src/bacnet/basic/object/nc.h
+    src/bacnet/basic/object/netport.c
+    src/bacnet/basic/object/netport.h
+    src/bacnet/basic/object/objects.c
+    src/bacnet/basic/object/objects.h
+    src/bacnet/basic/object/osv.c
+    src/bacnet/basic/object/osv.h
+    src/bacnet/basic/object/piv.c
+    src/bacnet/basic/object/piv.h
+    src/bacnet/basic/object/schedule.c
+    src/bacnet/basic/object/schedule.h
+    src/bacnet/basic/object/trendlog.c
+    src/bacnet/basic/object/trendlog.h
+    src/bacnet/basic/service/h_alarm_ack.c
+    src/bacnet/basic/service/h_alarm_ack.h
+    src/bacnet/basic/service/h_apdu.c
+    src/bacnet/basic/service/h_apdu.h
+    src/bacnet/basic/service/h_arf_a.c
+    src/bacnet/basic/service/h_arf_a.h
+    src/bacnet/basic/service/h_arf.c
+    src/bacnet/basic/service/h_arf.h
+    src/bacnet/basic/service/h_awf.c
+    src/bacnet/basic/service/h_awf.h
+    src/bacnet/basic/service/h_ccov.c
+    src/bacnet/basic/service/h_ccov.h
+    src/bacnet/basic/service/h_cov.c
+    src/bacnet/basic/service/h_cov.h
+    src/bacnet/basic/service/h_dcc.c
+    src/bacnet/basic/service/h_dcc.h
+    src/bacnet/basic/service/h_gas_a.c
+    src/bacnet/basic/service/h_gas_a.h
+    src/bacnet/basic/service/h_get_alarm_sum.c
+    src/bacnet/basic/service/h_get_alarm_sum.h
+    src/bacnet/basic/service/h_getevent_a.c
+    src/bacnet/basic/service/h_getevent_a.h
+    src/bacnet/basic/service/h_getevent.c
+    src/bacnet/basic/service/h_getevent.h
+    src/bacnet/basic/service/h_iam.c
+    src/bacnet/basic/service/h_iam.h
+    src/bacnet/basic/service/h_ihave.c
+    src/bacnet/basic/service/h_ihave.h
+    src/bacnet/basic/service/h_lso.c
+    src/bacnet/basic/service/h_lso.h
+    src/bacnet/basic/service/h_noserv.c
+    src/bacnet/basic/service/h_noserv.h
+    src/bacnet/basic/service/h_rd.c
+    src/bacnet/basic/service/h_rd.h
+    src/bacnet/basic/service/h_rp_a.c
+    src/bacnet/basic/service/h_rp_a.h
+    src/bacnet/basic/service/h_rp.c
+    src/bacnet/basic/service/h_rp.h
+    src/bacnet/basic/service/h_rpm_a.c
+    src/bacnet/basic/service/h_rpm_a.h
+    src/bacnet/basic/service/h_rpm.c
+    src/bacnet/basic/service/h_rpm.h
+    src/bacnet/basic/service/h_rr_a.c
+    src/bacnet/basic/service/h_rr_a.h
+    src/bacnet/basic/service/h_rr.c
+    src/bacnet/basic/service/h_rr.h
+    src/bacnet/basic/service/h_ts.c
+    src/bacnet/basic/service/h_ts.h
+    src/bacnet/basic/service/h_ucov.c
+    src/bacnet/basic/service/h_ucov.h
+    src/bacnet/basic/service/h_upt.c
+    src/bacnet/basic/service/h_upt.h
+    src/bacnet/basic/service/h_whohas.c
+    src/bacnet/basic/service/h_whohas.h
+    src/bacnet/basic/service/h_whois.c
+    src/bacnet/basic/service/h_whois.h
+    src/bacnet/basic/service/h_wp.c
+    src/bacnet/basic/service/h_wp.h
+    src/bacnet/basic/service/h_wpm.c
+    src/bacnet/basic/service/h_wpm.h
+    src/bacnet/basic/service/s_abort.c
+    src/bacnet/basic/service/s_abort.h
+    src/bacnet/basic/service/s_ack_alarm.c
+    src/bacnet/basic/service/s_ack_alarm.h
+    src/bacnet/basic/service/s_arfs.c
+    src/bacnet/basic/service/s_arfs.h
+    src/bacnet/basic/service/s_awfs.c
+    src/bacnet/basic/service/s_awfs.h
+    src/bacnet/basic/service/s_cevent.c
+    src/bacnet/basic/service/s_cevent.h
+    src/bacnet/basic/service/s_cov.c
+    src/bacnet/basic/service/s_cov.h
+    src/bacnet/basic/service/s_dcc.c
+    src/bacnet/basic/service/s_dcc.h
+    src/bacnet/basic/service/s_error.c
+    src/bacnet/basic/service/s_error.h
+    src/bacnet/basic/service/s_get_alarm_sum.c
+    src/bacnet/basic/service/s_get_alarm_sum.h
+    src/bacnet/basic/service/s_get_event.c
+    src/bacnet/basic/service/s_getevent.c
+    src/bacnet/basic/service/s_get_event.h
+    src/bacnet/basic/service/s_getevent.h
+    src/bacnet/basic/service/s_iam.c
+    src/bacnet/basic/service/s_iam.h
+    src/bacnet/basic/service/s_ihave.c
+    src/bacnet/basic/service/s_ihave.h
+    src/bacnet/basic/service/s_lso.c
+    src/bacnet/basic/service/s_lso.h
+    src/bacnet/basic/service/s_rd.c
+    src/bacnet/basic/service/s_rd.h
+    src/bacnet/basic/service/s_readrange.c
+    src/bacnet/basic/service/s_readrange.h
+    src/bacnet/basic/service/s_rp.c
+    src/bacnet/basic/service/s_rp.h
+    src/bacnet/basic/service/s_rpm.c
+    src/bacnet/basic/service/s_rpm.h
+    src/bacnet/basic/service/s_ts.c
+    src/bacnet/basic/service/s_ts.h
+    src/bacnet/basic/service/s_uevent.c
+    src/bacnet/basic/service/s_uevent.h
+    src/bacnet/basic/service/s_upt.c
+    src/bacnet/basic/service/s_upt.h
+    src/bacnet/basic/service/s_whohas.c
+    src/bacnet/basic/service/s_whohas.h
+    src/bacnet/basic/service/s_whois.c
+    src/bacnet/basic/service/s_whois.h
+    src/bacnet/basic/service/s_wp.c
+    src/bacnet/basic/service/s_wp.h
+    src/bacnet/basic/service/s_wpm.c
+    src/bacnet/basic/service/s_wpm.h
+    src/bacnet/basic/services.h
+    src/bacnet/basic/sys/bigend.c
+    src/bacnet/basic/sys/bigend.h
+    src/bacnet/basic/sys/debug.c
+    src/bacnet/basic/sys/debug.h
+    src/bacnet/basic/sys/fifo.c
+    src/bacnet/basic/sys/fifo.h
+    src/bacnet/basic/sys/filename.c
+    src/bacnet/basic/sys/filename.h
+    src/bacnet/basic/sys/key.c
+    src/bacnet/basic/sys/key.h
+    src/bacnet/basic/sys/keylist.c
+    src/bacnet/basic/sys/keylist.h
+    src/bacnet/basic/sys/mstimer.c
+    src/bacnet/basic/sys/mstimer.h
+    src/bacnet/basic/sys/ringbuf.c
+    src/bacnet/basic/sys/ringbuf.h
+    src/bacnet/basic/sys/sbuf.c
+    src/bacnet/basic/sys/sbuf.h
+    src/bacnet/basic/tsm/tsm.c
+    src/bacnet/basic/tsm/tsm.h
+    src/bacnet/bits.h
+    src/bacnet/bytes.h
+    src/bacnet/config.h
+    src/bacnet/cov.c
+    src/bacnet/cov.h
+    src/bacnet/credential_authentication_factor.c
+    src/bacnet/credential_authentication_factor.h
+    src/bacnet/datalink/arcnet.h
+    src/bacnet/datalink/bacsec.c
+    src/bacnet/datalink/bacsec.h
+    src/bacnet/datalink/bip6.h
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.h>
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.c>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.c>
+    $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.h>
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.h>
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
+    src/bacnet/datalink/datalink.c
+    src/bacnet/datalink/datalink.h
+    src/bacnet/datalink/dlenv.c
+    src/bacnet/datalink/dlenv.h
+    src/bacnet/datalink/dlmstp.h
+    src/bacnet/datalink/ethernet.h
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/mstp.h>
+    src/bacnet/datalink/mstpdef.h
+    src/bacnet/datalink/mstp.h
+    src/bacnet/datalink/mstptext.c
+    src/bacnet/datalink/mstptext.h
+    src/bacnet/datetime.c
+    src/bacnet/datetime.h
+    src/bacnet/dcc.c
+    src/bacnet/dcc.h
+    src/bacnet/event.c
+    src/bacnet/event.h
+    src/bacnet/get_alarm_sum.c
+    src/bacnet/get_alarm_sum.h
+    src/bacnet/getevent.c
+    src/bacnet/getevent.h
+    src/bacnet/iam.c
+    src/bacnet/iam.h
+    src/bacnet/ihave.c
+    src/bacnet/ihave.h
+    src/bacnet/indtext.c
+    src/bacnet/indtext.h
+    src/bacnet/lighting.c
+    src/bacnet/lighting.h
+    src/bacnet/lso.c
+    src/bacnet/lso.h
+    src/bacnet/memcopy.c
+    src/bacnet/memcopy.h
+    src/bacnet/npdu.c
+    src/bacnet/npdu.h
+    src/bacnet/property.c
+    src/bacnet/property.h
+    src/bacnet/proplist.c
+    src/bacnet/proplist.h
+    src/bacnet/ptransfer.c
+    src/bacnet/ptransfer.h
+    src/bacnet/rd.c
+    src/bacnet/rd.h
+    src/bacnet/readrange.c
+    src/bacnet/readrange.h
+    src/bacnet/reject.c
+    src/bacnet/reject.h
+    src/bacnet/rp.c
+    src/bacnet/rp.h
+    src/bacnet/rpm.c
+    src/bacnet/rpm.h
+    src/bacnet/timestamp.c
+    src/bacnet/timestamp.h
+    src/bacnet/timesync.c
+    src/bacnet/timesync.h
+    src/bacnet/version.h
+    src/bacnet/whohas.c
+    src/bacnet/whohas.h
+    src/bacnet/whois.c
+    src/bacnet/whois.h
+    src/bacnet/wp.c
+    src/bacnet/wp.h
+    src/bacnet/wpm.c
+    src/bacnet/wpm.h)
 
-if(LINUX)
+#
+# add ports
+#
+
+set(BACNET_PORT_DIRECTORY_PATH "")
+
+if(${CMAKE_SYSTEM_NAME}
+   STREQUAL
+   "Linux")
+  message(STATUS "BACNET: building for linux")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
+
   list(
     APPEND BACNETSTACK_SRCS
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/arcnet.c
-           # ${CMAKE_CURRENT_LIST_DIR}/ports/linux/bip6.c
-           # ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rx_fsm.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/bip-init.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp_linux.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/dlmstp_linux.h
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/ethernet.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/mstpsnap.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/net.h
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rs485.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/rs485.h
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/timer.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/linux/timer.h)
-elseif(WIN32)
+           ports/linux/bacport.h
+           ports/linux/datetime-init.c
+           $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
+           $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
+           $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
+           # ports/linux/rx_fsm.c
+           $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>)
+
+endif()
+
+if(WIN32)
+  message(STATUS "BACNET: building for win32")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
+
   list(
     APPEND BACNETSTACK_SRCS
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bacport.h
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bip6.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/bip-init.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/datetime-init.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp.cbp
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/dlmstp-mm.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/ethernet.c
-           # ${CMAKE_CURRENT_LIST_DIR}/ports/win32/main.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/mstimer-init.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rs485.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rs485.h
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rx_fsm.c
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/rx_fsm.cbp
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/stdbool.h
-           ${CMAKE_CURRENT_LIST_DIR}/ports/win32/stdint.h)
+           ports/win32/bacport.h
+           $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
+           $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
+           # ports/win32/rx_fsm.c
+           ports/win32/datetime-init.c
+           $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
+           #  ports/win32/dlmstp-mm.c
+           $<$<BOOL:${BACDL_ETHERNET}>:ports/win32/ethernet.c>
+           ports/win32/mstimer-init.c
+           $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
+           $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>
+           ports/win32/stdbool.h
+           ports/win32/stdint.h)
+endif()
+
+if(APPLE)
+  message(STATUS "BACNET: building for APPLE")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  list(
+    APPEND BACNETSTACK_SRCS
+           ports/bsd/bacport.h
+           ports/bsd/bip-init.c
+           ports/bsd/datetime-init.c
+           ports/bsd/mstimer-init.c
+           ports/bsd/stdbool.h)
 endif()
 
 #
 # library
 #
 
-add_library(${PROJECT_NAME} ${BACNETSTACK_SRCS})
+find_package(Threads)
+
+add_library(${PROJECT_NAME})
+target_sources(
+  ${PROJECT_NAME}
+  PRIVATE
+  ${BACNETSTACK_SRCS})
 target_include_directories(
   ${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/bacnet/>
-         $<INSTALL_INTERFACE:include/bacnet/>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ports/linux/>)
+         $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>
+         $<INSTALL_INTERFACE:include/bacnet/>)
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
-  $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>)
+  -DBACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
+  $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
+  $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
+  $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
+  $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
+  $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
+  $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
+  PRIVATE
+  -DPRINT_ENABLED=1)
+target_link_libraries(${PROJECT_NAME} PUBLIC $<$<BOOL:${WIN32}>:wsock32> Threads::Threads)
+
 add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
   ALIAS
@@ -421,72 +513,138 @@ add_library(
 #
 
 if(BACNET_STACK_BUILD_APPS)
-  message(STATUS "BACNET: compilinng also apps")
-  add_executable(abort ${CMAKE_CURRENT_LIST_DIR}/apps/abort/main.c)
+  message(STATUS "BACNET: compiling also apps")
+
+  add_executable(abort apps/abort/main.c)
   target_link_libraries(abort PRIVATE ${PROJECT_NAME})
-  add_executable(dcc ${CMAKE_CURRENT_LIST_DIR}/apps/dcc/main.c)
+
+  add_executable(dcc apps/dcc/main.c)
   target_link_libraries(dcc PRIVATE ${PROJECT_NAME})
-  add_executable(epics ${CMAKE_CURRENT_LIST_DIR}/apps/epics/main.c)
+
+  add_executable(epics apps/epics/main.c)
   target_link_libraries(epics PRIVATE ${PROJECT_NAME})
-  add_executable(error ${CMAKE_CURRENT_LIST_DIR}/apps/error/main.c)
+
+  add_executable(error apps/error/main.c)
   target_link_libraries(error PRIVATE ${PROJECT_NAME})
-  add_executable(gateway ${CMAKE_CURRENT_LIST_DIR}/apps/gateway/main.c)
-  target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
-  add_executable(getevent ${CMAKE_CURRENT_LIST_DIR}/apps/getevent/main.c)
+
+  # add_executable(gateway apps/gateway/main.c apps/gateway/gateway.h)
+  # target_link_libraries(gateway PRIVATE ${PROJECT_NAME})
+
+  add_executable(getevent apps/getevent/main.c)
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
-  add_executable(iam ${CMAKE_CURRENT_LIST_DIR}/apps/iam/main.c)
+
+  add_executable(iam apps/iam/main.c)
   target_link_libraries(iam PRIVATE ${PROJECT_NAME})
-  add_executable(iamrouter ${CMAKE_CURRENT_LIST_DIR}/apps/iamrouter/main.c)
+
+  add_executable(iamrouter apps/iamrouter/main.c)
   target_link_libraries(iamrouter PRIVATE ${PROJECT_NAME})
-  add_executable(initrouter ${CMAKE_CURRENT_LIST_DIR}/apps/initrouter/main.c)
+
+  add_executable(initrouter apps/initrouter/main.c)
   target_link_libraries(initrouter PRIVATE ${PROJECT_NAME})
-  add_executable(mstpcap ${CMAKE_CURRENT_LIST_DIR}/apps/mstpcap/main.c)
-  target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
-  add_executable(mstpcrc ${CMAKE_CURRENT_LIST_DIR}/apps/mstpcrc/main.c)
-  target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
-  add_executable(piface ${CMAKE_CURRENT_LIST_DIR}/apps/piface/main.c)
-  target_link_libraries(piface PRIVATE ${PROJECT_NAME})
-  add_executable(ptransfer ${CMAKE_CURRENT_LIST_DIR}/apps/ptransfer/main.c)
-  target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
-  add_executable(readbdt ${CMAKE_CURRENT_LIST_DIR}/apps/readbdt/main.c)
+
+  if(BACDL_MSTP)
+    add_executable(mstpcap apps/mstpcap/main.c)
+    target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})
+
+    add_executable(mstpcrc apps/mstpcrc/main.c)
+    target_link_libraries(mstpcrc PRIVATE ${PROJECT_NAME})
+  endif()
+
+  if(BACNET_BUILD_PIFACE_APP)
+    add_executable(piface apps/piface/main.c apps/piface/device.c)
+    target_link_libraries(piface PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_PIFACE_APP)
+
+  # add_executable(
+  #   ptransfer
+  #   apps/ptransfer/main.c
+  #   apps/ptransfer/h_pt_a.h
+  #   apps/ptransfer/h_pt_a.c
+  #   apps/ptransfer/h_pt.h
+  #   apps/ptransfer/h_pt.c
+  #   apps/ptransfer/s_ptransfer.h
+  #   apps/ptransfer/s_ptransfer.c)
+  # target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
+
+  add_executable(readbdt apps/readbdt/main.c)
   target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
-  add_executable(readfile ${CMAKE_CURRENT_LIST_DIR}/apps/readfile/main.c)
+
+  add_executable(readfile apps/readfile/main.c)
   target_link_libraries(readfile PRIVATE ${PROJECT_NAME})
-  add_executable(readprop ${CMAKE_CURRENT_LIST_DIR}/apps/readprop/main.c)
+
+  add_executable(readprop apps/readprop/main.c)
   target_link_libraries(readprop PRIVATE ${PROJECT_NAME})
-  add_executable(readpropm ${CMAKE_CURRENT_LIST_DIR}/apps/readpropm/main.c)
+
+  add_executable(readpropm apps/readpropm/main.c)
   target_link_libraries(readpropm PRIVATE ${PROJECT_NAME})
-  add_executable(readrange ${CMAKE_CURRENT_LIST_DIR}/apps/readrange/main.c)
+
+  add_executable(readrange apps/readrange/main.c)
   target_link_libraries(readrange PRIVATE ${PROJECT_NAME})
-  add_executable(reinit ${CMAKE_CURRENT_LIST_DIR}/apps/reinit/main.c)
+
+  add_executable(reinit apps/reinit/main.c)
   target_link_libraries(reinit PRIVATE ${PROJECT_NAME})
-  add_executable(router ${CMAKE_CURRENT_LIST_DIR}/apps/router/main.c)
-  target_link_libraries(router PRIVATE ${PROJECT_NAME})
-  add_executable(router-ipv6 ${CMAKE_CURRENT_LIST_DIR}/apps/router-ipv6/main.c)
-  target_link_libraries(router PRIVATE ${PROJECT_NAME})
-  add_executable(scov ${CMAKE_CURRENT_LIST_DIR}/apps/scov/main.c)
+
+  if(BACDL_MSTP)
+    add_executable(
+      router
+      apps/router/ipmodule.c
+      apps/router/ipmodule.h
+      apps/router/main.c
+      apps/router/msgqueue.c
+      apps/router/msgqueue.h
+      apps/router/mstpmodule.c
+      apps/router/mstpmodule.h
+      apps/router/network_layer.c
+      apps/router/network_layer.h
+      apps/router/portthread.c
+      apps/router/portthread.h)
+
+    target_link_libraries(
+      router
+      PRIVATE ${PROJECT_NAME}
+              # needs libconfig
+              -lconfig)
+  endif()
+
+  if(BACDL_BIP6)
+    add_executable(router-ipv6 apps/router-ipv6/main.c)
+    target_link_libraries(router-ipv6 PRIVATE ${PROJECT_NAME})
+  endif()
+  
+  add_executable(scov apps/scov/main.c)
   target_link_libraries(scov PRIVATE ${PROJECT_NAME})
-  add_executable(server ${CMAKE_CURRENT_LIST_DIR}/apps/server/main.c)
+
+  add_executable(server apps/server/main.c)
   target_link_libraries(server PRIVATE ${PROJECT_NAME})
-  add_executable(timesync ${CMAKE_CURRENT_LIST_DIR}/apps/timesync/main.c)
+
+  add_executable(timesync apps/timesync/main.c)
   target_link_libraries(timesync PRIVATE ${PROJECT_NAME})
-  add_executable(ucov ${CMAKE_CURRENT_LIST_DIR}/apps/ucov/main.c)
+
+  add_executable(ucov apps/ucov/main.c)
   target_link_libraries(ucov PRIVATE ${PROJECT_NAME})
-  add_executable(uevent ${CMAKE_CURRENT_LIST_DIR}/apps/uevent/main.c)
+
+  add_executable(uevent apps/uevent/main.c)
   target_link_libraries(uevent PRIVATE ${PROJECT_NAME})
-  add_executable(uptransfer ${CMAKE_CURRENT_LIST_DIR}/apps/uptransfer/main.c)
+
+  add_executable(uptransfer apps/uptransfer/main.c)
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
-  add_executable(whohas ${CMAKE_CURRENT_LIST_DIR}/apps/whohas/main.c)
+
+  add_executable(whohas apps/whohas/main.c)
   target_link_libraries(whohas PRIVATE ${PROJECT_NAME})
-  add_executable(whois ${CMAKE_CURRENT_LIST_DIR}/apps/whois/main.c)
+
+  add_executable(whois apps/whois/main.c)
   target_link_libraries(whois PRIVATE ${PROJECT_NAME})
-  add_executable(whoisrouter ${CMAKE_CURRENT_LIST_DIR}/apps/whoisrouter/main.c)
+
+  add_executable(whoisrouter apps/whoisrouter/main.c)
   target_link_libraries(whoisrouter PRIVATE ${PROJECT_NAME})
-  add_executable(writefile ${CMAKE_CURRENT_LIST_DIR}/apps/writefile/main.c)
+
+  add_executable(writefile apps/writefile/main.c)
   target_link_libraries(writefile PRIVATE ${PROJECT_NAME})
-  add_executable(writeprop ${CMAKE_CURRENT_LIST_DIR}/apps/writeprop/main.c)
+
+  add_executable(writeprop apps/writeprop/main.c)
   target_link_libraries(writeprop PRIVATE ${PROJECT_NAME})
-  add_executable(writepropm ${CMAKE_CURRENT_LIST_DIR}/apps/writepropm/main.c)
+
+  add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
 endif()
 
@@ -498,30 +656,40 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 set(BACNET_STACK_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-install(TARGETS ${PROJECT_NAME}
-        EXPORT ${PROJECT_NAME}Targets
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
 
-install(EXPORT ${PROJECT_NAME}Targets
-        DESTINATION ${BACNET_STACK_CONFIG_INSTALL_DIR}
-        NAMESPACE ${PROJECT_NAME}::
-        COMPONENT dev)
+install(
+  EXPORT ${PROJECT_NAME}Targets
+  DESTINATION ${BACNET_STACK_CONFIG_INSTALL_DIR}
+  NAMESPACE ${PROJECT_NAME}::
+  COMPONENT dev)
 
-configure_package_config_file(cmake/Config.cmake.in
-                              ${PROJECT_NAME}Config.cmake
-                              INSTALL_DESTINATION
-                              ${BACNET_STACK_CONFIG_INSTALL_DIR})
-write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake
-                                 COMPATIBILITY SameMajorVersion)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-        DESTINATION ${BACNET_STACK_CONFIG_INSTALL_DIR}
-        COMPONENT dev)
+configure_package_config_file(
+  cmake/Config.cmake.in
+  ${PROJECT_NAME}Config.cmake
+  INSTALL_DESTINATION
+  ${BACNET_STACK_CONFIG_INSTALL_DIR})
+write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake COMPATIBILITY SameMajorVersion)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+  DESTINATION ${BACNET_STACK_CONFIG_INSTALL_DIR}
+  COMPONENT dev)
 
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/src/bacnet
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        COMPONENT dev
-        FILES_MATCHING
-        PATTERN "*.h")
- 
+install(
+  DIRECTORY src/bacnet
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT dev
+  FILES_MATCHING
+  PATTERN "*.h")
+
+install(
+  DIRECTORY ${BACNET_PORT_DIRECTORY_PATH}/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT dev
+  FILES_MATCHING
+  PATTERN "*.h")

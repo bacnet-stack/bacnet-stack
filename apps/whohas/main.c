@@ -117,7 +117,7 @@ static void print_help(char *filename)
            "The device-instance-min or max can be 0 to %d.\r\n"
            "\r\n"
            "Use either:\r\n"
-           "The object-type can be 0 to %d.\r\n"
+           "The object-type can be 0 to %d, or a string e.g. analog-output.\r\n"
            "The object-instance can be 0 to %d.\r\n"
            "or:\r\n"
            "The object-name can be any string of characters.\r\n",
@@ -157,7 +157,10 @@ int main(int argc, char *argv[])
     } else if (argc < 4) {
         /* bacwh 8 1234 */
         Target_Object_Instance_Min = Target_Object_Instance_Max = -1;
-        Target_Object_Type = strtol(argv[1], NULL, 0);
+        if (bactext_object_type_strtol(argv[1], &Target_Object_Type) == false) {
+            fprintf(stderr, "object-type=%s invalid\n", argv[1]);
+            return 1;
+        }
         Target_Object_Instance = strtol(argv[2], NULL, 0);
     } else if (argc < 5) {
         /* bacwh 0 4194303 "name" */
@@ -169,7 +172,10 @@ int main(int argc, char *argv[])
         /* bacwh 0 4194303 8 1234 */
         Target_Object_Instance_Min = strtol(argv[1], NULL, 0);
         Target_Object_Instance_Max = strtol(argv[2], NULL, 0);
-        Target_Object_Type = strtol(argv[3], NULL, 0);
+        if (bactext_object_type_strtol(argv[3], &Target_Object_Type) == false) {
+            fprintf(stderr, "object-type=%s invalid\n", argv[3]);
+            return 1;
+        }
         Target_Object_Instance = strtol(argv[4], NULL, 0);
     } else {
         print_usage(filename_remove_path(argv[0]));

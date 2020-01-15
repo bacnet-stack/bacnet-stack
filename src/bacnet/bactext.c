@@ -33,6 +33,7 @@
 ####COPYRIGHTEND####*/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "bacnet/indtext.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
@@ -41,6 +42,30 @@
 
 static const char *ASHRAE_Reserved_String = "Reserved for Use by ASHRAE";
 static const char *Vendor_Proprietary_String = "Vendor Proprietary Value";
+
+/* Search for a text value first based on the corresponding text list, then by
+ * attempting to convert to an integer value. */
+static bool bactext_strtol_index(INDTEXT_DATA *istring, const char *search_name, unsigned *found_index)
+{
+    char *endptr;
+    long value;
+
+    if (indtext_by_istring(istring, search_name, found_index) == true) {
+        return true;
+    } else {
+        value = strtol(search_name, &endptr, 0);
+        if (endptr == search_name) {
+            /* No digits found */
+            return false;
+        } else if (*endptr != '\0') {
+            /* Extra text found */
+            return false;
+        } else {
+            *found_index = (unsigned)value;
+            return true;
+        }
+    }
+}
 
 INDTEXT_DATA bacnet_confirmed_service_names[] = {
     { SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, "Acknowledge-Alarm" },
@@ -203,6 +228,12 @@ const char *bactext_object_type_name(unsigned index)
 bool bactext_object_type_index(const char *search_name, unsigned *found_index)
 {
     return indtext_by_istring(
+        bacnet_object_type_names, search_name, found_index);
+}
+
+bool bactext_object_type_strtol(const char *search_name, unsigned *found_index)
+{
+    return bactext_strtol_index(
         bacnet_object_type_names, search_name, found_index);
 }
 
@@ -660,6 +691,12 @@ bool bactext_property_index(const char *search_name, unsigned *found_index)
     return indtext_by_istring(bacnet_property_names, search_name, found_index);
 }
 
+bool bactext_property_strtol(const char *search_name, unsigned *found_index)
+{
+    return bactext_strtol_index(
+        bacnet_property_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_engineering_unit_names[] = {
     { UNITS_SQUARE_METERS, "square-meters" },
     { UNITS_SQUARE_FEET, "square-feet" },
@@ -784,8 +821,8 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
         "kilojoules-per-kilogram-dry-air" },
     { UNITS_MEGAJOULES_PER_KILOGRAM_DRY_AIR,
         "megajoules-per-kilogram-dry-air" },
-    { UNITS_KILOJOULES_PER_DEGREE_KELVIN, "kilojoules-per-degree-Kelvin" },
-    { UNITS_MEGAJOULES_PER_DEGREE_KELVIN, "megajoules-per-degree-Kelvin" },
+    { UNITS_KILOJOULES_PER_DEGREE_KELVIN, "kilojoules-per-degree-kelvin" },
+    { UNITS_MEGAJOULES_PER_DEGREE_KELVIN, "megajoules-per-degree-kelvin" },
     { UNITS_NEWTON, "newton" }, { UNITS_GRAMS_PER_SECOND, "grams-per-second" },
     { UNITS_GRAMS_PER_MINUTE, "grams-per-minute" },
     { UNITS_TONS_PER_HOUR, "tons-per-hour" },
@@ -806,12 +843,12 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
     { UNITS_OHM_METERS, "ohm-meters" }, { UNITS_SIEMENS, "siemens" },
     { UNITS_SIEMENS_PER_METER, "siemens-per-meter" },
     { UNITS_TESLAS, "teslas" },
-    { UNITS_VOLTS_PER_DEGREE_KELVIN, "volts-per-degree-Kelvin" },
+    { UNITS_VOLTS_PER_DEGREE_KELVIN, "volts-per-degree-kelvin" },
     { UNITS_VOLTS_PER_METER, "volts-per-meter" }, { UNITS_WEBERS, "webers" },
     { UNITS_CANDELAS, "candelas" },
     { UNITS_CANDELAS_PER_SQUARE_METER, "candelas-per-square-meter" },
-    { UNITS_DEGREES_KELVIN_PER_HOUR, "degrees-Kelvin-per-hour" },
-    { UNITS_DEGREES_KELVIN_PER_MINUTE, "degrees-Kelvin-per-minute" },
+    { UNITS_DEGREES_KELVIN_PER_HOUR, "degrees-kelvin-per-hour" },
+    { UNITS_DEGREES_KELVIN_PER_MINUTE, "degrees-kelvin-per-minute" },
     { UNITS_JOULE_SECONDS, "joule-seconds" },
     { UNITS_RADIANS_PER_SECOND, "radians-per-second" },
     { UNITS_SQUARE_METERS_PER_NEWTON, "square-meters-per-Newton" },
@@ -819,7 +856,22 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
     { UNITS_NEWTON_SECONDS, "newton-seconds" },
     { UNITS_NEWTONS_PER_METER, "newtons-per-meter" },
     { UNITS_WATTS_PER_METER_PER_DEGREE_KELVIN,
-        "watts-per-meter-per-degree-Kelvin" },
+        "watts-per-meter-per-degree-kelvin" },
+    { UNITS_MICROSIEMENS, "micro-siemens" },
+    { UNITS_CUBIC_FEET_PER_HOUR, "cubic-feet-per-hour" },
+    { UNITS_US_GALLONS_PER_HOUR, "us-gallons-per-hour" },
+    { UNITS_KILOMETERS, "kilometers" }, { UNITS_MICROMETERS, "micrometers" },
+    { UNITS_GRAMS, "grams" }, { UNITS_MILLIGRAMS, "milligrams" },
+    { UNITS_MILLILITERS, "milliliters" },
+    { UNITS_MILLILITERS_PER_SECOND, "milliliters-per-second" },
+    { UNITS_DECIBELS, "decibels" },
+    { UNITS_DECIBELS_MILLIVOLT, "decibels-millivolt" },
+    { UNITS_DECIBELS_VOLT, "decibels-volt" },
+    { UNITS_MILLISIEMENS, "millisiemens" },
+    { UNITS_WATT_HOURS_REACTIVE, "watt-hours-reactive" },
+    { UNITS_KILOWATT_HOURS_REACTIVE, "kilowatt-hours-reactive" },
+    { UNITS_MEGAWATT_HOURS_REACTIVE, "megawatt-hours-reactive" },
+    { UNITS_MILLIMETERS_OF_WATER, "millimeters-of-water" },
     { UNITS_PER_MILLE, "per-mille" },
     { UNITS_GRAMS_PER_GRAM, "grams-per-gram" },
     { UNITS_KILOGRAMS_PER_KILOGRAM, "kilograms-per-kilogram" },

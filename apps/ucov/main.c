@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
     uint8_t tag;
+    unsigned int uint;
 
     if (argc < 7) {
         /* note: priority 16 and 0 should produce the same end results... */
@@ -87,10 +88,12 @@ int main(int argc, char *argv[])
             "The Initiating BACnet Device Object Instance number.\r\n"
             "\r\n"
             "object-type:\r\n"
-            "The monitored object type is the integer value of the\r\n"
-            "enumeration BACNET_OBJECT_TYPE in bacenum.h.  For example,\r\n"
-            "if you were monitoring Analog Output 2, the object-type\r\n"
-            "would be 1.\r\n"
+            "The object type is object that you are reading. It\r\n"
+            "can be defined either as the object-type name string\r\n"
+            "as defined in the BACnet specification, or as the\r\n"
+            "integer value of the enumeration BACNET_OBJECT_TYPE\r\n"
+            "in bacenum.h. For example if you were reading Analog\r\n"
+            "Output 2, the object-type would be analog-output or 1.\r\n"
             "\r\n"
             "object-instance:\r\n"
             "The monitored object instance number.\r\n"
@@ -99,10 +102,12 @@ int main(int argc, char *argv[])
             "The subscription time remaining is conveyed in seconds.\r\n"
             "\r\n"
             "property:\r\n"
-            "The property is an integer value of the enumeration \r\n"
-            "BACNET_PROPERTY_ID in bacenum.h. For example, if you were\r\n"
-            "monitoring the Present Value property, you would use 85\r\n"
-            "as the property.\r\n"
+            "The property of the object that you are reading. It\r\n"
+            "can be defined either as the property name string as\r\n"
+            "defined in the BACnet specification, or as an integer\r\n"
+            "value of the enumeration BACNET_PROPERTY_ID in\\rn"
+            "bacenum.h. For example, if you were reading the Present\r\n"
+            "Value property, use present-value or 85 as the property.\r\n"
             "\r\n"
             "tag:\r\n"
             "Tag is the integer value of the enumeration "
@@ -156,22 +161,32 @@ int main(int argc, char *argv[])
             "\r\n"
             "Example:\r\n"
             "If you want generate an unconfirmed COV,\r\n"
-            "you could send the following command:\r\n"
+            "you could send one of the following command:\r\n"
+            "%s 1 2 analog-value 4 5 prevent-value 4 100.0\r\n"
             "%s 1 2 3 4 5 85 4 100.0\r\n"
             "where 1=pid, 2=device-id, 3=AV, 4=object-id, 5=time,\r\n"
             "85=Present-Value, 4=REAL, 100.0=value\r\n",
-            filename_remove_path(argv[0]), filename_remove_path(argv[0]));
+            filename_remove_path(argv[0]), filename_remove_path(argv[0]),
+            filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
     cov_data.subscriberProcessIdentifier = strtol(argv[1], NULL, 0);
     cov_data.initiatingDeviceIdentifier = strtol(argv[2], NULL, 0);
-    cov_data.monitoredObjectIdentifier.type = strtol(argv[3], NULL, 0);
+    if (bactext_object_type_strtol(argv[3], &uint) == false) {
+        fprintf(stderr, "error: object-type=%s invalid\n", argv[3]);
+        return 1;
+    }
+    cov_data.monitoredObjectIdentifier.type = (uint16_t)uint;
     cov_data.monitoredObjectIdentifier.instance = strtol(argv[4], NULL, 0);
     cov_data.timeRemaining = strtol(argv[5], NULL, 0);
     cov_data.listOfValues = &value_list;
     value_list.next = NULL;
-    value_list.propertyIdentifier = strtol(argv[6], NULL, 0);
+    if (bactext_property_strtol(argv[6], &value_list.propertyIdentifier) ==
+        false) {
+        fprintf(stderr, "property=%s invalid\n", argv[6]);
+        return 1;
+    }
     tag = strtol(argv[7], NULL, 0);
     value_string = argv[8];
     /* optional priority */
