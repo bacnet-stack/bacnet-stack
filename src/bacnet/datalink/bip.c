@@ -138,7 +138,7 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
 { /* number of bytes of data */
-    struct sockaddr_in bip_dest;
+    struct sockaddr_in bip_dest = { 0 };
     uint8_t mtu[MAX_MPDU] = { 0 };
     int mtu_len = 0;
     int bytes_sent = 0;
@@ -177,7 +177,6 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     }
     bip_dest.sin_addr.s_addr = address.s_addr;
     bip_dest.sin_port = port;
-    memset(&(bip_dest.sin_zero), '\0', 8);
     mtu_len = 2;
     mtu_len += encode_unsigned16(
         &mtu[mtu_len], (uint16_t)(pdu_len + 4 /*inclusive */));

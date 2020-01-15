@@ -138,7 +138,7 @@ void *dl_ip_thread(void *pArgs)
 
 bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
 {
-    struct sockaddr_in sin;
+    struct sockaddr_in sin = { 0 };
     int socket_opt = 0;
     int status = 0; /* for error checking */
 
@@ -184,8 +184,6 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = ip_data->port;
-
-    memset(&sin.sin_zero, '\0', sizeof(sin.sin_zero));
 
     status = bind(ip_data->socket, (const struct sockaddr *)&sin,
         sizeof(struct sockaddr));
