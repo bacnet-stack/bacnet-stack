@@ -43,7 +43,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
-#include "reject.h"
+#include "bacnet/reject.h"
 /* include the objects */
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"

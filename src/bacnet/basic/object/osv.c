@@ -44,7 +44,7 @@
 #define MAX_OCTETSTRING_VALUES 4
 #endif
 
-OCTETSTRING_VALUE_DESCR AV_Descr[MAX_OCTETSTRING_VALUES];
+OCTETSTRING_VALUE_DESCR OSV_Descr[MAX_OCTETSTRING_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int OctetString_Value_Properties_Required[] = {
@@ -78,8 +78,8 @@ void OctetString_Value_Init(void)
     unsigned i;
 
     for (i = 0; i < MAX_OCTETSTRING_VALUES; i++) {
-        memset(&AV_Descr[i], 0x00, sizeof(OCTETSTRING_VALUE_DESCR));
-        octetstring_init(&AV_Descr[i].Present_Value, NULL, 0);
+        memset(&OSV_Descr[i], 0x00, sizeof(OCTETSTRING_VALUE_DESCR));
+        octetstring_init(&OSV_Descr[i].Present_Value, NULL, 0);
     }
 }
 
@@ -142,7 +142,7 @@ bool OctetString_Value_Present_Value_Set(
 
     index = OctetString_Value_Instance_To_Index(object_instance);
     if (index < MAX_OCTETSTRING_VALUES) {
-        octetstring_copy(&AV_Descr[index].Present_Value, value);
+        octetstring_copy(&OSV_Descr[index].Present_Value, value);
         status = true;
     }
     return status;
@@ -155,7 +155,7 @@ BACNET_OCTET_STRING *OctetString_Value_Present_Value(uint32_t object_instance)
 
     index = OctetString_Value_Instance_To_Index(object_instance);
     if (index < MAX_OCTETSTRING_VALUES) {
-        value = &AV_Descr[index].Present_Value;
+        value = &OSV_Descr[index].Present_Value;
     }
 
     return value;
@@ -198,7 +198,7 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     object_index = OctetString_Value_Instance_To_Index(rpdata->object_instance);
     if (object_index < MAX_OCTETSTRING_VALUES) {
-        CurrentAV = &AV_Descr[object_index];
+        CurrentAV = &OSV_Descr[object_index];
     } else {
         return BACNET_STATUS_ERROR;
     }
@@ -296,7 +296,7 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index =
         OctetString_Value_Instance_To_Index(wp_data->object_instance);
     if (object_index < MAX_OCTETSTRING_VALUES) {
-        CurrentAV = &AV_Descr[object_index];
+        CurrentAV = &OSV_Descr[object_index];
     } else {
         return false;
     }

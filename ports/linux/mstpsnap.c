@@ -44,7 +44,7 @@
 /* local includes */
 #include "bacnet/bytes.h"
 #include "rs485.h"
-#include "crc.h"
+#include "bacnet/datalink/crc.h"
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/datalink/mstptext.h"
