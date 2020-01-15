@@ -45,7 +45,6 @@
 #include "bacnet/apdu.h"
 #include "bacnet/iam.h"
 #include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/dcc.h"
