@@ -34,6 +34,8 @@ extern "C" {
 
     BACNET_REJECT_REASON reject_convert_error_code(
         BACNET_ERROR_CODE error_code);
+    BACNET_ERROR_CODE reject_convert_to_error_code(
+        BACNET_REJECT_REASON reject_code);
 
     int reject_encode_apdu(
         uint8_t * apdu,
@@ -47,12 +49,6 @@ extern "C" {
         uint8_t * reject_reason);
 
 #ifdef TEST
-    int reject_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        uint8_t * reject_reason);
-
     void testReject(
         Test * pTest);
 #endif

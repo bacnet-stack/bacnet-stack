@@ -39,12 +39,12 @@
 
 /** @file reject.c  Encode/Decode Reject APDUs */
 
-/* Helper function to avoid needing additional entries in service data
- * structures when passing back reject status. Convert from error code to reject
- * code. Anything not defined gets converted to REJECT_REASON_OTHER. Will need
- * reworking if it is required to return proprietary reject codes.
+/**
+ * @brief Convert an error code BACnet Reject code
+ * @param error_code - value to be converted
+ * @return reject_code converted. Anything not defined gets converted
+ * to REJECT_REASON_OTHER.
  */
-
 BACNET_REJECT_REASON reject_convert_error_code(BACNET_ERROR_CODE error_code)
 {
     BACNET_REJECT_REASON reject_code = REJECT_REASON_OTHER;
@@ -87,6 +87,58 @@ BACNET_REJECT_REASON reject_convert_error_code(BACNET_ERROR_CODE error_code)
     }
 
     return (reject_code);
+}
+
+/**
+ * @brief Convert a reject code to BACnet Error code
+ * @param reject_code - code to be converted
+ * @return error code converted. Anything not defined gets converted
+ * to ERROR_CODE_REJECT_OTHER.
+ */
+BACNET_ERROR_CODE reject_convert_to_error_code(BACNET_REJECT_REASON reject_code)
+{
+    BACNET_ERROR_CODE error_code = ERROR_CODE_REJECT_OTHER;
+
+    switch (reject_code) {
+        case REJECT_REASON_BUFFER_OVERFLOW:
+            error_code = ERROR_CODE_REJECT_BUFFER_OVERFLOW;
+            break;
+        case REJECT_REASON_INCONSISTENT_PARAMETERS:
+            error_code = ERROR_CODE_REJECT_INCONSISTENT_PARAMETERS;
+            break;
+        case REJECT_REASON_INVALID_PARAMETER_DATA_TYPE:
+            error_code = ERROR_CODE_REJECT_INVALID_PARAMETER_DATA_TYPE;
+            break;
+        case REJECT_REASON_INVALID_TAG:
+            error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            break;
+        case REJECT_REASON_MISSING_REQUIRED_PARAMETER:
+            error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+            break;
+        case REJECT_REASON_PARAMETER_OUT_OF_RANGE:
+            error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+            break;
+        case REJECT_REASON_TOO_MANY_ARGUMENTS:
+            error_code = ERROR_CODE_REJECT_TOO_MANY_ARGUMENTS;
+            break;
+        case REJECT_REASON_UNDEFINED_ENUMERATION:
+            error_code = ERROR_CODE_REJECT_UNDEFINED_ENUMERATION;
+            break;
+        case REJECT_REASON_UNRECOGNIZED_SERVICE:
+            error_code = ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE;
+            break;
+        case REJECT_REASON_OTHER:
+            error_code = ERROR_CODE_REJECT_OTHER;
+            break;
+        default:
+            if ((reject_code >= REJECT_REASON_PROPRIETARY_FIRST) &&
+                (reject_code <= REJECT_REASON_PROPRIETARY_LAST)) {
+                error_code = ERROR_CODE_REJECT_PROPRIETARY;
+            }
+            break;
+    }
+
+    return (error_code);
 }
 
 /* encode service */
@@ -132,7 +184,7 @@ int reject_decode_service_request(uint8_t *apdu,
 #include "ctest.h"
 
 /* decode the whole APDU - mainly used for unit testing */
-int reject_decode_apdu(uint8_t *apdu,
+static int reject_decode_apdu(uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
     uint8_t *reject_reason)
@@ -154,7 +206,7 @@ int reject_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-void testReject(Test *pTest)
+static void testRejectEncodeDecode(Test *pTest)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
@@ -202,6 +254,32 @@ void testReject(Test *pTest)
             ct_test(pTest, test_reject_reason == reject_reason);
         }
     }
+}
+
+static void testRejectErrorCode(Test *pTest)
+{
+    int i;
+    BACNET_ERROR_CODE error_code;
+    BACNET_REJECT_REASON reject_reason;
+    BACNET_REJECT_REASON test_reject_reason;
+
+    for (i = 0; i < MAX_BACNET_REJECT_REASON; i++) {
+        reject_reason = (BACNET_REJECT_REASON)i;
+        error_code = reject_convert_to_error_code(reject_reason);
+        test_reject_reason = reject_convert_error_code(error_code);
+        if (test_reject_reason != reject_reason) {
+            printf("Reject: result=%u reject-code=%u\n",
+                test_reject_reason,
+                reject_reason);
+        }
+        ct_test(pTest, test_reject_reason == reject_reason);
+    }
+}
+
+void testReject(Test *pTest)
+{
+    testRejectEncodeDecode(pTest);
+    testRejectErrorCode(pTest);
 }
 
 #ifdef TEST_REJECT
