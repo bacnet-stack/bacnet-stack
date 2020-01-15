@@ -34,6 +34,8 @@ extern "C" {
 
     BACNET_ABORT_REASON abort_convert_error_code(
         BACNET_ERROR_CODE error_code);
+    BACNET_ERROR_CODE abort_convert_to_error_code(
+        BACNET_ABORT_REASON abort_code);
 
     int abort_encode_apdu(
         uint8_t * apdu,
@@ -49,13 +51,6 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
-    int abort_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        uint8_t * abort_reason,
-        bool * server);
-
     void testAbort(
         Test * pTest);
 #endif

@@ -970,6 +970,8 @@ INDTEXT_DATA bacnet_abort_reason_names[] = { { ABORT_REASON_OTHER, "Other" },
     { ABORT_REASON_PREEMPTED_BY_HIGHER_PRIORITY_TASK,
         "Preempted by Higher Priority Task" },
     { ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, "Segmentation Not Supported" },
+    { ABORT_REASON_SECURITY_ERROR, "Security Error" },
+    { ABORT_REASON_INSUFFICIENT_SECURITY, "Insufficient Security" },
     { ABORT_REASON_PROPRIETARY_FIRST, "Proprietary" }, { 0, NULL } };
 
 const char *bactext_abort_reason_name(unsigned index)
