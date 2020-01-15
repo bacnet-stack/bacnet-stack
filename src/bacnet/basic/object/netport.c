@@ -1852,28 +1852,19 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_OCTET_STRING octet_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_MSTP) &&
-        property_list_member(
-            MSTP_Port_Properties_Optional, rpdata->object_property)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-        return BACNET_STATUS_ERROR;
-    }
-    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_BIP) &&
-        property_list_member(
-            BIP_Port_Properties_Optional, rpdata->object_property)) {
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-        return BACNET_STATUS_ERROR;
-    }
-    if ((Network_Port_Type(rpdata->object_instance) != PORT_TYPE_BIP6) &&
-        property_list_member(
-            BIP6_Port_Properties_Optional, rpdata->object_property)) {
+    Network_Port_Property_List(rpdata->object_instance,
+        &pRequired, &pOptional, &pProprietary);
+    if ((!property_list_member(pRequired, rpdata->object_property)) &&
+        (!property_list_member(pOptional, rpdata->object_property)) &&
+        (!property_list_member(pProprietary, rpdata->object_property))) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
         rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         return BACNET_STATUS_ERROR;
