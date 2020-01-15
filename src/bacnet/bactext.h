@@ -55,6 +55,9 @@ extern "C" {
     bool bactext_object_type_index(
         const char *search_name,
         unsigned *found_index);
+    bool bactext_object_type_strtol(
+        const char *search_name,
+        unsigned *found_index);
     const char *bactext_notify_type_name(
         unsigned index);
     const char *bactext_event_type_name(
@@ -65,6 +68,9 @@ extern "C" {
         unsigned index,
         const char *default_string);
     bool bactext_property_index(
+        const char *search_name,
+        unsigned *found_index);
+    bool bactext_property_strtol(
         const char *search_name,
         unsigned *found_index);
     const char *bactext_engineering_unit_name(

@@ -33,6 +33,7 @@
 ####COPYRIGHTEND####*/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "bacnet/indtext.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bactext.h"
@@ -41,6 +42,30 @@
 
 static const char *ASHRAE_Reserved_String = "Reserved for Use by ASHRAE";
 static const char *Vendor_Proprietary_String = "Vendor Proprietary Value";
+
+/* Search for a text value first based on the corresponding text list, then by
+ * attempting to convert to an integer value. */
+static bool bactext_strtol_index(INDTEXT_DATA *istring, const char *search_name, unsigned *found_index)
+{
+    char *endptr;
+    long value;
+
+    if (indtext_by_istring(istring, search_name, found_index) == true) {
+        return true;
+    } else {
+        value = strtol(search_name, &endptr, 0);
+        if (endptr == search_name) {
+            /* No digits found */
+            return false;
+        } else if (*endptr != '\0') {
+            /* Extra text found */
+            return false;
+        } else {
+            *found_index = (unsigned)value;
+            return true;
+        }
+    }
+}
 
 INDTEXT_DATA bacnet_confirmed_service_names[] = {
     { SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, "Acknowledge-Alarm" },
@@ -203,6 +228,12 @@ const char *bactext_object_type_name(unsigned index)
 bool bactext_object_type_index(const char *search_name, unsigned *found_index)
 {
     return indtext_by_istring(
+        bacnet_object_type_names, search_name, found_index);
+}
+
+bool bactext_object_type_strtol(const char *search_name, unsigned *found_index)
+{
+    return bactext_strtol_index(
         bacnet_object_type_names, search_name, found_index);
 }
 
@@ -658,6 +689,12 @@ unsigned bactext_property_id(const char *name)
 bool bactext_property_index(const char *search_name, unsigned *found_index)
 {
     return indtext_by_istring(bacnet_property_names, search_name, found_index);
+}
+
+bool bactext_property_strtol(const char *search_name, unsigned *found_index)
+{
+    return bactext_strtol_index(
+        bacnet_property_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_engineering_unit_names[] = {

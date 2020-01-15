@@ -197,19 +197,23 @@ static void print_help(char *filename)
            "I-Am services.  For example, if you were reading\n"
            "Device Object 123, the device-instance would be 123.\n"
            "\nobject-type:\n"
-           "The object type is the integer value of the enumeration\n"
-           "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
-           "that you are reading.  For example if you were\n"
-           "reading Analog Output 2, the object-type would be 1.\n"
+           "The object type is object that you are reading. It\n"
+           "can be defined either as the object-type name string\n"
+           "as defined in the BACnet specification, or as the\n"
+           "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+           "in bacenum.h. For example if you were reading Analog\n"
+           "Output 2, the object-type would be analog-output or 1.\n"
            "\nobject-instance:\n"
            "This is the object instance number of the object that\n"
            "you are reading.  For example, if you were reading\n"
            "Analog Output 2, the object-instance would be 2.\n"
            "\nproperty:\n"
-           "The property is an integer value of the enumeration\n"
-           "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
-           "you are reading.  For example, if you were reading the\n"
-           "Present Value property, use 85 as the property.\n"
+           "The property of the object that you are reading. It\n"
+           "can be defined either as the property name string as\n"
+           "defined in the BACnet specification, or as an integer\n"
+           "value of the enumeration BACNET_PROPERTY_ID in\n"
+           "bacenum.h. For example, if you were reading the Present\n"
+           "Value property, use present-value or 85 as the property.\n"
            "\nindex:\n"
            "This integer parameter is the index number of an array.\n"
            "If the property is an array, individual elements can\n"
@@ -217,12 +221,16 @@ static void print_help(char *filename)
            "is an array, the entire array will be read.\n"
            "\nExample:\n"
            "If you want read the Present-Value of Analog Output 101\n"
-           "in Device 123, you could send the following command:\n"
+           "in Device 123, you could send either of the following\n"
+           "commands:\n"
+           "%s 123 analog-output 101 present-value\n"
            "%s 123 1 101 85\n"
            "If you want read the Priority-Array of Analog Output 101\n"
-           "in Device 123, you could send the following command:\n"
+           "in Device 123, you could send either of the following\n"
+           "commands:\n"
+           "%s 123 analog-output 101 priority-array\n"
            "%s 123 1 101 87\n",
-        filename, filename);
+        filename, filename, filename, filename);
 }
 
 int main(int argc, char *argv[])
@@ -285,13 +293,21 @@ int main(int argc, char *argv[])
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 1) {
-                Target_Object_Type = strtol(argv[argi], NULL, 0);
+                if (bactext_object_type_strtol(
+                        argv[argi], &Target_Object_Type) == false) {
+                    fprintf(stderr, "object-type=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
             } else if (target_args == 2) {
                 Target_Object_Instance = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 3) {
-                Target_Object_Property = strtol(argv[argi], NULL, 0);
+                if (bactext_property_strtol(
+                        argv[argi], &Target_Object_Property) == false) {
+                    fprintf(stderr, "property=%s invalid\n", argv[argi]);
+                    return 1;
+                }
                 target_args++;
             } else if (target_args == 4) {
                 Target_Object_Index = strtol(argv[argi], NULL, 0);

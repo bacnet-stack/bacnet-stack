@@ -193,6 +193,7 @@ int main(int argc, char *argv[])
     BACNET_SUBSCRIBE_COV_DATA *cov_data = NULL;
     int argi = 0;
     int arg_remaining = 0;
+    unsigned uint;
 
     if (argc < 6) {
         print_usage_terse = true;
@@ -216,10 +217,12 @@ int main(int argc, char *argv[])
                "The subscriber BACnet Device Object Instance number.\r\n"
                "\r\n"
                "object-type:\r\n"
-               "The monitored object type is the integer value of the\r\n"
-               "enumeration BACNET_OBJECT_TYPE in bacenum.h.  For example,\r\n"
-               "if you were monitoring Analog Output 2, the object-type\r\n"
-               "would be 1.\r\n"
+               "The object type is object that you are reading. It\r\n"
+               "can be defined either as the object-type name string\r\n"
+               "as defined in the BACnet specification, or as the\r\n"
+               "integer value of the enumeration BACNET_OBJECT_TYPE\r\n"
+               "in bacenum.h. For example if you were reading Analog\r\n"
+               "Output 2, the object-type would be analog-output or 1.\r\n"
                "\r\n"
                "object-instance:\r\n"
                "The monitored object instance number.\r\n"
@@ -264,7 +267,11 @@ int main(int argc, char *argv[])
     cov_data = COV_Subscribe_Data;
     argi = 2;
     while (cov_data) {
-        cov_data->monitoredObjectIdentifier.type = strtol(argv[argi], NULL, 0);
+        if (bactext_object_type_strtol(argv[argi], &uint) == false) {
+            fprintf(stderr, "Error: object-type=%s invalid\n", argv[argi]);
+            return 1;
+        }
+        cov_data->monitoredObjectIdentifier.type = (uint16_t)uint;
         if (cov_data->monitoredObjectIdentifier.type >=
             MAX_BACNET_OBJECT_TYPE) {
             fprintf(stderr, "object-type=%u - it must be less than %u\r\n",

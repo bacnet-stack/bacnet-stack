@@ -177,9 +177,11 @@ static void print_help(char *filename)
            "\nExample:\n"
            "If you want read the Log_Buffer of Trend Log 2\n"
            "in Device 123, from starting position 1 and read 10 entries,\n"
-           "you could send the following command:\n"
-           "%s 123 20 2 131 1 1 10\n",
-        filename);
+           "you could send the following commands:\n");
+    printf("%s 123 trend-log 2 log-buffer 1 1 10\n", filename);
+    printf("%s 123 trend-log 2 log-buffer 2 1 10\n", filename);
+    printf("%s 123 trend-log 2 log-buffer 3 1/1/2014 00:00:01 10\n", filename);
+    printf("%s 123 20 2 131 1 1 10\n", filename);
     printf("%s 123 20 2 131 2 1 10\n", filename);
     printf("%s 123 20 2 131 3 1/1/2014 00:00:01 10\n", filename);
 }
@@ -224,9 +226,15 @@ int main(int argc, char *argv[])
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    Target_Object_Type = strtol(argv[2], NULL, 0);
+    if (bactext_object_type_strtol(argv[2], &Target_Object_Type) == false) {
+        fprintf(stderr, "object-type=%s invalid\n", argv[2]);
+        return 1;
+    }
     Target_Object_Instance = strtol(argv[3], NULL, 0);
-    Target_Object_Property = strtol(argv[4], NULL, 0);
+    if (bactext_property_strtol(argv[4], &Target_Object_Property) == false) {
+        fprintf(stderr, "property=%s invalid\n", argv[4]);
+        return 1;
+    }
     Target_Object_Range_Type = strtol(argv[5], NULL, 0);
     /* some bounds checking */
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
