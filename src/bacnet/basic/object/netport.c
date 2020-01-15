@@ -119,16 +119,14 @@ static const int Network_Port_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_NETWORK_NUMBER, PROP_NETWORK_NUMBER_QUALITY, PROP_CHANGES_PENDING,
     PROP_APDU_LENGTH, PROP_LINK_SPEED, -1 };
 
-static const int Ethernet_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-    PROP_MAX_APDU_LENGTH_ACCEPTED, -1 };
+static const int Ethernet_Port_Properties_Optional[] = { PROP_MAC_ADDRESS, -1 };
 
 static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-    PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, -1 };
+    PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, -1 };
 
 static const int BIP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-    PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_BACNET_IP_MODE, PROP_IP_ADDRESS,
-    PROP_BACNET_IP_UDP_PORT, PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY,
-    PROP_IP_DNS_SERVER,
+    PROP_BACNET_IP_MODE, PROP_IP_ADDRESS, PROP_BACNET_IP_UDP_PORT,
+    PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY, PROP_IP_DNS_SERVER,
 #if defined(BBMD_ENABLED)
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS, PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
@@ -136,12 +134,12 @@ static const int BIP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
     -1 };
 
 static const int BIP6_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
-    PROP_MAX_APDU_LENGTH_ACCEPTED, PROP_BACNET_IPV6_MODE, PROP_IPV6_ADDRESS,
-    PROP_IPV6_PREFIX_LENGTH, PROP_BACNET_IPV6_UDP_PORT,
-    PROP_IPV6_DEFAULT_GATEWAY, PROP_BACNET_IPV6_MULTICAST_ADDRESS,
-    PROP_IPV6_DNS_SERVER, PROP_IPV6_AUTO_ADDRESSING_ENABLE,
-    PROP_IPV6_DHCP_LEASE_TIME, PROP_IPV6_DHCP_LEASE_TIME_REMAINING,
-    PROP_IPV6_DHCP_SERVER, PROP_IPV6_ZONE_INDEX, -1 };
+    PROP_BACNET_IPV6_MODE, PROP_IPV6_ADDRESS, PROP_IPV6_PREFIX_LENGTH,
+    PROP_BACNET_IPV6_UDP_PORT, PROP_IPV6_DEFAULT_GATEWAY,
+    PROP_BACNET_IPV6_MULTICAST_ADDRESS, PROP_IPV6_DNS_SERVER,
+    PROP_IPV6_AUTO_ADDRESSING_ENABLE, PROP_IPV6_DHCP_LEASE_TIME,
+    PROP_IPV6_DHCP_LEASE_TIME_REMAINING, PROP_IPV6_DHCP_SERVER,
+    PROP_IPV6_ZONE_INDEX, -1 };
 
 static const int Network_Port_Properties_Proprietary[] = { -1 };
 
@@ -1940,10 +1938,6 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             Network_Port_MAC_Address(rpdata->object_instance, &octet_string);
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
-        case PROP_MAX_APDU_LENGTH_ACCEPTED:
-            apdu_len = encode_application_unsigned(
-                &apdu[0], Network_Port_APDU_Length(rpdata->object_instance));
-            break;
         case PROP_LINK_SPEED:
             apdu_len = encode_application_real(
                 &apdu[0], Network_Port_Link_Speed(rpdata->object_instance));
@@ -2206,7 +2200,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_NETWORK_NUMBER:
         case PROP_NETWORK_NUMBER_QUALITY:
         case PROP_MAC_ADDRESS:
-        case PROP_MAX_APDU_LENGTH_ACCEPTED:
         case PROP_LINK_SPEED:
         case PROP_CHANGES_PENDING:
         case PROP_APDU_LENGTH:
@@ -2271,7 +2264,6 @@ bool Network_Port_Read_Range(
         case PROP_LINK_SPEED:
         /* optional properties */
         case PROP_MAC_ADDRESS:
-        case PROP_MAX_APDU_LENGTH_ACCEPTED:
 #if defined(BACDL_MSTP)
         case PROP_MAX_MASTER:
         case PROP_MAX_INFO_FRAMES:
