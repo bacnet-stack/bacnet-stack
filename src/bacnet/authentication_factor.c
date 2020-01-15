@@ -79,13 +79,15 @@ int bacapp_decode_authentication_factor(
 {
     int len;
     int apdu_len = 0;
+    uint32_t format_type = af->format_type;
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
-        len = decode_context_enumerated(&apdu[apdu_len], 0, &af->format_type);
+        len = decode_context_enumerated(&apdu[apdu_len], 0, &format_type);
         if (len < 0) {
             return -1;
         } else {
             apdu_len += len;
+            af->format_type = format_type;
         }
     } else {
         return -1;
