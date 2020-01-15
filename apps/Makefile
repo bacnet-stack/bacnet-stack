@@ -212,7 +212,7 @@ $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
 
 .PHONY: gateway
 gateway:
-	$(MAKE) -s -b -C gateway
+	$(MAKE) -b -C gateway
 
 .PHONY: server
 server:

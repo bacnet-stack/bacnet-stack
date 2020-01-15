@@ -48,7 +48,6 @@
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/dcc.h"
-#include "bacport.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/sys/debug.h"
