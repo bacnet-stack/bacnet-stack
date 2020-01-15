@@ -38,10 +38,17 @@
 #include "bacnet/abort.h"
 
 /** @file abort.c  Abort Encoding/Decoding */
-/* Helper function to avoid needing additional entries in service data
+
+/**
+ * @brief Convert error-code into abort-reason
+ *
+ * Helper function to avoid needing additional entries in service data
  * structures when passing back abort status. Convert from error code to abort
- * code. Anything not defined converts to ABORT_REASON_OTHER. Will need
- * reworking if it is required to return proprietary abort codes.
+ * code. Anything not defined converts to ABORT_REASON_OTHER. Alternate
+ * methods are required to return proprietary abort codes.
+ *
+ * @param error_code - BACnet Error Code to convert
+ * @return abort code or ABORT_REASON_OTHER if not found
  */
 BACNET_ABORT_REASON abort_convert_error_code(BACNET_ERROR_CODE error_code)
 {
@@ -78,10 +85,16 @@ BACNET_ABORT_REASON abort_convert_error_code(BACNET_ERROR_CODE error_code)
     return (abort_code);
 }
 
-/* Helper function to avoid needing additional entries in service data
- * structures when passing back abort status. Convert from error code to abort
- * code. Anything not defined converts to ABORT_REASON_OTHER. Will need
- * reworking if it is required to return proprietary abort codes.
+/**
+ * @brief Convert error-code from abort-reason
+ *
+ * Helper function to avoid needing additional entries in service data
+ * structures when passing back abort status. Converts to error code from
+ * abort code. Anything not defined converts to ABORT_REASON_OTHER.
+ * Alternate methods are required to return proprietary abort codes.
+ *
+ * @param abort_code - BACnet Error Code to convert
+ * @return error code or ERROR_CODE_ABORT_OTHER if not found
  */
 BACNET_ERROR_CODE abort_convert_to_error_code(BACNET_ABORT_REASON abort_code)
 {
