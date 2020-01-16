@@ -149,12 +149,12 @@ static inline void printf_master(const char *format, ...)
 #define Treply_timeout 295
 #endif
 
-/* The minimum time without a DataAvailable or ReceiveError event that a */
-/* node must wait for a remote node to begin using a token or replying to */
-/* a Poll For Master frame: 20 milliseconds. (Implementations may use */
-/* larger values for this timeout, not to exceed 100 milliseconds.) */
+/* The time without a DataAvailable or ReceiveError event that a node must */
+/* wait for a remote node to begin using a token or replying to a Poll For */
+/* Master frame: 20 milliseconds. (Implementations may use larger values for */
+/* this timeout, not to exceed 35 milliseconds.) */
 #ifndef Tusage_timeout
-#define Tusage_timeout 95
+#define Tusage_timeout 30
 #endif
 
 /* we need to be able to increment without rolling over */
