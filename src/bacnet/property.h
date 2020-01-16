@@ -31,7 +31,7 @@
 #include "bacnet/rp.h"
 #include "bacnet/proplist.h"
 
-/** @file proplist.h  Library of all required and optional object properties */
+/** @file property.h  Library of all required and optional object properties */
 
 #ifdef __cplusplus
 extern "C" {
