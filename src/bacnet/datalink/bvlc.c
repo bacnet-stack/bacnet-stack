@@ -842,7 +842,6 @@ int bvlc_send_mpdu(struct sockaddr_in *dest, uint8_t *mtu, uint16_t mtu_len)
     bvlc_dest.sin_family = AF_INET;
     bvlc_dest.sin_addr.s_addr = dest->sin_addr.s_addr;
     bvlc_dest.sin_port = dest->sin_port;
-    memset(&(bvlc_dest.sin_zero), '\0', 8);
     /* Send the packet */
     return sendto(bip_socket(), (char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bvlc_dest, sizeof(struct sockaddr));
