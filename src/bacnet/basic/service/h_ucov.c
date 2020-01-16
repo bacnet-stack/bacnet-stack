@@ -61,7 +61,9 @@ void handler_ucov_notification(
 {
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
+#if PRINT_ENABLED
     BACNET_PROPERTY_VALUE *pProperty_value = NULL;
+#endif
     int len = 0;
 
     /* src not needed for this application */

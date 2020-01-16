@@ -198,7 +198,9 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
     BACNET_PROPERTY_REFERENCE *listOfProperties;
     BACNET_APPLICATION_DATA_VALUE *value;
+#if PRINT_ENABLED
     bool array_value = false;
+#endif
 
     if (rpm_data) {
 #if PRINT_ENABLED

@@ -68,7 +68,9 @@ void handler_ccov_notification(uint8_t *service_request,
     BACNET_NPDU_DATA npdu_data;
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
+#if PRINT_ENABLED
     BACNET_PROPERTY_VALUE *pProperty_value = NULL;
+#endif
     int len = 0;
     int pdu_len = 0;
     int bytes_sent = 0;
