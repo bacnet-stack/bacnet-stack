@@ -4,12 +4,6 @@ compiler:
   - gcc
   - clang
 
-before_script:
-  - wget -O $HOME/gcc-arm.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2?revision=6e63531f-8cb1-40b9-bbfc-8a57cdfc01b4&la=en&hash=F761343D43A0587E8AC0925B723C04DBFB848339
-  - tar -xvjf $HOME/gcc-arm.tar.bz2
-  - export PATH=$PATH:$PWD/gcc-arm-none-eabi-9-2019-q4-major/bin/
-  - arm-none-eabi-gcc --version
-
 jobs:
   - include:
     - stage: demos-build
@@ -31,6 +25,11 @@ jobs:
       script: skip
     - stage: ports-arm
       os: linux
+      before_script:
+        - wget --no-background -O $HOME/gcc-arm.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2?revision=6e63531f-8cb1-40b9-bbfc-8a57cdfc01b4&la=en&hash=F761343D43A0587E8AC0925B723C04DBFB848339
+        - tar -xvjf $HOME/gcc-arm.tar.bz2
+        - export PATH=$PATH:$PWD/gcc-arm-none-eabi-9-2019-q4-major/bin/
+        - arm-none-eabi-gcc --version
       script:
         - make stm32f10x
         - make at91sam7s
