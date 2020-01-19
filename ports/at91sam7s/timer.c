@@ -43,6 +43,7 @@
 #include <stdint.h>
 #include "board.h"
 #include "bacnet/datalink/dlmstp.h"
+#include "timer.h"
 
 /* global variable counts interrupts */
 volatile unsigned long Timer_Milliseconds;
@@ -309,8 +310,10 @@ static void Timer0IrqHandler(
     dummy = pTC->TC_SR;
     /* increment the tick count */
     Timer_Milliseconds++;
-    if (SilenceTime < 60000)
+    if (SilenceTime < 60000) {
         SilenceTime++;
+    }
+    (void)dummy;
 }
 
 int Timer_Silence(

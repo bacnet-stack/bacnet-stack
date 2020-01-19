@@ -32,7 +32,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "bacnet/basic/sys/mstimer.h"
+#include "timer.h"
 
 /* This file has been customized for use with UART0
    on the AT91SAM7S-EK */
