@@ -1,11 +1,5 @@
 language: c
 
-addons:
-  apt_packages:
-    - lib32bz2-1.0
-    - lib32ncurses5
-    - lib32z1
-
 compiler:
   - gcc
   - clang
