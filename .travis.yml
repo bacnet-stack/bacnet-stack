@@ -1,10 +1,12 @@
 language: c
 
+dist: xenial
+
 addons:
   apt:
     packages:
       - build-essential
-      - arm-none-eabi-gcc
+      - gcc-arm-embedded
 
 compiler:
   - gcc
