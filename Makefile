@@ -88,11 +88,11 @@ atmega168: ports/atmega168/Makefile
 
 .PHONY: at91sam7s
 at91sam7s: ports/at91sam7s/Makefile
-	$(MAKE) -s -C ports/at91sam7s clean all
+	$(MAKE) -C ports/at91sam7s clean all
 
 .PHONY: stm32f10x
 stm32f10x: ports/stm32f10x/Makefile
-	$(MAKE) -s -C ports/stm32f10x clean all
+	$(MAKE) -C ports/stm32f10x clean all
 
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
