@@ -91,11 +91,11 @@ static RING_BUFFER PDU_Queue;
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
 static uint16_t Treply_timeout = 300;
-/* The minimum time without a DataAvailable or ReceiveError event that a */
-/* node must wait for a remote node to begin using a token or replying to */
-/* a Poll For Master frame: 20 milliseconds. (Implementations may use */
-/* larger values for this timeout, not to exceed 100 milliseconds.) */
-static uint8_t Tusage_timeout = 100;
+/* The time without a DataAvailable or ReceiveError event that a node must */
+/* wait for a remote node to begin using a token or replying to a Poll For */
+/* Master frame: 20 milliseconds. (Implementations may use larger values for */
+/* this timeout, not to exceed 35 milliseconds.) */
+static uint8_t Tusage_timeout = 30;
 /* Timer that indicates line silence - and functions */
 
 static struct timespec start;
