@@ -1,5 +1,13 @@
 language: c
 
+dist: xenial
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install build-essential
+  - sudo apt-get -y install gcc-arm-none-eabi
+  - sudo apt-get -y install libnewlib-arm-none-eabi
+
 compiler:
   - gcc
   - clang
@@ -23,4 +31,10 @@ jobs:
       compiler: clang
       # script: scan-build --status-bugs -analyze-headers -v make -j2 clean server
       script: skip
-
+    - stage: ports-arm
+      os: linux
+      before_script:
+        - arm-none-eabi-gcc --version
+      script:
+        - make stm32f10x
+        - make at91sam7s
