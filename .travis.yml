@@ -7,6 +7,7 @@ before_install:
   - sudo apt-get -y install build-essential
   - sudo apt-get -y install gcc-arm-none-eabi
   - sudo apt-get -y install libnewlib-arm-none-eabi
+  - sudo apt-get -y install gcc-avr avr-libc binutils-avr
 
 compiler:
   - gcc
@@ -38,3 +39,11 @@ jobs:
       script:
         - make stm32f10x
         - make at91sam7s
+    - stage: ports-avr
+      os: linux
+      before_script:
+        - avr-gcc --version
+      script:
+        - make atmega168
+        - make bdk-atxx4-mstp
+

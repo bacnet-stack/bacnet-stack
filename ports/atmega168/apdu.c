@@ -122,6 +122,7 @@ void apdu_handler(
                     handler_unrecognized_service(service_request,
                         service_request_len, src, &service_data);
                 }
+                (void)len;
                 break;
             case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:
                 service_choice = apdu[1];

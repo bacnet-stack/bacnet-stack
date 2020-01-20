@@ -67,8 +67,9 @@ AVRDUDE_PORT := /dev/ttyUSB0
 endif
 
 # Source locations
-BACNET_CORE = ../../src
-BACNET_INCLUDE = $(BACNET_CORE)
+BACNET_SRC = ../../src
+BACNET_CORE = $(BACNET_SRC)/bacnet
+BACNET_INCLUDE = $(BACNET_SRC)
 BACNET_BASIC = $(BACNET_CORE)/basic
 
 # local files for this project
