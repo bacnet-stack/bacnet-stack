@@ -133,6 +133,7 @@ void handler_write_property(
     bytes_sent =
         datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0],
         pdu_len);
+    (void)bytes_sent;
 
     return;
 }

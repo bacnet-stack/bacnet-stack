@@ -260,7 +260,7 @@ bool RS485_ReceiveError(
     void)
 {
     bool ReceiveError = false;
-    uint8_t dummy_data;
+    volatile uint8_t dummy_data;
 
     /* check for framing error */
 #if 0
@@ -281,6 +281,7 @@ bool RS485_ReceiveError(
     if (ReceiveError) {
         RS485_LED1_On();
     }
+    (void)dummy_data;
 
     return ReceiveError;
 }
