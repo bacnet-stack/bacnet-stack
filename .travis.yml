@@ -1,9 +1,11 @@
 language: c
 
+dist: xenial
+
 before_install:
   - sudo apt-get update
   - sudo apt-get -y install build-essential
-  - sudo apt-get -y install gcc-arm-embedded
+  - sudo apt-get -y install arm-none-eabi-gcc
 
 compiler:
   - gcc
