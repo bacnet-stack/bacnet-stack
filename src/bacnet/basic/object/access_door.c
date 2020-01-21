@@ -190,7 +190,7 @@ bool Access_Door_Present_Value_Set(
     index = Access_Door_Instance_To_Index(object_instance);
     if (index < MAX_ACCESS_DOORS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-            (priority != 6 /* reserved */) && (value >= DOOR_VALUE_LOCK) &&
+            (priority != 6 /* reserved */) && 
             (value <= DOOR_VALUE_EXTENDED_PULSE_UNLOCK)) {
             ad_descr[index].value_active[priority - 1] = true;
             ad_descr[index].priority_array[priority - 1] = value;

@@ -71,8 +71,7 @@ int cl_encode_apdu(uint8_t *apdu, BACNET_ACTION_LIST *bcl)
     int len = 0;
     int apdu_len = 0;
 
-    if (bcl->Device_Id.instance >= 0 &&
-        bcl->Device_Id.instance <= BACNET_MAX_INSTANCE) {
+    if (bcl->Device_Id.instance <= BACNET_MAX_INSTANCE) {
         len = encode_context_object_id(
             &apdu[apdu_len], 0, bcl->Device_Id.type, bcl->Device_Id.instance);
         if (len < 0) {
