@@ -79,7 +79,9 @@ void handler_alarm_ack(uint8_t *service_request,
 {
     int len = 0;
     int pdu_len = 0;
+#if PRINT_ENABLED
     int bytes_sent = 0;
+#endif
     int ack_result = 0;
     BACNET_ADDRESS my_address;
     BACNET_NPDU_DATA npdu_data;
@@ -182,7 +184,10 @@ void handler_alarm_ack(uint8_t *service_request,
 
 AA_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(
+#if PRINT_ENABLED
+    bytes_sent =
+#endif
+    datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)

@@ -85,7 +85,9 @@ void handler_get_event_information(uint8_t *service_request,
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
     bool more_events = false;
+#if PRINT_ENABLED
     int bytes_sent = 0;
+#endif
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_ADDRESS my_address;
@@ -222,7 +224,10 @@ GET_EVENT_ERROR:
     }
 GET_EVENT_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(
+#if PRINT_ENABLED
+    bytes_sent =
+#endif
+    datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)

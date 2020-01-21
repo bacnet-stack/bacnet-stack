@@ -51,7 +51,9 @@ void handler_lso(uint8_t *service_request,
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
+#if PRINT_ENABLED
     int bytes_sent = 0;
+#endif
     BACNET_ADDRESS my_address;
 
     /* encode the NPDU portion of the packet */
@@ -106,7 +108,10 @@ void handler_lso(uint8_t *service_request,
 
 LSO_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(
+#if PRINT_ENABLED
+    bytes_sent =
+#endif
+    datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)

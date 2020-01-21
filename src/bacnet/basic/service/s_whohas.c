@@ -58,7 +58,9 @@ void Send_WhoHas_Name(
     int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
+#if PRINT_ENABLED
     int bytes_sent = 0;
+#endif
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -83,7 +85,10 @@ void Send_WhoHas_Name(
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
     /* send the data */
-    bytes_sent = datalink_send_pdu(
+#if PRINT_ENABLED
+    bytes_sent =
+#endif
+    datalink_send_pdu(
         &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
@@ -111,7 +116,9 @@ void Send_WhoHas_Object(int32_t low_limit,
     int len = 0;
     int pdu_len = 0;
     BACNET_ADDRESS dest;
+#if PRINT_ENABLED
     int bytes_sent = 0;
+#endif
     BACNET_WHO_HAS_DATA data;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -136,7 +143,10 @@ void Send_WhoHas_Object(int32_t low_limit,
     data.object.identifier.instance = object_instance;
     len = whohas_encode_apdu(&Handler_Transmit_Buffer[pdu_len], &data);
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(
+#if PRINT_ENABLED
+    bytes_sent =
+#endif
+    datalink_send_pdu(
         &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)

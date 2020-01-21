@@ -109,7 +109,9 @@ void handler_read_range(uint8_t *service_request,
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     bool error = false;
+#if PRINT_ENABLED
     int bytes_sent = 0;
+#endif
     BACNET_ADDRESS my_address;
 
     data.error_class = ERROR_CLASS_OBJECT;
@@ -180,7 +182,10 @@ void handler_read_range(uint8_t *service_request,
     }
 RR_ABORT:
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(
+#if PRINT_ENABLED
+    bytes_sent =
+#endif
+    datalink_send_pdu(
         src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)

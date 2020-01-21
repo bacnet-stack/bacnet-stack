@@ -52,7 +52,9 @@ uint8_t Send_GetEvent(BACNET_ADDRESS *target_address,
 {
     int len = 0;
     int pdu_len = 0;
+#if PRINT_ENABLED
     int bytes_sent = 0;
+#endif
     uint8_t invoke_id = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -70,7 +72,10 @@ uint8_t Send_GetEvent(BACNET_ADDRESS *target_address,
         len = getevent_encode_apdu(&Handler_Transmit_Buffer[pdu_len], invoke_id,
             lastReceivedObjectIdentifier);
         pdu_len += len;
-        bytes_sent = datalink_send_pdu(
+#if PRINT_ENABLED
+        bytes_sent =
+#endif
+        datalink_send_pdu(
             target_address, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
         if (bytes_sent <= 0)
