@@ -562,7 +562,7 @@ unsigned Device_Object_List_Count(void)
  * @return True if found, else false.
  */
 bool Device_Object_List_Identifier(
-    uint32_t array_index, int *object_type, uint32_t *instance)
+    uint32_t array_index, BACNET_OBJECT_TYPE *object_type, uint32_t *instance)
 {
     bool status = false;
     unsigned count = 0;
@@ -620,11 +620,11 @@ bool Device_Object_List_Identifier(
  * @return True on success or else False if not found.
  */
 bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
-    int *object_type,
+    BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
     bool found = false;
-    int type = 0;
+    BACNET_OBJECT_TYPE type = (BACNET_OBJECT_TYPE)0;
     uint32_t instance;
     uint32_t max_objects = 0, i = 0;
     bool check_id = false;
@@ -659,7 +659,8 @@ bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
  * @param object_instance [in] The object instance number to be looked up.
  * @return True if found, else False if no such Object in this device.
  */
-bool Device_Valid_Object_Id(int object_type, uint32_t object_instance)
+bool Device_Valid_Object_Id
+    (BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;
@@ -851,7 +852,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t i = 0;
-    int object_type = 0;
+    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
     uint32_t instance = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;

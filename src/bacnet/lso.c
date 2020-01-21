@@ -66,7 +66,7 @@ int lso_encode_apdu(uint8_t *apdu, uint8_t invoke_id, BACNET_LSO_DATA *data)
          */
 
         len = encode_context_object_id(&apdu[apdu_len], 3,
-            (int)data->targetObject.type, data->targetObject.instance);
+            data->targetObject.type, data->targetObject.instance);
 
         apdu_len += len;
     }
@@ -115,7 +115,7 @@ int lso_decode_service_request(
             }
             len += section_length;
         } else {
-            data->targetObject.type = 0;
+            data->targetObject.type = (BACNET_OBJECT_TYPE)0;
             data->targetObject.instance = 0;
         }
         return len;

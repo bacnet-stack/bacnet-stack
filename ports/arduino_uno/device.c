@@ -107,7 +107,7 @@ unsigned Device_Object_List_Count(void)
 }
 
 bool Device_Object_List_Identifier(uint32_t array_index,
-    int *object_type,
+    BACNET_OBJECT_TYPE *object_type,
     uint32_t * instance)
 {
     bool status = false;
@@ -166,7 +166,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t i = 0;
-    int object_type = 0;
+    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
     uint32_t instance = 0;
     uint32_t count = 0;
 

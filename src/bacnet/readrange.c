@@ -145,7 +145,7 @@ int rr_decode_service_request(
     unsigned TagLen = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint16_t type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE type = (BACNET_OBJECT_TYPE)0; /* for decoding */
     uint32_t UnsignedTemp;
 
     /* check for value pointers */
@@ -155,7 +155,7 @@ int rr_decode_service_request(
             return -1;
         }
         len += decode_object_id(&apdu[len], &type, &rrdata->object_instance);
-        rrdata->object_type = (BACNET_OBJECT_TYPE)type;
+        rrdata->object_type = type;
         /* Tag 1: Property ID */
         len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);
@@ -339,7 +339,7 @@ int rr_ack_decode_service_request(uint8_t *apdu,
     int tag_len = 0; /* length of tag decode */
     int len = 0; /* total length of decodes */
     int start_len;
-    uint16_t object = 0; /* object type */
+    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0; /* object type */
     uint32_t property = 0; /* for decoding */
     uint32_t array_value = 0; /* for decoding */
 
@@ -349,8 +349,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         return -1;
     }
     len = 1;
-    len += decode_object_id(&apdu[len], &object, &rrdata->object_instance);
-    rrdata->object_type = (BACNET_OBJECT_TYPE)object;
+    len += decode_object_id(&apdu[len], &object_type, &rrdata->object_instance);
+    rrdata->object_type = object_type;
 
     /* Tag 1: Property ID */
     len +=

@@ -192,7 +192,7 @@ int rpm_decode_object_id(
     uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
 {
     unsigned len = 0;
-    uint16_t type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE type = (BACNET_OBJECT_TYPE)0; /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && rpmdata) {
@@ -206,7 +206,7 @@ int rpm_decode_object_id(
             return BACNET_STATUS_REJECT;
         }
         len += decode_object_id(&apdu[len], &type, &rpmdata->object_instance);
-        rpmdata->object_type = (BACNET_OBJECT_TYPE)type;
+        rpmdata->object_type = type;
         /* Tag 1: sequence of ReadAccessSpecification */
         if (!decode_is_opening_tag_number(&apdu[len], 1)) {
             rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
@@ -400,7 +400,7 @@ int rpm_ack_decode_object_id(uint8_t *apdu,
     uint32_t *object_instance)
 {
     unsigned len = 0;
-    uint16_t type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE type = (BACNET_OBJECT_TYPE)0; /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {
@@ -410,7 +410,7 @@ int rpm_ack_decode_object_id(uint8_t *apdu,
         }
         len += decode_object_id(&apdu[len], &type, object_instance);
         if (object_type) {
-            *object_type = (BACNET_OBJECT_TYPE)type;
+            *object_type = type;
         }
         /* Tag 1: listOfResults */
         if (!decode_is_opening_tag_number(&apdu[len], 1)) {

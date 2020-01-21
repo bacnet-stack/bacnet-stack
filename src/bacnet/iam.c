@@ -78,7 +78,8 @@ int iam_decode_service_request(uint8_t *apdu,
 {
     int len = 0;
     int apdu_len = 0; /* total length of the apdu, return value */
-    uint16_t object_type = 0; /* should be a Device Object */
+    /* should be a Device Object */
+    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
     uint32_t object_instance = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;

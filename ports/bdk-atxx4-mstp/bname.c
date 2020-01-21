@@ -94,7 +94,7 @@ bool bacnet_name_set(
 
 bool bacnet_name_write_unique(
     uint16_t offset,
-    int object_type,
+    BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,
     BACNET_CHARACTER_STRING * char_string,
     BACNET_ERROR_CLASS * error_class,
@@ -103,7 +103,7 @@ bool bacnet_name_write_unique(
     bool status = false;
     size_t length = 0;
     uint8_t encoding = 0;
-    int duplicate_type = 0;
+    BACNET_OBJECT_TYPE duplicate_type = (BACNET_OBJECT_TYPE)0;
     uint32_t duplicate_instance = 0;
 
     length = characterstring_length(char_string);

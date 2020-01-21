@@ -50,11 +50,11 @@ int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
         apdu_len = 2;
         /* deviceIdentifier */
         len = encode_application_object_id(&apdu[apdu_len],
-            (int)data->device_id.type, data->device_id.instance);
+            data->device_id.type, data->device_id.instance);
         apdu_len += len;
         /* objectIdentifier */
         len = encode_application_object_id(&apdu[apdu_len],
-            (int)data->object_id.type, data->object_id.instance);
+            data->object_id.type, data->object_id.instance);
         apdu_len += len;
         /* objectName */
         len = encode_application_character_string(
@@ -74,7 +74,7 @@ int ihave_decode_service_request(
     int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint16_t decoded_type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE decoded_type = (BACNET_OBJECT_TYPE)0; /* for decoding */
 
     if (apdu_len && data) {
         /* deviceIdentifier */

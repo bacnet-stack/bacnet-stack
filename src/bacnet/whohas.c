@@ -66,7 +66,7 @@ int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
             apdu_len += len;
         } else {
             len = encode_context_object_id(&apdu[apdu_len], 2,
-                (int)data->object.identifier.type,
+                data->object.identifier.type,
                 data->object.identifier.instance);
             apdu_len += len;
         }
@@ -83,7 +83,7 @@ int whohas_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
-    uint16_t decoded_type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE decoded_type = (BACNET_OBJECT_TYPE)0; /* for decoding */
 
     if (apdu_len && data) {
         /* optional limits - must be used as a pair */

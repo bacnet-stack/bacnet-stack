@@ -279,7 +279,7 @@ extern "C" {
         void);
     bool Device_Object_List_Identifier(
         uint32_t array_index,
-        int *object_type,
+        BACNET_OBJECT_TYPE *object_type,
         uint32_t * instance);
 
     unsigned Device_Count(
@@ -358,10 +358,10 @@ extern "C" {
 
     bool Device_Valid_Object_Name(
         BACNET_CHARACTER_STRING * object_name,
-        int *object_type,
+        BACNET_OBJECT_TYPE *object_type,
         uint32_t * object_instance);
     bool Device_Valid_Object_Id(
-        int object_type,
+        BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
 
     int Device_Read_Property(

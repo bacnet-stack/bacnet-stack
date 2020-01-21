@@ -581,7 +581,7 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     uint32_t max_states = 0;
     uint32_t array_index = 0;
-    int object_type = 0;
+    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
     uint32_t object_instance = 0;
 
     /* decode the first chunk of the request */

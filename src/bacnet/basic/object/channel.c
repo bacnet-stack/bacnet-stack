@@ -451,7 +451,7 @@ unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
  * zero if not added
  */
 unsigned Channel_Reference_List_Member_Local_Add(uint32_t object_instance,
-    uint16_t type,
+    BACNET_OBJECT_TYPE type,
     uint32_t instance,
     BACNET_PROPERTY_ID propertyIdentifier,
     uint32_t arrayIndex)
