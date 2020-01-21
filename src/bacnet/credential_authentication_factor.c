@@ -81,7 +81,7 @@ int bacapp_decode_credential_authentication_factor(
             return -1;
         } else {
             apdu_len += len;
-            caf->disable = disable;
+            caf->disable = (BACNET_ACCESS_AUTHENTICATION_FACTOR_DISABLE)disable;
         }
     } else {
         return -1;

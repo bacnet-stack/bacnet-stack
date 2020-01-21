@@ -1182,7 +1182,7 @@ bool Network_Port_BIP_Port_Set(uint32_t object_instance, uint16_t value)
  */
 BACNET_IP_MODE Network_Port_BIP_Mode(uint32_t object_instance)
 {
-    BACNET_IP_MODE value = 0;
+    BACNET_IP_MODE value = BACNET_IP_MODE_NORMAL;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
@@ -1287,7 +1287,7 @@ bool Network_Port_BBMD_Accept_FD_Registrations_Set(
  */
 BACNET_IP_MODE Network_Port_BIP6_Mode(uint32_t object_instance)
 {
-    BACNET_IP_MODE value = 0;
+    BACNET_IP_MODE value = BACNET_IP_MODE_NORMAL;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);

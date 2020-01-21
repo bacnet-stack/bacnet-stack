@@ -330,7 +330,7 @@ bool Life_Safety_Point_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     object_index = Life_Safety_Point_Instance_To_Index(
                         wp_data->object_instance);
                     Life_Safety_Point_Mode[object_index] =
-                        value.type.Enumerated;
+                        (BACNET_LIFE_SAFETY_MODE)value.type.Enumerated;
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;

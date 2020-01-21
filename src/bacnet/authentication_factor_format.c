@@ -88,7 +88,7 @@ int bacapp_decode_authentication_factor_format(
             return -1;
         } else {
             apdu_len += len;
-            aff->format_type = format_type;
+            aff->format_type = (BACNET_AUTHENTICATION_FACTOR_TYPE)format_type;
         }
     } else {
         return -1;

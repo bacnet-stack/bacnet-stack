@@ -232,14 +232,14 @@ unsigned Channel_Last_Priority(uint32_t object_instance)
 BACNET_WRITE_STATUS Channel_Write_Status(uint32_t object_instance)
 {
     unsigned index = 0;
-    unsigned priority = 0;
+    BACNET_WRITE_STATUS write_status = BACNET_WRITE_STATUS_IDLE;
 
     index = Channel_Instance_To_Index(object_instance);
     if (index < BACNET_CHANNELS_MAX) {
-        priority = Channel[index].Write_Status;
+        write_status = Channel[index].Write_Status;
     }
 
-    return priority;
+    return write_status;
 }
 
 /**

@@ -98,7 +98,8 @@ int bacapp_decode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
             return -1;
         } else {
             apdu_len += len;
-            rule->time_range_specifier = time_range_specifier;
+            rule->time_range_specifier =
+                (BACNET_ACCESS_RULE_TIME_RANGE_SPECIFIER)time_range_specifier;
         }
     } else {
         return -1;
@@ -125,7 +126,8 @@ int bacapp_decode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
             return -1;
         } else {
             apdu_len += len;
-            rule->location_specifier = location_specifier;
+            rule->location_specifier =
+                (BACNET_ACCESS_RULE_LOCATION_SPECIFIER)location_specifier;
         }
     } else {
         return -1;
