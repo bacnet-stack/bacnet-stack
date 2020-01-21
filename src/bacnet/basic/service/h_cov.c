@@ -84,6 +84,8 @@ static BACNET_COV_SUBSCRIPTION COV_Subscriptions[MAX_COV_SUBCRIPTIONS];
 #endif
 static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
 
+#define COV_INDEX_NONE 255
+
 /**
  * Gets the address from the list of COV addresses
  *
@@ -92,11 +94,11 @@ static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
  *
  * @return true if valid address, false if not valid or not found
  */
-static BACNET_ADDRESS *cov_address_get(int index)
+static BACNET_ADDRESS *cov_address_get(uint8_t index)
 {
     BACNET_ADDRESS *cov_dest = NULL;
 
-    if (index < MAX_COV_ADDRESSES) {
+    if (index != COV_INDEX_NONE && index < MAX_COV_ADDRESSES) {
         if (COV_Addresses[index].valid) {
             cov_dest = &COV_Addresses[index].dest;
         }
@@ -325,7 +327,7 @@ void handler_cov_init(void)
 
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         COV_Subscriptions[index].flag.valid = false;
-        COV_Subscriptions[index].dest_index = -1;
+        COV_Subscriptions[index].dest_index = COV_INDEX_NONE;
         COV_Subscriptions[index].subscriberProcessIdentifier = 0;
         COV_Subscriptions[index].monitoredObjectIdentifier.type =
             OBJECT_ANALOG_INPUT;
@@ -375,7 +377,7 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
                 existing_entry = true;
                 if (cov_data->cancellationRequest) {
                     COV_Subscriptions[index].flag.valid = false;
-                    COV_Subscriptions[index].dest_index = -1;
+                    COV_Subscriptions[index].dest_index = COV_INDEX_NONE;
                     cov_address_remove_unused();
                 } else {
                     COV_Subscriptions[index].dest_index = cov_address_add(src);
@@ -537,7 +539,7 @@ static void cov_lifetime_expiration_handler(
             fprintf(stderr, "\n");
 #endif
             COV_Subscriptions[index].flag.valid = false;
-            COV_Subscriptions[index].dest_index = -1;
+            COV_Subscriptions[index].dest_index = COV_INDEX_NONE;
             cov_address_remove_unused();
             if (COV_Subscriptions[index].flag.issueConfirmedNotifications) {
                 if (COV_Subscriptions[index].invokeID) {
