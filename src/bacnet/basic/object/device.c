@@ -216,7 +216,7 @@ static object_functions_t My_Object_Table[] = {
         Trend_Log_Write_Property, Trend_Log_Property_Lists, TrendLogGetRRInfo,
         NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
         NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
-#if (BACNET_PROTOCOL_REVISION >= 14)
+#if (BACNET_PROTOCOL_REVISION >= 14) && defined(BACAPP_LIGHTING_COMMAND)
     { OBJECT_LIGHTING_OUTPUT, Lighting_Output_Init, Lighting_Output_Count,
         Lighting_Output_Index_To_Instance, Lighting_Output_Valid_Instance,
         Lighting_Output_Object_Name, Lighting_Output_Read_Property,
