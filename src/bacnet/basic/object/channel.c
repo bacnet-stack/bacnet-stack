@@ -456,7 +456,7 @@ unsigned Channel_Reference_List_Member_Local_Add(uint32_t object_instance,
     BACNET_PROPERTY_ID propertyIdentifier,
     uint32_t arrayIndex)
 {
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { { 0 } };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
 
     member.objectIdentifier.type = type;
     member.objectIdentifier.instance = instance;

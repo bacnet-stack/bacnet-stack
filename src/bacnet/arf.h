@@ -34,8 +34,9 @@
 #endif
 
 typedef struct BACnet_Atomic_Read_File_Data {
-    BACNET_OBJECT_TYPE object_type;
+    /* number type first to avoid enum cast warning on = { 0 } */
     uint32_t object_instance;
+    BACNET_OBJECT_TYPE object_type;
     BACNET_FILE_ACCESS_METHOD access;
     union {
         struct {
