@@ -35,7 +35,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <memory.h>
+#include <string.h>
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/object/objects.h"
 
