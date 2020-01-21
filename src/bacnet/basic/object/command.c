@@ -275,7 +275,6 @@ int cl_decode_apdu(uint8_t *apdu,
             break;
         default:
             return BACNET_STATUS_REJECT;
-            break;
     }
     if (len > 0) {
         dec_len += len;
