@@ -44,7 +44,7 @@
 #define MAX_OCTETSTRING_VALUES 4
 #endif
 
-OCTETSTRING_VALUE_DESCR OSV_Descr[MAX_OCTETSTRING_VALUES];
+static OCTETSTRING_VALUE_DESCR OSV_Descr[MAX_OCTETSTRING_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int OctetString_Value_Properties_Required[] = {

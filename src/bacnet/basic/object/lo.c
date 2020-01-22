@@ -71,7 +71,7 @@ struct lighting_output_object {
     float Max_Actual_Value;
     uint8_t Lighting_Command_Default_Priority;
 };
-struct lighting_output_object Lighting_Output[MAX_LIGHTING_OUTPUTS];
+static struct lighting_output_object Lighting_Output[MAX_LIGHTING_OUTPUTS];
 
 /* These arrays are used by the ReadPropertyMultiple handler and
    property-list property (as of protocol-revision 14) */
