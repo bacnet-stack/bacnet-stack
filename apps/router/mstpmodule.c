@@ -51,7 +51,7 @@ void *dl_mstp_thread(void *pArgs)
 
     shared_port_data.Treply_timeout = 260;
     shared_port_data.MSTP_Packets = 0;
-    shared_port_data.Tusage_timeout = 50;
+    shared_port_data.Tusage_timeout = 30;
     shared_port_data.RS485_Handle = -1;
     shared_port_data.RS485_Baud = B38400;
     shared_port_data.RS485MOD = 0;

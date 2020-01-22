@@ -141,11 +141,11 @@ static uint8_t TransmitPacketDest;
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
 #define Treply_timeout 295
 
-/* The minimum time without a DataAvailable or ReceiveError event that a */
-/* node must wait for a remote node to begin using a token or replying to */
-/* a Poll For Master frame: 20 milliseconds. (Implementations may use */
-/* larger values for this timeout, not to exceed 100 milliseconds.) */
-#define Tusage_timeout 95
+/* The time without a DataAvailable or ReceiveError event that a node must */
+/* wait for a remote node to begin using a token or replying to a Poll For */
+/* Master frame: 20 milliseconds. (Implementations may use larger values for */
+/* this timeout, not to exceed 35 milliseconds.) */
+#define Tusage_timeout 30
 
 /* The minimum number of DataAvailable or ReceiveError events that must be */
 /* seen by a receiving node in order to declare the line "active": 4. */
