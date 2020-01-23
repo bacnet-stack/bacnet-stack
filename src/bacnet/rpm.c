@@ -192,7 +192,7 @@ int rpm_decode_object_id(
     uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
 {
     int len = 0;
-    BACNET_OBJECT_TYPE type = (BACNET_OBJECT_TYPE)0; /* for decoding */
+    BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && rpmdata) {
@@ -400,7 +400,7 @@ int rpm_ack_decode_object_id(uint8_t *apdu,
     uint32_t *object_instance)
 {
     unsigned len = 0;
-    BACNET_OBJECT_TYPE type = (BACNET_OBJECT_TYPE)0; /* for decoding */
+    BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {

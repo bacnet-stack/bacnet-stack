@@ -241,7 +241,7 @@ int bacapp_decode_data(uint8_t *apdu,
 #endif
 #if defined(BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID: {
-                BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
+                BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
                 uint32_t instance = 0;
                 len = bacnet_object_id_decode(
                     &apdu[0], len_value_type, &object_type, &instance);

@@ -68,7 +68,7 @@ typedef struct BACnet_COV_Subscription_Flags {
 
 typedef struct BACnet_COV_Subscription {
     BACNET_COV_SUBSCRIPTION_FLAGS flag;
-    uint8_t dest_index;
+    unsigned dest_index;
     uint8_t invokeID; /* for confirmed COV */
     uint32_t subscriberProcessIdentifier;
     uint32_t lifetime; /* optional */
@@ -84,8 +84,6 @@ static BACNET_COV_SUBSCRIPTION COV_Subscriptions[MAX_COV_SUBCRIPTIONS];
 #endif
 static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
 
-#define COV_INDEX_NONE 255
-
 /**
  * Gets the address from the list of COV addresses
  *
@@ -94,11 +92,11 @@ static BACNET_COV_ADDRESS COV_Addresses[MAX_COV_ADDRESSES];
  *
  * @return true if valid address, false if not valid or not found
  */
-static BACNET_ADDRESS *cov_address_get(uint8_t index)
+static BACNET_ADDRESS *cov_address_get(unsigned index)
 {
     BACNET_ADDRESS *cov_dest = NULL;
 
-    if (index != COV_INDEX_NONE && index < MAX_COV_ADDRESSES) {
+    if (index < MAX_COV_ADDRESSES) {
         if (COV_Addresses[index].valid) {
             cov_dest = &COV_Addresses[index].dest;
         }
@@ -326,8 +324,9 @@ void handler_cov_init(void)
     unsigned index = 0;
 
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+        /* initialize with invalid COV address */
         COV_Subscriptions[index].flag.valid = false;
-        COV_Subscriptions[index].dest_index = COV_INDEX_NONE;
+        COV_Subscriptions[index].dest_index = MAX_COV_ADDRESSES;
         COV_Subscriptions[index].subscriberProcessIdentifier = 0;
         COV_Subscriptions[index].monitoredObjectIdentifier.type =
             OBJECT_ANALOG_INPUT;
@@ -376,8 +375,9 @@ static bool cov_list_subscribe(BACNET_ADDRESS *src,
                 address_match) {
                 existing_entry = true;
                 if (cov_data->cancellationRequest) {
+                    /* initialize with invalid COV address */
                     COV_Subscriptions[index].flag.valid = false;
-                    COV_Subscriptions[index].dest_index = COV_INDEX_NONE;
+                    COV_Subscriptions[index].dest_index = MAX_COV_ADDRESSES;
                     cov_address_remove_unused();
                 } else {
                     COV_Subscriptions[index].dest_index = cov_address_add(src);
@@ -538,8 +538,9 @@ static void cov_lifetime_expiration_handler(
                 COV_Subscriptions[index].lifetime);
             fprintf(stderr, "\n");
 #endif
+            /* initialize with invalid COV address */
             COV_Subscriptions[index].flag.valid = false;
-            COV_Subscriptions[index].dest_index = COV_INDEX_NONE;
+            COV_Subscriptions[index].dest_index = MAX_COV_ADDRESSES;
             cov_address_remove_unused();
             if (COV_Subscriptions[index].flag.issueConfirmedNotifications) {
                 if (COV_Subscriptions[index].invokeID) {

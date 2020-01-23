@@ -74,7 +74,7 @@ int ihave_decode_service_request(
     int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    BACNET_OBJECT_TYPE decoded_type = (BACNET_OBJECT_TYPE)0; /* for decoding */
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
 
     if (apdu_len && data) {
         /* deviceIdentifier */

@@ -115,7 +115,7 @@ int lso_decode_service_request(
             }
             len += section_length;
         } else {
-            data->targetObject.type = (BACNET_OBJECT_TYPE)0;
+            data->targetObject.type = OBJECT_NONE;
             data->targetObject.instance = 0;
         }
         return len;

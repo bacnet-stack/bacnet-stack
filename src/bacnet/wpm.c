@@ -55,7 +55,7 @@ int wpm_decode_object_id(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t object_instance = 0;
-    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint16_t len = 0;
 
     if (apdu && (apdu_len > 5) && wp_data) {

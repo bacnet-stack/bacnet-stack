@@ -273,7 +273,7 @@ int Device_Read_Property_Local(
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t i = 0;
-    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t instance = 0;
     uint32_t count = 0;
     BACNET_TIME local_time;

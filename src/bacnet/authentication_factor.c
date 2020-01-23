@@ -85,9 +85,12 @@ int bacapp_decode_authentication_factor(
         len = decode_context_enumerated(&apdu[apdu_len], 0, &format_type);
         if (len < 0) {
             return -1;
-        } else {
+        } else if (format_type < AUTHENTICATION_FACTOR_MAX) {
             apdu_len += len;
             af->format_type = (BACNET_AUTHENTICATION_FACTOR_TYPE)format_type;
+        } else {
+            /* FIXME: Maybe this should return BACNET_STATUS_REJECT */
+            return -1;
         }
     } else {
         return -1;

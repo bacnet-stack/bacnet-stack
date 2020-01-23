@@ -201,7 +201,11 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
                 len += decode_enumerated(&apdu[len], len_value, &enum_value);
-                event_data->eventState = (BACNET_EVENT_STATE)enum_value;
+                if (enum_value < EVENT_STATE_MAX) {
+                    event_data->eventState = (BACNET_EVENT_STATE)enum_value;
+                } else {
+                    return -1;
+                }
             } else {
                 return -1;
             }
@@ -236,7 +240,11 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
                 len += decode_enumerated(&apdu[len], len_value, &enum_value);
-                event_data->notifyType = (BACNET_NOTIFY_TYPE)enum_value;
+                if (enum_value < NOTIFY_MAX) {
+                    event_data->notifyType = (BACNET_NOTIFY_TYPE)enum_value;
+                } else {
+                    return -1;
+                }
             } else {
                 return -1;
             }

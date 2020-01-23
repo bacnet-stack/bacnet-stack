@@ -1111,6 +1111,9 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                     CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL]
                         .Time_Stamp = event_data.timeStamp.value.dateTime;
                     break;
+
+                default: /* shouldn't happen */
+                    break;
             }
         }
     }

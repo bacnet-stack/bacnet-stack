@@ -79,9 +79,11 @@ int bacapp_decode_credential_authentication_factor(
         len = decode_context_enumerated(&apdu[apdu_len], 0, &disable);
         if (len < 0) {
             return -1;
-        } else {
+        } else if (disable < ACCESS_AUTHENTICATION_FACTOR_DISABLE_MAX) {
             apdu_len += len;
             caf->disable = (BACNET_ACCESS_AUTHENTICATION_FACTOR_DISABLE)disable;
+        } else {
+            return -1;
         }
     } else {
         return -1;

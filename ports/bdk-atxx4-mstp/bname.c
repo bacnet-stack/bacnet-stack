@@ -103,7 +103,7 @@ bool bacnet_name_write_unique(
     bool status = false;
     size_t length = 0;
     uint8_t encoding = 0;
-    BACNET_OBJECT_TYPE duplicate_type = (BACNET_OBJECT_TYPE)0;
+    BACNET_OBJECT_TYPE duplicate_type = OBJECT_NONE;
     uint32_t duplicate_instance = 0;
 
     length = characterstring_length(char_string);

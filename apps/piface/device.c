@@ -707,7 +707,7 @@ bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
     uint32_t *object_instance)
 {
     bool found = false;
-    BACNET_OBJECT_TYPE type = (BACNET_OBJECT_TYPE)0;
+    BACNET_OBJECT_TYPE type = OBJECT_NONE;
     uint32_t instance;
     uint32_t max_objects = 0, i = 0;
     bool check_id = false;
@@ -861,7 +861,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
     uint32_t i = 0;
-    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t instance = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
@@ -1111,7 +1111,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
-    BACNET_OBJECT_TYPE object_type = (BACNET_OBJECT_TYPE)0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     int temp;
 
