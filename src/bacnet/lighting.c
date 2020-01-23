@@ -142,7 +142,11 @@ int lighting_command_decode(
         len =
             decode_enumerated(&apdu[apdu_len], len_value_type, &unsigned_value);
         if (len > 0) {
-            data->operation = unsigned_value;
+            if (unsigned_value <= BACNET_LIGHTS_PROPRIETARY_LAST) {
+                data->operation = (BACNET_LIGHTING_OPERATION)unsigned_value;
+            } else {
+                return BACNET_STATUS_ERROR;
+            }
         }
         apdu_len += len;
         /* Tag 1: target-level - OPTIONAL */

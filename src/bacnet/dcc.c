@@ -168,7 +168,7 @@ int dcc_decode_service_request(uint8_t *apdu,
     BACNET_CHARACTER_STRING *password)
 {
     int apdu_len = 0;
-    unsigned len = 0;
+    int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint32_t value32 = 0;

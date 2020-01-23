@@ -232,14 +232,14 @@ unsigned Channel_Last_Priority(uint32_t object_instance)
 BACNET_WRITE_STATUS Channel_Write_Status(uint32_t object_instance)
 {
     unsigned index = 0;
-    unsigned priority = 0;
+    BACNET_WRITE_STATUS write_status = BACNET_WRITE_STATUS_IDLE;
 
     index = Channel_Instance_To_Index(object_instance);
     if (index < BACNET_CHANNELS_MAX) {
-        priority = Channel[index].Write_Status;
+        write_status = Channel[index].Write_Status;
     }
 
-    return priority;
+    return write_status;
 }
 
 /**
@@ -451,12 +451,12 @@ unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
  * zero if not added
  */
 unsigned Channel_Reference_List_Member_Local_Add(uint32_t object_instance,
-    uint16_t type,
+    BACNET_OBJECT_TYPE type,
     uint32_t instance,
     BACNET_PROPERTY_ID propertyIdentifier,
     uint32_t arrayIndex)
 {
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { { 0 } };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
 
     member.objectIdentifier.type = type;
     member.objectIdentifier.instance = instance;

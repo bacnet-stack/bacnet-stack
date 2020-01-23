@@ -81,7 +81,7 @@ extern "C" {
         void);
     bool Device_Object_List_Identifier(
         uint32_t array_index,
-        int *object_type,
+        BACNET_OBJECT_TYPE *object_type,
         uint32_t * instance);
 
     BACNET_DEVICE_STATUS Device_System_Status(
@@ -143,10 +143,10 @@ extern "C" {
 
     bool Device_Valid_Object_Name(
         const char *object_name,
-        int *object_type,
+        BACNET_OBJECT_TYPE *object_type,
         uint32_t * object_instance);
     char *Device_Valid_Object_Id(
-        int object_type,
+        BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
 
     int Device_Encode_Property_APDU(

@@ -50,6 +50,7 @@
 #include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/lighting.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/object/command.h"
@@ -71,8 +72,7 @@ int cl_encode_apdu(uint8_t *apdu, BACNET_ACTION_LIST *bcl)
     int len = 0;
     int apdu_len = 0;
 
-    if (bcl->Device_Id.instance >= 0 &&
-        bcl->Device_Id.instance <= BACNET_MAX_INSTANCE) {
+    if (bcl->Device_Id.instance <= BACNET_MAX_INSTANCE) {
         len = encode_context_object_id(
             &apdu[apdu_len], 0, bcl->Device_Id.type, bcl->Device_Id.instance);
         if (len < 0) {
@@ -269,13 +269,14 @@ int cl_decode_apdu(uint8_t *apdu,
                 &bcl->Value.type.Object_Id.type,
                 &bcl->Value.type.Object_Id.instance);
             break;
+#if defined(BACAPP_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             len = lighting_command_decode(&apdu[dec_len], apdu_len - dec_len,
                 &bcl->Value.type.Lighting_Command);
             break;
+#endif
         default:
             return BACNET_STATUS_REJECT;
-            break;
     }
     if (len > 0) {
         dec_len += len;

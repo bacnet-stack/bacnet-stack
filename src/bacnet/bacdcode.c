@@ -724,14 +724,15 @@ int encode_context_bitstring(
 
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
 /* returns the number of apdu bytes consumed */
-int decode_object_id(uint8_t *apdu, uint16_t *object_type, uint32_t *instance)
+int decode_object_id(
+    uint8_t *apdu, BACNET_OBJECT_TYPE *object_type,uint32_t *instance)
 {
     uint32_t value = 0;
     int len = 0;
 
     len = decode_unsigned32(apdu, &value);
-    *object_type =
-        (uint16_t)(((value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
+    *object_type = (BACNET_OBJECT_TYPE)
+        (((value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
     *instance = (value & BACNET_MAX_INSTANCE);
 
     return len;
@@ -739,7 +740,7 @@ int decode_object_id(uint8_t *apdu, uint16_t *object_type, uint32_t *instance)
 
 int bacnet_object_id_decode(uint8_t *apdu,
     uint32_t len_value_type,
-    uint16_t *object_type,
+    BACNET_OBJECT_TYPE *object_type,
     uint32_t *instance)
 {
     if (len_value_type != 4) {
@@ -763,7 +764,7 @@ int bacnet_object_id_decode(uint8_t *apdu,
  */
 int bacnet_object_id_application_decode(uint8_t *apdu,
     uint16_t apdu_len_max,
-    uint16_t *object_type,
+    BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
     int len = 0;
@@ -812,7 +813,7 @@ int bacnet_object_id_application_decode(uint8_t *apdu,
 int bacnet_object_id_context_decode(uint8_t *apdu,
     uint16_t apdu_len_max,
     uint8_t tag_value,
-    uint16_t *object_type,
+    BACNET_OBJECT_TYPE *object_type,
     uint32_t *object_instance)
 {
     int apdu_len = 0;
@@ -849,7 +850,7 @@ int bacnet_object_id_context_decode(uint8_t *apdu,
 
 int decode_context_object_id(uint8_t *apdu,
     uint8_t tag_number,
-    uint16_t *object_type,
+    BACNET_OBJECT_TYPE *object_type,
     uint32_t *instance)
 {
     int len = 0;
@@ -865,15 +866,14 @@ int decode_context_object_id(uint8_t *apdu,
 
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_object_id(uint8_t *apdu, int object_type, uint32_t instance)
+int encode_bacnet_object_id
+    (uint8_t *apdu, BACNET_OBJECT_TYPE object_type, uint32_t instance)
 {
     uint32_t value = 0;
-    uint32_t type = 0;
     int len = 0;
 
-    type = (uint32_t)object_type;
-    value = ((type & BACNET_MAX_OBJECT) << BACNET_INSTANCE_BITS) |
-        (instance & BACNET_MAX_INSTANCE);
+    value = (((uint32_t)object_type & BACNET_MAX_OBJECT)
+        << BACNET_INSTANCE_BITS) | (instance & BACNET_MAX_INSTANCE);
     len = encode_unsigned32(apdu, value);
 
     return len;
@@ -882,8 +882,10 @@ int encode_bacnet_object_id(uint8_t *apdu, int object_type, uint32_t instance)
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_context_object_id(
-    uint8_t *apdu, uint8_t tag_number, int object_type, uint32_t instance)
+int encode_context_object_id(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t instance)
 {
     int len = 0;
 
@@ -899,7 +901,7 @@ int encode_context_object_id(
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
 int encode_application_object_id(
-    uint8_t *apdu, int object_type, uint32_t instance)
+    uint8_t *apdu, BACNET_OBJECT_TYPE object_type, uint32_t instance)
 {
     int len = 0;
 
@@ -2896,8 +2898,8 @@ static void testBACDCodeObject(Test *pTest)
 {
     uint8_t object_array[32] = { 0 };
     uint8_t encoded_array[32] = { 0 };
-    uint16_t type = OBJECT_BINARY_INPUT;
-    uint16_t decoded_type = OBJECT_ANALOG_OUTPUT;
+    BACNET_OBJECT_TYPE type = OBJECT_BINARY_INPUT;
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_ANALOG_OUTPUT;
     uint32_t instance = 123;
     uint32_t decoded_instance = 0;
     int len = 0;
@@ -3404,10 +3406,10 @@ static void testObjectIDContextDecodes(Test *pTest)
     uint8_t large_context_tag = 0xfe;
 
     /* 32 bit number */
-    uint16_t in_type;
+    BACNET_OBJECT_TYPE in_type;
     uint32_t in_id;
 
-    uint16_t out_type;
+    BACNET_OBJECT_TYPE out_type;
     uint32_t out_id;
 
     in_type = 0xde;

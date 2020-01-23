@@ -112,8 +112,8 @@ uint16_t iCurrent_Device_Idx = 0;
  * @param Object_Instance [in] Set the new Device to this instance number.
  * @param sObject_Name [in] Use this Object Name for the Device.
  * @param sDescription [in] Set this Description for the Device.
- * @return The index of this instance in the Devices[] array,
- *         or -1 if there isn't enough room to add this Device.
+ * @return The index of this instance in the Devices[] array, or UINT16_MAX if
+ *         there isn't enough room to add this Device.
  */
 uint16_t Add_Routed_Device(uint32_t Object_Instance,
     BACNET_CHARACTER_STRING *sObject_Name,
@@ -141,7 +141,7 @@ uint16_t Add_Routed_Device(uint32_t Object_Instance,
         pDev->Database_Revision = 0; /* Reset/Initialize now */
         return i;
     } else {
-        return -1;
+        return UINT16_MAX;
     }
 }
 

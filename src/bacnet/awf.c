@@ -89,7 +89,7 @@ int awf_decode_service_request(
 {
     int len = 0;
     int apdu_len = BACNET_STATUS_ERROR;
-    uint16_t object_type = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     uint32_t i = 0;
 
@@ -102,7 +102,7 @@ int awf_decode_service_request(
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
-    data->object_type = (BACNET_OBJECT_TYPE)object_type;
+    data->object_type = object_type;
     data->object_instance = object_instance;
     apdu_len = len;
     if (apdu_len < apdu_len_max) {

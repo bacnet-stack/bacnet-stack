@@ -34,8 +34,9 @@
    It could also have more than one value or element.  */
 
 typedef struct BACnet_Write_Property_Data {
-    BACNET_OBJECT_TYPE object_type;
+    /* number type first to avoid enum cast warning on = { 0 } */
     uint32_t object_instance;
+    BACNET_OBJECT_TYPE object_type;
     BACNET_PROPERTY_ID object_property;
     uint32_t array_index;       /* use BACNET_ARRAY_ALL when not setting */
     uint8_t application_data[MAX_APDU];

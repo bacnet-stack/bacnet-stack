@@ -100,13 +100,13 @@ int event_notify_encode_service_request(
         apdu_len += len;
         /* tag 1 - initiatingObjectIdentifier */
         len = encode_context_object_id(&apdu[apdu_len], 1,
-            (int)data->initiatingObjectIdentifier.type,
+            data->initiatingObjectIdentifier.type,
             data->initiatingObjectIdentifier.instance);
         apdu_len += len;
 
         /* tag 2 - eventObjectIdentifier */
         len = encode_context_object_id(&apdu[apdu_len], 2,
-            (int)data->eventObjectIdentifier.type,
+            data->eventObjectIdentifier.type,
             data->eventObjectIdentifier.instance);
         apdu_len += len;
 

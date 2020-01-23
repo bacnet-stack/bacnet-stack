@@ -53,7 +53,7 @@ int bacapp_decode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
     if (-1 == section_length) {
         return -1;
     }
-    value->tag = tagnum;
+    value->tag = (BACNET_PROPERTY_STATE_TYPE)tagnum;
     len += section_length;
     switch (value->tag) {
         case BOOLEAN_VALUE:

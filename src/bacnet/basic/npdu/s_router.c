@@ -193,7 +193,6 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
             debug_printf("Not sent: %s message unsupported \n",
                 bactext_network_layer_msg_name(network_message_type));
             return 0;
-            break; /* Will never reach this line */
     }
 
     if (dst != NULL) {

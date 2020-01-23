@@ -191,8 +191,8 @@ int rpm_encode_apdu(uint8_t *apdu,
 int rpm_decode_object_id(
     uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
 {
-    unsigned len = 0;
-    uint16_t type = 0; /* for decoding */
+    int len = 0;
+    BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && rpmdata) {
@@ -206,7 +206,7 @@ int rpm_decode_object_id(
             return BACNET_STATUS_REJECT;
         }
         len += decode_object_id(&apdu[len], &type, &rpmdata->object_instance);
-        rpmdata->object_type = (BACNET_OBJECT_TYPE)type;
+        rpmdata->object_type = type;
         /* Tag 1: sequence of ReadAccessSpecification */
         if (!decode_is_opening_tag_number(&apdu[len], 1)) {
             rpmdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
@@ -215,7 +215,7 @@ int rpm_decode_object_id(
         len++; /* opening tag is only one octet */
     }
 
-    return (int)len;
+    return len;
 }
 
 int rpm_decode_object_end(uint8_t *apdu, unsigned apdu_len)
@@ -242,8 +242,8 @@ int rpm_decode_object_end(uint8_t *apdu, unsigned apdu_len)
 int rpm_decode_object_property(
     uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
 {
-    unsigned len = 0;
-    unsigned option_len = 0;
+    int len = 0;
+    int option_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint32_t property = 0; /* for decoding */
@@ -274,7 +274,7 @@ int rpm_decode_object_property(
         rpmdata->array_index = BACNET_ARRAY_ALL;
         /* Tag 1: Optional propertyArrayIndex */
         if (IS_CONTEXT_SPECIFIC(apdu[len]) && !IS_CLOSING_TAG(apdu[len])) {
-            option_len = (unsigned)decode_tag_number_and_value(
+            option_len = decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             if (tag_number == 1) {
                 len += option_len;
@@ -291,7 +291,7 @@ int rpm_decode_object_property(
         }
     }
 
-    return (int)len;
+    return len;
 }
 
 int rpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
@@ -400,7 +400,7 @@ int rpm_ack_decode_object_id(uint8_t *apdu,
     uint32_t *object_instance)
 {
     unsigned len = 0;
-    uint16_t type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
 
     /* check for value pointers */
     if (apdu && apdu_len && object_type && object_instance) {
@@ -410,7 +410,7 @@ int rpm_ack_decode_object_id(uint8_t *apdu,
         }
         len += decode_object_id(&apdu[len], &type, object_instance);
         if (object_type) {
-            *object_type = (BACNET_OBJECT_TYPE)type;
+            *object_type = type;
         }
         /* Tag 1: listOfResults */
         if (!decode_is_opening_tag_number(&apdu[len], 1)) {

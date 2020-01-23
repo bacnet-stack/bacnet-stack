@@ -84,7 +84,7 @@ int arf_decode_service_request(
 {
     int len = 0;
     int apdu_len = BACNET_STATUS_ERROR;
-    uint16_t object_type = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
 
     /* check for value pointers */

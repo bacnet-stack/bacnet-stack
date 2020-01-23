@@ -63,8 +63,8 @@ void handler_ucov_notification(
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
 #if PRINT_ENABLED
     BACNET_PROPERTY_VALUE *pProperty_value = NULL;
-#endif
     int len = 0;
+#endif
 
     /* src not needed for this application */
     (void)src;
@@ -76,7 +76,10 @@ void handler_ucov_notification(
     fprintf(stderr, "UCOV: Received Notification!\n");
 #endif
     /* decode the service request only */
-    len = cov_notify_decode_service_request(
+#if PRINT_ENABLED
+    len =
+#endif
+    cov_notify_decode_service_request(
         service_request, service_len, &cov_data);
 #if PRINT_ENABLED
     if (len > 0) {

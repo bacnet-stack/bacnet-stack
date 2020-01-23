@@ -86,7 +86,7 @@ int rp_decode_service_request(
     unsigned len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint16_t type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
     uint32_t array_value = 0; /* for decoding */
 
@@ -105,7 +105,7 @@ int rp_decode_service_request(
             return BACNET_STATUS_REJECT;
         }
         len += decode_object_id(&apdu[len], &type, &rpdata->object_instance);
-        rpdata->object_type = (BACNET_OBJECT_TYPE)type;
+        rpdata->object_type = type;
         /* Tag 1: Property ID */
         len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);
@@ -227,7 +227,7 @@ int rp_ack_decode_service_request(uint8_t *apdu,
     uint32_t len_value_type = 0;
     int tag_len = 0; /* length of tag decode */
     int len = 0; /* total length of decodes */
-    uint16_t object = 0; /* object type */
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE; /* object type */
     uint32_t property = 0; /* for decoding */
     uint32_t array_value = 0; /* for decoding */
 
@@ -237,8 +237,8 @@ int rp_ack_decode_service_request(uint8_t *apdu,
         return -1;
     }
     len = 1;
-    len += decode_object_id(&apdu[len], &object, &rpdata->object_instance);
-    rpdata->object_type = (BACNET_OBJECT_TYPE)object;
+    len += decode_object_id(&apdu[len], &object_type, &rpdata->object_instance);
+    rpdata->object_type = object_type;
     /* Tag 1: Property ID */
     len +=
         decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
@@ -343,7 +343,7 @@ void testReadPropertyAck(Test *pTest)
     BACNET_READ_PROPERTY_DATA test_data;
     BACNET_OBJECT_TYPE object_type = OBJECT_DEVICE;
     uint32_t object_instance = 0;
-    uint16_t object = 0;
+    BACNET_OBJECT_TYPE object = 0;
 
     rpdata.object_type = OBJECT_DEVICE;
     rpdata.object_instance = 1;

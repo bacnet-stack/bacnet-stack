@@ -67,7 +67,7 @@ static int notify_encode_apdu(
         apdu_len += len;
         /* tag 2 - monitoredObjectIdentifier */
         len = encode_context_object_id(&apdu[apdu_len], 2,
-            (int)data->monitoredObjectIdentifier.type,
+            data->monitoredObjectIdentifier.type,
             data->monitoredObjectIdentifier.instance);
         apdu_len += len;
         /* tag 3 - timeRemaining */
@@ -182,7 +182,7 @@ int cov_notify_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
-    uint16_t decoded_type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
     BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
     BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
@@ -350,7 +350,7 @@ int cov_subscribe_encode_apdu(uint8_t *apdu,
         apdu_len += len;
         /* tag 1 - monitoredObjectIdentifier */
         len = encode_context_object_id(&apdu[apdu_len], 1,
-            (int)data->monitoredObjectIdentifier.type,
+            data->monitoredObjectIdentifier.type,
             data->monitoredObjectIdentifier.instance);
         apdu_len += len;
         /*
@@ -380,7 +380,7 @@ int cov_subscribe_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
-    uint16_t decoded_type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */
@@ -473,7 +473,7 @@ int cov_subscribe_property_encode_apdu(uint8_t *apdu,
         apdu_len += len;
         /* tag 1 - monitoredObjectIdentifier */
         len = encode_context_object_id(&apdu[apdu_len], 1,
-            (int)data->monitoredObjectIdentifier.type,
+            data->monitoredObjectIdentifier.type,
             data->monitoredObjectIdentifier.instance);
         apdu_len += len;
         if (!data->cancellationRequest) {
@@ -517,7 +517,7 @@ int cov_subscribe_property_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
     uint32_t decoded_value = 0; /* for decoding */
-    uint16_t decoded_type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
 
     if (apdu_len && data) {

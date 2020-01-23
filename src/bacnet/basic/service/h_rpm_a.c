@@ -151,7 +151,8 @@ int rpm_ack_decode_service_request(
                 apdu += len;
                 /* FIXME: we could validate that the tag is enumerated... */
                 len = decode_enumerated(apdu, len_value, &error_value);
-                rpm_property->error.error_class = error_value;
+                rpm_property->error.error_class =
+                    (BACNET_ERROR_CLASS)error_value;
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
@@ -162,7 +163,7 @@ int rpm_ack_decode_service_request(
                 apdu += len;
                 /* FIXME: we could validate that the tag is enumerated... */
                 len = decode_enumerated(apdu, len_value, &error_value);
-                rpm_property->error.error_code = error_value;
+                rpm_property->error.error_code = (BACNET_ERROR_CODE)error_value;
                 decoded_len += len;
                 apdu_len -= len;
                 apdu += len;
@@ -195,7 +196,9 @@ int rpm_ack_decode_service_request(
 /* for debugging... */
 void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
 {
+#ifdef BACAPP_PRINT_ENABLED
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
+#endif
     BACNET_PROPERTY_REFERENCE *listOfProperties;
     BACNET_APPLICATION_DATA_VALUE *value;
 #if PRINT_ENABLED
@@ -236,15 +239,19 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
                     array_value = false;
                 }
 #endif
+#ifdef BACAPP_PRINT_ENABLED
                 object_value.object_type = rpm_data->object_type;
                 object_value.object_instance = rpm_data->object_instance;
+#endif
                 while (value) {
+#ifdef BACAPP_PRINT_ENABLED
                     object_value.object_property =
                         listOfProperties->propertyIdentifier;
                     object_value.array_index =
                         listOfProperties->propertyArrayIndex;
                     object_value.value = value;
                     bacapp_print_value(stdout, &object_value);
+#endif
 #if PRINT_ENABLED
                     if (value->next) {
                         fprintf(stdout, ",\r\n        ");

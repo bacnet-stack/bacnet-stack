@@ -145,7 +145,7 @@ int timesync_encode_timesync_recipients(
             if (max_apdu >= (1 + 4)) {
                 /* CHOICE - device [0] BACnetObjectIdentifier */
                 len = encode_context_object_id(&apdu[apdu_len], 0,
-                    (int)pRecipient->type.device.type,
+                    pRecipient->type.device.type,
                     pRecipient->type.device.instance);
                 apdu_len += len;
             } else {

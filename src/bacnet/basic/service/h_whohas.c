@@ -43,7 +43,7 @@
  */
 static void match_name_or_object(BACNET_WHO_HAS_DATA *data)
 {
-    int object_type = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     bool found = false;
     BACNET_CHARACTER_STRING object_name;

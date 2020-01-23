@@ -31,9 +31,10 @@
 #include "bacnet/bacenum.h"
 
 typedef struct BACnetDeviceObjectPropertyReference {
+    /* number type first to avoid enum cast warning on = { 0 } */
+    uint32_t arrayIndex;
     BACNET_OBJECT_ID objectIdentifier;
     BACNET_PROPERTY_ID propertyIdentifier;
-    uint32_t arrayIndex;
     BACNET_OBJECT_ID deviceIdentifier;
 } BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE;
 

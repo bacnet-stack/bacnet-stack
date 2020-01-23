@@ -78,7 +78,7 @@ int alarm_ack_encode_service_request(uint8_t *apdu, BACNET_ALARM_ACK_DATA *data)
         apdu_len += len;
 
         len = encode_context_object_id(&apdu[apdu_len], 1,
-            (int)data->eventObjectIdentifier.type,
+            data->eventObjectIdentifier.type,
             data->eventObjectIdentifier.instance);
         apdu_len += len;
 

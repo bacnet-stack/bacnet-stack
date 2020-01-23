@@ -41,13 +41,17 @@
 
 void private_transfer_print_data(BACNET_PRIVATE_TRANSFER_DATA *private_data)
 {
+#ifdef BACAPP_PRINT_ENABLED
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
+#endif
     BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
     int len = 0;
     uint8_t *application_data;
     int application_data_len;
     bool first_value = true;
+#if PRINT_ENABLED
     bool print_brace = false;
+#endif
 
     if (private_data) {
 #if PRINT_ENABLED
@@ -65,16 +69,18 @@ void private_transfer_print_data(BACNET_PRIVATE_TRANSFER_DATA *private_data)
                 first_value = false;
 #if PRINT_ENABLED
                 fprintf(stdout, "{");
-#endif
                 print_brace = true;
+#endif
             }
             /* private transfer doesn't provide any clues */
+#ifdef BACAPP_PRINT_ENABLED
             object_value.object_type = MAX_BACNET_OBJECT_TYPE;
             object_value.object_instance = BACNET_MAX_INSTANCE;
             object_value.object_property = MAX_BACNET_PROPERTY_ID;
             object_value.array_index = BACNET_ARRAY_ALL;
             object_value.value = &value;
             bacapp_print_value(stdout, &object_value);
+#endif
             if (len > 0) {
                 if (len < application_data_len) {
                     application_data += len;

@@ -94,7 +94,7 @@ int wp_decode_service_request(
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint16_t type = 0; /* for decoding */
+    BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
     uint32_t unsigned_value = 0;
     int i = 0; /* loop counter */
@@ -106,7 +106,7 @@ int wp_decode_service_request(
             return -1;
         }
         len += decode_object_id(&apdu[len], &type, &wpdata->object_instance);
-        wpdata->object_type = (BACNET_OBJECT_TYPE)type;
+        wpdata->object_type = type;
         /* Tag 1: Property ID */
         len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);

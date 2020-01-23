@@ -48,7 +48,7 @@ extern "C" {
         char *default_string);
     bool bacnet_name_write_unique(
         uint16_t offset,
-        int object_type,
+        BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * char_string,
         BACNET_ERROR_CLASS * error_class,

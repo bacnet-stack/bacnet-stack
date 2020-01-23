@@ -54,7 +54,7 @@ struct bacnet_ipv4_port {
     uint8_t IP_Gateway[4];
     uint8_t IP_DNS_Server[BIP_DNS_MAX][4];
     uint16_t Port;
-    uint8_t Mode;
+    BACNET_IP_MODE Mode;
     bool IP_DHCP_Enable;
     uint32_t IP_DHCP_Lease_Seconds;
     uint32_t IP_DHCP_Lease_Seconds_Remaining;
@@ -75,7 +75,7 @@ struct bacnet_ipv6_port {
     uint8_t IP_Multicast_Address[IPV6_ADDR_SIZE];
     uint8_t IP_DHCP_Server[IPV6_ADDR_SIZE];
     uint16_t Port;
-    uint8_t Mode;
+    BACNET_IP_MODE Mode;
     char Zone_Index[ZONE_INDEX_SIZE];
 };
 
@@ -92,12 +92,12 @@ struct mstp_port {
 struct object_data {
     uint32_t Instance_Number;
     char *Object_Name;
-    uint8_t Reliability;
+    BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changes_Pending : 1;
     uint8_t Network_Type;
     uint16_t Network_Number;
-    uint8_t Quality;
+    BACNET_PORT_QUALITY Quality;
     uint16_t APDU_Length;
     float Link_Speed;
     union {
@@ -429,7 +429,7 @@ bool Network_Port_Reliability_Set(
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        Object_List[index].Reliability = (uint8_t)value;
+        Object_List[index].Reliability = value;
         status = true;
     }
 
@@ -558,7 +558,7 @@ bool Network_Port_Quality_Set(
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        Object_List[index].Quality = (uint8_t)value;
+        Object_List[index].Quality = value;
         status = true;
     }
 
@@ -1182,7 +1182,7 @@ bool Network_Port_BIP_Port_Set(uint32_t object_instance, uint16_t value)
  */
 BACNET_IP_MODE Network_Port_BIP_Mode(uint32_t object_instance)
 {
-    BACNET_IP_MODE value = 0;
+    BACNET_IP_MODE value = BACNET_IP_MODE_NORMAL;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
@@ -1212,13 +1212,11 @@ bool Network_Port_BIP_Mode_Set(uint32_t object_instance, BACNET_IP_MODE value)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            if (value <= 32) {
-                if (Object_List[index].Network.IPv4.Mode != value) {
-                    Object_List[index].Changes_Pending = true;
-                }
-                Object_List[index].Network.IPv4.Mode = value;
-                status = true;
+            if (Object_List[index].Network.IPv4.Mode != value) {
+                Object_List[index].Changes_Pending = true;
             }
+            Object_List[index].Network.IPv4.Mode = value;
+            status = true;
         }
     }
 
@@ -1287,7 +1285,7 @@ bool Network_Port_BBMD_Accept_FD_Registrations_Set(
  */
 BACNET_IP_MODE Network_Port_BIP6_Mode(uint32_t object_instance)
 {
-    BACNET_IP_MODE value = 0;
+    BACNET_IP_MODE value = BACNET_IP_MODE_NORMAL;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
@@ -1317,13 +1315,11 @@ bool Network_Port_BIP6_Mode_Set(uint32_t object_instance, BACNET_IP_MODE value)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
-            if (value <= 32) {
-                if (Object_List[index].Network.IPv4.Mode != value) {
-                    Object_List[index].Changes_Pending = true;
-                }
-                Object_List[index].Network.IPv6.Mode = value;
-                status = true;
+            if (Object_List[index].Network.IPv4.Mode != value) {
+                 Object_List[index].Changes_Pending = true;
             }
+            Object_List[index].Network.IPv6.Mode = value;
+            status = true;
         }
     }
 

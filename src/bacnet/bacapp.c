@@ -133,7 +133,7 @@ int bacapp_encode_application_data(
 #if defined(BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 apdu_len = encode_application_object_id(&apdu[0],
-                    (int)value->type.Object_Id.type,
+                    value->type.Object_Id.type,
                     value->type.Object_Id.instance);
                 break;
 #endif
@@ -241,7 +241,7 @@ int bacapp_decode_data(uint8_t *apdu,
 #endif
 #if defined(BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID: {
-                uint16_t object_type = 0;
+                BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
                 uint32_t instance = 0;
                 len = bacnet_object_id_decode(
                     &apdu[0], len_value_type, &object_type, &instance);
@@ -530,7 +530,7 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
 #if defined(BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 apdu_len = encode_context_object_id(&apdu[0],
-                    context_tag_number, (int)value->type.Object_Id.type,
+                    context_tag_number, value->type.Object_Id.type,
                     value->type.Object_Id.instance);
                 break;
 #endif

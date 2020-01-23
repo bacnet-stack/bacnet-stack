@@ -61,7 +61,9 @@ uint8_t Send_Reinitialize_Device_Request(
     bool status = false;
     int len = 0;
     int pdu_len = 0;
+#if PRINT_ENABLED
     int bytes_sent = 0;
+#endif
     BACNET_CHARACTER_STRING password_string;
     BACNET_NPDU_DATA npdu_data;
 
@@ -95,7 +97,10 @@ uint8_t Send_Reinitialize_Device_Request(
         if ((unsigned)pdu_len < max_apdu) {
             tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
                 &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
-            bytes_sent = datalink_send_pdu(
+#if PRINT_ENABLED
+            bytes_sent =
+#endif
+            datalink_send_pdu(
                 &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0)
