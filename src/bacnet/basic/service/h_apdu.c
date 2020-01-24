@@ -314,21 +314,31 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
 {
     uint16_t len = 0; /* counts where we are in PDU */
 
-    service_data->segmented_message = (apdu[0] & BIT(3)) ? true : false;
-    service_data->more_follows = (apdu[0] & BIT(2)) ? true : false;
-    service_data->segmented_response_accepted =
-        (apdu[0] & BIT(1)) ? true : false;
-    service_data->max_segs = decode_max_segs(apdu[1]);
-    service_data->max_resp = decode_max_apdu(apdu[1]);
-    service_data->invoke_id = apdu[2];
-    len = 3;
-    if (service_data->segmented_message) {
-        service_data->sequence_number = apdu[len++];
-        service_data->proposed_window_number = apdu[len++];
+    if (apdu_len >= 3) {
+        service_data->segmented_message = (apdu[0] & BIT(3)) ? true : false;
+        service_data->more_follows = (apdu[0] & BIT(2)) ? true : false;
+        service_data->segmented_response_accepted =
+            (apdu[0] & BIT(1)) ? true : false;
+        service_data->max_segs = decode_max_segs(apdu[1]);
+        service_data->max_resp = decode_max_apdu(apdu[1]);
+        service_data->invoke_id = apdu[2];
+        len = 3;
+        if (service_data->segmented_message) {
+            if (apdu_len >= (len+2)) {
+                service_data->sequence_number = apdu[len++];
+                service_data->proposed_window_number = apdu[len++];
+            } else {
+                return 0;
+            }
+        }
+        if (apdu_len >= (len+2)) {
+            *service_choice = apdu[len++];
+            *service_request = &apdu[len];
+            *service_request_len = apdu_len - len;
+        } else {
+            return 0;
+        }
     }
-    *service_choice = apdu[len++];
-    *service_request = &apdu[len];
-    *service_request_len = apdu_len - len;
 
     return len;
 }

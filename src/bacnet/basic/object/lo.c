@@ -1034,6 +1034,15 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     } else {
                         len = encode_application_null(&apdu[apdu_len]);
                     }
+                    /* add it if we have room */
+                    if ((apdu_len + len) < MAX_APDU) {
+                        apdu_len += len;
+                    } else {
+                        rpdata->error_code =
+                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                        apdu_len = BACNET_STATUS_ABORT;
+                        break;
+                    }
                 } else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;

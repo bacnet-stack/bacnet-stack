@@ -220,7 +220,7 @@ static void dlenv_network_port_init(void)
     uint32_t address = 0;
     uint32_t broadcast = 0;
     uint32_t test_broadcast = 0;
-    uint32_t mask = 0;
+    uint32_t mask = 0xFFFFFFFE;
     uint16_t port = 0;
     uint8_t mac[4 + 2] = { 0 };
     uint8_t prefix = 0;
@@ -235,12 +235,13 @@ static void dlenv_network_port_init(void)
     memcpy(&mac[4], &port, 2);
     Network_Port_MAC_Address_Set(instance, &mac[0], 6);
     broadcast = bip_get_broadcast_addr();
-    for (prefix = 0; prefix < 32; prefix++) {
-        mask = htonl((0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF);
+    /* calculate the subnet prefix from the broadcast address */
+    for (prefix = 1; prefix <= 32; prefix++) {
         test_broadcast = (address & mask) | (~mask);
         if (test_broadcast == broadcast) {
             break;
         }
+        mask = mask<<1;
     }
     Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
     Network_Port_Link_Speed_Set(instance, 0.0);

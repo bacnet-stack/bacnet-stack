@@ -108,7 +108,6 @@ int rpm_ack_decode_service_request(
                    more than one element to decode */
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
-                old_value = value;
                 while (value && (apdu_len > 0)) {
                     if (IS_CONTEXT_SPECIFIC(*apdu)) {
                         len = bacapp_decode_context_data(apdu, apdu_len, value,

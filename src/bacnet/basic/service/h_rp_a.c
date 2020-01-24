@@ -184,7 +184,6 @@ int rp_ack_fully_decode_service_request(
         vlen = rp1data.application_data_len;
         value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
         rp1_property->value = value;
-        old_value = value;
         while (value && vdata && (vlen > 0)) {
             if (IS_CONTEXT_SPECIFIC(*vdata)) {
                 len = bacapp_decode_context_data(

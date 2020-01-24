@@ -1757,11 +1757,11 @@ void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 #if defined(INTRINSIC_REPORTING)
 void Device_local_reporting(void)
 {
-    struct object_functions *pObject;
-    uint32_t objects_count;
-    uint32_t object_instance;
-    BACNET_OBJECT_TYPE object_type;
-    uint32_t idx;
+    struct object_functions *pObject = NULL;
+    uint32_t objects_count = 0;
+    uint32_t object_instance = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t idx = 0;
 
     objects_count = Device_Object_List_Count();
 

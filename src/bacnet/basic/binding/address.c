@@ -234,13 +234,15 @@ void address_mac_init(BACNET_MAC_ADDRESS *mac, uint8_t *adr, uint8_t len)
 {
     uint8_t i = 0;
 
-    if (mac && adr && (len <= sizeof(mac->adr))) {
-        for (i = 0; i < len; i++) {
-            mac->adr[i] = adr[i];
+    if (mac) {
+        if (adr && (len <= sizeof(mac->adr))) {
+            for (i = 0; i < len; i++) {
+                mac->adr[i] = adr[i];
+            }
+            mac->len = len;
+        } else {
+            mac->len = 0;
         }
-        mac->len = len;
-    } else {
-        mac->len = 0;
     }
 }
 

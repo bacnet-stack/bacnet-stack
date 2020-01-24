@@ -1213,8 +1213,10 @@ bool Channel_Present_Value_Set(
             if (wp_data->priority != 6 /* reserved */) {
                 status =
                     Channel_Value_Copy(&Channel[index].Present_Value, value);
+                (void)status;
                 status = Channel_Write_Members(
                     &Channel[index], value, wp_data->priority);
+                (void)status;
                 status = true;
             } else {
                 /* Command priority 6 is reserved for use by Minimum On/Off

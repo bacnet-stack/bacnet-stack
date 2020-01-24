@@ -394,7 +394,8 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
             len = apdu_decode_confirmed_service_request(&apdu[0], apdu_len,
                 &service_data, &service_choice, &service_request,
                 &service_request_len);
-            if (service_choice == SERVICE_CONFIRMED_ATOMIC_READ_FILE) {
+            if ((len > 0) &&
+                (service_choice == SERVICE_CONFIRMED_ATOMIC_READ_FILE)) {
                 len = arf_decode_service_request(
                     service_request, service_request_len, &data);
                 if (len > 0) {
