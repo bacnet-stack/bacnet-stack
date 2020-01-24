@@ -282,6 +282,41 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
     }
 }
 
+/**
+ * Free the allocated memory from a ReadPropertyMultiple ACK.
+ * @param rpm_data - #BACNET_READ_ACCESS_DATA
+ * @return RPM data from the next element in the linked list
+ */
+static BACNET_READ_ACCESS_DATA *rpm_data_free(
+    BACNET_READ_ACCESS_DATA *rpm_data)
+{
+    BACNET_READ_ACCESS_DATA *old_rpm_data;
+    BACNET_PROPERTY_REFERENCE *rpm_property;
+    BACNET_PROPERTY_REFERENCE *old_rpm_property;
+    BACNET_APPLICATION_DATA_VALUE *value;
+    BACNET_APPLICATION_DATA_VALUE *old_value;
+
+    if (rpm_data) {
+        rpm_property = rpm_data->listOfProperties;
+        while (rpm_property) {
+            value = rpm_property->value;
+            while (value) {
+                old_value = value;
+                value = value->next;
+                free(old_value);
+            }
+            old_rpm_property = rpm_property;
+            rpm_property = rpm_property->next;
+            free(old_rpm_property);
+        }
+        old_rpm_data = rpm_data;
+        rpm_data = rpm_data->next;
+        free(old_rpm_data);
+    }
+
+    return rpm_data;
+}
+
 /** Handler for a ReadPropertyMultiple ACK.
  * @ingroup DSRPM
  * For each read property, print out the ACK'd data for debugging,
@@ -300,11 +335,6 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
 {
     int len = 0;
     BACNET_READ_ACCESS_DATA *rpm_data;
-    BACNET_READ_ACCESS_DATA *old_rpm_data;
-    BACNET_PROPERTY_REFERENCE *rpm_property;
-    BACNET_PROPERTY_REFERENCE *old_rpm_property;
-    BACNET_APPLICATION_DATA_VALUE *value;
-    BACNET_APPLICATION_DATA_VALUE *old_value;
 
     (void)src;
     (void)service_data; /* we could use these... */
@@ -313,49 +343,18 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
     if (rpm_data) {
         len = rpm_ack_decode_service_request(
             service_request, service_len, rpm_data);
-    }
-#if 1
-    fprintf(stderr, "Received Read-Property-Multiple Ack!\n");
-#endif
-    if (len > 0) {
-        while (rpm_data) {
-            rpm_ack_print_data(rpm_data);
-            rpm_property = rpm_data->listOfProperties;
-            while (rpm_property) {
-                value = rpm_property->value;
-                while (value) {
-                    old_value = value;
-                    value = value->next;
-                    free(old_value);
-                }
-                old_rpm_property = rpm_property;
-                rpm_property = rpm_property->next;
-                free(old_rpm_property);
+        if (len > 0) {
+            while (rpm_data) {
+                rpm_ack_print_data(rpm_data);
+                rpm_data = rpm_data_free(rpm_data);
             }
-            old_rpm_data = rpm_data;
-            rpm_data = rpm_data->next;
-            free(old_rpm_data);
-        }
-    } else {
-#if 1
-        fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
-#endif
-        while (rpm_data) {
-            rpm_property = rpm_data->listOfProperties;
-            while (rpm_property) {
-                value = rpm_property->value;
-                while (value) {
-                    old_value = value;
-                    value = value->next;
-                    free(old_value);
-                }
-                old_rpm_property = rpm_property;
-                rpm_property = rpm_property->next;
-                free(old_rpm_property);
+        } else {
+    #if 1
+            fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
+    #endif
+            while (rpm_data) {
+                rpm_data = rpm_data_free(rpm_data);
             }
-            old_rpm_data = rpm_data;
-            rpm_data = rpm_data->next;
-            free(old_rpm_data);
         }
     }
 }
