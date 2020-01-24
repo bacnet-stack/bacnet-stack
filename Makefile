@@ -115,6 +115,10 @@ tidy:
 	clang-tidy {} -fix-errors -checks="readability-braces-around-statements" \
 	-- -Isrc -Iports/linux \;
 
+.PHONY : lint
+lint:
+	scan-build --status-bugs -analyze-headers make -j2 clean server
+
 .PHONY: clean
 clean:
 	$(MAKE) -s -C src clean
