@@ -75,7 +75,11 @@ int rpm_ack_decode_service_request(
             &rpm_object->object_instance);
         if (len <= 0) {
             old_rpm_object->next = NULL;
-            free(rpm_object);
+            if (rpm_object != read_access_data) {
+                /* don't free original */
+                free(rpm_object);
+                rpm_object = NULL;
+            }
             break;
         }
         decoded_len += len;
@@ -95,6 +99,7 @@ int rpm_ack_decode_service_request(
                     rpm_object->listOfProperties = NULL;
                 }
                 free(rpm_property);
+                rpm_property = NULL;
                 break;
             }
             decoded_len += len;
@@ -199,8 +204,8 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
 #ifdef BACAPP_PRINT_ENABLED
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
 #endif
-    BACNET_PROPERTY_REFERENCE *listOfProperties;
-    BACNET_APPLICATION_DATA_VALUE *value;
+    BACNET_PROPERTY_REFERENCE *listOfProperties = NULL;
+    BACNET_APPLICATION_DATA_VALUE *value = NULL;
 #if PRINT_ENABLED
     bool array_value = false;
 #endif
@@ -291,11 +296,11 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
 static BACNET_READ_ACCESS_DATA *rpm_data_free(
     BACNET_READ_ACCESS_DATA *rpm_data)
 {
-    BACNET_READ_ACCESS_DATA *old_rpm_data;
-    BACNET_PROPERTY_REFERENCE *rpm_property;
-    BACNET_PROPERTY_REFERENCE *old_rpm_property;
-    BACNET_APPLICATION_DATA_VALUE *value;
-    BACNET_APPLICATION_DATA_VALUE *old_value;
+    BACNET_READ_ACCESS_DATA *old_rpm_data = NULL;
+    BACNET_PROPERTY_REFERENCE *rpm_property = NULL;
+    BACNET_PROPERTY_REFERENCE *old_rpm_property = NULL;
+    BACNET_APPLICATION_DATA_VALUE *value = NULL;
+    BACNET_APPLICATION_DATA_VALUE *old_value = NULL;
 
     if (rpm_data) {
         rpm_property = rpm_data->listOfProperties;
@@ -305,14 +310,17 @@ static BACNET_READ_ACCESS_DATA *rpm_data_free(
                 old_value = value;
                 value = value->next;
                 free(old_value);
+                old_value = NULL;
             }
             old_rpm_property = rpm_property;
             rpm_property = rpm_property->next;
             free(old_rpm_property);
+            old_rpm_property = NULL;
         }
         old_rpm_data = rpm_data;
         rpm_data = rpm_data->next;
         free(old_rpm_data);
+        old_rpm_data = NULL;
     }
 
     return rpm_data;
@@ -335,7 +343,7 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
-    BACNET_READ_ACCESS_DATA *rpm_data;
+    BACNET_READ_ACCESS_DATA * rpm_data;
 
     (void)src;
     (void)service_data; /* we could use these... */
