@@ -25,7 +25,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <assert.h>
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
@@ -66,7 +65,9 @@ int rpm_ack_decode_service_request(
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_APPLICATION_DATA_VALUE *old_value;
 
-    assert(read_access_data != NULL);
+    if (!read_access_data) {
+        return 0;
+    }
     rpm_object = read_access_data;
     old_rpm_object = rpm_object;
     while (rpm_object && apdu_len) {
@@ -74,7 +75,11 @@ int rpm_ack_decode_service_request(
             &rpm_object->object_instance);
         if (len <= 0) {
             old_rpm_object->next = NULL;
-            free(rpm_object);
+            if (rpm_object != read_access_data) {
+                /* don't free original */
+                free(rpm_object);
+                rpm_object = NULL;
+            }
             break;
         }
         decoded_len += len;
@@ -94,6 +99,7 @@ int rpm_ack_decode_service_request(
                     rpm_object->listOfProperties = NULL;
                 }
                 free(rpm_property);
+                rpm_property = NULL;
                 break;
             }
             decoded_len += len;
@@ -108,7 +114,6 @@ int rpm_ack_decode_service_request(
                    more than one element to decode */
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
-                old_value = value;
                 while (value && (apdu_len > 0)) {
                     if (IS_CONTEXT_SPECIFIC(*apdu)) {
                         len = bacapp_decode_context_data(apdu, apdu_len, value,
@@ -199,8 +204,8 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
 #ifdef BACAPP_PRINT_ENABLED
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
 #endif
-    BACNET_PROPERTY_REFERENCE *listOfProperties;
-    BACNET_APPLICATION_DATA_VALUE *value;
+    BACNET_PROPERTY_REFERENCE *listOfProperties = NULL;
+    BACNET_APPLICATION_DATA_VALUE *value = NULL;
 #if PRINT_ENABLED
     bool array_value = false;
 #endif
@@ -283,6 +288,44 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
     }
 }
 
+/**
+ * Free the allocated memory from a ReadPropertyMultiple ACK.
+ * @param rpm_data - #BACNET_READ_ACCESS_DATA
+ * @return RPM data from the next element in the linked list
+ */
+static BACNET_READ_ACCESS_DATA *rpm_data_free(
+    BACNET_READ_ACCESS_DATA *rpm_data)
+{
+    BACNET_READ_ACCESS_DATA *old_rpm_data = NULL;
+    BACNET_PROPERTY_REFERENCE *rpm_property = NULL;
+    BACNET_PROPERTY_REFERENCE *old_rpm_property = NULL;
+    BACNET_APPLICATION_DATA_VALUE *value = NULL;
+    BACNET_APPLICATION_DATA_VALUE *old_value = NULL;
+
+    if (rpm_data) {
+        rpm_property = rpm_data->listOfProperties;
+        while (rpm_property) {
+            value = rpm_property->value;
+            while (value) {
+                old_value = value;
+                value = value->next;
+                free(old_value);
+                old_value = NULL;
+            }
+            old_rpm_property = rpm_property;
+            rpm_property = rpm_property->next;
+            free(old_rpm_property);
+            old_rpm_property = NULL;
+        }
+        old_rpm_data = rpm_data;
+        rpm_data = rpm_data->next;
+        free(old_rpm_data);
+        old_rpm_data = NULL;
+    }
+
+    return rpm_data;
+}
+
 /** Handler for a ReadPropertyMultiple ACK.
  * @ingroup DSRPM
  * For each read property, print out the ACK'd data for debugging,
@@ -300,12 +343,7 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
-    BACNET_READ_ACCESS_DATA *rpm_data;
-    BACNET_READ_ACCESS_DATA *old_rpm_data;
-    BACNET_PROPERTY_REFERENCE *rpm_property;
-    BACNET_PROPERTY_REFERENCE *old_rpm_property;
-    BACNET_APPLICATION_DATA_VALUE *value;
-    BACNET_APPLICATION_DATA_VALUE *old_value;
+    BACNET_READ_ACCESS_DATA * rpm_data;
 
     (void)src;
     (void)service_data; /* we could use these... */
@@ -314,49 +352,18 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
     if (rpm_data) {
         len = rpm_ack_decode_service_request(
             service_request, service_len, rpm_data);
-    }
-#if 1
-    fprintf(stderr, "Received Read-Property-Multiple Ack!\n");
-#endif
-    if (len > 0) {
-        while (rpm_data) {
-            rpm_ack_print_data(rpm_data);
-            rpm_property = rpm_data->listOfProperties;
-            while (rpm_property) {
-                value = rpm_property->value;
-                while (value) {
-                    old_value = value;
-                    value = value->next;
-                    free(old_value);
-                }
-                old_rpm_property = rpm_property;
-                rpm_property = rpm_property->next;
-                free(old_rpm_property);
+        if (len > 0) {
+            while (rpm_data) {
+                rpm_ack_print_data(rpm_data);
+                rpm_data = rpm_data_free(rpm_data);
             }
-            old_rpm_data = rpm_data;
-            rpm_data = rpm_data->next;
-            free(old_rpm_data);
-        }
-    } else {
-#if 1
-        fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
-#endif
-        while (rpm_data) {
-            rpm_property = rpm_data->listOfProperties;
-            while (rpm_property) {
-                value = rpm_property->value;
-                while (value) {
-                    old_value = value;
-                    value = value->next;
-                    free(old_value);
-                }
-                old_rpm_property = rpm_property;
-                rpm_property = rpm_property->next;
-                free(old_rpm_property);
+        } else {
+    #if 1
+            fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
+    #endif
+            while (rpm_data) {
+                rpm_data = rpm_data_free(rpm_data);
             }
-            old_rpm_data = rpm_data;
-            rpm_data = rpm_data->next;
-            free(old_rpm_data);
         }
     }
 }

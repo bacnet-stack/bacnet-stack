@@ -428,7 +428,6 @@ int rr_ack_decode_service_request(uint8_t *apdu,
             decode_unsigned(&apdu[len], len_value_type, &rrdata->FirstSequence);
     }
 
-    len = apdu_len; /* There should be nothing left to see here */
     return len;
 }
 

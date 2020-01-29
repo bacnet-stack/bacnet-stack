@@ -104,7 +104,7 @@ int bacapp_encode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 
             default:
                 len = 0;
-                assert(0);
+                assert(len);
                 break;
         }
     }

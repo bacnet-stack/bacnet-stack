@@ -119,7 +119,6 @@ static int RPM_Encode_Property(
         return BACNET_STATUS_ABORT;
     }
     apdu_len += len;
-    len = 0;
     rpdata.error_class = ERROR_CLASS_OBJECT;
     rpdata.error_code = ERROR_CODE_UNKNOWN_OBJECT;
     rpdata.object_type = rpmdata->object_type;

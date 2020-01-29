@@ -75,7 +75,7 @@ static int CheckArraySize(OS_Keylist list)
 {
     int new_size = 0; /* set it up so that no size change is the default */
     const int chunk = 8; /* minimum number of nodes to allocate memory for */
-    struct Keylist_Node **new_array; /* new array of nodes, if needed */
+    struct Keylist_Node **new_array = NULL; /* new array of nodes, if needed */
     int i; /* counter */
     if (!list) {
         return FALSE;
@@ -91,7 +91,8 @@ static int CheckArraySize(OS_Keylist list)
     }
     if (new_size) {
         /* Allocate more room for node pointer array */
-        new_array = calloc((size_t)new_size, sizeof(new_array));
+        new_array = calloc((size_t)new_size,
+            sizeof(struct Keylist_Node *));
 
         /* See if we got the memory we wanted */
         if (!new_array) {
