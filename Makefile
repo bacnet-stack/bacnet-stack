@@ -125,7 +125,7 @@ tidy:
 
 .PHONY: lint
 lint:
-	scan-build --status-bugs -analyze-headers -v make -j2 clean server
+	scan-build --status-bugs -analyze-headers make -j2 clean server
 
 .PHONY: clean
 clean:
