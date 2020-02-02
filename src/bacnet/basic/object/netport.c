@@ -930,9 +930,12 @@ bool Network_Port_IP_Subnet(
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             prefix = Object_List[index].Network.IPv4.IP_Subnet_Prefix;
-            mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF;
-            encode_unsigned32(ip_mask, mask);
-            status = octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
+            if ((prefix > 0) && (prefix <= 32)) {
+                mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF;
+                encode_unsigned32(ip_mask, mask);
+                status = octetstring_init(subnet_mask, ip_mask,
+                    sizeof(ip_mask));
+            }
         }
     }
 
@@ -979,7 +982,7 @@ bool Network_Port_IP_Subnet_Prefix_Set(uint32_t object_instance, uint8_t value)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            if (value <= 32) {
+            if ((value > 0) && (value <= 32)) {
                 if (Object_List[index].Network.IPv4.IP_Subnet_Prefix != value) {
                     Object_List[index].Changes_Pending = true;
                 }
@@ -1423,7 +1426,7 @@ bool Network_Port_IPv6_Subnet_Prefix_Set(
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
-            if (value <= 128) {
+            if ((value > 0) && (value <= 128)) {
                 if (Object_List[index].Network.IPv6.IP_Subnet_Prefix != value) {
                     Object_List[index].Changes_Pending = true;
                 }

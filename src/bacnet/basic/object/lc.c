@@ -901,7 +901,11 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             len = bacapp_decode_context_data(wp_data->application_data,
                 wp_data->application_data_len, &value,
                 PROP_REQUESTED_SHED_LEVEL);
-            if (value.context_tag == 0) {
+            if (len == BACNET_STATUS_ERROR) {
+                /* error! */
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            } else if (value.context_tag == 0) {
                 /* percent - Unsigned */
                 Requested_Shed_Level[object_index].type =
                     BACNET_SHED_TYPE_PERCENT;

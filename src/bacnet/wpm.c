@@ -58,7 +58,7 @@ int wpm_decode_object_id(
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint16_t len = 0;
 
-    if (apdu && (apdu_len > 5) && wp_data) {
+    if (apdu && (apdu_len > 5)) {
         /* Context tag 0 - Object ID */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if ((tag_number == 0) && (apdu_len > len)) {
@@ -66,26 +66,36 @@ int wpm_decode_object_id(
             if (apdu_len >= 4) {
                 len += decode_object_id(
                     &apdu[len], &object_type, &object_instance);
-                wp_data->object_type = object_type;
-                wp_data->object_instance = object_instance;
+                if (wp_data) {
+                    wp_data->object_type = object_type;
+                    wp_data->object_instance = object_instance;
+                }
                 apdu_len -= len;
             } else {
-                wp_data->error_code =
-                    ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+                if (wp_data) {
+                    wp_data->error_code =
+                        ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+                }
                 return BACNET_STATUS_REJECT;
             }
         } else {
-            wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            if (wp_data) {
+                wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
             return BACNET_STATUS_REJECT;
         }
         /* just test for the next tag - no need to decode it here */
         /* Context tag 1: sequence of BACnetPropertyValue */
         if (apdu_len && !decode_is_opening_tag_number(&apdu[len], 1)) {
-            wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            if (wp_data) {
+                wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
             return BACNET_STATUS_REJECT;
         }
     } else {
-        wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        if (wp_data) {
+            wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        }
         return BACNET_STATUS_REJECT;
     }
 
@@ -156,7 +166,9 @@ int wpm_decode_object_property(
             len--;
         }
     } else {
-        wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        if (wp_data) {
+            wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+        }
         return BACNET_STATUS_REJECT;
     }
 
