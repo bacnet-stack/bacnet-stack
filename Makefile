@@ -13,6 +13,14 @@ all: apps
 win32:
 	$(MAKE) BACNET_PORT=win32 -C apps all
 
+.PHONY: mstpwin32
+mstpwin32:
+	$(MAKE) BACDL=mstp BACNET_PORT=win32 -C apps all
+
+.PHONY: mstp
+mstp:
+	$(MAKE) BACDL=mstp -C apps all
+
 .PHONY: apps
 apps:
 	$(MAKE) -s -C apps all
@@ -114,6 +122,14 @@ tidy:
 	find ./src -iname *.h -o -iname *.c -exec \
 	clang-tidy {} -fix-errors -checks="readability-braces-around-statements" \
 	-- -Isrc -Iports/linux \;
+
+.PHONY: lint
+lint:
+	scan-build --status-bugs -analyze-headers -v make -j2 clean server
+
+.PHONY: lint-win32
+lint-win32:
+	scan-build --status-bugs -analyze-headers -v make BACNET_PORT=win32 -C apps server
 
 .PHONY: clean
 clean:

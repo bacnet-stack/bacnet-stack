@@ -27,6 +27,10 @@ jobs:
       os: linux
       compiler: gcc
       script: make clean gateway
+    - stage: mstp-build
+      os: linux
+      compiler: gcc
+      script: make clean mstp
     - stage: lint
       os: linux
       compiler: clang
