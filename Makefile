@@ -127,10 +127,6 @@ tidy:
 lint:
 	scan-build --status-bugs -analyze-headers -v make -j2 clean server
 
-.PHONY: lint-win32
-lint-win32:
-	scan-build --status-bugs -analyze-headers -v make BACNET_PORT=win32 -C apps server
-
 .PHONY: clean
 clean:
 	$(MAKE) -s -C src clean
