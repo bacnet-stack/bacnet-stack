@@ -277,7 +277,7 @@ static bool dlmstp_compare_data_expecting_reply(
     }
     request.invoke_id = request_pdu[offset + 2];
     /* segmented message? */
-    if (request_pdu[offset] & BIT3)
+    if (request_pdu[offset] & BIT(3))
         request.service_choice = request_pdu[offset + 5];
     else
         request.service_choice = request_pdu[offset + 3];
@@ -300,7 +300,7 @@ static bool dlmstp_compare_data_expecting_reply(
         case PDU_TYPE_COMPLEX_ACK:
             reply.invoke_id = reply_pdu[offset + 1];
             /* segmented message? */
-            if (reply_pdu[offset] & BIT3)
+            if (reply_pdu[offset] & BIT(3))
                 reply.service_choice = reply_pdu[offset + 4];
             else
                 reply.service_choice = reply_pdu[offset + 2];

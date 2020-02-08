@@ -144,7 +144,7 @@ int npdu_encode_pdu(uint8_t *npdu,
         /*        0 indicates that the NSDU contains a BACnet APDU. */
         /*          Message Type field is absent. */
         if (npdu_data->network_layer_message) {
-            npdu[1] |= BIT7;
+            npdu[1] |= BIT(7);
         }
         /*Bit 6: Reserved. Shall be zero. */
         /*Bit 5: Destination specifier where: */
@@ -153,7 +153,7 @@ int npdu_encode_pdu(uint8_t *npdu,
         /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
         /* DLEN > 0 specifies length of DADR field */
         if (dest && dest->net) {
-            npdu[1] |= BIT5;
+            npdu[1] |= BIT(5);
         }
         /* Bit 4: Reserved. Shall be zero. */
         /* Bit 3: Source specifier where: */
@@ -162,7 +162,7 @@ int npdu_encode_pdu(uint8_t *npdu,
         /* SLEN = 0 Invalid */
         /* SLEN > 0 specifies length of SADR field */
         if (src && src->net && src->len) {
-            npdu[1] |= BIT3;
+            npdu[1] |= BIT(3);
         }
         /* Bit 2: The value of this bit corresponds to the */
         /* data_expecting_reply parameter in the N-UNITDATA primitives. */
@@ -173,7 +173,7 @@ int npdu_encode_pdu(uint8_t *npdu,
         /* a segment of a BACnet-ComplexACK-PDU, */
         /* or a network layer message expecting a reply is present. */
         if (npdu_data->data_expecting_reply) {
-            npdu[1] |= BIT2;
+            npdu[1] |= BIT(2);
         }
         /* Bits 1,0: Network priority where: */
         /* B'11' = Life Safety message */
@@ -330,7 +330,7 @@ int npdu_decode(uint8_t *npdu,
         /*          Message Type field is present. */
         /*        0 indicates that the NSDU contains a BACnet APDU. */
         /*          Message Type field is absent. */
-        npdu_data->network_layer_message = (npdu[1] & BIT7) ? true : false;
+        npdu_data->network_layer_message = (npdu[1] & BIT(7)) ? true : false;
         /*Bit 6: Reserved. Shall be zero. */
         /* Bit 4: Reserved. Shall be zero. */
         /* Bit 2: The value of this bit corresponds to data expecting reply */
@@ -341,7 +341,7 @@ int npdu_decode(uint8_t *npdu,
         /* 0 indicates that other than a BACnet-Confirmed-Request-PDU, */
         /* a segment of a BACnet-ComplexACK-PDU, */
         /* or a network layer message expecting a reply is present. */
-        npdu_data->data_expecting_reply = (npdu[1] & BIT2) ? true : false;
+        npdu_data->data_expecting_reply = (npdu[1] & BIT(2)) ? true : false;
         /* Bits 1,0: Network priority where: */
         /* B'11' = Life Safety message */
         /* B'10' = Critical Equipment message */
@@ -355,7 +355,7 @@ int npdu_decode(uint8_t *npdu,
         /* 1 = DNET, DLEN, and Hop Count present */
         /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
         /* DLEN > 0 specifies length of DADR field */
-        if (npdu[1] & BIT5) {
+        if (npdu[1] & BIT(5)) {
             len += decode_unsigned16(&npdu[len], &dest_net);
             /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
             /* DLEN > 0 specifies length of DADR field */
@@ -389,7 +389,7 @@ int npdu_decode(uint8_t *npdu,
         /* Bit 3: Source specifier where: */
         /* 0 =  SNET, SLEN, and SADR absent */
         /* 1 =  SNET, SLEN, and SADR present */
-        if (npdu[1] & BIT3) {
+        if (npdu[1] & BIT(3)) {
             len += decode_unsigned16(&npdu[len], &src_net);
             /* SLEN = 0 denotes broadcast MAC SADR and SADR field is absent */
             /* SLEN > 0 specifies length of SADR field */

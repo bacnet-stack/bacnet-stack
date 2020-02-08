@@ -508,7 +508,7 @@ extern "C" {
 
 /* from clause 20.2.1.1 Class */
 /* true if the tag is context specific */
-#define IS_CONTEXT_SPECIFIC(x) ((x & BIT3) == BIT3)
+#define IS_CONTEXT_SPECIFIC(x) ((x & BIT(3)) == BIT(3))
 
 /* from clause 20.2.1.3.2 Constructed Data */
 /* true if the tag is an opening tag */
