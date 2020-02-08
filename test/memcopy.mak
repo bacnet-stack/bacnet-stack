@@ -9,7 +9,13 @@ CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 SRCS = $(SRC_DIR)/bacnet/memcopy.c \
 	ctest.c
 
-TARGET = memcopy
+TARGET_NAME = memcopy
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
 

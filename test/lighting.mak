@@ -13,7 +13,13 @@ SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/lighting.c \
 	ctest.c
 
-TARGET = lighting
+TARGET_NAME = lighting
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
 

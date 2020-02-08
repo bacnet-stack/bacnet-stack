@@ -22,7 +22,13 @@ SRCS = $(SRC_DIR)/bacnet/basic/binding/address.c \
 
 OBJS = ${SRCS:.c=.o}
 
-TARGET = address
+TARGET_NAME = address
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
 
@@ -38,5 +44,8 @@ depend:
 
 clean:
 	rm -rf ${TARGET} $(OBJS)
+
+test:
+	./${TARGET}
 
 include: .depend

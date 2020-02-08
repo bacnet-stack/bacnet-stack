@@ -15,7 +15,13 @@ SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 
 OBJS = ${SRCS:.c=.o}
 
-TARGET = arf
+TARGET_NAME = arf
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
 

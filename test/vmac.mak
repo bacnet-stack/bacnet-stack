@@ -10,7 +10,13 @@ SRCS = $(SRC_DIR)/bacnet/basic/sys/keylist.c \
 	$(SRC_DIR)/bacnet/basic/bbmd6/vmac.c \
 	ctest.c
 
-TARGET = vmac
+TARGET_NAME = vmac
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
 

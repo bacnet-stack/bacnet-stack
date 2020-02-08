@@ -6,7 +6,13 @@ DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_DECODE -DMAX_APDU=50
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-TARGET = bacdcode
+TARGET_NAME = bacdcode
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/bacint.c \

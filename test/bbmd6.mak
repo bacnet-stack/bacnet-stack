@@ -20,7 +20,13 @@ SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 	$(DEMO_DIR)/h_bbmd6.c \
 	ctest.c
 
-TARGET = bbmd6
+TARGET_NAME = bbmd6
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
 
