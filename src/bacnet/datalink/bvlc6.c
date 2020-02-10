@@ -641,6 +641,105 @@ bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr,
     return status;
 }
 
+/** Convert IPv6 Address from ASCII
+ *
+ * IPv6 addresses are represented as eight groups, separated by colons,
+ * of four hexadecimal digits.
+ *
+ * For convenience, an IPv6 address may be abbreviated to shorter notations
+ * by application of the following rules.
+ *   - One or more leading zeros from any groups of hexadecimal digits
+ *     are removed; this is usually done to either all or none of the
+ *     leading zeros. For example, the group 0042 is converted to 42.
+ *   - Consecutive sections of zeros are replaced with a double colon (::).
+ *     The double colon may only be used once in an address, as multiple
+ *     use would render the address indeterminate. RFC 5952 requires that
+ *     a double colon not be used to denote an omitted single section of
+ *     zeros.
+ *
+ * Adapted from the uIP TCP/IP stack and the Contiki operating system.
+ * Thank you, Adam Dunkel, and the Swedish Institute of Computer Science.
+ *
+ * @param addr - B/IPv6 address that is set
+ * @param addrstr - B/IPv6 address in 16-bit ASCII hex compressed format
+ *
+ * @return true if a valid address was set
+ */
+bool bvlc6_address_from_ascii(BACNET_IP6_ADDRESS *addr, const char *addrstr)
+{
+    uint16_t value = 0;
+    int tmp, zero = -1;
+    unsigned int len = 0;
+    unsigned int i = 0;
+    char c = 0;
+
+    if (!addrstr) {
+        return false;
+    }
+    if (!addrstr) {
+        return false;
+    }
+    if (*addrstr == '[') {
+        addrstr++;
+    }
+    for (len = 0; len < IP6_ADDRESS_MAX - 1; addrstr++) {
+        c = *addrstr;
+        if (c == ':' || c == '\0' || c == ']' || c == '/') {
+            addr->address[len] = (value >> 8) & 0xff;
+            addr->address[len + 1] = value & 0xff;
+            len += 2;
+            value = 0;
+            if (c == '\0' || c == ']' || c == '/') {
+                break;
+            }
+            if (*(addrstr + 1) == ':') {
+                /* Zero compression */
+                if (zero < 0) {
+                    zero = len;
+                }
+                addrstr++;
+            }
+        } else {
+            if (c >= '0' && c <= '9') {
+                tmp = c - '0';
+            } else if (c >= 'a' && c <= 'f') {
+                tmp = c - 'a' + 10;
+            } else if (c >= 'A' && c <= 'F') {
+                tmp = c - 'A' + 10;
+            } else {
+                /* illegal char! */
+                return false;
+            }
+            value = (value << 4) + (tmp & 0xf);
+        }
+    }
+    if (c != '\0' && c != ']' && c != '/') {
+        /* expected termination. too long! */
+        return false;
+    }
+    if (len < IP6_ADDRESS_MAX) {
+        uint8_t addr_end[IP6_ADDRESS_MAX];
+        if (zero < 0) {
+            /* too short address! */
+            return false;
+        }
+        /* move end address values from zero position to end position */
+        for (i = 0; i < len - zero; i++) {
+            addr_end[i] = addr->address[zero + i];
+        }
+        for (i = 0; i < len - zero; i++) {
+            addr->address[zero + IP6_ADDRESS_MAX - len + i] = addr_end[i];
+        }
+        /* fill in middle zero values */
+        for (i = 0; i < (IP6_ADDRESS_MAX - len); i++) {
+            addr->address[zero + i] = 0;
+        }
+    }
+    /* note: should we look for []:BAC0 UDP port number? */
+
+    return true;
+}
+
 /** Set a BACnet VMAC Address from a Device ID
  *
  * @param addr - BACnet address that be set
@@ -2058,8 +2157,10 @@ static void test_BVLC6_Address_Get_Set(Test *pTest)
 {
     uint16_t i = 0;
     BACNET_IP6_ADDRESS src = { { 0 } };
+    BACNET_IP6_ADDRESS dst = { { 0 } };
     uint16_t group = 1;
     uint16_t test_group = 0;
+    uint16_t hextet[8] = { 0 };
     bool status = false;
 
     for (i = 0; i < 16; i++) {
@@ -2071,6 +2172,53 @@ static void test_BVLC6_Address_Get_Set(Test *pTest)
         ct_test(pTest, group == test_group);
         group = group << 1;
     }
+    /* test the ASCII hex to address */
+    /* test too short */
+    status = bvlc6_address_from_ascii(&src,"[1234:5678]");
+    ct_test(pTest, status == false);
+    status = bvlc6_address_from_ascii(&src,
+        "[1234:5678:9ABC:DEF0:1234:5678:9ABC:DEF0]");
+    ct_test(pTest, status);
+    status = bvlc6_address_set(&dst,
+        0x1234, 0x5678, 0x9ABC, 0xDEF0,
+        0x1234, 0x5678, 0x9ABC, 0xDEF0);
+    ct_test(pTest, status);
+    status = bvlc6_address_different(&dst, &src);
+    ct_test(pTest, status == false);
+    /* test zero compression */
+    status = bvlc6_address_from_ascii(&src,
+        "[1234:5678:9ABC::5678:9ABC:DEF0]");
+    ct_test(pTest, status);
+    status = bvlc6_address_set(&dst,
+        0x1234, 0x5678, 0x9ABC, 0x0000,
+        0x0000, 0x5678, 0x9ABC, 0xDEF0);
+    ct_test(pTest, status);
+    status = bvlc6_address_different(&dst, &src);
+    if (status) {
+        status = bvlc6_address_get(
+            &src, &hextet[0], &hextet[1], &hextet[2], &hextet[3],
+            &hextet[4], &hextet[5], &hextet[6], &hextet[7]);
+        printf("src:[%X:%X:%X:%X:%X:%X:%X:%X]\n",
+            hextet[0], hextet[1], hextet[2], hextet[3],
+            hextet[4], hextet[5], hextet[6], hextet[7]);
+        status = bvlc6_address_get(
+            &dst, &hextet[0], &hextet[1], &hextet[2], &hextet[3],
+            &hextet[4], &hextet[5], &hextet[6], &hextet[7]);
+        printf("dst:[%X:%X:%X:%X:%X:%X:%X:%X]\n",
+            hextet[0], hextet[1], hextet[2], hextet[3],
+            hextet[4], hextet[5], hextet[6], hextet[7]);
+    }
+    ct_test(pTest, status == false);
+    /* test some compressed 16-bit zero fields */
+    status = bvlc6_address_from_ascii(&src,
+        "[234:678:ABC:EF0:1234:5678:9ABC:DEF0]");
+    ct_test(pTest, status);
+    status = bvlc6_address_set(&dst,
+        0x0234, 0x0678, 0x0ABC, 0x0EF0,
+        0x1234, 0x5678, 0x9ABC, 0xDEF0);
+    ct_test(pTest, status);
+    status = bvlc6_address_different(&dst, &src);
+    ct_test(pTest, status == false);
 }
 
 static void test_BVLC6_VMAC_Address_Get_Set(Test *pTest)

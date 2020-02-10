@@ -175,6 +175,9 @@ extern "C" {
     bool bvlc6_address_different(
         BACNET_IP6_ADDRESS * dst,
         BACNET_IP6_ADDRESS * src);
+    bool bvlc6_address_from_ascii(
+        BACNET_IP6_ADDRESS *addr,
+        const char *addrstr);
 
     bool bvlc6_address_set(
         BACNET_IP6_ADDRESS * addr,
