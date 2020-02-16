@@ -82,26 +82,26 @@ int whohas_decode_service_request(
     int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint32_t decoded_value = 0; /* for decoding */
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE;
 
     if (apdu_len && data) {
         /* optional limits - must be used as a pair */
         if (decode_is_context_tag(&apdu[len], 0)) {
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-            if (decoded_value <= BACNET_MAX_INSTANCE) {
-                data->low_limit = decoded_value;
+            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+            if (unsigned_value <= BACNET_MAX_INSTANCE) {
+                data->low_limit = unsigned_value;
             }
             if (!decode_is_context_tag(&apdu[len], 1)) {
                 return -1;
             }
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-            if (decoded_value <= BACNET_MAX_INSTANCE) {
-                data->high_limit = decoded_value;
+            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+            if (unsigned_value <= BACNET_MAX_INSTANCE) {
+                data->high_limit = unsigned_value;
             }
         } else {
             data->low_limit = -1;

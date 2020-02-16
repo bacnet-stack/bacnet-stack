@@ -41,6 +41,7 @@ extern "C" {
         BACNET_CHARACTER_STRING requestingSrc;
         BACNET_LIFE_SAFETY_OPERATION operation;
         BACNET_OBJECT_ID targetObject;
+        bool use_target:1;
     } BACNET_LSO_DATA;
 
 

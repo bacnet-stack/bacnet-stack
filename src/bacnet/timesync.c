@@ -227,7 +227,7 @@ int timesync_decode_timesync_recipients(
     int tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint32_t unsigned_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     BACNET_OCTET_STRING octet_string;
     BACNET_RECIPIENT_LIST *pRecipient;
 
@@ -255,7 +255,7 @@ int timesync_decode_timesync_recipients(
             }
             len = decode_unsigned(
                 &apdu[apdu_len], len_value_type, &unsigned_value);
-            pRecipient->type.address.net = unsigned_value;
+            pRecipient->type.address.net = (uint16_t)unsigned_value;
             apdu_len += len;
             /* mac-address OCTET STRING */
             tag_len = decode_tag_number_and_value(

@@ -34,6 +34,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/access_user.c \
 	$(BACNET_OBJECT_DIR)/access_zone.c \
 	$(BACNET_OBJECT_DIR)/credential_data_input.c \
+	$(BACNET_OBJECT_DIR)/acc.c \
 	$(BACNET_OBJECT_DIR)/bacfile.c
 
 BACNET_BASIC_SRC += \

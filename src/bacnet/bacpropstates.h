@@ -61,7 +61,7 @@ typedef struct {
         BACNET_EVENT_STATE state;
         BACNET_DEVICE_STATUS systemStatus;
         BACNET_ENGINEERING_UNITS units;
-        uint32_t unsignedValue;
+        BACNET_UNSIGNED_INTEGER unsignedValue;
         BACNET_LIFE_SAFETY_MODE lifeSafetyMode;
         BACNET_LIFE_SAFETY_STATE lifeSafetyState;
     } state;

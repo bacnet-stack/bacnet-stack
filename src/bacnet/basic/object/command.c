@@ -164,6 +164,7 @@ int cl_decode_apdu(uint8_t *apdu,
     int dec_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     if (decode_is_context_tag(&apdu[dec_len], 0)) {
         /* Tag 0: Device ID */
@@ -204,10 +205,11 @@ int cl_decode_apdu(uint8_t *apdu,
             &apdu[dec_len], &tag_number, &len_value_type);
         dec_len += len;
         len = decode_unsigned(
-            &apdu[dec_len], len_value_type, &bcl->Property_Array_Index);
+            &apdu[dec_len], len_value_type, &unsigned_value);
         if (len < 0) {
             return BACNET_STATUS_REJECT;
         }
+        bcl->Property_Array_Index = unsigned_value;
         dec_len += len;
     } else {
         bcl->Property_Array_Index = BACNET_ARRAY_ALL;
@@ -228,7 +230,11 @@ int cl_decode_apdu(uint8_t *apdu,
             break;
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             len = decode_context_unsigned(
-                &apdu[dec_len], 4, &bcl->Value.type.Unsigned_Int);
+                &apdu[dec_len], 4, &unsigned_value);
+            if (len < 0) {
+                return BACNET_STATUS_REJECT;
+            }
+            bcl->Value.type.Unsigned_Int = unsigned_value;
             break;
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             len = decode_context_signed(
@@ -282,15 +288,14 @@ int cl_decode_apdu(uint8_t *apdu,
         dec_len += len;
     }
     if (decode_is_context_tag(&apdu[dec_len], 5)) {
-        uint32_t priority_dec;
         len = decode_tag_number_and_value(
             &apdu[dec_len], &tag_number, &len_value_type);
         dec_len += len;
-        len = decode_unsigned(&apdu[dec_len], len_value_type, &priority_dec);
+        len = decode_unsigned(&apdu[dec_len], len_value_type, &unsigned_value);
         if (len < 0) {
             return BACNET_STATUS_REJECT;
         }
-        bcl->Priority = (uint8_t)priority_dec;
+        bcl->Priority = (uint8_t)unsigned_value;
         dec_len += len;
     } else {
         bcl->Priority = BACNET_NO_PRIORITY;
@@ -299,10 +304,11 @@ int cl_decode_apdu(uint8_t *apdu,
         len = decode_tag_number_and_value(
             &apdu[dec_len], &tag_number, &len_value_type);
         dec_len += len;
-        len = decode_unsigned(&apdu[dec_len], len_value_type, &bcl->Post_Delay);
+        len = decode_unsigned(&apdu[dec_len], len_value_type, &unsigned_value);
         if (len < 0) {
             return BACNET_STATUS_REJECT;
         }
+        bcl->Post_Delay = unsigned_value;
         dec_len += len;
     } else {
         bcl->Post_Delay = 0xFFFFFFFFU;

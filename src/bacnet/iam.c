@@ -83,7 +83,8 @@ int iam_decode_service_request(uint8_t *apdu,
     uint32_t object_instance = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint32_t decoded_value = 0;
+    uint32_t enum_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     /* OBJECT ID - object id */
     len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
@@ -105,10 +106,10 @@ int iam_decode_service_request(uint8_t *apdu,
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
         return -1;
     }
-    len = decode_unsigned(&apdu[apdu_len], len_value, &decoded_value);
+    len = decode_unsigned(&apdu[apdu_len], len_value, &unsigned_value);
     apdu_len += len;
     if (pMax_apdu) {
-        *pMax_apdu = (unsigned)decoded_value;
+        *pMax_apdu = (unsigned)unsigned_value;
     }
     /* Segmentation - enumerated */
     len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
@@ -116,13 +117,13 @@ int iam_decode_service_request(uint8_t *apdu,
     if (tag_number != BACNET_APPLICATION_TAG_ENUMERATED) {
         return -1;
     }
-    len = decode_enumerated(&apdu[apdu_len], len_value, &decoded_value);
+    len = decode_enumerated(&apdu[apdu_len], len_value, &enum_value);
     apdu_len += len;
-    if (decoded_value >= MAX_BACNET_SEGMENTATION) {
+    if (enum_value >= MAX_BACNET_SEGMENTATION) {
         return -1;
     }
     if (pSegmentation) {
-        *pSegmentation = (int)decoded_value;
+        *pSegmentation = (int)enum_value;
     }
     /* Vendor ID - unsigned16 */
     len = decode_tag_number_and_value(&apdu[apdu_len], &tag_number, &len_value);
@@ -130,13 +131,13 @@ int iam_decode_service_request(uint8_t *apdu,
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
         return -1;
     }
-    len = decode_unsigned(&apdu[apdu_len], len_value, &decoded_value);
+    len = decode_unsigned(&apdu[apdu_len], len_value, &unsigned_value);
     apdu_len += len;
-    if (decoded_value > 0xFFFF) {
+    if (unsigned_value > 0xFFFF) {
         return -1;
     }
     if (pVendor_id) {
-        *pVendor_id = (uint16_t)decoded_value;
+        *pVendor_id = (uint16_t)unsigned_value;
     }
 
     return apdu_len;

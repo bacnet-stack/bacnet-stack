@@ -88,7 +88,7 @@ int rp_decode_service_request(
     uint32_t len_value_type = 0;
     BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
-    uint32_t array_value = 0; /* for decoding */
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0; /* for decoding */
 
     /* check for value pointers */
     if (rpdata) {
@@ -121,8 +121,8 @@ int rp_decode_service_request(
                 &apdu[len], &tag_number, &len_value_type);
             if ((tag_number == 2) && (len < apdu_len)) {
                 len +=
-                    decode_unsigned(&apdu[len], len_value_type, &array_value);
-                rpdata->array_index = array_value;
+                    decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                rpdata->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
             } else {
                 rpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
                 return BACNET_STATUS_REJECT;
@@ -229,7 +229,7 @@ int rp_ack_decode_service_request(uint8_t *apdu,
     int len = 0; /* total length of decodes */
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE; /* object type */
     uint32_t property = 0; /* for decoding */
-    uint32_t array_value = 0; /* for decoding */
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0; /* for decoding */
 
     /* FIXME: check apdu_len against the len during decode   */
     /* Tag 0: Object ID */
@@ -252,8 +252,8 @@ int rp_ack_decode_service_request(uint8_t *apdu,
         decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number == 2) {
         len += tag_len;
-        len += decode_unsigned(&apdu[len], len_value_type, &array_value);
-        rpdata->array_index = array_value;
+        len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+        rpdata->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
     } else {
         rpdata->array_index = BACNET_ARRAY_ALL;
     }

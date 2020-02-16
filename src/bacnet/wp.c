@@ -96,7 +96,7 @@ int wp_decode_service_request(
     uint32_t len_value_type = 0;
     BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
-    uint32_t unsigned_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     int i = 0; /* loop counter */
 
     /* check for value pointers */

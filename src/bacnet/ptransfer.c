@@ -121,7 +121,7 @@ int ptransfer_decode_service_request(uint8_t *apdu,
 {
     int len = 0; /* return value */
     int decode_len = 0; /* return value */
-    uint32_t unsigned_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     /* check for value pointers */
     if (apdu_len && private_data) {
@@ -218,7 +218,8 @@ int ptransfer_error_decode_service_request(uint8_t *apdu,
     int decode_len = 0; /* return value */
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint32_t unsigned_value = 0;
+    uint32_t enum_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     /* check for value pointers */
     if (apdu_len && private_data) {
@@ -234,10 +235,10 @@ int ptransfer_error_decode_service_request(uint8_t *apdu,
                 return 0;
             }
             decode_len =
-                decode_enumerated(&apdu[len], len_value_type, &unsigned_value);
+                decode_enumerated(&apdu[len], len_value_type, &enum_value);
             len += decode_len;
             if (error_class) {
-                *error_class = (BACNET_ERROR_CLASS)unsigned_value;
+                *error_class = (BACNET_ERROR_CLASS)enum_value;
             }
             /* error code */
             decode_len = decode_tag_number_and_value(
@@ -247,10 +248,10 @@ int ptransfer_error_decode_service_request(uint8_t *apdu,
                 return 0;
             }
             decode_len =
-                decode_enumerated(&apdu[len], len_value_type, &unsigned_value);
+                decode_enumerated(&apdu[len], len_value_type, &enum_value);
             len += decode_len;
             if (error_code) {
-                *error_code = (BACNET_ERROR_CODE)unsigned_value;
+                *error_code = (BACNET_ERROR_CODE)enum_value;
             }
             if (decode_is_closing_tag_number(&apdu[len], 0)) {
                 /* a tag number of 0 is not extended so only one octet */
@@ -272,7 +273,7 @@ int ptransfer_error_decode_service_request(uint8_t *apdu,
             return -1;
         }
         len += decode_len;
-        private_data->serviceNumber = unsigned_value;
+        private_data->serviceNumber = (uint32_t)unsigned_value;
         /* Tag 3: serviceParameters */
         if (decode_is_opening_tag_number(&apdu[len], 3)) {
             /* a tag number of 2 is not extended so only one octet */

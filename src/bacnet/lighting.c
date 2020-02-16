@@ -126,7 +126,8 @@ int lighting_command_decode(
     int apdu_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint32_t unsigned_value = 0;
+    uint32_t enum_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     float real_value = 0.0;
 
     (void)apdu_max_len;
@@ -139,11 +140,10 @@ int lighting_command_decode(
         len = decode_tag_number_and_value(
             &apdu[apdu_len], &tag_number, &len_value_type);
         apdu_len += len;
-        len =
-            decode_enumerated(&apdu[apdu_len], len_value_type, &unsigned_value);
+        len = decode_enumerated(&apdu[apdu_len], len_value_type, &enum_value);
         if (len > 0) {
             if (unsigned_value <= BACNET_LIGHTS_PROPRIETARY_LAST) {
-                data->operation = (BACNET_LIGHTING_OPERATION)unsigned_value;
+                data->operation = (BACNET_LIGHTING_OPERATION)enum_value;
             } else {
                 return BACNET_STATUS_ERROR;
             }
@@ -190,7 +190,7 @@ int lighting_command_decode(
             apdu_len += len;
             len = decode_unsigned(
                 &apdu[apdu_len], len_value_type, &unsigned_value);
-            data->fade_time = unsigned_value;
+            data->fade_time = (uint32_t)unsigned_value;
             data->use_fade_time = true;
         } else {
             data->use_fade_time = false;
@@ -202,7 +202,7 @@ int lighting_command_decode(
             apdu_len += len;
             len = decode_unsigned(
                 &apdu[apdu_len], len_value_type, &unsigned_value);
-            data->priority = unsigned_value;
+            data->priority = (uint8_t)unsigned_value;
             data->use_priority = true;
         } else {
             data->use_priority = false;

@@ -1610,6 +1610,7 @@ static void TL_fetch_property(int iLog)
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     BACNET_BIT_STRING TempBits;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     CurrentLog = &LogInfo[iLog];
 
@@ -1643,7 +1644,8 @@ static void TL_fetch_property(int iLog)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 TempRec.ucRecType = TL_TYPE_UNSIGN;
                 decode_unsigned(
-                    &ValueBuf[iLen], len_value_type, &TempRec.Datum.ulUValue);
+                    &ValueBuf[iLen], len_value_type, &unsigned_value);
+                TempRec.Datum.ulUValue = unsigned_value;
                 break;
 
             case BACNET_APPLICATION_TAG_SIGNED_INT:

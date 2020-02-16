@@ -2,7 +2,7 @@
 
 LOGFILE = test.log
 
-all: ai ao av bi bo bv csv lc lo lsp \
+all: accumulator ai ao av bi bo bv csv lc lo lsp \
 	mso msv ms-input netport osv piv command \
 	access_credential access_door access_point access_rights \
 	access_user access_zone credential_data_input
@@ -15,6 +15,11 @@ logfile:
 
 report:
 	cat ${LOGFILE}
+
+accumulator: logfile acc.mak
+	$(MAKE) -s -f acc.mak clean all
+	( ./accumulator >> ${LOGFILE} )
+	$(MAKE) -s -f acc.mak clean
 
 access_credential: logfile access_credential.mak
 	$(MAKE) -s -f access_credential.mak clean all

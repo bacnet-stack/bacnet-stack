@@ -175,6 +175,7 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
     uint32_t len_value = 0;
     int len = 0; /* total length of decodes */
     uint32_t enum_value = 0; /* for decoding */
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     BACNET_GET_EVENT_INFORMATION_DATA *event_data;
     unsigned i = 0; /* counter */
 
@@ -264,8 +265,9 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
                 for (i = 0; i < 3; i++) {
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value);
-                    len += decode_unsigned(
-                        &apdu[len], len_value, &event_data->eventPriorities[i]);
+                    len +=
+                        decode_unsigned(&apdu[len], len_value, &unsigned_value);
+                    event_data->eventPriorities[i] = (uint32_t)unsigned_value;
                 }
             } else {
                 return -1;

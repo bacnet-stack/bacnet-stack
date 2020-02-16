@@ -46,6 +46,7 @@
 #include "bacnet/basic/binding/address.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/acc.h"
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/basic/object/av.h"
@@ -255,6 +256,13 @@ static object_functions_t My_Object_Table[] = {
         Schedule_Object_Name, Schedule_Read_Property, Schedule_Write_Property,
         Schedule_Property_Lists, NULL /* ReadRangeInfo */, NULL /* Iterator */,
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
+        NULL /* Intrinsic Reporting */ },
+    {OBJECT_ACCUMULATOR, Accumulator_Init, Accumulator_Count,
+        Accumulator_Index_To_Instance, Accumulator_Valid_Instance,
+        Accumulator_Object_Name, Accumulator_Read_Property,
+        Accumulator_Write_Property, Accumulator_Property_Lists,
+        NULL /* ReadRangeInfo */ , NULL /* Iterator */ ,
+        NULL /* Value_Lists */ , NULL /* COV */ , NULL /* COV Clear */ ,
         NULL /* Intrinsic Reporting */ },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,

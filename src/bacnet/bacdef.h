@@ -27,6 +27,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "bacnet/bacenum.h"
+#include "bacnet/bacint.h"
 #include "bacnet/config.h"
 
 #if defined(_MSC_VER)
@@ -122,8 +123,8 @@
 /* large BACnet Object Type */
 #define BACNET_MAX_OBJECT (0x3FF)
 /* Array index 0=size of array, n=array element n,  MAX=all array elements */
-/* 32-bit MAX, to use with uint32_t */
-#define BACNET_ARRAY_ALL 0xFFFFFFFFU
+#define BACNET_ARRAY_ALL UINT32_MAX
+typedef uint32_t BACNET_ARRAY_INDEX;
 /* For device object property references with no device id defined */
 #define BACNET_NO_DEV_ID   0xFFFFFFFFu
 #define BACNET_NO_DEV_TYPE OBJECT_NONE

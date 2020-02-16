@@ -75,7 +75,7 @@ int rpm_encode_apdu_object_begin(
 }
 
 int rpm_encode_apdu_object_property(
-    uint8_t *apdu, BACNET_PROPERTY_ID object_property, uint32_t array_index)
+    uint8_t *apdu, BACNET_PROPERTY_ID object_property, BACNET_ARRAY_INDEX array_index)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -247,7 +247,7 @@ int rpm_decode_object_property(
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint32_t property = 0; /* for decoding */
-    uint32_t array_value = 0; /* for decoding */
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0; /* for decoding */
 
     /* check for valid pointers */
     if (apdu && apdu_len && rpmdata) {
@@ -285,8 +285,8 @@ int rpm_decode_object_property(
                     return BACNET_STATUS_REJECT;
                 }
                 len +=
-                    decode_unsigned(&apdu[len], len_value_type, &array_value);
-                rpmdata->array_index = array_value;
+                    decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                rpmdata->array_index = unsigned_value;
             }
         }
     }
@@ -324,7 +324,7 @@ int rpm_ack_encode_apdu_object_begin(uint8_t *apdu, BACNET_RPM_DATA *rpmdata)
 }
 
 int rpm_ack_encode_apdu_object_property(
-    uint8_t *apdu, BACNET_PROPERTY_ID object_property, uint32_t array_index)
+    uint8_t *apdu, BACNET_PROPERTY_ID object_property, BACNET_ARRAY_INDEX array_index)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -439,14 +439,14 @@ int rpm_ack_decode_object_end(uint8_t *apdu, unsigned apdu_len)
 int rpm_ack_decode_object_property(uint8_t *apdu,
     unsigned apdu_len,
     BACNET_PROPERTY_ID *object_property,
-    uint32_t *array_index)
+    BACNET_ARRAY_INDEX *array_index)
 {
     unsigned len = 0;
     unsigned tag_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     uint32_t property = 0; /* for decoding */
-    uint32_t array_value = 0; /* for decoding */
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0; /* for decoding */
 
     /* check for valid pointers */
     if (apdu && apdu_len && object_property && array_index) {
@@ -471,8 +471,8 @@ int rpm_ack_decode_object_property(uint8_t *apdu,
             if (tag_number == 3) {
                 len += tag_len;
                 len +=
-                    decode_unsigned(&apdu[len], len_value_type, &array_value);
-                *array_index = array_value;
+                    decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                *array_index = unsigned_value;
             } else {
                 *array_index = BACNET_ARRAY_ALL;
             }

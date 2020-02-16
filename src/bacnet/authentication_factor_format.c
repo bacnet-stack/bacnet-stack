@@ -81,6 +81,7 @@ int bacapp_decode_authentication_factor_format(
     int len;
     int apdu_len = 0;
     uint32_t format_type = aff->format_type;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
         len = decode_context_enumerated(&apdu[apdu_len], 0, &format_type);
@@ -98,10 +99,11 @@ int bacapp_decode_authentication_factor_format(
     }
 
     if (decode_is_context_tag(&apdu[apdu_len], 1)) {
-        len = decode_context_unsigned(&apdu[apdu_len], 1, &aff->vendor_id);
+        len = decode_context_unsigned(&apdu[apdu_len], 1, &unsigned_value);
         if (len < 0) {
             return -1;
         } else {
+            aff->vendor_id = unsigned_value;
             apdu_len += len;
         }
         if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM) &&
@@ -111,10 +113,11 @@ int bacapp_decode_authentication_factor_format(
     }
 
     if (decode_is_context_tag(&apdu[apdu_len], 2)) {
-        len = decode_context_unsigned(&apdu[apdu_len], 2, &aff->vendor_format);
+        len = decode_context_unsigned(&apdu[apdu_len], 2, &unsigned_value);
         if (len < 0) {
             return -1;
         } else {
+            aff->vendor_format = unsigned_value;
             apdu_len += len;
         }
         if ((aff->format_type != AUTHENTICATION_FACTOR_CUSTOM) &&

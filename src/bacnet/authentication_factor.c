@@ -80,6 +80,7 @@ int bacapp_decode_authentication_factor(
     int len;
     int apdu_len = 0;
     uint32_t format_type = af->format_type;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     if (decode_is_context_tag(&apdu[apdu_len], 0)) {
         len = decode_context_enumerated(&apdu[apdu_len], 0, &format_type);
@@ -97,10 +98,11 @@ int bacapp_decode_authentication_factor(
     }
 
     if (decode_is_context_tag(&apdu[apdu_len], 1)) {
-        len = decode_context_unsigned(&apdu[apdu_len], 1, &af->format_class);
+        len = decode_context_unsigned(&apdu[apdu_len], 1, &unsigned_value);
         if (len < 0) {
             return -1;
         } else {
+            af->format_class = unsigned_value;
             apdu_len += len;
         }
     } else {

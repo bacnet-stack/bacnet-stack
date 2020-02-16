@@ -36,7 +36,7 @@ extern "C" {
         BACNET_OBJECT_TYPE object_type;
         uint32_t object_instance;
         BACNET_PROPERTY_ID object_property;
-        uint32_t array_index;
+        BACNET_ARRAY_INDEX array_index;
         uint8_t *application_data;
         int application_data_len;
         BACNET_BIT_STRING ResultFlags;  /**<  FIRST_ITEM, LAST_ITEM, MORE_ITEMS. */

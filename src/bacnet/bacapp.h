@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "bacnet/bacdef.h"
+#include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 #if defined (BACAPP_LIGHTING_COMMAND)
@@ -49,7 +50,7 @@ typedef struct BACnet_Application_Data_Value {
         bool Boolean;
 #endif
 #if defined (BACAPP_UNSIGNED)
-        uint32_t Unsigned_Int;
+        BACNET_UNSIGNED_INTEGER Unsigned_Int;
 #endif
 #if defined (BACAPP_SIGNED)
         int32_t Signed_Int;
@@ -102,7 +103,8 @@ typedef struct BACnet_Access_Error {
 struct BACnet_Property_Reference;
 typedef struct BACnet_Property_Reference {
     BACNET_PROPERTY_ID propertyIdentifier;
-    uint32_t propertyArrayIndex;        /* optional */
+    /* optional array index */
+    BACNET_ARRAY_INDEX propertyArrayIndex;
     /* either value or error, but not both.
        Use NULL value to indicate error */
     BACNET_APPLICATION_DATA_VALUE *value;
@@ -114,7 +116,7 @@ typedef struct BACnet_Property_Reference {
 struct BACnet_Property_Value;
 typedef struct BACnet_Property_Value {
     BACNET_PROPERTY_ID propertyIdentifier;
-    uint32_t propertyArrayIndex;
+    BACNET_ARRAY_INDEX propertyArrayIndex;
     BACNET_APPLICATION_DATA_VALUE value;
     uint8_t priority;
     /* simple linked list */
@@ -127,7 +129,7 @@ typedef struct BACnet_Object_Property_Value {
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
-    uint32_t array_index;
+    BACNET_ARRAY_INDEX array_index;
     BACNET_APPLICATION_DATA_VALUE *value;
 } BACNET_OBJECT_PROPERTY_VALUE;
 
