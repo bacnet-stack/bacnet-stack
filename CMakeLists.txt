@@ -141,6 +141,7 @@ set(BACNETSTACK_SRCS
     src/bacnet/basic/object/access_user.h
     src/bacnet/basic/object/access_zone.c
     src/bacnet/basic/object/access_zone.h
+    src/bacnet/basic/object/acc.c
     src/bacnet/basic/object/ai.c
     src/bacnet/basic/object/ai.h
     src/bacnet/basic/object/ao.c
