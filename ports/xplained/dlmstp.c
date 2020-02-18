@@ -253,7 +253,7 @@ static bool dlmstp_compare_data_expecting_reply(uint8_t * request_pdu,
     }
     request.invoke_id = request_pdu[offset + 2];
     /* segmented message? */
-    if (request_pdu[offset] & BIT3)
+    if (request_pdu[offset] & BIT(3))
         request.service_choice = request_pdu[offset + 5];
     else
         request.service_choice = request_pdu[offset + 3];

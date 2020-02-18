@@ -216,7 +216,7 @@ int encode_tag(uint8_t *apdu,
 
     apdu[0] = 0;
     if (context_specific) {
-        apdu[0] = BIT3;
+        apdu[0] = BIT(3);
     }
 
     /* additional tag byte after this byte */
@@ -256,7 +256,7 @@ int encode_opening_tag(uint8_t *apdu, uint8_t tag_number)
     int len = 1;
 
     /* set class field to context specific */
-    apdu[0] = BIT3;
+    apdu[0] = BIT(3);
     /* additional tag byte after this byte for extended tag byte */
     if (tag_number <= 14) {
         apdu[0] |= (tag_number << 4);
@@ -278,7 +278,7 @@ int encode_closing_tag(uint8_t *apdu, uint8_t tag_number)
     int len = 1;
 
     /* set class field to context specific */
-    apdu[0] = BIT3;
+    apdu[0] = BIT(3);
     /* additional tag byte after this byte for extended tag byte */
     if (tag_number <= 14) {
         apdu[0] |= (tag_number << 4);
@@ -595,29 +595,29 @@ static uint8_t byte_reverse_bits(uint8_t in_byte)
 {
     uint8_t out_byte = 0;
 
-    if (in_byte & BIT0) {
-        out_byte |= BIT7;
+    if (in_byte & BIT(0)) {
+        out_byte |= BIT(7);
     }
-    if (in_byte & BIT1) {
-        out_byte |= BIT6;
+    if (in_byte & BIT(1)) {
+        out_byte |= BIT(6);
     }
-    if (in_byte & BIT2) {
-        out_byte |= BIT5;
+    if (in_byte & BIT(2)) {
+        out_byte |= BIT(5);
     }
-    if (in_byte & BIT3) {
-        out_byte |= BIT4;
+    if (in_byte & BIT(3)) {
+        out_byte |= BIT(4);
     }
-    if (in_byte & BIT4) {
-        out_byte |= BIT3;
+    if (in_byte & BIT(4)) {
+        out_byte |= BIT(3);
     }
-    if (in_byte & BIT5) {
-        out_byte |= BIT2;
+    if (in_byte & BIT(5)) {
+        out_byte |= BIT(2);
     }
-    if (in_byte & BIT6) {
-        out_byte |= BIT1;
+    if (in_byte & BIT(6)) {
+        out_byte |= BIT(1);
     }
-    if (in_byte & BIT7) {
-        out_byte |= BIT0;
+    if (in_byte & BIT(7)) {
+        out_byte |= BIT(0);
     }
 
     return out_byte;
@@ -2522,7 +2522,7 @@ static void testBACDCodeTags(Test *pTest)
             test_len = get_apdu_len(IS_EXTENDED_TAG_NUMBER(apdu[0]), value);
             ct_test(pTest, len == test_len);
             /* stop at the the last value */
-            if (value & BIT31) {
+            if (value & BIT(31L)) {
                 break;
             }
         }

@@ -165,13 +165,13 @@ void test_task(
         mstimer_reset(&Test_Timer);
         sprintf(Send_Buffer, "BACnet: 0000000\r\n");
         MSTP_MAC_Address = input_address();
-        Send_Buffer[8] = (MSTP_MAC_Address & BIT0) ? '1' : '0';
-        Send_Buffer[9] = (MSTP_MAC_Address & BIT1) ? '1' : '0';
-        Send_Buffer[10] = (MSTP_MAC_Address & BIT2) ? '1' : '0';
-        Send_Buffer[11] = (MSTP_MAC_Address & BIT3) ? '1' : '0';
-        Send_Buffer[12] = (MSTP_MAC_Address & BIT4) ? '1' : '0';
-        Send_Buffer[13] = (MSTP_MAC_Address & BIT5) ? '1' : '0';
-        Send_Buffer[14] = (MSTP_MAC_Address & BIT6) ? '1' : '0';
+        Send_Buffer[8] = (MSTP_MAC_Address & BIT(0)) ? '1' : '0';
+        Send_Buffer[9] = (MSTP_MAC_Address & BIT(1)) ? '1' : '0';
+        Send_Buffer[10] = (MSTP_MAC_Address & BIT(2)) ? '1' : '0';
+        Send_Buffer[11] = (MSTP_MAC_Address & BIT(3)) ? '1' : '0';
+        Send_Buffer[12] = (MSTP_MAC_Address & BIT(4)) ? '1' : '0';
+        Send_Buffer[13] = (MSTP_MAC_Address & BIT(5)) ? '1' : '0';
+        Send_Buffer[14] = (MSTP_MAC_Address & BIT(6)) ? '1' : '0';
         serial_bytes_send((uint8_t *) Send_Buffer, 17);
     }
     if (serial_byte_get(&data_register)) {
