@@ -357,13 +357,6 @@ int Accumulator_Read_Property(
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
- 	if(apdu_len >= MAX_APDU)
-	{
-        rpdata->error_class = ERROR_CLASS_PROPERTY;
-        rpdata->error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-        apdu_len = BACNET_STATUS_ERROR;
-		return MAX_APDU;
-	}
     /*  only array properties can have array options */
     if ((apdu_len >= 0) && (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
