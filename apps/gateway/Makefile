@@ -12,6 +12,7 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/gateway/gw_device.c \
+	$(BACNET_OBJECT_DIR)/acc.c \
 	$(BACNET_OBJECT_DIR)/ai.c \
 	$(BACNET_OBJECT_DIR)/ao.c \
 	$(BACNET_OBJECT_DIR)/av.c \
