@@ -6,7 +6,13 @@ DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_BACSTR
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-TARGET = bacstr
+TARGET_NAME = bacstr
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 SRCS = $(SRC_DIR)/bacnet/bacstr.c \
 	ctest.c
@@ -14,17 +20,17 @@ SRCS = $(SRC_DIR)/bacnet/bacstr.c \
 OBJS = ${SRCS:.c=.o}
 
 all: ${TARGET}
- 
+
 ${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -o $@ ${OBJS}
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
-	
+
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
-	
+
 clean:
 	rm -rf core ${OBJS} ${TARGET} *.bak
 

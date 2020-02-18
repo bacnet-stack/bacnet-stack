@@ -9,14 +9,20 @@ CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 SRCS = $(SRC_DIR)/bacnet/basic/sys/keylist.c \
 	ctest.c
 
-TARGET = keylist 
+TARGET_NAME = keylist
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 OBJS  = ${SRCS:.c=.o}
 
 all: ${TARGET}
 
 ${TARGET}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -o $@ ${OBJS}
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@

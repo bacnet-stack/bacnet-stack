@@ -17,7 +17,13 @@ SRCS = $(SRC_DIR)/bacnet/proplist.c \
 	$(SRC_DIR)/bacnet/lighting.c \
 	ctest.c
 
-TARGET = proplist
+TARGET_NAME = proplist
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 OBJS  = ${SRCS:.c=.o}
 

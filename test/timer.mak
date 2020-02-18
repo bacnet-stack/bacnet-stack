@@ -9,7 +9,13 @@ CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 SRCS = $(SRC_DIR)/bacnet/timer.c \
 	ctest.c
 
-TARGET = timer
+TARGET_NAME = timer
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
 

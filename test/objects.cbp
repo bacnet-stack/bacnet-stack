@@ -7,35 +7,31 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Release">
-				<Option output="bin\Release\objects" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Release\" />
+				<Option output="bin/Release/objects" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-Og" />
+					<Add option="-g" />
 					<Add option="-DTEST" />
 					<Add option="-DTEST_OBJECT_LIST" />
-					<Add directory="..\include" />
-					<Add directory="." />
+					<Add directory="../src" />
+					<Add directory="../test" />
 				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="..\include\key.h" />
-		<Unit filename="..\include\keylist.h" />
-		<Unit filename="..\include\objects.h" />
-		<Unit filename="..\src\key.c">
+		<Unit filename="../src/bacnet/basic/object/objects.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\src\keylist.c">
+		<Unit filename="../src/bacnet/basic/sys/key.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\src\objects.c">
+		<Unit filename="../src/bacnet/basic/sys/keylist.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="ctest.c">

@@ -13,7 +13,13 @@ SRCS = $(SRC_DIR)/bacnet/datalink/mstp.c \
 	$(SRC_DIR)/bacnet/basic/sys/ringbuf.c \
 	ctest.c
 
-TARGET = mstp
+TARGET_NAME = mstp
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
 

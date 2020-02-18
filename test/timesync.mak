@@ -16,7 +16,13 @@ DEFINES := -DBIG_ENDIAN=0 -DTEST -DBACAPP_ALL -DTEST_TIMESYNC
 CFLAGS  := $(INCLUDES) $(DEFINES) -g
 CFLAGS += -Wall
 
-TARGET := timesync
+TARGET_NAME := timesync
+ifeq ($(OS),Windows_NT)
+TARGET_EXT = .exe
+else
+TARGET_EXT =
+endif
+TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 SRCS := $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/bacint.c \
