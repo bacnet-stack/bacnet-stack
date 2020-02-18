@@ -54,6 +54,11 @@ option(
   "compile with ipv6 support"
   OFF)
 
+option(
+  BACDL_NONE
+  "compile without datalink"
+  OFF)
+
 set(BACNET_PROTOCOL_REVISION 19)
 
 message(STATUS "BACNET: using cmake ${CMAKE_VERSION}")
@@ -68,6 +73,7 @@ message(STATUS "BACNET: BACDL_BIP \"${BACDL_BIP}\"")
 message(STATUS "BACNET: BACDL_ARCNET \"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP \"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET \"${BACDL_ETHERNET}\"")
+message(STATUS "BACNET: BACDL_NONE \"${BACDL_NONE}\"")
 
 #
 # sources
@@ -457,9 +463,7 @@ if(WIN32)
            $<$<BOOL:${BACDL_ETHERNET}>:ports/win32/ethernet.c>
            ports/win32/mstimer-init.c
            $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
-           $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>
-           ports/win32/stdbool.h
-           ports/win32/stdint.h)
+           $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
 endif()
 
 if(APPLE)
@@ -499,6 +503,7 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
   $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
+  $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
   PRIVATE
   -DPRINT_ENABLED=1)
