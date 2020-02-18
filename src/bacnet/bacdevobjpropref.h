@@ -28,11 +28,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "bacnet/bacdef.h"
+#include "bacnet/bacint.h"
 #include "bacnet/bacenum.h"
 
 typedef struct BACnetDeviceObjectPropertyReference {
     /* number type first to avoid enum cast warning on = { 0 } */
-    uint32_t arrayIndex;
+    BACNET_UNSIGNED_INTEGER arrayIndex;
     BACNET_OBJECT_ID objectIdentifier;
     BACNET_PROPERTY_ID propertyIdentifier;
     BACNET_OBJECT_ID deviceIdentifier;

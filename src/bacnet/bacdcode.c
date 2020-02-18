@@ -1314,10 +1314,14 @@ int decode_context_character_string(
  * @return  number of bytes decoded, or zero if errors occur
  */
 int bacnet_unsigned_decode(
-    uint8_t *apdu, uint16_t apdu_len_max, uint32_t len_value, uint32_t *value)
+    uint8_t *apdu, uint16_t apdu_len_max, uint32_t len_value, BACNET_UNSIGNED_INTEGER *value)
 {
     int len = 0;
     uint16_t unsigned16_value = 0;
+    uint32_t unsigned32_value = 0;
+#ifdef UINT64_MAX
+    uint64_t unsigned64_value = 0;
+#endif
 
     if (value && (len_value <= apdu_len_max)) {
         switch (len_value) {
@@ -1331,13 +1335,37 @@ int bacnet_unsigned_decode(
                 len = (int)len_value;
                 break;
             case 3:
-                decode_unsigned24(&apdu[0], value);
+                decode_unsigned24(&apdu[0], &unsigned32_value);
+                *value = unsigned32_value;
                 len = (int)len_value;
                 break;
             case 4:
-                decode_unsigned32(&apdu[0], value);
+                decode_unsigned32(&apdu[0], &unsigned32_value);
+                *value = unsigned32_value;
                 len = (int)len_value;
                 break;
+#ifdef UINT64_MAX
+            case 5:
+                decode_unsigned40(&apdu[0], &unsigned64_value);
+                *value = unsigned64_value;
+                len = (int)len_value;
+                break;
+            case 6:
+                decode_unsigned48(&apdu[0], &unsigned64_value);
+                *value = unsigned64_value;
+                len = (int)len_value;
+                break;
+            case 7:
+                decode_unsigned56(&apdu[0], &unsigned64_value);
+                *value = unsigned64_value;
+                len = (int)len_value;
+                break;
+            case 8:
+                decode_unsigned64(&apdu[0], &unsigned64_value);
+                *value = unsigned64_value;
+                len = (int)len_value;
+                break;
+#endif
             default:
                 *value = 0;
                 break;
@@ -1361,7 +1389,7 @@ int bacnet_unsigned_decode(
  * or error (-1) if malformed
  */
 int bacnet_unsigned_context_decode(
-    uint8_t *apdu, uint16_t apdu_len_max, uint8_t tag_value, uint32_t *value)
+    uint8_t *apdu, uint16_t apdu_len_max, uint8_t tag_value, BACNET_UNSIGNED_INTEGER *value)
 {
     int apdu_len = 0;
     unsigned len = 0;
@@ -1407,7 +1435,7 @@ int bacnet_unsigned_context_decode(
  * @return the number of apdu bytes consumed, or #BACNET_STATUS_ERROR (-1)
  */
 int bacnet_unsigned_application_decode(
-    uint8_t *apdu, uint16_t apdu_len_max, uint32_t *value)
+    uint8_t *apdu, uint16_t apdu_len_max, BACNET_UNSIGNED_INTEGER *value)
 {
     int len = 0;
     int apdu_len = BACNET_STATUS_ERROR;
@@ -1445,9 +1473,13 @@ int bacnet_unsigned_application_decode(
  *
  * @return  number of bytes decoded, or zero if errors occur
  */
-int decode_unsigned(uint8_t *apdu, uint32_t len_value, uint32_t *value)
+int decode_unsigned(uint8_t *apdu, uint32_t len_value, BACNET_UNSIGNED_INTEGER *value)
 {
+#ifdef UINT64_MAX
+    const uint16_t apdu_len_max = 8;
+#else
     const uint16_t apdu_len_max = 4;
+#endif
 
     return bacnet_unsigned_decode(apdu, apdu_len_max, len_value, value);
 }
@@ -1464,9 +1496,14 @@ int decode_unsigned(uint8_t *apdu, uint32_t len_value, uint32_t *value)
  * @return  number of bytes decoded, #BACNET_STATUS_ERROR (-1) if
  * wrong tag number, or error (-1) if malformed
  */
-int decode_context_unsigned(uint8_t *apdu, uint8_t tag_value, uint32_t *value)
+int decode_context_unsigned(uint8_t *apdu, uint8_t tag_value,
+    BACNET_UNSIGNED_INTEGER *value)
 {
-    const uint16_t apdu_len_max = 6;
+#ifdef UINT64_MAX
+    const uint16_t apdu_len_max = 3+8;
+#else
+    const uint16_t apdu_len_max = 2+4;
+#endif
     int len = 0;
 
     len = bacnet_unsigned_context_decode(apdu, apdu_len_max, tag_value, value);
@@ -1480,19 +1517,33 @@ int decode_context_unsigned(uint8_t *apdu, uint8_t tag_value, uint32_t *value)
 /* from clause 20.2.4 Encoding of an Unsigned Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_bacnet_unsigned(uint8_t *apdu, uint32_t value)
+int encode_bacnet_unsigned(uint8_t *apdu, BACNET_UNSIGNED_INTEGER value)
 {
     int len = 0; /* return value */
 
-    if (value < 0x100) {
+    len = bacnet_unsigned_length(value);
+    if (len == 1) {
         apdu[0] = (uint8_t)value;
-        len = 1;
-    } else if (value < 0x10000) {
-        len = encode_unsigned16(&apdu[0], (uint16_t)value);
-    } else if (value < 0x1000000) {
-        len = encode_unsigned24(&apdu[0], value);
+    } else if (len == 2) {
+        (void)encode_unsigned16(&apdu[0], (uint16_t)value);
+    } else if (len == 3) {
+        (void)encode_unsigned24(&apdu[0], (uint32_t)value);
     } else {
+#ifdef UINT64_MAX
+        if (len == 4) {
+            (void)encode_unsigned32(&apdu[0], (uint32_t)value);
+        } else if (len == 5) {
+            (void)encode_unsigned40(&apdu[0], value);
+        } else if (len == 6) {
+            (void)encode_unsigned48(&apdu[0], value);
+        } else if (len == 7) {
+            (void)encode_unsigned56(&apdu[0], value);
+        } else {
+            len = encode_unsigned64(&apdu[0], value);
+        }
+#else
         len = encode_unsigned32(&apdu[0], value);
+#endif
     }
 
     return len;
@@ -1501,21 +1552,12 @@ int encode_bacnet_unsigned(uint8_t *apdu, uint32_t value)
 /* from clause 20.2.4 Encoding of an Unsigned Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_context_unsigned(uint8_t *apdu, uint8_t tag_number, uint32_t value)
+int encode_context_unsigned(uint8_t *apdu, uint8_t tag_number, BACNET_UNSIGNED_INTEGER value)
 {
     int len = 0;
 
     /* length of unsigned is variable, as per 20.2.4 */
-    if (value < 0x100) {
-        len = 1;
-    } else if (value < 0x10000) {
-        len = 2;
-    } else if (value < 0x1000000) {
-        len = 3;
-    } else {
-        len = 4;
-    }
-
+    len = bacnet_unsigned_length(value);
     len = encode_tag(&apdu[0], tag_number, true, (uint32_t)len);
     len += encode_bacnet_unsigned(&apdu[len], value);
 
@@ -1525,13 +1567,14 @@ int encode_context_unsigned(uint8_t *apdu, uint8_t tag_number, uint32_t value)
 /* from clause 20.2.4 Encoding of an Unsigned Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
 /* returns the number of apdu bytes consumed */
-int encode_application_unsigned(uint8_t *apdu, uint32_t value)
+int encode_application_unsigned(uint8_t *apdu, BACNET_UNSIGNED_INTEGER value)
 {
     int len = 0;
 
-    len = encode_bacnet_unsigned(&apdu[1], value);
-    len += encode_tag(
+    len = bacnet_unsigned_length(value);
+    len = encode_tag(
         &apdu[0], BACNET_APPLICATION_TAG_UNSIGNED_INT, false, (uint32_t)len);
+    len += encode_bacnet_unsigned(&apdu[len], value);
 
     return len;
 }
@@ -1551,7 +1594,15 @@ int encode_application_unsigned(uint8_t *apdu, uint32_t value)
 int bacnet_enumerated_decode(
     uint8_t *apdu, uint16_t apdu_len_max, uint32_t len_value, uint32_t *value)
 {
-    return bacnet_unsigned_decode(apdu, apdu_len_max, len_value, value);
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    int len;
+
+    len = bacnet_unsigned_decode(apdu, apdu_len_max, len_value, &unsigned_value);
+    if (len > 0) {
+        *value = unsigned_value;
+    }
+
+    return len;
 }
 
 /**
@@ -2339,7 +2390,7 @@ int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
     int tag_len = 0;
     uint32_t len_value_type = 0;
     uint8_t i = 0;
-    uint32_t data_unsigned = 0;
+    BACNET_UNSIGNED_INTEGER data_unsigned = 0;
     uint8_t tag_number = 0;
     BACNET_OCTET_STRING mac_addr = { 0 };
 
@@ -2351,7 +2402,7 @@ int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
         return BACNET_STATUS_ERROR;
     }
     len += decode_unsigned(&apdu[len], len_value_type, &data_unsigned);
-    destination->net = data_unsigned;
+    destination->net = (uint16_t)data_unsigned;
     /* encode mac address as an octet-string */
     tag_len =
         decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
@@ -2644,11 +2695,11 @@ static void testBACDCodeDouble(Test *pTest)
     return;
 }
 
-static void testBACDCodeUnsignedValue(Test *pTest, uint32_t value)
+static void testBACDCodeUnsignedValue(Test *pTest, BACNET_UNSIGNED_INTEGER value)
 {
     uint8_t array[5] = { 0 };
     uint8_t encoded_array[5] = { 0 };
-    uint32_t decoded_value = 0;
+    BACNET_UNSIGNED_INTEGER decoded_value = 0;
     int len;
     uint8_t apdu[MAX_APDU] = { 0 };
     uint8_t tag_number = 0;
@@ -2677,14 +2728,19 @@ static void testBACDCodeUnsignedValue(Test *pTest, uint32_t value)
 
 static void testBACDCodeUnsigned(Test *pTest)
 {
+#ifdef UINT64_MAX
+    const unsigned max_bits = 64;
+#else
+    const unsigned max_bits = 32;
+#endif
     uint32_t value = 1;
     int i;
 
-    for (i = 0; i < 32; i++) {
+    for (i = 0; i < max_bits; i++) {
         testBACDCodeUnsignedValue(pTest, value - 1);
         testBACDCodeUnsignedValue(pTest, value);
         testBACDCodeUnsignedValue(pTest, value + 1);
-        value = value << 1;
+        value |= (value << 1);
     }
 
     return;
@@ -2693,16 +2749,15 @@ static void testBACDCodeUnsigned(Test *pTest)
 static void testBACnetUnsigned(Test *pTest)
 {
     uint8_t apdu[32] = { 0 };
-    uint32_t value = 0, test_value = 0;
+    BACNET_UNSIGNED_INTEGER value = 0, test_value = 0;
     int len = 0, test_len = 0;
 
-    for (value = 0;; value += 0xFF) {
+    for (value = 0; value == BACNET_UNSIGNED_INTEGER_MAX;
+         value = (value << 8) | 0xff) {
         len = encode_bacnet_unsigned(&apdu[0], value);
         test_len = decode_unsigned(&apdu[0], len, &test_value);
         ct_test(pTest, len == test_len);
         ct_test(pTest, value == test_value);
-        if (value == 0xFFFFFFFF)
-            break;
     }
 }
 
@@ -3026,18 +3081,37 @@ static void testBACDCodeBitString(Test *pTest)
 
 static void testUnsignedContextDecodes(Test *pTest)
 {
-    uint8_t apdu[MAX_APDU];
-    int inLen;
-    int outLen;
-    int outLen2;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int inLen = 0;
+    int outLen = 0;
+    int outLen2 = 0;
     uint8_t large_context_tag = 0xfe;
+    BACNET_UNSIGNED_INTEGER in = 0xdeadbeef;
+    BACNET_UNSIGNED_INTEGER out = 0;
 
-    /* 32 bit number */
-    uint32_t in = 0xdeadbeef;
-    uint32_t out;
-
+    /* error, stack-overflow check */
     outLen2 = decode_context_unsigned(apdu, 9, &out);
 
+#ifdef UINT64_MAX
+    /* 64 bit number */
+    in = 0xdeadbeefdeadbeef;
+    inLen = encode_context_unsigned(apdu, 10, in);
+    outLen = decode_context_unsigned(apdu, 10, &out);
+
+    ct_test(pTest, inLen == outLen);
+    ct_test(pTest, in == out);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
+
+    inLen = encode_context_unsigned(apdu, large_context_tag, in);
+    outLen = decode_context_unsigned(apdu, large_context_tag, &out);
+    outLen2 = decode_context_unsigned(apdu, large_context_tag - 1, &out);
+
+    ct_test(pTest, inLen == outLen);
+    ct_test(pTest, in == out);
+    ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
+#endif
+
+    /* 32 bit number */
     in = 0xdeadbeef;
     inLen = encode_context_unsigned(apdu, 10, in);
     outLen = decode_context_unsigned(apdu, 10, &out);

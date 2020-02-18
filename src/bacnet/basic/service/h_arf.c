@@ -148,8 +148,8 @@ void handler_atomic_read_file(uint8_t *service_request,
                 bacfile_read_stream_data(&data);
 #if PRINT_ENABLED
                 fprintf(stderr, "ARF: Stream offset %d, %d octets.\n",
-                    data.type.stream.fileStartPosition,
-                    data.type.stream.requestedOctetCount);
+                    (int)data.type.stream.fileStartPosition,
+                    (int)data.type.stream.requestedOctetCount);
 #endif
                 len = arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id, &data);
@@ -159,7 +159,7 @@ void handler_atomic_read_file(uint8_t *service_request,
                     ABORT_REASON_SEGMENTATION_NOT_SUPPORTED, true);
 #if PRINT_ENABLED
                 fprintf(stderr, "Too Big To Send (%d >= %d). Sending Abort!\n",
-                    data.type.stream.requestedOctetCount,
+                    (int)data.type.stream.requestedOctetCount,
                     (int)octetstring_capacity(&data.fileData[0]));
 #endif
             }
@@ -172,8 +172,8 @@ void handler_atomic_read_file(uint8_t *service_request,
             } else if (bacfile_read_stream_data(&data)) {
 #if PRINT_ENABLED
                 fprintf(stderr, "ARF: fileStartRecord %d, %u RecordCount.\n",
-                    data.type.record.fileStartRecord,
-                    data.type.record.RecordCount);
+                    (int)data.type.record.fileStartRecord,
+                    (int)data.type.record.RecordCount);
 #endif
                 len = arf_ack_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
                     service_data->invoke_id, &data);

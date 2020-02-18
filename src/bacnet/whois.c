@@ -69,7 +69,7 @@ int whois_decode_service_request(
     unsigned int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint32_t decoded_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     /* optional limits - must be used as a pair */
     if (apdu_len) {
@@ -78,10 +78,10 @@ int whois_decode_service_request(
             return BACNET_STATUS_ERROR;
         }
         if (apdu_len > (unsigned)len) {
-            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-            if (decoded_value <= BACNET_MAX_INSTANCE) {
+            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+            if (unsigned_value <= BACNET_MAX_INSTANCE) {
                 if (pLow_limit) {
-                    *pLow_limit = decoded_value;
+                    *pLow_limit = (int32_t)unsigned_value;
                 }
             }
             if (apdu_len > (unsigned)len) {
@@ -92,10 +92,10 @@ int whois_decode_service_request(
                 }
                 if (apdu_len > (unsigned)len) {
                     len +=
-                        decode_unsigned(&apdu[len], len_value, &decoded_value);
-                    if (decoded_value <= BACNET_MAX_INSTANCE) {
+                        decode_unsigned(&apdu[len], len_value, &unsigned_value);
+                    if (unsigned_value <= BACNET_MAX_INSTANCE) {
                         if (pHigh_limit) {
-                            *pHigh_limit = decoded_value;
+                            *pHigh_limit = (int32_t)unsigned_value;;
                         }
                     }
                 } else {

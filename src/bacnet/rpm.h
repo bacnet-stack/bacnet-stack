@@ -39,7 +39,7 @@ typedef struct BACnet_RPM_Data {
     BACNET_OBJECT_TYPE object_type;
     uint32_t object_instance;
     BACNET_PROPERTY_ID object_property;
-    uint32_t array_index;
+    BACNET_ARRAY_INDEX array_index;
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
 } BACNET_RPM_DATA;
@@ -97,7 +97,7 @@ extern "C" {
     int rpm_encode_apdu_object_property(
         uint8_t * apdu,
         BACNET_PROPERTY_ID object_property,
-        uint32_t array_index);
+        BACNET_ARRAY_INDEX array_index);
 
     int rpm_encode_apdu_object_end(
         uint8_t * apdu);
@@ -137,7 +137,7 @@ extern "C" {
     int rpm_ack_encode_apdu_object_property(
         uint8_t * apdu,
         BACNET_PROPERTY_ID object_property,
-        uint32_t array_index);
+        BACNET_ARRAY_INDEX array_index);
 
     int rpm_ack_encode_apdu_object_property_value(
         uint8_t * apdu,
@@ -165,7 +165,7 @@ extern "C" {
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
-        uint32_t * array_index);
+        BACNET_ARRAY_INDEX * array_index);
 #ifdef TEST
 #include "ctest.h"
     int rpm_decode_apdu(

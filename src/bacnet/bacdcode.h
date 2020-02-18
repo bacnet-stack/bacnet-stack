@@ -288,37 +288,37 @@ extern "C" {
 /* returns the number of apdu bytes consumed */
     int encode_bacnet_unsigned(
         uint8_t * apdu,
-        uint32_t value);
+        BACNET_UNSIGNED_INTEGER value);
     int encode_context_unsigned(
         uint8_t * apdu,
         uint8_t tag_number,
-        uint32_t value);
+        BACNET_UNSIGNED_INTEGER value);
     int encode_application_unsigned(
         uint8_t * apdu,
-        uint32_t value);
+        BACNET_UNSIGNED_INTEGER value);
     int decode_unsigned(
         uint8_t * apdu,
         uint32_t len_value,
-        uint32_t * value);
+        BACNET_UNSIGNED_INTEGER * value);
     int decode_context_unsigned(
         uint8_t * apdu,
         uint8_t tag_number,
-        uint32_t * value);
+        BACNET_UNSIGNED_INTEGER * value);
 
     int bacnet_unsigned_decode(
         uint8_t * apdu,
         uint16_t apdu_max_len,
         uint32_t len_value,
-        uint32_t * value);
+        BACNET_UNSIGNED_INTEGER * value);
     int bacnet_unsigned_application_decode(
         uint8_t * apdu,
         uint16_t apdu_len_max,
-        uint32_t * value);
+        BACNET_UNSIGNED_INTEGER * value);
     int bacnet_unsigned_context_decode(
         uint8_t * apdu,
         uint16_t apdu_len_max,
         uint8_t tag_number,
-        uint32_t * value);
+        BACNET_UNSIGNED_INTEGER * value);
 
 /* from clause 20.2.5 Encoding of a Signed Integer Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */

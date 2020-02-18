@@ -28,6 +28,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#ifdef UINT64_MAX
+typedef uint64_t BACNET_UNSIGNED_INTEGER;
+#define BACNET_UNSIGNED_INTEGER_MAX UINT64_MAX
+#else
+typedef uint32_t BACNET_UNSIGNED_INTEGER;
+#define BACNET_UNSIGNED_INTEGER_MAX UINT32_MAX
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -52,10 +60,33 @@ extern "C" {
         uint8_t * apdu,
         uint32_t * value);
 #ifdef UINT64_MAX
+    int encode_unsigned40(
+        uint8_t * buffer,
+        uint64_t value);
+    int decode_unsigned40(
+        uint8_t * buffer,
+        uint64_t * value);
+    int encode_unsigned48(
+        uint8_t * buffer,
+        uint64_t value);
+    int decode_unsigned48(
+        uint8_t * buffer,
+        uint64_t * value);
+    int encode_unsigned56(
+        uint8_t * buffer,
+        uint64_t value);
+    int decode_unsigned56(
+        uint8_t * buffer,
+        uint64_t * value);
+    int encode_unsigned64(
+        uint8_t * buffer,
+        uint64_t value);
     int decode_unsigned64(
         uint8_t * buffer,
         uint64_t * value);
 #endif
+    int bacnet_unsigned_length(
+        BACNET_UNSIGNED_INTEGER value);
     /* signed value encoding and decoding */
     int encode_signed8(
         uint8_t * apdu,
@@ -81,11 +112,6 @@ extern "C" {
     int decode_signed32(
         uint8_t * apdu,
         int32_t * value);
-#ifdef UINT64_MAX
-    int encode_unsigned64(
-        uint8_t * buffer,
-        uint64_t value);
-#endif
 
 #ifdef TEST
 #include "ctest.h"

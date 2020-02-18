@@ -134,7 +134,7 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
     int len = 0;
     int section_len;
     uint32_t len_value_type;
-    uint32_t sequenceNum;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
 
     if (apdu) {
         section_len = decode_tag_number_and_value(
@@ -155,12 +155,12 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 
             case TIME_STAMP_SEQUENCE:
                 if ((section_len = decode_context_unsigned(&apdu[len],
-                         TIME_STAMP_SEQUENCE, &sequenceNum)) == -1) {
+                         TIME_STAMP_SEQUENCE, &unsigned_value)) == -1) {
                     return -1;
                 } else {
-                    if (sequenceNum <= 0xffff) {
+                    if (unsigned_value <= 0xffff) {
                         len += section_len;
-                        value->value.sequenceNum = (uint16_t)sequenceNum;
+                        value->value.sequenceNum = (uint16_t)unsigned_value;
                     } else {
                         return -1;
                     }

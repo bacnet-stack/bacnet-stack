@@ -107,7 +107,8 @@ int wpm_decode_object_property(
 {
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint32_t ulVal = 0;
+    uint32_t enum_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     int len = 0, i = 0;
 
     if ((apdu) && (apdu_len) && (wp_data)) {
@@ -117,8 +118,8 @@ int wpm_decode_object_property(
         /* tag 0 - Property Identifier */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == 0) {
-            len += decode_enumerated(&apdu[len], len_value, &ulVal);
-            wp_data->object_property = (BACNET_PROPERTY_ID)ulVal;
+            len += decode_enumerated(&apdu[len], len_value, &enum_value);
+            wp_data->object_property = enum_value;
         } else {
             wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             return BACNET_STATUS_REJECT;
@@ -127,8 +128,8 @@ int wpm_decode_object_property(
         /* tag 1 - Property Array Index - optional */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == 1) {
-            len += decode_unsigned(&apdu[len], len_value, &ulVal);
-            wp_data->array_index = ulVal;
+            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+            wp_data->array_index = (uint32_t)unsigned_value;
 
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
@@ -160,8 +161,8 @@ int wpm_decode_object_property(
         /* tag 3 - Priority - optional */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == 3) {
-            len += decode_unsigned(&apdu[len], len_value, &ulVal);
-            wp_data->priority = ulVal;
+            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+            wp_data->priority = (uint8_t)unsigned_value;
         } else {
             len--;
         }

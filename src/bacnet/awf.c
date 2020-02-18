@@ -91,6 +91,7 @@ int awf_decode_service_request(
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     uint32_t i = 0;
 
     /* check for value pointers */
@@ -158,10 +159,11 @@ int awf_decode_service_request(
                 return BACNET_STATUS_ERROR;
             }
             len = bacnet_unsigned_application_decode(&apdu[apdu_len],
-                apdu_len_max, &data->type.record.returnedRecordCount);
+                apdu_len_max, &unsigned_value);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
+            data->type.record.returnedRecordCount = unsigned_value;
             apdu_len += len;
             if (apdu_len >= apdu_len_max) {
                 return BACNET_STATUS_ERROR;

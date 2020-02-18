@@ -146,7 +146,8 @@ int rr_decode_service_request(
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     BACNET_OBJECT_TYPE type = OBJECT_NONE; /* for decoding */
-    uint32_t UnsignedTemp;
+    uint32_t enum_value;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
 
     /* check for value pointers */
     if (apdu_len && rrdata) {
@@ -162,8 +163,8 @@ int rr_decode_service_request(
         if (tag_number != 1) {
             return -1;
         }
-        len += decode_enumerated(&apdu[len], len_value_type, &UnsignedTemp);
-        rrdata->object_property = (BACNET_PROPERTY_ID)UnsignedTemp;
+        len += decode_enumerated(&apdu[len], len_value_type, &enum_value);
+        rrdata->object_property = (BACNET_PROPERTY_ID)enum_value;
         rrdata->Overhead = RR_OVERHEAD; /* Start with the fixed overhead */
 
         /* Tag 2: Optional Array Index - set to ALL if not present */
@@ -175,8 +176,8 @@ int rr_decode_service_request(
             if (tag_number == 2) {
                 len += TagLen;
                 len +=
-                    decode_unsigned(&apdu[len], len_value_type, &UnsignedTemp);
-                rrdata->array_index = UnsignedTemp;
+                    decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                rrdata->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
                 rrdata->Overhead +=
                     RR_INDEX_OVERHEAD; /* Allow for this in the response */
             }
@@ -201,7 +202,8 @@ int rr_decode_service_request(
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     len += decode_unsigned(
-                        &apdu[len], len_value_type, &rrdata->Range.RefIndex);
+                        &apdu[len], len_value_type, &unsigned_value);
+                    rrdata->Range.RefIndex = (uint32_t)unsigned_value;
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     len += decode_signed(
@@ -215,16 +217,16 @@ int rr_decode_service_request(
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     len += decode_unsigned(
-                        &apdu[len], len_value_type, &rrdata->Range.RefSeqNum);
+                        &apdu[len], len_value_type, &unsigned_value);
+                    rrdata->Range.RefSeqNum = (uint32_t)unsigned_value;
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     len += decode_signed(
                         &apdu[len], len_value_type, &rrdata->Count);
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
-                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; /* Allow for this
-                                                              * in the response
-                                                              */
+                    /* Allow for this in the response */
+                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; 
                     break;
 
                 case 7: /* ReadRange by time stamp */
@@ -242,9 +244,8 @@ int rr_decode_service_request(
                         &apdu[len], len_value_type, &rrdata->Count);
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
-                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; /* Allow for this
-                                                              * in the response
-                                                              */
+                    /* Allow for this in the response */
+                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD;
                     break;
 
                 default: /* If we don't recognise the tag then we do nothing
@@ -341,7 +342,7 @@ int rr_ack_decode_service_request(uint8_t *apdu,
     int start_len;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE; /* object type */
     uint32_t property = 0; /* for decoding */
-    uint32_t array_value = 0; /* for decoding */
+    BACNET_UNSIGNED_INTEGER unsigned_value;
 
     /* FIXME: check apdu_len against the len during decode   */
     /* Tag 0: Object ID */
@@ -366,8 +367,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
     if (tag_number == 2) {
         len += tag_len;
-        len += decode_unsigned(&apdu[len], len_value_type, &array_value);
-        rrdata->array_index = array_value;
+        len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+        rrdata->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
     } else {
         rrdata->array_index = BACNET_ARRAY_ALL;
     }
@@ -388,7 +389,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         return -1;
     }
 
-    len += decode_unsigned(&apdu[len], len_value_type, &rrdata->ItemCount);
+    len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+    rrdata->ItemCount = (uint32_t)unsigned_value;
 
     if (decode_is_opening_tag_number(&apdu[len], 5)) {
         len++; /* a tag number of 5 is not extended so only one octet */
@@ -424,8 +426,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
             return -1;
         }
 
-        len +=
-            decode_unsigned(&apdu[len], len_value_type, &rrdata->FirstSequence);
+        len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+        rrdata->FirstSequence = (uint32_t)unsigned_value;
     }
 
     return len;

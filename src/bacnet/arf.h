@@ -41,12 +41,12 @@ typedef struct BACnet_Atomic_Read_File_Data {
     union {
         struct {
             int32_t fileStartPosition;
-            uint32_t requestedOctetCount;
+            BACNET_UNSIGNED_INTEGER requestedOctetCount;
         } stream;
         struct {
             int32_t fileStartRecord;
             /* requested or returned record count */
-            uint32_t RecordCount;
+            BACNET_UNSIGNED_INTEGER RecordCount;
         } record;
     } type;
     BACNET_OCTET_STRING fileData[BACNET_READ_FILE_RECORD_COUNT];

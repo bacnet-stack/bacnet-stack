@@ -181,7 +181,7 @@ int cov_notify_decode_service_request(
     int app_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint32_t decoded_value = 0; /* for decoding */
+    BACNET_UNSIGNED_INTEGER decoded_value = 0; /* for decoding */
     BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
     BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
@@ -379,16 +379,16 @@ int cov_subscribe_decode_service_request(
     int len = 0; /* return value */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint32_t decoded_value = 0; /* for decoding */
-    BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE;
 
     if (apdu_len && data) {
         /* tag 0 - subscriberProcessIdentifier */
         if (decode_is_context_tag(&apdu[len], 0)) {
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-            data->subscriberProcessIdentifier = decoded_value;
+            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+            data->subscriberProcessIdentifier = unsigned_value;
         } else {
             data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             return BACNET_STATUS_REJECT;
@@ -421,8 +421,8 @@ int cov_subscribe_decode_service_request(
             if (decode_is_context_tag(&apdu[len], 3)) {
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
-                len += decode_unsigned(&apdu[len], len_value, &decoded_value);
-                data->lifetime = decoded_value;
+                len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+                data->lifetime = unsigned_value;
             } else {
                 data->lifetime = 0;
             }
@@ -516,7 +516,7 @@ int cov_subscribe_property_decode_service_request(
     int len = 0; /* return value */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
-    uint32_t decoded_value = 0; /* for decoding */
+    BACNET_UNSIGNED_INTEGER decoded_value = 0; /* for decoding */
     BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
     uint32_t property = 0; /* for decoding */
 

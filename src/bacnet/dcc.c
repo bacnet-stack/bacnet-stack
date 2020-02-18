@@ -171,17 +171,18 @@ int dcc_decode_service_request(uint8_t *apdu,
     int len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    uint32_t value32 = 0;
+    BACNET_UNSIGNED_INTEGER decoded_unsigned = 0;
+    uint32_t decoded_enum = 0;
 
     if (apdu_len_max) {
         /* Tag 0: timeDuration, in minutes --optional-- */
         len = bacnet_unsigned_context_decode(
-            &apdu[apdu_len], apdu_len_max - apdu_len, 0, &value32);
+            &apdu[apdu_len], apdu_len_max - apdu_len, 0, &decoded_unsigned);
         if (len > 0) {
             apdu_len += len;
-            if (value32 <= UINT16_MAX) {
+            if (decoded_unsigned <= UINT16_MAX) {
                 if (timeDuration) {
-                    *timeDuration = (uint16_t)value32;
+                    *timeDuration = (uint16_t)decoded_unsigned;
                 }
             } else {
                 return BACNET_STATUS_ERROR;
@@ -196,12 +197,12 @@ int dcc_decode_service_request(uint8_t *apdu,
         if (apdu_len < apdu_len_max) {
             /* Tag 1: enable_disable */
             len = bacnet_enumerated_context_decode(
-                &apdu[apdu_len], apdu_len_max - apdu_len, 1, &value32);
+                &apdu[apdu_len], apdu_len_max - apdu_len, 1, &decoded_enum);
             if (len > 0) {
                 apdu_len += len;
                 if (enable_disable) {
                     *enable_disable =
-                        (BACNET_COMMUNICATION_ENABLE_DISABLE)value32;
+                        (BACNET_COMMUNICATION_ENABLE_DISABLE)decoded_enum;
                 }
             } else {
                 return BACNET_STATUS_ERROR;

@@ -111,50 +111,51 @@ int alarm_ack_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_ALARM_ACK_DATA *data)
 {
     int len = 0;
-    int section_len;
-    uint32_t enumValue;
+    int section_len = 0;
+    uint32_t enum_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
 
     (void)apdu_len;
-    if (-1 ==
-        (section_len = decode_context_unsigned(
-             &apdu[len], 0, &data->ackProcessIdentifier))) {
-        return -1;
+    section_len = decode_context_unsigned(&apdu[len], 0, &unsigned_value);
+    if (section_len == BACNET_STATUS_ERROR) {
+        return BACNET_STATUS_ERROR;
+    }
+    data->ackProcessIdentifier = (uint32_t)unsigned_value;
+    len += section_len;
+
+    section_len = decode_context_object_id(&apdu[len], 1,
+        &data->eventObjectIdentifier.type,
+        &data->eventObjectIdentifier.instance);
+    if (section_len == BACNET_STATUS_ERROR) {
+        return BACNET_STATUS_ERROR;
     }
     len += section_len;
 
-    if (-1 ==
-        (section_len = decode_context_object_id(&apdu[len], 1,
-             &data->eventObjectIdentifier.type,
-             &data->eventObjectIdentifier.instance))) {
-        return -1;
+    section_len = decode_context_enumerated(&apdu[len], 2, &enum_value);
+    if (section_len == BACNET_STATUS_ERROR) {
+        return BACNET_STATUS_ERROR;
+    }
+    data->eventStateAcked = (BACNET_EVENT_STATE)enum_value;
+    len += section_len;
+
+    section_len =
+        bacapp_decode_context_timestamp(&apdu[len], 3, &data->eventTimeStamp);
+    if (section_len == BACNET_STATUS_ERROR) {
+        return BACNET_STATUS_ERROR;
     }
     len += section_len;
 
-    if (-1 ==
-        (section_len = decode_context_enumerated(&apdu[len], 2, &enumValue))) {
-        return -1;
-    }
-    data->eventStateAcked = (BACNET_EVENT_STATE)enumValue;
-    len += section_len;
-
-    if (-1 ==
-        (section_len = bacapp_decode_context_timestamp(
-             &apdu[len], 3, &data->eventTimeStamp))) {
-        return -1;
+    section_len =
+        decode_context_character_string(&apdu[len], 4, &data->ackSource);
+    if (section_len == BACNET_STATUS_ERROR) {
+        return BACNET_STATUS_ERROR;
     }
     len += section_len;
 
-    if (-1 ==
-        (section_len = decode_context_character_string(
-             &apdu[len], 4, &data->ackSource))) {
-        return -1;
-    }
-    len += section_len;
-
-    if (-1 ==
-        (section_len = bacapp_decode_context_timestamp(
-             &apdu[len], 5, &data->ackTimeStamp))) {
-        return -1;
+    section_len =
+        bacapp_decode_context_timestamp(&apdu[len], 5, &data->ackTimeStamp);
+    if (section_len == BACNET_STATUS_ERROR) {
+        return BACNET_STATUS_ERROR;
     }
     len += section_len;
 
