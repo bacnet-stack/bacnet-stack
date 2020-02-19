@@ -22,11 +22,12 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
+#include <limits.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
-#include "mstimer.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include <mach/clock.h>
 #include <mach/mach.h>
 

@@ -1,0 +1,10 @@
+configuration: Release
+
+image:
+  - Visual Studio 2019
+  - Ubuntu
+  - macOS
+
+build_script:
+  - cmake .
+  - cmake --build . --config %CONFIGURATION%
