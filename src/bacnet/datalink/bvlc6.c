@@ -34,7 +34,6 @@
 
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
-#include <time.h>
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -1252,12 +1251,13 @@ int bvlc6_decode_register_foreign_device(
  * BVLC Function:               1-octet   X'0A'   Delete-Foreign-Device
  * BVLC Length:                 2-octets  X'0019' Length of the BVLL message
  * Source-Virtual-Address:      3-octets
- * FDT Entry:                  18-octets
+ * FDT Entry:                  18-octets  The FDT entry is the B/IPv6 address
+ *                                        of the foreign device to be deleted.
  */
 int bvlc6_encode_delete_foreign_device(uint8_t *pdu,
     uint16_t pdu_size,
     uint32_t vmac_src,
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
+    BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_encoded = 0;
     const uint16_t length = 0x0019;
@@ -1270,14 +1270,9 @@ int bvlc6_encode_delete_foreign_device(uint8_t *pdu,
             offset = 4;
             encode_unsigned24(&pdu[offset], vmac_src);
             offset += 3;
-            if (fdt_entry) {
+            if (bip6_address) {
                 bvlc6_encode_address(
-                    &pdu[offset], pdu_size - offset, &fdt_entry->bip6_address);
-                offset += BIP6_ADDRESS_MAX;
-                encode_unsigned16(&pdu[offset], fdt_entry->ttl_seconds);
-                offset += 2;
-                encode_unsigned16(
-                    &pdu[offset], fdt_entry->ttl_seconds_remaining);
+                    &pdu[offset], pdu_size - offset, bip6_address);
                 bytes_encoded = (int)length;
             }
         }
@@ -1291,18 +1286,19 @@ int bvlc6_encode_delete_foreign_device(uint8_t *pdu,
  * @param pdu - buffer from which to decode the message
  * @param pdu_len - length of the buffer that needs decoding
  * @param vmac_src - Source-Virtual-Address
- * @param fdt_entry - FDT Entry
+ * @param fdt_entry - The FDT entry is the B/IPv6 address of the
+ *  foreign device to be deleted.
  *
  * @return number of bytes decoded
  */
 int bvlc6_decode_delete_foreign_device(uint8_t *pdu,
     uint16_t pdu_len,
     uint32_t *vmac_src,
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
+    BACNET_IP6_ADDRESS *bip6_address)
 {
     int bytes_consumed = 0;
-
-    const uint16_t length = BIP6_ADDRESS_MAX + 3 + 2 + 2 - 4;
+    /* BVLL length less the header length */
+    const uint16_t length = 0x0019 - (1 + 1 + 2);
     uint16_t offset = 0;
 
     if (pdu && (pdu_len >= length)) {
@@ -1311,14 +1307,9 @@ int bvlc6_decode_delete_foreign_device(uint8_t *pdu,
             bytes_consumed = 3;
         }
         offset += 3;
-        if (fdt_entry) {
+        if (bip6_address) {
             bvlc6_decode_address(
-                &pdu[offset], pdu_len - offset, &fdt_entry->bip6_address);
-            offset += BIP6_ADDRESS_MAX;
-            decode_unsigned16(&pdu[offset], &fdt_entry->ttl_seconds);
-            offset += 2;
-            decode_unsigned16(&pdu[offset], &fdt_entry->ttl_seconds_remaining);
-            bytes_consumed = (int)length;
+                &pdu[offset], pdu_len - offset, bip6_address);
         }
         bytes_consumed = (int)length;
     }
@@ -1430,7 +1421,7 @@ int bvlc6_encode_distribute_broadcast_to_network(uint8_t *pdu,
     uint16_t npdu_len)
 {
     int bytes_encoded = 0;
-    uint16_t length = 7;
+    uint16_t length = 1 + 1 + 2 + 3;
     uint16_t i = 0;
 
     length += npdu_len;
@@ -1439,7 +1430,7 @@ int bvlc6_encode_distribute_broadcast_to_network(uint8_t *pdu,
             pdu, pdu_size, BVLC6_DISTRIBUTE_BROADCAST_TO_NETWORK, length);
         if (bytes_encoded == 4) {
             encode_unsigned24(&pdu[4], vmac);
-            if (npdu && length) {
+            if (npdu && (npdu_len > 0)) {
                 for (i = 0; i < npdu_len; i++) {
                     pdu[7 + i] = npdu[i];
                 }
@@ -1986,23 +1977,19 @@ static void test_BVLC6_Delete_Foreign_Device_Message(Test *pTest,
     const int msg_len = 0x0019;
 
     len = bvlc6_encode_delete_foreign_device(
-        pdu, sizeof(pdu), vmac_src, fdt_entry);
+        pdu, sizeof(pdu), vmac_src, &fdt_entry->bip6_address);
     ct_test(pTest, len == msg_len);
     test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
     ct_test(pTest, test_len == 4);
     ct_test(pTest, message_type == BVLC6_DELETE_FOREIGN_DEVICE);
     ct_test(pTest, length == msg_len);
     test_len += bvlc6_decode_delete_foreign_device(
-        &pdu[4], length - 4, &test_vmac_src, &test_fdt_entry);
+        &pdu[4], length - 4, &test_vmac_src, &test_fdt_entry.bip6_address);
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac_src == test_vmac_src);
-    test_BVLC6_Address(
-        pTest, &fdt_entry->bip6_address, &test_fdt_entry.bip6_address);
-    ct_test(pTest, fdt_entry->ttl_seconds == test_fdt_entry.ttl_seconds);
-    ct_test(pTest,
-        fdt_entry->ttl_seconds_remaining ==
-            test_fdt_entry.ttl_seconds_remaining);
+    test_BVLC6_Address(pTest, &fdt_entry->bip6_address,
+        &test_fdt_entry.bip6_address);
 }
 
 static void test_BVLC6_Delete_Foreign_Device(Test *pTest)
