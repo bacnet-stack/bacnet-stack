@@ -70,31 +70,31 @@ static BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY
 static BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY FD_Table[MAX_FD6_ENTRIES];
 #endif
 
-#if defined(BACDL_BIP6) && BBMD6_ENABLED
 /** A timer function that is called about once a second.
  *
  * @param seconds - number of elapsed seconds since the last call
  */
-void bbmd6_maintenance_timer(time_t seconds)
+void bvlc6_maintenance_timer(uint16_t seconds)
 {
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
     unsigned i = 0;
 
-    for (i = 0; i < MAX_FD_ENTRIES; i++) {
+    for (i = 0; i < MAX_FD6_ENTRIES; i++) {
         if (FD_Table[i].valid) {
-            if (FD_Table[i].seconds_remaining) {
-                if (FD_Table[i].seconds_remaining < seconds) {
-                    FD_Table[i].seconds_remaining = 0;
+            if (FD_Table[i].ttl_seconds_remaining) {
+                if (FD_Table[i].ttl_seconds_remaining < seconds) {
+                    FD_Table[i].ttl_seconds_remaining = 0;
                 } else {
-                    FD_Table[i].seconds_remaining -= seconds;
+                    FD_Table[i].ttl_seconds_remaining -= seconds;
                 }
-                if (FD_Table[i].seconds_remaining == 0) {
+                if (FD_Table[i].ttl_seconds_remaining == 0) {
                     FD_Table[i].valid = false;
                 }
             }
         }
     }
-}
 #endif
+}
 
 /**
  * Sets the IPv6 source address from a VMAC address structure
@@ -1113,7 +1113,7 @@ static void test_BBMD_Result(Test *pTest)
 
     bvlc6_address_set(&addr, BIP6_MULTICAST_LINK_LOCAL, 0, 0, 0, 0, 0, 0,
         BIP6_MULTICAST_GROUP_ID);
-    addr.port = 0xBAC0;
+    addr.port = 0xBAC0U;
     bvlc6_vmac_address_set(&src, vmac_src);
     for (i = 0; i < 6; i++) {
         mtu_len =

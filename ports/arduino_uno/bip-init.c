@@ -43,7 +43,15 @@
 
 /** @file linux/bip-init.c  Initializes BACnet/IP interface (Linux). */
 
-bool BIP_Debug = false;
+static bool BIP_Debug = false;
+
+/**
+ * @brief Enabled debug printing of BACnet/IPv4
+ */
+void bip_debug_enable(void)
+{
+    BIP_Debug = true;
+}
 
 /* gets an IP address by name, where name can be a
    string that is an IP address in dotted form, or

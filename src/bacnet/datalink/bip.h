@@ -1,26 +1,26 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *********************************************************************/
 #ifndef BIP_H
 #define BIP_H
 
@@ -30,15 +30,13 @@
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
-#include "bacport.h"
+#include "bacnet/datalink/bvlc.h"
 
 /* specific defines for BACnet/IP over Ethernet */
-#define MAX_HEADER (1 + 1 + 2)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
-
-#define BVLL_TYPE_BACNET_IP (0x81)
-
-extern bool BIP_Debug;
+#define BIP_HEADER_MAX (1 + 1 + 2)
+#define BIP_MPDU_MAX (BIP_HEADER_MAX + MAX_PDU)
+/* for legacy demo applications */
+#define MAX_MPDU BIP_MPDU_MAX
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,88 +46,74 @@ extern "C" {
     /* on Linux, ifname is eth0, ath0, arc0, and others.
        on Windows, ifname is the dotted ip address of the interface */
     BACNET_STACK_EXPORT
-    bool bip_init(
-        char *ifname);
+    bool bip_init(char *ifname);
+
     BACNET_STACK_EXPORT
-    void bip_set_interface(
-        char *ifname);
+    void bip_set_interface(char *ifname);
+
     BACNET_STACK_EXPORT
-    void bip_cleanup(
-        void);
+    void bip_cleanup(void);
 
     /* common BACnet/IP functions */
     BACNET_STACK_EXPORT
-    void bip_set_socket(
-        int sock_fd);
-    BACNET_STACK_EXPORT
-    int bip_socket(
-        void);
-    BACNET_STACK_EXPORT
-    bool bip_valid(
-        void);
-    BACNET_STACK_EXPORT
-    void bip_get_broadcast_address(
-        BACNET_ADDRESS * dest); /* destination address */
-    BACNET_STACK_EXPORT
-    void bip_get_my_address(
-        BACNET_ADDRESS * my_address);
+    bool bip_valid(void);
 
-    /* function to send a packet out the BACnet/IP socket */
-    /* returns zero on success, non-zero on failure */
     BACNET_STACK_EXPORT
-    int bip_send_pdu(
-        BACNET_ADDRESS * dest,  /* destination address */
-        BACNET_NPDU_DATA * npdu_data,   /* network information */
-        uint8_t * pdu,  /* any data to be sent - may be null */
-        unsigned pdu_len);      /* number of bytes of data */
+    void bip_get_broadcast_address(BACNET_ADDRESS *dest);
 
-    /* receives a BACnet/IP packet */
-    /* returns the number of octets in the PDU, or zero on failure */
     BACNET_STACK_EXPORT
-    uint16_t bip_receive(
-        BACNET_ADDRESS * src,   /* source address */
-        uint8_t * pdu,  /* PDU data */
-        uint16_t max_pdu,       /* amount of space available in the PDU  */
-        unsigned timeout);      /* milliseconds to wait for a packet */
+    void bip_get_my_address(BACNET_ADDRESS *my_address);
 
-    /* use network byte order for setting */
     BACNET_STACK_EXPORT
-    void bip_set_port(
-        uint16_t port);
+    int bip_send_pdu(BACNET_ADDRESS *dest,
+        BACNET_NPDU_DATA *npdu_data,
+        uint8_t *pdu,
+        unsigned pdu_len);
+
+    /* implement in ports module */
+    BACNET_STACK_EXPORT
+    int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len);
+
+    BACNET_STACK_EXPORT
+    uint16_t bip_receive(BACNET_ADDRESS *src,
+        uint8_t *pdu,
+        uint16_t max_pdu,
+        unsigned timeout);
+
+    /* use host byte order for setting UDP port */
+    BACNET_STACK_EXPORT
+    void bip_set_port(uint16_t port);
+
     BACNET_STACK_EXPORT
     bool bip_port_changed(void);
-    /* returns network byte order */
-    BACNET_STACK_EXPORT
-    uint16_t bip_get_port(
-        void);
 
-    /* use network byte order for setting */
+    /* returns host byte order of UDP port */
     BACNET_STACK_EXPORT
-    void bip_set_addr(
-        uint32_t net_address);
-    /* returns network byte order */
-    BACNET_STACK_EXPORT
-    uint32_t bip_get_addr(
-        void);
+    uint16_t bip_get_port(void);
 
-    /* use network byte order for setting */
     BACNET_STACK_EXPORT
-    void bip_set_broadcast_addr(
-        uint32_t net_address);
-    /* returns network byte order */
-    BACNET_STACK_EXPORT
-    uint32_t bip_get_broadcast_addr(
-        void);
+    bool bip_set_addr(BACNET_IP_ADDRESS *addr);
 
-    /* gets an IP address by name, where name can be a
-       string that is an IP address in dotted form, or
-       a name that is a domain name
-       returns 0 if not found, or
-       an IP address in network byte order */
     BACNET_STACK_EXPORT
-    long bip_getaddrbyname(
-        const char *host_name);
+    bool bip_get_addr(BACNET_IP_ADDRESS *addr);
 
+    BACNET_STACK_EXPORT
+    bool bip_get_addr_by_name(const char *host_name, BACNET_IP_ADDRESS *addr);
+
+    BACNET_STACK_EXPORT
+    bool bip_set_broadcast_addr(BACNET_IP_ADDRESS *addr);
+
+    BACNET_STACK_EXPORT
+    bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr);
+
+    BACNET_STACK_EXPORT
+    bool bip_set_subnet_prefix(uint8_t prefix);
+
+    BACNET_STACK_EXPORT
+    uint8_t bip_get_subnet_prefix(void);
+
+    BACNET_STACK_EXPORT
+    void bip_debug_enable(void);
 
 #ifdef __cplusplus
 }

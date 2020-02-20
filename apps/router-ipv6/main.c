@@ -998,13 +998,12 @@ static void datalink_init(void)
 {
     char *pEnv = NULL;
     BACNET_ADDRESS my_address = { 0 };
-    extern bool BIP_Debug;
 
     /* BACnet/IP Initialization */
-    BIP_Debug = true;
+    bip_debug_enable();
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
-        bip_set_port(htons((uint16_t)strtol(pEnv, NULL, 0)));
+        bip_set_port((uint16_t)strtol(pEnv, NULL, 0));
     } else {
         /* BIP_Port is statically initialized to 0xBAC0,
          * so if it is different, then it was programmatically altered,
@@ -1012,8 +1011,8 @@ static void datalink_init(void)
          * Unless it is set below 1024, since:
          * "The range for well-known ports managed by the IANA is 0-1023."
          */
-        if (ntohs(bip_get_port()) < 1024) {
-            bip_set_port(htons(0xBAC0));
+        if (bip_get_port() < 1024) {
+            bip_set_port(0xBAC0U);
         }
     }
     if (!bip_init(getenv("BACNET_IFACE"))) {
@@ -1169,6 +1168,7 @@ int main(int argc, char *argv[])
         if (elapsed_seconds) {
             last_seconds = current_seconds;
             bvlc_maintenance_timer(elapsed_seconds);
+            bvlc6_maintenance_timer(elapsed_seconds);
         }
         if (Exit_Requested) {
             break;

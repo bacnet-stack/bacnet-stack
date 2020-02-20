@@ -530,7 +530,7 @@ bool bip6_init(
         exit(1);
     }
     if (BIP6_Addr.port == 0) {
-        bip6_set_port(0xBAC0);
+        bip6_set_port(0xBAC0U);
     }
     debug_printf("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
     bip6_set_interface(ifname);

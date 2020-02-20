@@ -173,7 +173,7 @@ static void print_help(const char *filename)
  *
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
  *      datalink_receive, npdu_handler,
- *      dcc_timer_seconds, bvlc_maintenance_timer,
+ *      dcc_timer_seconds, datalink_maintenance_timer,
  *      Load_Control_State_Machine_Handler, handler_cov_task,
  *      tsm_timer_milliseconds
  *
@@ -275,9 +275,7 @@ int main(int argc, char *argv[])
         if (elapsed_seconds) {
             last_seconds = current_seconds;
             dcc_timer_seconds(elapsed_seconds);
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            bvlc_maintenance_timer(elapsed_seconds);
-#endif
+            datalink_maintenance_timer(elapsed_seconds);
             dlenv_maintenance_timer(elapsed_seconds);
             Load_Control_State_Machine_Handler();
             elapsed_milliseconds = elapsed_seconds * 1000;

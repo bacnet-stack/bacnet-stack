@@ -101,12 +101,15 @@
 #include <netdb.h>
 #include "bacnet/bacnet_stack_exports.h"
 
-/** @file linux/net.h  Includes Linux network headers. */
+/** @file linux/bacport.h  Includes Linux network headers. */
 
 /* Local helper functions for this port */
 BACNET_STACK_EXPORT
 extern int bip_get_local_netmask(
     struct in_addr *netmask);
-
+extern int bip_get_local_address_ioctl(
+    char *ifname,
+    struct in_addr *addr,
+    int request);
 
 #endif

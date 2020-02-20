@@ -60,6 +60,8 @@ static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 static int32_t Target_Object_Instance_Min = -1;
 static int32_t Target_Object_Instance_Max = -1;
 static bool Error_Detected = false;
+/* debug info printing */
+static bool BACnet_Debug_Enabled;
 
 #define BAC_ADDRESS_MULT 1
 
@@ -130,32 +132,32 @@ static void my_i_am_handler(
     (void)service_len;
     len = iam_decode_service_request(
         service_request, &device_id, &max_apdu, &segmentation, &vendor_id);
-#if PRINT_ENABLED
-    fprintf(stderr, "Received I-Am Request");
-#endif
+    if (BACnet_Debug_Enabled) {
+        fprintf(stderr, "Received I-Am Request");
+    }
     if (len != -1) {
-#if PRINT_ENABLED
-        fprintf(stderr, " from %lu, MAC = ", (unsigned long)device_id);
-        if ((src->mac_len == 6) && (src->len == 0)) {
-            fprintf(stderr, "%u.%u.%u.%u %02X%02X\n", (unsigned)src->mac[0],
-                (unsigned)src->mac[1], (unsigned)src->mac[2],
-                (unsigned)src->mac[3], (unsigned)src->mac[4],
-                (unsigned)src->mac[5]);
-        } else {
-            for (i = 0; i < src->mac_len; i++) {
-                fprintf(stderr, "%02X", (unsigned)src->mac[i]);
-                if (i < (src->mac_len - 1)) {
-                    fprintf(stderr, ":");
+        if (BACnet_Debug_Enabled) {
+            fprintf(stderr, " from %lu, MAC = ", (unsigned long)device_id);
+            if ((src->mac_len == 6) && (src->len == 0)) {
+                fprintf(stderr, "%u.%u.%u.%u %02X%02X\n", (unsigned)src->mac[0],
+                    (unsigned)src->mac[1], (unsigned)src->mac[2],
+                    (unsigned)src->mac[3], (unsigned)src->mac[4],
+                    (unsigned)src->mac[5]);
+            } else {
+                for (i = 0; i < src->mac_len; i++) {
+                    fprintf(stderr, "%02X", (unsigned)src->mac[i]);
+                    if (i < (src->mac_len - 1)) {
+                        fprintf(stderr, ":");
+                    }
                 }
+                fprintf(stderr, "\n");
             }
-            fprintf(stderr, "\n");
         }
-#endif
         address_table_add(device_id, max_apdu, src);
     } else {
-#if PRINT_ENABLED
-        fprintf(stderr, ", but unable to decode it.\n");
-#endif
+        if (BACnet_Debug_Enabled) {
+            fprintf(stderr, ", but unable to decode it.\n");
+        }
     }
 
     return;
@@ -342,6 +344,10 @@ int main(int argc, char *argv[])
     unsigned int target_args = 0;
     char *filename = NULL;
 
+    /* check for local environment settings */
+    if (getenv("BACNET_DEBUG")) {
+        BACnet_Debug_Enabled = true;
+    }
     /* decode any command line parameters */
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -461,9 +467,7 @@ int main(int argc, char *argv[])
         /* increment timer - exit if timed out */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            bvlc_maintenance_timer(elapsed_seconds);
-#endif
+            datalink_maintenance_timer(elapsed_seconds);
         }
         total_seconds += elapsed_seconds;
         if (total_seconds > timeout_seconds) {

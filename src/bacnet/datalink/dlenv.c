@@ -39,53 +39,44 @@
 #include "bacnet/basic/object/netport.h"
 #endif
 
-#if defined(BACDL_BIP6)
-#include "bacnet/datalink/bvlc6.h"
-#include "bacnet/datalink/bip6.h"
-#endif
-
 /** @file dlenv.c  Initialize the DataLink configuration. */
-
 #if defined(BACDL_BIP)
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
 /* BBMD variables */
-static long bbmd_timetolive_seconds = 60000;
-static long bbmd_port = 0xBAC0;
-static long bbmd_address = 0;
-static long bbmd_mask = 0xFFFFFFFF;
-static int bbmd_result = 0;
-static BBMD_TABLE_ENTRY BBMD_Table_Entry;
+static uint16_t BBMD_TTL_Seconds = 60000;
+static BACNET_IP_ADDRESS BBMD_Address;
+static bool BBMD_Address_Valid;
+static uint16_t BBMD_Result = 0;
+static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
+/* enable debugging */
+static bool BIP_DL_Debug = false;
 
 /* Simple setters for BBMD registration variables. */
 
-/** Sets the IPv4 address for BBMD registration.
- * If not set here or provided by Environment variables,
- * no BBMD registration will occur.
- * @param address - IPv4 address (long) of BBMD to register with,
- *                       in network byte order.
+/**
+ * @brief Sets the IPv4 address for BBMD registration.
+ *
+ *  If not set here or provided by Environment variables,
+ *  no BBMD registration will occur.
+ *
+ * @param address - IPv4 address (uint32_t) of BBMD to register with,
+ *  in network byte order.
  */
-void dlenv_bbmd_address_set(long address)
+void dlenv_bbmd_address_set(
+    BACNET_IP_ADDRESS *address)
 {
-    bbmd_address = address;
-}
-
-/** Set the port for BBMD registration.
- * Default if not set is 0xBAC0.
- * @param port - The port number (provided in network byte order).
- */
-void dlenv_bbmd_port_set(int port)
-{
-    bbmd_port = port;
+    bvlc_address_copy(&BBMD_Address, address);
+    BBMD_Address_Valid = true;
 }
 
 /** Set the Lease Time (Time-to-Live) for BBMD registration.
  * Default if not set is 60000 (1000 minutes).
  * @param ttl_secs - The Lease Time, in seconds.
  */
-void dlenv_bbmd_ttl_set(int ttl_secs)
+void dlenv_bbmd_ttl_set(uint16_t ttl_secs)
 {
-    bbmd_timetolive_seconds = ttl_secs;
+    BBMD_TTL_Seconds = ttl_secs;
 }
 
 /** Get the result of the last attempt to register with the indicated BBMD.
@@ -98,12 +89,12 @@ void dlenv_bbmd_ttl_set(int ttl_secs)
  */
 int dlenv_bbmd_result(void)
 {
-    if ((bbmd_result > 0) &&
+    if ((BBMD_Result > 0) &&
         (bvlc_get_last_result() == BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK)) {
         return -1;
     }
     /* Else, show our send: */
-    return bbmd_result;
+    return BBMD_Result;
 }
 #endif
 
@@ -125,86 +116,124 @@ int dlenv_register_as_foreign_device(void)
 {
     int retval = 0;
 #if defined(BACDL_BIP)
+    bool bdt_entry_valid = false;
+    uint16_t bdt_entry_port = 0;
     char *pEnv = NULL;
     unsigned a[4] = { 0 };
     char bbmd_env[32] = "";
-    unsigned entry_number = 0;
+    unsigned entry_number = 0;\
+    long long_value = 0;
     int c;
 
     pEnv = getenv("BACNET_BBMD_PORT");
     if (pEnv) {
-        bbmd_port = strtol(pEnv, NULL, 0);
-        if (bbmd_port > 0xFFFF) {
-            bbmd_port = 0xBAC0;
+        long_value = strtol(pEnv, NULL, 0);
+        if (long_value <= 0xFFFF) {
+            BBMD_Address.port = (uint16_t)long_value;
+        } else {
+            BBMD_Address.port = 0xBAC0;
         }
     }
     pEnv = getenv("BACNET_BBMD_TIMETOLIVE");
     if (pEnv) {
-        bbmd_timetolive_seconds = strtol(pEnv, NULL, 0);
-        if (bbmd_timetolive_seconds > 0xFFFF) {
-            bbmd_timetolive_seconds = 0xFFFF;
+        long_value = strtol(pEnv, NULL, 0);
+        if (long_value <= 0xFFFF) {
+            BBMD_TTL_Seconds = (uint16_t)long_value;
+        } else {
+            BBMD_TTL_Seconds = 0xFFFF;
         }
     }
     pEnv = getenv("BACNET_BBMD_ADDRESS");
     if (pEnv) {
-        bbmd_address = bip_getaddrbyname(pEnv);
+        BBMD_Address_Valid = bip_get_addr_by_name(pEnv, &BBMD_Address);
     }
-    if (bbmd_address) {
-        struct in_addr addr;
-        addr.s_addr = bbmd_address;
-        fprintf(stderr, "Registering with BBMD at %s:%ld for %ld seconds\n",
-            inet_ntoa(addr), bbmd_port, bbmd_timetolive_seconds);
-        retval = bvlc_register_with_bbmd(bbmd_address,
-            htons((uint16_t)bbmd_port), (uint16_t)bbmd_timetolive_seconds);
-        if (retval < 0) {
-            fprintf(stderr, "FAILED to Register with BBMD at %s \n",
-                inet_ntoa(addr));
+    if (BBMD_Address_Valid) {
+        if (BIP_DL_Debug) {
+            fprintf(stderr,
+                "Registering with BBMD at %u.%u.%u.%u:%u for %u seconds\n",
+                (unsigned)BBMD_Address.address[0],
+                (unsigned)BBMD_Address.address[1],
+                (unsigned)BBMD_Address.address[2],
+                (unsigned)BBMD_Address.address[3],
+                (unsigned)BBMD_Address.port,
+                (unsigned)BBMD_TTL_Seconds);
         }
-        BBMD_Timer_Seconds = (uint16_t)bbmd_timetolive_seconds;
+        retval = bvlc_register_with_bbmd(&BBMD_Address,
+            BBMD_TTL_Seconds);
+        if (retval < 0) {
+            fprintf(stderr,
+            "FAILED to Register with BBMD at %u.%u.%u.%u:%u\n",
+            (unsigned)BBMD_Address.address[0],
+            (unsigned)BBMD_Address.address[1],
+            (unsigned)BBMD_Address.address[2],
+            (unsigned)BBMD_Address.address[3],
+            (unsigned)BBMD_Address.port);
+        }
+        BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
     } else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
+            bdt_entry_valid = false;
             sprintf(bbmd_env, "BACNET_BDT_ADDR_%u", entry_number);
             pEnv = getenv(bbmd_env);
             if (pEnv) {
-                bbmd_address = bip_getaddrbyname(pEnv);
+                bdt_entry_valid = bip_get_addr_by_name(pEnv,
+                    &BBMD_Table_Entry.dest_address);
+                if (entry_number == 1) {
+                    if (BIP_DL_Debug) {
+                        fprintf(stderr, "BBMD 1 is %s=%s!\n", bbmd_env, pEnv);
+                    }
+                }
             } else if (entry_number == 1) {
                 /* BDT 1 is self (note: can be overridden) */
-                bbmd_address = bip_get_addr();
+                bdt_entry_valid = bip_get_addr(&BBMD_Table_Entry.dest_address);
             }
-            if (bbmd_address) {
-                bbmd_port = 0xBAC0;
-                sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
-                pEnv = getenv(bbmd_env);
-                if (pEnv) {
-                    bbmd_port = strtol(pEnv, NULL, 0);
-                    if (bbmd_port > 0xFFFF) {
-                        bbmd_port = 0xBAC0;
+            if (bdt_entry_valid) {
+                if (entry_number != 1) {
+                    bdt_entry_port = 0xBAC0;
+                    sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
+                    pEnv = getenv(bbmd_env);
+                    if (pEnv) {
+                        bdt_entry_port = strtol(pEnv, NULL, 0);
+                        if (bdt_entry_port > 0xFFFF) {
+                            bdt_entry_port = 0xBAC0;
+                        }
+                        /* BDT 1 is self (note: can be overridden) */
                     }
-                } else if (entry_number == 1) {
-                    /* BDT 1 is self (note: can be overridden) */
-                    bbmd_port = bip_get_port();
+                    BBMD_Table_Entry.dest_address.port = bdt_entry_port;
                 }
-                bbmd_mask = 0xFFFFFFFF;
+                /* broadcast mask */
+                bvlc_broadcast_distribution_mask_from_host(
+                    &BBMD_Table_Entry.broadcast_mask, 0xFFFFFFFF);
                 sprintf(bbmd_env, "BACNET_BDT_MASK_%u", entry_number);
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
                     c = sscanf(
                         pEnv, "%3u.%3u.%3u.%3u", &a[0], &a[1], &a[2], &a[3]);
                     if (c == 4) {
-                        bbmd_mask = ((a[0] & 0xFF) << 24) |
-                            ((a[1] & 0xFF) << 16) | ((a[2] & 0xFF) << 8) |
-                            (a[3] & 0xFF);
+                        bvlc_broadcast_distribution_mask_set(
+                            &BBMD_Table_Entry.broadcast_mask,
+                            a[0], a[1], a[2], a[3]);
                     }
                 }
-                BBMD_Table_Entry.valid = true;
-                BBMD_Table_Entry.dest_address.s_addr = bbmd_address;
-                BBMD_Table_Entry.dest_port = bbmd_port;
-                BBMD_Table_Entry.broadcast_mask.s_addr = bbmd_mask;
-                bvlc_add_bdt_entry_local(&BBMD_Table_Entry);
+                bvlc_broadcast_distribution_table_entry_append(
+                    bvlc_bdt_list(), &BBMD_Table_Entry);
+                if (BIP_DL_Debug) {
+                    fprintf(stderr,
+                        "BBMD %4u: %u.%u.%u.%u:%u %u.%u.%u.%u\n", entry_number,
+                        (unsigned)BBMD_Table_Entry.dest_address.address[0],
+                        (unsigned)BBMD_Table_Entry.dest_address.address[1],
+                        (unsigned)BBMD_Table_Entry.dest_address.address[2],
+                        (unsigned)BBMD_Table_Entry.dest_address.address[3],
+                        (unsigned)BBMD_Table_Entry.dest_address.port,
+                        (unsigned)BBMD_Table_Entry.broadcast_mask.address[0],
+                        (unsigned)BBMD_Table_Entry.broadcast_mask.address[1],
+                        (unsigned)BBMD_Table_Entry.broadcast_mask.address[2],
+                        (unsigned)BBMD_Table_Entry.broadcast_mask.address[3]);
+                }
             }
         }
     }
-    bbmd_result = retval;
+    BBMD_Result = retval;
 #endif
     return retval;
 }
@@ -216,34 +245,16 @@ int dlenv_register_as_foreign_device(void)
  */
 static void dlenv_network_port_init(void)
 {
-    uint32_t instance = 1;
-    uint32_t address = 0;
-    uint32_t broadcast = 0;
-    uint32_t test_broadcast = 0;
-    uint32_t mask = 0xFFFFFFFE;
-    uint16_t port = 0;
-    uint8_t mac[4 + 2] = { 0 };
-    uint8_t prefix = 0;
+    const uint32_t instance = 1;
+    BACNET_IP_ADDRESS addr = { 0 };
 
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IP Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP);
-    port = bip_get_port();
-    Network_Port_BIP_Port_Set(instance, port);
-    address = bip_get_addr();
-    memcpy(&mac[0], &address, 4);
-    memcpy(&mac[4], &port, 2);
-    Network_Port_MAC_Address_Set(instance, &mac[0], 6);
-    broadcast = bip_get_broadcast_addr();
-    /* calculate the subnet prefix from the broadcast address */
-    for (prefix = 1; prefix <= 32; prefix++) {
-        test_broadcast = (address & mask) | (~mask);
-        if (test_broadcast == broadcast) {
-            break;
-        }
-        mask = mask<<1;
-    }
-    Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
+    bip_get_addr(&addr);
+    Network_Port_BIP_Port_Set(instance, addr.port);
+    Network_Port_MAC_Address_Set(instance, &addr.address[0], 6);
+    Network_Port_IP_Subnet_Prefix_Set(instance, bip_get_subnet_prefix());
     Network_Port_Link_Speed_Set(instance, 0.0);
     /* common NP data */
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
@@ -346,7 +357,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
             /* If that failed (negative), maybe just a network issue.
              * If nothing happened (0), may be un/misconfigured.
              * Set up to try again later in all cases. */
-            BBMD_Timer_Seconds = (uint16_t)bbmd_timetolive_seconds;
+            BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
         }
     }
 #endif
@@ -434,12 +445,15 @@ void dlenv_init(void)
     }
 #endif
 #if defined(BACDL_BIP)
-#if defined(BIP_DEBUG)
-    BIP_Debug = true;
-#endif
+    pEnv = getenv("BACNET_IP_DEBUG");
+    if (pEnv) {
+        bip_debug_enable();
+        bvlc_debug_enable();
+        BIP_DL_Debug = true;
+    }
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
-        bip_set_port(htons((uint16_t)strtol(pEnv, NULL, 0)));
+        bip_set_port((uint16_t)strtol(pEnv, NULL, 0));
     } else {
         /* BIP_Port is statically initialized to 0xBAC0,
          * so if it is different, then it was programmatically altered,
@@ -447,16 +461,15 @@ void dlenv_init(void)
          * Unless it is set below 1024, since:
          * "The range for well-known ports managed by the IANA is 0-1023."
          */
-        if (ntohs(bip_get_port()) < 1024) {
-            bip_set_port(htons(0xBAC0));
+        if (bip_get_port() < 1024) {
+            bip_set_port(0xBAC0);
         }
     }
     pEnv = getenv("BACNET_IP_NAT_ADDR");
     if (pEnv) {
-        struct in_addr nat_addr;
-        nat_addr.s_addr = bip_getaddrbyname(pEnv);
-        if (nat_addr.s_addr) {
-            bvlc_set_global_address_for_nat(&nat_addr);
+        BACNET_IP_ADDRESS addr;
+        if (bip_get_addr_by_name(pEnv, &addr)) {
+            bvlc_set_global_address_for_nat(&addr);
         }
     }
 #elif defined(BACDL_MSTP)

@@ -1,21 +1,22 @@
 #Makefile to build test case
 CC      = gcc
-SRC_DIR = ../src
-INCLUDES = -I$(SRC_DIR) -I.
-DEFINES = -DBACDL_BIP -DBIG_ENDIAN=0 -DTEST -DTEST_BVLC
+SRC_DIR = ../../../../src
+TEST_DIR = ../../../../test
+INCLUDES = -I$(SRC_DIR) -I$(TEST_DIR)
+DEFINES = -DBIG_ENDIAN=0 -DBACDL_BIP -DBBMD_ENABLED=1 -DTEST -DTEST_BBMD_HANDLER
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 
-SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
+SRCS = $(SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c \
+	$(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/bacint.c \
 	$(SRC_DIR)/bacnet/bacstr.c \
 	$(SRC_DIR)/bacnet/bacreal.c \
 	$(SRC_DIR)/bacnet/datalink/bvlc.c \
-	ctest.c
+	$(SRC_DIR)/bacnet/basic/sys/debug.c \
+	$(TEST_DIR)/ctest.c
 
-OBJS = ${SRCS:.c=.o}
-
-TARGET_NAME = bvlc
+TARGET_NAME = bbmd
 ifeq ($(OS),Windows_NT)
 TARGET_EXT = .exe
 else
@@ -24,6 +25,8 @@ endif
 TARGET = $(TARGET_NAME)$(TARGET_EXT)
 
 all: ${TARGET}
+
+OBJS = ${SRCS:.c=.o}
 
 ${TARGET}: ${OBJS}
 	${CC} -o $@ ${OBJS}

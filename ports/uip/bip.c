@@ -41,7 +41,7 @@
 
 static int BIP_Socket = -1;
 /* port to use - stored in host byte order */
-static uint16_t BIP_Port = 0xBAC0;
+static uint16_t BIP_Port = 0xBAC0U;
 /* IP Address - stored in host byte order */
 static struct in_addr BIP_Address;
 /* Broadcast Address - stored in host byte order */

@@ -53,12 +53,12 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+static uint8_t Rx_Buf[MAX_MPDU];
 
 /* targets interpreted from the command line options */
 static BACNET_IP_ADDRESS Target_BBMD_Address;
 
-static bool Error_Detected = false;
+static bool Error_Detected;
 
 static void MyAbortHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
@@ -118,14 +118,14 @@ int main(int argc, char *argv[])
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf(
-            "Send a Read-Broadcast-Distribution-Table message to a BBMD.\r\n"
+            "Send a Read-Foreign-Device-Table message to a BBMD.\r\n"
             "\r\n"
             "IP:\r\n"
             "IP address of the BBMD in dotted decimal notation\r\n"
             "[port]\r\n"
             "optional BACnet/IP port number (default=47808=0xBAC0)\r\n"
             "\r\n"
-            "To send a Read-Broadcast-Distribution-Table message to a BBMD\r\n"
+            "To send a Read-Foreign-Device-Table message to a BBMD\r\n"
             "at 192.168.0.1 using port 47808:\r\n"
             "%s 192.168.0.1 47808\r\n",
             filename_remove_path(argv[0]));
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    bvlc_bbmd_read_bdt(&Target_BBMD_Address);
+    bvlc_bbmd_read_fdt(&Target_BBMD_Address);
     /* loop forever */
     for (;;) {
         /* increment timer - exit if timed out */

@@ -25,7 +25,7 @@ PORT_BIP6_SRC = \
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bip.c
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c
 
 # WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile
 # BACNET_DEFINES is defined in common apps Makefile
