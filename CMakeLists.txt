@@ -442,6 +442,7 @@ if(${CMAKE_SYSTEM_NAME}
            $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
            $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
            $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
+           ports/linux/mstimer-init.c
            # ports/linux/rx_fsm.c
            $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>)
 
