@@ -6,5 +6,5 @@ image:
   - macOS
 
 build_script:
-  - cmake . -DBUILD_SHARED_LIBS=ON
+  - cmake .
   - cmake --build . --config %CONFIGURATION%
