@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
@@ -41,25 +42,31 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void npdu_handler(
         BACNET_ADDRESS * src,
         uint8_t * pdu,
         uint16_t pdu_len);
+    BACNET_STACK_EXPORT
     void npdu_handler_cleanup(void);
+    BACNET_STACK_EXPORT
     void npdu_handler_init(
         uint16_t bip_net,
         uint16_t mstp_net);
+    BACNET_STACK_EXPORT
     void npdu_router_handler(
         uint16_t snet,
         BACNET_ADDRESS * src,
         uint8_t * pdu,
         uint16_t pdu_len);
+    BACNET_STACK_EXPORT
     int npdu_router_send_pdu(
         uint16_t dnet,
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * npdu_data,
         uint8_t * pdu,
         unsigned int pdu_len);
+    BACNET_STACK_EXPORT
     void npdu_router_get_my_address(
         uint16_t dnet,
         BACNET_ADDRESS * my_address);

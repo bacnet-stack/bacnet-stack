@@ -27,6 +27,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/wp.h"
@@ -57,18 +58,23 @@ extern "C" {
 
 
     /* encode objects */
+    BACNET_STACK_EXPORT
     int wpm_encode_apdu_init(
         uint8_t * apdu,
         uint8_t invoke_id);
+    BACNET_STACK_EXPORT
     int wpm_encode_apdu_object_begin(
         uint8_t * apdu,
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     int wpm_encode_apdu_object_end(
         uint8_t * apdu);
+    BACNET_STACK_EXPORT
     int wpm_encode_apdu_object_property(
         uint8_t * apdu,
         BACNET_WRITE_PROPERTY_DATA * wpdata);
+    BACNET_STACK_EXPORT
     int wpm_encode_apdu(
         uint8_t * apdu,
         size_t max_apdu,
@@ -76,10 +82,12 @@ extern "C" {
         BACNET_WRITE_ACCESS_DATA * write_access_data);
 
     /* encode service */
+    BACNET_STACK_EXPORT
     int wpm_ack_encode_apdu_init(
         uint8_t * apdu,
         uint8_t invoke_id);
 
+    BACNET_STACK_EXPORT
     int wpm_error_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,

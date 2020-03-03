@@ -27,15 +27,18 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void bacnet_address_copy(
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src);
+    BACNET_STACK_EXPORT
     bool bacnet_address_same(
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src);

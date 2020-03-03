@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 
@@ -66,12 +67,14 @@ extern "C" {
 #endif /* __cplusplus */
 
     /* encode service */
+    BACNET_STACK_EXPORT
     int wp_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     /* decode the service request only */
+    BACNET_STACK_EXPORT
     int wp_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -79,14 +82,17 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     int wp_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
         uint8_t * invoke_id,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
     void testWriteProperty(
         Test * pTest);
+    BACNET_STACK_EXPORT
     void testWritePropertyTag(
         Test * pTest,
         BACNET_APPLICATION_DATA_VALUE * value);

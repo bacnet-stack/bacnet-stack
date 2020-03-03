@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -42,6 +43,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 int Send_UnconfirmedPrivateTransfer(BACNET_ADDRESS* dest,
                                     BACNET_PRIVATE_TRANSFER_DATA* private_data);
 

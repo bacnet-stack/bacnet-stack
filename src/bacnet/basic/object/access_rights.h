@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacdevobjpropref.h"
@@ -62,44 +63,58 @@ extern "C" {
             positive_access_rules[MAX_POSITIVE_ACCESS_RIGHTS_RULES];
     } ACCESS_RIGHTS_DESCR;
 
+    BACNET_STACK_EXPORT
     void Access_Rights_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    BACNET_STACK_EXPORT
     bool Access_Rights_Valid_Instance(
         uint32_t object_instance);
     unsigned Access_Rights_Count(
         void);
+    BACNET_STACK_EXPORT
     uint32_t Access_Rights_Index_To_Instance(
         unsigned index);
+    BACNET_STACK_EXPORT
     unsigned Access_Rights_Instance_To_Index(
         uint32_t instance);
+    BACNET_STACK_EXPORT
     bool Access_Rights_Object_Instance_Add(
         uint32_t instance);
 
+    BACNET_STACK_EXPORT
     bool Access_Rights_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
     bool Access_Rights_Name_Set(
         uint32_t object_instance,
         char *new_name);
 
+    BACNET_STACK_EXPORT
     int Access_Rights_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
+    BACNET_STACK_EXPORT
     bool Access_Rights_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
     bool Access_Rights_Create(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     bool Access_Rights_Delete(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     void Access_Rights_Cleanup(
         void);
+    BACNET_STACK_EXPORT
     void Access_Rights_Init(
         void);
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testAccessRights(
         Test * pTest);
 #endif

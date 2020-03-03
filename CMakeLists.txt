@@ -427,10 +427,16 @@ target_include_directories(
   ${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/>
          $<INSTALL_INTERFACE:include/bacnet/>)
+if(BUILD_SHARED_LIBS)
+  set_target_properties(
+    ${PROJECT_NAME}
+    PROPERTIES
+      C_VISIBILITY_PRESET hidden)
+endif()
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
-  -DBACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
+  BACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
@@ -439,15 +445,15 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
+  $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
-  -DPRINT_ENABLED=1)
+  PRINT_ENABLED=1)
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
   ALIAS
   ${PROJECT_NAME})
-
 
 #
 # add ports

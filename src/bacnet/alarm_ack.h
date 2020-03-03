@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
@@ -56,6 +57,7 @@ extern "C" {
 ** Creates a Alarm Acknowledge APDU
 **
 ****************************************************/
+    BACNET_STACK_EXPORT
     int alarm_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
@@ -66,6 +68,7 @@ extern "C" {
 ** Encodes the service data part of Alarm Acknowledge
 **
 ****************************************************/
+    BACNET_STACK_EXPORT
     int alarm_ack_encode_service_request(
         uint8_t * apdu,
         BACNET_ALARM_ACK_DATA * data);
@@ -75,6 +78,7 @@ extern "C" {
 ** Decodes the service data part of Alarm Acknowledge
 **
 ****************************************************/
+    BACNET_STACK_EXPORT
     int alarm_ack_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,

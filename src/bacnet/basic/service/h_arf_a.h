@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
@@ -40,6 +41,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 void handler_atomic_read_file_ack(
     uint8_t* service_request, uint16_t service_len, BACNET_ADDRESS* src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA* service_data);

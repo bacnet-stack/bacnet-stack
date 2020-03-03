@@ -24,6 +24,7 @@
 #ifndef READRANGE_H
 #define READRANGE_H
 
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 
@@ -131,26 +132,31 @@ extern "C" {
         BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
         RR_PROP_INFO * pInfo);  /* Where to write the response to */
 
+    BACNET_STACK_EXPORT
     int rr_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_READ_RANGE_DATA * rrdata);
 
+    BACNET_STACK_EXPORT
     int rr_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_READ_RANGE_DATA * rrdata);
 
+    BACNET_STACK_EXPORT
     int rr_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_READ_RANGE_DATA * rrdata);
 
+    BACNET_STACK_EXPORT
     int rr_ack_decode_service_request(
         uint8_t * apdu,
         int apdu_len,   /* total length of the apdu */
         BACNET_READ_RANGE_DATA * rrdata);
 
+    BACNET_STACK_EXPORT
     uint8_t Send_ReadRange_Request(
         uint32_t device_id,     /* destination device */
         BACNET_READ_RANGE_DATA * read_access_data);

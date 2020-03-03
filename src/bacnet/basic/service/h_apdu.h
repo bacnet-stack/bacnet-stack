@@ -30,6 +30,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
@@ -110,49 +111,60 @@ extern "C" {
         uint8_t invoke_id,
         uint8_t reject_reason);
 
+    BACNET_STACK_EXPORT
     void apdu_set_confirmed_ack_handler(
         BACNET_CONFIRMED_SERVICE service_choice,
         confirmed_ack_function pFunction);
 
+    BACNET_STACK_EXPORT
     void apdu_set_confirmed_simple_ack_handler(
         BACNET_CONFIRMED_SERVICE service_choice,
         confirmed_simple_ack_function pFunction);
 
 /* configure reject for confirmed services that are not supported */
+    BACNET_STACK_EXPORT
     void apdu_set_unrecognized_service_handler_handler(
         confirmed_function pFunction);
 
+    BACNET_STACK_EXPORT
     void apdu_set_confirmed_handler(
         BACNET_CONFIRMED_SERVICE service_choice,
         confirmed_function pFunction);
 
+    BACNET_STACK_EXPORT
     void apdu_set_unconfirmed_handler(
         BACNET_UNCONFIRMED_SERVICE service_choice,
         unconfirmed_function pFunction);
 
 /* returns true if the service is supported by a handler */
+    BACNET_STACK_EXPORT
     bool apdu_service_supported(
         BACNET_SERVICES_SUPPORTED service_supported);
 
 /* Function to translate a SERVICE_SUPPORTED_ enum to its SERVICE_CONFIRMED_
  *  or SERVICE_UNCONFIRMED_ index.
  */
+    BACNET_STACK_EXPORT
     bool apdu_service_supported_to_index(
         BACNET_SERVICES_SUPPORTED service_supported,
         size_t * index,
         bool * bIsConfirmed);
 
 
+    BACNET_STACK_EXPORT
     void apdu_set_error_handler(
         BACNET_CONFIRMED_SERVICE service_choice,
         error_function pFunction);
 
+    BACNET_STACK_EXPORT
     void apdu_set_abort_handler(
         abort_function pFunction);
 
+    BACNET_STACK_EXPORT
     void apdu_set_reject_handler(
         reject_function pFunction);
 
+    BACNET_STACK_EXPORT
     uint16_t apdu_decode_confirmed_service_request(
         uint8_t * apdu, /* APDU data */
         uint16_t apdu_len,
@@ -161,15 +173,20 @@ extern "C" {
         uint8_t ** service_request,
         uint16_t * service_request_len);
 
+    BACNET_STACK_EXPORT
     uint16_t apdu_timeout(
         void);
+    BACNET_STACK_EXPORT
     void apdu_timeout_set(
         uint16_t value);
+    BACNET_STACK_EXPORT
     uint8_t apdu_retries(
         void);
+    BACNET_STACK_EXPORT
     void apdu_retries_set(
         uint8_t value);
 
+    BACNET_STACK_EXPORT
     void apdu_handler(
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * apdu, /* APDU data */

@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 
 /**
 * FIFO data structure
@@ -31,43 +32,54 @@ typedef struct fifo_buffer_t FIFO_BUFFER;
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     unsigned FIFO_Count(
         FIFO_BUFFER const *b);
 
+    BACNET_STACK_EXPORT
     bool FIFO_Full(
         FIFO_BUFFER const *b);
 
+    BACNET_STACK_EXPORT
     bool FIFO_Available(
         FIFO_BUFFER const *b,
         unsigned count);
 
+    BACNET_STACK_EXPORT
     bool FIFO_Empty(
         FIFO_BUFFER const *b);
 
+    BACNET_STACK_EXPORT
     uint8_t FIFO_Peek(
         FIFO_BUFFER const *b);
 
+    BACNET_STACK_EXPORT
     uint8_t FIFO_Get(
         FIFO_BUFFER * b);
 
+    BACNET_STACK_EXPORT
     unsigned FIFO_Pull(
         FIFO_BUFFER * b,
         uint8_t * data_bytes,
         unsigned length);
 
+    BACNET_STACK_EXPORT
     bool FIFO_Put(
         FIFO_BUFFER * b,
         uint8_t data_byte);
 
+    BACNET_STACK_EXPORT
     bool FIFO_Add(
         FIFO_BUFFER * b,
         uint8_t * data_bytes,
         unsigned count);
 
+    BACNET_STACK_EXPORT
     void FIFO_Flush(
         FIFO_BUFFER * b);
 
 /* note: buffer_len must be a power of two */
+    BACNET_STACK_EXPORT
     void FIFO_Init(
         FIFO_BUFFER * b,
         volatile uint8_t * buffer,
@@ -75,6 +87,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testFIFOBuffer(
         Test * pTest);
 #endif

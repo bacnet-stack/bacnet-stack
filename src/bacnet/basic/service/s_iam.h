@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/apdu.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
@@ -42,14 +43,19 @@
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 void Send_I_Am_To_Network(BACNET_ADDRESS* target_address, uint32_t device_id,
                           unsigned int max_apdu, int segmentation,
                           uint16_t vendor_id);
+BACNET_STACK_EXPORT
 int iam_encode_pdu(uint8_t* buffer, BACNET_ADDRESS* dest,
                    BACNET_NPDU_DATA* npdu_data);
+BACNET_STACK_EXPORT
 void Send_I_Am(uint8_t* buffer);
+BACNET_STACK_EXPORT
 int iam_unicast_encode_pdu(uint8_t* buffer, BACNET_ADDRESS* src,
                            BACNET_ADDRESS* dest, BACNET_NPDU_DATA* npdu_data);
+BACNET_STACK_EXPORT
 void Send_I_Am_Unicast(uint8_t* buffer, BACNET_ADDRESS* src);
 
 #ifdef __cplusplus

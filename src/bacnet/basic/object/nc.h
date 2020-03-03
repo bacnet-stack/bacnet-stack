@@ -25,6 +25,7 @@
 #ifndef NC_H
 #define NC_H
 
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/event.h"
 
 
@@ -97,39 +98,50 @@ BACnetRecipient ::= CHOICE {
 
 
 
+    BACNET_STACK_EXPORT
     void Notification_Class_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
 
+    BACNET_STACK_EXPORT
     void Notification_Class_Init(
         void);
 
     bool Notification_Class_Valid_Instance(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     unsigned Notification_Class_Count(
         void);
+    BACNET_STACK_EXPORT
     uint32_t Notification_Class_Index_To_Instance(
         unsigned index);
+    BACNET_STACK_EXPORT
     unsigned Notification_Class_Instance_To_Index(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     bool Notification_Class_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
 
+    BACNET_STACK_EXPORT
     int Notification_Class_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
 
+    BACNET_STACK_EXPORT
     bool Notification_Class_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
     void Notification_Class_Get_Priorities(
         uint32_t Object_Instance,
         uint32_t * pPriorityArray);
 
+    BACNET_STACK_EXPORT
     void Notification_Class_common_reporting_function(
         BACNET_EVENT_NOTIFICATION_DATA * event_data);
 
+    BACNET_STACK_EXPORT
     void Notification_Class_find_recipient(
         void);
 #endif /* defined(INTRINSIC_REPORTING) */

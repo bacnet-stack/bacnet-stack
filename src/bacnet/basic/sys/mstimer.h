@@ -20,6 +20,8 @@
 #ifndef MSTIMER_H_
 #define MSTIMER_H_
 
+#include "bacnet/bacnet_stack_exports.h"
+
 /**
  * A timer.
  *
@@ -46,18 +48,27 @@ struct mstimer_callback_data_t {
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 void mstimer_set(struct mstimer *t, unsigned long interval);
+BACNET_STACK_EXPORT
 void mstimer_reset(struct mstimer *t);
+BACNET_STACK_EXPORT
 void mstimer_restart(struct mstimer *t);
+BACNET_STACK_EXPORT
 int mstimer_expired(struct mstimer *t);
+BACNET_STACK_EXPORT
 unsigned long mstimer_remaining(struct mstimer *t);
+BACNET_STACK_EXPORT
 unsigned long mstimer_interval(struct mstimer *t);
 /* HAL implementation */
+BACNET_STACK_EXPORT
 unsigned long mstimer_now(void);
+BACNET_STACK_EXPORT
 void mstimer_callback(
     struct mstimer_callback_data_t *cb,
     mstimer_callback_function callback,
     unsigned long milliseconds);
+BACNET_STACK_EXPORT
 void mstimer_init(void);
 
 #ifdef __cplusplus

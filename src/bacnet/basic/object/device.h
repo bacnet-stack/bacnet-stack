@@ -31,6 +31,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/wp.h"
@@ -221,164 +222,223 @@ typedef struct devObj_s {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void Device_Init(
         object_functions_t * object_table);
 
+    BACNET_STACK_EXPORT
     bool Device_Reinitialize(
         BACNET_REINITIALIZE_DEVICE_DATA * rd_data);
+    BACNET_STACK_EXPORT
     bool Device_Reinitialize_State_Set(BACNET_REINITIALIZED_STATE state);
+    BACNET_STACK_EXPORT
     BACNET_REINITIALIZED_STATE Device_Reinitialized_State(
         void);
 
+    BACNET_STACK_EXPORT
     rr_info_function Device_Objects_RR_Info(
         BACNET_OBJECT_TYPE object_type);
 
+    BACNET_STACK_EXPORT
     void Device_getCurrentDateTime(
         BACNET_DATE_TIME * DateTime);
 
+    BACNET_STACK_EXPORT
     int32_t Device_UTC_Offset(void);
+    BACNET_STACK_EXPORT
     void Device_UTC_Offset_Set(int16_t offset);
 
+    BACNET_STACK_EXPORT
     bool Device_Daylight_Savings_Status(void);
     bool Device_Align_Intervals(void);
+    BACNET_STACK_EXPORT
     bool Device_Align_Intervals_Set(bool flag);
+    BACNET_STACK_EXPORT
     uint32_t Device_Time_Sync_Interval(void);
+    BACNET_STACK_EXPORT
     bool Device_Time_Sync_Interval_Set(uint32_t value);
+    BACNET_STACK_EXPORT
     uint32_t Device_Interval_Offset(void);
+    BACNET_STACK_EXPORT
     bool Device_Interval_Offset_Set(uint32_t value);
 
+    BACNET_STACK_EXPORT
     void Device_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    BACNET_STACK_EXPORT
     void Device_Objects_Property_List(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         struct special_property_list_t *pPropertyList);
     /* functions to support COV */
+    BACNET_STACK_EXPORT
     bool Device_Encode_Value_List(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_PROPERTY_VALUE * value_list);
     bool Device_Value_List_Supported(
         BACNET_OBJECT_TYPE object_type);
+    BACNET_STACK_EXPORT
     bool Device_COV(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     void Device_COV_Clear(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
 
+    BACNET_STACK_EXPORT
     uint32_t Device_Object_Instance_Number(
         void);
+    BACNET_STACK_EXPORT
     bool Device_Set_Object_Instance_Number(
         uint32_t object_id);
+    BACNET_STACK_EXPORT
     bool Device_Valid_Object_Instance_Number(
         uint32_t object_id);
+    BACNET_STACK_EXPORT
     unsigned Device_Object_List_Count(
         void);
+    BACNET_STACK_EXPORT
     bool Device_Object_List_Identifier(
         uint32_t array_index,
         BACNET_OBJECT_TYPE *object_type,
         uint32_t * instance);
 
+    BACNET_STACK_EXPORT
     unsigned Device_Count(
         void);
+    BACNET_STACK_EXPORT
     uint32_t Device_Index_To_Instance(
         unsigned index);
 
+    BACNET_STACK_EXPORT
     bool Device_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
     bool Device_Set_Object_Name(
         BACNET_CHARACTER_STRING * object_name);
     /* Copy a child object name, given its ID. */
+    BACNET_STACK_EXPORT
     bool Device_Object_Name_Copy(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
     bool Device_Object_Name_ANSI_Init(const char * object_name);
+    BACNET_STACK_EXPORT
     char * Device_Object_Name_ANSI(void);
 
+    BACNET_STACK_EXPORT
     BACNET_DEVICE_STATUS Device_System_Status(
         void);
+    BACNET_STACK_EXPORT
     int Device_Set_System_Status(
         BACNET_DEVICE_STATUS status,
         bool local);
 
+    BACNET_STACK_EXPORT
     const char *Device_Vendor_Name(
         void);
 
+    BACNET_STACK_EXPORT
     uint16_t Device_Vendor_Identifier(
         void);
+    BACNET_STACK_EXPORT
     void Device_Set_Vendor_Identifier(
         uint16_t vendor_id);
 
+    BACNET_STACK_EXPORT
     const char *Device_Model_Name(
         void);
+    BACNET_STACK_EXPORT
     bool Device_Set_Model_Name(
         const char *name,
         size_t length);
 
+    BACNET_STACK_EXPORT
     const char *Device_Firmware_Revision(
         void);
 
+    BACNET_STACK_EXPORT
     const char *Device_Application_Software_Version(
         void);
+    BACNET_STACK_EXPORT
     bool Device_Set_Application_Software_Version(
         const char *name,
         size_t length);
 
+    BACNET_STACK_EXPORT
     const char *Device_Description(
         void);
+    BACNET_STACK_EXPORT
     bool Device_Set_Description(
         const char *name,
         size_t length);
 
+    BACNET_STACK_EXPORT
     const char *Device_Location(
         void);
+    BACNET_STACK_EXPORT
     bool Device_Set_Location(
         const char *name,
         size_t length);
 
     /* some stack-centric constant values - no set methods */
+    BACNET_STACK_EXPORT
     uint8_t Device_Protocol_Version(
         void);
+    BACNET_STACK_EXPORT
     uint8_t Device_Protocol_Revision(
         void);
+    BACNET_STACK_EXPORT
     BACNET_SEGMENTATION Device_Segmentation_Supported(
         void);
 
+    BACNET_STACK_EXPORT
     uint32_t Device_Database_Revision(
         void);
+    BACNET_STACK_EXPORT
     void Device_Set_Database_Revision(
         uint32_t revision);
+    BACNET_STACK_EXPORT
     void Device_Inc_Database_Revision(
         void);
 
+    BACNET_STACK_EXPORT
     bool Device_Valid_Object_Name(
         BACNET_CHARACTER_STRING * object_name,
         BACNET_OBJECT_TYPE *object_type,
         uint32_t * object_instance);
+    BACNET_STACK_EXPORT
     bool Device_Valid_Object_Id(
         BACNET_OBJECT_TYPE object_type,
         uint32_t object_instance);
 
+    BACNET_STACK_EXPORT
     int Device_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
+    BACNET_STACK_EXPORT
     bool Device_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
     bool DeviceGetRRInfo(
         BACNET_READ_RANGE_DATA * pRequest,      /* Info on the request */
         RR_PROP_INFO * pInfo);  /* Where to put the information */
 
+    BACNET_STACK_EXPORT
     int Device_Read_Property_Local(
         BACNET_READ_PROPERTY_DATA * rpdata);
+    BACNET_STACK_EXPORT
     bool Device_Write_Property_Local(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #if defined(INTRINSIC_REPORTING)
+    BACNET_STACK_EXPORT
     void Device_local_reporting(
         void);
 #endif
@@ -387,53 +447,70 @@ extern "C" {
  * Enable by defining BAC_ROUTING in config.h and including gw_device.c
  * in the build (lib/Makefile).
  */
+    BACNET_STACK_EXPORT
     void Routing_Device_Init(
         uint32_t first_object_instance);
 
+    BACNET_STACK_EXPORT
     uint16_t Add_Routed_Device(
         uint32_t Object_Instance,
         BACNET_CHARACTER_STRING * Object_Name,
         const char *Description);
+    BACNET_STACK_EXPORT
     DEVICE_OBJECT_DATA *Get_Routed_Device_Object(
         int idx);
+    BACNET_STACK_EXPORT
     BACNET_ADDRESS *Get_Routed_Device_Address(
         int idx);
 
+    BACNET_STACK_EXPORT
     void routed_get_my_address(
         BACNET_ADDRESS * my_address);
 
+    BACNET_STACK_EXPORT
     bool Routed_Device_Address_Lookup(
         int idx,
         uint8_t address_len,
         uint8_t * mac_adress);
+    BACNET_STACK_EXPORT
     bool Routed_Device_GetNext(
         BACNET_ADDRESS * dest,
         int *DNET_list,
         int *cursor);
+    BACNET_STACK_EXPORT
     bool Routed_Device_Is_Valid_Network(
         uint16_t dest_net,
         int *DNET_list);
 
+    BACNET_STACK_EXPORT
     uint32_t Routed_Device_Index_To_Instance(
         unsigned index);
+    BACNET_STACK_EXPORT
     bool Routed_Device_Valid_Object_Instance_Number(
         uint32_t object_id);
+    BACNET_STACK_EXPORT
     bool Routed_Device_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
     uint32_t Routed_Device_Object_Instance_Number(
         void);
+    BACNET_STACK_EXPORT
     bool Routed_Device_Set_Object_Instance_Number(
         uint32_t object_id);
+    BACNET_STACK_EXPORT
     bool Routed_Device_Set_Object_Name(
         uint8_t encoding,
         const char *value,
         size_t length);
+    BACNET_STACK_EXPORT
     bool Routed_Device_Set_Description(
         const char *name,
         size_t length);
+    BACNET_STACK_EXPORT
     void Routed_Device_Inc_Database_Revision(
         void);
+    BACNET_STACK_EXPORT
     int Routed_Device_Service_Approval(
         BACNET_CONFIRMED_SERVICE service,
         int service_argument,

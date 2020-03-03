@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <time.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 
@@ -161,24 +162,30 @@ typedef struct BACnet_IP6_Foreign_Device_Table_Entry {
 extern "C" {
 
 #endif /* __cplusplus */
+    BACNET_STACK_EXPORT
     int bvlc6_encode_address(
         uint8_t * pdu,
         uint16_t pdu_size,
         BACNET_IP6_ADDRESS * ip6_address);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_address(
         uint8_t * pdu,
         uint16_t pdu_len,
         BACNET_IP6_ADDRESS * ip6_address);
+    BACNET_STACK_EXPORT
     bool bvlc6_address_copy(
         BACNET_IP6_ADDRESS * dst,
         BACNET_IP6_ADDRESS * src);
+    BACNET_STACK_EXPORT
     bool bvlc6_address_different(
         BACNET_IP6_ADDRESS * dst,
         BACNET_IP6_ADDRESS * src);
+    BACNET_STACK_EXPORT
     bool bvlc6_address_from_ascii(
         BACNET_IP6_ADDRESS *addr,
         const char *addrstr);
 
+    BACNET_STACK_EXPORT
     bool bvlc6_address_set(
         BACNET_IP6_ADDRESS * addr,
         uint16_t addr0,
@@ -189,6 +196,7 @@ extern "C" {
         uint16_t addr5,
         uint16_t addr6,
         uint16_t addr7);
+    BACNET_STACK_EXPORT
     bool bvlc6_address_get(
         BACNET_IP6_ADDRESS * addr,
         uint16_t *addr0,
@@ -200,35 +208,42 @@ extern "C" {
         uint16_t *addr6,
         uint16_t *addr7);
 
+    BACNET_STACK_EXPORT
     bool bvlc6_vmac_address_set(
         BACNET_ADDRESS * addr,
         uint32_t device_id);
+    BACNET_STACK_EXPORT
     bool bvlc6_vmac_address_get(
         BACNET_ADDRESS * addr,
         uint32_t *device_id);
 
+    BACNET_STACK_EXPORT
    int bvlc6_encode_header(
        uint8_t * pdu,
        uint16_t pdu_size,
        uint8_t message_type,
        uint16_t length);
+    BACNET_STACK_EXPORT
    int bvlc6_decode_header(
        uint8_t * pdu,
        uint16_t pdu_len,
        uint8_t * message_type,
        uint16_t * length);
 
+   BACNET_STACK_EXPORT
    int bvlc6_encode_result(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac,
         uint16_t result_code);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_result(
         uint8_t * pdu,
         uint16_t pdu_len,
         uint32_t * vmac,
         uint16_t * result_code);
 
+    BACNET_STACK_EXPORT
    int bvlc6_encode_original_unicast(
        uint8_t * pdu,
        uint16_t pdu_size,
@@ -236,6 +251,7 @@ extern "C" {
        uint32_t vmac_dst,
        uint8_t * npdu,
        uint16_t npdu_len);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_original_unicast(
         uint8_t * pdu,
         uint16_t pdu_len,
@@ -245,12 +261,14 @@ extern "C" {
         uint16_t npdu_size,
         uint16_t * npdu_len);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_original_broadcast(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac,
         uint8_t * npdu,
         uint16_t npdu_len);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_original_broadcast(
         uint8_t * pdu,
         uint16_t pdu_len,
@@ -259,23 +277,27 @@ extern "C" {
         uint16_t npdu_size,
         uint16_t * npdu_len);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_address_resolution(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac_src,
         uint32_t vmac_target);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_address_resolution(
         uint8_t * pdu,
         uint16_t pdu_len,
         uint32_t * vmac_src,
         uint32_t * vmac_target);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_forwarded_address_resolution(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac_src,
         uint32_t vmac_target,
         BACNET_IP6_ADDRESS * bip6_address);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_forwarded_address_resolution(
         uint8_t * pdu,
         uint16_t pdu_len,
@@ -283,37 +305,44 @@ extern "C" {
         uint32_t * vmac_target,
         BACNET_IP6_ADDRESS * bip6_address);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_address_resolution_ack(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac_src,
         uint32_t vmac_dst);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_address_resolution_ack(
         uint8_t * pdu,
         uint16_t pdu_len,
         uint32_t * vmac_src,
         uint32_t * vmac_dst);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_virtual_address_resolution(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac_src);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_virtual_address_resolution(
         uint8_t * pdu,
         uint16_t pdu_len,
         uint32_t * vmac_src);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_virtual_address_resolution_ack(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac_src,
         uint32_t vmac_dst);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_virtual_address_resolution_ack(
         uint8_t * pdu,
         uint16_t pdu_len,
         uint32_t * vmac_src,
         uint32_t * vmac_dst);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_forwarded_npdu(
         uint8_t * pdu,
         uint16_t pdu_size,
@@ -321,6 +350,7 @@ extern "C" {
         BACNET_IP6_ADDRESS * address,
         uint8_t * npdu,
         uint16_t npdu_len);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_forwarded_npdu(
         uint8_t * pdu,
         uint16_t pdu_len,
@@ -330,33 +360,39 @@ extern "C" {
         uint16_t npdu_size,
         uint16_t * npdu_len);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_register_foreign_device(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac_src,
         uint16_t ttl_seconds);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_register_foreign_device(
         uint8_t * pdu,
         uint16_t pdu_len,
         uint32_t * vmac_src,
         uint16_t * ttl_seconds);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_delete_foreign_device(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac_src,
         BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY * fdt_entry);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_delete_foreign_device(
         uint8_t * pdu,
         uint16_t pdu_len,
         uint32_t * vmac_src,
         BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY * fdt_entry);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_secure_bvll(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint8_t * sbuf,
         uint16_t sbuf_len);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_secure_bvll(
         uint8_t * pdu,
         uint16_t pdu_len,
@@ -364,12 +400,14 @@ extern "C" {
         uint16_t sbuf_size,
         uint16_t * sbuf_len);
 
+    BACNET_STACK_EXPORT
     int bvlc6_encode_distribute_broadcast_to_network(
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac,
         uint8_t * npdu,
         uint16_t npdu_len);
+    BACNET_STACK_EXPORT
     int bvlc6_decode_distribute_broadcast_to_network(
         uint8_t * pdu,
         uint16_t pdu_len,
@@ -380,6 +418,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void test_BVLC6(
         Test * pTest);
 #endif

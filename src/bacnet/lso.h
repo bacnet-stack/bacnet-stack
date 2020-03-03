@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacstr.h"
@@ -45,11 +46,13 @@ extern "C" {
     } BACNET_LSO_DATA;
 
 
+    BACNET_STACK_EXPORT
     int lso_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_LSO_DATA * data);
 /* decode the service request only */
+    BACNET_STACK_EXPORT
     int lso_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -58,6 +61,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testLSO(
         Test * pTest);
 #endif

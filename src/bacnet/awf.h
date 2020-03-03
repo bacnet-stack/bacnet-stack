@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdcode.h"
 
 #ifndef BACNET_WRITE_FILE_RECORD_COUNT
@@ -54,17 +55,20 @@ extern "C" {
 
 /* Atomic Write File */
 /* encode service */
+    BACNET_STACK_EXPORT
     int awf_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
 /* decode the service request only */
+    BACNET_STACK_EXPORT
     int awf_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
+    BACNET_STACK_EXPORT
     int awf_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -73,17 +77,20 @@ extern "C" {
 
 /* Atomic Write File Ack */
 /* encode service */
+    BACNET_STACK_EXPORT
     int awf_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
 /* decode the service request only */
+    BACNET_STACK_EXPORT
     int awf_ack_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
+    BACNET_STACK_EXPORT
     int awf_ack_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -93,8 +100,10 @@ extern "C" {
 #ifdef TEST
 #include "ctest.h"
 
+    BACNET_STACK_EXPORT
     void test_AtomicWriteFile(
         Test * pTest);
+    BACNET_STACK_EXPORT
     void test_AtomicWriteFileAck(
         Test * pTest);
 #endif

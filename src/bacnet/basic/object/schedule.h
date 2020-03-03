@@ -28,6 +28,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/datetime.h"
@@ -71,33 +72,46 @@ extern "C" {
         bool Out_Of_Service;
     } SCHEDULE_DESCR;
 
+    BACNET_STACK_EXPORT
     void Schedule_Property_Lists(const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
 
+    BACNET_STACK_EXPORT
     bool Schedule_Valid_Instance(uint32_t object_instance);
+    BACNET_STACK_EXPORT
     unsigned Schedule_Count(void);
+    BACNET_STACK_EXPORT
     uint32_t Schedule_Index_To_Instance(unsigned index);
+    BACNET_STACK_EXPORT
     unsigned Schedule_Instance_To_Index(uint32_t instance);
+    BACNET_STACK_EXPORT
     void Schedule_Init(void);
 
+    BACNET_STACK_EXPORT
     void Schedule_Out_Of_Service_Set(
         uint32_t object_instance,
         bool value);
+    BACNET_STACK_EXPORT
     bool Schedule_Out_Of_Service(
         uint32_t object_instance);
 
 
+    BACNET_STACK_EXPORT
     bool Schedule_Object_Name(uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
 
+    BACNET_STACK_EXPORT
     int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata);
+    BACNET_STACK_EXPORT
     bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data);
 
     /* utility functions for calculating current Present Value
      * if Exception Schedule is to be added, these functions must take that into account */
+    BACNET_STACK_EXPORT
     bool Schedule_In_Effective_Period(SCHEDULE_DESCR * desc,
         BACNET_DATE * date);
+    BACNET_STACK_EXPORT
     void Schedule_Recalculate_PV(SCHEDULE_DESCR * desc,
         BACNET_WEEKDAY wday,
         BACNET_TIME * time);

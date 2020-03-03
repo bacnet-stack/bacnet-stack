@@ -24,6 +24,8 @@
 #ifndef BIGEND_H
 #define BIGEND_H
 
+#include "bacnet/bacnet_stack_exports.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -44,6 +46,7 @@ extern "C" {
 /* x[2] = 0x03 */
 /* x[3] = 0x04 */
 
+    BACNET_STACK_EXPORT
     int big_endian(
         void);
 

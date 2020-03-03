@@ -26,22 +26,27 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     BACNET_REJECT_REASON reject_convert_error_code(
         BACNET_ERROR_CODE error_code);
+    BACNET_STACK_EXPORT
     BACNET_ERROR_CODE reject_convert_to_error_code(
         BACNET_REJECT_REASON reject_code);
 
+    BACNET_STACK_EXPORT
     int reject_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         uint8_t reject_reason);
 
+    BACNET_STACK_EXPORT
     int reject_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -49,6 +54,7 @@ extern "C" {
         uint8_t * reject_reason);
 
 #ifdef TEST
+    BACNET_STACK_EXPORT
     void testReject(
         Test * pTest);
 #endif

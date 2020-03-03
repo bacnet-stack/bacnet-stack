@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/rp.h"
@@ -46,11 +47,14 @@ struct special_property_list_t {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     unsigned property_list_count(
         const int *pList);
+    BACNET_STACK_EXPORT
     bool property_list_member(
         const int *pList,
         int object_property);
+    BACNET_STACK_EXPORT
     int property_list_encode(
         BACNET_READ_PROPERTY_DATA * rpdata,
         const int *pListRequired,

@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,10 +42,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void Send_WhoHas_Name(
         int32_t low_limit,
         int32_t high_limit,
         const char *object_name);
+    BACNET_STACK_EXPORT
     void Send_WhoHas_Object(int32_t low_limit, int32_t high_limit,
                             BACNET_OBJECT_TYPE object_type,
                             uint32_t object_instance);

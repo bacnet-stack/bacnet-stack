@@ -36,6 +36,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -124,76 +125,106 @@ extern "C" {
         struct BACnet_Channel_Value_t *next;
     } BACNET_CHANNEL_VALUE;
 
+    BACNET_STACK_EXPORT
     void Channel_Property_Lists(const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    BACNET_STACK_EXPORT
     bool Channel_Valid_Instance(uint32_t object_instance);
+    BACNET_STACK_EXPORT
     unsigned Channel_Count(void);
+    BACNET_STACK_EXPORT
     uint32_t Channel_Index_To_Instance(unsigned index);
+    BACNET_STACK_EXPORT
     unsigned Channel_Instance_To_Index(uint32_t instance);
+    BACNET_STACK_EXPORT
     bool Channel_Object_Instance_Add(uint32_t instance);
 
+    BACNET_STACK_EXPORT
     bool Channel_Object_Name(uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
     bool Channel_Name_Set(uint32_t object_instance,
         char *new_name);
 
+    BACNET_STACK_EXPORT
     int Channel_Read_Property(BACNET_READ_PROPERTY_DATA * rpdata);
+    BACNET_STACK_EXPORT
     bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
     BACNET_CHANNEL_VALUE * Channel_Present_Value(uint32_t object_instance);
+    BACNET_STACK_EXPORT
     bool Channel_Present_Value_Set(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_EXPORT
     bool Channel_Out_Of_Service(uint32_t object_instance);
+    BACNET_STACK_EXPORT
     void Channel_Out_Of_Service_Set(uint32_t object_instance,
         bool oos_flag);
 
+    BACNET_STACK_EXPORT
     unsigned Channel_Last_Priority(uint32_t object_instance);
+    BACNET_STACK_EXPORT
     BACNET_WRITE_STATUS Channel_Write_Status(uint32_t object_instance);
     uint16_t Channel_Number(uint32_t object_instance);
+    BACNET_STACK_EXPORT
     bool Channel_Number_Set(uint32_t object_instance, uint16_t value);
 
+    BACNET_STACK_EXPORT
     unsigned Channel_Reference_List_Member_Count(uint32_t object_instance);
+    BACNET_STACK_EXPORT
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *
     Channel_Reference_List_Member_Element(uint32_t object_instance,
         unsigned element);
+    BACNET_STACK_EXPORT
     bool Channel_Reference_List_Member_Element_Set(uint32_t object_instance,
         unsigned array_index,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc);
+    BACNET_STACK_EXPORT
     unsigned Channel_Reference_List_Member_Element_Add(uint32_t object_instance,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMemberSrc);
+    BACNET_STACK_EXPORT
     unsigned Channel_Reference_List_Member_Local_Add(
         uint32_t object_instance,
         BACNET_OBJECT_TYPE type,
         uint32_t instance,
         BACNET_PROPERTY_ID propertyIdentifier,
         uint32_t arrayIndex);
+    BACNET_STACK_EXPORT
     uint16_t Channel_Control_Groups_Element(
         uint32_t object_instance,
         int32_t array_index);
+    BACNET_STACK_EXPORT
     bool Channel_Control_Groups_Element_Set(
         uint32_t object_instance,
         int32_t array_index,
         uint16_t value);
+    BACNET_STACK_EXPORT
     bool Channel_Value_Copy(BACNET_CHANNEL_VALUE * cvalue,
         BACNET_APPLICATION_DATA_VALUE * value);
+    BACNET_STACK_EXPORT
     int Channel_Value_Encode(uint8_t *apdu, int apdu_max,
         BACNET_CHANNEL_VALUE * value);
+    BACNET_STACK_EXPORT
     int Channel_Coerce_Data_Encode(
         uint8_t * apdu,
         unsigned max_apdu,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_TAG tag);
+    BACNET_STACK_EXPORT
     bool Channel_Write_Member_Value(
         BACNET_WRITE_PROPERTY_DATA * wp_data,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_EXPORT
     void Channel_Init(void);
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testChannelObject(Test * pTest);
 #endif
 

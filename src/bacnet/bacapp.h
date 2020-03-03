@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
@@ -137,56 +138,68 @@ typedef struct BACnet_Object_Property_Value {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void bacapp_value_list_init(
         BACNET_APPLICATION_DATA_VALUE *value,
         size_t count);
+    BACNET_STACK_EXPORT
     void bacapp_property_value_list_init(
         BACNET_PROPERTY_VALUE *value,
         size_t count);
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_data(
         uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
+    BACNET_STACK_EXPORT
     int bacapp_decode_data(
         uint8_t * apdu,
         uint8_t tag_data_type,
         uint32_t len_value_type,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_decode_application_data(
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_EXPORT
     bool bacapp_decode_application_data_safe(
         uint8_t * new_apdu,
         uint32_t new_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_application_data(
         uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_decode_context_data(
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_context_data(
         uint8_t * apdu,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID property);
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_context_data_value(
         uint8_t * apdu,
         uint8_t context_tag_number,
         BACNET_APPLICATION_DATA_VALUE * value);
 
+    BACNET_STACK_EXPORT
     BACNET_APPLICATION_TAG bacapp_context_tag_type(
         BACNET_PROPERTY_ID property,
         uint8_t tag_number);
 
+    BACNET_STACK_EXPORT
     bool bacapp_copy(
         BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
@@ -195,17 +208,21 @@ extern "C" {
        Expects that the first octet contain the opening tag.
        Include a value property identifier for context specific data
        such as the value received in a WriteProperty request */
+    BACNET_STACK_EXPORT
     int bacapp_data_len(
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_PROPERTY_ID property);
+    BACNET_STACK_EXPORT
     int bacapp_decode_data_len(
         uint8_t * apdu,
         uint8_t tag_data_type,
         uint32_t len_value_type);
+    BACNET_STACK_EXPORT
     int bacapp_decode_application_data_len(
         uint8_t * apdu,
         unsigned max_apdu_len);
+    BACNET_STACK_EXPORT
     int bacapp_decode_context_data_len(
         uint8_t * apdu,
         unsigned max_apdu_len,
@@ -219,6 +236,7 @@ extern "C" {
 #endif
 
 #ifdef BACAPP_SNPRINTF_ENABLED
+    BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,
         size_t str_len,
@@ -226,10 +244,12 @@ extern "C" {
 #endif
 
 #ifdef BACAPP_PRINT_ENABLED
+    BACNET_STACK_EXPORT
     bool bacapp_parse_application_data(
         BACNET_APPLICATION_TAG tag_number,
         const char *argv,
         BACNET_APPLICATION_DATA_VALUE * value);
+    BACNET_STACK_EXPORT
     bool bacapp_print_value(
         FILE * stream,
         BACNET_OBJECT_PROPERTY_VALUE * value);
@@ -242,12 +262,15 @@ extern "C" {
 #ifdef TEST
 #include "ctest.h"
 #include "bacnet/datetime.h"
+    BACNET_STACK_EXPORT
     bool bacapp_same_value(
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_DATA_VALUE * test_value);
 
+    BACNET_STACK_EXPORT
     void testBACnetApplicationDataLength(
         Test * pTest);
+    BACNET_STACK_EXPORT
     void testBACnetApplicationData(
         Test * pTest);
 #endif

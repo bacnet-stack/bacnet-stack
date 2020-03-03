@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
@@ -35,7 +36,8 @@
    doing client requests */
 
 /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-extern uint8_t Handler_Transmit_Buffer[MAX_PDU];
+BACNET_STACK_EXPORT extern
+uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 #if (!MAX_TSM_TRANSACTIONS)
 #define tsm_free_invoke_id(x) (void)x;
@@ -94,24 +96,32 @@ typedef void (
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void tsm_set_timeout_handler(
         tsm_timeout_function pFunction);
 
+    BACNET_STACK_EXPORT
     bool tsm_transaction_available(
         void);
+    BACNET_STACK_EXPORT
     uint8_t tsm_transaction_idle_count(
         void);
+    BACNET_STACK_EXPORT
     void tsm_timer_milliseconds(
         uint16_t milliseconds);
 /* free the invoke ID when the reply comes back */
+    BACNET_STACK_EXPORT
     void tsm_free_invoke_id(
         uint8_t invokeID);
 /* use these in tandem */
+    BACNET_STACK_EXPORT
     uint8_t tsm_next_free_invokeID(
         void);
+    BACNET_STACK_EXPORT
     void tsm_invokeID_set(
         uint8_t invokeID);
 /* returns the same invoke ID that was given */
+    BACNET_STACK_EXPORT
     void tsm_set_confirmed_unsegmented_transaction(
         uint8_t invokeID,
         BACNET_ADDRESS * dest,
@@ -119,6 +129,7 @@ extern "C" {
         uint8_t * apdu,
         uint16_t apdu_len);
 /* returns true if transaction is found */
+    BACNET_STACK_EXPORT
     bool tsm_get_transaction_pdu(
         uint8_t invokeID,
         BACNET_ADDRESS * dest,
@@ -126,8 +137,10 @@ extern "C" {
         uint8_t * apdu,
         uint16_t * apdu_len);
 
+    BACNET_STACK_EXPORT
     bool tsm_invoke_id_free(
         uint8_t invokeID);
+    BACNET_STACK_EXPORT
     bool tsm_invoke_id_failed(
         uint8_t invokeID);
 

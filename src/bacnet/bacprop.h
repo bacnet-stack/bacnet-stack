@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 
 typedef struct {
@@ -37,11 +38,13 @@ typedef struct {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     signed bacprop_tag_by_index_default(
         PROP_TAG_DATA * data_list,
         signed index,
         signed default_ret);
 
+    BACNET_STACK_EXPORT
     signed bacprop_property_tag(
         BACNET_OBJECT_TYPE type,
         signed prop);

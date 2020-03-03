@@ -25,24 +25,33 @@
 #ifndef DLENV_H
 #define DLENV_H
 
+#include "bacnet/bacnet_stack_exports.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void dlenv_init(
         void);
+    BACNET_STACK_EXPORT
     int dlenv_register_as_foreign_device(
         void);
+    BACNET_STACK_EXPORT
     void dlenv_maintenance_timer(
         uint16_t elapsed_seconds);
 
     /* Simple setters and getter. */
+    BACNET_STACK_EXPORT
     void dlenv_bbmd_address_set(
         long address);
+    BACNET_STACK_EXPORT
     void dlenv_bbmd_port_set(
         int port);
+    BACNET_STACK_EXPORT
     void dlenv_bbmd_ttl_set(
         int ttl_secs);
+    BACNET_STACK_EXPORT
     int dlenv_bbmd_result(
         void);
 

@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacstr.h"
 
@@ -59,17 +60,20 @@ extern "C" {
 
 /* Atomic Read File */
 /* encode service */
+    BACNET_STACK_EXPORT
     int arf_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_ATOMIC_READ_FILE_DATA * data);
 
 /* decode the service request only */
+    BACNET_STACK_EXPORT
     int arf_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_ATOMIC_READ_FILE_DATA * data);
 
+    BACNET_STACK_EXPORT
     int arf_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -79,17 +83,20 @@ extern "C" {
 /* Atomic Read File Ack */
 
 /* encode service */
+    BACNET_STACK_EXPORT
     int arf_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_ATOMIC_READ_FILE_DATA * data);
 
 /* decode the service request only */
+    BACNET_STACK_EXPORT
     int arf_ack_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_ATOMIC_READ_FILE_DATA * data);
 
+    BACNET_STACK_EXPORT
     int arf_ack_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -99,8 +106,10 @@ extern "C" {
 #ifdef TEST
 #include "ctest.h"
 
+    BACNET_STACK_EXPORT
     void test_AtomicReadFile(
         Test * pTest);
+    BACNET_STACK_EXPORT
     void test_AtomicReadFileAck(
         Test * pTest);
 #endif

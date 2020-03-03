@@ -24,6 +24,7 @@
 #ifndef DATALINK_H
 #define DATALINK_H
 
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 
@@ -72,7 +73,8 @@
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #ifdef BAC_ROUTING
-extern void routed_get_my_address(
+BACNET_STACK_EXPORT
+void routed_get_my_address(
     BACNET_ADDRESS * my_address);
 #define datalink_get_my_address routed_get_my_address
 #else
@@ -99,25 +101,32 @@ extern void routed_get_my_address(
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int datalink_send_pdu(
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * npdu_data,
         uint8_t * pdu,
         unsigned pdu_len);
-    extern uint16_t datalink_receive(
+    BACNET_STACK_EXPORT
+    uint16_t datalink_receive(
         BACNET_ADDRESS * src,
         uint8_t * pdu,
         uint16_t max_pdu,
         unsigned timeout);
-    extern void datalink_cleanup(
+    BACNET_STACK_EXPORT
+    void datalink_cleanup(
         void);
-    extern void datalink_get_broadcast_address(
+    BACNET_STACK_EXPORT
+    void datalink_get_broadcast_address(
         BACNET_ADDRESS * dest);
-    extern void datalink_get_my_address(
+    BACNET_STACK_EXPORT
+    void datalink_get_my_address(
         BACNET_ADDRESS * my_address);
-    extern void datalink_set_interface(
+    BACNET_STACK_EXPORT
+    void datalink_set_interface(
         char *ifname);
-    extern void datalink_set(
+    BACNET_STACK_EXPORT
+    void datalink_set(
         char *datalink_string);
 
 #ifdef __cplusplus

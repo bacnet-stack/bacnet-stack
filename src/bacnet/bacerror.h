@@ -26,12 +26,14 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int bacerror_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
@@ -39,6 +41,7 @@ extern "C" {
         BACNET_ERROR_CLASS error_class,
         BACNET_ERROR_CODE error_code);
 
+    BACNET_STACK_EXPORT
     int bacerror_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -47,6 +50,7 @@ extern "C" {
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
+    BACNET_STACK_EXPORT
     int bacerror_decode_error_class_and_code(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -55,6 +59,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     int bacerror_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -63,6 +68,7 @@ extern "C" {
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
+    BACNET_STACK_EXPORT
     void testBACError(
         Test * pTest);
 #endif

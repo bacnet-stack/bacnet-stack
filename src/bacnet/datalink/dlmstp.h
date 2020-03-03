@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 
@@ -47,14 +48,18 @@ typedef struct dlmstp_packet {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     bool dlmstp_init(
         char *ifname);
+    BACNET_STACK_EXPORT
     void dlmstp_reset(
         void);
+    BACNET_STACK_EXPORT
     void dlmstp_cleanup(
         void);
 
     /* returns number of bytes sent on success, negative on failure */
+    BACNET_STACK_EXPORT
     int dlmstp_send_pdu(
         BACNET_ADDRESS * dest,  /* destination address */
         BACNET_NPDU_DATA * npdu_data,   /* network information */
@@ -62,6 +67,7 @@ extern "C" {
         unsigned pdu_len);      /* number of bytes of data */
 
     /* returns the number of octets in the PDU, or zero on failure */
+    BACNET_STACK_EXPORT
     uint16_t dlmstp_receive(
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * pdu,  /* PDU data */
@@ -75,8 +81,10 @@ extern "C" {
     /* nodes. This may be used to allocate more or less of the available link */
     /* bandwidth to particular nodes. If Max_Info_Frames is not writable in a */
     /* node, its value shall be 1. */
+    BACNET_STACK_EXPORT
     void dlmstp_set_max_info_frames(
         uint8_t max_info_frames);
+    BACNET_STACK_EXPORT
     uint8_t dlmstp_max_info_frames(
         void);
 
@@ -85,35 +93,47 @@ extern "C" {
     /* allowable address for master nodes. The value of Max_Master shall be */
     /* less than or equal to 127. If Max_Master is not writable in a node, */
     /* its value shall be 127. */
+    BACNET_STACK_EXPORT
     void dlmstp_set_max_master(
         uint8_t max_master);
+    BACNET_STACK_EXPORT
     uint8_t dlmstp_max_master(
         void);
 
     /* MAC address 0-127 */
+    BACNET_STACK_EXPORT
     void dlmstp_set_mac_address(
         uint8_t my_address);
+    BACNET_STACK_EXPORT
     uint8_t dlmstp_mac_address(
         void);
 
+    BACNET_STACK_EXPORT
     void dlmstp_get_my_address(
         BACNET_ADDRESS * my_address);
+    BACNET_STACK_EXPORT
     void dlmstp_get_broadcast_address(
         BACNET_ADDRESS * dest); /* destination address */
 
     /* RS485 Baud Rate 9600, 19200, 38400, 57600, 115200 */
+    BACNET_STACK_EXPORT
     void dlmstp_set_baud_rate(
         uint32_t baud);
+    BACNET_STACK_EXPORT
     uint32_t dlmstp_baud_rate(
         void);
 
+    BACNET_STACK_EXPORT
     void dlmstp_fill_bacnet_address(
         BACNET_ADDRESS * src,
         uint8_t mstp_address);
 
+    BACNET_STACK_EXPORT
     bool dlmstp_sole_master(
         void);
+    BACNET_STACK_EXPORT
     bool dlmstp_send_pdu_queue_empty(void);
+    BACNET_STACK_EXPORT
     bool dlmstp_send_pdu_queue_full(void);
 
 #ifdef __cplusplus

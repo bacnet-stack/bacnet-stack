@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,6 +42,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     uint8_t Send_Read_Property_Request_Address(
         BACNET_ADDRESS * dest,
         uint16_t max_apdu,
@@ -48,6 +50,7 @@ extern "C" {
         uint32_t object_instance,
         BACNET_PROPERTY_ID object_property,
         uint32_t array_index);
+    BACNET_STACK_EXPORT
     uint8_t Send_Read_Property_Request(
         uint32_t device_id,     /* destination device */
         BACNET_OBJECT_TYPE object_type,

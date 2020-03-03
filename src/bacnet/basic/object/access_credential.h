@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/datetime.h"
@@ -75,45 +76,60 @@ extern "C" {
             assigned_access_rights[MAX_ASSIGNED_ACCESS_RIGHTS];
     } ACCESS_CREDENTIAL_DESCR;
 
+    BACNET_STACK_EXPORT
     void Access_Credential_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    BACNET_STACK_EXPORT
     bool Access_Credential_Valid_Instance(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     unsigned Access_Credential_Count(
         void);
+    BACNET_STACK_EXPORT
     uint32_t Access_Credential_Index_To_Instance(
         unsigned index);
+    BACNET_STACK_EXPORT
     unsigned Access_Credential_Instance_To_Index(
         uint32_t instance);
+    BACNET_STACK_EXPORT
     bool Access_Credential_Object_Instance_Add(
         uint32_t instance);
 
 
+    BACNET_STACK_EXPORT
     bool Access_Credential_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
     bool Access_Credential_Name_Set(
         uint32_t object_instance,
         char *new_name);
 
+    BACNET_STACK_EXPORT
     int Access_Credential_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
+    BACNET_STACK_EXPORT
     bool Access_Credential_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
     bool Access_Credential_Create(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     bool Access_Credential_Delete(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     void Access_Credential_Cleanup(
         void);
+    BACNET_STACK_EXPORT
     void Access_Credential_Init(
         void);
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testAccessCredential(
         Test * pTest);
 #endif

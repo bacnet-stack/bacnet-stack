@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -42,6 +43,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int Send_Abort_To_Network(
         uint8_t * buffer,
         BACNET_ADDRESS *dest,
@@ -49,6 +51,7 @@ extern "C" {
         BACNET_ABORT_REASON reason,
         bool server);
 
+    BACNET_STACK_EXPORT
     int abort_encode_pdu(
         uint8_t * buffer,
         BACNET_ADDRESS * dest,

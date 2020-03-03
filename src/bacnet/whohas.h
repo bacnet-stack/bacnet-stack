@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacstr.h"
 
 typedef struct BACnet_Who_Has_Data {
@@ -43,15 +44,18 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* encode service  - use -1 for limit if you want unlimited */
+    BACNET_STACK_EXPORT
     int whohas_encode_apdu(
         uint8_t * apdu,
         BACNET_WHO_HAS_DATA * data);
 
+    BACNET_STACK_EXPORT
     int whohas_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_WHO_HAS_DATA * data);
 
+    BACNET_STACK_EXPORT
     int whohas_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -59,6 +63,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testWhoHas(
         Test * pTest);
 #endif

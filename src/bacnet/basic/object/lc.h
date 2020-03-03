@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/rp.h"
@@ -36,39 +37,51 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void Load_Control_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    BACNET_STACK_EXPORT
     void Load_Control_State_Machine_Handler(
         void);
 
+    BACNET_STACK_EXPORT
     bool Load_Control_Valid_Instance(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     unsigned Load_Control_Count(
         void);
+    BACNET_STACK_EXPORT
     uint32_t Load_Control_Index_To_Instance(
         unsigned index);
+    BACNET_STACK_EXPORT
     unsigned Load_Control_Instance_To_Index(
         uint32_t object_instance);
 
+    BACNET_STACK_EXPORT
     bool Load_Control_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
 
+    BACNET_STACK_EXPORT
     void Load_Control_Init(
         void);
+    BACNET_STACK_EXPORT
     void Load_Control_State_Machine(
         int object_index);
 
+    BACNET_STACK_EXPORT
     int Load_Control_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
 
+    BACNET_STACK_EXPORT
     bool Load_Control_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testLoadControl(
         Test * pTest);
 #endif

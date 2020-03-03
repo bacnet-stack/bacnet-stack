@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 
 /* BACnetLightingCommand ::= SEQUENCE {
@@ -58,20 +59,25 @@ typedef struct BACnetLightingCommand {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int lighting_command_encode(
         uint8_t * apdu,
         BACNET_LIGHTING_COMMAND * data);
+    BACNET_STACK_EXPORT
     int lighting_command_encode_context(
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_LIGHTING_COMMAND * value);
+    BACNET_STACK_EXPORT
     int lighting_command_decode(
         uint8_t * apdu,
         unsigned apdu_max_len,
         BACNET_LIGHTING_COMMAND * data);
+    BACNET_STACK_EXPORT
     bool lighting_command_copy(
         BACNET_LIGHTING_COMMAND * dst,
         BACNET_LIGHTING_COMMAND * src);
+    BACNET_STACK_EXPORT
     bool lighting_command_same(
         BACNET_LIGHTING_COMMAND * dst,
         BACNET_LIGHTING_COMMAND * src);
