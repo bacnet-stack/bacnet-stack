@@ -505,6 +505,7 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
+  $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
   PRIVATE
   -DPRINT_ENABLED=1)
 target_link_libraries(${PROJECT_NAME} PUBLIC $<$<BOOL:${WIN32}>:wsock32> Threads::Threads)
