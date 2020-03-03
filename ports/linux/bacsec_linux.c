@@ -22,7 +22,7 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *********************************************************************/
-#include "bacsec.h"
+#include "bacnet/datalink/bacsec.h"
 #include <string.h>
 #include <time.h>
 #include <openssl/evp.h>
@@ -39,9 +39,18 @@ BACNET_UPDATE_DISTRIBUTION_KEY distribution_key;
 BACNET_UPDATE_KEY_SET key_sets;
 
 static bool rand_set = false;
-static HMAC_CTX hmac_ctx;
-static EVP_CIPHER_CTX evp_ctx;
 static uint8_t tmp_buf[TMP_BUF_LEN];
+
+/* The API changed between OpenSSL 1.0 and 1.1  */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+static HMAC_CTX hmac_ctx_;
+static EVP_CIPHER_CTX evp_ctx_;
+#define hmac_ctx &hmac_ctx_
+#define evp_ctx &evp_ctx_
+#else
+static HMAC_CTX *hmac_ctx;
+static EVP_CIPHER_CTX *evp_ctx;
+#endif
 
 static uint16_t next_mult_of_16(uint16_t arg)
 {
@@ -58,20 +67,28 @@ int key_sign_msg(BACNET_KEY_ENTRY * key,
     uint8_t * signature)
 {
     uint8_t full_signature[32]; /* longest case */
-    HMAC_CTX_init(&hmac_ctx);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    HMAC_CTX_init(hmac_ctx);
+#else
+    hmac_ctx = HMAC_CTX_new();
+#endif
     switch (key_algorithm(key->key_identifier)) {
         case KIA_AES_MD5:
-            HMAC_Init_ex(&hmac_ctx, &key->key[16], 16, EVP_md5(), NULL);
+            HMAC_Init_ex(hmac_ctx, &key->key[16], 16, EVP_md5(), NULL);
             break;
         case KIA_AES_SHA256:
-            HMAC_Init_ex(&hmac_ctx, &key->key[16], 32, EVP_sha256(), NULL);
+            HMAC_Init_ex(hmac_ctx, &key->key[16], 32, EVP_sha256(), NULL);
             break;
         default:
             return -1;
     }
-    HMAC_Update(&hmac_ctx, msg, msg_len);
-    HMAC_Final(&hmac_ctx, full_signature, NULL);        /* we ignore the signature size */
-    HMAC_CTX_cleanup(&hmac_ctx);
+    HMAC_Update(hmac_ctx, msg, msg_len);
+    HMAC_Final(hmac_ctx, full_signature, NULL);        /* we ignore the signature size */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    HMAC_CTX_cleanup(hmac_ctx);
+#else
+    HMAC_CTX_free(hmac_ctx);
+#endif
     memcpy(signature, full_signature, SIGNATURE_LEN);
     return 0;
 }
@@ -82,20 +99,28 @@ bool key_verify_sign_msg(BACNET_KEY_ENTRY * key,
     uint8_t * signature)
 {
     uint8_t full_signature[32]; /* longest case */
-    HMAC_CTX_init(&hmac_ctx);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    HMAC_CTX_init(hmac_ctx);
+#else
+    hmac_ctx = HMAC_CTX_new();
+#endif
     switch (key_algorithm(key->key_identifier)) {
         case KIA_AES_MD5:
-            HMAC_Init_ex(&hmac_ctx, &key->key[16], 16, EVP_md5(), NULL);
+            HMAC_Init_ex(hmac_ctx, &key->key[16], 16, EVP_md5(), NULL);
             break;
         case KIA_AES_SHA256:
-            HMAC_Init_ex(&hmac_ctx, &key->key[16], 32, EVP_sha256(), NULL);
+            HMAC_Init_ex(hmac_ctx, &key->key[16], 32, EVP_sha256(), NULL);
             break;
         default:
             return false;
     }
-    HMAC_Update(&hmac_ctx, msg, msg_len);
-    HMAC_Final(&hmac_ctx, full_signature, NULL);        /* we ignore the signature size */
-    HMAC_CTX_cleanup(&hmac_ctx);
+    HMAC_Update(hmac_ctx, msg, msg_len);
+    HMAC_Final(hmac_ctx, full_signature, NULL);        /* we ignore the signature size */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    HMAC_CTX_cleanup(hmac_ctx);
+#else
+    HMAC_CTX_free(hmac_ctx);
+#endif
     return (memcmp(signature, full_signature,
             SIGNATURE_LEN) == 0 ? true : false);
 }
@@ -106,18 +131,26 @@ int key_encrypt_msg(BACNET_KEY_ENTRY * key,
     uint8_t * signature)
 {
     int outlen, outlen2;
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    evp_ctx = EVP_CIPHER_CTX_new();
+#endif
     switch (key_algorithm(key->key_identifier)) {
         case KIA_AES_MD5:
         case KIA_AES_SHA256:
-            EVP_EncryptInit_ex(&evp_ctx, EVP_aes_128_cbc(), NULL, key->key,
+            EVP_EncryptInit_ex(evp_ctx, EVP_aes_128_cbc(), NULL, key->key,
                 signature);
             break;
         default:
             return -1;
     }
-    EVP_EncryptUpdate(&evp_ctx, tmp_buf, &outlen, msg, msg_len);
-    EVP_EncryptFinal(&evp_ctx, &msg[outlen], &outlen2);
-    EVP_CIPHER_CTX_cleanup(&evp_ctx);
+    EVP_EncryptUpdate(evp_ctx, tmp_buf, &outlen, msg, msg_len);
+    EVP_EncryptFinal(evp_ctx, &msg[outlen], &outlen2);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_CIPHER_CTX_cleanup(evp_ctx);
+#else
+    EVP_CIPHER_CTX_free(evp_ctx);
+#endif
+    EVP_CIPHER_CTX_cleanup(evp_ctx);
     if (outlen2 != 0)
         return -1;
     memcpy(msg, tmp_buf, msg_len);
@@ -130,20 +163,27 @@ bool key_decrypt_msg(BACNET_KEY_ENTRY * key,
     uint8_t * signature)
 {
     int outlen, outlen2;
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    evp_ctx = EVP_CIPHER_CTX_new();
+#endif
     switch (key_algorithm(key->key_identifier)) {
         case KIA_AES_MD5:
         case KIA_AES_SHA256:
-            EVP_DecryptInit_ex(&evp_ctx, EVP_aes_128_cbc(), NULL, key->key,
+            EVP_DecryptInit_ex(evp_ctx, EVP_aes_128_cbc(), NULL, key->key,
                 signature);
             break;
         default:
             return false;
     }
-    if (EVP_DecryptUpdate(&evp_ctx, tmp_buf, &outlen, msg, msg_len) == 0)
+    if (EVP_DecryptUpdate(evp_ctx, tmp_buf, &outlen, msg, msg_len) == 0)
         return false;
-    if (EVP_DecryptFinal(&evp_ctx, &msg[outlen], &outlen2) == 0)
+    if (EVP_DecryptFinal(evp_ctx, &msg[outlen], &outlen2) == 0)
         return false;
-    EVP_CIPHER_CTX_cleanup(&evp_ctx);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_CIPHER_CTX_cleanup(evp_ctx);
+#else
+    EVP_CIPHER_CTX_free(evp_ctx);
+#endif
     if (outlen2 != 0)
         return false;
     memcpy(msg, tmp_buf, msg_len);

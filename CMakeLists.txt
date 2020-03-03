@@ -441,7 +441,7 @@ target_compile_definitions(
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
   PRIVATE
   -DPRINT_ENABLED=1)
-target_link_libraries(${PROJECT_NAME} PUBLIC $<$<BOOL:${WIN32}>:wsock32> Threads::Threads)
+target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
@@ -459,6 +459,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNET: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
 
+  find_package(OpenSSL REQUIRED)
+  target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::Crypto)
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
     ports/linux/datetime-init.c
@@ -472,11 +475,17 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
     # ports/linux/rx_fsm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
+    ports/linux/bacsec_linux.c
     ports/linux/mstimer-init.c)
 
 elseif(WIN32)
   message(STATUS "BACNET: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
+
+  target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
+
+  find_package(OpenSSL REQUIRED)
+  target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::Crypto)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
@@ -487,16 +496,22 @@ elseif(WIN32)
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
     #  ports/win32/dlmstp-mm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/win32/ethernet.c>
+    ports/linux/bacsec_linux.c
     ports/win32/mstimer-init.c
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+
+  find_package(OpenSSL REQUIRED)
+  target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::Crypto)
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
     ports/bsd/bip-init.c
     ports/bsd/datetime-init.c
+    ports/linux/bacsec_linux.c
     ports/bsd/mstimer-init.c
     ports/bsd/stdbool.h)
 endif()
