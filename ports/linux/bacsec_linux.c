@@ -150,7 +150,6 @@ int key_encrypt_msg(BACNET_KEY_ENTRY * key,
 #else
     EVP_CIPHER_CTX_free(evp_ctx);
 #endif
-    EVP_CIPHER_CTX_cleanup(evp_ctx);
     if (outlen2 != 0)
         return -1;
     memcpy(msg, tmp_buf, msg_len);
