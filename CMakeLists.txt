@@ -466,7 +466,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
 
   find_package(OpenSSL REQUIRED)
-  target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::Crypto)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    OpenSSL::Crypto)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
@@ -491,7 +492,11 @@ elseif(WIN32)
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
   find_package(OpenSSL REQUIRED)
-  target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::Crypto)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    winmm
+    $<$<BOOL:${BACDL_BIP}>:ws2_32>
+    $<$<BOOL:${BACDL_BIP}>:iphlpapi>
+    OpenSSL::Crypto)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/win32/bacport.h
@@ -511,7 +516,8 @@ elseif(APPLE)
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
 
   find_package(OpenSSL REQUIRED)
-  target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::Crypto)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    OpenSSL::Crypto)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h

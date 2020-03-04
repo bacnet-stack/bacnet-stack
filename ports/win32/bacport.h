@@ -26,6 +26,8 @@
 #ifndef BACPORT_H
 #define BACPORT_H
 
+#include "bacnet/bacnet_stack_exports.h"
+
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 /* Windows XP minimum */
@@ -55,7 +57,7 @@ and globals in favor of more secure versions.  */
 /* add winmm.lib to our build */
 #pragma comment(lib, "winmm.lib")
 #endif
-#include <MMSystem.h>
+#include <mmsystem.h>
 
 #if !defined(_MSC_VER)
 #include <sys/time.h>
