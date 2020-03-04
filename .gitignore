@@ -61,5 +61,6 @@ Backup*
 BACnet_BDT_table
 address_cache
 /build/*
+/_build/*
 CMakeLists.txt.user
 /out/*
