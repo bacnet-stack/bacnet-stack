@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,12 +42,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void handler_write_property(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_DATA * service_data);
 
+    BACNET_STACK_EXPORT
     bool WPValidateString(
         BACNET_APPLICATION_DATA_VALUE * pValue,
         int iMaxLen,
@@ -54,6 +57,7 @@ extern "C" {
         BACNET_ERROR_CLASS * pErrorClass,
         BACNET_ERROR_CODE * pErrorCode);
 
+    BACNET_STACK_EXPORT
     bool WPValidateArgType(
         BACNET_APPLICATION_DATA_VALUE * pValue,
         uint8_t ucExpectedType,

@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,21 +42,27 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void Send_TimeSync(
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
+    BACNET_STACK_EXPORT
     void Send_TimeSync_Remote(
         BACNET_ADDRESS * dest,
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
+    BACNET_STACK_EXPORT
     void Send_TimeSyncUTC(
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
+    BACNET_STACK_EXPORT
     void Send_TimeSyncUTC_Remote(
         BACNET_ADDRESS * dest,
         BACNET_DATE * bdate,
         BACNET_TIME * btime);
+    BACNET_STACK_EXPORT
     void Send_TimeSyncUTC_Device(void);
+    BACNET_STACK_EXPORT
     void Send_TimeSync_Device(void);
 
 #ifdef __cplusplus

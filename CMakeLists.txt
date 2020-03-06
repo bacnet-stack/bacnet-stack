@@ -76,10 +76,12 @@ message(STATUS "BACNET: BACDL_ETHERNET \"${BACDL_ETHERNET}\"")
 message(STATUS "BACNET: BACDL_NONE \"${BACDL_NONE}\"")
 
 #
-# sources
+# library
 #
 
-set(BACNETSTACK_SRCS
+find_package(Threads)
+
+add_library(${PROJECT_NAME}
     src/bacnet/abort.c
     src/bacnet/abort.h
     src/bacnet/access_rule.c
@@ -417,75 +419,6 @@ set(BACNETSTACK_SRCS
     src/bacnet/wp.h
     src/bacnet/wpm.c
     src/bacnet/wpm.h)
-
-#
-# add ports
-#
-
-set(BACNET_PORT_DIRECTORY_PATH "")
-
-if(${CMAKE_SYSTEM_NAME}
-   STREQUAL
-   "Linux")
-  message(STATUS "BACNET: building for linux")
-  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
-
-  list(
-    APPEND BACNETSTACK_SRCS
-           ports/linux/bacport.h
-           ports/linux/datetime-init.c
-           $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
-           $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
-           $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
-           $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
-           $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
-           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
-           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
-           $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
-           ports/linux/mstimer-init.c
-           # ports/linux/rx_fsm.c
-           $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>)
-
-endif()
-
-if(WIN32)
-  message(STATUS "BACNET: building for win32")
-  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
-
-  list(
-    APPEND BACNETSTACK_SRCS
-           ports/win32/bacport.h
-           $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
-           $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
-           # ports/win32/rx_fsm.c
-           ports/win32/datetime-init.c
-           $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
-           #  ports/win32/dlmstp-mm.c
-           $<$<BOOL:${BACDL_ETHERNET}>:ports/win32/ethernet.c>
-           ports/win32/mstimer-init.c
-           $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
-           $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
-endif()
-
-if(APPLE)
-  message(STATUS "BACNET: building for APPLE")
-  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
-  list(
-    APPEND BACNETSTACK_SRCS
-           ports/bsd/bacport.h
-           ports/bsd/bip-init.c
-           ports/bsd/datetime-init.c
-           ports/bsd/mstimer-init.c
-           ports/bsd/stdbool.h)
-endif()
-
-#
-# library
-#
-
-find_package(Threads)
-
-add_library(${PROJECT_NAME})
 target_sources(
   ${PROJECT_NAME}
   PRIVATE
@@ -493,12 +426,17 @@ target_sources(
 target_include_directories(
   ${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/>
-         $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>
          $<INSTALL_INTERFACE:include/bacnet/>)
+if(BUILD_SHARED_LIBS)
+  set_target_properties(
+    ${PROJECT_NAME}
+    PROPERTIES
+      C_VISIBILITY_PRESET hidden)
+endif()
 target_compile_definitions(
   ${PROJECT_NAME}
   PUBLIC
-  -DBACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
+  BACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
@@ -506,14 +444,79 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_ETHERNET}>:BACDL_ETHERNET>
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS>
+  $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
+  $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
-  -DPRINT_ENABLED=1)
-target_link_libraries(${PROJECT_NAME} PUBLIC $<$<BOOL:${WIN32}>:wsock32> Threads::Threads)
+  PRINT_ENABLED=1)
+target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
   ALIAS
   ${PROJECT_NAME})
+
+#
+# add ports
+#
+
+set(BACNET_PORT_DIRECTORY_PATH "")
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "BACNET: building for linux")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    ports/linux/bacport.h
+    ports/linux/datetime-init.c
+    $<$<BOOL:${BACDL_BIP}>:ports/linux/bip-init.c>
+    $<$<BOOL:${BACDL_BIP6}>:ports/linux/bip6.c>
+    $<$<BOOL:${BACDL_ARCNET}>:ports/linux/arcnet.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/rs485.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
+    # ports/linux/rx_fsm.c
+    $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
+    ports/linux/mstimer-init.c)
+
+elseif(WIN32)
+  message(STATUS "BACNET: building for win32")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
+
+  target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
+
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    winmm
+    $<$<BOOL:${BACDL_BIP}>:ws2_32>
+    $<$<BOOL:${BACDL_BIP}>:iphlpapi>)
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    ports/win32/bacport.h
+    $<$<BOOL:${BACDL_BIP6}>:ports/win32/bip6.c>
+    $<$<BOOL:${BACDL_BIP}>:ports/win32/bip-init.c>
+    # ports/win32/rx_fsm.c
+    ports/win32/datetime-init.c
+    $<$<BOOL:${BACDL_MSTP}>:ports/win32/dlmstp.c>
+    #  ports/win32/dlmstp-mm.c
+    $<$<BOOL:${BACDL_ETHERNET}>:ports/win32/ethernet.c>
+    ports/win32/mstimer-init.c
+    $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/win32/rs485.h>)
+elseif(APPLE)
+  message(STATUS "BACNET: building for APPLE")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    ports/bsd/bacport.h
+    ports/bsd/bip-init.c
+    ports/bsd/datetime-init.c
+    ports/bsd/mstimer-init.c
+    ports/bsd/stdbool.h)
+endif()
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>)
 
 #
 # examples

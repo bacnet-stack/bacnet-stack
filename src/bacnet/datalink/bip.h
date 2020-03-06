@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacport.h"
@@ -46,27 +47,36 @@ extern "C" {
     /* note: define init, set_interface, and cleanup in your port */
     /* on Linux, ifname is eth0, ath0, arc0, and others.
        on Windows, ifname is the dotted ip address of the interface */
+    BACNET_STACK_EXPORT
     bool bip_init(
         char *ifname);
+    BACNET_STACK_EXPORT
     void bip_set_interface(
         char *ifname);
+    BACNET_STACK_EXPORT
     void bip_cleanup(
         void);
 
     /* common BACnet/IP functions */
+    BACNET_STACK_EXPORT
     void bip_set_socket(
         int sock_fd);
+    BACNET_STACK_EXPORT
     int bip_socket(
         void);
+    BACNET_STACK_EXPORT
     bool bip_valid(
         void);
+    BACNET_STACK_EXPORT
     void bip_get_broadcast_address(
         BACNET_ADDRESS * dest); /* destination address */
+    BACNET_STACK_EXPORT
     void bip_get_my_address(
         BACNET_ADDRESS * my_address);
 
     /* function to send a packet out the BACnet/IP socket */
     /* returns zero on success, non-zero on failure */
+    BACNET_STACK_EXPORT
     int bip_send_pdu(
         BACNET_ADDRESS * dest,  /* destination address */
         BACNET_NPDU_DATA * npdu_data,   /* network information */
@@ -75,6 +85,7 @@ extern "C" {
 
     /* receives a BACnet/IP packet */
     /* returns the number of octets in the PDU, or zero on failure */
+    BACNET_STACK_EXPORT
     uint16_t bip_receive(
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * pdu,  /* PDU data */
@@ -82,24 +93,31 @@ extern "C" {
         unsigned timeout);      /* milliseconds to wait for a packet */
 
     /* use network byte order for setting */
+    BACNET_STACK_EXPORT
     void bip_set_port(
         uint16_t port);
+    BACNET_STACK_EXPORT
     bool bip_port_changed(void);
     /* returns network byte order */
+    BACNET_STACK_EXPORT
     uint16_t bip_get_port(
         void);
 
     /* use network byte order for setting */
+    BACNET_STACK_EXPORT
     void bip_set_addr(
         uint32_t net_address);
     /* returns network byte order */
+    BACNET_STACK_EXPORT
     uint32_t bip_get_addr(
         void);
 
     /* use network byte order for setting */
+    BACNET_STACK_EXPORT
     void bip_set_broadcast_addr(
         uint32_t net_address);
     /* returns network byte order */
+    BACNET_STACK_EXPORT
     uint32_t bip_get_broadcast_addr(
         void);
 
@@ -108,6 +126,7 @@ extern "C" {
        a name that is a domain name
        returns 0 if not found, or
        an IP address in network byte order */
+    BACNET_STACK_EXPORT
     long bip_getaddrbyname(
         const char *host_name);
 

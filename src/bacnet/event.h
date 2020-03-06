@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
@@ -151,6 +152,7 @@ extern "C" {
 ** Creates a Confirmed Event Notification APDU
 **
 ****************************************************/
+    BACNET_STACK_EXPORT
     int cevent_notify_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
@@ -161,6 +163,7 @@ extern "C" {
 ** Creates an Unconfirmed Event Notification APDU
 **
 ****************************************************/
+    BACNET_STACK_EXPORT
     int uevent_notify_encode_apdu(
         uint8_t * apdu,
         BACNET_EVENT_NOTIFICATION_DATA * data);
@@ -170,6 +173,7 @@ extern "C" {
 ** Encodes the service data part of Event Notification
 **
 ****************************************************/
+    BACNET_STACK_EXPORT
     int event_notify_encode_service_request(
         uint8_t * apdu,
         BACNET_EVENT_NOTIFICATION_DATA * data);
@@ -179,6 +183,7 @@ extern "C" {
 ** Decodes the service data part of Event Notification
 **
 ****************************************************/
+    BACNET_STACK_EXPORT
     int event_notify_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -189,6 +194,7 @@ extern "C" {
 ** Sends an Unconfirmed Event Notifcation to a dest
 **
 ****************************************************/
+    BACNET_STACK_EXPORT
     int uevent_notify_send(
         uint8_t * buffer,
         BACNET_EVENT_NOTIFICATION_DATA * data,

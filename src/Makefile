@@ -9,6 +9,12 @@
 #
 # Assumes rm and cp are available
 
+CFLAGS += -Dbacnet_stack_EXPORTS
+
+ifeq ($(STATIC),1)
+  CFLAGS += -DBACNET_STACK_STATIC_DEFINE
+endif
+
 # These might be already defined in an previous Makefile
 BACNET_PORT ?= linux
 BACNET_SRC_DIR ?= $(realpath .)
@@ -22,7 +28,7 @@ BACNET_PORT_SRC ?= \
 BACNET_INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
 CFLAGS += $(BACNET_INCLUDES)
 
-BACNET_SRC ?= main.c \
+BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
@@ -42,7 +48,7 @@ all: $(OBJS) Makefile
 
 depend:
 	rm -f .depend
-	${CC} -MM ${CFLAGS} *.c >> .depend
+	${CC} -MM ${CFLAGS} $(BACNET_SRC) >> .depend
 
 clean:
 	rm -rf core $(OBJS) $(LIBRARY)

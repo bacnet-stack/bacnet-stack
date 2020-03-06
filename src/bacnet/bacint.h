@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "bacnet/bacnet_stack_exports.h"
 
 #ifdef UINT64_MAX
 typedef uint64_t BACNET_UNSIGNED_INTEGER;
@@ -41,80 +42,104 @@ extern "C" {
 #endif /* __cplusplus */
 
     /* unsigned value encoding and decoding */
+    BACNET_STACK_EXPORT
     int encode_unsigned16(
         uint8_t * apdu,
         uint16_t value);
+    BACNET_STACK_EXPORT
     int decode_unsigned16(
         uint8_t * apdu,
         uint16_t * value);
+    BACNET_STACK_EXPORT
     int encode_unsigned24(
         uint8_t * apdu,
         uint32_t value);
+    BACNET_STACK_EXPORT
     int decode_unsigned24(
         uint8_t * apdu,
         uint32_t * value);
+    BACNET_STACK_EXPORT
     int encode_unsigned32(
         uint8_t * apdu,
         uint32_t value);
+    BACNET_STACK_EXPORT
     int decode_unsigned32(
         uint8_t * apdu,
         uint32_t * value);
 #ifdef UINT64_MAX
+    BACNET_STACK_EXPORT
     int encode_unsigned40(
         uint8_t * buffer,
         uint64_t value);
+    BACNET_STACK_EXPORT
     int decode_unsigned40(
         uint8_t * buffer,
         uint64_t * value);
+    BACNET_STACK_EXPORT
     int encode_unsigned48(
         uint8_t * buffer,
         uint64_t value);
+    BACNET_STACK_EXPORT
     int decode_unsigned48(
         uint8_t * buffer,
         uint64_t * value);
+    BACNET_STACK_EXPORT
     int encode_unsigned56(
         uint8_t * buffer,
         uint64_t value);
+    BACNET_STACK_EXPORT
     int decode_unsigned56(
         uint8_t * buffer,
         uint64_t * value);
+    BACNET_STACK_EXPORT
     int encode_unsigned64(
         uint8_t * buffer,
         uint64_t value);
+    BACNET_STACK_EXPORT
     int decode_unsigned64(
         uint8_t * buffer,
         uint64_t * value);
 #endif
+    BACNET_STACK_EXPORT
     int bacnet_unsigned_length(
         BACNET_UNSIGNED_INTEGER value);
     /* signed value encoding and decoding */
+    BACNET_STACK_EXPORT
     int encode_signed8(
         uint8_t * apdu,
         int8_t value);
+    BACNET_STACK_EXPORT
     int decode_signed8(
         uint8_t * apdu,
         int32_t * value);
+    BACNET_STACK_EXPORT
     int encode_signed16(
         uint8_t * apdu,
         int16_t value);
+    BACNET_STACK_EXPORT
     int decode_signed16(
         uint8_t * apdu,
         int32_t * value);
+    BACNET_STACK_EXPORT
     int encode_signed24(
         uint8_t * apdu,
         int32_t value);
+    BACNET_STACK_EXPORT
     int decode_signed24(
         uint8_t * apdu,
         int32_t * value);
+    BACNET_STACK_EXPORT
     int encode_signed32(
         uint8_t * apdu,
         int32_t value);
+    BACNET_STACK_EXPORT
     int decode_signed32(
         uint8_t * apdu,
         int32_t * value);
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testBACnetIntegers(
         Test * pTest);
 #endif

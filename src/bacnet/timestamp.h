@@ -24,6 +24,7 @@
 #ifndef _TIMESTAMP_H_
 #define _TIMESTAMP_H_
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 
@@ -48,34 +49,42 @@ typedef struct BACnet_Timestamp {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void bacapp_timestamp_sequence_set(
         BACNET_TIMESTAMP * dest,
         uint16_t sequenceNum);
 
+    BACNET_STACK_EXPORT
     void bacapp_timestamp_time_set(
         BACNET_TIMESTAMP * dest,
         BACNET_TIME *btime);
 
+    BACNET_STACK_EXPORT
     void bacapp_timestamp_datetime_set(
         BACNET_TIMESTAMP * dest,
         BACNET_DATE_TIME * bdateTime);
 
+    BACNET_STACK_EXPORT
     void bacapp_timestamp_copy(
         BACNET_TIMESTAMP * dest,
         BACNET_TIMESTAMP * src);
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_timestamp(
         uint8_t * apdu,
         BACNET_TIMESTAMP * value);
+    BACNET_STACK_EXPORT
     int bacapp_decode_timestamp(
         uint8_t * apdu,
         BACNET_TIMESTAMP * value);
 
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_context_timestamp(
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIMESTAMP * value);
+    BACNET_STACK_EXPORT
     int bacapp_decode_context_timestamp(
         uint8_t * apdu,
         uint8_t tag_number,

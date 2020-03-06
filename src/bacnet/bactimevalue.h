@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
@@ -42,16 +43,20 @@ typedef struct {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_time_value(uint8_t * apdu,
         BACNET_TIME_VALUE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_context_time_value(uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIME_VALUE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_decode_time_value(uint8_t * apdu,
         BACNET_TIME_VALUE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_decode_context_time_value(uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIME_VALUE * value);

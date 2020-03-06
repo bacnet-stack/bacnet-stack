@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
@@ -41,15 +42,18 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void handler_read_property_multiple_ack(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src,
         BACNET_CONFIRMED_SERVICE_ACK_DATA * service_data);
+    BACNET_STACK_EXPORT
     int rpm_ack_decode_service_request(
         uint8_t * apdu,
         int apdu_len,
         BACNET_READ_ACCESS_DATA * read_access_data);
+    BACNET_STACK_EXPORT
     void rpm_ack_print_data(
         BACNET_READ_ACCESS_DATA * rpm_data);
 

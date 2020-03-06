@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacenum.h"
@@ -54,38 +55,46 @@ typedef struct BACnetDeviceObjectReference {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_device_obj_property_ref(
         uint8_t * apdu,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_context_device_obj_property_ref(
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_decode_device_obj_property_ref(
         uint8_t * apdu,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_decode_context_device_obj_property_ref(
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_device_obj_ref(
         uint8_t * apdu,
         BACNET_DEVICE_OBJECT_REFERENCE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_context_device_obj_ref(
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_DEVICE_OBJECT_REFERENCE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_decode_device_obj_ref(
         uint8_t * apdu,
         BACNET_DEVICE_OBJECT_REFERENCE * value);
 
+    BACNET_STACK_EXPORT
     int bacapp_decode_context_device_obj_ref(
         uint8_t * apdu,
         uint8_t tag_number,
@@ -93,6 +102,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testBACnetDeviceObjectPropertyReference(
         Test * pTest);
 #endif

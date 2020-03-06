@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,6 +42,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 uint8_t Send_Device_Communication_Control_Request(
     uint32_t device_id, uint16_t timeDuration,
     BACNET_COMMUNICATION_ENABLE_DISABLE state, char *password);

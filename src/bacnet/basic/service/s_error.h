@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,6 +42,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int Send_Error_To_Network(
         uint8_t * buffer,
         BACNET_ADDRESS *dest,
@@ -49,6 +51,7 @@ extern "C" {
         BACNET_ERROR_CLASS error_class,
         BACNET_ERROR_CODE error_code);
 
+    BACNET_STACK_EXPORT
     int error_encode_pdu(
         uint8_t * buffer,
         BACNET_ADDRESS * dest,

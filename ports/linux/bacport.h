@@ -99,10 +99,12 @@
 #include <sys/un.h>
 #include <sys/ioctl.h>
 #include <netdb.h>
+#include "bacnet/bacnet_stack_exports.h"
 
 /** @file linux/net.h  Includes Linux network headers. */
 
 /* Local helper functions for this port */
+BACNET_STACK_EXPORT
 extern int bip_get_local_netmask(
     struct in_addr *netmask);
 

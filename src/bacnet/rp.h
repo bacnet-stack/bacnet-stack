@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 
@@ -61,38 +62,45 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* encode service */
+    BACNET_STACK_EXPORT
     int rp_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
 /* decode the service request only */
+    BACNET_STACK_EXPORT
     int rp_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     /* method to encode the ack without extra buffer */
+    BACNET_STACK_EXPORT
     int rp_ack_encode_apdu_init(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
+    BACNET_STACK_EXPORT
     int rp_ack_encode_apdu_object_property_end(
         uint8_t * apdu);
 
     /* method to encode the ack using extra buffer */
+    BACNET_STACK_EXPORT
     int rp_ack_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
+    BACNET_STACK_EXPORT
     int rp_ack_decode_service_request(
         uint8_t * apdu,
         int apdu_len,   /* total length of the apdu */
         BACNET_READ_PROPERTY_DATA * rpdata);
 
     /* Decode instead to RPM-style data structure. */
+    BACNET_STACK_EXPORT
     int rp_ack_fully_decode_service_request(
         uint8_t * apdu,
         int apdu_len,
@@ -100,20 +108,24 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     int rp_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
         uint8_t * invoke_id,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
+    BACNET_STACK_EXPORT
     int rp_ack_decode_apdu(
         uint8_t * apdu,
         int apdu_len,   /* total length of the apdu */
         uint8_t * invoke_id,
         BACNET_READ_PROPERTY_DATA * rpdata);
 
+    BACNET_STACK_EXPORT
     void test_ReadProperty(
         Test * pTest);
+    BACNET_STACK_EXPORT
     void test_ReadPropertyAck(
         Test * pTest);
 #endif

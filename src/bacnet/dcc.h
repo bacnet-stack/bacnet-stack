@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacstr.h"
 
@@ -34,27 +35,35 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* return the status */
+    BACNET_STACK_EXPORT
     BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(
         void);
+    BACNET_STACK_EXPORT
     bool dcc_communication_enabled(
         void);
+    BACNET_STACK_EXPORT
     bool dcc_communication_disabled(
         void);
+    BACNET_STACK_EXPORT
     bool dcc_communication_initiation_disabled(
         void);
 /* return the time */
+    BACNET_STACK_EXPORT
     uint32_t dcc_duration_seconds(
         void);
 /* called every second or so.  If more than one second,
   then seconds should be the number of seconds to tick away */
+    BACNET_STACK_EXPORT
     void dcc_timer_seconds(
         uint32_t seconds);
 /* setup the communication values */
+    BACNET_STACK_EXPORT
     bool dcc_set_status_duration(
         BACNET_COMMUNICATION_ENABLE_DISABLE status,
         uint16_t minutes);
 
 /* encode service */
+    BACNET_STACK_EXPORT
     int dcc_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
@@ -63,6 +72,7 @@ extern "C" {
         BACNET_CHARACTER_STRING * password);    /* NULL=optional */
 
 /* decode the service request only */
+    BACNET_STACK_EXPORT
     int dcc_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -72,6 +82,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     int dcc_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -80,6 +91,7 @@ extern "C" {
         BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
         BACNET_CHARACTER_STRING * password);
 
+    BACNET_STACK_EXPORT
     void test_DeviceCommunicationControl(
         Test * pTest);
 #endif

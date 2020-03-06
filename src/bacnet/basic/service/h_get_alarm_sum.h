@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
@@ -41,10 +42,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void handler_get_alarm_summary_set(
         BACNET_OBJECT_TYPE object_type,
         get_alarm_summary_function pFunction);
 
+    BACNET_STACK_EXPORT
     void handler_get_alarm_summary(
         uint8_t * service_request,
         uint16_t service_len,

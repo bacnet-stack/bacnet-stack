@@ -33,6 +33,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/bacdef.h"
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/datalink/bvlc6.h"
 
 #ifdef __cplusplus
@@ -40,19 +41,24 @@ extern "C" {
 #endif /* __cplusplus */
 
     /* user application function prototypes */
+    BACNET_STACK_EXPORT
     int bvlc6_handler(
         BACNET_IP6_ADDRESS *addr,
         BACNET_ADDRESS * src,
         uint8_t * npdu,
         uint16_t npdu_len);
+    BACNET_STACK_EXPORT
     int bvlc6_register_with_bbmd(
         BACNET_IP6_ADDRESS *bbmd_addr,
         uint32_t vmac_src,
         uint16_t time_to_live_seconds);
+    BACNET_STACK_EXPORT
     uint16_t bvlc6_get_last_result(
         void);
+    BACNET_STACK_EXPORT
     uint8_t bvlc6_get_function_code(
         void);
+    BACNET_STACK_EXPORT
     void bvlc6_init(void);
 
 

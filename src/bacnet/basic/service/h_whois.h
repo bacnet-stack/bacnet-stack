@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
@@ -40,21 +41,25 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void handler_who_is(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
+    BACNET_STACK_EXPORT
     void handler_who_is_unicast(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
+    BACNET_STACK_EXPORT
     void handler_who_is_bcast_for_routing(
         uint8_t * service_request,
         uint16_t service_len,
         BACNET_ADDRESS * src);
 
+    BACNET_STACK_EXPORT
     void handler_who_is_unicast_for_routing(
         uint8_t * service_request,
         uint16_t service_len,

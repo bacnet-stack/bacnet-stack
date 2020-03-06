@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/datalink/mstpdef.h"
 
 struct mstp_port_struct_t {
@@ -173,21 +174,27 @@ struct mstp_port_struct_t {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void MSTP_Init(
         volatile struct mstp_port_struct_t *mstp_port);
+    BACNET_STACK_EXPORT
     void MSTP_Receive_Frame_FSM(
         volatile struct mstp_port_struct_t
         *mstp_port);
+    BACNET_STACK_EXPORT
     bool MSTP_Master_Node_FSM(
         volatile struct mstp_port_struct_t
         *mstp_port);
+    BACNET_STACK_EXPORT
     void MSTP_Slave_Node_FSM(
         volatile struct mstp_port_struct_t *mstp_port);
 
     /* returns true if line is active */
+    BACNET_STACK_EXPORT
     bool MSTP_Line_Active(
         volatile struct mstp_port_struct_t *mstp_port);
 
+    BACNET_STACK_EXPORT
     uint16_t MSTP_Create_Frame(
         uint8_t * buffer,       /* where frame is loaded */
         uint16_t buffer_len,    /* amount of space available */
@@ -197,6 +204,7 @@ extern "C" {
         uint8_t * data, /* any data to be sent - may be null */
         uint16_t data_len);     /* number of bytes of data (up to 501) */
 
+    BACNET_STACK_EXPORT
     void MSTP_Create_And_Send_Frame(
         volatile struct mstp_port_struct_t *mstp_port,  /* port to send from */
         uint8_t frame_type,     /* type of frame to send - see defines */
@@ -205,23 +213,27 @@ extern "C" {
         uint8_t * data, /* any data to be sent - may be null */
         uint16_t data_len);
 
+    BACNET_STACK_EXPORT
     void MSTP_Fill_BACnet_Address(
         BACNET_ADDRESS * src,
         uint8_t mstp_address);
 
     /* functions used by the MS/TP state machine to put or get data */
     /* FIXME: developer must implement these in their DLMSTP module */
+    BACNET_STACK_EXPORT
     uint16_t MSTP_Put_Receive(
         volatile struct mstp_port_struct_t *mstp_port);
 
     /* for the MS/TP state machine to use for getting data to send */
     /* Return: amount of PDU data */
+    BACNET_STACK_EXPORT
     uint16_t MSTP_Get_Send(
         volatile struct mstp_port_struct_t *mstp_port,
         unsigned timeout);      /* milliseconds to wait for a packet */
     /* for the MS/TP state machine to use for getting the reply for
        Data-Expecting-Reply Frame */
     /* Return: amount of PDU data */
+    BACNET_STACK_EXPORT
     uint16_t MSTP_Get_Reply(
         volatile struct mstp_port_struct_t *mstp_port,
         unsigned timeout);      /* milliseconds to wait for a packet */

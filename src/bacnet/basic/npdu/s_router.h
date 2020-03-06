@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,27 +42,34 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void npdu_encode_npdu_network(
         BACNET_NPDU_DATA *npdu_data,
         BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         bool data_expecting_reply,
         BACNET_MESSAGE_PRIORITY priority);
+    BACNET_STACK_EXPORT
     int Send_Network_Layer_Message(
         BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         BACNET_ADDRESS * dst,
         int *iArgs);
+    BACNET_STACK_EXPORT
     void Send_Who_Is_Router_To_Network(
         BACNET_ADDRESS * dst,
         int dnet);
+    BACNET_STACK_EXPORT
     void Send_I_Am_Router_To_Network(
         const int DNET_list[]);
+    BACNET_STACK_EXPORT
     void Send_Reject_Message_To_Network(
         BACNET_ADDRESS * dst,
         uint8_t reject_reason,
         int dnet);
+    BACNET_STACK_EXPORT
     void Send_Initialize_Routing_Table(
         BACNET_ADDRESS * dst,
         const int DNET_list[]);
+    BACNET_STACK_EXPORT
     void Send_Initialize_Routing_Table_Ack(
         BACNET_ADDRESS * dst,
         const int DNET_list[]);

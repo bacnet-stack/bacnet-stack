@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 
@@ -64,25 +65,30 @@ typedef struct router_port_t {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     uint8_t npdu_encode_max_seg_max_apdu(
         int max_segs,
         int max_apdu);
 
+    BACNET_STACK_EXPORT
     int npdu_encode_pdu(
         uint8_t * npdu,
         BACNET_ADDRESS * dest,
         BACNET_ADDRESS * src,
         BACNET_NPDU_DATA * npdu_data);
 
+    BACNET_STACK_EXPORT
     void npdu_encode_npdu_data(
         BACNET_NPDU_DATA * npdu,
         bool data_expecting_reply,
         BACNET_MESSAGE_PRIORITY priority);
 
+    BACNET_STACK_EXPORT
     void npdu_copy_data(
         BACNET_NPDU_DATA * dest,
         BACNET_NPDU_DATA * src);
 
+    BACNET_STACK_EXPORT
     int npdu_decode(
         uint8_t * npdu,
         BACNET_ADDRESS * dest,

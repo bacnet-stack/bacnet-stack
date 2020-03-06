@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,8 +42,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+BACNET_STACK_EXPORT
 uint8_t Send_GetEvent(BACNET_ADDRESS* target_address,
                       BACNET_OBJECT_ID* lastReceivedObjectIdentifier);
+BACNET_STACK_EXPORT
 uint8_t Send_GetEvent_Global(void);
 
 #ifdef __cplusplus

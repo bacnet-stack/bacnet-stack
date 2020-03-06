@@ -28,6 +28,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdevobjpropref.h"
@@ -41,16 +42,20 @@ typedef struct {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int bacapp_encode_assigned_access_rights(
         uint8_t * apdu,
         BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
+    BACNET_STACK_EXPORT
     int bacapp_encode_context_assigned_access_rights(
         uint8_t * apdu,
         uint8_t tag,
         BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
+    BACNET_STACK_EXPORT
     int bacapp_decode_assigned_access_rights(
         uint8_t * apdu,
         BACNET_ASSIGNED_ACCESS_RIGHTS * aar);
+    BACNET_STACK_EXPORT
     int bacapp_decode_context_assigned_access_rights(
         uint8_t * apdu,
         uint8_t tag,

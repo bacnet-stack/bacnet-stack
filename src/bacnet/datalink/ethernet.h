@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 
@@ -38,15 +39,19 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     bool ethernet_valid(
         void);
+    BACNET_STACK_EXPORT
     void ethernet_cleanup(
         void);
+    BACNET_STACK_EXPORT
     bool ethernet_init(
         char *interface_name);
 
 /* function to send a packet out the 802.2 socket */
 /* returns number of bytes sent on success, negative on failure */
+    BACNET_STACK_EXPORT
     int ethernet_send_pdu(
         BACNET_ADDRESS * dest,  /* destination address */
         BACNET_NPDU_DATA * npdu_data,   /* network information */
@@ -55,23 +60,29 @@ extern "C" {
 
 /* receives an 802.2 framed packet */
 /* returns the number of octets in the PDU, or zero on failure */
+    BACNET_STACK_EXPORT
     uint16_t ethernet_receive(
         BACNET_ADDRESS * src,   /* source address */
         uint8_t * pdu,  /* PDU data */
         uint16_t max_pdu,       /* amount of space available in the PDU  */
         unsigned timeout);      /* milliseconds to wait for a packet */
 
+    BACNET_STACK_EXPORT
     void ethernet_set_my_address(
         BACNET_ADDRESS * my_address);
+    BACNET_STACK_EXPORT
     void ethernet_get_my_address(
         BACNET_ADDRESS * my_address);
+    BACNET_STACK_EXPORT
     void ethernet_get_broadcast_address(
         BACNET_ADDRESS * dest); /* destination address */
 
     /* some functions from Linux driver */
+    BACNET_STACK_EXPORT
     void ethernet_debug_address(
         const char *info,
         BACNET_ADDRESS * dest);
+    BACNET_STACK_EXPORT
     int ethernet_send(
         uint8_t * mtu,
         int mtu_len);

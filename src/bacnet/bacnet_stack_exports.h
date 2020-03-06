@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (C) 2020 Steve Karg <skarg@users.sourceforge.net>
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -21,52 +21,33 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef IAM_H
-#define IAM_H
+#ifndef BACNET_STACK_EXPORTS_H
+#define BACNET_STACK_EXPORTS_H
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacdef.h"
-#include "bacnet/bacaddr.h"
-#include "bacnet/npdu.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-    BACNET_STACK_EXPORT
-    int iam_encode_apdu(
-        uint8_t * apdu,
-        uint32_t device_id,
-        unsigned max_apdu,
-        int segmentation,
-        uint16_t vendor_id);
-
-    BACNET_STACK_EXPORT
-    int iam_decode_service_request(
-        uint8_t * apdu,
-        uint32_t * pDevice_id,
-        unsigned *pMax_apdu,
-        int *pSegmentation,
-        uint16_t * pVendor_id);
-
-#ifdef TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    int iam_decode_apdu(
-        uint8_t * apdu,
-        uint32_t * pDevice_id,
-        unsigned *pMax_apdu,
-        int *pSegmentation,
-        uint16_t * pVendor_id);
-
-    BACNET_STACK_EXPORT
-    void testIAm(
-        Test * pTest);
+#ifdef BACNET_STACK_STATIC_DEFINE
+    /* We want a static library */
+# define BACNET_STACK_EXPORT
+#else
+    /* We want a shared library */
+# ifdef _MSC_VER
+#   define BACNET_STACK_LIBRARY_IMPORT __declspec(dllimport)
+#   define BACNET_STACK_LIBRARY_EXPORT __declspec(dllexport)
+# else
+#   define BACNET_STACK_LIBRARY_IMPORT
+#   define BACNET_STACK_LIBRARY_EXPORT __attribute__((visibility("default")))
+# endif
 #endif
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+
+#ifndef BACNET_STACK_EXPORT
+#  ifdef bacnet_stack_EXPORTS
+      /* We are building this library */
+#    define BACNET_STACK_EXPORT BACNET_STACK_LIBRARY_EXPORT
+#  else
+      /* We are using this library */
+#    define BACNET_STACK_EXPORT BACNET_STACK_LIBRARY_IMPORT
+#  endif
 #endif
+
+#endif  // BACNET_STACK_EXPORTS_H

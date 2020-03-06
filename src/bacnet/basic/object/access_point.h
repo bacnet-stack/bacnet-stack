@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/timestamp.h"
@@ -64,52 +65,68 @@ extern "C" {
         uint8_t priority_for_writing;
     } ACCESS_POINT_DESCR;
 
+    BACNET_STACK_EXPORT
     void Access_Point_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    BACNET_STACK_EXPORT
     bool Access_Point_Valid_Instance(
         uint32_t object_instance);
     unsigned Access_Point_Count(
         void);
+    BACNET_STACK_EXPORT
     uint32_t Access_Point_Index_To_Instance(
         unsigned index);
+    BACNET_STACK_EXPORT
     unsigned Access_Point_Instance_To_Index(
         uint32_t instance);
+    BACNET_STACK_EXPORT
     bool Access_Point_Object_Instance_Add(
         uint32_t instance);
 
 
+    BACNET_STACK_EXPORT
     bool Access_Point_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
     bool Access_Point_Name_Set(
         uint32_t object_instance,
         char *new_name);
 
 
+    BACNET_STACK_EXPORT
     bool Access_Point_Out_Of_Service(
         uint32_t instance);
+    BACNET_STACK_EXPORT
     void Access_Point_Out_Of_Service_Set(
         uint32_t instance,
         bool oos_flag);
 
+    BACNET_STACK_EXPORT
     int Access_Point_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
+    BACNET_STACK_EXPORT
     bool Access_Point_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
     bool Access_Point_Create(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     bool Access_Point_Delete(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     void Access_Point_Cleanup(
         void);
+    BACNET_STACK_EXPORT
     void Access_Point_Init(
         void);
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testAccessPoint(
         Test * pTest);
 #endif

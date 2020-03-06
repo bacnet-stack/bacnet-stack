@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacenum.h"
 
 typedef struct BACnet_Reinitialize_Device_Data {
@@ -45,6 +46,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /* encode service */
+    BACNET_STACK_EXPORT
     int rd_encode_apdu(
         uint8_t * apdu,
         uint8_t invoke_id,
@@ -52,6 +54,7 @@ extern "C" {
         BACNET_CHARACTER_STRING * password);
 
 /* decode the service request only */
+    BACNET_STACK_EXPORT
     int rd_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -60,6 +63,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     int rd_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -67,6 +71,7 @@ extern "C" {
         BACNET_REINITIALIZED_STATE * state,
         BACNET_CHARACTER_STRING * password);
 
+    BACNET_STACK_EXPORT
     void test_ReinitializeDevice(
         Test * pTest);
 #endif

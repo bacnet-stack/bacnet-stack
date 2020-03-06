@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <time.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/datalink/bip.h"
@@ -40,6 +41,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if defined(BBMD_ENABLED) && BBMD_ENABLED
+    BACNET_STACK_EXPORT
     void bvlc_maintenance_timer(
         time_t seconds);
 #else
@@ -57,55 +59,67 @@ extern "C" {
         struct in_addr broadcast_mask;      /* in tework format */
     } BBMD_TABLE_ENTRY;
 
+    BACNET_STACK_EXPORT
     uint16_t bvlc_receive(
         BACNET_ADDRESS * src,   /* returns the source address */
         uint8_t * npdu, /* returns the NPDU */
         uint16_t max_npdu,      /* amount of space available in the NPDU  */
         unsigned timeout);      /* number of milliseconds to wait for a packet */
 
+    BACNET_STACK_EXPORT
     int bvlc_send_pdu(
         BACNET_ADDRESS * dest,  /* destination address */
         BACNET_NPDU_DATA * npdu_data,   /* network information */
         uint8_t * pdu,  /* any data to be sent - may be null */
         unsigned pdu_len);
 
+    BACNET_STACK_EXPORT
     int bvlc_send_mpdu(
         struct sockaddr_in *dest,
         uint8_t * mtu,
         uint16_t mtu_len);
 
 #if defined(BBMD_CLIENT_ENABLED) && BBMD_CLIENT_ENABLED
+    BACNET_STACK_EXPORT
     int bvlc_encode_write_bdt_init(
         uint8_t * pdu,
         unsigned entries);
+    BACNET_STACK_EXPORT
     int bvlc_encode_read_fdt(
         uint8_t * pdu);
+    BACNET_STACK_EXPORT
     int bvlc_encode_delete_fdt_entry(
         uint8_t * pdu,
         uint32_t address,       /* in network byte order */
         uint16_t port); /* in network byte order */
+    BACNET_STACK_EXPORT
     int bvlc_encode_original_unicast_npdu(
         uint8_t * pdu,
         uint8_t * npdu,
         unsigned npdu_length);
+    BACNET_STACK_EXPORT
     int bvlc_encode_original_broadcast_npdu(
         uint8_t * pdu,
         uint8_t * npdu,
         unsigned npdu_length);
 #endif
+    BACNET_STACK_EXPORT
     int bvlc_encode_read_bdt(
         uint8_t * pdu);
+    BACNET_STACK_EXPORT
     int bvlc_bbmd_read_bdt(
         uint32_t bbmd_address,
         uint16_t bbmd_port);
 
     /* registers with a bbmd as a foreign device */
+    BACNET_STACK_EXPORT
     int bvlc_register_with_bbmd(
         uint32_t bbmd_address,  /* in network byte order */
         uint16_t bbmd_port,     /* in network byte order */
         uint16_t time_to_live_seconds);
 
     /* Note any BVLC_RESULT code, or NAK the BVLL message in the unsupported cases. */
+    BACNET_STACK_EXPORT
     int bvlc_for_non_bbmd(
         struct sockaddr_in *sout,
         uint8_t * npdu,
@@ -114,6 +128,7 @@ extern "C" {
     /* Returns the last BVLL Result we received, either as the result of a BBMD
      * request we sent, or (if not a BBMD or Client), from trying to register
      * as a foreign device. */
+    BACNET_STACK_EXPORT
     BACNET_BVLC_RESULT bvlc_get_last_result(
         void);
 
@@ -121,6 +136,7 @@ extern "C" {
      * We have to store this higher layer code for when the lower layers
      * need to know what it is, especially to differentiate between
      * BVLC_ORIGINAL_UNICAST_NPDU and BVLC_ORIGINAL_BROADCAST_NPDU.  */
+    BACNET_STACK_EXPORT
     BACNET_BVLC_FUNCTION bvlc_get_function_code(
         void);
 
@@ -132,26 +148,31 @@ extern "C" {
 
     /* Get handle to broadcast distribution table. Returns the number of
      * valid entries in the table. */
+    BACNET_STACK_EXPORT
     int bvlc_get_bdt_local(
          const BBMD_TABLE_ENTRY** table);
 
     /* Invalidate all entries in the broadcast distribution table */
+    BACNET_STACK_EXPORT
     void bvlc_clear_bdt_local(void);
 
     /* Add new entry to broadcast distribution table. Returns true if the new
      * entry was added successfully */
+    BACNET_STACK_EXPORT
     bool bvlc_add_bdt_entry_local(
         BBMD_TABLE_ENTRY* entry);
 
     /* Backup broadcast distribution table to a file.
      * Filename is the BBMD_BACKUP_FILE constant
      */
+    BACNET_STACK_EXPORT
     void bvlc_bdt_backup_local(
         void);
 
     /* Restore broadcast distribution from a file.
      * Filename is the BBMD_BACKUP_FILE constant
      */
+    BACNET_STACK_EXPORT
     void bvlc_bdt_restore_local(
         void);
 
@@ -170,10 +191,12 @@ extern "C" {
     /* Set global IP address of a NAT enabled router which is used in forwarded
      * messages. Enables NAT handling.
      */
+    BACNET_STACK_EXPORT
     void bvlc_set_global_address_for_nat(const struct in_addr* addr);
 
     /* Disable NAT handling of BBMD.
      */
+    BACNET_STACK_EXPORT
     void bvlc_disable_nat(void);
 
 #ifdef __cplusplus

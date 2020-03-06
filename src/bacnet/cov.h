@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 
 typedef struct BACnet_COV_Data {
@@ -56,27 +57,32 @@ typedef struct BACnet_Subscribe_COV_Data {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int ucov_notify_encode_apdu(
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     int ucov_notify_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     int ucov_notify_send(
         uint8_t * apdu,
         unsigned max_apdu_len,
         BACNET_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     int ccov_notify_encode_apdu(
         uint8_t * apdu,
         unsigned max_apdu_len,
         uint8_t invoke_id,
         BACNET_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     int ccov_notify_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -84,33 +90,39 @@ extern "C" {
         BACNET_COV_DATA * data);
 
     /* common for both confirmed and unconfirmed */
+    BACNET_STACK_EXPORT
     int cov_notify_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     int cov_subscribe_property_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_SUBSCRIBE_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     int cov_subscribe_property_encode_apdu(
         uint8_t * apdu,
         unsigned max_apdu_len,
         uint8_t invoke_id,
         BACNET_SUBSCRIBE_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     int cov_subscribe_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_SUBSCRIBE_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     int cov_subscribe_encode_apdu(
         uint8_t * apdu,
         unsigned max_apdu_len,
         uint8_t invoke_id,
         BACNET_SUBSCRIBE_COV_DATA * data);
 
+    BACNET_STACK_EXPORT
     void cov_data_value_list_link(
         BACNET_COV_DATA *data,
         BACNET_PROPERTY_VALUE *value_list,
@@ -118,10 +130,13 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testCOVNotify(
         Test * pTest);
+    BACNET_STACK_EXPORT
     void testCOVSubscribeProperty(
         Test * pTest);
+    BACNET_STACK_EXPORT
     void testCOVSubscribe(
         Test * pTest);
 #endif

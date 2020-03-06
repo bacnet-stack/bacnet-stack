@@ -24,14 +24,19 @@
 #ifndef MSTPTEXT_H
 #define MSTPTEXT_H
 
+#include "bacnet/bacnet_stack_exports.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     const char *mstptext_receive_state(
         unsigned index);
+    BACNET_STACK_EXPORT
     const char *mstptext_master_state(
         unsigned index);
+    BACNET_STACK_EXPORT
     const char *mstptext_frame_type(
         unsigned index);
 

@@ -27,6 +27,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/timestamp.h"
@@ -60,52 +61,69 @@ extern "C" {
         BACNET_TIMESTAMP timestamp;
     } CREDENTIAL_DATA_INPUT_DESCR;
 
+    BACNET_STACK_EXPORT
     void Credential_Data_Input_Property_Lists(
         const int **pRequired,
         const int **pOptional,
         const int **pProprietary);
+    BACNET_STACK_EXPORT
     bool Credential_Data_Input_Valid_Instance(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     unsigned Credential_Data_Input_Count(
         void);
+    BACNET_STACK_EXPORT
     uint32_t Credential_Data_Input_Index_To_Instance(
         unsigned index);
+    BACNET_STACK_EXPORT
     unsigned Credential_Data_Input_Instance_To_Index(
         uint32_t instance);
+    BACNET_STACK_EXPORT
     bool Credential_Data_Input_Object_Instance_Add(
         uint32_t instance);
 
 
+    BACNET_STACK_EXPORT
     bool Credential_Data_Input_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
     bool Credential_Data_Input_Name_Set(
         uint32_t object_instance,
         char *new_name);
 
 
+    BACNET_STACK_EXPORT
     bool Credential_Data_Input_Out_Of_Service(
         uint32_t instance);
+    BACNET_STACK_EXPORT
     void Credential_Data_Input_Out_Of_Service_Set(
         uint32_t instance,
         bool oos_flag);
 
+    BACNET_STACK_EXPORT
     int Credential_Data_Input_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
+    BACNET_STACK_EXPORT
     bool Credential_Data_Input_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
     bool Credential_Data_Input_Create(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     bool Credential_Data_Input_Delete(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
     void Credential_Data_Input_Cleanup(
         void);
+    BACNET_STACK_EXPORT
     void Credential_Data_Input_Init(
         void);
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testCredentialDataInput(
         Test * pTest);
 #endif

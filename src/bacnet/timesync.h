@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 
 struct BACnet_Recipient_List;
@@ -50,40 +51,48 @@ extern "C" {
 #endif /* __cplusplus */
 
     /* encode service */
+    BACNET_STACK_EXPORT
     int timesync_utc_encode_apdu(
         uint8_t * apdu,
         BACNET_DATE * my_date,
         BACNET_TIME * my_time);
+    BACNET_STACK_EXPORT
     int timesync_encode_apdu(
         uint8_t * apdu,
         BACNET_DATE * my_date,
         BACNET_TIME * my_time);
+    BACNET_STACK_EXPORT
     int timesync_encode_apdu_service(
         uint8_t * apdu,
         BACNET_UNCONFIRMED_SERVICE service,
         BACNET_DATE * my_date,
         BACNET_TIME * my_time);
     /* decode the service request only */
+    BACNET_STACK_EXPORT
     int timesync_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_DATE * my_date,
         BACNET_TIME * my_time);
+    BACNET_STACK_EXPORT
     int timesync_utc_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_DATE * my_date,
         BACNET_TIME * my_time);
+    BACNET_STACK_EXPORT
     int timesync_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_DATE * my_date,
         BACNET_TIME * my_time);
 
+    BACNET_STACK_EXPORT
     int timesync_encode_timesync_recipients(
         uint8_t * apdu,
         unsigned max_apdu,
         BACNET_RECIPIENT_LIST * recipient);
+    BACNET_STACK_EXPORT
     int timesync_decode_timesync_recipients(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -91,6 +100,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testTimeSync(
         Test * pTest);
 #endif

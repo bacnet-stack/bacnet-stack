@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
@@ -41,19 +42,24 @@
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     void Send_WhoIs(
         int32_t low_limit,
         int32_t high_limit);
+    BACNET_STACK_EXPORT
     void Send_WhoIs_Global(
         int32_t low_limit,
         int32_t high_limit);
+    BACNET_STACK_EXPORT
     void Send_WhoIs_Local(
         int32_t low_limit,
         int32_t high_limit);
+    BACNET_STACK_EXPORT
     void Send_WhoIs_Remote(
         BACNET_ADDRESS * target_address,
         int32_t low_limit,
         int32_t high_limit);
+    BACNET_STACK_EXPORT
     void Send_WhoIs_To_Network(BACNET_ADDRESS* target_address, int32_t low_limit,
                                int32_t high_limit);
 

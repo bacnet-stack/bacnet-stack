@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacstr.h"
 
 typedef struct BACnet_I_Have_Data {
@@ -38,15 +39,18 @@ typedef struct BACnet_I_Have_Data {
 extern "C" {
 #endif /* __cplusplus */
 
+    BACNET_STACK_EXPORT
     int ihave_encode_apdu(
         uint8_t * apdu,
         BACNET_I_HAVE_DATA * data);
 
+    BACNET_STACK_EXPORT
     int ihave_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
         BACNET_I_HAVE_DATA * data);
 
+    BACNET_STACK_EXPORT
     int ihave_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -54,6 +58,7 @@ extern "C" {
 
 #ifdef TEST
 #include "ctest.h"
+    BACNET_STACK_EXPORT
     void testIHave(
         Test * pTest);
 #endif

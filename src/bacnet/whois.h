@@ -26,17 +26,20 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "bacnet/bacnet_stack_exports.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 /* encode service  - use -1 for limit if you want unlimited */
+    BACNET_STACK_EXPORT
     int whois_encode_apdu(
         uint8_t * apdu,
         int32_t low_limit,
         int32_t high_limit);
 
+    BACNET_STACK_EXPORT
     int whois_decode_service_request(
         uint8_t * apdu,
         unsigned apdu_len,
@@ -44,12 +47,14 @@ extern "C" {
         int32_t * pHigh_limit);
 
 #ifdef TEST
+    BACNET_STACK_EXPORT
     int whois_decode_apdu(
         uint8_t * apdu,
         unsigned apdu_len,
         int32_t * pLow_limit,
         int32_t * pHigh_limit);
 
+    BACNET_STACK_EXPORT
     void testWhoIs(
         Test * pTest);
 #endif
