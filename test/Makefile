@@ -16,6 +16,9 @@ logfile:
 
 report:
 	cat ${LOGFILE}
+	cat ${LOGFILE} | grep Failed: | \
+	awk 'BEGIN { err = 0 } $$2 > 0 { print "Unit Tests Failed!"; err = 1} \
+	END {exit err}'
 
 abort: logfile abort.mak
 	$(MAKE) -s -f abort.mak clean all
