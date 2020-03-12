@@ -378,13 +378,13 @@ extern "C" {
         uint8_t * pdu,
         uint16_t pdu_size,
         uint32_t vmac_src,
-        BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY * fdt_entry);
+        BACNET_IP6_ADDRESS *bip6_address);
     BACNET_STACK_EXPORT
     int bvlc6_decode_delete_foreign_device(
         uint8_t * pdu,
         uint16_t pdu_len,
         uint32_t * vmac_src,
-        BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY * fdt_entry);
+        BACNET_IP6_ADDRESS *bip6_address);
 
     BACNET_STACK_EXPORT
     int bvlc6_encode_secure_bvll(

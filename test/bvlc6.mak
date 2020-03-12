@@ -38,4 +38,7 @@ depend:
 clean:
 	rm -rf ${TARGET} $(OBJS)
 
+test: ${TARGET}
+	./${TARGET}
+
 include: .depend
