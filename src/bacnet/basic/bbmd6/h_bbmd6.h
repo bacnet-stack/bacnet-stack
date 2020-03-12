@@ -48,6 +48,11 @@ extern "C" {
         uint8_t * npdu,
         uint16_t npdu_len);
     BACNET_STACK_EXPORT
+    int bvlc6_send_pdu(BACNET_ADDRESS *dest,
+        BACNET_NPDU_DATA *npdu_data,
+        uint8_t *pdu,
+        unsigned pdu_len);
+    BACNET_STACK_EXPORT
     int bvlc6_register_with_bbmd(
         BACNET_IP6_ADDRESS *bbmd_addr,
         uint32_t vmac_src,

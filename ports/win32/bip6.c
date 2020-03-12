@@ -379,6 +379,26 @@ int bip6_send_mpdu(
 }
 
 /**
+ * The common send function for BACnet/IPv6 application layer
+ *
+ * @param dest - Points to a #BACNET_ADDRESS structure containing the
+ *  destination address.
+ * @param npdu_data - Points to a BACNET_NPDU_DATA structure containing the
+ *  destination network layer control flags and data.
+ * @param pdu - the bytes of data to send
+ * @param pdu_len - the number of bytes of data to send
+ * @return Upon successful completion, returns the number of bytes sent.
+ *  Otherwise, -1 shall be returned and errno set to indicate the error.
+ */
+int bip6_send_pdu(BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len)
+{
+    return bvlc6_send_pdu(dest, npdu_data, pdu, pdu_len);
+}
+
+/**
  * BACnet/IP Datalink Receive handler.
  *
  * @param src - returns the source address

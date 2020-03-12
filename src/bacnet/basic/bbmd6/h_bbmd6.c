@@ -238,12 +238,12 @@ static bool bbmd6_address_from_bacnet_address(
  *  destination address.
  * @param npdu_data - Points to a BACNET_NPDU_DATA structure containing the
  *  destination network layer control flags and data.
- * @param mtu - the bytes of data to send
- * @param mtu_len - the number of bytes of data to send
+ * @param pdu - the bytes of data to send
+ * @param pdu_len - the number of bytes of data to send
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip6_send_pdu(BACNET_ADDRESS *dest,
+int bvlc6_send_pdu(BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
