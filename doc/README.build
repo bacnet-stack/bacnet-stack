@@ -2,12 +2,14 @@ BACnet Stack
 Developer Build
 
 This BACnet Stack is designed as a library for an embedded product.  
-However, there are a number of example applications in the demo/ directory
+However, there are a number of example applications in the apps/ directory
 that show how it can be used for client and server applications.
 
-The demos can be built using makefiles in the root directory, or by
-using individual makefiles in the demo directories.
+The demos can be built using the Makefile in the root directory.
 
-Launch the demo/server/bacserv example.  Use the client demos to query
+To test using a simulated BACnet device, launch the bin/bacserv application.  
+Use the client apps, such as bin/bacwi or bin/bacepics to query
 the server.  Note that the server should be on a different computer or
-virtual machine.
+virtual machine, or use the bin/bvlc script appropriate for your computer
+to have the clients register as foreign device to the BBMD within the
+simulated BACnet device.
