@@ -72,13 +72,16 @@ layer for communication by default, but could be compiled to use BACnet
 Ethernet, ARCNET, or MS/TP.
 
 Linux/Unix/Cygwin
-$ make clean all
+
+    $ make clean all
 
 Windows MinGW Bash
-$ make win32
+
+    $ make win32
 
 Windows Command Line
-c:> build.bat
+
+    c:> build.bat
 
 The BACnet stack can be compiled by a variety of compilers.  The most common
 free compiler is GCC (or MinGW under Windows).  The makefiles use GCC by
