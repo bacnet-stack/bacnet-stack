@@ -37,12 +37,20 @@ defined in the first `.clang-format` file found in a parent directory.
 ### .clang-format file
 
     ---
-    BasedOnStyle: Google
+    BasedOnStyle: WebKit
+    BinPackParameters: false
+    AlignEscapedNewlines: Left
+    PointerAlignment: Right
     AllowShortFunctionsOnASingleLine: None
     AllowShortIfStatementsOnASingleLine: false
     AllowShortLoopsOnASingleLine: false
-    AlwaysBreakAfterReturnType: None
     BreakBeforeBraces: Linux
+    BreakBeforeBinaryOperators: None
+    KeepEmptyLinesAtTheStartOfBlocks: false
+    PenaltyBreakBeforeFirstCallParameter: 1
+    IndentCaseLabels: true
     IndentWidth: 4
+    UseTab: Never
     SortIncludes: false
+    ColumnLimit: 80
     ...
