@@ -107,6 +107,21 @@ unsigned long mstimer_remaining(struct mstimer *t)
 }
 
 /**
+ * The time elapsed since the timer started
+ *
+ * This function returns the time elapsed.
+ *
+ * @param t A pointer to the timer
+ *
+ * @return The time elapsed since the last start of the timer
+ *
+ */
+unsigned long mstimer_elapsed(struct mstimer *t)
+{
+  return mstimer_now() - t->start;
+}
+
+/**
  * The value of the interval
  *
  * This function returns the interval value

@@ -59,6 +59,8 @@ int mstimer_expired(struct mstimer *t);
 BACNET_STACK_EXPORT
 unsigned long mstimer_remaining(struct mstimer *t);
 BACNET_STACK_EXPORT
+unsigned long mstimer_elapsed(struct mstimer *t);
+BACNET_STACK_EXPORT
 unsigned long mstimer_interval(struct mstimer *t);
 /* HAL implementation */
 BACNET_STACK_EXPORT

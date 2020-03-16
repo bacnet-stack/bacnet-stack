@@ -62,12 +62,14 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
+static struct mstimer Silence_Timer;
+
 static uint32_t Timer_Silence(
     void *pArg)
 {
     uint32_t delta_time = 0;
 
-    delta_time = timer_milliseconds(TIMER_SILENCE);
+    delta_time = mstimer_elapsed(&Silence_Timer);
     if (delta_time > 0xFFFF) {
         delta_time = 0xFFFF;
     }
@@ -78,7 +80,7 @@ static uint32_t Timer_Silence(
 static void Timer_Silence_Reset(
     void *pArg)
 {
-    timer_reset(TIMER_SILENCE);
+    mstimer_set(&Silence_Timer, 0);
 }
 
 /* functions used by the MS/TP state machine to put or get data */
