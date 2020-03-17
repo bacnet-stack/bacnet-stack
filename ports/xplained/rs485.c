@@ -90,7 +90,7 @@ void rs485_silence_reset(void)
  */
 bool rs485_silence_elapsed(uint32_t interval)
 {
-    return (mstimer_remaining(&Silence_Timer) > interval);
+    return (mstimer_elapsed(&Silence_Timer) > interval);
 }
 
 /**
@@ -154,7 +154,7 @@ static uint16_t rs485_turnaround_time(void)
  */
 bool rs485_turnaround_elapsed(void)
 {
-    return (mstimer_remaining(&Silence_Timer) > rs485_turnaround_time());
+    return (mstimer_elapsed(&Silence_Timer) > rs485_turnaround_time());
 }
 
 /**

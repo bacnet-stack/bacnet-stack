@@ -61,7 +61,7 @@ static struct mstimer Silence_Timer;
 bool rs485_silence_time_elapsed(
     uint16_t milliseconds)
 {
-    return (mstimer_remaining(&Silence_Timer) > milliseconds);
+    return (mstimer_elapsed(&Silence_Timer) > milliseconds);
 }
 
 /****************************************************************************

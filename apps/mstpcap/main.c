@@ -400,7 +400,7 @@ static void packet_statistics_clear(void)
 
 static uint32_t Timer_Silence(void *pArg)
 {
-    return mstimer_remaining(&Silence_Timer);
+    return mstimer_elapsed(&Silence_Timer);
 }
 
 static void Timer_Silence_Reset(void *pArg)
