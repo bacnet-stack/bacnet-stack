@@ -194,7 +194,7 @@ int dcc_decode_service_request(uint8_t *apdu,
                results in no timeout */
             *timeDuration = 0;
         }
-        if (apdu_len < apdu_len_max) {
+        if ((unsigned)apdu_len < apdu_len_max) {
             /* Tag 1: enable_disable */
             len = bacnet_enumerated_context_decode(
                 &apdu[apdu_len], apdu_len_max - apdu_len, 1, &decoded_enum);
@@ -220,7 +220,7 @@ int dcc_decode_service_request(uint8_t *apdu,
                 apdu_len_max - apdu_len, &tag_number, &len_value_type);
             if (len > 0) {
                 apdu_len += len;
-                if (apdu_len < apdu_len_max) {
+                if ((unsigned)apdu_len < apdu_len_max) {
                     len = bacnet_character_string_decode(&apdu[apdu_len],
                         apdu_len_max - apdu_len, len_value_type, password);
                     if (len > 0) {
