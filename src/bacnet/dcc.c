@@ -208,7 +208,7 @@ int dcc_decode_service_request(uint8_t *apdu,
                 return BACNET_STATUS_ERROR;
             }
         }
-        if (apdu_len < apdu_len_max) {
+        if ((unsigned)apdu_len < apdu_len_max) {
             /* Tag 2: password --optional-- */
             if (!decode_is_context_tag(&apdu[apdu_len], 2)) {
                 /* since this is the last value of the packet,
