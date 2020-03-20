@@ -68,7 +68,7 @@ extern "C" {
     bool Ringbuf_Empty(RING_BUFFER const *b);
     /* tail */
     BACNET_STACK_EXPORT
-    volatile uint8_t *Ringbuf_Peek(RING_BUFFER const *b);
+    volatile void *Ringbuf_Peek(RING_BUFFER const *b);
     bool Ringbuf_Pop(RING_BUFFER * b,
         uint8_t * data_element);
     BACNET_STACK_EXPORT
@@ -84,8 +84,8 @@ extern "C" {
         uint8_t * data_element);
     /* pair of functions to use head memory directly */
     BACNET_STACK_EXPORT
-    volatile uint8_t *Ringbuf_Data_Peek(RING_BUFFER * b);
-    volatile uint8_t *Ringbuf_Peek_Next(RING_BUFFER const *b,
+    volatile void *Ringbuf_Data_Peek(RING_BUFFER * b);
+    volatile void *Ringbuf_Peek_Next(RING_BUFFER const *b,
         uint8_t * data_element);
     BACNET_STACK_EXPORT
     bool Ringbuf_Data_Put(RING_BUFFER * b, volatile uint8_t *data_element);
