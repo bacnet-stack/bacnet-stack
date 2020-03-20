@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 #include "bacnet/lighting.h"
 #include "bacnet/bacdcode.h"
 
@@ -265,14 +266,15 @@ bool lighting_command_same(
             (dst->use_priority == src->use_priority)) {
             status = true;
             if ((dst->use_target_level) &&
-                (dst->target_level != src->target_level)) {
+                islessgreater(dst->target_level, src->target_level)) {
                 status = false;
             }
-            if ((dst->use_ramp_rate) && (dst->ramp_rate != src->ramp_rate)) {
+            if ((dst->use_ramp_rate) && 
+                islessgreater(dst->ramp_rate, src->ramp_rate)) {
                 status = false;
             }
             if ((dst->use_step_increment) &&
-                (dst->step_increment != src->step_increment)) {
+                islessgreater(dst->step_increment, src->step_increment)) {
                 status = false;
             }
             if ((dst->use_fade_time) && (dst->fade_time != src->fade_time)) {
