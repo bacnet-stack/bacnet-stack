@@ -534,6 +534,22 @@ static void seconds_since_midnight_into_hms(
     }
 }
 
+/**
+ * @brief Converts the number of seconds since midnight into BACnet Time
+ * @param seconds since midnight
+ * @param btime [in] BACNET_TIME containing the time to convert
+ */
+void datetime_seconds_since_midnight_into_time(
+    uint32_t seconds,
+    BACNET_TIME *btime)
+{
+    if (btime) {
+        seconds_since_midnight_into_hms(seconds,
+            &btime->hour, &btime->min, &btime->sec);
+        btime->hundredths = 0;
+    }
+}
+
 /** Calculates the number of seconds since midnight
  *
  * @param btime [in] BACNET_TIME containing the time to convert
@@ -616,6 +632,54 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
         &bdatetime->time.hour, &bdatetime->time.min, NULL);
     datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
 }
+
+#ifdef UINT64_MAX
+/**
+ * @brief Calculates the number of seconds since epoch
+ * @param bdatetime [in] the starting date and time
+ * @return seconds since midnight
+ */
+uint64_t datetime_seconds_since_epoch(
+    BACNET_DATE_TIME * bdatetime)
+{
+    uint64_t seconds = 0;
+    uint32_t days = 0;
+
+    if (bdatetime) {
+        days = datetime_days_since_epoch(&bdatetime->date);
+        seconds = seconds_since_midnight(24, 0, 0);
+        seconds *= days;
+        seconds += datetime_seconds_since_midnight(&bdatetime->time);
+    }
+
+    return seconds;
+}
+#endif
+
+#ifdef UINT64_MAX
+/**
+ * @brief Calculates the number of seconds since epoch
+ * @param bdatetime [in] the starting date and time
+ * @return seconds since midnight
+ */
+void datetime_since_epoch_seconds(
+    BACNET_DATE_TIME * bdatetime,
+    uint64_t seconds)
+{
+    uint32_t seconds_after_midnight = 0;
+    uint32_t days = 0;
+    uint32_t day_seconds = 0;
+
+    if (bdatetime) {
+        day_seconds = seconds_since_midnight(24, 0, 0);
+        days = seconds / day_seconds;
+        seconds_after_midnight = seconds - (days * day_seconds);
+        datetime_seconds_since_midnight_into_time(
+            seconds_after_midnight, &bdatetime->time);
+        datetime_days_since_epoch_into_date(days, &bdatetime->date);
+    }
+}
+#endif
 
 /* Returns true if year is a wildcard */
 bool datetime_wildcard_year(BACNET_DATE *bdate)
@@ -1006,6 +1070,21 @@ int bacapp_decode_context_datetime(
     return apdu_len;
 }
 
+int datetime_snprintf(
+    char *str, size_t n,
+    BACNET_DATE_TIME *bdatetime)
+{
+    return snprintf( str, n, "%04u/%02u/%02u %02u:%02u:%02u.%03u\n",
+        (unsigned int)bdatetime->date.day,
+        (unsigned int)bdatetime->date.year,
+        (unsigned int)bdatetime->date.month,
+        (unsigned int)bdatetime->date.wday,
+        (unsigned int)bdatetime->time.hour,
+        (unsigned int)bdatetime->time.min,
+        (unsigned int)bdatetime->time.sec,
+        (unsigned int)bdatetime->time.hundredths);
+}
+
 #ifdef TEST
 #include <assert.h>
 #include <string.h>
@@ -1323,6 +1402,42 @@ static void testDayOfYear(Test *pTest)
     }
 }
 
+static void testDateEpochConversionCompare(Test *pTest,
+    uint16_t year, uint8_t month, uint8_t day,
+    uint8_t hour, uint8_t minute, uint8_t second, uint8_t hundredth)
+{
+    uint64_t epoch_seconds = 0;
+    BACNET_DATE_TIME bdatetime = {0};
+    BACNET_DATE_TIME test_bdatetime = {0};
+    int compare = 0;
+
+    datetime_set_date(&bdatetime.date, year, month, day);
+    datetime_set_time(&bdatetime.time, hour, minute, second,
+        hundredth);
+    epoch_seconds = datetime_seconds_since_epoch(&bdatetime);
+    datetime_since_epoch_seconds(&test_bdatetime,
+        epoch_seconds);
+    compare = datetime_compare(&bdatetime,&test_bdatetime);
+    ct_test(pTest,compare == 0);
+    if (compare != 0) {
+        datetime_print("bdatetime", &bdatetime);
+        datetime_print("test_bdatetime", &test_bdatetime);
+    }
+}
+
+static void testDateEpochConversion(Test *pTest)
+{
+    /* min */
+    testDateEpochConversionCompare(pTest,
+        BACNET_EPOCH_YEAR, 1, 1, 0, 0, 0, 0);
+    /* middle */
+    testDateEpochConversionCompare(pTest,
+        2020, 6, 26, 12, 30, 30, 0);
+    /* max */
+    testDateEpochConversionCompare(pTest,
+        BACNET_EPOCH_YEAR + 0xFF - 1, 12, 31, 23, 59, 59, 0);
+}
+
 static void testDateEpoch(Test *pTest)
 {
     uint32_t days = 0;
@@ -1478,6 +1593,8 @@ void testDateTime(Test *pTest)
     rc = ct_addTestFunction(pTest, testBACnetDayOfWeek);
     assert(rc);
     rc = ct_addTestFunction(pTest, testDateEpoch);
+    assert(rc);
+    rc = ct_addTestFunction(pTest, testDateEpochConversion);
     assert(rc);
     rc = ct_addTestFunction(pTest, testBACnetDateTimeSeconds);
     assert(rc);
