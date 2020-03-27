@@ -25,7 +25,7 @@ jobs:
       before_script:
         - export CC=i686-w64-mingw32-gcc
         - export LD=i686-w64-mingw32-ld
-        - $(CC) --version
+        - i686-w64-mingw32-gcc --version
       script:
         - make win32
     - stage: demos-build-cmake
