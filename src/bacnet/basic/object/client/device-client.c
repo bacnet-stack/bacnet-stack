@@ -77,14 +77,10 @@ static char *Description = "command line client";
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
-static BACNET_TIME Local_Time; /* rely on OS, if there is one */
-static BACNET_DATE Local_Date; /* rely on OS, if there is one */
-/* NOTE: BACnet UTC Offset is inverse of common practice.
-   If your UTC offset is -5hours of GMT,
-   then BACnet UTC offset is +5hours.
-   BACnet UTC offset is expressed in minutes. */
-static int32_t UTC_Offset = 5 * 60;
-static bool Daylight_Savings_Status = false; /* rely on OS */
+static BACNET_TIME Local_Time;
+static BACNET_DATE Local_Date;
+static int16_t UTC_Offset;
+static bool Daylight_Savings_Status;
 #if defined(BACNET_TIME_MASTER)
 static bool Align_Intervals;
 static uint32_t Interval_Minutes;
