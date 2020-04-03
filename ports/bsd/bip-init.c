@@ -522,7 +522,7 @@ void bip_set_interface(
     if (rv < 0) {
         BIP_Broadcast_Addr.s_addr = ~0;
     } else {
-        BIP_Broadcast_Addr = broadcast_address.s_addr;
+        BIP_Broadcast_Addr.s_addr = broadcast_address.s_addr;
     }
     if (BIP_Debug) {
         fprintf(stderr, "BIP: Broadcast Address: %s\n",
