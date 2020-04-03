@@ -139,7 +139,7 @@ bool apdu_service_supported(BACNET_SERVICES_SUPPORTED service_supported)
                     /* Check to see if the current Device supports this service.
                      */
                     int len = Routed_Device_Service_Approval(
-                        service_supported, 0, NULL, 0);
+                        confirmed_service_supported[i], 0, NULL, 0);
                     if (len > 0)
                         break; /* Not supported - return false */
 #endif
