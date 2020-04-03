@@ -52,8 +52,10 @@
 #define BBMD_ENABLED 1
 #endif
 
+#if BBMD_ENABLED
 #ifndef BBMD_CLIENT_ENABLED
-#define BBMD_CLIENT_ENABLED 0
+#define BBMD_CLIENT_ENABLED 1
+#endif
 #endif
 
 #ifndef PRINT_ENABLED
