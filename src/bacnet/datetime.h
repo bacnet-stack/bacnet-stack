@@ -322,7 +322,7 @@ extern "C" {
         BACNET_DATE_TIME * value);
 
     BACNET_STACK_EXPORT
-    int datetime_snprint(
+    int datetime_snprintf(
         char *str, size_t n,
         BACNET_DATE_TIME *bdatetime);
 

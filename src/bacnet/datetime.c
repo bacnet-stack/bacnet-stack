@@ -1075,7 +1075,6 @@ int datetime_snprintf(
     BACNET_DATE_TIME *bdatetime)
 {
     return snprintf( str, n, "%04u/%02u/%02u %02u:%02u:%02u.%03u\n",
-        (unsigned int)bdatetime->date.day,
         (unsigned int)bdatetime->date.year,
         (unsigned int)bdatetime->date.month,
         (unsigned int)bdatetime->date.wday,
