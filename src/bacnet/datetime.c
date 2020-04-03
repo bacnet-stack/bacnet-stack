@@ -1070,11 +1070,16 @@ int bacapp_decode_context_datetime(
     return apdu_len;
 }
 
-int datetime_snprintf(
-    char *str, size_t n,
+#ifdef TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
+static void datetime_print(const char *title,
     BACNET_DATE_TIME *bdatetime)
 {
-    return snprintf( str, n, "%04u/%02u/%02u %02u:%02u:%02u.%03u\n",
+    printf("%s: %04u/%02u/%02u %02u:%02u:%02u.%03u\n",
+        title,
         (unsigned int)bdatetime->date.year,
         (unsigned int)bdatetime->date.month,
         (unsigned int)bdatetime->date.wday,
@@ -1083,11 +1088,6 @@ int datetime_snprintf(
         (unsigned int)bdatetime->time.sec,
         (unsigned int)bdatetime->time.hundredths);
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
 
 static void testBACnetDateTimeWildcard(Test *pTest)
 {

@@ -321,11 +321,6 @@ extern "C" {
         uint8_t tag_number,
         BACNET_DATE_TIME * value);
 
-    BACNET_STACK_EXPORT
-    int datetime_snprintf(
-        char *str, size_t n,
-        BACNET_DATE_TIME *bdatetime);
-
     /* implementation agnostic functions - create your own! */
     BACNET_STACK_EXPORT
     bool datetime_local(
