@@ -31,7 +31,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h> /* for memmove */
-#include <time.h> /* for timezone, localtime */
 /* OS specific include*/
 #include "bacport.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -41,6 +40,7 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
 #include "bacnet/rp.h" /* ReadProperty handling */
 #include "bacnet/version.h"
@@ -52,12 +52,6 @@
 #endif
 /* include the device object */
 #include "bacnet/basic/object/device.h" /* me */
-
-#if defined(__BORLANDC__) || defined(_WIN32)
-/* seems to not be defined in time.h as specified by The Open Group */
-/* difference from UTC and local standard time  */
-long int timezone;
-#endif
 
 /* note: you really only need to define variables for
    properties that are writable or that may change.
@@ -83,14 +77,10 @@ static char *Description = "command line client";
 /* static uint8_t Max_Segments_Accepted = 0; */
 /* VT_Classes_Supported */
 /* Active_VT_Sessions */
-static BACNET_TIME Local_Time; /* rely on OS, if there is one */
-static BACNET_DATE Local_Date; /* rely on OS, if there is one */
-/* NOTE: BACnet UTC Offset is inverse of common practice.
-   If your UTC offset is -5hours of GMT,
-   then BACnet UTC offset is +5hours.
-   BACnet UTC offset is expressed in minutes. */
-static int32_t UTC_Offset = 5 * 60;
-static bool Daylight_Savings_Status = false; /* rely on OS */
+static BACNET_TIME Local_Time;
+static BACNET_DATE Local_Date;
+static int16_t UTC_Offset;
+static bool Daylight_Savings_Status;
 #if defined(BACNET_TIME_MASTER)
 static bool Align_Intervals;
 static uint32_t Interval_Minutes;
@@ -696,57 +686,8 @@ bool Device_Object_Name_Copy(BACNET_OBJECT_TYPE object_type,
 
 static void Update_Current_Time(void)
 {
-    struct tm *tblock = NULL;
-#if defined(_MSC_VER)
-    time_t tTemp;
-#else
-    struct timeval tv;
-#endif
-/*
-struct tm
-
-int    tm_sec   Seconds [0,60].
-int    tm_min   Minutes [0,59].
-int    tm_hour  Hour [0,23].
-int    tm_mday  Day of month [1,31].
-int    tm_mon   Month of year [0,11].
-int    tm_year  Years since 1900.
-int    tm_wday  Day of week [0,6] (Sunday =0).
-int    tm_yday  Day of year [0,365].
-int    tm_isdst Daylight Savings flag.
-*/
-#if defined(_MSC_VER)
-    time(&tTemp);
-    tblock = (struct tm *)localtime(&tTemp);
-#else
-    if (gettimeofday(&tv, NULL) == 0) {
-        tblock = (struct tm *)localtime((const time_t *)&tv.tv_sec);
-    }
-#endif
-
-    if (tblock) {
-        datetime_set_date(&Local_Date, (uint16_t)tblock->tm_year + 1900,
-            (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);
-#if !defined(_MSC_VER)
-        datetime_set_time(&Local_Time, (uint8_t)tblock->tm_hour,
-            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec,
-            (uint8_t)(tv.tv_usec / 10000));
-#else
-        datetime_set_time(&Local_Time, (uint8_t)tblock->tm_hour,
-            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec, 0);
-#endif
-        if (tblock->tm_isdst) {
-            Daylight_Savings_Status = true;
-        } else {
-            Daylight_Savings_Status = false;
-        }
-        /* note: timezone is declared in <time.h> stdlib. */
-        UTC_Offset = timezone / 60;
-    } else {
-        datetime_date_wildcard_set(&Local_Date);
-        datetime_time_wildcard_set(&Local_Time);
-        Daylight_Savings_Status = false;
-    }
+    datetime_local(
+        &Local_Date, &Local_Time, &UTC_Offset, &Daylight_Savings_Status);
 }
 
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
@@ -1099,6 +1040,7 @@ void Device_Init(object_functions_t *object_table)
     struct object_functions *pObject = NULL;
 
     characterstring_init_ansi(&My_Object_Name, "SimpleClient");
+    datetime_init();
     /* we don't use the object table passed in */
     (void)object_table;
     pObject = &Object_Table[0];

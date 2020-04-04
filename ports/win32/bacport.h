@@ -63,11 +63,6 @@ and globals in favor of more secure versions.  */
 #include <sys/time.h>
 #endif
 #include <sys/timeb.h>
-#if defined(__BORLANDC__) || defined(_WIN32)
-/* seems to not be defined in time.h as specified by The Open Group */
-/* difference from UTC and local standard time  */
-extern long int timezone;
-#endif
 
 #ifdef _MSC_VER
 #define inline __inline

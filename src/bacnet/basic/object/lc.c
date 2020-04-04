@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h> /* for memcpy */
-#include <time.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/datetime.h"
@@ -260,29 +259,9 @@ bool Load_Control_Object_Name(
 
 static void Update_Current_Time(BACNET_DATE_TIME *bdatetime)
 {
-    time_t timer;
-    struct tm *tblock;
-
-    /*
-    struct tm {
-       int tm_sec;
-       int tm_min;
-       int tm_hour;
-       int tm_mday;
-       int tm_mon;
-       int tm_year;
-       int tm_wday;
-       int tm_yday;
-       int tm_isdst;
-    };
-    */
-
-    timer = time(NULL);
-    tblock = localtime(&timer);
-    datetime_set_values(bdatetime, (uint16_t)tblock->tm_year,
-        (uint8_t)tblock->tm_mon, (uint8_t)tblock->tm_mday,
-        (uint8_t)tblock->tm_hour, (uint8_t)tblock->tm_min,
-        (uint8_t)tblock->tm_sec, 0);
+    if (bdatetime) {
+        datetime_local(&bdatetime->date, &bdatetime->time, NULL, NULL);
+    }
 }
 
 /* convert the shed level request into an Analog Output Present_Value */

@@ -98,13 +98,8 @@ static void Devices_Init(uint32_t first_object_instance)
 
     /* Now initialize the remote Device objects. */
     for (i = 1; i < MAX_NUM_DEVICES; i++) {
-#ifdef _MSC_VER
-        _snprintf(nameText, MAX_DEV_NAME_LEN, "%s %d", DEV_NAME_BASE, i + 1);
-        _snprintf(descText, MAX_DEV_DESC_LEN, "%s %d", DEV_DESCR_REMOTE, i);
-#else
         snprintf(nameText, MAX_DEV_NAME_LEN, "%s %d", DEV_NAME_BASE, i + 1);
         snprintf(descText, MAX_DEV_DESC_LEN, "%s %d", DEV_DESCR_REMOTE, i);
-#endif
         characterstring_init_ansi(&name_string, nameText);
 
         Add_Routed_Device((first_object_instance + i), &name_string, descText);
