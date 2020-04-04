@@ -44,7 +44,7 @@
 /** @file bip.c  Configuration and Operations for BACnet/IP */
 
 /* port to use - stored in network byte order */
-static uint16_t BIP_Port = 0xBAC0;
+static uint16_t BIP_Port = 0xBAC0U;
 static bool BIP_Port_Changed;
 /* IP Address - stored in network byte order */
 static struct in_addr BIP_Address;
@@ -102,13 +102,17 @@ uint32_t bip_get_broadcast_addr(
     return BIP_Broadcast_Address.s_addr;
 }
 
+/**
+ * @brief Set the BACnet IPv4 UDP port number
+ * @param port - IPv4 UDP port number - in host byte order
+ */
 void bip_set_port(
     uint16_t port)
-{       /* in network byte order */
-    if (BIP_Port != port) {
+{
+    if (BIP_Port != htons(port)) {
         BIP_Port_Changed = true;
-    BIP_Port = port;
-}
+        BIP_Port = htons(port);
+    }
 }
 
 bool bip_port_changed(void)
@@ -116,11 +120,11 @@ bool bip_port_changed(void)
     return BIP_Port_Changed;
 }
 
-/* returns network byte order */
+/* returns host byte order */
 uint16_t bip_get_port(
     void)
 {
-    return BIP_Port;
+    return ntohs(BIP_Port);
 }
 
 static void bip_mac_to_addr(

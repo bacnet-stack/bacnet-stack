@@ -42,9 +42,15 @@
 #if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
  (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
 #include <iphlpapi.h>
+#if defined(_MSC_VER)
+#pragma comment(lib, "IPHLPAPI.lib")
+#endif
 #endif
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#if defined(_MSC_VER)
+#pragma comment(lib, "Ws2_32.lib")
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef __MINGW32__
@@ -70,10 +76,6 @@ and globals in favor of more secure versions.  */
 #ifdef __BORLANDC__
 #define inline __inline
 #endif
-
-#define close closesocket
-
-typedef int socklen_t;
 
 #ifdef _WIN32
 #define strncasecmp(x, y, z) _strnicmp(x, y, z)

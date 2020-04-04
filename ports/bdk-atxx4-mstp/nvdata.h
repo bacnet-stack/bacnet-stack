@@ -63,7 +63,7 @@
 
 /*=============== SEEPROM ================*/
 /* data version - use to check valid version */
-#define SEEPROM_ID 0xBAC0
+#define SEEPROM_ID 0xBAC0U
 #define SEEPROM_VERSION 0x0001
 
 #define SEEPROM_BYTES_MAX (2*1024)

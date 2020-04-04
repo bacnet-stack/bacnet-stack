@@ -57,6 +57,14 @@ gateway:
 gateway-win32:
 	$(MAKE) BACNET_PORT=win32 -C apps gateway
 
+.PHONY: readbdt
+readbdt:
+	$(MAKE) -s -C apps $@
+
+.PHONY: readfdt
+readfdt:
+	$(MAKE) -s -C apps $@
+
 .PHONY: server
 server:
 	$(MAKE) -s -C apps $@
@@ -72,6 +80,10 @@ mstpcrc:
 .PHONY: uevent
 uevent:
 	$(MAKE) -s -C apps $@
+
+.PHONY: whois
+whois:
+	$(MAKE) -C apps $@
 
 .PHONY: writepropm
 writepropm:

@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <signal.h>
 #include <time.h>
 #include "bacnet/config.h"
@@ -172,19 +173,20 @@ static void Initialize_Device_Addresses()
     DEVICE_OBJECT_DATA *pDev = NULL;
     /* Setup info for the main gateway device first */
     pDev = Get_Routed_Device_Object(i);
+
+    /* we can't use datalink_get_my_address() since it is
+       mapped to routed_get_my_address() in this app
+       to get the parent device address */
 #if defined(BACDL_BIP)
-    uint16_t myPort;
-    struct in_addr *netPtr; /* Lets us cast to this type */
-    uint8_t *gatewayMac = NULL;
-    uint32_t myAddr = bip_get_addr();
-    gatewayMac = pDev->bacDevAddr.mac; /* Keep pointer to the main MAC */
-    memcpy(pDev->bacDevAddr.mac, &myAddr, 4);
-    myPort = bip_get_port();
-    memcpy(&pDev->bacDevAddr.mac[4], &myPort, 2);
-    pDev->bacDevAddr.mac_len = 6;
+    bip_get_my_address(&pDev->bacDevAddr);
 #elif defined(BACDL_MSTP)
-    pDev->bacDevAddr.mac_len = 1;
-    pDev->bacDevAddr.mac[0] = dlmstp_mac_address();
+    dlmstp_get_my_address(&pDev->bacDevAddr);
+#elif defined(BACDL_ARCNET)
+    arcnet_get_my_address(&pDev->bacDevAddr);
+#elif defined(BACDL_ETHERNET)
+    ethernet_get_my_address(&pDev->bacDevAddr);
+#elif defined(BACDL_BIP6)
+    bip6_get_my_address&pDev->bacDevAddr);
 #else
 #error "No support for this Data Link Layer type "
 #endif
@@ -193,38 +195,12 @@ static void Initialize_Device_Addresses()
 
     for (i = 1; i < MAX_NUM_DEVICES; i++) {
         pDev = Get_Routed_Device_Object(i);
-        if (pDev == NULL)
+        if (pDev == NULL) {
             continue;
-#if defined(BACDL_BIP)
-        virtual_mac = i;
-        netPtr = (struct in_addr *)pDev->bacDevAddr.mac;
-#if (MAX_NUM_DEVICES > 0xFFFFFF)
-        pDev->bacDevAddr.mac[0] = ((virtual_mac & 0xff000000) >> 24);
-#else
-        pDev->bacDevAddr.mac[0] = gatewayMac[3];
-#endif
-#if (MAX_NUM_DEVICES > 0xFFFF)
-        pDev->bacDevAddr.mac[1] = ((virtual_mac & 0xff0000) >> 16);
-#else
-        pDev->bacDevAddr.mac[1] = gatewayMac[2];
-#endif
-#if (MAX_NUM_DEVICES > 0xFF)
-        pDev->bacDevAddr.mac[2] = ((virtual_mac & 0xff00) >> 8);
-#else
-        pDev->bacDevAddr.mac[2] = gatewayMac[1];
-#endif
-        pDev->bacDevAddr.mac[3] = (virtual_mac & 0xff);
-        memcpy(&pDev->bacDevAddr.mac[4], &myPort, 2);
-        pDev->bacDevAddr.mac_len = 6;
-        pDev->bacDevAddr.net = VIRTUAL_DNET;
-        memcpy(&pDev->bacDevAddr.adr[0], &pDev->bacDevAddr.mac[0], 6);
-        pDev->bacDevAddr.len = 6;
-        printf(" - Routed device [%d] ID %u at %s \n", i,
-            pDev->bacObj.Object_Instance_Number, inet_ntoa(*netPtr));
-#elif defined(BACDL_MSTP)
-        /* Todo: set MS/TP net and port #s */
-        pDev->bacDevAddr.mac_len = 2;
-#endif
+        }
+        virtual_mac = pDev->bacObj.Object_Instance_Number;
+        encode_unsigned24(&pDev->bacDevAddr.adr[0], virtual_mac);
+        pDev->bacDevAddr.len = 3;
         /* broadcast an I-Am for each routed Device now */
         Send_I_Am(&Handler_Transmit_Buffer[0]);
     }
@@ -234,7 +210,7 @@ static void Initialize_Device_Addresses()
  *
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
  *      datalink_receive, npdu_handler,
- *      dcc_timer_seconds, bvlc_maintenance_timer,
+ *      dcc_timer_seconds, datalink_maintenance_timer,
  *      Load_Control_State_Machine_Handler, handler_cov_task,
  *      tsm_timer_milliseconds
  *
@@ -309,9 +285,7 @@ int main(int argc, char *argv[])
         if (elapsed_seconds) {
             last_seconds = current_seconds;
             dcc_timer_seconds(elapsed_seconds);
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            bvlc_maintenance_timer(elapsed_seconds);
-#endif
+            datalink_maintenance_timer(elapsed_seconds);
             dlenv_maintenance_timer(elapsed_seconds);
             Load_Control_State_Machine_Handler();
             elapsed_milliseconds = elapsed_seconds * 1000;

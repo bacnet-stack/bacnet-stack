@@ -414,7 +414,7 @@ bool bip6_init(
         bip6_set_interface("eth0");
     }
     if (BIP6_Addr.port == 0) {
-        bip6_set_port(0xBAC0);
+        bip6_set_port(0xBAC0U);
     }
     debug_printf("BIP6: IPv6 UDP port: 0x%04X\n", htons(BIP6_Addr.port));
     if (BIP6_Broadcast_Addr.address[0] == 0) {

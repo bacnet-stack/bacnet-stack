@@ -10,7 +10,7 @@
 
 #include "bacnet/datalink/bip.h"
 
-long bip_getaddrbyname(
+long bip_get_addr_by_name(
     const char *host_name)
 {
     return 0;
@@ -28,15 +28,15 @@ void bip_cleanup (void)
 
 bool bip_init(char *ifname)
 {
-    
+
     tcpip_adapter_ip_info_t ip_info = { 0 };
 
     int value = 1;
 
     tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
 
-    bip_set_interface(ifname);    
-    bip_set_port(htons(0xBAC0));
+    bip_set_interface(ifname);
+    bip_set_port(0xBAC0U);
     bip_set_addr(ip_info.ip.addr);
     bip_set_broadcast_addr((ip_info.ip.addr&ip_info.netmask.addr)|(~ip_info.netmask.addr));
 
@@ -44,7 +44,7 @@ bool bip_init(char *ifname)
     struct sockaddr_in saddr = { 0 };
 
     saddr.sin_family = PF_INET;
-    saddr.sin_port = htons(0xBAC0);
+    saddr.sin_port = htons(0xBAC0U);
     saddr.sin_addr.s_addr = htonl(INADDR_ANY);
     bind(sock, (struct sockaddr *)&saddr, sizeof(struct sockaddr_in));
 

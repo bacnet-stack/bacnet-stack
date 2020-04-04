@@ -299,7 +299,7 @@ bool read_config(char *filepath)
                 if (result) {
                     current->params.bip_params.port = param;
                 } else {
-                    current->params.bip_params.port = 0xBAC0;
+                    current->params.bip_params.port = 0xBAC0U;
                 }
                 result =
                     config_setting_lookup_int(port, "network", (int *)&param);
@@ -477,7 +477,7 @@ bool parse_cmd(int argc, char *argv[])
                     }
 
                     /* setup default parameters */
-                    current->params.bip_params.port = 0xBAC0; /* 47808 */
+                    current->params.bip_params.port = 0xBAC0U; /* 47808 */
                     current->route_info.net = get_next_free_dnet();
 
                     /* check if interface is valid */

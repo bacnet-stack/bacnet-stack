@@ -36,8 +36,6 @@
 
 #define BVLL_TYPE_BACNET_IP (0x81)
 
-extern bool BIP_Debug;
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -80,9 +78,9 @@ extern "C" {
 
         unsigned timeout);      /* milliseconds to wait for a packet */
 
-    /* use network byte order for setting */
+    /* use host byte order for setting */
     void bip_set_port(uint16_t port);
-    /* returns network byte order */
+    /* returns host byte order */
     uint16_t bip_get_port(void);
 
     /* use network byte order for setting */
@@ -102,6 +100,7 @@ extern "C" {
        an IP address in network byte order */
     long bip_getaddrbyname(const char *host_name);
 
+    void bip_debug_enable(void);
 
 #ifdef __cplusplus
 }

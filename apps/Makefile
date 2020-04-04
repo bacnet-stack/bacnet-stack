@@ -32,15 +32,14 @@ BACDL_DEFINE=-DBACDL_BIP6=1
 endif
 ifeq (${BACDL},)
 BACDL_DEFINE ?= -DBACDL_BIP=1
-BBMD_DEFINE ?= -DBBMD_ENABLED=1
+BBMD_DEFINE ?= -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 
 ifeq (${BBMD},server)
 BBMD_DEFINE=-DBBMD_ENABLED=1
 endif
 ifeq (${BBMD},client)
-BBMD_DEFINE=-DBBMD_ENABLED=1
-BBMD_DEFINE=-DBBMD_CLIENT_ENABLED
+BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 endif
 
@@ -131,7 +130,7 @@ PORT_ETHERNET_SRC = \
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bip.c
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c
 
 PORT_BIP6_SRC = \
 	$(BACNET_PORT_DIR)/bip6.c \
@@ -189,7 +188,7 @@ SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	writepropm uptransfer getevent uevent abort error
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-	SUBDIRS += whoisrouter iamrouter initrouter readbdt
+	SUBDIRS += whoisrouter iamrouter initrouter readbdt readfdt
 endif
 
 ifeq (${BACNET_PORT},linux)
@@ -258,8 +257,20 @@ iamrouter:
 initrouter:
 	$(MAKE) -b -C $@
 
+.PHONY: readbdt
+readbdt:
+	$(MAKE) -b -C $@
+
+.PHONY: readfdt
+readfdt:
+	$(MAKE) -b -C $@
+
 .PHONY: uevent
 uevent:
+	$(MAKE) -b -C $@
+
+.PHONY: whois
+whois:
 	$(MAKE) -b -C $@
 
 .PHONY: router
