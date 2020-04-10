@@ -199,22 +199,24 @@ void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
 {
     uint16_t j = 0;
     uint8_t index;
+    BACNET_TSM_DATA *plist;
 
     if (invokeID) {
         index = tsm_find_invokeID_index(invokeID);
         if (index < MAX_TSM_TRANSACTIONS) {
+            plist = &TSM_List[index];
             /* SendConfirmedUnsegmented */
-            TSM_List[index].state = TSM_STATE_AWAIT_CONFIRMATION;
-            TSM_List[index].RetryCount = 0;
+            plist->state = TSM_STATE_AWAIT_CONFIRMATION;
+            plist->RetryCount = 0;
             /* start the timer */
-            TSM_List[index].RequestTimer = apdu_timeout();
+            plist->RequestTimer = apdu_timeout();
             /* copy the data */
             for (j = 0; j < apdu_len; j++) {
-                TSM_List[index].apdu[j] = apdu[j];
+                plist->apdu[j] = apdu[j];
             }
-            TSM_List[index].apdu_len = apdu_len;
-            npdu_copy_data(&TSM_List[index].npdu_data, ndpu_data);
-            bacnet_address_copy(&TSM_List[index].dest, dest);
+            plist->apdu_len = apdu_len;
+            npdu_copy_data(&plist->npdu_data, ndpu_data);
+            bacnet_address_copy(&plist->dest, dest);
         }
     }
 
@@ -232,6 +234,7 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
     uint16_t j = 0;
     uint8_t index;
     bool found = false;
+    BACNET_TSM_DATA *plist;
 
     if (invokeID) {
         index = tsm_find_invokeID_index(invokeID);
@@ -240,13 +243,16 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
             /* FIXME: we may want to free the transaction so it doesn't timeout
              */
             /* retrieve the transaction */
-            /* FIXME: bounds check the pdu_len? */
-            *apdu_len = (uint16_t)TSM_List[index].apdu_len;
-            for (j = 0; j < *apdu_len; j++) {
-                apdu[j] = TSM_List[index].apdu[j];
+            plist = &TSM_List[index];
+            *apdu_len = (uint16_t)plist->apdu_len;
+            if (*apdu_len > MAX_PDU) {
+                *apdu_len = MAX_PDU;
             }
-            npdu_copy_data(ndpu_data, &TSM_List[index].npdu_data);
-            bacnet_address_copy(dest, &TSM_List[index].dest);
+            for (j = 0; j < *apdu_len; j++) {
+                apdu[j] = plist->apdu[j];
+            }
+            npdu_copy_data(ndpu_data, &plist->npdu_data);
+            bacnet_address_copy(dest, &plist->dest);
             found = true;
         }
     }
@@ -254,33 +260,38 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
     return found;
 }
 
-/* called once a millisecond or slower */
+/** Called once a millisecond or slower.
+ *
+ * @param milliseconds - Count of milliseconds passed, since the last call.
+ */
 void tsm_timer_milliseconds(uint16_t milliseconds)
 {
     unsigned i = 0; /* counter */
 
-    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
-        if (TSM_List[i].state == TSM_STATE_AWAIT_CONFIRMATION) {
-            if (TSM_List[i].RequestTimer > milliseconds) {
-                TSM_List[i].RequestTimer -= milliseconds;
+    BACNET_TSM_DATA *plist = &TSM_List[0];
+
+    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++, plist++) {
+        if (plist->state == TSM_STATE_AWAIT_CONFIRMATION) {
+            if (plist->RequestTimer > milliseconds) {
+                plist->RequestTimer -= milliseconds;
             } else {
-                TSM_List[i].RequestTimer = 0;
+                plist->RequestTimer = 0;
             }
             /* AWAIT_CONFIRMATION */
-            if (TSM_List[i].RequestTimer == 0) {
-                if (TSM_List[i].RetryCount < apdu_retries()) {
-                    TSM_List[i].RequestTimer = apdu_timeout();
-                    TSM_List[i].RetryCount++;
-                    datalink_send_pdu(&TSM_List[i].dest, &TSM_List[i].npdu_data,
-                        &TSM_List[i].apdu[0], TSM_List[i].apdu_len);
+            if (plist->RequestTimer == 0) {
+                if (plist->RetryCount < apdu_retries()) {
+                    plist->RequestTimer = apdu_timeout();
+                    plist->RetryCount++;
+                    datalink_send_pdu(&plist->dest, &plist->npdu_data,
+                        &plist->apdu[0], plist->apdu_len);
                 } else {
                     /* note: the invoke id has not been cleared yet
                        and this indicates a failed message:
                        IDLE and a valid invoke id */
-                    TSM_List[i].state = TSM_STATE_IDLE;
-                    if (TSM_List[i].InvokeID != 0) {
+                    plist->state = TSM_STATE_IDLE;
+                    if (plist->InvokeID != 0) {
                         if (Timeout_Function) {
-                            Timeout_Function(TSM_List[i].InvokeID);
+                            Timeout_Function(plist->InvokeID);
                         }
                     }
                 }
@@ -293,11 +304,13 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
 void tsm_free_invoke_id(uint8_t invokeID)
 {
     uint8_t index;
+    BACNET_TSM_DATA *plist;
 
     index = tsm_find_invokeID_index(invokeID);
     if (index < MAX_TSM_TRANSACTIONS) {
-        TSM_List[index].state = TSM_STATE_IDLE;
-        TSM_List[index].InvokeID = 0;
+        plist = &TSM_List[index];
+        plist->state = TSM_STATE_IDLE;
+        plist->InvokeID = 0;
     }
 }
 
