@@ -6,6 +6,7 @@ all: abort address arf awf bvlc6 bacapp bacdcode bacerror bacint bacstr \
 	cov crc datetime dcc event filename fifo getevent iam ihave \
 	indtext keylist key lighting lso memcopy npdu proplist ptransfer \
 	rd reject ringbuf rp rpm sbuf timesync vmac \
+	bbmd6 \
 	whohas whois wp
 
 clean: logfile
@@ -69,6 +70,11 @@ bvlc6: logfile bvlc6.mak
 	$(MAKE) -s -f bvlc6.mak clean all
 	( ./bvlc6 >> ${LOGFILE} )
 	$(MAKE) -s -f bvlc6.mak clean
+
+bbmd6: logfile bacnet/basic/bbmd6/Makefile
+	$(MAKE) -s -C bacnet/basic/bbmd6/ clean all
+	( ./bacnet/basic/bbmd6/test >> ${LOGFILE} )
+	$(MAKE) -s -C bacnet/basic/bbmd6/ clean
 
 cov: logfile cov.mak
 	$(MAKE) -s -f cov.mak clean all

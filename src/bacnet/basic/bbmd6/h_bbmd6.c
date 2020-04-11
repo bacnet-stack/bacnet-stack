@@ -42,9 +42,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd6/vmac.h"
-#ifndef TEST
-#include "bacport.h"
-#endif
 
 /** result from a client request */
 static uint16_t BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
@@ -70,31 +67,31 @@ static BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY
 static BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY FD_Table[MAX_FD6_ENTRIES];
 #endif
 
-#if defined(BACDL_BIP6) && BBMD6_ENABLED
 /** A timer function that is called about once a second.
  *
  * @param seconds - number of elapsed seconds since the last call
  */
-void bbmd6_maintenance_timer(time_t seconds)
+void bvlc6_maintenance_timer(uint16_t seconds)
 {
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
     unsigned i = 0;
 
-    for (i = 0; i < MAX_FD_ENTRIES; i++) {
+    for (i = 0; i < MAX_FD6_ENTRIES; i++) {
         if (FD_Table[i].valid) {
-            if (FD_Table[i].seconds_remaining) {
-                if (FD_Table[i].seconds_remaining < seconds) {
-                    FD_Table[i].seconds_remaining = 0;
+            if (FD_Table[i].ttl_seconds_remaining) {
+                if (FD_Table[i].ttl_seconds_remaining < seconds) {
+                    FD_Table[i].ttl_seconds_remaining = 0;
                 } else {
-                    FD_Table[i].seconds_remaining -= seconds;
+                    FD_Table[i].ttl_seconds_remaining -= seconds;
                 }
-                if (FD_Table[i].seconds_remaining == 0) {
+                if (FD_Table[i].ttl_seconds_remaining == 0) {
                     FD_Table[i].valid = false;
                 }
             }
         }
     }
-}
 #endif
+}
 
 /**
  * Sets the IPv6 source address from a VMAC address structure
@@ -603,7 +600,7 @@ static void bbmd6_address_resolution_ack_handler(
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-static int handler_bbmd6_for_non_bbmd(BACNET_IP6_ADDRESS *addr,
+int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -770,7 +767,7 @@ static int handler_bbmd6_for_non_bbmd(BACNET_IP6_ADDRESS *addr,
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-static int handler_bbmd6_for_bbmd(BACNET_IP6_ADDRESS *addr,
+int bvlc6_bbmd_enabled_handler(BACNET_IP6_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -960,9 +957,9 @@ int bvlc6_handler(BACNET_IP6_ADDRESS *addr,
     uint16_t npdu_len)
 {
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
-    return handler_bbmd6_for_bbmd(addr, src, npdu, npdu_len);
+    return bvlc6_bbmd_enabled_handler(addr, src, npdu, npdu_len);
 #else
-    return handler_bbmd6_for_non_bbmd(addr, src, npdu, npdu_len);
+    return bvlc6_bbmd_disabled_handler(addr, src, npdu, npdu_len);
 #endif
 }
 
@@ -1013,9 +1010,28 @@ uint8_t bvlc6_get_function_code(void)
     return BVLC6_Function_Code;
 }
 
+/**
+ * Cleanup any memory usage
+ */
+void bvlc6_cleanup(void)
+{
+    VMAC_Cleanup();
+}
+
+/**
+ * Initialize any tables or other memory
+ */
 void bvlc6_init(void)
 {
     VMAC_Init();
+    BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
+    BVLC6_Function_Code = BVLC6_RESULT;
+    bvlc6_address_set(&Remote_BBMD, 0, 0, 0, 0, 0, 0, 0,
+        BIP6_MULTICAST_GROUP_ID);
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    memset(&BBMD_Table, 0, sizeof(BBMD_Table));
+    memset(&FD_Table, 0, sizeof(FD_Table));
+#endif
 }
 
 #ifdef TEST
@@ -1113,12 +1129,12 @@ static void test_BBMD_Result(Test *pTest)
 
     bvlc6_address_set(&addr, BIP6_MULTICAST_LINK_LOCAL, 0, 0, 0, 0, 0, 0,
         BIP6_MULTICAST_GROUP_ID);
-    addr.port = 0xBAC0;
+    addr.port = 0xBAC0U;
     bvlc6_vmac_address_set(&src, vmac_src);
     for (i = 0; i < 6; i++) {
         mtu_len =
             bvlc6_encode_result(&mtu[0], sizeof(mtu), vmac_src, result_code[i]);
-        result = handler_bbmd6_for_non_bbmd(&addr, &src, &mtu[0], mtu_len);
+        result = bvlc6_bbmd_disabled_handler(&addr, &src, &mtu[0], mtu_len);
         /* validate that the result is handled (0) */
         ct_test(pTest, result == 0);
         test_result_code = bvlc6_get_last_result();

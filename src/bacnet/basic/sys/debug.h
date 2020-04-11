@@ -38,20 +38,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#if DEBUG_ENABLED
     BACNET_STACK_EXPORT
     void debug_printf(
         const char *format,
         ...);
-#if DEBUG_ENABLED
-    /* Nothing more here */
 #else
-    /* If your compiler supports it, this is more compact:
-       inline void debug_printf(
-       const char *format,
-       ...) {
-       format = format;
-       }
-     */
+    #define debug_printf(...)
 #endif
 #ifdef __cplusplus
 }
