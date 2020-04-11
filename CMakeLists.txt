@@ -125,6 +125,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/bactext.h
     src/bacnet/bactimevalue.c
     src/bacnet/bactimevalue.h
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
+    $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
@@ -348,7 +350,6 @@ add_library(${PROJECT_NAME}
     src/bacnet/datalink/bacsec.h
     src/bacnet/datalink/bip6.h
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.h>
-    $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bip.c>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.c>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/datalink/bvlc6.h>
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.h>
@@ -578,6 +579,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(readbdt apps/readbdt/main.c)
   target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
+
+  add_executable(readfdt apps/readfdt/main.c)
+  target_link_libraries(readfdt PRIVATE ${PROJECT_NAME})
 
   add_executable(readfile apps/readfile/main.c)
   target_link_libraries(readfile PRIVATE ${PROJECT_NAME})

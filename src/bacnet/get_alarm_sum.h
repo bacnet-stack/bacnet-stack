@@ -58,12 +58,6 @@ extern "C" {
         uint8_t * apdu,
         uint8_t invoke_id);
 
-    /* set GetAlarmSummary function */
-    BACNET_STACK_EXPORT
-    void handler_get_alarm_summary_set(
-        BACNET_OBJECT_TYPE object_type,
-        get_alarm_summary_function pFunction);
-
     /* encode service */
     BACNET_STACK_EXPORT
     int get_alarm_summary_ack_encode_apdu_init(

@@ -270,7 +270,7 @@ bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, char *arg)
         mac->adr[2] = a[2];
         mac->adr[3] = a[3];
         if (c == 4) {
-            port = 0xBAC0;
+            port = 0xBAC0U;
         } else {
             port = (uint16_t)p;
         }

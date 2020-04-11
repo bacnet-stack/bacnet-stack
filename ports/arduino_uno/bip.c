@@ -130,13 +130,13 @@ uint8_t *bip_get_broadcast_addr(void)
 
 void bip_set_port(uint16_t port)
 {       /* in network byte order */
-    BIP_Port = port;
+    BIP_Port = htons(port);
 }
 
 /* returns network byte order */
 uint16_t bip_get_port(void)
 {
-    return BIP_Port;
+    return ntohs(BIP_Port);
 }
 
 static int bip_decode_bip_address(BACNET_ADDRESS * bac_addr,

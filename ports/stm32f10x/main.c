@@ -76,7 +76,7 @@ void lse_init(
     while (1) {
         if (LSE_Delay < LSE_FAIL_FLAG) {
             mstimer_set(&Delay_Timer, 0);
-            while (mstimer_remaining(&Delay_Timer) <  500) {
+            while (mstimer_elapsed(&Delay_Timer) <  500) {
                 /* do nothing */
             }
             /* check whether LSE is ready, with 4 seconds timeout */

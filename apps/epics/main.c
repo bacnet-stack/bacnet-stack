@@ -1432,7 +1432,7 @@ int main(int argc, char *argv[])
      * My_BIP_Port will be non-zero in this case.
      */
     if (My_BIP_Port > 0) {
-        bip_set_port(htons(My_BIP_Port));
+        bip_set_port(My_BIP_Port);
     }
 #endif
     address_init();
@@ -1446,7 +1446,8 @@ int main(int argc, char *argv[])
 
 #if defined(BACDL_BIP)
     if (My_BIP_Port > 0) {
-        bip_set_port(htons(0xBAC0)); /* Set back to std BACnet/IP port */
+        /* Set back to std BACnet/IP port */
+        bip_set_port(0xBAC0);
     }
 #endif
     /* try to bind with the target device */

@@ -296,10 +296,10 @@ int bacapp_decode_application_data(
         if (tag_len > 0) {
             len += tag_len;
             value->tag = tag_number;
-            if (len <= apdu_len_max) {
+            if ((unsigned)len <= apdu_len_max) {
                 decode_len =
                     bacapp_decode_data_len(NULL, tag_number, len_value_type);
-                if (decode_len <= (apdu_len_max - len)) {
+                if ((unsigned)decode_len <= (apdu_len_max - len)) {
                     decode_len = bacapp_decode_data(
                         &apdu[len], tag_number, len_value_type, value);
                     if (value->tag != MAX_BACNET_APPLICATION_TAG) {

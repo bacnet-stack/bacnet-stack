@@ -135,6 +135,12 @@ extern "C" {
     bool dlmstp_send_pdu_queue_empty(void);
     BACNET_STACK_EXPORT
     bool dlmstp_send_pdu_queue_full(void);
+    
+    BACNET_STACK_EXPORT
+    uint8_t dlmstp_max_info_frames_limit(void);
+    BACNET_STACK_EXPORT
+    uint8_t dlmstp_max_master_limit(void);
+    
 
 #ifdef __cplusplus
 }

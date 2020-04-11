@@ -42,9 +42,15 @@
 #if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
  (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
 #include <iphlpapi.h>
+#if defined(_MSC_VER)
+#pragma comment(lib, "IPHLPAPI.lib")
+#endif
 #endif
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#if defined(_MSC_VER)
+#pragma comment(lib, "Ws2_32.lib")
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef __MINGW32__
@@ -63,11 +69,6 @@ and globals in favor of more secure versions.  */
 #include <sys/time.h>
 #endif
 #include <sys/timeb.h>
-#if defined(__BORLANDC__) || defined(_WIN32)
-/* seems to not be defined in time.h as specified by The Open Group */
-/* difference from UTC and local standard time  */
-extern long int timezone;
-#endif
 
 #ifdef _MSC_VER
 #define inline __inline
@@ -75,10 +76,6 @@ extern long int timezone;
 #ifdef __BORLANDC__
 #define inline __inline
 #endif
-
-#define close closesocket
-
-typedef int socklen_t;
 
 #ifdef _WIN32
 #define strncasecmp(x, y, z) _strnicmp(x, y, z)

@@ -29,12 +29,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h> /* for memmove */
-#include <time.h> /* for timezone, localtime */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
 #include "bacnet/wp.h" /* WriteProperty handling */
 #include "bacnet/rp.h" /* ReadProperty handling */
@@ -78,12 +78,6 @@
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
-
-#if defined(__BORLANDC__) || defined(_WIN32)
-/* Not included in time.h as specified by The Open Group */
-/* Difference from UTC and local standard time */
-long int timezone;
-#endif
 
 /* local forward (semi-private) and external prototypes */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -1838,7 +1832,7 @@ void Device_Init(object_functions_t *object_table)
     }
     ucix_cleanup(ctx);
 #endif /* defined(BAC_UCI) */
-
+    datetime_init();
     if (object_table) {
         Object_Table = object_table;
     } else {

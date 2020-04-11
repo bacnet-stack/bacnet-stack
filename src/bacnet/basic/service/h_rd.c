@@ -123,7 +123,7 @@ void handler_reinitialize_device(uint8_t *service_request,
             "ReinitializeDevice: Sending Reject - undefined enumeration\n");
 #endif
     } else {
-#if BAC_ROUTING
+#ifdef BAC_ROUTING
         /* Check to see if the current Device supports this service. */
         len = Routed_Device_Service_Approval(
             SERVICE_CONFIRMED_REINITIALIZE_DEVICE, (int)rd_data.state,

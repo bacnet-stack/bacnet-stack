@@ -173,4 +173,9 @@ void datalink_set_interface(char *ifname)
 void datalink_set(char *datalink_string)
 {
 }
+
+void datalink_maintenance_timer(uint16_t seconds)
+{
+    (void)seconds;
+}
 #endif

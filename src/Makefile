@@ -22,7 +22,7 @@ BACNET_PORT_DIR ?= $(realpath ../ports/$(BACNET_PORT))
 BACNET_PORT_SRC ?= \
 	$(BACNET_PORT_DIR)/bip-init.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bip.c
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c
 
 # include file search paths
 BACNET_INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)

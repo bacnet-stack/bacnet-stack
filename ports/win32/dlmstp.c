@@ -72,7 +72,7 @@ static struct mstimer Silence_Timer;
 static uint32_t Timer_Silence(
     void *pArg)
 {
-    return mstimer_remaining(&Silence_Timer);
+    return mstimer_elapsed(&Silence_Timer);
 }
 
 static void Timer_Silence_Reset(

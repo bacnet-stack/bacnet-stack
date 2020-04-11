@@ -168,7 +168,7 @@ unsigned Ringbuf_Size(RING_BUFFER const *b)
  * @param  b - pointer to RING_BUFFER structure
  * @return pointer to the data, or NULL if nothing in the list
  */
-volatile uint8_t *Ringbuf_Peek(RING_BUFFER const *b)
+volatile void *Ringbuf_Peek(RING_BUFFER const *b)
 {
     volatile uint8_t *data_element = NULL; /* return value */
 
@@ -187,7 +187,7 @@ volatile uint8_t *Ringbuf_Peek(RING_BUFFER const *b)
  * @param  data_element - find the next element from this one
  * @return pointer to the data, or NULL if nothing in the list
  */
-volatile uint8_t *Ringbuf_Peek_Next(RING_BUFFER const *b, uint8_t *data_element)
+volatile void *Ringbuf_Peek_Next(RING_BUFFER const *b, uint8_t *data_element)
 {
     unsigned index; /* list index */
     volatile uint8_t *this_element;
@@ -364,7 +364,7 @@ bool Ringbuf_Put_Front(RING_BUFFER *b, uint8_t *data_element)
  * @param  b - pointer to RING_BUFFER structure
  * @return pointer to the next data element, or NULL if the list is full
  */
-volatile uint8_t *Ringbuf_Data_Peek(RING_BUFFER *b)
+volatile void *Ringbuf_Data_Peek(RING_BUFFER *b)
 {
     volatile uint8_t *ring_data = NULL; /* used to help point ring data */
 

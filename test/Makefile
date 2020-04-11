@@ -66,6 +66,11 @@ bacstr: logfile bacstr.mak
 	( ./bacstr >> ${LOGFILE} )
 	$(MAKE) -s -f bacstr.mak clean
 
+bvlc: logfile bvlc.mak
+	$(MAKE) -s -f bvlc.mak clean all
+	( ./bvlc >> ${LOGFILE} )
+	$(MAKE) -s -f bvlc.mak clean
+
 bvlc6: logfile bvlc6.mak
 	$(MAKE) -s -f bvlc6.mak clean all
 	( ./bvlc6 >> ${LOGFILE} )

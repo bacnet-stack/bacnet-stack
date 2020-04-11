@@ -149,6 +149,11 @@ extern "C" {
         uint16_t year,
         uint8_t month,
         uint8_t day);
+
+    BACNET_STACK_EXPORT
+    void datetime_seconds_since_midnight_into_time(
+        uint32_t seconds,
+        BACNET_TIME *btime);
     BACNET_STACK_EXPORT
     uint32_t datetime_seconds_since_midnight(
         BACNET_TIME * btime);
@@ -207,6 +212,14 @@ extern "C" {
     void datetime_add_minutes(
         BACNET_DATE_TIME * bdatetime,
         int32_t minutes);
+
+    BACNET_STACK_EXPORT
+    uint64_t datetime_seconds_since_epoch(
+        BACNET_DATE_TIME * bdatetime);
+    BACNET_STACK_EXPORT
+    void datetime_since_epoch_seconds(
+        BACNET_DATE_TIME * bdatetime,
+        uint64_t seconds);
 
     /* date and time wildcards */
     BACNET_STACK_EXPORT

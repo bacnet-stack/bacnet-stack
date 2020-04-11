@@ -777,7 +777,7 @@ int bacnet_object_id_application_decode(uint8_t *apdu,
     if ((len > 0) && (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID)) {
         apdu_len = len;
         if (apdu_len < apdu_len_max) {
-            if ((apdu_len_max - apdu_len) >= len_value_type) {
+            if ((apdu_len_max - (unsigned)apdu_len) >= len_value_type) {
                 len = bacnet_object_id_decode(
                     &apdu[len], len_value_type, object_type, object_instance);
                 if (len > 0) {

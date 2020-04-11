@@ -3,11 +3,12 @@ language: c
 dist: xenial
 
 before_install:
-  - sudo apt-get update
-  - sudo apt-get -y install build-essential
-  - sudo apt-get -y install gcc-arm-none-eabi
-  - sudo apt-get -y install libnewlib-arm-none-eabi
-  - sudo apt-get -y install gcc-avr avr-libc binutils-avr
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq build-essential
+  - sudo apt-get install -qq gcc-arm-none-eabi
+  - sudo apt-get install -qq libnewlib-arm-none-eabi
+  - sudo apt-get install -qq gcc-avr avr-libc binutils-avr
+  - sudo apt-get install -qq mingw-w64
 
 compiler:
   - gcc
@@ -19,6 +20,14 @@ jobs:
       os: linux
       compiler: gcc
       script: make clean all
+    - stage: demos-win32
+      os: linux
+      before_script:
+        - export CC=i686-w64-mingw32-gcc
+        - export LD=i686-w64-mingw32-ld
+        - i686-w64-mingw32-gcc --version
+      script:
+        - make win32
     - stage: demos-build-cmake
       os: linux
       compiler: gcc

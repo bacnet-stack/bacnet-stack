@@ -156,11 +156,6 @@ extern "C" {
         int apdu_len,   /* total length of the apdu */
         BACNET_READ_RANGE_DATA * rrdata);
 
-    BACNET_STACK_EXPORT
-    uint8_t Send_ReadRange_Request(
-        uint32_t device_id,     /* destination device */
-        BACNET_READ_RANGE_DATA * read_access_data);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

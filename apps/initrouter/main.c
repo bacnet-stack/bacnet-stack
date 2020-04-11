@@ -368,9 +368,7 @@ int main(int argc, char *argv[])
         /* increment timer - exit if timed out */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {
-#if defined(BACDL_BIP) && BBMD_ENABLED
-            bvlc_maintenance_timer(elapsed_seconds);
-#endif
+            datalink_maintenance_timer(elapsed_seconds);
         }
         total_seconds += elapsed_seconds;
         if (total_seconds > timeout_seconds) {

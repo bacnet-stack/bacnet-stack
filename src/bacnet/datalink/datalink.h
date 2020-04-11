@@ -37,6 +37,7 @@
 #define datalink_cleanup ethernet_cleanup
 #define datalink_get_broadcast_address ethernet_get_broadcast_address
 #define datalink_get_my_address ethernet_get_my_address
+#define datalink_maintenance_timer(s)
 
 #elif defined(BACDL_ARCNET)
 #include "bacnet/datalink/arcnet.h"
@@ -47,6 +48,7 @@
 #define datalink_cleanup arcnet_cleanup
 #define datalink_get_broadcast_address arcnet_get_broadcast_address
 #define datalink_get_my_address arcnet_get_my_address
+#define datalink_maintenance_timer(s)
 
 #elif defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
@@ -57,19 +59,16 @@
 #define datalink_cleanup dlmstp_cleanup
 #define datalink_get_broadcast_address dlmstp_get_broadcast_address
 #define datalink_get_my_address dlmstp_get_my_address
+#define datalink_maintenance_timer(s)
 
 #elif defined(BACDL_BIP)
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
 
 #define datalink_init bip_init
-#if defined(BBMD_ENABLED) && BBMD_ENABLED
-#define datalink_send_pdu bvlc_send_pdu
-#define datalink_receive bvlc_receive
-#else
 #define datalink_send_pdu bip_send_pdu
 #define datalink_receive bip_receive
-#endif
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #ifdef BAC_ROUTING
@@ -80,6 +79,7 @@ void routed_get_my_address(
 #else
 #define datalink_get_my_address bip_get_my_address
 #endif
+#define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
 
 #elif defined(BACDL_BIP6)
 #include "bacnet/datalink/bip6.h"
@@ -90,6 +90,7 @@ void routed_get_my_address(
 #define datalink_cleanup bip6_cleanup
 #define datalink_get_broadcast_address bip6_get_broadcast_address
 #define datalink_get_my_address bip6_get_my_address
+#define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
 
 #elif defined(BACDL_ALL) || defined(BACDL_NONE)
 #include "bacnet/npdu.h"
@@ -107,27 +108,36 @@ extern "C" {
         BACNET_NPDU_DATA * npdu_data,
         uint8_t * pdu,
         unsigned pdu_len);
+
     BACNET_STACK_EXPORT
     uint16_t datalink_receive(
         BACNET_ADDRESS * src,
         uint8_t * pdu,
         uint16_t max_pdu,
         unsigned timeout);
+
     BACNET_STACK_EXPORT
     void datalink_cleanup(
         void);
+
     BACNET_STACK_EXPORT
     void datalink_get_broadcast_address(
         BACNET_ADDRESS * dest);
+
     BACNET_STACK_EXPORT
     void datalink_get_my_address(
         BACNET_ADDRESS * my_address);
+
     BACNET_STACK_EXPORT
     void datalink_set_interface(
         char *ifname);
+
     BACNET_STACK_EXPORT
     void datalink_set(
         char *datalink_string);
+
+    BACNET_STACK_EXPORT
+    void datalink_maintenance_timer(uint16_t seconds);
 
 #ifdef __cplusplus
 }
@@ -149,9 +159,11 @@ extern "C" {
  * - BACDL_ETHERNET -- for Clause 7 ISO 8802-3 ("Ethernet") LAN
  * - BACDL_ARCNET   -- for Clause 8 ARCNET LAN
  * - BACDL_MSTP     -- for Clause 9 MASTER-SLAVE/TOKEN PASSING (MS/TP) LAN
- * - BACDL_BIP      -- for ANNEX J - BACnet/IP
+ * - BACDL_BIP      -- for ANNEX J - BACnet/IPv4
+ * - BACDL_BIP6     -- for ANNEX U - BACnet/IPv6
  * - BACDL_ALL      -- Unspecified for the build, so the transport can be
  *                     chosen at runtime from among these choices.
+ * - BACDL_NONE      -- Unspecified for the build for unit testing
  * - Clause 10 POINT-TO-POINT (PTP) and Clause 11 EIA/CEA-709.1 ("LonTalk") LAN
  *   are not currently supported by this project.
                                                                                                                                                                                               *//** @defgroup DLTemplates DataLink Template Functions
