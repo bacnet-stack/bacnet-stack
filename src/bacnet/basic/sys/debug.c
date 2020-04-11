@@ -53,9 +53,4 @@ void debug_printf(const char *format, ...)
 
     return;
 }
-#else
-void debug_printf(const char *format, ...)
-{
-    (void)format;
-}
 #endif

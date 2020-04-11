@@ -1464,7 +1464,7 @@ int bvlc_decode_original_unicast(uint8_t *pdu,
     int bytes_consumed = 0;
     uint16_t i = 0;
 
-    if (pdu_len >= npdu_size) {
+    if (pdu_len <= npdu_size) {
         if (pdu && npdu) {
             for (i = 0; i < pdu_len; i++) {
                 npdu[i] = pdu[i];
@@ -1541,7 +1541,7 @@ int bvlc_decode_original_broadcast(uint8_t *pdu,
     int bytes_consumed = 0;
     uint16_t i = 0;
 
-    if (pdu_len >= npdu_size) {
+    if (pdu_len <= npdu_size) {
         if (pdu && npdu) {
             for (i = 0; i < pdu_len; i++) {
                 npdu[i] = pdu[i];

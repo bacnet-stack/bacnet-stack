@@ -2,11 +2,11 @@
 
 LOGFILE = test.log
 
-all: abort address arf awf bvlc6 bacapp bacdcode bacerror bacint bacstr \
+all: abort address arf awf bvlc bvlc6 bacapp bacdcode bacerror bacint bacstr \
 	cov crc datetime dcc event filename fifo getevent iam ihave \
 	indtext keylist key lighting lso memcopy npdu proplist ptransfer \
 	rd reject ringbuf rp rpm sbuf timesync vmac \
-	bbmd6 \
+	bbmd bbmd6 \
 	whohas whois wp
 
 clean: logfile
@@ -70,6 +70,11 @@ bvlc: logfile bvlc.mak
 	$(MAKE) -s -f bvlc.mak clean all
 	( ./bvlc >> ${LOGFILE} )
 	$(MAKE) -s -f bvlc.mak clean
+
+bbmd: logfile bacnet/basic/bbmd/Makefile
+	$(MAKE) -s -C bacnet/basic/bbmd/ clean all
+	( ./bacnet/basic/bbmd/test >> ${LOGFILE} )
+	$(MAKE) -s -C bacnet/basic/bbmd/ clean
 
 bvlc6: logfile bvlc6.mak
 	$(MAKE) -s -f bvlc6.mak clean all
