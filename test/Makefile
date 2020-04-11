@@ -73,7 +73,7 @@ bvlc: logfile bvlc.mak
 
 bbmd: logfile bacnet/basic/bbmd/Makefile
 	$(MAKE) -s -C bacnet/basic/bbmd/ clean all
-	( ./bacnet/basic/bbmd/test >> ${LOGFILE} )
+	( ./bacnet/basic/bbmd/unittest >> ${LOGFILE} )
 	$(MAKE) -s -C bacnet/basic/bbmd/ clean
 
 bvlc6: logfile bvlc6.mak
@@ -83,7 +83,7 @@ bvlc6: logfile bvlc6.mak
 
 bbmd6: logfile bacnet/basic/bbmd6/Makefile
 	$(MAKE) -s -C bacnet/basic/bbmd6/ clean all
-	( ./bacnet/basic/bbmd6/test >> ${LOGFILE} )
+	( ./bacnet/basic/bbmd6/unittest >> ${LOGFILE} )
 	$(MAKE) -s -C bacnet/basic/bbmd6/ clean
 
 cov: logfile cov.mak

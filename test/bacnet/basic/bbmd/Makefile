@@ -19,7 +19,7 @@ SRCS = main.c \
 	$(SRC_DIR)/bacnet/basic/sys/debug.c \
 	$(TEST_DIR)/ctest.c
 
-TARGET_NAME = test
+TARGET_NAME = unittest
 ifeq ($(OS),Windows_NT)
 TARGET_EXT = .exe
 else
