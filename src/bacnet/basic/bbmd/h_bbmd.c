@@ -639,7 +639,6 @@ static int bvlc_send_result(BACNET_IP_ADDRESS *dest_addr, uint16_t result_code)
     return bip_send_mpdu(dest_addr, mtu, mtu_len);
 }
 
-#if ((!BBMD_ENABLED) || (TEST))
 /**
  * Use this handler when you are not a BBMD.
  * Sets the BVLC_Function_Code in case it is needed later.
@@ -651,7 +650,7 @@ static int bvlc_send_result(BACNET_IP_ADDRESS *dest_addr, uint16_t result_code)
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-static int handler_bbmd_for_non_bbmd(BACNET_IP_ADDRESS *addr,
+int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -785,7 +784,6 @@ static int handler_bbmd_for_non_bbmd(BACNET_IP_ADDRESS *addr,
 
     return offset;
 }
-#endif
 
 #if BBMD_ENABLED
 /**
@@ -799,7 +797,7 @@ static int handler_bbmd_for_non_bbmd(BACNET_IP_ADDRESS *addr,
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-static int handler_bbmd_for_bbmd(BACNET_IP_ADDRESS *addr,
+int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -1111,10 +1109,10 @@ int bvlc_handler(BACNET_IP_ADDRESS *addr,
 {
 #if BBMD_ENABLED
     debug_print_bip("Received BVLC (BBMD Enabled)", addr);
-    return handler_bbmd_for_bbmd(addr, src, npdu, npdu_len);
+    return bvlc_bbmd_enabled_handler(addr, src, npdu, npdu_len);
 #else
     debug_print_bip("Received BVLC (BBMD Disabled)", addr);
-    return handler_bbmd_for_non_bbmd(addr, src, npdu, npdu_len);
+    return bvlc_bbmd_disabled_handler(addr, src, npdu, npdu_len);
 #endif
 }
 
@@ -1254,141 +1252,3 @@ void bvlc_init(void)
     bvlc_foreign_device_table_link_array(&FD_Table[0], MAX_FD_ENTRIES);
 #endif
 }
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-static uint32_t Device_ID = 0;
-static BACNET_IP_ADDRESS BIP_Addr;
-static BACNET_IP_ADDRESS BIP_Broadcast_Addr;
-
-/* network stub functions */
-/**
- * BACnet/IP Datalink Receive handler.
- *
- * @param src - returns the source address
- * @param npdu - returns the NPDU buffer
- * @param max_npdu -maximum size of the NPDU buffer
- * @param timeout - number of milliseconds to wait for a packet
- *
- * @return Number of bytes received, or 0 if none or timeout.
- */
-uint16_t bip_receive(
-    BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu, unsigned timeout)
-{
-    return 0;
-}
-
-/**
- * The send function for BACnet/IPv4 driver layer
- *
- * @param dest - Points to a BACNET_IP_ADDRESS structure containing the
- *  destination address.
- * @param mtu - the bytes of data to send
- * @param mtu_len - the number of bytes of data to send
- *
- * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
- */
-int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
-{
-    return 0;
-}
-
-/** Return the Object Instance number for our (single) Device Object.
- * This is a key function, widely invoked by the handler code, since
- * it provides "our" (ie, local) address.
- *
- * @return The Instance number used in the BACNET_OBJECT_ID for the Device.
- */
-uint32_t Device_Object_Instance_Number(void)
-{
-    return Device_ID;
-}
-
-/**
- * Get the BACnet/IP address
- *
- * @return BACnet/IP address
- */
-bool bip_get_addr(BACNET_IP_ADDRESS *addr)
-{
-    return bvlc_address_copy(addr, &BIP_Addr);
-}
-
-/**
- * Get the BACnet/IP address
- *
- * @return BACnet/IP address
- */
-bool bip_get_broadcast_addr(BACNET_IP_ADDRESS *addr)
-{
-    return bvlc_address_copy(addr, &BIP_Broadcast_Addr);
-}
-
-static void test_BBMD_Result(Test *pTest)
-{
-    int result = 0;
-    uint16_t result_code[] = { BVLC_RESULT_SUCCESSFUL_COMPLETION,
-        BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK,
-        BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK,
-        BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK,
-        BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK,
-        BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK,
-        BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK };
-    size_t result_code_max = sizeof(result_code) / sizeof(result_code[0]);
-    uint16_t test_result_code = 0;
-    uint8_t test_function_code = 0;
-    BACNET_IP_ADDRESS addr;
-    BACNET_ADDRESS src;
-    unsigned int i = 0;
-    uint8_t mtu[MAX_MPDU] = { 0 };
-    uint16_t mtu_len = 0;
-
-    bvlc_address_port_from_ascii(&addr, "192.168.0.1", "0xBAC0");
-    for (i = 0; i < result_code_max; i++) {
-        mtu_len = bvlc_encode_result(&mtu[0], sizeof(mtu), result_code[i]);
-        result = handler_bbmd_for_non_bbmd(&addr, &src, &mtu[0], mtu_len);
-        /* validate that the result is handled (0) */
-        ct_test(pTest, result == 0);
-        test_result_code = bvlc_get_last_result();
-        ct_test(pTest, test_result_code == result_code[i]);
-        test_function_code = bvlc_get_function_code();
-        ct_test(pTest, test_function_code == BVLC_RESULT);
-        result = handler_bbmd_for_bbmd(&addr, &src, &mtu[0], mtu_len);
-        /* validate that the result is handled (0) */
-        ct_test(pTest, result == 0);
-        test_result_code = bvlc_get_last_result();
-        ct_test(pTest, test_result_code == result_code[i]);
-        test_function_code = bvlc_get_function_code();
-        ct_test(pTest, test_function_code == BVLC_RESULT);
-    }
-}
-
-static void test_BBMD_Handler(Test *pTest)
-{
-    bool rc;
-
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, test_BBMD_Result);
-    assert(rc);
-}
-
-#ifdef TEST_BBMD_HANDLER
-int main(void)
-{
-    Test *pTest;
-
-    pTest = ct_create("BACnet Broadcast Management Device Handler", NULL);
-    test_BBMD_Handler(pTest);
-    /* configure output */
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif
-#endif

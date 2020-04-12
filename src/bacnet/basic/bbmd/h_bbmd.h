@@ -48,6 +48,19 @@ int bvlc_handler(BACNET_IP_ADDRESS *addr,
     uint16_t npdu_len);
 
 BACNET_STACK_EXPORT
+int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
+    BACNET_ADDRESS *src,
+    uint8_t *mtu,
+    uint16_t mtu_len);
+
+BACNET_STACK_EXPORT
+int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
+    BACNET_ADDRESS *src,
+    uint8_t *mtu,
+    uint16_t mtu_len);
+
+
+BACNET_STACK_EXPORT
 int bvlc_send_pdu(BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,

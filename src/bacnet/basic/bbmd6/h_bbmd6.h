@@ -49,6 +49,18 @@ extern "C" {
         uint16_t npdu_len);
 
     BACNET_STACK_EXPORT
+    int bvlc6_bbmd_enabled_handler(BACNET_IP6_ADDRESS *addr,
+        BACNET_ADDRESS *src,
+        uint8_t *mtu,
+        uint16_t mtu_len);
+
+    BACNET_STACK_EXPORT
+    int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
+        BACNET_ADDRESS *src,
+        uint8_t *mtu,
+        uint16_t mtu_len);
+
+    BACNET_STACK_EXPORT
     int bvlc6_send_pdu(BACNET_ADDRESS *dest,
         BACNET_NPDU_DATA *npdu_data,
         uint8_t *pdu,
@@ -73,8 +85,10 @@ extern "C" {
         uint16_t seconds);
 
     BACNET_STACK_EXPORT
-    void bvlc6_init(void);
+    void bvlc6_cleanup(void);
 
+    BACNET_STACK_EXPORT
+    void bvlc6_init(void);
 
 #ifdef __cplusplus
 }

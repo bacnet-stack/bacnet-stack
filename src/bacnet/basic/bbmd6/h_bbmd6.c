@@ -42,9 +42,6 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd6/vmac.h"
-#ifndef TEST
-#include "bacport.h"
-#endif
 
 /** result from a client request */
 static uint16_t BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
@@ -603,7 +600,7 @@ static void bbmd6_address_resolution_ack_handler(
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-static int handler_bbmd6_for_non_bbmd(BACNET_IP6_ADDRESS *addr,
+int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -770,7 +767,7 @@ static int handler_bbmd6_for_non_bbmd(BACNET_IP6_ADDRESS *addr,
  *
  * @return number of bytes offset into the NPDU for APDU, or 0 if handled
  */
-static int handler_bbmd6_for_bbmd(BACNET_IP6_ADDRESS *addr,
+int bvlc6_bbmd_enabled_handler(BACNET_IP6_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,
     uint16_t mtu_len)
@@ -960,9 +957,9 @@ int bvlc6_handler(BACNET_IP6_ADDRESS *addr,
     uint16_t npdu_len)
 {
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
-    return handler_bbmd6_for_bbmd(addr, src, npdu, npdu_len);
+    return bvlc6_bbmd_enabled_handler(addr, src, npdu, npdu_len);
 #else
-    return handler_bbmd6_for_non_bbmd(addr, src, npdu, npdu_len);
+    return bvlc6_bbmd_disabled_handler(addr, src, npdu, npdu_len);
 #endif
 }
 
@@ -1013,144 +1010,26 @@ uint8_t bvlc6_get_function_code(void)
     return BVLC6_Function_Code;
 }
 
+/**
+ * Cleanup any memory usage
+ */
+void bvlc6_cleanup(void)
+{
+    VMAC_Cleanup();
+}
+
+/**
+ * Initialize any tables or other memory
+ */
 void bvlc6_init(void)
 {
     VMAC_Init();
-}
-
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-static uint32_t Device_ID = 0;
-static uint32_t Test_Device_ID = 12345;
-static BACNET_IP6_ADDRESS BIP6_Addr;
-static BACNET_IP6_ADDRESS Test_BIP6_Addr;
-static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
-static uint8_t BIP6_MTU_Buffer[MAX_MPDU];
-
-/* network stub functions */
-/**
- * BACnet/IP Datalink Receive handler.
- *
- * @param src - returns the source address
- * @param npdu - returns the NPDU buffer
- * @param max_npdu -maximum size of the NPDU buffer
- * @param timeout - number of milliseconds to wait for a packet
- *
- * @return Number of bytes received, or 0 if none or timeout.
- */
-uint16_t bip6_receive(
-    BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu, unsigned timeout)
-{
-    return 0;
-}
-
-/**
- * The send function for BACnet/IPv6 driver layer
- *
- * @param dest - Points to a BACNET_IP6_ADDRESS structure containing the
- *  destination address.
- * @param mtu - the bytes of data to send
- * @param mtu_len - the number of bytes of data to send
- *
- * @return Upon successful completion, returns the number of bytes sent.
- *  Otherwise, -1 shall be returned and errno set to indicate the error.
- */
-int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
-{
-    return 0;
-}
-
-/** Return the Object Instance number for our (single) Device Object.
- * This is a key function, widely invoked by the handler code, since
- * it provides "our" (ie, local) address.
- *
- * @return The Instance number used in the BACNET_OBJECT_ID for the Device.
- */
-uint32_t Device_Object_Instance_Number(void)
-{
-    return Device_ID;
-}
-
-/**
- * Get the BACnet/IP address
- *
- * @return BACnet/IP address
- */
-bool bip6_get_addr(BACNET_IP6_ADDRESS *addr)
-{
-    return bvlc6_address_copy(addr, &BIP6_Addr);
-}
-
-/**
- * Get the BACnet/IP address
- *
- * @return BACnet/IP address
- */
-bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
-{
-    return bvlc6_address_copy(addr, &BIP6_Broadcast_Addr);
-}
-
-static void test_BBMD_Result(Test *pTest)
-{
-    int result = 0;
-    uint32_t vmac_src = 0x1234;
-    uint16_t result_code[6] = { BVLC6_RESULT_SUCCESSFUL_COMPLETION,
-        BVLC6_RESULT_ADDRESS_RESOLUTION_NAK,
-        BVLC6_RESULT_VIRTUAL_ADDRESS_RESOLUTION_NAK,
-        BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK,
-        BVLC6_RESULT_DELETE_FOREIGN_DEVICE_NAK,
-        BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK };
-    uint16_t test_result_code = 0;
-    uint8_t test_function_code = 0;
-    BACNET_IP6_ADDRESS addr;
-    BACNET_ADDRESS src;
-    unsigned int i = 0;
-    uint8_t mtu[MAX_MPDU] = { 0 };
-    uint16_t mtu_len = 0;
-
-    bvlc6_address_set(&addr, BIP6_MULTICAST_LINK_LOCAL, 0, 0, 0, 0, 0, 0,
+    BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
+    BVLC6_Function_Code = BVLC6_RESULT;
+    bvlc6_address_set(&Remote_BBMD, 0, 0, 0, 0, 0, 0, 0,
         BIP6_MULTICAST_GROUP_ID);
-    addr.port = 0xBAC0U;
-    bvlc6_vmac_address_set(&src, vmac_src);
-    for (i = 0; i < 6; i++) {
-        mtu_len =
-            bvlc6_encode_result(&mtu[0], sizeof(mtu), vmac_src, result_code[i]);
-        result = handler_bbmd6_for_non_bbmd(&addr, &src, &mtu[0], mtu_len);
-        /* validate that the result is handled (0) */
-        ct_test(pTest, result == 0);
-        test_result_code = bvlc6_get_last_result();
-        ct_test(pTest, test_result_code == result_code[i]);
-        test_function_code = bvlc6_get_function_code();
-        ct_test(pTest, test_function_code == BVLC6_RESULT);
-    }
-}
-
-static void test_BBMD6(Test *pTest)
-{
-    bool rc;
-
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, test_BBMD_Result);
-    assert(rc);
-}
-
-#ifdef TEST_BBMD6
-int main(void)
-{
-    Test *pTest;
-
-    pTest = ct_create("BACnet Broadcast Management Device IP/v6", NULL);
-    test_BBMD6(pTest);
-    /* configure output */
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    memset(&BBMD_Table, 0, sizeof(BBMD_Table));
+    memset(&FD_Table, 0, sizeof(FD_Table));
 #endif
-#endif
+}

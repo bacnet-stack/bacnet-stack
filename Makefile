@@ -21,6 +21,14 @@ mstpwin32:
 mstp:
 	$(MAKE) BACDL=mstp -C apps all
 
+.PHONY: bip6-win32
+bip6-win32:
+	$(MAKE) BACDL=bip6 BACNET_PORT=win32 -C apps all
+
+.PHONY: bip6
+bip6:
+	$(MAKE) BACDL=bip6 -C apps all
+
 .PHONY: apps
 apps:
 	$(MAKE) -s -C apps all
