@@ -1,9 +1,19 @@
-# BACnet Stack [![Build Status](https://travis-ci.com/bacnet-stack/bacnet-stack.svg?branch=master)](https://travis-ci.com/bacnet-stack/bacnet-stack)
+# BACnet Stack 
 
 BACnet open source protocol stack for embedded systems, Linux, and Windows
 http://bacnet.sourceforge.net/
 
 Welcome to the wonderful world of BACnet and true device interoperability!
+
+Continuous Integration
+----------------------
+
+This library uses various automated continuous integration services 
+to assist in validation and testing of robust C code and BACnet functionality.
+
+GitHub Workflow [![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions)
+Travis CI [![Build Status](https://travis-ci.com/bacnet-stack/bacnet-stack.svg?branch=master)](https://travis-ci.com/bacnet-stack/bacnet-stack) 
+AppVeyor CI [![Build status](https://ci.appveyor.com/api/projects/status/5lq0d9a69g7ixskm/branch/master?svg=true)](https://ci.appveyor.com/project/skarg/bacnet-stack/branch/master)
 
 About this Project
 ------------------
@@ -67,8 +77,8 @@ as well as various controllers and workstations. It has been included
 in many products that successfully completed BTL testing.
 
 Using the Makefile in the project root directory, a dozen sample applications
-are created that run under Windows or Linux. They use the BACnet/IP datalink
-layer for communication by default, but could be compiled to use BACnet 
+are created that run under Windows or Linux. They use the BACnet/IPv4 datalink
+layer for communication by default, but could be compiled to use BACnet IPv6, 
 Ethernet, ARCNET, or MS/TP.
 
 Linux/Unix/Cygwin
@@ -81,11 +91,23 @@ Windows MinGW Bash
 
 Windows Command Line
 
-    c:> build.bat
+    c:\> build.bat
 
 The BACnet stack can be compiled by a variety of compilers.  The most common
 free compiler is GCC (or MinGW under Windows).  The makefiles use GCC by
 default.
+
+The library is also instrumented to use [CMake](https://cmake.org/) which can
+generate a project or Makefiles for a variety of IDE or compiler. For example,
+to generate a Code::Blocks project:
+
+    $ mkdir build
+    $ cd build/
+    $ cmake .. -G"CodeBlocks - Unix Makefiles"
+    
+    c:\> mkdir build
+    c:\> cd build/
+    c:\> cmake .. -G"CodeBlocks - MinGW Makefiles"
 
 The demo applications are all client applications that provide one main BACnet
 service, except the one server application and one gateway application.  
