@@ -18,6 +18,7 @@ SRCS = main.c \
 	$(SRC_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
 	$(SRC_DIR)/bacnet/basic/bbmd6/vmac.c \
 	$(SRC_DIR)/bacnet/datalink/bvlc6.c \
+	$(SRC_DIR)/bacnet/basic/sys/debug.c \
 	$(TEST_DIR)/ctest.c
 
 TARGET_NAME = unittest
