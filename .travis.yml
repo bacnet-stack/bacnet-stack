@@ -9,6 +9,7 @@ before_install:
   - sudo apt-get install -qq libnewlib-arm-none-eabi
   - sudo apt-get install -qq gcc-avr avr-libc binutils-avr
   - sudo apt-get install -qq mingw-w64
+  - sudo apt-get install -qq libconfig-dev
 
 compiler:
   - gcc
@@ -36,6 +37,10 @@ jobs:
       os: linux
       compiler: gcc
       script: make clean gateway
+    - stage: router
+      os: linux
+      compiler: gcc
+      script: make clean router
     - stage: mstp-build
       os: linux
       compiler: gcc

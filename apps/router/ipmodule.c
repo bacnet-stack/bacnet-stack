@@ -39,9 +39,6 @@ uint8_t test_packet[] = { 0x81, 0x0a, 0x00, 0x16, /* BVLC header */
     0x55 }; /* APDU */
 #endif
 
-extern int get_local_address_ioctl(
-    char *ifname, struct in_addr *addr, int request);
-
 void *dl_ip_thread(void *pArgs)
 {
     MSGBOX_ID msgboxid;
@@ -147,12 +144,12 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
 
     /* get local address */
     status =
-        get_local_address_ioctl(port->iface, &ip_data->local_addr, SIOCGIFADDR);
+        bip_get_local_address_ioctl(port->iface, &ip_data->local_addr, SIOCGIFADDR);
     if (status < 0) {
         return false;
     }
     /* get broadcast address */
-    status = get_local_address_ioctl(
+    status = bip_get_local_address_ioctl(
         port->iface, &ip_data->broadcast_addr, SIOCGIFBRDADDR);
     if (status < 0) {
         return false;

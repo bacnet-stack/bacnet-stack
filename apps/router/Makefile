@@ -26,7 +26,7 @@ SRCS = main.c \
 	${BACNET_PORT_DIR}/mstimer-init.c \
 	${BACNET_PORT_DIR}/bip-init.c \
 	${BACNET_PORT_DIR}/dlmstp_linux.c \
-	${BACNET_SOURCE_DIR}/datalink/bip.c \
+	${BACNET_SOURCE_DIR}/basic/bbmd/h_bbmd.c \
 	${BACNET_SOURCE_DIR}/datalink/bvlc.c \
 	${BACNET_SOURCE_DIR}/basic/sys/fifo.c \
 	${BACNET_SOURCE_DIR}/datalink/mstp.c \
@@ -43,7 +43,7 @@ SRCS = main.c \
 	portthread.c \
 	msgqueue.c \
 	network_layer.c
-	
+
 CFLAGS = -I${SOURCE_DIR} -I${BACNET_PORT_DIR}
 
 OBJS = ${SRCS:.c=.o}
