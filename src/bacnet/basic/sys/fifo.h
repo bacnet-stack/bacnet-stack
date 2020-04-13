@@ -11,6 +11,29 @@
 #include "bacnet/bacnet_stack_exports.h"
 
 /**
+* FIFO buffer power of two alignment macro
+*
+* @{
+*/
+#ifndef NEXT_POWER_OF_2
+#define B2(x)    (   (x) | (   (x) >> 1) )
+#define B4(x)    ( B2(x) | ( B2(x) >> 2) )
+#define B8(x)    ( B4(x) | ( B4(x) >> 4) )
+#define B16(x)   ( B8(x) | ( B8(x) >> 8) )
+#define B32(x)   (B16(x) | (B16(x) >>16) )
+#define NEXT_POWER_OF_2(x) (B32((x)-1) + 1)
+#endif
+/** @} */
+
+/**
+* FIFO data store structure
+*
+* @{
+*/
+#define FIFO_DATA_STORE(b,c) uint8_t b[NEXT_POWER_OF_2(c)]
+/** @} */
+
+/**
 * FIFO data structure
 *
 * @{
