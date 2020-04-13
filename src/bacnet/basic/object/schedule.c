@@ -70,28 +70,31 @@ void Schedule_Property_Lists(
 void Schedule_Init(void)
 {
     unsigned i, j;
-    for (i = 0; i < MAX_SCHEDULES; i++) {
+
+    SCHEDULE_DESCR *psched = &Schedule_Descr[0];
+
+    for (i = 0; i < MAX_SCHEDULES; i++, psched++) {
         /* whole year, change as neccessary */
-        Schedule_Descr[i].Start_Date.year = 0xFF;
-        Schedule_Descr[i].Start_Date.month = 1;
-        Schedule_Descr[i].Start_Date.day = 1;
-        Schedule_Descr[i].Start_Date.wday = 0xFF;
-        Schedule_Descr[i].End_Date.year = 0xFF;
-        Schedule_Descr[i].End_Date.month = 12;
-        Schedule_Descr[i].End_Date.day = 31;
-        Schedule_Descr[i].End_Date.wday = 0xFF;
+        psched->Start_Date.year = 0xFF;
+        psched->Start_Date.month = 1;
+        psched->Start_Date.day = 1;
+        psched->Start_Date.wday = 0xFF;
+        psched->End_Date.year = 0xFF;
+        psched->End_Date.month = 12;
+        psched->End_Date.day = 31;
+        psched->End_Date.wday = 0xFF;
         for (j = 0; j < 7; j++) {
-            Schedule_Descr[i].Weekly_Schedule[j].TV_Count = 0;
+            psched->Weekly_Schedule[j].TV_Count = 0;
         }
-        Schedule_Descr[i].Present_Value = &Schedule_Descr[i].Schedule_Default;
-        Schedule_Descr[i].Schedule_Default.context_specific = false;
-        Schedule_Descr[i].Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
-        Schedule_Descr[i].Schedule_Default.type.Real =
+        psched->Present_Value = &psched->Schedule_Default;
+        psched->Schedule_Default.context_specific = false;
+        psched->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
+        psched->Schedule_Default.type.Real =
             21.0; /* 21 C, room temperature */
-        Schedule_Descr[i].obj_prop_ref_cnt =
+        psched->obj_prop_ref_cnt =
             0; /* no references, add as needed */
-        Schedule_Descr[i].Priority_For_Writing = 16; /* lowest priority */
-        Schedule_Descr[i].Out_Of_Service = false;
+        psched->Priority_For_Writing = 16; /* lowest priority */
+        psched->Out_Of_Service = false;
     }
 }
 
