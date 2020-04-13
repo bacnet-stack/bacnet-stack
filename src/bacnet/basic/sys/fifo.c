@@ -45,7 +45,7 @@
  *
  * To use this library, first declare a data store, sized for a power of 2:
  * {@code
- * static volatile uint8_t data_store[64];
+ * static volatile FIFO_DATA_STORE(data_store, 64);
  * }
  *
  * Then declare the FIFO tracking structure:
@@ -343,8 +343,7 @@ void testFIFOBuffer(Test *pTest)
 {
     /* FIFO data structure */
     FIFO_BUFFER test_buffer = { 0 };
-    /* FIFO data store. Note:  size must be a power of two! */
-    volatile uint8_t data_store[64] = { 0 };
+    volatile FIFO_DATA_STORE(data_store, 60) = { 0 };
     uint8_t add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
     uint8_t test_add_data[40] = { 0 };
     uint8_t test_data = 0;
@@ -352,6 +351,7 @@ void testFIFOBuffer(Test *pTest)
     unsigned count = 0;
     bool status = 0;
 
+    ct_test(pTest, sizeof(data_store) == 64);
     FIFO_Init(&test_buffer, data_store, sizeof(data_store));
     ct_test(pTest, FIFO_Empty(&test_buffer));
 
