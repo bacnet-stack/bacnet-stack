@@ -1042,6 +1042,9 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                 bvlc_ip_address_to_bacnet_local(src, addr);
                 offset = header_len + function_len - npdu_len;
                 debug_print_npdu("Original-Unicast-NPDU", offset, npdu_len);
+            } else {
+                debug_print_string(
+                    "Original-Broadcast-NPDU: Unable to decode!");
             }
             break;
         case BVLC_ORIGINAL_BROADCAST_NPDU:
@@ -1074,6 +1077,9 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                 bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
                 bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
                 debug_print_npdu("Original-Broadcast-NPDU", offset, npdu_len);
+            } else {
+                debug_print_string(
+                    "Original-Broadcast-NPDU: Unable to decode!");
             }
             break;
         case BVLC_SECURE_BVLL:
@@ -1245,10 +1251,12 @@ void bvlc_disable_nat(void)
 
 void bvlc_init(void)
 {
-    debug_print_string("Initializing.");
 #if BBMD_ENABLED
+    debug_print_string("Initializing (BBMD Enabled).");
     bvlc_broadcast_distribution_table_link_array(
         &BBMD_Table[0], MAX_BBMD_ENTRIES);
     bvlc_foreign_device_table_link_array(&FD_Table[0], MAX_FD_ENTRIES);
+#else
+    debug_print_string("Initializing (BBMD Disabled).");
 #endif
 }
