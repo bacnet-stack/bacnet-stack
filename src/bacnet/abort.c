@@ -133,7 +133,17 @@ BACNET_ERROR_CODE abort_convert_to_error_code(BACNET_ABORT_REASON abort_code)
     return (error_code);
 }
 
-/* encode service */
+/**
+ * @brief Encode the BACnet Abort Service, returning the reason
+ *        for the operation being aborted.
+ *
+ * @param apdu  Transmit buffer
+ * @param invoke_id  ID invoked
+ * @param abort_reason  Abort reason, see ABORT_REASON_X enumeration for details
+ * @param server  True, if the abort has been issued by this device.
+ *
+ * @return Total length of the apdu, typically 3 on success, zero otherwise.
+ */
 int abort_encode_apdu(
     uint8_t *apdu, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
@@ -154,7 +164,17 @@ int abort_encode_apdu(
 }
 
 #if !BACNET_SVC_SERVER
-/* decode the service request only */
+/**
+ * @brief Decode the BACnet Abort Service, returning the reason
+ *        for the operation being aborted.
+ *
+ * @param apdu  Receive buffer
+ * @param apdu_len  Count of bytes valid in the received buffer.
+ * @param invoke_id  Pointer to a variable, taking the invoked ID from the message.
+ * @param abort_reason  Pointer to a variable, taking the abort reason, see ABORT_REASON_X enumeration for details
+ *
+ * @return Total length of the apdu, typically 2 on success, zero otherwise.
+ */
 int abort_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, uint8_t *invoke_id, uint8_t *abort_reason)
 {
@@ -164,8 +184,14 @@ int abort_decode_service_request(
         if (invoke_id) {
             *invoke_id = apdu[0];
         }
-        if (abort_reason) {
-            *abort_reason = apdu[1];
+        len++;
+
+        if (apdu_len > 1) {
+            if (abort_reason) {
+                *abort_reason = apdu[1];
+            }
+
+            len++;
         }
     }
 
