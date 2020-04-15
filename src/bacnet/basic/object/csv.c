@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
@@ -406,16 +407,18 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-            CharacterString_Value_Object_Name(
-                rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            if (CharacterString_Value_Object_Name(
+                rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                CharacterString_Value_Description(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            if (characterstring_init_ansi(&char_string,
+                CharacterString_Value_Description(rpdata->object_instance))) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(
