@@ -68,6 +68,7 @@ void handler_write_property(uint8_t *service_request,
 {
     BACNET_WRITE_PROPERTY_DATA wp_data;
     int len = 0;
+    bool bcontinue = true;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
     int bytes_sent = 0;
@@ -88,47 +89,55 @@ void handler_write_property(uint8_t *service_request,
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Segmented message.  Sending Abort!\n");
 #endif
-        goto WP_ABORT;
-    } /* decode the service request only */
-    len = wp_decode_service_request(service_request, service_len, &wp_data);
-#if PRINT_ENABLED
-    if (len > 0)
-        fprintf(stderr,
-            "WP: type=%lu instance=%lu property=%lu priority=%lu index=%ld\n",
-            (unsigned long)wp_data.object_type,
-            (unsigned long)wp_data.object_instance,
-            (unsigned long)wp_data.object_property,
-            (unsigned long)wp_data.priority, (long)wp_data.array_index);
-    else
-        fprintf(stderr, "WP: Unable to decode Request!\n");
-#endif
-    /* bad decoding or something we didn't understand - send an abort */
-    if (len <= 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
-#if PRINT_ENABLED
-        fprintf(stderr, "WP: Bad Encoding. Sending Abort!\n");
-#endif
-        goto WP_ABORT;
+        bcontinue = false;
     }
-    if (Device_Write_Property(&wp_data)) {
-        len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+
+    if (bcontinue) {
+        /* decode the service request only */
+        len = wp_decode_service_request(service_request, service_len, &wp_data);
 #if PRINT_ENABLED
-        fprintf(stderr, "WP: Sending Simple Ack!\n");
+        if (len > 0)
+            fprintf(stderr,
+                "WP: type=%lu instance=%lu property=%lu priority=%lu index=%ld\n",
+                (unsigned long)wp_data.object_type,
+                (unsigned long)wp_data.object_instance,
+                (unsigned long)wp_data.object_property,
+                (unsigned long)wp_data.priority, (long)wp_data.array_index);
+        else
+            fprintf(stderr, "WP: Unable to decode Request!\n");
 #endif
-    } else {
-        len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
-            wp_data.error_class, wp_data.error_code);
+        /* bad decoding or something we didn't understand - send an abort */
+        if (len <= 0) {
+            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
-        fprintf(stderr, "WP: Sending Error!\n");
+            fprintf(stderr, "WP: Bad Encoding. Sending Abort!\n");
 #endif
+            bcontinue = false;
+        }
+
+        if (bcontinue) {
+            if (Device_Write_Property(&wp_data)) {
+                len = encode_simple_ack(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY);
+#if PRINT_ENABLED
+                fprintf(stderr, "WP: Sending Simple Ack!\n");
+#endif
+            } else {
+                len = bacerror_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_WRITE_PROPERTY,
+                    wp_data.error_class, wp_data.error_code);
+#if PRINT_ENABLED
+                fprintf(stderr, "WP: Sending Error!\n");
+#endif
+            }
+        }
     }
-WP_ABORT:
+
+    /* Send PDU */
     pdu_len += len;
-    bytes_sent = datalink_send_pdu(
-        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+    bytes_sent = datalink_send_pdu( \
+                 src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Failed to send PDU (%s)!\n", strerror(errno));
@@ -138,12 +147,20 @@ WP_ABORT:
     return;
 }
 
-/** Perform basic validation of Write Property argument based on
+/**
+ * @brief Perform basic validation of Write Property argument based on
  * the assumption that it is a string. Check for correct data type,
  * correct encoding (fixed here as ANSI X34),correct length, and
  * finally if it is allowed to be empty.
+ *
+ * @param pValue  Pointer to the application data value representing the string.
+ * @param iMaxLen  Maximum string length allowed.
+ * @param bEmptyAllowed  true, if empty strings shall be allowed.
+ * @param pErrorClass  Pointer to a variable taking the error class.
+ * @param pErrorCode  Pointer to a variable taking the error code.
+ *
+ * @return True on success, false otherwise.
  */
-
 bool WPValidateString(BACNET_APPLICATION_DATA_VALUE *pValue,
     int iMaxLen,
     bool bEmptyAllowed,
