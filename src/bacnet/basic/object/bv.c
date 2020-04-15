@@ -62,6 +62,13 @@ static const int Binary_Value_Properties_Optional[] = { PROP_DESCRIPTION,
 
 static const int Binary_Value_Properties_Proprietary[] = { -1 };
 
+/**
+ * Initialize the pointers for the required, the optional and the properitary value properties.
+ *
+ * @param pRequired - Pointer to the pointer of required values.
+ * @param pOptional - Pointer to the pointer of optional values.
+ * @param pProprietary - Pointer to the pointer of properitary values.
+ */
 void Binary_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -78,6 +85,9 @@ void Binary_Value_Property_Lists(
     return;
 }
 
+/**
+ * Initialize the binary values.
+ */
 void Binary_Value_Init(void)
 {
     unsigned i, j;
@@ -97,9 +107,15 @@ void Binary_Value_Init(void)
     return;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need validate that the */
-/* given instance exists */
+/**
+ * We simply have 0-n object instances. Yours might be
+ * more complex, and then you need validate that the
+ * given instance exists.
+ *
+ * @param object_instance Object instance
+ *
+ * @return true/false
+ */
 bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_BINARY_VALUES) {
@@ -109,24 +125,39 @@ bool Binary_Value_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then count how many you have */
+/**
+ * Return the count of analog values.
+ *
+ * @return Count of binary values.
+ */
 unsigned Binary_Value_Count(void)
 {
     return MAX_BINARY_VALUES;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * We simply have 0-n object instances.  Yours might be
+ * more complex, and then you need to return the instance
+ * that correlates to the correct index.
+ *
+ * @param index Index
+ *
+ * @return Object instance
+ */
 uint32_t Binary_Value_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * We simply have 0-n object instances. Yours might be
+ * more complex, and then you need to return the index
+ * that correlates to the correct instance number
+ *
+ * @param object_instance Object instance
+ *
+ * @return Index in the object table.
+ */
 unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_VALUES;
@@ -138,6 +169,13 @@ unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
+/**
+ * For a given object instance-number, return the present value.
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  Present value
+ */
 BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
 {
     BACNET_BINARY_PV value = RELINQUISH_DEFAULT;
@@ -157,7 +195,16 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
     return value;
 }
 
-/* note: the object name must be unique within this device */
+/**
+ * For a given object instance-number, return the name.
+ *
+ * Note: the object name must be unique within this device
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - object name/string pointer
+ *
+ * @return  true/false
+ */
 bool Binary_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -173,6 +220,13 @@ bool Binary_Value_Object_Name(
     return status;
 }
 
+/**
+ * Return the OOO value, if any.
+ *
+ * @param instance Object instance.
+ *
+ * @return true/false
+ */
 bool Binary_Value_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
@@ -186,6 +240,12 @@ bool Binary_Value_Out_Of_Service(uint32_t instance)
     return oos_flag;
 }
 
+/**
+ * Set the OOO value, if any.
+ *
+ * @param instance Object instance.
+ * @param oos_flag New OOO value.
+ */
 void Binary_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
@@ -196,7 +256,13 @@ void Binary_Value_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
     }
 }
 
-/* return apdu len, or BACNET_STATUS_ERROR on error */
+/**
+ * Return the requested property of the binary value.
+ *
+ * @param rpdata  Property requested, see for BACNET_READ_PROPERTY_DATA details.
+ *
+ * @return apdu len, or BACNET_STATUS_ERROR on error
+ */
 int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
@@ -209,10 +275,23 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+    /* Valid data? */
+    if (rpdata == NULL) {
+        return 0;
+    }
+    if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+
+    /* Valid object index? */
+    object_index = Binary_Value_Instance_To_Index(rpdata->object_instance);
+    if (object_index >= MAX_BINARY_VALUES) {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return BACNET_STATUS_ERROR;
+    }
+
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -223,9 +302,10 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            Binary_Value_Object_Name(rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            if (Binary_Value_Object_Name(rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
             break;
         case PROP_OBJECT_TYPE:
             apdu_len =
@@ -263,8 +343,6 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                  */
                 /* into one packet. */
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                object_index =
-                    Binary_Value_Instance_To_Index(rpdata->object_instance);
                 for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
                     /* FIXME: check if we have room before adding it to APDU */
                     if (Binary_Value_Level[object_index][i] == BINARY_NULL) {
@@ -285,8 +363,6 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     }
                 }
             } else {
-                object_index =
-                    Binary_Value_Instance_To_Index(rpdata->object_instance);
                 if (rpdata->array_index <= BACNET_MAX_PRIORITY) {
                     if (Binary_Value_Level[object_index][rpdata->array_index] ==
                         BINARY_NULL) {
@@ -314,7 +390,8 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             break;
     }
-    /*  only array properties can have array options */
+
+    /* Only array properties can have array options. */
     if ((apdu_len >= 0) && (rpdata->object_property != PROP_PRIORITY_ARRAY) &&
         (rpdata->array_index != BACNET_ARRAY_ALL)) {
         rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -325,7 +402,13 @@ int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/* returns true if successful */
+/**
+ * Set the requested property of the binary value.
+ *
+ * @param wp_data  Property requested, see for BACNET_WRITE_PROPERTY_DATA details.
+ *
+ * @return true if successful
+ */
 bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -335,7 +418,16 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    /* decode the some of the request */
+    /* Valid data? */
+    if (wp_data == NULL) {
+        return false;
+    }
+    if ((wp_data->application_data == NULL) || \
+        (wp_data->application_data_len == 0)) {
+        return false;
+    }
+
+    /* Decode the some of the request. */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
@@ -345,13 +437,22 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
-    /*  only array properties can have array options */
+    /* Only array properties can have array options. */
     if ((wp_data->object_property != PROP_PRIORITY_ARRAY) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
     }
+
+    /* Valid object index? */
+    object_index = Binary_Value_Instance_To_Index(wp_data->object_instance);
+    if (object_index >= MAX_BINARY_VALUES) {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
+
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
@@ -363,8 +464,6 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     (priority != 6 /* reserved */) &&
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = (BACNET_BINARY_PV)value.type.Enumerated;
-                    object_index = Binary_Value_Instance_To_Index(
-                        wp_data->object_instance);
                     priority--;
                     Binary_Value_Level[object_index][priority] = level;
                     /* Note: you could set the physical output here if we
@@ -389,8 +488,6 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     &wp_data->error_class, &wp_data->error_code);
                 if (status) {
                     level = BINARY_NULL;
-                    object_index = Binary_Value_Instance_To_Index(
-                        wp_data->object_instance);
                     priority = wp_data->priority;
                     if (priority && (priority <= BACNET_MAX_PRIORITY)) {
                         priority--;
