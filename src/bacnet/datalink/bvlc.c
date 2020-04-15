@@ -1385,19 +1385,15 @@ int bvlc_decode_distribute_broadcast_to_network(uint8_t *pdu,
     int bytes_consumed = 0;
     uint16_t i = 0;
 
-    if (pdu) {
-        if ((pdu_len > 0) && (pdu_len <= npdu_size)) {
-            if (npdu) {
-                for (i = 0; i < pdu_len; i++) {
-                    npdu[i] = pdu[i];
-                }
-            }
+    if (pdu && npdu && (pdu_len > 0) && (pdu_len <= npdu_size)) {
+        for (i = 0; i < pdu_len; i++) {
+            npdu[i] = pdu[i];
         }
-        if (npdu_len) {
-            *npdu_len = pdu_len;
-        }
-        bytes_consumed = (int)pdu_len;
     }
+    if (npdu_len) {
+        *npdu_len = pdu_len;
+    }
+    bytes_consumed = (int)pdu_len;
 
     return bytes_consumed;
 }
@@ -1464,17 +1460,15 @@ int bvlc_decode_original_unicast(uint8_t *pdu,
     int bytes_consumed = 0;
     uint16_t i = 0;
 
-    if (pdu_len <= npdu_size) {
-        if (pdu && npdu) {
-            for (i = 0; i < pdu_len; i++) {
-                npdu[i] = pdu[i];
-            }
+    if (pdu && npdu && (pdu_len > 0) && (pdu_len <= npdu_size)) {
+        for (i = 0; i < pdu_len; i++) {
+            npdu[i] = pdu[i];
         }
-        if (npdu_len) {
-            *npdu_len = pdu_len;
-        }
-        bytes_consumed = (int)pdu_len;
     }
+    if (npdu_len) {
+        *npdu_len = pdu_len;
+    }
+    bytes_consumed = (int)pdu_len;
 
     return bytes_consumed;
 }
@@ -1541,17 +1535,15 @@ int bvlc_decode_original_broadcast(uint8_t *pdu,
     int bytes_consumed = 0;
     uint16_t i = 0;
 
-    if (pdu_len <= npdu_size) {
-        if (pdu && npdu) {
-            for (i = 0; i < pdu_len; i++) {
-                npdu[i] = pdu[i];
-            }
+    if (pdu && npdu && (pdu_len > 0) && (pdu_len <= npdu_size)) {
+        for (i = 0; i < pdu_len; i++) {
+            npdu[i] = pdu[i];
         }
-        if (npdu_len) {
-            *npdu_len = pdu_len;
-        }
-        bytes_consumed = (int)pdu_len;
     }
+    if (npdu_len) {
+        *npdu_len = pdu_len;
+    }
+    bytes_consumed = (int)pdu_len;
 
     return bytes_consumed;
 }
@@ -1618,19 +1610,15 @@ int bvlc_decode_secure_bvll(uint8_t *pdu,
     int bytes_consumed = 0;
     uint16_t i = 0;
 
-    if (pdu) {
-        if (sbuf_len) {
-            *sbuf_len = pdu_len;
+    if (pdu && sbuf && (pdu_len > 0) && (pdu_len <= sbuf_size)) {
+        for (i = 0; i < pdu_len; i++) {
+            sbuf[i] = pdu[i];
         }
-        if (pdu_len) {
-            if (sbuf) {
-                for (i = 0; i < pdu_len; i++) {
-                    sbuf[i] = pdu[i];
-                }
-            }
-        }
-        bytes_consumed = (int)pdu_len;
     }
+    if (sbuf_len) {
+        *sbuf_len = pdu_len;
+    }
+    bytes_consumed = (int)pdu_len;
 
     return bytes_consumed;
 }
