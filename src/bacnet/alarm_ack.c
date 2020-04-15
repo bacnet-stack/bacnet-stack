@@ -37,11 +37,15 @@
 
 /** @file alarm_ack.c  Handles Event Notifications (ACKs) */
 
-/***************************************************
-**
-** Creates an Unconfirmed Event Notification APDU
-**
-****************************************************/
+/**
+ * @brief Creates an Unconfirmed Event Notification APDU
+ *
+ * @param apdu  Transmission buffer
+ * @param invoke_id  Invoked ID
+ * @param data  Alarm acknowledge data that will be copied into the payload.
+ *
+ * @return Length of the APDU
+ */
 int alarm_ack_encode_apdu(
     uint8_t *apdu, uint8_t invoke_id, BACNET_ALARM_ACK_DATA *data)
 {
@@ -62,11 +66,15 @@ int alarm_ack_encode_apdu(
     return apdu_len;
 }
 
-/***************************************************
-**
-** Encodes the service data part of Event Notification
-**
-****************************************************/
+/**
+ * @brief Encodes the service data part of Event Notification.
+ *
+ * @param apdu  Receive buffer
+ * @param data  Alarm acknowledge data that will be filled in
+ *              with the data from the payload.
+ *
+ * @return Total length of the apdu
+ */
 int alarm_ack_encode_service_request(uint8_t *apdu, BACNET_ALARM_ACK_DATA *data)
 {
     int len = 0; /* length of each encoding */
@@ -102,11 +110,15 @@ int alarm_ack_encode_service_request(uint8_t *apdu, BACNET_ALARM_ACK_DATA *data)
     return apdu_len;
 }
 
-/***************************************************
-**
-** Decodes the service data part of Event Notification
-**
-****************************************************/
+/**
+ * @brief Decodes the service data part of Event Notification.
+ *
+ * @param apdu  Receive buffer
+ * @param apdu_len  Bytes valid in the buffer.
+ * @param data  Alarm acknowledge data that will be filled.
+ *
+ * @return Total length of the apdu
+ */
 int alarm_ack_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_ALARM_ACK_DATA *data)
 {
