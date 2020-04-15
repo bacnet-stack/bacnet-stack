@@ -158,8 +158,18 @@ int bacapp_encode_application_data(
     return apdu_len;
 }
 
-/* decode the data and store it into value.
-   Return the number of octets consumed. */
+/**
+ * @brief Decode the data and store it into value.
+ *        Return the number of octets consumed.
+ *
+ * @param apdu  Receive buffer
+ * @param tag_data_type  Data type of the given tag
+ * @param len_value_type  Count of bytes of given tag
+ * @param value  Pointer to the application value structure,
+ *               used to store the decoded value to.
+ *
+ * @return Number of octets consumed.
+ */
 int bacapp_decode_data(uint8_t *apdu,
     uint8_t tag_data_type,
     uint32_t len_value_type,
