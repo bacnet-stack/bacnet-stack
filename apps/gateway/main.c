@@ -166,38 +166,46 @@ static void Init_Service_Handlers(uint32_t first_object_instance)
  * device.) This is sure to be unique! The port number stays the same.
  * - For MS/TP, [Steve inserts a good idea here]
  */
-static void Initialize_Device_Addresses()
+static void Initialize_Device_Addresses(void)
 {
     int i = 0; /* First entry is Gateway Device */
     uint32_t virtual_mac = 0;
     DEVICE_OBJECT_DATA *pDev = NULL;
-    /* Setup info for the main gateway device first */
-    pDev = Get_Routed_Device_Object(i);
+    BACNET_ADDRESS gateway_address = {0};
 
+    /* Setup info for the main gateway device first */
+    pDev = Get_Routed_Device_Object(0);
+    if (pDev == NULL) {
+        return;
+    }
     /* we can't use datalink_get_my_address() since it is
        mapped to routed_get_my_address() in this app
        to get the parent device address */
 #if defined(BACDL_BIP)
-    bip_get_my_address(&pDev->bacDevAddr);
+    bip_get_my_address(&gateway_address);
 #elif defined(BACDL_MSTP)
-    dlmstp_get_my_address(&pDev->bacDevAddr);
+    dlmstp_get_my_address(&gateway_address);
 #elif defined(BACDL_ARCNET)
-    arcnet_get_my_address(&pDev->bacDevAddr);
+    arcnet_get_my_address(&gateway_address);
 #elif defined(BACDL_ETHERNET)
-    ethernet_get_my_address(&pDev->bacDevAddr);
+    ethernet_get_my_address(&gateway_address);
 #elif defined(BACDL_BIP6)
-    bip6_get_my_address&pDev->bacDevAddr);
+    bip6_get_my_address(&gateway_address);
 #else
 #error "No support for this Data Link Layer type "
 #endif
+    gateway_address.net = 0;
+    bacnet_address_copy(&pDev->bacDevAddr, &gateway_address);
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
-
+    /* construct address for routed devices */
     for (i = 1; i < MAX_NUM_DEVICES; i++) {
         pDev = Get_Routed_Device_Object(i);
         if (pDev == NULL) {
             continue;
         }
+        bacnet_address_copy(&pDev->bacDevAddr, &gateway_address);
+        pDev->bacDevAddr.net = VIRTUAL_DNET;
         virtual_mac = pDev->bacObj.Object_Instance_Number;
         encode_unsigned24(&pDev->bacDevAddr.adr[0], virtual_mac);
         pDev->bacDevAddr.len = 3;

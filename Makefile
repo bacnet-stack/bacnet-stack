@@ -63,7 +63,7 @@ gateway:
 
 .PHONY: gateway-win32
 gateway-win32:
-	$(MAKE) BACNET_PORT=win32 -C apps gateway
+	$(MAKE) -s BACNET_PORT=win32 -C apps gateway
 
 .PHONY: readbdt
 readbdt:

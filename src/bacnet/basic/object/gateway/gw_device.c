@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <string.h> /* for memmove */
 #include <time.h> /* for timezone, localtime */
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
@@ -197,8 +198,8 @@ BACNET_ADDRESS *Get_Routed_Device_Address(int idx)
 void routed_get_my_address(BACNET_ADDRESS *my_address)
 {
     if (my_address) {
-        memcpy(my_address, &Devices[iCurrent_Device_Idx].bacDevAddr,
-            sizeof(BACNET_ADDRESS));
+        bacnet_address_copy(my_address,
+            &Devices[iCurrent_Device_Idx].bacDevAddr);
     }
 }
 
