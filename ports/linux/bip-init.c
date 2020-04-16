@@ -578,9 +578,7 @@ static void parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo)
     struct rtmsg *rtMsg;
     struct rtattr *rtAttr;
     int rtLen;
-    char *tempBuf = NULL;
 
-    tempBuf = (char *)malloc(100);
     rtMsg = (struct rtmsg *)NLMSG_DATA(nlHdr);
 
     /* If the route is not for AF_INET or does not belong to main routing table
@@ -607,7 +605,6 @@ static void parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo)
                 break;
         }
     }
-    free(tempBuf);
 }
 
 /**
