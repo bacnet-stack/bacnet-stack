@@ -31,9 +31,25 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-
+/* linux Ethernet/IP specific */
+#include <asm/types.h>
+#include <netinet/ether.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+#include <sys/types.h>
+#include <unistd.h>
+/* standard C */
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+/* BACnet specific */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
@@ -64,8 +80,10 @@ static bool BIP_Debug = false;
  * @param str - debug info string
  * @param addr - IPv4 address
  */
-static void debug_print_ipv4(const char *str, const struct in_addr *addr,
-    const unsigned int port, const unsigned int count)
+static void debug_print_ipv4(const char *str,
+    const struct in_addr *addr,
+    const unsigned int port,
+    const unsigned int count)
 {
     if (BIP_Debug) {
         fprintf(stderr, "BIP: %s %s:%hu (%u bytes)\n", str, inet_ntoa(*addr),
@@ -229,7 +247,7 @@ uint8_t bip_get_subnet_prefix(void)
         if (test_broadcast == broadcast) {
             break;
         }
-        mask = mask<<1;
+        mask = mask << 1;
     }
 
     return prefix;
@@ -263,8 +281,8 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     memcpy(&bip_dest.sin_addr.s_addr, &dest->address[0], 4);
     bip_dest.sin_port = htons(dest->port);
     /* Send the packet */
-    debug_print_ipv4("Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port,
-        mtu_len);
+    debug_print_ipv4(
+        "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
     return sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 }
@@ -337,14 +355,14 @@ uint16_t bip_receive(
     */
     memcpy(&addr.address[0], &sin.sin_addr.s_addr, 4);
     addr.port = ntohs(sin.sin_port);
-    debug_print_ipv4("Received MPDU->", &sin.sin_addr, sin.sin_port,
-        received_bytes);
+    debug_print_ipv4(
+        "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
     offset = bvlc_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
         npdu_len = received_bytes - offset;
-        debug_print_ipv4("Received NPDU->", &sin.sin_addr, sin.sin_port,
-            npdu_len);
+        debug_print_ipv4(
+            "Received NPDU->", &sin.sin_addr, sin.sin_port, npdu_len);
         if (npdu_len <= max_npdu) {
             /* shift the buffer to return a valid NPDU */
             for (i = 0; i < npdu_len; i++) {
@@ -445,7 +463,7 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
  */
 int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
 {
-    struct ifreq ifr = { {{0}}, {{0}} };
+    struct ifreq ifr = { { { 0 } }, { { 0 } } };
     struct sockaddr_in *tcpip_address;
     int rv; /* return value */
 
@@ -458,6 +476,205 @@ int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
     return rv;
 }
 
+/* structure to hold IPv4 route info when dynamically finding interface */
+struct route_info {
+    uint32_t dstAddr;
+    uint32_t srcAddr;
+    uint32_t gateWay;
+    char ifName[IF_NAMESIZE];
+};
+
+/**
+ * @brief Read the Network Layer socket info
+ * @param sockFd - socket file descriptor
+ * @param bufPtr - buffer to hold response from kernel
+ * @param buf_size - size of the buffer
+ * @param seqNum - sequence number that tracks our specific request response
+ * @param pId - process identifier of our specific request response
+ * @return number of bytes placed into the buffer
+ */
+static int readNlSock(
+    int sockFd, char *bufPtr, size_t buf_size, int seqNum, int pId)
+{
+    struct nlmsghdr *nlHdr;
+    int readLen = 0, msgLen = 0;
+
+    do {
+        /* Receive response from the kernel */
+        if ((readLen = recv(sockFd, bufPtr, buf_size - msgLen, 0)) < 0) {
+            perror("SOCK READ: ");
+            return -1;
+        }
+        nlHdr = (struct nlmsghdr *)bufPtr;
+        /* Check if the header is valid */
+        if ((0 == NLMSG_OK(nlHdr, readLen)) ||
+            (NLMSG_ERROR == nlHdr->nlmsg_type)) {
+            perror("Error in received packet");
+            return -1;
+        }
+        /* Check if it is the last message */
+        if (NLMSG_DONE == nlHdr->nlmsg_type) {
+            break;
+        }
+        /* Else move the pointer to buffer appropriately */
+        bufPtr += readLen;
+        msgLen += readLen;
+        /* Check if its a multi part message; return if it is not. */
+        if (0 == (nlHdr->nlmsg_flags & NLM_F_MULTI)) {
+            break;
+        }
+    } while ((nlHdr->nlmsg_seq != seqNum) || (nlHdr->nlmsg_pid != pId));
+
+    return msgLen;
+}
+
+/**
+ * @brief Convert an IPv4 address into ASCII dotted decimal
+ * @param addr - Route info
+ * @return character string of ASCII dotted decimal
+ */
+static char *ntoa(uint32_t addr)
+{
+    static char buffer[18];
+
+    sprintf(buffer, "%d.%d.%d.%d", (addr & 0x000000FF),
+        (addr & 0x0000FF00) >> 8, (addr & 0x00FF0000) >> 16,
+        (addr & 0xFF000000) >> 24);
+
+    return buffer;
+}
+
+/**
+ * @brief Printing one route
+ * @param rtInfo - Route info
+ */
+static void printRoute(struct route_info *rtInfo)
+{
+    if (BIP_Debug) {
+        /* Print Destination address */
+        fprintf(stderr, "%s\t",
+            rtInfo->dstAddr ? ntoa(rtInfo->dstAddr) : "0.0.0.0  ");
+
+        /* Print Gateway address */
+        fprintf(stderr, "%s\t",
+            rtInfo->gateWay ? ntoa(rtInfo->gateWay) : "*.*.*.*");
+
+        /* Print Interface Name */
+        fprintf(stderr, "%s\t", rtInfo->ifName);
+
+        /* Print Source address */
+        fprintf(stderr, "%s\n",
+            rtInfo->srcAddr ? ntoa(rtInfo->srcAddr) : "*.*.*.*");
+    }
+}
+
+/**
+ * @brief Parse the route info returned from kernel
+ * @param nlHdr - Network Layer message header from the kernel
+ * @param rtInfo - Route info
+ */
+static void parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo)
+{
+    struct rtmsg *rtMsg;
+    struct rtattr *rtAttr;
+    int rtLen;
+    char *tempBuf = NULL;
+
+    tempBuf = (char *)malloc(100);
+    rtMsg = (struct rtmsg *)NLMSG_DATA(nlHdr);
+
+    /* If the route is not for AF_INET or does not belong to main routing table
+    then return. */
+    if ((rtMsg->rtm_family != AF_INET) || (rtMsg->rtm_table != RT_TABLE_MAIN))
+        return;
+
+    /* get the rtattr field */
+    rtAttr = (struct rtattr *)RTM_RTA(rtMsg);
+    rtLen = RTM_PAYLOAD(nlHdr);
+    for (; RTA_OK(rtAttr, rtLen); rtAttr = RTA_NEXT(rtAttr, rtLen)) {
+        switch (rtAttr->rta_type) {
+            case RTA_OIF:
+                if_indextoname(*(int *)RTA_DATA(rtAttr), rtInfo->ifName);
+                break;
+            case RTA_GATEWAY:
+                rtInfo->gateWay = *(u_int *)RTA_DATA(rtAttr);
+                break;
+            case RTA_PREFSRC:
+                rtInfo->srcAddr = *(u_int *)RTA_DATA(rtAttr);
+                break;
+            case RTA_DST:
+                rtInfo->dstAddr = *(u_int *)RTA_DATA(rtAttr);
+                break;
+        }
+    }
+    free(tempBuf);
+}
+
+/**
+ * @brief Get the default interface name using routing info
+ * @return interface name, or NULL if not found or none
+ */
+static char *ifname_default(void)
+{
+    static char ifName[IF_NAMESIZE] = { 0 };
+    struct nlmsghdr *nlMsg = NULL;
+    struct route_info *rtInfo = NULL;
+    char msgBuf[8192] = { 0 };
+    int sock, len, msgSeq = 0;
+
+    if (ifName[0] != 0) {
+        return ifName;
+    }
+    /* Create Socket */
+    if ((sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE)) < 0) {
+        perror("Socket Creation: ");
+    }
+    /* point the header and the msg structure pointers into the buffer */
+    nlMsg = (struct nlmsghdr *)msgBuf;
+    /* Fill in the nlmsg header*/
+    nlMsg->nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg));
+    /* Get the routes from kernel routing table */
+    nlMsg->nlmsg_type = RTM_GETROUTE;
+    /* The message is a request for dump */
+    nlMsg->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
+    /* Sequence of the message packet */
+    nlMsg->nlmsg_seq = msgSeq++;
+    /* PID of process sending the request */
+    nlMsg->nlmsg_pid = getpid();
+
+    /* Send the request */
+    if (send(sock, nlMsg, nlMsg->nlmsg_len, 0) < 0) {
+        fprintf(stderr, "BIP: Write To Socket Failed...\n");
+        return ifName;
+    }
+    /* Read the response */
+    if ((len = readNlSock(sock, msgBuf, sizeof(msgBuf), msgSeq, getpid())) <
+        0) {
+        fprintf(stderr, "BIP: Read From Socket Failed...\n");
+        return ifName;
+    }
+    /* Parse and print the response */
+    rtInfo = (struct route_info *)malloc(sizeof(struct route_info));
+    if (BIP_Debug) {
+        fprintf(stderr, "Destination\tGateway\tInterface\tSource\n");
+    }
+    for (; NLMSG_OK(nlMsg, len); nlMsg = NLMSG_NEXT(nlMsg, len)) {
+        memset(rtInfo, 0, sizeof(struct route_info));
+        parseRoutes(nlMsg, rtInfo);
+        printRoute(rtInfo);
+        if (ifName[0] == 0) {
+            if ((rtInfo->dstAddr == 0) && (rtInfo->ifName[0] != 0)) {
+                /* default route */
+                memcpy(ifName, rtInfo->ifName, sizeof(ifName));
+            }
+        }
+    }
+    free(rtInfo);
+    close(sock);
+
+    return ifName;
+}
+
 /**
  * @brief Get the netmask of the BACnet/IP's interface via an ioctl() call.
  * @param netmask [out] The netmask, in host order.
@@ -466,11 +683,13 @@ int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
 int bip_get_local_netmask(struct in_addr *netmask)
 {
     int rv;
-    char *ifname = getenv("BACNET_IFACE"); /* will probably be null */
+    char *ifname = getenv("BACNET_IFACE");
+
     if (ifname == NULL) {
-        ifname = "eth0";
+        ifname = ifname_default();
     }
     rv = bip_get_local_address_ioctl(ifname, netmask, SIOCGIFNETMASK);
+
     return rv;
 }
 
@@ -527,7 +746,7 @@ void bip_set_interface(char *ifname)
  * @note For Linux, ifname is eth0, ath0, arc0, and others.
  *
  * @param ifname [in] The named interface to use for the network layer.
- *        If NULL, the "eth0" interface is assigned.
+ *        If NULL, the default interface is assigned.
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
@@ -537,16 +756,15 @@ bool bip_init(char *ifname)
     struct sockaddr_in sin;
     int sockopt = 0;
     int sock_fd = -1;
-    static char *ifname_default = "eth0";
 
     if (ifname) {
         bip_set_interface(ifname);
     } else {
-        bip_set_interface(ifname_default);
+        bip_set_interface(ifname_default());
     }
     if (BIP_Address.s_addr == 0) {
         fprintf(stderr, "BIP: Failed to get an IP address from %s!\n",
-            ifname?ifname:ifname_default);
+            ifname ? ifname : ifname_default());
         fflush(stderr);
         return false;
     }
