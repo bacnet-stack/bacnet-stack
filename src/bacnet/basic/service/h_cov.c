@@ -802,36 +802,37 @@ void handler_cov_subscribe(uint8_t *service_request,
         fprintf(stderr, "SubscribeCOV: Segmented message.  Sending Abort!\n");
 #endif
         error = true;
-        goto COV_ABORT;
-    }
-    len = cov_subscribe_decode_service_request(
-        service_request, service_len, &cov_data);
-#if PRINT_ENABLED
-    if (len <= 0)
-        fprintf(stderr, "SubscribeCOV: Unable to decode Request!\n");
-#endif
-    if (len < 0) {
-        error = true;
-        goto COV_ABORT;
-    }
-    cov_data.error_class = ERROR_CLASS_OBJECT;
-    cov_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    success = cov_subscribe(
-        src, &cov_data, &cov_data.error_class, &cov_data.error_code);
-    if (success) {
-        apdu_len = encode_simple_ack(&Handler_Transmit_Buffer[npdu_len],
-            service_data->invoke_id, SERVICE_CONFIRMED_SUBSCRIBE_COV);
-#if PRINT_ENABLED
-        fprintf(stderr, "SubscribeCOV: Sending Simple Ack!\n");
-#endif
     } else {
-        len = BACNET_STATUS_ERROR;
-        error = true;
+        len = cov_subscribe_decode_service_request(
+            service_request, service_len, &cov_data);
 #if PRINT_ENABLED
-        fprintf(stderr, "SubscribeCOV: Sending Error!\n");
+        if (len <= 0)
+            fprintf(stderr, "SubscribeCOV: Unable to decode Request!\n");
 #endif
+        if (len < 0) {
+            error = true;
+        } else {
+            cov_data.error_class = ERROR_CLASS_OBJECT;
+            cov_data.error_code = ERROR_CODE_UNKNOWN_OBJECT;
+            success = cov_subscribe(
+                src, &cov_data, &cov_data.error_class, &cov_data.error_code);
+            if (success) {
+                apdu_len = encode_simple_ack(&Handler_Transmit_Buffer[npdu_len],
+                    service_data->invoke_id, SERVICE_CONFIRMED_SUBSCRIBE_COV);
+#if PRINT_ENABLED
+                fprintf(stderr, "SubscribeCOV: Sending Simple Ack!\n");
+#endif
+            } else {
+                len = BACNET_STATUS_ERROR;
+                error = true;
+#if PRINT_ENABLED
+                fprintf(stderr, "SubscribeCOV: Sending Error!\n");
+#endif
+            }
+        }
     }
-COV_ABORT:
+
+    /* Error? */
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
             apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],

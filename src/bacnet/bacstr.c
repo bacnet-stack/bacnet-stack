@@ -299,6 +299,15 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
     return status;
 }
 
+bool characterstring_init_ansi_safe(
+    BACNET_CHARACTER_STRING * char_string,
+    const char *value,
+    size_t tmax)
+{
+    return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
+        value ? strnlen(value, tmax) : 0);
+}
+
 bool characterstring_init_ansi(
     BACNET_CHARACTER_STRING *char_string, const char *value)
 {
@@ -431,7 +440,13 @@ bool characterstring_truncate(
     return status;
 }
 
-/* Returns the value. */
+/**
+ * @brief Returns the pointer to the C-string for the given BACnet string.
+ *
+ * @param char_string  Pointer to the character string.
+ *
+ * @return Pointer to a zero-terminated C-string.
+ */
 char *characterstring_value(BACNET_CHARACTER_STRING *char_string)
 {
     char *value = NULL;
@@ -443,19 +458,37 @@ char *characterstring_value(BACNET_CHARACTER_STRING *char_string)
     return value;
 }
 
-/* returns the length. */
+/**
+ * @brief Returns the length for the given BACnet string.
+ *
+ * @param char_string  Pointer to the character string.
+ *
+ * @return Length of the charcater string, but
+ *         maximum MAX_CHARACTER_STRING_BYTES.
+ */
 size_t characterstring_length(BACNET_CHARACTER_STRING *char_string)
 {
     size_t length = 0;
 
     if (char_string) {
-        /* FIXME: validate length is within bounds? */
         length = char_string->length;
+
+        /* Length within bounds? */
+        if (length > CHARACTER_STRING_CAPACITY) {
+            length = CHARACTER_STRING_CAPACITY;
+        }
     }
 
     return length;
 }
 
+/**
+ * @brief Returns the possible capacity for the given BACnet string.
+ *
+ * @param char_string  Pointer to the character string.
+ *
+ * @return MAX_CHARACTER_STRING_BYTES
+ */
 size_t characterstring_capacity(BACNET_CHARACTER_STRING *char_string)
 {
     size_t length = 0;
@@ -467,7 +500,13 @@ size_t characterstring_capacity(BACNET_CHARACTER_STRING *char_string)
     return length;
 }
 
-/* returns the encoding. */
+/**
+ * @brief Returns the character encoding for the given BACnet string.
+ *
+ * @param char_string  Pointer to the character string.
+ *
+ * @return Encoding, like CHARACTER_ANSI_X34
+ */
 uint8_t characterstring_encoding(BACNET_CHARACTER_STRING *char_string)
 {
     uint8_t encoding = 0;
@@ -479,7 +518,14 @@ uint8_t characterstring_encoding(BACNET_CHARACTER_STRING *char_string)
     return encoding;
 }
 
-/* returns the encoding. */
+/**
+ * @brief Set the character encoding for the given BACnet string.
+ *
+ * @param char_string  Pointer to the character string.
+ * @param Encoding, like CHARACTER_ANSI_X34
+ *
+ * @return true/false on error
+ */
 bool characterstring_set_encoding(
     BACNET_CHARACTER_STRING *char_string, uint8_t encoding)
 {
@@ -493,32 +539,43 @@ bool characterstring_set_encoding(
     return status;
 }
 
-/* returns true if string is printable */
-/* used to assist in the requirement that
-   "The set of characters used in the Object_Name shall be
-   restricted to printable characters." */
-/* printable character: a character that represents a printable
-symbol as opposed to a device control character. These
-include, but are not limited to, upper- and lowercase letters,
-punctuation marks, and mathematical symbols. The exact set
-depends upon the character set being used. In ANSI X3.4 the
-printable characters are represented by single octets in the range
-X'20' - X'7E'.*/
+/**
+ * @brief Returns true if string is printable.
+ *
+ * Used to assist in the requirement that
+ * "The set of characters used in the Object_Name shall be
+ * restricted to printable characters."
+ *
+ * Printable character: a character that represents a printable
+ * symbol as opposed to a device control character. These
+ * include, but are not limited to, upper- and lowercase letters,
+ * punctuation marks, and mathematical symbols. The exact set
+ * depends upon the character set being used. In ANSI X3.4 the
+ * printable characters are represented by single octets in the range
+ * X'20' - X'7E'.
+ *
+ * @param char_string  Pointer to the character string.
+ *
+ * @return true/false on error
+ */
 bool characterstring_printable(BACNET_CHARACTER_STRING *char_string)
 {
     bool status = false; /* return value */
     size_t i; /* counter */
+    size_t imax;
+    char chr;
 
     if (char_string) {
         if (char_string->encoding == CHARACTER_ANSI_X34) {
             status = true;
-            for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
-                if (i < char_string->length) {
-                    if ((char_string->value[i] < 0x20) ||
-                        (char_string->value[i] > 0x7E)) {
-                        status = false;
-                    }
-                } else {
+            imax = char_string->length;
+            if (imax > CHARACTER_STRING_CAPACITY) {
+                imax = CHARACTER_STRING_CAPACITY;
+            }
+            for (i = 0; i < imax; i++) {
+                chr = char_string->value[i];
+                if ((chr < 0x20) || (chr > 0x7E)) {
+                    status = false;
                     break;
                 }
             }

@@ -422,7 +422,9 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
     int fd;
     int rv; /* return value */
 
-    strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name));
+    strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name) - 1);
+    ifr->ifr_name[sizeof(ifr->ifr_name) - 1] = 0;
+
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
     if (fd < 0) {
         rv = fd;
@@ -443,7 +445,7 @@ static int get_local_ifr_ioctl(char *ifname, struct ifreq *ifr, int request)
  */
 int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
 {
-    struct ifreq ifr = { { { 0 } } };
+    struct ifreq ifr = { {{0}}, {{0}} };
     struct sockaddr_in *tcpip_address;
     int rv; /* return value */
 
@@ -535,7 +537,7 @@ bool bip_init(char *ifname)
     struct sockaddr_in sin;
     int sockopt = 0;
     int sock_fd = -1;
-    char *ifname_default = "eth0";
+    static char *ifname_default = "eth0";
 
     if (ifname) {
         bip_set_interface(ifname);

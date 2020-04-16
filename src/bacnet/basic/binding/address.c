@@ -94,11 +94,23 @@ void address_own_device_id_set(uint32_t own_id)
     Own_Device_ID = own_id;
 }
 
+/**
+ * @brief Check if the given source and destination address can be matched
+ *        by checking the length, net and MAC address.
+ *
+ * @param dest  Destination address
+ * @param src   Source address
+ *
+ * @return true for a match, false otherwise
+ */
 bool address_match(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
 {
     uint8_t i = 0;
     uint8_t max_len = 0;
 
+    if (dest == src) {
+        return(true);
+    }
     if (dest->mac_len != src->mac_len) {
         return false;
     }
@@ -136,6 +148,11 @@ bool address_match(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
     return true;
 }
 
+/**
+ * @brief Remove a device from the address list.
+ *
+ * @param device_id  ID of the device
+ */
 void address_remove_device(uint32_t device_id)
 {
     struct Address_Cache_Entry *pMatch;
@@ -158,13 +175,15 @@ void address_remove_device(uint32_t device_id)
     return;
 }
 
-/*****************************************************************************
- * Search the cache for the entry nearest expiry and delete it. Mark the     *
- * entry as reserved with a 1 hour TTL and return a pointer to the reserved  *
- * entry. Will not delete a static entry and returns NULL pointer if no      *
- * entry available to free up. Does not check for free entries as it is      *
- * assumed we are calling this due to the lack of those.                     *
- *****************************************************************************/
+/**
+ * @brief Search the cache for the entry nearest expiry and delete it. Mark the
+ * entry as reserved with a 1 hour TTL and return a pointer to the reserved
+ * entry. Will not delete a static entry and returns NULL pointer if no
+ * entry available to free up. Does not check for free entries as it is
+ * assumed we are calling this due to the lack of those.
+ *
+ * @return Candidate for deletation.
+ */
 
 static struct Address_Cache_Entry *address_remove_oldest(void)
 {
@@ -224,7 +243,8 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
     return (pCandidate);
 }
 
-/** Initialize a BACNET_MAC_ADDRESS
+/**
+ * Initialize a BACNET_MAC_ADDRESS
  *
  * @param mac [out] BACNET_MAC_ADDRESS structure
  * @param adr [in] address to initialize, null if empty

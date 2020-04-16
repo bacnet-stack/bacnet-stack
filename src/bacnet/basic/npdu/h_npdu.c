@@ -70,6 +70,10 @@ void npdu_handler(BACNET_ADDRESS *src, /* source address */
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
 
+    if (pdu_len < 1) {
+        return;
+    }
+
     /* only handle the version that we know how to handle */
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
         apdu_offset = npdu_decode(&pdu[0], &dest, src, &npdu_data);

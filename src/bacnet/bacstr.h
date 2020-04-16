@@ -120,6 +120,10 @@ extern "C" {
     bool characterstring_init_ansi(
         BACNET_CHARACTER_STRING * char_string,
         const char *value);
+    bool characterstring_init_ansi_safe(
+        BACNET_CHARACTER_STRING * char_string,
+        const char *value,
+        size_t tmax);
     bool characterstring_copy(
         BACNET_CHARACTER_STRING * dest,
         BACNET_CHARACTER_STRING * src);

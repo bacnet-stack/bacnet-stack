@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
@@ -60,6 +61,13 @@ static const int Properties_Optional[] = { PROP_EVENT_STATE,
 
 static const int Properties_Proprietary[] = { -1 };
 
+/**
+ * Initialize the pointers for the required, the optional and the properitary value properties.
+ *
+ * @param pRequired - Pointer to the pointer of required values.
+ * @param pOptional - Pointer to the pointer of optional values.
+ * @param pProprietary - Pointer to the pointer of properitary values.
+ */
 void CharacterString_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -76,6 +84,9 @@ void CharacterString_Value_Property_Lists(
     return;
 }
 
+/**
+ * Initialize the character string values.
+ */
 void CharacterString_Value_Init(void)
 {
     unsigned i;
@@ -92,9 +103,15 @@ void CharacterString_Value_Init(void)
     return;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * We simply have 0-n object instances. Yours might be
+ * more complex, and then you need to return the instance
+ * that correlates to the correct index.
+ *
+ * @param object_instance Object instance
+ *
+ * @return Object instance
+ */
 unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_CHARACTERSTRING_VALUES;
@@ -106,21 +123,39 @@ unsigned CharacterString_Value_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * We simply have 0-n object instances. Yours might be
+ * more complex, and then you need to return the index
+ * that correlates to the correct instance number
+ *
+ * @param index Object index
+ *
+ * @return Index in the object table.
+ */
 uint32_t CharacterString_Value_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then count how many you have */
+/**
+ * Return the count of character string values.
+ *
+ * @return Count of character string values.
+ */
 unsigned CharacterString_Value_Count(void)
 {
     return MAX_CHARACTERSTRING_VALUES;
 }
 
+/**
+ * We simply have 0-n object instances. Yours might be
+ * more complex, and then you need validate that the
+ * given instance exists.
+ *
+ * @param object_instance Object instance
+ *
+ * @return true/false
+ */
 bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
@@ -133,6 +168,16 @@ bool CharacterString_Value_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
+/**
+ * For a given object instance-number, read the present-value.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - Pointer to the new BACnet string value,
+ *                       taking the value.
+ *
+ * @return  true if values are within range and present-value
+ *          is returned.
+ */
 bool CharacterString_Value_Present_Value(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -147,6 +192,15 @@ bool CharacterString_Value_Present_Value(
     return status;
 }
 
+/**
+ * For a given object instance-number, sets the present-value,
+ * taken from another BACnet string.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - Pointer to the new BACnet string value.
+ *
+ * @return  true if values are within range and present-value is set.
+ */
 bool CharacterString_Value_Present_Value_Set(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -161,6 +215,13 @@ bool CharacterString_Value_Present_Value_Set(
     return status;
 }
 
+/**
+ * For a given object instance-number, read the out of service value.
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  true/false
+ */
 bool CharacterString_Value_Out_Of_Service(uint32_t object_instance)
 {
     bool value = false;
@@ -174,6 +235,12 @@ bool CharacterString_Value_Out_Of_Service(uint32_t object_instance)
     return value;
 }
 
+/**
+ * For a given object instance-number, set the out of service value.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  true/false
+ */
 static void CharacterString_Value_Out_Of_Service_Set(
     uint32_t object_instance, bool value)
 {
@@ -187,6 +254,13 @@ static void CharacterString_Value_Out_Of_Service_Set(
     return;
 }
 
+/**
+ * For a given object instance-number, return the description.
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  C-string pointer to the description.
+ */
 static char *CharacterString_Value_Description(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
@@ -200,8 +274,16 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
     return pName;
 }
 
+/**
+ * For a given object instance-number, set the description text.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_descr - C-String pointer to the string, representing the description text
+ *
+ * @return True on success, false otherwise.
+ */
 bool CharacterString_Value_Description_Set(
-    uint32_t object_instance, char *new_name)
+    uint32_t object_instance, char *new_descr)
 {
     unsigned index = 0; /* offset from instance lookup */
     size_t i = 0; /* loop counter */
@@ -210,23 +292,29 @@ bool CharacterString_Value_Description_Set(
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) {
         status = true;
-        if (new_name) {
+        if (new_descr) {
             for (i = 0; i < sizeof(Object_Description[index]); i++) {
-                Object_Description[index][i] = new_name[i];
-                if (new_name[i] == 0) {
+                Object_Description[index][i] = new_descr[i];
+                if (new_descr[i] == 0) {
                     break;
                 }
             }
         } else {
-            for (i = 0; i < sizeof(Object_Description[index]); i++) {
-                Object_Description[index][i] = 0;
-            }
+            memset(&Object_Description[index][0], 0, sizeof(Object_Description[index]));
         }
     }
 
     return status;
 }
 
+/**
+ * For a given object instance-number, return the object text.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - Pointer to the BACnet string object that shall take the object name
+ *
+ * @return True on success, false otherwise.
+ */
 bool CharacterString_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -241,7 +329,16 @@ bool CharacterString_Value_Object_Name(
     return status;
 }
 
-/* note: the object name must be unique within this device */
+/**
+ * For a given object instance-number, set the object text.
+ *
+ * Note: the object name must be unique within this device
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - C-String pointer to the text, representing the object name
+ *
+ * @return True on success, false otherwise.
+ */
 bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
 {
     unsigned index = 0; /* offset from instance lookup */
@@ -260,16 +357,20 @@ bool CharacterString_Value_Name_Set(uint32_t object_instance, char *new_name)
                 }
             }
         } else {
-            for (i = 0; i < sizeof(Object_Name[index]); i++) {
-                Object_Name[index][i] = 0;
-            }
+            memset(&Object_Name[index][0], 0, sizeof(Object_Name[index]));
         }
     }
 
     return status;
 }
 
-/* return apdu len, or BACNET_STATUS_ERROR on error */
+/**
+ * Return the requested property of the character string value.
+ *
+ * @param rpdata  Property requested, see for BACNET_READ_PROPERTY_DATA details.
+ *
+ * @return apdu len, or BACNET_STATUS_ERROR on error
+ */
 int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
@@ -279,11 +380,25 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     bool state = false;
     uint8_t *apdu = NULL;
 
-    if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
+    /* Valid data? */
+    if (rpdata == NULL) {
+        return 0;
+    }
+    if ((rpdata->application_data == NULL) || \
         (rpdata->application_data_len == 0)) {
         return 0;
     }
+
+    /* Valid object? */
+    object_index = CharacterString_Value_Instance_To_Index(rpdata->object_instance);
+    if (object_index >= MAX_CHARACTERSTRING_VALUES) {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return BACNET_STATUS_ERROR;
+    }
+
     apdu = rpdata->application_data;
+
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(&apdu[0],
@@ -292,16 +407,18 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-            CharacterString_Value_Object_Name(
-                rpdata->object_instance, &char_string);
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            if (CharacterString_Value_Object_Name(
+                rpdata->object_instance, &char_string)) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                CharacterString_Value_Description(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+            if (characterstring_init_ansi(&char_string,
+                CharacterString_Value_Description(rpdata->object_instance))) {
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
             break;
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(
@@ -334,8 +451,6 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
             break;
         case PROP_OUT_OF_SERVICE:
-            object_index = CharacterString_Value_Instance_To_Index(
-                rpdata->object_instance);
             state = Out_Of_Service[object_index];
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
@@ -356,14 +471,29 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/* returns true if successful */
+/**
+ * Set the requested property of the character string value.
+ *
+ * @param wp_data  Property requested, see for BACNET_WRITE_PROPERTY_DATA details.
+ *
+ * @return true if successful
+ */
 bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
+    unsigned object_index = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
-    /* decode the some of the request */
+    if (wp_data == NULL) {
+        return false;
+    }
+    if ((wp_data->application_data == NULL) || \
+        (wp_data->application_data_len == 0)) {
+        return false;
+    }
+
+    /* Decode the some of the request. */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
@@ -373,6 +503,15 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+
+    /* Valid object? */
+    object_index = CharacterString_Value_Instance_To_Index(wp_data->object_instance);
+    if (object_index >= MAX_CHARACTERSTRING_VALUES) {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
+
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = WPValidateArgType(&value,

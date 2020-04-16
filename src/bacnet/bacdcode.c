@@ -1981,9 +1981,15 @@ int encode_context_signed(uint8_t *apdu, uint8_t tag_number, int32_t value)
 }
 #endif
 
-/* from clause 20.2.6 Encoding of a Real Number Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Encode a real floating value. From clause 20.2.6 Encoding of a
+ *        Real Number Value and 20.2.1 General Rules for Encoding BACnet Tags.
+ *
+ * @param apdu  Transmit buffer
+ * @param value The float value to be encoded.
+ *
+ * @return Returns the number of apdu bytes consumed.
+ */
 int encode_application_real(uint8_t *apdu, float value)
 {
     int len = 0;
@@ -1996,6 +2002,17 @@ int encode_application_real(uint8_t *apdu, float value)
     return len;
 }
 
+/**
+ * @brief Encode a real floating value with a given tag. From clause 20.2.6
+ *        Encoding of a Real Number Value and 20.2.1 General Rules for
+ *        Encoding BACnet Tags.
+ *
+ * @param apdu  Transmit buffer
+ * @param tag_number  Tag number to be used
+ * @param value The float value to be encoded.
+ *
+ * @return Returns the number of apdu bytes consumed.
+ */
 int encode_context_real(uint8_t *apdu, uint8_t tag_number, float value)
 {
     int len = 0;
@@ -2356,7 +2373,15 @@ int decode_context_date(uint8_t *apdu, uint8_t tag_number, BACNET_DATE *bdate)
     return len;
 }
 
-/* returns the number of apdu bytes consumed */
+/**
+ * Encode a simple ACK and returns the number of apdu bytes consumed.
+ *
+ * @param apdu  Transmit buffer
+ * @param invoke_id  ID invoked
+ * @param service_choice  Service being acked
+ *
+ * @return number of apdu bytes consumed
+ */
 int encode_simple_ack(uint8_t *apdu, uint8_t invoke_id, uint8_t service_choice)
 {
     apdu[0] = PDU_TYPE_SIMPLE_ACK;
@@ -2366,24 +2391,41 @@ int encode_simple_ack(uint8_t *apdu, uint8_t invoke_id, uint8_t service_choice)
     return 3;
 }
 
-/* BACnetAddress */
+/**
+ * Encode a BACnetAddress and returns the number of apdu bytes consumed.
+ *
+ * @param apdu  Transmit buffer
+ * @param destination  Pointer to the destination address to be encoded.
+ *
+ * @return number of apdu bytes created
+ */
 int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
 {
     int apdu_len = 0;
     BACNET_OCTET_STRING mac_addr;
-    /* network number */
-    apdu_len += encode_application_unsigned(&apdu[apdu_len], destination->net);
-    /* encode mac address as an octet-string */
-    if (destination->len != 0) {
-        octetstring_init(&mac_addr, destination->adr, destination->len);
-    } else {
-        octetstring_init(&mac_addr, destination->mac, destination->mac_len);
+
+    if (destination) {
+        /* network number */
+        apdu_len += encode_application_unsigned(&apdu[apdu_len], destination->net);
+        /* encode mac address as an octet-string */
+        if (destination->len != 0) {
+            octetstring_init(&mac_addr, destination->adr, destination->len);
+        } else {
+            octetstring_init(&mac_addr, destination->mac, destination->mac_len);
+        }
+        apdu_len += encode_application_octet_string(&apdu[apdu_len], &mac_addr);
     }
-    apdu_len += encode_application_octet_string(&apdu[apdu_len], &mac_addr);
     return apdu_len;
 }
 
-/* BACnetAddress */
+/**
+ * Dencode a BACnetAddress and returns the number of apdu bytes consumed.
+ *
+ * @param apdu  Receive buffer
+ * @param destination  Pointer to the destination address structure to be filled in.
+ *
+ * @return number of apdu bytes consumed
+ */
 int decode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
 {
     int len = 0;
