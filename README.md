@@ -9,11 +9,14 @@ Continuous Integration
 ----------------------
 
 This library uses various automated continuous integration services 
-to assist in validation and testing of robust C code and BACnet functionality.
+to assist in automated compilation, validation, linting, and unit testing 
+of robust C code and BACnet functionality.
 
-GitHub Workflow [![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions)
-Travis CI [![Build Status](https://travis-ci.com/bacnet-stack/bacnet-stack.svg?branch=master)](https://travis-ci.com/bacnet-stack/bacnet-stack) 
-AppVeyor CI [![Build status](https://ci.appveyor.com/api/projects/status/5lq0d9a69g7ixskm/branch/master?svg=true)](https://ci.appveyor.com/project/skarg/bacnet-stack/branch/master)
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
+
+[![Build Status](https://travis-ci.com/bacnet-stack/bacnet-stack.svg?branch=master)](https://travis-ci.com/bacnet-stack/bacnet-stack) Travis CI
+
+[![Build status](https://ci.appveyor.com/api/projects/status/5lq0d9a69g7ixskm/branch/master?svg=true)](https://ci.appveyor.com/project/skarg/bacnet-stack/branch/master) AppVeyor CI
 
 About this Project
 ------------------
@@ -30,18 +33,18 @@ and they sell the document to help defray costs of developing and maintaining
 the standard (just like IEEE or ANSI or ISO).
 
 For software developers, the BACnet protocol is a standard way to send and
-receive messages on the wire containing data that is understood by other BACnet
+receive messages containing data that are understood by other BACnet
 compliant devices. The BACnet standard defines a standard way to communicate
-over various wires, known as Data Link/Physical Layers: Ethernet, EIA-485,
-EIA-232, ARCNET, and LonTalk. The BACnet standard also defines a standard way
-to communicate using UDP, IP and HTTP (Web Services).
+over various wires or radios, known as Data Link/Physical Layers: Ethernet, 
+EIA-485, EIA-232, ARCNET, and LonTalk. The BACnet standard also defines a 
+standard way to communicate using UDP, IP, HTTP (Web Services), and Websockets.
 
 This BACnet protocol stack implementation is specifically designed for the
 embedded BACnet appliance, using a GPL with exception license (like eCos),
-which means that any changes to the core code that are distributed get to come
-back into the core code, but the BACnet library can be linked to proprietary
-code without the proprietary code becoming GPL. Note that some of the source
-files are designed as skeleton or example files, and are not copyrighted.
+which means that any changes to the core code that are distributed are shared, 
+but the BACnet library can be linked to proprietary code without the proprietary 
+code becoming GPL. Note that some of the source files are designed as 
+skeleton or example or template files, and are not copyrighted as GPL.
 
 The text of the GPL exception included in each source file is as follows: 
 
@@ -110,7 +113,8 @@ to generate a Code::Blocks project:
     c:\> cmake .. -G"CodeBlocks - MinGW Makefiles"
 
 The demo applications are all client applications that provide one main BACnet
-service, except the one server application and one gateway application.  
+service, except the one server application and one gateway application, 
+a couple router applications, and a couple of MS/TP specific applications.
 Each application will accept command line parameters, and prints the output to 
 stdout or stderr.  The client applications are command line based and can 
 be used in scripts or for troubleshooting.  
