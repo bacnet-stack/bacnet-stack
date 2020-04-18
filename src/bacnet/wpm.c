@@ -109,7 +109,7 @@ int wpm_decode_object_property(
     uint32_t len_value = 0;
     uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-    int len = 0, i = 0;
+    int len = 0, i = 0, imax = 0;
 
     if ((apdu) && (apdu_len) && (wp_data)) {
         wp_data->array_index = BACNET_ARRAY_ALL;
@@ -137,19 +137,28 @@ int wpm_decode_object_property(
         /* tag 2 - Property Value */
         if ((tag_number == 2) && (decode_is_opening_tag(&apdu[len - 1]))) {
             len--;
-            wp_data->application_data_len = bacapp_data_len(&apdu[len],
+            imax = bacapp_data_len(&apdu[len],
                 (unsigned)(apdu_len - len), wp_data->object_property);
             len++;
 
-            /* copy application data */
-            for (i = 0; i < wp_data->application_data_len; i++) {
+            /* copy application data, check max lengh */
+            if (imax > (apdu_len - len)) {
+                imax = (apdu_len - len);
+            }
+            for (i = 0; i < imax; i++) {
                 wp_data->application_data[i] = apdu[len + i];
             }
-            len += wp_data->application_data_len;
-            len += decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value);
-            /* closing tag 2 */
-            if ((tag_number != 2) && (decode_is_closing_tag(&apdu[len - 1]))) {
+            wp_data->application_data_len = imax;
+            len += imax;
+            if (len < apdu_len) {
+                len += decode_tag_number_and_value(
+                    &apdu[len], &tag_number, &len_value);
+                /* closing tag 2 */
+                if ((tag_number != 2) && (decode_is_closing_tag(&apdu[len - 1]))) {
+                    wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+                    return BACNET_STATUS_REJECT;
+                }
+            } else {
                 wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
                 return BACNET_STATUS_REJECT;
             }
@@ -159,12 +168,14 @@ int wpm_decode_object_property(
         }
 
         /* tag 3 - Priority - optional */
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        if (tag_number == 3) {
-            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
-            wp_data->priority = (uint8_t)unsigned_value;
-        } else {
-            len--;
+        if (len < apdu_len) {
+            len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+            if (tag_number == 3) {
+                len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+                wp_data->priority = (uint8_t)unsigned_value;
+            } else {
+                len--;
+            }
         }
     } else {
         if (wp_data) {

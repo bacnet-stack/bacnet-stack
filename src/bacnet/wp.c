@@ -38,13 +38,22 @@
 #include "bacnet/wp.h"
 
 /** @file wp.c  Encode/Decode BACnet Write Property APDUs  */
+
 #if BACNET_SVC_WP_A
-/* encode service */
+/** Initialize the APDU for encode service.
+ *
+ * @param apdu  Pointer to the buffer.
+ * @param invoke_id  ID of service invoked.
+ * @param wpdata  Pointer to the write property data.
+ *
+ * @return Bytes encoded
+ */
 int wp_encode_apdu(
     uint8_t *apdu, uint8_t invoke_id, BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* total length of the apdu, return value */
+    int imax = 0; /* maximum application data length */
 
     if (apdu) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
@@ -67,10 +76,14 @@ int wp_encode_apdu(
         /* propertyValue */
         len = encode_opening_tag(&apdu[apdu_len], 3);
         apdu_len += len;
-        for (len = 0; len < wpdata->application_data_len; len++) {
+        imax = wpdata->application_data_len;
+        if (imax > (MAX_APDU - 2 /*closing*/ - apdu_len)) {
+            imax = MAX_APDU - 2 - apdu_len;
+        }
+        for (len = 0; len < imax; len++) {
             apdu[apdu_len + len] = wpdata->application_data[len];
         }
-        apdu_len += wpdata->application_data_len;
+        apdu_len += imax;
         len = encode_closing_tag(&apdu[apdu_len], 3);
         apdu_len += len;
         /* optional priority - 0 if not set, 1..16 if set */
@@ -84,9 +97,17 @@ int wp_encode_apdu(
 }
 #endif
 
-/* decode the service request only */
-/* FIXME: there could be various error messages returned
-   using unique values less than zero */
+/** Decode the service request only
+ *
+ * FIXME: there could be various error messages returned
+ * using unique values less than zero.
+ *
+ * @param apdu  Pointer to the buffer.
+ * @param apdu_len  Valid bytes in the buffer
+ * @param wpdata  Pointer to the write property data.
+ *
+ * @return Bytes encoded or a negative value as error.
+ */
 int wp_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_WRITE_PROPERTY_DATA *wpdata)
 {
@@ -98,6 +119,7 @@ int wp_decode_service_request(
     uint32_t property = 0; /* for decoding */
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     int i = 0; /* loop counter */
+    int imax = 0; /* max application data length */
 
     /* check for value pointers */
     if (apdu_len && wpdata) {
@@ -132,16 +154,23 @@ int wp_decode_service_request(
             return -1;
         }
         /* determine the length of the data blob */
-        wpdata->application_data_len = bacapp_data_len(
-            &apdu[len], apdu_len - len, (BACNET_PROPERTY_ID)property);
+        imax = bacapp_data_len( \
+               &apdu[len], apdu_len - len, (BACNET_PROPERTY_ID)property);
+        if (imax == BACNET_STATUS_ERROR) {
+            return -2;
+        }
         /* a tag number of 3 is not extended so only one octet */
         len++;
         /* copy the data from the APDU */
-        for (i = 0; i < wpdata->application_data_len; i++) {
+        if (imax > (MAX_APDU - len - 1 /*closing*/)) {
+            imax = (MAX_APDU - len - 1);
+        }
+        for (i = 0; i < imax; i++) {
             wpdata->application_data[i] = apdu[len + i];
         }
+        wpdata->application_data_len = imax;
         /* add on the data length */
-        len += wpdata->application_data_len;
+        len += imax;
         if (!decode_is_closing_tag_number(&apdu[len], 3)) {
             return -2;
         }
