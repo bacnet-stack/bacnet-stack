@@ -98,3 +98,7 @@ clean:
 	$(MAKE) -s -C demo/router clean
 	$(MAKE) -s -C demo/router-ipv6 clean
 	$(MAKE) -s -C demo/gateway clean
+	$(MAKE) -s -C ports/stm32f10x clean
+	$(MAKE) -s -C ports/bdk-atxx4-mstp clean
+	$(MAKE) -s -C ports/at91sam7s clean
+	$(MAKE) -s -C ports/atmega168 clean
