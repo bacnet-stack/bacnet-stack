@@ -933,8 +933,19 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
 
 const char *bactext_engineering_unit_name(unsigned index)
 {
-    return indtext_by_index_split_default(bacnet_engineering_unit_names, index,
-        256, ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    if (index <= UNITS_RESERVED_RANGE_MAX) {
+        return indtext_by_index_default(bacnet_engineering_unit_names,
+            index, ASHRAE_Reserved_String);
+    } else if (index <= UNITS_PROPRIETARY_RANGE_MAX) {
+        return Vendor_Proprietary_String;
+    } else if (index <= UNITS_RESERVED_RANGE_MAX2) {
+        return indtext_by_index_default(bacnet_engineering_unit_names,
+            index, ASHRAE_Reserved_String);
+    } else if (index <= UNITS_PROPRIETARY_RANGE_MAX2) {
+        return Vendor_Proprietary_String;
+    }
+
+    return ASHRAE_Reserved_String;
 }
 
 bool bactext_engineering_unit_index(
