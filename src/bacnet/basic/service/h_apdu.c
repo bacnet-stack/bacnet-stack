@@ -381,7 +381,12 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
                 return 0;
             }
         }
-        if (apdu_len >= (len+2)) {
+        if (apdu_len == (len + 1)) {
+            /* no request data as seen with Inneasoft BACnet Explorer */
+            *service_choice = apdu[len++];
+            *service_request = NULL;
+            *service_request_len = 0;
+        } else if (apdu_len >= (len+2)) {
             *service_choice = apdu[len++];
             *service_request = &apdu[len];
             *service_request_len = apdu_len - len;
