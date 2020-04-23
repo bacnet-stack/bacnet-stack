@@ -288,9 +288,16 @@ bool datetime_is_valid(BACNET_DATE *bdate, BACNET_TIME *btime)
     return datetime_date_is_valid(bdate) && datetime_time_is_valid(btime);
 }
 
-/* if the date1 is the same as date2, return is 0
-   if date1 is after date2, returns positive
-   if date1 is before date2, returns negative */
+/**
+ * If the date1 is the same as date2, return is 0.
+ * If date1 is after date2, returns positive.
+ * if date1 is before date2, returns negative.
+ *
+ * @param date1 - Pointer to a BACNET_DATE structure
+ * @param date2 - Pointer to a BACNET_DATE structure
+ *
+ * @return -/0/+
+ */
 int datetime_compare_date(BACNET_DATE *date1, BACNET_DATE *date2)
 {
     int diff = 0;
@@ -308,9 +315,16 @@ int datetime_compare_date(BACNET_DATE *date1, BACNET_DATE *date2)
     return diff;
 }
 
-/* if the time1 is the same as time2, return is 0
-   if time1 is after time2, returns positive
-   if time1 is before time2, returns negative */
+/**
+ * If the time1 is the same as time2, return is 0.
+ * If time1 is after time2, returns positive.
+ * if time1 is before time2, returns negative.
+ *
+ * @param time1 - Pointer to a BACNET_TIME structure
+ * @param time2 - Pointer to a BACNET_TIME structure
+ *
+ * @return -/0/+
+ */
 int datetime_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
 {
     int diff = 0;
@@ -331,9 +345,16 @@ int datetime_compare_time(BACNET_TIME *time1, BACNET_TIME *time2)
     return diff;
 }
 
-/* if the datetime1 is the same as datetime2, return is 0
-   if datetime1 is before datetime2, returns negative
-   if datetime1 is after datetime2, returns positive */
+/**
+ * If the datetime1 is the same datetime2, return is 0.
+ * If datetime1 is after datetime2, returns positive.
+ * if datetime1 is before datetime2, returns negative.
+ *
+ * @param datetime1 - Pointer to a BACNET_DATE_TIME structure
+ * @param datetime2 - Pointer to a BACNET_DATE_TIME structure
+ *
+ * @return -/0/+
+ */
 int datetime_compare(BACNET_DATE_TIME *datetime1, BACNET_DATE_TIME *datetime2)
 {
     int diff = 0;
