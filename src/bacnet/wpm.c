@@ -336,7 +336,7 @@ int wpm_encode_apdu(uint8_t *apdu,
             len = wpm_encode_apdu_object_begin(&apdu[apdu_len],
                 wpm_object->object_type, wpm_object->object_instance);
             apdu_len += len;
-            if (apdu_len >= max_apdu) {
+            if (apdu_len >= (int)max_apdu) {
                 break;
             }
 
@@ -355,7 +355,7 @@ int wpm_encode_apdu(uint8_t *apdu,
                 memcpy(&wpdata.application_data[0], &apdu_temp[0], usize);
                 len = wpm_encode_apdu_object_property(&apdu[apdu_len], &wpdata);
                 apdu_len += len;
-                if (apdu_len >= max_apdu) {
+                if (apdu_len >= (int)max_apdu) {
                     break;
                 }
 

@@ -39,6 +39,14 @@
 
 /** @file ihave.c  Encode/Decode I-Have service */
 
+/**
+ * Encode the I Have request
+ *
+ * @param apdu  Pointer to the APDU buffer
+ * @param data  Pointer to the I Have data structure.
+ *
+ * @return Bytes encoded.
+ */
 int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
 {
     int len = 0; /* length of each encoding */
@@ -67,7 +75,15 @@ int ihave_encode_apdu(uint8_t *apdu, BACNET_I_HAVE_DATA *data)
 
 #if BACNET_SVC_I_HAVE_A
 
-/* decode the service request only */
+/**
+ * Decode the I Have request only
+ *
+ * @param apdu  Pointer to the APDU buffer
+ * @param apdu_len  Valid bytes in the buffer
+ * @param data  Pointer to the I Have data structure.
+ *
+ * @return Bytes decoded.
+ */
 int ihave_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
 {
@@ -76,7 +92,7 @@ int ihave_decode_service_request(
     uint32_t len_value = 0;
     BACNET_OBJECT_TYPE decoded_type = OBJECT_NONE; /* for decoding */
 
-    if (apdu_len && data) {
+    if ((apdu_len >= 2) && data) {
         /* deviceIdentifier */
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
@@ -87,6 +103,9 @@ int ihave_decode_service_request(
             return -1;
         }
         /* objectIdentifier */
+        if ((unsigned)len >= apdu_len) {
+            return -1;
+        }
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_OBJECT_ID) {
             len += decode_object_id(
@@ -96,6 +115,9 @@ int ihave_decode_service_request(
             return -1;
         }
         /* objectName */
+        if ((unsigned)len >= apdu_len) {
+            return -1;
+        }
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
             len += decode_character_string(
@@ -110,12 +132,21 @@ int ihave_decode_service_request(
     return len;
 }
 
+/**
+ * Decode the I Have
+ *
+ * @param apdu  Pointer to the APDU buffer
+ * @param apdu_len  Valid bytes in the buffer
+ * @param data  Pointer to the I Have data structure.
+ *
+ * @return Bytes decoded.
+ */
 int ihave_decode_apdu(
     uint8_t *apdu, unsigned apdu_len, BACNET_I_HAVE_DATA *data)
 {
     int len = 0;
 
-    if (!apdu) {
+    if ((!apdu) && (apdu_len >= 2)) {
         return -1;
     }
     /* optional checking - most likely was already done prior to this call */

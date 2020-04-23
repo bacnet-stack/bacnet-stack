@@ -32,6 +32,7 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 #include <stdint.h>
+
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacdef.h"
@@ -39,7 +40,16 @@
 
 /** @file rd.c  Encode/Decode Reinitialize Device APDUs */
 #if BACNET_SVC_RD_A
-/* encode service */
+
+/** Encode Reinitialize Device service
+ *
+ * @param apdu  Pointer to the APDU buffer.
+ * @param invoke_id Invoke-Id
+ * @param state  Reinitialization state
+ * @param password  Pointer to the pass phrase.
+ *
+ * @return Bytes encoded.
+ */
 int rd_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_REINITIALIZED_STATE state,
@@ -58,9 +68,11 @@ int rd_encode_apdu(uint8_t *apdu,
         apdu_len += len;
         /* optional password */
         if (password) {
-            /* FIXME: must be at least 1 character, limited to 20 characters */
-            len = encode_context_character_string(&apdu[apdu_len], 1, password);
-            apdu_len += len;
+            /* Must be at least 1 character, limited to 20 characters */
+            if ((password->length >= 1) && (password->length <= 20)) {
+                len = encode_context_character_string(&apdu[apdu_len], 1, password);
+                apdu_len += len;
+            }
         }
     }
 
@@ -68,7 +80,15 @@ int rd_encode_apdu(uint8_t *apdu,
 }
 #endif
 
-/* decode the service request only */
+/** Decode Reinitialize Device service
+ *
+ * @param apdu  Pointer to the APDU buffer.
+ * @param apdu_len Valid bytes in the buffer
+ * @param state  Pointer to the Reinitialization state
+ * @param password  Pointer to the pass phrase.
+ *
+ * @return Bytes encoded.
+ */
 int rd_decode_service_request(uint8_t *apdu,
     unsigned apdu_len,
     BACNET_REINITIALIZED_STATE *state,
@@ -80,12 +100,12 @@ int rd_decode_service_request(uint8_t *apdu,
     uint32_t value = 0;
 
     /* check for value pointers */
-    if (apdu_len) {
+    if ((apdu) && (apdu_len >= 2)) {
         /* Tag 0: reinitializedStateOfDevice */
         if (!decode_is_context_tag(&apdu[len], 0)) {
             return -1;
         }
-        len += decode_tag_number_and_value(
+        len += decode_tag_number_and_value( \
             &apdu[len], &tag_number, &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value);
         if (state) {
@@ -96,10 +116,15 @@ int rd_decode_service_request(uint8_t *apdu,
             if (!decode_is_context_tag(&apdu[len], 1)) {
                 return -1;
             }
-            len += decode_tag_number_and_value(
+            len += decode_tag_number_and_value( \
                 &apdu[len], &tag_number, &len_value_type);
-            len +=
-                decode_character_string(&apdu[len], len_value_type, password);
+            if (len < apdu_len) {
+                if (password) {
+                    len += decode_character_string(&apdu[len], \
+                           len_value_type, \
+                           password);
+                }
+            }
         }
     }
 
