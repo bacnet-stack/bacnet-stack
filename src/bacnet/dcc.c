@@ -49,46 +49,73 @@ static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable =
     COMMUNICATION_ENABLE;
 /* password is optionally supported */
 
+/**
+ * Returns, the network communications enable/disable status.
+ *
+ * @return BACnet communication status
+ */
 BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(void)
 {
     return DCC_Enable_Disable;
 }
 
+/**
+ * Returns, if network communications is enabled.
+ *
+ * @return true, if communication has been enabled.
+ */
 bool dcc_communication_enabled(void)
 {
     return (DCC_Enable_Disable == COMMUNICATION_ENABLE);
 }
 
-/* When network communications are completely disabled,
-   only DeviceCommunicationControl and ReinitializeDevice APDUs
-   shall be processed and no messages shall be initiated.*/
+/**
+ * When network communications are completely disabled,
+ * only DeviceCommunicationControl and ReinitializeDevice APDUs
+ * shall be processed and no messages shall be initiated.
+ *
+ * @return true, if communication has been disabled, false otherwise.
+ */
 bool dcc_communication_disabled(void)
 {
     return (DCC_Enable_Disable == COMMUNICATION_DISABLE);
 }
 
-/* When the initiation of communications is disabled,
-   all APDUs shall be processed and responses returned as
-   required and no messages shall be initiated with the
-   exception of I-Am requests, which shall be initiated only in
-   response to Who-Is messages. In this state, a device that
-   supports I-Am request initiation shall send one I-Am request
-   for any Who-Is request that is received if and only if
-   the Who-Is request does not contain an address range or
-   the device is included in the address range. */
+/**
+ * When the initiation of communications is disabled,
+ * all APDUs shall be processed and responses returned as
+ * required and no messages shall be initiated with the
+ * exception of I-Am requests, which shall be initiated only in
+ * response to Who-Is messages. In this state, a device that
+ * supports I-Am request initiation shall send one I-Am request
+ * for any Who-Is request that is received if and only if
+ * the Who-Is request does not contain an address range or
+ * the device is included in the address range.
+ *
+ * @return true, if disabling initiation is set, false otherwise.
+ */
 bool dcc_communication_initiation_disabled(void)
 {
     return (DCC_Enable_Disable == COMMUNICATION_DISABLE_INITIATION);
 }
 
-/* note: 0 indicates either expired, or infinite duration */
+/**
+ * Returns the time duration in seconds.
+ * Note: 0 indicates either expired, or infinite duration.
+ *
+ * @return time in seconds
+ */
 uint32_t dcc_duration_seconds(void)
 {
     return DCC_Time_Duration_Seconds;
 }
 
-/* called every second or so.  If more than one second,
-  then seconds should be the number of seconds to tick away */
+/**
+ * Called every second or so.  If more than one second,
+ * then seconds should be the number of seconds to tick away.
+ *
+ * @param seconds  Time passed in seconds, since last call.
+ */
 void dcc_timer_seconds(uint32_t seconds)
 {
     if (DCC_Time_Duration_Seconds) {
@@ -104,6 +131,14 @@ void dcc_timer_seconds(uint32_t seconds)
     }
 }
 
+/**
+ * Set DCC status using duration.
+ *
+ * @param status Enable/disable communication
+ * @param minutes  Duration in minutes
+ *
+ * @return true/false
+ */
 bool dcc_set_status_duration(
     BACNET_COMMUNICATION_ENABLE_DISABLE status, uint16_t minutes)
 {
@@ -124,7 +159,17 @@ bool dcc_set_status_duration(
 }
 
 #if BACNET_SVC_DCC_A
-/* encode service */
+/**
+ * Encode service
+ *
+ * @param apdu  Pointer to the APDU buffer used for encoding.
+ * @param invoke_id  Invoke-Id
+ * @param timeDuration  Optional time duration in minutes.
+ * @param enable_disable  Enable/disable communication
+ * @param password  Pointer to an optional password.
+ *
+ * @return Bytes encoded or zero on an error.
+ */
 int dcc_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     uint16_t timeDuration, /* 0=optional */
@@ -150,9 +195,10 @@ int dcc_encode_apdu(uint8_t *apdu,
         apdu_len += len;
         /* optional password */
         if (password) {
-            /* FIXME: must be at least 1 character, limited to 20 characters */
-            len = encode_context_character_string(&apdu[apdu_len], 2, password);
-            apdu_len += len;
+            if ((password->length >= 1) && (password->length <= 20)) {
+                len = encode_context_character_string(&apdu[apdu_len], 2, password);
+                apdu_len += len;
+            }
         }
     }
 
@@ -160,7 +206,17 @@ int dcc_encode_apdu(uint8_t *apdu,
 }
 #endif
 
-/* decode the service request only */
+/**
+ * Decode the service request only
+ *
+ * @param apdu  Pointer to the received request.
+ * @param apdu_len_max  Valid count of bytes in the buffer.
+ * @param timeDuration  Pointer to the duration given in minutes [optional]
+ * @param enable_disable  Pointer to the variable takingthe communication enable/disable.
+ * @param password  Pointer to the password [optional]
+ *
+ * @return Bytes decoded.
+ */
 int dcc_decode_service_request(uint8_t *apdu,
     unsigned apdu_len_max,
     uint16_t *timeDuration,
@@ -174,9 +230,9 @@ int dcc_decode_service_request(uint8_t *apdu,
     BACNET_UNSIGNED_INTEGER decoded_unsigned = 0;
     uint32_t decoded_enum = 0;
 
-    if (apdu_len_max) {
+    if (apdu && (apdu_len_max >= 3)) {
         /* Tag 0: timeDuration, in minutes --optional-- */
-        len = bacnet_unsigned_context_decode(
+        len = bacnet_unsigned_context_decode( \
             &apdu[apdu_len], apdu_len_max - apdu_len, 0, &decoded_unsigned);
         if (len > 0) {
             apdu_len += len;

@@ -141,7 +141,14 @@ BACNET_ERROR_CODE reject_convert_to_error_code(BACNET_REJECT_REASON reject_code)
     return (error_code);
 }
 
-/* encode service */
+/** Encode service
+ *
+ * @param apdu  Pointer to the APDU buffer.
+ * @param invoke_id  Invoke-Id.
+ * @param reject_reason  Reason for having rejected.
+ *
+ * @return Bytes encoded, typically 3.
+ */
 int reject_encode_apdu(uint8_t *apdu, uint8_t invoke_id, uint8_t reject_reason)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -157,7 +164,17 @@ int reject_encode_apdu(uint8_t *apdu, uint8_t invoke_id, uint8_t reject_reason)
 }
 
 #if !BACNET_SVC_SERVER
-/* decode the service request only */
+
+/** Decode the service request only.
+ *
+ * @param apdu  Pointer to the APDU buffer.
+ * @param apdu_len  Bytes valid in the buffer
+ * @param invoke_id  Invoke-Id.
+ * @param reject_reason  Pointer to the variable taking
+ *        the reason for having rejected.
+ *
+ * @return Bytes encoded, typically 3.
+ */
 int reject_decode_service_request(uint8_t *apdu,
     unsigned apdu_len,
     uint8_t *invoke_id,
@@ -170,7 +187,11 @@ int reject_decode_service_request(uint8_t *apdu,
             *invoke_id = apdu[0];
         }
         if (reject_reason) {
-            *reject_reason = apdu[1];
+            if (apdu_len > 1) {
+                *reject_reason = apdu[1];
+            } else {
+                *reject_reason = 0;
+            }
         }
     }
 
