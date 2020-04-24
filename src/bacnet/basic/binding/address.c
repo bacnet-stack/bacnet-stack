@@ -428,14 +428,16 @@ void address_init_partial(void)
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & BAC_ADDR_IN_USE) != 0) { /* It's in use so let's check further */
+        if ((pMatch->Flags & BAC_ADDR_IN_USE) != \
+            0) { /* It's in use so let's check further */
             if (((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0) || \
                 (pMatch->TimeToLive == 0)) {
                 pMatch->Flags = 0;
             }
         }
 
-        if ((pMatch->Flags & BAC_ADDR_RESERVED) != 0) { /* Reserved entries should be cleared */
+        if ((pMatch->Flags & BAC_ADDR_RESERVED) != \
+            0) { /* Reserved entries should be cleared */
             pMatch->Flags = 0;
         }
 
@@ -490,7 +492,7 @@ void address_set_device_TTL(
  * Return the cached address for the given device-id
  *
  * @param device_id  Device-Id
- * @param max_apdu  Maximum APDU size.
+ * @param max_apdu  Pointer to a variable, taking the maximum APDU size.
  * @param src  Pointer to address structure for return.
  */
 bool address_get_by_device(
@@ -644,7 +646,7 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
  * Also returns the address and max apdu if already bound.
  *
  * @param device_id  Pointer to the device id variable for return.
- * @param device_ttl  Time to live in seconds.
+ * @param device_ttl  Pointer to a variable taking the time to live in seconds.
  * @param max_apdu  Max APDU size of the device.
  * @param src  Pointer to the BACnet address.
  *
@@ -876,7 +878,7 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
             iLen += encode_application_object_id( \
                     &apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
             iLen += encode_application_unsigned(&apdu[iLen], pMatch->address.net);
-            if (iLen >= apdu_len) {
+            if ((unsigned)iLen >= apdu_len) {
                 break;
             }
 
@@ -884,7 +886,7 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
 
             if (pMatch->address.len != 0) {
                 /* BAC */
-                if ((iLen + pMatch->address.len) >= apdu_len) {
+                if ((unsigned)(iLen + pMatch->address.len) >= apdu_len) {
                     break;
                 }
                 octetstring_init( \
@@ -892,12 +894,16 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
                 iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
             } else {
                 /* MAC*/
-                if ((iLen + pMatch->address.mac_len) >= apdu_len) {
+                if ((unsigned)(iLen + pMatch->address.mac_len) >= apdu_len) {
                     break;
                 }
                 octetstring_init( \
                     &MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
                 iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
+            }
+            /* Any space left? */
+            if ((unsigned)iLen >= apdu_len) {
+                break;
             }
         }
         pMatch++;

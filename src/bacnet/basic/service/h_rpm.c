@@ -182,6 +182,7 @@ void handler_read_property_multiple(uint8_t *service_request,
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
+    bool berror = false;
     int len = 0;
     uint16_t copy_len = 0;
     uint16_t decode_len = 0;
@@ -194,234 +195,258 @@ void handler_read_property_multiple(uint8_t *service_request,
     int npdu_len = 0;
     int error = 0;
 
-    /* jps_debug - see if we are utilizing all the buffer */
-    /* memset(&Handler_Transmit_Buffer[0], 0xff,
-     * sizeof(Handler_Transmit_Buffer)); */
-    /* encode the NPDU portion of the packet */
-    datalink_get_my_address(&my_address);
-    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-    npdu_len = npdu_encode_pdu(
-        &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_data->segmented_message) {
-        rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-        error = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-        fprintf(stderr, "RPM: Segmented message. Sending Abort!\r\n");
-#endif
-        goto RPM_FAILURE;
-    }
-    /* decode apdu request & encode apdu reply
-       encode complex ack, invoke id, service choice */
-    apdu_len = rpm_ack_encode_apdu_init(
-        &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id);
-    for (;;) {
-        /* Start by looking for an object ID */
-        len = rpm_decode_object_id(
-            &service_request[decode_len], service_len - decode_len, &rpmdata);
-        if (len >= 0) {
-            /* Got one so skip to next stage */
-            decode_len += len;
-        } else {
-            /* bad encoding - skip to error/reject/abort handling */
-#if PRINT_ENABLED
-            fprintf(stderr, "RPM: Bad Encoding.\n");
-#endif
-            error = len;
-            goto RPM_FAILURE;
-        }
+    if (service_data && (service_len > 0)) {
+        /* jps_debug - see if we are utilizing all the buffer */
+        /* memset(&Handler_Transmit_Buffer[0], 0xff,
+         * sizeof(Handler_Transmit_Buffer)); */
+        /* encode the NPDU portion of the packet */
+        datalink_get_my_address(&my_address);
+        npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+        npdu_len = npdu_encode_pdu( \
+            &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
 
-        /* Test for case of indefinite Device object instance */
-        if ((rpmdata.object_type == OBJECT_DEVICE) &&
-            (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
-            rpmdata.object_instance = Device_Object_Instance_Number();
-        }
-
-        /* Stick this object id into the reply - if it will fit */
-        len = rpm_ack_encode_apdu_object_begin(&Temp_Buf[0], &rpmdata);
-        copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
-            apdu_len, len, MAX_APDU);
-        if (copy_len == 0) {
-#if PRINT_ENABLED
-            fprintf(stderr, "RPM: Response too big!\r\n");
-#endif
+        if (service_data->segmented_message) {
             rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
             error = BACNET_STATUS_ABORT;
-            goto RPM_FAILURE;
-        }
+    #if PRINT_ENABLED
+            fprintf(stderr, "RPM: Segmented message. Sending Abort!\r\n");
+    #endif
+        } else {
+            /* decode apdu request & encode apdu reply
+               encode complex ack, invoke id, service choice */
+            apdu_len = rpm_ack_encode_apdu_init( \
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id);
 
-        apdu_len += copy_len;
-        /* do each property of this object of the RPM request */
-        for (;;) {
-            /* Fetch a property */
-            len = rpm_decode_object_property(&service_request[decode_len],
-                service_len - decode_len, &rpmdata);
-            if (len < 0) {
-                /* bad encoding - skip to error/reject/abort handling */
-#if PRINT_ENABLED
-                fprintf(stderr, "RPM: Bad Encoding.\n");
-#endif
-                error = len;
-                goto RPM_FAILURE;
-            }
-            decode_len += len;
-            /* handle the special properties */
-            if ((rpmdata.object_property == PROP_ALL) ||
-                (rpmdata.object_property == PROP_REQUIRED) ||
-                (rpmdata.object_property == PROP_OPTIONAL)) {
-                struct special_property_list_t property_list;
-                unsigned property_count = 0;
-                unsigned index = 0;
-                BACNET_PROPERTY_ID special_object_property;
-
-                if (rpmdata.array_index != BACNET_ARRAY_ALL) {
-                    /*  No array index options for this special property.
-                       Encode error for this object property response */
-                    len = rpm_ack_encode_apdu_object_property(&Temp_Buf[0],
-                        rpmdata.object_property, rpmdata.array_index);
-                    copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len],
-                        &Temp_Buf[0], apdu_len, len, MAX_APDU);
-                    if (copy_len == 0) {
-#if PRINT_ENABLED
-                        fprintf(
-                            stderr, "RPM: Too full to encode property!\r\n");
-#endif
-                        rpmdata.error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        error = BACNET_STATUS_ABORT;
-                        goto RPM_FAILURE;
-                    }
-                    apdu_len += len;
-                    len = rpm_ack_encode_apdu_object_property_error(
-                        &Temp_Buf[0], ERROR_CLASS_PROPERTY,
-                        ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY);
-                    copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len],
-                        &Temp_Buf[0], apdu_len, len, MAX_APDU);
-                    if (copy_len == 0) {
-#if PRINT_ENABLED
-                        fprintf(stderr, "RPM: Too full to encode error!\r\n");
-#endif
-                        rpmdata.error_code =
-                            ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-                        error = BACNET_STATUS_ABORT;
-                        goto RPM_FAILURE;
-                    }
-                    apdu_len += len;
+            for (;;) {
+                /* Start by looking for an object ID */
+                len = rpm_decode_object_id( \
+                    &service_request[decode_len], service_len - decode_len, &rpmdata);
+                if (len >= 0) {
+                    /* Got one so skip to next stage */
+                    decode_len += len;
                 } else {
-                    special_object_property = rpmdata.object_property;
-                    Device_Objects_Property_List(rpmdata.object_type,
-                        rpmdata.object_instance, &property_list);
-                    property_count = RPM_Object_Property_Count(
-                        &property_list, special_object_property);
-                    if (property_count == 0) {
-                        /* this only happens with the OPTIONAL property */
-                        /* 135-2016bl-2. Clarify ReadPropertyMultiple
-                           response on OPTIONAL when empty.  */
-                        /* If no optional properties are supported then
-                           an empty 'List of Results' shall be returned
-                           for the specified property.*/
-                    } else {
-                        for (index = 0; index < property_count; index++) {
-                            rpmdata.object_property = RPM_Object_Property(
-                                &property_list, special_object_property, index);
-                            len = RPM_Encode_Property(
-                                &Handler_Transmit_Buffer[npdu_len],
-                                (uint16_t)apdu_len, MAX_APDU, &rpmdata);
-                            if (len > 0) {
-                                apdu_len += len;
-                            } else {
-#if PRINT_ENABLED
+                    /* bad encoding - skip to error/reject/abort handling */
+        #if PRINT_ENABLED
+                    fprintf(stderr, "RPM: Bad Encoding.\n");
+        #endif
+                    error = len;
+                    berror = true;
+                    break;
+                }
+
+                /* Test for case of indefinite Device object instance */
+                if ((rpmdata.object_type == OBJECT_DEVICE) && \
+                    (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
+                    rpmdata.object_instance = Device_Object_Instance_Number();
+                }
+
+                /* Stick this object id into the reply - if it will fit */
+                len = rpm_ack_encode_apdu_object_begin(&Temp_Buf[0], &rpmdata);
+                copy_len = \
+                    memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0], \
+                    apdu_len, len, MAX_APDU);
+                if (copy_len == 0) {
+        #if PRINT_ENABLED
+                    fprintf(stderr, "RPM: Response too big!\r\n");
+        #endif
+                    rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    error = BACNET_STATUS_ABORT;
+                    berror = true;
+                    break;
+                }
+
+                apdu_len += copy_len;
+                /* do each property of this object of the RPM request */
+                for (;;) {
+                    /* Fetch a property */
+                    len = rpm_decode_object_property(&service_request[decode_len], \
+                          service_len - decode_len, &rpmdata);
+                    if (len < 0) {
+                        /* bad encoding - skip to error/reject/abort handling */
+        #if PRINT_ENABLED
+                        fprintf(stderr, "RPM: Bad Encoding.\n");
+        #endif
+                        error = len;
+                        berror = true;
+                        break; // The berror flag ensures that both loops will be broken!
+                    }
+                    decode_len += len;
+                    /* handle the special properties */
+                    if ((rpmdata.object_property == PROP_ALL) || \
+                        (rpmdata.object_property == PROP_REQUIRED) || \
+                        (rpmdata.object_property == PROP_OPTIONAL)) {
+                        struct special_property_list_t property_list;
+                        unsigned property_count = 0;
+                        unsigned index = 0;
+                        BACNET_PROPERTY_ID special_object_property;
+
+                        if (rpmdata.array_index != BACNET_ARRAY_ALL) {
+
+                            /* No array index options for this special property.
+                               Encode error for this object property response */
+                            len = rpm_ack_encode_apdu_object_property(&Temp_Buf[0], \
+                                  rpmdata.object_property, rpmdata.array_index);
+
+                            copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len], \
+                                               &Temp_Buf[0], apdu_len, len, MAX_APDU);
+
+                            if (copy_len == 0) {
+        #if PRINT_ENABLED
                                 fprintf(
-                                    stderr, "RPM: Too full for property!\r\n");
-#endif
-                                error = len;
-                                goto RPM_FAILURE;
+                                    stderr, "RPM: Too full to encode property!\r\n");
+        #endif
+                                rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                                error = BACNET_STATUS_ABORT;
+                                berror = true;
+                                break; // The berror flag ensures that both loops will be broken!
+                            }
+
+                            apdu_len += len;
+                            len = rpm_ack_encode_apdu_object_property_error( \
+                                  &Temp_Buf[0], ERROR_CLASS_PROPERTY, \
+                                  ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY);
+
+                            copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len], \
+                                               &Temp_Buf[0], apdu_len, len, MAX_APDU);
+
+                            if (copy_len == 0) {
+        #if PRINT_ENABLED
+                                fprintf(stderr, "RPM: Too full to encode error!\r\n");
+        #endif
+                                rpmdata.error_code = \
+                                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                                error = BACNET_STATUS_ABORT;
+                                berror = true;
+                                break; // The berror flag ensures that both loops will be broken!
+                            }
+                            apdu_len += len;
+                        } else {
+                            special_object_property = rpmdata.object_property;
+                            Device_Objects_Property_List(rpmdata.object_type, \
+                                rpmdata.object_instance, &property_list);
+                            property_count = RPM_Object_Property_Count( \
+                                &property_list, special_object_property);
+
+                            if (property_count == 0) {
+                                /* This only happens with the OPTIONAL property */
+                                /* 135-2016bl-2. Clarify ReadPropertyMultiple
+                                   response on OPTIONAL when empty. */
+                                /* If no optional properties are supported then
+                                   an empty 'List of Results' shall be returned
+                                   for the specified property.*/
+                            } else {
+                                for (index = 0; index < property_count; index++) {
+                                    rpmdata.object_property = RPM_Object_Property( \
+                                        &property_list, special_object_property, index);
+                                    len = RPM_Encode_Property( \
+                                          &Handler_Transmit_Buffer[npdu_len], \
+                                          (uint16_t)apdu_len, MAX_APDU, &rpmdata);
+                                    if (len > 0) {
+                                        apdu_len += len;
+                                    } else {
+        #if PRINT_ENABLED
+                                        fprintf(
+                                            stderr, "RPM: Too full for property!\r\n");
+        #endif
+                                        error = len;
+                                        berror = true;
+                                        break; // The berror flag ensures that both loops will be broken!
+                                    }
+                                }
                             }
                         }
+                    } else {
+                        /* handle an individual property */
+                        len = RPM_Encode_Property(&Handler_Transmit_Buffer[npdu_len], \
+                              (uint16_t)apdu_len, MAX_APDU, &rpmdata);
+                        if (len > 0) {
+                            apdu_len += len;
+                        } else {
+        #if PRINT_ENABLED
+                            fprintf(
+                                stderr, "RPM: Too full for individual property!\r\n");
+        #endif
+                            error = len;
+                            berror = true;
+                            break; // The berror flag ensures that both loops will be broken!
+                        }
                     }
+
+                    if (decode_is_closing_tag_number(&service_request[decode_len], 1)) {
+                        /* Reached end of property list so cap the result list */
+                        decode_len++;
+                        len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
+                        copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len], \
+                                   &Temp_Buf[0], apdu_len, len, MAX_APDU);
+                        if (copy_len == 0) {
+        #if PRINT_ENABLED
+                            fprintf(stderr, "RPM: Too full to encode object end!\r\n");
+        #endif
+                            rpmdata.error_code = \
+                                ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                            error = BACNET_STATUS_ABORT;
+                            berror = true;
+                            break; // The berror flag ensures that both loops will be broken!
+                        } else {
+                            apdu_len += copy_len;
+                        }
+                        break; /* finished with this property list */
+                    }
+                } // for(;;)
+                if (berror) {
+                    break;
                 }
-            } else {
-                /* handle an individual property */
-                len = RPM_Encode_Property(&Handler_Transmit_Buffer[npdu_len],
-                    (uint16_t)apdu_len, MAX_APDU, &rpmdata);
-                if (len > 0) {
-                    apdu_len += len;
-                } else {
-#if PRINT_ENABLED
-                    fprintf(
-                        stderr, "RPM: Too full for individual property!\r\n");
-#endif
-                    error = len;
-                    goto RPM_FAILURE;
+                if (decode_len >= service_len) {
+                    /* Reached the end so finish up */
+                    break;
                 }
-            }
-            if (decode_is_closing_tag_number(&service_request[decode_len], 1)) {
-                /* Reached end of property list so cap the result list */
-                decode_len++;
-                len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
-                copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len],
-                    &Temp_Buf[0], apdu_len, len, MAX_APDU);
-                if (copy_len == 0) {
-#if PRINT_ENABLED
-                    fprintf(stderr, "RPM: Too full to encode object end!\r\n");
-#endif
-                    rpmdata.error_code =
-                        ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } // for(;;)
+
+            /* If not having an error so far, check the remaining space. */
+            if (!berror) {
+                if (apdu_len > service_data->max_resp) {
+                    /* too big for the sender - send an abort */
+                    rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     error = BACNET_STATUS_ABORT;
-                    goto RPM_FAILURE;
-                } else {
-                    apdu_len += copy_len;
+            #if PRINT_ENABLED
+                    fprintf(stderr, "RPM: Message too large.  Sending Abort!\n");
+            #endif
                 }
-                break; /* finished with this property list */
             }
         }
-        if (decode_len >= service_len) {
-            /* Reached the end so finish up */
-            break;
+
+        /* Error fallback. */
+        if (error) {
+            if (error == BACNET_STATUS_ABORT) {
+                apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len], \
+                           service_data->invoke_id, \
+                           abort_convert_error_code(rpmdata.error_code), true);
+    #if PRINT_ENABLED
+                fprintf(stderr, "RPM: Sending Abort!\n");
+    #endif
+            } else if (error == BACNET_STATUS_ERROR) {
+                apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len], \
+                           service_data->invoke_id, SERVICE_CONFIRMED_READ_PROP_MULTIPLE, \
+                           rpmdata.error_class, rpmdata.error_code);
+    #if PRINT_ENABLED
+                fprintf(stderr, "RPM: Sending Error!\n");
+    #endif
+            } else if (error == BACNET_STATUS_REJECT) {
+                apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len], \
+                           service_data->invoke_id, \
+                           reject_convert_error_code(rpmdata.error_code));
+    #if PRINT_ENABLED
+                fprintf(stderr, "RPM: Sending Reject!\n");
+    #endif
+            }
         }
-    }
 
-    if (apdu_len > service_data->max_resp) {
-        /* too big for the sender - send an abort */
-        rpmdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-        error = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-        fprintf(stderr, "RPM: Message too large.  Sending Abort!\n");
-#endif
-        goto RPM_FAILURE;
-    }
-
-RPM_FAILURE:
-    if (error) {
-        if (error == BACNET_STATUS_ABORT) {
-            apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id,
-                abort_convert_error_code(rpmdata.error_code), true);
-#if PRINT_ENABLED
-            fprintf(stderr, "RPM: Sending Abort!\n");
-#endif
-        } else if (error == BACNET_STATUS_ERROR) {
-            apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-                rpmdata.error_class, rpmdata.error_code);
-#if PRINT_ENABLED
-            fprintf(stderr, "RPM: Sending Error!\n");
-#endif
-        } else if (error == BACNET_STATUS_REJECT) {
-            apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
-                service_data->invoke_id,
-                reject_convert_error_code(rpmdata.error_code));
-#if PRINT_ENABLED
-            fprintf(stderr, "RPM: Sending Reject!\n");
-#endif
+        pdu_len = apdu_len + npdu_len;
+        bytes_sent = datalink_send_pdu(src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+        if (bytes_sent <= 0) {
+    #if PRINT_ENABLED
+            fprintf(stderr, "RPM: Failed to send PDU (%s)!\n", strerror(errno));
+    #endif
         }
-    }
-
-    pdu_len = apdu_len + npdu_len;
-    bytes_sent = datalink_send_pdu(
-        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-    if (bytes_sent <= 0) {
-#if PRINT_ENABLED
-        fprintf(stderr, "RPM: Failed to send PDU (%s)!\n", strerror(errno));
-#endif
     }
 }

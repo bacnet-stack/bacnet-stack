@@ -212,30 +212,60 @@ int rr_decode_service_request(
             switch (tag_number) {
                 case 3: /* ReadRange by position */
                     rrdata->RequestType = RR_BY_POSITION;
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_unsigned( \
                         &apdu[len], len_value_type, &unsigned_value);
                     rrdata->Range.RefIndex = (uint32_t)unsigned_value;
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_signed( \
                         &apdu[len], len_value_type, &rrdata->Count);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
                     break;
 
                 case 6: /* ReadRange by sequence number */
                     rrdata->RequestType = RR_BY_SEQUENCE;
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_unsigned( \
                         &apdu[len], len_value_type, &unsigned_value);
                     rrdata->Range.RefSeqNum = (uint32_t)unsigned_value;
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_signed( \
                         &apdu[len], len_value_type, &rrdata->Count);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
                     /* Allow for this in the response */
@@ -244,17 +274,38 @@ int rr_decode_service_request(
 
                 case 7: /* ReadRange by time stamp */
                     rrdata->RequestType = RR_BY_TIME;
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_date(&apdu[len], &rrdata->Range.RefTime.date);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_bacnet_time( \
                         &apdu[len], &rrdata->Range.RefTime.time);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_signed( \
                         &apdu[len], len_value_type, &rrdata->Count);
+                    if (len >= apdu_len) {
+                        break;
+                    }
                     len += decode_tag_number_and_value( \
                         &apdu[len], &tag_number, &len_value_type);
                     /* Allow for this in the response */
