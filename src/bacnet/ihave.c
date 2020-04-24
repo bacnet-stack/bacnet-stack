@@ -146,7 +146,7 @@ int ihave_decode_apdu(
 {
     int len = 0;
 
-    if ((!apdu) && (apdu_len >= 2)) {
+    if ((!apdu) || (apdu_len < 2)) {
         return -1;
     }
     /* optional checking - most likely was already done prior to this call */

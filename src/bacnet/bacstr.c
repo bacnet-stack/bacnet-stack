@@ -723,22 +723,23 @@ bool octetstring_init(
 {
     bool status = false; /* return value */
     size_t i; /* counter */
+    uint8_t *pb = NULL;
 
     if (octet_string && (length <= MAX_OCTET_STRING_BYTES)) {
         octet_string->length = 0;
         if (value) {
+            pb = octet_string->value;
             for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
                 if (i < length) {
-                    octet_string->value[i] = value[i];
+                    *pb = value[i];
                 } else {
-                    octet_string->value[i] = 0;
+                    *pb = 0;
                 }
+                pb++;
             }
             octet_string->length = length;
         } else {
-            for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
-                octet_string->value[i] = 0;
-            }
+            memset(octet_string->value, 0, MAX_OCTET_STRING_BYTES);
         }
         status = true;
     }
