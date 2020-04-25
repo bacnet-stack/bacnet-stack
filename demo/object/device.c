@@ -44,6 +44,7 @@
 #include "handlers.h"
 #include "datalink.h"
 #include "address.h"
+#include "proplist.h"
 /* os specfic includes */
 #include "timer.h"
 /* include the device object */

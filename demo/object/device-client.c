@@ -47,6 +47,7 @@
 #include "handlers.h"
 #include "datalink.h"
 #include "address.h"
+#include "proplist.h"
 /* include the device object */
 #include "device.h"     /* me */
 
@@ -103,6 +104,46 @@ static uint32_t Database_Revision = 0;
 /* Slave_Address_Binding */
 /* Profile_Name */
 
+/* These three arrays are used by the ReadPropertyMultiple handler */
+static const int Device_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_SYSTEM_STATUS,
+    PROP_VENDOR_NAME,
+    PROP_VENDOR_IDENTIFIER,
+    PROP_MODEL_NAME,
+    PROP_FIRMWARE_REVISION,
+    PROP_APPLICATION_SOFTWARE_VERSION,
+    PROP_PROTOCOL_VERSION,
+    PROP_PROTOCOL_REVISION,
+    PROP_PROTOCOL_SERVICES_SUPPORTED,
+    PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED,
+    PROP_OBJECT_LIST,
+    PROP_MAX_APDU_LENGTH_ACCEPTED,
+    PROP_SEGMENTATION_SUPPORTED,
+    PROP_APDU_TIMEOUT,
+    PROP_NUMBER_OF_APDU_RETRIES,
+    PROP_DEVICE_ADDRESS_BINDING,
+    PROP_DATABASE_REVISION,
+    -1
+};
+
+static const int Device_Properties_Optional[] = {
+#if defined(BACDL_MSTP)
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+#endif
+    PROP_DESCRIPTION,
+    PROP_LOCATION,
+    PROP_ACTIVE_COV_SUBSCRIPTIONS,
+    -1
+};
+
+static const int Device_Properties_Proprietary[] = {
+    -1
+};
+
 /* local forward (semi-private) and external prototypes */
 int Device_Read_Property_Local(
     BACNET_READ_PROPERTY_DATA * rpdata);
@@ -121,7 +162,7 @@ static object_functions_t Object_Table[] = {
             Device_Object_Name,
             Device_Read_Property_Local,
             NULL /* Write_Property */ ,
-            NULL /* Property_Lists */ ,
+            Device_Property_Lists,
             NULL /* ReadRangeInfo */ ,
             NULL /* Iterator */ ,
             NULL /* Value_Lists */ ,
@@ -168,6 +209,21 @@ static struct object_functions *Device_Objects_Find_Functions(
     }
 
     return (NULL);
+}
+
+void Device_Property_Lists(
+    const int **pRequired,
+    const int **pOptional,
+    const int **pProprietary)
+{
+    if (pRequired)
+        *pRequired = Device_Properties_Required;
+    if (pOptional)
+        *pOptional = Device_Properties_Optional;
+    if (pProprietary)
+        *pProprietary = Device_Properties_Proprietary;
+
+    return;
 }
 
 unsigned Device_Count(
@@ -935,6 +991,54 @@ int Device_Read_Property_Local(
     return apdu_len;
 }
 
+/** For a given object type, returns the special property list.
+ * This function is used for ReadPropertyMultiple calls which want
+ * just Required, just Optional, or All properties.
+ * @ingroup ObjIntf
+ *
+ * @param object_type [in] The desired BACNET_OBJECT_TYPE whose properties
+ *            are to be listed.
+ * @param pPropertyList [out] Reference to the structure which will, on return,
+ *            list, separately, the Required, Optional, and Proprietary object
+ *            properties with their counts.
+ */
+void Device_Objects_Property_List(
+    BACNET_OBJECT_TYPE object_type,
+    struct special_property_list_t *pPropertyList)
+{
+    struct object_functions *pObject = NULL;
+
+    pPropertyList->Required.pList = NULL;
+    pPropertyList->Optional.pList = NULL;
+    pPropertyList->Proprietary.pList = NULL;
+
+    /* If we can find an entry for the required object type
+     * and there is an Object_List_RPM fn ptr then call it
+     * to populate the pointers to the individual list counters.
+     */
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if ((pObject != NULL) && (pObject->Object_RPM_List != NULL)) {
+        pObject->Object_RPM_List(&pPropertyList->Required.pList,
+            &pPropertyList->Optional.pList, &pPropertyList->Proprietary.pList);
+    }
+
+    /* Fetch the counts if available otherwise zero them */
+    pPropertyList->Required.count =
+        pPropertyList->Required.pList ==
+        NULL ? 0 : property_list_count(pPropertyList->Required.pList);
+
+    pPropertyList->Optional.count =
+        pPropertyList->Optional.pList ==
+        NULL ? 0 : property_list_count(pPropertyList->Optional.pList);
+
+    pPropertyList->Proprietary.count =
+        pPropertyList->Proprietary.pList ==
+        NULL ? 0 : property_list_count(pPropertyList->Proprietary.pList);
+
+    return;
+}
+
 /** Looks up the requested Object and Property, and encodes its Value in an APDU.
  * @ingroup ObjIntf
  * If the Object or Property can't be found, sets the error class and code.
@@ -948,7 +1052,9 @@ int Device_Read_Property(
 {
     int apdu_len = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
-
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    struct special_property_list_t property_list;
+#endif
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -957,7 +1063,19 @@ int Device_Read_Property(
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
             if (pObject->Object_Read_Property) {
-                apdu_len = pObject->Object_Read_Property(rpdata);
+#if (BACNET_PROTOCOL_REVISION >= 14)
+                if ((int)rpdata->object_property == PROP_PROPERTY_LIST) {
+                    Device_Objects_Property_List(rpdata->object_type,
+                        &property_list);
+                    apdu_len = property_list_encode(rpdata,
+                        property_list.Required.pList,
+                        property_list.Optional.pList,
+                        property_list.Proprietary.pList);
+                } else
+#endif
+                {
+                    apdu_len = pObject->Object_Read_Property(rpdata);
+                }
             }
         } else {
             rpdata->error_class = ERROR_CLASS_OBJECT;
