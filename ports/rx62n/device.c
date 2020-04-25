@@ -41,6 +41,7 @@
 #include "handlers.h"
 #include "datalink.h"
 #include "address.h"
+#include "proplist.h"
 /* os specfic includes */
 #include "timer.h"
 /* objects */
@@ -146,7 +147,7 @@ static struct my_object_functions *Device_Objects_Find_Functions(
     return (NULL);
 }
 
-static int Read_Property_Common(
+static int Device_Read_Property_Common(
     struct my_object_functions *pObject,
     BACNET_READ_PROPERTY_DATA * rpdata)
 {
@@ -154,6 +155,9 @@ static int Read_Property_Common(
     BACNET_CHARACTER_STRING char_string;
     char *pString = "";
     uint8_t *apdu = NULL;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    struct special_property_list_t property_list;
+#endif
 
     if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -183,6 +187,18 @@ static int Read_Property_Common(
             apdu_len =
                 encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+        case PROP_PROPERTY_LIST:
+            Device_Objects_Property_List(
+                rpdata->object_type,
+                &property_list);
+            apdu_len = property_list_encode(
+                rpdata,
+                property_list.Required.pList,
+                property_list.Optional.pList,
+                property_list.Proprietary.pList);
+            break;
+#endif
         default:
             if (pObject->Object_Read_Property) {
                 apdu_len = pObject->Object_Read_Property(rpdata);
@@ -814,7 +830,7 @@ int Device_Read_Property(
     if (pObject) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
-            apdu_len = Read_Property_Common(pObject, rpdata);
+            apdu_len = Device_Read_Property_Common(pObject, rpdata);
         } else {
             rpdata->error_class = ERROR_CLASS_OBJECT;
             rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
