@@ -385,7 +385,7 @@ int rpm_ack_encode_apdu_object_begin(uint8_t *apdu, BACNET_RPM_DATA *rpmdata)
 
     if (apdu) {
         /* Tag 0: objectIdentifier */
-        apdu_len = encode_context_object_id( \
+        apdu_len = encode_context_object_id(
             &apdu[0], 0, rpmdata->object_type, rpmdata->object_instance);
         /* Tag 1: listOfResults */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
@@ -436,7 +436,7 @@ int rpm_ack_encode_apdu_object_property_value(
     if (apdu) {
         /* Tag 4: propertyValue */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 4);
-        if (application_data == \
+        if (application_data ==
             &apdu[apdu_len]) { /* Is Data already in place? */
             apdu_len += application_data_len; /* Yes, step over data */
         } else { /* No, copy data in */

@@ -202,7 +202,7 @@ void handler_read_property_multiple(uint8_t *service_request,
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
-        npdu_len = npdu_encode_pdu( \
+        npdu_len = npdu_encode_pdu(
             &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
 
         if (service_data->segmented_message) {
@@ -214,12 +214,12 @@ void handler_read_property_multiple(uint8_t *service_request,
         } else {
             /* decode apdu request & encode apdu reply
                encode complex ack, invoke id, service choice */
-            apdu_len = rpm_ack_encode_apdu_init( \
+            apdu_len = rpm_ack_encode_apdu_init(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id);
 
             for (;;) {
                 /* Start by looking for an object ID */
-                len = rpm_decode_object_id( \
+                len = rpm_decode_object_id(
                     &service_request[decode_len], service_len - decode_len, &rpmdata);
                 if (len >= 0) {
                     /* Got one so skip to next stage */
@@ -235,15 +235,15 @@ void handler_read_property_multiple(uint8_t *service_request,
                 }
 
                 /* Test for case of indefinite Device object instance */
-                if ((rpmdata.object_type == OBJECT_DEVICE) && \
+                if ((rpmdata.object_type == OBJECT_DEVICE) &&
                     (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
                     rpmdata.object_instance = Device_Object_Instance_Number();
                 }
 
                 /* Stick this object id into the reply - if it will fit */
                 len = rpm_ack_encode_apdu_object_begin(&Temp_Buf[0], &rpmdata);
-                copy_len = \
-                    memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0], \
+                copy_len =
+                    memcopy(&Handler_Transmit_Buffer[npdu_len], &Temp_Buf[0],
                     apdu_len, len, MAX_APDU);
                 if (copy_len == 0) {
         #if PRINT_ENABLED
@@ -259,7 +259,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                 /* do each property of this object of the RPM request */
                 for (;;) {
                     /* Fetch a property */
-                    len = rpm_decode_object_property(&service_request[decode_len], \
+                    len = rpm_decode_object_property(&service_request[decode_len],
                           service_len - decode_len, &rpmdata);
                     if (len < 0) {
                         /* bad encoding - skip to error/reject/abort handling */
@@ -272,8 +272,8 @@ void handler_read_property_multiple(uint8_t *service_request,
                     }
                     decode_len += len;
                     /* handle the special properties */
-                    if ((rpmdata.object_property == PROP_ALL) || \
-                        (rpmdata.object_property == PROP_REQUIRED) || \
+                    if ((rpmdata.object_property == PROP_ALL) ||
+                        (rpmdata.object_property == PROP_REQUIRED) ||
                         (rpmdata.object_property == PROP_OPTIONAL)) {
                         struct special_property_list_t property_list;
                         unsigned property_count = 0;
@@ -284,10 +284,10 @@ void handler_read_property_multiple(uint8_t *service_request,
 
                             /* No array index options for this special property.
                                Encode error for this object property response */
-                            len = rpm_ack_encode_apdu_object_property(&Temp_Buf[0], \
+                            len = rpm_ack_encode_apdu_object_property(&Temp_Buf[0],
                                   rpmdata.object_property, rpmdata.array_index);
 
-                            copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len], \
+                            copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len],
                                                &Temp_Buf[0], apdu_len, len, MAX_APDU);
 
                             if (copy_len == 0) {
@@ -302,18 +302,18 @@ void handler_read_property_multiple(uint8_t *service_request,
                             }
 
                             apdu_len += len;
-                            len = rpm_ack_encode_apdu_object_property_error( \
-                                  &Temp_Buf[0], ERROR_CLASS_PROPERTY, \
+                            len = rpm_ack_encode_apdu_object_property_error(
+                                  &Temp_Buf[0], ERROR_CLASS_PROPERTY,
                                   ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY);
 
-                            copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len], \
+                            copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len],
                                                &Temp_Buf[0], apdu_len, len, MAX_APDU);
 
                             if (copy_len == 0) {
         #if PRINT_ENABLED
                                 fprintf(stderr, "RPM: Too full to encode error!\r\n");
         #endif
-                                rpmdata.error_code = \
+                                rpmdata.error_code =
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
                                 berror = true;
@@ -322,9 +322,9 @@ void handler_read_property_multiple(uint8_t *service_request,
                             apdu_len += len;
                         } else {
                             special_object_property = rpmdata.object_property;
-                            Device_Objects_Property_List(rpmdata.object_type, \
+                            Device_Objects_Property_List(rpmdata.object_type,
                                 rpmdata.object_instance, &property_list);
-                            property_count = RPM_Object_Property_Count( \
+                            property_count = RPM_Object_Property_Count(
                                 &property_list, special_object_property);
 
                             if (property_count == 0) {
@@ -336,10 +336,10 @@ void handler_read_property_multiple(uint8_t *service_request,
                                    for the specified property.*/
                             } else {
                                 for (index = 0; index < property_count; index++) {
-                                    rpmdata.object_property = RPM_Object_Property( \
+                                    rpmdata.object_property = RPM_Object_Property(
                                         &property_list, special_object_property, index);
-                                    len = RPM_Encode_Property( \
-                                          &Handler_Transmit_Buffer[npdu_len], \
+                                    len = RPM_Encode_Property(
+                                          &Handler_Transmit_Buffer[npdu_len],
                                           (uint16_t)apdu_len, MAX_APDU, &rpmdata);
                                     if (len > 0) {
                                         apdu_len += len;
@@ -357,7 +357,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                         }
                     } else {
                         /* handle an individual property */
-                        len = RPM_Encode_Property(&Handler_Transmit_Buffer[npdu_len], \
+                        len = RPM_Encode_Property(&Handler_Transmit_Buffer[npdu_len],
                               (uint16_t)apdu_len, MAX_APDU, &rpmdata);
                         if (len > 0) {
                             apdu_len += len;
@@ -376,13 +376,13 @@ void handler_read_property_multiple(uint8_t *service_request,
                         /* Reached end of property list so cap the result list */
                         decode_len++;
                         len = rpm_ack_encode_apdu_object_end(&Temp_Buf[0]);
-                        copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len], \
+                        copy_len = memcopy(&Handler_Transmit_Buffer[npdu_len],
                                    &Temp_Buf[0], apdu_len, len, MAX_APDU);
                         if (copy_len == 0) {
         #if PRINT_ENABLED
                             fprintf(stderr, "RPM: Too full to encode object end!\r\n");
         #endif
-                            rpmdata.error_code = \
+                            rpmdata.error_code =
                                 ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             error = BACNET_STATUS_ABORT;
                             berror = true;
@@ -418,22 +418,22 @@ void handler_read_property_multiple(uint8_t *service_request,
         /* Error fallback. */
         if (error) {
             if (error == BACNET_STATUS_ABORT) {
-                apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len], \
-                           service_data->invoke_id, \
+                apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                           service_data->invoke_id,
                            abort_convert_error_code(rpmdata.error_code), true);
     #if PRINT_ENABLED
                 fprintf(stderr, "RPM: Sending Abort!\n");
     #endif
             } else if (error == BACNET_STATUS_ERROR) {
-                apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len], \
-                           service_data->invoke_id, SERVICE_CONFIRMED_READ_PROP_MULTIPLE, \
+                apdu_len = bacerror_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                           service_data->invoke_id, SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
                            rpmdata.error_class, rpmdata.error_code);
     #if PRINT_ENABLED
                 fprintf(stderr, "RPM: Sending Error!\n");
     #endif
             } else if (error == BACNET_STATUS_REJECT) {
-                apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len], \
-                           service_data->invoke_id, \
+                apdu_len = reject_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
+                           service_data->invoke_id,
                            reject_convert_error_code(rpmdata.error_code));
     #if PRINT_ENABLED
                 fprintf(stderr, "RPM: Sending Reject!\n");

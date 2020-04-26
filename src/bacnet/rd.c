@@ -105,7 +105,7 @@ int rd_decode_service_request(uint8_t *apdu,
         if (!decode_is_context_tag(&apdu[len], 0)) {
             return -1;
         }
-        len += decode_tag_number_and_value( \
+        len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);
         len += decode_enumerated(&apdu[len], len_value_type, &value);
         if (state) {
@@ -116,12 +116,12 @@ int rd_decode_service_request(uint8_t *apdu,
             if (!decode_is_context_tag(&apdu[len], 1)) {
                 return -1;
             }
-            len += decode_tag_number_and_value( \
+            len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             if (len < apdu_len) {
                 if (password) {
-                    len += decode_character_string(&apdu[len], \
-                           len_value_type, \
+                    len += decode_character_string(&apdu[len],
+                           len_value_type,
                            password);
                 }
             }

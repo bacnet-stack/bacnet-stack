@@ -232,7 +232,7 @@ int dcc_decode_service_request(uint8_t *apdu,
 
     if (apdu && apdu_len_max) {
         /* Tag 0: timeDuration, in minutes --optional-- */
-        len = bacnet_unsigned_context_decode( \
+        len = bacnet_unsigned_context_decode(
             &apdu[apdu_len], apdu_len_max - apdu_len, 0, &decoded_unsigned);
         if (len > 0) {
             apdu_len += len;

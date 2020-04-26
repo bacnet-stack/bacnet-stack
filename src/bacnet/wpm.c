@@ -233,7 +233,7 @@ int wpm_encode_apdu_object_begin(
     int apdu_len = 0; /* total length of the apdu, return value */
 
     if (apdu) {
-        apdu_len = \
+        apdu_len =
             encode_context_object_id(&apdu[0], 0, object_type, object_instance);
         /* Tag 1: sequence of WriteAccessSpecification */
         apdu_len += encode_opening_tag(&apdu[apdu_len], 1);

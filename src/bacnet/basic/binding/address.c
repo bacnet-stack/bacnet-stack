@@ -428,15 +428,15 @@ void address_init_partial(void)
 
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        if ((pMatch->Flags & BAC_ADDR_IN_USE) != \
+        if ((pMatch->Flags & BAC_ADDR_IN_USE) !=
             0) { /* It's in use so let's check further */
-            if (((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0) || \
+            if (((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0) ||
                 (pMatch->TimeToLive == 0)) {
                 pMatch->Flags = 0;
             }
         }
 
-        if ((pMatch->Flags & BAC_ADDR_RESERVED) != \
+        if ((pMatch->Flags & BAC_ADDR_RESERVED) !=
             0) { /* Reserved entries should be cleared */
             pMatch->Flags = 0;
         }
@@ -576,7 +576,7 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         /* Device already in the list, then update the values. */
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) && \
+        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
             (pMatch->device_id == device_id)) {
             bacnet_address_copy(&pMatch->address, src);
             pMatch->max_apdu = max_apdu;
@@ -875,7 +875,7 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
             BAC_ADDR_IN_USE) {
-            iLen += encode_application_object_id( \
+            iLen += encode_application_object_id(
                     &apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
             iLen += encode_application_unsigned(&apdu[iLen], pMatch->address.net);
             if ((unsigned)iLen >= apdu_len) {
@@ -889,7 +889,7 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
                 if ((unsigned)(iLen + pMatch->address.len) >= apdu_len) {
                     break;
                 }
-                octetstring_init( \
+                octetstring_init(
                     &MAC_Address, pMatch->address.adr, pMatch->address.len);
                 iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
             } else {
@@ -897,7 +897,7 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
                 if ((unsigned)(iLen + pMatch->address.mac_len) >= apdu_len) {
                     break;
                 }
-                octetstring_init( \
+                octetstring_init(
                     &MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
                 iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
             }

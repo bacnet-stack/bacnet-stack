@@ -171,7 +171,7 @@ int rr_decode_service_request(
         if (len >= apdu_len) {
             return(-1);
         }
-        len += decode_tag_number_and_value( \
+        len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);
         if (tag_number != 1) {
             return -1;
@@ -184,14 +184,14 @@ int rr_decode_service_request(
         rrdata->array_index = BACNET_ARRAY_ALL; /* Assuming this is the most
                                                    common outcome... */
         if (len < apdu_len) {
-            TagLen = (unsigned)decode_tag_number_and_value( \
+            TagLen = (unsigned)decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             if (tag_number == 2) {
                 len += TagLen;
-                len += \
+                len +=
                     decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
                 rrdata->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
-                rrdata->Overhead += \
+                rrdata->Overhead +=
                     RR_INDEX_OVERHEAD; /* Allow for this in the response */
             }
         }
@@ -207,7 +207,7 @@ int rr_decode_service_request(
              * that if we receive a tag we don't recognise, we don't try to
              * decode it blindly and make a mess of it.
              */
-            len += decode_tag_number_and_value( \
+            len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             switch (tag_number) {
                 case 3: /* ReadRange by position */
@@ -215,28 +215,28 @@ int rr_decode_service_request(
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_unsigned( \
+                    len += decode_unsigned(
                         &apdu[len], len_value_type, &unsigned_value);
                     rrdata->Range.RefIndex = (uint32_t)unsigned_value;
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_signed( \
+                    len += decode_signed(
                         &apdu[len], len_value_type, &rrdata->Count);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     break;
 
@@ -245,28 +245,28 @@ int rr_decode_service_request(
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_unsigned( \
+                    len += decode_unsigned(
                         &apdu[len], len_value_type, &unsigned_value);
                     rrdata->Range.RefSeqNum = (uint32_t)unsigned_value;
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_signed( \
+                    len += decode_signed(
                         &apdu[len], len_value_type, &rrdata->Count);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     /* Allow for this in the response */
                     rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; 
@@ -277,7 +277,7 @@ int rr_decode_service_request(
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     if (len >= apdu_len) {
                         break;
@@ -286,27 +286,27 @@ int rr_decode_service_request(
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_bacnet_time( \
+                    len += decode_bacnet_time(
                         &apdu[len], &rrdata->Range.RefTime.time);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_signed( \
+                    len += decode_signed(
                         &apdu[len], len_value_type, &rrdata->Count);
                     if (len >= apdu_len) {
                         break;
                     }
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     /* Allow for this in the response */
                     rrdata->Overhead += RR_1ST_SEQ_OVERHEAD;
@@ -392,7 +392,7 @@ int rr_ack_encode_apdu(
         apdu_len += encode_closing_tag(&apdu[apdu_len], 5);
 
         if ((rrdata->ItemCount != 0) &&
-            (rrdata->RequestType != RR_BY_POSITION) && \
+            (rrdata->RequestType != RR_BY_POSITION) &&
             (rrdata->RequestType != RR_READ_ALL)) {
             /* Context 6 Sequence number of first item */
             if (apdu_len < (MAX_APDU - 4)) {
@@ -508,7 +508,7 @@ int rr_ack_decode_service_request(uint8_t *apdu,
                     break;
                 } else {
                     /* Don't care about tag number, just skipping over anyway */
-                    len += decode_tag_number_and_value( \
+                    len += decode_tag_number_and_value(
                         &apdu[len], NULL, &len_value_type);
                     len += len_value_type; /* Skip over data value as well */
                     if (len >= apdu_len) { /* APDU is exhausted so we have failed to

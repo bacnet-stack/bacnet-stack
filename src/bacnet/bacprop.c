@@ -101,7 +101,7 @@ signed bacprop_property_tag(BACNET_OBJECT_TYPE type, signed prop)
 {
     switch (type) {
         case OBJECT_DEVICE:
-            return bacprop_tag_by_index_default( \
+            return bacprop_tag_by_index_default(
                 bacnet_object_device_property_tag_map, prop, -1);
         default:
 #if PRINT_ENABLED
