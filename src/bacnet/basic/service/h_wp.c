@@ -136,7 +136,7 @@ void handler_write_property(uint8_t *service_request,
 
     /* Send PDU */
     pdu_len += len;
-    bytes_sent = datalink_send_pdu( \
+    bytes_sent = datalink_send_pdu(
                  src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
