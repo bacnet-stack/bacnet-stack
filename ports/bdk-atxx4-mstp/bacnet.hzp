@@ -64,6 +64,7 @@
       <file file_name="../../src/ihave.c"/>
       <file file_name="../../src/memcopy.c"/>
       <file file_name="../../src/npdu.c"/>
+      <file file_name="../../src/proplist.c"/>
       <file file_name="../../src/rd.c"/>
       <file file_name="../../src/reject.c"/>
       <file file_name="../../src/ringbuf.c"/>

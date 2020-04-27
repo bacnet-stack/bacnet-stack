@@ -342,6 +342,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Core\npdu.c</Link>
     </Compile>
+    <Compile Include="..\..\src\proplist.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\proplist.c</Link>
+    </Compile>
     <Compile Include="..\..\src\rd.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\rd.c</Link>
