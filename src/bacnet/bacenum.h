@@ -1580,13 +1580,11 @@ typedef enum {
     ABORT_REASON_SECURITY_ERROR = 5,
     ABORT_REASON_INSUFFICIENT_SECURITY = 6,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
-    /* Enumerated values 64-65535 may be used by others subject to */
+    /* Enumerated values 64-255 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
     MAX_BACNET_ABORT_REASON = 7,
-    /* do the MAX here instead of outside of enum so that
-       compilers will allocate adequate sized datatype for enum */
     ABORT_REASON_PROPRIETARY_FIRST = 64,
-    ABORT_REASON_PROPRIETARY_LAST = 65535
+    ABORT_REASON_PROPRIETARY_LAST = 255
 } BACNET_ABORT_REASON;
 
 typedef enum {
@@ -1601,13 +1599,11 @@ typedef enum {
     REJECT_REASON_UNDEFINED_ENUMERATION = 8,
     REJECT_REASON_UNRECOGNIZED_SERVICE = 9,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE. */
-    /* Enumerated values 64-65535 may be used by others subject to */
+    /* Enumerated values 64-255 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
     MAX_BACNET_REJECT_REASON = 10,
-    /* do the MAX here instead of outside of enum so that
-       compilers will allocate adequate sized datatype for enum */
     REJECT_REASON_PROPRIETARY_FIRST = 64,
-    REJECT_REASON_PROPRIETARY_LAST = 65535
+    REJECT_REASON_PROPRIETARY_LAST = 255
 } BACNET_REJECT_REASON;
 
 typedef enum {
