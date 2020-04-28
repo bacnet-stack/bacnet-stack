@@ -62,6 +62,15 @@ PROP_TAG_DATA bacnet_object_device_property_tag_map[] = {
     { -1, -1 }
 };
 
+/**
+ * Search for the given index in the data list.
+ *
+ * @param data_list  Pointer to the list.
+ * @param index  Index to search for.
+ * @param default_ret  Default return value.
+ *
+ * @return Value found or the default value.
+ */
 signed bacprop_tag_by_index_default(
     PROP_TAG_DATA *data_list, signed index, signed default_ret)
 {
@@ -80,6 +89,14 @@ signed bacprop_tag_by_index_default(
     return pUnsigned ? pUnsigned : default_ret;
 }
 
+/**
+ * Return the value of the given property, if available.
+ *
+ * @param type Object type
+ * @param prop Property
+ *
+ * @return Value found or -1
+ */
 signed bacprop_property_tag(BACNET_OBJECT_TYPE type, signed prop)
 {
     switch (type) {

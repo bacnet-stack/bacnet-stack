@@ -84,11 +84,23 @@ static struct Address_Cache_Entry {
 #define BAC_ADDR_SHORT_TIME BAC_ADDR_SECS_1HOUR
 #define BAC_ADDR_FOREVER 0xFFFFFFFF /* Permenant entry */
 
+/**
+ * @brief Set the index of the first (top) address being protected.
+ *
+ * @param top_protected_entry_index  top protected index [0..n-1]
+ */
 void address_protected_entry_index_set(uint32_t top_protected_entry_index)
 {
-    Top_Protected_Entry = top_protected_entry_index;
+    if (top_protected_entry_index <= (MAX_ADDRESS_CACHE - 1)) {
+        Top_Protected_Entry = top_protected_entry_index;
+    }
 }
 
+/**
+ * @brief Set the address of our own device.
+ *
+ * @param own_id  Own device id
+ */
 void address_own_device_id_set(uint32_t own_id)
 {
     Own_Device_ID = own_id;
@@ -182,9 +194,8 @@ void address_remove_device(uint32_t device_id)
  * entry available to free up. Does not check for free entries as it is
  * assumed we are calling this due to the lack of those.
  *
- * @return Candidate for deletation.
+ * @return Pointer to the entry that has been removed or NULL.
  */
-
 static struct Address_Cache_Entry *address_remove_oldest(void)
 {
     struct Address_Cache_Entry *pMatch;
@@ -383,11 +394,10 @@ static void address_file_init(const char *pFilename)
 }
 #endif
 
-/****************************************************************************
- * Clear down the cache and make sure the full complement of entries are    *
- * available. Assume no persistance of memory.                              *
- ****************************************************************************/
-
+/**
+ * Clear down the cache and make sure the full complement of entries are
+ * available. Assume no persistance of memory.
+ */
 void address_init(void)
 {
     struct Address_Cache_Entry *pMatch;
@@ -405,14 +415,13 @@ void address_init(void)
     return;
 }
 
-/****************************************************************************
- * Clear down the cache of any non bound, expired  or reserved entries.     *
- * Leave static and unexpired bound entries alone. For use where the cache  *
- * is held in persistant memory which can survive a reset or power cycle.   *
- * This reduces the network traffic on restarts as the cache will have much *
- * of its entries intact.                                                   *
- ****************************************************************************/
-
+/**
+ * Clear down the cache of any non bound, expired  or reserved entries.
+ * Leave static and unexpired bound entries alone. For use where the cache
+ * is held in persistant memory which can survive a reset or power cycle.
+ * This reduces the network traffic on restarts as the cache will have much
+ * of its entries intact.
+ */
 void address_init_partial(void)
 {
     struct Address_Cache_Entry *pMatch;
@@ -441,13 +450,16 @@ void address_init_partial(void)
     return;
 }
 
-/****************************************************************************
- * Set the TTL info for the given device entry. If it is a bound entry we   *
- * set it to static or normal and can change the TTL. If it is unbound we   *
- * can only set the TTL. This is done as a seperate function at the moment  *
- * to avoid breaking the current API.                                       *
- ****************************************************************************/
-
+/**
+ * Set the TTL info for the given device entry. If it is a bound entry we
+ * set it to static or normal and can change the TTL. If it is unbound we
+ * can only set the TTL. This is done as a seperate function at the moment
+ * to avoid breaking the current API.
+ *
+ * @param device_id  Device-Id
+ * @param TimeOut  Timeout in seconds.
+ * @param StaticFlag  Flag indicating if being a static address.
+ */
 void address_set_device_TTL(
     uint32_t device_id, uint32_t TimeOut, bool StaticFlag)
 {
@@ -476,6 +488,13 @@ void address_set_device_TTL(
     }
 }
 
+/**
+ * Return the cached address for the given device-id
+ *
+ * @param device_id  Device-Id
+ * @param max_apdu  Pointer to a variable, taking the maximum APDU size.
+ * @param src  Pointer to address structure for return.
+ */
 bool address_get_by_device(
     uint32_t device_id, unsigned *max_apdu, BACNET_ADDRESS *src)
 {
@@ -500,8 +519,14 @@ bool address_get_by_device(
     return found;
 }
 
-/* find a device id from a given MAC address */
-
+/**
+ * Find a device id from a given MAC address.
+ *
+ * @param src  Pointer to address structure to search for.
+ * @param device_id  Pointer to the device id variable for return.
+ *
+ * @return true/false
+ */
 bool address_get_device_id(BACNET_ADDRESS *src, uint32_t *device_id)
 {
     struct Address_Cache_Entry *pMatch;
@@ -525,6 +550,13 @@ bool address_get_device_id(BACNET_ADDRESS *src, uint32_t *device_id)
     return found;
 }
 
+/**
+ * Add a device using the given id, max_apdu and address.
+ *
+ * @param device_id  Pointer to the device id variable for return.
+ * @param max_apdu  Maximum APDU size.
+ * @param src  Pointer to address structure to add.
+ */
 void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
 {
     bool found = false; /* return value */
@@ -543,6 +575,7 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
     /* existing device or bind request outstanding - update address */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
+        /* Device already in the list, then update the values. */
         if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
             (pMatch->device_id == device_id)) {
             bacnet_address_copy(&pMatch->address, src);
@@ -572,7 +605,7 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
         pMatch++;
     }
 
-    /* new device - add to cache if there is room */
+    /* New device - add to cache if there is room. */
     if (!found) {
         pMatch = Address_Cache;
         while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
@@ -591,7 +624,7 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
         }
     }
 
-    /* See if we can squeeze it in */
+    /* If adding has failed, see if we can squeeze it in by removed the oldest entry. */
     if (!found) {
         pMatch = address_remove_oldest();
         if (pMatch != NULL) {
@@ -606,8 +639,19 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
     return;
 }
 
-/* returns true if device is already bound */
-/* also returns the address and max apdu if already bound */
+/**
+ * Check if the device is in the list. If yes, return the values.
+ * Otherwise add the device to the list.
+ * Returns true if device is already bound.
+ * Also returns the address and max apdu if already bound.
+ *
+ * @param device_id  Pointer to the device id variable for return.
+ * @param device_ttl  Pointer to a variable taking the time to live in seconds.
+ * @param max_apdu  Max APDU size of the device.
+ * @param src  Pointer to the BACnet address.
+ *
+ * @return true if device is already bound
+ */
 bool address_device_bind_request(uint32_t device_id,
     uint32_t *device_ttl,
     unsigned *max_apdu,
@@ -675,14 +719,31 @@ bool address_device_bind_request(uint32_t device_id,
     return (false);
 }
 
-/* returns true if device is already bound */
-/* also returns the address and max apdu if already bound */
+/**
+ * Check if the device is in the list. If yes, return the values.
+ * Otherwise add the device to the list.
+ * Returns true if device is already bound.
+ * Also returns the address and max apdu if already bound.
+ *
+ * @param device_id  Pointer to the device id variable for return.
+ * @param max_apdu  Max APDU size of the device.
+ * @param src  Pointer to the BACnet address.
+ *
+ * @return true if device is already bound
+ */
 bool address_bind_request(
     uint32_t device_id, unsigned *max_apdu, BACNET_ADDRESS *src)
 {
     return address_device_bind_request(device_id, NULL, max_apdu, src);
 }
 
+/**
+ * For an existing device add a binding.
+ *
+ * @param device_id  Pointer to the device id variable for return.
+ * @param max_apdu  Max APDU size of the device.
+ * @param src  Pointer to the BACnet address.
+ */
 void address_add_binding(
     uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
 {
@@ -709,6 +770,17 @@ void address_add_binding(
     return;
 }
 
+/**
+ * Return the device information from the given index in the table.
+ *
+ * @param index  Table index [0..MAX_ADDRESS_CACHE-1]
+ * @param device_id  Pointer to the variable taking the device id.
+ * @param device_ttl  Pointer to the variable taking the Time To Life for the device.
+ * @param max_apdu  Pointer to the variable taking the max APDU size of the device.
+ * @param src  Pointer to the BACnet address.
+ *
+ * @return true/false
+ */
 bool address_device_get_by_index(unsigned index,
     uint32_t *device_id,
     uint32_t *device_ttl,
@@ -741,6 +813,16 @@ bool address_device_get_by_index(unsigned index,
     return found;
 }
 
+/**
+ * Return the device information from the given index in the table.
+ *
+ * @param index  Table index [0..MAX_ADDRESS_CACHE-1]
+ * @param device_id  Pointer to the variable taking the device id.
+ * @param max_apdu  Pointer to the variable taking the max APDU size of the device.
+ * @param src  Pointer to the BACnet address.
+ *
+ * @return true/false
+ */
 bool address_get_by_index(unsigned index,
     uint32_t *device_id,
     unsigned *max_apdu,
@@ -749,6 +831,11 @@ bool address_get_by_index(unsigned index,
     return address_device_get_by_index(index, device_id, NULL, max_apdu, src);
 }
 
+/**
+ * Return the count of cached addresses.
+ *
+ * @return A value between zero and MAX_ADDRESS_CACHE.
+ */
 unsigned address_count(void)
 {
     struct Address_Cache_Entry *pMatch;
@@ -768,43 +855,55 @@ unsigned address_count(void)
     return count;
 }
 
-/****************************************************************************
- * Build a list of the current bindings for the device address binding      *
- * property.                                                                *
- ****************************************************************************/
-
+/**
+ * Build a list of the current bindings for the device address binding
+ * property. Basically encode the address list to be send out.
+ *
+ * @param apdu  Pointer to the APDU
+ * @param apdu_len  Remaining buffer size.
+ *
+ * @return Count of encoded bytes.
+ */
 int address_list_encode(uint8_t *apdu, unsigned apdu_len)
 {
     int iLen = 0;
     struct Address_Cache_Entry *pMatch;
     BACNET_OCTET_STRING MAC_Address;
 
-    /* FIXME: I really shouild check the length remaining here but it is
-       fairly pointless until we have the true length remaining in
-       the packet to work with as at the moment it is just MAX_APDU */
-    (void)apdu_len;
-    /* look for matching address */
+    /* Look for matching address. */
     pMatch = Address_Cache;
     while (pMatch <= &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
             BAC_ADDR_IN_USE) {
             iLen += encode_application_object_id(
-                &apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
-            iLen +=
-                encode_application_unsigned(&apdu[iLen], pMatch->address.net);
+                    &apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
+            iLen += encode_application_unsigned(&apdu[iLen], pMatch->address.net);
+            if ((unsigned)iLen >= apdu_len) {
+                break;
+            }
 
             /* pick the appropriate type of entry from the cache */
 
             if (pMatch->address.len != 0) {
+                /* BAC */
+                if ((unsigned)(iLen + pMatch->address.len) >= apdu_len) {
+                    break;
+                }
                 octetstring_init(
                     &MAC_Address, pMatch->address.adr, pMatch->address.len);
-                iLen +=
-                    encode_application_octet_string(&apdu[iLen], &MAC_Address);
+                iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
             } else {
+                /* MAC*/
+                if ((unsigned)(iLen + pMatch->address.mac_len) >= apdu_len) {
+                    break;
+                }
                 octetstring_init(
                     &MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
-                iLen +=
-                    encode_application_octet_string(&apdu[iLen], &MAC_Address);
+                iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
+            }
+            /* Any space left? */
+            if ((unsigned)iLen >= apdu_len) {
+                break;
             }
         }
         pMatch++;
@@ -813,29 +912,33 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
     return (iLen);
 }
 
-/****************************************************************************
- * Build a list of the current bindings for the device address binding      *
- * property as required for the ReadsRange functionality.                   *
- * We assume we only get called for "Read All" or "By Position" requests.   *
- *                                                                          *
- * We need to treat the address cache as a contiguous array but in reality  *
- * it could be sparsely populated. We can get the count but we can only     *
- * extract entries by doing a linear scan starting from the first entry in  *
- * the cache and picking them off one by one.                               *
- *                                                                          *
- * We do assume the list cannot change whilst we are accessing it so would  *
- * not be multithread safe if there are other tasks that change the cache.  *
- *                                                                          *
+/**
+ * Build a list of the current bindings for the device address binding
+ * property as required for the ReadsRange functionality.
+ * We assume we only get called for "Read All" or "By Position" requests.
+ *
+ * We need to treat the address cache as a contiguous array but in reality
+ * it could be sparsely populated. We can get the count but we can only
+ * extract entries by doing a linear scan starting from the first entry in
+ * the cache and picking them off one by one.
+ *
+ * We do assume the list cannot change whilst we are accessing it so would
+ * not be multithread safe if there are other tasks that change the cache.
+ *
  * We take the simple approach here to filling the buffer by taking a max   *
- * size for a single entry and then stopping if there is less than that     *
- * left in the buffer. You could build each entry in a seperate buffer and  *
- * determine the exact length before copying but this is time consuming,    *
- * requires more memory and would probably only let you sqeeeze one more    *
- * entry in on occasion. The value is calculated as 5 bytes for the device  *
- * ID + 3 bytes for the network number and nine bytes for the MAC address   *
- * oct string to give 17 bytes (the minimum possible is 5 + 2 + 3 = 10).    *
- ****************************************************************************/
-
+ * size for a single entry and then stopping if there is less than that
+ * left in the buffer. You could build each entry in a seperate buffer and
+ * determine the exact length before copying but this is time consuming,
+ * requires more memory and would probably only let you sqeeeze one more
+ * entry in on occasion. The value is calculated as 5 bytes for the device
+ * ID + 3 bytes for the network number and nine bytes for the MAC address
+ * oct string to give 17 bytes (the minimum possible is 5 + 2 + 3 = 10).
+ *
+ * @param apdu  Pointer to the encode buffer.
+ * @param pRequest  Pointer to the read_range request structure.
+ *
+ * @return Bytes encoded.
+ */
 #define ACACHE_MAX_ENC 17 /* Maximum size of encoded cache entry, see above */
 
 int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
@@ -851,6 +954,10 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     uint32_t uiTarget = 0; /* Last entry we are required to encode */
     uint32_t uiRemaining = 0; /* Amount of unused space in packet */
 
+    if ((!pRequest) || (!apdu)) {
+        return 0;
+    }
+
     /* Initialise result flags to all false */
     bitstring_init(&pRequest->ResultFlags);
     bitstring_set_bit(&pRequest->ResultFlags, RESULT_FLAG_FIRST_ITEM, false);
@@ -861,7 +968,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
     pRequest->ItemCount = 0; /* Start out with nothing */
     uiTotal = address_count(); /* What do we have to work with here ? */
-    if (uiTotal == 0) { /* Bail out now if nowt */
+    if (uiTotal == 0) { /* Bail out now if not. */
         return (0);
     }
 
@@ -921,6 +1028,10 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
         BAC_ADDR_IN_USE) { /* Find first bound entry */
         pMatch++;
+        /* Shall not happen as the count has been checked first. */
+        if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
+            return(0); /* Issue with the table. */
+        }
     }
 
     /* Seek to start position */
@@ -931,6 +1042,10 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             uiIndex++;
         } else {
             pMatch++;
+        }
+        /* Shall not happen as the count has been checked first. */
+        if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
+            return(0); /* Issue with the table. */
         }
     }
 
@@ -976,6 +1091,10 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
             BAC_ADDR_IN_USE) { /* Find next bound entry */
             pMatch++;
+            /* Can normally not happen. */
+            if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
+                return(0); /* Issue with the table. */
+            }
         }
     }
 
@@ -991,15 +1110,16 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     return (iLen);
 }
 
-/****************************************************************************
- * Scan the cache and eliminate any expired entries. Should be called       *
- * periodically to ensure the cache is managed correctly. If this function  *
- * is never called at all the whole cache is effectivly rendered static and *
- * entries never expire unless explictely deleted.                          *
- ****************************************************************************/
-
+/**
+ * Scan the cache and eliminate any expired entries. Should be called
+ * periodically to ensure the cache is managed correctly. If this function
+ * is never called at all the whole cache is effectivly rendered static and
+ * entries never expire unless explictely deleted.
+ *
+ * @param uSeconds  Approximate number of seconds since last call to this function
+ */
 void address_cache_timer(uint16_t uSeconds)
-{ /* Approximate number of seconds since last call to this function */
+{
     struct Address_Cache_Entry *pMatch;
 
     pMatch = Address_Cache;

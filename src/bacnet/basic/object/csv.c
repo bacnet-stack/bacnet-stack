@@ -384,7 +384,7 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     if (rpdata == NULL) {
         return 0;
     }
-    if ((rpdata->application_data == NULL) || \
+    if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
         return 0;
     }
@@ -488,7 +488,7 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    if ((wp_data->application_data == NULL) || \
+    if ((wp_data->application_data == NULL) ||
         (wp_data->application_data_len == 0)) {
         return false;
     }

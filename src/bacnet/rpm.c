@@ -43,7 +43,14 @@
 /** @file rpm.c  Encode/Decode Read Property Multiple and RPM ACKs  */
 
 #if BACNET_SVC_RPM_A
-/* encode the initial portion of the service */
+
+/** Encode the initial portion of the service
+ *
+ * @param apdu  Pointer to the buffer for encoding.
+ * @param invoke_id  Invoke ID
+ *
+ * @return Bytes encoded (usually 4) or zero on error.
+ */
 int rpm_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -59,6 +66,15 @@ int rpm_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
     return apdu_len;
 }
 
+/** Encode the beginning, including
+ *  Object-id and Read-Access of the service.
+ *
+ * @param apdu  Pointer to the buffer for encoding.
+ * @param object_type  Object type to encode
+ * @param object_instance  Object instance to encode
+ *
+ * @return Bytes encoded or zero on error.
+ */
 int rpm_encode_apdu_object_begin(
     uint8_t *apdu, BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
@@ -74,6 +90,14 @@ int rpm_encode_apdu_object_begin(
     return apdu_len;
 }
 
+/** Encode the object properties of the service.
+ *
+ * @param apdu  Pointer to the buffer for encoding.
+ * @param object_property  Object property.
+ * @param array_index Optional array index.
+ *
+ * @return Bytes encoded or zero on error.
+ */
 int rpm_encode_apdu_object_property(
     uint8_t *apdu, BACNET_PROPERTY_ID object_property, BACNET_ARRAY_INDEX array_index)
 {
@@ -91,6 +115,12 @@ int rpm_encode_apdu_object_property(
     return apdu_len;
 }
 
+/** Encode the end (closing tag) of the service
+ *
+ * @param apdu  Pointer to the buffer for encoding.
+ *
+ * @return Bytes encoded or zero on error.
+ */
 int rpm_encode_apdu_object_end(uint8_t *apdu)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -130,6 +160,8 @@ int rpm_encode_apdu(uint8_t *apdu,
     apdu_len += len;
     rpm_object = read_access_data;
     while (rpm_object) {
+        /* The encode function will return a length not more than 12. So the temp buffer
+         * being 16 bytes is fine enought. */
         len = encode_context_object_id(&apdu_temp[0], 0,
             rpm_object->object_type, rpm_object->object_instance);
         len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
@@ -148,7 +180,9 @@ int rpm_encode_apdu(uint8_t *apdu,
         apdu_len += len;
         rpm_property = rpm_object->listOfProperties;
         while (rpm_property) {
-            /* stuff as many properties into it as APDU length will allow */
+            /* The encode function will return a length not more than 12. So the temp buffer
+             * being 16 bytes is fine enought.
+             * Stuff as many properties into it as APDU length will allow. */
             len = encode_context_enumerated(
                 &apdu_temp[0], 0, rpm_property->propertyIdentifier);
             len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
@@ -169,6 +203,10 @@ int rpm_encode_apdu(uint8_t *apdu,
                 apdu_len += len;
             }
             rpm_property = rpm_property->next;
+            /* Full? */
+            if ((unsigned)apdu_len >= max_apdu) {
+                return 0;
+            }
         }
         len = encode_closing_tag(&apdu_temp[0], 1);
         len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
@@ -185,8 +223,14 @@ int rpm_encode_apdu(uint8_t *apdu,
 
 #endif
 
-/* decode the object portion of the service request only. Bails out if
- * tags are wrong or missing/incomplete
+/** Decode the object portion of the service request only. Bails out if
+ *  tags are wrong or missing/incomplete.
+ *
+ * @param apdu [in] Buffer of bytes received.
+ * @param apdu_len [in] Count of valid bytes in the buffer.
+ * @param rpmdata [in] The data structure to be filled.
+ *
+ * @return Length of decoded bytes, or 0 on failure.
  */
 int rpm_decode_object_id(
     uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
@@ -218,6 +262,13 @@ int rpm_decode_object_id(
     return len;
 }
 
+/** Decode the end portion of the service request only.
+ *
+ * @param apdu [in] Buffer of bytes received.
+ * @param apdu_len [in] Count of valid bytes in the buffer.
+ *
+ * @return Length of decoded bytes (usually 1), or 0 on failure.
+ */
 int rpm_decode_object_end(uint8_t *apdu, unsigned apdu_len)
 {
     int len = 0; /* total length of the apdu, return value */
@@ -231,14 +282,20 @@ int rpm_decode_object_end(uint8_t *apdu, unsigned apdu_len)
     return len;
 }
 
-/* decode the object property portion of the service request only */
-/*  BACnetPropertyReference ::= SEQUENCE {
-        propertyIdentifier [0] BACnetPropertyIdentifier,
-        propertyArrayIndex [1] Unsigned OPTIONAL
-        --used only with array datatype
-        -- if omitted with an array the entire array is referenced
-    }
-*/
+/** Decode the object property portion of the service request only
+ *  BACnetPropertyReference ::= SEQUENCE {
+ *      propertyIdentifier [0] BACnetPropertyIdentifier,
+ *      propertyArrayIndex [1] Unsigned OPTIONAL
+ *      --used only with array datatype
+ *      -- if omitted with an array the entire array is referenced
+ *  }
+ *
+ *  @param apdu  Pointer to received bytes.
+ *  @param apdu_len  Count of received bytes.
+ *  @param rpmdata  Pointer to the data structure to be filled.
+ *
+ *  @return Bytes decoded or zero on failure.
+ */
 int rpm_decode_object_property(
     uint8_t *apdu, unsigned apdu_len, BACNET_RPM_DATA *rpmdata)
 {
@@ -294,6 +351,13 @@ int rpm_decode_object_property(
     return len;
 }
 
+/** Encode the acknowledge for a RPM.
+ *
+ * @param apdu [in] Buffer of bytes to transmit.
+ * @param invoke_id [in] Invoke Id.
+ *
+ * @return Length of encoded bytes (usually 3) or 0 on failure.
+ */
 int rpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -308,6 +372,13 @@ int rpm_ack_encode_apdu_init(uint8_t *apdu, uint8_t invoke_id)
     return apdu_len;
 }
 
+/** Encode the object type for an acknowledge of a RPM.
+ *
+ * @param apdu [in] Buffer of bytes to transmit.
+ * @param rpmdata [in] Pointer to the data used to fill in the APDU.
+ *
+ * @return Length of encoded bytes or 0 on failure.
+ */
 int rpm_ack_encode_apdu_object_begin(uint8_t *apdu, BACNET_RPM_DATA *rpmdata)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
@@ -323,6 +394,14 @@ int rpm_ack_encode_apdu_object_begin(uint8_t *apdu, BACNET_RPM_DATA *rpmdata)
     return apdu_len;
 }
 
+/** Encode the object property for an acknowledge of a RPM.
+ *
+ * @param apdu [in] Buffer of bytes to transmit.
+ * @param object_property [in] Object property ID.
+ * @param array_index  Optional array index
+ *
+ * @return Length of encoded bytes or 0 on failure.
+ */
 int rpm_ack_encode_apdu_object_property(
     uint8_t *apdu, BACNET_PROPERTY_ID object_property, BACNET_ARRAY_INDEX array_index)
 {
@@ -333,14 +412,21 @@ int rpm_ack_encode_apdu_object_property(
         apdu_len = encode_context_enumerated(&apdu[0], 2, object_property);
         /* Tag 3: optional propertyArrayIndex */
         if (array_index != BACNET_ARRAY_ALL) {
-            apdu_len +=
-                encode_context_unsigned(&apdu[apdu_len], 3, array_index);
+            apdu_len += encode_context_unsigned(&apdu[apdu_len], 3, array_index);
         }
     }
 
     return apdu_len;
 }
 
+/** Encode the object property value for an acknowledge of a RPM.
+ *
+ * @param apdu [in] Buffer of bytes to transmit.
+ * @param application_data [in] Pointer to the application data used to fill in the APDU.
+ * @param application_data_len [in] Length of the application data.
+ *
+ * @return Length of encoded bytes or 0 on failure.
+ */
 int rpm_ack_encode_apdu_object_property_value(
     uint8_t *apdu, uint8_t *application_data, unsigned application_data_len)
 {
@@ -364,6 +450,14 @@ int rpm_ack_encode_apdu_object_property_value(
     return apdu_len;
 }
 
+/** Encode the object property error for an acknowledge of a RPM.
+ *
+ * @param apdu [in] Buffer of bytes to transmit.
+ * @param error_class [in] Error Class
+ * @param error_code [in] Error Code
+ *
+ * @return Length of encoded bytes or 0 on failure.
+ */
 int rpm_ack_encode_apdu_object_property_error(
     uint8_t *apdu, BACNET_ERROR_CLASS error_class, BACNET_ERROR_CODE error_code)
 {
@@ -380,6 +474,12 @@ int rpm_ack_encode_apdu_object_property_error(
     return apdu_len;
 }
 
+/** Encode the end tag for an acknowledge of a RPM.
+ *
+ * @param apdu [in] Buffer of bytes to transmit.
+ *
+ * @return Length of encoded bytes or 0 on failure.
+ */
 int rpm_ack_encode_apdu_object_end(uint8_t *apdu)
 {
     int apdu_len = 0; /* total length of the apdu, return value */

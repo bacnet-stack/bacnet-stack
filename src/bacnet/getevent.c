@@ -39,7 +39,14 @@
 
 /** @file getevent.c  Encode/Decode GetEvent services */
 
-/* encode service */
+/** Encode service
+ *
+ * @param apdu APDU buffer to encode to.
+ * @param invoke_id Invoke ID
+ * @param lastReceivedObjectIdentifier  Object identifier
+ *
+ * @return Bytes encoded.
+ */
 int getevent_encode_apdu(uint8_t *apdu,
     uint8_t invoke_id,
     BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
@@ -65,7 +72,14 @@ int getevent_encode_apdu(uint8_t *apdu,
     return apdu_len;
 }
 
-/* decode the service request only */
+/** Decode the service request only
+ *
+ * @param apdu APDU buffer to encode to.
+ * @param apdu_len Valid bytes in the buffer.
+ * @param lastReceivedObjectIdentifier  Object identifier
+ *
+ * @return Bytes encoded.
+ */
 int getevent_decode_service_request(uint8_t *apdu,
     unsigned apdu_len,
     BACNET_OBJECT_ID *lastReceivedObjectIdentifier)
@@ -78,8 +92,10 @@ int getevent_decode_service_request(uint8_t *apdu,
         if (!decode_is_context_tag(&apdu[len++], 0)) {
             return -1;
         }
-        len += decode_object_id(&apdu[len], &lastReceivedObjectIdentifier->type,
-            &lastReceivedObjectIdentifier->instance);
+        if (len < apdu_len) {
+            len += decode_object_id(&apdu[len], &lastReceivedObjectIdentifier->type,
+                &lastReceivedObjectIdentifier->instance);
+        }
     }
 
     return (int)len;
