@@ -1,30 +1,30 @@
 /**************************************************************************
-*
-* Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-* Module Description:
-* Generate a periodic timer tick for use by generic timers in the code.
-*
-*************************************************************************/
+ *
+ * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Module Description:
+ * Generate a periodic timer tick for use by generic timers in the code.
+ *
+ *************************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
@@ -38,8 +38,7 @@ static volatile struct mstimer_callback_data_t *Callback_Head;
 /**
  * Activate the LED
  */
-static void timer_debug_on(
-    void)
+static void timer_debug_on(void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_13, Bit_SET);
 }
@@ -47,8 +46,7 @@ static void timer_debug_on(
 /**
  * Deactivate the LED
  */
-static void timer_debug_off(
-    void)
+static void timer_debug_off(void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_13, Bit_RESET);
 }
@@ -56,8 +54,7 @@ static void timer_debug_off(
 /**
  * Toggle the state of the debug LED
  */
-static void timer_debug_toggle(
-    void)
+static void timer_debug_toggle(void)
 {
     static bool state = false;
 
@@ -73,8 +70,7 @@ static void timer_debug_toggle(
 /**
  * Handles the interrupt from the timer
  */
-void SysTick_Handler(
-    void)
+void SysTick_Handler(void)
 {
     struct mstimer_callback_data_t *cb;
 
@@ -98,8 +94,7 @@ void SysTick_Handler(
  *
  * @return the current milliseconds count
  */
-unsigned long mstimer_now(
-    void)
+unsigned long mstimer_now(void)
 {
     return Millisecond_Counter;
 }
@@ -113,8 +108,7 @@ unsigned long mstimer_now(
  *
  * @return true if successfully added and enabled
  */
-void mstimer_callback(
-    struct mstimer_callback_data_t *new_cb,
+void mstimer_callback(struct mstimer_callback_data_t *new_cb,
     mstimer_callback_function callback,
     unsigned long milliseconds)
 {
@@ -142,8 +136,7 @@ void mstimer_callback(
 /**
  * Timer setup for 1 millisecond timer
  */
-void mstimer_init(
-    void)
+void mstimer_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -157,7 +150,7 @@ void mstimer_init(
     /* Setup SysTick Timer for 1ms interrupts  */
     if (SysTick_Config(SystemCoreClock / 1000)) {
         /* Capture error */
-        while (1);
+        while (1)
+            ;
     }
-
 }

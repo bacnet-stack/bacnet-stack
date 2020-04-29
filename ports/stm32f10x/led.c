@@ -1,26 +1,26 @@
 /**************************************************************************
-*
-* Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *********************************************************************/
 #include <stdint.h>
 #include "hardware.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -33,12 +33,11 @@ static bool Tx_State;
 static bool LD3_State;
 
 /*************************************************************************
-* Description: Activate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void led_tx_on(
-    void)
+ * Description: Activate the LED
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void led_tx_on(void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_15, Bit_SET);
     mstimer_set(&Off_Delay_Timer_Tx, 0);
@@ -46,12 +45,11 @@ void led_tx_on(
 }
 
 /*************************************************************************
-* Description: Activate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void led_rx_on(
-    void)
+ * Description: Activate the LED
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void led_rx_on(void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_14, Bit_SET);
     mstimer_set(&Off_Delay_Timer_Rx, 0);
@@ -59,12 +57,11 @@ void led_rx_on(
 }
 
 /*************************************************************************
-* Description: Deactivate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void led_tx_off(
-    void)
+ * Description: Deactivate the LED
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void led_tx_off(void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_15, Bit_RESET);
     mstimer_set(&Off_Delay_Timer_Tx, 0);
@@ -72,12 +69,11 @@ void led_tx_off(
 }
 
 /*************************************************************************
-* Description: Deactivate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void led_rx_off(
-    void)
+ * Description: Deactivate the LED
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void led_rx_off(void)
 {
     GPIO_WriteBit(GPIOB, GPIO_Pin_14, Bit_RESET);
     mstimer_set(&Off_Delay_Timer_Rx, 0);
@@ -85,34 +81,31 @@ void led_rx_off(
 }
 
 /*************************************************************************
-* Description: Get the state of the LED
-* Returns: true if on, false if off.
-* Notes: none
-*************************************************************************/
-bool led_rx_state(
-    void)
+ * Description: Get the state of the LED
+ * Returns: true if on, false if off.
+ * Notes: none
+ *************************************************************************/
+bool led_rx_state(void)
 {
     return Rx_State;
 }
 
 /*************************************************************************
-* Description: Get the state of the LED
-* Returns: true if on, false if off.
-* Notes: none
-*************************************************************************/
-bool led_tx_state(
-    void)
+ * Description: Get the state of the LED
+ * Returns: true if on, false if off.
+ * Notes: none
+ *************************************************************************/
+bool led_tx_state(void)
 {
     return Tx_State;
 }
 
 /*************************************************************************
-* Description: Toggle the state of the LED
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_tx_toggle(
-    void)
+ * Description: Toggle the state of the LED
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_tx_toggle(void)
 {
     if (led_tx_state()) {
         led_tx_off();
@@ -122,12 +115,11 @@ void led_tx_toggle(
 }
 
 /*************************************************************************
-* Description: Toggle the state of the LED
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_rx_toggle(
-    void)
+ * Description: Toggle the state of the LED
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_rx_toggle(void)
 {
     if (led_rx_state()) {
         led_rx_off();
@@ -137,58 +129,53 @@ void led_rx_toggle(
 }
 
 /*************************************************************************
-* Description: Delay before going off to give minimum brightness.
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_rx_off_delay(
-    uint32_t delay_ms)
+ * Description: Delay before going off to give minimum brightness.
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_rx_off_delay(uint32_t delay_ms)
 {
     mstimer_set(&Off_Delay_Timer_Rx, delay_ms);
 }
 
 /*************************************************************************
-* Description: Delay before going off to give minimum brightness.
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_tx_off_delay(
-    uint32_t delay_ms)
+ * Description: Delay before going off to give minimum brightness.
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_tx_off_delay(uint32_t delay_ms)
 {
     mstimer_set(&Off_Delay_Timer_Tx, delay_ms);
 }
 
 /*************************************************************************
-* Description: Turn on, and delay before going off.
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_rx_on_interval(
-    uint16_t interval_ms)
+ * Description: Turn on, and delay before going off.
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_rx_on_interval(uint16_t interval_ms)
 {
     led_rx_on();
     mstimer_set(&Off_Delay_Timer_Rx, interval_ms);
 }
 
 /*************************************************************************
-* Description: Turn on, and delay before going off.
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_tx_on_interval(
-    uint16_t interval_ms)
+ * Description: Turn on, and delay before going off.
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_tx_on_interval(uint16_t interval_ms)
 {
     led_tx_on();
     mstimer_set(&Off_Delay_Timer_Tx, interval_ms);
 }
 
 /*************************************************************************
-* Description: Task for blinking LED
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_task(
-    void)
+ * Description: Task for blinking LED
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_task(void)
 {
     if (mstimer_expired(&Off_Delay_Timer_Rx)) {
         mstimer_set(&Off_Delay_Timer_Rx, 0);
@@ -201,69 +188,63 @@ void led_task(
 }
 
 /*************************************************************************
-* Description: Activate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void led_ld4_on(
-    void)
+ * Description: Activate the LED
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void led_ld4_on(void)
 {
     GPIO_WriteBit(GPIOC, GPIO_Pin_8, Bit_SET);
 }
 
 /*************************************************************************
-* Description: Deactivate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void led_ld4_off(
-    void)
+ * Description: Deactivate the LED
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void led_ld4_off(void)
 {
     GPIO_WriteBit(GPIOC, GPIO_Pin_8, Bit_RESET);
 }
 
 /*************************************************************************
-* Description: Activate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void led_ld3_on(
-    void)
+ * Description: Activate the LED
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void led_ld3_on(void)
 {
     GPIO_WriteBit(GPIOC, GPIO_Pin_9, Bit_SET);
     LD3_State = true;
 }
 
 /*************************************************************************
-* Description: Deactivate the LED
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void led_ld3_off(
-    void)
+ * Description: Deactivate the LED
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void led_ld3_off(void)
 {
     GPIO_WriteBit(GPIOC, GPIO_Pin_9, Bit_RESET);
     LD3_State = false;
 }
 
 /*************************************************************************
-* Description: Get the state of the LED
-* Returns: true if on, false if off.
-* Notes: none
-*************************************************************************/
-bool led_ld3_state(
-    void)
+ * Description: Get the state of the LED
+ * Returns: true if on, false if off.
+ * Notes: none
+ *************************************************************************/
+bool led_ld3_state(void)
 {
     return LD3_State;
 }
 
 /*************************************************************************
-* Description: Toggle the state of the LED
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_ld3_toggle(
-    void)
+ * Description: Toggle the state of the LED
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_ld3_toggle(void)
 {
     if (led_ld3_state()) {
         led_ld3_off();
@@ -273,12 +254,11 @@ void led_ld3_toggle(
 }
 
 /*************************************************************************
-* Description: Initialize the LED hardware
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_init(
-    void)
+ * Description: Initialize the LED hardware
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 

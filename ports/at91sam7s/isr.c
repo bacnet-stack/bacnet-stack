@@ -1,4 +1,5 @@
-/*  ********************************************************************************************** */
+/*  **********************************************************************************************
+ */
 /* */
 /*  File Name : isr.c */
 /*  Title     : interrupt enable/disable functions */
@@ -12,10 +13,13 @@
 /*  notice remains intact. */
 /* */
 /*  Note from Jim Lynch: */
-/*  This module was developed by Bill Knight, RO Software and used with his permission. */
+/*  This module was developed by Bill Knight, RO Software and used with his
+ * permission. */
 /*  Taken from the Yahoo LPC2000 User's Group - Files Section 'UT050418A.ZIP' */
-/*  Specifically, the module armVIC.c with the include file references removed */
-/*  ********************************************************************************************** */
+/*  Specifically, the module armVIC.c with the include file references removed
+ */
+/*  **********************************************************************************************
+ */
 #include "at91sam7s256.h"
 #include "isr.h"
 
@@ -23,23 +27,19 @@
 #define FIQ_MASK 0x00000040
 #define INT_MASK (IRQ_MASK | FIQ_MASK)
 
-static inline unsigned __get_cpsr(
-    void)
+static inline unsigned __get_cpsr(void)
 {
     unsigned long retval;
-    asm volatile (" mrs  %0, cpsr" : "=r" (retval) : /* no inputs */  );
+    asm volatile(" mrs  %0, cpsr" : "=r"(retval) : /* no inputs */);
     return retval;
 }
 
-static inline void __set_cpsr(
-    unsigned val)
+static inline void __set_cpsr(unsigned val)
 {
-    asm volatile (
-        " msr  cpsr, %0": /* no outputs */ :"r" (val));
+    asm volatile(" msr  cpsr, %0" : /* no outputs */ : "r"(val));
 }
 
-unsigned disableIRQ(
-    void)
+unsigned disableIRQ(void)
 {
     unsigned _cpsr;
     _cpsr = __get_cpsr();
@@ -47,8 +47,7 @@ unsigned disableIRQ(
     return _cpsr;
 }
 
-unsigned restoreIRQ(
-    unsigned oldCPSR)
+unsigned restoreIRQ(unsigned oldCPSR)
 {
     unsigned _cpsr;
 
@@ -57,8 +56,7 @@ unsigned restoreIRQ(
     return _cpsr;
 }
 
-unsigned enableIRQ(
-    void)
+unsigned enableIRQ(void)
 {
     unsigned _cpsr;
 
@@ -67,8 +65,7 @@ unsigned enableIRQ(
     return _cpsr;
 }
 
-unsigned disableFIQ(
-    void)
+unsigned disableFIQ(void)
 {
     unsigned _cpsr;
 
@@ -77,8 +74,7 @@ unsigned disableFIQ(
     return _cpsr;
 }
 
-unsigned restoreFIQ(
-    unsigned oldCPSR)
+unsigned restoreFIQ(unsigned oldCPSR)
 {
     unsigned _cpsr;
 
@@ -87,8 +83,7 @@ unsigned restoreFIQ(
     return _cpsr;
 }
 
-unsigned enableFIQ(
-    void)
+unsigned enableFIQ(void)
 {
     unsigned _cpsr;
 

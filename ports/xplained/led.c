@@ -1,26 +1,26 @@
 /**************************************************************************
-*
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *********************************************************************/
 #include <stdint.h>
 #include "board.h"
 #include "ioport.h"
@@ -28,18 +28,18 @@
 #include "led.h"
 
 #ifdef CONF_BOARD_ENABLE_RS485_XPLAINED
-#define RS485_XPLAINED_LD1  IOPORT_CREATE_PIN(PORTC, 6)
-#define RS485_XPLAINED_LD2  IOPORT_CREATE_PIN(PORTC, 7)
-#define RS485_XPLAINED_LD3  IOPORT_CREATE_PIN(PORTC, 4)
-#define RS485_XPLAINED_LD4  IOPORT_CREATE_PIN(PORTC, 5)
+#define RS485_XPLAINED_LD1 IOPORT_CREATE_PIN(PORTC, 6)
+#define RS485_XPLAINED_LD2 IOPORT_CREATE_PIN(PORTC, 7)
+#define RS485_XPLAINED_LD3 IOPORT_CREATE_PIN(PORTC, 4)
+#define RS485_XPLAINED_LD4 IOPORT_CREATE_PIN(PORTC, 5)
 
 static struct itimer Off_Delay_Timer[LEDS_MAX];
 
 /*************************************************************************
-* Description: Turn on an LED
-* Returns: none
-* Notes: none
-*************************************************************************/
+ * Description: Turn on an LED
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
 void led_on(uint8_t index)
 {
     switch (index) {
@@ -64,10 +64,10 @@ void led_on(uint8_t index)
 }
 
 /*************************************************************************
-* Description: Turn off an LED
-* Returns: none
-* Notes: none
-*************************************************************************/
+ * Description: Turn off an LED
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
 void led_off(uint8_t index)
 {
     switch (index) {
@@ -92,10 +92,10 @@ void led_off(uint8_t index)
 }
 
 /*************************************************************************
-* Description: Get the state of the LED
-* Returns: true if on, false if off.
-* Notes: none
-*************************************************************************/
+ * Description: Get the state of the LED
+ * Returns: true if on, false if off.
+ * Notes: none
+ *************************************************************************/
 bool led_state(uint8_t index)
 {
     switch (index) {
@@ -115,10 +115,10 @@ bool led_state(uint8_t index)
 }
 
 /*************************************************************************
-* Description: Toggle the state of the setup LED
-* Returns: none
-* Notes: none
-*************************************************************************/
+ * Description: Toggle the state of the setup LED
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
 void led_toggle(uint8_t index)
 {
     if (led_state(index)) {
@@ -129,12 +129,11 @@ void led_toggle(uint8_t index)
 }
 
 /*************************************************************************
-* Description: Delay before going off to give minimum brightness.
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_off_delay(uint8_t index,
-    uint32_t delay_ms)
+ * Description: Delay before going off to give minimum brightness.
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_off_delay(uint8_t index, uint32_t delay_ms)
 {
     if (index < LEDS_MAX) {
         timer_interval_start(&Off_Delay_Timer[index], delay_ms);
@@ -142,12 +141,11 @@ void led_off_delay(uint8_t index,
 }
 
 /*************************************************************************
-* Description: Turn on, and delay before going off.
-* Returns: none
-* Notes: none
-*************************************************************************/
-void led_on_interval(uint8_t index,
-    uint16_t interval_ms)
+ * Description: Turn on, and delay before going off.
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+void led_on_interval(uint8_t index, uint16_t interval_ms)
 {
     if (index < LEDS_MAX) {
         led_on(index);
@@ -156,13 +154,13 @@ void led_on_interval(uint8_t index,
 }
 
 /*************************************************************************
-* Description: Task for blinking LED
-* Returns: none
-* Notes: none
-*************************************************************************/
+ * Description: Task for blinking LED
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
 void led_task(void)
 {
-    uint8_t i;  /* loop counter */
+    uint8_t i; /* loop counter */
 
     for (i = 0; i < LEDS_MAX; i++) {
         if (timer_interval_expired(&Off_Delay_Timer[i])) {
@@ -173,27 +171,27 @@ void led_task(void)
 }
 
 /*************************************************************************
-* Description: Initialize the LED hardware
-* Returns: none
-* Notes: none
-*************************************************************************/
+ * Description: Initialize the LED hardware
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
 void led_init(void)
 {
-    uint8_t i;  /* loop counter */
+    uint8_t i; /* loop counter */
 
     /* configure the LEDs for Rx and Tx indication */
-    ioport_configure_pin(RS485_XPLAINED_LD1,
-        IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
-    ioport_configure_pin(RS485_XPLAINED_LD2,
-        IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
-    ioport_configure_pin(RS485_XPLAINED_LD3,
-        IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
-    ioport_configure_pin(RS485_XPLAINED_LD4,
-        IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
+    ioport_configure_pin(
+        RS485_XPLAINED_LD1, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
+    ioport_configure_pin(
+        RS485_XPLAINED_LD2, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
+    ioport_configure_pin(
+        RS485_XPLAINED_LD3, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
+    ioport_configure_pin(
+        RS485_XPLAINED_LD4, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
     /* initialize the timers, while giving LEDs a brief test */
     for (i = 0; i < LEDS_MAX; i++) {
         led_on(i);
-        led_off_delay(i,500);
-    }        
+        led_off_delay(i, 500);
+    }
 }
 #endif

@@ -60,51 +60,49 @@ void StartBACnet()
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
 
     /* set the handler for all the services we don't implement */
-    /* It is required to send the proper reject message... */ 
-    apdu_set_unrecognized_service_handler_handler
-       (handler_unrecognized_service);
+    /* It is required to send the proper reject message... */
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-        handler_read_property_multiple);
-    
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        handler_write_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_SUBSCRIBE_COV,
-        handler_cov_subscribe);    
-     
-    address_init();   
-    bip_init(NULL); 
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
+
+    address_init();
+    bip_init(NULL);
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 }
 
 /* wifi events handler : start & stop bacnet with an event  */
 esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
-    switch(event->event_id) {
-    case SYSTEM_EVENT_STA_START:
-        esp_wifi_connect();
-        break;
-    case SYSTEM_EVENT_STA_CONNECTED:
-        break ;
-    case SYSTEM_EVENT_STA_GOT_IP:
-        if (xEventGroupGetBits(wifi_event_group)!=CONNECTED_BIT)
-        {            
-            xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
-            StartBACnet();
-        }
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        /* This is a workaround as ESP32 WiFi libs don't currently
-           auto-reassociate. */
-        esp_wifi_connect(); 
-        xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
-        bip_cleanup();
-        break;
-    default:
-        break;
+    switch (event->event_id) {
+        case SYSTEM_EVENT_STA_START:
+            esp_wifi_connect();
+            break;
+        case SYSTEM_EVENT_STA_CONNECTED:
+            break;
+        case SYSTEM_EVENT_STA_GOT_IP:
+            if (xEventGroupGetBits(wifi_event_group) != CONNECTED_BIT) {
+                xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
+                StartBACnet();
+            }
+            break;
+        case SYSTEM_EVENT_STA_DISCONNECTED:
+            /* This is a workaround as ESP32 WiFi libs don't currently
+               auto-reassociate. */
+            esp_wifi_connect();
+            xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
+            bip_cleanup();
+            break;
+        default:
+            break;
     }
     return ESP_OK;
 }
@@ -125,7 +123,7 @@ void wifi_init_station(void)
 
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
 
-    esp_wifi_start() ;
+    esp_wifi_start();
 }
 
 /* setup gpio & nv flash, call wifi init code */
@@ -134,25 +132,22 @@ void setup()
     gpio_pad_select_gpio(BACNET_LED);
     gpio_set_direction(BACNET_LED, GPIO_MODE_OUTPUT);
 
-    gpio_set_level(BACNET_LED,0);
+    gpio_set_level(BACNET_LED, 0);
 
     esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES) 
-    {
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES) {
         nvs_flash_erase();
         ret = nvs_flash_init();
     }
-    wifi_init_station();    
+    wifi_init_station();
 }
 
 /* Bacnet Task */
 void BACnetTask(void *pvParameters)
-{  
+{
     uint16_t pdu_len = 0;
-    BACNET_ADDRESS src = {
-        0
-    };
-    unsigned timeout = 1;  
+    BACNET_ADDRESS src = { 0 };
+    unsigned timeout = 1;
 
     // Init Bacnet objets dictionnary
     Device_Init(NULL);
@@ -160,41 +155,41 @@ void BACnetTask(void *pvParameters)
 
     setup();
 
-    uint32_t tickcount=xTaskGetTickCount();
+    uint32_t tickcount = xTaskGetTickCount();
 
-    for (;;)
-    {
-        vTaskDelay(10 / portTICK_PERIOD_MS); // could be remove to speed the code
+    for (;;) {
+        vTaskDelay(
+            10 / portTICK_PERIOD_MS); // could be remove to speed the code
 
         // do nothing if not connected to wifi
-        xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
-        { 
-            uint32_t newtick=xTaskGetTickCount();
+        xEventGroupWaitBits(
+            wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
+        {
+            uint32_t newtick = xTaskGetTickCount();
 
-            // one second elapse at least (maybe much more if Wifi was deconnected for a long)
-            if ((newtick<tickcount)||((newtick-tickcount)>=configTICK_RATE_HZ))
-            {
-                tickcount=newtick;
+            // one second elapse at least (maybe much more if Wifi was
+            // deconnected for a long)
+            if ((newtick < tickcount) ||
+                ((newtick - tickcount) >= configTICK_RATE_HZ)) {
+                tickcount = newtick;
                 dcc_timer_seconds(1);
-                bvlc_maintenance_timer(1); 
+                bvlc_maintenance_timer(1);
                 handler_cov_timer_seconds(1);
                 tsm_timer_milliseconds(1000);
 
                 // Read analog values from internal sensors
-                Analog_Input_Present_Value_Set(0,temprature_sens_read());
-                Analog_Input_Present_Value_Set(1,hall_sens_read());
-
+                Analog_Input_Present_Value_Set(0, temprature_sens_read());
+                Analog_Input_Present_Value_Set(1, hall_sens_read());
             }
 
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-            if (pdu_len) 
-            {                
+            if (pdu_len) {
                 npdu_handler(&src, &Rx_Buf[0], pdu_len);
 
-                if(Binary_Output_Present_Value(0)==BINARY_ACTIVE)
-                    gpio_set_level(BACNET_LED,1);
+                if (Binary_Output_Present_Value(0) == BINARY_ACTIVE)
+                    gpio_set_level(BACNET_LED, 1);
                 else
-                    gpio_set_level(BACNET_LED,0);       
+                    gpio_set_level(BACNET_LED, 0);
             }
 
             handler_cov_task();
@@ -203,13 +198,13 @@ void BACnetTask(void *pvParameters)
 }
 /* Entry point */
 void app_main()
-{    
-    // Cannot run BACnet code here, the default stack size is to small : 4096 byte
-    xTaskCreate(
-        BACnetTask,     /* Function to implement the task */
-        "BACnetTask",   /* Name of the task */
-        10000,          /* Stack size in words */
-        NULL,           /* Task input parameter */
-        20,             /* Priority of the task */
-        NULL);          /* Task handle. */   
+{
+    // Cannot run BACnet code here, the default stack size is to small : 4096
+    // byte
+    xTaskCreate(BACnetTask, /* Function to implement the task */
+        "BACnetTask", /* Name of the task */
+        10000, /* Stack size in words */
+        NULL, /* Task input parameter */
+        20, /* Priority of the task */
+        NULL); /* Task handle. */
 }

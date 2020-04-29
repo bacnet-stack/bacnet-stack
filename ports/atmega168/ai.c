@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Analog Input Objects customize for your use */
 
@@ -44,8 +44,7 @@ float Present_Value[MAX_ANALOG_INPUTS];
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Analog_Input_Valid_Instance(
-    uint32_t object_instance)
+bool Analog_Input_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_ANALOG_INPUTS)
         return true;
@@ -54,34 +53,29 @@ bool Analog_Input_Valid_Instance(
 }
 
 /* we simply have 0-n object instances. */
-unsigned Analog_Input_Count(
-    void)
+unsigned Analog_Input_Count(void)
 {
     return MAX_ANALOG_INPUTS;
 }
 
 /* we simply have 0-n object instances. */
-uint32_t Analog_Input_Index_To_Instance(
-    unsigned index)
+uint32_t Analog_Input_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
 /* we simply have 0-n object instances. */
-unsigned Analog_Input_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Analog_Input_Instance_To_Index(uint32_t object_instance)
 {
     return object_instance;
 }
 
-
-char *Analog_Input_Name(
-    uint32_t object_instance)
+char *Analog_Input_Name(uint32_t object_instance)
 {
-    static char text_string[5] = "AI-0";        /* okay for single thread */
+    static char text_string[5] = "AI-0"; /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_INPUTS) {
-        text_string[3] = '0' + (uint8_t) object_instance;
+        text_string[3] = '0' + (uint8_t)object_instance;
         return text_string;
     }
 
@@ -90,34 +84,31 @@ char *Analog_Input_Name(
 
 /* return apdu length, or -1 on error */
 /* assumption - object has already exists */
-int Analog_Input_Encode_Property_APDU(
-    uint8_t * apdu,
+int Analog_Input_Encode_Property_APDU(uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index;
 
-
-    (void) array_index;
+    (void)array_index;
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ANALOG_INPUT,
-                object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_ANALOG_INPUT, object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different.
                Note that Object-Name must be unique in this device */
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Input_Name(object_instance));
+            characterstring_init_ansi(
+                &char_string, Analog_Input_Name(object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

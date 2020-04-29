@@ -1,4 +1,5 @@
-/* ***************************************************************************** */
+/* *****************************************************************************
+ */
 /* */
 /*     Purpose:  Set up the 16-bit Timer/Counter */
 /* */
@@ -34,8 +35,8 @@
 /* Modified by Steve Karg */
 /*     Changed timer to 1ms. */
 /*     Encapsulated the intialization */
-/* ***************************************************************************** */
-
+/* *****************************************************************************
+ */
 
 /**********************************************************
                     Header files
@@ -50,18 +51,21 @@ volatile unsigned long Timer_Milliseconds;
 /* MS/TP Silence Timer */
 static volatile int SilenceTime;
 
-static void Timer0_Setup(
-    int milliseconds)
+static void Timer0_Setup(int milliseconds)
 {
     /*        TC Block Control Register TC_BCR    (read/write) */
     /* */
-    /*    |------------------------------------------------------------------|------| */
-    /*    |                                                                   SYNC  | */
-    /*    |------------------------------------------------------------------|------| */
-    /*   31                                                               1    0 */
+    /*    |------------------------------------------------------------------|------|
+     */
+    /*    | SYNC  | */
+    /*    |------------------------------------------------------------------|------|
+     */
+    /*   31                                                               1    0
+     */
     /* */
     /*    SYNC = 0 (no effect)    <===== take  default */
-    /*    SYNC = 1 (generate software trigger for all 3 timer channels simultaneously) */
+    /*    SYNC = 1 (generate software trigger for all 3 timer channels
+     * simultaneously) */
     /* */
     /* create a pointer to TC Global Register structure */
     AT91PS_TCB pTCB = AT91C_BASE_TCB;
@@ -70,10 +74,13 @@ static void Timer0_Setup(
 
     /*        TC Block Mode Register  TC_BMR    (read/write) */
     /* */
-    /*    |-------------------------------------|-----------|-----------|-----------| */
-    /*    |                                       TC2XC2S     TCXC1S       TC0XC0S  | */
-    /*    |-------------------------------------|-----------|-----------|-----------| */
-    /*   31                                     5       4   3       2   1         0 */
+    /*    |-------------------------------------|-----------|-----------|-----------|
+     */
+    /*    |                                       TC2XC2S     TCXC1S TC0XC0S
+     * | */
+    /*    |-------------------------------------|-----------|-----------|-----------|
+     */
+    /*   31                                     5       4   3       2   1 0 */
     /* */
     /*    TC0XC0S Select = 00 TCLK0 (PA4) */
     /*                   = 01 none           <===== we select this one */
@@ -93,13 +100,16 @@ static void Timer0_Setup(
     /* external clocks not used */
     pTCB->TCB_BMR = 0x15;
 
-
     /*        TC Channel Control Register  TC_CCR    (read/write) */
     /* */
-    /*    |----------------------------------|--------------|------------|-----------| */
-    /*    |                                      SWTRG          CLKDIS       CLKENS  | */
-    /*    |----------------------------------|--------------|------------|-----------| */
-    /*   31                                        2             1           0 */
+    /*    |----------------------------------|--------------|------------|-----------|
+     */
+    /*    |                                      SWTRG          CLKDIS CLKENS
+     * | */
+    /*    |----------------------------------|--------------|------------|-----------|
+     */
+    /*   31                                        2             1           0
+     */
     /* */
     /*    CLKEN = 0    no effect */
     /*    CLKEN = 1    enables the clock     <===== we select this one */
@@ -108,7 +118,8 @@ static void Timer0_Setup(
     /*    CLKDIS = 1   disables the clock */
     /* */
     /*  SWTRG = 0    no effect */
-    /*  SWTRG = 1    software trigger aserted counter reset and clock starts   <===== we select this one */
+    /*  SWTRG = 1    software trigger aserted counter reset and clock starts
+     * <===== we select this one */
     /* */
     /* create a pointer to channel 0 Register structure */
     AT91PS_TC pTC = AT91C_BASE_TC0;
@@ -137,27 +148,32 @@ static void Timer0_Setup(
     /*             001  TIMER_CLOCK2    (MCK/8    =   6006855 hz) */
     /*             010  TIMER_CLOCK3    (MCK/32   =   1501713 hz) */
     /*             011  TIMER_CLOCK4    (MCK/128  =    375428 hz) */
-    /*             100  TIMER_CLOCK5    (MCK/1024 =     46928 hz)   <===== we select this one */
+    /*             100  TIMER_CLOCK5    (MCK/1024 =     46928 hz)   <===== we
+     * select this one */
     /*           101  XC0 */
     /*           101  XC1 */
     /*           101  XC2 */
     /* */
     /*  CLOCK INVERT */
-    /*    CLKI   = 0   counter incremented on rising clock edge    <===== we select this one */
+    /*    CLKI   = 0   counter incremented on rising clock edge    <===== we
+     * select this one */
     /*    CLKI   = 1   counter incremented on falling clock edge */
     /* */
     /*  BURST SIGNAL SELECTION */
-    /*  BURST  = 00  clock is not gated by any external system   <===== take  default */
+    /*  BURST  = 00  clock is not gated by any external system   <===== take
+     * default */
     /*           01  XC0 is anded with the clock */
     /*           10  XC1 is anded with the clock */
     /*           11  XC2 is anded with the clock */
     /* */
     /*  COUNTER CLOCK STOPPED WITH RB LOADING */
-    /*  LDBSTOP  = 0  counter clock is not stopped when RB loading occurs   <===== take  default */
+    /*  LDBSTOP  = 0  counter clock is not stopped when RB loading occurs
+     * <===== take  default */
     /*           = 1  counter clock is stopped when RB loading occur */
     /* */
     /*  COUNTER CLOCK DISABLE WITH RB LOADING */
-    /*  LDBDIS   = 0  counter clock is not disabled when RB loading occurs   <===== take  default */
+    /*  LDBDIS   = 0  counter clock is not disabled when RB loading occurs
+     * <===== take  default */
     /*           = 1  counter clock is disabled when RB loading occurs */
     /* */
     /*  EXTERNAL TRIGGER EDGE SELECTION */
@@ -172,7 +188,8 @@ static void Timer0_Setup(
     /* */
     /*  RC COMPARE TRIGGER ENABLE */
     /*  CPCTRG   = 0  (RC Compare has no effect on the counter and its clock) */
-    /*             1  (RC Compare resets the counter and starts the clock)      <===== we select this one */
+    /*             1  (RC Compare resets the counter and starts the clock)
+     * <===== we select this one */
     /* */
     /*  WAVE */
     /*  WAVE     = 0  Capture Mode is enabled     <===== we select this one */
@@ -195,12 +212,15 @@ static void Timer0_Setup(
     /* WAVE   = 0 (Capture mode enabled) */
     pTC->TC_CMR = 0x4004;
 
-    /*        TC Register C     TC_RC   (read/write)   Compare Register 16-bits */
+    /*        TC Register C     TC_RC   (read/write)   Compare Register 16-bits
+     */
     /* */
-    /*    |----------------------------------|----------------------------------------| */
-    /*    |           not used                               RC                       | */
-    /*    |----------------------------------|----------------------------------------| */
-    /*   31                              16 15                                    0 */
+    /*    |----------------------------------|----------------------------------------|
+     */
+    /*    |           not used                               RC | */
+    /*    |----------------------------------|----------------------------------------|
+     */
+    /*   31                              16 15 0 */
     /* */
     /*    Timer Calculation:   What count gives 1 msec time-out? */
     /* */
@@ -221,10 +241,14 @@ static void Timer0_Setup(
     /*        TC Interrupt Enable Register  TC_IER    (write-only) */
     /* */
     /* */
-    /*    |------------|-------|-------|-------|-------|--------|--------|--------|--------| */
-    /*    |              ETRGS   LDRBS   LDRAS   CPCS    CPBS      CPAS     LOVRS    COVFS | */
-    /*    |------------|-------|-------|-------|-------|--------|--------|--------|--------| */
-    /*   31         8    7       6       5       4        3        2        1        0 */
+    /*    |------------|-------|-------|-------|-------|--------|--------|--------|--------|
+     */
+    /*    |              ETRGS   LDRBS   LDRAS   CPCS    CPBS      CPAS LOVRS
+     * COVFS | */
+    /*    |------------|-------|-------|-------|-------|--------|--------|--------|--------|
+     */
+    /*   31         8    7       6       5       4        3        2        1
+     * 0 */
     /* */
     /*  COVFS    = 0  no effect    <===== take  default */
     /*             1  enable counter overflow interrupt */
@@ -239,7 +263,8 @@ static void Timer0_Setup(
     /*             1  enable RB compare interrupt */
     /* */
     /*  CPCS     = 0  no effect */
-    /*             1  enable RC compare interrupt    <===== we select this one */
+    /*             1  enable RC compare interrupt    <===== we select this one
+     */
     /* */
     /*  LDRAS    = 0  no effect    <===== take  default */
     /*             1  enable RA load interrupt */
@@ -256,22 +281,30 @@ static void Timer0_Setup(
     /*        TC Interrupt Disable Register  TC_IDR    (write-only) */
     /* */
     /* */
-    /*    |------------|-------|-------|-------|-------|--------|--------|--------|--------| */
-    /*    |              ETRGS   LDRBS   LDRAS   CPCS    CPBS      CPAS     LOVRS    COVFS | */
-    /*    |------------|-------|-------|-------|-------|--------|--------|--------|--------| */
-    /*   31         8    7       6       5       4        3        2        1        0 */
+    /*    |------------|-------|-------|-------|-------|--------|--------|--------|--------|
+     */
+    /*    |              ETRGS   LDRBS   LDRAS   CPCS    CPBS      CPAS LOVRS
+     * COVFS | */
+    /*    |------------|-------|-------|-------|-------|--------|--------|--------|--------|
+     */
+    /*   31         8    7       6       5       4        3        2        1
+     * 0 */
     /* */
     /*  COVFS    = 0  no effect */
-    /*             1  disable counter overflow interrupt    <===== we select this one */
+    /*             1  disable counter overflow interrupt    <===== we select
+     * this one */
     /* */
     /*  LOVRS    = 0  no effect */
-    /*             1  disable load overrun interrupt    <===== we select this one */
+    /*             1  disable load overrun interrupt    <===== we select this
+     * one */
     /* */
     /*  CPAS     = 0  no effect */
-    /*             1  disable RA compare interrupt    <===== we select this one */
+    /*             1  disable RA compare interrupt    <===== we select this one
+     */
     /* */
     /*  CPBS     = 0  no effect */
-    /*             1  disable RB compare interrupt    <===== we select this one */
+    /*             1  disable RB compare interrupt    <===== we select this one
+     */
     /* */
     /*  CPCS     = 0  no effect    <===== take  default */
     /*             1  disable RC compare interrupt */
@@ -283,13 +316,15 @@ static void Timer0_Setup(
     /*             1  disable RB load interrupt    <===== we select this one */
     /* */
     /*  ETRGS    = 0  no effect */
-    /*             1  disable External Trigger interrupt    <===== we select this one */
+    /*             1  disable External Trigger interrupt    <===== we select
+     * this one */
     /* */
     /* disable all except RC compare interrupt */
     pTC->TC_IDR = 0xEF;
 }
 
-/*  ***************************************************************************** */
+/*  *****************************************************************************
+ */
 /* */
 /*     Timer 0 Interrupt Service Routine */
 /* */
@@ -298,13 +333,13 @@ static void Timer0_Setup(
 /*  Author:  James P Lynch  May 12, 2007 */
 /*  Modified by Steve Karg */
 /*    simplified and changed to a millisecond count-up timer */
-/*  ***************************************************************************** */
-static void Timer0IrqHandler(
-    void)
+/*  *****************************************************************************
+ */
+static void Timer0IrqHandler(void)
 {
-
-    volatile AT91PS_TC pTC = AT91C_BASE_TC0;    /* pointer to timer channel 0 register structure */
-    volatile unsigned int dummy;        /* temporary */
+    volatile AT91PS_TC pTC =
+        AT91C_BASE_TC0; /* pointer to timer channel 0 register structure */
+    volatile unsigned int dummy; /* temporary */
 
     /* read TC0 Status Register to clear interrupt */
     dummy = pTC->TC_SR;
@@ -316,19 +351,18 @@ static void Timer0IrqHandler(
     (void)dummy;
 }
 
-int Timer_Silence(
-    void)
+int Timer_Silence(void)
 {
     return SilenceTime;
 }
 
-void Timer_Silence_Reset(
-    void)
+void Timer_Silence_Reset(void)
 {
     SilenceTime = 0;
 }
 
-/*  ***************************************************************************** */
+/*  *****************************************************************************
+ */
 /* */
 /*     Timer 0 Initialization */
 /* */
@@ -336,9 +370,9 @@ void Timer_Silence_Reset(
 /*  Modified by Steve Karg */
 /*    Moved timer startup code from main */
 /*    modified the peripheral clock init */
-/*  ***************************************************************************** */
-void TimerInit(
-    void)
+/*  *****************************************************************************
+ */
+void TimerInit(void)
 {
     unsigned int pcsr;
     /* enable the Timer0 peripheral clock */
@@ -353,11 +387,10 @@ void TimerInit(
     pAIC->AIC_IDCR = (1 << AT91C_ID_TC0);
     /* Set the TC0 IRQ handler address in */
     /* AIC Source Vector Register[12] */
-    pAIC->AIC_SVR[AT91C_ID_TC0] = (unsigned int) Timer0IrqHandler;
+    pAIC->AIC_SVR[AT91C_ID_TC0] = (unsigned int)Timer0IrqHandler;
     /* Set the interrupt source type and priority */
     /* in AIC Source Mode Register[12] */
-    pAIC->AIC_SMR[AT91C_ID_TC0] =
-        (AT91C_AIC_SRCTYPE_INT_LEVEL_SENSITIVE | 0x4);
+    pAIC->AIC_SMR[AT91C_ID_TC0] = (AT91C_AIC_SRCTYPE_INT_LEVEL_SENSITIVE | 0x4);
     /* Clear the TC0 interrupt */
     /* in AIC Interrupt Clear Command Register */
     pAIC->AIC_ICCR = (1 << AT91C_ID_TC0);

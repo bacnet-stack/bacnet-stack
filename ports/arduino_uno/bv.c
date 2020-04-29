@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Binary Value Objects - customize for your use */
 
@@ -31,7 +31,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
-#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "bacnet/basic/object/bv.h"
 
@@ -87,10 +87,10 @@ static BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
 /* note: the object name must be unique within this device */
 char *Binary_Value_Name(uint32_t object_instance)
 {
-    static char text_string[5] = "BV-0";        /* okay for single thread */
+    static char text_string[5] = "BV-0"; /* okay for single thread */
 
     if (object_instance < MAX_BINARY_VALUES) {
-        text_string[3] = '0' + (uint8_t) object_instance;
+        text_string[3] = '0' + (uint8_t)object_instance;
         return text_string;
     }
 
@@ -98,14 +98,14 @@ char *Binary_Value_Name(uint32_t object_instance)
 }
 
 /* return apdu len, or -1 on error */
-int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
+int Binary_Value_Encode_Property_APDU(uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
@@ -113,15 +113,14 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
 
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_BINARY_VALUE,
-                object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_BINARY_VALUE, object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string,
-                Binary_Value_Name(object_instance));
+            characterstring_init_ansi(
+                &char_string, Binary_Value_Name(object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -171,11 +170,11 @@ int Binary_Value_Encode_Property_APDU(uint8_t * apdu,
 }
 
 /* returns true if successful */
-bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -186,9 +185,8 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -201,20 +199,19 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
             if (value.tag == BACNET_APPLICATION_TAG_ENUMERATED) {
                 if ((value.type.Enumerated == BINARY_ACTIVE) ||
                     (value.type.Enumerated == BINARY_INACTIVE)) {
-                    object_index =
-                        Binary_Value_Instance_To_Index(wp_data->
-                        object_instance);
+                    object_index = Binary_Value_Instance_To_Index(
+                        wp_data->object_instance);
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] =
-                        (BACNET_BINARY_PV) value.type.Enumerated;
+                        (BACNET_BINARY_PV)value.type.Enumerated;
                     /* Note: you could set the physical output here if we
                        are the highest priority.
                        However, if Out of Service is TRUE, then don't set the
                        physical output. */
                     if (Present_Value[0] == BINARY_ACTIVE) {
-//                        LED_GREEN_ON();
+                        //                        LED_GREEN_ON();
                     } else {
-//                        LED_GREEN_OFF();
+                        //                        LED_GREEN_OFF();
                     }
                     status = true;
                 } else {
@@ -253,7 +250,7 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 #include <string.h>
 #include "ctest.h"
 
-void testBinary_Value(Test * pTest)
+void testBinary_Value(Test *pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -265,15 +262,12 @@ void testBinary_Value(Test * pTest)
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
 
-
-    len =
-        Binary_Value_Encode_Property_APDU(&apdu[0], instance,
+    len = Binary_Value_Encode_Property_APDU(&apdu[0], instance,
         PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
+    len = decode_object_id(&apdu[len], (int *)&decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == OBJECT_BINARY_VALUE);
     ct_test(pTest, decoded_instance == instance);
 
@@ -293,7 +287,7 @@ int main(void)
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

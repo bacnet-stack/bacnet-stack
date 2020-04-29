@@ -1,31 +1,31 @@
 /**************************************************************************
-*
-* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>     /* for memmove */
+#include <string.h> /* for memmove */
 #include <stdlib.h>
 #include <string.h>
 #include "stdint.h"
@@ -92,8 +92,7 @@
 volatile uint8_t Milliseconds = 0;
 volatile uint8_t Zero_Cross_Timeout = 0;
 
-void Reinitialize(
-    void)
+void Reinitialize(void)
 {
     uint8_t i;
     char name = 0;
@@ -101,8 +100,7 @@ void Reinitialize(
     _asm reset _endasm return;
 }
 
-void Global_Int(
-    enum INT_STATE state)
+void Global_Int(enum INT_STATE state)
 {
     static uint8_t intstate = 0;
 
@@ -125,8 +123,7 @@ void Global_Int(
     }
 }
 
-void Hardware_Initialize(
-    void)
+void Hardware_Initialize(void)
 {
     TRISA = 0x00;
     TRISB = 0x00;
@@ -153,8 +150,7 @@ void Hardware_Initialize(
     Global_Int(INT_ENABLED);
 }
 
-void Initialize_Variables(
-    void)
+void Initialize_Variables(void)
 {
     /* Check to see if we need to initialize our eeproms */
     ENABLE_TIMER4_INT();
@@ -164,8 +160,7 @@ void Initialize_Variables(
     Milliseconds = 0;
 }
 
-void MainTasks(
-    void)
+void MainTasks(void)
 {
     static uint16_t millisecond_counter = 0;
     /* Handle our millisecond counters */
@@ -180,8 +175,7 @@ void MainTasks(
     }
 }
 
-void main(
-    void)
+void main(void)
 {
     RCONbits.NOT_POR = 1;
     RCONbits.NOT_RI = 1;

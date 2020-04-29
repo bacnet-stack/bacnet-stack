@@ -35,8 +35,8 @@
 #include <ifaddrs.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>     /* for standard integer types uint8_t etc. */
-#include <stdbool.h>    /* for the standard bool type. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
+#include <stdbool.h> /* for the standard bool type. */
 #include "bacnet/bacdcode.h"
 #include "bacnet/config.h"
 #include "bacnet/datalink/bip6.h"
@@ -45,16 +45,16 @@
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #include "bacport.h"
 
-static void debug_print_ipv6(const char *str, const struct in6_addr * addr) {
-   debug_printf( "BIP6: %s %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
-        str,
-        (int)addr->s6_addr[0], (int)addr->s6_addr[1],
-        (int)addr->s6_addr[2], (int)addr->s6_addr[3],
-        (int)addr->s6_addr[4], (int)addr->s6_addr[5],
-        (int)addr->s6_addr[6], (int)addr->s6_addr[7],
-        (int)addr->s6_addr[8], (int)addr->s6_addr[9],
-        (int)addr->s6_addr[10], (int)addr->s6_addr[11],
-        (int)addr->s6_addr[12], (int)addr->s6_addr[13],
+static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
+{
+    debug_printf("BIP6: %s "
+                 "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%"
+                 "02x:%02x%02x\n",
+        str, (int)addr->s6_addr[0], (int)addr->s6_addr[1],
+        (int)addr->s6_addr[2], (int)addr->s6_addr[3], (int)addr->s6_addr[4],
+        (int)addr->s6_addr[5], (int)addr->s6_addr[6], (int)addr->s6_addr[7],
+        (int)addr->s6_addr[8], (int)addr->s6_addr[9], (int)addr->s6_addr[10],
+        (int)addr->s6_addr[11], (int)addr->s6_addr[12], (int)addr->s6_addr[13],
         (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
 }
 
@@ -71,8 +71,7 @@ static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
  *
  * @param ifname - C string for name or text address
  */
-void bip6_set_interface(
-    char *ifname)
+void bip6_set_interface(char *ifname)
 {
     struct ifaddrs *ifa, *ifa_tmp;
     struct sockaddr_in6 *sin;
@@ -85,16 +84,13 @@ void bip6_set_interface(
     ifa_tmp = ifa;
     debug_printf("BIP6: seeking interface: %s\n", ifname);
     while (ifa_tmp) {
-        if ((ifa_tmp->ifa_addr) &&
-            (ifa_tmp->ifa_addr->sa_family == AF_INET6)) {
+        if ((ifa_tmp->ifa_addr) && (ifa_tmp->ifa_addr->sa_family == AF_INET6)) {
             debug_printf("BIP6: found interface: %s\n", ifa_tmp->ifa_name);
         }
-        if ((ifa_tmp->ifa_addr) &&
-            (ifa_tmp->ifa_addr->sa_family == AF_INET6) &&
-            (strcasecmp(ifa_tmp->ifa_name,ifname) == 0)) {
-            sin = (struct sockaddr_in6*) ifa_tmp->ifa_addr;
-            bvlc6_address_set(&BIP6_Addr,
-                ntohs(sin->sin6_addr.s6_addr16[0]),
+        if ((ifa_tmp->ifa_addr) && (ifa_tmp->ifa_addr->sa_family == AF_INET6) &&
+            (strcasecmp(ifa_tmp->ifa_name, ifname) == 0)) {
+            sin = (struct sockaddr_in6 *)ifa_tmp->ifa_addr;
+            bvlc6_address_set(&BIP6_Addr, ntohs(sin->sin6_addr.s6_addr16[0]),
                 ntohs(sin->sin6_addr.s6_addr16[1]),
                 ntohs(sin->sin6_addr.s6_addr16[2]),
                 ntohs(sin->sin6_addr.s6_addr16[3]),
@@ -119,8 +115,7 @@ void bip6_set_interface(
  *
  * @param port - IPv6 UDP port number
  */
-void bip6_set_port(
-    uint16_t port)
+void bip6_set_port(uint16_t port)
 {
     BIP6_Addr.port = port;
     BIP6_Broadcast_Addr.port = port;
@@ -131,8 +126,7 @@ void bip6_set_port(
  *
  * @return IPv6 UDP port number
  */
-uint16_t bip6_get_port(
-    void)
+uint16_t bip6_get_port(void)
 {
     return BIP6_Addr.port;
 }
@@ -143,8 +137,7 @@ uint16_t bip6_get_port(
  *
  * @param addr - IPv6 source address
  */
-void bip6_get_broadcast_address(
-    BACNET_ADDRESS * addr)
+void bip6_get_broadcast_address(BACNET_ADDRESS *addr)
 {
     if (addr) {
         addr->net = BACNET_BROADCAST_NETWORK;
@@ -158,8 +151,7 @@ void bip6_get_broadcast_address(
  *
  * @param addr - IPv6 source address
  */
-void bip6_get_my_address(
-    BACNET_ADDRESS * addr)
+void bip6_get_my_address(BACNET_ADDRESS *addr)
 {
     uint32_t device_id = 0;
 
@@ -174,8 +166,7 @@ void bip6_get_my_address(
  *
  * @param addr - network IPv6 address
  */
-bool bip6_set_addr(
-    BACNET_IP6_ADDRESS *addr)
+bool bip6_set_addr(BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(&BIP6_Addr, addr);
 }
@@ -185,8 +176,7 @@ bool bip6_set_addr(
  *
  * @return BACnet/IP address
  */
-bool bip6_get_addr(
-    BACNET_IP6_ADDRESS *addr)
+bool bip6_get_addr(BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(addr, &BIP6_Addr);
 }
@@ -196,8 +186,7 @@ bool bip6_get_addr(
  *
  * @param addr - network IPv6 address
  */
-bool bip6_set_broadcast_addr(
-    BACNET_IP6_ADDRESS *addr)
+bool bip6_set_broadcast_addr(BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(&BIP6_Broadcast_Addr, addr);
 }
@@ -207,8 +196,7 @@ bool bip6_set_broadcast_addr(
  *
  * @return BACnet/IP address
  */
-bool bip6_get_broadcast_addr(
-    BACNET_IP6_ADDRESS *addr)
+bool bip6_get_broadcast_addr(BACNET_IP6_ADDRESS *addr)
 {
     return bvlc6_address_copy(addr, &BIP6_Broadcast_Addr);
 }
@@ -224,10 +212,7 @@ bool bip6_get_broadcast_addr(
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-int bip6_send_mpdu(
-    BACNET_IP6_ADDRESS *dest,
-    uint8_t * mtu,
-    uint16_t mtu_len)
+int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
 {
     struct sockaddr_in6 bvlc_dest = { 0 };
     uint16_t addr16[8];
@@ -251,8 +236,8 @@ int bip6_send_mpdu(
     bvlc_dest.sin6_port = htons(dest->port);
     debug_print_ipv6("Sending MPDU->", &bvlc_dest.sin6_addr);
     /* Send the packet */
-    return sendto(BIP6_Socket, (char *) mtu, mtu_len, 0,
-        (struct sockaddr *) &bvlc_dest, sizeof(bvlc_dest));
+    return sendto(BIP6_Socket, (char *)mtu, mtu_len, 0,
+        (struct sockaddr *)&bvlc_dest, sizeof(bvlc_dest));
 }
 
 /**
@@ -286,17 +271,14 @@ int bip6_send_pdu(BACNET_ADDRESS *dest,
  * @return Number of bytes received, or 0 if none or timeout.
  */
 uint16_t bip6_receive(
-    BACNET_ADDRESS * src,
-    uint8_t * npdu,
-    uint16_t max_npdu,
-    unsigned timeout)
+    BACNET_ADDRESS *src, uint8_t *npdu, uint16_t max_npdu, unsigned timeout)
 {
     uint16_t npdu_len = 0; /* return value */
     fd_set read_fds;
     int max = 0;
     struct timeval select_timeout;
     struct sockaddr_in6 sin = { 0 };
-    BACNET_IP6_ADDRESS addr = {{ 0 }};
+    BACNET_IP6_ADDRESS addr = { { 0 } };
     socklen_t sin_len = sizeof(sin);
     int received_bytes = 0;
     int offset = 0;
@@ -322,9 +304,8 @@ uint16_t bip6_receive(
     max = BIP6_Socket;
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes =
-            recvfrom(BIP6_Socket, (char *) &npdu[0], max_npdu, 0,
-            (struct sockaddr *) &sin, &sin_len);
+        received_bytes = recvfrom(BIP6_Socket, (char *)&npdu[0], max_npdu, 0,
+            (struct sockaddr *)&sin, &sin_len);
     } else {
         return 0;
     }
@@ -342,14 +323,10 @@ uint16_t bip6_receive(
     }
     /* pass the packet into the BBMD handler */
     debug_print_ipv6("Received MPDU->", &sin.sin6_addr);
-    bvlc6_address_set(&addr,
-        ntohs(sin.sin6_addr.s6_addr16[0]),
-        ntohs(sin.sin6_addr.s6_addr16[1]),
-        ntohs(sin.sin6_addr.s6_addr16[2]),
-        ntohs(sin.sin6_addr.s6_addr16[3]),
-        ntohs(sin.sin6_addr.s6_addr16[4]),
-        ntohs(sin.sin6_addr.s6_addr16[5]),
-        ntohs(sin.sin6_addr.s6_addr16[6]),
+    bvlc6_address_set(&addr, ntohs(sin.sin6_addr.s6_addr16[0]),
+        ntohs(sin.sin6_addr.s6_addr16[1]), ntohs(sin.sin6_addr.s6_addr16[2]),
+        ntohs(sin.sin6_addr.s6_addr16[3]), ntohs(sin.sin6_addr.s6_addr16[4]),
+        ntohs(sin.sin6_addr.s6_addr16[5]), ntohs(sin.sin6_addr.s6_addr16[6]),
         ntohs(sin.sin6_addr.s6_addr16[7]));
     addr.port = ntohs(sin.sin6_port);
     offset = bvlc6_handler(&addr, src, npdu, received_bytes);
@@ -370,9 +347,8 @@ uint16_t bip6_receive(
 
 /** Cleanup and close out the BACnet/IP services by closing the socket.
  * @ingroup DLBIP6
-  */
-void bip6_cleanup(
-    void)
+ */
+void bip6_cleanup(void)
 {
     if (BIP6_Socket != -1) {
         close(BIP6_Socket);
@@ -399,11 +375,10 @@ void bip6_cleanup(
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
-bool bip6_init(
-    char *ifname)
+bool bip6_init(char *ifname)
 {
-    int status = 0;     /* return from socket lib calls */
-    struct sockaddr_in6 server = {0};
+    int status = 0; /* return from socket lib calls */
+    struct sockaddr_in6 server = { 0 };
     struct in6_addr broadcast_address;
     struct ipv6_mreq join_request;
     int sockopt = 0;
@@ -418,9 +393,8 @@ bool bip6_init(
     }
     debug_printf("BIP6: IPv6 UDP port: 0x%04X\n", htons(BIP6_Addr.port));
     if (BIP6_Broadcast_Addr.address[0] == 0) {
-        bvlc6_address_set(&BIP6_Broadcast_Addr,
-                BIP6_MULTICAST_SITE_LOCAL, 0, 0, 0, 0, 0, 0,
-                BIP6_MULTICAST_GROUP_ID);
+        bvlc6_address_set(&BIP6_Broadcast_Addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0,
+            0, 0, 0, 0, BIP6_MULTICAST_GROUP_ID);
     }
     /* assumes that the driver has already been initialized */
     BIP6_Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
@@ -429,26 +403,26 @@ bool bip6_init(
     /* Allow us to use the same socket for sending and receiving */
     /* This makes sure that the src port is correct when sending */
     sockopt = 1;
-    status =
-        setsockopt(BIP6_Socket, SOL_SOCKET, SO_REUSEADDR, &sockopt,
-        sizeof(sockopt));
+    status = setsockopt(
+        BIP6_Socket, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
     if (status < 0) {
         close(BIP6_Socket);
         BIP6_Socket = -1;
         return status;
     }
     /* allow us to send a broadcast */
-    status =
-        setsockopt(BIP6_Socket, SOL_SOCKET, SO_BROADCAST, &sockopt,
-        sizeof(sockopt));
+    status = setsockopt(
+        BIP6_Socket, SOL_SOCKET, SO_BROADCAST, &sockopt, sizeof(sockopt));
     if (status < 0) {
         close(BIP6_Socket);
         BIP6_Socket = -1;
         return false;
     }
     /* subscribe to a multicast address */
-    memcpy(&broadcast_address.s6_addr[0], &BIP6_Broadcast_Addr.address[0], IP6_ADDRESS_MAX);
-    memcpy(&join_request.ipv6mr_multiaddr, &broadcast_address,  sizeof(struct in6_addr));
+    memcpy(&broadcast_address.s6_addr[0], &BIP6_Broadcast_Addr.address[0],
+        IP6_ADDRESS_MAX);
+    memcpy(&join_request.ipv6mr_multiaddr, &broadcast_address,
+        sizeof(struct in6_addr));
     /* Let system choose the interface */
     join_request.ipv6mr_interface = 0;
     status = setsockopt(BIP6_Socket, IPPROTO_IPV6, IPV6_JOIN_GROUP,
@@ -461,7 +435,7 @@ bool bip6_init(
     server.sin6_family = AF_INET6;
     server.sin6_addr = in6addr_any;
     server.sin6_port = htons(BIP6_Addr.port);
-    status = bind(BIP6_Socket, (const void*)&server, sizeof(server));
+    status = bind(BIP6_Socket, (const void *)&server, sizeof(server));
     if (status < 0) {
         perror("BIP: bind");
         close(BIP6_Socket);

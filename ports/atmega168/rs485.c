@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* The module handles sending data out the RS-485 port */
 /* and handles receiving data from the RS-485 port. */
@@ -45,14 +45,13 @@ static uint8_t LED3_Off_Timer;
 static uint32_t RS485_Baud = 9600;
 
 /****************************************************************************
-* DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
-*              receive mode.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Initialize(
-    void)
+ * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
+ *              receive mode.
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Initialize(void)
 {
     /* enable Transmit and Receive */
     UCSR0B = _BV(TXEN0) | _BV(RXEN0);
@@ -81,25 +80,23 @@ void RS485_Initialize(
 }
 
 /****************************************************************************
-* DESCRIPTION: Returns the baud rate that we are currently running at
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(
-    void)
+ * DESCRIPTION: Returns the baud rate that we are currently running at
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+uint32_t RS485_Get_Baud_Rate(void)
 {
     return RS485_Baud;
 }
 
 /****************************************************************************
-* DESCRIPTION: Sets the baud rate for the chip USART
-* RETURN:      true if valid baud rate
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_Set_Baud_Rate(
-    uint32_t baud)
+ * DESCRIPTION: Sets the baud rate for the chip USART
+ * RETURN:      true if valid baud rate
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+bool RS485_Set_Baud_Rate(uint32_t baud)
 {
     bool valid = true;
 
@@ -126,13 +123,12 @@ bool RS485_Set_Baud_Rate(
 }
 
 /****************************************************************************
-* DESCRIPTION: Enable or disable the transmitter
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Transmitter_Enable(
-    bool enable)
+ * DESCRIPTION: Enable or disable the transmitter
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Transmitter_Enable(bool enable)
 {
     if (enable) {
         BIT_SET(PORTD, PD2);
@@ -142,13 +138,12 @@ void RS485_Transmitter_Enable(
 }
 
 /****************************************************************************
-* DESCRIPTION: Waits on the SilenceTimer for 40 bits.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Turnaround_Delay(
-    void)
+ * DESCRIPTION: Waits on the SilenceTimer for 40 bits.
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Turnaround_Delay(void)
 {
     uint8_t nbytes = 4;
 
@@ -171,13 +166,12 @@ void RS485_Turnaround_Delay(
 }
 
 /****************************************************************************
-* DESCRIPTION: Timers for delaying the LED indicators going off
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       expected to be called once a millisecond
-*****************************************************************************/
-void RS485_LED_Timers(
-    void)
+ * DESCRIPTION: Timers for delaying the LED indicators going off
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       expected to be called once a millisecond
+ *****************************************************************************/
+void RS485_LED_Timers(void)
 {
     if (LED1_Off_Timer) {
         LED1_Off_Timer--;
@@ -194,41 +188,38 @@ void RS485_LED_Timers(
 }
 
 /****************************************************************************
-* DESCRIPTION: Turn on the LED, and set the off timer to turn it off
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-static void RS485_LED1_On(
-    void)
+ * DESCRIPTION: Turn on the LED, and set the off timer to turn it off
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+static void RS485_LED1_On(void)
 {
     BIT_CLEAR(PORTD, PD6);
     LED1_Off_Timer = 20;
 }
 
 /****************************************************************************
-* DESCRIPTION: Turn on the LED, and set the off timer to turn it off
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-static void RS485_LED3_On(
-    void)
+ * DESCRIPTION: Turn on the LED, and set the off timer to turn it off
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+static void RS485_LED3_On(void)
 {
     BIT_CLEAR(PORTD, PD7);
     LED3_Off_Timer = 20;
 }
 
 /****************************************************************************
-* DESCRIPTION: Send some data and wait until it is sent
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Send_Data(
-    uint8_t * buffer,   /* data to send */
+ * DESCRIPTION: Send some data and wait until it is sent
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Send_Data(uint8_t *buffer, /* data to send */
     uint16_t nbytes)
-{       /* number of bytes of data */
+{ /* number of bytes of data */
     RS485_LED3_On();
     while (nbytes) {
         while (!BIT_CHECK(UCSR0A, UDRE0)) {
@@ -251,13 +242,12 @@ void RS485_Send_Data(
 }
 
 /****************************************************************************
-* DESCRIPTION: Return true if a framing or overrun error is present
-* RETURN:      true if error
-* ALGORITHM:   autobaud - if there are a lot of errors, switch baud rate
-* NOTES:       Clears any error flags.
-*****************************************************************************/
-bool RS485_ReceiveError(
-    void)
+ * DESCRIPTION: Return true if a framing or overrun error is present
+ * RETURN:      true if error
+ * ALGORITHM:   autobaud - if there are a lot of errors, switch baud rate
+ * NOTES:       Clears any error flags.
+ *****************************************************************************/
+bool RS485_ReceiveError(void)
 {
     bool ReceiveError = false;
     volatile uint8_t dummy_data;
@@ -287,13 +277,12 @@ bool RS485_ReceiveError(
 }
 
 /****************************************************************************
-* DESCRIPTION: Return true if data is available
-* RETURN:      true if data is available, with the data in the parameter set
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_DataAvailable(
-    uint8_t * data)
+ * DESCRIPTION: Return true if data is available
+ * RETURN:      true if data is available, with the data in the parameter set
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+bool RS485_DataAvailable(uint8_t *data)
 {
     bool DataAvailable = false;
 
@@ -308,8 +297,7 @@ bool RS485_DataAvailable(
 }
 
 #ifdef TEST_RS485
-int main(
-    void)
+int main(void)
 {
     unsigned i = 0;
     uint8_t DataRegister;

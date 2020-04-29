@@ -41,18 +41,18 @@
 #include "rs485.h"
 
 #ifdef CONF_BOARD_ENABLE_RS485_XPLAINED
-#define RS485_RE       IOPORT_CREATE_PIN(PORTC, 1)
-#define RS485_DE       IOPORT_CREATE_PIN(PORTC, 0)
-#define RS485_TXD      IOPORT_CREATE_PIN(PORTC, 3)
-#define RS485_RXD      IOPORT_CREATE_PIN(PORTC, 2)
-#define RS485_USART    USARTC0
+#define RS485_RE IOPORT_CREATE_PIN(PORTC, 1)
+#define RS485_DE IOPORT_CREATE_PIN(PORTC, 0)
+#define RS485_TXD IOPORT_CREATE_PIN(PORTC, 3)
+#define RS485_RXD IOPORT_CREATE_PIN(PORTC, 2)
+#define RS485_USART USARTC0
 #define RS485_TXC_vect USARTC0_TXC_vect
 #define RS485_RXC_vect USARTC0_RXC_vect
 #else
-#define RS485_RE    IOPORT_CREATE_PIN(PORTE, 0)
-#define RS485_DE    IOPORT_CREATE_PIN(PORTE, 0)
-#define RS485_TXD   IOPORT_CREATE_PIN(PORTE, 3)
-#define RS485_RXD   IOPORT_CREATE_PIN(PORTE, 2)
+#define RS485_RE IOPORT_CREATE_PIN(PORTE, 0)
+#define RS485_DE IOPORT_CREATE_PIN(PORTE, 0)
+#define RS485_TXD IOPORT_CREATE_PIN(PORTE, 3)
+#define RS485_RXD IOPORT_CREATE_PIN(PORTE, 2)
 #define RS485_USART USARTE0
 #define RS485_TXC_vect USARTE0_TXC_vect
 #define RS485_RXC_vect USARTE0_RXC_vect
@@ -164,9 +164,9 @@ bool rs485_turnaround_elapsed(void)
  *
  * @return true if a byte is available
  */
-bool rs485_byte_available(uint8_t * data_register)
+bool rs485_byte_available(uint8_t *data_register)
 {
-    bool data_available = false;        /* return value */
+    bool data_available = false; /* return value */
 
     if (FIFO_Empty(&Receive_Queue)) {
         led_off_delay(LED_RS485_RX, 2);
@@ -202,14 +202,13 @@ bool rs485_frame_sent(void)
 }
 
 /**
-*  Transmit one or more bytes on RS-485. Can be called while transmitting to add
-*  additional bytes to transmit queue.
-*
-* @param buffer - array of one or more bytes to transmit
-* @param nbytes - number of bytes to transmit
-*/
-bool rs485_bytes_send(uint8_t * buffer,
-    uint16_t nbytes)
+ *  Transmit one or more bytes on RS-485. Can be called while transmitting to
+ * add additional bytes to transmit queue.
+ *
+ * @param buffer - array of one or more bytes to transmit
+ * @param nbytes - number of bytes to transmit
+ */
+bool rs485_bytes_send(uint8_t *buffer, uint16_t nbytes)
 {
     bool status = false;
     bool start_required = false;
@@ -234,8 +233,8 @@ bool rs485_bytes_send(uint8_t * buffer,
 }
 
 /**
-* RS485 RX interrupt
-*/
+ * RS485 RX interrupt
+ */
 ISR(RS485_RXC_vect)
 {
     unsigned char ch;
@@ -246,8 +245,8 @@ ISR(RS485_RXC_vect)
 }
 
 /**
-* RS485 TX interrupt
-*/
+ * RS485 TX interrupt
+ */
 ISR(RS485_TXC_vect)
 {
     uint8_t ch;
@@ -268,8 +267,7 @@ ISR(RS485_TXC_vect)
  *
  * @return baud - RS-485 baud rate in bits per second (bps)
  */
-uint32_t rs485_baud_rate(
-    void)
+uint32_t rs485_baud_rate(void)
 {
     return Baud_Rate;
 }
@@ -281,8 +279,7 @@ uint32_t rs485_baud_rate(
  *
  * @return true if set and valid
  */
-bool rs485_baud_rate_set(
-    uint32_t baud)
+bool rs485_baud_rate_set(uint32_t baud)
 {
     bool valid = true;
     unsigned long frequency;
@@ -295,7 +292,7 @@ bool rs485_baud_rate_set(
         case 76800:
         case 115200:
             frequency = sysclk_get_peripheral_bus_hz(&RS485_USART);
-            valid = usart_set_baudrate (&RS485_USART, baud, frequency);
+            valid = usart_set_baudrate(&RS485_USART, baud, frequency);
             if (valid) {
                 Baud_Rate = baud;
             }
@@ -308,7 +305,6 @@ bool rs485_baud_rate_set(
     return valid;
 }
 
-
 /**
  *  Initialize the RS-485 UART interface, receive interrupts enabled
  */
@@ -318,22 +314,18 @@ void rs485_init(void)
 
     /* initialize the Rx and Tx byte queues */
     FIFO_Init(&Receive_Queue, &Receive_Queue_Data[0],
-        (unsigned) sizeof(Receive_Queue_Data));
+        (unsigned)sizeof(Receive_Queue_Data));
     FIFO_Init(&Transmit_Queue, &Transmit_Queue_Data[0],
-        (unsigned) sizeof(Transmit_Queue_Data));
+        (unsigned)sizeof(Transmit_Queue_Data));
     /* initialize the silence timer */
     rs485_silence_reset();
     /* configure the TX pin */
-    ioport_configure_pin(RS485_TXD,
-        IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+    ioport_configure_pin(RS485_TXD, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
     /* configure the RX pin */
-    ioport_configure_pin(RS485_RXD,
-		IOPORT_DIR_INPUT);
+    ioport_configure_pin(RS485_RXD, IOPORT_DIR_INPUT);
     /* configure the RTS pins */
-    ioport_configure_pin(RS485_RE,
-        IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
-    ioport_configure_pin(RS485_DE,
-        IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
+    ioport_configure_pin(RS485_RE, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
+    ioport_configure_pin(RS485_DE, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
     option.baudrate = Baud_Rate;
     option.charlength = USART_CHSIZE_8BIT_gc;
     option.paritytype = USART_PMODE_DISABLED_gc;

@@ -1,10 +1,10 @@
 /**
-* @file
-* @author Steve Karg <skarg@users.sourceforge.net>
-* @date 2013
-* @brief Store and retrieve non-volatile data
-*
-*/
+ * @file
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2013
+ * @brief Store and retrieve non-volatile data
+ *
+ */
 #include <stdint.h>
 #include <stdbool.h>
 #include "nvmdata.h"
@@ -12,8 +12,8 @@
 #include "bacnet/basic/object/device.h"
 
 /**
-* Initializes the non-volatile memory module
-*/
+ * Initializes the non-volatile memory module
+ */
 void nvm_data_init(void)
 {
     uint32_t device_id = 127;
@@ -32,7 +32,7 @@ void nvm_data_init(void)
     }
     dlmstp_set_max_master(max_master);
     /* Get the device ID from the EEPROM */
-    nvm_read(NVM_DEVICE_0, (uint8_t *) & device_id, sizeof(device_id));
+    nvm_read(NVM_DEVICE_0, (uint8_t *)&device_id, sizeof(device_id));
     if (device_id < BACNET_MAX_INSTANCE) {
         Device_Set_Object_Instance_Number(device_id);
     } else {

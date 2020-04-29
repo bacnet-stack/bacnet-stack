@@ -28,7 +28,7 @@ int main(void)
     mstimer_init();
     rs485_init();
     led_init();
-	adc_init();
+    adc_init();
 #ifdef CONF_BOARD_ENABLE_RS485_XPLAINED
     // Enable display backlight
     gpio_set_pin_high(NHD_C12832A1Z_BACKLIGHT);

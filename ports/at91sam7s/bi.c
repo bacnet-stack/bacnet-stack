@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Binary Input Objects customize for your use */
 
@@ -43,31 +43,16 @@
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Input_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_POLARITY,
-    -1
-};
+static const int Binary_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_POLARITY, -1 };
 
-static const int Binary_Input_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    -1
-};
+static const int Binary_Input_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Binary_Input_Properties_Proprietary[] = {
-    -1
-};
+static const int Binary_Input_Properties_Proprietary[] = { -1 };
 
 void Binary_Input_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
         *pRequired = Binary_Input_Properties_Required;
@@ -82,8 +67,7 @@ void Binary_Input_Property_Lists(
     return;
 }
 
-void Binary_Input_Init(
-    void)
+void Binary_Input_Init(void)
 {
     unsigned i;
 
@@ -93,8 +77,7 @@ void Binary_Input_Init(
 }
 
 /* we simply have 0-n object instances. */
-bool Binary_Input_Valid_Instance(
-    uint32_t object_instance)
+bool Binary_Input_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_BINARY_INPUTS)
         return true;
@@ -103,15 +86,13 @@ bool Binary_Input_Valid_Instance(
 }
 
 /* we simply have 0-n object instances. */
-unsigned Binary_Input_Count(
-    void)
+unsigned Binary_Input_Count(void)
 {
     return MAX_BINARY_INPUTS;
 }
 
 /* we simply have 0-n object instances.*/
-uint32_t Binary_Input_Index_To_Instance(
-    unsigned index)
+uint32_t Binary_Input_Index_To_Instance(unsigned index)
 {
     return index;
 }
@@ -119,8 +100,7 @@ uint32_t Binary_Input_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Binary_Input_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Binary_Input_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_INPUTS;
 
@@ -130,8 +110,7 @@ unsigned Binary_Input_Instance_To_Index(
     return index;
 }
 
-BACNET_BINARY_PV Binary_Input_Present_Value(
-    uint32_t object_instance)
+BACNET_BINARY_PV Binary_Input_Present_Value(uint32_t object_instance)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
     unsigned index = 0;
@@ -145,14 +124,13 @@ BACNET_BINARY_PV Binary_Input_Present_Value(
 }
 
 bool Binary_Input_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[16] = "BI-0";       /* okay for single thread */
+    static char text_string[16] = "BI-0"; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_BINARY_INPUTS) {
-        text_string[3] = '0' + (uint8_t) object_instance;
+        text_string[3] = '0' + (uint8_t)object_instance;
         status = characterstring_init_ansi(object_name, text_string);
     }
 
@@ -161,10 +139,9 @@ bool Binary_Input_Object_Name(
 
 /* return apdu length, or -1 on error */
 /* assumption - object already exists, and has been bounds checked */
-int Binary_Input_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Binary_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_POLARITY polarity = POLARITY_NORMAL;
@@ -178,9 +155,8 @@ int Binary_Input_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_BINARY_INPUT,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_BINARY_INPUT, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:

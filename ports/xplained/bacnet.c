@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2013 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2013 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -77,10 +77,10 @@ static struct mstimer Reinit_Timer;
 static uint8_t PDUBuffer[MAX_MPDU];
 
 /**************************************************************************
-* Description: handles reinitializing the device after a few seconds
-* Returns: none
-* Notes: gives the device enough time to acknowledge the RD request
-**************************************************************************/
+ * Description: handles reinitializing the device after a few seconds
+ * Returns: none
+ * Notes: gives the device enough time to acknowledge the RD request
+ **************************************************************************/
 static void reinit_task(void)
 {
     BACNET_REINITIALIZED_STATE state = BACNET_REINIT_IDLE;
@@ -100,12 +100,11 @@ static void reinit_task(void)
 }
 
 /**************************************************************************
-* Description: handles recurring strictly timed task
-* Returns: none
-* Notes: called by ISR every 5 milliseconds
-**************************************************************************/
-void bacnet_task_timed(
-    void)
+ * Description: handles recurring strictly timed task
+ * Returns: none
+ * Notes: called by ISR every 5 milliseconds
+ **************************************************************************/
+void bacnet_task_timed(void)
 {
     struct mstp_rx_packet *pkt = NULL;
     uint16_t pdu_len = 0;
@@ -113,7 +112,7 @@ void bacnet_task_timed(
 
     pdu_len = dlmstp_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 5);
     if (pdu_len) {
-        pkt = (struct mstp_rx_packet *) Ringbuf_Data_Peek(&Receive_Queue);
+        pkt = (struct mstp_rx_packet *)Ringbuf_Data_Peek(&Receive_Queue);
         if (pkt) {
             memcpy(pkt->buffer, PDUBuffer, MAX_MPDU);
             bacnet_address_copy(&pkt->src, &src);
@@ -124,38 +123,38 @@ void bacnet_task_timed(
 }
 
 /**************************************************************************
-* Description: handles recurring task
-* Returns: none
-* Notes: none
-**************************************************************************/
+ * Description: handles recurring task
+ * Returns: none
+ * Notes: none
+ **************************************************************************/
 static void bacnet_test_task(void)
 {
-	static unsigned index = 0;
-	uint32_t instance;
-	float float_value;
-	uint16_t adc_value;
+    static unsigned index = 0;
+    uint32_t instance;
+    float float_value;
+    uint16_t adc_value;
 
     instance = Analog_Input_Index_To_Instance(index);
     if (!Analog_Input_Out_Of_Service(instance)) {
-		adc_value = adc_result_12bit(index);
+        adc_value = adc_result_12bit(index);
         float_value = adc_value;
         float_value /= 4095;
         Analog_Input_Present_Value_Set(instance, float_value);
     }
     index++;
-	if (index >= MAX_ANALOG_INPUTS) {
+    if (index >= MAX_ANALOG_INPUTS) {
         index = 0;
     }
 }
 
 /**************************************************************************
-* Description: handles recurring task
-* Returns: none
-* Notes: none
-**************************************************************************/
+ * Description: handles recurring task
+ * Returns: none
+ * Notes: none
+ **************************************************************************/
 void bacnet_task(void)
 {
-    struct mstp_rx_packet pkt = {{0}};
+    struct mstp_rx_packet pkt = { { 0 } };
     bool pdu_available = false;
 
     /* hello, World! */
@@ -167,68 +166,65 @@ void bacnet_task(void)
     if (mstimer_expired(&DCC_Timer)) {
         mstimer_reset(&DCC_Timer);
         dcc_timer_seconds(DCC_CYCLE_SECONDS);
-        led_on_interval(LED_DEBUG,500);
+        led_on_interval(LED_DEBUG, 500);
     }
     if (mstimer_expired(&TSM_Timer)) {
         mstimer_reset(&TSM_Timer);
         tsm_timer_milliseconds(mstimer_interval(&TSM_Timer));
     }
     reinit_task();
-	bacnet_test_task();
+    bacnet_test_task();
     /* handle the messaging */
-    if ((!dlmstp_send_pdu_queue_full()) &&
-        (!Ringbuf_Empty(&Receive_Queue))) {
+    if ((!dlmstp_send_pdu_queue_full()) && (!Ringbuf_Empty(&Receive_Queue))) {
         Ringbuf_Pop(&Receive_Queue, (uint8_t *)&pkt);
         pdu_available = true;
     }
     if (pdu_available) {
-        led_on_interval(LED_APDU,125);
+        led_on_interval(LED_APDU, 125);
         npdu_handler(&pkt.src, &pkt.buffer[0], pkt.length);
     }
 }
 
 /**************************************************************************
-* Description: initializes the BACnet library
-* Returns: none
-* Notes: none
-**************************************************************************/
+ * Description: initializes the BACnet library
+ * Returns: none
+ * Notes: none
+ **************************************************************************/
 void bacnet_init(void)
 {
     unsigned i;
 
-    Ringbuf_Init(&Receive_Queue, (uint8_t *) & Receive_Buffer,
+    Ringbuf_Init(&Receive_Queue, (uint8_t *)&Receive_Buffer,
         sizeof(struct mstp_rx_packet), MSTP_RECEIVE_PACKET_COUNT);
     dlmstp_init(NULL);
     /* initialize objects */
     Device_Init(NULL);
     /* set up our confirmed service unrecognized service handler - required! */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-        handler_read_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-        handler_reinitialize_device);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
     /* handle communication so we can shut up when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
     /* start the cyclic 1 second timer for DCC */
-    mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS*1000);
+    mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
     /* start the cyclic 1 second timer for COV */
-    mstimer_set(&COV_Timer, COV_CYCLE_SECONDS*1000);
+    mstimer_set(&COV_Timer, COV_CYCLE_SECONDS * 1000);
     /* start the cyclic 1 second timer for TSM */
-    mstimer_set(&TSM_Timer, TSM_CYCLE_SECONDS*1000);
-	for (i = 0; i < MAX_ANALOG_INPUTS; i++) {
+    mstimer_set(&TSM_Timer, TSM_CYCLE_SECONDS * 1000);
+    for (i = 0; i < MAX_ANALOG_INPUTS; i++) {
         Analog_Input_Units_Set(
-            Analog_Input_Index_To_Instance(i),
-            UNITS_PERCENT);
+            Analog_Input_Index_To_Instance(i), UNITS_PERCENT);
     }
 }

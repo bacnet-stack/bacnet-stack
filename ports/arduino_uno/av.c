@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Analog Value Objects - customize for your use */
 
@@ -31,7 +31,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "bacnet/basic/object/av.h"
 
@@ -80,33 +80,32 @@ char *Analog_Value_Name(uint32_t object_instance)
 {
     static char text_string[5] = "AV-"; /* okay for single thread */
 
-    text_string[3] = '0' + (uint8_t) object_instance;
+    text_string[3] = '0' + (uint8_t)object_instance;
 
     return text_string;
 }
 
 /* return apdu len, or -1 on error */
-int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
+int Analog_Value_Encode_Property_APDU(uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index;
 
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ANALOG_VALUE,
-                object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_ANALOG_VALUE, object_instance);
             break;
         case PROP_OBJECT_NAME:
-            characterstring_init_ansi(&char_string,
-                Analog_Value_Name(object_instance));
+            characterstring_init_ansi(
+                &char_string, Analog_Value_Name(object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -116,9 +115,8 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
             break;
         case PROP_PRESENT_VALUE:
             object_index = Analog_Value_Instance_To_Index(object_instance);
-            apdu_len =
-                encode_application_real(&apdu[0],
-                AV_Present_Value[object_index]);
+            apdu_len = encode_application_real(
+                &apdu[0], AV_Present_Value[object_index]);
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -155,11 +153,11 @@ int Analog_Value_Encode_Property_APDU(uint8_t * apdu,
 }
 
 /* returns true if successful */
-bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
@@ -170,9 +168,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -206,7 +203,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
 #include <string.h>
 #include "ctest.h"
 
-void testAnalog_Value(Test * pTest)
+void testAnalog_Value(Test *pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -218,14 +215,12 @@ void testAnalog_Value(Test * pTest)
     BACNET_ERROR_CLASS error_class;
     BACNET_ERROR_CODE error_code;
 
-    len =
-        Analog_Value_Encode_Property_APDU(&apdu[0], instance,
+    len = Analog_Value_Encode_Property_APDU(&apdu[0], instance,
         PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL, &error_class, &error_code);
     ct_test(pTest, len != 0);
     len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
     ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len =
-        decode_object_id(&apdu[len], (int *) &decoded_type, &decoded_instance);
+    len = decode_object_id(&apdu[len], (int *)&decoded_type, &decoded_instance);
     ct_test(pTest, decoded_type == OBJECT_ANALOG_VALUE);
     ct_test(pTest, decoded_instance == instance);
 
@@ -245,7 +240,7 @@ int main(void)
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

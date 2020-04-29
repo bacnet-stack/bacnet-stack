@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -106,9 +106,8 @@ unsigned Device_Object_List_Count(void)
     return count;
 }
 
-bool Device_Object_List_Identifier(uint32_t array_index,
-    BACNET_OBJECT_TYPE *object_type,
-    uint32_t * instance)
+bool Device_Object_List_Identifier(
+    uint32_t array_index, BACNET_OBJECT_TYPE *object_type, uint32_t *instance)
 {
     bool status = false;
     uint32_t object_index = 0;
@@ -154,15 +153,15 @@ bool Device_Object_List_Identifier(uint32_t array_index,
 }
 
 /* return the length of the apdu encoded or -1 for error */
-int Device_Encode_Property_APDU(uint8_t * apdu,
+int Device_Encode_Property_APDU(uint8_t *apdu,
     uint32_t object_instance,
     BACNET_PROPERTY_ID property,
     uint32_t array_index,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
 {
-    int apdu_len = 0;   /* return value */
-    int len = 0;        /* apdu len intermediate value */
+    int apdu_len = 0; /* return value */
+    int len = 0; /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t i = 0;
@@ -170,13 +169,12 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     uint32_t instance = 0;
     uint32_t count = 0;
 
-    //object_instance = object_instance;
+    // object_instance = object_instance;
     /* FIXME: change the hardcoded names to suit your application */
     switch (property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_DEVICE,
-                Object_Instance_Number);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(&char_string, Object_Name);
@@ -195,9 +193,8 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_VENDOR_IDENTIFIER:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                Device_Vendor_Identifier());
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Vendor_Identifier());
             break;
         case PROP_MODEL_NAME:
             characterstring_init_ansi(&char_string, "GNU Demo");
@@ -220,16 +217,15 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             break;
         case PROP_PROTOCOL_REVISION:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                BACNET_PROTOCOL_REVISION);
+                encode_application_unsigned(&apdu[0], BACNET_PROTOCOL_REVISION);
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
             /* Note: list of services that are executed, not initiated. */
             bitstring_init(&bit_string);
             for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
                 /* automatic lookup based on handlers set */
-                bitstring_set_bit(&bit_string, (uint8_t) i,
-                    apdu_service_supported((BACNET_SERVICES_SUPPORTED) i));
+                bitstring_set_bit(&bit_string, (uint8_t)i,
+                    apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -240,7 +236,7 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             /* must have the bit string as big as it can be */
             for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
                 /* initialize all the object types to not-supported */
-                bitstring_set_bit(&bit_string, (uint8_t) i, false);
+                bitstring_set_bit(&bit_string, (uint8_t)i, false);
             }
             /* FIXME: indicate the objects that YOU support */
             bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
@@ -260,9 +256,8 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
             else if (array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= count; i++) {
                     Device_Object_List_Identifier(i, &object_type, &instance);
-                    len =
-                        encode_application_object_id(&apdu[apdu_len],
-                        object_type, instance);
+                    len = encode_application_object_id(
+                        &apdu[apdu_len], object_type, instance);
                     apdu_len += len;
                     /* assume next one is the same size as this one */
                     /* can we all fit into the APDU? */
@@ -275,11 +270,10 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
                     }
                 }
             } else {
-                if (Device_Object_List_Identifier(array_index, &object_type,
-                        &instance))
-                    apdu_len =
-                        encode_application_object_id(&apdu[0], object_type,
-                        instance);
+                if (Device_Object_List_Identifier(
+                        array_index, &object_type, &instance))
+                    apdu_len = encode_application_object_id(
+                        &apdu[0], object_type, instance);
                 else {
                     *error_class = ERROR_CLASS_PROPERTY;
                     *error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -306,25 +300,27 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
         case PROP_DATABASE_REVISION:
             apdu_len = encode_application_unsigned(&apdu[0], 0);
             break;
-//        case PROP_MAX_INFO_FRAMES:
-//            apdu_len =
-//                encode_application_unsigned(&apdu[0],
-//                dlmstp_max_info_frames());
-//            break;
-//        case PROP_MAX_MASTER:
-//            apdu_len =
-//                encode_application_unsigned(&apdu[0], dlmstp_max_master());
-//            break;
-//        case 9600:
-//            apdu_len =
-//                encode_application_unsigned(&apdu[0], RS485_Get_Baud_Rate());
-//            break;
-//        case 512:
-//            apdu_len = encode_application_unsigned(&apdu[0], stack_size());
-//            break;
-//        case 513:
-//            apdu_len = encode_application_unsigned(&apdu[0], stack_unused());
-//            break;
+            //        case PROP_MAX_INFO_FRAMES:
+            //            apdu_len =
+            //                encode_application_unsigned(&apdu[0],
+            //                dlmstp_max_info_frames());
+            //            break;
+            //        case PROP_MAX_MASTER:
+            //            apdu_len =
+            //                encode_application_unsigned(&apdu[0],
+            //                dlmstp_max_master());
+            //            break;
+            //        case 9600:
+            //            apdu_len =
+            //                encode_application_unsigned(&apdu[0],
+            //                RS485_Get_Baud_Rate());
+            //            break;
+            //        case 512:
+            //            apdu_len = encode_application_unsigned(&apdu[0],
+            //            stack_size()); break;
+            //        case 513:
+            //            apdu_len = encode_application_unsigned(&apdu[0],
+            //            stack_unused()); break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -342,11 +338,11 @@ int Device_Encode_Property_APDU(uint8_t * apdu,
     return apdu_len;
 }
 
-bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_ERROR_CLASS * error_class,
-    BACNET_ERROR_CODE * error_code)
+bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -356,9 +352,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         return false;
     }
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -370,8 +365,8 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.Object_Id.
-                            instance))) {
+                    (Device_Set_Object_Instance_Number(
+                        value.type.Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -383,35 +378,37 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
-//        case PROP_MAX_INFO_FRAMES:
-//            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-//                if (value.type.Unsigned_Int <= 255) {
-//                    dlmstp_set_max_info_frames(value.type.Unsigned_Int);
-//                    status = true;
-//                } else {
-//                    *error_class = ERROR_CLASS_PROPERTY;
-//                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-//                }
-//            } else {
-//                *error_class = ERROR_CLASS_PROPERTY;
-//                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-//            }
-//            break;
-//        case PROP_MAX_MASTER:
-//            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-//                if ((value.type.Unsigned_Int > 0) &&
-//                    (value.type.Unsigned_Int <= 127)) {
-//                    dlmstp_set_max_master(value.type.Unsigned_Int);
-//                    status = true;
-//                } else {
-//                    *error_class = ERROR_CLASS_PROPERTY;
-//                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-//                }
-//            } else {
-//                *error_class = ERROR_CLASS_PROPERTY;
-//                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-//            }
-//            break;
+            //        case PROP_MAX_INFO_FRAMES:
+            //            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+            //            {
+            //                if (value.type.Unsigned_Int <= 255) {
+            //                    dlmstp_set_max_info_frames(value.type.Unsigned_Int);
+            //                    status = true;
+            //                } else {
+            //                    *error_class = ERROR_CLASS_PROPERTY;
+            //                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            //                }
+            //            } else {
+            //                *error_class = ERROR_CLASS_PROPERTY;
+            //                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            //            }
+            //            break;
+            //        case PROP_MAX_MASTER:
+            //            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+            //            {
+            //                if ((value.type.Unsigned_Int > 0) &&
+            //                    (value.type.Unsigned_Int <= 127)) {
+            //                    dlmstp_set_max_master(value.type.Unsigned_Int);
+            //                    status = true;
+            //                } else {
+            //                    *error_class = ERROR_CLASS_PROPERTY;
+            //                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            //                }
+            //            } else {
+            //                *error_class = ERROR_CLASS_PROPERTY;
+            //                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            //            }
+            //            break;
         case PROP_OBJECT_NAME:
             if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
                 uint8_t encoding;
@@ -436,20 +433,21 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA * wp_data,
                 *error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
-//        case 9600:
-//            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-//                if (value.type.Unsigned_Int > 115200) {
-//                    RS485_Set_Baud_Rate(value.type.Unsigned_Int);
-//                    status = true;
-//                } else {
-//                    *error_class = ERROR_CLASS_PROPERTY;
-//                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-//                }
-//            } else {
-//                *error_class = ERROR_CLASS_PROPERTY;
-//                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
-//            }
-//            break;
+            //        case 9600:
+            //            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT)
+            //            {
+            //                if (value.type.Unsigned_Int > 115200) {
+            //                    RS485_Set_Baud_Rate(value.type.Unsigned_Int);
+            //                    status = true;
+            //                } else {
+            //                    *error_class = ERROR_CLASS_PROPERTY;
+            //                    *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            //                }
+            //            } else {
+            //                *error_class = ERROR_CLASS_PROPERTY;
+            //                *error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            //            }
+            //            break;
         default:
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;

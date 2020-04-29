@@ -32,8 +32,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>     /* for standard integer types uint8_t etc. */
-#include <stdbool.h>    /* for the standard bool type. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
+#include <stdbool.h> /* for the standard bool type. */
 #include <ifaddrs.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -68,8 +68,10 @@ static bool BIP_Debug = false;
  * @param str - debug info string
  * @param addr - IPv4 address
  */
-static void debug_print_ipv4(const char *str, const struct in_addr *addr,
-    const unsigned int port, const unsigned int count)
+static void debug_print_ipv4(const char *str,
+    const struct in_addr *addr,
+    const unsigned int port,
+    const unsigned int count)
 {
     if (BIP_Debug) {
         fprintf(stderr, "BIP: %s %s:%hu (%u bytes)\n", str, inet_ntoa(*addr),
@@ -233,7 +235,7 @@ uint8_t bip_get_subnet_prefix(void)
         if (test_broadcast == broadcast) {
             break;
         }
-        mask = mask<<1;
+        mask = mask << 1;
     }
 
     return prefix;
@@ -267,8 +269,8 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     memcpy(&bip_dest.sin_addr.s_addr, &dest->address[0], 4);
     bip_dest.sin_port = htons(dest->port);
     /* Send the packet */
-    debug_print_ipv4("Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port,
-        mtu_len);
+    debug_print_ipv4(
+        "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
     return sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
 }
@@ -341,14 +343,14 @@ uint16_t bip_receive(
     */
     memcpy(&addr.address[0], &sin.sin_addr.s_addr, 4);
     addr.port = ntohs(sin.sin_port);
-    debug_print_ipv4("Received MPDU->", &sin.sin_addr, sin.sin_port,
-        received_bytes);
+    debug_print_ipv4(
+        "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
     offset = bvlc_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
         npdu_len = received_bytes - offset;
-        debug_print_ipv4("Received NPDU->", &sin.sin_addr, sin.sin_port,
-            npdu_len);
+        debug_print_ipv4(
+            "Received NPDU->", &sin.sin_addr, sin.sin_port, npdu_len);
         if (npdu_len <= max_npdu) {
             /* shift the buffer to return a valid NPDU */
             for (i = 0; i < npdu_len; i++) {
@@ -414,14 +416,13 @@ bool bip_get_addr_by_name(const char *host_name, BACNET_IP_ADDRESS *addr)
     return true;
 }
 
-static void *get_addr_ptr(
-    struct sockaddr *sockaddr_ptr)
+static void *get_addr_ptr(struct sockaddr *sockaddr_ptr)
 {
     void *addr_ptr;
     if (sockaddr_ptr->sa_family == AF_INET) {
-        addr_ptr = &((struct sockaddr_in *) sockaddr_ptr)->sin_addr;
+        addr_ptr = &((struct sockaddr_in *)sockaddr_ptr)->sin_addr;
     } else if (sockaddr_ptr->sa_family == AF_INET6) {
-        addr_ptr = &((struct sockaddr_in6 *) sockaddr_ptr)->sin6_addr;
+        addr_ptr = &((struct sockaddr_in6 *)sockaddr_ptr)->sin6_addr;
     }
     return addr_ptr;
 }
@@ -434,20 +435,16 @@ static void *get_addr_ptr(
  * @param addr [out] The netmask addr, broadcast addr, ip addr.
  * @param request [in] addr broadaddr netmask
  */
-static int get_local_address(
-    char *ifname,
-    struct in_addr *addr,
-    char *request)
+static int get_local_address(char *ifname, struct in_addr *addr, char *request)
 {
-
-    char rv;    /* return value */
+    char rv; /* return value */
 
     struct ifaddrs *ifaddrs_ptr;
     int status;
     status = getifaddrs(&ifaddrs_ptr);
     if (status == -1) {
-        fprintf(stderr, "Error in 'getifaddrs': %d (%s)\n", errno,
-            strerror(errno));
+        fprintf(
+            stderr, "Error in 'getifaddrs': %d (%s)\n", errno, strerror(errno));
     }
     while (ifaddrs_ptr) {
         if ((ifaddrs_ptr->ifa_addr->sa_family == AF_INET) &&
@@ -477,11 +474,10 @@ static int get_local_address(
  * @param netmask [out] The netmask, in host order.
  * @return 0 on success, else the error from the getifaddrs() call.
  */
-int bip_get_local_netmask(
-    struct in_addr *netmask)
+int bip_get_local_netmask(struct in_addr *netmask)
 {
     int rv;
-    char *ifname = getenv("BACNET_IFACE");      /* will probably be null */
+    char *ifname = getenv("BACNET_IFACE"); /* will probably be null */
     if (ifname == NULL)
         ifname = "en0";
     printf("ifname %s", ifname);
@@ -497,8 +493,7 @@ int bip_get_local_netmask(
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for MAC OS X, ifname is en0, en1, and others.
  */
-void bip_set_interface(
-    char *ifname)
+void bip_set_interface(char *ifname)
 {
     struct in_addr local_address;
     struct in_addr broadcast_address;
@@ -550,10 +545,9 @@ void bip_set_interface(
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
-bool bip_init(
-    char *ifname)
+bool bip_init(char *ifname)
 {
-    int status = 0;     /* return from socket lib calls */
+    int status = 0; /* return from socket lib calls */
     struct sockaddr_in sin;
     int sockopt = 0;
     int sock_fd = -1;
@@ -572,18 +566,16 @@ bool bip_init(
     /* Allow us to use the same socket for sending and receiving */
     /* This makes sure that the src port is correct when sending */
     sockopt = 1;
-    status =
-        setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt,
-        sizeof(sockopt));
+    status = setsockopt(
+        sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
     if (status < 0) {
         close(sock_fd);
         BIP_Socket = -1;
         return status;
     }
     /* allow us to send a broadcast */
-    status =
-        setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST, &sockopt,
-        sizeof(sockopt));
+    status = setsockopt(
+        sock_fd, SOL_SOCKET, SO_BROADCAST, &sockopt, sizeof(sockopt));
     if (status < 0) {
         close(sock_fd);
         BIP_Socket = -1;
@@ -595,7 +587,7 @@ bool bip_init(
     sin.sin_port = BIP_Port;
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
     status =
-        bind(sock_fd, (const struct sockaddr *) &sin, sizeof(struct sockaddr));
+        bind(sock_fd, (const struct sockaddr *)&sin, sizeof(struct sockaddr));
     if (status < 0) {
         close(sock_fd);
         BIP_Socket = -1;
@@ -617,8 +609,7 @@ bool bip_valid(void)
 /** Cleanup and close out the BACnet/IP services by closing the socket.
  * @ingroup DLBIP
  */
-void bip_cleanup(
-    void)
+void bip_cleanup(void)
 {
     int sock_fd = 0;
 

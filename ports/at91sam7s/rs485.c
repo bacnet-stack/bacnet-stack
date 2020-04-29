@@ -1,28 +1,28 @@
 /**************************************************************************
-*
-* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-* RS-485 initialization on AT91SAM7S inspired by Keil Eletronik serial.c
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ * RS-485 initialization on AT91SAM7S inspired by Keil Eletronik serial.c
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* The module handles sending data out the RS-485 port */
 /* and handles receiving data from the RS-485 port. */
@@ -52,18 +52,17 @@ static int RS485_Baud = 38400;
 /* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
 /* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
 /* 40 bits is 4 octets including a start and stop bit with each octet */
-#define Tturnaround  (40UL)
+#define Tturnaround (40UL)
 /* turnaround_time_milliseconds = (Tturnaround*1000UL)/RS485_Baud; */
 
 /****************************************************************************
-* DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
-*              receive mode.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Initialize(
-    void)
+ * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
+ *              receive mode.
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Initialize(void)
 {
     unsigned int pcsr;
     /* Enable the USART0 clock in the Power Management Controller */
@@ -81,17 +80,18 @@ void RS485_Initialize(
     /* enable the peripheral by disabling the pin in the PIO controller */
     *AT91C_PIOA_PDR = AT91C_PA5_RXD0 | AT91C_PA6_TXD0 | AT91C_PA7_RTS0;
 
-    RS485_Interface->US_CR = AT91C_US_RSTRX |   /* Reset Receiver      */
-        AT91C_US_RSTTX |        /* Reset Transmitter   */
-        AT91C_US_RSTSTA |       /* Clear status register */
-        AT91C_US_RXDIS |        /* Receiver Disable    */
+    RS485_Interface->US_CR = AT91C_US_RSTRX | /* Reset Receiver      */
+        AT91C_US_RSTTX | /* Reset Transmitter   */
+        AT91C_US_RSTSTA | /* Clear status register */
+        AT91C_US_RXDIS | /* Receiver Disable    */
         AT91C_US_TXDIS; /* Transmitter Disable */
 
-    RS485_Interface->US_MR = AT91C_US_USMODE_RS485 |    /* RS-485 Mode - RTS auto assert */
-        AT91C_US_CLKS_CLOCK |   /* Clock = MCK */
-        AT91C_US_CHRL_8_BITS |  /* 8-bit Data  */
-        AT91C_US_PAR_NONE |     /* No Parity   */
-        AT91C_US_NBSTOP_1_BIT;  /* 1 Stop Bit  */
+    RS485_Interface->US_MR =
+        AT91C_US_USMODE_RS485 | /* RS-485 Mode - RTS auto assert */
+        AT91C_US_CLKS_CLOCK | /* Clock = MCK */
+        AT91C_US_CHRL_8_BITS | /* 8-bit Data  */
+        AT91C_US_PAR_NONE | /* No Parity   */
+        AT91C_US_NBSTOP_1_BIT; /* 1 Stop Bit  */
 
     /* set the Time Guard to release RTS after x bit times */
     RS485_Interface->US_TTGR = 1;
@@ -102,38 +102,34 @@ void RS485_Initialize(
     /* baud rate */
     RS485_Interface->US_BRGR = MCK / 16 / RS485_Baud;
 
-    RS485_Interface->US_CR = AT91C_US_RXEN |    /* Receiver Enable     */
-        AT91C_US_TXEN;  /* Transmitter Enable  */
+    RS485_Interface->US_CR = AT91C_US_RXEN | /* Receiver Enable     */
+        AT91C_US_TXEN; /* Transmitter Enable  */
 
     return;
 }
 
-void RS485_Cleanup(
-    void)
+void RS485_Cleanup(void)
 {
-
 }
 
 /****************************************************************************
-* DESCRIPTION: Returns the baud rate that we are currently running at
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(
-    void)
+ * DESCRIPTION: Returns the baud rate that we are currently running at
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+uint32_t RS485_Get_Baud_Rate(void)
 {
     return RS485_Baud;
 }
 
 /****************************************************************************
-* DESCRIPTION: Sets the baud rate for the chip USART
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_Set_Baud_Rate(
-    uint32_t baud)
+ * DESCRIPTION: Sets the baud rate for the chip USART
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+bool RS485_Set_Baud_Rate(uint32_t baud)
 {
     bool valid = true;
 
@@ -157,13 +153,12 @@ bool RS485_Set_Baud_Rate(
 }
 
 /****************************************************************************
-* DESCRIPTION: Waits on the SilenceTimer for 40 bits.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Turnaround_Delay(
-    void)
+ * DESCRIPTION: Waits on the SilenceTimer for 40 bits.
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Turnaround_Delay(void)
 {
     uint16_t turnaround_time;
 
@@ -177,27 +172,25 @@ void RS485_Turnaround_Delay(
 }
 
 /****************************************************************************
-* DESCRIPTION: Enable or disable the transmitter
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       The Atmel ARM7 has an automatic enable/disable in RS485 mode.
-*****************************************************************************/
-void RS485_Transmitter_Enable(
-    bool enable)
+ * DESCRIPTION: Enable or disable the transmitter
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       The Atmel ARM7 has an automatic enable/disable in RS485 mode.
+ *****************************************************************************/
+void RS485_Transmitter_Enable(bool enable)
 {
-    (void) enable;
+    (void)enable;
 }
 
 /****************************************************************************
-* DESCRIPTION: Send some data and wait until it is sent
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Send_Data(
-    uint8_t * buffer,   /* data to send */
+ * DESCRIPTION: Send some data and wait until it is sent
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Send_Data(uint8_t *buffer, /* data to send */
     uint16_t nbytes)
-{       /* number of bytes of data */
+{ /* number of bytes of data */
     /* LED on send */
     volatile AT91PS_PIO pPIO = AT91C_BASE_PIOA;
     /* LED ON */
@@ -219,13 +212,12 @@ void RS485_Send_Data(
 }
 
 /****************************************************************************
-* DESCRIPTION: Return true if a framing or overrun error is present
-* RETURN:      true if error
-* ALGORITHM:   none
-* NOTES:       Clears any error flags.
-*****************************************************************************/
-bool RS485_ReceiveError(
-    void)
+ * DESCRIPTION: Return true if a framing or overrun error is present
+ * RETURN:      true if error
+ * ALGORITHM:   none
+ * NOTES:       Clears any error flags.
+ *****************************************************************************/
+bool RS485_ReceiveError(void)
 {
     bool ReceiveError = false;
     /* LED on send */
@@ -244,13 +236,12 @@ bool RS485_ReceiveError(
 }
 
 /****************************************************************************
-* DESCRIPTION: Return true if data is available
-* RETURN:      true if data is available, with the data in the parameter set
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_DataAvailable(
-    uint8_t * DataRegister)
+ * DESCRIPTION: Return true if data is available
+ * RETURN:      true if data is available, with the data in the parameter set
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+bool RS485_DataAvailable(uint8_t *DataRegister)
 {
     bool DataAvailable = false;
     /* LED on send */
@@ -270,8 +261,7 @@ bool RS485_DataAvailable(
 }
 
 #ifdef TEST_RS485
-int main(
-    void)
+int main(void)
 {
     unsigned i = 0;
     uint8_t DataRegister;

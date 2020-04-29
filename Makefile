@@ -144,7 +144,7 @@ pretty-apps:
 
 .PHONY: pretty-ports
 pretty-ports:
-	find ./ports -iname *.h -o -iname *.c -exec \
+	find ./ports -maxdepth 2 -type f -iname *.h -o -iname *.c -exec \
 	clang-format -i -style=file -fallback-style=none {} \;
 
 .PHONY: tidy

@@ -17,7 +17,7 @@
 /** result from a client request */
 BACNET_BVLC_RESULT BVLC_Result_Code = BVLC_RESULT_SUCCESSFUL_COMPLETION;
 /** The current BVLC Function Code being handled. */
-BACNET_BVLC_FUNCTION BVLC_Function_Code = BVLC_RESULT;  /* A safe default */
+BACNET_BVLC_FUNCTION BVLC_Function_Code = BVLC_RESULT; /* A safe default */
 
 /** Encode the BVLC Result message
  *
@@ -26,8 +26,7 @@ BACNET_BVLC_FUNCTION BVLC_Function_Code = BVLC_RESULT;  /* A safe default */
  *
  * @return number of bytes encoded
  */
-static int bvlc_encode_bvlc_result(uint8_t * pdu,
-    BACNET_BVLC_RESULT result_code)
+static int bvlc_encode_bvlc_result(uint8_t *pdu, BACNET_BVLC_RESULT result_code)
 {
     if (pdu) {
         pdu[0] = BVLL_TYPE_BACNET_IP;
@@ -36,7 +35,7 @@ static int bvlc_encode_bvlc_result(uint8_t * pdu,
            of the entire BVLL message, including the two octets of the
            length field itself, most significant octet first. */
         encode_unsigned16(&pdu[2], 6);
-        encode_unsigned16(&pdu[4], (uint16_t) result_code);
+        encode_unsigned16(&pdu[4], (uint16_t)result_code);
     }
 
     return 6;
@@ -55,14 +54,14 @@ static int bvlc_encode_bvlc_result(uint8_t * pdu,
  * @return Upon successful completion, returns the number of bytes sent.
  *  Otherwise, -1 shall be returned and errno set to indicate the error.
  */
-static int bvlc_send_mpdu(uint8_t * dest_addr,  /* the destination address */
+static int bvlc_send_mpdu(uint8_t *dest_addr, /* the destination address */
 
-    uint16_t * dest_port,       /* the destination port */
+    uint16_t *dest_port, /* the destination port */
 
-    uint8_t * mtu,      /* the data */
+    uint8_t *mtu, /* the data */
 
     uint16_t mtu_len)
-{       /* amount of data to send  */
+{ /* amount of data to send  */
     /* assumes that the driver has already been initialized */
     if (bip_valid()) {
         return 0;
@@ -76,15 +75,15 @@ static int bvlc_send_mpdu(uint8_t * dest_addr,  /* the destination address */
  * @param dest_addr - destination address
  * @param dest_port - destination port
  */
-static void bvlc_send_result(uint8_t * dest_addr,
-    uint16_t * dest_port,       /* the destination address */
+static void bvlc_send_result(uint8_t *dest_addr,
+    uint16_t *dest_port, /* the destination address */
 
     BACNET_BVLC_RESULT result_code)
 {
     uint8_t mtu[MAX_MPDU] = { 0 };
     uint16_t mtu_len = 0;
 
-    mtu_len = (uint16_t) bvlc_encode_bvlc_result(&mtu[0], result_code);
+    mtu_len = (uint16_t)bvlc_encode_bvlc_result(&mtu[0], result_code);
     bvlc_send_mpdu(dest_addr, dest_port, mtu, mtu_len);
 
     return;
@@ -101,30 +100,29 @@ static void bvlc_send_result(uint8_t * dest_addr,
  * @return Non-zero BVLC_RESULT_ code if we sent a response (NAK) to this
  *         BVLC message. If zero, may need further processing.
  */
-uint16_t bvlc_for_non_bbmd(uint8_t * addr,
-    uint16_t * port,
-    uint8_t * npdu,
-    uint16_t received_bytes)
+uint16_t bvlc_for_non_bbmd(
+    uint8_t *addr, uint16_t *port, uint8_t *npdu, uint16_t received_bytes)
 {
-    uint16_t result_code = 0;   /* aka, BVLC_RESULT_SUCCESSFUL_COMPLETION */
+    uint16_t result_code = 0; /* aka, BVLC_RESULT_SUCCESSFUL_COMPLETION */
 
     /* To check the BVLC-function code, the buffer of received
      * bytes has to be at least one byte long. */
     if (received_bytes >= 1) {
-        BVLC_Function_Code = npdu[1];       /* The BVLC function */
+        BVLC_Function_Code = npdu[1]; /* The BVLC function */
         switch (BVLC_Function_Code) {
             case BVLC_RESULT:
                 if (received_bytes >= 6) {
                     /* This is the result of our foreign device registration */
-                    (void) decode_unsigned16(&npdu[4], &result_code);
-                    BVLC_Result_Code = (BACNET_BVLC_RESULT) result_code;
+                    (void)decode_unsigned16(&npdu[4], &result_code);
+                    BVLC_Result_Code = (BACNET_BVLC_RESULT)result_code;
                     fprintf(stderr, "BVLC: Result Code=%d\n", BVLC_Result_Code);
                     /* But don't send any response */
                     result_code = 0;
                 }
                 break;
             case BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:
-                result_code = BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK;
+                result_code =
+                    BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK;
                 break;
             case BVLC_READ_BROADCAST_DIST_TABLE:
                 result_code = BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK;

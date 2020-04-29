@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2014 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2014 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stdint.h>
 #include <stdbool.h>
 #include <asf.h>
@@ -34,10 +34,10 @@ static uint16_t ADC_Channel_Value[ADC_CHANNELS_MAX];
 static uint8_t ADC_Current_Channel;
 
 /*************************************************************************
-* DESCRIPTION: set the active channel in the ADC
-* RETURN: nothing
-* NOTES: called from ISR, so handle as non-blocking
-**************************************************************************/
+ * DESCRIPTION: set the active channel in the ADC
+ * RETURN: nothing
+ * NOTES: called from ISR, so handle as non-blocking
+ **************************************************************************/
 static void adc_set_channel(unsigned channel)
 {
     struct adc_channel_config adc_ch_conf;
@@ -84,10 +84,10 @@ static void adc_set_channel(unsigned channel)
 }
 
 /*************************************************************************
-* DESCRIPTION: run the active channels through the ADC
-* RETURN: nothing
-* NOTES: called from ISR, so handle as non-blocking
-**************************************************************************/
+ * DESCRIPTION: run the active channels through the ADC
+ * RETURN: nothing
+ * NOTES: called from ISR, so handle as non-blocking
+ **************************************************************************/
 static void adc_handler(ADC_t *adc, uint8_t ch_mask, adc_result_t raw_value)
 {
     unsigned channel;
@@ -104,27 +104,28 @@ static void adc_handler(ADC_t *adc, uint8_t ch_mask, adc_result_t raw_value)
 }
 
 /*************************************************************************
-* DESCRIPTION: initialize Analog to Digital Converter (ADC)
-* RETURN: nothing
-* NOTES: none
-**************************************************************************/
+ * DESCRIPTION: initialize Analog to Digital Converter (ADC)
+ * RETURN: nothing
+ * NOTES: none
+ **************************************************************************/
 void adc_init(void)
 {
     struct adc_config adc_conf;
 
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 7),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTB, 0),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTB, 1),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTB, 2),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTB, 3),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 2),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 3),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 4),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 5),IOPORT_DIR_INPUT);
-    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 6),IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 7), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTB, 0), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTB, 1), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTB, 2), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTB, 3), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 2), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 3), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 4), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 5), IOPORT_DIR_INPUT);
+    ioport_configure_pin(IOPORT_CREATE_PIN(PORTA, 6), IOPORT_DIR_INPUT);
     /* Clear the ADC configuration structs */
     adc_read_configuration(&ADCA, &adc_conf);
-    adc_set_conversion_parameters(&adc_conf, ADC_SIGN_ON, ADC_RES_12, ADC_REF_AREFA);
+    adc_set_conversion_parameters(
+        &adc_conf, ADC_SIGN_ON, ADC_RES_12, ADC_REF_AREFA);
     adc_set_clock_rate(&adc_conf, 200000UL);
     adc_set_conversion_trigger(&adc_conf, ADC_TRIG_MANUAL, 1, 0);
     adc_write_configuration(&ADCA, &adc_conf);
@@ -135,16 +136,17 @@ void adc_init(void)
 }
 
 /*************************************************************************
-* DESCRIPTION: Get a result from the ADC 10-bit value
-* RETURN: 12-bit ADC value
-* NOTES: channel 0..9 are supported
-**************************************************************************/
+ * DESCRIPTION: Get a result from the ADC 10-bit value
+ * RETURN: 12-bit ADC value
+ * NOTES: channel 0..9 are supported
+ **************************************************************************/
 uint16_t adc_result_12bit(uint8_t channel)
 {
     uint16_t value = 0;
 
     if (channel < ADC_CHANNELS_MAX) {
-        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+        {
             value = ADC_Channel_Value[channel];
         }
     }
@@ -153,10 +155,10 @@ uint16_t adc_result_12bit(uint8_t channel)
 }
 
 /*************************************************************************
-* DESCRIPTION: Get a result from the ADC 10-bit value
-* RETURN: 10-bit ADC value
-* NOTES: channel 0..9 are supported
-**************************************************************************/
+ * DESCRIPTION: Get a result from the ADC 10-bit value
+ * RETURN: 10-bit ADC value
+ * NOTES: channel 0..9 are supported
+ **************************************************************************/
 uint16_t adc_result_10bit(uint8_t channel)
 {
     uint16_t result;
@@ -168,10 +170,10 @@ uint16_t adc_result_10bit(uint8_t channel)
 }
 
 /*************************************************************************
-* DESCRIPTION: Get a result from the ADC 8-bit value
-* RETURN: 8-bit ADC value
-* NOTES: channel 0..9 are supported
-**************************************************************************/
+ * DESCRIPTION: Get a result from the ADC 8-bit value
+ * RETURN: 8-bit ADC value
+ * NOTES: channel 0..9 are supported
+ **************************************************************************/
 uint8_t adc_result_8bit(uint8_t channel)
 {
     uint16_t result;

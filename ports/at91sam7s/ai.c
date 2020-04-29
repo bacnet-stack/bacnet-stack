@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Analog Input Objects customize for your use */
 
@@ -45,31 +45,16 @@
 static float Present_Value[MAX_ANALOG_INPUTS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Analog_Input_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    PROP_UNITS,
-    -1
-};
+static const int Analog_Input_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_UNITS, -1 };
 
-static const int Analog_Input_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    -1
-};
+static const int Analog_Input_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Analog_Input_Properties_Proprietary[] = {
-    -1
-};
+static const int Analog_Input_Properties_Proprietary[] = { -1 };
 
 void Analog_Input_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Analog_Input_Properties_Required;
@@ -84,8 +69,7 @@ void Analog_Input_Property_Lists(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Analog_Input_Valid_Instance(
-    uint32_t object_instance)
+bool Analog_Input_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_ANALOG_INPUTS)
         return true;
@@ -94,36 +78,32 @@ bool Analog_Input_Valid_Instance(
 }
 
 /* we simply have 0-n object instances. */
-unsigned Analog_Input_Count(
-    void)
+unsigned Analog_Input_Count(void)
 {
     return MAX_ANALOG_INPUTS;
 }
 
 /* we simply have 0-n object instances. */
-uint32_t Analog_Input_Index_To_Instance(
-    unsigned index)
+uint32_t Analog_Input_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
 bool Analog_Input_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[16] = "AI-0";       /* okay for single thread */
+    static char text_string[16] = "AI-0"; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_ANALOG_INPUTS) {
-        text_string[3] = '0' + (uint8_t) object_instance;
+        text_string[3] = '0' + (uint8_t)object_instance;
         status = characterstring_init_ansi(object_name, text_string);
     }
 
     return status;
 }
 
-float Analog_Input_Present_Value(
-    uint32_t object_instance)
+float Analog_Input_Present_Value(uint32_t object_instance)
 {
     float value = 0.0;
 
@@ -133,9 +113,7 @@ float Analog_Input_Present_Value(
     return value;
 }
 
-void Analog_Input_Present_Value_Set(
-    uint32_t object_instance,
-    float value)
+void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
 {
     if (object_instance < MAX_ANALOG_INPUTS) {
         Present_Value[object_instance] = value;
@@ -144,10 +122,9 @@ void Analog_Input_Present_Value_Set(
 
 /* return apdu length, or -1 on error */
 /* assumption - object has already exists */
-int Analog_Input_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
@@ -159,9 +136,8 @@ int Analog_Input_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ANALOG_INPUT,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_ANALOG_INPUT, rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
@@ -176,9 +152,8 @@ int Analog_Input_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_ANALOG_INPUT);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len =
-                encode_application_real(&apdu[0],
-                Analog_Input_Present_Value(rpdata->object_instance));
+            apdu_len = encode_application_real(
+                &apdu[0], Analog_Input_Present_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -214,8 +189,7 @@ int Analog_Input_Read_Property(
     return apdu_len;
 }
 
-void Analog_Input_Init(
-    void)
+void Analog_Input_Init(void)
 {
     return;
 }

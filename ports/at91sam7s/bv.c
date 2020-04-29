@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Binary Value Objects - customize for your use */
 
@@ -31,7 +31,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
-#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/basic/object/bv.h"
 #include "bacnet/basic/services.h"
 
@@ -45,30 +45,16 @@
 static BACNET_BINARY_PV Present_Value[MAX_BINARY_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Binary_Value_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-    -1
-};
+static const int Binary_Value_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, -1 };
 
-static const int Binary_Value_Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    -1
-};
+static const int Binary_Value_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Binary_Value_Properties_Proprietary[] = {
-    -1
-};
+static const int Binary_Value_Properties_Proprietary[] = { -1 };
 
 void Binary_Value_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Binary_Value_Properties_Required;
@@ -80,8 +66,7 @@ void Binary_Value_Property_Lists(
     return;
 }
 
-void Binary_Value_Init(
-    void)
+void Binary_Value_Init(void)
 {
     unsigned i;
 
@@ -91,8 +76,7 @@ void Binary_Value_Init(
 }
 
 /* we simply have 0-n object instances. */
-bool Binary_Value_Valid_Instance(
-    uint32_t object_instance)
+bool Binary_Value_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_BINARY_VALUES)
         return true;
@@ -101,22 +85,19 @@ bool Binary_Value_Valid_Instance(
 }
 
 /* we simply have 0-n object instances. */
-unsigned Binary_Value_Count(
-    void)
+unsigned Binary_Value_Count(void)
 {
     return MAX_BINARY_VALUES;
 }
 
 /* we simply have 0-n object instances. */
-uint32_t Binary_Value_Index_To_Instance(
-    unsigned index)
+uint32_t Binary_Value_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
 /* we simply have 0-n object instances.  */
-unsigned Binary_Value_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_BINARY_VALUES;
 
@@ -126,8 +107,7 @@ unsigned Binary_Value_Instance_To_Index(
     return index;
 }
 
-BACNET_BINARY_PV Binary_Value_Present_Value(
-    uint32_t object_instance)
+BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t object_instance)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
 
@@ -140,14 +120,13 @@ BACNET_BINARY_PV Binary_Value_Present_Value(
 
 /* note: the object name must be unique within this device */
 bool Binary_Value_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[16] = "BV-0";       /* okay for single thread */
+    static char text_string[16] = "BV-0"; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_BINARY_VALUES) {
-        text_string[3] = '0' + (uint8_t) object_instance;
+        text_string[3] = '0' + (uint8_t)object_instance;
         status = characterstring_init_ansi(object_name, text_string);
     }
 
@@ -155,10 +134,9 @@ bool Binary_Value_Object_Name(
 }
 
 /* return apdu len, or -1 on error */
-int Binary_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Binary_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     BACNET_BINARY_PV present_value = BINARY_INACTIVE;
@@ -173,9 +151,8 @@ int Binary_Value_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_BINARY_VALUE,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_BINARY_VALUE, rpdata->object_instance);
             break;
             /* note: Name and Description don't have to be the same.
                You could make Description writable and different */
@@ -190,8 +167,7 @@ int Binary_Value_Read_Property(
                 encode_application_enumerated(&apdu[0], OBJECT_BINARY_VALUE);
             break;
         case PROP_PRESENT_VALUE:
-            present_value =
-                Binary_Value_Present_Value(rpdata->object_instance);
+            present_value = Binary_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_enumerated(&apdu[0], present_value);
             break;
         case PROP_STATUS_FLAGS:
@@ -232,10 +208,9 @@ int Binary_Value_Read_Property(
 }
 
 /* returns true if successful */
-bool Binary_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     unsigned int object_index = 0;
     unsigned int priority = 0;
     BACNET_BINARY_PV level = BINARY_NULL;
@@ -248,9 +223,8 @@ bool Binary_Value_Write_Property(
         return false;
     }
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -273,13 +247,12 @@ bool Binary_Value_Write_Property(
                    algorithm and may not be used for other purposes in any
                    object. */
                 if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-                    (priority != 6 /* reserved */ ) &&
+                    (priority != 6 /* reserved */) &&
                     (value.type.Enumerated >= MIN_BINARY_PV) &&
                     (value.type.Enumerated <= MAX_BINARY_PV)) {
                     level = value.type.Enumerated;
-                    object_index =
-                        Binary_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                    object_index = Binary_Value_Instance_To_Index(
+                        wp_data->object_instance);
                     priority--;
                     /* NOTE: this Binary value has no priority array */
                     Present_Value[object_index] = level;
