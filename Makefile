@@ -137,6 +137,16 @@ pretty:
 	find ./apps -iname *.h -o -iname *.c -exec \
 	clang-format -i -style=file -fallback-style=none {} \;
 
+.PHONY: pretty-apps
+pretty-apps:
+	find ./apps -iname *.h -o -iname *.c -exec \
+	clang-format -i -style=file -fallback-style=none {} \;
+
+.PHONY: pretty-ports
+pretty-ports:
+	find ./ports -iname *.h -o -iname *.c -exec \
+	clang-format -i -style=file -fallback-style=none {} \;
+
 .PHONY: tidy
 tidy:
 	find ./src -iname *.h -o -iname *.c -exec \
