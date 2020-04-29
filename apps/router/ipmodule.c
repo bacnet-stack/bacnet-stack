@@ -143,8 +143,8 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
     ip_data->port = htons(port->params.bip_params.port);
 
     /* get local address */
-    status =
-        bip_get_local_address_ioctl(port->iface, &ip_data->local_addr, SIOCGIFADDR);
+    status = bip_get_local_address_ioctl(
+        port->iface, &ip_data->local_addr, SIOCGIFADDR);
     if (status < 0) {
         return false;
     }

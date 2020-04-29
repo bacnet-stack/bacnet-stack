@@ -742,8 +742,8 @@ bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
  * @param object_instance [in] The object instance number to be looked up.
  * @return True if found, else False if no such Object in this device.
  */
-bool Device_Valid_Object_Id
-    (BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+bool Device_Valid_Object_Id(
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;
