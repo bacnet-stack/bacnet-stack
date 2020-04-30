@@ -32,8 +32,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>     /* for standard integer types uint8_t etc. */
-#include <stdbool.h>    /* for the standard bool type. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
+#include <stdbool.h> /* for the standard bool type. */
 #include <stdio.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/datalink/bip.h"
@@ -71,7 +71,6 @@ long bip_getaddrbyname(const char *host_name)
  */
 void bip_set_interface(char *ifname)
 {
-
     uint8_t local_address[] = { 0, 0, 0, 0 };
     uint8_t broadcast_address[] = { 0, 0, 0, 0 };
     uint8_t netmask[] = { 0, 0, 0, 0 };
@@ -87,7 +86,7 @@ void bip_set_interface(char *ifname)
 
     /* setup local broadcast address */
     getSubnetMask_func(CW5100Class_new(), netmask);
-    for (int i = 0; i < 4; i++) {       //FIXME: IPv4 ?
+    for (int i = 0; i < 4; i++) { // FIXME: IPv4 ?
         invertedNetmask[i] = ~netmask[i];
         broadcast_address[i] = (local_address[i] | invertedNetmask[i]);
     }
@@ -130,7 +129,7 @@ bool bip_init(char *ifname)
     /* assumes that the driver has already been initialized */
     for (sock_fd = 0; sock_fd < MAX_SOCK_NUM; sock_fd++) {
         if (readSnSR_func(CW5100Class_new(), sock_fd) == SnSR_CLOSED()) {
-            socket_func(sock_fd, SnMR_UDP(), (uint16_t) 47808, 0);
+            socket_func(sock_fd, SnMR_UDP(), (uint16_t)47808, 0);
             listen_func(sock_fd);
             isOpen = true;
             break;
@@ -149,7 +148,7 @@ bool bip_init(char *ifname)
 
 /** Cleanup and close out the BACnet/IP services by closing the socket.
  * @ingroup DLBIP
-  */
+ */
 void bip_cleanup(void)
 {
     int sock_fd = 0;
@@ -167,7 +166,7 @@ void bip_cleanup(void)
  * @param netmask [out] The netmask, in host order.
  * @return 0 on success, else the error from the ioctl() call.
  */
-int bip_get_local_netmask(uint8_t * netmask)
+int bip_get_local_netmask(uint8_t *netmask)
 {
     getSubnetMask_func(CW5100Class_new(), netmask);
     return 0;

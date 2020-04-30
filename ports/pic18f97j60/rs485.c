@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2005 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* The module handles sending data out the RS-485 port */
 /* and handles receiving data from the RS-485 port. */
@@ -52,17 +52,17 @@ volatile uint8_t RS485_Tx_Buffer[128];
 #pragma udata
 
 /****************************************************************************
-* DESCRIPTION: Transmits a frame using the UART
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
+ * DESCRIPTION: Transmits a frame using the UART
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
 void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
-    uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
+    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
+    uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
-{       /* number of bytes of data (up to 501) */
-    uint16_t i = 0;     /* loop counter */
+{ /* number of bytes of data (up to 501) */
+    uint16_t i = 0; /* loop counter */
     uint8_t turnaround_time;
 
     if (!buffer)
@@ -102,13 +102,12 @@ void RS485_Send_Frame(
 }
 
 /****************************************************************************
-* DESCRIPTION: Checks for data on the receive UART, and handles errors
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_Check_UART_Data(
-    volatile struct mstp_port_struct_t * mstp_port)
+ * DESCRIPTION: Checks for data on the receive UART, and handles errors
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+bool RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
 {
     /* check for data */
     if (!FIFO_Empty(&FIFO_Rx)) {
@@ -128,8 +127,7 @@ bool RS485_Check_UART_Data(
 
   NOTES:  none
  *************************************************************************** */
-void RS485_Interrupt_Rx(
-    void)
+void RS485_Interrupt_Rx(void)
 {
     uint8_t data_byte;
 
@@ -154,14 +152,14 @@ void RS485_Interrupt_Rx(
 
   NOTES:  none
  *************************************************************************** */
-void RS485_Interrupt_Tx(
-    void)
+void RS485_Interrupt_Tx(void)
 {
     if (!FIFO_Empty(&FIFO_Tx)) {
         TXREG2 = FIFO_Get(&FIFO_Tx);
     } else {
         /* wait for the USART to be empty */
-        while (!TXSTA2bits.TRMT);
+        while (!TXSTA2bits.TRMT)
+            ;
         /* disable this interrupt */
         PIE3bits.TX2IE = 0;
         /* enable the receiver */
@@ -174,25 +172,23 @@ void RS485_Interrupt_Tx(
 }
 
 /****************************************************************************
-* DESCRIPTION: Returns the baud rate that we are currently running at
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(
-    void)
+ * DESCRIPTION: Returns the baud rate that we are currently running at
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+uint32_t RS485_Get_Baud_Rate(void)
 {
     return RS485_Baud_Rate;
 }
 
 /****************************************************************************
-* DESCRIPTION: Sets the baud rate for the chip USART
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_Set_Baud_Rate(
-    uint32_t baud)
+ * DESCRIPTION: Sets the baud rate for the chip USART
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+bool RS485_Set_Baud_Rate(uint32_t baud)
 {
     bool valid = true;
 
@@ -223,16 +219,14 @@ bool RS485_Set_Baud_Rate(
 }
 
 /****************************************************************************
-* DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
-*              receive mode.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Initialize_Port(
-    void)
+ * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
+ *              receive mode.
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Initialize_Port(void)
 {
-
     /* Reset USART registers to POR state */
     TXSTA2 = 0;
     RCSTA2 = 0;
@@ -304,39 +298,36 @@ void RS485_Initialize_Port(
 }
 
 /****************************************************************************
-* DESCRIPTION: Disables the RS485 hardware
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Disable_Port(
-    void)
+ * DESCRIPTION: Disables the RS485 hardware
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Disable_Port(void)
 {
-    RCSTA2 &= 0x4F;     /* Disable the receiver */
-    TXSTA2bits.TXEN = 0;        /* and transmitter */
-    PIE3 &= 0xCF;       /* Disable both interrupts */
+    RCSTA2 &= 0x4F; /* Disable the receiver */
+    TXSTA2bits.TXEN = 0; /* and transmitter */
+    PIE3 &= 0xCF; /* Disable both interrupts */
 }
 
 /****************************************************************************
-* DESCRIPTION: Reinitializes the port
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Reinit(
-    void)
+ * DESCRIPTION: Reinitializes the port
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Reinit(void)
 {
     RS485_Set_Baud_Rate(38400);
 }
 
 /****************************************************************************
-* DESCRIPTION: Initializes the data and the port
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Initialize(
-    void)
+ * DESCRIPTION: Initializes the data and the port
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Initialize(void)
 {
     /* Init the Rs485 buffers */
     FIFO_Init(&FIFO_Rx, RS485_Rx_Buffer, sizeof(RS485_Rx_Buffer));

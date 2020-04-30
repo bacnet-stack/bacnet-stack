@@ -50,11 +50,12 @@
 #include "bacnet/datalink/mstptext.h"
 #include "bacnet/bacint.h"
 
-/** @file linux/mstpsnap.c  Example application testing BACnet MS/TP on Linux. */
+/** @file linux/mstpsnap.c  Example application testing BACnet MS/TP on Linux.
+ */
 
 #ifndef max
-#define max(a,b) (((a) (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a)(b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
 /* local port data - shared with RS-485 */
@@ -64,8 +65,7 @@ static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 static struct mstimer Silence_Timer;
 
-static uint32_t Timer_Silence(
-    void *pArg)
+static uint32_t Timer_Silence(void *pArg)
 {
     uint32_t delta_time = 0;
 
@@ -77,17 +77,15 @@ static uint32_t Timer_Silence(
     return delta_time;
 }
 
-static void Timer_Silence_Reset(
-    void *pArg)
+static void Timer_Silence_Reset(void *pArg)
 {
     mstimer_set(&Silence_Timer, 0);
 }
 
 /* functions used by the MS/TP state machine to put or get data */
-uint16_t MSTP_Put_Receive(
-    volatile struct mstp_port_struct_t *mstp_port)
+uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 {
-    (void) mstp_port;
+    (void)mstp_port;
 
     return 0;
 }
@@ -95,26 +93,22 @@ uint16_t MSTP_Put_Receive(
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t * mstp_port,
-    unsigned timeout)
-{       /* milliseconds to wait for a packet */
-    (void) mstp_port;
-    (void) timeout;
+    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+{ /* milliseconds to wait for a packet */
+    (void)mstp_port;
+    (void)timeout;
     return 0;
 }
 
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t * mstp_port,
-    unsigned timeout)
-{       /* milliseconds to wait for a packet */
-    (void) mstp_port;
-    (void) timeout;
+    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+{ /* milliseconds to wait for a packet */
+    (void)mstp_port;
+    (void)timeout;
     return 0;
 }
 
-static int network_init(
-    const char *name,
-    int protocol)
+static int network_init(const char *name, int protocol)
 {
     /* check to see if we are being run as root */
     if (getuid() != 0) {
@@ -146,7 +140,7 @@ static int network_init(
     sll.sll_ifindex = ifr.ifr_ifindex;
     sll.sll_protocol = htons(protocol);
 
-    if (bind(sockfd, (struct sockaddr *) &sll, sizeof(sll)) == -1) {
+    if (bind(sockfd, (struct sockaddr *)&sll, sizeof(sll)) == -1) {
         perror("Unable to bind socket");
         return -1;
     }
@@ -155,11 +149,10 @@ static int network_init(
 }
 
 static void snap_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port,
-    int sockfd)
+    volatile struct mstp_port_struct_t *mstp_port, int sockfd)
 {
-    uint16_t mtu_len = 0;       /* number of octets of packet saved in file */
-    unsigned i = 0;     /* counter */
+    uint16_t mtu_len = 0; /* number of octets of packet saved in file */
+    unsigned i = 0; /* counter */
     static uint8_t mtu[1500] = { 0 };
     uint16_t max_data = 0;
 
@@ -176,17 +169,17 @@ static void snap_received_packet(
     mtu[10] = 0;
     mtu[11] = mstp_port->SourceAddress;
     /* length - 12, 13 */
-    mtu[14] = 0xaa;     /* DSAP for SNAP */
-    mtu[15] = 0xaa;     /* SSAP for SNAP */
-    mtu[16] = 0x03;     /* Control Field for SNAP */
-    mtu[17] = 0x00;     /* Organization Code: Cimetrics */
-    mtu[18] = 0x10;     /* Organization Code: Cimetrics */
-    mtu[19] = 0x90;     /* Organization Code: Cimetrics */
-    mtu[20] = 0x00;     /* Protocol ID */
-    mtu[21] = 0x01;     /* Protocol ID */
-    mtu[22] = 0x00;     /* delta time */
-    mtu[23] = 0x00;     /* delta time */
-    mtu[24] = 0x80;     /* unknown byte */
+    mtu[14] = 0xaa; /* DSAP for SNAP */
+    mtu[15] = 0xaa; /* SSAP for SNAP */
+    mtu[16] = 0x03; /* Control Field for SNAP */
+    mtu[17] = 0x00; /* Organization Code: Cimetrics */
+    mtu[18] = 0x10; /* Organization Code: Cimetrics */
+    mtu[19] = 0x90; /* Organization Code: Cimetrics */
+    mtu[20] = 0x00; /* Protocol ID */
+    mtu[21] = 0x01; /* Protocol ID */
+    mtu[22] = 0x00; /* delta time */
+    mtu[23] = 0x00; /* delta time */
+    mtu[24] = 0x80; /* unknown byte */
     mtu[25] = mstp_port->FrameType;
     mtu[26] = mstp_port->DestinationAddress;
     mtu[27] = mstp_port->SourceAddress;
@@ -205,27 +198,23 @@ static void snap_received_packet(
     }
     /* Ethernet length is data only - not address or length bytes */
     encode_unsigned16(&mtu[12], mtu_len - 14);
-    (void) write(sockfd, &mtu[0], mtu_len);
+    (void)write(sockfd, &mtu[0], mtu_len);
 }
 
-
-static void cleanup(
-    void)
+static void cleanup(void)
 {
 }
 
 #if (!defined(_WIN32))
-static void sig_int(
-    int signo)
+static void sig_int(int signo)
 {
-    (void) signo;
+    (void)signo;
 
     cleanup();
     exit(0);
 }
 
-void signal_init(
-    void)
+void signal_init(void)
 {
     signal(SIGINT, sig_int);
     signal(SIGHUP, sig_int);
@@ -234,9 +223,7 @@ void signal_init(
 #endif
 
 /* simple test to packetize the data and print it */
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
     volatile struct mstp_port_struct_t *mstp_port;
     long my_baud = 38400;
@@ -248,14 +235,18 @@ int main(
     mstp_port = &MSTP_Port;
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf("mstsnap [serial] [baud] [network]\r\n"
-            "Captures MS/TP packets from a serial interface\r\n"
-            "and sends them to a network interface using SNAP \r\n"
-            "protocol packets (mimics Cimetrics U+4 packet).\r\n" "\r\n"
-            "Command line options:\r\n" "[serial] - serial interface.\r\n"
-            "    defaults to /dev/ttyUSB0.\r\n"
-            "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
-            "    defaults to 38400.\r\n" "[network] - network interface.\r\n"
-            "    defaults to eth0.\r\n" "");
+               "Captures MS/TP packets from a serial interface\r\n"
+               "and sends them to a network interface using SNAP \r\n"
+               "protocol packets (mimics Cimetrics U+4 packet).\r\n"
+               "\r\n"
+               "Command line options:\r\n"
+               "[serial] - serial interface.\r\n"
+               "    defaults to /dev/ttyUSB0.\r\n"
+               "[baud] - baud rate.  9600, 19200, 38400, 57600, 115200\r\n"
+               "    defaults to 38400.\r\n"
+               "[network] - network interface.\r\n"
+               "    defaults to eth0.\r\n"
+               "");
         return 0;
     }
     /* initialize our interface */
@@ -285,11 +276,11 @@ int main(
     MSTP_Port.SilenceTimerReset = Timer_Silence_Reset;
     MSTP_Init(mstp_port);
     fprintf(stdout, "mstpcap: Using %s for capture at %ld bps.\n",
-        RS485_Interface(), (long) RS485_Get_Baud_Rate());
+        RS485_Interface(), (long)RS485_Get_Baud_Rate());
     atexit(cleanup);
 #if defined(_WIN32)
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
-    SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE);
 #else
     signal_init();
 #endif

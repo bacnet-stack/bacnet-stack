@@ -1,35 +1,35 @@
 /**
-  ******************************************************************************
-  * @file    I2C/EEPROM/stm32f10x_it.c
-  * @author  MCD Application Team
-  * @version V3.4.0
-  * @date    10/15/2010
-  * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and
-  *          peripherals interrupt service routine.
-  ******************************************************************************
-  * @copy
-  *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
-  *
-  * <h2><center>&copy; COPYRIGHT 2010 STMicroelectronics</center></h2>
-  */
+ ******************************************************************************
+ * @file    I2C/EEPROM/stm32f10x_it.c
+ * @author  MCD Application Team
+ * @version V3.4.0
+ * @date    10/15/2010
+ * @brief   Main Interrupt Service Routines.
+ *          This file provides template for all exceptions handler and
+ *          peripherals interrupt service routine.
+ ******************************************************************************
+ * @copy
+ *
+ * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
+ * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
+ * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
+ * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
+ * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
+ * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+ *
+ * <h2><center>&copy; COPYRIGHT 2010 STMicroelectronics</center></h2>
+ */
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 
 /** @addtogroup STM32F10x_StdPeriph_Examples
-  * @{
-  */
+ * @{
+ */
 
 /** @addtogroup I2C_EEPROM
-  * @{
-  */
+ * @{
+ */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -43,12 +43,11 @@
 /******************************************************************************/
 
 /**
-  * @brief  This function handles NMI exception.
-  * @param  None
-  * @retval None
-  */
-void NMI_Handler(
-    void)
+ * @brief  This function handles NMI exception.
+ * @param  None
+ * @retval None
+ */
+void NMI_Handler(void)
 {
 }
 
@@ -57,26 +56,26 @@ void NMI_Handler(
 // hard fault handler in C,
 // with stack frame location as input parameter
 // called from HardFault_Handler in file xxx.s
-void hard_fault_handler_c (unsigned int * hardfault_args)
+void hard_fault_handler_c(unsigned int *hardfault_args)
 {
-  unsigned int stacked_r0;
-  unsigned int stacked_r1;
-  unsigned int stacked_r2;
-  unsigned int stacked_r3;
-  unsigned int stacked_r12;
-  unsigned int stacked_lr;
-  unsigned int stacked_pc;
-  unsigned int stacked_psr;
+    unsigned int stacked_r0;
+    unsigned int stacked_r1;
+    unsigned int stacked_r2;
+    unsigned int stacked_r3;
+    unsigned int stacked_r12;
+    unsigned int stacked_lr;
+    unsigned int stacked_pc;
+    unsigned int stacked_psr;
 
-  stacked_r0 = ((unsigned long) hardfault_args[0]);
-  stacked_r1 = ((unsigned long) hardfault_args[1]);
-  stacked_r2 = ((unsigned long) hardfault_args[2]);
-  stacked_r3 = ((unsigned long) hardfault_args[3]);
+    stacked_r0 = ((unsigned long)hardfault_args[0]);
+    stacked_r1 = ((unsigned long)hardfault_args[1]);
+    stacked_r2 = ((unsigned long)hardfault_args[2]);
+    stacked_r3 = ((unsigned long)hardfault_args[3]);
 
-  stacked_r12 = ((unsigned long) hardfault_args[4]);
-  stacked_lr = ((unsigned long) hardfault_args[5]);
-  stacked_pc = ((unsigned long) hardfault_args[6]);
-  stacked_psr = ((unsigned long) hardfault_args[7]);
+    stacked_r12 = ((unsigned long)hardfault_args[4]);
+    stacked_lr = ((unsigned long)hardfault_args[5]);
+    stacked_pc = ((unsigned long)hardfault_args[6]);
+    stacked_psr = ((unsigned long)hardfault_args[7]);
 
 #if 0
   printf ("\n\n[Hard fault handler - all numbers in hex]\n");
@@ -95,103 +94,95 @@ void hard_fault_handler_c (unsigned int * hardfault_args)
   printf ("AFSR = %x\n", (*((volatile unsigned long *)(0xE000ED3C))));
   printf ("SCB_SHCSR = %x\n", SCB->SHCSR);
 #else
-  (void)stacked_r0;
-  (void)stacked_r1;
-  (void)stacked_r2;
-  (void)stacked_r3;
+    (void)stacked_r0;
+    (void)stacked_r1;
+    (void)stacked_r2;
+    (void)stacked_r3;
 
-  (void)stacked_r12;
-  (void)stacked_lr;
-  (void)stacked_pc;
-  (void)stacked_psr;
+    (void)stacked_r12;
+    (void)stacked_lr;
+    (void)stacked_pc;
+    (void)stacked_psr;
 #endif
 
-  while (1);
+    while (1)
+        ;
 }
 #endif
 
 /**
-  * @brief  This function handles Hard Fault exception.
-  * @param  None
-  * @retval None
-  */
+ * @brief  This function handles Hard Fault exception.
+ * @param  None
+ * @retval None
+ */
 void HardFault_Handler(void)
 {
 #ifndef NDEBUG
-__ASM("TST LR, #4");
-__ASM("ITE EQ \n"
-      "MRSEQ R0, MSP \n"
-      "MRSNE R0, PSP");
-__ASM("B hard_fault_handler_c");
+    __ASM("TST LR, #4");
+    __ASM("ITE EQ \n"
+          "MRSEQ R0, MSP \n"
+          "MRSNE R0, PSP");
+    __ASM("B hard_fault_handler_c");
 #endif
 }
 
 /**
-  * @brief  This function handles Memory Manage exception.
-  * @param  None
-  * @retval None
-  */
-void MemManage_Handler(
-    void)
+ * @brief  This function handles Memory Manage exception.
+ * @param  None
+ * @retval None
+ */
+void MemManage_Handler(void)
 {
     /* Go to infinite loop when Memory Manage exception occurs */
-    while (1) {
-    }
+    while (1) { }
 }
 
 /**
-  * @brief  This function handles Bus Fault exception.
-  * @param  None
-  * @retval None
-  */
-void BusFault_Handler(
-    void)
+ * @brief  This function handles Bus Fault exception.
+ * @param  None
+ * @retval None
+ */
+void BusFault_Handler(void)
 {
     /* Go to infinite loop when Bus Fault exception occurs */
-    while (1) {
-    }
+    while (1) { }
 }
 
 /**
-  * @brief  This function handles Usage Fault exception.
-  * @param  None
-  * @retval None
-  */
-void UsageFault_Handler(
-    void)
+ * @brief  This function handles Usage Fault exception.
+ * @param  None
+ * @retval None
+ */
+void UsageFault_Handler(void)
 {
     /* Go to infinite loop when Usage Fault exception occurs */
-    while (1) {
-    }
+    while (1) { }
 }
 
 /**
-  * @brief  This function handles SVCall exception.
-  * @param  None
-  * @retval None
-  */
-void SVC_Handler(
-    void)
+ * @brief  This function handles SVCall exception.
+ * @param  None
+ * @retval None
+ */
+void SVC_Handler(void)
 {
 }
 
 /**
-  * @brief  This function handles Debug Monitor exception.
-  * @param  None
-  * @retval None
-  */
-void DebugMon_Handler(
-    void)
+ * @brief  This function handles Debug Monitor exception.
+ * @param  None
+ * @retval None
+ */
+void DebugMon_Handler(void)
 {
 }
 
 /**
-  * @brief  This function handles PendSV_Handler exception.
-  * @param  None
-  * @retval None
-  */
-void PendSV_Handler(
-    void)
+ * @brief  This function handles PendSV_Handler exception.
+ * @param  None
+ * @retval None
+ */
+void PendSV_Handler(void)
 {
 }
 

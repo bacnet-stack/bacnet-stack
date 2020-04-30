@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <limits.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -40,8 +40,7 @@ static volatile unsigned long Millisecond_Counter;
 static struct timespec start;
 /* The timeGetTime function retrieves the system time, in milliseconds.
    The system time is the time elapsed since the OS was started. */
-unsigned long timeGetTime(
-    void)
+unsigned long timeGetTime(void)
 {
     struct timespec now;
     unsigned long ticks;
@@ -54,17 +53,16 @@ unsigned long timeGetTime(
     now.tv_sec = mts.tv_sec;
     now.tv_nsec = mts.tv_nsec;
 
-    ticks =
-        (now.tv_sec - start.tv_sec) * 1000 + (now.tv_nsec -
-        start.tv_nsec) / 1000000;
+    ticks = (now.tv_sec - start.tv_sec) * 1000 +
+        (now.tv_nsec - start.tv_nsec) / 1000000;
 
     return ticks;
 }
 
 /**
-* @brief returns the current millisecond count
-* @return millisecond counter
-*/
+ * @brief returns the current millisecond count
+ * @return millisecond counter
+ */
 unsigned long mstimer_now(void)
 {
     unsigned long now = timeGetTime();
@@ -80,10 +78,9 @@ unsigned long mstimer_now(void)
 }
 
 /**
-* @brief Initialization for timer
-*/
-void timer_init(
-    void)
+ * @brief Initialization for timer
+ */
+void timer_init(void)
 {
     clock_serv_t cclock;
     mach_timespec_t mts;

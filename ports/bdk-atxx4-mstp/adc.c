@@ -1,26 +1,26 @@
 /**************************************************************************
-*
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
 #include "hardware.h"
@@ -28,23 +28,23 @@
 #include "adc.h"
 
 /* prescale select bits */
-#if   (F_CPU >> 1) < 1000000
-#define ADPS_8BIT    (1)
-#define ADPS_10BIT   (3)
+#if (F_CPU >> 1) < 1000000
+#define ADPS_8BIT (1)
+#define ADPS_10BIT (3)
 #elif (F_CPU >> 2) < 1000000
-#define ADPS_8BIT    (2)
-#define ADPS_10BIT   (4)
+#define ADPS_8BIT (2)
+#define ADPS_10BIT (4)
 #elif (F_CPU >> 3) < 1000000
-#define ADPS_8BIT    (3)
-#define ADPS_10BIT   (5)
+#define ADPS_8BIT (3)
+#define ADPS_10BIT (5)
 #elif (F_CPU >> 4) < 1000000
-#define ADPS_8BIT    (4)
-#define ADPS_10BIT   (6)
+#define ADPS_8BIT (4)
+#define ADPS_10BIT (6)
 #elif (F_CPU >> 5) < 1000000
-#define ADPS_8BIT    (5)
-#define ADPS_10BIT   (7)
+#define ADPS_8BIT (5)
+#define ADPS_10BIT (7)
 #else
-#error  "ADC: F_CPU too large for accuracy."
+#error "ADC: F_CPU too large for accuracy."
 #endif
 
 /* Array of ADC results */
@@ -86,9 +86,8 @@ ISR(ADC_vect)
     BIT_SET(ADCSRA, ADSC);
 }
 
-void adc_enable(
-    uint8_t index)
-{       /* 0..7 = ADC0..ADC7, respectively */
+void adc_enable(uint8_t index)
+{ /* 0..7 = ADC0..ADC7, respectively */
     if (Enabled_Channels) {
         /* ADC interupt is already started */
         BIT_SET(Enabled_Channels, index);
@@ -106,9 +105,8 @@ void adc_enable(
     }
 }
 
-uint8_t adc_result_8bit(
-    uint8_t index)
-{       /* 0..7 = ADC0..ADC7, respectively */
+uint8_t adc_result_8bit(uint8_t index)
+{ /* 0..7 = ADC0..ADC7, respectively */
     uint8_t result = 0;
     uint8_t sreg;
 
@@ -116,16 +114,15 @@ uint8_t adc_result_8bit(
         adc_enable(index);
         sreg = SREG;
         __disable_interrupt();
-        result = (uint8_t) (Sample_Result[index] >> 2);
+        result = (uint8_t)(Sample_Result[index] >> 2);
         SREG = sreg;
     }
 
     return result;
 }
 
-uint16_t adc_result_10bit(
-    uint8_t index)
-{       /* 0..7 = ADC0..ADC7, respectively */
+uint16_t adc_result_10bit(uint8_t index)
+{ /* 0..7 = ADC0..ADC7, respectively */
     uint16_t result = 0;
     uint8_t sreg;
 
@@ -140,8 +137,7 @@ uint16_t adc_result_10bit(
     return result;
 }
 
-void adc_init(
-    void)
+void adc_init(void)
 {
     /* Initial channel selection */
     /* ADLAR = Left Adjust Result

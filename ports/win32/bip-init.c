@@ -35,8 +35,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>     /* for standard integer types uint8_t etc. */
-#include <stdbool.h>    /* for the standard bool type. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
+#include <stdbool.h> /* for the standard bool type. */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/config.h"
@@ -75,8 +75,10 @@ static bool BIP_Debug = false;
  * @param str - debug info string
  * @param addr - IPv4 address
  */
-static void debug_print_ipv4(const char *str, const struct in_addr *addr,
-    const unsigned int port, const unsigned int count)
+static void debug_print_ipv4(const char *str,
+    const struct in_addr *addr,
+    const unsigned int port,
+    const unsigned int count)
 {
     if (BIP_Debug) {
         fprintf(stderr, "BIP: %s %s:%hu (%u bytes)\n", str, inet_ntoa(*addr),
@@ -96,8 +98,7 @@ void bip_debug_enable(void)
 /**
  * @brief Get the text string for Windows Error Codes
  */
-static char *winsock_error_code_text(
-    int code)
+static char *winsock_error_code_text(int code)
 {
     switch (code) {
         case WSAEACCES:
@@ -116,9 +117,9 @@ static char *winsock_error_code_text(
             return "Operation would block.";
         case WSAEINPROGRESS:
             return "Operation now in progress. "
-                "This error is returned if any Windows Sockets API "
-                "function is called while a blocking function "
-                "is in progress.";
+                   "This error is returned if any Windows Sockets API "
+                   "function is called while a blocking function "
+                   "is in progress.";
         case WSAENOTSOCK:
             return "Socket operation on nonsocket.";
         case WSAEDESTADDRREQ:
@@ -145,9 +146,9 @@ static char *winsock_error_code_text(
             return "Cannot assign requested address.";
         case WSAENETDOWN:
             return "Network is down. "
-                "This error may be reported at any time "
-                "if the Windows Sockets implementation "
-                "detects an underlying failure.";
+                   "This error may be reported at any time "
+                   "if the Windows Sockets implementation "
+                   "detects an underlying failure.";
         case WSAENETUNREACH:
             return "Network is unreachable.";
         case WSAENETRESET:
@@ -180,34 +181,35 @@ static char *winsock_error_code_text(
             return "No route to host.";
         case WSASYSNOTREADY:
             return "Returned by WSAStartup(), "
-                "indicating that the network subsystem is unusable.";
+                   "indicating that the network subsystem is unusable.";
         case WSAVERNOTSUPPORTED:
             return "Returned by WSAStartup(), "
-                "indicating that the Windows Sockets DLL cannot support "
-                "this application.";
+                   "indicating that the Windows Sockets DLL cannot support "
+                   "this application.";
         case WSANOTINITIALISED:
             return "Winsock not initialized. "
-                "This message is returned by any function "
-                "except WSAStartup(), "
-                "indicating that a successful WSAStartup() has not yet "
-                "been performed.";
+                   "This message is returned by any function "
+                   "except WSAStartup(), "
+                   "indicating that a successful WSAStartup() has not yet "
+                   "been performed.";
         case WSAEDISCON:
             return "Disconnect.";
         case WSAHOST_NOT_FOUND:
-            return "Host not found. " "This message indicates that the key "
-                "(name, address, and so on) was not found.";
+            return "Host not found. "
+                   "This message indicates that the key "
+                   "(name, address, and so on) was not found.";
         case WSATRY_AGAIN:
             return "Nonauthoritative host not found. "
-                "This error may suggest that the name service itself "
-                "is not functioning.";
+                   "This error may suggest that the name service itself "
+                   "is not functioning.";
         case WSANO_RECOVERY:
             return "Nonrecoverable error. "
-                "This error may suggest that the name service itself "
-                "is not functioning.";
+                   "This error may suggest that the name service itself "
+                   "is not functioning.";
         case WSANO_DATA:
             return "Valid name, no data record of requested type. "
-                "This error indicates that the key "
-                "(name, address, and so on) was not found.";
+                   "This error indicates that the key "
+                   "(name, address, and so on) was not found.";
         default:
             return "unknown";
     }
@@ -219,8 +221,8 @@ static char *winsock_error_code_text(
 static void print_last_error(const char *info)
 {
     int Code = WSAGetLastError();
-    fprintf(stderr, "BIP: %s [error code %i] %s\n",
-        info, Code, winsock_error_code_text(Code));
+    fprintf(stderr, "BIP: %s [error code %i] %s\n", info, Code,
+        winsock_error_code_text(Code));
     fflush(stderr);
 }
 
@@ -392,7 +394,7 @@ uint8_t bip_get_subnet_prefix(void)
         if (test_broadcast == broadcast) {
             break;
         }
-        mask = mask<<1;
+        mask = mask << 1;
     }
 
     return prefix;
@@ -427,8 +429,8 @@ int bip_send_mpdu(BACNET_IP_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     memcpy(&bip_dest.sin_addr.s_addr, &dest->address[0], 4);
     bip_dest.sin_port = htons(dest->port);
     /* Send the packet */
-    debug_print_ipv4("Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port,
-        mtu_len);
+    debug_print_ipv4(
+        "Sending MPDU->", &bip_dest.sin_addr, bip_dest.sin_port, mtu_len);
     rv = sendto(BIP_Socket, (char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bip_dest, sizeof(struct sockaddr));
     if (rv == SOCKET_ERROR) {
@@ -506,8 +508,8 @@ uint16_t bip_receive(
     */
     memcpy(&addr.address[0], &sin.sin_addr.s_addr, 4);
     addr.port = ntohs(sin.sin_port);
-    debug_print_ipv4("Received MPDU->", &sin.sin_addr, sin.sin_port,
-        received_bytes);
+    debug_print_ipv4(
+        "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
     offset = bvlc_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
@@ -575,8 +577,7 @@ bool bip_get_addr_by_name(const char *host_name, BACNET_IP_ADDRESS *addr)
 }
 
 /* To fill a need, we invent the gethostaddr() function. */
-static long gethostaddr(
-    void)
+static long gethostaddr(void)
 {
     struct hostent *host_ent;
     char host_name[255];
@@ -591,20 +592,19 @@ static long gethostaddr(
     }
     if (BIP_Debug) {
         fprintf(stderr, "BIP: host %s at %u.%u.%u.%u\n", host_name,
-            (unsigned) ((uint8_t *) host_ent->h_addr)[0],
-            (unsigned) ((uint8_t *) host_ent->h_addr)[1],
-            (unsigned) ((uint8_t *) host_ent->h_addr)[2],
-            (unsigned) ((uint8_t *) host_ent->h_addr)[3]);
+            (unsigned)((uint8_t *)host_ent->h_addr)[0],
+            (unsigned)((uint8_t *)host_ent->h_addr)[1],
+            (unsigned)((uint8_t *)host_ent->h_addr)[2],
+            (unsigned)((uint8_t *)host_ent->h_addr)[3]);
         fflush(stderr);
     }
     /* note: network byte order */
-    return *(long *) host_ent->h_addr;
+    return *(long *)host_ent->h_addr;
 }
 
 #if ((USE_INADDR == 0) || (USE_CLASSADDR == 0))
 /* returns the subnet mask in network byte order */
-static uint32_t getIpMaskForIpAddress(
-    uint32_t ipAddress)
+static uint32_t getIpMaskForIpAddress(uint32_t ipAddress)
 {
     /* Allocate information for up to 16 NICs */
     IP_ADAPTER_INFO AdapterInfo[16];
@@ -618,8 +618,7 @@ static uint32_t getIpMaskForIpAddress(
     /* GetAdapterInfo:
        [out] buffer to receive data
        [in] size of receive data buffer */
-    DWORD dwStatus = GetAdaptersInfo(AdapterInfo,
-        &dwBufLen);
+    DWORD dwStatus = GetAdaptersInfo(AdapterInfo, &dwBufLen);
     if (dwStatus == ERROR_SUCCESS) {
         /* Verify return value is valid, no buffer overflow
            Contains pointer to current adapter info */
@@ -648,8 +647,7 @@ static uint32_t getIpMaskForIpAddress(
 }
 #endif
 
-static void set_broadcast_address(
-    uint32_t net_address)
+static void set_broadcast_address(uint32_t net_address)
 {
 #if USE_INADDR
     /*   Note: sometimes INADDR_BROADCAST does not let me get
@@ -698,8 +696,7 @@ static void set_broadcast_address(
  * @param ifname [in] The named interface to use for the network layer.
  *        Eg, for Windows, ifname is the dotted ip address of the interface
  */
-void bip_set_interface(
-    char *ifname)
+void bip_set_interface(char *ifname)
 {
     bip_init_windows();
     /* setup local address */
@@ -734,8 +731,7 @@ void bip_set_interface(
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
-bool bip_init(
-    char *ifname)
+bool bip_init(char *ifname)
 {
     int rv = 0; /* return from socket lib calls */
     struct sockaddr_in sin = { -1 };
@@ -771,8 +767,8 @@ bool bip_init(
     }
     /* Allow us to use the same socket for sending and receiving */
     /* This makes sure that the src port is correct when sending */
-    rv = setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &value,
-        sizeof(value));
+    rv = setsockopt(
+        sock_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value));
     if (rv < 0) {
         print_last_error("failed to set REUSEADDR socket option");
         closesocket(sock_fd);
@@ -780,8 +776,8 @@ bool bip_init(
         return false;
     }
     /* Enables transmission and receipt of broadcast messages on the socket. */
-    rv = setsockopt(sock_fd, SOL_SOCKET, SO_BROADCAST, (char *) &value,
-        sizeof(value));
+    rv = setsockopt(
+        sock_fd, SOL_SOCKET, SO_BROADCAST, (char *)&value, sizeof(value));
     if (rv < 0) {
         print_last_error("failed to set BROADCAST socket option");
         closesocket(sock_fd);
@@ -816,8 +812,7 @@ bool bip_init(
             ntohs(sin.sin_port));
         fflush(stderr);
     }
-    rv = bind(sock_fd, (const struct sockaddr *) &sin,
-        sizeof(struct sockaddr));
+    rv = bind(sock_fd, (const struct sockaddr *)&sin, sizeof(struct sockaddr));
     if (rv < 0) {
         print_last_error("failed to bind");
         closesocket(sock_fd);
@@ -839,9 +834,8 @@ bool bip_valid(void)
 
 /** Cleanup and close out the BACnet/IP services by closing the socket.
  * @ingroup DLBIP
-  */
-void bip_cleanup(
-    void)
+ */
+void bip_cleanup(void)
 {
     SOCKET sock_fd = 0;
 

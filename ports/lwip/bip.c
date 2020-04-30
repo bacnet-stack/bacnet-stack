@@ -31,15 +31,15 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-#include <stdint.h>     /* for standard integer types uint8_t etc. */
-#include <stdbool.h>    /* for the standard bool type. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
+#include <stdbool.h> /* for the standard bool type. */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/services.h"
-#include "bacport.h"        /* custom per port */
+#include "bacport.h" /* custom per port */
 
 /** @file bip.c  Configuration and Operations for BACnet/IP */
 
@@ -54,9 +54,9 @@ static struct in_addr BIP_Broadcast_Address;
 static struct udp_pcb *Server_upcb;
 /* track packets for diagnostics */
 struct bacnet_stats {
-  uint32_t xmit;             /* Transmitted packets. */
-  uint32_t recv;             /* Received packets. */
-  uint32_t drop;             /* Dropped packets. */
+    uint32_t xmit; /* Transmitted packets. */
+    uint32_t recv; /* Received packets. */
+    uint32_t drop; /* Dropped packets. */
 };
 struct bacnet_stats BIP_Stats;
 #define BIP_STATS_INC(x) ++BIP_Stats.x
@@ -76,28 +76,24 @@ uint32_t bip_stats_drop(void)
     return BIP_Stats.drop;
 }
 
-void bip_set_addr(
-    uint32_t net_address)
-{       /* in network byte order */
+void bip_set_addr(uint32_t net_address)
+{ /* in network byte order */
     BIP_Address.s_addr = net_address;
 }
 
 /* returns network byte order */
-uint32_t bip_get_addr(
-    void)
+uint32_t bip_get_addr(void)
 {
     return BIP_Address.s_addr;
 }
 
-void bip_set_broadcast_addr(
-    uint32_t net_address)
-{       /* in network byte order */
+void bip_set_broadcast_addr(uint32_t net_address)
+{ /* in network byte order */
     BIP_Broadcast_Address.s_addr = net_address;
 }
 
 /* returns network byte order */
-uint32_t bip_get_broadcast_addr(
-    void)
+uint32_t bip_get_broadcast_addr(void)
 {
     return BIP_Broadcast_Address.s_addr;
 }
@@ -106,8 +102,7 @@ uint32_t bip_get_broadcast_addr(
  * @brief Set the BACnet IPv4 UDP port number
  * @param port - IPv4 UDP port number - in host byte order
  */
-void bip_set_port(
-    uint16_t port)
+void bip_set_port(uint16_t port)
 {
     if (BIP_Port != htons(port)) {
         BIP_Port_Changed = true;
@@ -121,41 +116,35 @@ bool bip_port_changed(void)
 }
 
 /* returns host byte order */
-uint16_t bip_get_port(
-    void)
+uint16_t bip_get_port(void)
 {
     return ntohs(BIP_Port);
 }
 
-static void bip_mac_to_addr(
-    struct ip_addr *address,
-    uint8_t * mac)
+static void bip_mac_to_addr(struct ip_addr *address, uint8_t *mac)
 {
     if (mac && address) {
-        address->addr = ((u32_t) ((((uint32_t) mac[0]) << 24) & 0xff000000));
-        address->addr |= ((u32_t) ((((uint32_t) mac[1]) << 16) & 0x00ff0000));
-        address->addr |= ((u32_t) ((((uint32_t) mac[2]) << 8) & 0x0000ff00));
-        address->addr |= ((u32_t) (((uint32_t) mac[3]) & 0x000000ff));
+        address->addr = ((u32_t)((((uint32_t)mac[0]) << 24) & 0xff000000));
+        address->addr |= ((u32_t)((((uint32_t)mac[1]) << 16) & 0x00ff0000));
+        address->addr |= ((u32_t)((((uint32_t)mac[2]) << 8) & 0x0000ff00));
+        address->addr |= ((u32_t)(((uint32_t)mac[3]) & 0x000000ff));
     }
 }
 
-static void bip_addr_to_mac(
-    uint8_t * mac,
-    struct ip_addr *address)
+static void bip_addr_to_mac(uint8_t *mac, struct ip_addr *address)
 {
     if (mac && address) {
-        mac[0] = (uint8_t) (address->addr >> 24);
-        mac[1] = (uint8_t) (address->addr >> 16);
-        mac[2] = (uint8_t) (address->addr >> 8);
-        mac[3] = (uint8_t) (address->addr);
+        mac[0] = (uint8_t)(address->addr >> 24);
+        mac[1] = (uint8_t)(address->addr >> 16);
+        mac[2] = (uint8_t)(address->addr >> 8);
+        mac[3] = (uint8_t)(address->addr);
     }
 }
 
-static int bip_decode_bip_address(
-    BACNET_ADDRESS * bac_addr,
-    struct ip_addr *address,    /* in network format */
-    uint16_t * port)
-{       /* in network format */
+static int bip_decode_bip_address(BACNET_ADDRESS *bac_addr,
+    struct ip_addr *address, /* in network format */
+    uint16_t *port)
+{ /* in network format */
     int len = 0;
 
     if (bac_addr) {
@@ -177,9 +166,7 @@ static int bip_decode_bip_address(
  * @return true if the packet was sent
  */
 static bool bip_send_mpdu(
-    struct ip_addr *dst_ip,
-    uint16_t port,
-    struct pbuf *pkt)
+    struct ip_addr *dst_ip, uint16_t port, struct pbuf *pkt)
 {
     err_t status = ERR_OK;
 
@@ -203,14 +190,13 @@ static bool bip_send_mpdu(
  *
  * @return number of bytes sent
  */
-int bip_send_pdu(
-    BACNET_ADDRESS * dest,      /* destination address */
-    BACNET_NPDU_DATA * npdu_data,       /* network information */
-    uint8_t * pdu,      /* any data to be sent - may be null */
+int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+    BACNET_NPDU_DATA *npdu_data, /* network information */
+    uint8_t *pdu, /* any data to be sent - may be null */
     unsigned pdu_len)
 {
     struct pbuf *pkt = NULL, *pkt0 = NULL;
-    uint8_t mtu[4] = {0};
+    uint8_t mtu[4] = { 0 };
     int mtu_len = 0;
     /* addr and port in host format */
     struct ip_addr dst_ip;
@@ -240,7 +226,7 @@ int bip_send_pdu(
         /* invalid address */
         return -1;
     }
-    mtu_len = pdu_len + 4 /*inclusive */ ;
+    mtu_len = pdu_len + 4 /*inclusive */;
     encode_unsigned16(&mtu[2], mtu_len);
     pbuf_take(pkt0, mtu, 4);
     pbuf_take(pkt, pdu, pdu_len);
@@ -260,9 +246,7 @@ int bip_send_pdu(
  *
  * @return number of bytes encoded
  */
-static bool bvlc_send_result(
-    struct ip_addr *addr,
-    uint16_t result_code)
+static bool bvlc_send_result(struct ip_addr *addr, uint16_t result_code)
 {
     struct pbuf *pkt = NULL;
     uint8_t mtu[6] = { 0 };
@@ -284,8 +268,7 @@ static bool bvlc_send_result(
     return bip_send_mpdu(addr, BIP_Port, pkt);
 }
 
-void bip_server_callback(
-    void *arg,
+void bip_server_callback(void *arg,
     struct udp_pcb *upcb,
     struct pbuf *pkt,
     struct ip_addr *addr,
@@ -294,12 +277,10 @@ void bip_server_callback(
     uint8_t function = 0;
     uint16_t pdu_len = 0;
     uint16_t pdu_offset = 0;
-    BACNET_ADDRESS src = {
-        0
-    };  /* address where message came from */
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     struct ip_addr sin_addr;
     uint16_t sin_port = 0;
-    uint8_t *pdu = (uint8_t *) pkt->payload;
+    uint8_t *pdu = (uint8_t *)pkt->payload;
 
     /* the signature of a BACnet/IP packet */
     if (pdu[0] != BVLL_TYPE_BACNET_IP) {
@@ -317,13 +298,13 @@ void bip_server_callback(
             bip_addr_to_mac(&src.mac[0], addr);
             memcpy(&src.mac[4], &port, 2);
             /* decode the length of the PDU - length is inclusive of BVLC */
-            (void) decode_unsigned16(&pdu[2], &pdu_len);
+            (void)decode_unsigned16(&pdu[2], &pdu_len);
             /* subtract off the BVLC header */
             pdu_len -= 4;
             pdu_offset = 4;
         }
     } else if (function == BVLC_FORWARDED_NPDU) {
-        IP4_ADDR(&sin_addr,pdu[4],pdu[5],pdu[6],pdu[7]);
+        IP4_ADDR(&sin_addr, pdu[4], pdu[5], pdu[6], pdu[7]);
         decode_unsigned16(&pdu[8], &sin_port);
         if ((sin_addr.addr == BIP_Address.s_addr) && (sin_port == BIP_Port)) {
             /* ignore forwarded messages from me */
@@ -334,29 +315,26 @@ void bip_server_callback(
             bip_addr_to_mac(&src.mac[0], &sin_addr);
             memcpy(&src.mac[4], &sin_port, 2);
             /* decode the length of the PDU - length is inclusive of BVLC */
-            (void) decode_unsigned16(&pdu[2], &pdu_len);
+            (void)decode_unsigned16(&pdu[2], &pdu_len);
             /* subtract off the BVLC header */
             pdu_len -= 10;
             pdu_offset = 10;
         }
     } else if (function == BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE) {
-        bvlc_send_result(addr,
-            BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK);
+        bvlc_send_result(
+            addr, BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK);
     } else if (function == BVLC_READ_BROADCAST_DIST_TABLE) {
-        bvlc_send_result(addr,
-            BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK);
+        bvlc_send_result(
+            addr, BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK);
     } else if (function == BVLC_REGISTER_FOREIGN_DEVICE) {
-        bvlc_send_result(addr,
-            BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK);
+        bvlc_send_result(addr, BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK);
     } else if (function == BVLC_READ_FOREIGN_DEVICE_TABLE) {
-        bvlc_send_result(addr,
-            BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK);
+        bvlc_send_result(addr, BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK);
     } else if (function == BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY) {
-        bvlc_send_result(addr,
-            BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK);
+        bvlc_send_result(
+            addr, BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK);
     } else if (function == BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK) {
-        bvlc_send_result(addr,
-            BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK);
+        bvlc_send_result(addr, BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK);
     }
     if (pdu_len) {
         BIP_STATS_INC(recv);
@@ -376,8 +354,7 @@ void bip_server_callback(
     pbuf_free(pkt);
 }
 
-void bip_get_my_address(
-    BACNET_ADDRESS * my_address)
+void bip_get_my_address(BACNET_ADDRESS *my_address)
 {
     int i = 0;
 
@@ -385,8 +362,8 @@ void bip_get_my_address(
         my_address->mac_len = 6;
         memcpy(&my_address->mac[0], &BIP_Address.s_addr, 4);
         memcpy(&my_address->mac[4], &BIP_Port, 2);
-        my_address->net = 0;    /* local only, no routing */
-        my_address->len = 0;    /* no SLEN */
+        my_address->net = 0; /* local only, no routing */
+        my_address->len = 0; /* no SLEN */
         for (i = 0; i < MAX_MAC_LEN; i++) {
             /* no SADR */
             my_address->adr[i] = 0;
@@ -396,17 +373,16 @@ void bip_get_my_address(
     return;
 }
 
-void bip_get_broadcast_address(
-    BACNET_ADDRESS * dest)
-{       /* destination address */
-    int i = 0;  /* counter */
+void bip_get_broadcast_address(BACNET_ADDRESS *dest)
+{ /* destination address */
+    int i = 0; /* counter */
 
     if (dest) {
         dest->mac_len = 6;
         memcpy(&dest->mac[0], &BIP_Broadcast_Address.s_addr, 4);
         memcpy(&dest->mac[4], &BIP_Port, 2);
         dest->net = BACNET_BROADCAST_NETWORK;
-        dest->len = 0;  /* no SLEN */
+        dest->len = 0; /* no SLEN */
         for (i = 0; i < MAX_MAC_LEN; i++) {
             /* no SADR */
             dest->adr[i] = 0;
@@ -433,16 +409,14 @@ void bip_get_broadcast_address(
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
-bool bip_init(
-    char *ifname)
+bool bip_init(char *ifname)
 {
-    (void) ifname;
+    (void)ifname;
     /* Create a new UDP control block  */
     Server_upcb = udp_new();
     if (Server_upcb == NULL) {
         /* increase MEMP_NUM_UDP_PCB in lwipopts.h */
-        while (1) {
-        };
+        while (1) { };
     }
     /* Bind the upcb to the UDP_PORT port */
     /* Using IP_ADDR_ANY allow the upcb to be used by any local interface */

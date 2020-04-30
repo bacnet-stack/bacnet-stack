@@ -27,11 +27,10 @@
  * @param true if DST is enabled and active
  * @return true if local time was retrieved
  */
-bool datetime_local(
-    BACNET_DATE * bdate,
-    BACNET_TIME * btime,
-    int16_t * utc_offset_minutes,
-    bool * dst_active)
+bool datetime_local(BACNET_DATE *bdate,
+    BACNET_TIME *btime,
+    int16_t *utc_offset_minutes,
+    bool *dst_active)
 {
     bool status = false;
     struct tm *tblock = NULL;
@@ -54,11 +53,10 @@ bool datetime_local(
          *   int    tm_isdst Daylight Savings flag.
          */
         datetime_set_date(bdate, (uint16_t)tblock->tm_year + 1900,
-                          (uint8_t)tblock->tm_mon + 1,
-                          (uint8_t)tblock->tm_mday);
+            (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);
         datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-                          (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec,
-                          (uint8_t)(tv.tv_usec / 10000));
+            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec,
+            (uint8_t)(tv.tv_usec / 10000));
         if (dst_active) {
             /* The value of tm_isdst is:
                - positive if Daylight Saving Time is in effect,

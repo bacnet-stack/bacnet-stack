@@ -249,8 +249,7 @@ int main(int argc, char *argv[])
         for (;;) {
             /* increment timer - exit if timed out */
             current_seconds = time(NULL);
-            if (current_seconds != last_seconds) {
-            }
+            if (current_seconds != last_seconds) { }
 
             /* returns 0 bytes on timeout */
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);

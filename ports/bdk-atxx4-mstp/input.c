@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stdint.h>
 #include <stdbool.h>
 #include "hardware.h"
@@ -43,8 +43,7 @@ static struct mstimer Debounce_Timer;
 
 #if BDK_V1_HACK
 /* version 1 BDK workaournd for floating inputs */
-static void input_switch_workaround(
-    void)
+static void input_switch_workaround(void)
 {
     /* configure the port pins for the switch - as outputs */
     BIT_SET(DDRA, DDA0);
@@ -76,8 +75,7 @@ static void input_switch_workaround(
 #endif
 
 /* debounce the inputs */
-void input_task(
-    void)
+void input_task(void)
 {
     uint8_t value;
     static uint8_t old_address = 0;
@@ -100,7 +98,7 @@ void input_task(
             Address_Switch = old_address;
         }
         old_address = value;
-#if (BDK_VERSION==4)
+#if (BDK_VERSION == 4)
         /* pins used are PB3, PB2, PB1 */
         value = BITMASK_CHECK(PINB, 0x0E);
         value >>= 1;
@@ -119,20 +117,17 @@ void input_task(
 #endif
 }
 
-uint8_t input_address(
-    void)
+uint8_t input_address(void)
 {
     return Address_Switch;
 }
 
-uint8_t input_rotary_value(
-    uint8_t index)
+uint8_t input_rotary_value(uint8_t index)
 {
     return Buttons;
 }
 
-bool input_button_value(
-    uint8_t index)
+bool input_button_value(uint8_t index)
 {
     bool value = false;
 
@@ -159,9 +154,7 @@ bool input_button_value(
     return value;
 }
 
-
-void input_init(
-    void)
+void input_init(void)
 {
     /* configure the port pins for the switch */
     BIT_CLEAR(DDRA, DDA0);
@@ -180,7 +173,7 @@ void input_init(
     BIT_SET(PORTA, PORTA5);
     BIT_SET(PORTA, PORTA6);
     /* configure the port pins for rotary switch inputs */
-#if (BDK_VERSION==4)
+#if (BDK_VERSION == 4)
     BIT_CLEAR(DDRB, DDB1);
     BIT_CLEAR(DDRB, DDB2);
     BIT_CLEAR(DDRB, DDB3);

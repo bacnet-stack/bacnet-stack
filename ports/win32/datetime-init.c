@@ -21,9 +21,9 @@
 /* Offset between Windows epoch 1/1/1601 and
    Unix epoch 1/1/1970 in 100 nanosec units */
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS) || defined(__BORLANDC__)
-#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000Ui64
 #else
-#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
 #endif
 
 #if defined(__BORLANDC__) || defined(_WIN32)
@@ -35,21 +35,19 @@ long int timezone;
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 struct timezone {
     int tz_minuteswest; /* minutes W of Greenwich */
-    int tz_dsttime;     /* type of dst correction */
+    int tz_dsttime; /* type of dst correction */
 };
 
 /*************************************************************************
-* Description: simulate the gettimeofday Linux function
-* Returns: zero
-* Note: The resolution of GetSystemTimeAsFileTime() is 15625 microseconds.
-* The resolution of _ftime() is about 16 milliseconds.
-* To get microseconds accuracy we need to use QueryPerformanceCounter or
-* timeGetTime for the elapsed time.
-*************************************************************************/
+ * Description: simulate the gettimeofday Linux function
+ * Returns: zero
+ * Note: The resolution of GetSystemTimeAsFileTime() is 15625 microseconds.
+ * The resolution of _ftime() is about 16 milliseconds.
+ * To get microseconds accuracy we need to use QueryPerformanceCounter or
+ * timeGetTime for the elapsed time.
+ *************************************************************************/
 
-int gettimeofday(
-    struct timeval *tp,
-    void *tzp)
+int gettimeofday(struct timeval *tp, void *tzp)
 {
     static int tzflag = 0;
     struct timezone *tz;
@@ -71,16 +69,16 @@ int gettimeofday(
         usec_timer <<= 32;
         usec_timer |= ft.dwLowDateTime;
         /*converting file time to unix epoch 1970 */
-        usec_timer /= 10;       /*convert into microseconds */
+        usec_timer /= 10; /*convert into microseconds */
         usec_timer -= DELTA_EPOCH_IN_MICROSECS;
-        tp->tv_sec = (long) (usec_timer / 1000000UL);
-        tp->tv_usec = (long) (usec_timer % 1000000UL);
+        tp->tv_sec = (long)(usec_timer / 1000000UL);
+        tp->tv_usec = (long)(usec_timer % 1000000UL);
         time_start = timeGetTime();
     } else {
         elapsed_milliseconds = timeGetTime() - time_start;
-        usec_elapsed = usec_timer + ((LONGLONG) elapsed_milliseconds * 1000UL);
-        tp->tv_sec = (long) (usec_elapsed / 1000000UL);
-        tp->tv_usec = (long) (usec_elapsed % 1000000UL);
+        usec_elapsed = usec_timer + ((LONGLONG)elapsed_milliseconds * 1000UL);
+        tp->tv_sec = (long)(usec_elapsed / 1000000UL);
+        tp->tv_usec = (long)(usec_elapsed % 1000000UL);
     }
     if (tzp) {
         if (!tzflag) {
@@ -105,11 +103,10 @@ int gettimeofday(
  * @param true if DST is enabled and active
  * @return true if local time was retrieved
  */
-bool datetime_local(
-    BACNET_DATE * bdate,
-    BACNET_TIME * btime,
-    int16_t * utc_offset_minutes,
-    bool * dst_active)
+bool datetime_local(BACNET_DATE *bdate,
+    BACNET_TIME *btime,
+    int16_t *utc_offset_minutes,
+    bool *dst_active)
 {
     bool status = false;
     struct tm *tblock = NULL;
@@ -141,15 +138,14 @@ bool datetime_local(
          *   int    tm_isdst Daylight Savings flag.
          */
         datetime_set_date(bdate, (uint16_t)tblock->tm_year + 1900,
-                          (uint8_t)tblock->tm_mon + 1,
-                          (uint8_t)tblock->tm_mday);
+            (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);
 #if !defined(_MSC_VER)
         datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-                          (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec,
-                          (uint8_t)(tv.tv_usec / 10000));
+            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec,
+            (uint8_t)(tv.tv_usec / 10000));
 #else
         datetime_set_time(btime, (uint8_t)tblock->tm_hour,
-                          (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec, 0);
+            (uint8_t)tblock->tm_min, (uint8_t)tblock->tm_sec, 0);
 #endif
         if (dst_active) {
             /* The value of tm_isdst is:

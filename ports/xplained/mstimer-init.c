@@ -88,8 +88,7 @@ unsigned long mstimer_now(void)
  *
  * @return true if successfully added and enabled
  */
-void mstimer_callback(
-    struct mstimer_callback_data_t *new_cb,
+void mstimer_callback(struct mstimer_callback_data_t *new_cb,
     mstimer_callback_function callback,
     unsigned long milliseconds)
 {

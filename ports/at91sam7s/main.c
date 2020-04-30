@@ -1,28 +1,28 @@
 /**************************************************************************
-*
-* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-* Portions of the AT91SAM7S startup code were developed by James P Lynch.
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ * Portions of the AT91SAM7S startup code were developed by James P Lynch.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 /* hardware specific */
 #include "board.h"
 #include "timer.h"
@@ -48,12 +48,9 @@
 /*  ******************************************************* */
 /*   FIXME: use header files?     External References */
 /*  ******************************************************* */
-extern void LowLevelInit(
-    void);
-extern unsigned enableIRQ(
-    void);
-extern unsigned enableFIQ(
-    void);
+extern void LowLevelInit(void);
+extern unsigned enableIRQ(void);
+extern unsigned enableFIQ(void);
 
 /* used by crt.s file */
 unsigned FiqCount = 0;
@@ -64,8 +61,7 @@ static unsigned long LED_Timer_3 = 0;
 static unsigned long LED_Timer_4 = 1000;
 static unsigned long DCC_Timer = 1000;
 
-static inline void millisecond_timer(
-    void)
+static inline void millisecond_timer(void)
 {
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
@@ -88,8 +84,7 @@ static inline void millisecond_timer(
     /* note: MS/TP silence timer is updated in ISR */
 }
 
-static inline void init(
-    void)
+static inline void init(void)
 {
     unsigned int pcsr;
 
@@ -133,8 +128,7 @@ static inline void init(
     pAIC->AIC_IECR = (1 << AT91C_ID_FIQ);
 }
 
-static inline void bacnet_init(
-    void)
+static inline void bacnet_init(void)
 {
 #if defined(BACDL_MSTP)
     uint8_t MAC_Address = 0x55;
@@ -149,31 +143,29 @@ static inline void bacnet_init(
     /* initialize objects */
     Device_Init(NULL);
     /* set up our confirmed service unrecognized service handler - required! */
-    apdu_set_unrecognized_service_handler_handler
-        (handler_unrecognized_service);
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     /* Set the handlers for any confirmed services that we support. */
     /* We must implement read property - it's required! */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROPERTY,
-        handler_read_property);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
-        handler_read_property_multiple);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
-        handler_reinitialize_device);
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-        handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
     /* handle communication so we can shutup when asked */
     apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
         handler_device_communication_control);
 }
 
-static uint8_t Receive_PDU[MAX_MPDU];   /* PDU data */
-int main(
-    void)
+static uint8_t Receive_PDU[MAX_MPDU]; /* PDU data */
+int main(void)
 {
-    unsigned long IdleCount = 0;        /* idle loop blink counter */
+    unsigned long IdleCount = 0; /* idle loop blink counter */
     bool LED1_Off_Enabled = true;
     bool LED2_Off_Enabled = true;
     bool LED3_Off_Enabled = true;

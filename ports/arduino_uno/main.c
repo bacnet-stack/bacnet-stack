@@ -32,8 +32,8 @@
 extern bool Send_I_Am_Flag;
 /* local version override */
 const char *BACnet_Version = "1.0";
-static uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] =
-    { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+static uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] = { 0xDE, 0xAD, 0xBE, 0xEF,
+    0xFE, 0xED };
 uint8_t ipAddress[] = { 192, 168, 0, 185 };
 uint8_t gateway[] = { 192, 168, 0, 1 };
 uint8_t netmask[] = { 255, 255, 255, 0 };
@@ -53,7 +53,7 @@ bool dcc_communication_enabled(void)
 
 void setup()
 {
-    //INIT W5100
+    // INIT W5100
     init_func(CW5100Class_new());
     setMACAddress_func(CW5100Class_new(), Ethernet_MAC_Address);
     setIPAddress_func(CW5100Class_new(), ipAddress);
@@ -68,7 +68,6 @@ void setup()
 #ifdef DEBUG
     fprintf(stderr, "Starting BACNET application..\n");
 #endif
-
 }
 
 static uint8_t PDUBuffer[MAX_MPDU];
@@ -83,7 +82,6 @@ int main(void)
 
     datalink_init(NULL);
     for (;;) {
-
         /* other tasks */
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);

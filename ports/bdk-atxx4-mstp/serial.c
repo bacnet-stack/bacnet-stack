@@ -1,26 +1,26 @@
 /**************************************************************************
-*
-* Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2009 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -35,8 +35,7 @@ static uint32_t Baud_Rate = 9600;
 static uint8_t Receive_Buffer_Data[128];
 static FIFO_BUFFER Receive_Buffer;
 
-static void serial_receiver_enable(
-    void)
+static void serial_receiver_enable(void)
 {
     UCSR1B = _BV(TXEN1) | _BV(RXEN1) | _BV(RXCIE1);
 }
@@ -48,14 +47,13 @@ ISR(USART1_RX_vect)
     if (BIT_CHECK(UCSR1A, RXC1)) {
         /* data is available */
         data_byte = UDR1;
-        (void) FIFO_Put(&Receive_Buffer, data_byte);
+        (void)FIFO_Put(&Receive_Buffer, data_byte);
     }
 }
 
-bool serial_byte_get(
-    uint8_t * data_register)
+bool serial_byte_get(uint8_t *data_register)
 {
-    bool data_available = false;        /* return value */
+    bool data_available = false; /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
         *data_register = FIFO_Get(&Receive_Buffer);
@@ -65,10 +63,9 @@ bool serial_byte_get(
     return data_available;
 }
 
-bool serial_byte_peek(
-    uint8_t * data_register)
+bool serial_byte_peek(uint8_t *data_register)
 {
-    bool data_available = false;        /* return value */
+    bool data_available = false; /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
         *data_register = FIFO_Peek(&Receive_Buffer);
@@ -78,10 +75,9 @@ bool serial_byte_peek(
     return data_available;
 }
 
-void serial_bytes_send(
-    uint8_t * buffer,   /* data to send */
+void serial_bytes_send(uint8_t *buffer, /* data to send */
     uint16_t nbytes)
-{       /* number of bytes of data */
+{ /* number of bytes of data */
     while (!BIT_CHECK(UCSR1A, UDRE1)) {
         /* do nothing - wait until Tx buffer is empty */
     }
@@ -105,8 +101,7 @@ void serial_bytes_send(
     return;
 }
 
-void serial_byte_send(
-    uint8_t ch)
+void serial_byte_send(uint8_t ch)
 {
     while (!BIT_CHECK(UCSR1A, UDRE1)) {
         /* do nothing - wait until Tx buffer is empty */
@@ -117,8 +112,7 @@ void serial_byte_send(
     return;
 }
 
-void serial_byte_transmit_complete(
-    void)
+void serial_byte_transmit_complete(void)
 {
     /* was the frame sent? */
     while (!BIT_CHECK(UCSR1A, TXC1)) {
@@ -129,14 +123,12 @@ void serial_byte_transmit_complete(
     BIT_SET(UCSR1A, TXC1);
 }
 
-uint32_t serial_baud_rate(
-    void)
+uint32_t serial_baud_rate(void)
 {
     return Baud_Rate;
 }
 
-bool serial_baud_rate_set(
-    uint32_t baud)
+bool serial_baud_rate_set(uint32_t baud)
 {
     bool valid = true;
 
@@ -162,8 +154,7 @@ bool serial_baud_rate_set(
     return valid;
 }
 
-static void serial_usart_init(
-    void)
+static void serial_usart_init(void)
 {
     /* enable the internal pullup on RXD1 */
     BIT_CLEAR(DDRD, DDD2);
@@ -181,11 +172,10 @@ static void serial_usart_init(
     power_usart1_enable();
 }
 
-void serial_init(
-    void)
+void serial_init(void)
 {
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
-        (unsigned) sizeof(Receive_Buffer_Data));
+        (unsigned)sizeof(Receive_Buffer_Data));
     serial_usart_init();
     serial_baud_rate_set(Baud_Rate);
     serial_receiver_enable();

@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -50,8 +50,7 @@ static uint32_t Object_Instance_Number = 260001;
 static char Object_Name[20] = "My Device";
 static BACNET_DEVICE_STATUS System_Status = STATUS_OPERATIONAL;
 
-void Device_Init(
-    object_functions_t * object_table)
+void Device_Init(object_functions_t *object_table)
 {
     (void)object_table;
     /* Reinitialize_State = BACNET_REINIT_IDLE; */
@@ -64,14 +63,12 @@ void Device_Init(
 }
 
 /* methods to manipulate the data */
-uint32_t Device_Object_Instance_Number(
-    void)
+uint32_t Device_Object_Instance_Number(void)
 {
     return Object_Instance_Number;
 }
 
-bool Device_Set_Object_Instance_Number(
-    uint32_t object_id)
+bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
     bool status = true; /* return value */
 
@@ -89,21 +86,18 @@ bool Device_Set_Object_Instance_Number(
     return status;
 }
 
-bool Device_Valid_Object_Instance_Number(
-    uint32_t object_id)
+bool Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
     /* BACnet allows for a wildcard instance number */
     return (Object_Instance_Number == object_id);
 }
 
-uint16_t Device_Vendor_Identifier(
-    void)
+uint16_t Device_Vendor_Identifier(void)
 {
     return BACNET_VENDOR_ID;
 }
 
-unsigned Device_Object_List_Count(
-    void)
+unsigned Device_Object_List_Count(void)
 {
     unsigned count = 1; /* at least 1 for device object */
 
@@ -115,9 +109,7 @@ unsigned Device_Object_List_Count(
 }
 
 bool Device_Object_List_Identifier(
-    uint32_t array_index,
-    BACNET_OBJECT_TYPE *object_type,
-    uint32_t * instance)
+    uint32_t array_index, BACNET_OBJECT_TYPE *object_type, uint32_t *instance)
 {
     bool status = false;
     uint32_t object_index = 0;
@@ -163,12 +155,11 @@ bool Device_Object_List_Identifier(
 }
 
 /* return the length of the apdu encoded or -1 for error */
-int Device_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    uint8_t * apdu;
-    int apdu_len = 0;   /* return value */
-    int len = 0;        /* apdu len intermediate value */
+    uint8_t *apdu;
+    int apdu_len = 0; /* return value */
+    int len = 0; /* apdu len intermediate value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint32_t i = 0;
@@ -179,9 +170,8 @@ int Device_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_DEVICE,
-                Object_Instance_Number);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_DEVICE, Object_Instance_Number);
             break;
         case PROP_OBJECT_NAME:
             characterstring_init_ansi(&char_string, Object_Name);
@@ -200,9 +190,8 @@ int Device_Read_Property(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_VENDOR_IDENTIFIER:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                Device_Vendor_Identifier());
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Vendor_Identifier());
             break;
         case PROP_MODEL_NAME:
             characterstring_init_ansi(&char_string, "GNU Demo");
@@ -225,16 +214,15 @@ int Device_Read_Property(
             break;
         case PROP_PROTOCOL_REVISION:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                BACNET_PROTOCOL_REVISION);
+                encode_application_unsigned(&apdu[0], BACNET_PROTOCOL_REVISION);
             break;
         case PROP_PROTOCOL_SERVICES_SUPPORTED:
             /* Note: list of services that are executed, not initiated. */
             bitstring_init(&bit_string);
             for (i = 0; i < MAX_BACNET_SERVICES_SUPPORTED; i++) {
                 /* automatic lookup based on handlers set */
-                bitstring_set_bit(&bit_string, (uint8_t) i,
-                    apdu_service_supported((BACNET_SERVICES_SUPPORTED) i));
+                bitstring_set_bit(&bit_string, (uint8_t)i,
+                    apdu_service_supported((BACNET_SERVICES_SUPPORTED)i));
             }
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -245,7 +233,7 @@ int Device_Read_Property(
             /* must have the bit string as big as it can be */
             for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
                 /* initialize all the object types to not-supported */
-                bitstring_set_bit(&bit_string, (uint8_t) i, false);
+                bitstring_set_bit(&bit_string, (uint8_t)i, false);
             }
             /* FIXME: indicate the objects that YOU support */
             bitstring_set_bit(&bit_string, OBJECT_DEVICE, true);
@@ -265,9 +253,8 @@ int Device_Read_Property(
             else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= count; i++) {
                     Device_Object_List_Identifier(i, &object_type, &instance);
-                    len =
-                        encode_application_object_id(&apdu[apdu_len],
-                        object_type, instance);
+                    len = encode_application_object_id(
+                        &apdu[apdu_len], object_type, instance);
                     apdu_len += len;
                     /* assume next one is the same size as this one */
                     /* can we all fit into the APDU? */
@@ -280,11 +267,10 @@ int Device_Read_Property(
                     }
                 }
             } else {
-                if (Device_Object_List_Identifier(rpdata->array_index, 
-                    &object_type, &instance))
-                    apdu_len =
-                        encode_application_object_id(&apdu[0], object_type,
-                        instance);
+                if (Device_Object_List_Identifier(
+                        rpdata->array_index, &object_type, &instance))
+                    apdu_len = encode_application_object_id(
+                        &apdu[0], object_type, instance);
                 else {
                     rpdata->error_class = ERROR_CLASS_PROPERTY;
                     rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
@@ -313,8 +299,7 @@ int Device_Read_Property(
             break;
         case PROP_MAX_INFO_FRAMES:
             apdu_len =
-                encode_application_unsigned(&apdu[0],
-                dlmstp_max_info_frames());
+                encode_application_unsigned(&apdu[0], dlmstp_max_info_frames());
             break;
         case PROP_MAX_MASTER:
             apdu_len =
@@ -347,10 +332,9 @@ int Device_Read_Property(
     return apdu_len;
 }
 
-bool Device_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
@@ -360,9 +344,8 @@ bool Device_Write_Property(
         return false;
     }
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -381,8 +364,8 @@ bool Device_Write_Property(
         case PROP_OBJECT_IDENTIFIER:
             if (value.tag == BACNET_APPLICATION_TAG_OBJECT_ID) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
-                    (Device_Set_Object_Instance_Number(value.type.
-                            Object_Id.instance))) {
+                    (Device_Set_Object_Instance_Number(
+                        value.type.Object_Id.instance))) {
                     /* we could send an I-Am broadcast to let the world know */
                     status = true;
                 } else {
@@ -436,11 +419,13 @@ bool Device_Write_Property(
                         status = true;
                     } else {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                        wp_data->error_code =
+                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+                    wp_data->error_code =
+                        ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;

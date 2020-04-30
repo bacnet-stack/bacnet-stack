@@ -86,29 +86,27 @@ static DWORD RS485_DTRControl = DTR_CONTROL_DISABLE;
 static DWORD RS485_RTSControl = RTS_CONTROL_DISABLE;
 
 /****************************************************************************
-* DESCRIPTION: Change the characters in a string to uppercase
-* RETURN:      nothing
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-static void strupper(
-    char *str)
+ * DESCRIPTION: Change the characters in a string to uppercase
+ * RETURN:      nothing
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+static void strupper(char *str)
 {
     char *p;
     for (p = str; *p != '\0'; ++p) {
-        *p = (char) toupper(*p);
+        *p = (char)toupper(*p);
     }
 }
 
 /****************************************************************************
-* DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
-*              receive mode.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       expects a constant char ifname, or char from the heap
-*****************************************************************************/
-void RS485_Set_Interface(
-    char *ifname)
+ * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
+ *              receive mode.
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       expects a constant char ifname, or char from the heap
+ *****************************************************************************/
+void RS485_Set_Interface(char *ifname)
 {
     /* For COM ports greater than 9 you have to use a special syntax
        for CreateFile. The syntax also works for COM ports 1-9. */
@@ -126,13 +124,12 @@ void RS485_Set_Interface(
 }
 
 /****************************************************************************
-* DESCRIPTION: Check the serial port to see if port exists
-* RETURN:      true if port exists
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_Interface_Valid(
-    unsigned port_number)
+ * DESCRIPTION: Check the serial port to see if port exists
+ * RETURN:      true if port exists
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+bool RS485_Interface_Valid(unsigned port_number)
 {
     HANDLE h = 0;
     DWORD err = 0;
@@ -140,8 +137,8 @@ bool RS485_Interface_Valid(
     char ifname[255] = "";
 
     sprintf(ifname, "\\\\.\\COM%u", port_number);
-    h = CreateFile(ifname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
-        OPEN_EXISTING, 0, NULL);
+    h = CreateFile(
+        ifname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
     if (h == INVALID_HANDLE_VALUE) {
         err = GetLastError();
         if ((err == ERROR_ACCESS_DENIED) || (err == ERROR_GEN_FAILURE) ||
@@ -156,32 +153,28 @@ bool RS485_Interface_Valid(
     return status;
 }
 
-const char *RS485_Interface(
-    void)
+const char *RS485_Interface(void)
 {
     return RS485_Port_Name;
 }
 
-void RS485_Print_Error(
-    void)
+void RS485_Print_Error(void)
 {
     LPVOID lpMsgBuf;
 
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
         NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) & lpMsgBuf, 0, NULL);
+        (LPTSTR)&lpMsgBuf, 0, NULL);
     MessageBox(NULL, lpMsgBuf, "GetLastError", MB_OK | MB_ICONINFORMATION);
     LocalFree(lpMsgBuf);
 
     return;
 }
 
-static void RS485_Configure_Status(
-    void)
+static void RS485_Configure_Status(void)
 {
     DCB dcb = { 0 };
     COMMTIMEOUTS ctNew;
-
 
     dcb.DCBlength = sizeof(dcb);
     /* get current DCB settings */
@@ -193,9 +186,9 @@ static void RS485_Configure_Status(
 
     /* update DCB rate, byte size, parity, and stop bits size */
     dcb.BaudRate = RS485_Baud;
-    dcb.ByteSize = (unsigned char) RS485_ByteSize;
-    dcb.Parity = (unsigned char) RS485_Parity;
-    dcb.StopBits = (unsigned char) RS485_StopBits;
+    dcb.ByteSize = (unsigned char)RS485_ByteSize;
+    dcb.Parity = (unsigned char)RS485_Parity;
+    dcb.StopBits = (unsigned char)RS485_StopBits;
 
     /* update flow control settings */
     dcb.fDtrControl = RS485_DTRControl;
@@ -242,13 +235,12 @@ static void RS485_Configure_Status(
 }
 
 /****************************************************************************
-* DESCRIPTION: Cleans up any handles that were created at startup.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-static void RS485_Cleanup(
-    void)
+ * DESCRIPTION: Cleans up any handles that were created at startup.
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+static void RS485_Cleanup(void)
 {
     if (!EscapeCommFunction(RS485_Handle, CLRDTR)) {
         RS485_Print_Error();
@@ -262,20 +254,17 @@ static void RS485_Cleanup(
 }
 
 /****************************************************************************
-* DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
-*              receive mode.
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-void RS485_Initialize(
-    void)
+ * DESCRIPTION: Initializes the RS485 hardware and variables, and starts in
+ *              receive mode.
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+void RS485_Initialize(void)
 {
-    RS485_Handle =
-        CreateFile(RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0, 0,
-        OPEN_EXISTING,
-        /*FILE_FLAG_OVERLAPPED */ 0,
-        0);
+    RS485_Handle = CreateFile(RS485_Port_Name, GENERIC_READ | GENERIC_WRITE, 0,
+        0, OPEN_EXISTING,
+        /*FILE_FLAG_OVERLAPPED */ 0, 0);
     if (RS485_Handle == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "Unable to open %s\n", RS485_Port_Name);
         RS485_Print_Error();
@@ -295,13 +284,12 @@ void RS485_Initialize(
 }
 
 /****************************************************************************
-* DESCRIPTION: Returns the baud rate that we are currently running at
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(
-    void)
+ * DESCRIPTION: Returns the baud rate that we are currently running at
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+uint32_t RS485_Get_Baud_Rate(void)
 {
     switch (RS485_Baud) {
         case CBR_19200:
@@ -347,13 +335,12 @@ uint32_t RS485_Get_Baud_Rate(
 }
 
 /****************************************************************************
-* DESCRIPTION: Sets the baud rate for the chip USART
-* RETURN:      none
-* ALGORITHM:   none
-* NOTES:       none
-*****************************************************************************/
-bool RS485_Set_Baud_Rate(
-    uint32_t baud)
+ * DESCRIPTION: Sets the baud rate for the chip USART
+ * RETURN:      none
+ * ALGORITHM:   none
+ * NOTES:       none
+ *****************************************************************************/
+bool RS485_Set_Baud_Rate(uint32_t baud)
 {
     bool valid = true;
 
@@ -432,10 +419,10 @@ bool RS485_Set_Baud_Rate(
 
 /* Transmits a Frame on the wire */
 void RS485_Send_Frame(
-    volatile struct mstp_port_struct_t *mstp_port,      /* port specific data */
-    uint8_t * buffer,   /* frame to send (up to 501 bytes of data) */
+    volatile struct mstp_port_struct_t *mstp_port, /* port specific data */
+    uint8_t *buffer, /* frame to send (up to 501 bytes of data) */
     uint16_t nbytes)
-{       /* number of bytes of data (up to 501) */
+{ /* number of bytes of data (up to 501) */
     DWORD dwWritten = 0;
 
     if (mstp_port) {
@@ -464,8 +451,7 @@ void RS485_Send_Frame(
 }
 
 /* called by timer, interrupt(?) or other thread */
-void RS485_Check_UART_Data(
-    volatile struct mstp_port_struct_t *mstp_port)
+void RS485_Check_UART_Data(volatile struct mstp_port_struct_t *mstp_port)
 {
     char lpBuf[1];
     DWORD dwRead = 0;
@@ -490,12 +476,11 @@ void RS485_Check_UART_Data(
 }
 
 /*************************************************************************
-* Description: print available COM ports
-* Returns: none
-* Notes: none
-**************************************************************************/
-void RS485_Print_Ports(
-    void)
+ * Description: print available COM ports
+ * Returns: none
+ * Notes: none
+ **************************************************************************/
+void RS485_Print_Ports(void)
 {
     unsigned i = 0;
 
@@ -504,7 +489,8 @@ void RS485_Print_Ports(
         if (RS485_Interface_Valid(i)) {
             /* note: format for Wireshark ExtCap */
             printf("interface {value=COM%u}"
-                "{display=BACnet MS/TP on COM%u}\n", i, i);
+                   "{display=BACnet MS/TP on COM%u}\n",
+                i, i);
         }
     }
 }
@@ -513,9 +499,7 @@ void RS485_Print_Ports(
 
 #include "bacnet/datalink/mstpdef.h"
 
-
-static void test_transmit_task(
-    void *pArg)
+static void test_transmit_task(void *pArg)
 {
     char *TxBuf = "BACnet MS/TP";
     size_t len = strlen(TxBuf) + 1;
@@ -527,8 +511,7 @@ static void test_transmit_task(
 }
 
 #if defined(_WIN32)
-static BOOL WINAPI CtrlCHandler(
-    DWORD dwCtrlType)
+static BOOL WINAPI CtrlCHandler(DWORD dwCtrlType)
 {
     dwCtrlType = dwCtrlType;
     exit(0);
@@ -536,8 +519,7 @@ static BOOL WINAPI CtrlCHandler(
 }
 #endif
 
-static int ascii_hex_to_int(
-    char ch)
+static int ascii_hex_to_int(char ch)
 {
     int rv = -1;
 
@@ -552,9 +534,7 @@ static int ascii_hex_to_int(
     return rv;
 }
 
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
     unsigned long hThread = 0;
     uint32_t arg_value = 0;
@@ -577,7 +557,7 @@ int main(
     RS485_Initialize();
 #if defined(_WIN32)
     SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), ENABLE_PROCESSED_INPUT);
-    SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlCHandler, TRUE);
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE);
 #endif
 #ifdef TEST_RS485_TRANSMIT
     /* read a stream of characters from stdin or argument */

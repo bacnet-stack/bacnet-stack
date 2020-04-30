@@ -45,7 +45,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <signal.h>     /* signal handling functions */
+#include <signal.h> /* signal handling functions */
 
 /* local includes */
 #include "bacnet/bytes.h"
@@ -54,11 +54,12 @@
 #include "bacnet/datalink/mstp.h"
 #include "bacnet/datalink/mstptext.h"
 
-/** @file linux/rx_fsm.c  Example app testing MS/TP Rx State Machine on Linux. */
+/** @file linux/rx_fsm.c  Example app testing MS/TP Rx State Machine on Linux.
+ */
 
 #ifndef max
-#define max(a,b) (((a) (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a)(b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
 #ifndef LOCAL_PRINT
@@ -71,27 +72,27 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 static uint8_t RxBuffer[MAX_MPDU];
 static uint8_t TxBuffer[MAX_MPDU];
 static uint16_t SilenceTime;
-#define INCREMENT_AND_LIMIT_UINT16(x) {if (x < 0xFFFF) x++;}
-static uint16_t Timer_Silence(
-    void)
+#define INCREMENT_AND_LIMIT_UINT16(x) \
+    {                                 \
+        if (x < 0xFFFF)               \
+            x++;                      \
+    }
+static uint16_t Timer_Silence(void)
 {
     return SilenceTime;
 }
 
-static void Timer_Silence_Reset(
-    void)
+static void Timer_Silence_Reset(void)
 {
     SilenceTime = 0;
 }
 
-static void dlmstp_millisecond_timer(
-    void)
+static void dlmstp_millisecond_timer(void)
 {
     INCREMENT_AND_LIMIT_UINT16(SilenceTime);
 }
 
-void *milliseconds_task(
-    void *pArg)
+void *milliseconds_task(void *pArg)
 {
     struct timespec timeOut, remains;
 
@@ -107,10 +108,9 @@ void *milliseconds_task(
 }
 
 /* functions used by the MS/TP state machine to put or get data */
-uint16_t MSTP_Put_Receive(
-    volatile struct mstp_port_struct_t * mstp_port)
+uint16_t MSTP_Put_Receive(volatile struct mstp_port_struct_t *mstp_port)
 {
-    (void) mstp_port;
+    (void)mstp_port;
 
     return 0;
 }
@@ -118,26 +118,23 @@ uint16_t MSTP_Put_Receive(
 /* for the MS/TP state machine to use for getting data to send */
 /* Return: amount of PDU data */
 uint16_t MSTP_Get_Send(
-    volatile struct mstp_port_struct_t * mstp_port,
-    unsigned timeout)
-{       /* milliseconds to wait for a packet */
-    (void) mstp_port;
-    (void) timeout;
+    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+{ /* milliseconds to wait for a packet */
+    (void)mstp_port;
+    (void)timeout;
     return 0;
 }
 
 uint16_t MSTP_Get_Reply(
-    volatile struct mstp_port_struct_t * mstp_port,
-    unsigned timeout)
-{       /* milliseconds to wait for a packet */
-    (void) mstp_port;
-    (void) timeout;
+    volatile struct mstp_port_struct_t *mstp_port, unsigned timeout)
+{ /* milliseconds to wait for a packet */
+    (void)mstp_port;
+    (void)timeout;
     return 0;
 }
 
 /* returns a delta timestamp */
-int timestamp_ms(
-    void)
+int timestamp_ms(void)
 {
     struct timeval tv;
     int delta_ticks = 0;
@@ -158,19 +155,18 @@ int timestamp_ms(
 }
 
 static const char *Capture_Filename = "mstp.cap";
-static FILE *pFile = NULL;      /* stream pointer */
+static FILE *pFile = NULL; /* stream pointer */
 
 /* write packet to file in libpcap format */
-static void write_global_header(
-    void)
+static void write_global_header(void)
 {
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
     uint16_t version_major = 2; /* major version number */
     uint16_t version_minor = 4; /* minor version number */
-    int32_t thiszone = 0;       /* GMT to local correction */
-    uint32_t sigfigs = 0;       /* accuracy of timestamps */
-    uint32_t snaplen = 65535;   /* max length of captured packets, in octets */
-    uint32_t network = 165;     /* data link type - BACNET_MS_TP */
+    int32_t thiszone = 0; /* GMT to local correction */
+    uint32_t sigfigs = 0; /* accuracy of timestamps */
+    uint32_t snaplen = 65535; /* max length of captured packets, in octets */
+    uint32_t network = 165; /* data link type - BACNET_MS_TP */
 
     /* create a new file. */
     pFile = fopen(Capture_Filename, "wb");
@@ -188,14 +184,13 @@ static void write_global_header(
     }
 }
 
-static void write_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port)
+static void write_received_packet(volatile struct mstp_port_struct_t *mstp_port)
 {
-    uint32_t ts_sec;    /* timestamp seconds */
-    uint32_t ts_usec;   /* timestamp microseconds */
-    uint32_t incl_len;  /* number of octets of packet saved in file */
-    uint32_t orig_len;  /* actual length of packet */
-    uint8_t header[8];  /* MS/TP header */
+    uint32_t ts_sec; /* timestamp seconds */
+    uint32_t ts_usec; /* timestamp microseconds */
+    uint32_t incl_len; /* number of octets of packet saved in file */
+    uint32_t orig_len; /* actual length of packet */
+    uint8_t header[8]; /* MS/TP header */
     struct timeval tv;
     size_t max_data = 0;
 
@@ -224,8 +219,8 @@ static void write_received_packet(
         fwrite(header, sizeof(header), 1, pFile);
         if (mstp_port->DataLength) {
             fwrite(mstp_port->InputBuffer, max_data, 1, pFile);
-            fwrite((char *) &(mstp_port->DataCRCActualMSB), 1, 1, pFile);
-            fwrite((char *) &(mstp_port->DataCRCActualLSB), 1, 1, pFile);
+            fwrite((char *)&(mstp_port->DataCRCActualMSB), 1, 1, pFile);
+            fwrite((char *)&(mstp_port->DataCRCActualLSB), 1, 1, pFile);
         }
     } else {
         fprintf(stderr, "rx_fsm: failed to open %s: %s\n", Capture_Filename,
@@ -233,19 +228,17 @@ static void write_received_packet(
     }
 }
 
-static void cleanup(
-    void)
+static void cleanup(void)
 {
     if (pFile) {
-        fflush(pFile);  /* stream pointer */
-        fclose(pFile);  /* stream pointer */
+        fflush(pFile); /* stream pointer */
+        fclose(pFile); /* stream pointer */
     }
     pFile = NULL;
 }
 
 #if LOCAL_PRINT
-static void print_received_packet(
-    volatile struct mstp_port_struct_t *mstp_port)
+static void print_received_packet(volatile struct mstp_port_struct_t *mstp_port)
 {
     unsigned i = 0;
     int timestamp = 0;
@@ -280,17 +273,15 @@ static void print_received_packet(
 }
 #endif
 
-static void sig_int(
-    int signo)
+static void sig_int(int signo)
 {
-    (void) signo;
+    (void)signo;
 
     cleanup();
     exit(0);
 }
 
-void signal_init(
-    void)
+void signal_init(void)
 {
     signal(SIGINT, sig_int);
     signal(SIGHUP, sig_int);
@@ -298,9 +289,7 @@ void signal_init(
 }
 
 /* simple test to packetize the data and print it */
-int main(
-    int argc,
-    char *argv[])
+int main(int argc, char *argv[])
 {
     volatile struct mstp_port_struct_t *mstp_port;
     int rc = 0;
@@ -339,7 +328,7 @@ int main(
     rc = pthread_create(&hThread, NULL, milliseconds_task, NULL);
     atexit(cleanup);
     write_global_header();
-    fflush(pFile);      /* stream pointer */
+    fflush(pFile); /* stream pointer */
     /* run forever */
     for (;;) {
         RS485_Check_UART_Data(mstp_port);
@@ -351,7 +340,7 @@ int main(
             print_received_packet(mstp_port);
 #endif
             write_received_packet(mstp_port);
-            fflush(pFile);      /* stream pointer */
+            fflush(pFile); /* stream pointer */
         } else if (mstp_port->ReceivedInvalidFrame) {
             mstp_port->ReceivedInvalidFrame = false;
             fprintf(stderr, "ReceivedInvalidFrame\n");
@@ -359,7 +348,7 @@ int main(
             print_received_packet(mstp_port);
 #endif
             write_received_packet(mstp_port);
-            fflush(pFile);      /* stream pointer */
+            fflush(pFile); /* stream pointer */
         }
     }
 

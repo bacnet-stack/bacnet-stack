@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2010 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -42,26 +42,24 @@
 #endif
 
 #define BINARY_STRING_MAX 3
-const char * const binary_string[BINARY_STRING_MAX] = {
-    "INACTIVE", "ACTIVE", "RELINQUISH"
-};
+const char *const binary_string[BINARY_STRING_MAX] = { "INACTIVE", "ACTIVE",
+    "RELINQUISH" };
 
 /* timer for test task */
 static struct mstimer Test_Timer;
 /* MAC Address of MS/TP */
 static uint8_t MSTP_MAC_Address;
 
-void test_init(
-    void)
+void test_init(void)
 {
 #ifdef MSTP_MONITOR
     serial_baud_rate_set(115200);
 #else
     serial_baud_rate_set(9600);
 #endif
-    mstimer_set(&Test_Timer, 1*1000);
+    mstimer_set(&Test_Timer, 1 * 1000);
     /* configure a port pin as output */
-#if (BDK_VERSION==4)
+#if (BDK_VERSION == 4)
     BIT_SET(DDRD, DDB5);
 #else
     BIT_SET(DDRB, DDB0);
@@ -69,10 +67,10 @@ void test_init(
 }
 
 /**
-* @brief send a string of text to the RS-232 port
-* @param text - C string of text (null terminated)
-*/
-static void test_write_string(const char * text)
+ * @brief send a string of text to the RS-232 port
+ * @param text - C string of text (null terminated)
+ */
+static void test_write_string(const char *text)
 {
     size_t len = 0;
 
@@ -82,16 +80,14 @@ static void test_write_string(const char * text)
     }
 }
 
-
 /*************************************************************************
-* Description: Turn on a pin
-* Returns: none
-* Notes: none
-*************************************************************************/
-static inline void test_pin_on(
-    void)
+ * Description: Turn on a pin
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+static inline void test_pin_on(void)
 {
-#if (BDK_VERSION==4)
+#if (BDK_VERSION == 4)
     BIT_SET(PORTD, PD5);
 #else
     BIT_SET(PORTB, PB0);
@@ -99,14 +95,13 @@ static inline void test_pin_on(
 }
 
 /*************************************************************************
-* Description: Turn off a pin
-* Returns: none
-* Notes: none
-*************************************************************************/
-static inline void test_pin_off(
-    void)
+ * Description: Turn off a pin
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+static inline void test_pin_off(void)
 {
-#if (BDK_VERSION==4)
+#if (BDK_VERSION == 4)
     BIT_CLEAR(PORTD, PD5);
 #else
     BIT_CLEAR(PORTB, PB0);
@@ -114,14 +109,13 @@ static inline void test_pin_off(
 }
 
 /*************************************************************************
-* Description: Get the state of the test pin
-* Returns: true if on, false if off.
-* Notes: none
-*************************************************************************/
-static inline bool test_pin_state(
-    void)
+ * Description: Get the state of the test pin
+ * Returns: true if on, false if off.
+ * Notes: none
+ *************************************************************************/
+static inline bool test_pin_state(void)
 {
-#if (BDK_VERSION==4)
+#if (BDK_VERSION == 4)
     return (BIT_CHECK(PIND, PD5));
 #else
     return (BIT_CHECK(PINB, PB0));
@@ -129,12 +123,11 @@ static inline bool test_pin_state(
 }
 
 /*************************************************************************
-* Description: Toggle the test pin
-* Returns: none
-* Notes: none
-*************************************************************************/
-static inline void test_pin_toggle(
-    void)
+ * Description: Toggle the test pin
+ * Returns: none
+ * Notes: none
+ *************************************************************************/
+static inline void test_pin_toggle(void)
 {
     if (test_pin_state()) {
         test_pin_off();
@@ -144,8 +137,7 @@ static inline void test_pin_toggle(
 }
 
 #ifdef MSTP_MONITOR
-void test_task(
-    void)
+void test_task(void)
 {
     if (mstimer_expired(&Test_Timer)) {
         mstimer_reset(&Test_Timer);
@@ -155,8 +147,7 @@ void test_task(
 #else
 char Send_Buffer[32];
 
-void test_task(
-    void)
+void test_task(void)
 {
     uint8_t data_register = 0;
     uint16_t id = 0;
@@ -172,7 +163,7 @@ void test_task(
         Send_Buffer[12] = (MSTP_MAC_Address & BIT(4)) ? '1' : '0';
         Send_Buffer[13] = (MSTP_MAC_Address & BIT(5)) ? '1' : '0';
         Send_Buffer[14] = (MSTP_MAC_Address & BIT(6)) ? '1' : '0';
-        serial_bytes_send((uint8_t *) Send_Buffer, 17);
+        serial_bytes_send((uint8_t *)Send_Buffer, 17);
     }
     if (serial_byte_get(&data_register)) {
         /* echo the character */
@@ -206,22 +197,19 @@ void test_task(
                 rs485_baud_rate_set(9600);
                 break;
             case 'e':
-                seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *) & id, 2);
+                seeprom_bytes_read(NV_SEEPROM_TYPE_0, (uint8_t *)&id, 2);
                 sprintf(Send_Buffer, "\r\n%04X", id);
-                serial_bytes_send((uint8_t *) Send_Buffer,
-                    strlen(Send_Buffer));
+                serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             case 'b':
                 sprintf(Send_Buffer, "\r\n%lubps",
-                    (unsigned long) rs485_baud_rate());
-                serial_bytes_send((uint8_t *) Send_Buffer,
-                    strlen(Send_Buffer));
+                    (unsigned long)rs485_baud_rate());
+                serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             case 'm':
-                sprintf(Send_Buffer, "\r\nMax:%u",
-                    (unsigned) dlmstp_max_master());
-                serial_bytes_send((uint8_t *) Send_Buffer,
-                    strlen(Send_Buffer));
+                sprintf(
+                    Send_Buffer, "\r\nMax:%u", (unsigned)dlmstp_max_master());
+                serial_bytes_send((uint8_t *)Send_Buffer, strlen(Send_Buffer));
                 break;
             default:
                 break;

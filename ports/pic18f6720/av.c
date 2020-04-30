@@ -1,27 +1,27 @@
 /**************************************************************************
-*
-* Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-*********************************************************************/
+ *
+ * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *********************************************************************/
 
 /* Analog Value Objects - customize for your use */
 
@@ -32,7 +32,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
-#include "bacnet/config.h"     /* the custom stuff */
+#include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/wp.h"
 #include "bacnet/rp.h"
 #include "bacnet/basic/object/av.h"
@@ -54,8 +54,7 @@ static uint8_t Present_Value[MAX_ANALOG_VALUES];
 /* we need to have our arrays initialized before answering any calls */
 static bool Analog_Value_Initialized = false;
 
-void Analog_Value_Init(
-    void)
+void Analog_Value_Init(void)
 {
     unsigned i;
 
@@ -74,8 +73,7 @@ void Analog_Value_Init(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need validate that the */
 /* given instance exists */
-bool Analog_Value_Valid_Instance(
-    uint32_t object_instance)
+bool Analog_Value_Valid_Instance(uint32_t object_instance)
 {
     Analog_Value_Init();
     if (object_instance < MAX_ANALOG_VALUES)
@@ -86,8 +84,7 @@ bool Analog_Value_Valid_Instance(
 
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then count how many you have */
-unsigned Analog_Value_Count(
-    void)
+unsigned Analog_Value_Count(void)
 {
     Analog_Value_Init();
     return MAX_ANALOG_VALUES;
@@ -96,8 +93,7 @@ unsigned Analog_Value_Count(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the instance */
 /* that correlates to the correct index */
-uint32_t Analog_Value_Index_To_Instance(
-    unsigned index)
+uint32_t Analog_Value_Index_To_Instance(unsigned index)
 {
     Analog_Value_Init();
     return index;
@@ -106,8 +102,7 @@ uint32_t Analog_Value_Index_To_Instance(
 /* we simply have 0-n object instances.  Yours might be */
 /* more complex, and then you need to return the index */
 /* that correlates to the correct instance number */
-unsigned Analog_Value_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ANALOG_VALUES;
 
@@ -118,8 +113,7 @@ unsigned Analog_Value_Instance_To_Index(
     return index;
 }
 
-float Analog_Value_Present_Value(
-    uint32_t object_instance)
+float Analog_Value_Present_Value(uint32_t object_instance)
 {
     float value = ANALOG_RELINQUISH_DEFAULT;
     unsigned index = 0;
@@ -135,10 +129,9 @@ float Analog_Value_Present_Value(
 }
 
 /* note: the object name must be unique within this device */
-char *Analog_Value_Name(
-    uint32_t object_instance)
+char *Analog_Value_Name(uint32_t object_instance)
 {
-    static char text_string[32] = "";   /* okay for single thread */
+    static char text_string[32] = ""; /* okay for single thread */
 
     if (object_instance < MAX_ANALOG_VALUES) {
         sprintf(text_string, "AV-%lu", object_instance);
@@ -149,14 +142,13 @@ char *Analog_Value_Name(
 }
 
 /* return apdu len, or -1 on error */
-int Analog_Value_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int len = 0;
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
-    float real_value = (float) 1.414;
+    float real_value = (float)1.414;
     unsigned object_index = 0;
     unsigned i = 0;
     bool state = false;
@@ -170,14 +162,13 @@ int Analog_Value_Read_Property(
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ANALOG_VALUE,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_ANALOG_VALUE, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Analog_Value_Name(rpdata->object_instance));
+            characterstring_init_ansi(
+                &char_string, Analog_Value_Name(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -287,10 +278,9 @@ int Analog_Value_Read_Property(
 }
 
 /* returns true if successful */
-bool Analog_Value_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    bool status = false;        /* return value */
+    bool status = false; /* return value */
     unsigned int object_index = 0;
     unsigned int priority = 0;
     uint8_t level = ANALOG_LEVEL_NULL;
@@ -304,9 +294,8 @@ bool Analog_Value_Write_Property(
         return false;
     }
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -329,19 +318,19 @@ bool Analog_Value_Write_Property(
                    algorithm and may not be used for other purposes in any
                    object. */
                 if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-                    (priority != 6 /* reserved */ ) &&
+                    (priority != 6 /* reserved */) &&
                     (value.type.Real >= 0.0) && (value.type.Real <= 100.0)) {
-                    level = (uint8_t) value.type.Real;
-                    object_index =
-                        Analog_Value_Instance_To_Index
-                        (wp_data->object_instance);
+                    level = (uint8_t)value.type.Real;
+                    object_index = Analog_Value_Instance_To_Index(
+                        wp_data->object_instance);
                     priority--;
                     Present_Value[object_index] = level;
                     /* Note: you could set the physical output here if we
                        are the highest priority.
                        However, if Out of Service is TRUE, then don't set the
                        physical output.  This comment may apply to the
-                       main loop (i.e. check out of service before changing output) */
+                       main loop (i.e. check out of service before changing
+                       output) */
                     status = true;
                 } else if (priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off

@@ -32,8 +32,8 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
-#include <stdint.h>     /* for standard integer types uint8_t etc. */
-#include <stdbool.h>    /* for the standard bool type. */
+#include <stdint.h> /* for standard integer types uint8_t etc. */
+#include <stdbool.h> /* for the standard bool type. */
 #include <assert.h>
 #include <direct.h>
 #include <io.h>
@@ -41,7 +41,6 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/datalink/ethernet.h"
 #include "bacnet/bacdcode.h"
-
 
 /* Uses WinPCap to access raw ethernet */
 /* Notes:                                               */
@@ -59,10 +58,9 @@
 #include "ntddndis.h"
 #include "remote-ext.h"
 
-
 /* commonly used comparison address for ethernet */
-uint8_t Ethernet_Broadcast[MAX_MAC_LEN] =
-    { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+uint8_t Ethernet_Broadcast[MAX_MAC_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF };
 /* commonly used empty address for ethernet quick compare */
 uint8_t Ethernet_Empty_MAC[MAX_MAC_LEN] = { 0, 0, 0, 0, 0, 0 };
 
@@ -71,31 +69,24 @@ uint8_t Ethernet_MAC_Address[MAX_MAC_LEN] = { 0 };
 
 /* couple of var for using winpcap */
 static char pcap_errbuf[PCAP_ERRBUF_SIZE + 1];
-static pcap_t *pcap_eth802_fp = NULL;   /* 802.2 file handle, from winpcap */
+static pcap_t *pcap_eth802_fp = NULL; /* 802.2 file handle, from winpcap */
 static unsigned eth_timeout = 100;
-
 
 /* couple of external func for runtime error logging, you can simply    */
 /* replace them with standard "printf(...)"                             */
 /* Logging extern functions: Info level */
-extern void LogInfo(
-    const char *msg);
+extern void LogInfo(const char *msg);
 /* Logging extern functions: Error level*/
-extern void LogError(
-    const char *msg);
+extern void LogError(const char *msg);
 /* Logging extern functions: Debug level*/
-extern void LogDebug(
-    const char *msg);
+extern void LogDebug(const char *msg);
 
-
-bool ethernet_valid(
-    void)
+bool ethernet_valid(void)
 {
     return (pcap_eth802_fp != NULL);
 }
 
-void ethernet_cleanup(
-    void)
+void ethernet_cleanup(void)
 {
     if (pcap_eth802_fp) {
         pcap_close(pcap_eth802_fp);
@@ -104,8 +95,7 @@ void ethernet_cleanup(
     LogInfo("ethernet.c: ethernet_cleanup() ok.\n");
 }
 
-void ethernet_set_timeout(
-    unsigned timeout)
+void ethernet_set_timeout(unsigned timeout)
 {
     eth_timeout = timeout;
 }
@@ -113,7 +103,7 @@ void ethernet_set_timeout(
 /*----------------------------------------------------------------------
  Portable function to set a socket into nonblocking mode.
  Calling this on a socket causes all future read() and write() calls on
- that socket to do only as much as they can immediately, and return 
+ that socket to do only as much as they can immediately, and return
  without waiting.
  If no data can be read or written, they return -1 and set errno
  to EAGAIN (or EWOULDBLOCK).
@@ -135,8 +125,7 @@ int setNonblocking(int fd)
 }
 */
 
-bool ethernet_init(
-    char *if_name)
+bool ethernet_init(char *if_name)
 {
     PPACKET_OID_DATA pOidData;
     LPADAPTER lpAdapter;
@@ -155,8 +144,8 @@ bool ethernet_init(
      */
     /* Retrieve the device list */
     if (pcap_findalldevs(&pcap_all_if, pcap_errbuf) == -1) {
-        sprintf(msgBuf, "ethernet.c: error in pcap_findalldevs: %s\n",
-            pcap_errbuf);
+        sprintf(
+            msgBuf, "ethernet.c: error in pcap_findalldevs: %s\n", pcap_errbuf);
         LogError(msgBuf);
         return false;
     }
@@ -165,10 +154,10 @@ bool ethernet_init(
         if (strcmp(if_name, dev->name) == 0)
             break;
     }
-    pcap_freealldevs(pcap_all_if);      /* we don't need it anymore */
+    pcap_freealldevs(pcap_all_if); /* we don't need it anymore */
     if (dev == NULL) {
-        sprintf(msgBuf, "ethernet.c: specified interface not found: %s\n",
-            if_name);
+        sprintf(
+            msgBuf, "ethernet.c: specified interface not found: %s\n", if_name);
         LogError(msgBuf);
         return false;
     }
@@ -185,7 +174,7 @@ bool ethernet_init(
         LogError(msgBuf);
         return false;
     }
-    pOidData = (PPACKET_OID_DATA) str;
+    pOidData = (PPACKET_OID_DATA)str;
     pOidData->Oid = OID_802_3_CURRENT_ADDRESS;
     pOidData->Length = 6;
     result = PacketRequest(lpAdapter, FALSE, pOidData);
@@ -204,17 +193,18 @@ bool ethernet_init(
      */
     /* Open the output device */
     pcap_eth802_fp = pcap_open(if_name, /* name of the device */
-        MAX_MPDU,       /* portion of the packet to capture */
-        PCAP_OPENFLAG_PROMISCUOUS,      /* promiscuous mode */
-        eth_timeout,    /* read timeout */
-        NULL,   /* authentication on the remote machine */
-        pcap_errbuf     /* error buffer */
-        );
+        MAX_MPDU, /* portion of the packet to capture */
+        PCAP_OPENFLAG_PROMISCUOUS, /* promiscuous mode */
+        eth_timeout, /* read timeout */
+        NULL, /* authentication on the remote machine */
+        pcap_errbuf /* error buffer */
+    );
     if (pcap_eth802_fp == NULL) {
         PacketCloseAdapter(lpAdapter);
         ethernet_cleanup();
         sprintf(msgBuf,
-            "ethernet.c: unable to open the adapter. %s is not supported by WinPcap\n",
+            "ethernet.c: unable to open the adapter. %s is not supported by "
+            "WinPcap\n",
             if_name);
         LogError(msgBuf);
         return false;
@@ -229,12 +219,11 @@ bool ethernet_init(
 
 /* function to send a packet out the 802.2 socket */
 /* returns bytes sent success, negative on failure */
-int ethernet_send(
-    BACNET_ADDRESS * dest,      /* destination address */
-    BACNET_ADDRESS * src,       /* source address */
-    uint8_t * pdu,      /* any data to be sent - may be null */
-    unsigned pdu_len    /* number of bytes of data */
-    )
+int ethernet_send(BACNET_ADDRESS *dest, /* destination address */
+    BACNET_ADDRESS *src, /* source address */
+    uint8_t *pdu, /* any data to be sent - may be null */
+    unsigned pdu_len /* number of bytes of data */
+)
 {
     int bytes = 0;
     uint8_t mtu[MAX_MPDU] = { 0 };
@@ -272,11 +261,11 @@ int ethernet_send(
         return -4;
     }
     /* packet length */
-    mtu_len += encode_unsigned16(&mtu[12], 3 /*DSAP,SSAP,LLC */  + pdu_len);
+    mtu_len += encode_unsigned16(&mtu[12], 3 /*DSAP,SSAP,LLC */ + pdu_len);
     /* Logical PDU portion */
-    mtu[mtu_len++] = 0x82;      /* DSAP for BACnet */
-    mtu[mtu_len++] = 0x82;      /* SSAP for BACnet */
-    mtu[mtu_len++] = 0x03;      /* Control byte in header */
+    mtu[mtu_len++] = 0x82; /* DSAP for BACnet */
+    mtu[mtu_len++] = 0x82; /* SSAP for BACnet */
+    mtu[mtu_len++] = 0x03; /* Control byte in header */
     memcpy(&mtu[mtu_len], pdu, pdu_len);
     mtu_len += pdu_len;
 
@@ -295,13 +284,12 @@ int ethernet_send(
 
 /* function to send a packet out the 802.2 socket */
 /* returns number of bytes sent on success, negative on failure */
-int ethernet_send_pdu(
-    BACNET_ADDRESS * dest,      /* destination address */
-    uint8_t * pdu,      /* any data to be sent - may be null */
-    unsigned pdu_len    /* number of bytes of data */
-    )
+int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
+    uint8_t *pdu, /* any data to be sent - may be null */
+    unsigned pdu_len /* number of bytes of data */
+)
 {
-    int i = 0;  /* counter */
+    int i = 0; /* counter */
     BACNET_ADDRESS src = { 0 }; /* source address */
 
     for (i = 0; i < 6; i++) {
@@ -310,26 +298,26 @@ int ethernet_send_pdu(
     }
     /* function to send a packet out the 802.2 socket */
     /* returns 1 on success, 0 on failure */
-    return ethernet_send(dest,  /* destination address */
-        &src,   /* source address */
-        pdu,    /* any data to be sent - may be null */
+    return ethernet_send(dest, /* destination address */
+        &src, /* source address */
+        pdu, /* any data to be sent - may be null */
         pdu_len /* number of bytes of data */
-        );
+    );
 }
 
 /* receives an 802.2 framed packet */
 /* returns the number of octets in the PDU, or zero on failure */
-uint16_t ethernet_receive(
-    BACNET_ADDRESS * src,       /* source address */
-    uint8_t * pdu,      /* PDU data */
-    uint16_t max_pdu,   /* amount of space available in the PDU  */
-    unsigned timeout    /* number of milliseconds to wait for a packet. we ommit it due to winpcap API. */
-    )
+uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
+    uint8_t *pdu, /* PDU data */
+    uint16_t max_pdu, /* amount of space available in the PDU  */
+    unsigned timeout /* number of milliseconds to wait for a packet. we ommit it
+                        due to winpcap API. */
+)
 {
     struct pcap_pkthdr *header;
     int res;
     u_char *pkt_data;
-    uint16_t pdu_len = 0;       /* return value */
+    uint16_t pdu_len = 0; /* return value */
 
     /* Make sure the socket is open */
     if (!ethernet_valid()) {
@@ -361,14 +349,14 @@ uint16_t ethernet_receive(
 
     /* check destination address for when */
     /* the Ethernet card is in promiscious mode */
-    if ((memcmp(&pkt_data[0], Ethernet_MAC_Address, 6) != 0)
-        && (memcmp(&pkt_data[0], Ethernet_Broadcast, 6) != 0)) {
+    if ((memcmp(&pkt_data[0], Ethernet_MAC_Address, 6) != 0) &&
+        (memcmp(&pkt_data[0], Ethernet_Broadcast, 6) != 0)) {
         /*eth_log_error( "ethernet.c: This packet isn't for us\n"); */
         return 0;
     }
 
-    (void) decode_unsigned16(&pkt_data[12], &pdu_len);
-    pdu_len -= 3 /* DSAP, SSAP, LLC Control */ ;
+    (void)decode_unsigned16(&pkt_data[12], &pdu_len);
+    pdu_len -= 3 /* DSAP, SSAP, LLC Control */;
     /* copy the buffer into the PDU */
     if (pdu_len < max_pdu)
         memmove(&pdu[0], &pkt_data[17], pdu_len);
@@ -379,8 +367,7 @@ uint16_t ethernet_receive(
     return pdu_len;
 }
 
-void ethernet_set_my_address(
-    BACNET_ADDRESS * my_address)
+void ethernet_set_my_address(BACNET_ADDRESS *my_address)
 {
     int i = 0;
 
@@ -391,8 +378,7 @@ void ethernet_set_my_address(
     return;
 }
 
-void ethernet_get_my_address(
-    BACNET_ADDRESS * my_address)
+void ethernet_get_my_address(BACNET_ADDRESS *my_address)
 {
     int i = 0;
 
@@ -401,7 +387,7 @@ void ethernet_get_my_address(
         my_address->mac[i] = Ethernet_MAC_Address[i];
         my_address->mac_len++;
     }
-    my_address->net = 0;        /* local only, no routing */
+    my_address->net = 0; /* local only, no routing */
     my_address->len = 0;
     for (i = 0; i < MAX_MAC_LEN; i++) {
         my_address->adr[i] = 0;
@@ -410,10 +396,9 @@ void ethernet_get_my_address(
     return;
 }
 
-void ethernet_get_broadcast_address(
-    BACNET_ADDRESS * dest)
-{       /* destination address */
-    int i = 0;  /* counter */
+void ethernet_get_broadcast_address(BACNET_ADDRESS *dest)
+{ /* destination address */
+    int i = 0; /* counter */
 
     if (dest) {
         for (i = 0; i < 6; i++) {
@@ -421,7 +406,7 @@ void ethernet_get_broadcast_address(
         }
         dest->mac_len = 6;
         dest->net = BACNET_BROADCAST_NETWORK;
-        dest->len = 0;  /* denotes broadcast address  */
+        dest->len = 0; /* denotes broadcast address  */
         for (i = 0; i < MAX_MAC_LEN; i++) {
             dest->adr[i] = 0;
         }
@@ -430,11 +415,9 @@ void ethernet_get_broadcast_address(
     return;
 }
 
-void ethernet_debug_address(
-    const char *info,
-    BACNET_ADDRESS * dest)
+void ethernet_debug_address(const char *info, BACNET_ADDRESS *dest)
 {
-    int i = 0;  /* counter */
+    int i = 0; /* counter */
     char msgBuf[200];
 
     if (info) {
@@ -443,20 +426,20 @@ void ethernet_debug_address(
     }
     /* if */
     if (dest) {
-        sprintf(msgBuf, "Address:\n  MAC Length=%d\n  MAC Address=",
-            dest->mac_len);
+        sprintf(
+            msgBuf, "Address:\n  MAC Length=%d\n  MAC Address=", dest->mac_len);
         LogInfo(msgBuf);
         for (i = 0; i < MAX_MAC_LEN; i++) {
-            sprintf(msgBuf, "%02X ", (unsigned) dest->mac[i]);
+            sprintf(msgBuf, "%02X ", (unsigned)dest->mac[i]);
             LogInfo(msgBuf);
-        }       /* for */
+        } /* for */
         LogInfo("\n");
         sprintf(msgBuf, "  Net=%hu\n  Len=%d\n  Adr=", dest->net, dest->len);
         LogInfo(msgBuf);
         for (i = 0; i < MAX_MAC_LEN; i++) {
-            sprintf(msgBuf, "%02X ", (unsigned) dest->adr[i]);
+            sprintf(msgBuf, "%02X ", (unsigned)dest->adr[i]);
             LogInfo(msgBuf);
-        }       /* for */
+        } /* for */
         LogInfo("\n");
     }
     /* if ( dest ) */

@@ -10,8 +10,7 @@
 
 #include "bacnet/datalink/bip.h"
 
-long bip_get_addr_by_name(
-    const char *host_name)
+long bip_get_addr_by_name(const char *host_name)
 {
     return 0;
 }
@@ -20,7 +19,7 @@ void bip_set_interface(char *ifname)
 {
 }
 
-void bip_cleanup (void)
+void bip_cleanup(void)
 {
     close(bip_socket());
     bip_set_socket(-1);
@@ -28,7 +27,6 @@ void bip_cleanup (void)
 
 bool bip_init(char *ifname)
 {
-
     tcpip_adapter_ip_info_t ip_info = { 0 };
 
     int value = 1;
@@ -38,9 +36,10 @@ bool bip_init(char *ifname)
     bip_set_interface(ifname);
     bip_set_port(0xBAC0U);
     bip_set_addr(ip_info.ip.addr);
-    bip_set_broadcast_addr((ip_info.ip.addr&ip_info.netmask.addr)|(~ip_info.netmask.addr));
+    bip_set_broadcast_addr(
+        (ip_info.ip.addr & ip_info.netmask.addr) | (~ip_info.netmask.addr));
 
-    int  sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+    int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
     struct sockaddr_in saddr = { 0 };
 
     saddr.sin_family = PF_INET;
@@ -48,8 +47,8 @@ bool bip_init(char *ifname)
     saddr.sin_addr.s_addr = htonl(INADDR_ANY);
     bind(sock, (struct sockaddr *)&saddr, sizeof(struct sockaddr_in));
 
-    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *) &value, sizeof(value));
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &value, sizeof(value));
+    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&value, sizeof(value));
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&value, sizeof(value));
 
     bip_set_socket(sock);
 

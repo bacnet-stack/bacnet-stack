@@ -1,29 +1,29 @@
 /**************************************************************************
-*
-* Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-* Module Description:
-* Handle the configuration and operation of the RS485 bus.
-**************************************************************************/
+ *
+ * Copyright (C) 2011 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Module Description:
+ * Handle the configuration and operation of the RS485 bus.
+ **************************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -51,37 +51,34 @@ static uint32_t Baud_Rate = 38400;
 /* At 76800 baud, 40 bit times would be about 0.520 milliseconds */
 /* At 115200 baud, 40 bit times would be about 0.347 milliseconds */
 /* 40 bits is 4 octets including a start and stop bit with each octet */
-#define Tturnaround  (40UL)
+#define Tturnaround (40UL)
 
 /*************************************************************************
-* Description: Reset the silence on the wire timer.
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void rs485_silence_reset(
-    void)
+ * Description: Reset the silence on the wire timer.
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void rs485_silence_reset(void)
 {
     mstimer_set(&Silence_Timer, 0);
 }
 
 /*************************************************************************
-* Description: Determine the amount of silence on the wire from the timer.
-* Returns: true if the amount of time has elapsed
-* Notes: none
-**************************************************************************/
-bool rs485_silence_elapsed(
-    uint32_t interval)
+ * Description: Determine the amount of silence on the wire from the timer.
+ * Returns: true if the amount of time has elapsed
+ * Notes: none
+ **************************************************************************/
+bool rs485_silence_elapsed(uint32_t interval)
 {
     return (mstimer_elapsed(&Silence_Timer) > interval);
 }
 
 /*************************************************************************
-* Description: Baud rate determines turnaround time.
-* Returns: amount of milliseconds
-* Notes: none
-**************************************************************************/
-static uint16_t rs485_turnaround_time(
-    void)
+ * Description: Baud rate determines turnaround time.
+ * Returns: amount of milliseconds
+ * Notes: none
+ **************************************************************************/
+static uint16_t rs485_turnaround_time(void)
 {
     /* delay after reception before transmitting - per MS/TP spec */
     /* wait a minimum  40 bit times since reception */
@@ -94,55 +91,55 @@ static uint16_t rs485_turnaround_time(
 }
 
 /*************************************************************************
-* Description: Use the silence timer to determine turnaround time.
-* Returns: true if turnaround time has expired.
-* Notes: none
-**************************************************************************/
-bool rs485_turnaround_elapsed(
-    void)
+ * Description: Use the silence timer to determine turnaround time.
+ * Returns: true if turnaround time has expired.
+ * Notes: none
+ **************************************************************************/
+bool rs485_turnaround_elapsed(void)
 {
     return (mstimer_elapsed(&Silence_Timer) > rs485_turnaround_time());
 }
 
-
 /*************************************************************************
-* Description: Determines if an error occured while receiving
-* Returns: true an error occurred.
-* Notes: none
-**************************************************************************/
-bool rs485_receive_error(
-    void)
+ * Description: Determines if an error occured while receiving
+ * Returns: true an error occurred.
+ * Notes: none
+ **************************************************************************/
+bool rs485_receive_error(void)
 {
     return false;
 }
 
-/*********************************************************************//**
- * @brief        USARTx interrupt handler sub-routine
- * @param[in]    None
- * @return         None
- **********************************************************************/
-void USART2_IRQHandler(
-    void)
+/*********************************************************************/ /**
+                                                                         * @brief
+                                                                         *USARTx
+                                                                         *interrupt
+                                                                         *handler
+                                                                         *sub-routine
+                                                                         * @param[in]
+                                                                         *None
+                                                                         * @return
+                                                                         *None
+                                                                         **********************************************************************/
+void USART2_IRQHandler(void)
 {
     uint8_t data_byte;
-
 
     if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET) {
         /* Read one byte from the receive data register */
         data_byte = USART_ReceiveData(USART2);
-        (void) FIFO_Put(&Receive_Buffer, data_byte);
+        (void)FIFO_Put(&Receive_Buffer, data_byte);
     }
 }
 
 /*************************************************************************
-* DESCRIPTION: Return true if a byte is available
-* RETURN:      true if a byte is available, with the byte in the parameter
-* NOTES:       none
-**************************************************************************/
-bool rs485_byte_available(
-    uint8_t * data_register)
+ * DESCRIPTION: Return true if a byte is available
+ * RETURN:      true if a byte is available, with the byte in the parameter
+ * NOTES:       none
+ **************************************************************************/
+bool rs485_byte_available(uint8_t *data_register)
 {
-    bool data_available = false;        /* return value */
+    bool data_available = false; /* return value */
 
     if (!FIFO_Empty(&Receive_Buffer)) {
         if (data_register) {
@@ -157,12 +154,11 @@ bool rs485_byte_available(
 }
 
 /*************************************************************************
-* DESCRIPTION: Sends a byte of data
-* RETURN:      nothing
-* NOTES:       none
-**************************************************************************/
-void rs485_byte_send(
-    uint8_t tx_byte)
+ * DESCRIPTION: Sends a byte of data
+ * RETURN:      nothing
+ * NOTES:       none
+ **************************************************************************/
+void rs485_byte_send(uint8_t tx_byte)
 {
     led_tx_on_interval(10);
     USART_SendData(USART2, tx_byte);
@@ -170,37 +166,34 @@ void rs485_byte_send(
 }
 
 /*************************************************************************
-* Description: Determines if a byte in the USART has been shifted from
-*   register
-* Returns: true if the USART register is empty
-* Notes: none
-**************************************************************************/
-bool rs485_byte_sent(
-    void)
+ * Description: Determines if a byte in the USART has been shifted from
+ *   register
+ * Returns: true if the USART register is empty
+ * Notes: none
+ **************************************************************************/
+bool rs485_byte_sent(void)
 {
     return USART_GetFlagStatus(USART2, USART_FLAG_TXE);
 }
 
 /*************************************************************************
-* Description: Determines if the entire frame is sent from USART FIFO
-* Returns: true if the USART FIFO is empty
-* Notes: none
-**************************************************************************/
-bool rs485_frame_sent(
-    void)
+ * Description: Determines if the entire frame is sent from USART FIFO
+ * Returns: true if the USART FIFO is empty
+ * Notes: none
+ **************************************************************************/
+bool rs485_frame_sent(void)
 {
     return USART_GetFlagStatus(USART2, USART_FLAG_TC);
 }
 
 /*************************************************************************
-* DESCRIPTION: Send some data and wait until it is sent
-* RETURN:      true if a collision or timeout occurred
-* NOTES:       none
-**************************************************************************/
-void rs485_bytes_send(
-    uint8_t * buffer,   /* data to send */
+ * DESCRIPTION: Send some data and wait until it is sent
+ * RETURN:      true if a collision or timeout occurred
+ * NOTES:       none
+ **************************************************************************/
+void rs485_bytes_send(uint8_t *buffer, /* data to send */
     uint16_t nbytes)
-{       /* number of bytes of data */
+{ /* number of bytes of data */
     uint8_t tx_byte;
 
     while (nbytes) {
@@ -225,12 +218,11 @@ void rs485_bytes_send(
 }
 
 /*************************************************************************
-* Description: Configures the baud rate of the USART
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-static void rs485_baud_rate_configure(
-    void)
+ * Description: Configures the baud rate of the USART
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+static void rs485_baud_rate_configure(void)
 {
     USART_InitTypeDef USART_InitStructure;
 
@@ -247,12 +239,11 @@ static void rs485_baud_rate_configure(
 }
 
 /*************************************************************************
-* Description: Sets the baud rate to non-volatile storeage and configures USART
-* Returns: true if a value baud rate was saved
-* Notes: none
-**************************************************************************/
-bool rs485_baud_rate_set(
-    uint32_t baud)
+ * Description: Sets the baud rate to non-volatile storeage and configures USART
+ * Returns: true if a value baud rate was saved
+ * Notes: none
+ **************************************************************************/
+bool rs485_baud_rate_set(uint32_t baud)
 {
     bool valid = true;
 
@@ -275,23 +266,21 @@ bool rs485_baud_rate_set(
 }
 
 /*************************************************************************
-* Description: Determines the baud rate in bps
-* Returns: baud rate in bps
-* Notes: none
-**************************************************************************/
-uint32_t rs485_baud_rate(
-    void)
+ * Description: Determines the baud rate in bps
+ * Returns: baud rate in bps
+ * Notes: none
+ **************************************************************************/
+uint32_t rs485_baud_rate(void)
 {
     return Baud_Rate;
 }
 
 /*************************************************************************
-* Description: Enable the Request To Send (RTS) aka Transmit Enable pin
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void rs485_rts_enable(
-    bool enable)
+ * Description: Enable the Request To Send (RTS) aka Transmit Enable pin
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void rs485_rts_enable(bool enable)
 {
     if (enable) {
         GPIO_WriteBit(GPIOA, GPIO_Pin_1, Bit_SET);
@@ -301,12 +290,11 @@ void rs485_rts_enable(
 }
 
 /*************************************************************************
-* Description: Initialize the room network USART
-* Returns: nothing
-* Notes: none
-**************************************************************************/
-void rs485_init(
-    void)
+ * Description: Initialize the room network USART
+ * Returns: nothing
+ * Notes: none
+ **************************************************************************/
+void rs485_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
@@ -351,6 +339,6 @@ void rs485_init(
     USART_Cmd(USART2, ENABLE);
 
     FIFO_Init(&Receive_Buffer, &Receive_Buffer_Data[0],
-        (unsigned) sizeof(Receive_Buffer_Data));
+        (unsigned)sizeof(Receive_Buffer_Data));
     rs485_silence_reset();
 }
