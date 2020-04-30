@@ -100,9 +100,9 @@ int whohas_decode_service_request(
         if (decode_is_context_tag(&apdu[len], 0)) {
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            if (len < apdu_len) {
+            if ((unsigned)len < apdu_len) {
                 len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
-                if (len < apdu_len) {
+                if ((unsigned)len < apdu_len) {
                     if (unsigned_value <= BACNET_MAX_INSTANCE) {
                         data->low_limit = unsigned_value;
                     }
@@ -111,7 +111,7 @@ int whohas_decode_service_request(
                     }
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value);
-                    if (len < apdu_len) {
+                    if ((unsigned)len < apdu_len) {
                         len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
                         if (unsigned_value <= BACNET_MAX_INSTANCE) {
                             data->high_limit = unsigned_value;
@@ -124,12 +124,12 @@ int whohas_decode_service_request(
             data->high_limit = -1;
         }
         /* object id */
-        if (len < apdu_len) {
+        if ((unsigned)len < apdu_len) {
             if (decode_is_context_tag(&apdu[len], 2)) {
                 data->is_object_name = false;
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
-                if (len < apdu_len) {
+                if ((unsigned)len < apdu_len) {
                     len += decode_object_id(
                         &apdu[len], &decoded_type, &data->object.identifier.instance);
                     data->object.identifier.type = decoded_type;
@@ -140,7 +140,7 @@ int whohas_decode_service_request(
                 data->is_object_name = true;
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
-                if (len < apdu_len) {
+                if ((unsigned)len < apdu_len) {
                     len += decode_character_string(
                         &apdu[len], len_value, &data->object.name);
                 }
