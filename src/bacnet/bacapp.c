@@ -54,6 +54,14 @@
 #define snprintf _snprintf
 #endif
 
+/** @brief Encode application data given by a pointer into the APDU.
+ *  Return the number encoded bytes.
+ *
+ * @param apdu  Pointer to the buffer to encode to.
+ * @param value  Pointer to the application data.
+ *
+ * @return Bytes encoded.
+ */
 int bacapp_encode_application_data(
     uint8_t *apdu, BACNET_APPLICATION_DATA_VALUE *value)
 {
@@ -395,8 +403,15 @@ bool bacapp_decode_application_data_safe(uint8_t *new_apdu,
     return ret;
 }
 
-/* Decode the data and
-   return the number of octets consumed. */
+/** @brief Decode the data and
+ *  return the number of octets consumed.
+ *
+ *  @param apdu  Pointer to the received data.
+ *  @param tag_data_type  Data type to be decoded.
+ *  @param len_value_type  Length of the data in bytes.
+ *
+ *  @return Count of bytes decoded.
+ */
 int bacapp_decode_data_len(
     uint8_t *apdu, uint8_t tag_data_type, uint32_t len_value_type)
 {
