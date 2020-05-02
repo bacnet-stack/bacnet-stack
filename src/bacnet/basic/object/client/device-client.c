@@ -47,6 +47,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
+#include "bacnet/proplist.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
@@ -114,7 +115,7 @@ static object_functions_t Object_Table[] = {
         Device_Count, Device_Index_To_Instance,
         Device_Valid_Object_Instance_Number, Device_Object_Name,
         Device_Read_Property_Local, NULL /* Write_Property */,
-        NULL /* Property_Lists */, NULL /* ReadRangeInfo */,
+        Device_Property_Lists, NULL /* ReadRangeInfo */,
         NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
         NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
@@ -1004,6 +1005,9 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    struct special_property_list_t property_list;
+#endif
 
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
@@ -1013,7 +1017,19 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
             if (pObject->Object_Read_Property) {
-                apdu_len = pObject->Object_Read_Property(rpdata);
+#if (BACNET_PROTOCOL_REVISION >= 14)
+                if ((int)rpdata->object_property == PROP_PROPERTY_LIST) {
+                    Device_Objects_Property_List(rpdata->object_type,
+                        rpdata->object_instance, &property_list);
+                    apdu_len = property_list_encode(rpdata,
+                        property_list.Required.pList,
+                        property_list.Optional.pList,
+                        property_list.Proprietary.pList);
+                } else
+#endif
+                {
+                    apdu_len = pObject->Object_Read_Property(rpdata);
+                }
             }
         } else {
             rpdata->error_class = ERROR_CLASS_OBJECT;

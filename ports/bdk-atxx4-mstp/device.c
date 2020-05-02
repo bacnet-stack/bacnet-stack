@@ -39,6 +39,7 @@
 #include "stack.h"
 #include "bacnet/basic/services.h"
 #include "bname.h"
+#include "bacnet/proplist.h"
 /* objects */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/ai.h"
@@ -136,7 +137,9 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     struct my_object_functions *pObject = NULL;
-
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    struct special_property_list_t property_list;
+#endif
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -145,7 +148,20 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
             if (pObject->Object_Read_Property) {
-                apdu_len = pObject->Object_Read_Property(rpdata);
+#if (BACNET_PROTOCOL_REVISION >= 14)
+                if ((int)rpdata->object_property == PROP_PROPERTY_LIST) {
+                    Device_Objects_Property_List(rpdata->object_type,
+			rpdata->object_instance,
+                        &property_list);
+                    apdu_len = property_list_encode(rpdata,
+                        property_list.Required.pList,
+                        property_list.Optional.pList,
+                        property_list.Proprietary.pList);
+                } else
+#endif
+                {
+                    apdu_len = pObject->Object_Read_Property(rpdata);
+                }
             }
         }
     }

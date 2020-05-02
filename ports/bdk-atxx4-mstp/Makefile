@@ -130,6 +130,7 @@ CORESRC =  \
 	$(BACNET_CORE)/ihave.c \
 	$(BACNET_CORE)/memcopy.c \
 	$(BACNET_CORE)/npdu.c \
+	$(BACNET_CORE)/proplist.c \
 	$(BACNET_CORE)/rd.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/rp.c \
