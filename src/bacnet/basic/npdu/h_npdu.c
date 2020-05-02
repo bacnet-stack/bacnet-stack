@@ -82,7 +82,7 @@ void npdu_handler(BACNET_ADDRESS *src, /* source address */
 #if PRINT_ENABLED
             fprintf(stderr, "NPDU: Network Layer Message discarded!\n");
 #endif
-        } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
+        } else if ((apdu_offset > 0) && (apdu_offset < pdu_len)) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
                 /* only handle the version that we know how to handle */
                 /* and we are not a router, so ignore messages with

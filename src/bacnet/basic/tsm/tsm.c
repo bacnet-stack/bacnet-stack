@@ -73,14 +73,23 @@ void tsm_set_timeout_handler(tsm_timeout_function pFunction)
     Timeout_Function = pFunction;
 }
 
-/* returns MAX_TSM_TRANSACTIONS if not found */
+/** Find the given Invoke-Id in the list and
+ *  return the index.
+ *
+ * @param invokeID  Invoke Id
+ *
+ * @return Index of the id or MAX_TSM_TRANSACTIONS
+ *         if not found
+ */
 static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
 {
     unsigned i = 0; /* counter */
     uint8_t index = MAX_TSM_TRANSACTIONS; /* return value */
 
-    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
-        if (TSM_List[i].InvokeID == invokeID) {
+    const BACNET_TSM_DATA *plist = TSM_List;
+
+    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++, plist++) {
+        if (plist->InvokeID == invokeID) {
             index = (uint8_t)i;
             break;
         }
@@ -89,13 +98,20 @@ static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
     return index;
 }
 
+/** Find the first free index in the TSM table.
+ *
+ * @return Index of the id or MAX_TSM_TRANSACTIONS
+ *         if no entry is free.
+ */
 static uint8_t tsm_find_first_free_index(void)
 {
     unsigned i = 0; /* counter */
     uint8_t index = MAX_TSM_TRANSACTIONS; /* return value */
 
-    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
-        if (TSM_List[i].InvokeID == 0) {
+    const BACNET_TSM_DATA *plist = TSM_List;
+
+    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++, plist++) {
+        if (plist->InvokeID == 0) {
             index = (uint8_t)i;
             break;
         }
@@ -104,13 +120,19 @@ static uint8_t tsm_find_first_free_index(void)
     return index;
 }
 
+/** Check if space for transactions is available.
+ *
+ * @return true/false
+ */
 bool tsm_transaction_available(void)
 {
     bool status = false; /* return value */
     unsigned i = 0; /* counter */
 
-    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
-        if (TSM_List[i].InvokeID == 0) {
+    const BACNET_TSM_DATA *plist = TSM_List;
+
+    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++, plist++) {
+        if (plist->InvokeID == 0) {
             /* one is available! */
             status = true;
             break;
@@ -120,14 +142,20 @@ bool tsm_transaction_available(void)
     return status;
 }
 
+/** Return the count of idle transaction.
+ *
+ * @return Count of idle transaction.
+ */
 uint8_t tsm_transaction_idle_count(void)
 {
     uint8_t count = 0; /* return value */
     unsigned i = 0; /* counter */
 
-    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
-        if ((TSM_List[i].InvokeID == 0) &&
-            (TSM_List[i].state == TSM_STATE_IDLE)) {
+    const BACNET_TSM_DATA *plist = TSM_List;
+
+    for (i = 0; i < MAX_TSM_TRANSACTIONS; i++, plist++) {
+        if ((plist->InvokeID == 0) &&
+            (plist->state == TSM_STATE_IDLE)) {
             /* one is available! */
             count++;
         }
@@ -136,8 +164,11 @@ uint8_t tsm_transaction_idle_count(void)
     return count;
 }
 
-/* sets the invokeID */
-
+/**
+ * Sets the current invokeID.
+ *
+ * @param invokeID  Invoke ID
+ */
 void tsm_invokeID_set(uint8_t invokeID)
 {
     if (invokeID == 0) {
@@ -146,16 +177,20 @@ void tsm_invokeID_set(uint8_t invokeID)
     Current_Invoke_ID = invokeID;
 }
 
-/* gets the next free invokeID,
-   and reserves a spot in the table
-   returns 0 if none are available */
+/** Gets the next free invokeID,
+ * and reserves a spot in the table
+ * returns 0 if none are available.
+ *
+ * @return free invoke ID
+ */
 uint8_t tsm_next_free_invokeID(void)
 {
     uint8_t index = 0;
     uint8_t invokeID = 0;
     bool found = false;
+    BACNET_TSM_DATA *plist = NULL;
 
-    /* is there even space available? */
+    /* Is there even space available? */
     if (tsm_transaction_available()) {
         while (!found) {
             index = tsm_find_invokeID_index(Current_Invoke_ID);
@@ -165,9 +200,10 @@ uint8_t tsm_next_free_invokeID(void)
                 /* set this id into the table */
                 index = tsm_find_first_free_index();
                 if (index != MAX_TSM_TRANSACTIONS) {
-                    TSM_List[index].InvokeID = invokeID = Current_Invoke_ID;
-                    TSM_List[index].state = TSM_STATE_IDLE;
-                    TSM_List[index].RequestTimer = apdu_timeout();
+                    plist = &TSM_List[index];
+                    plist->InvokeID = invokeID = Current_Invoke_ID;
+                    plist->state = TSM_STATE_IDLE;
+                    plist->RequestTimer = apdu_timeout();
                     /* update for the next call or check */
                     Current_Invoke_ID++;
                     /* skip zero - we treat that internally as invalid or no
@@ -191,6 +227,15 @@ uint8_t tsm_next_free_invokeID(void)
     return invokeID;
 }
 
+/** Set for an unsegmented transaction
+ *  the state to await confirmation.
+ *
+ * @param invokeID  Invoke-ID
+ * @param dest  Pointer to the BACnet destination address.
+ * @param ndpu_data  Pointer to the NPDU structure.
+ * @param apdu  Pointer to the received message.
+ * @param apdu_len  Bytes valid in the received message.
+ */
 void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *ndpu_data,
@@ -201,7 +246,7 @@ void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
     uint8_t index;
     BACNET_TSM_DATA *plist;
 
-    if (invokeID) {
+    if (invokeID && ndpu_data && apdu && (apdu_len > 0)) {
         index = tsm_find_invokeID_index(invokeID);
         if (index < MAX_TSM_TRANSACTIONS) {
             plist = &TSM_List[index];
@@ -223,8 +268,18 @@ void tsm_set_confirmed_unsegmented_transaction(uint8_t invokeID,
     return;
 }
 
-/* used to retrieve the transaction payload */
-/* if we wanted to find out what we sent (i.e. when we get an ack) */
+/** Used to retrieve the transaction payload. Used
+ *  if we wanted to find out what we sent (i.e. when
+ *  we get an ack).
+ *
+ * @param invokeID  Invoke-ID
+ * @param dest  Pointer to the BACnet destination address.
+ * @param ndpu_data  Pointer to the NPDU structure.
+ * @param apdu  Pointer to the received message.
+ * @param apdu_len  Pointer to a variable, that takes
+ *                  the count of bytes valid in the
+ *                  received message.
+ */
 bool tsm_get_transaction_pdu(uint8_t invokeID,
     BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *ndpu_data,
@@ -236,7 +291,7 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
     bool found = false;
     BACNET_TSM_DATA *plist;
 
-    if (invokeID) {
+    if (invokeID && apdu && ndpu_data && apdu_len) {
         index = tsm_find_invokeID_index(invokeID);
         /* how much checking is needed?  state?  dest match? just invokeID? */
         if (index < MAX_TSM_TRANSACTIONS) {
@@ -261,6 +316,8 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
 }
 
 /** Called once a millisecond or slower.
+ *  This function calls the handler for a
+ *  timeout 'Timeout_Function', if neccessary.
  *
  * @param milliseconds - Count of milliseconds passed, since the last call.
  */
@@ -300,7 +357,10 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
     }
 }
 
-/* frees the invokeID and sets its state to IDLE */
+/** Frees the invokeID and sets its state to IDLE
+ *
+ * @param invokeID  Invoke-ID
+ */
 void tsm_free_invoke_id(uint8_t invokeID)
 {
     uint8_t index;

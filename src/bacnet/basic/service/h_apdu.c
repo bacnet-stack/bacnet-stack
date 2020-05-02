@@ -674,11 +674,13 @@ void apdu_handler(BACNET_ADDRESS *src,
                                     len += decode_enumerated(&apdu[len], len_value, &error_code);
 
                                     if (service_choice ==
-                                        SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over
-                                                                                 closing tag 0 */
-                                        if (decode_is_closing_tag_number(&apdu[len], 0)) {
-                                            len++; /* a tag number of 0 is not extended so only one
-                                                      octet */
+                                        SERVICE_CONFIRMED_PRIVATE_TRANSFER) {
+                                        if (len < apdu_len) {
+                                            /* skip over closing tag 0 */
+                                            if (decode_is_closing_tag_number(&apdu[len], 0)) {
+                                                len++; /* a tag number of 0 is not extended so
+                                                          only one octet */
+                                            }
                                         }
                                     }
                                 }
