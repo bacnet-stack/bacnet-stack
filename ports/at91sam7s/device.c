@@ -37,6 +37,7 @@
 #include "rs485.h"
 #include "bacnet/version.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/proplist.h"
 /* objects */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/ai.h"
@@ -138,6 +139,9 @@ static int Read_Property_Common(
     int apdu_len = BACNET_STATUS_ERROR;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    struct special_property_list_t property_list;
+#endif
 
     if ((rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -188,6 +192,19 @@ static int Read_Property_Common(
                     &apdu[0], rpdata->object_type);
             }
             break;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+        case PROP_PROPERTY_LIST:
+            Device_Objects_Property_List(
+                rpdata->object_type,
+                rpdata->object_instance,
+                &property_list);
+            apdu_len = property_list_encode(
+                rpdata,
+                property_list.Required.pList,
+                property_list.Optional.pList,
+                property_list.Proprietary.pList);
+            break;
+#endif
         default:
             if (pObject->Object_Read_Property) {
                 apdu_len = pObject->Object_Read_Property(rpdata);

@@ -67,6 +67,7 @@
       <file file_name="../../src/bacnet/ihave.c"/>
       <file file_name="../../src/bacnet/memcopy.c"/>
       <file file_name="../../src/bacnet/npdu.c"/>
+      <file file_name="../../src/bacnet/proplist.c"/>
       <file file_name="../../src/bacnet/rd.c"/>
       <file file_name="../../src/bacnet/reject.c"/>
       <file file_name="../../src/bacnet/rp.c"/>

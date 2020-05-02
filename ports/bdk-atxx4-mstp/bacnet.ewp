@@ -2236,6 +2236,9 @@
       <name>$PROJ_DIR$\..\..\src\bacnet\npdu.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\..\src\bacnet\proplist.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\..\src\bacnet\rd.c</name>
     </file>
     <file>
