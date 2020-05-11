@@ -244,6 +244,7 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     unsigned timeout)
 {
     int received_bytes = 0;
+    int max = 0;
     uint16_t pdu_len = 0; /* return value */
     uint8_t src_addr[] = { 0, 0, 0, 0 };
     uint16_t src_port = 0;
@@ -273,6 +274,18 @@ uint16_t bip_receive(BACNET_ADDRESS *src, /* source address */
     /* the signature of a BACnet/IP packet */
     if (pdu[0] != BVLL_TYPE_BACNET_IP)
         return 0;
+
+    /* Erase up to 16 bytes after the received bytes as safety margin to
+     * ensure that the decoding functions will run into a 'safe field'
+     * of zero, if for any reason they would overrun, when parsing the
+     * message. */
+    max = (int)max_pdu - received_bytes;
+    if (max > 0) {
+        if (max > 16) {
+            max = 16;
+        }
+        memset(&pdu[received_bytes], 0, max);
+    }
 
     if (bvlc_for_non_bbmd(src_addr, &src_port, pdu, received_bytes) > 0) {
         /* Handled, usually with a NACK. */
