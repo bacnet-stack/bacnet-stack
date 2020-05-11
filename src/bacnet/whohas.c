@@ -39,8 +39,12 @@
 
 /** @file whohas.c  Encode/Decode Who-Has requests */
 
-/* encode service  - use -1 for limit for unlimited */
-
+/** Encode Who-Hasservice  - use -1 for limit for unlimited
+ *
+ * @param apdu  Pointer to the APDU.
+ * @param data  Pointer to the Who-Has application data.
+ *
+ * @return Bytes encoded. */
 int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
 {
     int len = 0; /* length of each encoding */
@@ -75,7 +79,13 @@ int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
     return apdu_len;
 }
 
-/* decode the service request only */
+/** Decode the Who-Has service request only.
+ *
+ * @param apdu  Pointer to the received data.
+ * @param apdu_len  Bytes valid in the receive buffer.
+ * @param data  Pointer to the application dta to be filled in.
+ *
+ * @return Bytes decoded. */
 int whohas_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_WHO_HAS_DATA *data)
 {
@@ -90,42 +100,56 @@ int whohas_decode_service_request(
         if (decode_is_context_tag(&apdu[len], 0)) {
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
-            if (unsigned_value <= BACNET_MAX_INSTANCE) {
-                data->low_limit = unsigned_value;
-            }
-            if (!decode_is_context_tag(&apdu[len], 1)) {
-                return -1;
-            }
-            len += decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value);
-            len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
-            if (unsigned_value <= BACNET_MAX_INSTANCE) {
-                data->high_limit = unsigned_value;
+            if ((unsigned)len < apdu_len) {
+                len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+                if ((unsigned)len < apdu_len) {
+                    if (unsigned_value <= BACNET_MAX_INSTANCE) {
+                        data->low_limit = unsigned_value;
+                    }
+                    if (!decode_is_context_tag(&apdu[len], 1)) {
+                        return -1;
+                    }
+                    len += decode_tag_number_and_value(
+                        &apdu[len], &tag_number, &len_value);
+                    if ((unsigned)len < apdu_len) {
+                        len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+                        if (unsigned_value <= BACNET_MAX_INSTANCE) {
+                            data->high_limit = unsigned_value;
+                        }
+                    }
+                }
             }
         } else {
             data->low_limit = -1;
             data->high_limit = -1;
         }
         /* object id */
-        if (decode_is_context_tag(&apdu[len], 2)) {
-            data->is_object_name = false;
-            len += decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value);
-            len += decode_object_id(
-                &apdu[len], &decoded_type, &data->object.identifier.instance);
-            data->object.identifier.type = decoded_type;
-        }
-        /* object name */
-        else if (decode_is_context_tag(&apdu[len], 3)) {
-            data->is_object_name = true;
-            len += decode_tag_number_and_value(
-                &apdu[len], &tag_number, &len_value);
-            len += decode_character_string(
-                &apdu[len], len_value, &data->object.name);
-        }
-        /* missing required parameters */
-        else {
+        if ((unsigned)len < apdu_len) {
+            if (decode_is_context_tag(&apdu[len], 2)) {
+                data->is_object_name = false;
+                len += decode_tag_number_and_value(
+                    &apdu[len], &tag_number, &len_value);
+                if ((unsigned)len < apdu_len) {
+                    len += decode_object_id(
+                        &apdu[len], &decoded_type, &data->object.identifier.instance);
+                    data->object.identifier.type = decoded_type;
+                }
+            }
+            /* object name */
+            else if (decode_is_context_tag(&apdu[len], 3)) {
+                data->is_object_name = true;
+                len += decode_tag_number_and_value(
+                    &apdu[len], &tag_number, &len_value);
+                if ((unsigned)len < apdu_len) {
+                    len += decode_character_string(
+                        &apdu[len], len_value, &data->object.name);
+                }
+            } else {
+                /* missing required parameters */
+                return -1;
+            }
+        } else {
+            /* message too short */
             return -1;
         }
     }

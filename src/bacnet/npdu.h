@@ -95,6 +95,14 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_NPDU_DATA * npdu_data);
 
+    BACNET_STACK_EXPORT
+    int bacnet_npdu_decode(
+        uint8_t * npdu,
+        uint16_t pdu_len,
+        BACNET_ADDRESS * dest,
+        BACNET_ADDRESS * src,
+        BACNET_NPDU_DATA * npdu_data);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
