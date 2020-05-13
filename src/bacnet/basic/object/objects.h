@@ -21,34 +21,16 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef OBJECTS_H
-#define OBJECTS_H
+#ifndef BACNET_OBJECTS_H
+#define BACNET_OBJECTS_H
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/bacenum.h"
-
-typedef union BACnetScale_t {
-    float Float;
-    int32_t Integer;
-} BACNET_SCALE_T;
-
-/* structures to hold the data gotten by ReadProperty from the device */
-typedef struct object_accumulator_t {
-    BACNET_OBJECT_ID Object_Identifier;
-    BACNET_CHARACTER_STRING Object_Name;
-    BACNET_OBJECT_TYPE Object_Type;
-    uint32_t Present_Value;
-    BACNET_STATUS_FLAGS Status_Flags;
-    BACNET_EVENT_STATE Event_State;
-    bool Out_Of_Service;
-    BACNET_SCALE_T Scale;
-    BACNET_ENGINEERING_UNITS Units;
-    uint32_t Max_Pres_Value;
-} OBJECT_ACCUMULATOR_T;
 
 typedef struct object_device_t {
     BACNET_OBJECT_ID Object_Identifier;
@@ -74,5 +56,34 @@ typedef struct object_device_t {
     uint32_t Database_Revision;
 } OBJECT_DEVICE_T;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+    BACNET_STACK_EXPORT
+    OBJECT_DEVICE_T *objects_device_delete(int index);
+    
+    BACNET_STACK_EXPORT
+    OBJECT_DEVICE_T *objects_device_new(uint32_t device_instance);
+
+    BACNET_STACK_EXPORT
+    OBJECT_DEVICE_T *objects_device_by_instance(uint32_t device_instance);
+
+    BACNET_STACK_EXPORT
+    OBJECT_DEVICE_T *objects_device_data(int index);
+    
+    BACNET_STACK_EXPORT
+    int objects_device_count(void);
+    
+    BACNET_STACK_EXPORT
+    uint32_t objects_device_id(int index);
+
+    BACNET_STACK_EXPORT
+    void objects_init(void);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
+
