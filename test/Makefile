@@ -6,7 +6,7 @@ all: abort address arf awf bvlc bvlc6 bacapp bacdcode bacerror bacint bacstr \
 	cov crc datetime dcc event filename fifo getevent iam ihave \
 	indtext keylist key lighting lso memcopy npdu proplist ptransfer \
 	rd reject ringbuf rp rpm sbuf timesync vmac \
-	bbmd bbmd6 \
+	bbmd bbmd6 objects \
 	whohas whois wp
 
 clean: logfile
@@ -170,6 +170,11 @@ npdu: logfile npdu.mak
 	$(MAKE) -s -f npdu.mak clean all
 	( ./npdu >> ${LOGFILE} )
 	$(MAKE) -s -f npdu.mak clean
+
+objects: logfile bacnet/basic/object/objects/Makefile
+	$(MAKE) -s -C bacnet/basic/object/objects/ clean all
+	( ./bacnet/basic/object/objects/unittest >> ${LOGFILE} )
+	$(MAKE) -s -C bacnet/basic/object/objects/ clean
 
 proplist: logfile proplist.mak
 	$(MAKE) -s -f proplist.mak clean all
