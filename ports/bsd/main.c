@@ -51,8 +51,14 @@
 
 bool Who_Is_Request = true;
 
-/* buffers used for receiving */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+
+static uint8_t Rx_Buf[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                                     * so that in the rare case, the message
+                                     * would be filled up to MAX_MPDU and some
+                                     * decoding functions would overrun, these
+                                     * decoding functions will just end up in
+                                     * a safe field of static zeros. */] = { 0 };
 
 static void LocalIAmHandler(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
