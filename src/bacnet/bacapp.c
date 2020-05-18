@@ -911,10 +911,18 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
     return status;
 }
 
-/* returns the length of data between an opening tag and a closing tag.
-   Expects that the first octet contain the opening tag.
-   Include a value property identifier for context specific data
-   such as the value received in a WriteProperty request */
+/**
+ * @brief Returns the length of data between an opening tag and a closing tag.
+ * Expects that the first octet contain the opening tag.
+ * Include a value property identifier for context specific data
+ * such as the value received in a WriteProperty request.
+ *
+ * @param Pointer to the APDU buffer
+ * @param apdu_len_max Bytes valid in the buffer
+ * @param property ID of the propery to get the length for.
+ *
+ * @return Length in bytes or BACNET_STATUS_ERROR.
+ */
 int bacapp_data_len(
     uint8_t *apdu, unsigned apdu_len_max, BACNET_PROPERTY_ID property)
 {

@@ -151,20 +151,25 @@ int wpm_decode_object_property(
                 (unsigned)(apdu_len - len), wp_data->object_property);
             len++;
 
-            /* copy application data, check max lengh */
-            if (imax > (apdu_len - len)) {
-                imax = (apdu_len - len);
-            }
-            for (i = 0; i < imax; i++) {
-                wp_data->application_data[i] = apdu[len + i];
-            }
-            wp_data->application_data_len = imax;
-            len += imax;
-            if (len < apdu_len) {
-                len += decode_tag_number_and_value(
-                    &apdu[len], &tag_number, &len_value);
-                /* closing tag 2 */
-                if ((tag_number != 2) && (decode_is_closing_tag(&apdu[len - 1]))) {
+            if (imax != BACNET_STATUS_ERROR) {
+                /* copy application data, check max lengh */
+                if (imax > (apdu_len - len)) {
+                    imax = (apdu_len - len);
+                }
+                for (i = 0; i < imax; i++) {
+                    wp_data->application_data[i] = apdu[len + i];
+                }
+                wp_data->application_data_len = imax;
+                len += imax;
+                if (len < apdu_len) {
+                    len += decode_tag_number_and_value(
+                        &apdu[len], &tag_number, &len_value);
+                    /* closing tag 2 */
+                    if ((tag_number != 2) && (decode_is_closing_tag(&apdu[len - 1]))) {
+                        wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+                        return BACNET_STATUS_REJECT;
+                    }
+                } else {
                     wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
                     return BACNET_STATUS_REJECT;
                 }
