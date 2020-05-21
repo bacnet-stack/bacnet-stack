@@ -256,7 +256,6 @@
           <name>CCDefines</name>
           <state>BACDL_MSTP=1</state>
           <state>MAX_APDU=50</state>
-          <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
           <state>BACAPP_REAL</state>
           <state>BACAPP_UNSIGNED</state>
@@ -1318,7 +1317,6 @@
           <state>NDEBUG</state>
           <state>BACDL_MSTP</state>
           <state>MAX_APDU=50</state>
-          <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
           <state>BACAPP_REAL</state>
           <state>BACAPP_UNSIGNED</state>

@@ -42,13 +42,57 @@
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
 
+
+#ifndef BACNET_USE_DOUBLE
+#define BACNET_USE_DOUBLE 1
+#endif
+
 /** @file bacreal.c  Encode/Decode Floating Point (Real) Types */
 
-/* NOTE: byte order plays a role in decoding multibyte values */
-/* http://www.unixpapa.com/incnote/byteorder.html */
-#ifndef BIG_ENDIAN
-#error Define BIG_ENDIAN=0 or BIG_ENDIAN=1 for BACnet Stack in compiler settings
-#endif
+/**
+ * @brief Determine the endianness of the processor
+ *
+ * BACnet REAL and DOUBLE encode and decode are the only
+ * primative BACnet datatypes that cannot be manipulated in C
+ * without knowing the processor endian-ness.
+ * It's possible the compiler has a define for a particular
+ * processor, but to prevent having an exhorbant amount of
+ * pre-processor code to detect which compiler or which processor
+ * or to require the developer to determine the same,
+ * we use a function to determine the endianness at the cost
+ * of extra code cycles and size.  If your processor cannot handle
+ * the extra work, copy this file to your local hardware abstraction
+ * folder and hard-code the correct endianness
+ *
+ * Big-Endian systems save the most significant byte first.
+ *  Sun and Motorola processors, IBM-370s and PDP-10s are big-endian.
+ *  for example, a 4 byte integer 67305985 is 0x04030201 in hexidecimal.
+ *  x[0] = 0x04
+ *  x[1] = 0x03
+ *  x[2] = 0x02
+ *  x[3] = 0x01
+ *
+ * Little-Endian systems save the least significant byte first.
+ *  The entire Intel x86 family, Vaxes, Alphas and PDP-11s are little-endian.
+ *  for example, a 4 byte integer 67305985 is 0x04030201 in hexidecimal.
+ *  x[0] = 0x01
+ *  x[1] = 0x02
+ *  x[2] = 0x03
+ *  x[3] = 0x04
+ *
+ * @return true if process is big endian, false if little endian
+ */
+static int big_endian(void)
+{
+    volatile union {
+        long l;
+        char c[sizeof(long)];
+    } u;
+
+    u.l = 1;
+
+    return (u.c[sizeof(long) - 1] == 1);
+}
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
@@ -60,17 +104,17 @@ int decode_real(uint8_t *apdu, float *real_value)
     } my_data;
 
     /* NOTE: assumes the compiler stores float as IEEE-754 float */
-#if BIG_ENDIAN
-    my_data.byte[0] = apdu[0];
-    my_data.byte[1] = apdu[1];
-    my_data.byte[2] = apdu[2];
-    my_data.byte[3] = apdu[3];
-#else
-    my_data.byte[0] = apdu[3];
-    my_data.byte[1] = apdu[2];
-    my_data.byte[2] = apdu[1];
-    my_data.byte[3] = apdu[0];
-#endif
+    if (big_endian()) {
+        my_data.byte[0] = apdu[0];
+        my_data.byte[1] = apdu[1];
+        my_data.byte[2] = apdu[2];
+        my_data.byte[3] = apdu[3];
+    } else {
+        my_data.byte[0] = apdu[3];
+        my_data.byte[1] = apdu[2];
+        my_data.byte[2] = apdu[1];
+        my_data.byte[3] = apdu[0];
+    }
 
     *real_value = my_data.real_value;
 
@@ -87,20 +131,6 @@ int decode_real_safe(uint8_t *apdu, uint32_t len_value, float *real_value)
     }
 }
 
-int decode_context_real(uint8_t *apdu, uint8_t tag_number, float *real_value)
-{
-    uint32_t len_value;
-    int len = 0;
-
-    if (decode_is_context_tag(&apdu[len], tag_number)) {
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        len += decode_real(&apdu[len], real_value);
-    } else {
-        len = -1;
-    }
-    return len;
-}
-
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
 int encode_bacnet_real(float value, uint8_t *apdu)
@@ -112,17 +142,17 @@ int encode_bacnet_real(float value, uint8_t *apdu)
 
     /* NOTE: assumes the compiler stores float as IEEE-754 float */
     my_data.real_value = value;
-#if BIG_ENDIAN
-    apdu[0] = my_data.byte[0];
-    apdu[1] = my_data.byte[1];
-    apdu[2] = my_data.byte[2];
-    apdu[3] = my_data.byte[3];
-#else
-    apdu[0] = my_data.byte[3];
-    apdu[1] = my_data.byte[2];
-    apdu[2] = my_data.byte[1];
-    apdu[3] = my_data.byte[0];
-#endif
+    if (big_endian()) {
+        apdu[0] = my_data.byte[0];
+        apdu[1] = my_data.byte[1];
+        apdu[2] = my_data.byte[2];
+        apdu[3] = my_data.byte[3];
+    } else {
+        apdu[0] = my_data.byte[3];
+        apdu[1] = my_data.byte[2];
+        apdu[2] = my_data.byte[1];
+        apdu[3] = my_data.byte[0];
+    }
 
     return 4;
 }
@@ -139,26 +169,25 @@ int decode_double(uint8_t *apdu, double *double_value)
     } my_data;
 
     /* NOTE: assumes the compiler stores float as IEEE-754 float */
-#if BIG_ENDIAN
-    my_data.byte[0] = apdu[0];
-    my_data.byte[1] = apdu[1];
-    my_data.byte[2] = apdu[2];
-    my_data.byte[3] = apdu[3];
-    my_data.byte[4] = apdu[4];
-    my_data.byte[5] = apdu[5];
-    my_data.byte[6] = apdu[6];
-    my_data.byte[7] = apdu[7];
-#else
-    my_data.byte[0] = apdu[7];
-    my_data.byte[1] = apdu[6];
-    my_data.byte[2] = apdu[5];
-    my_data.byte[3] = apdu[4];
-    my_data.byte[4] = apdu[3];
-    my_data.byte[5] = apdu[2];
-    my_data.byte[6] = apdu[1];
-    my_data.byte[7] = apdu[0];
-#endif
-
+    if (big_endian()) {
+        my_data.byte[0] = apdu[0];
+        my_data.byte[1] = apdu[1];
+        my_data.byte[2] = apdu[2];
+        my_data.byte[3] = apdu[3];
+        my_data.byte[4] = apdu[4];
+        my_data.byte[5] = apdu[5];
+        my_data.byte[6] = apdu[6];
+        my_data.byte[7] = apdu[7];
+    } else {
+        my_data.byte[0] = apdu[7];
+        my_data.byte[1] = apdu[6];
+        my_data.byte[2] = apdu[5];
+        my_data.byte[3] = apdu[4];
+        my_data.byte[4] = apdu[3];
+        my_data.byte[5] = apdu[2];
+        my_data.byte[6] = apdu[1];
+        my_data.byte[7] = apdu[0];
+    }
     *double_value = my_data.double_value;
 
     return 8;
@@ -185,98 +214,26 @@ int encode_bacnet_double(double value, uint8_t *apdu)
 
     /* NOTE: assumes the compiler stores float as IEEE-754 float */
     my_data.double_value = value;
-#if BIG_ENDIAN
-    apdu[0] = my_data.byte[0];
-    apdu[1] = my_data.byte[1];
-    apdu[2] = my_data.byte[2];
-    apdu[3] = my_data.byte[3];
-    apdu[4] = my_data.byte[4];
-    apdu[5] = my_data.byte[5];
-    apdu[6] = my_data.byte[6];
-    apdu[7] = my_data.byte[7];
-#else
-    apdu[0] = my_data.byte[7];
-    apdu[1] = my_data.byte[6];
-    apdu[2] = my_data.byte[5];
-    apdu[3] = my_data.byte[4];
-    apdu[4] = my_data.byte[3];
-    apdu[5] = my_data.byte[2];
-    apdu[6] = my_data.byte[1];
-    apdu[7] = my_data.byte[0];
-#endif
+    if (big_endian()) {
+        apdu[0] = my_data.byte[0];
+        apdu[1] = my_data.byte[1];
+        apdu[2] = my_data.byte[2];
+        apdu[3] = my_data.byte[3];
+        apdu[4] = my_data.byte[4];
+        apdu[5] = my_data.byte[5];
+        apdu[6] = my_data.byte[6];
+        apdu[7] = my_data.byte[7];
+    } else {
+        apdu[0] = my_data.byte[7];
+        apdu[1] = my_data.byte[6];
+        apdu[2] = my_data.byte[5];
+        apdu[3] = my_data.byte[4];
+        apdu[4] = my_data.byte[3];
+        apdu[5] = my_data.byte[2];
+        apdu[6] = my_data.byte[1];
+        apdu[7] = my_data.byte[0];
+    }
 
     return 8;
 }
-
-int decode_context_double(
-    uint8_t *apdu, uint8_t tag_number, double *double_value)
-{
-    uint32_t len_value;
-    int len = 0;
-
-    if (decode_is_context_tag(&apdu[len], tag_number)) {
-        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
-        len += decode_double(&apdu[len], double_value);
-    } else {
-        len = -1;
-    }
-    return len;
-}
 #endif
-
-/* end of decoding_encoding.c */
-#ifdef TEST
-#include <assert.h>
-#include <string.h>
-#include <ctype.h>
-#include "ctest.h"
-
-void testBACreal(Test *pTest)
-{
-    float real_value = 3.14159F, test_real_value = 0.0;
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, test_len = 0;
-
-    len = encode_bacnet_real(real_value, &apdu[0]);
-    ct_test(pTest, len == 4);
-    test_len = decode_real(&apdu[0], &test_real_value);
-    ct_test(pTest, test_len == len);
-    ct_test(pTest, test_real_value == real_value);
-}
-
-void testBACdouble(Test *pTest)
-{
-    double double_value = 3.1415927, test_double_value = 0.0;
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, test_len = 0;
-
-    len = encode_bacnet_double(double_value, &apdu[0]);
-    ct_test(pTest, len == 8);
-    test_len = decode_double(&apdu[0], &test_double_value);
-    ct_test(pTest, test_len == len);
-    ct_test(pTest, test_double_value == double_value);
-}
-
-#ifdef TEST_BACNET_REAL
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACreal", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testBACreal);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, testBACdouble);
-    assert(rc);
-
-    /* configure output */
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_BACNET_REAL */
-#endif /* TEST */

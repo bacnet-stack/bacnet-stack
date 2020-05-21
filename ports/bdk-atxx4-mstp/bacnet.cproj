@@ -56,7 +56,6 @@
           <ListValues>
             <Value>BACDL_MSTP</Value>
             <Value>MAX_APDU=128</Value>
-            <Value>BIG_ENDIAN=0</Value>
             <Value>MAX_TSM_TRANSACTIONS=0</Value>
             <Value>MSTP_PDU_PACKET_COUNT=2</Value>
             <Value>MAX_CHARACTER_STRING_BYTES=64</Value>
@@ -108,7 +107,6 @@
           <ListValues>
             <Value>BACDL_MSTP</Value>
             <Value>MAX_APDU=128</Value>
-            <Value>BIG_ENDIAN=0</Value>
             <Value>MAX_TSM_TRANSACTIONS=0</Value>
             <Value>MSTP_PDU_PACKET_COUNT=2</Value>
             <Value>MAX_CHARACTER_STRING_BYTES=64</Value>

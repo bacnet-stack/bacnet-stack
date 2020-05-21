@@ -1,12 +1,12 @@
 BACnet Stack - SourceForge.net
 Build for MPLAB IDE
 
-These are some settings that are important when building 
+These are some settings that are important when building
 the BACnet Stack using MPLAB IDE and MCC18 Compiler,
 
 1. Add the files to the project that you need:
 abort.c, apdu.c, bacapp.c, bacdcode.c, bacerror.c,
-bacstr.c, crc.c, datetime.c, dcc.c, iam.c, 
+bacstr.c, crc.c, datetime.c, dcc.c, iam.c,
 npdu.c, rd.c, reject.c, rp.c, whois.c, wp.c
 
 From ports/picxx: isr.c, main.c, rs485.c, mstp.c, dlmstp.c
@@ -31,7 +31,6 @@ MPLAB C18 Tab: General: Macro Definitions:
 PRINT_ENABLED=0
 BACDL_MSTP=1
 TSM_ENABLED=0
-BIG_ENDIAN=0
 
 3. The linker script must reserve some extra stack space.
 

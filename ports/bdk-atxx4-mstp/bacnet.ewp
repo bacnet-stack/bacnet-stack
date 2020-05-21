@@ -257,7 +257,6 @@
           <state>BACDL_MSTP</state>
           <state>MAX_ANALOG_INPUTS=100</state>
           <state>MAX_APDU=50</state>
-          <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
           <state>MSTP_PDU_PACKET_COUNT=2</state>
           <state>MAX_CHARACTER_STRING_BYTES=64</state>
@@ -1323,7 +1322,6 @@
           <state>NDEBUG</state>
           <state>BACDL_MSTP</state>
           <state>MAX_APDU=128</state>
-          <state>BIG_ENDIAN=0</state>
           <state>MAX_TSM_TRANSACTIONS=0</state>
           <state>MSTP_PDU_PACKET_COUNT=2</state>
           <state>MAX_CHARACTER_STRING_BYTES=64</state>
