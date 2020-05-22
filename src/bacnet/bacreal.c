@@ -41,58 +41,11 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bacreal.h"
-
+#include "bacnet/basic/sys/bigend.h"
 
 #ifndef BACNET_USE_DOUBLE
 #define BACNET_USE_DOUBLE 1
 #endif
-
-/** @file bacreal.c  Encode/Decode Floating Point (Real) Types */
-
-/**
- * @brief Determine the endianness of the processor
- *
- * BACnet REAL and DOUBLE encode and decode are the only
- * primative BACnet datatypes that cannot be manipulated in C
- * without knowing the processor endian-ness.
- * It's possible the compiler has a define for a particular
- * processor, but to prevent having an exhorbant amount of
- * pre-processor code to detect which compiler or which processor
- * or to require the developer to determine the same,
- * we use a function to determine the endianness at the cost
- * of extra code cycles and size.  If your processor cannot handle
- * the extra work, copy this file to your local hardware abstraction
- * folder and hard-code the correct endianness
- *
- * Big-Endian systems save the most significant byte first.
- *  Sun and Motorola processors, IBM-370s and PDP-10s are big-endian.
- *  for example, a 4 byte integer 67305985 is 0x04030201 in hexidecimal.
- *  x[0] = 0x04
- *  x[1] = 0x03
- *  x[2] = 0x02
- *  x[3] = 0x01
- *
- * Little-Endian systems save the least significant byte first.
- *  The entire Intel x86 family, Vaxes, Alphas and PDP-11s are little-endian.
- *  for example, a 4 byte integer 67305985 is 0x04030201 in hexidecimal.
- *  x[0] = 0x01
- *  x[1] = 0x02
- *  x[2] = 0x03
- *  x[3] = 0x04
- *
- * @return true if process is big endian, false if little endian
- */
-static int big_endian(void)
-{
-    volatile union {
-        long l;
-        char c[sizeof(long)];
-    } u;
-
-    u.l = 1;
-
-    return (u.c[sizeof(long) - 1] == 1);
-}
 
 /* from clause 20.2.6 Encoding of a Real Number Value */
 /* returns the number of apdu bytes consumed */
