@@ -3,8 +3,9 @@
 
 /** @file bigend.c  Determination of Endianess */
 
-#include "bigend.h"
+#include "bacnet/basic/sys/bigend.h"
 
+#ifndef BACNET_BIG_ENDIAN
 /* Big-Endian systems save the most significant byte first.  */
 /* Sun and Motorola processors, IBM-370s and PDP-10s are big-endian. */
 /* "Network Byte Order" is also know as "Big-Endian Byte Order" */
@@ -46,3 +47,4 @@ int big_endian(void)
 
     return (u.c[sizeof(long) - 1] == 1);
 }
+#endif
