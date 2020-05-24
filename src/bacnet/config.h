@@ -68,14 +68,6 @@
 #endif
 #endif
 
-
-/* Define your processor architecture as
-   Big Endian (PowerPC,68K,Sparc) or Little Endian (Intel,AVR)
-   ARM and MIPS can be either - what is your setup? */
-#if !defined(BIG_ENDIAN)
-#define BIG_ENDIAN 0
-#endif
-
 /* Define your Vendor Identifier assigned by ASHRAE */
 #if !defined(BACNET_VENDOR_ID)
 #define BACNET_VENDOR_ID 260

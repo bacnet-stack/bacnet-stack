@@ -45,11 +45,6 @@ extern "C" {
         float *real_value);
 
     BACNET_STACK_EXPORT
-    int decode_context_real(
-        uint8_t * apdu,
-        uint8_t tag_number,
-        float *real_value);
-    BACNET_STACK_EXPORT
     int encode_bacnet_real(
         float value,
         uint8_t * apdu);
@@ -57,11 +52,6 @@ extern "C" {
     int decode_double(
         uint8_t * apdu,
         double *real_value);
-    BACNET_STACK_EXPORT
-    int decode_context_double(
-        uint8_t * apdu,
-        uint8_t tag_number,
-        double *double_value);
     BACNET_STACK_EXPORT
     int decode_double_safe(
         uint8_t * apdu,
@@ -72,17 +62,6 @@ extern "C" {
     int encode_bacnet_double(
         double value,
         uint8_t * apdu);
-
-#ifdef TEST
-#include "ctest.h"
-
-    BACNET_STACK_EXPORT
-    void testBACreal(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void testBACdouble(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }

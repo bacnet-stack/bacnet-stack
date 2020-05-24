@@ -228,7 +228,6 @@
                     <state>USE_STDPERIPH_DRIVER</state>
                     <state>BACDL_MSTP</state>
                     <state>MAX_APDU=480</state>
-                    <state>BIG_ENDIAN=0</state>
                     <state>MAX_TSM_TRANSACTIONS=0</state>
                     <state>BACAPP_BOOLEAN</state>
                     <state>BACAPP_REAL</state>

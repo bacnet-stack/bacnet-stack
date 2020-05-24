@@ -61,6 +61,11 @@ bacint: logfile bacint.mak
 	( ./bacint >> ${LOGFILE} )
 	$(MAKE) -s -f bacint.mak clean
 
+bacreal: logfile bacnet/bacreal/Makefile
+	$(MAKE) -s -C bacnet/bacreal/ clean all
+	( ./bacnet/bacreal/unittest >> ${LOGFILE} )
+	$(MAKE) -s -C bacnet/bacreal/ clean
+
 bacstr: logfile bacstr.mak
 	$(MAKE) -s -f bacstr.mak clean all
 	( ./bacstr >> ${LOGFILE} )

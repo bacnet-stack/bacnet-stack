@@ -2023,6 +2023,20 @@ int encode_context_real(uint8_t *apdu, uint8_t tag_number, float value)
     return len;
 }
 
+int decode_context_real(uint8_t *apdu, uint8_t tag_number, float *real_value)
+{
+    uint32_t len_value;
+    int len = 0;
+
+    if (decode_is_context_tag(&apdu[len], tag_number)) {
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_real(&apdu[len], real_value);
+    } else {
+        len = -1;
+    }
+    return len;
+}
+
 #if BACNET_USE_DOUBLE
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -2048,6 +2062,20 @@ int encode_context_double(uint8_t *apdu, uint8_t tag_number, double value)
     len = encode_tag(&apdu[0], tag_number, true, 8);
     len += encode_bacnet_double(value, &apdu[len]);
 
+    return len;
+}
+int decode_context_double(
+    uint8_t *apdu, uint8_t tag_number, double *double_value)
+{
+    uint32_t len_value;
+    int len = 0;
+
+    if (decode_is_context_tag(&apdu[len], tag_number)) {
+        len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+        len += decode_double(&apdu[len], double_value);
+    } else {
+        len = -1;
+    }
     return len;
 }
 #endif
