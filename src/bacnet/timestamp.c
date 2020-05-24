@@ -37,6 +37,11 @@
 
 /** @file timestamp.c  Encode/Decode BACnet Timestamps  */
 
+/** Set the sequence number in a timestamp structure.
+ *
+ * @param dest  Pointer to the destination time stamp structure.
+ * @param sequenceNum  Sequence number to be set into the time stamp.
+ */
 void bacapp_timestamp_sequence_set(BACNET_TIMESTAMP *dest, uint16_t sequenceNum)
 {
     if (dest) {
@@ -45,6 +50,12 @@ void bacapp_timestamp_sequence_set(BACNET_TIMESTAMP *dest, uint16_t sequenceNum)
     }
 }
 
+/** Set a timestamp structure with the value given
+ * from a time structure.
+ *
+ * @param dest  Pointer to the destination time stamp structure.
+ * @param btime  Pointer to the BACNet time structure.
+ */
 void bacapp_timestamp_time_set(BACNET_TIMESTAMP *dest, BACNET_TIME *btime)
 {
     if (dest && btime) {
@@ -53,6 +64,12 @@ void bacapp_timestamp_time_set(BACNET_TIMESTAMP *dest, BACNET_TIME *btime)
     }
 }
 
+/** Set a timestamp structure with the value given
+ * from a date/time structure.
+ *
+ * @param dest  Pointer to the destination time stamp structure.
+ * @param bdateTime  Pointer to the BACNet date/time structure.
+ */
 void bacapp_timestamp_datetime_set(
     BACNET_TIMESTAMP *dest, BACNET_DATE_TIME *bdateTime)
 {
@@ -62,6 +79,11 @@ void bacapp_timestamp_datetime_set(
     }
 }
 
+/** Copy a timestamp depending of the tag it holds.
+ *
+ * @param dest  Pointer to the destination time stamp structure.
+ * @param src   Pointer to the source time stamp structure.
+ */
 void bacapp_timestamp_copy(BACNET_TIMESTAMP *dest, BACNET_TIMESTAMP *src)
 {
     if (dest && src) {
@@ -82,6 +104,14 @@ void bacapp_timestamp_copy(BACNET_TIMESTAMP *dest, BACNET_TIMESTAMP *src)
     }
 }
 
+/** Encode a time stamp.
+ *
+ * @param apdu  Pointer to the APDU buffer.
+ * @param value  Pointer to the variable that holds
+ *               the time stamp values to be encoded.
+ *
+ * @return Bytes encoded or 0 on error.
+ */
 int bacapp_encode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 {
     int len = 0; /* length of each encoding */
@@ -112,6 +142,17 @@ int bacapp_encode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
     return len;
 }
 
+/** Encode a time stamp for the given tag
+ * number, using an opening and closing tag.
+ *
+ * @param apdu  Pointer to the APDU buffer.
+ * @param tag_number  The tag number that shall
+ *                    hold the time stamp.
+ * @param value  Pointer to the variable that holds
+ *               the time stamp values to be encoded.
+ *
+ * @return Bytes encoded or 0 on error.
+ */
 int bacapp_encode_context_timestamp(
     uint8_t *apdu, uint8_t tag_number, BACNET_TIMESTAMP *value)
 {
@@ -129,6 +170,14 @@ int bacapp_encode_context_timestamp(
     return apdu_len;
 }
 
+/** Decode a time stamp from the given buffer.
+ *
+ * @param apdu  Pointer to the APDU buffer.
+ * @param value  Pointer to the variable that shall
+ *               take the time stamp values.
+ *
+ * @return Bytes decoded or -1 on error.
+ */
 int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
 {
     int len = 0;
@@ -136,7 +185,7 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
     uint32_t len_value_type;
     BACNET_UNSIGNED_INTEGER unsigned_value;
 
-    if (apdu) {
+    if (apdu && value) {
         section_len = decode_tag_number_and_value(
             &apdu[len], &value->tag, &len_value_type);
 
@@ -184,6 +233,17 @@ int bacapp_decode_timestamp(uint8_t *apdu, BACNET_TIMESTAMP *value)
     return len;
 }
 
+/** Decode a time stamp and check for
+ * opening and closing tags.
+ *
+ * @param apdu  Pointer to the APDU buffer.
+ * @param tag_number  The tag number that shall
+ *                    hold the time stamp.
+ * @param value  Pointer to the variable that shall
+ *               take the time stamp values.
+ *
+ * @return Bytes decoded or -1 on error.
+ */
 int bacapp_decode_context_timestamp(
     uint8_t *apdu, uint8_t tag_number, BACNET_TIMESTAMP *value)
 {
