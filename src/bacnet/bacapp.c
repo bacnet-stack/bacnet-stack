@@ -998,7 +998,6 @@ int bacapp_data_len(
     return total_len;
 }
 
-#ifdef BACAPP_SNPRINTF_ENABLED
 static bool append_str(char **str, size_t *rem_str_len, const char *add_str)
 {
     bool retval;
@@ -1342,7 +1341,6 @@ int bacapp_snprintf_value(
 
     return ret_val;
 }
-#endif /* BACAPP_SNPRINTF_ENABLED */
 
 #ifdef BACAPP_PRINT_ENABLED
 /* Print the extracted value from the requested BACnet object property to the
