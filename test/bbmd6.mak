@@ -5,7 +5,7 @@ SRC_INC = ../include
 DEMO_DIR = ../demo/handler
 DEMO_INC = ../demo/object
 INCLUDES =  -I. -I$(SRC_INC) -I$(DEMO_INC)
-DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_BBMD6
+DEFINES = -DBIG_ENDIAN=0 -DBAC_TEST -DTEST_BBMD6
 
 CFLAGS  = -Wall -Wmissing-prototypes $(INCLUDES) $(DEFINES) -g
 
