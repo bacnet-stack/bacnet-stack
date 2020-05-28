@@ -427,7 +427,7 @@ void Schedule_Recalculate_PV(
     }
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -481,4 +481,4 @@ int main(void)
 }
 
 #endif /* TEST_SCHEDULE */
-#endif /* TEST */
+#endif /* BAC_TEST */

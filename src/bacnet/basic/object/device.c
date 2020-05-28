@@ -1920,7 +1920,7 @@ void Routing_Device_Init(uint32_t first_object_instance)
 
 #endif /* BAC_ROUTING */
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -2011,4 +2011,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_DEVICE */
-#endif /* TEST */
+#endif /* BAC_TEST */

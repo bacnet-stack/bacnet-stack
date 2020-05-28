@@ -293,7 +293,7 @@ int bacapp_encode_property_state(uint8_t *apdu, BACNET_PROPERTY_STATE *value)
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <string.h> /* for memset */
 
 void testPropStates(Test *pTest)
@@ -419,4 +419,4 @@ int main(void)
 }
 
 #endif /* TEST_PROP_STATES */
-#endif /* TEST */
+#endif /* BAC_TEST */

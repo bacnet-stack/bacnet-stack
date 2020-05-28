@@ -46,7 +46,7 @@ extern "C" {
         int32_t * pLow_limit,
         int32_t * pHigh_limit);
 
-#ifdef TEST
+#ifdef BAC_TEST
     BACNET_STACK_EXPORT
     int whois_decode_apdu(
         uint8_t * apdu,

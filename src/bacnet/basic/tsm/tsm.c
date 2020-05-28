@@ -416,7 +416,7 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
     return status;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -469,5 +469,5 @@ int main(void)
     return 0;
 }
 #endif /* TEST_TSM */
-#endif /* TEST */
+#endif /* BAC_TEST */
 #endif /* MAX_TSM_TRANSACTIONS */

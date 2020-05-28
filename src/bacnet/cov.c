@@ -762,7 +762,7 @@ void cov_data_value_list_link(
     }
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -1131,4 +1131,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 #endif /* TEST_COV */
-#endif /* TEST */
+#endif /* BAC_TEST */

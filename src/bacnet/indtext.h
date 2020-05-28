@@ -105,7 +105,7 @@ extern "C" {
         const char *s2);
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testIndexText(

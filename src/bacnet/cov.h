@@ -128,7 +128,7 @@ extern "C" {
         BACNET_PROPERTY_VALUE *value_list,
         size_t count);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testCOVNotify(

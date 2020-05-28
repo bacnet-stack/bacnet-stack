@@ -340,7 +340,7 @@ int rp_ack_decode_service_request(uint8_t *apdu,
 }
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -494,4 +494,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_READ_PROPERTY */
-#endif /* TEST */
+#endif /* BAC_TEST */

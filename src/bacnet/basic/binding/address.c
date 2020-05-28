@@ -1139,7 +1139,7 @@ void address_cache_timer(uint16_t uSeconds)
     }
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -1312,4 +1312,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_ADDRESS */
-#endif /* TEST */
+#endif /* BAC_TEST */

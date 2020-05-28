@@ -178,7 +178,7 @@ extern "C" {
     void Binary_Value_Cleanup(
         void);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testBinary_Value(

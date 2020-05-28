@@ -1483,7 +1483,7 @@ int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu,
     return bytes_consumed;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -2284,4 +2284,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BBMD */
-#endif /* TEST */
+#endif /* BAC_TEST */

@@ -127,7 +127,7 @@ extern "C" {
         uint32_t state_index);
 
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testMultistateOutput(

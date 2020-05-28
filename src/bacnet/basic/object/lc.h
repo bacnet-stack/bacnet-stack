@@ -79,7 +79,7 @@ extern "C" {
     bool Load_Control_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testLoadControl(

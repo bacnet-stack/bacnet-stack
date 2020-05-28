@@ -455,7 +455,7 @@ bool Ringbuf_Init(RING_BUFFER *b,
     return status;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <limits.h>

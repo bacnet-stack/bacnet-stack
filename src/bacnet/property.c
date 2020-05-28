@@ -1534,7 +1534,7 @@ unsigned property_list_special_count(
 }
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -1602,4 +1602,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_PROPLIST */
-#endif /* TEST */
+#endif /* BAC_TEST */

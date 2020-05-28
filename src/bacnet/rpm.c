@@ -586,7 +586,7 @@ int rpm_ack_decode_object_property(uint8_t *apdu,
 
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -990,4 +990,4 @@ int main(void)
 }
 #endif /* TEST_READ_PROPERTY_MULTIPLE */
 
-#endif /* TEST */
+#endif /* BAC_TEST */

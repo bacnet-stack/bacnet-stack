@@ -211,7 +211,7 @@
 ** make use of the code space reductions.
 **/
 
-#ifdef TEST
+#ifdef BAC_TEST
 #define BACNET_SVC_I_HAVE_A    1
 #define BACNET_SVC_WP_A        1
 #define BACNET_SVC_RP_A        1

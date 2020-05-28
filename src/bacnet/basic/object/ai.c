@@ -1329,7 +1329,7 @@ int Analog_Input_Alarm_Summary(
 }
 #endif /* defined(INTRINSIC_REPORTING) */
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -1402,4 +1402,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_ANALOG_INPUT */
-#endif /* TEST */
+#endif /* BAC_TEST */

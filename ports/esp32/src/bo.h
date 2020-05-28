@@ -129,7 +129,7 @@ extern "C" {
     void Binary_Output_Cleanup(
         void);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     void testBinaryOutput(
         Test * pTest);

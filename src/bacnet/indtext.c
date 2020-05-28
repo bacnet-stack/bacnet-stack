@@ -182,7 +182,7 @@ unsigned indtext_count(INDTEXT_DATA *data_list)
     return count;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include "ctest.h"
 

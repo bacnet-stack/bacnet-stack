@@ -120,7 +120,7 @@ int whois_decode_service_request(
     return (int)len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -224,4 +224,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_WHOIS */
-#endif /* TEST */
+#endif /* BAC_TEST */

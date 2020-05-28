@@ -130,7 +130,7 @@ bool sbuf_truncate(STATIC_BUFFER *b, /* static buffer structure */
     return status;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 
@@ -209,4 +209,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_STATIC_BUFFER */
-#endif /* TEST */
+#endif /* BAC_TEST */

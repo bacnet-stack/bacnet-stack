@@ -328,7 +328,7 @@ void FIFO_Init(FIFO_BUFFER *b, volatile uint8_t *buffer, unsigned buffer_len)
     return;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>

@@ -57,7 +57,7 @@ extern "C" {
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     int bacerror_decode_apdu(

@@ -918,7 +918,7 @@ bool octetstring_value_same(
 }
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -1129,4 +1129,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BACSTR */
-#endif /* TEST */
+#endif /* BAC_TEST */

@@ -141,7 +141,7 @@ uint16_t CRC_Calc_Data(uint8_t dataValue, uint16_t crcValue)
 }
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"

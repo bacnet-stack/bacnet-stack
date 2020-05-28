@@ -80,7 +80,7 @@ extern "C" {
         unsigned apdu_len,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     int wp_decode_apdu(
