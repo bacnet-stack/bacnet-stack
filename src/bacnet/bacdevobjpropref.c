@@ -305,7 +305,7 @@ int bacapp_decode_context_device_obj_ref(
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -433,4 +433,4 @@ int main(void)
 }
 
 #endif /* TEST_DEV_ID_PROP_REF */
-#endif /* TEST */
+#endif /* BAC_TEST */

@@ -77,7 +77,7 @@ extern "C" {
 /* ptransfer_ack_decode_service_request() is the same as
        ptransfer_decode_service_request */
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void test_Private_Transfer_Request(

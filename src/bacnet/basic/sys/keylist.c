@@ -496,7 +496,7 @@ void Keylist_Delete(OS_Keylist list)
     return;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 
@@ -803,4 +803,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_KEYLIST */
-#endif /* TEST */
+#endif /* BAC_TEST */

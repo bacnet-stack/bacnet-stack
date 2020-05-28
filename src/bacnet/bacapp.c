@@ -1560,7 +1560,7 @@ void bacapp_property_value_list_init(BACNET_PROPERTY_VALUE *value, size_t count)
     }
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -2189,4 +2189,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BACNET_APPLICATION_DATA */
-#endif /* TEST */
+#endif /* BAC_TEST */

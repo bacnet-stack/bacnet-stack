@@ -299,7 +299,7 @@ int dcc_decode_service_request(uint8_t *apdu,
     return apdu_len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -445,4 +445,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_DEVICE_COMMUNICATION_CONTROL */
-#endif /* TEST */
+#endif /* BAC_TEST */

@@ -289,7 +289,7 @@ bool lighting_command_same(
     return status;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -361,4 +361,4 @@ int main(void)
 }
 
 #endif
-#endif /* TEST */
+#endif /* BAC_TEST */

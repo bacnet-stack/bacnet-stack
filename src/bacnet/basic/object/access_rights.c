@@ -336,7 +336,7 @@ bool Access_Rights_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return status;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -401,4 +401,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_ACCESS_RIGHTS */
-#endif /* TEST */
+#endif /* BAC_TEST */

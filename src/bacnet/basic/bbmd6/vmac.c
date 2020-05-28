@@ -259,7 +259,7 @@ void VMAC_Init(void)
     }
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"

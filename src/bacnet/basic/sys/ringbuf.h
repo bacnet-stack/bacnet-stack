@@ -96,7 +96,7 @@ extern "C" {
         unsigned element_size,
         unsigned element_count);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testRingBufPowerOfTwo(Test * pTest);

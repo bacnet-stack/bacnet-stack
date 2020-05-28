@@ -93,7 +93,7 @@ extern "C" {
         BACNET_GET_EVENT_INFORMATION_DATA * get_event_data,
         bool * moreEvents);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     int getevent_decode_apdu(

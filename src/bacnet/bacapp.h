@@ -229,7 +229,7 @@ extern "C" {
         BACNET_PROPERTY_ID property);
 
 #ifndef BACAPP_PRINT_ENABLED
-#if PRINT_ENABLED || defined TEST
+#if PRINT_ENABLED || defined BAC_TEST
 #define BACAPP_PRINT_ENABLED
 #define BACAPP_SNPRINTF_ENABLED
 #endif
@@ -259,7 +259,7 @@ extern "C" {
 #define bacapp_print_value(x,y) 			   false
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
 #include "bacnet/datetime.h"
     BACNET_STACK_EXPORT

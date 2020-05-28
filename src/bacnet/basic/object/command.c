@@ -818,7 +818,7 @@ void Command_Intrinsic_Reporting(uint32_t object_instance)
 {
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -922,4 +922,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_COMMAND */
-#endif /* TEST */
+#endif /* BAC_TEST */

@@ -2532,7 +2532,7 @@ int decode_context_bacnet_address(
 }
 
 /* end of decoding_encoding.c */
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
@@ -3837,4 +3837,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_DECODE */
-#endif /* TEST */
+#endif /* BAC_TEST */

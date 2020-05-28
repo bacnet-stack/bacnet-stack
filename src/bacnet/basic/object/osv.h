@@ -104,7 +104,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     void OctetString_Value_Init(void);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testOctetString_Value(Test * pTest);

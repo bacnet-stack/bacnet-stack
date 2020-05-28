@@ -174,7 +174,7 @@ int alarm_ack_decode_service_request(
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 
 #include <assert.h>
 #include <string.h>
@@ -270,4 +270,4 @@ int main(void)
 }
 
 #endif /* TEST_ALARM_ACK */
-#endif /* TEST */
+#endif /* BAC_TEST */

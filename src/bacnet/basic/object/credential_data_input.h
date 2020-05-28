@@ -121,7 +121,7 @@ extern "C" {
     void Credential_Data_Input_Init(
         void);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testCredentialDataInput(

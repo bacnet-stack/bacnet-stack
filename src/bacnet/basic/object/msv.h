@@ -131,7 +131,7 @@ extern "C" {
         void);
 
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testMultistateValue(

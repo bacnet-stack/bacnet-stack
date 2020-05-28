@@ -1091,7 +1091,7 @@ int bacapp_decode_context_datetime(
     return apdu_len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -1648,4 +1648,4 @@ int main(void)
 }
 
 #endif /* TEST_DATE_TIME */
-#endif /* TEST */
+#endif /* BAC_TEST */

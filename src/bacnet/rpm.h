@@ -184,7 +184,7 @@ extern "C" {
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
         BACNET_ARRAY_INDEX * array_index);
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     int rpm_decode_apdu(

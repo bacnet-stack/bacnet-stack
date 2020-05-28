@@ -56,7 +56,7 @@ extern "C" {
         unsigned apdu_len,
         BACNET_I_HAVE_DATA * data);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testIHave(

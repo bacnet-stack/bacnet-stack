@@ -216,7 +216,7 @@ extern "C" {
     bool Lighting_Output_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testLightingOutput(

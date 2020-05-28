@@ -413,7 +413,7 @@ int decode_signed32(uint8_t *apdu, int32_t *value)
 }
 #endif
 /* end of decoding_encoding.c */
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
@@ -651,4 +651,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BACINT */
-#endif /* TEST */
+#endif /* BAC_TEST */

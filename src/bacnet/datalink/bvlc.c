@@ -2306,7 +2306,7 @@ int bvlc_decode_foreign_device_table_entry(uint8_t *pdu,
     return bytes_consumed;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -3193,4 +3193,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BBMD */
-#endif /* TEST */
+#endif /* BAC_TEST */

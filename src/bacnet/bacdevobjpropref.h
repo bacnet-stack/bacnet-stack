@@ -100,7 +100,7 @@ extern "C" {
         uint8_t tag_number,
         BACNET_DEVICE_OBJECT_REFERENCE * value);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testBACnetDeviceObjectPropertyReference(

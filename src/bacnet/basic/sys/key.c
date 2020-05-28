@@ -31,13 +31,13 @@
  License.
  -------------------------------------------
 ####COPYRIGHTEND####*/
-/*#define TEST */
+/*#define BAC_TEST */
 /*#define TEST_KEY */
 #include "key.h"
 
 /** @file key.c  Tests (only) of key encoding/decoding.  */
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 

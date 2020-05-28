@@ -317,7 +317,7 @@ int getevent_ack_decode_service_request(uint8_t *apdu,
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -494,4 +494,4 @@ int main(void)
     return 0;
 }
 #endif
-#endif /* TEST */
+#endif /* BAC_TEST */

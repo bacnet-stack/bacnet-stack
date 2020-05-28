@@ -331,7 +331,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     void datetime_init(void);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testDateTime(

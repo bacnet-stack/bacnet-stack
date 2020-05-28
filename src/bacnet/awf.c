@@ -312,7 +312,7 @@ int awf_ack_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -487,4 +487,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_WRITE_PROPERTY */
-#endif /* TEST */
+#endif /* BAC_TEST */

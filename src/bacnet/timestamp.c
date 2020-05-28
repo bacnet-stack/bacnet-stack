@@ -265,7 +265,7 @@ int bacapp_decode_context_timestamp(
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 
 #include <assert.h>
 #include <string.h>
@@ -406,4 +406,4 @@ int main(void)
 }
 
 #endif /* TEST_TIME_STAMP */
-#endif /* TEST */
+#endif /* BAC_TEST */
