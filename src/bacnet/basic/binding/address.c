@@ -284,7 +284,7 @@ void address_mac_init(BACNET_MAC_ADDRESS *mac, uint8_t *adr, uint8_t len)
  *
  * @return true if the address was parsed
  */
-bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, char *arg)
+bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
 {
     unsigned a[6] = { 0 }, p = 0;
     uint16_t port = 0;

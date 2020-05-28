@@ -136,7 +136,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool address_mac_from_ascii(
         BACNET_MAC_ADDRESS *mac,
-        char *arg);
+        const char *arg);
 
     BACNET_STACK_EXPORT
     void address_protected_entry_index_set(uint32_t top_protected_entry_index);
