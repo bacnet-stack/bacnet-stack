@@ -488,8 +488,7 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    if ((wp_data->application_data == NULL) ||
-        (wp_data->application_data_len == 0)) {
+    if (wp_data->application_data_len == 0) {
         return false;
     }
 
