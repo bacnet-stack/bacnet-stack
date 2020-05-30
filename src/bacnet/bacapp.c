@@ -1439,7 +1439,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                     value->type.Boolean = false;
                 break;
 #endif
-#if defined(BACAPP_UNSINED)
+#if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 unsigned_long_value = strtoul(argv, NULL, 0);
                 value->type.Unsigned_Int = unsigned_long_value;
