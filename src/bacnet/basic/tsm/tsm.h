@@ -35,10 +35,6 @@
 /* note: TSM functionality is optional - only needed if we are
    doing client requests */
 
-/* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-BACNET_STACK_EXPORT extern
-uint8_t Handler_Transmit_Buffer[MAX_PDU];
-
 #if (!MAX_TSM_TRANSACTIONS)
 #define tsm_free_invoke_id(x) (void)x;
 #else
@@ -95,6 +91,10 @@ typedef void (
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
+    BACNET_STACK_EXPORT extern 
+    uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
     BACNET_STACK_EXPORT
     void tsm_set_timeout_handler(
