@@ -21,8 +21,8 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef TSM_H
-#define TSM_H
+#ifndef BACNET_BASIC_TSM_TSM_H
+#define BACNET_BASIC_TSM_TSM_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -35,9 +35,18 @@
 /* note: TSM functionality is optional - only needed if we are
    doing client requests */
 
-/* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-BACNET_STACK_EXPORT extern
-uint8_t Handler_Transmit_Buffer[MAX_PDU];
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+    /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
+    BACNET_STACK_EXPORT extern 
+    uint8_t Handler_Transmit_Buffer[MAX_PDU];
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 
 #if (!MAX_TSM_TRANSACTIONS)
 #define tsm_free_invoke_id(x) (void)x;
