@@ -3,15 +3,27 @@ Build using Code Blocks
 
 Q1: GNU GCC Compiler, undefined reference to closesocket
 
-A1: Under Project->Build Options->Linker settings, 
+A1: Under Project->Build Options->Linker settings,
 add "ws2_32" to Link Libraries.
 
 Q2: GNU GCC Compiler, creating a DLL
 
-A2: Under Project->Build Options->Linker settings, 
+A2: Under Project->Build Options->Linker settings,
 add "user32" to Link Libraries.
 
 Q3: GNU GCC Compiler, undefined reference to _GetAdaptersInfo
 
-A3: Under Project->Build Options->Linker settings, 
+A3: Under Project->Build Options->Linker settings,
 add "iphlpapi" to Link Libraries.
+
+Q4: I don't see any Code::Blocks project files. How do I build?
+
+A4: Use cmake to generate the project file. For example:
+$ mkdir build && cd build
+$ cmake -G"CodeBlocks - Unix Makefiles" ..
+or any of the following generators depending on your compiler preference:
+CodeBlocks - MinGW Makefiles
+CodeBlocks - NMake Makefiles
+CodeBlocks - NMake Makefiles JOM
+CodeBlocks - Ninja
+CodeBlocks - Unix Makefiles
