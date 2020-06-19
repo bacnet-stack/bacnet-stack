@@ -90,9 +90,14 @@
    B'111'   interpreted as Type   = Closing Tag
 */
 
-/* from clause 20.1.2.4 max-segments-accepted */
-/* and clause 20.1.2.5 max-APDU-length-accepted */
-/* returns the encoded octet */
+/**
+ * Encode the max APDU value and return the encoded octed.
+ *
+ * @param max_segs  from clause 20.1.2.4 max-segments-accepted
+ * @param max_apdu  from clause 20.1.2.5 max-APDU-length-accepted
+ *
+ * @return The encoded octet
+ */
 uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
 {
     uint8_t octet = 0;
@@ -136,9 +141,14 @@ uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
     return octet;
 }
 
-/* from clause 20.1.2.4 max-segments-accepted */
-/* and clause 20.1.2.5 max-APDU-length-accepted */
-/* returns the encoded octet */
+/**
+ * Decode the given octed into a maximum segments value.
+ *
+ * @param octed  From clause 20.1.2.4 max-segments-accepted
+ *               and clause 20.1.2.5 max-APDU-length-accepted
+ *
+ * @return  Returns the maximum segments value.
+ */
 int decode_max_segs(uint8_t octet)
 {
     int max_segs = 0;
@@ -175,6 +185,14 @@ int decode_max_segs(uint8_t octet)
     return max_segs;
 }
 
+/**
+ * Decode the given octed into a maximum APDU value.
+ *
+ * @param octed  From clause 20.1.2.4 max-segments-accepted
+ *               and clause 20.1.2.5 max-APDU-length-accepted
+ *
+ * @return  Returns the maximum APDU value.
+ */
 int decode_max_apdu(uint8_t octet)
 {
     int max_apdu = 0;
@@ -205,8 +223,18 @@ int decode_max_apdu(uint8_t octet)
     return max_apdu;
 }
 
-/* from clause 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
+/**
+ * Encode a BACnet tag and returns the number of bytes consumed.
+ * (From clause 20.2.1 General Rules for Encoding BACnet Tags)
+ *
+ * @param apdu              Pointer to the encode buffer.
+ * @param tag_number        Number of the tag to encode,
+ *                          see BACNET_APPLICATION_TAG_X macros.
+ * @param context_specific  Indicates to encode in the given context.
+ * @param len_value_type    Indicates the length of the tag's content.
+ *
+ * @return  Returns the number of apdu bytes consumed.
+ */
 int encode_tag(uint8_t *apdu,
     uint8_t tag_number,
     bool context_specific,
