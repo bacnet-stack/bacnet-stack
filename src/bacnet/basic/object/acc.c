@@ -67,12 +67,15 @@ static const int Properties_Proprietary[] = { -1 };
 void Accumulator_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
-    if (pRequired)
+    if (pRequired) {
         *pRequired = Properties_Required;
-    if (pOptional)
+}
+    if (pOptional) {
         *pOptional = Properties_Optional;
-    if (pProprietary)
+}
+    if (pProprietary) {
         *pProprietary = Properties_Proprietary;
+}
 
     return;
 }
@@ -86,8 +89,9 @@ void Accumulator_Property_Lists(
  */
 bool Accumulator_Valid_Instance(uint32_t object_instance)
 {
-    if (object_instance < MAX_ACCUMULATORS)
+    if (object_instance < MAX_ACCUMULATORS) {
         return true;
+}
 
     return false;
 }
@@ -128,8 +132,9 @@ unsigned Accumulator_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCUMULATORS;
 
-    if (object_instance < MAX_ACCUMULATORS)
+    if (object_instance < MAX_ACCUMULATORS) {
         index = object_instance;
+}
 
     return index;
 }
