@@ -98,7 +98,8 @@ void handler_write_property(uint8_t *service_request,
 #if PRINT_ENABLED
         if (len > 0)
             fprintf(stderr,
-                "WP: type=%lu instance=%lu property=%lu priority=%lu index=%ld\n",
+                "WP: type=%lu instance=%lu property=%lu priority=%lu "
+                "index=%ld\n",
                 (unsigned long)wp_data.object_type,
                 (unsigned long)wp_data.object_instance,
                 (unsigned long)wp_data.object_property,
@@ -137,7 +138,7 @@ void handler_write_property(uint8_t *service_request,
     /* Send PDU */
     pdu_len += len;
     bytes_sent = datalink_send_pdu(
-                 src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
     if (bytes_sent <= 0) {
 #if PRINT_ENABLED
         fprintf(stderr, "WP: Failed to send PDU (%s)!\n", strerror(errno));

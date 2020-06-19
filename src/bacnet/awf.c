@@ -158,8 +158,8 @@ int awf_decode_service_request(
             if (apdu_len >= apdu_len_max) {
                 return BACNET_STATUS_ERROR;
             }
-            len = bacnet_unsigned_application_decode(&apdu[apdu_len],
-                apdu_len_max, &unsigned_value);
+            len = bacnet_unsigned_application_decode(
+                &apdu[apdu_len], apdu_len_max, &unsigned_value);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }

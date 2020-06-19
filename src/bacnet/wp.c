@@ -154,8 +154,8 @@ int wp_decode_service_request(
             return -1;
         }
         /* determine the length of the data blob */
-        imax = bacapp_data_len( \
-               &apdu[len], apdu_len - len, (BACNET_PROPERTY_ID)property);
+        imax = bacapp_data_len(
+            &apdu[len], apdu_len - len, (BACNET_PROPERTY_ID)property);
         if (imax == BACNET_STATUS_ERROR) {
             return -2;
         }

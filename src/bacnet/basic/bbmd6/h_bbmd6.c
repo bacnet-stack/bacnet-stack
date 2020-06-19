@@ -1026,8 +1026,8 @@ void bvlc6_init(void)
     VMAC_Init();
     BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
     BVLC6_Function_Code = BVLC6_RESULT;
-    bvlc6_address_set(&Remote_BBMD, 0, 0, 0, 0, 0, 0, 0,
-        BIP6_MULTICAST_GROUP_ID);
+    bvlc6_address_set(
+        &Remote_BBMD, 0, 0, 0, 0, 0, 0, 0, BIP6_MULTICAST_GROUP_ID);
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
     memset(&BBMD_Table, 0, sizeof(BBMD_Table));
     memset(&FD_Table, 0, sizeof(FD_Table));

@@ -289,8 +289,7 @@ static void testRejectErrorCode(Test *pTest)
         error_code = reject_convert_to_error_code(reject_reason);
         test_reject_reason = reject_convert_error_code(error_code);
         if (test_reject_reason != reject_reason) {
-            printf("Reject: result=%u reject-code=%u\n",
-                test_reject_reason,
+            printf("Reject: result=%u reject-code=%u\n", test_reject_reason,
                 reject_reason);
         }
         ct_test(pTest, test_reject_reason == reject_reason);

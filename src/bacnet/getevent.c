@@ -93,7 +93,8 @@ int getevent_decode_service_request(uint8_t *apdu,
             return -1;
         }
         if (len < apdu_len) {
-            len += decode_object_id(&apdu[len], &lastReceivedObjectIdentifier->type,
+            len += decode_object_id(&apdu[len],
+                &lastReceivedObjectIdentifier->type,
                 &lastReceivedObjectIdentifier->instance);
         }
     }

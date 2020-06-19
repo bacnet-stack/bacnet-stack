@@ -169,7 +169,7 @@ int rr_decode_service_request(
         rrdata->object_type = type;
         /* Tag 1: Property ID */
         if (len >= apdu_len) {
-            return(-1);
+            return (-1);
         }
         len += decode_tag_number_and_value(
             &apdu[len], &tag_number, &len_value_type);
@@ -188,8 +188,8 @@ int rr_decode_service_request(
                 &apdu[len], &tag_number, &len_value_type);
             if (tag_number == 2) {
                 len += TagLen;
-                len +=
-                    decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                len += decode_unsigned(
+                    &apdu[len], len_value_type, &unsigned_value);
                 rrdata->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
                 rrdata->Overhead +=
                     RR_INDEX_OVERHEAD; /* Allow for this in the response */
@@ -269,7 +269,7 @@ int rr_decode_service_request(
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value_type);
                     /* Allow for this in the response */
-                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD; 
+                    rrdata->Overhead += RR_1ST_SEQ_OVERHEAD;
                     break;
 
                 case 7: /* ReadRange by time stamp */
@@ -318,7 +318,7 @@ int rr_decode_service_request(
             }
         }
     } else {
-        return(-1);
+        return (-1);
     }
 
     return (int)len;
@@ -434,15 +434,16 @@ int rr_ack_decode_service_request(uint8_t *apdu,
             return -1;
         }
         len = 1;
-        len += decode_object_id(&apdu[len], &object_type, &rrdata->object_instance);
+        len += decode_object_id(
+            &apdu[len], &object_type, &rrdata->object_instance);
         rrdata->object_type = object_type;
 
         /* Tag 1: Property ID */
         if (len >= apdu_len) {
             return -1;
         }
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         if (tag_number != 1) {
             return -1;
         }
@@ -453,8 +454,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         if (len >= apdu_len) {
             return -1;
         }
-        tag_len =
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+        tag_len = decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         if (tag_number == 2) {
             len += tag_len;
             len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
@@ -467,22 +468,23 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         if (len >= apdu_len) {
             return -1;
         }
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         if (tag_number != 3) {
             return -1;
         }
         if (len >= apdu_len) {
             return -1;
         }
-        len += decode_bitstring(&apdu[len], len_value_type, &rrdata->ResultFlags);
+        len +=
+            decode_bitstring(&apdu[len], len_value_type, &rrdata->ResultFlags);
 
         /* Tag 4: Item count */
         if (len >= apdu_len) {
             return -1;
         }
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         if (tag_number != 4) {
             return -1;
         }
@@ -496,8 +498,9 @@ int rr_ack_decode_service_request(uint8_t *apdu,
         }
         if (decode_is_opening_tag_number(&apdu[len], 5)) {
             len++; /* A tag number of 5 is not extended so only one octet
-                    * Setup the start position and length of the data returned from the
-                    * request don't decode the application tag number or its data here. */
+                    * Setup the start position and length of the data returned
+                    * from the request don't decode the application tag number
+                    * or its data here. */
             rrdata->application_data = &apdu[len];
             start_len = len;
             while (len < apdu_len) {
@@ -511,8 +514,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
                     len += decode_tag_number_and_value(
                         &apdu[len], NULL, &len_value_type);
                     len += len_value_type; /* Skip over data value as well */
-                    if (len >= apdu_len) { /* APDU is exhausted so we have failed to
-                                            * find closing tag */
+                    if (len >= apdu_len) { /* APDU is exhausted so we have
+                                            * failed to find closing tag */
                         return (-1);
                     }
                 }
@@ -528,7 +531,8 @@ int rr_ack_decode_service_request(uint8_t *apdu,
                 return -1;
             }
             if (len < apdu_len) {
-                len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                len += decode_unsigned(
+                    &apdu[len], len_value_type, &unsigned_value);
                 rrdata->FirstSequence = (uint32_t)unsigned_value;
             }
         }

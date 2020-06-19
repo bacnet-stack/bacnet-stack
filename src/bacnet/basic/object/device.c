@@ -251,13 +251,12 @@ static object_functions_t My_Object_Table[] = {
         Schedule_Property_Lists, NULL /* ReadRangeInfo */, NULL /* Iterator */,
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
         NULL /* Intrinsic Reporting */ },
-    {OBJECT_ACCUMULATOR, Accumulator_Init, Accumulator_Count,
+    { OBJECT_ACCUMULATOR, Accumulator_Init, Accumulator_Count,
         Accumulator_Index_To_Instance, Accumulator_Valid_Instance,
         Accumulator_Object_Name, Accumulator_Read_Property,
         Accumulator_Write_Property, Accumulator_Property_Lists,
-        NULL /* ReadRangeInfo */ , NULL /* Iterator */ ,
-        NULL /* Value_Lists */ , NULL /* COV */ , NULL /* COV Clear */ ,
-        NULL /* Intrinsic Reporting */ },
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -926,8 +925,8 @@ bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
  * @param object_instance [in] The object instance number to be looked up.
  * @return True if found, else False if no such Object in this device.
  */
-bool Device_Valid_Object_Id
-    (BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+bool Device_Valid_Object_Id(
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;

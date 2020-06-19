@@ -204,8 +204,7 @@ int cl_decode_apdu(uint8_t *apdu,
         len = decode_tag_number_and_value(
             &apdu[dec_len], &tag_number, &len_value_type);
         dec_len += len;
-        len = decode_unsigned(
-            &apdu[dec_len], len_value_type, &unsigned_value);
+        len = decode_unsigned(&apdu[dec_len], len_value_type, &unsigned_value);
         if (len < 0) {
             return BACNET_STATUS_REJECT;
         }
@@ -229,8 +228,7 @@ int cl_decode_apdu(uint8_t *apdu,
                 &apdu[dec_len], 4, &bcl->Value.type.Boolean);
             break;
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            len = decode_context_unsigned(
-                &apdu[dec_len], 4, &unsigned_value);
+            len = decode_context_unsigned(&apdu[dec_len], 4, &unsigned_value);
             if (len < 0) {
                 return BACNET_STATUS_REJECT;
             }

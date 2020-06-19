@@ -933,8 +933,8 @@ bool Network_Port_IP_Subnet(
             if ((prefix > 0) && (prefix <= 32)) {
                 mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF;
                 encode_unsigned32(ip_mask, mask);
-                status = octetstring_init(subnet_mask, ip_mask,
-                    sizeof(ip_mask));
+                status =
+                    octetstring_init(subnet_mask, ip_mask, sizeof(ip_mask));
             }
         }
     }
@@ -1319,7 +1319,7 @@ bool Network_Port_BIP6_Mode_Set(uint32_t object_instance, BACNET_IP_MODE value)
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             if (Object_List[index].Network.IPv4.Mode != value) {
-                 Object_List[index].Changes_Pending = true;
+                Object_List[index].Changes_Pending = true;
             }
             Object_List[index].Network.IPv6.Mode = value;
             status = true;
@@ -1857,8 +1857,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         (rpdata->application_data_len == 0)) {
         return 0;
     }
-    Network_Port_Property_List(rpdata->object_instance,
-        &pRequired, &pOptional, &pProprietary);
+    Network_Port_Property_List(
+        rpdata->object_instance, &pRequired, &pOptional, &pProprietary);
     if ((!property_list_member(pRequired, rpdata->object_property)) &&
         (!property_list_member(pOptional, rpdata->object_property)) &&
         (!property_list_member(pProprietary, rpdata->object_property))) {

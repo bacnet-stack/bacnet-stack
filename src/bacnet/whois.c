@@ -95,7 +95,8 @@ int whois_decode_service_request(
                         decode_unsigned(&apdu[len], len_value, &unsigned_value);
                     if (unsigned_value <= BACNET_MAX_INSTANCE) {
                         if (pHigh_limit) {
-                            *pHigh_limit = (int32_t)unsigned_value;;
+                            *pHigh_limit = (int32_t)unsigned_value;
+                            ;
                         }
                     }
                 } else {

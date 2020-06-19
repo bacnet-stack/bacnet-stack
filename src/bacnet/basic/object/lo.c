@@ -1210,8 +1210,7 @@ static void Lighting_Output_Ramp_Handler(struct lighting_output_object *pLight,
     BACNET_LIGHTING_COMMAND *pCommand,
     uint16_t milliseconds)
 {
-    if (pLight && pCommand) {
-    }
+    if (pLight && pCommand) { }
 }
 
 /**
@@ -1226,8 +1225,7 @@ static void Lighting_Output_Fade_Handler(struct lighting_output_object *pLight,
     BACNET_LIGHTING_COMMAND *pCommand,
     uint16_t milliseconds)
 {
-    if (pLight && pCommand) {
-    }
+    if (pLight && pCommand) { }
 }
 
 /**

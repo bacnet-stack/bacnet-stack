@@ -469,7 +469,7 @@ int cov_subscribe_decode_service_request(
             return BACNET_STATUS_REJECT;
         }
         /* tag 1 - monitoredObjectIdentifier */
-        if ((unsigned) len >= apdu_len) {
+        if ((unsigned)len >= apdu_len) {
             return BACNET_STATUS_REJECT;
         }
         if (decode_is_context_tag(&apdu[len], 1)) {
@@ -496,11 +496,12 @@ int cov_subscribe_decode_service_request(
                 data->cancellationRequest = true;
             }
             /* tag 3 - lifetime - optional */
-            if ((unsigned) len < apdu_len) {
+            if ((unsigned)len < apdu_len) {
                 if (decode_is_context_tag(&apdu[len], 3)) {
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value);
-                    len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+                    len +=
+                        decode_unsigned(&apdu[len], len_value, &unsigned_value);
                     data->lifetime = unsigned_value;
                 } else {
                     data->lifetime = 0;

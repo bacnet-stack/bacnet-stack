@@ -286,7 +286,6 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
     }
 }
 
-
 /** Decode the NPDU portion of a received message, particularly the NCPI byte.
  *  The Network Layer Protocol Control Information byte is described
  *  in section 6.2.2 of the BACnet standard.
@@ -392,7 +391,8 @@ int bacnet_npdu_decode(uint8_t *npdu,
         if (npdu[1] & BIT(5)) {
             if (pdu_len >= (len + 3)) {
                 len += decode_unsigned16(&npdu[len], &dest_net);
-                /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
+                /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent
+                 */
                 /* DLEN > 0 specifies length of DADR field */
                 dlen = npdu[len++];
                 if (dest) {
@@ -428,7 +428,8 @@ int bacnet_npdu_decode(uint8_t *npdu,
         if (npdu[1] & BIT(3)) {
             if (pdu_len >= (len + 3)) {
                 len += decode_unsigned16(&npdu[len], &src_net);
-                /* SLEN = 0 denotes broadcast MAC SADR and SADR field is absent */
+                /* SLEN = 0 denotes broadcast MAC SADR and SADR field is absent
+                 */
                 /* SLEN > 0 specifies length of SADR field */
                 slen = npdu[len++];
                 if (src) {
@@ -480,11 +481,13 @@ int bacnet_npdu_decode(uint8_t *npdu,
             if (pdu_len > len) {
                 npdu_data->network_message_type =
                     (BACNET_NETWORK_MESSAGE_TYPE)npdu[len++];
-                /* Message Type field contains a value in the range 0x80 - 0xFF, */
+                /* Message Type field contains a value in the range 0x80 - 0xFF,
+                 */
                 /* then a Vendor ID field shall be present */
                 if (npdu_data->network_message_type >= 0x80) {
                     if (pdu_len >= (len + 2)) {
-                        len += decode_unsigned16(&npdu[len], &npdu_data->vendor_id);
+                        len += decode_unsigned16(
+                            &npdu[len], &npdu_data->vendor_id);
                     }
                 }
             }

@@ -187,8 +187,8 @@ AA_ABORT:
 #if PRINT_ENABLED
     bytes_sent =
 #endif
-    datalink_send_pdu(
-        src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+        datalink_send_pdu(
+            src, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(stderr,

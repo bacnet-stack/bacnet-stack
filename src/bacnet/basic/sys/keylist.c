@@ -103,8 +103,7 @@ static int CheckArraySize(OS_Keylist list)
     }
     if (new_size) {
         /* Allocate more room for node pointer array */
-        new_array = calloc((size_t)new_size,
-            sizeof(struct Keylist_Node *));
+        new_array = calloc((size_t)new_size, sizeof(struct Keylist_Node *));
 
         /* See if we got the memory we wanted */
         if (!new_array) {
@@ -453,7 +452,7 @@ int Keylist_Count(OS_Keylist list)
         cnt = list->count;
     }
 
-    return(cnt);
+    return (cnt);
 }
 
 /******************************************************************** */

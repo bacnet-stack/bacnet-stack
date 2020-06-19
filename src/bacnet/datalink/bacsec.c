@@ -430,14 +430,15 @@ int encode_set_master_key(uint8_t *apdu, BACNET_SET_MASTER_KEY *set_master_key)
 //                 (uint32_t)(real_len - enc_begin), wrapper->signature)) {
 //             return -SEC_RESP_MALFORMED_MESSAGE;
 //         }
-//         curr += decode_unsigned16(&apdu[real_len - 2], &wrapper->padding_len);
-//         real_len -= wrapper->padding_len;
+//         curr += decode_unsigned16(&apdu[real_len - 2],
+//         &wrapper->padding_len); real_len -= wrapper->padding_len;
 //         memcpy(wrapper->padding, &apdu[wrapper->padding_len],
 //             wrapper->padding_len - 2);
 //     }
 //     /* destination device instance */
 //     curr +=
-//         decode_unsigned24(&apdu[curr], &wrapper->destination_device_instance);
+//         decode_unsigned24(&apdu[curr],
+//         &wrapper->destination_device_instance);
 //     /* dst address */
 //     curr += decode_unsigned16(&apdu[curr], &wrapper->dnet);
 //     wrapper->dlen = apdu[curr++];

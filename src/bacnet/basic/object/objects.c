@@ -125,4 +125,3 @@ OBJECT_DEVICE_T *objects_device_delete(int index)
     }
     return pDevice;
 }
-

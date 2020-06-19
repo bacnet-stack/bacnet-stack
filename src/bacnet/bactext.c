@@ -45,7 +45,8 @@ static const char *Vendor_Proprietary_String = "Vendor Proprietary Value";
 
 /* Search for a text value first based on the corresponding text list, then by
  * attempting to convert to an integer value. */
-static bool bactext_strtol_index(INDTEXT_DATA *istring, const char *search_name, unsigned *found_index)
+static bool bactext_strtol_index(
+    INDTEXT_DATA *istring, const char *search_name, unsigned *found_index)
 {
     char *endptr;
     long value;
@@ -934,13 +935,13 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
 const char *bactext_engineering_unit_name(unsigned index)
 {
     if (index <= UNITS_RESERVED_RANGE_MAX) {
-        return indtext_by_index_default(bacnet_engineering_unit_names,
-            index, ASHRAE_Reserved_String);
+        return indtext_by_index_default(
+            bacnet_engineering_unit_names, index, ASHRAE_Reserved_String);
     } else if (index <= UNITS_PROPRIETARY_RANGE_MAX) {
         return Vendor_Proprietary_String;
     } else if (index <= UNITS_RESERVED_RANGE_MAX2) {
-        return indtext_by_index_default(bacnet_engineering_unit_names,
-            index, ASHRAE_Reserved_String);
+        return indtext_by_index_default(
+            bacnet_engineering_unit_names, index, ASHRAE_Reserved_String);
     } else if (index <= UNITS_PROPRIETARY_RANGE_MAX2) {
         return Vendor_Proprietary_String;
     }

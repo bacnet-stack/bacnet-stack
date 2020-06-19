@@ -300,9 +300,7 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
 }
 
 bool characterstring_init_ansi_safe(
-    BACNET_CHARACTER_STRING * char_string,
-    const char *value,
-    size_t tmax)
+    BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
     return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
         value ? strnlen(value, tmax) : 0);

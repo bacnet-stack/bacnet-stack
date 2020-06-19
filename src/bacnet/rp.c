@@ -136,8 +136,8 @@ int rp_decode_service_request(
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value_type);
             if ((tag_number == 2) && (len < apdu_len)) {
-                len +=
-                    decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                len += decode_unsigned(
+                    &apdu[len], len_value_type, &unsigned_value);
                 rpdata->array_index = (BACNET_ARRAY_INDEX)unsigned_value;
             } else {
                 rpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
@@ -283,14 +283,15 @@ int rp_ack_decode_service_request(uint8_t *apdu,
             return -1;
         }
         len = 1;
-        len += decode_object_id(&apdu[len], &object_type, &rpdata->object_instance);
+        len += decode_object_id(
+            &apdu[len], &object_type, &rpdata->object_instance);
         rpdata->object_type = object_type;
         /* Tag 1: Property ID */
         if (len >= apdu_len) {
             return -1;
         }
-        len +=
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         if (tag_number != 1) {
             return -1;
         }
@@ -303,8 +304,8 @@ int rp_ack_decode_service_request(uint8_t *apdu,
         if (len >= apdu_len) {
             return -1;
         }
-        tag_len =
-            decode_tag_number_and_value(&apdu[len], &tag_number, &len_value_type);
+        tag_len = decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
         if (tag_number == 2) {
             len += tag_len;
             len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
@@ -323,7 +324,8 @@ int rp_ack_decode_service_request(uint8_t *apdu,
             rpdata->application_data = &apdu[len];
             /* Just to ensure we do not create a wrapped over value here. */
             if (len < apdu_len) {
-                rpdata->application_data_len = apdu_len - len - 1 /*closing tag */;
+                rpdata->application_data_len =
+                    apdu_len - len - 1 /*closing tag */;
             } else {
                 rpdata->application_data_len = 0;
             }

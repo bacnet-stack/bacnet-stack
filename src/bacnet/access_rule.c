@@ -122,8 +122,8 @@ int bacapp_decode_access_rule(uint8_t *apdu, BACNET_ACCESS_RULE *rule)
     }
 
     if (decode_is_context_tag(&apdu[apdu_len], 2)) {
-        len = decode_context_enumerated(
-            &apdu[apdu_len], 2, &location_specifier);
+        len =
+            decode_context_enumerated(&apdu[apdu_len], 2, &location_specifier);
         if (len < 0) {
             return -1;
         } else if (location_specifier < LOCATION_SPECIFIER_MAX) {

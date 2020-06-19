@@ -98,8 +98,9 @@ int rpm_encode_apdu_object_begin(
  *
  * @return Bytes encoded or zero on error.
  */
-int rpm_encode_apdu_object_property(
-    uint8_t *apdu, BACNET_PROPERTY_ID object_property, BACNET_ARRAY_INDEX array_index)
+int rpm_encode_apdu_object_property(uint8_t *apdu,
+    BACNET_PROPERTY_ID object_property,
+    BACNET_ARRAY_INDEX array_index)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -160,8 +161,8 @@ int rpm_encode_apdu(uint8_t *apdu,
     apdu_len += len;
     rpm_object = read_access_data;
     while (rpm_object) {
-        /* The encode function will return a length not more than 12. So the temp buffer
-         * being 16 bytes is fine enought. */
+        /* The encode function will return a length not more than 12. So the
+         * temp buffer being 16 bytes is fine enought. */
         len = encode_context_object_id(&apdu_temp[0], 0,
             rpm_object->object_type, rpm_object->object_instance);
         len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
@@ -180,9 +181,9 @@ int rpm_encode_apdu(uint8_t *apdu,
         apdu_len += len;
         rpm_property = rpm_object->listOfProperties;
         while (rpm_property) {
-            /* The encode function will return a length not more than 12. So the temp buffer
-             * being 16 bytes is fine enought.
-             * Stuff as many properties into it as APDU length will allow. */
+            /* The encode function will return a length not more than 12. So the
+             * temp buffer being 16 bytes is fine enought. Stuff as many
+             * properties into it as APDU length will allow. */
             len = encode_context_enumerated(
                 &apdu_temp[0], 0, rpm_property->propertyIdentifier);
             len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
@@ -341,8 +342,8 @@ int rpm_decode_object_property(
                         ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
                     return BACNET_STATUS_REJECT;
                 }
-                len +=
-                    decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                len += decode_unsigned(
+                    &apdu[len], len_value_type, &unsigned_value);
                 rpmdata->array_index = unsigned_value;
             }
         }
@@ -402,8 +403,9 @@ int rpm_ack_encode_apdu_object_begin(uint8_t *apdu, BACNET_RPM_DATA *rpmdata)
  *
  * @return Length of encoded bytes or 0 on failure.
  */
-int rpm_ack_encode_apdu_object_property(
-    uint8_t *apdu, BACNET_PROPERTY_ID object_property, BACNET_ARRAY_INDEX array_index)
+int rpm_ack_encode_apdu_object_property(uint8_t *apdu,
+    BACNET_PROPERTY_ID object_property,
+    BACNET_ARRAY_INDEX array_index)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
@@ -412,7 +414,8 @@ int rpm_ack_encode_apdu_object_property(
         apdu_len = encode_context_enumerated(&apdu[0], 2, object_property);
         /* Tag 3: optional propertyArrayIndex */
         if (array_index != BACNET_ARRAY_ALL) {
-            apdu_len += encode_context_unsigned(&apdu[apdu_len], 3, array_index);
+            apdu_len +=
+                encode_context_unsigned(&apdu[apdu_len], 3, array_index);
         }
     }
 
@@ -422,7 +425,8 @@ int rpm_ack_encode_apdu_object_property(
 /** Encode the object property value for an acknowledge of a RPM.
  *
  * @param apdu [in] Buffer of bytes to transmit.
- * @param application_data [in] Pointer to the application data used to fill in the APDU.
+ * @param application_data [in] Pointer to the application data used to fill in
+ * the APDU.
  * @param application_data_len [in] Length of the application data.
  *
  * @return Length of encoded bytes or 0 on failure.
@@ -570,8 +574,8 @@ int rpm_ack_decode_object_property(uint8_t *apdu,
                 &apdu[len], &tag_number, &len_value_type);
             if (tag_number == 3) {
                 len += tag_len;
-                len +=
-                    decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+                len += decode_unsigned(
+                    &apdu[len], len_value_type, &unsigned_value);
                 *array_index = unsigned_value;
             } else {
                 *array_index = BACNET_ARRAY_ALL;

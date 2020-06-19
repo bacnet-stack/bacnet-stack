@@ -141,8 +141,7 @@ int bacapp_encode_application_data(
 #if defined(BACAPP_OBJECT_ID)
             case BACNET_APPLICATION_TAG_OBJECT_ID:
                 apdu_len = encode_application_object_id(&apdu[0],
-                    value->type.Object_Id.type,
-                    value->type.Object_Id.instance);
+                    value->type.Object_Id.type, value->type.Object_Id.instance);
                 break;
 #endif
 #if defined(BACAPP_LIGHTING_COMMAND)

@@ -154,8 +154,7 @@ uint8_t tsm_transaction_idle_count(void)
     const BACNET_TSM_DATA *plist = TSM_List;
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++, plist++) {
-        if ((plist->InvokeID == 0) &&
-            (plist->state == TSM_STATE_IDLE)) {
+        if ((plist->InvokeID == 0) && (plist->state == TSM_STATE_IDLE)) {
             /* one is available! */
             count++;
         }

@@ -44,28 +44,14 @@ struct object_data {
 static struct object_data Object_List[MAX_ACCUMULATORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,
-    PROP_PRESENT_VALUE,
-    PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,
-    PROP_OUT_OF_SERVICE,
-	PROP_SCALE,
-    PROP_UNITS,
-	PROP_MAX_PRES_VALUE,
-    -1
-};
+static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE, PROP_OUT_OF_SERVICE, PROP_SCALE, PROP_UNITS,
+    PROP_MAX_PRES_VALUE, -1 };
 
-static const int Properties_Optional[] = {
-    PROP_DESCRIPTION,
-    -1
-};
+static const int Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
-static const int Properties_Proprietary[] = {
-    -1
-};
+static const int Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -79,9 +65,7 @@ static const int Properties_Proprietary[] = {
  * BACnet proprietary properties for this object.
  */
 void Accumulator_Property_Lists(
-    const int **pRequired,
-    const int **pOptional,
-    const int **pProprietary)
+    const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired)
         *pRequired = Properties_Required;
@@ -100,8 +84,7 @@ void Accumulator_Property_Lists(
  *
  * @return  true if the instance is valid, and false if not
  */
-bool Accumulator_Valid_Instance(
-    uint32_t object_instance)
+bool Accumulator_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_ACCUMULATORS)
         return true;
@@ -141,8 +124,7 @@ uint32_t Accumulator_Index_To_Instance(unsigned index)
  * @return  index for the given instance-number, or MAX_ACCUMULATORS
  * if not valid.
  */
-unsigned Accumulator_Instance_To_Index(
-    uint32_t object_instance)
+unsigned Accumulator_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCUMULATORS;
 
@@ -163,15 +145,14 @@ unsigned Accumulator_Instance_To_Index(
  * @return  true if object-name was retrieved
  */
 bool Accumulator_Object_Name(
-    uint32_t object_instance,
-    BACNET_CHARACTER_STRING * object_name)
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    static char text_string[32];        /* okay for single thread */
+    static char text_string[32]; /* okay for single thread */
     bool status = false;
 
     if (object_instance < MAX_ACCUMULATORS) {
-        sprintf(text_string, "ACCUMULATOR-%lu",
-            (long unsigned int)object_instance);
+        sprintf(
+            text_string, "ACCUMULATOR-%lu", (long unsigned int)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
@@ -205,8 +186,7 @@ BACNET_UNSIGNED_INTEGER Accumulator_Present_Value(uint32_t object_instance)
  * @return  true if values are within range and present-value is set.
  */
 bool Accumulator_Present_Value_Set(
-    uint32_t object_instance,
-    BACNET_UNSIGNED_INTEGER value)
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
 {
     bool status = false;
 
@@ -233,7 +213,7 @@ uint16_t Accumulator_Units(uint32_t object_instance)
         units = UNITS_WATT_HOURS;
     }
 
- 	return units;
+    return units;
 }
 
 /**
@@ -255,7 +235,7 @@ int32_t Accumulator_Scale_Integer(uint32_t object_instance)
         scale = Object_List[object_instance].Scale;
     }
 
- 	return scale;
+    return scale;
 }
 
 /**
@@ -279,7 +259,7 @@ bool Accumulator_Scale_Integer_Set(uint32_t object_instance, int32_t scale)
         status = true;
     }
 
- 	return status;
+    return status;
 }
 
 /**
@@ -301,7 +281,7 @@ BACNET_UNSIGNED_INTEGER Accumulator_Max_Pres_Value(uint32_t object_instance)
         max_value = BACNET_UNSIGNED_INTEGER_MAX;
     }
 
- 	return max_value;
+    return max_value;
 }
 
 /**
@@ -314,10 +294,9 @@ BACNET_UNSIGNED_INTEGER Accumulator_Max_Pres_Value(uint32_t object_instance)
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int Accumulator_Read_Property(
-    BACNET_READ_PROPERTY_DATA * rpdata)
+int Accumulator_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    int apdu_len = 0;   /* return value */
+    int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
@@ -327,11 +306,10 @@ int Accumulator_Read_Property(
         return 0;
     }
     apdu = rpdata->application_data;
-    switch ((int) rpdata->object_property) {
+    switch ((int)rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            apdu_len =
-                encode_application_object_id(&apdu[0], OBJECT_ACCUMULATOR,
-                rpdata->object_instance);
+            apdu_len = encode_application_object_id(
+                &apdu[0], OBJECT_ACCUMULATOR, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
@@ -340,21 +318,21 @@ int Accumulator_Read_Property(
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(&apdu[0], OBJECT_ACCUMULATOR);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], OBJECT_ACCUMULATOR);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len = encode_application_unsigned(&apdu[0],
-                Accumulator_Present_Value(rpdata->object_instance));
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Accumulator_Present_Value(rpdata->object_instance));
             break;
-		case PROP_SCALE:
+        case PROP_SCALE:
             /* context tagged choice: [0]=REAL, [1]=INTEGER */
-			apdu_len = encode_context_signed(&apdu[apdu_len], 1,
+            apdu_len = encode_context_signed(&apdu[apdu_len], 1,
                 Accumulator_Scale_Integer(rpdata->object_instance));
-			break;
+            break;
         case PROP_MAX_PRES_VALUE:
-            apdu_len =
-                encode_application_unsigned(&apdu[0],
-                    Accumulator_Max_Pres_Value(rpdata->object_instance));
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Accumulator_Max_Pres_Value(rpdata->object_instance));
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -372,7 +350,8 @@ int Accumulator_Read_Property(
             apdu_len = encode_application_boolean(&apdu[0], false);
             break;
         case PROP_UNITS:
-            apdu_len = encode_application_enumerated(&apdu[0], Accumulator_Units(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Accumulator_Units(rpdata->object_instance));
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -398,16 +377,14 @@ int Accumulator_Read_Property(
  *
  * @return false if an error is loaded, true if no errors
  */
-bool Accumulator_Write_Property(
-    BACNET_WRITE_PROPERTY_DATA * wp_data)
+bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
 
     /* decode the some of the request */
-    len =
-        bacapp_decode_application_data(wp_data->application_data,
-        wp_data->application_data_len, &value);
+    len = bacapp_decode_application_data(
+        wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
         /* error while decoding - a value larger than we can handle */
@@ -427,7 +404,7 @@ bool Accumulator_Write_Property(
         case PROP_DESCRIPTION:
         case PROP_OBJECT_TYPE:
         case PROP_PRESENT_VALUE:
-		case PROP_SCALE:
+        case PROP_SCALE:
         case PROP_MAX_PRES_VALUE:
         case PROP_STATUS_FLAGS:
         case PROP_EVENT_STATE:
@@ -454,9 +431,9 @@ void Accumulator_Init(void)
     unsigned i = 0;
 
     for (i = 0; i < MAX_ACCUMULATORS; i++) {
-        Accumulator_Scale_Integer_Set(i, i+1);
+        Accumulator_Scale_Integer_Set(i, i + 1);
         Accumulator_Present_Value_Set(i, unsigned_value);
-        unsigned_value |= (unsigned_value<<1);
+        unsigned_value |= (unsigned_value << 1);
     }
 }
 
@@ -466,14 +443,13 @@ void Accumulator_Init(void)
 #include "ctest.h"
 #include "bactext.h"
 
-void test_Accumulator(
-    Test * pTest)
+void test_Accumulator(Test *pTest)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
     int test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata = {0};
-    BACNET_APPLICATION_DATA_VALUE value = {0};
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *property = &Properties_Required[0];
     BACNET_UNSIGNED_INTEGER unsigned_value = 1;
 
@@ -489,11 +465,11 @@ void test_Accumulator(
         len = Accumulator_Read_Property(&rpdata);
         ct_test(pTest, len != 0);
         if (IS_CONTEXT_SPECIFIC(rpdata.application_data[0])) {
-            test_len = bacapp_decode_context_data(rpdata.application_data,
-                len, &value, rpdata.object_property);
+            test_len = bacapp_decode_context_data(
+                rpdata.application_data, len, &value, rpdata.object_property);
         } else {
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                len, &value);
+            test_len = bacapp_decode_application_data(
+                rpdata.application_data, len, &value);
         }
         if (len != test_len) {
             printf("property '%s': failed to decode!\n",
@@ -508,17 +484,16 @@ void test_Accumulator(
         Accumulator_Present_Value_Set(0, unsigned_value);
         len = Accumulator_Read_Property(&rpdata);
         ct_test(pTest, len != 0);
-        test_len = bacapp_decode_application_data(rpdata.application_data,
-            len, &value);
+        test_len = bacapp_decode_application_data(
+            rpdata.application_data, len, &value);
         ct_test(pTest, len == test_len);
-        unsigned_value |= (unsigned_value<<1);
+        unsigned_value |= (unsigned_value << 1);
     }
 
     return;
 }
 
-int main(
-    void)
+int main(void)
 {
     Test *pTest;
     bool rc;
@@ -530,7 +505,7 @@ int main(
 
     ct_setStream(pTest, stdout);
     ct_run(pTest);
-    (void) ct_report(pTest);
+    (void)ct_report(pTest);
     ct_destroy(pTest);
 
     return 0;

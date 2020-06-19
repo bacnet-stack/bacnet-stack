@@ -190,7 +190,7 @@ bool Access_Door_Present_Value_Set(
     index = Access_Door_Instance_To_Index(object_instance);
     if (index < MAX_ACCESS_DOORS) {
         if (priority && (priority <= BACNET_MAX_PRIORITY) &&
-            (priority != 6 /* reserved */) && 
+            (priority != 6 /* reserved */) &&
             (value <= DOOR_VALUE_EXTENDED_PULSE_UNLOCK)) {
             ad_descr[index].value_active[priority - 1] = true;
             ad_descr[index].priority_array[priority - 1] = value;
@@ -467,7 +467,8 @@ bool Access_Door_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                    algorithm and may not be used for other purposes in any
                    object. */
                 status = Access_Door_Present_Value_Set(wp_data->object_instance,
-                    (BACNET_DOOR_VALUE)value.type.Enumerated, wp_data->priority);
+                    (BACNET_DOOR_VALUE)value.type.Enumerated,
+                    wp_data->priority);
                 if (wp_data->priority == 6) {
                     /* Command priority 6 is reserved for use by Minimum On/Off
                        algorithm and may not be used for other purposes in any

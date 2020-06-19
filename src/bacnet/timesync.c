@@ -136,10 +136,10 @@ int timesync_decode_service_request(uint8_t *apdu,
         len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
         if (tag_number == BACNET_APPLICATION_TAG_TIME) {
             if ((unsigned)(len + 4) <= apdu_len) {
-            len += decode_bacnet_time(&apdu[len], my_time);
-        } else {
-            return -1;
-        }
+                len += decode_bacnet_time(&apdu[len], my_time);
+            } else {
+                return -1;
+            }
         } else {
             return -1;
         }
@@ -181,7 +181,7 @@ int timesync_encode_timesync_recipients(
     BACNET_RECIPIENT_LIST *pRecipient;
 
     if ((!apdu) || (max_apdu < 1) || (!recipient)) {
-        return(0);
+        return (0);
     }
 
     pRecipient = recipient;

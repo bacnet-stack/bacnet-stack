@@ -96,8 +96,7 @@ int bacapp_encode_device_obj_property_ref(
      * omit */
     if (value->deviceIdentifier.type == OBJECT_DEVICE) {
         len = encode_context_object_id(&apdu[apdu_len], 3,
-            value->deviceIdentifier.type,
-            value->deviceIdentifier.instance);
+            value->deviceIdentifier.type, value->deviceIdentifier.instance);
         apdu_len += len;
     }
     return apdu_len;
@@ -231,8 +230,7 @@ int bacapp_encode_device_obj_ref(
      * omit */
     if (value->deviceIdentifier.type == OBJECT_DEVICE) {
         len = encode_context_object_id(&apdu[apdu_len], 0,
-            value->deviceIdentifier.type,
-            value->deviceIdentifier.instance);
+            value->deviceIdentifier.type, value->deviceIdentifier.instance);
         apdu_len += len;
     }
     /* object-identifier [1] BACnetObjectIdentifier */

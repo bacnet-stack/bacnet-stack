@@ -269,7 +269,7 @@ bool lighting_command_same(
                 islessgreater(dst->target_level, src->target_level)) {
                 status = false;
             }
-            if ((dst->use_ramp_rate) && 
+            if ((dst->use_ramp_rate) &&
                 islessgreater(dst->ramp_rate, src->ramp_rate)) {
                 status = false;
             }

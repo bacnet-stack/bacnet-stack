@@ -170,8 +170,10 @@ int abort_encode_apdu(
  *
  * @param apdu  Receive buffer
  * @param apdu_len  Count of bytes valid in the received buffer.
- * @param invoke_id  Pointer to a variable, taking the invoked ID from the message.
- * @param abort_reason  Pointer to a variable, taking the abort reason, see ABORT_REASON_X enumeration for details
+ * @param invoke_id  Pointer to a variable, taking the invoked ID from the
+ * message.
+ * @param abort_reason  Pointer to a variable, taking the abort reason, see
+ * ABORT_REASON_X enumeration for details
  *
  * @return Total length of the apdu, typically 2 on success, zero otherwise.
  */
@@ -314,8 +316,7 @@ static void testAbortError(Test *pTest)
         error_code = abort_convert_to_error_code(abort_code);
         test_abort_code = abort_convert_error_code(error_code);
         if (test_abort_code != abort_code) {
-            printf("Abort: result=%u abort-code=%u\n",
-                test_abort_code,
+            printf("Abort: result=%u abort-code=%u\n", test_abort_code,
                 abort_code);
         }
         ct_test(pTest, test_abort_code == abort_code);
