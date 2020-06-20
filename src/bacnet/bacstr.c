@@ -145,16 +145,36 @@ bool bitstring_set_octet(
     return status;
 }
 
+
+/**
+ * Write the amount of bits used in the bit
+ * string structure.
+ *
+ * @param bit_string  Pointer to the bit string structure.
+ * @param bytes_used  Count of bytes used.
+ * @param unused_bits Count of remaining unused bits in
+ *                    the last byte.
+ *
+ * @return true on success or false on error.
+ */
 bool bitstring_set_bits_used(
-    BACNET_BIT_STRING *bit_string, uint8_t bytes_used, uint8_t unused_bits)
+    BACNET_BIT_STRING * bit_string,
+    uint8_t bytes_used,
+    uint8_t unused_bits)
 {
     bool status = false;
+    uint8_t ubits;
 
     if (bit_string) {
-        /* FIXME: check that bytes_used is at least one? */
-        bit_string->bits_used = bytes_used * 8;
-        bit_string->bits_used -= unused_bits;
-        status = true;
+        /* Check that the amount of unused bits is not larger
+         * than the amount of used bits. */
+        ubits = bytes_used << 3; // Bytes -> Bits
+        if (ubits >= unused_bits)
+        {
+            ubits -= unused_bits;
+            bit_string->bits_used = ubits;
+            status = true;
+        }
     }
 
     return status;
