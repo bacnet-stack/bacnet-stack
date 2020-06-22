@@ -116,7 +116,7 @@ make BACDL=bip [target]
 
 If none of them is set, BACDL_BIP is the default.
 
-If BACDL_ALL is set, an runtime env variable `BACNET_DATALINK`  is required to specify the datalink, values are  ethernet, arcnet, bip, bip6, mstp.
+If BACDL_ALL is set, a runtime env variable `BACNET_DATALINK`  is required to specify the datalink, values are  ethernet, arcnet, bip, bip6, mstp.
 
 ##Compile command
 
