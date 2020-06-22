@@ -152,6 +152,44 @@ c:\> cmake .. -G"CodeBlocks - MinGW Makefiles"
 
 ##Runtime envs
 
+common:
+
+BACNET_DATALINK :   set the datalink
+
+BACNET_APDU_TIMEOUT:  set the timeout waiting a reponse
+
+BACNET_APDU_RETRIES:
+
+BACNET_IFACE: 
+
+
+
+bip:
+
+BACNET_IP_PORT :  set the UDP port, defualt is 0xBAC0(47808)
+
+BACNET_IP_NAT_ADDR :
+
+
+
+bip6:
+
+BACNET_BIP6_PORT:   set the UDP port, defualt 0xBAC0(47808)
+
+BACNET_BIP6_BROADCAST: 
+
+
+
+mstp:
+
+BACNET_MAX_INFO_FRAMES: 
+
+BACNET_MAX_MASTER:
+
+BACNET_MSTP_BAUD:  baudrate of the serial port, default 38400
+
+BACNET_MSTP_MAC:
+
 
 
 ##Demos
