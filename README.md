@@ -84,6 +84,42 @@ are created that run under Windows or Linux. They use the BACnet/IPv4 datalink
 layer for communication by default, but could be compiled to use BACnet IPv6, 
 Ethernet, ARCNET, or MS/TP.
 
+## Precompiled macros of datalink
+
+| Datalink macro | Description                    |
+| -------------- | ------------------------------ |
+| BACDL_ETHERNET | only support ETHERNET          |
+| BACDL_ARCNET   | only support ARCNET            |
+| BACDL_BIP      | only support UDP based on IPv4 |
+| BACDL_BIP6     | only support UDP based on IPv6 |
+| BACDL_MSTP     | only support  MS/TP            |
+| BACDL_ALL      | support all of the above       |
+
+
+
+It can be set in make cmd line via variable `BACDL_DEFINE`, for example:
+
+```sh
+make BACDL_DEFINE=-DBACDL_BIP=1 [target]
+```
+
+Or be set via variable `BACDL`, for example:
+
+```sh
+# ethernet for BACDL_ETHERNET
+# arcnet for BACDL_ARCNET
+# bip for BACDL_BIP
+# bip6 for BACDL_BIP6 
+# mstp for BACDL_MSTP
+make BACDL=bip [target]
+```
+
+If none of them is set, BACDL_BIP is the default.
+
+If BACDL_ALL is set, an runtime env variable `BACNET_DATALINK`  is required to specify the datalink, values are  ethernet, arcnet, bip, bip6, mstp.
+
+##Compile command
+
 Linux/Unix/Cygwin
 
     $ make clean all
@@ -104,13 +140,21 @@ The library is also instrumented to use [CMake](https://cmake.org/) which can
 generate a project or Makefiles for a variety of IDE or compiler. For example,
 to generate a Code::Blocks project:
 
-    $ mkdir build
-    $ cd build/
-    $ cmake .. -G"CodeBlocks - Unix Makefiles"
-    
-    c:\> mkdir build
-    c:\> cd build/
-    c:\> cmake .. -G"CodeBlocks - MinGW Makefiles"
+```sh
+$ mkdir build
+$ cd build/
+$ cmake .. -G"CodeBlocks - Unix Makefiles"
+
+c:\> mkdir build
+c:\> cd build/
+c:\> cmake .. -G"CodeBlocks - MinGW Makefiles"
+```
+
+##Runtime envs
+
+
+
+##Demos
 
 The demo applications are all client applications that provide one main BACnet
 service, except the one server application and one gateway application, 
@@ -125,6 +169,19 @@ There are also projects in the ports/ directory for ARM7, AVR, RTOS-32, PIC,
 and others.  Each of those projects has a demo application for specific hardware.
 In the case of the ARM7 and AVR, their makefile works with GCC compilers and
 there are project files for IAR Embedded Workbench and Rowley Crossworks for ARM.
+
+commonly used apps:
+
+| app tools | description                                 |
+| --------- | ------------------------------------------- |
+| bacserv   | a BAC device server                         |
+| bacwi     | send a who-is request                       |
+| bacrp     | read a single property value from bacserv   |
+| bacrpm    | read multiple property values from bacserv  |
+| bacwp     | write a single property value from bacserv  |
+| bacwpm    | write multiple property values from bacserv |
+
+for detailed usage information, run above apps with argument `--help`
 
 Project Documentation
 ---------------------
