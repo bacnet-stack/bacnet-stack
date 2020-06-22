@@ -150,7 +150,7 @@ c:\> cd build/
 c:\> cmake .. -G"CodeBlocks - MinGW Makefiles"
 ```
 
-##Runtime envs
+## Runtime envs
 
 common:
 
@@ -192,7 +192,7 @@ BACNET_MSTP_MAC:
 
 
 
-##Demos
+## Demos
 
 The demo applications are all client applications that provide one main BACnet
 service, except the one server application and one gateway application, 
@@ -208,7 +208,7 @@ and others.  Each of those projects has a demo application for specific hardware
 In the case of the ARM7 and AVR, their makefile works with GCC compilers and
 there are project files for IAR Embedded Workbench and Rowley Crossworks for ARM.
 
-commonly used apps:
+Commonly used apps:
 
 | app tools | description                                 |
 | --------- | ------------------------------------------- |
@@ -219,7 +219,7 @@ commonly used apps:
 | bacwp     | write a single property value from bacserv  |
 | bacwpm    | write multiple property values from bacserv |
 
-for detailed usage information, run above apps with argument `--help`
+For detailed usage information, run above apps with argument `--help`
 
 Project Documentation
 ---------------------
