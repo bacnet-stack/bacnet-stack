@@ -5,7 +5,7 @@
 # CC = gcc
 
 # Executable file name
-TARGET = bacroute
+TARGET = router-mstp
 
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
@@ -16,11 +16,12 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
 	$(BACNET_OBJECT_DIR)/client/device-client.c
 
-PORT_BIP6_SRC = \
-	$(BACNET_PORT_DIR)/bip6.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c
+PORT_MSTP_SRC = \
+	$(BACNET_PORT_DIR)/rs485.c \
+	$(BACNET_PORT_DIR)/dlmstp.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
 
 PORT_BIP_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
@@ -50,7 +51,7 @@ BACNET_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c
 
-SRCS = ${SRC} ${BACNET_SRC} ${PORT_BIP6_SRC} ${PORT_BIP_SRC}
+SRCS = ${SRC} ${BACNET_SRC} ${PORT_MSTP_SRC} ${PORT_BIP_SRC}
 
 OBJS += ${SRCS:.c=.o}
 

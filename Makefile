@@ -105,6 +105,10 @@ router:
 router-ipv6:
 	$(MAKE) -s -C apps $@
 
+.PHONY: router-mstp
+router-mstp:
+	$(MAKE) -s -C apps $@
+
 # Add "ports" to the build, if desired
 .PHONY: ports
 ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x
@@ -163,6 +167,7 @@ clean:
 	$(MAKE) -s -C apps clean
 	$(MAKE) -s -C apps/router clean
 	$(MAKE) -s -C apps/router-ipv6 clean
+	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
 	$(MAKE) -s -C test clean
 

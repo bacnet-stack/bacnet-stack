@@ -1,12 +1,12 @@
 /**
  * @file
  * @author Steve Karg
- * @date 2016
- * @brief Simple BACnet/IP to BACnet/IPv6 router
+ * @date 2020
+ * @brief Simple BACnet/IP to MS/TP router
  *
  * @section LICENSE
  *
- * Copyright (C) 2016 Steve Karg <skarg@users.sourceforge.net>
+ * Copyright (C) 2020 Steve Karg <skarg@users.sourceforge.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -53,9 +53,7 @@
 /* port agnostic file */
 #include "bacport.h"
 /* our datalink layers */
-#include "bacnet/datalink/bvlc6.h"
-#include "bacnet/datalink/bip6.h"
-#include "bacnet/basic/bbmd6/h_bbmd6.h"
+#include "bacnet/datalink/dlmstp.h"
 #undef MAX_HEADER
 #undef MAX_MPDU
 #include "bacnet/datalink/bip.h"
@@ -97,10 +95,10 @@ typedef struct _dnet {
 static DNET *Router_Table_Head;
 /* track our directly connected ports network number */
 static uint16_t BIP_Net;
-static uint16_t BIP6_Net;
+static uint16_t MSTP_Net;
 /* buffer for receiving packets from the directly connected ports */
 static uint8_t BIP_Rx_Buffer[MAX_MPDU];
-static uint8_t BIP6_Rx_Buffer[MAX_MPDU];
+static uint8_t MSTP_Rx_Buffer[MAX_MPDU];
 /* buffer for transmitting from any port */
 static uint8_t Tx_Buffer[MAX_MPDU];
 /* main loop exit control */
@@ -335,15 +333,15 @@ static int datalink_send_pdu(uint16_t snet,
     int bytes_sent = 0;
 
     if (snet == 0) {
-        debug_printf("BVLC/BVLC6 Send to DNET %u\n", (unsigned)dest->net);
+        debug_printf("BVLC & MS/TP Send to DNET %u\n", (unsigned)dest->net);
         bytes_sent = bip_send_pdu(dest, npdu_data, pdu, pdu_len);
-        bytes_sent = bip6_send_pdu(dest, npdu_data, pdu, pdu_len);
+        bytes_sent = dlmstp_send_pdu(dest, npdu_data, pdu, pdu_len);
     } else if (snet == BIP_Net) {
         debug_printf("BVLC Send to DNET %u\n", (unsigned)dest->net);
         bytes_sent = bip_send_pdu(dest, npdu_data, pdu, pdu_len);
-    } else if (snet == BIP6_Net) {
-        debug_printf("BVLC6 Send to DNET %u\n", (unsigned)dest->net);
-        bytes_sent = bip6_send_pdu(dest, npdu_data, pdu, pdu_len);
+    } else if (snet == MSTP_Net) {
+        debug_printf("MS/TP Send to DNET %u\n", (unsigned)dest->net);
+        bytes_sent = dlmstp_send_pdu(dest, npdu_data, pdu, pdu_len);
     }
 
     return bytes_sent;
@@ -1020,22 +1018,35 @@ static void datalink_init(void)
         exit(1);
     }
     atexit(bip_cleanup);
-    /* BACnet/IPv6 Initialization */
-    pEnv = getenv("BACNET_BIP6_PORT");
+    /* MS/TP Initialization */
+    pEnv = getenv("BACNET_MAX_INFO_FRAMES");
     if (pEnv) {
-        bip6_set_port((uint16_t)strtol(pEnv, NULL, 0));
+        dlmstp_set_max_info_frames(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_max_info_frames(128);
     }
-    pEnv = getenv("BACNET_BIP6_BROADCAST");
+    pEnv = getenv("BACNET_MAX_MASTER");
     if (pEnv) {
-        BACNET_IP6_ADDRESS addr;
-        bvlc6_address_set(&addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0,
-            0, BIP6_MULTICAST_GROUP_ID);
-        bip6_set_broadcast_addr(&addr);
+        dlmstp_set_max_master(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_max_master(127);
     }
-    if (!bip6_init(getenv("BACNET_BIP6_IFACE"))) {
+    pEnv = getenv("BACNET_MSTP_BAUD");
+    if (pEnv) {
+        dlmstp_set_baud_rate(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_baud_rate(38400);
+    }
+    pEnv = getenv("BACNET_MSTP_MAC");
+    if (pEnv) {
+        dlmstp_set_mac_address(strtol(pEnv, NULL, 0));
+    } else {
+        dlmstp_set_mac_address(127);
+    }
+    if (!dlmstp_init(getenv("BACNET_MSTP_IFACE"))) {
         exit(1);
     }
-    atexit(bip6_cleanup);
+    atexit(dlmstp_cleanup);
     /* router network numbers */
     pEnv = getenv("BACNET_IP_NET");
     if (pEnv) {
@@ -1046,16 +1057,16 @@ static void datalink_init(void)
     /* configure the first entry in the table - home port */
     bip_get_my_address(&my_address);
     port_add(BIP_Net, &my_address);
-    /* BACnet/IPv6 network */
-    pEnv = getenv("BACNET_IP6_NET");
+    /* MS/TP network */
+    pEnv = getenv("BACNET_MSTP_NET");
     if (pEnv) {
-        BIP6_Net = strtol(pEnv, NULL, 0);
+        MSTP_Net = strtol(pEnv, NULL, 0);
     } else {
-        BIP6_Net = 2;
+        MSTP_Net = 2;
     }
     /* configure the next entry in the table */
-    bip6_get_my_address(&my_address);
-    port_add(BIP6_Net, &my_address);
+    dlmstp_get_my_address(&my_address);
+    port_add(MSTP_Net, &my_address);
 }
 
 /**
@@ -1133,7 +1144,7 @@ int main(int argc, char *argv[])
     time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
 
-    printf("BACnet Simple IP Router Demo\n");
+    printf("BACnet Simple MS/TP to IP Router Demo\n");
     printf("BACnet Stack Version %s\n", BACnet_Version);
     datalink_init();
     atexit(cleanup);
@@ -1143,8 +1154,8 @@ int main(int argc, char *argv[])
     /* broadcast an I-Am on startup */
     printf("BACnet/IP Network: %u\n", (unsigned)BIP_Net);
     send_i_am_router_to_network(BIP_Net, 0);
-    printf("BACnet/IPv6 Network: %u\n", (unsigned)BIP6_Net);
-    send_i_am_router_to_network(BIP6_Net, 0);
+    printf("BACnet MS/TP Network: %u\n", (unsigned)MSTP_Net);
+    send_i_am_router_to_network(MSTP_Net, 0);
     /* loop forever */
     for (;;) {
         /* input */
@@ -1157,19 +1168,18 @@ int main(int argc, char *argv[])
             my_routing_npdu_handler(BIP_Net, &src, &BIP_Rx_Buffer[0], pdu_len);
         }
         /* returns 0 bytes on timeout */
-        pdu_len = bip6_receive(&src, &BIP6_Rx_Buffer[0], MAX_MPDU, 5);
+        pdu_len = dlmstp_receive(&src, &MSTP_Rx_Buffer[0], MAX_MPDU, 5);
         /* process */
         if (pdu_len) {
-            debug_printf("BACnet/IPv6 Received packet\n");
+            debug_printf("BACnet MS/TP Received packet\n");
             my_routing_npdu_handler(
-                BIP6_Net, &src, &BIP6_Rx_Buffer[0], pdu_len);
+                MSTP_Net, &src, &MSTP_Rx_Buffer[0], pdu_len);
         }
         /* at least one second has passed */
         elapsed_seconds = (uint32_t)(current_seconds - last_seconds);
         if (elapsed_seconds) {
             last_seconds = current_seconds;
             bvlc_maintenance_timer(elapsed_seconds);
-            bvlc6_maintenance_timer(elapsed_seconds);
         }
         if (Exit_Requested) {
             break;
