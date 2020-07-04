@@ -289,7 +289,7 @@ bool bitstring_same(
     uint8_t compare_mask = 0;
 
     if (bitstring1 && bitstring2) {
-        bytes_used = bitstring1->bits_used >> 3;
+        bytes_used = (int) (bitstring1->bits_used >> 3);
         if (bytes_used <= MAX_BITSTRING_BYTES) {
             if (bitstring1->bits_used == bitstring2->bits_used) {
                 compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
