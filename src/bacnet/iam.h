@@ -51,7 +51,7 @@ extern "C" {
         int *pSegmentation,
         uint16_t * pVendor_id);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     int iam_decode_apdu(

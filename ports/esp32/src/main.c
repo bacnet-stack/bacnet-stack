@@ -48,7 +48,15 @@ wifi_config_t wifi_config = {
 #define BACNET_LED 5
 
 uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
-uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+
+/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+
+uint8_t Rx_Buf[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                              * so that in the rare case, the message
+                              * would be filled up to MAX_MPDU and some
+                              * decoding functions would overrun, these
+                              * decoding functions will just end up in
+                              * a safe field of static zeros. */] = { 0 };
 
 EventGroupHandle_t wifi_event_group;
 const static int CONNECTED_BIT = BIT0;

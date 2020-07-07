@@ -62,7 +62,8 @@ static const int Properties_Optional[] = { PROP_EVENT_STATE,
 static const int Properties_Proprietary[] = { -1 };
 
 /**
- * Initialize the pointers for the required, the optional and the properitary value properties.
+ * Initialize the pointers for the required, the optional and the properitary
+ * value properties.
  *
  * @param pRequired - Pointer to the pointer of required values.
  * @param pOptional - Pointer to the pointer of optional values.
@@ -278,7 +279,8 @@ static char *CharacterString_Value_Description(uint32_t object_instance)
  * For a given object instance-number, set the description text.
  *
  * @param  object_instance - object-instance number of the object
- * @param  new_descr - C-String pointer to the string, representing the description text
+ * @param  new_descr - C-String pointer to the string, representing the
+ * description text
  *
  * @return True on success, false otherwise.
  */
@@ -300,7 +302,8 @@ bool CharacterString_Value_Description_Set(
                 }
             }
         } else {
-            memset(&Object_Description[index][0], 0, sizeof(Object_Description[index]));
+            memset(&Object_Description[index][0], 0,
+                sizeof(Object_Description[index]));
         }
     }
 
@@ -311,7 +314,8 @@ bool CharacterString_Value_Description_Set(
  * For a given object instance-number, return the object text.
  *
  * @param  object_instance - object-instance number of the object
- * @param  object_name - Pointer to the BACnet string object that shall take the object name
+ * @param  object_name - Pointer to the BACnet string object that shall take the
+ * object name
  *
  * @return True on success, false otherwise.
  */
@@ -390,7 +394,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
 
     /* Valid object? */
-    object_index = CharacterString_Value_Instance_To_Index(rpdata->object_instance);
+    object_index =
+        CharacterString_Value_Instance_To_Index(rpdata->object_instance);
     if (object_index >= MAX_CHARACTERSTRING_VALUES) {
         rpdata->error_class = ERROR_CLASS_OBJECT;
         rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -408,14 +413,15 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                You could make Description writable and different */
         case PROP_OBJECT_NAME:
             if (CharacterString_Value_Object_Name(
-                rpdata->object_instance, &char_string)) {
+                    rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
             break;
         case PROP_DESCRIPTION:
             if (characterstring_init_ansi(&char_string,
-                CharacterString_Value_Description(rpdata->object_instance))) {
+                    CharacterString_Value_Description(
+                        rpdata->object_instance))) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
@@ -474,7 +480,8 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 /**
  * Set the requested property of the character string value.
  *
- * @param wp_data  Property requested, see for BACNET_WRITE_PROPERTY_DATA details.
+ * @param wp_data  Property requested, see for BACNET_WRITE_PROPERTY_DATA
+ * details.
  *
  * @return true if successful
  */
@@ -488,8 +495,7 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    if ((wp_data->application_data == NULL) ||
-        (wp_data->application_data_len == 0)) {
+    if (wp_data->application_data_len == 0) {
         return false;
     }
 
@@ -505,7 +511,8 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     /* Valid object? */
-    object_index = CharacterString_Value_Instance_To_Index(wp_data->object_instance);
+    object_index =
+        CharacterString_Value_Instance_To_Index(wp_data->object_instance);
     if (object_index >= MAX_CHARACTERSTRING_VALUES) {
         wp_data->error_class = ERROR_CLASS_OBJECT;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -552,7 +559,7 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return status;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -617,4 +624,4 @@ int main(void)
     return 0;
 }
 #endif
-#endif /* TEST */
+#endif /* BAC_TEST */

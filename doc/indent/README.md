@@ -1,9 +1,9 @@
-# How to configure clang‐format
+# How to configure clang-format
 
 ## Overview
-clang-format is an utility to format source code in several languages 
-according to predefined settings. Settings for auto-formatting of C source 
-files are summarized below, and should be saved in .clang-format file in root 
+clang-format is an utility to format source code in several languages
+according to predefined settings. Settings for auto-formatting of C source
+files are summarized below, and should be saved in .clang-format file in root
 folder. These settings are chosen to closely match the formatting style used.
 
 ## Configuring Editors
@@ -22,16 +22,16 @@ Add the line
 to `~/.emacs.d/init.el`. Format a source file with `M-x clang-format-region`.
 
 ### CLion
-* Add the .clang-format file to the root directory as 
-  explained above.  Go to File->Settings->Tools->External Tools 
-  and click on the plus sign. A window should pop up. 
+* Add the .clang-format file to the root directory as
+  explained above.  Go to File->Settings->Tools->External Tools
+  and click on the plus sign. A window should pop up.
   Choose a name, for example "clang-format"
 * For the Tool settings tab use this configuration:
   - Program: `clang-format` (use the name of your executable here)
   - Parameters: `--style=file -i $FileName$`
   - Working directory: `$FileDir$`
-With your file open, go to `Tools->External tools` and run the config above. 
-This calls `clang-format` and does in-place formatting using the style 
+With your file open, go to `Tools->External tools` and run the config above.
+This calls `clang-format` and does in-place formatting using the style
 defined in the first `.clang-format` file found in a parent directory.
 
 ### .clang-format file

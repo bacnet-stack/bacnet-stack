@@ -115,9 +115,9 @@ static object_functions_t Object_Table[] = {
         Device_Count, Device_Index_To_Instance,
         Device_Valid_Object_Instance_Number, Device_Object_Name,
         Device_Read_Property_Local, NULL /* Write_Property */,
-        Device_Property_Lists, NULL /* ReadRangeInfo */,
-        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
-        NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+        Device_Property_Lists, NULL /* ReadRangeInfo */, NULL /* Iterator */,
+        NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
+        NULL /* Intrinsic Reporting */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
@@ -225,8 +225,7 @@ static const int Device_Properties_Optional[] = {
 #if defined(BACDL_MSTP)
     PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES,
 #endif
-    PROP_DESCRIPTION, PROP_LOCATION, PROP_ACTIVE_COV_SUBSCRIPTIONS,
-    -1
+    PROP_DESCRIPTION, PROP_LOCATION, PROP_ACTIVE_COV_SUBSCRIPTIONS, -1
 };
 
 static const int Device_Properties_Proprietary[] = { -1 };
@@ -650,8 +649,8 @@ bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name1,
  * @param object_instance [in] The object instance number to be looked up.
  * @return True if found, else False if no such Object in this device.
  */
-bool Device_Valid_Object_Id
-    (BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+bool Device_Valid_Object_Id(
+    BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     bool status = false; /* return value */
     struct object_functions *pObject = NULL;

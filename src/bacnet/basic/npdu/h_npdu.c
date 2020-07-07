@@ -76,7 +76,8 @@ void npdu_handler(BACNET_ADDRESS *src, /* source address */
 
     /* only handle the version that we know how to handle */
     if (pdu[0] == BACNET_PROTOCOL_VERSION) {
-        apdu_offset = bacnet_npdu_decode(&pdu[0], pdu_len, &dest, src, &npdu_data);
+        apdu_offset =
+            bacnet_npdu_decode(&pdu[0], pdu_len, &dest, src, &npdu_data);
         if (npdu_data.network_layer_message) {
             /*FIXME: network layer message received!  Handle it! */
 #if PRINT_ENABLED

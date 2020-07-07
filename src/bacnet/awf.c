@@ -158,8 +158,8 @@ int awf_decode_service_request(
             if (apdu_len >= apdu_len_max) {
                 return BACNET_STATUS_ERROR;
             }
-            len = bacnet_unsigned_application_decode(&apdu[apdu_len],
-                apdu_len_max, &unsigned_value);
+            len = bacnet_unsigned_application_decode(
+                &apdu[apdu_len], apdu_len_max, &unsigned_value);
             if (len <= 0) {
                 return BACNET_STATUS_ERROR;
             }
@@ -312,7 +312,7 @@ int awf_ack_decode_apdu(uint8_t *apdu,
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -487,4 +487,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_WRITE_PROPERTY */
-#endif /* TEST */
+#endif /* BAC_TEST */

@@ -60,6 +60,7 @@
 #undef MAX_MPDU
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
@@ -335,11 +336,11 @@ static int datalink_send_pdu(uint16_t snet,
 
     if (snet == 0) {
         debug_printf("BVLC/BVLC6 Send to DNET %u\n", (unsigned)dest->net);
-        bytes_sent = bvlc_send_pdu(dest, npdu_data, pdu, pdu_len);
+        bytes_sent = bip_send_pdu(dest, npdu_data, pdu, pdu_len);
         bytes_sent = bip6_send_pdu(dest, npdu_data, pdu, pdu_len);
     } else if (snet == BIP_Net) {
         debug_printf("BVLC Send to DNET %u\n", (unsigned)dest->net);
-        bytes_sent = bvlc_send_pdu(dest, npdu_data, pdu, pdu_len);
+        bytes_sent = bip_send_pdu(dest, npdu_data, pdu, pdu_len);
     } else if (snet == BIP6_Net) {
         debug_printf("BVLC6 Send to DNET %u\n", (unsigned)dest->net);
         bytes_sent = bip6_send_pdu(dest, npdu_data, pdu, pdu_len);
@@ -1149,7 +1150,7 @@ int main(int argc, char *argv[])
         /* input */
         current_seconds = time(NULL);
         /* returns 0 bytes on timeout */
-        pdu_len = bvlc_receive(&src, &BIP_Rx_Buffer[0], MAX_MPDU, 5);
+        pdu_len = bip_receive(&src, &BIP_Rx_Buffer[0], MAX_MPDU, 5);
         /* process */
         if (pdu_len) {
             debug_printf("BACnet/IP Received packet\n");

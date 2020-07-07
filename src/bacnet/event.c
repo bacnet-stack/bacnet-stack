@@ -466,8 +466,8 @@ int event_notify_decode_service_request(
             return BACNET_STATUS_ERROR;
         }
         /* tag 6 - eventType */
-        if ((section_length =
-                    decode_context_enumerated(&apdu[len], 6, &enum_value)) == -1) {
+        if ((section_length = decode_context_enumerated(
+                 &apdu[len], 6, &enum_value)) == -1) {
             return -1;
         } else {
             data->eventType = (BACNET_EVENT_TYPE)enum_value;
@@ -494,8 +494,8 @@ int event_notify_decode_service_request(
         }
 
         /* tag 8 - notifyType */
-        if ((section_length =
-                    decode_context_enumerated(&apdu[len], 8, &enum_value)) == -1) {
+        if ((section_length = decode_context_enumerated(
+                 &apdu[len], 8, &enum_value)) == -1) {
             return -1;
         } else {
             data->notifyType = (BACNET_NOTIFY_TYPE)enum_value;
@@ -529,8 +529,8 @@ int event_notify_decode_service_request(
                 break;
         }
         /* tag 11 - toState */
-        if ((section_length =
-                    decode_context_enumerated(&apdu[len], 11, &enum_value)) == -1) {
+        if ((section_length = decode_context_enumerated(
+                 &apdu[len], 11, &enum_value)) == -1) {
             return -1;
         } else {
             data->toState = (BACNET_EVENT_STATE)enum_value;
@@ -770,24 +770,26 @@ int event_notify_decode_service_request(
                         if (section_length > 0) {
                             len += section_length;
                             if (unsigned_value <= UINT32_MAX) {
-                                data->notificationParams.bufferReady.previousNotification =
+                                data->notificationParams.bufferReady
+                                    .previousNotification =
                                     (uint32_t)unsigned_value;
                             } else {
-                            return BACNET_STATUS_ERROR;
+                                return BACNET_STATUS_ERROR;
                             }
                         } else {
                             return BACNET_STATUS_ERROR;
                         }
-                                    /* Tag 2 - currentNotification */
+                        /* Tag 2 - currentNotification */
                         section_length = bacnet_unsigned_context_decode(
                             &apdu[len], apdu_len - len, 2, &unsigned_value);
                         if (section_length > 0) {
                             len += section_length;
                             if (unsigned_value <= UINT32_MAX) {
-                                data->notificationParams.bufferReady.currentNotification =
+                                data->notificationParams.bufferReady
+                                    .currentNotification =
                                     (uint32_t)unsigned_value;
                             } else {
-                            return BACNET_STATUS_ERROR;
+                                return BACNET_STATUS_ERROR;
                             }
                         } else {
                             return BACNET_STATUS_ERROR;
@@ -801,10 +803,10 @@ int event_notify_decode_service_request(
                         if (section_length > 0) {
                             len += section_length;
                             if (unsigned_value <= UINT32_MAX) {
-                            data->notificationParams.unsignedRange.exceedingValue =
-                                (uint32_t)unsigned_value;
+                                data->notificationParams.unsignedRange
+                                    .exceedingValue = (uint32_t)unsigned_value;
                             } else {
-                            return BACNET_STATUS_ERROR;
+                                return BACNET_STATUS_ERROR;
                             }
                         } else {
                             return BACNET_STATUS_ERROR;
@@ -824,10 +826,10 @@ int event_notify_decode_service_request(
                         if (section_length > 0) {
                             len += section_length;
                             if (unsigned_value <= UINT32_MAX) {
-                            data->notificationParams.unsignedRange.exceededLimit =
-                                (uint32_t)unsigned_value;
+                                data->notificationParams.unsignedRange
+                                    .exceededLimit = (uint32_t)unsigned_value;
                             } else {
-                            return BACNET_STATUS_ERROR;
+                                return BACNET_STATUS_ERROR;
                             }
                         } else {
                             return BACNET_STATUS_ERROR;
@@ -861,7 +863,7 @@ int event_notify_decode_service_request(
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 
 #include <assert.h>
 #include <string.h>
@@ -1503,4 +1505,4 @@ int main(void)
 }
 
 #endif /* TEST_EVENT */
-#endif /* TEST */
+#endif /* BAC_TEST */

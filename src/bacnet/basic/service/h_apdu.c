@@ -307,7 +307,8 @@ static error_function Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
  * @brief Set a error handler function for the given confirmed service.
  *
  * @param service_choice  Service, see SERVICE_CONFIRMED_X enumeration.
- * @param pFunction  Pointer to the function, being in charge of the error handling.
+ * @param pFunction  Pointer to the function, being in charge of the error
+ * handling.
  */
 void apdu_set_error_handler(
     BACNET_CONFIRMED_SERVICE service_choice, error_function pFunction)
@@ -374,7 +375,7 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
         service_data->invoke_id = apdu[2];
         len = 3;
         if (service_data->segmented_message) {
-            if (apdu_len >= (len+2)) {
+            if (apdu_len >= (len + 2)) {
                 service_data->sequence_number = apdu[len++];
                 service_data->proposed_window_number = apdu[len++];
             } else {
@@ -386,7 +387,7 @@ uint16_t apdu_decode_confirmed_service_request(uint8_t *apdu, /* APDU data */
             *service_choice = apdu[len++];
             *service_request = NULL;
             *service_request_len = 0;
-        } else if (apdu_len >= (len+2)) {
+        } else if (apdu_len >= (len + 2)) {
             *service_choice = apdu[len++];
             *service_request = &apdu[len];
             *service_request_len = apdu_len - len;
@@ -534,10 +535,11 @@ void apdu_handler(BACNET_ADDRESS *src,
                     service_request_len = apdu_len - 2;
                     if (apdu_unconfirmed_dcc_disabled(service_choice)) {
                         /* When network communications are disabled,
-                           only DeviceCommunicationControl and ReinitializeDevice
-                           APDUs shall be processed and no messages shall be
-                           initiated. If communications have been initiation
-                           disabled, then WhoIs may be processed. */
+                           only DeviceCommunicationControl and
+                           ReinitializeDevice APDUs shall be processed and no
+                           messages shall be initiated. If communications have
+                           been initiation disabled, then WhoIs may be
+                           processed. */
                         break;
                     }
                     if (service_choice < MAX_BACNET_UNCONFIRMED_SERVICE) {
@@ -573,7 +575,8 @@ void apdu_handler(BACNET_ADDRESS *src,
                         case SERVICE_CONFIRMED_VT_CLOSE:
                             /* Security Services */
                         case SERVICE_CONFIRMED_REQUEST_KEY:
-                            if (Confirmed_ACK_Function[service_choice] != NULL) {
+                            if (Confirmed_ACK_Function[service_choice] !=
+                                NULL) {
                                 ((confirmed_simple_ack_function)
                                         Confirmed_ACK_Function[service_choice])(
                                     src, invoke_id);
@@ -619,7 +622,8 @@ void apdu_handler(BACNET_ADDRESS *src,
                         case SERVICE_CONFIRMED_VT_DATA:
                             /* Security Services */
                         case SERVICE_CONFIRMED_AUTHENTICATE:
-                            if (Confirmed_ACK_Function[service_choice] != NULL) {
+                            if (Confirmed_ACK_Function[service_choice] !=
+                                NULL) {
                                 (Confirmed_ACK_Function[service_choice])(
                                     service_request, service_request_len, src,
                                     &service_ack_data);
@@ -642,18 +646,20 @@ void apdu_handler(BACNET_ADDRESS *src,
                     service_choice = apdu[2];
                     len = 3;
 
-                    /* FIXME: Currently special case for C_P_T but there are others
-                       which may need consideration such as ChangeList-Error,
-                       CreateObject-Error, WritePropertyMultiple-Error and
-                       VTClose_Error but they may be left as is for now until
-                       support for these services is added */
+                    /* FIXME: Currently special case for C_P_T but there are
+                       others which may need consideration such as
+                       ChangeList-Error, CreateObject-Error,
+                       WritePropertyMultiple-Error and VTClose_Error but they
+                       may be left as is for now until support for these
+                       services is added */
 
                     if (service_choice ==
                         SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over
-                                                                 opening tag 0 */
+                                                                 opening tag 0
+                                                               */
                         if (decode_is_opening_tag_number(&apdu[len], 0)) {
-                            len++; /* a tag number of 0 is not extended so only one
-                                      octet */
+                            len++; /* a tag number of 0 is not extended so only
+                                      one octet */
                         }
                     }
 
@@ -662,24 +668,30 @@ void apdu_handler(BACNET_ADDRESS *src,
                             &apdu[len], &tag_number, &len_value);
 
                         if (len < apdu_len) {
-                            /* FIXME: we could validate that the tag is enumerated... */
-                            len += decode_enumerated(&apdu[len], len_value, &error_class);
+                            /* FIXME: we could validate that the tag is
+                             * enumerated... */
+                            len += decode_enumerated(
+                                &apdu[len], len_value, &error_class);
 
                             if (len < apdu_len) {
                                 len += decode_tag_number_and_value(
                                     &apdu[len], &tag_number, &len_value);
 
                                 if (len < apdu_len) {
-                                    /* FIXME: we could validate that the tag is enumerated... */
-                                    len += decode_enumerated(&apdu[len], len_value, &error_code);
+                                    /* FIXME: we could validate that the tag is
+                                     * enumerated... */
+                                    len += decode_enumerated(
+                                        &apdu[len], len_value, &error_code);
 
                                     if (service_choice ==
                                         SERVICE_CONFIRMED_PRIVATE_TRANSFER) {
                                         if (len < apdu_len) {
                                             /* skip over closing tag 0 */
-                                            if (decode_is_closing_tag_number(&apdu[len], 0)) {
-                                                len++; /* a tag number of 0 is not extended so
-                                                          only one octet */
+                                            if (decode_is_closing_tag_number(
+                                                    &apdu[len], 0)) {
+                                                len++; /* a tag number of 0 is
+                                                          not extended so only
+                                                          one octet */
                                             }
                                         }
                                     }

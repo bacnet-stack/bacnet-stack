@@ -182,6 +182,11 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         float value);
+    BACNET_STACK_EXPORT
+    int decode_context_real(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        float *real_value);
 
 /* from clause 20.2.7 Encoding of a Double Precision Real Number Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -196,6 +201,11 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         double value);
+    BACNET_STACK_EXPORT
+    int decode_context_double(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        double *double_value);
 
 /* from clause 20.2.14 Encoding of an Object Identifier Value */
 /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -619,7 +629,7 @@ extern "C" {
 /* true if the tag is a closing tag */
 #define IS_CLOSING_TAG(x) ((x & 0x07) == 7)
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void test_BACDCode(

@@ -293,8 +293,7 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
  * @param rpm_data - #BACNET_READ_ACCESS_DATA
  * @return RPM data from the next element in the linked list
  */
-static BACNET_READ_ACCESS_DATA *rpm_data_free(
-    BACNET_READ_ACCESS_DATA *rpm_data)
+static BACNET_READ_ACCESS_DATA *rpm_data_free(BACNET_READ_ACCESS_DATA *rpm_data)
 {
     BACNET_READ_ACCESS_DATA *old_rpm_data = NULL;
     BACNET_PROPERTY_REFERENCE *rpm_property = NULL;
@@ -343,7 +342,7 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
     int len = 0;
-    BACNET_READ_ACCESS_DATA * rpm_data;
+    BACNET_READ_ACCESS_DATA *rpm_data;
 
     (void)src;
     (void)service_data; /* we could use these... */
@@ -358,9 +357,9 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
                 rpm_data = rpm_data_free(rpm_data);
             }
         } else {
-    #if 1
+#if 1
             fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
-    #endif
+#endif
             while (rpm_data) {
                 rpm_data = rpm_data_free(rpm_data);
             }

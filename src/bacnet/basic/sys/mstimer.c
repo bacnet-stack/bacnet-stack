@@ -118,7 +118,7 @@ unsigned long mstimer_remaining(struct mstimer *t)
  */
 unsigned long mstimer_elapsed(struct mstimer *t)
 {
-  return mstimer_now() - t->start;
+    return mstimer_now() - t->start;
 }
 
 /**

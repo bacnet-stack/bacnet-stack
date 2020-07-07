@@ -63,8 +63,7 @@ static bool BIP_DL_Debug = false;
  * @param address - IPv4 address (uint32_t) of BBMD to register with,
  *  in network byte order.
  */
-void dlenv_bbmd_address_set(
-    BACNET_IP_ADDRESS *address)
+void dlenv_bbmd_address_set(BACNET_IP_ADDRESS *address)
 {
     bvlc_address_copy(&BBMD_Address, address);
     BBMD_Address_Valid = true;
@@ -121,7 +120,7 @@ int dlenv_register_as_foreign_device(void)
     char *pEnv = NULL;
     unsigned a[4] = { 0 };
     char bbmd_env[32] = "";
-    unsigned entry_number = 0;\
+    unsigned entry_number = 0;
     long long_value = 0;
     int c;
 
@@ -154,20 +153,16 @@ int dlenv_register_as_foreign_device(void)
                 (unsigned)BBMD_Address.address[0],
                 (unsigned)BBMD_Address.address[1],
                 (unsigned)BBMD_Address.address[2],
-                (unsigned)BBMD_Address.address[3],
-                (unsigned)BBMD_Address.port,
+                (unsigned)BBMD_Address.address[3], (unsigned)BBMD_Address.port,
                 (unsigned)BBMD_TTL_Seconds);
         }
-        retval = bvlc_register_with_bbmd(&BBMD_Address,
-            BBMD_TTL_Seconds);
+        retval = bvlc_register_with_bbmd(&BBMD_Address, BBMD_TTL_Seconds);
         if (retval < 0) {
-            fprintf(stderr,
-            "FAILED to Register with BBMD at %u.%u.%u.%u:%u\n",
-            (unsigned)BBMD_Address.address[0],
-            (unsigned)BBMD_Address.address[1],
-            (unsigned)BBMD_Address.address[2],
-            (unsigned)BBMD_Address.address[3],
-            (unsigned)BBMD_Address.port);
+            fprintf(stderr, "FAILED to Register with BBMD at %u.%u.%u.%u:%u\n",
+                (unsigned)BBMD_Address.address[0],
+                (unsigned)BBMD_Address.address[1],
+                (unsigned)BBMD_Address.address[2],
+                (unsigned)BBMD_Address.address[3], (unsigned)BBMD_Address.port);
         }
         BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
     } else {
@@ -176,8 +171,8 @@ int dlenv_register_as_foreign_device(void)
             sprintf(bbmd_env, "BACNET_BDT_ADDR_%u", entry_number);
             pEnv = getenv(bbmd_env);
             if (pEnv) {
-                bdt_entry_valid = bip_get_addr_by_name(pEnv,
-                    &BBMD_Table_Entry.dest_address);
+                bdt_entry_valid =
+                    bip_get_addr_by_name(pEnv, &BBMD_Table_Entry.dest_address);
                 if (entry_number == 1) {
                     if (BIP_DL_Debug) {
                         fprintf(stderr, "BBMD 1 is %s=%s!\n", bbmd_env, pEnv);
@@ -211,15 +206,15 @@ int dlenv_register_as_foreign_device(void)
                         pEnv, "%3u.%3u.%3u.%3u", &a[0], &a[1], &a[2], &a[3]);
                     if (c == 4) {
                         bvlc_broadcast_distribution_mask_set(
-                            &BBMD_Table_Entry.broadcast_mask,
-                            a[0], a[1], a[2], a[3]);
+                            &BBMD_Table_Entry.broadcast_mask, a[0], a[1], a[2],
+                            a[3]);
                     }
                 }
                 bvlc_broadcast_distribution_table_entry_append(
                     bvlc_bdt_list(), &BBMD_Table_Entry);
                 if (BIP_DL_Debug) {
-                    fprintf(stderr,
-                        "BBMD %4u: %u.%u.%u.%u:%u %u.%u.%u.%u\n", entry_number,
+                    fprintf(stderr, "BBMD %4u: %u.%u.%u.%u:%u %u.%u.%u.%u\n",
+                        entry_number,
                         (unsigned)BBMD_Table_Entry.dest_address.address[0],
                         (unsigned)BBMD_Table_Entry.dest_address.address[1],
                         (unsigned)BBMD_Table_Entry.dest_address.address[2],

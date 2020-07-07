@@ -121,7 +121,7 @@ bool address_match(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
     uint8_t max_len = 0;
 
     if (dest == src) {
-        return(true);
+        return (true);
     }
     if (dest->mac_len != src->mac_len) {
         return false;
@@ -284,7 +284,7 @@ void address_mac_init(BACNET_MAC_ADDRESS *mac, uint8_t *adr, uint8_t len)
  *
  * @return true if the address was parsed
  */
-bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, char *arg)
+bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
 {
     unsigned a[6] = { 0 }, p = 0;
     uint16_t port = 0;
@@ -624,7 +624,8 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
         }
     }
 
-    /* If adding has failed, see if we can squeeze it in by removed the oldest entry. */
+    /* If adding has failed, see if we can squeeze it in by removed the oldest
+     * entry. */
     if (!found) {
         pMatch = address_remove_oldest();
         if (pMatch != NULL) {
@@ -775,8 +776,10 @@ void address_add_binding(
  *
  * @param index  Table index [0..MAX_ADDRESS_CACHE-1]
  * @param device_id  Pointer to the variable taking the device id.
- * @param device_ttl  Pointer to the variable taking the Time To Life for the device.
- * @param max_apdu  Pointer to the variable taking the max APDU size of the device.
+ * @param device_ttl  Pointer to the variable taking the Time To Life for the
+ * device.
+ * @param max_apdu  Pointer to the variable taking the max APDU size of the
+ * device.
  * @param src  Pointer to the BACnet address.
  *
  * @return true/false
@@ -818,7 +821,8 @@ bool address_device_get_by_index(unsigned index,
  *
  * @param index  Table index [0..MAX_ADDRESS_CACHE-1]
  * @param device_id  Pointer to the variable taking the device id.
- * @param max_apdu  Pointer to the variable taking the max APDU size of the device.
+ * @param max_apdu  Pointer to the variable taking the max APDU size of the
+ * device.
  * @param src  Pointer to the BACnet address.
  *
  * @return true/false
@@ -876,8 +880,9 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
             BAC_ADDR_IN_USE) {
             iLen += encode_application_object_id(
-                    &apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
-            iLen += encode_application_unsigned(&apdu[iLen], pMatch->address.net);
+                &apdu[iLen], OBJECT_DEVICE, pMatch->device_id);
+            iLen +=
+                encode_application_unsigned(&apdu[iLen], pMatch->address.net);
             if ((unsigned)iLen >= apdu_len) {
                 break;
             }
@@ -891,7 +896,8 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
                 }
                 octetstring_init(
                     &MAC_Address, pMatch->address.adr, pMatch->address.len);
-                iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
+                iLen +=
+                    encode_application_octet_string(&apdu[iLen], &MAC_Address);
             } else {
                 /* MAC*/
                 if ((unsigned)(iLen + pMatch->address.mac_len) >= apdu_len) {
@@ -899,7 +905,8 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
                 }
                 octetstring_init(
                     &MAC_Address, pMatch->address.mac, pMatch->address.mac_len);
-                iLen += encode_application_octet_string(&apdu[iLen], &MAC_Address);
+                iLen +=
+                    encode_application_octet_string(&apdu[iLen], &MAC_Address);
             }
             /* Any space left? */
             if ((unsigned)iLen >= apdu_len) {
@@ -1030,7 +1037,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         pMatch++;
         /* Shall not happen as the count has been checked first. */
         if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-            return(0); /* Issue with the table. */
+            return (0); /* Issue with the table. */
         }
     }
 
@@ -1045,7 +1052,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         }
         /* Shall not happen as the count has been checked first. */
         if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-            return(0); /* Issue with the table. */
+            return (0); /* Issue with the table. */
         }
     }
 
@@ -1093,7 +1100,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             pMatch++;
             /* Can normally not happen. */
             if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-                return(0); /* Issue with the table. */
+                return (0); /* Issue with the table. */
             }
         }
     }
@@ -1116,7 +1123,8 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  * is never called at all the whole cache is effectivly rendered static and
  * entries never expire unless explictely deleted.
  *
- * @param uSeconds  Approximate number of seconds since last call to this function
+ * @param uSeconds  Approximate number of seconds since last call to this
+ * function
  */
 void address_cache_timer(uint16_t uSeconds)
 {
@@ -1139,7 +1147,7 @@ void address_cache_timer(uint16_t uSeconds)
     }
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -1312,4 +1320,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_ADDRESS */
-#endif /* TEST */
+#endif /* BAC_TEST */

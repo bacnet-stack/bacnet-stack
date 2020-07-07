@@ -70,8 +70,7 @@ int whohas_encode_apdu(uint8_t *apdu, BACNET_WHO_HAS_DATA *data)
             apdu_len += len;
         } else {
             len = encode_context_object_id(&apdu[apdu_len], 2,
-                data->object.identifier.type,
-                data->object.identifier.instance);
+                data->object.identifier.type, data->object.identifier.instance);
             apdu_len += len;
         }
     }
@@ -112,7 +111,8 @@ int whohas_decode_service_request(
                     len += decode_tag_number_and_value(
                         &apdu[len], &tag_number, &len_value);
                     if ((unsigned)len < apdu_len) {
-                        len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
+                        len += decode_unsigned(
+                            &apdu[len], len_value, &unsigned_value);
                         if (unsigned_value <= BACNET_MAX_INSTANCE) {
                             data->high_limit = unsigned_value;
                         }
@@ -130,8 +130,8 @@ int whohas_decode_service_request(
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
                 if ((unsigned)len < apdu_len) {
-                    len += decode_object_id(
-                        &apdu[len], &decoded_type, &data->object.identifier.instance);
+                    len += decode_object_id(&apdu[len], &decoded_type,
+                        &data->object.identifier.instance);
                     data->object.identifier.type = decoded_type;
                 }
             }
@@ -157,7 +157,7 @@ int whohas_decode_service_request(
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -264,4 +264,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_WHOIS */
-#endif /* TEST */
+#endif /* BAC_TEST */

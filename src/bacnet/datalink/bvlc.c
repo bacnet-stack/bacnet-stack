@@ -520,7 +520,6 @@ bool bvlc_broadcast_distribution_table_entry_forward_address(
     return status;
 }
 
-
 /**
  * @brief J.2.2 Write-Broadcast-Distribution-Table: encode
  *
@@ -1060,7 +1059,7 @@ bool bvlc_foreign_device_table_entry_add(
                    a BBMD shall start a timer with a value equal to the
                    Time-to-Live parameter supplied plus a fixed grace
                    period of 30 seconds. */
-                if (ttl_seconds < (UINT16_MAX-30)) {
+                if (ttl_seconds < (UINT16_MAX - 30)) {
                     fdt_entry->ttl_seconds_remaining = ttl_seconds + 30;
                 } else {
                     fdt_entry->ttl_seconds_remaining = UINT16_MAX;
@@ -1077,7 +1076,7 @@ bool bvlc_foreign_device_table_entry_add(
                 /* add to the first empty entry */
                 bvlc_address_copy(&fdt_entry->dest_address, addr);
                 fdt_entry->ttl_seconds = ttl_seconds;
-                if (ttl_seconds < (UINT16_MAX-30)) {
+                if (ttl_seconds < (UINT16_MAX - 30)) {
                     fdt_entry->ttl_seconds_remaining = ttl_seconds + 30;
                 } else {
                     fdt_entry->ttl_seconds_remaining = UINT16_MAX;
@@ -1756,8 +1755,8 @@ bool bvlc_address_different(
  * @param mask - B/IPv4 broadcast distribution mask
  * @return true if the addresses are different
  */
-bool bvlc_address_mask(
-    BACNET_IP_ADDRESS *dst, const BACNET_IP_ADDRESS *src,
+bool bvlc_address_mask(BACNET_IP_ADDRESS *dst,
+    const BACNET_IP_ADDRESS *src,
     const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask)
 {
     bool status = false;
@@ -2306,7 +2305,7 @@ int bvlc_decode_foreign_device_table_entry(uint8_t *pdu,
     return bytes_consumed;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -3193,4 +3192,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BBMD */
-#endif /* TEST */
+#endif /* BAC_TEST */

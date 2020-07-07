@@ -61,7 +61,7 @@ extern "C" {
         BACNET_REINITIALIZED_STATE * state,
         BACNET_CHARACTER_STRING * password);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     int rd_decode_apdu(

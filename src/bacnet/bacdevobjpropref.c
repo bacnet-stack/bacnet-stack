@@ -119,8 +119,7 @@ int bacapp_encode_device_obj_property_ref(
      * omit */
     if (value->deviceIdentifier.type == OBJECT_DEVICE) {
         len = encode_context_object_id(&apdu[apdu_len], 3,
-            value->deviceIdentifier.type,
-            value->deviceIdentifier.instance);
+            value->deviceIdentifier.type, value->deviceIdentifier.instance);
         apdu_len += len;
     }
     return apdu_len;
@@ -302,10 +301,8 @@ int bacapp_encode_device_obj_ref(
      * (set type to BACNET_NO_DEV_TYPE or something other than OBJECT_DEVICE to
      * omit */
     if (value->deviceIdentifier.type == OBJECT_DEVICE) {
-        len =
-            encode_context_object_id(&apdu[apdu_len], 0,
-                value->deviceIdentifier.type,
-                value->deviceIdentifier.instance);
+        len = encode_context_object_id(&apdu[apdu_len], 0,
+            value->deviceIdentifier.type, value->deviceIdentifier.instance);
         apdu_len += len;
     }
     /* object-identifier [1] BACnetObjectIdentifier */
@@ -404,7 +401,7 @@ int bacapp_decode_context_device_obj_ref(
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -532,4 +529,4 @@ int main(void)
 }
 
 #endif /* TEST_DEV_ID_PROP_REF */
-#endif /* TEST */
+#endif /* BAC_TEST */

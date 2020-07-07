@@ -154,8 +154,8 @@ int wp_decode_service_request(
             return -1;
         }
         /* determine the length of the data blob */
-        imax = bacapp_data_len( \
-               &apdu[len], apdu_len - len, (BACNET_PROPERTY_ID)property);
+        imax = bacapp_data_len(
+            &apdu[len], apdu_len - len, (BACNET_PROPERTY_ID)property);
         if (imax == BACNET_STATUS_ERROR) {
             return -2;
         }
@@ -198,7 +198,7 @@ int wp_decode_service_request(
     return len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -399,4 +399,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_WRITE_PROPERTY */
-#endif /* TEST */
+#endif /* BAC_TEST */

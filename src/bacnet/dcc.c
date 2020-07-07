@@ -196,7 +196,8 @@ int dcc_encode_apdu(uint8_t *apdu,
         /* optional password */
         if (password) {
             if ((password->length >= 1) && (password->length <= 20)) {
-                len = encode_context_character_string(&apdu[apdu_len], 2, password);
+                len = encode_context_character_string(
+                    &apdu[apdu_len], 2, password);
                 apdu_len += len;
             }
         }
@@ -212,7 +213,8 @@ int dcc_encode_apdu(uint8_t *apdu,
  * @param apdu  Pointer to the received request.
  * @param apdu_len_max  Valid count of bytes in the buffer.
  * @param timeDuration  Pointer to the duration given in minutes [optional]
- * @param enable_disable  Pointer to the variable takingthe communication enable/disable.
+ * @param enable_disable  Pointer to the variable takingthe communication
+ * enable/disable.
  * @param password  Pointer to the password [optional]
  *
  * @return Bytes decoded.
@@ -299,7 +301,7 @@ int dcc_decode_service_request(uint8_t *apdu,
     return apdu_len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -445,4 +447,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_DEVICE_COMMUNICATION_CONTROL */
-#endif /* TEST */
+#endif /* BAC_TEST */

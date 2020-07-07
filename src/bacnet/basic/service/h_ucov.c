@@ -79,8 +79,8 @@ void handler_ucov_notification(
 #if PRINT_ENABLED
     len =
 #endif
-    cov_notify_decode_service_request(
-        service_request, service_len, &cov_data);
+        cov_notify_decode_service_request(
+            service_request, service_len, &cov_data);
 #if PRINT_ENABLED
     if (len > 0) {
         fprintf(stderr, "UCOV: PID=%u ", cov_data.subscriberProcessIdentifier);

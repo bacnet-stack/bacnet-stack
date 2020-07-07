@@ -59,7 +59,7 @@ char *filename_remove_path(const char *filename_in)
     return filename_out;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 
@@ -109,4 +109,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_FILENAME */
-#endif /* TEST */
+#endif /* BAC_TEST */

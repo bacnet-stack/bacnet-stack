@@ -154,8 +154,7 @@ uint8_t tsm_transaction_idle_count(void)
     const BACNET_TSM_DATA *plist = TSM_List;
 
     for (i = 0; i < MAX_TSM_TRANSACTIONS; i++, plist++) {
-        if ((plist->InvokeID == 0) &&
-            (plist->state == TSM_STATE_IDLE)) {
+        if ((plist->InvokeID == 0) && (plist->state == TSM_STATE_IDLE)) {
             /* one is available! */
             count++;
         }
@@ -416,7 +415,7 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
     return status;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -469,5 +468,5 @@ int main(void)
     return 0;
 }
 #endif /* TEST_TSM */
-#endif /* TEST */
+#endif /* BAC_TEST */
 #endif /* MAX_TSM_TRANSACTIONS */

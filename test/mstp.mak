@@ -2,7 +2,7 @@
 CC      = gcc
 SRC_DIR = ../src
 INCLUDES = -I$(SRC_DIR) -I. -I../ports/linux
-DEFINES = -DBIG_ENDIAN=0 -DTEST -DTEST_MSTP
+DEFINES = -DBIG_ENDIAN=0 -DBAC_TEST -DTEST_MSTP
 
 CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 

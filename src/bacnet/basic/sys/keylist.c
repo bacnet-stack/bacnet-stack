@@ -103,8 +103,7 @@ static int CheckArraySize(OS_Keylist list)
     }
     if (new_size) {
         /* Allocate more room for node pointer array */
-        new_array = calloc((size_t)new_size,
-            sizeof(struct Keylist_Node *));
+        new_array = calloc((size_t)new_size, sizeof(struct Keylist_Node *));
 
         /* See if we got the memory we wanted */
         if (!new_array) {
@@ -453,7 +452,7 @@ int Keylist_Count(OS_Keylist list)
         cnt = list->count;
     }
 
-    return(cnt);
+    return (cnt);
 }
 
 /******************************************************************** */
@@ -496,7 +495,7 @@ void Keylist_Delete(OS_Keylist list)
     return;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 
@@ -803,4 +802,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_KEYLIST */
-#endif /* TEST */
+#endif /* BAC_TEST */

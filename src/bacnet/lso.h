@@ -59,7 +59,7 @@ extern "C" {
         BACNET_LSO_DATA * data);
 
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testLSO(

@@ -322,7 +322,7 @@ void automac_init(void)
     PFM_Cycle_Complete = false;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>

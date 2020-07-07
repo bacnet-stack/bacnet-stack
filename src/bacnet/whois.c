@@ -95,7 +95,8 @@ int whois_decode_service_request(
                         decode_unsigned(&apdu[len], len_value, &unsigned_value);
                     if (unsigned_value <= BACNET_MAX_INSTANCE) {
                         if (pHigh_limit) {
-                            *pHigh_limit = (int32_t)unsigned_value;;
+                            *pHigh_limit = (int32_t)unsigned_value;
+                            ;
                         }
                     }
                 } else {
@@ -120,7 +121,7 @@ int whois_decode_service_request(
     return (int)len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -224,4 +225,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_WHOIS */
-#endif /* TEST */
+#endif /* BAC_TEST */

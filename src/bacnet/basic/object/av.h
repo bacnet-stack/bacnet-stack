@@ -201,7 +201,7 @@ extern "C" {
     void Analog_Value_Init(
         void);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testAnalog_Value(

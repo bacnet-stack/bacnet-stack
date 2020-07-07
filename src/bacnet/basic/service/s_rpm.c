@@ -103,7 +103,7 @@ uint8_t Send_Read_Property_Multiple_Request(uint8_t *pdu,
 #if PRINT_ENABLED
             bytes_sent =
 #endif
-            datalink_send_pdu(&dest, &npdu_data, &pdu[0], pdu_len);
+                datalink_send_pdu(&dest, &npdu_data, &pdu[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0)
                 fprintf(stderr,

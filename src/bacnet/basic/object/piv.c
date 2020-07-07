@@ -363,7 +363,7 @@ void PositiveInteger_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -428,4 +428,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_POSITIVEINTEGER_VALUE */
-#endif /* TEST */
+#endif /* BAC_TEST */

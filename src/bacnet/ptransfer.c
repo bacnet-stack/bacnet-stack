@@ -333,7 +333,7 @@ int ptransfer_ack_encode_apdu(uint8_t *apdu,
 /* ptransfer_ack_decode_service_request() is the same as
        ptransfer_decode_service_request */
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -652,4 +652,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_READ_PROPERTY */
-#endif /* TEST */
+#endif /* BAC_TEST */

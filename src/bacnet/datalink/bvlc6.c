@@ -1308,8 +1308,7 @@ int bvlc6_decode_delete_foreign_device(uint8_t *pdu,
         }
         offset += 3;
         if (bip6_address) {
-            bvlc6_decode_address(
-                &pdu[offset], pdu_len - offset, bip6_address);
+            bvlc6_decode_address(&pdu[offset], pdu_len - offset, bip6_address);
         }
         bytes_consumed = (int)length;
     }
@@ -1483,7 +1482,7 @@ int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu,
     return bytes_consumed;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -1988,8 +1987,8 @@ static void test_BVLC6_Delete_Foreign_Device_Message(Test *pTest,
     ct_test(pTest, len == test_len);
     ct_test(pTest, msg_len == test_len);
     ct_test(pTest, vmac_src == test_vmac_src);
-    test_BVLC6_Address(pTest, &fdt_entry->bip6_address,
-        &test_fdt_entry.bip6_address);
+    test_BVLC6_Address(
+        pTest, &fdt_entry->bip6_address, &test_fdt_entry.bip6_address);
 }
 
 static void test_BVLC6_Delete_Foreign_Device(Test *pTest)
@@ -2161,48 +2160,40 @@ static void test_BVLC6_Address_Get_Set(Test *pTest)
     }
     /* test the ASCII hex to address */
     /* test too short */
-    status = bvlc6_address_from_ascii(&src,"[1234:5678]");
+    status = bvlc6_address_from_ascii(&src, "[1234:5678]");
     ct_test(pTest, status == false);
-    status = bvlc6_address_from_ascii(&src,
-        "[1234:5678:9ABC:DEF0:1234:5678:9ABC:DEF0]");
+    status = bvlc6_address_from_ascii(
+        &src, "[1234:5678:9ABC:DEF0:1234:5678:9ABC:DEF0]");
     ct_test(pTest, status);
-    status = bvlc6_address_set(&dst,
-        0x1234, 0x5678, 0x9ABC, 0xDEF0,
-        0x1234, 0x5678, 0x9ABC, 0xDEF0);
+    status = bvlc6_address_set(
+        &dst, 0x1234, 0x5678, 0x9ABC, 0xDEF0, 0x1234, 0x5678, 0x9ABC, 0xDEF0);
     ct_test(pTest, status);
     status = bvlc6_address_different(&dst, &src);
     ct_test(pTest, status == false);
     /* test zero compression */
-    status = bvlc6_address_from_ascii(&src,
-        "[1234:5678:9ABC::5678:9ABC:DEF0]");
+    status = bvlc6_address_from_ascii(&src, "[1234:5678:9ABC::5678:9ABC:DEF0]");
     ct_test(pTest, status);
-    status = bvlc6_address_set(&dst,
-        0x1234, 0x5678, 0x9ABC, 0x0000,
-        0x0000, 0x5678, 0x9ABC, 0xDEF0);
+    status = bvlc6_address_set(
+        &dst, 0x1234, 0x5678, 0x9ABC, 0x0000, 0x0000, 0x5678, 0x9ABC, 0xDEF0);
     ct_test(pTest, status);
     status = bvlc6_address_different(&dst, &src);
     if (status) {
-        status = bvlc6_address_get(
-            &src, &hextet[0], &hextet[1], &hextet[2], &hextet[3],
-            &hextet[4], &hextet[5], &hextet[6], &hextet[7]);
-        printf("src:[%X:%X:%X:%X:%X:%X:%X:%X]\n",
-            hextet[0], hextet[1], hextet[2], hextet[3],
-            hextet[4], hextet[5], hextet[6], hextet[7]);
-        status = bvlc6_address_get(
-            &dst, &hextet[0], &hextet[1], &hextet[2], &hextet[3],
-            &hextet[4], &hextet[5], &hextet[6], &hextet[7]);
-        printf("dst:[%X:%X:%X:%X:%X:%X:%X:%X]\n",
-            hextet[0], hextet[1], hextet[2], hextet[3],
-            hextet[4], hextet[5], hextet[6], hextet[7]);
+        status = bvlc6_address_get(&src, &hextet[0], &hextet[1], &hextet[2],
+            &hextet[3], &hextet[4], &hextet[5], &hextet[6], &hextet[7]);
+        printf("src:[%X:%X:%X:%X:%X:%X:%X:%X]\n", hextet[0], hextet[1],
+            hextet[2], hextet[3], hextet[4], hextet[5], hextet[6], hextet[7]);
+        status = bvlc6_address_get(&dst, &hextet[0], &hextet[1], &hextet[2],
+            &hextet[3], &hextet[4], &hextet[5], &hextet[6], &hextet[7]);
+        printf("dst:[%X:%X:%X:%X:%X:%X:%X:%X]\n", hextet[0], hextet[1],
+            hextet[2], hextet[3], hextet[4], hextet[5], hextet[6], hextet[7]);
     }
     ct_test(pTest, status == false);
     /* test some compressed 16-bit zero fields */
-    status = bvlc6_address_from_ascii(&src,
-        "[234:678:ABC:EF0:1234:5678:9ABC:DEF0]");
+    status =
+        bvlc6_address_from_ascii(&src, "[234:678:ABC:EF0:1234:5678:9ABC:DEF0]");
     ct_test(pTest, status);
-    status = bvlc6_address_set(&dst,
-        0x0234, 0x0678, 0x0ABC, 0x0EF0,
-        0x1234, 0x5678, 0x9ABC, 0xDEF0);
+    status = bvlc6_address_set(
+        &dst, 0x0234, 0x0678, 0x0ABC, 0x0EF0, 0x1234, 0x5678, 0x9ABC, 0xDEF0);
     ct_test(pTest, status);
     status = bvlc6_address_different(&dst, &src);
     ct_test(pTest, status == false);
@@ -2284,4 +2275,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BBMD */
-#endif /* TEST */
+#endif /* BAC_TEST */

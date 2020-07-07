@@ -727,7 +727,7 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return status;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -799,4 +799,4 @@ int main(void)
     return 0;
 }
 #endif
-#endif /* TEST */
+#endif /* BAC_TEST */

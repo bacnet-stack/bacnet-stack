@@ -281,6 +281,11 @@ router:
 router-ipv6:
 	$(MAKE) -b -C $@
 
+.PHONY: router-mstp
+router-mstp:
+	$(MAKE) -b -C $@
+
 .PHONY: writepropm
 writepropm:
 	$(MAKE) -b -C $@
+

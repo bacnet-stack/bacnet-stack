@@ -70,7 +70,8 @@ int rd_encode_apdu(uint8_t *apdu,
         if (password) {
             /* Must be at least 1 character, limited to 20 characters */
             if ((password->length >= 1) && (password->length <= 20)) {
-                len = encode_context_character_string(&apdu[apdu_len], 1, password);
+                len = encode_context_character_string(
+                    &apdu[apdu_len], 1, password);
                 apdu_len += len;
             }
         }
@@ -120,9 +121,8 @@ int rd_decode_service_request(uint8_t *apdu,
                 &apdu[len], &tag_number, &len_value_type);
             if (len < apdu_len) {
                 if (password) {
-                    len += decode_character_string(&apdu[len],
-                           len_value_type,
-                           password);
+                    len += decode_character_string(
+                        &apdu[len], len_value_type, password);
                 }
             }
         }
@@ -131,7 +131,7 @@ int rd_decode_service_request(uint8_t *apdu,
     return (int)len;
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -211,4 +211,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_REINITIALIZE_DEVICE */
-#endif /* TEST */
+#endif /* BAC_TEST */

@@ -70,7 +70,17 @@ void setup()
 #endif
 }
 
-static uint8_t PDUBuffer[MAX_MPDU];
+/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+
+static uint8_t PDUBuffer[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                                        * so that in the rare case, the message
+                                        * would be filled up to MAX_MPDU and some
+                                        * decoding functions would overrun, these
+                                        * decoding functions will just end up in
+                                        * a safe field of static zeros. */];
+
+/** Main */
+
 int main(void)
 {
     uint16_t pdu_len = 0;
@@ -84,7 +94,7 @@ int main(void)
     for (;;) {
         /* other tasks */
         /* BACnet handling */
-        pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
+        pdu_len = datalink_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
         if (pdu_len) {
             npdu_handler(&src, &PDUBuffer[0], pdu_len);
         }

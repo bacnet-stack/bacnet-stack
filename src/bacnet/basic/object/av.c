@@ -64,7 +64,8 @@ static const int Analog_Value_Properties_Optional[] = { PROP_DESCRIPTION,
 static const int Analog_Value_Properties_Proprietary[] = { -1 };
 
 /**
- * Initialize the pointers for the required, the optional and the properitary value properties.
+ * Initialize the pointers for the required, the optional and the properitary
+ * value properties.
  *
  * @param pRequired - Pointer to the pointer of required values.
  * @param pOptional - Pointer to the pointer of optional values.
@@ -477,7 +478,8 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
         case PROP_OBJECT_NAME:
         case PROP_DESCRIPTION:
-            if (Analog_Value_Object_Name(rpdata->object_instance, &char_string)) {
+            if (Analog_Value_Object_Name(
+                    rpdata->object_instance, &char_string)) {
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
@@ -667,7 +669,8 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 /**
  * Set the requested property of the analog value.
  *
- * @param wp_data  Property requested, see for BACNET_WRITE_PROPERTY_DATA details.
+ * @param wp_data  Property requested, see for BACNET_WRITE_PROPERTY_DATA
+ * details.
  *
  * @return true if successful
  */
@@ -683,8 +686,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    if ((wp_data->application_data == NULL) ||
-        (wp_data->application_data_len == 0)) {
+    if (wp_data->application_data_len == 0) {
         return false;
     }
 
@@ -1427,7 +1429,7 @@ int Analog_Value_Alarm_Summary(
 }
 #endif /* defined(INTRINSIC_REPORTING) */
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -1492,4 +1494,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_ANALOG_VALUE */
-#endif /* TEST */
+#endif /* BAC_TEST */

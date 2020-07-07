@@ -106,7 +106,7 @@ extern "C" {
         int apdu_len,
         struct BACnet_Read_Access_Data *read_access_data);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     int rp_decode_apdu(

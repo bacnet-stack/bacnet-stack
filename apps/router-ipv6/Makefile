@@ -40,7 +40,7 @@ endif
 CFLAGS += -ffunction-sections -fdata-sections
 LFLAGS += -Wl,--gc-sections
 
-BACNET_SRC ?= \
+BACNET_SRC = \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
@@ -50,7 +50,7 @@ BACNET_SRC ?= \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c
 
-SRCS = ${SRC} $(BACNET_SRC) ${PORT_BIP6_SRC} ${PORT_BIP_SRC}
+SRCS = ${SRC} ${BACNET_SRC} ${PORT_BIP6_SRC} ${PORT_BIP_SRC}
 
 OBJS += ${SRCS:.c=.o}
 

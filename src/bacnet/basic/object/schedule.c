@@ -89,10 +89,8 @@ void Schedule_Init(void)
         psched->Present_Value = &psched->Schedule_Default;
         psched->Schedule_Default.context_specific = false;
         psched->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
-        psched->Schedule_Default.type.Real =
-            21.0; /* 21 C, room temperature */
-        psched->obj_prop_ref_cnt =
-            0; /* no references, add as needed */
+        psched->Schedule_Default.type.Real = 21.0; /* 21 C, room temperature */
+        psched->obj_prop_ref_cnt = 0; /* no references, add as needed */
         psched->Priority_For_Writing = 16; /* lowest priority */
         psched->Out_Of_Service = false;
     }
@@ -427,7 +425,7 @@ void Schedule_Recalculate_PV(
     }
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
@@ -481,4 +479,4 @@ int main(void)
 }
 
 #endif /* TEST_SCHEDULE */
-#endif /* TEST */
+#endif /* BAC_TEST */

@@ -147,24 +147,30 @@ int wpm_decode_object_property(
         /* tag 2 - Property Value */
         if ((tag_number == 2) && (decode_is_opening_tag(&apdu[len - 1]))) {
             len--;
-            imax = bacapp_data_len(&apdu[len],
-                (unsigned)(apdu_len - len), wp_data->object_property);
+            imax = bacapp_data_len(&apdu[len], (unsigned)(apdu_len - len),
+                wp_data->object_property);
             len++;
 
-            /* copy application data, check max lengh */
-            if (imax > (apdu_len - len)) {
-                imax = (apdu_len - len);
-            }
-            for (i = 0; i < imax; i++) {
-                wp_data->application_data[i] = apdu[len + i];
-            }
-            wp_data->application_data_len = imax;
-            len += imax;
-            if (len < apdu_len) {
-                len += decode_tag_number_and_value(
-                    &apdu[len], &tag_number, &len_value);
-                /* closing tag 2 */
-                if ((tag_number != 2) && (decode_is_closing_tag(&apdu[len - 1]))) {
+            if (imax != BACNET_STATUS_ERROR) {
+                /* copy application data, check max lengh */
+                if (imax > (apdu_len - len)) {
+                    imax = (apdu_len - len);
+                }
+                for (i = 0; i < imax; i++) {
+                    wp_data->application_data[i] = apdu[len + i];
+                }
+                wp_data->application_data_len = imax;
+                len += imax;
+                if (len < apdu_len) {
+                    len += decode_tag_number_and_value(
+                        &apdu[len], &tag_number, &len_value);
+                    /* closing tag 2 */
+                    if ((tag_number != 2) &&
+                        (decode_is_closing_tag(&apdu[len - 1]))) {
+                        wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+                        return BACNET_STATUS_REJECT;
+                    }
+                } else {
                     wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
                     return BACNET_STATUS_REJECT;
                 }
@@ -179,7 +185,8 @@ int wpm_decode_object_property(
 
         /* tag 3 - Priority - optional */
         if (len < apdu_len) {
-            len += decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+            len += decode_tag_number_and_value(
+                &apdu[len], &tag_number, &len_value);
             if (tag_number == 3) {
                 len += decode_unsigned(&apdu[len], len_value, &unsigned_value);
                 wp_data->priority = (uint8_t)unsigned_value;
@@ -293,8 +300,8 @@ int wpm_encode_apdu_object_property(
         apdu_len += encode_closing_tag(&apdu[apdu_len], 2);
         if (wpdata->priority != BACNET_NO_PRIORITY) {
             if (apdu_len < MAX_APDU) {
-                apdu_len +=
-                    encode_context_unsigned(&apdu[apdu_len], 3, wpdata->priority);
+                apdu_len += encode_context_unsigned(
+                    &apdu[apdu_len], 3, wpdata->priority);
             }
         }
     }
@@ -346,9 +353,9 @@ int wpm_encode_apdu(uint8_t *apdu,
                 wpdata.object_property = wpm_property->propertyIdentifier;
                 wpdata.array_index = wpm_property->propertyArrayIndex;
                 wpdata.priority = wpm_property->priority;
-                usize = (size_t)bacapp_encode_data(&apdu_temp[0], &wpm_property->value);
-                if (usize > sizeof(wpdata.application_data))
-                {
+                usize = (size_t)bacapp_encode_data(
+                    &apdu_temp[0], &wpm_property->value);
+                if (usize > sizeof(wpdata.application_data)) {
                     usize = sizeof(wpdata.application_data);
                 }
                 wpdata.application_data_len = (int)usize;

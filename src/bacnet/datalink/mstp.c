@@ -1248,7 +1248,7 @@ void MSTP_Init(volatile struct mstp_port_struct_t *mstp_port)
     }
 }
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include "bacnet/basic/sys/ringbuf.h"

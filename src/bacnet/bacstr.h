@@ -237,7 +237,7 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string1,
         BACNET_OCTET_STRING * octet_string2);
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
     void testBACnetStrings(

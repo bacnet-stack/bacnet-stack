@@ -484,7 +484,7 @@ uint16_t bip_receive(
     max = BIP_Socket;
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = recvfrom(BIP_Socket, (char *)&npdu[0], max_npdu, 0,
+        received_bytes = recvfrom(max, (char *)&npdu[0], max_npdu, 0,
             (struct sockaddr *)&sin, &sin_len);
     } else {
         return 0;
@@ -500,6 +500,17 @@ uint16_t bip_receive(
     /* the signature of a BACnet/IPv packet */
     if (npdu[0] != BVLL_TYPE_BACNET_IP) {
         return 0;
+    }
+    /* Erase up to 16 bytes after the received bytes as safety margin to
+     * ensure that the decoding functions will run into a 'safe field'
+     * of zero, if for any reason they would overrun, when parsing the
+     * message. */
+    max = (int)max_npdu - received_bytes;
+    if (max > 0) {
+        if (max > 16) {
+            max = 16;
+        }
+        memset(&npdu[received_bytes], 0, max);
     }
     /* Data link layer addressing between B/IPv4 nodes consists of a 32-bit
        IPv4 address followed by a two-octet UDP port number (both of which

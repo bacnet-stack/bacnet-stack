@@ -430,9 +430,7 @@ bool characterstring_init(BACNET_CHARACTER_STRING *char_string,
  * @return true/false
  */
 bool characterstring_init_ansi_safe(
-    BACNET_CHARACTER_STRING * char_string,
-    const char *value,
-    size_t tmax)
+    BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
     return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
         value ? strnlen(value, tmax) : 0);
@@ -1244,7 +1242,7 @@ bool octetstring_value_same(
 }
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -1455,4 +1453,4 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BACSTR */
-#endif /* TEST */
+#endif /* BAC_TEST */

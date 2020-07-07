@@ -162,7 +162,17 @@ static inline void bacnet_init(void)
         handler_device_communication_control);
 }
 
-static uint8_t Receive_PDU[MAX_MPDU]; /* PDU data */
+/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+
+static uint8_t Receive_PDU[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                                          * so that in the rare case, the message
+                                          * would be filled up to MAX_MPDU and some
+                                          * decoding functions would overrun, these
+                                          * decoding functions will just end up in
+                                          * a safe field of static zeros. */];
+
+/** Main */
+
 int main(void)
 {
     unsigned long IdleCount = 0; /* idle loop blink counter */
@@ -240,7 +250,7 @@ int main(void)
         IdleCount++;
         /* BACnet handling */
         pdu_len =
-            datalink_receive(&src, &Receive_PDU[0], sizeof(Receive_PDU), 0);
+            datalink_receive(&src, &Receive_PDU[0], MAX_MPDU, 0);
         if (pdu_len) {
             pPIO->PIO_CODR = LED3;
             npdu_handler(&src, &Receive_PDU[0], pdu_len);

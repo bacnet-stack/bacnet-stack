@@ -59,8 +59,14 @@
 #include "bacnet/basic/object/bacfile.h"
 #endif
 
-/* buffer used for receive */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+/** Static receive buffer, initialized with zeros by the C Library Startup Code. */
+
+static uint8_t Rx_Buf[MAX_MPDU + 16 /* Add a little safety margin to the buffer,
+                                     * so that in the rare case, the message
+                                     * would be filled up to MAX_MPDU and some
+                                     * decoding functions would overrun, these
+                                     * decoding functions will just end up in
+                                     * a safe field of static zeros. */] = { 0 };
 
 /* send a whois to see who is on the network */
 static bool Who_Is_Request = true;

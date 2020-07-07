@@ -235,9 +235,7 @@ int main(int argc, char *argv[])
         if (argc > 1) {
             Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
         }
-        if (argc > 2) {
-            Device_Object_Name_ANSI_Init(argv[2]);
-        }
+
 #if defined(BAC_UCI)
     }
     ucix_cleanup(ctx);
@@ -252,6 +250,9 @@ int main(int argc, char *argv[])
        in our device bindings list */
     address_init();
     Init_Service_Handlers();
+    if (argc > 2) {
+        Device_Object_Name_ANSI_Init(argv[2]);
+    }
     dlenv_init();
     atexit(datalink_cleanup);
     /* configure the timeout values */

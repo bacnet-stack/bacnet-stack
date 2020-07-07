@@ -120,7 +120,7 @@ size_t memcopy(void *dest,
 }
 #endif
 
-#ifdef TEST
+#ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
 
@@ -165,4 +165,4 @@ int main(void)
     return 0;
 }
 #endif
-#endif /* TEST */
+#endif /* BAC_TEST */

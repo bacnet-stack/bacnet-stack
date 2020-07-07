@@ -90,8 +90,8 @@ uint8_t Send_Life_Safety_Operation_Data(
 #if PRINT_ENABLED
             bytes_sent =
 #endif
-            datalink_send_pdu(
-                &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+                datalink_send_pdu(
+                    &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
             if (bytes_sent <= 0)
                 fprintf(stderr, "Failed to Send Life Safe Op Request (%s)!\n",

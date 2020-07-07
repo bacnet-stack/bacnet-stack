@@ -88,8 +88,8 @@ void Send_WhoHas_Name(
 #if PRINT_ENABLED
     bytes_sent =
 #endif
-    datalink_send_pdu(
-        &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+        datalink_send_pdu(
+            &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(
@@ -146,8 +146,8 @@ void Send_WhoHas_Object(int32_t low_limit,
 #if PRINT_ENABLED
     bytes_sent =
 #endif
-    datalink_send_pdu(
-        &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+        datalink_send_pdu(
+            &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 #if PRINT_ENABLED
     if (bytes_sent <= 0)
         fprintf(

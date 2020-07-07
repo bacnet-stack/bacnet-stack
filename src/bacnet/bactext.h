@@ -28,7 +28,7 @@
 #if PRINT_ENABLED
 #define BACTEXT_PRINT_ENABLED
 #else
-#ifdef TEST
+#ifdef BAC_TEST
 #define BACTEXT_PRINT_ENABLED
 #endif
 #endif

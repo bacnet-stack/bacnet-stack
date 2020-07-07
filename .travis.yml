@@ -41,6 +41,14 @@ jobs:
       os: linux
       compiler: gcc
       script: make clean router
+    - stage: router-ipv6
+      os: linux
+      compiler: gcc
+      script: make clean router-ipv6
+    - stage: router-mstp
+      os: linux
+      compiler: gcc
+      script: make clean router-mstp
     - stage: mstp-build
       os: linux
       compiler: gcc

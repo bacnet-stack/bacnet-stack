@@ -33,7 +33,7 @@ A-2: MS/TP works correctly as of the 0.2.6 release. I spent a several days corre
 
 Q-3: Does the stack have some specific requirements regarding the hardware (e.g. non-volatile memory, 32-bit CPU, ...)?
 
-A-3: Not really. The specific stuff is in the ports/ directory, and that is expected to be modified by the end user if necessary. Big Endian and Little Endian used to be automatic, but that took up too much code space, so there is a BIG_ENDIAN define in the makefile. Most of the variables are defined using the ANSI C-99 uint8_t, uint16_t, uint32_t, int8_t, int16_t, int32_t from stdint.h, along with bool from stdbool.h. Most of the APDU size returns are int.
+A-3: Not really. The specific stuff is in the ports/ directory, and that is expected to be modified by the end user if necessary. Most of the variables are defined using the ANSI C-99 uint8_t, uint16_t, uint32_t, int8_t, int16_t, int32_t from stdint.h, along with bool from stdbool.h. Most of the APDU size returns are int.
 
 Q-4: Does the stack have some specific requirements regarding OS? What OS features are used (threads, timers, semaphors, events, mutexes...)?
 
