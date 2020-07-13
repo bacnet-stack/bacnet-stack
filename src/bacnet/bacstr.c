@@ -143,13 +143,17 @@ uint8_t bitstring_bits_used(BACNET_BIT_STRING *bit_string)
 uint8_t bitstring_bytes_used(BACNET_BIT_STRING *bit_string)
 {
     uint8_t len = 0; /* return value */
+    uint8_t used_bytes = 0;
+    uint8_t last_bit = 0;
 
-    if (bit_string) {
-        if (bit_string->bits_used) {
-            /* Add one for the first byte. */
-            len = 1 + ((bit_string->bits_used - 1) >> 3);
-        }
+    if (bit_string && bit_string->bits_used) {
+        last_bit = bit_string->bits_used - 1;
+        used_bytes = last_bit / 8;
+        /* add one for the first byte */
+        used_bytes++;
+        len = used_bytes;
     }
+
     return len;
 }
 
@@ -215,18 +219,11 @@ bool bitstring_set_bits_used(
     uint8_t unused_bits)
 {
     bool status = false;
-    uint8_t ubits;
 
-    if (bit_string) {
-        /* Check that the amount of unused bits is not larger
-         * than the amount of used bits. */
-        ubits = bytes_used << 3; // Bytes -> Bits
-        if (ubits >= unused_bits)
-        {
-            ubits -= unused_bits;
-            bit_string->bits_used = ubits;
-            status = true;
-        }
+    if (bit_string && bytes_used) {
+        bit_string->bits_used = bytes_used * 8;
+        bit_string->bits_used -= unused_bits;
+        status = true;
     }
 
     return status;
@@ -289,23 +286,22 @@ bool bitstring_same(
     uint8_t compare_mask = 0;
 
     if (bitstring1 && bitstring2) {
-        bytes_used = (int) (bitstring1->bits_used >> 3);
-        if (bytes_used <= MAX_BITSTRING_BYTES) {
-            if (bitstring1->bits_used == bitstring2->bits_used) {
-                compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
-                /* Complete bytes. */
-                for (i = 0; i < bytes_used; i++) {
-                    if (bitstring1->value[i] != bitstring2->value[i]) {
-                        return false;
-                    }
-                }
-                /* Last byte, partly used. */
-                if ((bitstring1->value[bytes_used] & compare_mask) !=
-                    (bitstring2->value[bytes_used] & compare_mask)) {
+        bytes_used = (int)(bitstring1->bits_used / 8);
+        if ((bitstring1->bits_used == bitstring2->bits_used) &&
+            (bytes_used <= MAX_BITSTRING_BYTES)) {
+            /* compare fully used bytes */
+            for (i = 0; i < bytes_used; i++) {
+                if (bitstring1->value[i] != bitstring2->value[i]) {
                     return false;
-                } else {
-                    return true;
                 }
+            }
+            /* compare only the relevant bits of last partly used byte */
+            compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
+            if ((bitstring1->value[bytes_used] & compare_mask) !=
+                (bitstring2->value[bytes_used] & compare_mask)) {
+                return false;
+            } else {
+                return true;
             }
         }
     }
@@ -331,7 +327,6 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
     bool status = false; /* return value */
     unsigned index = 0; /* offset into buffer */
     uint8_t bit_number = 0;
-    char ichr;
 
     if (bit_string) {
         bitstring_init(bit_string);
@@ -345,12 +340,11 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
                     status = false;
                     break;
                 }
-                ichr = ascii[index];
-                if (ichr == '1') {
+                if (ascii[index] == '1') {
                     bitstring_set_bit(bit_string, bit_number, true);
                     bit_number++;
                     status = true;
-                } else if (ichr == '0') {
+                } else if (ascii[index] == '0') {
                     bitstring_set_bit(bit_string, bit_number, false);
                     bit_number++;
                     status = true;
@@ -467,9 +461,9 @@ bool characterstring_copy(
     if (dest && src) {
         return characterstring_init(dest, characterstring_encoding(src),
                characterstring_value(src), characterstring_length(src));
-    } else {
-        return(false);
     }
+
+    return false;
 }
 
 /**
@@ -487,13 +481,12 @@ bool characterstring_ansi_copy(
     size_t i; /* counter */
 
     if (dest && src) {
-        if ((src->encoding == CHARACTER_ANSI_X34) &&
-            (src->length < dest_max_len)) {
+        if ((src->encoding == CHARACTER_ANSI_X34) && (src->length < dest_max_len)) {
             for (i = 0; i < dest_max_len; i++) {
                 if (i < src->length) {
-                    *dest++ = src->value[i];
+                    dest[i] = src->value[i];
                 } else {
-                    *dest++ = 0;
+                    dest[i] = 0;
                 }
             }
             return true;
@@ -508,30 +501,23 @@ bool characterstring_ansi_copy(
  * contents are the same.
  *
  * @param dest  Pointer to the first string to test.
- * @param src  Pointer to the first string to test.
+ * @param src  Pointer to the second string to test.
  *
- * @return true/false
+ * @return true if the character encoding and string contents are the same
  */
 bool characterstring_same(
     BACNET_CHARACTER_STRING *dest, BACNET_CHARACTER_STRING *src)
 {
     size_t i; /* counter */
-    size_t ilength;
-    bool same_status = false; /* return value*/
-    const char *pschr, *pdchr;
+    bool same_status = false;
 
     if (src && dest) {
-        ilength = src->length;
-        if ((ilength == dest->length) &&
-            (src->encoding == dest->encoding)) {
+        if ((src->encoding == dest->encoding) &&
+            (src->length == dest->length) &&
+            (src->length <= MAX_CHARACTER_STRING_BYTES)) {
             same_status = true;
-            if (ilength > MAX_CHARACTER_STRING_BYTES) {
-                ilength = MAX_CHARACTER_STRING_BYTES;
-            }
-            pschr = src->value;
-            pdchr = dest->value;
-            for (i = 0; i < ilength; i++) {
-                if (*pschr++ != *pdchr++) {
+            for (i = 0; i < src->length; i++) {
+                if (src->value[i] != dest->value[i]) {
                     same_status = false;
                     break;
                 }
@@ -555,29 +541,22 @@ bool characterstring_same(
  * contents are the same.
  *
  * @param dest  Pointer to the first string to test.
- * @param src  Pointer to the first string to test.
+ * @param src  Pointer to the second string to test.
  *
- * @return true/false
+ * @return true if the character encoding and string contents are the same
  */
 bool characterstring_ansi_same(BACNET_CHARACTER_STRING *dest, const char *src)
 {
     size_t i; /* counter */
-    size_t ilength;
     bool same_status = false;
-    const char *pschr, *pdchr;
 
     if (src && dest) {
-        ilength = dest->length;
-        if ((ilength == strlen(src)) &&
-            (dest->encoding == CHARACTER_ANSI_X34)) {
+        if ((dest->encoding == CHARACTER_ANSI_X34) &&
+            (dest->length == strlen(src)) &&
+            (dest->length <= MAX_CHARACTER_STRING_BYTES)) {
             same_status = true;
-            if (ilength > MAX_CHARACTER_STRING_BYTES) {
-                ilength = MAX_CHARACTER_STRING_BYTES;
-            }
-            pschr = src;
-            pdchr = dest->value;
-            for (i = 0; i < ilength; i++) {
-                if (*pschr++ != *pdchr++) {
+            for (i = 0; i < dest->length; i++) {
+                if (src[i] != dest->value[i]) {
                     same_status = false;
                     break;
                 }
@@ -599,8 +578,7 @@ bool characterstring_ansi_same(BACNET_CHARACTER_STRING *dest, const char *src)
 }
 
 /**
- * Returns true if the BACnet string and the C-string
- * contents are the same.
+ * Append some characters to the end of the characterstring
  *
  * @param char_string  Pointer to the BACnet string to which
  *                     the content of the C-string shall be added.
@@ -616,17 +594,13 @@ bool characterstring_append(
 {
     size_t i; /* counter */
     bool status = false; /* return value */
-    const char *pschr;
-    char *pdchr;
 
-    if (char_string && value) {
+    if (char_string) {
         if ((length + char_string->length) <= CHARACTER_STRING_CAPACITY) {
-            pschr = value;
-            pdchr = &char_string->value[char_string->length];
             for (i = 0; i < length; i++) {
-                *pdchr++ = *pschr++;
+                char_string->value[char_string->length] = value[i];
+                char_string->length++;
             }
-            char_string->length += length;
             status = true;
         }
     }
@@ -1079,13 +1053,11 @@ size_t octetstring_copy_value(
 {
     size_t bytes_copied = 0;
     size_t i; /* counter */
-    uint8_t *pdata;
 
     if (src && dest) {
         if (length <= src->length) {
-            pdata = src->value;
             for (i = 0; i < src->length; i++) {
-                *dest++ = *pdata++;
+                dest[i] = src->value[i];
             }
             bytes_copied = src->length;
         }
@@ -1108,15 +1080,13 @@ bool octetstring_append(
 {
     size_t i; /* counter */
     bool status = false; /* return value */
-    uint8_t *pdest;
 
     if (octet_string) {
         if ((length + octet_string->length) <= MAX_OCTET_STRING_BYTES) {
-            pdest = &octet_string->value[octet_string->length];
             for (i = 0; i < length; i++) {
-                *pdest++ = *value++;
+                octet_string->value[octet_string->length] = value[i];
+                octet_string->length++;
             }
-            octet_string->length += length;
             status = true;
         }
     }
@@ -1180,8 +1150,8 @@ size_t octetstring_length(BACNET_OCTET_STRING *octet_string)
     size_t length = 0;
 
     if (octet_string) {
-        /* Validate length is within bounds. */
         length = octet_string->length;
+        /* Force length to be within bounds. */
         if (length > MAX_OCTET_STRING_BYTES) {
             length = MAX_OCTET_STRING_BYTES;
         }
@@ -1219,18 +1189,13 @@ size_t octetstring_capacity(BACNET_OCTET_STRING *octet_string)
 bool octetstring_value_same(
     BACNET_OCTET_STRING *octet_string1, BACNET_OCTET_STRING *octet_string2)
 {
-    size_t i = 0;       /* loop counter */
-    size_t ilength;
-    uint8_t *poct1, *poct2;
+    size_t i = 0; /* loop counter */
 
     if (octet_string1 && octet_string2) {
-        ilength = octet_string1->length;
-        if ((ilength == octet_string2->length) &&
-            (ilength <= MAX_OCTET_STRING_BYTES)) {
-            poct1 = octet_string1->value;
-            poct2 = octet_string2->value;
-            for (i = 0; i < ilength; i++) {
-                if (*poct1++ != *poct2++) {
+        if ((octet_string1->length == octet_string2->length) &&
+            (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
+            for (i = 0; i < octet_string1->length; i++) {
+                if (octet_string1->value[i] != octet_string2->value[i]) {
                     return false;
                 }
             }
