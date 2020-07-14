@@ -90,9 +90,14 @@
    B'111'   interpreted as Type   = Closing Tag
 */
 
-/* from clause 20.1.2.4 max-segments-accepted */
-/* and clause 20.1.2.5 max-APDU-length-accepted */
-/* returns the encoded octet */
+/**
+ * Encode the max APDU value and return the encoded octed.
+ *
+ * @param max_segs  from clause 20.1.2.4 max-segments-accepted
+ * @param max_apdu  from clause 20.1.2.5 max-APDU-length-accepted
+ *
+ * @return The encoded octet
+ */
 uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
 {
     uint8_t octet = 0;
@@ -136,9 +141,14 @@ uint8_t encode_max_segs_max_apdu(int max_segs, int max_apdu)
     return octet;
 }
 
-/* from clause 20.1.2.4 max-segments-accepted */
-/* and clause 20.1.2.5 max-APDU-length-accepted */
-/* returns the encoded octet */
+/**
+ * Decode the given octed into a maximum segments value.
+ *
+ * @param octed  From clause 20.1.2.4 max-segments-accepted
+ *               and clause 20.1.2.5 max-APDU-length-accepted
+ *
+ * @return  Returns the maximum segments value.
+ */
 int decode_max_segs(uint8_t octet)
 {
     int max_segs = 0;
@@ -175,6 +185,14 @@ int decode_max_segs(uint8_t octet)
     return max_segs;
 }
 
+/**
+ * Decode the given octed into a maximum APDU value.
+ *
+ * @param octed  From clause 20.1.2.4 max-segments-accepted
+ *               and clause 20.1.2.5 max-APDU-length-accepted
+ *
+ * @return  Returns the maximum APDU value.
+ */
 int decode_max_apdu(uint8_t octet)
 {
     int max_apdu = 0;
@@ -205,8 +223,18 @@ int decode_max_apdu(uint8_t octet)
     return max_apdu;
 }
 
-/* from clause 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
+/**
+ * Encode a BACnet tag and returns the number of bytes consumed.
+ * (From clause 20.2.1 General Rules for Encoding BACnet Tags)
+ *
+ * @param apdu              Pointer to the encode buffer.
+ * @param tag_number        Number of the tag to encode,
+ *                          see BACNET_APPLICATION_TAG_X macros.
+ * @param context_specific  Indicates to encode in the given context.
+ * @param len_value_type    Indicates the length of the tag's content.
+ *
+ * @return  Returns the number of apdu bytes consumed.
+ */
 int encode_tag(uint8_t *apdu,
     uint8_t tag_number,
     bool context_specific,
@@ -249,8 +277,17 @@ int encode_tag(uint8_t *apdu,
     return len;
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns the number of apdu bytes consumed */
+/**
+ * Encode a BACnet opening tag and returns the number
+ * of bytes consumed.
+ * (From clause 20.2.1.3.2 Constructed Data.)
+ *
+ * @param apdu              Pointer to the encode buffer.
+ * @param tag_number        Number of the tag to encode,
+ *                          see BACNET_APPLICATION_TAG_X macros.
+ *
+ * @return  Returns the number of apdu bytes consumed.
+ */
 int encode_opening_tag(uint8_t *apdu, uint8_t tag_number)
 {
     int len = 1;
@@ -271,8 +308,17 @@ int encode_opening_tag(uint8_t *apdu, uint8_t tag_number)
     return len;
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns the number of apdu bytes consumed */
+/**
+ * Encode a BACnet closing tag and returns the number
+ * of bytes consumed.
+ * (From clause 20.2.1.3.2 Constructed Data.)
+ *
+ * @param apdu              Pointer to the encode buffer.
+ * @param tag_number        Number of the tag to encode,
+ *                          see BACNET_APPLICATION_TAG_X macros.
+ *
+ * @return  Returns the number of apdu bytes consumed.
+ */
 int encode_closing_tag(uint8_t *apdu, uint8_t tag_number)
 {
     int len = 1;
@@ -345,20 +391,45 @@ int bacnet_tag_number_decode(
     return len;
 }
 
+/**
+ * @brief Returns if at the given pointer a
+ * opening tag has been found.
+ *
+ * @param apdu  Pointer to the tag number.
+ *
+ * @return  true/false
+ */
 bool decode_is_opening_tag(uint8_t *apdu)
 {
     return (bool)((apdu[0] & 0x07) == 6);
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Returns if at the given pointer a
+ * closing tag has been found.
+ *
+ * @param apdu  Pointer to the tag number.
+ *
+ * @return  true/false
+ */
 bool decode_is_closing_tag(uint8_t *apdu)
 {
     return (bool)((apdu[0] & 0x07) == 7);
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Decodes the tag number and the value,
+ * that the APDU pointer is addressing.
+ * (From clause 20.2.1.3.2 Constructed Data)
+ *
+ * @param apdu  Pointer to the message buffer.
+ * @param tag_number  Pointer to a variable
+ *                    taking the tag number.
+ * @param value       Pointer to a variable
+ *                    taking the value.
+ *
+ * @return  number of bytes decoded, or zero if errors occur
+ */
 int decode_tag_number_and_value(
     uint8_t *apdu, uint8_t *tag_number, uint32_t *value)
 {
@@ -371,6 +442,7 @@ int decode_tag_number_and_value(
         /* tagged as uint32_t */
         if (apdu[len] == 255) {
             len++;
+            value32 = 0;
             len += decode_unsigned32(&apdu[len], &value32);
             if (value) {
                 *value = value32;
@@ -379,6 +451,7 @@ int decode_tag_number_and_value(
         /* tagged as uint16_t */
         else if (apdu[len] == 254) {
             len++;
+            value16 = 0;
             len += decode_unsigned16(&apdu[len], &value16);
             if (value) {
                 *value = value16;
@@ -392,6 +465,7 @@ int decode_tag_number_and_value(
             len++;
         }
     } else if (IS_OPENING_TAG(apdu[0]) && value) {
+        /* opening tag */
         *value = 0;
     } else if (IS_CLOSING_TAG(apdu[0]) && value) {
         /* closing tag */
@@ -466,16 +540,37 @@ int bacnet_tag_number_and_value_decode(
     return len;
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns true if the tag is context specific and matches */
+/**
+ * @brief Returns true if the tag is context specific
+ * and matches, as defined in clause 20.2.1.3.2 Constructed
+ * Data.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param tag_number  Tag number, that has been decoded before.
+ *
+ * @return true on a match, false otherwise.
+ */
 bool decode_is_context_tag(uint8_t *apdu, uint8_t tag_number)
 {
     uint8_t my_tag_number = 0;
 
     decode_tag_number(apdu, &my_tag_number);
+
     return (bool)(IS_CONTEXT_SPECIFIC(*apdu) && (my_tag_number == tag_number));
 }
 
+/**
+ * @brief Returns true if the tag is context specific
+ * and matches, as defined in clause 20.2.1.3.2 Constructed
+ * Data. This function returns the tag length as well.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param tag_number  Tag number, that has been decoded before.
+ * @param tag_length  Pointer to a variable, taking the
+ *                    length of the tag in bytes.
+ *
+ * @return true on a match, false otherwise.
+ */
 bool decode_is_context_tag_with_length(
     uint8_t *apdu, uint8_t tag_number, int *tag_length)
 {
@@ -486,18 +581,35 @@ bool decode_is_context_tag_with_length(
     return (bool)(IS_CONTEXT_SPECIFIC(*apdu) && (my_tag_number == tag_number));
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns the true if the tag matches */
+/**
+ * @brief Returns true if the tag does match and it
+ * is an opening tag as well.
+ * As defined in clause 20.2.1.3.2 Constructed Data.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param tag_number  Tag number, that has been decoded before.
+ *
+ * @return true on a match, false otherwise.
+ */
 bool decode_is_opening_tag_number(uint8_t *apdu, uint8_t tag_number)
 {
     uint8_t my_tag_number = 0;
 
     decode_tag_number(apdu, &my_tag_number);
+
     return (bool)(IS_OPENING_TAG(apdu[0]) && (my_tag_number == tag_number));
 }
 
-/* from clause 20.2.1.3.2 Constructed Data */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Returns true if the tag does match and it
+ * is an closing tag as well.
+ * As defined in clause 20.2.1.3.2 Constructed Data.
+ *
+ * @param apdu  Pointer to the tag begin.
+ * @param tag_number  Tag number, that has been decoded before.
+ *
+ * @return true on a match, false otherwise.
+ */
 bool decode_is_closing_tag_number(uint8_t *apdu, uint8_t tag_number)
 {
     uint8_t my_tag_number = 0;
@@ -506,28 +618,49 @@ bool decode_is_closing_tag_number(uint8_t *apdu, uint8_t tag_number)
     return (bool)(IS_CLOSING_TAG(apdu[0]) && (my_tag_number == tag_number));
 }
 
-/* from clause 20.2.3 Encoding of a Boolean Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Encode an boolean value.
+ * From clause 20.2.3 Encoding of a Boolean Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags.
+ *
+ * @param apdu  Pointer to the encode buffer.
+ * @param boolean_value  Boolean value to encode.
+ *
+ * @return returns the number of apdu bytes consumed
+ */
 int encode_application_boolean(uint8_t *apdu, bool boolean_value)
 {
     int len = 0;
-    uint32_t len_value = 0;
+    uint32_t len_value;
 
     if (boolean_value) {
         len_value = 1;
+    } else {
+        len_value = 0;
     }
+
     len =
         encode_tag(&apdu[0], BACNET_APPLICATION_TAG_BOOLEAN, false, len_value);
 
     return len;
 }
 
-/* context tagged is encoded differently */
+/**
+ * @brief Encode an boolean value in a context.
+ * From clause 20.2.3 Encoding of a Boolean Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags.
+ *
+ * @param apdu  Pointer to the encode buffer.
+ * @param tag_number  Tag number in which context
+ *                    the value shall be encoded.
+ * @param boolean_value  Boolean value to encode.
+ *
+ * @return returns the number of apdu bytes consumed
+ */
 int encode_context_boolean(
     uint8_t *apdu, uint8_t tag_number, bool boolean_value)
 {
-    int len = 0; /* return value */
+    int len; /* return value */
 
     len = encode_tag(&apdu[0], (uint8_t)tag_number, true, 1);
     apdu[len] = (bool)(boolean_value ? 1 : 0);
@@ -536,6 +669,13 @@ int encode_context_boolean(
     return len;
 }
 
+/**
+ * @brief Decode an boolean value.
+ *
+ * @param apdu  Pointer to the encode buffer.
+ *
+ * @return true/false
+ */
 bool decode_context_boolean(uint8_t *apdu)
 {
     bool boolean_value = false;
@@ -547,6 +687,17 @@ bool decode_context_boolean(uint8_t *apdu)
     return boolean_value;
 }
 
+/**
+ * @brief Decode an boolean value in the context of a tag.
+ *
+ * @param apdu  Pointer to the encode buffer.
+ * @param tag_number  Tag number in which context
+ *                    the value shall be encoded.
+ * @param boolean_value  Pointer to a boolean variable
+ *                       taking the value.
+ *
+ * @return The count of bytes decoded or BACNET_STATUS_ERROR.
+ */
 int decode_context_boolean2(
     uint8_t *apdu, uint8_t tag_number, bool *boolean_value)
 {
@@ -564,33 +715,65 @@ int decode_context_boolean2(
     return len;
 }
 
-/* from clause 20.2.3 Encoding of a Boolean Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Check the length value and return the boolean meaning.
+ * From clause 20.2.3 Encoding of a Boolean Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags.
+ *
+ * @param len_value  Tag length value.
+ *
+ * @return true/false
+ */
 bool decode_boolean(uint32_t len_value)
 {
-    bool boolean_value = false;
+    bool boolean_value;
 
     if (len_value) {
         boolean_value = true;
+    } else {
+        boolean_value = false;
     }
 
     return boolean_value;
 }
 
-/* from clause 20.2.2 Encoding of a Null Value */
-/* and 20.2.1 General Rules for Encoding BACnet Tags */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Encode a Null value.
+ * From clause 20.2.2 Encoding of a Null Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags.
+ *
+ * @param apdu  Pointer to the encode buffer.
+ *
+ * @return returns the number of apdu bytes consumed.
+ */
 int encode_application_null(uint8_t *apdu)
 {
     return encode_tag(&apdu[0], BACNET_APPLICATION_TAG_NULL, false, 0);
 }
 
+/**
+ * @brief Encode a Null value in a tag context.
+ * From clause 20.2.2 Encoding of a Null Value
+ * and 20.2.1 General Rules for Encoding BACnet Tags.
+ *
+ * @param apdu  Pointer to the encode buffer.
+ * @param tag_number  Tag number in which context
+ *                    the value shall be encoded.
+ *
+ * @return returns the number of apdu bytes consumed.
+ */
 int encode_context_null(uint8_t *apdu, uint8_t tag_number)
 {
     return encode_tag(&apdu[0], tag_number, true, 0);
 }
 
+/**
+ * @brief Reverse the bits of the given byte.
+ *
+ * @param in_byte  Byte to reverse.
+ *
+ * @return Byte with reversed bit order.
+ */
 static uint8_t byte_reverse_bits(uint8_t in_byte)
 {
     uint8_t out_byte = 0;
@@ -623,35 +806,61 @@ static uint8_t byte_reverse_bits(uint8_t in_byte)
     return out_byte;
 }
 
-/* from clause 20.2.10 Encoding of a Bit String Value */
-/* returns the number of apdu bytes consumed */
+/**
+ * @brief Decode a bit string value.
+ * (From clause 20.2.10 Encoding of a Bit String Value.)
+ *
+ * @param apdu  Pointer to the buffer holding the message data.
+ * @param len_value  Length of the Data to decode.
+ * @param bit_string  Pointer to the bit string variable,
+ *                    taking the decoded result.
+ *
+ * @return Returns the number of apdu bytes consumed.
+ */
 int decode_bitstring(
-    uint8_t *apdu, uint32_t len_value, BACNET_BIT_STRING *bit_string)
+    uint8_t * apdu,
+    uint32_t len_value,
+    BACNET_BIT_STRING * bit_string)
 {
-    int len = 0;
-    uint8_t unused_bits = 0;
-    uint32_t i = 0;
-    uint32_t bytes_used = 0;
+    int len = 0; /* Return value */
+    uint8_t unused_bits;
+    uint32_t i;
+    uint32_t bytes_used;
 
-    bitstring_init(bit_string);
-    if (len_value) {
-        /* the first octet contains the unused bits */
-        bytes_used = len_value - 1;
-        if (bytes_used <= MAX_BITSTRING_BYTES) {
-            len = 1;
-            for (i = 0; i < bytes_used; i++) {
-                bitstring_set_octet(
-                    bit_string, (uint8_t)i, byte_reverse_bits(apdu[len++]));
+    if (apdu && bit_string) {
+        /* Init/empty the string. */
+        bitstring_init(bit_string);
+        if (len_value) {
+            /* The first octet contains the unused bits. */
+            bytes_used = len_value - 1;
+            if (bytes_used <= MAX_BITSTRING_BYTES) {
+                len = 1;
+                /* Copy the bytes in reversed bit order. */
+                for (i = 0; i < bytes_used; i++) {
+                    bitstring_set_octet(bit_string, (uint8_t) i,
+                        byte_reverse_bits(apdu[len++]));
+                }
+                /* Erase the remaining unsed bits. */
+                unused_bits = (uint8_t) (apdu[0] & 0x07);
+                bitstring_set_bits_used(bit_string, (uint8_t) bytes_used,
+                    unused_bits);
             }
-            unused_bits = (uint8_t)(apdu[0] & 0x07);
-            bitstring_set_bits_used(
-                bit_string, (uint8_t)bytes_used, unused_bits);
         }
     }
-
     return len;
 }
 
+/**
+ * @brief Decode a bit string value in the given context.
+ * (From clause 20.2.10 Encoding of a Bit String Value.)
+ *
+ * @param apdu  Pointer to the buffer holding the message data.
+ * @param tag_number  Tag number (context).
+ * @param bit_string  Pointer to the bit string variable,
+ *                    taking the decoded result.
+ *
+ * @return Returns the number of bytes dcoded or BACNET_STATUS_ERROR.
+ */
 int decode_context_bitstring(
     uint8_t *apdu, uint8_t tag_number, BACNET_BIT_STRING *bit_string)
 {

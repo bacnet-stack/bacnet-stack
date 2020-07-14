@@ -507,7 +507,7 @@ int event_notify_decode_service_request(
                 /* tag 9 - ackRequired */
                 section_length =
                     decode_context_boolean2(&apdu[len], 9, &data->ackRequired);
-                if (section_length == -1) {
+                if (section_length == BACNET_STATUS_ERROR) {
                     return -1;
                 }
                 len += section_length;

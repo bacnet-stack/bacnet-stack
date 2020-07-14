@@ -226,6 +226,9 @@ int cl_decode_apdu(uint8_t *apdu,
         case BACNET_APPLICATION_TAG_BOOLEAN:
             len = decode_context_boolean2(
                 &apdu[dec_len], 4, &bcl->Value.type.Boolean);
+            if (len < 0) {
+                return BACNET_STATUS_REJECT;
+            }
             break;
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             len = decode_context_unsigned(&apdu[dec_len], 4, &unsigned_value);
@@ -256,6 +259,9 @@ int cl_decode_apdu(uint8_t *apdu,
         case BACNET_APPLICATION_TAG_BIT_STRING:
             len = decode_context_bitstring(
                 &apdu[dec_len], 4, &bcl->Value.type.Bit_String);
+            if (len < 0) {
+                return BACNET_STATUS_REJECT;
+            }
             break;
         case BACNET_APPLICATION_TAG_ENUMERATED:
             len = decode_context_enumerated(
