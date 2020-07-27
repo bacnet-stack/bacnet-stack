@@ -34,15 +34,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#if PRINT_ENABLED
 #include <stdlib.h> /* for strtol */
 #include <ctype.h> /* for isalnum */
 #include <stdio.h>
 #ifdef __STDC_ISO_10646__
-#include <locale.h>
 #include <wchar.h>
 #include <wctype.h>
-#endif
 #endif
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
