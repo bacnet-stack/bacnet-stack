@@ -31,6 +31,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> /* for time */
+#ifdef __STDC_ISO_10646__
+#include <locale.h>
+#endif
 #include <errno.h>
 #include <assert.h>
 #include "bacnet/config.h"
@@ -1438,6 +1441,17 @@ int main(int argc, char *argv[])
     address_init();
     Init_Service_Handlers();
     dlenv_init();
+#ifdef __STDC_ISO_10646__
+    /* Internationalized programs must call setlocale()
+     * to initiate a specific language operation.
+     * This can be done by calling setlocale() as follows.
+     * If your native locale doesn't use UTF-8 encoding
+     * you need to replace the empty string with a
+     * locale like "en_US.utf8" which is the same as the string
+     * used in the enviromental variable "LANG=en_US.UTF-8".
+     */
+    setlocale(LC_ALL, "");
+#endif
     atexit(datalink_cleanup);
 
     /* configure the timeout values */
