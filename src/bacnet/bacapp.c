@@ -34,9 +34,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h> /* for strtol */
 #include <ctype.h> /* for isalnum */
-#include <stdio.h>
 #ifdef __STDC_ISO_10646__
 #include <wchar.h>
 #include <wctype.h>
