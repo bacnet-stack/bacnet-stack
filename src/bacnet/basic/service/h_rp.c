@@ -86,77 +86,82 @@ void handler_read_property(uint8_t *service_request,
     npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
     npdu_len = npdu_encode_pdu(
         &Handler_Transmit_Buffer[0], src, &my_address, &npdu_data);
-    if (service_data->segmented_message) {
+    if (npdu_len <= 0) {
+        /* If 0 or negative, there were problems with the data or encoding. */
+        len = BACNET_STATUS_ABORT;
+    #if PRINT_ENABLED
+            fprintf(stderr, "RP: npdu_encode_pdu error.  Sending Abort!\n");
+    #endif
+    } else if (service_data->segmented_message) {
         /* we don't support segmentation - send an abort */
         len = BACNET_STATUS_ABORT;
 #if PRINT_ENABLED
         fprintf(stderr, "RP: Segmented message.  Sending Abort!\n");
 #endif
-        goto RP_FAILURE;
-    }
-    len = rp_decode_service_request(service_request, service_len, &rpdata);
-#if PRINT_ENABLED
-    if (len <= 0) {
-        fprintf(stderr, "RP: Unable to decode Request!\n");
-    }
-#endif
-    if (len < 0) {
-        /* bad decoding - skip to error/reject/abort handling */
-        error = true;
-#if PRINT_ENABLED
-        fprintf(stderr, "RP: Bad Encoding.\n");
-#endif
-        goto RP_FAILURE;
-    }
-    /* Test for case of indefinite Device object instance */
-    if ((rpdata.object_type == OBJECT_DEVICE) &&
-        (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
-        rpdata.object_instance = Device_Object_Instance_Number();
-    }
-
-    apdu_len = rp_ack_encode_apdu_init(
-        &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id, &rpdata);
-    /* configure our storage */
-    rpdata.application_data = &Handler_Transmit_Buffer[npdu_len + apdu_len];
-    rpdata.application_data_len =
-        sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
-    len = Device_Read_Property(&rpdata);
-    if (len >= 0) {
-        apdu_len += len;
-        len = rp_ack_encode_apdu_object_property_end(
-            &Handler_Transmit_Buffer[npdu_len + apdu_len]);
-        apdu_len += len;
-        if (apdu_len > service_data->max_resp) {
-            /* too big for the sender - send an abort
-             * Setting of error code needed here as read property processing may
-             * have overriden the default set at start */
-            rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
-            len = BACNET_STATUS_ABORT;
-#if PRINT_ENABLED
-            fprintf(stderr, "RP: Message too large.\n");
-#endif
-        } else {
-#if PRINT_ENABLED
-            fprintf(stderr, "RP: Sending Ack!\n");
-#endif
-            error = false;
-        }
     } else {
-#if PRINT_ENABLED
-        fprintf(stderr, "RP: Device_Read_Property: ");
-        if (len == BACNET_STATUS_ABORT) {
-            fprintf(stderr, "Abort!\n");
-        } else if (len == BACNET_STATUS_ERROR) {
-            fprintf(stderr, "Error!\n");
-        } else if (len == BACNET_STATUS_REJECT) {
-            fprintf(stderr, "Reject!\n");
-        } else {
-            fprintf(stderr, "Unknown Len=%d\n", len);
+        len = rp_decode_service_request(service_request, service_len, &rpdata);
+    #if PRINT_ENABLED
+        if (len <= 0) {
+            fprintf(stderr, "RP: Unable to decode Request!\n");
         }
-#endif
+    #endif
+        if (len < 0) {
+            /* bad decoding - skip to error/reject/abort handling */
+            error = true;
+    #if PRINT_ENABLED
+            fprintf(stderr, "RP: Bad Encoding.\n");
+    #endif
+        } else {
+            /* Test for case of indefinite Device object instance */
+            if ((rpdata.object_type == OBJECT_DEVICE) &&
+                (rpdata.object_instance == BACNET_MAX_INSTANCE)) {
+                rpdata.object_instance = Device_Object_Instance_Number();
+            }
+
+            apdu_len = rp_ack_encode_apdu_init(
+                &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id, &rpdata);
+            /* configure our storage */
+            rpdata.application_data = &Handler_Transmit_Buffer[npdu_len + apdu_len];
+            rpdata.application_data_len =
+                sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
+            len = Device_Read_Property(&rpdata);
+            if (len >= 0) {
+                apdu_len += len;
+                len = rp_ack_encode_apdu_object_property_end(
+                    &Handler_Transmit_Buffer[npdu_len + apdu_len]);
+                apdu_len += len;
+                if (apdu_len > service_data->max_resp) {
+                    /* too big for the sender - send an abort
+                     * Setting of error code needed here as read property processing may
+                     * have overriden the default set at start */
+                    rpdata.error_code = ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                    len = BACNET_STATUS_ABORT;
+        #if PRINT_ENABLED
+                    fprintf(stderr, "RP: Message too large.\n");
+        #endif
+                } else {
+        #if PRINT_ENABLED
+                    fprintf(stderr, "RP: Sending Ack!\n");
+        #endif
+                    error = false;
+                }
+            } else {
+        #if PRINT_ENABLED
+                fprintf(stderr, "RP: Device_Read_Property: ");
+                if (len == BACNET_STATUS_ABORT) {
+                    fprintf(stderr, "Abort!\n");
+                } else if (len == BACNET_STATUS_ERROR) {
+                    fprintf(stderr, "Error!\n");
+                } else if (len == BACNET_STATUS_REJECT) {
+                    fprintf(stderr, "Reject!\n");
+                } else {
+                    fprintf(stderr, "Unknown Len=%d\n", len);
+                }
+        #endif
+            }
+        }
     }
 
-RP_FAILURE:
     if (error) {
         if (len == BACNET_STATUS_ABORT) {
             apdu_len = abort_encode_apdu(&Handler_Transmit_Buffer[npdu_len],
