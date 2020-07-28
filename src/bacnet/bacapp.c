@@ -35,8 +35,12 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <stdlib.h> /* for strtol */
+#include <ctype.h> /* for isalnum */
+#ifdef __STDC_ISO_10646__
+#include <wchar.h>
+#include <wctype.h>
+#endif
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -1038,6 +1042,12 @@ int bacapp_snprintf_value(
     char *p_str = str;
     size_t rem_str_len = str_len;
     char temp_str[32];
+#ifdef __STDC_ISO_10646__
+    /* Wide character (decoded from multi-byte character). */
+    wchar_t wc;
+    /* Wide character length in bytes. */
+    int wclen;
+#endif
 
     if (object_value && object_value->value) {
         value = object_value->value;
@@ -1102,17 +1112,50 @@ int bacapp_snprintf_value(
                 char_str = characterstring_value(&value->type.Character_String);
                 if (!append_str(&p_str, &rem_str_len, "\"")) {
                     break;
-}
-                for (i = 0; i < len; i++) {
-                    if (isprint(*((unsigned char *)char_str))) {
-                        snprintf(temp_str, sizeof(temp_str), "%c", *char_str);
-                    } else {
-                        snprintf(temp_str, sizeof(temp_str), "%c", '.');
+                }
+                #ifdef __STDC_ISO_10646__
+                if (characterstring_encoding(&value->type.Character_String) ==
+                    CHARACTER_UTF8) {
+                    while (len > 0) {
+                        wclen = mbtowc(&wc, char_str, MB_CUR_MAX);
+                        if (wclen == -1) {
+                            /* Encoding error, reset state: */
+                            mbtowc(NULL, NULL, MB_CUR_MAX);
+                            /* After handling an invalid byte,
+                               retry with the next one. */
+                            wclen = 1;
+                            wc = L'?';
+                        } else {
+                            if (!iswprint(wc)) {
+                                wc = L'.';
+                            }
+                        }
+                        snprintf(temp_str, sizeof(temp_str), "%lc", wc);
+                        if (!append_str(&p_str, &rem_str_len, temp_str)) {
+                            break;
+                        }
+                        if (len > wclen) {
+                            len -= wclen;
+                            char_str += wclen;
+                        } else {
+                            len = 0;
+                        }
                     }
-                    if (!append_str(&p_str, &rem_str_len, temp_str)) {
-                        break;
-}
-                    char_str++;
+                } else
+                #endif
+                {
+                    for (i = 0; i < len; i++) {
+                        if (isprint(*((unsigned char *)char_str))) {
+                            snprintf(temp_str, sizeof(temp_str), "%c",
+                            *char_str);
+                        } else {
+                            snprintf(temp_str, sizeof(temp_str), "%c", '.');
+                        }
+                        if (!append_str(&p_str, &rem_str_len, temp_str)) {
+                            break;
+                        }
+                        char_str++;
+                    }
                 }
                 if ((i == len) && append_str(&p_str, &rem_str_len, "\"")) {
                     /* Everything is fine. Indicate how many bytes were */
