@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 
 project(
   bacnet-stack
@@ -563,11 +563,13 @@ if(BACNET_STACK_BUILD_APPS)
   #   apps/ptransfer/s_ptransfer.c)
   # target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
 
-  add_executable(readbdt apps/readbdt/main.c)
-  target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
+  if(NOT BACDL_ETHERNET)
+    add_executable(readbdt apps/readbdt/main.c)
+    target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 
-  add_executable(readfdt apps/readfdt/main.c)
-  target_link_libraries(readfdt PRIVATE ${PROJECT_NAME})
+    add_executable(readfdt apps/readfdt/main.c)
+    target_link_libraries(readfdt PRIVATE ${PROJECT_NAME})
+  endif()
 
   add_executable(readfile apps/readfile/main.c)
   target_link_libraries(readfile PRIVATE ${PROJECT_NAME})

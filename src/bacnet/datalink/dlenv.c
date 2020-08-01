@@ -321,7 +321,6 @@ static void dlenv_network_port_init(void)
        since they are already set */
     Network_Port_Changes_Pending_Set(instance, false);
 }
-#endif
 #else
 /**
  * Datalink network port object settings
@@ -330,6 +329,7 @@ static void dlenv_network_port_init(void)
 {
     /* do nothing */
 }
+#endif
 #endif
 
 /** Datalink maintenance timer
