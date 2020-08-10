@@ -216,9 +216,9 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                        However, if Out of Service is TRUE, then don't set the
                        physical output. */
                     if (Present_Value[0] == BINARY_ACTIVE) {
-                        LED_GREEN_ON();
+                        /* GPIO - turn ON */
                     } else {
-                        LED_GREEN_OFF();
+                        /* GPIO - turn OFF */
                     }
                     status = true;
                 } else {

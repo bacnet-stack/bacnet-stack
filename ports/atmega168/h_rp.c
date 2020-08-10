@@ -30,6 +30,7 @@
 #include "bacnet/config.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
@@ -44,7 +45,7 @@
 
 /* Encodes the property APDU and returns the length,
    or sets the error, and returns -1 */
-int Encode_Property_APDU(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *rpdata)
+static int Encode_Property_APDU(uint8_t *apdu, BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = -1;
 

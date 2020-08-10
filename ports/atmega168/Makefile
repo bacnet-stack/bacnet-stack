@@ -3,8 +3,8 @@
 ###############################################################################
 
 ## General Flags
-MCU = atmega168
-AVRDUDE_MCU = m168
+MCU = atmega328
+AVRDUDE_MCU = m328
 TARGET = bacnet
 ## Tools
 CC = avr-gcc
@@ -50,6 +50,7 @@ CSRC = main.c \
 # common demo files needed
 BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
+	$(BACNET_BASIC)/sys/bigend.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/h_noserv.c
 

@@ -30,6 +30,7 @@
 #include "rs485.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/npdu.h"
+#include "bacnet/dcc.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/iam.h"
@@ -88,14 +89,6 @@ static void init(void)
     /* Configure Specialized Hardware */
     RS485_Initialize();
 
-    /* configure one LED for NPDU indication */
-    /* default: off, output */
-    LED_NPDU_OFF();
-    LED_NPDU_INIT();
-    /* Configure Software LED */
-    LED_GREEN_INIT();
-    LED_GREEN_OFF();
-
     /* Configure Timer0 for millisecond timer */
     Timer_Initialize();
 
@@ -108,7 +101,6 @@ static void task_milliseconds(void)
     while (Timer_Milliseconds) {
         Timer_Milliseconds--;
         /* add other millisecond timer tasks here */
-        RS485_LED_Timers();
     }
 }
 
@@ -166,9 +158,7 @@ int main(void)
         /* BACnet handling */
         pdu_len = datalink_receive(&src, &PDUBuffer[0], MAX_MPDU, 0);
         if (pdu_len) {
-            LED_NPDU_ON();
             npdu_handler(&src, &PDUBuffer[0], pdu_len);
-            LED_NPDU_OFF();
         }
     }
 }

@@ -24,6 +24,7 @@
  *********************************************************************/
 #include <stdint.h>
 #include "hardware.h"
+#include "timer.h"
 
 /* This module is a 1 millisecond timer */
 

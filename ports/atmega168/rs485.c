@@ -31,15 +31,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-/*#include "bacnet/datalink/mstp.h" */
 
 /* This file has been customized for use with ATMEGA168 */
 #include "hardware.h"
+#include "rs485.h"
 #include "timer.h"
-
-/* Timers for turning off the TX,RX LED indications */
-static uint8_t LED1_Off_Timer;
-static uint8_t LED3_Off_Timer;
 
 /* baud rate */
 static uint32_t RS485_Baud = 9600;
@@ -70,11 +66,6 @@ void RS485_Initialize(void)
     /* Set port bit as Output - initially receiving */
     BIT_CLEAR(PORTD, PD2);
     BIT_SET(DDRD, DDD2);
-    /* Configure Transmit and Receive LEDs - initially off */
-    BIT_SET(PORTD, PD6);
-    BIT_SET(PORTD, PD7);
-    BIT_SET(DDRD, DDD6);
-    BIT_SET(DDRD, DDD7);
 
     return;
 }
@@ -165,62 +156,14 @@ void RS485_Turnaround_Delay(void)
     BIT_SET(UCSR0A, TXC0);
 }
 
-/****************************************************************************
- * DESCRIPTION: Timers for delaying the LED indicators going off
- * RETURN:      none
- * ALGORITHM:   none
- * NOTES:       expected to be called once a millisecond
- *****************************************************************************/
-void RS485_LED_Timers(void)
-{
-    if (LED1_Off_Timer) {
-        LED1_Off_Timer--;
-        if (LED1_Off_Timer == 0) {
-            BIT_SET(PORTD, PD6);
-        }
-    }
-    if (LED3_Off_Timer) {
-        LED3_Off_Timer--;
-        if (LED3_Off_Timer == 0) {
-            BIT_SET(PORTD, PD7);
-        }
-    }
-}
-
-/****************************************************************************
- * DESCRIPTION: Turn on the LED, and set the off timer to turn it off
- * RETURN:      none
- * ALGORITHM:   none
- * NOTES:       none
- *****************************************************************************/
-static void RS485_LED1_On(void)
-{
-    BIT_CLEAR(PORTD, PD6);
-    LED1_Off_Timer = 20;
-}
-
-/****************************************************************************
- * DESCRIPTION: Turn on the LED, and set the off timer to turn it off
- * RETURN:      none
- * ALGORITHM:   none
- * NOTES:       none
- *****************************************************************************/
-static void RS485_LED3_On(void)
-{
-    BIT_CLEAR(PORTD, PD7);
-    LED3_Off_Timer = 20;
-}
-
-/****************************************************************************
- * DESCRIPTION: Send some data and wait until it is sent
- * RETURN:      none
- * ALGORITHM:   none
- * NOTES:       none
- *****************************************************************************/
-void RS485_Send_Data(uint8_t *buffer, /* data to send */
+/**
+ * @brief Send some data and wait until it is sent
+ * @param buffer - data to send
+ * @param nbytes - number of bytes of data
+ */
+void RS485_Send_Data(uint8_t *buffer,
     uint16_t nbytes)
-{ /* number of bytes of data */
-    RS485_LED3_On();
+{
     while (nbytes) {
         while (!BIT_CHECK(UCSR0A, UDRE0)) {
             /* do nothing - wait until Tx buffer is empty */
@@ -268,9 +211,6 @@ bool RS485_ReceiveError(void)
         } while (BIT_CHECK(UCSR0A, RXC0));
         ReceiveError = true;
     }
-    if (ReceiveError) {
-        RS485_LED1_On();
-    }
     (void)dummy_data;
 
     return ReceiveError;
@@ -290,7 +230,6 @@ bool RS485_DataAvailable(uint8_t *data)
     if (BIT_CHECK(UCSR0A, RXC0)) {
         *data = UDR0;
         DataAvailable = true;
-        RS485_LED1_On();
     }
 
     return DataAvailable;

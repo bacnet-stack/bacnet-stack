@@ -31,24 +31,13 @@
 #endif
 
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
-#include <iom168.h>
+#include <ioavr.h>
 #else
-#if !defined(__AVR_ATmega168__)
-#error Firmware is configured for ATmega168 only (-mmcu=atmega168)
+#if !defined(__AVR_ATmega328__)
+#error Firmware is configured for ATmega328 only (-mmcu=atmega328)
 #endif
 #endif
 #include "iar2gcc.h"
 #include "bacnet/bits.h"
-
-#define LED_NPDU_INIT() BIT_SET(DDRD, DDD5)
-#define LED_NPDU_ON() BIT_CLEAR(PORTD, PD5)
-#define LED_NPDU_OFF() BIT_SET(PORTD, PD5)
-/* #define LED_NPDU PORTD_Bit5 */
-/* #define LED_NPDU_OFF() {LED_NPDU = false;} */
-/* #define LED_NPDU_ON() {LED_NPDU = true;} */
-
-#define LED_GREEN_INIT() BIT_SET(DDRD, DDD4)
-#define LED_GREEN_ON() BIT_CLEAR(PORTD, PD4)
-#define LED_GREEN_OFF() BIT_SET(PORTD, PD4)
 
 #endif

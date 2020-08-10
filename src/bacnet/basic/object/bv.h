@@ -71,6 +71,9 @@ extern "C" {
     bool Binary_Value_Name_Set(
         uint32_t object_instance,
         char *new_name);
+    BACNET_STACK_EXPORT
+    char *Binary_Value_Name(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     char *Binary_Value_Description(
