@@ -1034,7 +1034,6 @@ int bacapp_snprintf_value(
 {
     size_t len = 0, i = 0;
     char *char_str;
-    uint8_t *octet_str;
     BACNET_APPLICATION_DATA_VALUE *value;
     BACNET_PROPERTY_ID property = PROP_ALL;
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
@@ -1042,6 +1041,9 @@ int bacapp_snprintf_value(
     char *p_str = str;
     size_t rem_str_len = str_len;
     char temp_str[32];
+#if defined(BACAPP_OCTET_STRING)
+    uint8_t *octet_str;
+#endif
 #ifdef __STDC_ISO_10646__
     /* Wide character (decoded from multi-byte character). */
     wchar_t wc;

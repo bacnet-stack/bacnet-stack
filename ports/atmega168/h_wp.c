@@ -30,6 +30,7 @@
 #include "bacnet/config.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/services.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"

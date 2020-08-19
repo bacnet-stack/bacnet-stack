@@ -55,6 +55,27 @@ static inline void _delay_us(
         __delay_cycles(F_CPU / 1000000UL);
     } while (microseconds--);
 }
+
+#if (__VER__ > 700)
+#define DDA0 DDRA0
+#define DDA1 DDRA1
+#define DDA2 DDRA2
+#define DDA3 DDRA3
+#define DDA4 DDRA4
+#define DDA5 DDRA5
+#define DDA6 DDRA6
+#define DDA7 DDRA7
+
+#define DDD0 DDRD0
+#define DDD1 DDRD1
+#define DDD2 DDRD2
+#define DDD3 DDRD3
+#define DDD4 DDRD4
+#define DDD5 DDRD5
+#define DDD6 DDRD6
+#define DDD7 DDRD7
+#endif
+
 #endif
 
 /* Input/Output Registers */

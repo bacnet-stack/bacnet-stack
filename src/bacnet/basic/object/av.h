@@ -97,6 +97,8 @@ extern "C" {
     bool Analog_Value_Name_Set(
         uint32_t object_instance,
         char *new_name);
+    char *Analog_Value_Name(
+        uint32_t object_instance);
 
     BACNET_STACK_EXPORT
     int Analog_Value_Read_Property(

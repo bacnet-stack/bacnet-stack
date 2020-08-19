@@ -41,6 +41,10 @@
 #include "bacnet/lighting.h"
 #include "bacnet/bacdcode.h"
 
+#ifndef islessgreater
+#define islessgreater( x, y) ((x) < (y) || (x) > (y))
+#endif
+
 /** @file lighting.c  Manipulate BACnet lighting command values */
 
 /**

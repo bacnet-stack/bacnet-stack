@@ -24,6 +24,7 @@
  *********************************************************************/
 #include <stdint.h>
 #include "hardware.h"
+#include "stack.h"
 
 /* stack checking */
 #if defined(__GNUC__)

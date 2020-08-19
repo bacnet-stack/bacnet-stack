@@ -49,6 +49,44 @@ static inline void _delay_us(
         __delay_cycles(F_CPU / 1000000UL);
     } while (microseconds--);
 }
+
+#if (__VER__ > 700)
+#define DDA0 DDRA0
+#define DDA1 DDRA1
+#define DDA2 DDRA2
+#define DDA3 DDRA3
+#define DDA4 DDRA4
+#define DDA5 DDRA5
+#define DDA6 DDRA6
+#define DDA7 DDRA7
+
+#define DDB0 DDRB0
+#define DDB1 DDRB1
+#define DDB2 DDRB2
+#define DDB3 DDRB3
+#define DDB4 DDRB4
+#define DDB5 DDRB5
+#define DDB6 DDRB6
+#define DDB7 DDRB7
+
+#define DDC0 DDRC0
+#define DDC1 DDRC1
+#define DDC2 DDRC2
+#define DDC3 DDRC3
+#define DDC4 DDRC4
+#define DDC5 DDRC5
+#define DDC6 DDRC6
+#define DDC7 DDRC7
+
+#define DDD0 DDRD0
+#define DDD1 DDRD1
+#define DDD2 DDRD2
+#define DDD3 DDRD3
+#define DDD4 DDRD4
+#define DDD5 DDRD5
+#define DDD6 DDRD6
+#define DDD7 DDRD7
+#endif
 #endif
 
 #if defined(__GNUC__)
@@ -311,6 +349,9 @@ unsigned char __uint8_eeprom_load(
 /* power macros in GCC-AVR */
 #if (defined(__ICCAVR__) && (defined(__ATmega644P__))) || \
     (defined(__CROSSWORKS_AVR) && (__TARGET_PROCESSOR == ATmega644P))
+#if (defined(__ICCAVR__) && (__VER__ > 700))
+#define PRR PRR0
+#endif
 #define power_adc_enable()      (PRR &= (uint8_t)~(1 << PRADC))
 #define power_spi_enable()      (PRR &= (uint8_t)~(1 << PRSPI))
 #define power_usart0_enable()   (PRR &= (uint8_t)~(1 << PRUSART0))
