@@ -235,8 +235,10 @@ bool apdu_service_supported_to_index(
 }
 
 /* Confirmed ACK Function Handlers */
-static confirmed_ack_function
-    Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
+static union {
+    confirmed_simple_ack_function simple;
+    confirmed_ack_function complex;
+} Confirmed_ACK_Function[MAX_BACNET_CONFIRMED_SERVICE];
 
 void apdu_set_confirmed_simple_ack_handler(
     BACNET_CONFIRMED_SERVICE service_choice,
@@ -263,8 +265,7 @@ void apdu_set_confirmed_simple_ack_handler(
         case SERVICE_CONFIRMED_VT_CLOSE:
             /* Security Services */
         case SERVICE_CONFIRMED_REQUEST_KEY:
-            Confirmed_ACK_Function[service_choice] =
-                (confirmed_ack_function)pFunction;
+            Confirmed_ACK_Function[service_choice].simple = pFunction;
             break;
         default:
             break;
@@ -294,7 +295,7 @@ void apdu_set_confirmed_ack_handler(
         case SERVICE_CONFIRMED_VT_DATA:
             /* Security Services */
         case SERVICE_CONFIRMED_AUTHENTICATE:
-            Confirmed_ACK_Function[service_choice] = pFunction;
+            Confirmed_ACK_Function[service_choice].complex = pFunction;
             break;
         default:
             break;
@@ -575,10 +576,9 @@ void apdu_handler(BACNET_ADDRESS *src,
                         case SERVICE_CONFIRMED_VT_CLOSE:
                             /* Security Services */
                         case SERVICE_CONFIRMED_REQUEST_KEY:
-                            if (Confirmed_ACK_Function[service_choice] !=
+                            if (Confirmed_ACK_Function[service_choice].simple !=
                                 NULL) {
-                                ((confirmed_simple_ack_function)
-                                        Confirmed_ACK_Function[service_choice])(
+                                Confirmed_ACK_Function[service_choice].simple(
                                     src, invoke_id);
                             }
                             tsm_free_invoke_id(invoke_id);
@@ -622,9 +622,9 @@ void apdu_handler(BACNET_ADDRESS *src,
                         case SERVICE_CONFIRMED_VT_DATA:
                             /* Security Services */
                         case SERVICE_CONFIRMED_AUTHENTICATE:
-                            if (Confirmed_ACK_Function[service_choice] !=
+                            if (Confirmed_ACK_Function[service_choice].complex !=
                                 NULL) {
-                                (Confirmed_ACK_Function[service_choice])(
+                                Confirmed_ACK_Function[service_choice].complex(
                                     service_request, service_request_len, src,
                                     &service_ack_data);
                             }
