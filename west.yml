@@ -1,0 +1,25 @@
+# The top-level west manifest file for upstream bacnet-stack.
+
+# This top-level west manifest file intentionally provides only the
+# minimal configuration necessary for a successful 'west init', in
+# expectation that multiple manifests will exist within one branch
+# of this repository.  Once 'west init' has completed, west may be
+# configured to use alternate manfiests with the following command:
+#
+#   west config manifest.path <manifest_dir_from_topdir>
+#
+#     e.g. west config manifest.path zephyr/manifests/nrf5
+
+# NOTE: Since the schema requires at least one project name,
+# the mapping of this repository must be described as a project
+# rather than under the 'self' key.
+
+manifest:
+  remotes:
+    - name: self
+      url-base: https://github.com/bacnet-stack
+  projects:
+    - name: bacnet-stack
+      remote: self
+      revision: master    # The main branch of this repository
+
