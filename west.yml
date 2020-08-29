@@ -8,7 +8,7 @@
 #
 #   west config manifest.path <manifest_dir_from_topdir>
 #
-#     e.g. west config manifest.path zephyr/manifests/nrf5
+#     e.g. west config manifest.path bacnet-stack/zephyr/manifests/zp/zephyr
 
 # NOTE: Since the schema requires at least one project name,
 # the mapping of this repository must be described as a project
