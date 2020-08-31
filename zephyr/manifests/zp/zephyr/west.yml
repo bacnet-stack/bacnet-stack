@@ -1,0 +1,22 @@
+#
+# Copyright (c) 2020 Legrand North America, LLC.
+#
+# SPDX-License-Identifier: MIT
+
+# The west manifest file for upstream Zephyr Project's Zephyr repo.
+#
+# Usage:
+# west init -m https://github.com/bacnet-stack/bacnet-stack
+# west config manifest.path zephyr/manifests/zp/zephyr
+# west update
+
+manifest:
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: v2.3.0  # Latest integrated release
+      import: true
+      path: zephyr
