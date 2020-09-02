@@ -39,6 +39,7 @@
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
+#include "bacnet/bacint.h"
 #include "bacnet/apdu.h"
 #include "bacnet/arf.h"
 #include "bacnet/awf.h"
