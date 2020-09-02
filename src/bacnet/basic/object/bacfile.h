@@ -108,7 +108,7 @@ extern "C" {
     void bacfile_init(
         void);
     BACNET_STACK_EXPORT
-    uint32_t bacfile_file_size(
+    BACNET_UNSIGNED_INTEGER bacfile_file_size(
         uint32_t instance);
 
     /* handling for read property service */

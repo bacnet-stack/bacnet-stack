@@ -163,17 +163,21 @@ static long fsize(FILE *pFile)
     return (size);
 }
 
-unsigned bacfile_file_size(uint32_t object_instance)
+BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
 {
     char *pFilename = NULL;
     FILE *pFile = NULL;
-    unsigned file_size = 0;
+    long file_position = 0;
+    BACNET_UNSIGNED_INTEGER file_size = 0;
 
     pFilename = bacfile_name(object_instance);
     if (pFilename) {
         pFile = fopen(pFilename, "rb");
         if (pFile) {
-            file_size = fsize(pFile);
+            file_position = fsize(pFile);
+            if (file_position >= 0) {
+                file_size = (BACNET_UNSIGNED_INTEGER)file_position;
+            }
             fclose(pFile);
         }
     }
