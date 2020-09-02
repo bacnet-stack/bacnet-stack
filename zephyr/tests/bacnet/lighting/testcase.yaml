@@ -1,0 +1,3 @@
+tests:
+  bacnet.lighting:
+    tags: bacnet

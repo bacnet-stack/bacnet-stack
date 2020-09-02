@@ -1,0 +1,6 @@
+tests:
+  bacnet.reject.unit:
+    tags: bacnet
+    type: unit
+  bacnet.reject:
+    tags: bacnet

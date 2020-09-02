@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: Apache-2.0
+
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+
+get_filename_component(basename ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+project(test_${basename}
+	VERSION 1.0.0
+	LANGUAGES C)
+
+
+set(TST_DIR "../..")
+set(ZTST_DIR "${TST_DIR}/ztest/src")
+set(SRC_DIR "${TST_DIR}/../src")
+
+add_compile_definitions(
+	BIG_ENDIAN=0
+	CONFIG_ZTEST=1
+	)
+
+include_directories(
+	${SRC_DIR}
+	${TST_DIR}/ztest/include
+	)
+
+add_executable(${PROJECT_NAME}
+	${SRC_DIR}/bacnet/ihave.c
+	${SRC_DIR}/bacnet/bacdcode.c
+	${SRC_DIR}/bacnet/bacint.c
+	${SRC_DIR}/bacnet/bacreal.c
+	${SRC_DIR}/bacnet/bacstr.c
+	./src/main.c
+	${ZTST_DIR}/ztest_mock.c
+	${ZTST_DIR}/ztest.c
+	)

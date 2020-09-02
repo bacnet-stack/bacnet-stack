@@ -1,0 +1,6 @@
+tests:
+  bacnet.basic.binding.address:
+    tags: bacnet
+  bacnet.basic.binding.address.cache_file:
+    tags: bacnet
+    extra_args: BACNET_ADDRESS_CACHE_FILE=1
