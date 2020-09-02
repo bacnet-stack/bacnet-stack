@@ -47,6 +47,9 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
 
+/* buffer used for receive */
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+
 /* parsed command line parameters */
 static uint32_t Target_Device_ID = BACNET_MAX_INSTANCE;
 static uint16_t Target_Vendor_ID = BACNET_VENDOR_ID;
@@ -121,6 +124,13 @@ static void print_help(char *filename)
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "--repeat\n"
+           "Send the message repeatedly until signalled to quit.\n"
+           "Default is to not repeat, sending only a single message.\n"
+           "\n"
+           "--delay\n"
+           "Delay, in milliseconds, between repeated messages.\n"
+           "Default delay is 100ms.\n"
            "\n");
     printf(
         "device-instance:\n"
@@ -138,11 +148,15 @@ static void print_help(char *filename)
 
 int main(int argc, char *argv[])
 {
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
+    uint16_t pdu_len = 0;
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
     bool specific_address = false;
+    bool repeat_forever = false;
+    unsigned timeout = 100; /* milliseconds */
     int argi = 0;
     unsigned int target_args = 0;
     char *filename = NULL;
@@ -180,6 +194,15 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 if (address_mac_from_ascii(&adr, argv[argi])) {
                     specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--repeat") == 0) {
+            repeat_forever = true;
+        } else if (strcmp(argv[argi], "--delay") == 0) {
+            if (++argi < argc) {
+                timeout = strtol(argv[argi], NULL, 0);
+                if (timeout < 0) {
+                    timeout = 0;
                 }
             }
         } else {
@@ -239,8 +262,21 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
     /* send the request */
-    Send_I_Am_To_Network(&dest, Target_Device_ID, Target_Max_APDU,
-        Target_Segmentation, Target_Vendor_ID);
+    do {
+        Send_I_Am_To_Network(&dest, Target_Device_ID, Target_Max_APDU,
+            Target_Segmentation, Target_Vendor_ID);
+        if (repeat_forever) {
+            /* returns 0 bytes on timeout */
+            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+            /* process */
+            if (pdu_len) {
+                npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            }
+            if (Error_Detected) {
+                break;
+            }
+        }
+    } while (repeat_forever);
 
     return 0;
 }
