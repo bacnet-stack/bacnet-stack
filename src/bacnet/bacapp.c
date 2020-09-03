@@ -1132,7 +1132,8 @@ int bacapp_snprintf_value(
                                 wc = L'.';
                             }
                         }
-                        snprintf(temp_str, sizeof(temp_str), "%lc", wc);
+                        /* For portability, cast wchar_t to wint_t */
+                        snprintf(temp_str, sizeof(temp_str), "%lc", (wint_t)wc);
                         if (!append_str(&p_str, &rem_str_len, temp_str)) {
                             break;
                         }
