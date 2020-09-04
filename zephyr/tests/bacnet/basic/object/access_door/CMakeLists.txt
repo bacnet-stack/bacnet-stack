@@ -2,11 +2,29 @@
 
 cmake_minimum_required(VERSION 3.13.1)
 
-set(BACNET_FILE_BASENAME access_door)
-set(BACNET_FILE_SUBPATH bacnet/basic/object/${BACNET_FILE_BASENAME})
-set(BACNET_BASE $ENV{ZEPHYR_BASE}/../modules/lib/bacnet)
+# Extract module path and names
+string(REGEX REPLACE 
+    "/zephyr/tests[a-zA-Z_/-]*$" ""
+    BACNET_BASE
+    ${CMAKE_CURRENT_SOURCE_DIR})
+get_filename_component(BACNET_FILE_BASENAME
+    ${BACNET_BASE}
+    NAME)
+string(REGEX REPLACE 
+    "^[a-zA-Z_/-]*/zephyr/tests/" ""
+    BACNET_FILE_SUBPATH
+    ${CMAKE_CURRENT_SOURCE_DIR})
 
-list(APPEND BACNET_INCLUDE ../modules/lib/bacnet/src)
+
+# Add this module to the Zephyr build line
+list(APPEND ZEPHYR_EXTRA_MODULES
+    ${BACNET_BASE}
+  )
+
+
+# Update include path for this module
+list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
+
 
 include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
 project(${BACNET_FILE_BASENAME})
