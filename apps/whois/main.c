@@ -301,6 +301,14 @@ static void print_help(char *filename)
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n"
+           "--repeat\n"
+           "Send the message repeatedly until signalled to quit.\n"
+           "Default is disabled, using the APDU timeout as time to quit.\n"
+           "\n"
+           "--delay\n"
+           "Delay, in milliseconds, between repeated messages.\n"
+           "Default delay is 100ms.\n"
            "\n");
     printf("Send a WhoIs request to DNET 123:\n"
            "%s --dnet 123\n",
@@ -343,6 +351,7 @@ int main(int argc, char *argv[])
     int argi = 0;
     unsigned int target_args = 0;
     char *filename = NULL;
+    bool repeat_forever = false;
 
     /* check for local environment settings */
     if (getenv("BACNET_DEBUG")) {
@@ -382,6 +391,15 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 if (address_mac_from_ascii(&adr, argv[argi])) {
                     global_broadcast = false;
+                }
+            }
+        } else if (strcmp(argv[argi], "--repeat") == 0) {
+            repeat_forever = true;
+        } else if (strcmp(argv[argi], "--delay") == 0) {
+            if (++argi < argc) {
+                timeout = strtol(argv[argi], NULL, 0);
+                if (timeout < 0) {
+                    timeout = 0;
                 }
             }
         } else {
@@ -470,8 +488,14 @@ int main(int argc, char *argv[])
             datalink_maintenance_timer(elapsed_seconds);
         }
         total_seconds += elapsed_seconds;
-        if (total_seconds > timeout_seconds) {
-            break;
+        if (repeat_forever) {
+            Send_WhoIs_To_Network(
+                &dest, Target_Object_Instance_Min,
+                Target_Object_Instance_Max);
+        } else {
+            if (total_seconds > timeout_seconds) {
+                break;
+            }
         }
         /* keep track of time for next check */
         last_seconds = current_seconds;
