@@ -23,7 +23,9 @@ include_directories(
 	)
 
 add_executable(${PROJECT_NAME}
+    # File(s) under test
 	${SRC_DIR}/bacnet/basic/object/ms-input.c
+    # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/abort.c
 	${SRC_DIR}/bacnet/bacaddr.c
 	${SRC_DIR}/bacnet/bacapp.c
@@ -33,6 +35,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bacint.c
 	${SRC_DIR}/bacnet/bacreal.c
 	${SRC_DIR}/bacnet/bacstr.c
+	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/basic/binding/address.c
 	${SRC_DIR}/bacnet/basic/object/acc.c
@@ -64,6 +67,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/cov.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/dcc.c
+	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/lighting.c
 	${SRC_DIR}/bacnet/memcopy.c
 	${SRC_DIR}/bacnet/npdu.c
@@ -72,6 +76,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/wp.c
 	./stubs.c
+    # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c

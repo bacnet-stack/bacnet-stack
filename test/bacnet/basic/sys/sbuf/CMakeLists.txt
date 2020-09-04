@@ -23,7 +23,10 @@ include_directories(
 	)
 
 add_executable(${PROJECT_NAME}
+    # File(s) under test
 	${SRC_DIR}/bacnet/basic/sys/sbuf.c
+    # Support files and stubs (pathname alphabetical)
+    # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
