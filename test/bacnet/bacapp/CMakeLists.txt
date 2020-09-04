@@ -8,9 +8,9 @@ project(test_${basename}
 	LANGUAGES C)
 
 
-set(TST_DIR "../..")
+string(REGEX REPLACE "/bacnet/[a-zA-Z_/-]*$" "" TST_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(ZTST_DIR "${TST_DIR}/ztest/src")
-set(SRC_DIR "${TST_DIR}/../src")
+string(REGEX REPLACE "/test$" "/src" SRC_DIR ${TST_DIR})
 
 add_compile_definitions(
 	BIG_ENDIAN=0
