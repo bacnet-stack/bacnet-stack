@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bacstr.c
 	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/basic/object/access_zone.c
+	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/credential_authentication_factor.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/indtext.c

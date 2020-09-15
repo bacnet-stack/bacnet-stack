@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bacreal.c 
 	${SRC_DIR}/bacnet/bacstr.c 
 	${SRC_DIR}/bacnet/bactext.c 
+	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/datetime.c 
 	${SRC_DIR}/bacnet/indtext.c 
 	${SRC_DIR}/bacnet/lighting.c 

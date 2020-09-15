@@ -25,6 +25,7 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/bacreal.c
+	${SRC_DIR}/bacnet/basic/sys/bigend.c
     # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/bacdcode.c
 	${SRC_DIR}/bacnet/bacint.c
