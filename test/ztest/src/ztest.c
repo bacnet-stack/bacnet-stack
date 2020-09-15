@@ -20,10 +20,6 @@
  *   c. Addition of test_skip functionality missing from non-kernel paths.
  */
 
-#if HAVE_UNISTD_H
-#include <unistd.h>  /* Needed for strsignal() on MSVC build */
-#endif
-
 #include <ztest.h>
 #include <stdio.h>
 
@@ -101,7 +97,11 @@ static void handle_signal(int sig)
 		"teardown",
 	};
 
+#if defined(_WIN32)
+	PRINT("    %d", sig);
+#else /* defined(_WIN32) */
 	PRINT("    %s", strsignal(sig));
+#endif /* defined(_WIN32) */
 	switch (phase) {
 	case TEST_PHASE_SETUP:
 	case TEST_PHASE_TEST:
