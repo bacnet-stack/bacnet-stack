@@ -20,6 +20,10 @@
  *   c. Addition of test_skip functionality missing from non-kernel paths.
  */
 
+#if HAVE_UNISTD_H
+#include <unistd.h>  /* Needed for strsignal() on MSVC build */
+#endif
+
 #include <ztest.h>
 #include <stdio.h>
 
