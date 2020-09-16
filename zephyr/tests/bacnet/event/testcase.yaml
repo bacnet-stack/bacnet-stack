@@ -1,0 +1,3 @@
+tests:
+  bacnet.event:
+    tags: bacnet

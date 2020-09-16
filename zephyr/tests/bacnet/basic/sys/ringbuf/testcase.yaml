@@ -1,0 +1,6 @@
+tests:
+  bacnet.basic.sys.ringbuf.unit:
+    tags: bacnet
+    type: unit
+  bacnet.basic.sys.ringbuf:
+    tags: bacnet

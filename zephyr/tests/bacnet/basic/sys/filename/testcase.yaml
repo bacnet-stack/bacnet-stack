@@ -1,0 +1,6 @@
+tests:
+  bacnet.filename.unit:
+    tags: bacnet
+    type: unit
+  bacnet.filename:
+    tags: bacnet

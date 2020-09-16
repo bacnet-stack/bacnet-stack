@@ -1,0 +1,6 @@
+tests:
+  bacnet.memcopy.unit:
+    tags: bacnet
+    type: unit
+  bacnet.memcopy:
+    tags: bacnet

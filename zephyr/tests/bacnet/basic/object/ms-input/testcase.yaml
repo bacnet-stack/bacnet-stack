@@ -1,0 +1,3 @@
+tests:
+  bacnet.ms-input:
+    tags: bacnet

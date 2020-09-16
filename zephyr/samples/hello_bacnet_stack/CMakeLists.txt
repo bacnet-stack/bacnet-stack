@@ -6,12 +6,12 @@ get_filename_component(MY_PROJECT_BASENAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 # Find the directory of the Zephyr module
 string(REGEX REPLACE 
-    "\/zephyr\/samples\/[a-zA-Z_\-]*${MY_PROJECT_BASENAME}$" ""
+    "\/zephyr\/samples\/[a-zA-Z_\-\\\\/]*${MY_PROJECT_BASENAME}$" ""
     MY_ZEPHYR_MODULE_SOURCE_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
 
 list(APPEND ZEPHYR_EXTRA_MODULES
-    ${MY_ZEPHYR_MODULE_SOURCE_DIR}
+    ${MY_PROJECT_BASENAME} ${MY_ZEPHYR_MODULE_SOURCE_DIR}
   )
 
 # Add an absolute directory path to the CMake variable
