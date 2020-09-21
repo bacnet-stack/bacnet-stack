@@ -14,6 +14,7 @@
 #include <sys/util.h>
 #include <zephyr.h>
 
+#define LOG_LEVEL CONFIG_BACNETSTACK_LOG_LEVEL
 #include <logging/log.h>
 LOG_MODULE_REGISTER(bacnet);
 

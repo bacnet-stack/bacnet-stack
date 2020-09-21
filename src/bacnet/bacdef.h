@@ -138,7 +138,13 @@ typedef uint32_t BACNET_ARRAY_INDEX;
    equal to 7 bytes.  The IPv6 addresses are planned to be handled
    outside this area. */
 /* FIXME: mac[] only needs to be as big as our local datalink MAC */
-#define MAX_MAC_LEN 7
+
+#if BACDL_BIP6
+    #define MAX_MAC_LEN 19
+#else
+    #define MAX_MAC_LEN 7
+#endif
+
 struct BACnet_Device_Address {
     /* mac_len = 0 is a broadcast address */
     uint8_t mac_len;
