@@ -43,6 +43,16 @@
 #include <ctype.h> /* for isalnum */
 #endif
 
+/* TODO: For some reason my Zephyr build for non-native targets does not
+ *       see a definition for strnlen(), but it is visible in when
+ *       compiling for native_posix. This results in the compiler
+ *       emitting a warning, forcing Zephyr's sanitycheck() script to stop.
+ *       Until this is chased down, the definition is being provided here.
+ */
+#if __ZEPHYR__ && ! CONFIG_NATIVE_APPLICATION
+size_t	 strnlen (const char *, size_t);
+#endif
+
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
 #ifndef BACNET_STRING_UTF8_VALIDATION
 #define BACNET_STRING_UTF8_VALIDATION 1

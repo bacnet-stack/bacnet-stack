@@ -394,11 +394,7 @@ set(BACNETSTACK_PORT ${CMAKE_CURRENT_LIST_DIR}/../ports/zephyr)
 
 list(
   APPEND BACNETSTACK_SRCS
-      $<IF:$<BOOL:${CONFIG_NATIVE_APPLICATION}>,
-          ${BACNETSTACK_BASIC_SRCS}
-        ,#else
-          ${BACNETSTACK_PORT}/device.c
-        >
+      ${BACNETSTACK_BASIC_SRCS}
       ${BACNETSTACK_PORT}/datetime-init.c
       $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_PORT}/bip-init.c>
       $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_PORT}/bip6-init.c>

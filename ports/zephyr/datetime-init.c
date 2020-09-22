@@ -12,7 +12,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if CONFIG_NATIVE_APPLICATION
 #include <sys/time.h>
+#else
+#include <posix/sys/time.h>
+#endif
 #include <time.h>
 #include "bacnet/datetime.h"
 
