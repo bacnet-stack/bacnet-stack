@@ -167,7 +167,8 @@ static void debug_print_string(const char *str)
  * BBMD_BACKUP_FILE should be set to the file name
  * in which to store the BDT.
  */
-#ifndef BBMD_BACKUP_FILE
+#if defined(BBMD_BACKUP_FILE) && (BBMD_BACKUP_FILE == 1)
+#undef BBMD_BACKUP_FILE
 #define BBMD_BACKUP_FILE BACnet_BDT_table
 #endif
 #if defined(BBMD_BACKUP_FILE)
