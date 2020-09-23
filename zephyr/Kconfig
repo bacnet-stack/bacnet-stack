@@ -5,6 +5,7 @@
 
 menuconfig BACNETSTACK
 	bool "BACnet-Stack Support"
+	select REQUIRES_FULL_LIBC
 	help
 	  This option enables the BACnet-Stack BACnet library.
 
