@@ -5,4 +5,4 @@ image:
 
 build_script:
   - cmake . -DBUILD_SHARED_LIBS=ON
-  - cmake --build . --config Release
+  - cmake --build . --config Release && make test
