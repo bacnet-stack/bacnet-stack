@@ -516,6 +516,10 @@ static int readNlSock(
             perror("SOCK READ: ");
             return -1;
         }
+        if (readLen == 0) {
+            /* no data in the response */
+            break;
+        }
         nlHdr = (struct nlmsghdr *)bufPtr;
         /* Check if the header is valid */
         if ((0 == NLMSG_OK(nlHdr, readLen)) ||
