@@ -127,6 +127,16 @@ extern "C" {
         uint32_t state_index);
 
     BACNET_STACK_EXPORT
+    bool Multistate_Value_Create(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Multistate_Value_Delete(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void Multistate_Value_Cleanup(
+        void);
+
+    BACNET_STACK_EXPORT
     void Multistate_Value_Init(
         void);
 
