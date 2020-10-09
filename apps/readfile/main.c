@@ -112,6 +112,8 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
     BACNET_ATOMIC_READ_FILE_DATA data;
     FILE *pFile = NULL; /* stream pointer */
     size_t octets_written = 0;
+    size_t octet_count = 0;
+    uint8_t *octet_buffer = NULL;
 
     if (address_match(&Target_Address, src) &&
         (service_data->invoke_id == Request_Invoke_ID)) {
@@ -124,30 +126,38 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                 pFile = fopen(Local_File_Name, "rb+");
             }
             if (pFile) {
-                result =
-                    fseek(pFile, data.type.stream.fileStartPosition, SEEK_SET);
-                if (result == 0) {
-                    /* unit to write in bytes -
-                       in our case, an octet is one byte */
-                    octets_written =
-                        fwrite(octetstring_value(&data.fileData[0]), 1,
-                            octetstring_length(&data.fileData[0]), pFile);
-                    if (octets_written !=
-                        octetstring_length(&data.fileData[0])) {
-                        fprintf(stderr,
-                            "Unable to write data to file \"%s\".\n",
-                            Local_File_Name);
-                    } else if (octets_written == 0) {
-                        fprintf(stderr, "Received 0 byte octet string!.\n");
-                    } else {
-                        Target_File_Start_Position =
-                            data.type.stream.fileStartPosition + octets_written;
-                        printf("\r%d bytes", (int)Target_File_Start_Position);
+                octet_count = octetstring_length(&data.fileData[0]);
+                if (octet_count == 0) {
+                    /* asked for many octets, and got zero. Force EOF */
+                    if (!data.endOfFile) {
+                        fprintf(stderr, "Missing EOF!\n");
+                        data.endOfFile = true;
                     }
-                    fflush(pFile);
                 } else {
-                    fprintf(stderr, "Unable to seek to %d!\n",
-                        data.type.stream.fileStartPosition);
+                    result = fseek(pFile, data.type.stream.fileStartPosition,
+                        SEEK_SET);
+                    if (result == 0) {
+                        /* unit to write in bytes -
+                           in our case, an octet is one byte */
+                        octet_buffer = octetstring_value(&data.fileData[0]);
+                        octets_written =
+                            fwrite(octet_buffer, 1, octet_count, pFile);
+                        if (octets_written != octet_count) {
+                            fprintf(stderr,
+                                "Unable to write data to file \"%s\".\n",
+                                Local_File_Name);
+                        } else {
+                            Target_File_Start_Position =
+                                data.type.stream.fileStartPosition +
+                                octets_written;
+                            printf("\r%d bytes",
+                                (int)Target_File_Start_Position);
+                        }
+                        fflush(pFile);
+                    } else {
+                        fprintf(stderr, "Unable to seek to %d!\n",
+                            data.type.stream.fileStartPosition);
+                    }
                 }
                 fclose(pFile);
             }
