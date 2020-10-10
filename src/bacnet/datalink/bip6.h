@@ -95,7 +95,12 @@ extern "C" {
         BACNET_IP6_ADDRESS *addr,
         uint8_t * mtu,
         uint16_t mtu_len);
-
+    BACNET_STACK_EXPORT
+    bool bip6_send_pdu_queue_empty(
+        void);
+    BACNET_STACK_EXPORT
+    void bip6_receive_callback(
+        void);
 
 #ifdef __cplusplus
 }
