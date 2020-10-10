@@ -763,6 +763,168 @@ void cov_data_value_list_link(
     }
 }
 
+/**
+ * @brief Encode the Value List for REAL Present-Value and Status-Flags
+ * @param value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
+ * @param value - REAL present-value
+ * @param in_alarm - value of in-alarm status-flags
+ * @param fault - value of in-alarm status-flags
+ * @param overridden - value of overridden status-flags
+ * @param out_of_service - value of out-of-service status-flags
+ *
+ * @return true if values were encoded
+*/
+bool cov_value_list_encode_real(
+    BACNET_PROPERTY_VALUE * value_list,
+    float value,
+    bool in_alarm,
+    bool fault,
+    bool overridden,
+    bool out_of_service)
+{
+    bool status = false;
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_REAL;
+        value_list->value.type.Real = value;
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_IN_ALARM, in_alarm);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_FAULT, fault);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OVERRIDDEN, overridden);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Encode the Value List for ENUMERATED Present-Value and Status-Flags
+ * @param value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
+ * @param value - ENUMERATED present-value
+ * @param in_alarm - value of in-alarm status-flags
+ * @param fault - value of in-alarm status-flags
+ * @param overridden - value of overridden status-flags
+ * @param out_of_service - value of out-of-service status-flags
+ *
+ * @return true if values were encoded
+*/
+bool cov_value_list_encode_enumerated(
+    BACNET_PROPERTY_VALUE * value_list,
+    uint32_t value,
+    bool in_alarm,
+    bool fault,
+    bool overridden,
+    bool out_of_service)
+{
+    bool status = false;
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+        value_list->value.type.Enumerated = value;
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_IN_ALARM, in_alarm);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_FAULT, fault);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OVERRIDDEN, overridden);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Encode the Value List for UNSIGNED INT Present-Value and Status-Flags
+ * @param value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
+ * @param value - UNSIGNED INT present-value
+ * @param in_alarm - value of in-alarm status-flags
+ * @param fault - value of in-alarm status-flags
+ * @param overridden - value of overridden status-flags
+ * @param out_of_service - value of out-of-service status-flags
+ *
+ * @return true if values were encoded
+*/
+bool cov_value_list_encode_unsigned(
+    BACNET_PROPERTY_VALUE * value_list,
+    uint32_t value,
+    bool in_alarm,
+    bool fault,
+    bool overridden,
+    bool out_of_service)
+{
+    bool status = false;
+
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+        value_list->value.type.Unsigned_Int = value;
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list = value_list->next;
+    }
+    if (value_list) {
+        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
+        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
+        value_list->value.context_specific = false;
+        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+        bitstring_init(&value_list->value.type.Bit_String);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_IN_ALARM, in_alarm);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_FAULT, fault);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OVERRIDDEN, overridden);
+        bitstring_set_bit(&value_list->value.type.Bit_String,
+            STATUS_FLAG_OUT_OF_SERVICE, out_of_service);
+        value_list->value.next = NULL;
+        value_list->priority = BACNET_NO_PRIORITY;
+        value_list->next = NULL;
+        status = true;
+    }
+
+    return status;
+}
+
 #ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>

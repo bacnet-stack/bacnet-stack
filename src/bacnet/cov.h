@@ -128,6 +128,31 @@ extern "C" {
         BACNET_PROPERTY_VALUE *value_list,
         size_t count);
 
+    BACNET_STACK_EXPORT
+    bool cov_value_list_encode_real(
+        BACNET_PROPERTY_VALUE * value_list,
+        float value,
+        bool in_alarm,
+        bool fault,
+        bool overridden,
+        bool out_of_service);
+    BACNET_STACK_EXPORT
+    bool cov_value_list_encode_enumerated(
+        BACNET_PROPERTY_VALUE * value_list,
+        uint32_t value,
+        bool in_alarm,
+        bool fault,
+        bool overridden,
+        bool out_of_service);
+    BACNET_STACK_EXPORT
+    bool cov_value_list_encode_unsigned(
+        BACNET_PROPERTY_VALUE * value_list,
+        uint32_t value,
+        bool in_alarm,
+        bool fault,
+        bool overridden,
+        bool out_of_service);
+
 #ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT
