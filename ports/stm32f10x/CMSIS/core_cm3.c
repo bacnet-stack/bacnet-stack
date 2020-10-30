@@ -1,26 +1,25 @@
-/**************************************************************************/ /**
-                                                                              * @file     core_cm3.c
-                                                                              * @brief    CMSIS Cortex-M3 Core Peripheral Access Layer Source File
-                                                                              * @version  V1.30
-                                                                              * @date     30. October 2009
-                                                                              *
-                                                                              * @note
-                                                                              * Copyright (C) 2009 ARM Limited. All rights reserved.
-                                                                              *
-                                                                              * @par
-                                                                              * ARM Limited (ARM) is supplying this software for use with Cortex-M
-                                                                              * processor based microcontrollers.  This file can be freely distributed
-                                                                              * within development tools that are supporting such ARM based processors.
-                                                                              *
-                                                                              * @par
-                                                                              * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
-                                                                              * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
-                                                                              * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
-                                                                              * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
-                                                                              * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
-                                                                              *
-                                                                              ******************************************************************************/
-
+/**
+ * @file     core_cm3.c
+ * @brief    CMSIS Cortex-M3 Core Peripheral Access Layer Source File
+ * @version  V1.30
+ * @date     30. October 2009
+ *
+ * @note
+ * Copyright (C) 2009 ARM Limited. All rights reserved.
+ *
+ * @par
+ * ARM Limited (ARM) is supplying this software for use with Cortex-M
+ * processor based microcontrollers.  This file can be freely distributed
+ * within development tools that are supporting such ARM based processors.
+ *
+ * @par
+ * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+ * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+ * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+ * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+ *
+ */
 #include <stdint.h>
 
 /* define compiler specific symbols */
@@ -689,7 +688,7 @@ uint32_t __STREXB(uint8_t value, uint8_t *addr)
     uint32_t result = 0;
 
     __ASM volatile("strexb %0, %2, [%1]"
-                   : "=r"(result)
+                   : "=&r"(result)
                    : "r"(addr), "r"(value));
     return (result);
 }
@@ -708,7 +707,7 @@ uint32_t __STREXH(uint16_t value, uint16_t *addr)
     uint32_t result = 0;
 
     __ASM volatile("strexh %0, %2, [%1]"
-                   : "=r"(result)
+                   : "=&r"(result)
                    : "r"(addr), "r"(value));
     return (result);
 }
