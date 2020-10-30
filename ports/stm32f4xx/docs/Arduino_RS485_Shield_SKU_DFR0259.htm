@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!-- Header -->
+<head>
+	<title>
+		Arduino_RS485_Shield_SKU__DFR0259-DFRobot
+	</title>
+	<meta name="description" content="wiki:Thiis RS485 shield designed for the Arduino is able to convert UART/Serial to RS48.  This board allows Arduino communicate with industrial device." />
+	<meta name="keywords" content="RS485 Shield wiki, arduino shield wiki, arduino rs485 shield wiki" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+
+<body>
+
+<h2 id="introduction">Introduction</h2>
+<p>This is an <a href="https://www.dfrobot.com/product-1024.html"><strong>Arduino RS485 shield</strong></a>, especially designed for the <a href="https://www.dfrobot.com/category-104.html"><strong>Arduino controller board</strong></a>. It can easily convert the UART to the RS485. This shield integrates a standard RS485 port ,a mini RS485 port(PH2.0 interface), RS485 headers, and provides the welding areas, so it&#39;s convenient for your DIY design.One key changes automatic and manual transmission mode, which expand the scope of application.</p>
+<h2 id="specification">Specification</h2>
+<ul>
+<li>Power module: +5.0V</li>
+<li>Module size: 55mmx53mm</li>
+<li>16 digital IO port (including a I2C interface)</li>
+<li>6 analog IO port and power</li>
+<li>Operation/programming mode switch</li>
+<li>Automatic/manual transceiver mode switch (When in manual transceiver mode, the enable end is the 2nd digital IO port)</li>
+<li>Transceiver indicating LED</li>
+<li>Standard RS485 interface, mini RS485 interface(PH2.0) and RS485 pins</li>
+<li>Weldable area</li>
+<li>Reset button</li>
+</ul>
+
+<h2 id="pin-definition">Pin Definition</h2>
+<p><img src="images/RS485-EN.png" alt="RS485 Shield (SKU:DFR0259)" title="RS485 Shield (SKU:DFR0259)" width="100%" height="100%">
+ <strong>Operation and programming mode switch</strong>: To OFF, you can download the program for the Arduino controller. To ON , the shield will convert the UART to the RS485.
+ <strong>Transceiver mode switch</strong>: To AUTO, the shield is automatically sending and receiving data, so you do not care about operation timing; To MANU, the shield is in manual transceiver status, and the enable end is the 2nd digital IO port. Enabling high-side power Ping to sending state while the low level of the receiving state.</p>
+
+<h2 id="simple-application">Simple Application</h2>
+<h3 id="use-setups">Use Setups</h3>
+<p>When the RS485 shield is installed on your Arduino controller, and then you will wire the RS485 shiled with USB-RS485 converter to connect terminals, namely: A pair of A, B on B, GND on GND, then download the following sample code (Note: Downloading code, run / program mode switch must hit the OFF position, otherwise it will lead to the download fails. When downloaded,it is complete to ON, and the shield to normal use). Open serial monitor of Arduino IDE, find USB-RS485 converter corresponding serial port, send characters &quot;V&quot;, you can see the LED status may change, and reply &quot;OK&quot;.
+ <img src="images/DSC1093-2.jpg" alt="DSC1093-2.jpg" title="DSC1093-2.jpg" width="100%" height="100%"></p>
+<h3 id="sample-code">Sample Code</h3>
+<p>Automatic Transmission Mode</p>
+<pre><code>/*
+# This sample codes is for testing the RS485 shiled(automatic transmission mode).
+# Editor : YouYou
+# Date   : 2013.9.16
+# Ver    : 0.1
+# Product: RS485 shield
+# SKU    : DFR0259
+*/
+int led = 13;
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(led,OUTPUT);
+}
+void loop()
+{
+  int temp;
+  if(Serial.available())
+  {
+    temp=Serial.read();
+     if(temp==&#39;V&#39;){
+      digitalWrite(led,1-digitalRead(led));
+    Serial.println(&quot;OK&quot;);
+     }
+  }
+}</code></pre><p>Manual Transmission Mode</p>
+<pre><code>/*
+# This sample codes is for testing the RS485 shiled(manual transmission mode).
+# EN=2;
+# Editor : YouYou
+# Date   : 2013.9.16
+# Ver    : 0.1
+# Product: RS485 shield
+# SKU    : DFR0259
+*/
+int led = 13;
+int EN = 2;  //Definition RS485 shield enable terminal (the 2nd digital IO ports),
+//high for the sending state, the low level of receiving state
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(led,OUTPUT);
+  pinMode(EN,OUTPUT);
+}
+void loop()
+{
+  int temp;
+  digitalWrite(EN,LOW);    //Enable low, RS485 shield waiting to receive data
+  if(Serial.available())
+  {
+    temp=Serial.read();
+     if(temp==&#39;V&#39;)
+     {
+      digitalWrite(led,1-digitalRead(led));
+      digitalWrite(EN,HIGH);    //Enable high, RS485 shield waiting to transmit data
+      Serial.println(&quot;OK&quot;);
+      delay(10);    //Delay for some time, waiting for data transmitted
+     }
+  }
+}</code></pre>
+
+<h2 id="document">Schematic</h2>
+ <p><img src="images/DFR0259.jpg" alt="DFR0259.jpg" title="DFR0259.jpg" width="100%" height="100%"></p>
+</body>
+</html>
