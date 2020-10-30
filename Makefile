@@ -126,6 +126,10 @@ at91sam7s: ports/at91sam7s/Makefile
 stm32f10x: ports/stm32f10x/Makefile
 	$(MAKE) -C ports/stm32f10x clean all
 
+.PHONY: stm32f4xx
+stm32f4xx: ports/stm32f4xx/Makefile
+	$(MAKE) -C ports/stm32f4xx clean all
+
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
