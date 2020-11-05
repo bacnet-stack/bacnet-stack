@@ -62,66 +62,89 @@ CFLAGS  = $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(STANDARDS) $(INCLUDES) $(DE
 .EXPORT_ALL_VARIABLES:
 
 all: library demos router-ipv6 ${DEMO_LINUX}
-.PHONY : all library demos router gateway router-ipv6 clean
+.PHONY : all library demos router-ipv6 clean
 
+.PHONY: library
 library:
 	$(MAKE) -s -C lib all
 
 demos:
 	$(MAKE) -C demo all
 
+.PHONY: demos
 gateway:
 	$(MAKE) -B -s -C demo gateway
 
+.PHONY: win32
+win32:
+	$(MAKE) -s BACNET_PORT=win32 -C demo all
+
+.PHONY: server
 server:
 	$(MAKE) -j -B -C demo server
 
+.PHONY: mstpcap
 mstpcap:
 	$(MAKE) -B -C demo mstpcap
 
+.PHONY: mstpcrc
 mstpcrc: library
 	$(MAKE) -B -C demo mstpcrc
 
+.PHONY: iam
 iam:
 	$(MAKE) -B -C demo iam
 
+.PHONY: uevent
 uevent:
 	$(MAKE) -B -C demo uevent
 
+.PHONY: writepropm
 writepropm:
 	$(MAKE) -s -B -C demo writepropm
 
+.PHONY: abort
 abort:
 	$(MAKE) -B -C demo abort
 
+.PHONY: error
 error:
 	$(MAKE) -B -C demo error
 
+.PHONY: router
 router: library
 	$(MAKE) -s -C demo router
 
+.PHONY: router-ipv6
 router-ipv6: library
 	$(MAKE) -B -s -C demo router-ipv6
 
 # Add "ports" to the build, if desired
+.PHONY: ports
 ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x
 	@echo "Built the ARM7 and AVR ports"
 
+.PHONY: atmega168
 atmega168: ports/atmega168/Makefile
 	$(MAKE) -s -C ports/atmega168 clean all
 
+.PHONY: at91sam7s
 at91sam7s: ports/at91sam7s/Makefile
 	$(MAKE) -s -C ports/at91sam7s clean all
 
+.PHONY: stm32f10x
 stm32f10x: ports/stm32f10x/Makefile
 	$(MAKE) -s -C ports/stm32f10x clean all
 
+.PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
 
+.PHONY: bdk-atxx4-mstp
 bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 	$(MAKE) -s -C ports/bdk-atxx4-mstp clean all
 
+.PHONY: clean
 clean:
 	$(MAKE) -s -C lib clean
 	$(MAKE) -s -C demo clean
@@ -129,6 +152,7 @@ clean:
 	$(MAKE) -s -C demo/router-ipv6 clean
 	$(MAKE) -s -C demo/gateway clean
 
+.PHONY: test
 test:
 	$(MAKE)make -s -C test clean all report
 	$(MAKE)make -s -C demo/objects clean all report

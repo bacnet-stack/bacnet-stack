@@ -1,3 +1,4 @@
+*.log
 *.a
 *.o
 *.exe
@@ -64,3 +65,5 @@ address_cache
 /_build/*
 CMakeLists.txt.user
 /out/*
+Obj/
+Release/
