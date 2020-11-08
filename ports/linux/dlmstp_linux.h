@@ -26,7 +26,7 @@
 
 #include "bacnet/datalink/mstp.h"
 /*#include "bacnet/datalink/dlmstp.h" */
-#include "bits/pthreadtypes.h"
+#include <sys/types.h>
 #include <semaphore.h>
 
 #include <stdbool.h>
