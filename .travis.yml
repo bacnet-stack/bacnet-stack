@@ -63,6 +63,7 @@ jobs:
         - arm-none-eabi-gcc --version
       script:
         - make stm32f10x
+        - make stm32f4xx
         - make at91sam7s
     - stage: ports-avr
       os: linux
