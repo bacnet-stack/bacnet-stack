@@ -74,6 +74,8 @@ static struct in_addr BIP_Address;
 static struct in_addr BIP_Broadcast_Addr;
 /* enable debugging */
 static bool BIP_Debug = false;
+/* interface name */
+static char BIP_Interface_Name[IF_NAMESIZE] = { 0 };
 
 /**
  * @brief Print the IPv4 address with debug info
@@ -628,14 +630,13 @@ static void parseRoutes(struct nlmsghdr *nlHdr, struct route_info *rtInfo)
  */
 static char *ifname_default(void)
 {
-    static char ifName[IF_NAMESIZE] = { 0 };
     struct nlmsghdr *nlMsg = NULL;
     struct route_info *rtInfo = NULL;
     char msgBuf[8192] = { 0 };
     int sock, len, msgSeq = 0;
 
-    if (ifName[0] != 0) {
-        return ifName;
+    if (BIP_Interface_Name[0] != 0) {
+        return BIP_Interface_Name;
     }
     /* Create Socket */
     if ((sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE)) < 0) {
@@ -657,13 +658,13 @@ static char *ifname_default(void)
     /* Send the request */
     if (send(sock, nlMsg, nlMsg->nlmsg_len, 0) < 0) {
         fprintf(stderr, "BIP: Write To Socket Failed...\n");
-        return ifName;
+        return BIP_Interface_Name;
     }
     /* Read the response */
     if ((len = readNlSock(sock, msgBuf, sizeof(msgBuf), msgSeq, getpid())) <
         0) {
         fprintf(stderr, "BIP: Read From Socket Failed...\n");
-        return ifName;
+        return BIP_Interface_Name;
     }
     /* Parse and print the response */
     rtInfo = (struct route_info *)malloc(sizeof(struct route_info));
@@ -674,17 +675,18 @@ static char *ifname_default(void)
         memset(rtInfo, 0, sizeof(struct route_info));
         parseRoutes(nlMsg, rtInfo);
         printRoute(rtInfo);
-        if (ifName[0] == 0) {
+        if (BIP_Interface_Name[0] == 0) {
             if ((rtInfo->dstAddr == 0) && (rtInfo->ifName[0] != 0)) {
                 /* default route */
-                memcpy(ifName, rtInfo->ifName, sizeof(ifName));
+                memcpy(BIP_Interface_Name, rtInfo->ifName,
+                    sizeof(BIP_Interface_Name));
             }
         }
     }
     free(rtInfo);
     close(sock);
 
-    return ifName;
+    return BIP_Interface_Name;
 }
 
 /**
@@ -770,13 +772,14 @@ bool bip_init(char *ifname)
     int sock_fd = -1;
 
     if (ifname) {
+        strncpy(BIP_Interface_Name, ifname, sizeof(BIP_Interface_Name));
         bip_set_interface(ifname);
     } else {
         bip_set_interface(ifname_default());
     }
     if (BIP_Address.s_addr == 0) {
         fprintf(stderr, "BIP: Failed to get an IP address from %s!\n",
-            ifname ? ifname : ifname_default());
+            BIP_Interface_Name);
         fflush(stderr);
         return false;
     }
@@ -804,6 +807,10 @@ bool bip_init(char *ifname)
         BIP_Socket = -1;
         return false;
     }
+    /* Bind to the proper interface to send without default gateway */
+    setsockopt(sock_fd, SOL_SOCKET, SO_BINDTODEVICE, BIP_Interface_Name,
+        sizeof(BIP_Interface_Name));
+
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
