@@ -43,6 +43,9 @@
 /* objects */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/ai.h"
+#if (BACNET_PROTOCOL_REVISION >= 17)
+#include "bacnet/basic/object/netport.h"
+#endif
 
 /* forward prototype */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -71,6 +74,12 @@ static struct my_object_functions {
         Analog_Input_Object_Name, Analog_Input_Read_Property,
         Analog_Input_Write_Property, Analog_Input_Property_Lists, NULL, NULL,
         NULL },
+#if (BACNET_PROTOCOL_REVISION >= 17)
+    { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
+        Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
+        Network_Port_Object_Name, Network_Port_Read_Property,
+        Network_Port_Write_Property, Network_Port_Property_Lists },
+#endif
     { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 };
 

@@ -23,6 +23,8 @@
 #include "at91sam7s256.h"
 #include "isr.h"
 
+#if defined(__GNUC__)
+/* GCC */
 #define IRQ_MASK 0x00000080
 #define FIQ_MASK 0x00000040
 #define INT_MASK (IRQ_MASK | FIQ_MASK)
@@ -91,3 +93,4 @@ unsigned enableFIQ(void)
     __set_cpsr(_cpsr & ~FIQ_MASK);
     return _cpsr;
 }
+#endif

@@ -133,7 +133,7 @@ static inline void bacnet_init(void)
 #if defined(BACDL_MSTP)
     uint8_t MAC_Address = 0x55;
 
-    RS485_Set_Baud_Rate(38400);
+    rs485_baud_rate_set(38400);
     dlmstp_set_mac_address(MAC_Address);
     dlmstp_set_max_master(127);
     dlmstp_set_max_info_frames(1);

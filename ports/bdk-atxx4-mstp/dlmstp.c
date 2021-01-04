@@ -1412,3 +1412,13 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
 
     return;
 }
+
+uint8_t dlmstp_max_info_frames_limit(void)
+{
+    return MSTP_PDU_PACKET_COUNT;
+}
+
+uint8_t dlmstp_max_master_limit(void)
+{
+    return 127;
+}

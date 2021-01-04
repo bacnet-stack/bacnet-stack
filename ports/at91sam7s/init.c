@@ -21,12 +21,32 @@
 /* Include the board file description */
 #include "board.h"
 
+#if defined(__ICCARM__)
+//------------------------------------------------------------------------------
+//         Internal functions
+//------------------------------------------------------------------------------
+static void AT91F_Spurious_handler( void )
+{
+    while (1);
+}
+
+static void AT91F_Default_FIQ_handler( void )
+{
+    while (1);
+}
+
+static void AT91F_Default_IRQ_handler( void )
+{
+    while (1);
+}
+#else
 /* The following functions must be write in ARM mode this function called
  * directly */
 /* by exception vector */
 extern void AT91F_Spurious_handler(void);
 extern void AT91F_Default_IRQ_handler(void);
 extern void AT91F_Default_FIQ_handler(void);
+#endif
 
 /**----------------------------------------------------------------------------
  */

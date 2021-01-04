@@ -61,6 +61,7 @@ DEMOSRC = ai.c \
 	bi.c \
 	bv.c \
 	device.c \
+	netport.c \
 	$(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \

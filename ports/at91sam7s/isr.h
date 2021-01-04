@@ -32,6 +32,8 @@
 #include <intrinsics.h>
 #define isr_enable() __enable_interrupt()
 #define isr_disable() __disable_interrupt()
+#define __get_cpsr __get_CPSR
+#define __set_cpsr __set_CPSR
 #endif
 #if defined(__GNUC__)
 #define isr_enable() enableIRQ();enableFIQ();

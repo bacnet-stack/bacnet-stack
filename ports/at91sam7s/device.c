@@ -39,6 +39,9 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
 /* objects */
+#if (BACNET_PROTOCOL_REVISION >= 17)
+#include "bacnet/basic/object/netport.h"
+#endif
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/av.h"
@@ -64,11 +67,12 @@ static struct my_object_functions {
     read_property_function Object_Read_Property;
     write_property_function Object_Write_Property;
     rpm_property_lists_function Object_RPM_List;
-} Object_Table[] = { { OBJECT_DEVICE, NULL, /* don't init - recursive! */
-                         Device_Count, Device_Index_To_Instance,
-                         Device_Valid_Object_Instance_Number,
-                         Device_Object_Name, Device_Read_Property_Local,
-                         Device_Write_Property_Local, Device_Property_Lists },
+} Object_Table[] = {
+    { OBJECT_DEVICE, NULL, /* don't init - recursive! */
+        Device_Count, Device_Index_To_Instance,
+        Device_Valid_Object_Instance_Number,
+        Device_Object_Name, Device_Read_Property_Local,
+        Device_Write_Property_Local, Device_Property_Lists },
     { OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
         Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
         Analog_Input_Object_Name, Analog_Input_Read_Property, NULL,
@@ -85,6 +89,12 @@ static struct my_object_functions {
         Binary_Value_Index_To_Instance, Binary_Value_Valid_Instance,
         Binary_Value_Object_Name, Binary_Value_Read_Property,
         Binary_Value_Write_Property, Binary_Value_Property_Lists },
+#if (BACNET_PROTOCOL_REVISION >= 17)
+    { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
+        Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
+        Network_Port_Object_Name, Network_Port_Read_Property,
+        Network_Port_Write_Property, Network_Port_Property_Lists },
+#endif
     { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL } };
 
 /* note: you really only need to define variables for
@@ -769,7 +779,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case 9600:
             apdu_len =
-                encode_application_unsigned(&apdu[0], RS485_Get_Baud_Rate());
+                encode_application_unsigned(&apdu[0], rs485_baud_rate());
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -896,9 +906,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case 9600:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
                 if (value.type.Unsigned_Int <= 115200) {
-                    RS485_Set_Baud_Rate(value.type.Unsigned_Int);
-                    status = true;
-                } else {
+                    status = rs485_baud_rate_set(value.type.Unsigned_Int);
+                }
+                if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
