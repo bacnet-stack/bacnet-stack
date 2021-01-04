@@ -41,6 +41,9 @@
 #include "bacnet/rpm.h"
 /* basic objects, services, TSM, and datalink */
 #include "bacnet/basic/object/device.h"
+#if (BACNET_PROTOCOL_REVISION >= 17)
+#include "bacnet/basic/object/netport.h"
+#endif
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -239,6 +242,21 @@ void handler_read_property_multiple(uint8_t *service_request,
                     (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
                     rpmdata.object_instance = Device_Object_Instance_Number();
                 }
+#if (BACNET_PROTOCOL_REVISION >= 17)
+                /* When the object-type in the Object Identifier parameter
+                   contains the value NETWORK_PORT and the instance in the
+                   'Object Identifier' parameter contains the value 4194303,
+                   the responding BACnet-user shall treat the Object Identifier
+                   as if it correctly matched the local Network Port object
+                   representing the network port through which the request was
+                   received. This allows the network port instance of the
+                   network port that was used to receive the request to be
+                   determined. */
+                if ((rpmdata.object_type == OBJECT_NETWORK_PORT) &&
+                    (rpmdata.object_instance == BACNET_MAX_INSTANCE)) {
+                    rpmdata.object_instance = Network_Port_Index_To_Instance(0);
+                }
+#endif
 
                 /* Stick this object id into the reply - if it will fit */
                 len = rpm_ack_encode_apdu_object_begin(&Temp_Buf[0], &rpmdata);
