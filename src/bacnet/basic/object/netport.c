@@ -40,6 +40,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacint.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -599,7 +600,9 @@ bool Network_Port_MAC_Address(
             case PORT_TYPE_BIP:
                 memcpy(
                     &ip_mac[0], &Object_List[index].Network.IPv4.IP_Address, 4);
-                memcpy(&ip_mac[4], &Object_List[index].Network.IPv4.Port, 2);
+                /* convert port from host-byte-order to network-byte-order */
+                encode_unsigned16(&ip_mac[4],
+                    &Object_List[index].Network.IPv4.Port);
                 mac = &ip_mac[0];
                 mac_len = sizeof(ip_mac);
                 break;
