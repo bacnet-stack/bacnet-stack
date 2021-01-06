@@ -1641,3 +1641,13 @@ bool dlmstp_sole_master(void)
 
     return false;
 }
+
+uint8_t dlmstp_max_info_frames_limit(void)
+{
+    return MSTP_PDU_PACKET_COUNT;
+}
+
+uint8_t dlmstp_max_master_limit(void)
+{
+    return 127;
+}
