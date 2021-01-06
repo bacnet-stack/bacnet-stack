@@ -91,6 +91,7 @@ HALSRC = main.c \
 	bacnet.c \
 	bname.c \
 	device.c \
+	netport.c \
 	ai.c \
 	av.c \
 	bi.c \
