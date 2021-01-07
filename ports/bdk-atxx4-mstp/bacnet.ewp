@@ -266,6 +266,7 @@
                     <state>BACAPP_UNSIGNED</state>
                     <state>BACAPP_ENUMERATED</state>
                     <state>BACAPP_CHARACTER_STRING</state>
+                    <state>BACAPP_OCTET_STRING</state>
                     <state>WRITE_PROPERTY</state>
                 </option>
                 <option>
@@ -1331,6 +1332,7 @@
                     <state>BACAPP_UNSIGNED</state>
                     <state>BACAPP_ENUMERATED</state>
                     <state>BACAPP_CHARACTER_STRING</state>
+                    <state>BACAPP_OCTET_STRING</state>
                     <state>WRITE_PROPERTY</state>
                 </option>
                 <option>
@@ -2396,6 +2398,7 @@
                     <state>BACAPP_UNSIGNED</state>
                     <state>BACAPP_ENUMERATED</state>
                     <state>BACAPP_CHARACTER_STRING</state>
+                    <state>BACAPP_OCTET_STRING</state>
                     <state>WRITE_PROPERTY</state>
                 </option>
                 <option>
@@ -3461,6 +3464,7 @@
                     <state>BACAPP_UNSIGNED</state>
                     <state>BACAPP_ENUMERATED</state>
                     <state>BACAPP_CHARACTER_STRING</state>
+                    <state>BACAPP_OCTET_STRING</state>
                     <state>WRITE_PROPERTY</state>
                 </option>
                 <option>

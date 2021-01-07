@@ -1109,6 +1109,9 @@
     <name>$PROJ_DIR$\device.c</name>
   </file>
   <file>
+    <name>$PROJ_DIR$\netport.c</name>
+  </file>
+  <file>
     <name>$PROJ_DIR$\dlmstp.c</name>
   </file>
   <file>
