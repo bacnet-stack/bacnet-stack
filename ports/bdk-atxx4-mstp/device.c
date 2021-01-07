@@ -42,6 +42,9 @@
 #include "bacnet/proplist.h"
 /* objects */
 #include "bacnet/basic/object/device.h"
+#if (BACNET_PROTOCOL_REVISION >= 17)
+#include "bacnet/basic/object/netport.h"
+#endif
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/av.h"
 #include "bacnet/basic/object/bi.h"
