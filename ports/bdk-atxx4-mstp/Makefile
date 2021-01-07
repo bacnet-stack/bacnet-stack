@@ -91,6 +91,7 @@ HALSRC = main.c \
 	bacnet.c \
 	bname.c \
 	device.c \
+	netport.c \
 	ai.c \
 	av.c \
 	bi.c \
@@ -218,6 +219,7 @@ BFLAGS += -DBACAPP_OBJECT_ID
 BFLAGS += -DBACAPP_UNSIGNED
 BFLAGS += -DBACAPP_ENUMERATED
 BFLAGS += -DBACAPP_CHARACTER_STRING
+BFLAGS += -DBACAPP_OCTET_STRING
 BFLAGS += -DWRITE_PROPERTY
 
 ## Compile options for C files

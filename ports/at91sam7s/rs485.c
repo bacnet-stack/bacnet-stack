@@ -118,7 +118,7 @@ void RS485_Cleanup(void)
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-uint32_t RS485_Get_Baud_Rate(void)
+uint32_t rs485_baud_rate(void)
 {
     return RS485_Baud;
 }
@@ -129,7 +129,7 @@ uint32_t RS485_Get_Baud_Rate(void)
  * ALGORITHM:   none
  * NOTES:       none
  *****************************************************************************/
-bool RS485_Set_Baud_Rate(uint32_t baud)
+bool rs485_baud_rate_set(uint32_t baud)
 {
     bool valid = true;
 
@@ -266,7 +266,7 @@ int main(void)
     unsigned i = 0;
     uint8_t DataRegister;
 
-    RS485_Set_Baud_Rate(38400);
+    rs485_baud_rate_set(38400);
     RS485_Initialize();
     /* receive task */
     for (;;) {

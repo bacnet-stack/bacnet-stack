@@ -696,6 +696,9 @@
     <Compile Include="device.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="netport.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="dlmstp.c">
       <SubType>compile</SubType>
       <CustomCompilationSetting Condition="'$(Configuration)' == 'Debug'">

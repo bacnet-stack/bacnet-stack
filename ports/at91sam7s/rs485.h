@@ -49,9 +49,9 @@ extern "C" {
 
     void RS485_Turnaround_Delay(
         void);
-    uint32_t RS485_Get_Baud_Rate(
+    uint32_t rs485_baud_rate(
         void);
-    bool RS485_Set_Baud_Rate(
+    bool rs485_baud_rate_set(
         uint32_t baud);
 
 #ifdef __cplusplus

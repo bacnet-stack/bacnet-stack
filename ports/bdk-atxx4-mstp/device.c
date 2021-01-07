@@ -42,6 +42,9 @@
 #include "bacnet/proplist.h"
 /* objects */
 #include "bacnet/basic/object/device.h"
+#if (BACNET_PROTOCOL_REVISION >= 17)
+#include "bacnet/basic/object/netport.h"
+#endif
 #include "bacnet/basic/object/ai.h"
 #include "bacnet/basic/object/av.h"
 #include "bacnet/basic/object/bi.h"
@@ -64,11 +67,12 @@ static struct my_object_functions {
     read_property_function Object_Read_Property;
     write_property_function Object_Write_Property;
     rpm_property_lists_function Object_RPM_List;
-} Object_Table[] = { { OBJECT_DEVICE, NULL, /* don't init - recursive! */
-                         Device_Count, Device_Index_To_Instance,
-                         Device_Valid_Object_Instance_Number,
-                         Device_Object_Name, Device_Read_Property_Local,
-                         Device_Write_Property_Local, Device_Property_Lists },
+} Object_Table[] = {
+    { OBJECT_DEVICE, NULL, /* don't init - recursive! */
+        Device_Count, Device_Index_To_Instance,
+        Device_Valid_Object_Instance_Number,
+        Device_Object_Name, Device_Read_Property_Local,
+        Device_Write_Property_Local, Device_Property_Lists },
     { OBJECT_ANALOG_INPUT, Analog_Input_Init, Analog_Input_Count,
         Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
         Analog_Input_Object_Name, Analog_Input_Read_Property, NULL,
@@ -85,6 +89,12 @@ static struct my_object_functions {
         Binary_Output_Index_To_Instance, Binary_Output_Valid_Instance,
         Binary_Output_Object_Name, Binary_Output_Read_Property,
         Binary_Output_Write_Property, Binary_Output_Property_Lists },
+#if (BACNET_PROTOCOL_REVISION >= 17)
+    { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
+        Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
+        Network_Port_Object_Name, Network_Port_Read_Property,
+        Network_Port_Write_Property, Network_Port_Property_Lists },
+#endif
     { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL } };
 
 /* note: you really only need to define variables for

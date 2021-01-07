@@ -25,6 +25,7 @@ PLATFORM_SRC = \
 	$(PLATFORM_DIR)/bo.c \
 	$(PLATFORM_DIR)/device.c \
 	$(PLATFORM_DIR)/dlmstp.c \
+	$(PLATFORM_DIR)/netport.c \
 	$(PLATFORM_DIR)/led.c \
 	$(PLATFORM_DIR)/rs485.c \
 	$(PLATFORM_DIR)/stm32f10x_it.c \
