@@ -61,8 +61,13 @@ all: library demos
 library:
 	$(MAKE) -s -C lib all
 
+.PHONY: demos
 demos:
 	$(MAKE) -s -C demo all
+
+.PHONY: win32
+win32:
+	$(MAKE) -s BACNET_PORT=win32 -C demo all
 
 gateway:
 	$(MAKE) -B -s -C demo gateway
