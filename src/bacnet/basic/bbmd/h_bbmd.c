@@ -37,6 +37,7 @@
 #include <stdbool.h> /* for the standard bool type. */
 #include <string.h> /* for memcpy */
 #include "bacnet/bacdcode.h"
+#include "bacnet/npdu.h"
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/sys/debug.h"
@@ -663,6 +664,7 @@ int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
     int function_len = 0;
     uint8_t *pdu = NULL;
     uint16_t pdu_len = 0;
+    uint8_t *npdu = NULL;
     uint16_t npdu_len = 0;
     bool send_result = false;
     uint16_t offset = 0;
@@ -765,8 +767,20 @@ int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
                 if (function_len) {
                     bvlc_ip_address_to_bacnet_local(src, addr);
                     offset = header_len + function_len - npdu_len;
-                    debug_print_npdu(
-                        "Original-Broadcast-NPDU", offset, npdu_len);
+                    /* BTL test: verifies that the IUT will quietly discard any
+                       Confirmed-Request-PDU, whose destination address is a
+                       multicast or broadcast address, received from the
+                       network layer. */
+                    npdu = &mtu[offset];
+                    if (npdu_confirmed_service(npdu, npdu_len)) {
+                        offset = 0;
+                        debug_print_string(
+                            "Original-Broadcast-NPDU: "
+                            "Confirmed Service! Discard!");
+                    } else {
+                        debug_print_npdu(
+                            "Original-Broadcast-NPDU", offset, npdu_len);
+                    }
                 } else {
                     debug_print_string(
                         "Original-Broadcast-NPDU: Unable to decode!");
@@ -1075,9 +1089,21 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                    shall be sent directly to each foreign device currently in
                    the BBMD's FDT also using the BVLL Forwarded-NPDU message. */
                 npdu = &mtu[offset];
-                bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
-                bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
-                debug_print_npdu("Original-Broadcast-NPDU", offset, npdu_len);
+                /* BTL test: verifies that the IUT will quietly discard any
+                   Confirmed-Request-PDU, whose destination address is a
+                   multicast or broadcast address, received from the
+                   network layer. */
+                if (npdu_confirmed_service(npdu, npdu_len)) {
+                    offset = 0;
+                    debug_print_string(
+                        "Original-Broadcast-NPDU: "
+                        "Confirmed Service! Discard!");
+                } else {
+                    bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
+                    bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
+                    debug_print_npdu("Original-Broadcast-NPDU",
+                        offset, npdu_len);
+                }
             } else {
                 debug_print_string(
                     "Original-Broadcast-NPDU: Unable to decode!");

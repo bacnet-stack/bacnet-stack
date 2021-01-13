@@ -615,6 +615,7 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
     int function_len = 0;
     uint8_t *pdu = NULL;
     uint16_t pdu_len = 0;
+    uint8_t *npdu = NULL;
     uint16_t npdu_len = 0;
     bool send_result = false;
     uint16_t offset = 0;
@@ -696,6 +697,18 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
                         bbmd6_add_vmac(vmac_src, addr);
                         bvlc6_vmac_address_set(src, vmac_src);
                         offset = header_len + (function_len - npdu_len);
+                        /* BTL test: verifies that the IUT will quietly
+                           discard any Confirmed-Request-PDU, whose
+                           destination address is a multicast or
+                           broadcast address, received from the
+                           network layer. */
+                        npdu = &mtu[offset];
+                        if (npdu_confirmed_service(npdu, npdu_len)) {
+                            offset = 0;
+                            debug_printf(
+                                "BIP6: Original-Broadcast-NPDU: "
+                                "Confirmed Service! Discard!");
+                        }
                     } else {
                         debug_printf("BIP6: Original-Broadcast-NPDU: Unable to "
                                      "decode!\n");
@@ -853,18 +866,30 @@ int bvlc6_bbmd_enabled_handler(BACNET_IP6_ADDRESS *addr,
                 if (function_len) {
                     offset = header_len + (function_len - npdu_len);
                     npdu = &mtu[offset];
-                    /*  Upon receipt of a BVLL Original-Broadcast-NPDU
-                        message from the local multicast domain, a BBMD
-                        shall construct a BVLL Forwarded-NPDU message and
-                        unicast it to each entry in its BDT. In addition,
-                        the constructed BVLL Forwarded-NPDU message shall
-                        be unicast to each foreign device currently in
-                        the BBMD's FDT */
-                    BVLC6_Buffer_Len = bvlc6_encode_forwarded_npdu(
-                        &BVLC6_Buffer[0], sizeof(BVLC6_Buffer), vmac_src, addr,
-                        npdu, npdu_len);
-                    bbmd6_send_pdu_bdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
-                    bbmd6_send_pdu_fdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
+                    /* BTL test: verifies that the IUT will quietly
+                       discard any Confirmed-Request-PDU, whose
+                       destination address is a multicast or
+                       broadcast address, received from the
+                       network layer. */
+                    if (npdu_confirmed_service(npdu, npdu_len)) {
+                        offset = 0;
+                        debug_printf(
+                            "BIP6: Original-Broadcast-NPDU: "
+                            "Confirmed Service! Discard!");
+                    } else {
+                        /*  Upon receipt of a BVLL Original-Broadcast-NPDU
+                            message from the local multicast domain, a BBMD
+                            shall construct a BVLL Forwarded-NPDU message and
+                            unicast it to each entry in its BDT. In addition,
+                            the constructed BVLL Forwarded-NPDU message shall
+                            be unicast to each foreign device currently in
+                            the BBMD's FDT */
+                        BVLC6_Buffer_Len = bvlc6_encode_forwarded_npdu(
+                            &BVLC6_Buffer[0], sizeof(BVLC6_Buffer), vmac_src,
+                            addr, npdu, npdu_len);
+                        bbmd6_send_pdu_bdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
+                        bbmd6_send_pdu_fdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
+                    }
                     if (!bbmd6_address_match_self(addr)) {
                         /* The Virtual MAC address table shall be updated
                            using the respective parameter values of the

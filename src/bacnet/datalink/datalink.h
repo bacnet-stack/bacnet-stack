@@ -84,6 +84,7 @@ void routed_get_my_address(
 #elif defined(BACDL_BIP6)
 #include "bacnet/datalink/bip6.h"
 #include "bacnet/datalink/bvlc6.h"
+#include "bacnet/basic/bbmd6/h_bbmd6.h"
 #define datalink_init bip6_init
 #define datalink_send_pdu bip6_send_pdu
 #define datalink_receive bip6_receive
