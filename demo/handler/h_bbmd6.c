@@ -41,6 +41,7 @@
 #include "bvlc6.h"
 #include "debug.h"
 #include "device.h"
+#include "npdu.h"
 #include "vmac.h"
 #ifndef TEST
 #include "net.h"
@@ -667,19 +668,24 @@ static int handler_bbmd6_for_bbmd(
                     if (function_len) {
                     offset = header_len + (function_len - npdu_len);
                     npdu = &mtu[offset];
-                    /*  Upon receipt of a BVLL Original-Broadcast-NPDU
-                        message from the local multicast domain, a BBMD
-                        shall construct a BVLL Forwarded-NPDU message and
-                        unicast it to each entry in its BDT. In addition,
-                        the constructed BVLL Forwarded-NPDU message shall
-                        be unicast to each foreign device currently in
-                        the BBMD's FDT */
-                    BVLC6_Buffer_Len = bvlc6_encode_forwarded_npdu(
-                        &BVLC6_Buffer[0], sizeof(BVLC6_Buffer),
-                        vmac_src, addr,
-                        npdu, npdu_len);
-                    bbmd6_send_pdu_bdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
-                    bbmd6_send_pdu_fdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
+                    if (npdu_confirmed_service(npdu, npdu_len)) {
+                        /* ignore confirmed service from broadcast */
+                        offset = 0;
+                    } else {
+                        /*  Upon receipt of a BVLL Original-Broadcast-NPDU
+                            message from the local multicast domain, a BBMD
+                            shall construct a BVLL Forwarded-NPDU message and
+                            unicast it to each entry in its BDT. In addition,
+                            the constructed BVLL Forwarded-NPDU message shall
+                            be unicast to each foreign device currently in
+                            the BBMD's FDT */
+                        BVLC6_Buffer_Len = bvlc6_encode_forwarded_npdu(
+                            &BVLC6_Buffer[0], sizeof(BVLC6_Buffer),
+                            vmac_src, addr,
+                            npdu, npdu_len);
+                        bbmd6_send_pdu_bdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
+                        bbmd6_send_pdu_fdt(&BVLC6_Buffer[0], BVLC6_Buffer_Len);
+                    }
                     if (!bip6_address_match_self(addr)) {
                         /* The Virtual MAC address table shall be updated
                            using the respective parameter values of the
@@ -783,6 +789,7 @@ static int handler_bbmd6_for_non_bbmd(
     int function_len = 0;
     uint8_t * pdu = NULL;
     uint16_t pdu_len = 0;
+    uint8_t * npdu = NULL;
     uint16_t npdu_len = 0;
     bool send_result = false;
     uint16_t offset = 0;
@@ -851,17 +858,22 @@ static int handler_bbmd6_for_non_bbmd(
                     /* ignore messages from my IPv6 address */
                     offset = 0;
                 } else {
-                function_len = bvlc6_decode_original_broadcast(
-                    pdu, pdu_len,
-                    &vmac_src,
-                    NULL, 0, &npdu_len);
-                if (function_len) {
+                    function_len = bvlc6_decode_original_broadcast(
+                        pdu, pdu_len,
+                        &vmac_src,
+                        NULL, 0, &npdu_len);
+                    if (function_len) {
                         /* The Virtual MAC address table shall be updated
                            using the respective parameter values of the
                            incoming messages. */
                         bbmd6_add_vmac(vmac_src, addr);
                         bvlc6_vmac_address_set(src, vmac_src);
                         offset = header_len + (function_len - npdu_len);
+                        npdu = &mtu[offset];
+                        if (npdu_confirmed_service(npdu, npdu_len)) {
+                            /* ignore confirmed service from broadcast */
+                            offset = 0;
+                        }
                     }
                 }
                 break;

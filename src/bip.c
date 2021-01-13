@@ -38,6 +38,7 @@
 #include "bacint.h"
 #include "bip.h"
 #include "bvlc.h"
+#include "npdu.h"
 #include "net.h"        /* custom per port */
 #if PRINT_ENABLED
 #include <stdio.h>      /* for standard i/o, like printing */
@@ -314,6 +315,11 @@ uint16_t bip_receive(
 #if 0
                 fprintf(stderr, "\n");
 #endif
+                if ((function == BVLC_ORIGINAL_BROADCAST_NPDU) &&
+                    (npdu_confirmed_service(pdu, pdu_len))) {
+                    /* ignore confirmed service from broadcast */
+                    pdu_len = 0;
+                }
             }
             /* ignore packets that are too large */
             /* clients should check my max-apdu first */
