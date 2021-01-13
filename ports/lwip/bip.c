@@ -38,6 +38,7 @@
 #include "bacint.h"
 #include "bip.h"
 #include "bvlc.h"
+#include "npdu.h"
 #include "handlers.h"
 #include "net.h"        /* custom per port */
 
@@ -317,6 +318,12 @@ void bip_server_callback(
             /* subtract off the BVLC header */
             pdu_len -= 4;
             pdu_offset = 4;
+            if ((function == BVLC_ORIGINAL_BROADCAST_NPDU) &&
+                (npdu_confirmed_service(pdu, pdu_len))) {
+                /* ignore confirmed service from broadcast */
+                pdu_len = 0;
+            }
+
         }
     } else if (function == BVLC_FORWARDED_NPDU) {
         IP4_ADDR(&sin_addr,pdu[4],pdu[5],pdu[6],pdu[7]);

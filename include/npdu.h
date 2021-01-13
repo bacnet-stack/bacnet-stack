@@ -89,6 +89,10 @@ extern "C" {
         BACNET_ADDRESS * src,
         BACNET_NPDU_DATA * npdu_data);
 
+    bool npdu_confirmed_service(
+        uint8_t *pdu,
+        uint16_t pdu_len);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

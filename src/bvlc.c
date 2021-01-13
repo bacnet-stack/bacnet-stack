@@ -39,6 +39,7 @@
 #include "bacdcode.h"
 #include "bacint.h"
 #include "bvlc.h"
+#include "npdu.h"
 #ifndef DEBUG_ENABLED
 #define DEBUG_ENABLED 0
 #endif
@@ -107,11 +108,11 @@ static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 
 
 /* Define BBMD_BACKUP_FILE if the contents of the BDT
- * (broadcast distribution table) are to be stored in 
+ * (broadcast distribution table) are to be stored in
  * a backup file, so the contents are not lost across
  * power failures, shutdowns, etc...
  * (this is required behaviour as defined in BACnet standard).
- * 
+ *
  * BBMD_BACKUP_FILE should be set to the file name
  * in which to store the BDT.
  */
@@ -122,42 +123,42 @@ static FD_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
 #define str(a) #a
 
 void bvlc_bdt_backup_local(
-    void) 
+    void)
 {
     static FILE *bdt_file_ptr = NULL;
-    
+
     /* only try opening the file if not already opened previously */
     if (!bdt_file_ptr)
         bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE),"wb");
-    
+
     /* if error opening file for writing -> silently abort */
     if (!bdt_file_ptr)
         return;
-        
+
     fseek(bdt_file_ptr, 0, SEEK_SET);
-    fwrite(BBMD_Table, sizeof(BBMD_TABLE_ENTRY), MAX_BBMD_ENTRIES, bdt_file_ptr); 
+    fwrite(BBMD_Table, sizeof(BBMD_TABLE_ENTRY), MAX_BBMD_ENTRIES, bdt_file_ptr);
     fflush(bdt_file_ptr);
 }
 
 void bvlc_bdt_restore_local(
-    void) 
+    void)
 {
     static FILE *bdt_file_ptr = NULL;
-    
+
     /* only try opening the file if not already opened previously */
     if (!bdt_file_ptr)
         bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE),"rb");
-    
+
     /* if error opening file for reading -> silently abort */
     if (!bdt_file_ptr)
         return;
-        
+
     fseek(bdt_file_ptr, 0, SEEK_SET);
     {
         BBMD_TABLE_ENTRY BBMD_Table_tmp[MAX_BBMD_ENTRIES];
         size_t entries = 0;
-        
-        entries = fread(BBMD_Table_tmp, sizeof(BBMD_TABLE_ENTRY), MAX_BBMD_ENTRIES, bdt_file_ptr); 
+
+        entries = fread(BBMD_Table_tmp, sizeof(BBMD_TABLE_ENTRY), MAX_BBMD_ENTRIES, bdt_file_ptr);
         if (entries == MAX_BBMD_ENTRIES)
             /* success reading the BDT table. */
             memcpy(BBMD_Table, BBMD_Table_tmp, sizeof(BBMD_TABLE_ENTRY) * MAX_BBMD_ENTRIES);
@@ -1332,7 +1333,8 @@ uint16_t bvlc_receive(
             if (bvlc_bdt_member_mask_is_unicast(&sin)) {
                 dest.sin_addr.s_addr = bip_get_broadcast_addr();
                 dest.sin_port = bip_get_port();
-				debug_printf("BVLC: Received unicast from BDT member, re-broadcasting locally to %s:%04X.\n",
+				debug_printf("BVLC: Received unicast from BDT member, "
+                    "re-broadcasting locally to %s:%04X.\n",
 					inet_ntoa(dest.sin_addr), ntohs(dest.sin_port));
                 bvlc_send_mpdu(&dest, &npdu[0], npdu_len+4+6);
             }
@@ -1489,9 +1491,14 @@ uint16_t bvlc_receive(
                 for (i = 0; i < npdu_len; i++) {
                     npdu[i] = npdu[4 + i];
                 }
-                /* if BDT or FDT entries exist, Forward the NPDU */
-                bvlc_bdt_forward_npdu(&sin, &npdu[0], npdu_len, true);
-                bvlc_fdt_forward_npdu(&sin, &npdu[0], npdu_len, true);
+                if (npdu_confirmed_service(npdu, npdu_len)) {
+                    /* ignore confirmed service from broadcast */
+                    npdu_len = 0;
+                } else {
+                    /* if BDT or FDT entries exist, Forward the NPDU */
+                    bvlc_bdt_forward_npdu(&sin, &npdu[0], npdu_len, true);
+                    bvlc_fdt_forward_npdu(&sin, &npdu[0], npdu_len, true);
+                }
             } else {
                 /* ignore packets that are too large */
                 npdu_len = 0;
