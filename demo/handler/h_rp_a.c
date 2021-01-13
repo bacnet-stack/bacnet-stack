@@ -65,7 +65,7 @@ void rp_ack_print_data(
         for (;;) {
             len =
                 bacapp_decode_application_data(application_data,
-                (uint8_t) application_data_len, &value);
+                (unsigned)application_data_size, &value);
             if (first_value && (len < application_data_len)) {
                 first_value = false;
 #if PRINT_ENABLED
