@@ -65,7 +65,7 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
         /* value? need to loop until all of the len is gone... */
         for (;;) {
             len = bacapp_decode_application_data(
-                application_data, (uint8_t)application_data_len, &value);
+                application_data, (unsigned)application_data_len, &value);
             if (first_value && (len < application_data_len)) {
                 first_value = false;
 #if PRINT_ENABLED
