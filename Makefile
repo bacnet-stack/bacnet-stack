@@ -49,6 +49,10 @@ epics:
 error:
 	$(MAKE) -s -C apps $@
 
+.PHONY: event
+event:
+	$(MAKE) -s -C apps $@
+
 .PHONY: iam
 iam:
 	$(MAKE) -s -C apps $@
