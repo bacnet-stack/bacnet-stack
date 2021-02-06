@@ -160,9 +160,8 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(char *filename)
 {
-    printf("Usage: %s device-id process-id initiating-device-id \n"
-           "    object-type object-instance \n"
-           "    event-object-type event-object-instance \n"
+    printf("Usage: %s device-id process-id initiating-device-id\n"
+           "    event-object-type event-object-instance\n"
            "    sequence-number notification-class priority event-type\n"
            "    [reference-bit-string status-flags message notify-type\n"
            "     ack-required from-state to-state]\n"
@@ -183,12 +182,12 @@ static void print_help(char *filename)
         "the device using Who-Is and I-Am services.  For example, if you were\n"
         "writing to Device Object 123, the device-instance would be 123.\n"
         "\n"
-        "initiating-device-id: the BACnet Device Object Instance number\n"
-        "that initiated the ConfirmedEventNotification service request.\n"
-        "\n"
         "process-id:\n"
         "Process Identifier in the receiving device for which the\n"
         "notification is intended.\n"
+        "\n"
+        "initiating-device-id: the BACnet Device Object Instance number\n"
+        "that initiated the ConfirmedEventNotification service request.\n"
         "\n"
         "object-type:\n"
         "The object type is object that you are reading. It\n"
@@ -291,36 +290,45 @@ int main(int argc, char *argv[])
             }
         } else {
             if (target_args == 0) {
-                event_data.processIdentifier = strtol(argv[argi], NULL, 0);
+                /* device-id */
+                Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 1) {
-                event_data.initiatingObjectIdentifier.type =
-                    strtol(argv[argi], NULL, 0);
+                /* process-id */
+                event_data.processIdentifier = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 2) {
+                /* initiating-device-id */
+                event_data.initiatingObjectIdentifier.type = OBJECT_DEVICE;
                 event_data.initiatingObjectIdentifier.instance =
                     strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 3) {
+                /* event-object-type */
                 event_data.eventObjectIdentifier.type =
                     strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 4) {
+                /* event-object-instance */
                 event_data.eventObjectIdentifier.instance =
                     strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 5) {
+                /* sequence-number */
                 event_data.timeStamp.tag = TIME_STAMP_SEQUENCE;
                 event_data.timeStamp.value.sequenceNum =
                     strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 6) {
+                /* notification-class */
                 event_data.notificationClass = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 7) {
+                /* priority */
                 event_data.priority = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 8) {
+                /* event-type - see BACNET_EVENT_TYPE */
                 event_data.eventType = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else {
@@ -454,6 +462,22 @@ int main(int argc, char *argv[])
                 } else if (event_data.eventType == EVENT_EXTENDED) {
                 } else if (event_data.eventType == EVENT_BUFFER_READY) {
                 } else if (event_data.eventType == EVENT_UNSIGNED_RANGE) {
+                } else if (event_data.eventType == EVENT_ACCESS_EVENT) {
+                } else if (event_data.eventType == EVENT_DOUBLE_OUT_OF_RANGE) {
+                } else if (event_data.eventType == EVENT_SIGNED_OUT_OF_RANGE) {
+                } else if (event_data.eventType == EVENT_UNSIGNED_OUT_OF_RANGE) {
+                } else if (event_data.eventType == EVENT_CHANGE_OF_CHARACTERSTRING) {
+                } else if (event_data.eventType == EVENT_CHANGE_OF_STATUS_FLAGS) {
+                } else if (event_data.eventType == EVENT_CHANGE_OF_RELIABILITY) {
+                } else if (event_data.eventType == EVENT_NONE) {
+                } else if (event_data.eventType == EVENT_CHANGE_OF_DISCRETE_VALUE) {
+                } else if (event_data.eventType == EVENT_CHANGE_OF_TIMER) {
+                } else if ((event_data.eventType >= EVENT_PROPRIETARY_MIN) &&
+                    (event_data.eventType <= EVENT_PROPRIETARY_MAX)) {
+                    /* Enumerated values 64-65535 may
+                       be used by others subject to
+                       the procedures and constraints
+                       described in Clause 23.  */
                 } else {
                     print_usage(filename);
                     return 1;
