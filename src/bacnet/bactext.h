@@ -119,8 +119,21 @@ extern "C" {
     const char *bactext_day_of_week_name(
         unsigned index);
     BACNET_STACK_EXPORT
+    const char *bactext_notify_type_name(unsigned index);
+    BACNET_STACK_EXPORT
+    bool bactext_notify_type_index(
+        const char *search_name, unsigned *found_index);
+    BACNET_STACK_EXPORT
     const char *bactext_event_state_name(
         unsigned index);
+    BACNET_STACK_EXPORT
+    bool bactext_event_state_index(
+        const char *search_name, unsigned *found_index);
+    BACNET_STACK_EXPORT
+    const char *bactext_event_type_name(unsigned index);
+    BACNET_STACK_EXPORT
+    bool bactext_event_type_index(
+        const char *search_name, unsigned *found_index);
     BACNET_STACK_EXPORT
     const char *bactext_binary_present_value_name(
         unsigned index);
