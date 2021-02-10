@@ -1228,6 +1228,25 @@ bool bactext_days_of_week_index(const char *search_name, unsigned *found_index)
         bacnet_days_of_week_names, search_name, found_index);
 }
 
+INDTEXT_DATA bacnet_notify_type_names[] = {
+    { NOTIFY_ALARM, "alarm" },
+    { NOTIFY_EVENT, "event" },
+    { NOTIFY_ACK_NOTIFICATION, "ack-notification" },
+    { 0, NULL } };
+
+const char *bactext_notify_type_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bacnet_notify_type_names, index, ASHRAE_Reserved_String);
+}
+
+bool bactext_notify_type_index(
+    const char *search_name, unsigned *found_index)
+{
+    return indtext_by_istring(
+        bacnet_notify_type_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_event_transition_names[] = { { TRANSITION_TO_OFFNORMAL,
                                                      "offnormal" },
     { TRANSITION_TO_NORMAL, "normal" }, { TRANSITION_TO_FAULT, "fault" },
@@ -1256,6 +1275,50 @@ const char *bactext_event_state_name(unsigned index)
     return indtext_by_index_default(
         bacnet_event_state_names, index, ASHRAE_Reserved_String);
 }
+
+bool bactext_event_state_index(
+    const char *search_name, unsigned *found_index)
+{
+    return indtext_by_istring(
+        bacnet_event_state_names, search_name, found_index);
+}
+
+INDTEXT_DATA bacnet_event_type_names[] = {
+    { EVENT_CHANGE_OF_BITSTRING, "change-of-bitstring" },
+    { EVENT_CHANGE_OF_STATE, "change-of-state" },
+    { EVENT_CHANGE_OF_VALUE, "change-of-value" },
+    { EVENT_COMMAND_FAILURE, "command-failure" },
+    { EVENT_FLOATING_LIMIT, "floating-limit" },
+    { EVENT_CHANGE_OF_LIFE_SAFETY, "change-of-life-safety" },
+    { EVENT_EXTENDED, "extended" },
+    { EVENT_BUFFER_READY, "buffer-ready" },
+    { EVENT_UNSIGNED_RANGE, "unsigned-range" },
+    { EVENT_ACCESS_EVENT, "access-event" },
+    { EVENT_DOUBLE_OUT_OF_RANGE, "double-out-of-range" },
+    { EVENT_SIGNED_OUT_OF_RANGE, "signed-out-of-range" },
+    { EVENT_UNSIGNED_OUT_OF_RANGE, "unsigned-out-of-range" },
+    { EVENT_CHANGE_OF_CHARACTERSTRING, "change-of-characterstring" },
+    { EVENT_CHANGE_OF_STATUS_FLAGS, "change-of-status-flags" },
+    { EVENT_CHANGE_OF_RELIABILITY, "change-of-reliability" },
+    { EVENT_NONE, "none" },
+    { EVENT_CHANGE_OF_DISCRETE_VALUE, "change-of-discrete-value" },
+    { EVENT_CHANGE_OF_TIMER, "change-of-timer" },
+    { 0, NULL } };
+
+const char *bactext_event_type_name(unsigned index)
+{
+    return indtext_by_index_split_default(bacnet_event_type_names, index,
+        EVENT_PROPRIETARY_MIN, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
+}
+
+bool bactext_event_type_index(
+    const char *search_name, unsigned *found_index)
+{
+    return indtext_by_istring(
+        bacnet_event_type_names, search_name, found_index);
+}
+
 
 INDTEXT_DATA bacnet_binary_present_value_names[] = {
     { BINARY_INACTIVE, "inactive" }, { BINARY_ACTIVE, "active" }, { 0, NULL }

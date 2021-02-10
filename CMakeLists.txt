@@ -718,7 +718,7 @@ if(BACNET_STACK_BUILD_APPS)
     add_executable(router-ipv6 apps/router-ipv6/main.c)
     target_link_libraries(router-ipv6 PRIVATE ${PROJECT_NAME})
   endif()
-  
+
   add_executable(scov apps/scov/main.c)
   target_link_libraries(scov PRIVATE ${PROJECT_NAME})
 
@@ -730,6 +730,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(ucov apps/ucov/main.c)
   target_link_libraries(ucov PRIVATE ${PROJECT_NAME})
+
+  add_executable(uevent apps/event/main.c)
+  target_link_libraries(event PRIVATE ${PROJECT_NAME})
 
   add_executable(uevent apps/uevent/main.c)
   target_link_libraries(uevent PRIVATE ${PROJECT_NAME})
