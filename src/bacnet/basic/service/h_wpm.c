@@ -75,7 +75,6 @@ static int write_property_multiple_decode(
         /* decode Object Identifier */
         len = wpm_decode_object_id(&apdu[offset], apdu_len - offset, wp_data);
         if (len > 0) {
-            tag_number = 0;
             offset += len;
             /* Opening tag 1 - List of Properties */
             if (decode_is_opening_tag_number(&apdu[offset++], 1)) {
