@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/event.c
     # Support files and stubs (pathname alphabetical)
+	$(SRC_DIR)/bacnet/authentication_factor.c
 	${SRC_DIR}/bacnet/bacdcode.c
 	${SRC_DIR}/bacnet/bacint.c
 	${SRC_DIR}/bacnet/bacreal.c
