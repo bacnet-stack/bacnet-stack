@@ -253,6 +253,79 @@ int event_notify_encode_service_request(
                         apdu_len += len;
                         break;
 
+                    case EVENT_COMMAND_FAILURE:
+
+                        len = encode_opening_tag(&apdu[apdu_len], 3);
+                        apdu_len += len;
+
+                        len = encode_opening_tag(&apdu[apdu_len], 0);
+                        apdu_len += len;
+
+                        switch (data->notificationParams.commandFailure.tag) {
+                            case COMMAND_FAILURE_BINARY_PV:
+                                len =
+                                    encode_application_enumerated(&apdu
+                                    [apdu_len],
+                                    data->notificationParams.commandFailure.
+                                    commandValue.binaryValue);
+                                apdu_len += len;
+                                break;
+
+                            case COMMAND_FAILURE_UNSIGNED:
+                                len =
+                                    encode_application_unsigned(&apdu
+                                    [apdu_len],
+                                    data->notificationParams.commandFailure.
+                                    commandValue.unsignedValue);
+                                apdu_len += len;
+                                break;
+
+                            default:
+                                return 0;
+                        }
+
+                        len = encode_closing_tag(&apdu[apdu_len], 0);
+                        apdu_len += len;
+
+                        len =
+                            encode_context_bitstring(&apdu[apdu_len], 1,
+                            &data->notificationParams.commandFailure.
+                            statusFlags);
+                        apdu_len += len;
+
+                        len = encode_opening_tag(&apdu[apdu_len], 2);
+                        apdu_len += len;
+
+                        switch (data->notificationParams.commandFailure.tag) {
+                            case COMMAND_FAILURE_BINARY_PV:
+                                len =
+                                    encode_application_enumerated(&apdu
+                                    [apdu_len],
+                                    data->notificationParams.commandFailure.
+                                    feedbackValue.binaryValue);
+                                apdu_len += len;
+                                break;
+
+                            case COMMAND_FAILURE_UNSIGNED:
+                                len =
+                                    encode_application_unsigned(&apdu
+                                    [apdu_len],
+                                    data->notificationParams.commandFailure.
+                                    feedbackValue.unsignedValue);
+                                apdu_len += len;
+                                break;
+
+                            default:
+                                return 0;
+                        }
+
+                        len = encode_closing_tag(&apdu[apdu_len], 2);
+                        apdu_len += len;
+
+                        len = encode_closing_tag(&apdu[apdu_len], 3);
+                        apdu_len += len;
+                        break;
+
                     case EVENT_FLOATING_LIMIT:
                         len = encode_opening_tag(&apdu[apdu_len], 4);
                         apdu_len += len;
@@ -425,7 +498,6 @@ int event_notify_encode_service_request(
                         apdu_len += len;
                         break;
                     case EVENT_EXTENDED:
-                    case EVENT_COMMAND_FAILURE:
                     default:
                         assert(0);
                         break;
@@ -449,6 +521,8 @@ int event_notify_decode_service_request(
     int section_length = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
     uint32_t enum_value = 0;
+    uint32_t len_value = 0;
+    uint8_t tag_number = 0;
 
     if (apdu_len && data) {
         /* tag 0 - processIdentifier */
@@ -692,6 +766,105 @@ int event_notify_decode_service_request(
                             return -1;
                         }
                         len += section_length;
+                        break;
+
+                    case EVENT_COMMAND_FAILURE:
+                        if (!decode_is_opening_tag_number(&apdu[len], 0)) {
+                            return -1;
+                        }
+                        len++;
+
+                        if (-1 == (section_length =
+                                decode_tag_number_and_value(&apdu[len],
+                                    &tag_number, &len_value))) {
+                            return -1;
+                        }
+                        len += section_length;
+
+                        switch (tag_number) {
+                            case BACNET_APPLICATION_TAG_ENUMERATED:
+                                if (-1 == (section_length =
+                                        decode_enumerated(&apdu[len],
+                                            len_value,
+                                            &data->
+                                            notificationParams.commandFailure.
+                                            commandValue.binaryValue))) {
+                                    return -1;
+                                }
+                                break;
+
+                            case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+                                if (-1 == (section_length =
+                                        decode_unsigned(&apdu[len], len_value,
+                                            &data->
+                                            notificationParams.commandFailure.
+                                            commandValue.unsignedValue))) {
+                                    return -1;
+                                }
+                                break;
+
+                            default:
+                                return 0;
+                        }
+                        len += section_length;
+
+                        if (!decode_is_closing_tag_number(&apdu[len], 0)) {
+                            return -1;
+                        }
+                        len++;
+
+                        if (-1 == (section_length =
+                                decode_context_bitstring(&apdu[len], 1,
+                                    &data->notificationParams.commandFailure.
+                                    statusFlags))) {
+                            return -1;
+                        }
+                        len += section_length;
+
+                        if (!decode_is_opening_tag_number(&apdu[len], 2)) {
+                            return -1;
+                        }
+                        len++;
+
+                        if (-1 == (section_length =
+                                decode_tag_number_and_value(&apdu[len],
+                                    &tag_number, &len_value))) {
+                            return -1;
+                        }
+                        len += section_length;
+
+                        switch (tag_number) {
+                            case BACNET_APPLICATION_TAG_ENUMERATED:
+                                if (-1 == (section_length =
+                                        decode_enumerated(&apdu[len],
+                                            len_value,
+                                            &data->
+                                            notificationParams.commandFailure.
+                                            feedbackValue.binaryValue))) {
+                                    return -1;
+                                }
+                                break;
+
+                            case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+                                if (-1 == (section_length =
+                                        decode_unsigned(&apdu[len], len_value,
+                                            &data->
+                                            notificationParams.commandFailure.
+                                            feedbackValue.unsignedValue))) {
+                                    return -1;
+                                }
+                                break;
+
+                            default:
+                                return 0;
+                        }
+                        len += section_length;
+
+                        if (!decode_is_closing_tag_number(&apdu[len], 2)) {
+                            return -1;
+                        }
+                        len++;
+
                         break;
 
                     case EVENT_FLOATING_LIMIT:
@@ -1305,6 +1478,102 @@ void testEventEventState(Test *pTest)
         bitstring_same(
             &data.notificationParams.changeOfValue.newValue.changedBits,
             &data2.notificationParams.changeOfValue.newValue.changedBits));
+
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /*
+     ** Event Type = EVENT_COMMAND_FAILURE
+     */
+
+
+    /*
+     ** commandValue = enumerated
+     */
+    data.eventType = EVENT_COMMAND_FAILURE;
+    data.notificationParams.commandFailure.tag = COMMAND_FAILURE_BINARY_PV;
+    data.notificationParams.commandFailure.commandValue.binaryValue =
+        BINARY_INACTIVE;
+    data.notificationParams.commandFailure.feedbackValue.binaryValue =
+        BINARY_ACTIVE;
+
+    bitstring_init(&data.notificationParams.commandFailure.statusFlags);
+
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+
+    memset(buffer, 0, MAX_APDU);
+    inLen = event_notify_encode_service_request(&buffer[0], &data);
+
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
+
+    ct_test(pTest, inLen == outLen);
+    testBaseEventState(pTest);
+
+    ct_test(pTest,
+        data.notificationParams.commandFailure.commandValue.binaryValue ==
+        data2.notificationParams.commandFailure.commandValue.binaryValue);
+
+    ct_test(pTest,
+        data.notificationParams.commandFailure.feedbackValue.binaryValue ==
+        data2.notificationParams.commandFailure.feedbackValue.binaryValue);
+
+    ct_test(pTest,
+        bitstring_same(&data.notificationParams.commandFailure.statusFlags,
+            &data2.notificationParams.commandFailure.statusFlags));
+
+    /*
+     ** commandValue = unsigned
+     */
+    data.eventType = EVENT_COMMAND_FAILURE;
+    data.notificationParams.commandFailure.tag = COMMAND_FAILURE_UNSIGNED;
+    data.notificationParams.commandFailure.commandValue.unsignedValue = 10;
+    data.notificationParams.commandFailure.feedbackValue.unsignedValue = 2;
+
+    bitstring_init(&data.notificationParams.commandFailure.statusFlags);
+
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+
+    memset(buffer, 0, MAX_APDU);
+    inLen = event_notify_encode_service_request(&buffer[0], &data);
+
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
+
+    ct_test(pTest, inLen == outLen);
+    testBaseEventState(pTest);
+
+    ct_test(pTest,
+        data.notificationParams.commandFailure.commandValue.unsignedValue ==
+        data2.notificationParams.commandFailure.commandValue.unsignedValue);
+
+    ct_test(pTest,
+        data.notificationParams.commandFailure.feedbackValue.unsignedValue ==
+        data2.notificationParams.commandFailure.feedbackValue.unsignedValue);
+
+    ct_test(pTest,
+        bitstring_same(&data.notificationParams.commandFailure.statusFlags,
+            &data2.notificationParams.commandFailure.statusFlags));
 
     /**********************************************************************************/
     /**********************************************************************************/

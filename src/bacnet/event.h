@@ -39,6 +39,11 @@ typedef enum {
     CHANGE_OF_VALUE_REAL
 } CHANGE_OF_VALUE_TYPE;
 
+typedef enum {
+    COMMAND_FAILURE_BINARY_PV,
+    COMMAND_FAILURE_UNSIGNED
+} COMMAND_FAILURE_TYPE;
+
 /*
 ** Based on UnconfirmedEventNotification-Request
 */
@@ -88,10 +93,20 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_BIT_STRING statusFlags;
         } changeOfValue;
         /*
-         ** EVENT_COMMAND_FAILURE
-         **
-         ** Not Supported!
-         */
+          ** EVENT_COMMAND_FAILURE
+          */
+        struct {
+            union {
+                BACNET_BINARY_PV binaryValue;
+                BACNET_UNSIGNED_INTEGER unsignedValue;
+            } commandValue;
+            COMMAND_FAILURE_TYPE tag;
+            BACNET_BIT_STRING statusFlags;
+            union {
+                BACNET_BINARY_PV binaryValue;
+                BACNET_UNSIGNED_INTEGER unsignedValue;
+            } feedbackValue;
+        } commandFailure;
         /*
          ** EVENT_FLOATING_LIMIT
          */
