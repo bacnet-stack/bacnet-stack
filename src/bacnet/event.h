@@ -32,6 +32,7 @@
 #include "bacnet/timestamp.h"
 #include "bacnet/bacpropstates.h"
 #include "bacnet/bacdevobjpropref.h"
+#include "bacnet/authentication_factor.h"
 
 typedef enum {
     CHANGE_OF_VALUE_BITS,
@@ -139,6 +140,19 @@ typedef struct BACnet_Event_Notification_Data {
             BACNET_BIT_STRING statusFlags;
             uint32_t exceededLimit;
         } unsignedRange;
+        /*
+         ** EVENT_ACCESS_EVENT
+         */
+        struct {
+            BACNET_ACCESS_EVENT accessEvent;
+            BACNET_BIT_STRING statusFlags;
+            BACNET_UNSIGNED_INTEGER accessEventTag;
+            BACNET_TIMESTAMP accessEventTime;
+            BACNET_DEVICE_OBJECT_REFERENCE accessCredential;
+            BACNET_AUTHENTICATION_FACTOR authenticationFactor;
+            /* OPTIONAL - Set authenticationFactor.format_type to
+               AUTHENTICATION_FACTOR_MAX if not being used */
+        } accessEvent;
     } notificationParams;
 } BACNET_EVENT_NOTIFICATION_DATA;
 

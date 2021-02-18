@@ -36,6 +36,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/timestamp.h"
+#include "bacnet/authentication_factor.h"
 
 /** @file event.c  Encode/Decode Event Notifications */
 
@@ -374,6 +375,53 @@ int event_notify_encode_service_request(
                         apdu_len += len;
 
                         len = encode_closing_tag(&apdu[apdu_len], 11);
+                        apdu_len += len;
+                        break;
+                    case EVENT_ACCESS_EVENT:
+                        len = encode_opening_tag(&apdu[apdu_len], 13);
+                        apdu_len += len;
+
+                        len =
+                            encode_context_enumerated(&apdu[apdu_len], 0,
+                            data->notificationParams.accessEvent.accessEvent);
+                        apdu_len += len;
+
+                        len =
+                            encode_context_bitstring(&apdu[apdu_len], 1,
+                            &data->notificationParams.accessEvent.statusFlags);
+                        apdu_len += len;
+
+                        len =
+                            encode_context_unsigned(&apdu[apdu_len], 2,
+                            data->notificationParams.
+                            accessEvent.accessEventTag);
+                        apdu_len += len;
+
+                        len =
+                            bacapp_encode_context_timestamp(&apdu[apdu_len], 3,
+                            &data->notificationParams.
+                            accessEvent.accessEventTime);
+                        apdu_len += len;
+
+                        len =
+                            bacapp_encode_context_device_obj_ref(&apdu
+                            [apdu_len], 4,
+                            &data->notificationParams.
+                            accessEvent.accessCredential);
+                        apdu_len += len;
+
+                        if (data->notificationParams.
+                            accessEvent.authenticationFactor.format_type <
+                            AUTHENTICATION_FACTOR_MAX) {
+                            len =
+                                bacapp_encode_context_authentication_factor
+                                (&apdu[apdu_len], 5,
+                                &data->notificationParams.
+                                accessEvent.authenticationFactor);
+                            apdu_len += len;
+                        }
+
+                        len = encode_closing_tag(&apdu[apdu_len], 13);
                         apdu_len += len;
                         break;
                     case EVENT_EXTENDED:
@@ -833,6 +881,60 @@ int event_notify_decode_service_request(
                             }
                         } else {
                             return BACNET_STATUS_ERROR;
+                        }
+                        break;
+
+                    case EVENT_ACCESS_EVENT:
+                        if (-1 == (section_length =
+                                decode_context_enumerated(&apdu[len], 0,
+                                    &data->notificationParams.
+                                    accessEvent.accessEvent))) {
+                            return -1;
+                        }
+                        len += section_length;
+
+                        if (-1 == (section_length =
+                                decode_context_bitstring(&apdu[len], 1,
+                                    &data->notificationParams.
+                                    accessEvent.statusFlags))) {
+                            return -1;
+                        }
+                        len += section_length;
+
+                        if (-1 == (section_length =
+                                decode_context_unsigned(&apdu[len], 2,
+                                    &data->notificationParams.
+                                    accessEvent.accessEventTag))) {
+                            return -1;
+                        }
+                        len += section_length;
+
+                        if (-1 == (section_length =
+                                bacapp_decode_context_timestamp(&apdu[len], 3,
+                                    &data->notificationParams.
+                                    accessEvent.accessEventTime))) {
+                            return -1;
+                        }
+                        len += section_length;
+
+                        if (-1 == (section_length =
+                                bacapp_decode_context_device_obj_ref(&apdu
+                                    [len], 4,
+                                    &data->notificationParams.
+                                    accessEvent.accessCredential))) {
+                            return -1;
+                        }
+                        len += section_length;
+
+                        if (!decode_is_closing_tag(&apdu[len])) {
+                            if (-1 == (section_length =
+                                    bacapp_decode_context_authentication_factor
+                                    (&apdu[len], 5,
+                                        &data->notificationParams.
+                                        accessEvent.authenticationFactor))) {
+                                return -1;
+                            }
+                            len += section_length;
                         }
                         break;
 
@@ -1482,6 +1584,207 @@ void testEventEventState(Test *pTest)
     ct_test(pTest,
         data.notificationParams.bufferReady.bufferProperty.arrayIndex ==
             data2.notificationParams.bufferReady.bufferProperty.arrayIndex);
+
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+    /*
+     ** Event Type = EVENT_ACCESS_EVENT
+     */
+
+    // OPTIONAL authenticationFactor omitted
+    data.eventType = EVENT_ACCESS_EVENT;
+    data.notificationParams.accessEvent.accessEvent =
+        ACCESS_EVENT_LOCKED_BY_HIGHER_AUTHORITY;
+    data.notificationParams.accessEvent.accessEventTag = 7;
+    data.notificationParams.accessEvent.accessEventTime.tag =
+        TIME_STAMP_SEQUENCE;
+    data.notificationParams.accessEvent.accessEventTime.value.sequenceNum = 17;
+    data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance = 1234;
+    data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type = OBJECT_DEVICE;
+    data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance = 17;
+    data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type = OBJECT_ACCESS_POINT;
+    data.notificationParams.accessEvent.authenticationFactor.format_type = AUTHENTICATION_FACTOR_MAX;   // omit authenticationFactor
+
+    bitstring_init(&data.notificationParams.accessEvent.statusFlags);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+
+    memset(buffer, 0, MAX_APDU);
+    inLen = event_notify_encode_service_request(&buffer[0], &data);
+
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
+
+    ct_test(pTest, inLen == outLen);
+    testBaseEventState(pTest);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessEvent ==
+        data2.notificationParams.accessEvent.accessEvent);
+
+    ct_test(pTest,
+        bitstring_same(&data.notificationParams.accessEvent.statusFlags,
+            &data2.notificationParams.accessEvent.statusFlags));
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessEventTag ==
+        data2.notificationParams.accessEvent.accessEventTag);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessEventTime.tag ==
+        data2.notificationParams.accessEvent.accessEventTime.tag);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessEventTime.
+        value.sequenceNum ==
+        data2.notificationParams.accessEvent.accessEventTime.
+        value.sequenceNum);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance ==
+        data2.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type ==
+        data2.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance ==
+        data2.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type ==
+        data2.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type);
+
+    // OPTIONAL authenticationFactor included
+    data.eventType = EVENT_ACCESS_EVENT;
+    data.notificationParams.accessEvent.accessEvent =
+        ACCESS_EVENT_LOCKED_BY_HIGHER_AUTHORITY;
+    data.notificationParams.accessEvent.accessEventTag = 7;
+    data.notificationParams.accessEvent.accessEventTime.tag =
+        TIME_STAMP_SEQUENCE;
+    data.notificationParams.accessEvent.accessEventTime.value.sequenceNum = 17;
+    data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance = 1234;
+    data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type = OBJECT_DEVICE;
+    data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance = 17;
+    data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type = OBJECT_ACCESS_POINT;
+    data.notificationParams.accessEvent.authenticationFactor.format_type =
+        AUTHENTICATION_FACTOR_SIMPLE_NUMBER16;
+    data.notificationParams.accessEvent.authenticationFactor.format_class =
+        215;
+    uint8_t octetstringValue[2] = { 0x00, 0x10 };
+
+    octetstring_init(&data.notificationParams.accessEvent.
+        authenticationFactor.value, octetstringValue, 2);
+
+    bitstring_init(&data.notificationParams.accessEvent.statusFlags);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+
+    memset(buffer, 0, MAX_APDU);
+    inLen = event_notify_encode_service_request(&buffer[0], &data);
+
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
+
+    ct_test(pTest, inLen == outLen);
+    testBaseEventState(pTest);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessEvent ==
+        data2.notificationParams.accessEvent.accessEvent);
+
+    ct_test(pTest,
+        bitstring_same(&data.notificationParams.accessEvent.statusFlags,
+            &data2.notificationParams.accessEvent.statusFlags));
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessEventTag ==
+        data2.notificationParams.accessEvent.accessEventTag);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessEventTime.tag ==
+        data2.notificationParams.accessEvent.accessEventTime.tag);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessEventTime.
+        value.sequenceNum ==
+        data2.notificationParams.accessEvent.accessEventTime.
+        value.sequenceNum);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance ==
+        data2.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type ==
+        data2.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance ==
+        data2.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type ==
+        data2.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.authenticationFactor.format_type ==
+        data2.notificationParams.accessEvent.authenticationFactor.format_type);
+
+    ct_test(pTest,
+        data.notificationParams.accessEvent.
+        authenticationFactor.format_class ==
+        data2.notificationParams.accessEvent.
+        authenticationFactor.format_class);
+
+    ct_test(pTest,
+        octetstring_value_same(&data.notificationParams.
+            accessEvent.authenticationFactor.value,
+            &data2.notificationParams.accessEvent.authenticationFactor.value));
 }
 
 #ifdef TEST_EVENT
