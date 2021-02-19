@@ -396,20 +396,22 @@ static void testEventEventState(void)
     data2.messageText = &messageText2;
     outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
 
-    zassert_equal(pTest, inLen == outLen);
+    zassert_equal(inLen == outLen, NULL);
     testBaseEventState(pTest);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.commandFailure.commandValue.binaryValue ==
-        data2.notificationParams.commandFailure.commandValue.binaryValue);
+        data2.notificationParams.commandFailure.commandValue.binaryValue,
+        NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.commandFailure.feedbackValue.binaryValue ==
-        data2.notificationParams.commandFailure.feedbackValue.binaryValue);
+        data2.notificationParams.commandFailure.feedbackValue.binaryValue,
+        NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         bitstring_same(&data.notificationParams.commandFailure.statusFlags,
-            &data2.notificationParams.commandFailure.statusFlags));
+            &data2.notificationParams.commandFailure.statusFlags), NULL);
 
     /*
      ** commandValue = unsigned
@@ -437,20 +439,22 @@ static void testEventEventState(void)
     data2.messageText = &messageText2;
     outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
 
-    zassert_equal(pTest, inLen == outLen);
+    zassert_equal(inLen == outLen, NULL);
     testBaseEventState(pTest);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.commandFailure.commandValue.unsignedValue ==
-        data2.notificationParams.commandFailure.commandValue.unsignedValue);
+        data2.notificationParams.commandFailure.commandValue.unsignedValue,
+        NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.commandFailure.feedbackValue.unsignedValue ==
-        data2.notificationParams.commandFailure.feedbackValue.unsignedValue);
+        data2.notificationParams.commandFailure.feedbackValue.unsignedValue,
+        NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         bitstring_same(&data.notificationParams.commandFailure.statusFlags,
-            &data2.notificationParams.commandFailure.statusFlags));
+            &data2.notificationParams.commandFailure.statusFlags), NULL);
 
     /**********************************************************************************/
     /**********************************************************************************/
@@ -776,54 +780,54 @@ static void testEventEventState(void)
     data2.messageText = &messageText2;
     outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
 
-    zassert_equal(pTest, inLen == outLen);
+    zassert_equal(inLen == outLen, NULL);
     testBaseEventState(pTest);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessEvent ==
-        data2.notificationParams.accessEvent.accessEvent);
+        data2.notificationParams.accessEvent.accessEvent, , NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         bitstring_same(&data.notificationParams.accessEvent.statusFlags,
-            &data2.notificationParams.accessEvent.statusFlags));
+            &data2.notificationParams.accessEvent.statusFlags), NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessEventTag ==
-        data2.notificationParams.accessEvent.accessEventTag);
+        data2.notificationParams.accessEvent.accessEventTag, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessEventTime.tag ==
-        data2.notificationParams.accessEvent.accessEventTime.tag);
+        data2.notificationParams.accessEvent.accessEventTime.tag, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessEventTime.
         value.sequenceNum ==
         data2.notificationParams.accessEvent.accessEventTime.
-        value.sequenceNum);
+        value.sequenceNum, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessCredential.
         deviceIdentifier.instance ==
         data2.notificationParams.accessEvent.accessCredential.
-        deviceIdentifier.instance);
+        deviceIdentifier.instance, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessCredential.
         deviceIdentifier.type ==
         data2.notificationParams.accessEvent.accessCredential.
-        deviceIdentifier.type);
+        deviceIdentifier.type, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessCredential.
         objectIdentifier.instance ==
         data2.notificationParams.accessEvent.accessCredential.
-        objectIdentifier.instance);
+        objectIdentifier.instance, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessCredential.
         objectIdentifier.type ==
         data2.notificationParams.accessEvent.accessCredential.
-        objectIdentifier.type);
+        objectIdentifier.type, NULL);
 
     // OPTIONAL authenticationFactor included
     data.eventType = EVENT_ACCESS_EVENT;
@@ -867,69 +871,71 @@ static void testEventEventState(void)
     data2.messageText = &messageText2;
     outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
 
-    zassert_equal(pTest, inLen == outLen);
+    zassert_equal(inLen == outLen, NULL);
     testBaseEventState(pTest);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessEvent ==
-        data2.notificationParams.accessEvent.accessEvent);
+        data2.notificationParams.accessEvent.accessEvent, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         bitstring_same(&data.notificationParams.accessEvent.statusFlags,
-            &data2.notificationParams.accessEvent.statusFlags));
+            &data2.notificationParams.accessEvent.statusFlags), NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessEventTag ==
-        data2.notificationParams.accessEvent.accessEventTag);
+        data2.notificationParams.accessEvent.accessEventTag, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessEventTime.tag ==
-        data2.notificationParams.accessEvent.accessEventTime.tag);
+        data2.notificationParams.accessEvent.accessEventTime.tag, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessEventTime.
         value.sequenceNum ==
         data2.notificationParams.accessEvent.accessEventTime.
-        value.sequenceNum);
+        value.sequenceNum, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessCredential.
         deviceIdentifier.instance ==
         data2.notificationParams.accessEvent.accessCredential.
-        deviceIdentifier.instance);
+        deviceIdentifier.instance, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessCredential.
         deviceIdentifier.type ==
         data2.notificationParams.accessEvent.accessCredential.
-        deviceIdentifier.type);
+        deviceIdentifier.type, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessCredential.
         objectIdentifier.instance ==
         data2.notificationParams.accessEvent.accessCredential.
-        objectIdentifier.instance);
+        objectIdentifier.instance, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.accessCredential.
         objectIdentifier.type ==
         data2.notificationParams.accessEvent.accessCredential.
-        objectIdentifier.type);
+        objectIdentifier.type, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.authenticationFactor.format_type ==
-        data2.notificationParams.accessEvent.authenticationFactor.format_type);
+        data2.notificationParams.accessEvent.authenticationFactor.format_type,
+        NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         data.notificationParams.accessEvent.
         authenticationFactor.format_class ==
         data2.notificationParams.accessEvent.
-        authenticationFactor.format_class);
+        authenticationFactor.format_class, NULL);
 
-    zassert_equal(pTest,
+    zassert_equal(
         octetstring_value_same(&data.notificationParams.
             accessEvent.authenticationFactor.value,
-            &data2.notificationParams.accessEvent.authenticationFactor.value));
+            &data2.notificationParams.accessEvent.authenticationFactor.value),
+            NULL);
 }
 /**
  * @}
