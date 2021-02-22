@@ -785,7 +785,7 @@ static void testEventEventState(void)
 
     zassert_equal(
         data.notificationParams.accessEvent.accessEvent,
-        data2.notificationParams.accessEvent.accessEvent, , NULL);
+        data2.notificationParams.accessEvent.accessEvent, NULL);
 
     zassert_true(
         bitstring_same(&data.notificationParams.accessEvent.statusFlags,
@@ -931,7 +931,7 @@ static void testEventEventState(void)
         data2.notificationParams.accessEvent.
         authenticationFactor.format_class, NULL);
 
-    zassert_equal(
+    zassert_true(
         octetstring_value_same(&data.notificationParams.
             accessEvent.authenticationFactor.value,
             &data2.notificationParams.accessEvent.authenticationFactor.value),
