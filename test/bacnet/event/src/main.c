@@ -397,7 +397,7 @@ static void testEventEventState(void)
     outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
 
     zassert_equal(inLen, outLen, NULL);
-    testBaseEventState(pTest);
+    verifyBaseEventState();
 
     zassert_equal(
         data.notificationParams.commandFailure.commandValue.binaryValue,
@@ -409,7 +409,7 @@ static void testEventEventState(void)
         data2.notificationParams.commandFailure.feedbackValue.binaryValue,
         NULL);
 
-    zassert_equal(
+    zassert_true(
         bitstring_same(&data.notificationParams.commandFailure.statusFlags,
             &data2.notificationParams.commandFailure.statusFlags), NULL);
 
@@ -440,7 +440,7 @@ static void testEventEventState(void)
     outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
 
     zassert_equal(inLen, outLen, NULL);
-    testBaseEventState(pTest);
+    verifyBaseEventState();
 
     zassert_equal(
         data.notificationParams.commandFailure.commandValue.unsignedValue,
@@ -452,7 +452,7 @@ static void testEventEventState(void)
         data2.notificationParams.commandFailure.feedbackValue.unsignedValue,
         NULL);
 
-    zassert_equal(
+    zassert_true(
         bitstring_same(&data.notificationParams.commandFailure.statusFlags,
             &data2.notificationParams.commandFailure.statusFlags), NULL);
 
@@ -781,13 +781,13 @@ static void testEventEventState(void)
     outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
 
     zassert_equal(inLen, outLen, NULL);
-    testBaseEventState(pTest);
+    verifyBaseEventState();
 
     zassert_equal(
         data.notificationParams.accessEvent.accessEvent,
         data2.notificationParams.accessEvent.accessEvent, , NULL);
 
-    zassert_equal(
+    zassert_true(
         bitstring_same(&data.notificationParams.accessEvent.statusFlags,
             &data2.notificationParams.accessEvent.statusFlags), NULL);
 
@@ -872,13 +872,13 @@ static void testEventEventState(void)
     outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
 
     zassert_equal(inLen, outLen, NULL);
-    testBaseEventState(pTest);
+    verifyBaseEventState();
 
     zassert_equal(
         data.notificationParams.accessEvent.accessEvent,
         data2.notificationParams.accessEvent.accessEvent, NULL);
 
-    zassert_equal(
+    zassert_true(
         bitstring_same(&data.notificationParams.accessEvent.statusFlags,
             &data2.notificationParams.accessEvent.statusFlags), NULL);
 
