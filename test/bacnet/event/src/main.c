@@ -364,6 +364,106 @@ static void testEventEventState(void)
     /**********************************************************************************/
     /**********************************************************************************/
     /*
+     ** Event Type = EVENT_COMMAND_FAILURE
+     */
+
+
+    /*
+     ** commandValue = enumerated
+     */
+    data.eventType = EVENT_COMMAND_FAILURE;
+    data.notificationParams.commandFailure.tag = COMMAND_FAILURE_BINARY_PV;
+    data.notificationParams.commandFailure.commandValue.binaryValue =
+        BINARY_INACTIVE;
+    data.notificationParams.commandFailure.feedbackValue.binaryValue =
+        BINARY_ACTIVE;
+
+    bitstring_init(&data.notificationParams.commandFailure.statusFlags);
+
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+
+    memset(buffer, 0, MAX_APDU);
+    inLen = event_notify_encode_service_request(&buffer[0], &data);
+
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
+
+    zassert_equal(inLen, outLen, NULL);
+    verifyBaseEventState();
+
+    zassert_equal(
+        data.notificationParams.commandFailure.commandValue.binaryValue,
+        data2.notificationParams.commandFailure.commandValue.binaryValue,
+        NULL);
+
+    zassert_equal(
+        data.notificationParams.commandFailure.feedbackValue.binaryValue,
+        data2.notificationParams.commandFailure.feedbackValue.binaryValue,
+        NULL);
+
+    zassert_true(
+        bitstring_same(&data.notificationParams.commandFailure.statusFlags,
+            &data2.notificationParams.commandFailure.statusFlags), NULL);
+
+    /*
+     ** commandValue = unsigned
+     */
+    data.eventType = EVENT_COMMAND_FAILURE;
+    data.notificationParams.commandFailure.tag = COMMAND_FAILURE_UNSIGNED;
+    data.notificationParams.commandFailure.commandValue.unsignedValue = 10;
+    data.notificationParams.commandFailure.feedbackValue.unsignedValue = 2;
+
+    bitstring_init(&data.notificationParams.commandFailure.statusFlags);
+
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&data.notificationParams.commandFailure.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+
+    memset(buffer, 0, MAX_APDU);
+    inLen = event_notify_encode_service_request(&buffer[0], &data);
+
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
+
+    zassert_equal(inLen, outLen, NULL);
+    verifyBaseEventState();
+
+    zassert_equal(
+        data.notificationParams.commandFailure.commandValue.unsignedValue,
+        data2.notificationParams.commandFailure.commandValue.unsignedValue,
+        NULL);
+
+    zassert_equal(
+        data.notificationParams.commandFailure.feedbackValue.unsignedValue,
+        data2.notificationParams.commandFailure.feedbackValue.unsignedValue,
+        NULL);
+
+    zassert_true(
+        bitstring_same(&data.notificationParams.commandFailure.statusFlags,
+            &data2.notificationParams.commandFailure.statusFlags), NULL);
+
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /**********************************************************************************/
+    /*
      ** Event Type = EVENT_FLOATING_LIMIT
      */
     data.eventType = EVENT_FLOATING_LIMIT;
@@ -634,6 +734,208 @@ static void testEventEventState(void)
     zassert_equal(
         data.notificationParams.bufferReady.bufferProperty.arrayIndex,
             data2.notificationParams.bufferReady.bufferProperty.arrayIndex, NULL);
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+        /**********************************************************************************/
+    /*
+     ** Event Type = EVENT_ACCESS_EVENT
+     */
+
+    // OPTIONAL authenticationFactor omitted
+    data.eventType = EVENT_ACCESS_EVENT;
+    data.notificationParams.accessEvent.accessEvent =
+        ACCESS_EVENT_LOCKED_BY_HIGHER_AUTHORITY;
+    data.notificationParams.accessEvent.accessEventTag = 7;
+    data.notificationParams.accessEvent.accessEventTime.tag =
+        TIME_STAMP_SEQUENCE;
+    data.notificationParams.accessEvent.accessEventTime.value.sequenceNum = 17;
+    data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance = 1234;
+    data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type = OBJECT_DEVICE;
+    data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance = 17;
+    data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type = OBJECT_ACCESS_POINT;
+    data.notificationParams.accessEvent.authenticationFactor.format_type = AUTHENTICATION_FACTOR_MAX;   // omit authenticationFactor
+
+    bitstring_init(&data.notificationParams.accessEvent.statusFlags);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+
+    memset(buffer, 0, MAX_APDU);
+    inLen = event_notify_encode_service_request(&buffer[0], &data);
+
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
+
+    zassert_equal(inLen, outLen, NULL);
+    verifyBaseEventState();
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessEvent,
+        data2.notificationParams.accessEvent.accessEvent, NULL);
+
+    zassert_true(
+        bitstring_same(&data.notificationParams.accessEvent.statusFlags,
+            &data2.notificationParams.accessEvent.statusFlags), NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessEventTag,
+        data2.notificationParams.accessEvent.accessEventTag, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessEventTime.tag,
+        data2.notificationParams.accessEvent.accessEventTime.tag, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessEventTime.
+        value.sequenceNum,
+        data2.notificationParams.accessEvent.accessEventTime.
+        value.sequenceNum, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance,
+        data2.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type,
+        data2.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance,
+        data2.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type,
+        data2.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type, NULL);
+
+    // OPTIONAL authenticationFactor included
+    data.eventType = EVENT_ACCESS_EVENT;
+    data.notificationParams.accessEvent.accessEvent =
+        ACCESS_EVENT_LOCKED_BY_HIGHER_AUTHORITY;
+    data.notificationParams.accessEvent.accessEventTag = 7;
+    data.notificationParams.accessEvent.accessEventTime.tag =
+        TIME_STAMP_SEQUENCE;
+    data.notificationParams.accessEvent.accessEventTime.value.sequenceNum = 17;
+    data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance = 1234;
+    data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type = OBJECT_DEVICE;
+    data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance = 17;
+    data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type = OBJECT_ACCESS_POINT;
+    data.notificationParams.accessEvent.authenticationFactor.format_type =
+        AUTHENTICATION_FACTOR_SIMPLE_NUMBER16;
+    data.notificationParams.accessEvent.authenticationFactor.format_class =
+        215;
+    uint8_t octetstringValue[2] = { 0x00, 0x10 };
+
+    octetstring_init(&data.notificationParams.accessEvent.
+        authenticationFactor.value, octetstringValue, 2);
+
+    bitstring_init(&data.notificationParams.accessEvent.statusFlags);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_IN_ALARM, true);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_FAULT, false);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_OVERRIDDEN, false);
+    bitstring_set_bit(&data.notificationParams.accessEvent.statusFlags,
+        STATUS_FLAG_OUT_OF_SERVICE, false);
+
+    memset(buffer, 0, MAX_APDU);
+    inLen = event_notify_encode_service_request(&buffer[0], &data);
+
+    memset(&data2, 0, sizeof(data2));
+    data2.messageText = &messageText2;
+    outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
+
+    zassert_equal(inLen, outLen, NULL);
+    verifyBaseEventState();
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessEvent,
+        data2.notificationParams.accessEvent.accessEvent, NULL);
+
+    zassert_true(
+        bitstring_same(&data.notificationParams.accessEvent.statusFlags,
+            &data2.notificationParams.accessEvent.statusFlags), NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessEventTag,
+        data2.notificationParams.accessEvent.accessEventTag, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessEventTime.tag,
+        data2.notificationParams.accessEvent.accessEventTime.tag, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessEventTime.
+        value.sequenceNum,
+        data2.notificationParams.accessEvent.accessEventTime.
+        value.sequenceNum, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance,
+        data2.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.instance, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type,
+        data2.notificationParams.accessEvent.accessCredential.
+        deviceIdentifier.type, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance,
+        data2.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.instance, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type,
+        data2.notificationParams.accessEvent.accessCredential.
+        objectIdentifier.type, NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.authenticationFactor.format_type,
+        data2.notificationParams.accessEvent.authenticationFactor.format_type,
+        NULL);
+
+    zassert_equal(
+        data.notificationParams.accessEvent.
+        authenticationFactor.format_class,
+        data2.notificationParams.accessEvent.
+        authenticationFactor.format_class, NULL);
+
+    zassert_true(
+        octetstring_value_same(&data.notificationParams.
+            accessEvent.authenticationFactor.value,
+            &data2.notificationParams.accessEvent.authenticationFactor.value),
+            NULL);
 }
 /**
  * @}
