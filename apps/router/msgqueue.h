@@ -82,7 +82,8 @@ bool send_to_msgbox(
 /* returns received message */
 BACMSG *recv_from_msgbox(
     MSGBOX_ID src,
-    BACMSG * msg);
+    BACMSG * msg,
+    int flags);
 
 void del_msgbox(
     MSGBOX_ID msgboxid);
