@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ipc.h>
 #include "ipmodule.h"
 #include "bacnet/bacint.h"
 
@@ -77,7 +78,7 @@ void *dl_ip_thread(void *pArgs)
 
     while (!shutdown) {
         /* check for incoming messages */
-        bacmsg = recv_from_msgbox(port->port_id, &msg_storage);
+        bacmsg = recv_from_msgbox(port->port_id, &msg_storage, IPC_NOWAIT);
 
         if (bacmsg) {
             switch (bacmsg->type) {
@@ -89,7 +90,7 @@ void *dl_ip_thread(void *pArgs)
                         &address.mac[0], &msg_data->dest.adr[0], MAX_MAC_LEN);
 
                     dl_ip_send(
-                        &ip_data, &address, msg_data->pdu, msg_data->pdu_len);
+                      &ip_data, &address, msg_data->pdu, msg_data->pdu_len);
 
                     check_data(msg_data);
 
@@ -177,8 +178,18 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
         return false;
     }
 
+    /* Bind to device so we don't get routing loops between our
+       different ports. */
+    status = setsockopt(ip_data->socket, SOL_SOCKET, SO_BINDTODEVICE,
+                        port->iface, strlen(port->iface));
+    if (status < 0) {
+      close(ip_data->socket);
+      return false;
+    }
+
     /* bind the socket to the local port number */
     sin.sin_family = AF_INET;
+    //    sin.sin_addr.s_addr, ip_data->local_addr.s_addr;// = htonl(INADDR_ANY);
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = ip_data->port;
 
@@ -307,7 +318,6 @@ int dl_ip_recv(
                 buff_len = 0;
 
                 PRINT(DEBUG, "BIP: src is me. Discarded!\n");
-
             } else {
                 src->mac_len = 6;
                 memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);

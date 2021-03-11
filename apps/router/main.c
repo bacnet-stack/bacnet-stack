@@ -83,8 +83,6 @@ inline bool is_network_msg(BACMSG *msg);
 
 int main(int argc, char *argv[])
 {
-    printf("I am router\n");
-
     ROUTER_PORT *port;
     BACMSG msg_storage, *bacmsg = NULL;
     MSG_DATA *msg_data = NULL;
@@ -115,7 +113,8 @@ int main(int argc, char *argv[])
             }
         }
 
-        bacmsg = recv_from_msgbox(head->main_id, &msg_storage);
+        // blocking dequeue here
+        bacmsg = recv_from_msgbox(head->main_id, &msg_storage, 0);
         if (bacmsg) {
             switch (bacmsg->type) {
                 case DATA: {
@@ -128,7 +127,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    print_msg(bacmsg);
+                    // print_msg(bacmsg);
 
                     if (is_network_msg(bacmsg)) {
                         buff_len =
@@ -154,7 +153,7 @@ int main(int argc, char *argv[])
                         msg_storage.type = DATA;
                         msg_storage.data = msg_data;
 
-                        print_msg(bacmsg);
+                        // print_msg(bacmsg);
 
                         if (is_network_msg(bacmsg)) {
                             msg_data->ref_count = 1;
@@ -253,13 +252,13 @@ bool read_config(char *filepath)
 
             /* create new list node to store port information */
             if (head == NULL) {
-                head = (ROUTER_PORT *)malloc(sizeof(ROUTER_PORT));
+                head = (ROUTER_PORT *)calloc(sizeof(ROUTER_PORT), 1);
                 head->next = NULL;
                 current = head;
             } else {
                 ROUTER_PORT *tmp = current;
                 current = current->next;
-                current = (ROUTER_PORT *)malloc(sizeof(ROUTER_PORT));
+                current = (ROUTER_PORT *)calloc(sizeof(ROUTER_PORT), 1);
                 current->next = NULL;
                 tmp->next = current;
             }
@@ -273,7 +272,7 @@ bool read_config(char *filepath)
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
                     current->iface =
-                        (char *)malloc((strlen(iface) + 1) * sizeof(char));
+                      (char *)calloc(sizeof(char), strlen(iface) + 1);
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -315,7 +314,7 @@ bool read_config(char *filepath)
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
                     current->iface =
-                        (char *)malloc((strlen(iface) + 1) * sizeof(char));
+                      (char *)calloc(sizeof(char), strlen(iface) + 1);
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -455,13 +454,13 @@ bool parse_cmd(int argc, char *argv[])
 
                 /* create new list node to store port information */
                 if (head == NULL) {
-                    head = (ROUTER_PORT *)malloc(sizeof(ROUTER_PORT));
+                    head = (ROUTER_PORT *)calloc(sizeof(ROUTER_PORT), 1);
                     head->next = NULL;
                     current = head;
                 } else {
                     ROUTER_PORT *tmp = current;
                     current = current->next;
-                    current = (ROUTER_PORT *)malloc(sizeof(ROUTER_PORT));
+                    current = (ROUTER_PORT *)calloc(sizeof(ROUTER_PORT), 1);
                     current->next = NULL;
                     tmp->next = current;
                 }

@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ipc.h>
 #include "mstpmodule.h"
 #include "bacnet/bacint.h"
 #include "dlmstp_linux.h"
@@ -106,7 +107,7 @@ void *dl_mstp_thread(void *pArgs)
         BACMSG msg_storage, *bacmsg;
         MSG_DATA *msg_data;
 
-        bacmsg = recv_from_msgbox(port->port_id, &msg_storage);
+        bacmsg = recv_from_msgbox(port->port_id, &msg_storage, IPC_NOWAIT);
 
         if (bacmsg) {
             switch (bacmsg->type) {

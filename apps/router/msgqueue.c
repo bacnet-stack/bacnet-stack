@@ -58,12 +58,12 @@ bool send_to_msgbox(MSGBOX_ID dest, BACMSG *msg)
     return true;
 }
 
-BACMSG *recv_from_msgbox(MSGBOX_ID src, BACMSG *msg)
+BACMSG *recv_from_msgbox(MSGBOX_ID src, BACMSG *msg, int flags)
 {
     int recv_bytes;
 
     recv_bytes =
-        msgrcv(src, msg, sizeof(BACMSG) - sizeof(MSGTYPE), 0, IPC_NOWAIT);
+        msgrcv(src, msg, sizeof(BACMSG) - sizeof(MSGTYPE), 0, flags);
     if (recv_bytes > 0) {
         return msg;
     } else {
