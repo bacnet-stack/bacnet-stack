@@ -621,6 +621,9 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(abort apps/abort/main.c)
   target_link_libraries(abort PRIVATE ${PROJECT_NAME})
 
+  add_executable(ack-alarm apps/ack-alarm/main.c)
+  target_link_libraries(ack-alarm PRIVATE ${PROJECT_NAME})
+
   add_executable(dcc apps/dcc/main.c)
   target_link_libraries(dcc PRIVATE ${PROJECT_NAME})
 
