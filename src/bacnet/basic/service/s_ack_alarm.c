@@ -42,40 +42,46 @@
 #include "bacnet/datalink/datalink.h"
 
 /** @file s_ack_alarm.c  Send an Alarm Acknowledgment. */
+#if PRINT_ENABLED
+#include <stdio.h>
+#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
-/* returns the invoke ID for confirmed request, or zero on failure */
-
-uint8_t Send_Alarm_Acknowledgement(
-    uint32_t device_id, BACNET_ALARM_ACK_DATA *data)
+/** Sends an Confirmed Alarm Acknowledgment.
+ *
+ * @param pdu [in] the PDU buffer used for sending the message
+ * @param pdu_size [in] Size of the PDU buffer
+ * @param data [in] The information about the Event to be sent.
+ * @param dest [in] BACNET_ADDRESS of the destination device
+ * @return invoke id of outgoing message, or 0 if communication is disabled,
+ *         or no tsm slot is available.
+ */
+uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu, uint16_t pdu_size,
+    BACNET_ALARM_ACK_DATA *data, BACNET_ADDRESS *dest)
 {
-    BACNET_ADDRESS dest;
-    BACNET_ADDRESS my_address;
-    unsigned max_apdu = 0;
-    uint8_t invoke_id = 0;
-    bool status = false;
     int len = 0;
     int pdu_len = 0;
-#if PRINT_ENABLED
     int bytes_sent = 0;
-#endif
     BACNET_NPDU_DATA npdu_data;
+    BACNET_ADDRESS my_address;
+    uint8_t invoke_id = 0;
 
     if (!dcc_communication_enabled()) {
         return 0;
     }
-
-    /* is the device bound? */
-    status = address_get_by_device(device_id, &max_apdu, &dest);
-    /* is there a tsm available? */
-    if (status) {
-        invoke_id = tsm_next_free_invokeID();
+    if (!dest) {
+        return 0;
     }
+    /* is there a tsm available? */
+    invoke_id = tsm_next_free_invokeID();
     if (invoke_id) {
         /* encode the NPDU portion of the packet */
         datalink_get_my_address(&my_address);
         npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
-        pdu_len = npdu_encode_pdu(
-            &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
+        pdu_len = npdu_encode_pdu(pdu, dest, &my_address, &npdu_data);
+        /* encode the APDU portion of the packet */
         len = alarm_ack_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], invoke_id, data);
         pdu_len += len;
@@ -84,28 +90,51 @@ uint8_t Send_Alarm_Acknowledgement(
            us and the destination, we won't know unless
            we have a way to check for that and update the
            max_apdu in the address binding table. */
-        if ((unsigned)pdu_len < max_apdu) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, &dest,
-                &npdu_data, &Handler_Transmit_Buffer[0], (uint16_t)pdu_len);
-#if PRINT_ENABLED
+        if ((uint16_t)pdu_len < pdu_size) {
+            tsm_set_confirmed_unsegmented_transaction(invoke_id, dest,
+                &npdu_data, pdu, (uint16_t)pdu_len);
             bytes_sent =
-#endif
-                datalink_send_pdu(
-                    &dest, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-#if PRINT_ENABLED
-            if (bytes_sent <= 0)
-                fprintf(stderr, "Failed to Send Alarm Ack Request (%s)!\n",
+                datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
+            if (bytes_sent <= 0) {
+                PRINTF("Failed to Send Alarm Ack Request (%s)!\n",
                     strerror(errno));
-#endif
+            }
         } else {
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
-#if PRINT_ENABLED
-            fprintf(stderr,
-                "Failed to Send Alarm Ack Request "
+            PRINTF("Failed to Send Alarm Ack Request "
                 "(exceeds destination maximum APDU)!\n");
-#endif
         }
+    }
+
+    return invoke_id;
+}
+
+/** Sends an Confirmed Alarm Acknowledgment
+ * @ingroup EVNOTFCN
+ *
+ * @param device_id [in] ID of the destination device
+ * @param data [in] The information about the Event to be sent.
+ * @return invoke id of outgoing message, or 0 if communication is disabled,
+ *         or no tsm slot is available.
+ */
+uint8_t Send_Alarm_Acknowledgement(
+    uint32_t device_id, BACNET_ALARM_ACK_DATA *data)
+{
+    BACNET_ADDRESS dest = { 0 };
+    unsigned max_apdu = 0;
+    uint8_t invoke_id = 0;
+    bool status = false;
+
+    /* is the device bound? */
+    status = address_get_by_device(device_id, &max_apdu, &dest);
+    if (status) {
+        if (sizeof(Handler_Transmit_Buffer) < max_apdu) {
+            max_apdu = sizeof(Handler_Transmit_Buffer);
+        }
+        invoke_id = Send_Alarm_Acknowledgement_Address(
+            Handler_Transmit_Buffer, max_apdu,
+            data, &dest);
     }
 
     return invoke_id;

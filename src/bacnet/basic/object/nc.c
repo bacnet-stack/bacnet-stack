@@ -90,6 +90,27 @@ void Notification_Class_Init(void)
             255; /* The lowest priority for Normal message. */
         NC_Info[NotifyIdx].Priority[TRANSITION_TO_NORMAL] =
             255; /* The lowest priority for Normal message. */
+        /* configure for every day, all day long */
+        for (unsigned i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++) {
+            NC_Info[NotifyIdx].Recipient_List->ValidDays |= (1<<i);
+        }
+		NC_Info[NotifyIdx].Recipient_List->FromTime.hour = 0;
+		NC_Info[NotifyIdx].Recipient_List->FromTime.min = 0;
+		NC_Info[NotifyIdx].Recipient_List->FromTime.sec = 0;
+		NC_Info[NotifyIdx].Recipient_List->FromTime.hundredths = 0;
+		NC_Info[NotifyIdx].Recipient_List->ToTime.hour = 23;
+		NC_Info[NotifyIdx].Recipient_List->ToTime.min = 59;
+		NC_Info[NotifyIdx].Recipient_List->ToTime.sec = 59;
+		NC_Info[NotifyIdx].Recipient_List->ToTime.hundredths = 0;
+        /* configure for broadcast - example only! */
+		NC_Info[NotifyIdx].Recipient_List->Recipient.RecipientType =
+            RECIPIENT_TYPE_ADDRESS;
+		NC_Info[NotifyIdx].Recipient_List->Recipient._.Address.net = 0;
+        for (unsigned i = 0; i < 6; i++) {
+            NC_Info[NotifyIdx].Recipient_List->Recipient._.Address.mac[i] =
+                0xFF;
+        }
+		NC_Info[NotifyIdx].Recipient_List->Recipient._.Address.mac_len = 6;
     }
 
     return;

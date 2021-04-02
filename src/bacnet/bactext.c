@@ -1283,6 +1283,12 @@ bool bactext_event_state_index(
         bacnet_event_state_names, search_name, found_index);
 }
 
+bool bactext_event_state_strtol(const char *search_name, unsigned *found_index)
+{
+    return bactext_strtol_index(
+        bacnet_event_state_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_event_type_names[] = {
     { EVENT_CHANGE_OF_BITSTRING, "change-of-bitstring" },
     { EVENT_CHANGE_OF_STATE, "change-of-state" },

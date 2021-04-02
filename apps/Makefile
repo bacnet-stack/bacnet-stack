@@ -185,7 +185,7 @@ BACNET_BASIC_SRC ?= \
 
 SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
-	writepropm uptransfer getevent uevent abort error event
+	writepropm uptransfer getevent uevent abort error event ack-alarm
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter readbdt readfdt
@@ -227,6 +227,10 @@ mstpcrc:
 
 .PHONY: abort
 abort:
+	$(MAKE) -b -C $@
+
+.PHONY: ack-alarm
+ack-alarm:
 	$(MAKE) -b -C $@
 
 .PHONY: dcc

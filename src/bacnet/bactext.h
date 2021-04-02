@@ -130,6 +130,9 @@ extern "C" {
     bool bactext_event_state_index(
         const char *search_name, unsigned *found_index);
     BACNET_STACK_EXPORT
+    bool bactext_event_state_strtol(
+        const char *search_name, unsigned *found_index);
+    BACNET_STACK_EXPORT
     const char *bactext_event_type_name(unsigned index);
     BACNET_STACK_EXPORT
     bool bactext_event_type_index(
