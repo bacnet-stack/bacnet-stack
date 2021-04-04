@@ -1295,6 +1295,7 @@ INDTEXT_DATA bacnet_event_type_names[] = {
     { EVENT_CHANGE_OF_VALUE, "change-of-value" },
     { EVENT_COMMAND_FAILURE, "command-failure" },
     { EVENT_FLOATING_LIMIT, "floating-limit" },
+    { EVENT_OUT_OF_RANGE, "out-of-range" },
     { EVENT_CHANGE_OF_LIFE_SAFETY, "change-of-life-safety" },
     { EVENT_EXTENDED, "extended" },
     { EVENT_BUFFER_READY, "buffer-ready" },

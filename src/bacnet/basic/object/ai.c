@@ -41,6 +41,13 @@
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/object/ai.h"
 
+#if PRINT_ENABLED
+#include <stdio.h>
+#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 #ifndef MAX_ANALOG_INPUTS
 #define MAX_ANALOG_INPUTS 4
 #endif
@@ -835,12 +842,7 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         CurrentAI->Ack_notify_data.bSendAckNotify = false;
         /* copy toState */
         ToState = CurrentAI->Ack_notify_data.EventState;
-
-#if PRINT_ENABLED
-        fprintf(stderr, "Send Acknotification for (%s,%d).\n",
-            bactext_object_type_name(OBJECT_ANALOG_INPUT), object_instance);
-#endif /* PRINT_ENABLED */
-
+        PRINTF("Analog-Input[%d]: Send AckNotification.\n", object_instance);
         characterstring_init_ansi(&msgText, "AckNotification");
 
         /* Notify Type */
@@ -983,14 +985,10 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                     ExceededLimit = 0;
                     break;
             } /* switch (ToState) */
-
-#if PRINT_ENABLED
-            fprintf(stderr, "Event_State for (%s,%d) goes from %s to %s.\n",
-                bactext_object_type_name(OBJECT_ANALOG_INPUT), object_instance,
+            PRINTF("Analog-Input[%d]: Event_State goes from %s to %s.\n",
+                object_instance,
                 bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
-#endif /* PRINT_ENABLED */
-
             /* Notify Type */
             event_data.notifyType = CurrentAI->Notify_Type;
 
@@ -1077,11 +1075,23 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         }
 
         /* add data from notification class */
+        PRINTF("Analog-Input[%d]: Notification Class[%d]-%s "
+                "%u/%u/%u-%u:%u:%u.%u!\n",
+                object_instance, event_data.notificationClass,
+                bactext_event_type_name(event_data.eventType),
+                (unsigned)event_data.timeStamp.value.dateTime.date.year,
+                (unsigned)event_data.timeStamp.value.dateTime.date.month,
+                (unsigned)event_data.timeStamp.value.dateTime.date.day,
+                (unsigned)event_data.timeStamp.value.dateTime.time.hour,
+                (unsigned)event_data.timeStamp.value.dateTime.time.min,
+                (unsigned)event_data.timeStamp.value.dateTime.time.sec,
+                (unsigned)event_data.timeStamp.value.dateTime.time.hundredths);
         Notification_Class_common_reporting_function(&event_data);
 
         /* Ack required */
         if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION) &&
             (event_data.ackRequired == true)) {
+            PRINTF("Analog-Input[%d]: Ack Required!\n", object_instance);
             switch (event_data.toState) {
                 case EVENT_STATE_OFFNORMAL:
                 case EVENT_STATE_HIGH_LIMIT:

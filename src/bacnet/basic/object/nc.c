@@ -46,6 +46,7 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/object/nc.h"
+#include "bacnet/datalink/datalink.h"
 
 #ifndef MAX_NOTIFICATION_CLASSES
 #define MAX_NOTIFICATION_CLASSES 2
@@ -107,10 +108,9 @@ void Notification_Class_Init(void)
             RECIPIENT_TYPE_ADDRESS;
 		NC_Info[NotifyIdx].Recipient_List->Recipient._.Address.net = 0;
         for (unsigned i = 0; i < 6; i++) {
-            NC_Info[NotifyIdx].Recipient_List->Recipient._.Address.mac[i] =
-                0xFF;
+            datalink_get_broadcast_address(
+                &NC_Info[NotifyIdx].Recipient_List->Recipient._.Address);
         }
-		NC_Info[NotifyIdx].Recipient_List->Recipient._.Address.mac_len = 6;
     }
 
     return;
