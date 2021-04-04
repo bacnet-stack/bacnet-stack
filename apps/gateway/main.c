@@ -82,6 +82,9 @@ int DNET_list[2] = {
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
+/* routed devices - I-Am on startup */
+static unsigned Routed_Device_Index;
+
 /** Initialize the Device Objects and each of the child Object instances.
  * @param first_object_instance Set the first (gateway) Device to this
             instance number, and subsequent devices to incremented values.
@@ -104,6 +107,59 @@ static void Devices_Init(uint32_t first_object_instance)
         characterstring_init_ansi(&name_string, nameText);
 
         Add_Routed_Device((first_object_instance + i), &name_string, descText);
+    }
+}
+
+/** Initialize the BACnet Device Addresses for each Device object.
+ * The gateway has already gotten the normal address (eg, PC's IP for BIP) and
+ * the remote devices get
+ * - For BIP, the IP address reversed, and 4th byte equal to index.
+ * (Eg, 11.22.33.44 for the gateway becomes 44.33.22.01 for the first remote
+ * device.) This is sure to be unique! The port number stays the same.
+ * - For MS/TP, [Steve inserts a good idea here]
+ */
+static void Initialize_Device_Addresses(void)
+{
+    int i = 0; /* First entry is Gateway Device */
+    uint32_t virtual_mac = 0;
+    BACNET_ADDRESS virtual_address = {0};
+    DEVICE_OBJECT_DATA *pDev = NULL;
+    /* Setup info for the main gateway device first */
+    pDev = Get_Routed_Device_Object(i);
+
+    /* we can't use datalink_get_my_address() since it is
+       mapped to routed_get_my_address() in this app
+       to get the parent device address */
+#if defined(BACDL_BIP)
+    bip_get_my_address(&virtual_address);
+#elif defined(BACDL_MSTP)
+    dlmstp_get_my_address(&virtual_address);
+#elif defined(BACDL_ARCNET)
+    arcnet_get_my_address(&virtual_address);
+#elif defined(BACDL_ETHERNET)
+    ethernet_get_my_address(&virtual_address);
+#elif defined(BACDL_BIP6)
+    bip6_get_my_address(&virtual_address);
+#else
+#error "No support for this Data Link Layer type "
+#endif
+    bacnet_address_copy(&pDev->bacDevAddr, &virtual_address);
+    /* broadcast an I-Am on startup */
+    Send_I_Am(&Handler_Transmit_Buffer[0]);
+
+    for (i = 1; i < MAX_NUM_DEVICES; i++) {
+        pDev = Get_Routed_Device_Object(i);
+        if (pDev == NULL) {
+            continue;
+        }
+        /* start with the router address */
+        bacnet_address_copy(&pDev->bacDevAddr, &virtual_address);
+        /* add the network number to each gateway device */
+        pDev->bacDevAddr.net = VIRTUAL_DNET;
+        /* use a virtual MAC for each gateway device */
+        virtual_mac = pDev->bacObj.Object_Instance_Number;
+        encode_unsigned24(&pDev->bacDevAddr.adr[0], virtual_mac);
+        pDev->bacDevAddr.len = 3;
     }
 }
 
@@ -158,54 +214,6 @@ static void Init_Service_Handlers(uint32_t first_object_instance)
         handler_device_communication_control);
 }
 
-/** Initialize the BACnet Device Addresses for each Device object.
- * The gateway has already gotten the normal address (eg, PC's IP for BIP) and
- * the remote devices get
- * - For BIP, the IP address reversed, and 4th byte equal to index.
- * (Eg, 11.22.33.44 for the gateway becomes 44.33.22.01 for the first remote
- * device.) This is sure to be unique! The port number stays the same.
- * - For MS/TP, [Steve inserts a good idea here]
- */
-static void Initialize_Device_Addresses()
-{
-    int i = 0; /* First entry is Gateway Device */
-    uint32_t virtual_mac = 0;
-    DEVICE_OBJECT_DATA *pDev = NULL;
-    /* Setup info for the main gateway device first */
-    pDev = Get_Routed_Device_Object(i);
-
-    /* we can't use datalink_get_my_address() since it is
-       mapped to routed_get_my_address() in this app
-       to get the parent device address */
-#if defined(BACDL_BIP)
-    bip_get_my_address(&pDev->bacDevAddr);
-#elif defined(BACDL_MSTP)
-    dlmstp_get_my_address(&pDev->bacDevAddr);
-#elif defined(BACDL_ARCNET)
-    arcnet_get_my_address(&pDev->bacDevAddr);
-#elif defined(BACDL_ETHERNET)
-    ethernet_get_my_address(&pDev->bacDevAddr);
-#elif defined(BACDL_BIP6)
-    bip6_get_my_address&pDev->bacDevAddr);
-#else
-#error "No support for this Data Link Layer type "
-#endif
-    /* broadcast an I-Am on startup */
-    Send_I_Am(&Handler_Transmit_Buffer[0]);
-
-    for (i = 1; i < MAX_NUM_DEVICES; i++) {
-        pDev = Get_Routed_Device_Object(i);
-        if (pDev == NULL) {
-            continue;
-        }
-        virtual_mac = pDev->bacObj.Object_Instance_Number;
-        encode_unsigned24(&pDev->bacDevAddr.adr[0], virtual_mac);
-        pDev->bacDevAddr.len = 3;
-        /* broadcast an I-Am for each routed Device now */
-        Send_I_Am(&Handler_Transmit_Buffer[0]);
-    }
-}
-
 /** Main function of server demo.
  *
  * @see Device_Set_Object_Instance_Number, dlenv_init, Send_I_Am,
@@ -248,8 +256,9 @@ int main(int argc, char *argv[])
     printf("BACnet Router Demo\n"
            "BACnet Stack Version %s\n"
            "BACnet Device ID: %u\n"
-           "Max APDU: %d\n",
-        BACnet_Version, first_object_instance, MAX_APDU);
+           "Max APDU: %d\n"
+           "Max Devices: %d\n",
+        BACnet_Version, first_object_instance, MAX_APDU, MAX_NUM_DEVICES);
     Init_Service_Handlers(first_object_instance);
     dlenv_init();
     atexit(datalink_cleanup);
@@ -293,8 +302,12 @@ int main(int argc, char *argv[])
         }
         handler_cov_task();
         /* output */
-
-        /* blink LEDs, Turn on or off outputs, etc */
+        if (Routed_Device_Index < MAX_NUM_DEVICES) {
+            Routed_Device_Index++;
+            Get_Routed_Device_Object(Routed_Device_Index);
+            /* broadcast an I-Am for each routed Device now */
+            Send_I_Am(&Handler_Transmit_Buffer[0]);
+        }
     }
     /* Dummy return */
     return 0;
