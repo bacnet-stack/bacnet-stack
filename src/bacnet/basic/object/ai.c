@@ -1231,10 +1231,12 @@ int Analog_Input_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-
-                /* FIXME: Send ack notification */
+                /* Send ack notification */
                 CurrentAI->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAI->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1255,10 +1257,12 @@ int Analog_Input_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-
-                /* FIXME: Send ack notification */
+                /* Send ack notification */
                 CurrentAI->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAI->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1279,10 +1283,12 @@ int Analog_Input_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-
-                /* FIXME: Send ack notification */
+                /* Send ack notification */
                 CurrentAI->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAI->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
