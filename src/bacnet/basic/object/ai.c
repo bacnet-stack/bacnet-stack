@@ -229,6 +229,21 @@ bool Analog_Input_Object_Name(
     return status;
 }
 
+unsigned Analog_Input_Event_State(uint32_t object_instance)
+{
+    unsigned index = 0;
+    unsigned state = EVENT_STATE_NORMAL;
+
+#if defined(INTRINSIC_REPORTING)
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        state = AI_Descr[index].Event_State;
+    }
+#endif
+
+    return state;
+}
+
 bool Analog_Input_Change_Of_Value(uint32_t object_instance)
 {
     unsigned index = 0;
@@ -283,7 +298,8 @@ bool Analog_Input_Encode_Value_List(
         value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
         bitstring_init(&value_list->value.type.Bit_String);
         bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, false);
+            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM,
+            Analog_Input_Event_State(object_instance) != EVENT_STATE_NORMAL);
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(
@@ -415,12 +431,9 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
-#if defined(INTRINSIC_REPORTING)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM,
-                CurrentAI->Event_State ? true : false);
-#else
-            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-#endif
+                Analog_Input_Event_State(rpdata->object_instance) !=
+                EVENT_STATE_NORMAL);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
@@ -430,13 +443,9 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_EVENT_STATE:
-#if defined(INTRINSIC_REPORTING)
             apdu_len =
-                encode_application_enumerated(&apdu[0], CurrentAI->Event_State);
-#else
-            apdu_len =
-                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
-#endif
+                encode_application_enumerated(&apdu[0],
+                Analog_Input_Event_State(rpdata->object_instance));
             break;
 
         case PROP_RELIABILITY:
