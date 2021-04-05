@@ -229,6 +229,13 @@ bool Analog_Input_Object_Name(
     return status;
 }
 
+/**
+ * For a given object instance-number, gets the event-state property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-state property value
+ */
 unsigned Analog_Input_Event_State(uint32_t object_instance)
 {
     unsigned index = 0;
@@ -297,9 +304,13 @@ bool Analog_Input_Encode_Value_List(
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
         bitstring_init(&value_list->value.type.Bit_String);
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM,
-            Analog_Input_Event_State(object_instance) != EVENT_STATE_NORMAL);
+        if (Analog_Input_Event_State(object_instance) == EVENT_STATE_NORMAL) {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_IN_ALARM, false);
+        } else {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_IN_ALARM, true);
+        }
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(
@@ -1065,7 +1076,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                 &event_data.notificationParams.outOfRange.statusFlags);
             bitstring_set_bit(
                 &event_data.notificationParams.outOfRange.statusFlags,
-                STATUS_FLAG_IN_ALARM, CurrentAI->Event_State ? true : false);
+                STATUS_FLAG_IN_ALARM,
+                CurrentAI->Event_State != EVENT_STATE_NORMAL);
             bitstring_set_bit(
                 &event_data.notificationParams.outOfRange.statusFlags,
                 STATUS_FLAG_FAULT, false);

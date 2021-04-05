@@ -291,6 +291,28 @@ bool Analog_Value_Object_Name(
 }
 
 /**
+ * For a given object instance-number, gets the event-state property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-state property value
+ */
+unsigned Analog_Value_Event_State(uint32_t object_instance)
+{
+    unsigned index = 0;
+    unsigned state = EVENT_STATE_NORMAL;
+
+#if defined(INTRINSIC_REPORTING)
+    index = Analog_Value_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_VALUES) {
+        state = AV_Descr[index].Event_State;
+    }
+#endif
+
+    return state;
+}
+
+/**
  * For a given object instance-number, determines if the COV flag
  * has been triggered.
  *
@@ -356,8 +378,13 @@ bool Analog_Value_Encode_Value_List(
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
         bitstring_init(&value_list->value.type.Bit_String);
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, false);
+        if (Analog_Value_Event_State(object_instance) == EVENT_STATE_NORMAL) {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_IN_ALARM, false);
+        } else {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_IN_ALARM, true);
+        }
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(
@@ -497,12 +524,9 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
-#if defined(INTRINSIC_REPORTING)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM,
-                CurrentAV->Event_State ? true : false);
-#else
-            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-#endif
+                Analog_Value_Event_State(rpdata->object_instance) !=
+                EVENT_STATE_NORMAL);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
@@ -1155,7 +1179,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 &event_data.notificationParams.outOfRange.statusFlags);
             bitstring_set_bit(
                 &event_data.notificationParams.outOfRange.statusFlags,
-                STATUS_FLAG_IN_ALARM, CurrentAV->Event_State ? true : false);
+                STATUS_FLAG_IN_ALARM,
+                CurrentAV->Event_State != EVENT_STATE_NORMAL);
             bitstring_set_bit(
                 &event_data.notificationParams.outOfRange.statusFlags,
                 STATUS_FLAG_FAULT, false);
@@ -1322,6 +1347,9 @@ int Analog_Value_Alarm_Ack(
                 /* Clean transitions flag. */
                 CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAV->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1346,6 +1374,9 @@ int Analog_Value_Alarm_Ack(
                 /* Clean transitions flag. */
                 CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAV->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1370,6 +1401,9 @@ int Analog_Value_Alarm_Ack(
                 /* Clean transitions flag. */
                 CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAV->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
