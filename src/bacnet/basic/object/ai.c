@@ -1024,25 +1024,49 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
 
         /* Time Stamp */
         event_data.timeStamp.tag = TIME_STAMP_DATETIME;
-        Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
-
         if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
+            Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
             /* fill Event_Time_Stamps */
             switch (ToState) {
                 case EVENT_STATE_HIGH_LIMIT:
                 case EVENT_STATE_LOW_LIMIT:
-                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL] =
-                        event_data.timeStamp.value.dateTime;
+                    datetime_copy(
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL],
+                        &event_data.timeStamp.value.dateTime);
                     break;
-
                 case EVENT_STATE_FAULT:
-                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT] =
-                        event_data.timeStamp.value.dateTime;
+                    datetime_copy(
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT],
+                        &event_data.timeStamp.value.dateTime);
                     break;
-
                 case EVENT_STATE_NORMAL:
-                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL] =
-                        event_data.timeStamp.value.dateTime;
+                    datetime_copy(
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL],
+                        &event_data.timeStamp.value.dateTime);
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            /* fill event_data timeStamp */
+            switch (ToState) {
+                case EVENT_STATE_HIGH_LIMIT:
+                case EVENT_STATE_LOW_LIMIT:
+                    datetime_copy(
+                        &event_data.timeStamp.value.dateTime,
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL]);
+                    break;
+                case EVENT_STATE_FAULT:
+                    datetime_copy(
+                        &event_data.timeStamp.value.dateTime,
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT]);
+                    break;
+                case EVENT_STATE_NORMAL:
+                    datetime_copy(
+                        &event_data.timeStamp.value.dateTime,
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL]);
+                    break;
+                default:
                     break;
             }
         }
