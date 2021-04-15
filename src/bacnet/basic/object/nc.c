@@ -48,6 +48,13 @@
 #include "bacnet/basic/object/nc.h"
 #include "bacnet/datalink/datalink.h"
 
+#if PRINT_ENABLED
+#include <stdio.h>
+#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 #ifndef MAX_NOTIFICATION_CLASSES
 #define MAX_NOTIFICATION_CLASSES 2
 #endif
@@ -90,7 +97,7 @@ void Notification_Class_Init(void)
         NC_Info[NotifyIdx].Priority[TRANSITION_TO_FAULT] =
             255; /* The lowest priority for Normal message. */
         NC_Info[NotifyIdx].Priority[TRANSITION_TO_NORMAL] =
-            255; /* The lowest priority for Normal message. */
+            255; /* PRINTF lowest priority for Normal message. */
         /* configure for every day, all day long */
         for (unsigned i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++) {
             NC_Info[NotifyIdx].Recipient_List->ValidDays |= (1<<i);
@@ -103,7 +110,11 @@ void Notification_Class_Init(void)
 		NC_Info[NotifyIdx].Recipient_List->ToTime.min = 59;
 		NC_Info[NotifyIdx].Recipient_List->ToTime.sec = 59;
 		NC_Info[NotifyIdx].Recipient_List->ToTime.hundredths = 0;
-        /* configure for broadcast - example only! */
+		NC_Info[NotifyIdx].Recipient_List->Transitions =
+            TRANSITION_TO_OFFNORMAL_MASKED |
+            TRANSITION_TO_FAULT_MASKED |
+            TRANSITION_TO_NORMAL_MASKED;
+		NC_Info[NotifyIdx].Recipient_List->ConfirmedNotify = false;
 		NC_Info[NotifyIdx].Recipient_List->Recipient.RecipientType =
             RECIPIENT_TYPE_ADDRESS;
 		NC_Info[NotifyIdx].Recipient_List->Recipient._.Address.net = 0;
@@ -883,6 +894,8 @@ void Notification_Class_common_reporting_function(
     }
 
     /* send notifications for active recipients */
+    PRINTF("Notification Class[%u]: send notifications\n",
+        event_data->notificationClass);
     /* pointer to first recipient */
     pBacDest = &CurrentNotify->Recipient_List[0];
     for (index = 0; index < NC_MAX_RECIPIENTS; index++, pBacDest++) {
@@ -890,7 +903,7 @@ void Notification_Class_common_reporting_function(
         if (pBacDest->Recipient.RecipientType == RECIPIENT_TYPE_NOTINITIALIZED)
             break; /* recipient doesn't defined - end of list */
 
-        if (IsRecipientActive(pBacDest, event_data->toState) == true) {
+        if (IsRecipientActive(pBacDest, event_data->toState)) {
             BACNET_ADDRESS dest;
             uint32_t device_id;
             unsigned max_apdu;
@@ -902,7 +915,8 @@ void Notification_Class_common_reporting_function(
             if (pBacDest->Recipient.RecipientType == RECIPIENT_TYPE_DEVICE) {
                 /* send notification to the specified device */
                 device_id = pBacDest->Recipient._.DeviceIdentifier;
-
+                PRINTF("Notification Class[%u]: send notification to %u\n",
+                    event_data->notificationClass, (unsigned)device_id);
                 if (pBacDest->ConfirmedNotify == true)
                     Send_CEvent_Notify(device_id, event_data);
                 else if (address_get_by_device(device_id, &max_apdu, &dest))
@@ -910,6 +924,8 @@ void Notification_Class_common_reporting_function(
                         Handler_Transmit_Buffer, event_data, &dest);
             } else if (pBacDest->Recipient.RecipientType ==
                 RECIPIENT_TYPE_ADDRESS) {
+                PRINTF("Notification Class[%u]: send notification to ADDR\n",
+                    event_data->notificationClass);
                 /* send notification to the address indicated */
                 if (pBacDest->ConfirmedNotify == true) {
                     if (address_get_device_id(&dest, &device_id))
