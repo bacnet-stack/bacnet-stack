@@ -115,13 +115,11 @@ void Notification_Class_Init(void)
             TRANSITION_TO_FAULT_MASKED |
             TRANSITION_TO_NORMAL_MASKED;
 		NC_Info[NotifyIdx].Recipient_List->ConfirmedNotify = false;
+		NC_Info[NotifyIdx].Recipient_List->ConfirmedNotify = false;
 		NC_Info[NotifyIdx].Recipient_List->Recipient.RecipientType =
-            RECIPIENT_TYPE_ADDRESS;
-		NC_Info[NotifyIdx].Recipient_List->Recipient._.Address.net = 0;
-        for (unsigned i = 0; i < 6; i++) {
-            datalink_get_broadcast_address(
-                &NC_Info[NotifyIdx].Recipient_List->Recipient._.Address);
-        }
+            RECIPIENT_TYPE_DEVICE;
+		NC_Info[NotifyIdx].Recipient_List->Recipient._.DeviceIdentifier =
+            4194303;
     }
 
     return;
