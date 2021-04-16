@@ -837,25 +837,26 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
 {
 #if defined(INTRINSIC_REPORTING)
-    BACNET_EVENT_NOTIFICATION_DATA event_data;
-    BACNET_CHARACTER_STRING msgText;
-    ANALOG_INPUT_DESCR *CurrentAI;
-    unsigned int object_index;
+    BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
+    BACNET_CHARACTER_STRING msgText = { 0 };
+    ANALOG_INPUT_DESCR *CurrentAI = NULL;
+    unsigned int object_index = 0;
     uint8_t FromState = 0;
-    uint8_t ToState;
+    uint8_t ToState = 0;
     float ExceededLimit = 0.0f;
     float PresentVal = 0.0f;
     bool SendNotify = false;
 
     object_index = Analog_Input_Instance_To_Index(object_instance);
-    if (object_index < MAX_ANALOG_INPUTS)
+    if (object_index < MAX_ANALOG_INPUTS) {
         CurrentAI = &AI_Descr[object_index];
-    else
+    } else {
         return;
-
+    }
     /* check limits */
-    if (!CurrentAI->Limit_Enable)
+    if (!CurrentAI->Limit_Enable) {
         return; /* limits are not configured */
+    }
 
     if (CurrentAI->Ack_notify_data.bSendAckNotify) {
         /* clean bSendAckNotify flag */
