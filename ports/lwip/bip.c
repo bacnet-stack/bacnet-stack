@@ -268,6 +268,14 @@ static bool bvlc_send_result(struct ip_addr *addr, uint16_t result_code)
     return bip_send_mpdu(addr, BIP_Port, pkt);
 }
 
+/** LwIP BACnet service callback
+ *
+ * @param arg [in] optional argument from service
+ * @param upcb [in] UDP control block
+ * @param pkt [in] UDP packet - PBUF
+ * @param addr [in] UDP source address
+ * @param port [in] UDP port number
+ */
 void bip_server_callback(void *arg,
     struct udp_pcb *upcb,
     struct pbuf *pkt,
@@ -283,73 +291,88 @@ void bip_server_callback(void *arg,
     uint8_t *pdu = (uint8_t *)pkt->payload;
 
     /* the signature of a BACnet/IP packet */
-    if (pdu[0] != BVLL_TYPE_BACNET_IP) {
-        return;
-    }
-    function = pdu[1];
-    if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
-        (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
-        /* ignore messages from me */
-        if ((addr->addr == BIP_Address.s_addr) && (port == BIP_Port)) {
-            pdu_len = 0;
-        } else {
-            /* data in src->mac[] is in network format */
-            src.mac_len = 6;
-            bip_addr_to_mac(&src.mac[0], addr);
-            memcpy(&src.mac[4], &port, 2);
-            /* decode the length of the PDU - length is inclusive of BVLC */
-            (void)decode_unsigned16(&pdu[2], &pdu_len);
-            /* subtract off the BVLC header */
-            pdu_len -= 4;
-            pdu_offset = 4;
+    if ((pkt->tot_len >= 2) &&
+        (pdu[0] == BVLL_TYPE_BACNET_IP)) {
+        function = pdu[1];
+        if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
+            (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
+            /* ignore messages from me */
+            if ((addr->addr == BIP_Address.s_addr) && (port == BIP_Port)) {
+                pdu_len = 0;
+            } else if (pkt->tot_len >= 4) {
+                /* data in src->mac[] is in network format */
+                src.mac_len = 6;
+                bip_addr_to_mac(&src.mac[0], addr);
+                memcpy(&src.mac[4], &port, 2);
+                /* decode the length of the PDU
+                   length is inclusive of BVLC */
+                (void)decode_unsigned16(&pdu[2], &pdu_len);
+                if (pdu_len > pkt->tot_len) {
+                    /* BVLC length is too long - someone is lying */
+                    pdu_len = 0;
+                } else {
+                    /* subtract off the BVLC header */
+                    pdu_len -= 4;
+                    pdu_offset = 4;
+                }
+            }
+        } else if (function == BVLC_FORWARDED_NPDU) {
+            if (pkt->tot_len >= 10) {
+                IP4_ADDR(&sin_addr, pdu[4], pdu[5], pdu[6], pdu[7]);
+                decode_unsigned16(&pdu[8], &sin_port);
+                if ((sin_addr.addr == BIP_Address.s_addr) &&
+                    (sin_port == BIP_Port)) {
+                    /* ignore forwarded messages from me */
+                    pdu_len = 0;
+                } else {
+                    /* data in src->mac[] is in network format */
+                    src.mac_len = 6;
+                    bip_addr_to_mac(&src.mac[0], &sin_addr);
+                    memcpy(&src.mac[4], &sin_port, 2);
+                    /* decode the length of the PDU
+                       length is inclusive of BVLC */
+                    (void)decode_unsigned16(&pdu[2], &pdu_len);
+                    if (pdu_len > pkt->tot_len) {
+                        /* BVLC length is too long - someone is lying */
+                        pdu_len = 0;
+                    } else {
+                        /* subtract off the BVLC header */
+                        pdu_len -= 10;
+                        pdu_offset = 10;
+                    }
+                }
+            }
+        } else if (function == BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE) {
+            bvlc_send_result(
+                addr, BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK);
+        } else if (function == BVLC_READ_BROADCAST_DIST_TABLE) {
+            bvlc_send_result(
+                addr, BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK);
+        } else if (function == BVLC_REGISTER_FOREIGN_DEVICE) {
+            bvlc_send_result(addr, BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK);
+        } else if (function == BVLC_READ_FOREIGN_DEVICE_TABLE) {
+            bvlc_send_result(addr, BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK);
+        } else if (function == BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY) {
+            bvlc_send_result(
+                addr, BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK);
+        } else if (function == BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK) {
+            bvlc_send_result(addr, BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK);
         }
-    } else if (function == BVLC_FORWARDED_NPDU) {
-        IP4_ADDR(&sin_addr, pdu[4], pdu[5], pdu[6], pdu[7]);
-        decode_unsigned16(&pdu[8], &sin_port);
-        if ((sin_addr.addr == BIP_Address.s_addr) && (sin_port == BIP_Port)) {
-            /* ignore forwarded messages from me */
-            pdu_len = 0;
+        if (pdu_len) {
+            BIP_STATS_INC(recv);
+            if ((function == BVLC_ORIGINAL_BROADCAST_NPDU) &&
+                (npdu_confirmed_service(&pdu[pdu_offset], pdu_len))) {
+                /* BTL test: verifies that the IUT will quietly discard any
+                   Confirmed-Request-PDU, whose destination address is a
+                   multicast or broadcast address, received from the
+                   network layer. */
+            } else {
+                npdu_handler(&src, &pdu[pdu_offset], pdu_len);
+            }
         } else {
-            /* data in src->mac[] is in network format */
-            src.mac_len = 6;
-            bip_addr_to_mac(&src.mac[0], &sin_addr);
-            memcpy(&src.mac[4], &sin_port, 2);
-            /* decode the length of the PDU - length is inclusive of BVLC */
-            (void)decode_unsigned16(&pdu[2], &pdu_len);
-            /* subtract off the BVLC header */
-            pdu_len -= 10;
-            pdu_offset = 10;
+            BIP_STATS_INC(rxdrop);
         }
-    } else if (function == BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE) {
-        bvlc_send_result(
-            addr, BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK);
-    } else if (function == BVLC_READ_BROADCAST_DIST_TABLE) {
-        bvlc_send_result(
-            addr, BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK);
-    } else if (function == BVLC_REGISTER_FOREIGN_DEVICE) {
-        bvlc_send_result(addr, BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK);
-    } else if (function == BVLC_READ_FOREIGN_DEVICE_TABLE) {
-        bvlc_send_result(addr, BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK);
-    } else if (function == BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY) {
-        bvlc_send_result(
-            addr, BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK);
-    } else if (function == BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK) {
-        bvlc_send_result(addr, BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK);
     }
-    if (pdu_len) {
-        BIP_STATS_INC(recv);
-        npdu_handler(&src, &pdu[pdu_offset], pdu_len);
-    } else {
-        BIP_STATS_INC(drop);
-    }
-
-#if 0
-    /* prepare for next packet */
-    udp_disconnect(upcb);
-    udp_bind(upcb, IP_ADDR_ANY, BIP_Port);
-    /* Set a receive callback for the upcb */
-    udp_recv(upcb, bip_server_callback, NULL);
-#endif
     /* free our packet */
     pbuf_free(pkt);
 }
