@@ -37,6 +37,10 @@ apps:
 abort:
 	$(MAKE) -s -C apps $@
 
+.PHONY: ack-alarm
+ack-alarm:
+	$(MAKE) -s -C apps $@
+
 .PHONY: dcc
 dcc:
 	$(MAKE) -s -C apps $@

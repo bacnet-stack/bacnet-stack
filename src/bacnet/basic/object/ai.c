@@ -41,6 +41,13 @@
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/object/ai.h"
 
+#if PRINT_ENABLED
+#include <stdio.h>
+#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 #ifndef MAX_ANALOG_INPUTS
 #define MAX_ANALOG_INPUTS 4
 #endif
@@ -222,6 +229,28 @@ bool Analog_Input_Object_Name(
     return status;
 }
 
+/**
+ * For a given object instance-number, gets the event-state property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-state property value
+ */
+unsigned Analog_Input_Event_State(uint32_t object_instance)
+{
+    unsigned index = 0;
+    unsigned state = EVENT_STATE_NORMAL;
+
+#if defined(INTRINSIC_REPORTING)
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        state = AI_Descr[index].Event_State;
+    }
+#endif
+
+    return state;
+}
+
 bool Analog_Input_Change_Of_Value(uint32_t object_instance)
 {
     unsigned index = 0;
@@ -275,8 +304,13 @@ bool Analog_Input_Encode_Value_List(
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
         bitstring_init(&value_list->value.type.Bit_String);
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, false);
+        if (Analog_Input_Event_State(object_instance) == EVENT_STATE_NORMAL) {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_IN_ALARM, false);
+        } else {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_IN_ALARM, true);
+        }
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(
@@ -408,12 +442,9 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
-#if defined(INTRINSIC_REPORTING)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM,
-                CurrentAI->Event_State ? true : false);
-#else
-            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-#endif
+                Analog_Input_Event_State(rpdata->object_instance) !=
+                EVENT_STATE_NORMAL);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
@@ -423,13 +454,9 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_EVENT_STATE:
-#if defined(INTRINSIC_REPORTING)
             apdu_len =
-                encode_application_enumerated(&apdu[0], CurrentAI->Event_State);
-#else
-            apdu_len =
-                encode_application_enumerated(&apdu[0], EVENT_STATE_NORMAL);
-#endif
+                encode_application_enumerated(&apdu[0],
+                Analog_Input_Event_State(rpdata->object_instance));
             break;
 
         case PROP_RELIABILITY:
@@ -810,37 +837,33 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
 {
 #if defined(INTRINSIC_REPORTING)
-    BACNET_EVENT_NOTIFICATION_DATA event_data;
-    BACNET_CHARACTER_STRING msgText;
-    ANALOG_INPUT_DESCR *CurrentAI;
-    unsigned int object_index;
+    BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
+    BACNET_CHARACTER_STRING msgText = { 0 };
+    ANALOG_INPUT_DESCR *CurrentAI = NULL;
+    unsigned int object_index = 0;
     uint8_t FromState = 0;
-    uint8_t ToState;
+    uint8_t ToState = 0;
     float ExceededLimit = 0.0f;
     float PresentVal = 0.0f;
     bool SendNotify = false;
 
     object_index = Analog_Input_Instance_To_Index(object_instance);
-    if (object_index < MAX_ANALOG_INPUTS)
+    if (object_index < MAX_ANALOG_INPUTS) {
         CurrentAI = &AI_Descr[object_index];
-    else
+    } else {
         return;
-
+    }
     /* check limits */
-    if (!CurrentAI->Limit_Enable)
+    if (!CurrentAI->Limit_Enable) {
         return; /* limits are not configured */
+    }
 
     if (CurrentAI->Ack_notify_data.bSendAckNotify) {
         /* clean bSendAckNotify flag */
         CurrentAI->Ack_notify_data.bSendAckNotify = false;
         /* copy toState */
         ToState = CurrentAI->Ack_notify_data.EventState;
-
-#if PRINT_ENABLED
-        fprintf(stderr, "Send Acknotification for (%s,%d).\n",
-            bactext_object_type_name(OBJECT_ANALOG_INPUT), object_instance);
-#endif /* PRINT_ENABLED */
-
+        PRINTF("Analog-Input[%d]: Send AckNotification.\n", object_instance);
         characterstring_init_ansi(&msgText, "AckNotification");
 
         /* Notify Type */
@@ -983,14 +1006,10 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                     ExceededLimit = 0;
                     break;
             } /* switch (ToState) */
-
-#if PRINT_ENABLED
-            fprintf(stderr, "Event_State for (%s,%d) goes from %s to %s.\n",
-                bactext_object_type_name(OBJECT_ANALOG_INPUT), object_instance,
+            PRINTF("Analog-Input[%d]: Event_State goes from %s to %s.\n",
+                object_instance,
                 bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
-#endif /* PRINT_ENABLED */
-
             /* Notify Type */
             event_data.notifyType = CurrentAI->Notify_Type;
 
@@ -1006,25 +1025,49 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
 
         /* Time Stamp */
         event_data.timeStamp.tag = TIME_STAMP_DATETIME;
-        Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
-
         if (event_data.notifyType != NOTIFY_ACK_NOTIFICATION) {
+            Device_getCurrentDateTime(&event_data.timeStamp.value.dateTime);
             /* fill Event_Time_Stamps */
             switch (ToState) {
                 case EVENT_STATE_HIGH_LIMIT:
                 case EVENT_STATE_LOW_LIMIT:
-                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL] =
-                        event_data.timeStamp.value.dateTime;
+                    datetime_copy(
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL],
+                        &event_data.timeStamp.value.dateTime);
                     break;
-
                 case EVENT_STATE_FAULT:
-                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT] =
-                        event_data.timeStamp.value.dateTime;
+                    datetime_copy(
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT],
+                        &event_data.timeStamp.value.dateTime);
                     break;
-
                 case EVENT_STATE_NORMAL:
-                    CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL] =
-                        event_data.timeStamp.value.dateTime;
+                    datetime_copy(
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL],
+                        &event_data.timeStamp.value.dateTime);
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            /* fill event_data timeStamp */
+            switch (ToState) {
+                case EVENT_STATE_HIGH_LIMIT:
+                case EVENT_STATE_LOW_LIMIT:
+                    datetime_copy(
+                        &event_data.timeStamp.value.dateTime,
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL]);
+                    break;
+                case EVENT_STATE_FAULT:
+                    datetime_copy(
+                        &event_data.timeStamp.value.dateTime,
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT]);
+                    break;
+                case EVENT_STATE_NORMAL:
+                    datetime_copy(
+                        &event_data.timeStamp.value.dateTime,
+                        &CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL]);
+                    break;
+                default:
                     break;
             }
         }
@@ -1058,7 +1101,8 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                 &event_data.notificationParams.outOfRange.statusFlags);
             bitstring_set_bit(
                 &event_data.notificationParams.outOfRange.statusFlags,
-                STATUS_FLAG_IN_ALARM, CurrentAI->Event_State ? true : false);
+                STATUS_FLAG_IN_ALARM,
+                CurrentAI->Event_State != EVENT_STATE_NORMAL);
             bitstring_set_bit(
                 &event_data.notificationParams.outOfRange.statusFlags,
                 STATUS_FLAG_FAULT, false);
@@ -1077,11 +1121,23 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
         }
 
         /* add data from notification class */
+        PRINTF("Analog-Input[%d]: Notification Class[%d]-%s "
+                "%u/%u/%u-%u:%u:%u.%u!\n",
+                object_instance, event_data.notificationClass,
+                bactext_event_type_name(event_data.eventType),
+                (unsigned)event_data.timeStamp.value.dateTime.date.year,
+                (unsigned)event_data.timeStamp.value.dateTime.date.month,
+                (unsigned)event_data.timeStamp.value.dateTime.date.day,
+                (unsigned)event_data.timeStamp.value.dateTime.time.hour,
+                (unsigned)event_data.timeStamp.value.dateTime.time.min,
+                (unsigned)event_data.timeStamp.value.dateTime.time.sec,
+                (unsigned)event_data.timeStamp.value.dateTime.time.hundredths);
         Notification_Class_common_reporting_function(&event_data);
 
         /* Ack required */
         if ((event_data.notifyType != NOTIFY_ACK_NOTIFICATION) &&
             (event_data.ackRequired == true)) {
+            PRINTF("Analog-Input[%d]: Ack Required!\n", object_instance);
             switch (event_data.toState) {
                 case EVENT_STATE_OFFNORMAL:
                 case EVENT_STATE_HIGH_LIMIT:
@@ -1221,10 +1277,12 @@ int Analog_Input_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-
-                /* FIXME: Send ack notification */
+                /* Send ack notification */
                 CurrentAI->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAI->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1245,10 +1303,12 @@ int Analog_Input_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-
-                /* FIXME: Send ack notification */
+                /* Send ack notification */
                 CurrentAI->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAI->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1269,10 +1329,12 @@ int Analog_Input_Alarm_Ack(
                     *error_code = ERROR_CODE_INVALID_TIME_STAMP;
                     return -1;
                 }
-
-                /* FIXME: Send ack notification */
+                /* Send ack notification */
                 CurrentAI->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAI->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;

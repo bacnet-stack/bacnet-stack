@@ -1283,12 +1283,19 @@ bool bactext_event_state_index(
         bacnet_event_state_names, search_name, found_index);
 }
 
+bool bactext_event_state_strtol(const char *search_name, unsigned *found_index)
+{
+    return bactext_strtol_index(
+        bacnet_event_state_names, search_name, found_index);
+}
+
 INDTEXT_DATA bacnet_event_type_names[] = {
     { EVENT_CHANGE_OF_BITSTRING, "change-of-bitstring" },
     { EVENT_CHANGE_OF_STATE, "change-of-state" },
     { EVENT_CHANGE_OF_VALUE, "change-of-value" },
     { EVENT_COMMAND_FAILURE, "command-failure" },
     { EVENT_FLOATING_LIMIT, "floating-limit" },
+    { EVENT_OUT_OF_RANGE, "out-of-range" },
     { EVENT_CHANGE_OF_LIFE_SAFETY, "change-of-life-safety" },
     { EVENT_EXTENDED, "extended" },
     { EVENT_BUFFER_READY, "buffer-ready" },

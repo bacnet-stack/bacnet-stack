@@ -141,6 +141,11 @@ extern "C" {
         bool oos_flag);
 
     BACNET_STACK_EXPORT
+    unsigned Analog_Input_Event_State(uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Analog_Input_Event_State_Set(uint32_t object_instance, unsigned state);
+
+    BACNET_STACK_EXPORT
     bool Analog_Input_Change_Of_Value(
         uint32_t instance);
     BACNET_STACK_EXPORT

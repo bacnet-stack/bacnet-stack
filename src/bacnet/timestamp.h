@@ -90,6 +90,11 @@ extern "C" {
         uint8_t tag_number,
         BACNET_TIMESTAMP * value);
 
+    BACNET_STACK_EXPORT
+    bool bacapp_timestamp_init_ascii(
+        BACNET_TIMESTAMP *timestamp,
+        const char *ascii);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

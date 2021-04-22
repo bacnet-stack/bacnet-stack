@@ -33,6 +33,7 @@
 ####COPYRIGHTEND####*/
 #include <stdint.h>
 #include <assert.h>
+#include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
 
 /** @file timestamp.c  Encode/Decode BACnet Timestamps  */
@@ -264,6 +265,89 @@ int bacapp_decode_context_timestamp(
     }
     return len;
 }
+
+#if PRINT_ENABLED
+/**
+ * @brief Parse an ascii string for the timestamp
+ * @param btime - #BACNET_TIME structure
+ * @param ascii - C string with timestamp formatted as one of the following:
+ *  time - 23:59:59.99 or 23:59:59 or 23:59 or
+ *  datetime - 2021/12/31 or 2021/12/31-23:59:59.99 or 2021/12/31-23:59:59 or
+ *             2021/12/31-23:59 2021/12/31-23 or
+ *  sequence number: 1234
+ * @return true if parsed successfully
+ */
+bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
+{
+    bool status = false;
+    int hour, min, sec, hundredths;
+    int year, month, day;
+    int sequence;
+    int count = 0;
+
+    count = sscanf(
+        ascii, "%3d:%3d:%3d.%3d", &hour, &min, &sec, &hundredths);
+    if (count == 4) {
+        timestamp->tag = TIME_STAMP_TIME;
+        timestamp->value.time.hour = (uint8_t)hour;
+        timestamp->value.time.min = (uint8_t)min;
+        timestamp->value.time.sec = (uint8_t)sec;
+        timestamp->value.time.hundredths = (uint8_t)hundredths;
+        status = true;
+    } else if (count == 3) {
+        timestamp->tag = TIME_STAMP_TIME;
+        timestamp->value.time.hour = (uint8_t)hour;
+        timestamp->value.time.min = (uint8_t)min;
+        timestamp->value.time.sec = (uint8_t)sec;
+        timestamp->value.time.hundredths = 0;
+        status = true;
+    } else if (count == 2) {
+        timestamp->tag = TIME_STAMP_TIME;
+        timestamp->value.time.hour = (uint8_t)hour;
+        timestamp->value.time.min = (uint8_t)min;
+        timestamp->value.time.sec = 0;
+        timestamp->value.time.hundredths = 0;
+        status = true;
+    }
+    if (!status) {
+        count =
+            sscanf(ascii, "%4d/%3d/%3d-%3d:%3d:%3d.%3d",
+            &year, &month, &day, &hour, &min, &sec, &hundredths);
+        if (count >= 3) {
+            timestamp->tag = TIME_STAMP_DATETIME;
+            datetime_set_date(&timestamp->value.dateTime.date,
+                (uint16_t)year, (uint8_t)month, (uint8_t)day);
+            if (count >= 7) {
+                datetime_set_time(&timestamp->value.dateTime.time,
+                    (uint8_t)hour, (uint8_t)min, (uint8_t)sec,
+                    (uint8_t)hundredths);
+            } else if (count >= 6) {
+                datetime_set_time(&timestamp->value.dateTime.time,
+                    (uint8_t)hour, (uint8_t)min, (uint8_t)sec, 0);
+            } else if (count >= 5) {
+                datetime_set_time(&timestamp->value.dateTime.time,
+                    (uint8_t)hour, (uint8_t)min, 0, 0);
+            } else if (count >= 4) {
+                datetime_set_time(&timestamp->value.dateTime.time,
+                    (uint8_t)hour, 0, 0, 0);
+            } else {
+                datetime_set_time(&timestamp->value.dateTime.time, 0, 0, 0, 0);
+            }
+            status = true;
+        }
+    }
+    if (!status) {
+        count = sscanf(ascii, "%4d", &sequence);
+        if (count == 1) {
+            timestamp->tag = TIME_STAMP_DATETIME;
+            timestamp->value.sequenceNum = (uint16_t)sequence;
+            status = true;
+        }
+    }
+
+    return status;
+}
+#endif
 
 #ifdef BAC_TEST
 

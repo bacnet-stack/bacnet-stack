@@ -42,7 +42,7 @@
 #include "bacnet/basic/object/device.h"
 #include "bacport.h"
 #include "bacnet/datalink/datalink.h"
-#include "bacnet/event.h"
+#include "bacnet/alarm_ack.h"
 #include "bacnet/whois.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
@@ -128,7 +128,7 @@ static void MyWritePropertySimpleAckHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("\nEventNotification Acknowledged!\n");
+        printf("\nAcknowledgeAlarm Acknowledged!\n");
     }
 }
 
@@ -151,22 +151,19 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack coming back */
     apdu_set_confirmed_simple_ack_handler(
-        SERVICE_CONFIRMED_EVENT_NOTIFICATION, MyWritePropertySimpleAckHandler);
+        SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, MyWritePropertySimpleAckHandler);
     /* handle any errors coming back */
     apdu_set_error_handler(
-        SERVICE_CONFIRMED_EVENT_NOTIFICATION, MyErrorHandler);
+        SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
 
 static void print_usage(char *filename)
 {
-    printf("Usage: %s device-id process-id initiating-device-id\n"
-           "    event-object-type event-object-instance\n"
-           "    sequence-number notification-class priority message-text\n"
-           "    notify-type ack-required from-state to-state event-type\n"
-           "    [change-of-bitstring reference-bit-string status-flags]\n"
-           "    [change-of-state new-state-tag new-state-value status-flags]\n",
+    printf("Usage: %s device-id process-id\n"
+           "    event-object-type event-object-instance event-state-acked\n"
+           "    event-time-stamp ack-source-name ack-time-stamp\n",
         filename);
     printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
@@ -174,7 +171,7 @@ static void print_usage(char *filename)
 
 static void print_help(char *filename)
 {
-    printf("Send BACnet ConfirmedEventNotification message to a device.\n");
+    printf("Send BACnet AcknowledgedAlarm, message to a device.\n");
     printf(
         "device-id:\n"
         "BACnet Device Object Instance number that you are trying to\n"
@@ -186,9 +183,6 @@ static void print_help(char *filename)
         "Process Identifier in the receiving device for which the\n"
         "notification is intended.\n"
         "\n"
-        "initiating-device-id: the BACnet Device Object Instance number\n"
-        "that initiated the ConfirmedEventNotification service request.\n"
-        "\n"
         "event-object-type:\n"
         "The object type is defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the integer value.\n"
@@ -196,32 +190,17 @@ static void print_help(char *filename)
         "event-object-instance:\n"
         "The object instance number of the event object.\n"
         "\n"
-        "sequence-number:\n"
-        "The sequence number of the event.\n"
+        "event-state-acked:\n"
+        "The event-state that for this alarm acknowledge.\n"
         "\n"
-        "notification-class:\n"
-        "The notification-class of the event.\n"
+        "event-time-stamp:\n"
+        "The time-stamp of the event.\n"
         "\n"
-        "priority:\n"
-        "The priority of the event.\n"
+        "ack-source-name\n"
+        "The source name of the alarm acknowledge.\n"
         "\n"
-        "message-text:\n"
-        "The message text of the event.\n"
-        "\n"
-        "notify-type:\n"
-        "The notify type of the event.\n"
-        "\n"
-        "ack-required:\n"
-        "The ack-required of the event (0=FALSE,1=TRUE).\n"
-        "\n"
-        "from-state:\n"
-        "The from-state of the event.\n"
-        "\n"
-        "to-state:\n"
-        "The to-state of the event.\n"
-        "\n"
-        "event-type\n"
-        "The event-type of the event.\n"
+        "ack-time-stamp\n"
+        "The time-stamp of the alarm acknowledge.\n"
         "\n");
     printf("--mac A\n"
         "Optional BACnet mac address."
@@ -245,10 +224,7 @@ static void print_help(char *filename)
 
 int main(int argc, char *argv[])
 {
-    BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
-    BACNET_BIT_STRING *pBitString;
-    BACNET_CHARACTER_STRING bcstring;
-    BACNET_PROPERTY_STATE_TYPE tag = BOOLEAN_VALUE;
+    BACNET_ALARM_ACK_DATA data = { 0 };
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     unsigned timeout = 100; /* milliseconds */
     uint16_t pdu_len = 0;
@@ -266,7 +242,6 @@ int main(int argc, char *argv[])
     int argi = 0;
     unsigned int target_args = 0;
     char *filename = NULL;
-    unsigned found_index = 0;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -277,7 +252,7 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--version") == 0) {
             printf("%s %s\n", filename, BACNET_VERSION_TEXT);
-            printf("Copyright (C) 2016 by Steve Karg and others.\n"
+            printf("Copyright (C) 2021 by Steve Karg and others.\n"
                    "This is free software; see the source for copying "
                    "conditions.\n"
                    "There is NO warranty; not even for MERCHANTABILITY or\n"
@@ -310,219 +285,52 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 1) {
                 /* process-id */
-                event_data.processIdentifier = strtol(argv[argi], NULL, 0);
+                data.ackProcessIdentifier = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 2) {
-                /* initiating-device-id */
-                event_data.initiatingObjectIdentifier.type = OBJECT_DEVICE;
-                event_data.initiatingObjectIdentifier.instance =
-                    strtol(argv[argi], NULL, 0);
-                target_args++;
-            } else if (target_args == 3) {
                 /* event-object-type */
-                event_data.eventObjectIdentifier.type =
+                if (bactext_object_type_strtol(argv[argi],
+                    &data.eventObjectIdentifier.type)) {
+                    target_args++;
+                } else {
+                    fprintf(stderr, "event-object-type=%s invalid\n",
+                        argv[argi]);
+                    return 1;
+                }
+            } else if (target_args == 3) {
+                /* event-object-instance */
+                data.eventObjectIdentifier.instance =
                     strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 4) {
-                /* event-object-instance */
-                event_data.eventObjectIdentifier.instance =
-                    strtol(argv[argi], NULL, 0);
-                target_args++;
-            } else if (target_args == 5) {
-                /* sequence-number */
-                event_data.timeStamp.tag = TIME_STAMP_SEQUENCE;
-                event_data.timeStamp.value.sequenceNum =
-                    strtol(argv[argi], NULL, 0);
-                target_args++;
-            } else if (target_args == 6) {
-                /* notification-class */
-                event_data.notificationClass = strtol(argv[argi], NULL, 0);
-                target_args++;
-            } else if (target_args == 7) {
-                /* priority */
-                event_data.priority = strtol(argv[argi], NULL, 0);
-                target_args++;
-            } else if (target_args == 8) {
-                /* message-text */
-                characterstring_init_ansi(&bcstring, argv[argi]);
-                event_data.messageText = &bcstring;
-                target_args++;
-            } else if (target_args == 9) {
-                /* notify-type */
-                if (bactext_notify_type_index(argv[argi], &found_index)) {
-                    event_data.notifyType = found_index;
+                /* event-state-acked */
+                if (bactext_event_state_strtol(argv[argi],
+                    &data.eventStateAcked)) {
+                    target_args++;
                 } else {
-                    event_data.notifyType = strtol(argv[argi], NULL, 0);
-                }
-                target_args++;
-            } else if (target_args == 10) {
-                /* ack-required */
-                event_data.ackRequired = strtol(argv[argi], NULL, 0);
-                target_args++;
-            } else if (target_args == 11) {
-                /* from-state */
-                if (bactext_event_state_index(argv[argi], &found_index)) {
-                    event_data.fromState = found_index;
-                } else {
-                    event_data.fromState = strtol(argv[argi], NULL, 0);
-                }
-                target_args++;
-            } else if (target_args == 12) {
-                /* to-state */
-                if (bactext_event_state_index(argv[argi], &found_index)) {
-                    event_data.toState = found_index;
-                } else {
-                    event_data.toState = strtol(argv[argi], NULL, 0);
-                }
-                target_args++;
-            } else if (target_args == 13) {
-                /* event-type - see BACNET_EVENT_TYPE */
-                if (bactext_event_type_index(argv[argi], &found_index)) {
-                    event_data.eventType = found_index;
-                } else {
-                    event_data.eventType = strtol(argv[argi], NULL, 0);
-                }
-                target_args++;
-            } else {
-                if (event_data.eventType == EVENT_CHANGE_OF_BITSTRING) {
-                    if (target_args == 14) {
-                        pBitString =
-                            &event_data.notificationParams.changeOfBitstring
-                                 .referencedBitString;
-                        bitstring_init_ascii(pBitString, argv[argi]);
-                        target_args++;
-                    } else if (target_args == 15) {
-                        pBitString = &event_data.notificationParams
-                                          .changeOfBitstring.statusFlags;
-                        bitstring_init_ascii(pBitString, argv[argi]);
-                        target_args++;
-                    } else {
-                        print_usage(filename);
-                        return 1;
-                    }
-                } else if (event_data.eventType == EVENT_CHANGE_OF_STATE) {
-                    if (target_args == 14) {
-                        tag = strtol(argv[argi], NULL, 0);
-                        event_data.notificationParams.changeOfState.newState
-                            .tag = tag;
-                        target_args++;
-                    } else if (target_args == 15) {
-                        if (tag == BOOLEAN_VALUE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.booleanValue =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == BINARY_VALUE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.binaryValue =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == EVENT_TYPE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.eventType = strtol(argv[argi], NULL, 0);
-                        } else if (tag == POLARITY) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.polarity = strtol(argv[argi], NULL, 0);
-                        } else if (tag == PROGRAM_CHANGE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.programChange =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == PROGRAM_STATE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.programState =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == REASON_FOR_HALT) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.programError =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == RELIABILITY) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.reliability =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == STATE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.state = strtol(argv[argi], NULL, 0);
-                        } else if (tag == SYSTEM_STATUS) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.systemStatus =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == UNITS) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.units = strtol(argv[argi], NULL, 0);
-                        } else if (tag == UNSIGNED_VALUE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.unsignedValue =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == LIFE_SAFETY_MODE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.lifeSafetyMode =
-                                strtol(argv[argi], NULL, 0);
-                        } else if (tag == LIFE_SAFETY_STATE) {
-                            event_data.notificationParams.changeOfState.newState
-                                .state.lifeSafetyState =
-                                strtol(argv[argi], NULL, 0);
-                        } else {
-                            printf("Invalid Change-Of-State Tag\n");
-                            return 1;
-                        }
-                        target_args++;
-                    } else if (target_args == 16) {
-                        pBitString = &event_data.notificationParams
-                                          .changeOfBitstring.statusFlags;
-                        bitstring_init_ascii(pBitString, argv[argi]);
-                        target_args++;
-                    } else {
-                        print_usage(filename);
-                        return 1;
-                    }
-                } else if (event_data.eventType == EVENT_CHANGE_OF_VALUE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_COMMAND_FAILURE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_FLOATING_LIMIT) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_OUT_OF_RANGE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_LIFE_SAFETY) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_EXTENDED) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_BUFFER_READY) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_UNSIGNED_RANGE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_ACCESS_EVENT) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_DOUBLE_OUT_OF_RANGE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_SIGNED_OUT_OF_RANGE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_UNSIGNED_OUT_OF_RANGE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_CHARACTERSTRING) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_STATUS_FLAGS) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_RELIABILITY) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_NONE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_DISCRETE_VALUE) {
-                    /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_TIMER) {
-                    /* FIXME: add event type parameters */
-                } else if ((event_data.eventType >= EVENT_PROPRIETARY_MIN) &&
-                    (event_data.eventType <= EVENT_PROPRIETARY_MAX)) {
-                    /* Enumerated values 64-65535 may
-                       be used by others subject to
-                       the procedures and constraints
-                       described in Clause 23.  */
-                } else {
-                    print_usage(filename);
+                    fprintf(stderr, "event-state=%s invalid\n",
+                        argv[argi]);
                     return 1;
                 }
+            } else if (target_args == 5) {
+                /* event-time-stamp */
+                bacapp_timestamp_init_ascii(&data.eventTimeStamp, argv[argi]);
+                target_args++;
+            } else if (target_args == 6) {
+                /* ack-source */
+                characterstring_init_ansi(&data.ackSource, argv[argi]);
+                target_args++;
+            } else if (target_args == 7) {
+                /* ack-time-stamp */
+                bacapp_timestamp_init_ascii(&data.ackTimeStamp, argv[argi]);
+                target_args++;
+            } else {
+                print_usage(filename);
+                return 1;
             }
         }
     }
-    if (target_args < 14) {
+    if (target_args < 7) {
         print_usage(filename);
         return 0;
     }
@@ -595,10 +403,10 @@ int main(int argc, char *argv[])
         if (found) {
             if (Request_Invoke_ID == 0) {
                 Request_Invoke_ID =
-                    Send_CEvent_Notify_Address(
+                    Send_Alarm_Acknowledgement_Address(
                         Handler_Transmit_Buffer,
                         sizeof(Handler_Transmit_Buffer),
-                        &event_data,
+                        &data,
                         &Target_Address);
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;

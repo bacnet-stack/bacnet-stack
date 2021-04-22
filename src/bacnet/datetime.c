@@ -1087,6 +1087,77 @@ int bacapp_decode_context_datetime(
     return apdu_len;
 }
 
+#if PRINT_ENABLED
+/**
+ * @brief Parse an ascii string for the date 2021/12/31 or 2021/12/31:1
+ * @param bdate - #BACNET_DATE structure
+ * @param argv - C string with date formatted 2021/12/31 or 2021/12/31:1
+ *  or year/month/day or year/month/day:weekday
+ * @return true if parsed successfully
+ */
+bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii)
+{
+    bool status = false;
+    int year, month, day, wday;
+    int count = 0;
+
+    count =
+        sscanf(ascii, "%4d/%3d/%3d:%3d", &year, &month, &day, &wday);
+    if (count == 3) {
+        datetime_set_date(bdate, (uint16_t)year, (uint8_t)month, (uint8_t)day);
+        status = true;
+    } else if (count == 4) {
+        bdate->year = (uint16_t)year;
+        bdate->month = (uint8_t)month;
+        bdate->day = (uint8_t)day;
+        bdate->wday = (uint8_t)wday;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+
+#if PRINT_ENABLED
+/**
+ * @brief Parse an ascii string for the time formatted 23:59:59.99
+ * @param btime - #BACNET_TIME structure
+ * @param ascii - C string with time formatted 23:59:59.99 or 23:59:59 or
+ *  or 23:59 or hours:minutes:seconds.hundredths
+ * @return true if parsed successfully
+ */
+bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii)
+{
+    bool status = false;
+    int hour, min, sec, hundredths;
+    int count = 0;
+
+    count = sscanf(
+        ascii, "%3d:%3d:%3d.%3d", &hour, &min, &sec, &hundredths);
+    if (count == 4) {
+        btime->hour = (uint8_t)hour;
+        btime->min = (uint8_t)min;
+        btime->sec = (uint8_t)sec;
+        btime->hundredths = (uint8_t)hundredths;
+        status = true;
+    } else if (count == 3) {
+        btime->hour = (uint8_t)hour;
+        btime->min = (uint8_t)min;
+        btime->sec = (uint8_t)sec;
+        btime->hundredths = 0;
+        status = true;
+    } else if (count == 2) {
+        btime->hour = (uint8_t)hour;
+        btime->min = (uint8_t)min;
+        btime->sec = 0;
+        btime->hundredths = 0;
+        status = true;
+    }
+
+    return status;
+}
+#endif
+
 #ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
