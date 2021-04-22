@@ -118,34 +118,8 @@ void Send_WhoIs_Global(int32_t low_limit, int32_t high_limit)
  */
 void Send_WhoIs_Local(int32_t low_limit, int32_t high_limit)
 {
-    BACNET_ADDRESS dest;
-    char temp[6];
-    int loop;
-
-    if (!dcc_communication_enabled()) {
-        return;
-    }
-
-    /* Who-Is is a global broadcast */
-    datalink_get_broadcast_address(&dest);
-    /* encode the NPDU portion of the packet */
-
-    /* I added this to make it a local broadcast */
-    dest.net = 0;
-
-    /* Not sure why this happens but values are backwards so they need to be
-     * reversed */
-
-    temp[0] = dest.mac[3];
-    temp[1] = dest.mac[2];
-    temp[2] = dest.mac[1];
-    temp[3] = dest.mac[0];
-    temp[4] = dest.mac[5];
-    temp[5] = dest.mac[4];
-
-    for (loop = 0; loop < 6; loop++) {
-        dest.mac[loop] = temp[loop];
-    }
+    /* mac_len = 0 is local - set them all to zero! */
+    BACNET_ADDRESS dest = { 0 };
 
     Send_WhoIs_To_Network(&dest, low_limit, high_limit);
 }
