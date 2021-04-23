@@ -188,7 +188,7 @@ SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	writepropm uptransfer getevent uevent abort error event ack-alarm
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-	SUBDIRS += whoisrouter iamrouter initrouter readbdt readfdt
+	SUBDIRS += whoisrouter iamrouter initrouter readbdt readfdt writebdt
 endif
 
 ifeq (${BACNET_PORT},linux)
@@ -279,6 +279,10 @@ uevent:
 
 .PHONY: whois
 whois:
+	$(MAKE) -b -C $@
+
+.PHONY: writebdt
+writebdt:
 	$(MAKE) -b -C $@
 
 .PHONY: router
