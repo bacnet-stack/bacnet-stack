@@ -66,9 +66,9 @@
 /** enable debugging */
 static bool BVLC_Debug = false;
 /** result from a client request */
-static uint16_t BVLC_Result_Code = BVLC_RESULT_SUCCESSFUL_COMPLETION;
+static uint16_t BVLC_Result_Code = BVLC_RESULT_INVALID;
 /** incoming function */
-static uint8_t BVLC_Function_Code = BVLC_RESULT;
+static uint8_t BVLC_Function_Code = BVLC_INVALID;
 /** Global IP address for NAT handling */
 static BACNET_IP_ADDRESS BVLC_Global_Address;
 /** Flag to indicate if NAT handling is enabled/disabled */
@@ -1184,6 +1184,20 @@ int bvlc_bbmd_read_bdt(BACNET_IP_ADDRESS *bbmd_addr)
 }
 
 /**
+ * Write the BDT to the indicated BBMD
+ * @param bbmd_addr - IPv4 address of BBMD with which to read
+ * @return Positive number (of bytes sent) on success
+ */
+int bvlc_bbmd_write_bdt(BACNET_IP_ADDRESS *bbmd_addr,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
+{
+    BVLC_Buffer_Len = bvlc_encode_write_broadcast_distribution_table(
+        &BVLC_Buffer[0], sizeof(BVLC_Buffer), bdt_list);
+
+    return bip_send_mpdu(bbmd_addr, &BVLC_Buffer[0], BVLC_Buffer_Len);
+}
+
+/**
  * Read the FDT from the indicated BBMD
  * @param bbmd_addr - IPv4 address of BBMD with which to read
  * @return Positive number (of bytes sent) on success
@@ -1212,6 +1226,15 @@ uint16_t bvlc_get_last_result(void)
 }
 
 /**
+ * Sets the last BVLL Result we received
+ * @param result code
+ */
+void bvlc_set_last_result(uint16_t result_code)
+{
+    BVLC_Result_Code = result_code;
+}
+
+/**
  * Returns the current BVLL Function Code we are processing.
  * We have to store this higher layer code for when the lower layers
  * need to know what it is, especially to differentiate between
@@ -1222,6 +1245,15 @@ uint16_t bvlc_get_last_result(void)
 uint8_t bvlc_get_function_code(void)
 {
     return BVLC_Function_Code;
+}
+
+/**
+ * Sets the current BVLL Function Code
+ * @param A BVLC_ code, such as BVLC_ORIGINAL_UNICAST_NPDU.
+ */
+void bvlc_set_function_code(uint8_t function_code)
+{
+    BVLC_Function_Code = function_code;
 }
 
 #if BBMD_ENABLED

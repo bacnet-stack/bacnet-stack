@@ -54,6 +54,7 @@
 #define BVLC_ORIGINAL_UNICAST_NPDU 10
 #define BVLC_ORIGINAL_BROADCAST_NPDU 11
 #define BVLC_SECURE_BVLL 12
+#define BVLC_INVALID 255
 
 /** @} */
 
@@ -68,6 +69,7 @@
 #define BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK 0x0040
 #define BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK 0x0050
 #define BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK 0x0060
+#define BVLC_RESULT_INVALID 0xFFFF
 
 /* number of bytes in the IPv4 address */
 #define IP_ADDRESS_MAX 4
@@ -490,6 +492,9 @@ extern "C" {
         uint8_t *npdu,
         uint16_t npdu_size,
         uint16_t *npdu_len);
+
+    BACNET_STACK_EXPORT
+    const char *bvlc_result_code_name(uint16_t result_code);
 
 #ifdef BAC_TEST
 #include "ctest.h"
