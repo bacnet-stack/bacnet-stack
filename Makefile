@@ -81,6 +81,10 @@ readbdt:
 readfdt:
 	$(MAKE) -s -C apps $@
 
+.PHONY: writebdt
+writebdt:
+	$(MAKE) -s -C apps $@
+
 .PHONY: server
 server:
 	$(MAKE) -s -C apps $@

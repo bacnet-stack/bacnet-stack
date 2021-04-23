@@ -520,14 +520,14 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             mstp_port->DataRegister;
                     }
                     mstp_port->Index++;
-                    mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
+                    /* SKIP_DATA or DATA - no change in state */
                 } else if (mstp_port->Index == mstp_port->DataLength) {
                     /* CRC1 */
                     mstp_port->DataCRC = CRC_Calc_Data(
                         mstp_port->DataRegister, mstp_port->DataCRC);
                     mstp_port->DataCRCActualMSB = mstp_port->DataRegister;
                     mstp_port->Index++;
-                    mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
+                    /* SKIP_DATA or DATA - no change in state */
                 } else if (mstp_port->Index == (mstp_port->DataLength + 1)) {
                     /* CRC2 */
                     mstp_port->DataCRC = CRC_Calc_Data(

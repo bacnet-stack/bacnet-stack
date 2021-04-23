@@ -2305,6 +2305,44 @@ int bvlc_decode_foreign_device_table_entry(uint8_t *pdu,
     return bytes_consumed;
 }
 
+/**
+ * @brief Get a text name for each BVLC result code
+ * @param result_code - BVLC result code
+ * @return ASCII text name for each BVLC result code or empty string
+ */
+const char *bvlc_result_code_name(uint16_t result_code)
+{
+    const char *name = "";
+
+    switch (result_code) {
+        case BVLC_RESULT_SUCCESSFUL_COMPLETION:
+            name = "Successful Completion";
+            break;
+        case BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK:
+            name= "Write-Broadcast-Distribution-Table NAK";
+            break;
+        case BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK:
+            name = "Read-Broadcast-Distribution-Table NAK";
+            break;
+        case BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK:
+            name = "Register-Foreign-Device NAK";
+            break;
+        case BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK:
+            name = "Read-Foreign-Device-Table NAK";
+            break;
+        case BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK:
+            name = "Delete-Foreign-Device-Table-Entry NAK";
+            break;
+        case BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK:
+            name = "Distribute-Broadcast-To-Network NAK";
+            break;
+        default:
+            break;
+    }
+
+    return name;
+}
+
 #ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>

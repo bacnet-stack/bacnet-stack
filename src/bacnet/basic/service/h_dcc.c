@@ -138,15 +138,23 @@ void handler_device_communication_control(uint8_t *service_request,
             (unsigned)timeDuration, (unsigned)state,
             characterstring_value(&password));
 #endif
-    /* bad decoding or something we didn't understand - send an abort */
+    /* bad decoding or invalid service parameter
+       send an abort or reject */
     if (len < 0) {
-        len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            service_data->invoke_id, ABORT_REASON_OTHER, true);
+        if (len == BACNET_STATUS_ABORT) {
+            len = abort_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id, ABORT_REASON_OTHER, true);
 #if PRINT_ENABLED
-        fprintf(stderr,
-            "DeviceCommunicationControl: "
-            "Sending Abort - could not decode.\n");
+            fprintf(stderr, "DCC: Sending Abort!\n");
 #endif
+        } else if (len == BACNET_STATUS_REJECT) {
+            len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                service_data->invoke_id,
+                REJECT_REASON_PARAMETER_OUT_OF_RANGE);
+#if PRINT_ENABLED
+            fprintf(stderr, "DCC: Sending Reject!\n");
+#endif
+        }
         goto DCC_ABORT;
     }
     if (state >= MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
