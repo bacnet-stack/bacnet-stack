@@ -426,7 +426,7 @@ void test_DeviceCommunicationControlMalformedData(Test *pTest)
     ct_test(pTest, len == BACNET_STATUS_ERROR);
     len = dcc_decode_apdu(&payload_4[0], sizeof(payload_4), &test_invoke_id,
         &test_timeDuration, &test_enable_disable, &test_password);
-    ct_test(pTest, len == BACNET_STATUS_ERROR);
+    ct_test(pTest, len == BACNET_STATUS_ABORT);
     len = dcc_decode_apdu(&payload_5[0], sizeof(payload_5), &test_invoke_id,
         &test_timeDuration, &test_enable_disable, &test_password);
     ct_test(pTest, len == BACNET_STATUS_ERROR);
