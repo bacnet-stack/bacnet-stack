@@ -181,6 +181,14 @@ tidy:
 lint:
 	scan-build --status-bugs -analyze-headers make -j2 clean server
 
+CPPCHECK_OPTIONS = --enable=warning,portability
+CPPCHECK_OPTIONS += --template=gcc
+CPPCHECK_OPTIONS += --suppress=selfAssignment
+
+.PHONY: cppcheck
+cppcheck:
+	cppcheck $(CPPCHECK_OPTIONS) --quiet --force ./src/
+
 .PHONY: clean
 clean:
 	$(MAKE) -s -C src clean

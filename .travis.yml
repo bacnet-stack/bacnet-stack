@@ -10,6 +10,7 @@ before_install:
   - sudo apt-get install -qq gcc-avr avr-libc binutils-avr
   - sudo apt-get install -qq mingw-w64
   - sudo apt-get install -qq libconfig-dev
+  - sudo apt-get install -qq cppcheck
 
 compiler:
   - gcc
@@ -61,6 +62,10 @@ jobs:
       os: linux
       compiler: clang
       script: make clean lint
+    - stage: cppcheck
+      os: linux
+      compiler: gcc
+      script: make clean cppcheck
     - stage: ports-arm
       os: linux
       before_script:
