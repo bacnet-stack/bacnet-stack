@@ -29,6 +29,10 @@ bip6-win32:
 bip6:
 	$(MAKE) BACDL=bip6 -C apps all
 
+.PHONY: ethernet
+ethernet:
+	$(MAKE) BACDL=ethernet -C apps all
+
 .PHONY: apps
 apps:
 	$(MAKE) -s -C apps all

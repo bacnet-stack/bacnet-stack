@@ -53,6 +53,10 @@ jobs:
       os: linux
       compiler: gcc
       script: make clean mstp
+    - stage: ethernet-build
+      os: linux
+      compiler: gcc
+      script: make clean ethernet
     - stage: lint
       os: linux
       compiler: clang
