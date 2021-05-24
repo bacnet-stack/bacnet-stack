@@ -286,46 +286,22 @@ bool Analog_Input_Encode_Value_List(
     uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list)
 {
     bool status = false;
+    bool in_alarm = false;
+    bool out_of_service = false;
+    const bool fault = false;
+    const bool overridden = false;
+    float present_value = 0.0;
+    unsigned index = 0; /* offset from instance lookup */
 
-    if (value_list) {
-        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
-        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
-        value_list->value.context_specific = false;
-        value_list->value.tag = BACNET_APPLICATION_TAG_REAL;
-        value_list->value.type.Real =
-            Analog_Input_Present_Value(object_instance);
-        value_list->value.next = NULL;
-        value_list->priority = BACNET_NO_PRIORITY;
-        value_list = value_list->next;
-    }
-    if (value_list) {
-        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
-        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
-        value_list->value.context_specific = false;
-        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
-        bitstring_init(&value_list->value.type.Bit_String);
-        if (Analog_Input_Event_State(object_instance) == EVENT_STATE_NORMAL) {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_IN_ALARM, false);
-        } else {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_IN_ALARM, true);
+    index = Analog_Input_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_INPUTS) {
+        if (AI_Descr[index].Event_State != EVENT_STATE_NORMAL) {
+            in_alarm = true;
         }
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN, false);
-        if (Analog_Input_Out_Of_Service(object_instance)) {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, true);
-        } else {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, false);
-        }
-        value_list->value.next = NULL;
-        value_list->priority = BACNET_NO_PRIORITY;
-        value_list->next = NULL;
-        status = true;
+        out_of_service = AI_Descr[index].Out_Of_Service;
+        present_value = AI_Descr[index].Present_Value;
+        status = cov_value_list_encode_real(value_list, present_value,
+            in_alarm, fault, overridden, out_of_service);
     }
 
     return status;
