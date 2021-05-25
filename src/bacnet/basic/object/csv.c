@@ -50,6 +50,7 @@ static BACNET_CHARACTER_STRING Present_Value[MAX_CHARACTERSTRING_VALUES];
 static bool Out_Of_Service[MAX_CHARACTERSTRING_VALUES];
 static char Object_Name[MAX_CHARACTERSTRING_VALUES][64];
 static char Object_Description[MAX_CHARACTERSTRING_VALUES][64];
+static bool Changed[MAX_CHARACTERSTRING_VALUES];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -99,6 +100,7 @@ void CharacterString_Value_Init(void)
         snprintf(&Object_Description[i][0], sizeof(Object_Description[i]),
             "A Character String Value Example");
         characterstring_init_ansi(&Present_Value[i], "");
+        Changed[i] = false;
     }
 
     return;
@@ -210,6 +212,9 @@ bool CharacterString_Value_Present_Value_Set(
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) {
+        if (!characterstring_same(&Present_Value[index], object_name)) {
+            Changed[index] = true;
+        }
         status = characterstring_copy(&Present_Value[index], object_name);
     }
 
@@ -249,10 +254,73 @@ static void CharacterString_Value_Out_Of_Service_Set(
 
     index = CharacterString_Value_Instance_To_Index(object_instance);
     if (index < MAX_CHARACTERSTRING_VALUES) {
+        if (Out_Of_Service[index] != value) {
+            Changed[index] = true;
+        }
         Out_Of_Service[index] = value;
     }
 
     return;
+}
+
+/**
+ * @brief Get the COV change flag status
+ * @param object_instance - object-instance number of the object
+ * @return the COV change flag status
+ */
+bool CharacterString_Value_Change_Of_Value(
+    uint32_t object_instance)
+{
+    bool changed = false;
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = CharacterString_Value_Instance_To_Index(object_instance);
+    if (index < MAX_CHARACTERSTRING_VALUES) {
+        changed = Changed[index];
+    }
+
+    return changed;
+}
+
+/**
+ * @brief Clear the COV change flag
+ * @param object_instance - object-instance number of the object
+ */
+void CharacterString_Value_Change_Of_Value_Clear(
+    uint32_t object_instance)
+{
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = CharacterString_Value_Instance_To_Index(object_instance);
+    if (index < MAX_CHARACTERSTRING_VALUES) {
+        Changed[index] = false;
+    }
+}
+
+/**
+ * @brief For a given object instance-number, loads the value_list with the COV data.
+ * @param  object_instance - object-instance number of the object
+ * @param  value_list - list of COV data
+ * @return  true if the value list is encoded
+ */
+bool CharacterString_Value_Encode_Value_List(
+    uint32_t object_instance,
+    BACNET_PROPERTY_VALUE * value_list)
+{
+    bool status = false;
+    const bool in_alarm = false;
+    const bool fault = false;
+    const bool overridden = false;
+    unsigned index = 0; /* offset from instance lookup */
+
+    index = CharacterString_Value_Instance_To_Index(object_instance);
+    if (index < MAX_CHARACTERSTRING_VALUES) {
+        status = cov_value_list_encode_character_string(value_list,
+            &Present_Value[index], in_alarm, fault, overridden,
+            Out_Of_Service[index]);
+    }
+
+    return status;
 }
 
 /**
