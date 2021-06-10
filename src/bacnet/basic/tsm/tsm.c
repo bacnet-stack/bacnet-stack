@@ -49,7 +49,7 @@
 
 /** @file tsm.c  BACnet Transaction State Machine operations  */
 /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 #if (MAX_TSM_TRANSACTIONS)
 /* Really only needed for segmented messages */
