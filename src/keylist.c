@@ -108,7 +108,7 @@ static int CheckArraySize(
         }
         list->array = new_array;
         list->size = new_size;
-    } else {
+    } else if (new_size < 0) {
         return FALSE;
     }
 
