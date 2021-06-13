@@ -101,7 +101,7 @@ static int CheckArraySize(OS_Keylist list)
     } else if ((list->size > chunk) && (list->count < (list->size - chunk))) {
         new_size = list->size - chunk;
     }
-    if (new_size) {
+    if (new_size > 0) {
         /* Allocate more room for node pointer array */
         new_array = calloc((size_t)new_size, sizeof(struct Keylist_Node *));
 
@@ -119,7 +119,10 @@ static int CheckArraySize(OS_Keylist list)
         }
         list->array = new_array;
         list->size = new_size;
+    } else if (new_size < 0) {
+        return FALSE;
     }
+
     return TRUE;
 }
 
