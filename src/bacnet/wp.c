@@ -198,6 +198,131 @@ int wp_decode_service_request(
     return len;
 }
 
+/**
+ * @brief simple validation of value tag for Write Property argument
+ * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
+ *  requested data and space for the reply, or error response.
+ * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
+ * @param expected_tag - the tag that is expected for this property value
+ */
+bool write_property_type_valid(
+    BACNET_WRITE_PROPERTY_DATA * wp_data,
+    BACNET_APPLICATION_DATA_VALUE * value,
+    uint8_t expected_tag)
+{
+    /* assume success */
+    bool valid = true;
+
+    if (value && (value->tag != expected_tag)) {
+        valid = false;
+        if (wp_data) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    }
+
+    return (valid);
+}
+
+/**
+ * @brief simple validation of character string value for Write Property
+ * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
+ *  requested data and space for the reply, or error response.
+ * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
+ * @param expected_tag - the tag that is expected for this property value
+ */
+bool write_property_string_valid(
+    BACNET_WRITE_PROPERTY_DATA * wp_data,
+    BACNET_APPLICATION_DATA_VALUE * value,
+    int len_max)
+{
+    bool valid = false;
+
+    if (value && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
+        if (characterstring_encoding(&value->type.Character_String) ==
+            CHARACTER_ANSI_X34) {
+            if (characterstring_length(&value->type.Character_String) == 0) {
+                if (wp_data) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else if (!characterstring_printable(
+                &value->type.Character_String)) {
+                /* assumption: non-empty also means must be "printable" */
+                if (wp_data) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else if (characterstring_length(&value->type.Character_String) >
+                (uint16_t)len_max) {
+                if (wp_data) {
+                    wp_data->error_class = ERROR_CLASS_RESOURCES;
+                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                }
+            } else {
+                /* It's all good! */
+                valid = true;
+            }
+        } else {
+            if (wp_data) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+            }
+        }
+    } else {
+        if (wp_data) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    }
+
+    return (valid);
+}
+
+/**
+ * @brief simple validation of character string value for Write Property
+ *  for character strings which can be empty
+ * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data, including
+ *  requested data and space for the reply, or error response.
+ * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
+ * @param expected_tag - the tag that is expected for this property value
+ */
+bool write_property_empty_string_valid(
+    BACNET_WRITE_PROPERTY_DATA * wp_data,
+    BACNET_APPLICATION_DATA_VALUE * value,
+    int len_max)
+{
+    bool valid = false;
+
+    if (value && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
+        if (characterstring_encoding(&value->type.Character_String) ==
+            CHARACTER_ANSI_X34) {
+            if (characterstring_length(&value->type.Character_String) >
+                (uint16_t)len_max) {
+                if (wp_data) {
+                    wp_data->error_class = ERROR_CLASS_RESOURCES;
+                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                }
+            } else {
+                /* It's all good! */
+                valid = true;
+            }
+        } else {
+            if (wp_data) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_CHARACTER_SET_NOT_SUPPORTED;
+            }
+        }
+    } else {
+        if (wp_data) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    }
+
+    return (valid);
+}
+
 #ifdef BAC_TEST
 #include <assert.h>
 #include <string.h>
@@ -257,6 +382,7 @@ void testWritePropertyTag(Test *pTest, BACNET_APPLICATION_DATA_VALUE *value)
     len = bacapp_decode_application_data(test_data.application_data,
         test_data.application_data_len, &test_value);
     ct_test(pTest, test_value.tag == value->tag);
+    ct_test(pTest, write_property_type_valid(&wpdata, value, test_value.tag));
     switch (test_value.tag) {
         case BACNET_APPLICATION_TAG_NULL:
             break;
