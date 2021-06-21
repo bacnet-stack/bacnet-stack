@@ -250,9 +250,8 @@ bool Access_User_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index = Access_User_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 au_descr[object_index].global_identifier =
                     value.type.Unsigned_Int;
@@ -282,19 +281,6 @@ bool Access_User_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
 
 void testAccessUser(Test *pTest)
 {

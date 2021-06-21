@@ -603,7 +603,9 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
                 /* All the object names in a device must be unique */
                 if (Device_Valid_Object_Name(&value.type.Character_String,
                         &object_type, &object_instance)) {
@@ -621,25 +623,20 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data->object_instance, &value.type.Character_String,
                         &wp_data->error_class, &wp_data->error_code);
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_DESCRIPTION:
-            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
                 status = Multistate_Input_Description_Write(
                     wp_data->object_instance, &value.type.Character_String,
                     &wp_data->error_class, &wp_data->error_code);
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_PRESENT_VALUE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 status = Multistate_Input_Present_Value_Set(
                     wp_data->object_instance, value.type.Unsigned_Int);
@@ -650,64 +647,68 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Multistate_Input_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_STATE_TEXT:
-            if (value.tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
-                if (wp_data->array_index == 0) {
-                    /* Array element zero is the number of
-                       elements in the array.  We have a fixed
-                       size array, so we are read-only. */
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-                } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
-                    max_states =
-                        Multistate_Input_Max_States(wp_data->object_instance);
-                    array_index = 1;
-                    element_len = len;
-                    do {
-                        if (element_len) {
-                            status = Multistate_Input_State_Text_Write(
-                                wp_data->object_instance, array_index,
-                                &value.type.Character_String,
-                                &wp_data->error_class, &wp_data->error_code);
+            if (wp_data->array_index == 0) {
+                /* Array element zero is the number of
+                   elements in the array.  We have a fixed
+                   size array, so we are read-only. */
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
+                max_states =
+                    Multistate_Input_Max_States(wp_data->object_instance);
+                array_index = 1;
+                element_len = len;
+                do {
+                    status = write_property_type_valid(wp_data, &value,
+                        BACNET_APPLICATION_TAG_CHARACTER_STRING);
+                    if (!status) {
+                        break;
+                    }
+                    if (element_len) {
+                        status = Multistate_Input_State_Text_Write(
+                            wp_data->object_instance, array_index,
+                            &value.type.Character_String,
+                            &wp_data->error_class, &wp_data->error_code);
+                    }
+                    max_states--;
+                    array_index++;
+                    if (max_states) {
+                        element_len = bacapp_decode_application_data(
+                            &wp_data->application_data[len],
+                            wp_data->application_data_len - len, &value);
+                        if (element_len < 0) {
+                            wp_data->error_class = ERROR_CLASS_PROPERTY;
+                            wp_data->error_code =
+                                ERROR_CODE_VALUE_OUT_OF_RANGE;
+                            break;
                         }
-                        max_states--;
-                        array_index++;
-                        if (max_states) {
-                            element_len = bacapp_decode_application_data(
-                                &wp_data->application_data[len],
-                                wp_data->application_data_len - len, &value);
-                            if (element_len < 0) {
-                                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                                wp_data->error_code =
-                                    ERROR_CODE_VALUE_OUT_OF_RANGE;
-                                break;
-                            }
-                            len += element_len;
-                        }
-                    } while (max_states);
-                } else {
-                    max_states =
-                        Multistate_Input_Max_States(wp_data->object_instance);
-                    if (wp_data->array_index <= max_states) {
+                        len += element_len;
+                    }
+                } while (max_states);
+            } else {
+                max_states =
+                    Multistate_Input_Max_States(wp_data->object_instance);
+                if (wp_data->array_index <= max_states) {
+                    status = write_property_type_valid(wp_data, &value,
+                        BACNET_APPLICATION_TAG_CHARACTER_STRING);
+                    if (status) {
                         status = Multistate_Input_State_Text_Write(
                             wp_data->object_instance, wp_data->array_index,
                             &value.type.Character_String, &wp_data->error_class,
                             &wp_data->error_code);
-                    } else {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                     }
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -737,19 +738,6 @@ bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name,
     uint32_t *object_instance)
 {
     return true;
-}
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
 }
 
 void testMultistateInput(Test *pTest)

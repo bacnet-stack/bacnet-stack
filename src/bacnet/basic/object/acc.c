@@ -446,7 +446,7 @@ void Accumulator_Init(void)
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
-#include "bactext.h"
+#include "bacnet/bactext.h"
 
 void test_Accumulator(Test *pTest)
 {

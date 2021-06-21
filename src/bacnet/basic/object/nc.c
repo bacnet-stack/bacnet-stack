@@ -417,10 +417,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRIORITY:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (wp_data->array_index == 0) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -472,10 +470,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_ACK_REQUIRED:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
-                    &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BIT_STRING);
             if (status) {
                 if (value.type.Bit_String.bits_used == 3) {
                     CurrentNotify->Ack_Required =

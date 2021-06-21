@@ -333,9 +333,8 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_RELIABILITY:
             if (Credential_Data_Input_Out_Of_Service(
                     wp_data->object_instance)) {
-                status =
-                    WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                        &wp_data->error_class, &wp_data->error_code);
+                status = write_property_type_valid(wp_data, &value,
+                    BACNET_APPLICATION_TAG_ENUMERATED);
                 if (status) {
                     cdi_descr[object_index].reliability =
                         (BACNET_RELIABILITY)value.type.Enumerated;
@@ -368,19 +367,6 @@ bool Credential_Data_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
 
 void testCredentialDataInput(Test *pTest)
 {
