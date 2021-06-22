@@ -33,7 +33,8 @@ jobs:
     - stage: demos-build-cmake
       os: linux
       compiler: gcc
-      script: mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=ON && cmake --build . --clean-first
+      script: 
+        - mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=ON && cmake --build . --clean-first
     - stage: gateway-build
       os: linux
       compiler: gcc

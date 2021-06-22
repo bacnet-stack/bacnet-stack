@@ -514,7 +514,7 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = write_property_string_valid(&wp_data, &value,
+            status = write_property_string_valid(wp_data, &value,
                 MAX_DEV_NAME_LEN);
             if (status) {
                 Routed_Device_Set_Object_Name(
