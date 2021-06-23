@@ -30,11 +30,12 @@ jobs:
         - i686-w64-mingw32-gcc --version
       script:
         - make win32
-    - stage: demos-build-cmake
+    - stage: demos-test-build-cmake
       os: linux
       compiler: gcc
       script: 
         - mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=ON && cmake --build . --clean-first
+        - make test
     - stage: gateway-build
       os: linux
       compiler: gcc
