@@ -56,6 +56,7 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
     int apdu_len = 0;
     uint8_t invoke_id = 128;
     uint8_t test_invoke_id = 0;
+    bool status = false;
 
     wpdata.application_data_len =
         bacapp_encode_application_data(&wpdata.application_data[0], value);
@@ -73,6 +74,8 @@ static void testWritePropertyTag(BACNET_APPLICATION_DATA_VALUE *value)
     len = bacapp_decode_application_data(test_data.application_data,
         test_data.application_data_len, &test_value);
     zassert_equal(test_value.tag, value->tag, NULL);
+    status = write_property_type_valid(&wpdata, value, test_value.tag);
+    zassert_equal(status, true, NULL);
     switch (test_value.tag) {
         case BACNET_APPLICATION_TAG_NULL:
             break;

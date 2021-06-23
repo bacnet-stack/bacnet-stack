@@ -287,8 +287,8 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch ((int)wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 if (Analog_Input_Out_Of_Service(wp_data->object_instance)) {
                     Analog_Input_Present_Value_Set(
@@ -301,17 +301,16 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Analog_Input_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_UNITS:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 Analog_Input_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Enumerated);

@@ -124,13 +124,6 @@ extern "C" {
     void Access_Point_Init(
         void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testAccessPoint(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

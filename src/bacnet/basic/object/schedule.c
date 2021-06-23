@@ -347,8 +347,8 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                suitable time for
                     review by all interested parties. Say 6 months -> September
                2016 */
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Schedule_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);

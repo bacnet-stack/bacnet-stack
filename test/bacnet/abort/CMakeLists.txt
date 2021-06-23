@@ -7,7 +7,6 @@ project(test_${basename}
 	VERSION 1.0.0
 	LANGUAGES C)
 
-
 string(REGEX REPLACE
     "/test/bacnet/[a-zA-Z_/-]*$"
     "/src"
@@ -39,3 +38,4 @@ add_executable(${PROJECT_NAME}
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
+

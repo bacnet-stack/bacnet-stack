@@ -2146,7 +2146,9 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_MAX_MASTER:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if (value.type.Unsigned_Int <= 255) {
                     status = Network_Port_MSTP_Max_Master_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
@@ -2158,13 +2160,12 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_MAX_INFO_FRAMES:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if (value.type.Unsigned_Int <= 255) {
                     status = Network_Port_MSTP_Max_Info_Frames_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
@@ -2177,9 +2178,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -2315,19 +2313,6 @@ void Network_Port_Init(void)
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
 
 void test_network_port(Test *pTest)
 {

@@ -172,7 +172,6 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/lo.h
     src/bacnet/basic/object/lsp.c
     src/bacnet/basic/object/lsp.h
-    src/bacnet/basic/object/Makefile
     src/bacnet/basic/object/ms-input.c
     src/bacnet/basic/object/ms-input.h
     src/bacnet/basic/object/mso.c

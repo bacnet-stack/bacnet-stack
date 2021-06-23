@@ -805,8 +805,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_OBJECT_ID,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_OBJECT_ID);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Device_Set_Object_Instance_Number(
@@ -821,9 +821,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_SYSTEM_STATUS:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 temp = Device_Set_System_Status(
                     (BACNET_DEVICE_STATUS)value.type.Enumerated, false);
@@ -840,8 +839,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = WPValidateString(&value, MAX_DEV_NAME_LEN, false,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_string_valid(&wp_data, &value,
+                MAX_DEV_NAME_LEN);
             if (status) {
                 Device_Set_Object_Name(
                     characterstring_value(&value.type.Character_String),
@@ -849,8 +848,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_LOCATION:
-            status = WPValidateString(&value, MAX_DEV_LOC_LEN, true,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_empty_string_valid(&wp_data, &value,
+                MAX_DEV_LOC_LEN);
             if (status) {
                 Device_Set_Location(
                     characterstring_value(&value.type.Character_String),
@@ -859,8 +858,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_DESCRIPTION:
-            status = WPValidateString(&value, MAX_DEV_DESC_LEN, true,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_empty_string_valid(&wp_data, &value,
+                MAX_DEV_DESC_LEN);
             if (status) {
                 Device_Set_Description(
                     characterstring_value(&value.type.Character_String),

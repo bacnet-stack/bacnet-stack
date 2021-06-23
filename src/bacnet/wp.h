@@ -80,6 +80,22 @@ extern "C" {
         unsigned apdu_len,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
+    bool write_property_type_valid(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        uint8_t expected_tag);
+    BACNET_STACK_EXPORT
+    bool write_property_string_valid(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        int len_max);
+    BACNET_STACK_EXPORT
+    bool write_property_empty_string_valid(
+        BACNET_WRITE_PROPERTY_DATA * wp_data,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        int len_max);
+
 #ifdef BAC_TEST
 #include "ctest.h"
     BACNET_STACK_EXPORT

@@ -781,9 +781,8 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch ((int)wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int >= MAX_COMMAND_ACTIONS) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -826,27 +825,6 @@ void Command_Intrinsic_Reporting(uint32_t object_instance)
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    bool bResult;
-
-    /*
-     * start out assuming success and only set up error
-     * response if validation fails.
-     */
-    bResult = true;
-    if (pValue->tag != ucExpectedTag) {
-        bResult = false;
-        *pErrorClass = ERROR_CLASS_PROPERTY;
-        *pErrorCode = ERROR_CODE_INVALID_DATA_TYPE;
-    }
-
-    return (bResult);
-}
 
 void testCommand(Test *pTest)
 {

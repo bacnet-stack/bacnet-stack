@@ -589,9 +589,8 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = WPValidateArgType(&value,
-                BACNET_APPLICATION_TAG_CHARACTER_STRING, &wp_data->error_class,
-                &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_CHARACTER_STRING);
             if (status) {
                 status = CharacterString_Value_Present_Value_Set(
                     wp_data->object_instance, &value.type.Character_String);
@@ -602,8 +601,8 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CharacterString_Value_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
@@ -631,19 +630,6 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
 
 void testCharacterStringValue(Test *pTest)
 {

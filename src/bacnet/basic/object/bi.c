@@ -429,9 +429,8 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= MAX_BINARY_PV) {
                     Binary_Input_Present_Value_Set(wp_data->object_instance,
@@ -444,17 +443,16 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Binary_Input_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_POLARITY:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
                     Binary_Input_Polarity_Set(wp_data->object_instance,
@@ -483,70 +481,3 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     return status;
 }
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
-
-void testBinaryInput(Test *pTest)
-{
-    BACNET_READ_PROPERTY_DATA rpdata;
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    uint16_t decoded_type = 0;
-    uint32_t decoded_instance = 0;
-
-    Binary_Input_Init();
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_BINARY_INPUT;
-    rpdata.object_instance = 1;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Binary_Input_Read_Property(&rpdata);
-    ct_test(pTest, len != 0);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == rpdata.object_type);
-    ct_test(pTest, decoded_instance == rpdata.object_instance);
-
-    return;
-}
-
-#ifdef TEST_BINARY_INPUT
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Binary Input", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testBinaryInput);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_BINARY_INPUT */
-#endif /* BAC_TEST */

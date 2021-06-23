@@ -198,13 +198,6 @@ extern "C" {
     void Analog_Input_Init(
         void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testAnalogInput(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

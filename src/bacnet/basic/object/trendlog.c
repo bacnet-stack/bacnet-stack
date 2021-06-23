@@ -448,8 +448,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_ENABLE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* Section 12.25.5 can't enable a full log with stop when full
                  * set */
@@ -490,8 +490,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_STOP_WHEN_FULL:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* Only trigger this on a change of state */
                 if (CurrentLog->bStopWhenFull != value.type.Boolean) {
@@ -522,9 +522,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_RECORD_COUNT:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int == 0) {
                     /* Time to clear down the log */
@@ -540,9 +539,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* logic
              * triggered and polled options.
              */
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated != LOGGING_TYPE_COV) {
                     CurrentLog->LoggingType =
@@ -571,8 +569,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_START_TIME:
             /* Copy the date part to safe place */
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_DATE,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_DATE);
             if (!status) {
                 break;
             }
@@ -583,8 +581,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->application_data_len - len, &value);
 
             if (len) {
-                status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_TIME,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = write_property_type_valid(wp_data, &value,
+                    BACNET_APPLICATION_TAG_TIME);
                 if (!status) {
                     break;
                 }
@@ -622,8 +620,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_STOP_TIME:
             /* Copy the date part to safe place */
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_DATE,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_DATE);
             if (!status) {
                 break;
             }
@@ -634,8 +632,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->application_data_len - len, &value);
 
             if (len) {
-                status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_TIME,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = write_property_type_valid(wp_data, &value,
+                    BACNET_APPLICATION_TAG_TIME);
                 if (!status) {
                     break;
                 }
@@ -714,9 +712,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 break;
             }
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if ((CurrentLog->LoggingType == LOGGING_TYPE_POLLED) &&
                     (value.type.Unsigned_Int == 0)) {
@@ -740,8 +737,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_ALIGN_INTERVALS:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CurrentLog->bAlignIntervals = value.type.Boolean;
             }
@@ -750,17 +747,16 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_INTERVAL_OFFSET:
             /* We only log to 1 sec accuracy so must divide by 100 before
              * passing it on */
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentLog->ulIntervalOffset = value.type.Unsigned_Int / 100;
             }
             break;
 
         case PROP_TRIGGER:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* We will not allow triggered operation if polling with
                  * aligning to the clock as that will produce non aligned

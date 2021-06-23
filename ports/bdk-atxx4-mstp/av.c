@@ -338,8 +338,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 status =
                     Analog_Value_Present_Value_Set(wp_data->object_instance,
@@ -360,9 +360,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_OUT_OF_SERVICE:
 #if 0
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->object_instance);
@@ -372,9 +371,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #endif
         case PROP_UNITS:
 #if 0
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 object_index =
                     Analog_Value_Instance_To_Index(wp_data->object_instance);

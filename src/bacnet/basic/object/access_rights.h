@@ -112,13 +112,6 @@ extern "C" {
     void Access_Rights_Init(
         void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testAccessRights(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

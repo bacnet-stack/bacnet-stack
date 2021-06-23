@@ -1254,8 +1254,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_OBJECT_ID,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_OBJECT_ID);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Device_Set_Object_Instance_Number(
@@ -1270,36 +1270,32 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_NUMBER_OF_APDU_RETRIES:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* FIXME: bounds check? */
                 apdu_retries_set((uint8_t)value.type.Unsigned_Int);
             }
             break;
         case PROP_APDU_TIMEOUT:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* FIXME: bounds check? */
                 apdu_timeout_set((uint16_t)value.type.Unsigned_Int);
             }
             break;
         case PROP_VENDOR_IDENTIFIER:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* FIXME: bounds check? */
                 Device_Set_Vendor_Identifier((uint16_t)value.type.Unsigned_Int);
             }
             break;
         case PROP_SYSTEM_STATUS:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 temp = Device_Set_System_Status(
                     (BACNET_DEVICE_STATUS)value.type.Enumerated, false);
@@ -1316,9 +1312,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = WPValidateString(&value,
-                characterstring_capacity(&My_Object_Name), false,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_string_valid(&wp_data, &value,
+                characterstring_capacity(&My_Object_Name));
             if (status) {
                 /* All the object names in a device must be unique */
                 if (Device_Valid_Object_Name(&value.type.Character_String,
@@ -1338,8 +1333,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_LOCATION:
-            status = WPValidateString(&value, MAX_DEV_LOC_LEN, true,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_empty_string_valid(&wp_data, &value,
+                MAX_DEV_LOC_LEN);
             if (status) {
                 Device_Set_Location(
                     characterstring_value(&value.type.Character_String),
@@ -1348,8 +1343,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_DESCRIPTION:
-            status = WPValidateString(&value, MAX_DEV_DESC_LEN, true,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_empty_string_valid(&wp_data, &value,
+                MAX_DEV_DESC_LEN);
             if (status) {
                 Device_Set_Description(
                     characterstring_value(&value.type.Character_String),
@@ -1357,8 +1352,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MODEL_NAME:
-            status = WPValidateString(&value, MAX_DEV_MOD_LEN, true,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_empty_string_valid(&wp_data, &value,
+                MAX_DEV_MOD_LEN);
             if (status) {
                 Device_Set_Model_Name(
                     characterstring_value(&value.type.Character_String),
@@ -1367,7 +1362,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 #if defined(BACNET_TIME_MASTER)
         case PROP_TIME_SYNCHRONIZATION_INTERVAL:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if (value.type.Unsigned_Int < 65535) {
                     minutes = value.type.Unsigned_Int;
                     Device_Time_Sync_Interval_Set(minutes);
@@ -1376,22 +1373,20 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_ALIGN_INTERVALS:
-            if (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
                 Device_Align_Intervals_Set(value.type.Boolean);
                 status = true;
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_INTERVAL_OFFSET:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if (value.type.Unsigned_Int < 65535) {
                     minutes = value.type.Unsigned_Int;
                     Device_Interval_Offset_Set(minutes);
@@ -1400,9 +1395,6 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
 #else
@@ -1414,7 +1406,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 #endif
         case PROP_UTC_OFFSET:
-            if (value.tag == BACNET_APPLICATION_TAG_SIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_SIGNED_INT);
+            if (status) {
                 if ((value.type.Signed_Int < (12 * 60)) &&
                     (value.type.Signed_Int > (-12 * 60))) {
                     Device_UTC_Offset_Set(value.type.Signed_Int);
@@ -1423,16 +1417,12 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
 #if defined(BACDL_MSTP)
         case PROP_MAX_INFO_FRAMES:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
                     dlmstp_set_max_info_frames(
@@ -1445,9 +1435,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MAX_MASTER:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if ((value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= 127)) {
@@ -1781,96 +1770,3 @@ void Routing_Device_Init(uint32_t first_object_instance)
 }
 
 #endif /* BAC_ROUTING */
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
-
-bool WPValidateString(BACNET_APPLICATION_DATA_VALUE *pValue,
-    int iMaxLen,
-    bool bEmptyAllowed,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    iMaxLen = iMaxLen;
-    bEmptyAllowed = bEmptyAllowed;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
-
-int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
-{
-    apdu = apdu;
-    max_apdu = max_apdu;
-
-    return 0;
-}
-
-void testDevice(Test *pTest)
-{
-    bool status = false;
-    const char *name = "Patricia";
-
-    status = Device_Set_Object_Instance_Number(0);
-    ct_test(pTest, Device_Object_Instance_Number() == 0);
-    ct_test(pTest, status == true);
-    status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    ct_test(pTest, Device_Object_Instance_Number() == BACNET_MAX_INSTANCE);
-    ct_test(pTest, status == true);
-    status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE / 2);
-    ct_test(
-        pTest, Device_Object_Instance_Number() == (BACNET_MAX_INSTANCE / 2));
-    ct_test(pTest, status == true);
-    status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE + 1);
-    ct_test(
-        pTest, Device_Object_Instance_Number() != (BACNET_MAX_INSTANCE + 1));
-    ct_test(pTest, status == false);
-
-    Device_Set_System_Status(STATUS_NON_OPERATIONAL, true);
-    ct_test(pTest, Device_System_Status() == STATUS_NON_OPERATIONAL);
-
-    ct_test(pTest, Device_Vendor_Identifier() == BACNET_VENDOR_ID);
-
-    Device_Set_Model_Name(name, strlen(name));
-    ct_test(pTest, strcmp(Device_Model_Name(), name) == 0);
-
-    return;
-}
-
-#ifdef TEST_DEVICE
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Device", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testDevice);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_DEVICE */
-#endif /* BAC_TEST */
