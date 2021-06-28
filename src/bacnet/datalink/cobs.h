@@ -45,6 +45,9 @@ size_t cobs_decode(
 BACNET_STACK_EXPORT
 size_t cobs_frame_decode(uint8_t *to, const uint8_t *from, size_t length);
 
+BACNET_STACK_EXPORT
+uint32_t cobs_crc32k(uint8_t dataValue, uint32_t crc32kValue);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

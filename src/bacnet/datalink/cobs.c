@@ -25,12 +25,44 @@
 #include <stdint.h>
 #include "bacnet/datalink/mstpdef.h"
 
-/*
- * Encodes 'length' octets of data located at 'from' and
+#include <stdint.h>
+/**
+ * @brief Accumulate "dataValue" into the CRC in "crc32kValue".
+ * @param dataValue new data value equivalent to one octet.
+ * @param crc32kValue accumulated alue equivalent to four octets.
+ * @return value is updated CRC.
+ * @note This function is copied directly from the BACnet standard.
+ */
+uint32_t cobs_crc32k(uint8_t dataValue, uint32_t crc32kValue)
+{
+    uint8_t data, b;
+    uint32_t crc;
+
+    data = dataValue;
+    crc = crc32kValue;
+    for (b = 0; b < 8; b++) {
+        if ((data & 1) ^ (crc & 1)) {
+            crc >>= 1;
+            /* CRC-32K polynomial, 1 + x**1 + ... + x**30 (+ x**32) */
+            crc ^= 0xEB31D82E;
+        } else {
+            crc >>= 1;
+        }
+        data >>= 1;
+    }
+
+    return crc; /* Return updated crc value */
+}
+
+/**
+ * @brief Encodes 'length' octets of data located at 'from' and
  * writes one or more COBS code blocks at 'to', removing
  * any 0x55 octets that may present be in the encoded data.
- * Returns the length of the encoded data.
- * Note: This function is copied directly from the BACnet standard.
+ * @param to - encoded buffer
+ * @param from - buffer to encode
+ * @param length - number of bytes in the buffer to encode
+ * @return the length of the encoded data
+ * @note This function is copied directly from the BACnet standard.
  */
 size_t cobs_encode(
     uint8_t *to, const uint8_t *from, size_t length, uint8_t mask)
@@ -75,11 +107,14 @@ size_t cobs_encode(
         to[code_index] = code ^ mask;
     return write_index;
 }
-/*
- * Encodes 'length' octets of client data located at 'from' and writes
+/**
+ * @brief Encodes 'length' octets of client data located at 'from' and writes
  * the COBS-encoded Encoded Data and Encoded CRC-32K fields at 'to'.
- * Returns the combined length of these encoded fields.
- * Note: This function is copied directly from the BACnet standard.
+ * @param to - encoded buffer
+ * @param from - buffer to encode
+ * @param length - number of bytes in the buffer to encode
+ * @return the combined length of these encoded fields
+ * @note This function is copied directly from the BACnet standard.
  */
 size_t cobs_frame_encode(uint8_t *to, const uint8_t *from, size_t length)
 {
@@ -97,7 +132,7 @@ size_t cobs_frame_encode(uint8_t *to, const uint8_t *from, size_t length)
      */
     crc32K = CRC32K_INITIAL_VALUE;
     for (i = 0; i < cobs_data_len; i++) {
-        crc32K = CalcCRC32K(to[i], crc32K); /* See Clause G.3.1 */
+        crc32K = cobs_crc32k(to[i], crc32K); /* See Clause G.3.1 */
     }
     /*
      * Prepare the Encoded CRC-32K field for transmission.
@@ -114,12 +149,15 @@ size_t cobs_frame_encode(uint8_t *to, const uint8_t *from, size_t length)
     return cobs_data_len + cobs_crc_len;
 }
 
-/*
- * Decodes 'length' octets of data located at 'from' and
+/**
+ * @brief Decodes 'length' octets of data located at 'from' and
  * writes the original client data at 'to', restoring any
  * 'mask' octets that may present in the encoded data.
- * Returns the length of the encoded data or zero if error.
- * Note: This function is copied directly from the BACnet standard.
+ * @param to - decoded buffer
+ * @param from - buffer to decode
+ * @param length - number of bytes in the buffer to decode
+ * @return the length of the decoded buffer, or 0 if error
+ * @note This function is copied directly from the BACnet standard.
  */
 size_t cobs_decode(
     uint8_t *to, const uint8_t *from, size_t length, uint8_t mask)
@@ -160,10 +198,10 @@ size_t cobs_decode(
  * writes the decoded client data at 'to'. Assumes 'length' contains
  * the actual combined length of these fields in octets (that is, the
  * MS/TP header Length field plus two).
- * @param to - decoded
- * @param from - buffer to decode
- * @param length - number of bytes in the buffer to decode
- * @return length of decoded Data in octets or zero if error.
+ * @param to - decoded frame
+ * @param from - frame to decode
+ * @param length - number of bytes in the frame to decode
+ * @return length of decoded frame in octets or zero if error.
  * @note Safe to call with 'output' <= 'input' (decodes in place).
  * @note This function is copied directly from the BACnet standard.
  */
@@ -179,7 +217,7 @@ size_t cobs_frame_decode(uint8_t *to, const uint8_t *from, size_t length)
     data_len = length - COBS_ADJ_FOR_ENC_CRC;
     crc32K = CRC32K_INITIAL_VALUE;
     for (i = 0; i < data_len; i++) {
-        crc32K = CalcCRC32K(from[i], crc32K); /* See Clause G.3.1 */
+        crc32K = cobs_crc32k(from[i], crc32K); /* See Clause G.3.1 */
     }
     data_len = cobs_decode(to, from, data_len, MSTP_PREAMBLE_X55);
     /*
@@ -198,7 +236,7 @@ size_t cobs_frame_decode(uint8_t *to, const uint8_t *from, size_t length)
      * Verify CRC32K of incoming frame.
      */
     for (i = 0; i < crc_len; i++) {
-        crc32K = CalcCRC32K((to + data_len)[i], crc32K);
+        crc32K = cobs_crc32k((to + data_len)[i], crc32K);
     }
     if (crc32K == CRC32K_RESIDUE) {
         return data_len;

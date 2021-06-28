@@ -527,6 +527,7 @@ list(APPEND testdirs
 
 # bacnet/datalink/*
 list(APPEND testdirs
+  test/bacnet/datalink/cobs
   test/bacnet/datalink/crc
   #test/bacnet/datalink/bvlc		#All tests skipped, needing development
   )

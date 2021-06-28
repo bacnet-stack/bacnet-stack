@@ -61,6 +61,7 @@
 #define CRC32K_INITIAL_VALUE (0xFFFFFFFF)
 #define CRC32K_RESIDUE (0x0843323B)
 #define MSTP_PREAMBLE_X55 (0x55)
+#define MSTP_EXTENDED_FRAME_NPDU_MAX 1497
 
 /* receive FSM states */
 typedef enum {
