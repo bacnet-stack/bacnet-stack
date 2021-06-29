@@ -28,25 +28,55 @@
 #include <stdint.h>
 #include "bacnet/bacnet_stack_exports.h"
 
+/* number of bytes needed for COBS encoded CRC */
+#define COBS_ENCODED_CRC_SIZE 5
+/* inclusive extra bytes needed for APDU */
+#define COBS_ENCODED_SIZE(a) ((a)+((a)/254)+1)
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
 size_t cobs_encode(
-    uint8_t *to, const uint8_t *from, size_t length, uint8_t mask);
+    uint8_t *buffer,
+    size_t buffer_size,
+    const uint8_t *from,
+    size_t length,
+    uint8_t mask);
 
 BACNET_STACK_EXPORT
-size_t cobs_frame_encode(uint8_t *to, const uint8_t *from, size_t length);
+size_t cobs_frame_encode(
+    uint8_t *buffer,
+    size_t buffer_size,
+    const uint8_t *from,
+    size_t length);
 
 BACNET_STACK_EXPORT
 size_t cobs_decode(
-    uint8_t *to, const uint8_t *from, size_t length, uint8_t mask);
-BACNET_STACK_EXPORT
-size_t cobs_frame_decode(uint8_t *to, const uint8_t *from, size_t length);
+    uint8_t *buffer,
+    size_t buffer_size,
+    const uint8_t *from,
+    size_t length,
+    uint8_t mask);
 
 BACNET_STACK_EXPORT
-uint32_t cobs_crc32k(uint8_t dataValue, uint32_t crc32kValue);
+size_t cobs_frame_decode(
+    uint8_t *buffer,
+    size_t buffer_size,
+    const uint8_t *from,
+    size_t length);
+
+BACNET_STACK_EXPORT
+uint32_t cobs_crc32k(
+    uint8_t dataValue,
+    uint32_t crc);
+
+BACNET_STACK_EXPORT
+size_t cobs_crc32k_encode(
+    uint8_t *buffer,
+    size_t buffer_size,
+    uint32_t crc);
 
 #ifdef __cplusplus
 }
