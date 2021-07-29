@@ -44,6 +44,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
@@ -2010,6 +2011,9 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
+            apdu_len = bvlc_broadcast_distribution_table_encode(&apdu[0],
+                rpdata->application_data_len, bvlc_bdt_list());
+            break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_READ_ACCESS_DENIED;

@@ -320,6 +320,11 @@ extern "C" {
         uint8_t *addr3);
 
     BACNET_STACK_EXPORT
+    int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+
+    BACNET_STACK_EXPORT
     int bvlc_encode_write_broadcast_distribution_table(uint8_t *pdu,
         uint16_t pdu_size,
         BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);

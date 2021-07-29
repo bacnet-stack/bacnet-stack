@@ -521,6 +521,69 @@ bool bvlc_broadcast_distribution_table_entry_forward_address(
 }
 
 /**
+ * @brief Encode the Broadcast-Distribution-Table for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param bdt_entry - head of the BDT linked list
+ * @return length of the APDU buffer
+ */
+int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+{
+    int len = 0;
+    int apdu_len = 0;
+    int entry_size = 0;
+    BACNET_OCTET_STRING octet_string;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry;
+
+    bdt_entry = bdt_head;
+    while (bdt_entry) {
+        if (bdt_entry->valid) {
+            /* bbmd-address [0] BACnetHostNPort - opening */
+            len = encode_opening_tag(&apdu[apdu_len], 0);
+            apdu_len += len;
+            /*  host [0] BACnetHostAddress - opening */
+            len = encode_opening_tag(&apdu[apdu_len], 0);
+            apdu_len += len;
+            /* CHOICE - ip-address [1] OCTET STRING */
+            octetstring_init(&octet_string,
+                &bdt_entry->dest_address.address[0], IP_ADDRESS_MAX);
+            len = encode_context_octet_string(&apdu[apdu_len], 1,
+                &octet_string);
+            apdu_len += len;
+            /*  host [0] BACnetHostAddress - closing */
+            len = encode_closing_tag(&apdu[apdu_len], 0);
+            apdu_len += len;
+            /* port [1] Unsigned16 */
+            len = encode_context_unsigned(
+                &apdu[apdu_len], 1, bdt_entry->dest_address.port);
+            apdu_len += len;
+            /* bbmd-address [0] BACnetHostNPort - closing */
+            len = encode_closing_tag(&apdu[apdu_len], 0);
+            apdu_len += len;
+            /* broadcast-mask [1] OCTET STRING */
+            octetstring_init(&octet_string,
+                &bdt_entry->broadcast_mask.address[0], IP_ADDRESS_MAX);
+            len = encode_context_octet_string(&apdu[apdu_len], 1,
+                &octet_string);
+            apdu_len += len;
+        }
+        if (!entry_size) {
+            entry_size = apdu_len;
+        }
+        /* next entry */
+        bdt_entry = bdt_entry->next;
+        if ((apdu_len + entry_size) > apdu_size) {
+            /* check for available space */
+            break;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief J.2.2 Write-Broadcast-Distribution-Table: encode
  *
  * This message provides a mechanism for initializing or updating a
