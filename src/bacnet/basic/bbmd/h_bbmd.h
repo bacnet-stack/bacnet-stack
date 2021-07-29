@@ -113,6 +113,9 @@ BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bvlc_bdt_list(void);
 BACNET_STACK_EXPORT
 void bvlc_bdt_list_clear(void);
 
+/* Get foreign device table list */
+BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *bvlc_fdt_list(void);
+
 /* Backup broadcast distribution table to a file.
  * Filename is the BBMD_BACKUP_FILE constant
  */

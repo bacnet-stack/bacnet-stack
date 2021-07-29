@@ -2015,9 +2015,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->application_data_len, bvlc_bdt_list());
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-            rpdata->error_class = ERROR_CLASS_PROPERTY;
-            rpdata->error_code = ERROR_CODE_READ_ACCESS_DENIED;
-            apdu_len = BACNET_STATUS_ERROR;
+            apdu_len = bvlc_foreign_device_table_encode(&apdu[0],
+                rpdata->application_data_len, bvlc_fdt_list());
             break;
 #endif
         case PROP_BACNET_IPV6_MODE:

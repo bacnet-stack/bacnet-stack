@@ -523,6 +523,8 @@ bool bvlc_broadcast_distribution_table_entry_forward_address(
 /**
  * @brief Encode the Broadcast-Distribution-Table for Network Port object
  *
+ *    BACnetLIST of BACnetBDTEntry
+ *
  *    BACnetBDTEntry ::= SEQUENCE {
  *       bbmd-address [0] BACnetHostNPort,
  *           BACnetHostNPort ::= SEQUENCE {
@@ -537,7 +539,7 @@ bool bvlc_broadcast_distribution_table_entry_forward_address(
  *
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer size
- * @param bdt_entry - head of the BDT linked list
+ * @param fdt_head - head of the BDT linked list
  * @return length of the APDU buffer
  */
 int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
@@ -981,6 +983,69 @@ int bvlc_decode_register_foreign_device(
 
     return bytes_consumed;
 }
+
+/**
+ * @brief Encode the Foreign_Device-Table for Network Port object
+ *
+ *    BACnetLIST of BACnetFDTEntry
+ *
+ *    BACnetFDTEntry ::= SEQUENCE {
+ *        bacnetip-address [0] OCTET STRING, -- 6-octet B/IP registrant address
+ *        time-to-live [1] Unsigned16, -- time to live in seconds
+ *        remaining-time-to-live [2] Unsigned16 -- remaining time in seconds
+ *    }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param fdt_head - head of the BDT linked list
+ * @return length of the APDU buffer
+ */
+int bvlc_foreign_device_table_encode(uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
+{
+    int len = 0;
+    int apdu_len = 0;
+    int entry_size = 0;
+    BACNET_OCTET_STRING octet_string = { 0 };
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry;
+
+    fdt_entry = fdt_head;
+    while (fdt_entry) {
+        if (fdt_entry->valid) {
+            /* bacnetip-address [0] OCTET STRING */
+            len = bvlc_encode_address(
+                octetstring_value(&octet_string),
+                octetstring_capacity(&octet_string),
+                &fdt_entry->dest_address);
+            octetstring_truncate(&octet_string, len);
+            len = encode_context_octet_string(
+                &apdu[apdu_len], 0, &octet_string);
+            apdu_len += len;
+            /* time-to-live [1] Unsigned16 */
+            len = encode_context_unsigned(
+                &apdu[apdu_len], 1, fdt_entry->ttl_seconds);
+            apdu_len += len;
+            /* remaining-time-to-live [2] Unsigned16 */
+            len = encode_context_unsigned(
+                &apdu[apdu_len], 2, fdt_entry->ttl_seconds_remaining);
+            apdu_len += len;
+        }
+        if (!entry_size) {
+            entry_size = apdu_len;
+        }
+        /* next entry */
+        fdt_entry = fdt_entry->next;
+        if ((apdu_len + entry_size) > apdu_size) {
+            /* check for available space */
+            break;
+        }
+    }
+
+    return apdu_len;
+}
+
+
 
 /**
  * @brief J.2.7 Read-Foreign-Device-Table: encode
