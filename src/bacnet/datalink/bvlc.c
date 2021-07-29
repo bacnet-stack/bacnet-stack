@@ -522,6 +522,19 @@ bool bvlc_broadcast_distribution_table_entry_forward_address(
 
 /**
  * @brief Encode the Broadcast-Distribution-Table for Network Port object
+ *
+ *    BACnetBDTEntry ::= SEQUENCE {
+ *       bbmd-address [0] BACnetHostNPort,
+ *           BACnetHostNPort ::= SEQUENCE {
+ *               host [0] BACnetHostAddress,
+ *                   BACnetHostAddress ::= CHOICE {
+ *                       ip-address [1] OCTET STRING, -- 4 octets for B/IP
+ *                   }
+ *               port [1] Unsigned16
+ *           }
+ *        broadcast-mask [1] OCTET STRING
+ *    }
+ *
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer size
  * @param bdt_entry - head of the BDT linked list
