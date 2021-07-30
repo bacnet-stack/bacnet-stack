@@ -49,6 +49,10 @@
 /* me */
 #include "bacnet/basic/object/netport.h"
 
+#ifndef BBMD_ENABLED
+#define BBMD_ENABLED 1
+#endif
+
 #define BIP_DNS_MAX 3
 struct bacnet_ipv4_port {
     uint8_t IP_Address[4];
@@ -64,6 +68,8 @@ struct bacnet_ipv4_port {
     bool IP_NAT_Traversal;
     uint32_t IP_Global_Address[4];
     bool BBMD_Accept_FD_Registrations;
+    void *BBMD_BD_Table;
+    void *BBMD_FD_Table;
 };
 
 #define IPV6_ADDR_SIZE 16
@@ -129,7 +135,7 @@ static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
 static const int BIP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
     PROP_BACNET_IP_MODE, PROP_IP_ADDRESS, PROP_BACNET_IP_UDP_PORT,
     PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY, PROP_IP_DNS_SERVER,
-#if defined(BBMD_ENABLED)
+#if defined(BACDL_BIP) && BBMD_ENABLED
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS, PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
 #endif
@@ -1283,6 +1289,113 @@ bool Network_Port_BBMD_Accept_FD_Registrations_Set(
 }
 
 /**
+ * For a given object instance-number, returns the BBMD-BD-Table head
+ * property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  BBMD-Accept-FD-Registrations property value
+ */
+void *Network_Port_BBMD_BD_Table(uint32_t object_instance)
+{
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head = NULL;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv4 = &Object_List[index].Network.IPv4;
+        bdt_head = ipv4->BBMD_BD_Table;
+    }
+
+    return bdt_head;
+}
+
+/**
+ * For a given object instance-number, sets the BBMD-BD-Table head
+ * property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param bdt_head - Broadcast Distribution Table linked list head
+ *
+ * @return true if the Broadcast Distribution Table linked list head
+ *  property value was set
+ */
+bool Network_Port_BBMD_BD_Table_Set(
+    uint32_t object_instance,
+    void *bdt_head)
+{
+    bool status = false;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv4 = &Object_List[index].Network.IPv4;
+        if (bdt_head != ipv4->BBMD_BD_Table) {
+            ipv4->BBMD_BD_Table = bdt_head;
+            Object_List[index].Changes_Pending = true;
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the BBMD-FD-Table head
+ * property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  BBMD-Accept-FD-Registrations property value
+ */
+void *Network_Port_BBMD_FD_Table(uint32_t object_instance)
+{
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head = NULL;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv4 = &Object_List[index].Network.IPv4;
+        fdt_head = ipv4->BBMD_FD_Table;
+    }
+
+    return fdt_head;
+}
+
+/**
+ * For a given object instance-number, sets the BBMD-FD-Table head
+ * property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param fdt_head - Foreign Device Table linked list head
+ *
+ * @return true if the BBMD-Accept-FD-Registrations property value was set
+ */
+bool Network_Port_BBMD_FD_Table_Set(
+    uint32_t object_instance,
+    void *fdt_head)
+{
+    bool status = false;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv4 = &Object_List[index].Network.IPv4;
+        if (fdt_head != ipv4->BBMD_FD_Table) {
+            ipv4->BBMD_FD_Table = fdt_head;
+            Object_List[index].Changes_Pending = true;
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, gets the BACnet/IP UDP Port number
  * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
  *
@@ -2004,7 +2117,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
-#if defined(BBMD_ENABLED)
+#if defined(BACDL_BIP) && BBMD_ENABLED
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
             apdu_len = encode_application_boolean(&apdu[0],
                 Network_Port_BBMD_Accept_FD_Registrations(
@@ -2012,11 +2125,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
             apdu_len = bvlc_broadcast_distribution_table_encode(&apdu[0],
-                rpdata->application_data_len, bvlc_bdt_list());
+                rpdata->application_data_len,
+                Network_Port_BBMD_BD_Table(rpdata->object_instance));
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
             apdu_len = bvlc_foreign_device_table_encode(&apdu[0],
-                rpdata->application_data_len, bvlc_fdt_list());
+                rpdata->application_data_len,
+                Network_Port_BBMD_FD_Table(rpdata->object_instance));
             break;
 #endif
         case PROP_BACNET_IPV6_MODE:
@@ -2261,22 +2376,23 @@ bool Network_Port_Read_Range(
 #if defined(BACDL_MSTP)
         case PROP_MAX_MASTER:
         case PROP_MAX_INFO_FRAMES:
-#elif defined(BACDL_BIP)
+#endif
+#if defined(BACDL_BIP)
         case PROP_BACNET_IP_MODE:
         case PROP_IP_ADDRESS:
         case PROP_BACNET_IP_UDP_PORT:
         case PROP_IP_SUBNET_MASK:
         case PROP_IP_DEFAULT_GATEWAY:
         case PROP_IP_DNS_SERVER:
-#if defined(BBMD_ENABLED)
-        case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
 #endif
+#if defined(BACDL_BIP) && BBMD_ENABLED
+        case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
 #endif
             pRequest->error_class = ERROR_CLASS_SERVICES;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
-#if defined(BACDL_BIP) && defined(BBMD_ENABLED)
+#if defined(BACDL_BIP) && BBMD_ENABLED
             pInfo->RequestTypes = RR_BY_POSITION;
             pInfo->Handler = Network_Port_Read_Range_BDT;
             status = true;
@@ -2286,7 +2402,7 @@ bool Network_Port_Read_Range(
 #endif
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-#if defined(BACDL_BIP) && defined(BBMD_ENABLED)
+#if defined(BACDL_BIP) && BBMD_ENABLED
             pInfo->RequestTypes = RR_BY_POSITION;
             pInfo->Handler = Network_Port_Read_Range_FDT;
             status = true;

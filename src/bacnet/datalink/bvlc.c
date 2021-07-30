@@ -3127,6 +3127,14 @@ static void test_BVLC_Broadcast_Distribution_Table_Encode(Test *pTest)
     bvlc_broadcast_distribution_table_link_array(&test_bdt_list[0], test_count);
     test_apdu_len = bvlc_broadcast_distribution_table_decode(&apdu[0],
         apdu_len, &error_code, &test_bdt_list[0]);
+    ct_test(pTest, test_apdu_len == apdu_len);
+    count = bvlc_broadcast_distribution_table_count(&test_bdt_list[0]);
+    ct_test(pTest, test_count == count);
+    for (i = 0; i < count; i++) {
+        status = bvlc_broadcast_distribution_table_entry_different(
+            &bdt_list[i], &test_bdt_list[i]);
+        ct_test(pTest, !status);
+    }
 }
 
 static void test_BVLC_Write_Broadcast_Distribution_Table(Test *pTest)

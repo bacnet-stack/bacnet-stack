@@ -58,12 +58,15 @@ static void test_network_port(void)
             rpdata.object_property = *pRequired;
             rpdata.array_index = BACNET_ARRAY_ALL;
             len = Network_Port_Read_Property(&rpdata);
-            zassert_not_equal(len, 0, NULL);
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            zassert_true(test_len >= 0, NULL);
-            if (test_len < 0) {
-                printf("<decode failed!>\n");
+            zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+            if (len > 0) {
+                test_len = bacapp_decode_application_data(
+                    rpdata.application_data,
+                    (uint8_t)rpdata.application_data_len, &value);
+                zassert_true(test_len >= 0, NULL);
+                if (test_len < 0) {
+                    printf("<decode failed!>\n");
+                }
             }
             pRequired++;
         }
@@ -71,12 +74,15 @@ static void test_network_port(void)
             rpdata.object_property = *pOptional;
             rpdata.array_index = BACNET_ARRAY_ALL;
             len = Network_Port_Read_Property(&rpdata);
-            zassert_not_equal(len, 0, NULL);
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            zassert_true(test_len >= 0, NULL);
-            if (test_len < 0) {
-                printf("<decode failed!>\n");
+            zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+            if (len > 0) {
+                test_len = bacapp_decode_application_data(
+                    rpdata.application_data,
+                    (uint8_t)rpdata.application_data_len, &value);
+                zassert_true(test_len >= 0, NULL);
+                if (test_len < 0) {
+                    printf("<decode failed!>\n");
+                }
             }
             pOptional++;
         }

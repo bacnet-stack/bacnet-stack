@@ -504,6 +504,63 @@ static void test_BVLC_Distribute_Broadcast_To_Network(void)
 #endif
 }
 
+static void test_BVLC_Broadcast_Distribution_Table_Encode(void)
+{
+    uint8_t apdu[480] = { 0 };
+    uint16_t apdu_len = 0;
+    uint16_t test_apdu_len = 0;
+    uint16_t i = 0;
+    uint16_t count = 0;
+    uint16_t test_count = 0;
+    bool status = false;
+    BACNET_ERROR_CODE error_code;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_list[5] = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
+    BACNET_IP_ADDRESS dest_address = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK broadcast_mask = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY test_bdt_list[5] = { 0 };
+
+    /* configure a BDT entry */
+    count = sizeof(bdt_list) / sizeof(bdt_list[0]);
+    bvlc_broadcast_distribution_table_link_array(&bdt_list[0], count);
+    for (i = 0; i < count; i++) {
+        status = bvlc_address_port_from_ascii(
+            &dest_address, "192.168.0.255", "0xBAC0");
+        zassert_true(status, NULL);
+        dest_address.port += i;
+        broadcast_mask.address[0] = 255;
+        broadcast_mask.address[1] = 255;
+        broadcast_mask.address[2] = 255;
+        broadcast_mask.address[3] = 255;
+        status = bvlc_broadcast_distribution_table_entry_set(
+            &bdt_entry, &dest_address, &broadcast_mask);
+        zassert_true(status, NULL);
+        status = bvlc_broadcast_distribution_table_entry_append(
+            &bdt_list[0], &bdt_entry);
+        zassert_true(status, NULL);
+    }
+    test_count = bvlc_broadcast_distribution_table_count(&bdt_list[0]);
+    if (test_count != count) {
+        printf("size=%u count=%u\n", count, test_count);
+    }
+    zassert_equal(test_count, count, NULL);
+    /* test the encode/decode pair */
+    apdu_len = bvlc_broadcast_distribution_table_encode(&apdu[0],
+        sizeof(apdu), &bdt_list[0]);
+    test_count = sizeof(test_bdt_list) / sizeof(test_bdt_list[0]);
+    bvlc_broadcast_distribution_table_link_array(&test_bdt_list[0], test_count);
+    test_apdu_len = bvlc_broadcast_distribution_table_decode(&apdu[0],
+        apdu_len, &error_code, &test_bdt_list[0]);
+    zassert_equal(test_apdu_len, apdu_len, NULL);
+    count = bvlc_broadcast_distribution_table_count(&test_bdt_list[0]);
+    zassert_equal(test_count, count, NULL);
+    for (i = 0; i < count; i++) {
+        status = bvlc_broadcast_distribution_table_entry_different(
+            &bdt_list[i], &test_bdt_list[i]);
+        zassert_false(status, NULL);
+    }
+}
+
 #if 0 /*TODO: Expose test_BVLC_Header */
 static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
     uint8_t *npdu,
