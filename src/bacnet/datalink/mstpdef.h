@@ -45,6 +45,9 @@
 #define FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY 5
 #define FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY 6
 #define FRAME_TYPE_REPLY_POSTPONED 7
+#define FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY 32
+#define FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY 33
+#define FRAME_TYPE_IPV6_ENCAPSULATION 34
 /* Frame Types 128 through 255: Proprietary Frames */
 /* These frames are available to vendors as proprietary (non-BACnet) frames. */
 /* The first two octets of the Data field shall specify the unique vendor */
@@ -55,6 +58,10 @@
 #define FRAME_TYPE_PROPRIETARY_MAX 255
 /* The initial CRC16 checksum value */
 #define CRC16_INITIAL_VALUE (0xFFFF)
+#define CRC32K_INITIAL_VALUE (0xFFFFFFFF)
+#define CRC32K_RESIDUE (0x0843323B)
+#define MSTP_PREAMBLE_X55 (0x55)
+#define MSTP_EXTENDED_FRAME_NPDU_MAX 1497
 
 /* receive FSM states */
 typedef enum {

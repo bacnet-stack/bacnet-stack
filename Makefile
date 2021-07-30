@@ -41,6 +41,10 @@ ethernet:
 apps:
 	$(MAKE) -s -C apps all
 
+.PHONY: cmake
+cmake:
+	mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=ON && cmake --build . --clean-first
+
 .PHONY: abort
 abort:
 	$(MAKE) -s -C apps $@

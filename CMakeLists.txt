@@ -341,6 +341,7 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
     src/bacnet/datalink/datalink.c
     src/bacnet/datalink/datalink.h
     src/bacnet/datalink/dlenv.c
@@ -526,6 +527,7 @@ list(APPEND testdirs
 
 # bacnet/datalink/*
 list(APPEND testdirs
+  test/bacnet/datalink/cobs
   test/bacnet/datalink/crc
   #test/bacnet/datalink/bvlc		#All tests skipped, needing development
   )
