@@ -334,7 +334,6 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/lc.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/lo.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/lsp.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/Makefile
     ${BACNETSTACK_SRC}/bacnet/basic/object/ms-input.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/mso.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c

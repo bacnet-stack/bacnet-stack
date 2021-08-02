@@ -238,7 +238,9 @@ bool Analog_Input_Object_Name(
  */
 unsigned Analog_Input_Event_State(uint32_t object_instance)
 {
+#if defined(INTRINSIC_REPORTING)
     unsigned index = 0;
+#endif
     unsigned state = EVENT_STATE_NORMAL;
 
 #if defined(INTRINSIC_REPORTING)
