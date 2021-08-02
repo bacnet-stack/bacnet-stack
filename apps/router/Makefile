@@ -37,6 +37,7 @@ SRCS = main.c \
 	${BACNET_SOURCE_DIR}/datalink/crc.c \
 	${BACNET_SOURCE_DIR}/bacdcode.c \
 	${BACNET_SOURCE_DIR}/bacint.c \
+	${BACNET_SOURCE_DIR}/bacreal.c \
 	${BACNET_SOURCE_DIR}/bacstr.c \
 	${BACNET_SOURCE_DIR}/npdu.c \
 	${BACNET_SOURCE_DIR}/bacaddr.c \
