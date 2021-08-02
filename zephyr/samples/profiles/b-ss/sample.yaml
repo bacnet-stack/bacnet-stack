@@ -2,6 +2,6 @@ sample:
   name: BACnet Profile B-SS Sample
 
 tests:
-  sample.profile.b-ss:
+  bacnet-stack.sample.profile.b-ss:
     tags: bacnet
-    platform_whitelist: qemu_x86 native_posix native_posix_64
+    platform_allow: qemu_x86 native_posix native_posix_64

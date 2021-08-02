@@ -254,7 +254,6 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/datetime.h
     ${BACNETSTACK_SRC}/bacnet/dcc.c
     ${BACNETSTACK_SRC}/bacnet/dcc.h
-    ${BACNETSTACK_SRC}/bacnet/event.c
     ${BACNETSTACK_SRC}/bacnet/event.h
     ${BACNETSTACK_SRC}/bacnet/get_alarm_sum.c
     ${BACNETSTACK_SRC}/bacnet/get_alarm_sum.h
@@ -316,9 +315,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_user.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/acc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/ai.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/ao.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/av.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c # Build error: fseek not supported in Zephyr
     ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
@@ -334,7 +331,6 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/lc.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/lo.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/lsp.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/Makefile
     ${BACNETSTACK_SRC}/bacnet/basic/object/ms-input.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/mso.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c
@@ -402,6 +398,9 @@ list(
       $<$<BOOL:${CONFIG_BACDL_ETHERNET}>:${BACNETSTACK_PORT}/ethernet.c>
       ${BACNETSTACK_PORT}/main.c
       ${BACNETSTACK_PORT}/mstimer-init.c
+      ${BACNETSTACK_PORT}/ai.c
+      ${BACNETSTACK_PORT}/av.c
+      ${BACNETSTACK_PORT}/event.c
   )
 
 
