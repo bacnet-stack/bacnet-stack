@@ -1298,7 +1298,7 @@ bool Network_Port_BBMD_Accept_FD_Registrations_Set(
  */
 void *Network_Port_BBMD_BD_Table(uint32_t object_instance)
 {
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head = NULL;
+    void *bdt_head = NULL;
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
 
@@ -1352,7 +1352,7 @@ bool Network_Port_BBMD_BD_Table_Set(
  */
 void *Network_Port_BBMD_FD_Table(uint32_t object_instance)
 {
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head = NULL;
+    void *fdt_head = NULL;
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
 
