@@ -1258,6 +1258,15 @@ void bvlc_set_function_code(uint8_t function_code)
 
 #if BBMD_ENABLED
 /**
+ * @brief Get handle to foreign device table (FDT).
+ * @return pointer to first entry of foreign device table
+ */
+BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *bvlc_fdt_list(void)
+{
+    return &FD_Table[0];
+}
+
+/**
  * @brief Get handle to broadcast distribution table (BDT).
  * @return pointer to first entry of broadcast distribution table
  */

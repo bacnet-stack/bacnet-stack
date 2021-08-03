@@ -294,7 +294,6 @@ extern "C" {
         BACNET_IP_ADDRESS *dst, const BACNET_IP_ADDRESS *src,
         const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask);
 
-
     BACNET_STACK_EXPORT
     bool bvlc_broadcast_distribution_mask_from_host(
         BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask, uint32_t broadcast_mask);
@@ -318,6 +317,17 @@ extern "C" {
         uint8_t *addr1,
         uint8_t *addr2,
         uint8_t *addr3);
+
+    BACNET_STACK_EXPORT
+    int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
+        uint16_t apdu_len,
+        BACNET_ERROR_CODE *error_code,
+        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+
+    BACNET_STACK_EXPORT
+    int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
 
     BACNET_STACK_EXPORT
     int bvlc_encode_write_broadcast_distribution_table(uint8_t *pdu,
@@ -398,6 +408,11 @@ extern "C" {
     int bvlc_decode_foreign_device_table_entry(uint8_t *pdu,
         uint16_t pdu_len,
         BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
+
+    BACNET_STACK_EXPORT
+    int bvlc_foreign_device_table_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
 
     BACNET_STACK_EXPORT
     int bvlc_encode_read_foreign_device_table(uint8_t *pdu, uint16_t pdu_size);
