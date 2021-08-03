@@ -254,6 +254,7 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/datetime.h
     ${BACNETSTACK_SRC}/bacnet/dcc.c
     ${BACNETSTACK_SRC}/bacnet/dcc.h
+    ${BACNETSTACK_SRC}/bacnet/event.c
     ${BACNETSTACK_SRC}/bacnet/event.h
     ${BACNETSTACK_SRC}/bacnet/get_alarm_sum.c
     ${BACNETSTACK_SRC}/bacnet/get_alarm_sum.h
@@ -400,7 +401,6 @@ list(
       ${BACNETSTACK_PORT}/mstimer-init.c
       ${BACNETSTACK_PORT}/ai.c
       ${BACNETSTACK_PORT}/av.c
-      ${BACNETSTACK_PORT}/event.c
   )
 
 

@@ -785,11 +785,16 @@ int event_notify_decode_service_request(
                             case BACNET_APPLICATION_TAG_ENUMERATED:
                                 if (-1 == (section_length =
                                         decode_enumerated(&apdu[len],
-                                            len_value,
-                                            &data->
-                                            notificationParams.commandFailure.
-                                            commandValue.binaryValue))) {
+                                            len_value, &enum_value))) {
                                     return -1;
+                                }
+                                if ((enum_value >= MIN_BINARY_PV) &&
+                                    (enum_value <= MAX_BINARY_PV)) {
+                                    data->notificationParams.commandFailure.
+                                           feedbackValue.binaryValue =
+                                           (BACNET_BINARY_PV) enum_value;
+                                } else {
+                                    return BACNET_STATUS_ERROR;
                                 }
                                 break;
 
@@ -837,11 +842,16 @@ int event_notify_decode_service_request(
                             case BACNET_APPLICATION_TAG_ENUMERATED:
                                 if (-1 == (section_length =
                                         decode_enumerated(&apdu[len],
-                                            len_value,
-                                            &data->
-                                            notificationParams.commandFailure.
-                                            feedbackValue.binaryValue))) {
+                                            len_value, &enum_value))) {
                                     return -1;
+                                }
+                                if ((enum_value >= MIN_BINARY_PV) &&
+                                    (enum_value <= MAX_BINARY_PV)) {
+                                    data->notificationParams.commandFailure.
+                                           feedbackValue.binaryValue =
+                                           (BACNET_BINARY_PV) enum_value;
+                                } else {
+                                    return BACNET_STATUS_ERROR;
                                 }
                                 break;
 
@@ -1060,9 +1070,17 @@ int event_notify_decode_service_request(
                     case EVENT_ACCESS_EVENT:
                         if (-1 == (section_length =
                                 decode_context_enumerated(&apdu[len], 0,
-                                    &data->notificationParams.
-                                    accessEvent.accessEvent))) {
+                                    &enum_value))) {
                             return -1;
+                        }
+                        if (((enum_value >= ACCESS_EVENT_NONE) &&
+                             (enum_value <= ACCESS_EVENT_VERIFICATION_REQUIRED)) ||
+                            ((enum_value >= ACCESS_EVENT_DENIED_DENY_ALL) &&
+			     (enum_value <= ACCESS_EVENT_DENIED_OTHER))) {
+                                data->notificationParams.
+                                accessEvent.accessEvent = (BACNET_ACCESS_EVENT) enum_value;
+                        } else {
+                            return BACNET_STATUS_ERROR;
                         }
                         len += section_length;
 
