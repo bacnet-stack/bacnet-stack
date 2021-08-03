@@ -504,6 +504,7 @@ static void test_BVLC_Distribute_Broadcast_To_Network(void)
 #endif
 }
 
+#if 0 /*TODO: Expose test_BVLC_Broadcast_Distribution_Table_Encode */
 static void test_BVLC_Broadcast_Distribution_Table_Encode(void)
 {
     uint8_t apdu[480] = { 0 };
@@ -560,6 +561,7 @@ static void test_BVLC_Broadcast_Distribution_Table_Encode(void)
         zassert_false(status, NULL);
     }
 }
+#endif
 
 #if 0 /*TODO: Expose test_BVLC_Header */
 static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
