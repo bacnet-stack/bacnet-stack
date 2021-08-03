@@ -10,6 +10,6 @@ common:
       regex:
         - "Hello BACnet-Stack! (.*)"
 tests:
-  sample.basic.hello_bacnet_stack:
-    platform_whitelist: native_posix
+  bacnet-stack.sample.basic.hello_bacnet_stack:
+    platform_allow: native_posix
     tags: introduction
