@@ -5,7 +5,7 @@
  */
 
 /* @file
- * @brief test BACnet integer encode/decode APIs
+ * @brief test BACnet access_door object APIs
  */
 
 #include <ztest.h>
@@ -19,45 +19,57 @@
 /**
  * @brief Test
  */
-#if 0
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
-#endif
-
-static void testAccessDoor(void)
+static void test_object_access_door(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    uint32_t decoded_instance = 0;
-    BACNET_OBJECT_TYPE decoded_type = 0;
+    int test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
+    /* for decode value data */
+    BACNET_APPLICATION_DATA_VALUE value;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+    unsigned port = 0;
+    unsigned count = 0;
+    uint32_t object_instance = 0;
 
+    object_instance = Access_Door_Index_To_Instance(0);
     Access_Door_Init();
+    count = Access_Door_Count();
+    zassert_true(count > 0, NULL);
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_ACCESS_DOOR;
-    rpdata.object_instance = 1;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Access_Door_Read_Property(&rpdata);
-    zassert_not_equal(len, 0, NULL);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    zassert_equal(tag_number, BACNET_APPLICATION_TAG_OBJECT_ID, NULL);
-    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
-    zassert_equal(decoded_type, rpdata.object_type, NULL);
-    zassert_equal(decoded_instance, rpdata.object_instance, NULL);
+    rpdata.object_instance = object_instance;
+    Access_Door_Property_Lists(&pRequired, &pOptional, &pProprietary);
+    while ((*pRequired) != -1) {
+	rpdata.object_property = *pRequired;
+	rpdata.array_index = BACNET_ARRAY_ALL;
+	len = Access_Door_Read_Property(&rpdata);
+	zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+	if (len > 0) {
+	    test_len = bacapp_decode_application_data(
+		rpdata.application_data,
+		(uint8_t)rpdata.application_data_len, &value);
+	    zassert_true(test_len >= 0, NULL);
+	}
+	pRequired++;
+    }
+    while ((*pOptional) != -1) {
+	rpdata.object_property = *pOptional;
+	rpdata.array_index = BACNET_ARRAY_ALL;
+	len = Access_Door_Read_Property(&rpdata);
+	zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+	if (len > 0) {
+	    test_len = bacapp_decode_application_data(
+		rpdata.application_data,
+		(uint8_t)rpdata.application_data_len, &value);
+	    zassert_true(test_len >= 0, NULL);
+	}
+	pOptional++;
+    }
+    port++;
 
     return;
 }
@@ -68,9 +80,9 @@ static void testAccessDoor(void)
 
 void test_main(void)
 {
-    ztest_test_suite(access_door_tests,
-     ztest_unit_test(testAccessDoor)
+    ztest_test_suite(tests_object_access_door,
+     ztest_unit_test(test_object_access_door)
      );
 
-    ztest_run_test_suite(access_door_tests);
+    ztest_run_test_suite(tests_object_access_door);
 }

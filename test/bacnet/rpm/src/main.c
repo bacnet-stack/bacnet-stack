@@ -112,14 +112,12 @@ static bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
                     &value->type.Bit_String, &test_value->type.Bit_String);
                 break;
 #endif
-#if 0 /*TODO: Enable when lighting.c builds cleanly */
 #if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 status = lighting_command_same(&value->type.Lighting_Command,
                     &test_value->type.Lighting_Command);
                 break;
 #endif
-#endif /*TODO: */
             default:
                 status = false;
                 break;
