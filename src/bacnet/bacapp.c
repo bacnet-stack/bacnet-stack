@@ -1686,13 +1686,6 @@ void bacapp_property_value_list_init(BACNET_PROPERTY_VALUE *value, size_t count)
     }
 }
 
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-#include <assert.h>
-
 /* generic - can be used by other unit tests
    returns true if matching or same, false if different */
 bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
@@ -1804,6 +1797,13 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
     }
     return status;
 }
+
+#ifdef BAC_TEST
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
+#include <assert.h>
 
 void testBACnetApplicationData_Safe(Test *pTest)
 {
