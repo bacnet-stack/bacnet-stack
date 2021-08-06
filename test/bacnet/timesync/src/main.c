@@ -20,7 +20,6 @@
 /**
  * @brief Test
  */
-#if 0 /* Not used */
 static void testTimeSyncRecipientData(
     BACNET_RECIPIENT_LIST *recipient1,
     BACNET_RECIPIENT_LIST *recipient2)
@@ -66,15 +65,13 @@ static void testTimeSyncRecipientData(
         }
     }
 }
-#endif
 
-#if 0 /* Not used */
 static void testTimeSyncRecipient(void)
 {
     uint8_t apdu[480] = { 0 };
     int len = 0;
-    BACNET_RECIPIENT_LIST recipient[4];
-    BACNET_RECIPIENT_LIST test_recipient[4];
+    BACNET_RECIPIENT_LIST recipient[4] = { 0 };
+    BACNET_RECIPIENT_LIST test_recipient[4] = { 0 };
 
     /* link the recipient list */
     recipient[0].next = &recipient[1];
@@ -94,21 +91,21 @@ static void testTimeSyncRecipient(void)
     /* network = broadcast */
     recipient[1].tag = 1;
     recipient[1].type.address.net = BACNET_BROADCAST_NETWORK;
-    recipient[2].type.address.mac_len = 0;
+    recipient[1].type.address.mac_len = 0;
     /* network = non-zero */
-    recipient[1].tag = 1;
+    recipient[2].tag = 1;
     recipient[2].type.address.net = 4201;
     recipient[2].type.address.adr[0] = 127;
     recipient[2].type.address.len = 1;
     /* network = zero */
-    recipient[2].type.address.net = 0;
-    recipient[2].type.address.mac[0] = 10;
-    recipient[2].type.address.mac[1] = 1;
-    recipient[2].type.address.mac[2] = 0;
-    recipient[2].type.address.mac[3] = 86;
-    recipient[2].type.address.mac[4] = 0xBA;
-    recipient[2].type.address.mac[5] = 0xC1;
-    recipient[2].type.address.mac_len = 6;
+    recipient[3].type.address.net = 0;
+    recipient[3].type.address.mac[0] = 10;
+    recipient[3].type.address.mac[1] = 1;
+    recipient[3].type.address.mac[2] = 0;
+    recipient[3].type.address.mac[3] = 86;
+    recipient[3].type.address.mac[4] = 0xBA;
+    recipient[3].type.address.mac[5] = 0xC1;
+    recipient[3].type.address.mac_len = 6;
     /* perform positive test */
     len = timesync_encode_timesync_recipients(
         &apdu[0], sizeof(apdu), &recipient[0]);
@@ -120,7 +117,6 @@ static void testTimeSyncRecipient(void)
     zassert_true(len > 0, NULL);
     testTimeSyncRecipientData(&recipient[0], &test_recipient[0]);
 }
-#endif
 
 static int timesync_decode_apdu_service(uint8_t *apdu,
     BACNET_UNCONFIRMED_SERVICE service,
@@ -215,7 +211,8 @@ static void testTimeSync(void)
 void test_main(void)
 {
     ztest_test_suite(timesync_tests,
-     ztest_unit_test(testTimeSync)
+     ztest_unit_test(testTimeSync),
+     ztest_unit_test(testTimeSyncRecipient)
      );
 
     ztest_run_test_suite(timesync_tests);
