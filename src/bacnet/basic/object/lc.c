@@ -212,7 +212,10 @@ unsigned Load_Control_Count(void)
 /* that correlates to the correct index */
 uint32_t Load_Control_Index_To_Instance(unsigned index)
 {
-    return index;
+    if (index < MAX_LOAD_CONTROLS) {
+        return index;
+    }
+    return MAX_LOAD_CONTROLS;
 }
 
 /* we simply have 0-n object instances.  Yours might be */
@@ -856,6 +859,10 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     BACNET_DATE
     TempDate; /* build here in case of error in time half of datetime */
+
+    if (wp_data == NULL) {
+	return false;
+    }
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(

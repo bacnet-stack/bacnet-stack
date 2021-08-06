@@ -10,6 +10,7 @@
 
 #include <ztest.h>
 #include <bacnet/bacdcode.h>
+#include <bacnet/bacstr.h>
 #include <bacnet/basic/object/ao.h>
 #include <bacnet/basic/object/lc.h>
 
@@ -29,7 +30,9 @@
 /**
  * @brief Test
  */
-#if 0 /* TODO: How should this get exposed? */
+
+#if 0 /* { TODO: Migrate tests to only use external API */
+
 static void Load_Control_WriteProperty_Request_Shed_Level(
     int instance, unsigned level)
 {
@@ -52,9 +55,7 @@ static void Load_Control_WriteProperty_Request_Shed_Level(
     status = Load_Control_Write_Property(&wp_data);
     zassert_true(status, NULL);
 }
-#endif
 
-#if 0 /* TODO: How should this get exposed? */
 static void Load_Control_WriteProperty_Enable(
     int instance, bool enable)
 {
@@ -78,9 +79,7 @@ static void Load_Control_WriteProperty_Enable(
     status = Load_Control_Write_Property(&wp_data);
     zassert_true(status, NULL);
 }
-#endif
 
-#if 0 /* TODO: How should this get exposed? */
 static void Load_Control_WriteProperty_Shed_Duration(
     int instance, unsigned duration)
 {
@@ -103,9 +102,7 @@ static void Load_Control_WriteProperty_Shed_Duration(
     status = Load_Control_Write_Property(&wp_data);
     zassert_true(status, NULL);
 }
-#endif
 
-#if 0 /* TODO: How should this get exposed? */
 static void Load_Control_WriteProperty_Duty_Window(
     int instance, unsigned duration)
 {
@@ -128,9 +125,7 @@ static void Load_Control_WriteProperty_Duty_Window(
     status = Load_Control_Write_Property(&wp_data);
     zassert_true(status, NULL);
 }
-#endif
 
-#if 0 /* TODO: How should this get exposed? */
 static void Load_Control_WriteProperty_Start_Time_Wildcards(
     int instance)
 {
@@ -161,9 +156,7 @@ static void Load_Control_WriteProperty_Start_Time_Wildcards(
     status = Load_Control_Write_Property(&wp_data);
     zassert_true(status, NULL);
 }
-#endif
 
-#if 0 /* TODO: How should this get exposed? */
 static void Load_Control_WriteProperty_Start_Time(
     int instance,
     uint16_t year,
@@ -201,11 +194,9 @@ static void Load_Control_WriteProperty_Start_Time(
     status = Load_Control_Write_Property(&wp_data);
     zassert_true(status, NULL);
 }
-#endif
 
 static void testLoadControlStateMachine(void)
 {
-#if 0 /*TODO: Need visiblity inside LoadControlStateMachine */
     unsigned i = 0, j = 0;
     uint8_t level = 0;
 
@@ -341,39 +332,156 @@ static void testLoadControlStateMachine(void)
     zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
     level = Analog_Output_Present_Value(0);
     zassert_equal(level, 100, NULL);
-#else
-    ztest_test_skip();
+}
+#endif /* } TODO: */
+
+
+#ifndef MAX_LOAD_CONTROLS
+#define MAX_LOAD_CONTROLS (4)
 #endif
+
+static void test_api_stubs(void)
+{
+    BACNET_CHARACTER_STRING object_name_st = { 0 };
+
+    zassert_equal(Load_Control_Count(), MAX_LOAD_CONTROLS, NULL);
+
+    zassert_false(Load_Control_Valid_Instance(MAX_LOAD_CONTROLS), NULL);
+    zassert_equal(Load_Control_Index_To_Instance(MAX_LOAD_CONTROLS), Load_Control_Count(), NULL);
+    zassert_equal(Load_Control_Instance_To_Index(MAX_LOAD_CONTROLS), Load_Control_Count(), NULL);
+
+    zassert_false(Load_Control_Valid_Instance(UINT32_MAX), NULL);
+    zassert_equal(Load_Control_Index_To_Instance(UINT32_MAX), Load_Control_Count(), NULL);
+    zassert_equal(Load_Control_Instance_To_Index(UINT32_MAX), Load_Control_Count(), NULL);
+
+    zassert_true(Load_Control_Valid_Instance(0), NULL);
+    zassert_equal(Load_Control_Index_To_Instance(0), 0, NULL);
+    zassert_equal(Load_Control_Instance_To_Index(0), 0, NULL);
+
+    zassert_false(Load_Control_Object_Name(0, NULL), NULL);
+    zassert_false(Load_Control_Object_Name(UINT32_MAX, &object_name_st), NULL);
+
+
+    zassert_true(Load_Control_Object_Name(0, &object_name_st), NULL);
+    zassert_true(characterstring_valid(&object_name_st), NULL);
+    zassert_true(characterstring_printable(&object_name_st), NULL);
 }
 
-static void testLoadControl(void)
+static void test_Load_Control_Read_Write_Property(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = 0;
-    uint32_t decoded_instance = 0;
+    int test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
+    /* for decode value data */
+    BACNET_APPLICATION_DATA_VALUE value;
+    const int *pRequired = NULL;
+    const int *pOptional = NULL;
+    const int *pProprietary = NULL;
+    unsigned count = 0;
+    uint32_t object_instance = 0;
 
-    Analog_Output_Init();
+
+    zassert_equal(Load_Control_Read_Property(NULL), 0, NULL);
+    zassert_false(Load_Control_Write_Property(NULL), NULL);
+
+    object_instance = Load_Control_Index_To_Instance(0);
     Load_Control_Init();
+    count = Load_Control_Count();
+    zassert_true(count > 0, NULL);
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_LOAD_CONTROL;
-    rpdata.object_instance = 1;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Load_Control_Read_Property(&rpdata);
-    zassert_true(len != 0, NULL);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    zassert_equal(tag_number, BACNET_APPLICATION_TAG_OBJECT_ID, NULL);
-    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
-    zassert_equal(decoded_type, rpdata.object_type, NULL);
-    zassert_equal(decoded_instance, rpdata.object_instance, NULL);
-
-    return;
+    rpdata.object_instance = object_instance;
+    Load_Control_Property_Lists(&pRequired, &pOptional, &pProprietary);
+    while ((*pRequired) != -1) {
+	rpdata.object_property = *pRequired;
+	rpdata.array_index = BACNET_ARRAY_ALL;
+	len = Load_Control_Read_Property(&rpdata);
+	zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+	if (len > 0) {
+	    test_len = bacapp_decode_application_data(
+		rpdata.application_data,
+		(uint8_t)rpdata.application_data_len, &value);
+	    zassert_true(test_len >= 0, NULL);
+	}
+	pRequired++;
+    }
+    while ((*pOptional) != -1) {
+	rpdata.object_property = *pOptional;
+	rpdata.array_index = BACNET_ARRAY_ALL;
+	len = Load_Control_Read_Property(&rpdata);
+	zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
+	if (len > 0) {
+	    test_len = bacapp_decode_application_data(
+		rpdata.application_data,
+		(uint8_t)rpdata.application_data_len, &value);
+	    zassert_true(test_len >= 0, NULL);
+	}
+	pOptional++;
+    }
 }
+
+static void test_ShedInactive_gets_RcvShedRequests(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedReqPending_gets_ReconfigPending(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedReqPending_gets_CancelShed(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedReqPending_gets_CannotMeetShed(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedReqPending_gets_PrepareToShed(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedReqPending_gets_AbleToMeetShed(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedNonCommpliant_gets_UnsuccessfulShedReconfig(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedNonCommpliant_gets_FinishedUnsuccessfulShed(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedNonCommpliant_gets_CanNowComplyWithShed(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedCommpliant_gets_FinishedSuccessfulShed(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedCommpliant_gets_SuccessfulShedReconfig(void)
+{
+    ztest_test_skip();
+}
+
+static void test_ShedCommpliant_gets_CanNoLongerComplyWithShed(void)
+{
+    ztest_test_skip();
+}
+
 /**
  * @}
  */
@@ -382,8 +490,22 @@ static void testLoadControl(void)
 void test_main(void)
 {
     ztest_test_suite(lc_tests,
-     ztest_unit_test(testLoadControl),
-     ztest_unit_test(testLoadControlStateMachine)
+     ztest_unit_test(test_api_stubs),
+     ztest_unit_test(test_Load_Control_Read_Write_Property),
+     ztest_unit_test(test_ShedInactive_gets_RcvShedRequests),
+     ztest_unit_test(test_ShedReqPending_gets_ReconfigPending),
+     ztest_unit_test(test_ShedInactive_gets_RcvShedRequests),
+     ztest_unit_test(test_ShedReqPending_gets_ReconfigPending),
+     ztest_unit_test(test_ShedReqPending_gets_CancelShed),
+     ztest_unit_test(test_ShedReqPending_gets_CannotMeetShed),
+     ztest_unit_test(test_ShedReqPending_gets_PrepareToShed),
+     ztest_unit_test(test_ShedReqPending_gets_AbleToMeetShed),
+     ztest_unit_test(test_ShedNonCommpliant_gets_UnsuccessfulShedReconfig),
+     ztest_unit_test(test_ShedNonCommpliant_gets_FinishedUnsuccessfulShed),
+     ztest_unit_test(test_ShedNonCommpliant_gets_CanNowComplyWithShed),
+     ztest_unit_test(test_ShedCommpliant_gets_FinishedSuccessfulShed),
+     ztest_unit_test(test_ShedCommpliant_gets_SuccessfulShedReconfig),
+     ztest_unit_test(test_ShedCommpliant_gets_CanNoLongerComplyWithShed)
      );
 
     ztest_run_test_suite(lc_tests);
