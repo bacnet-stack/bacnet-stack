@@ -261,17 +261,6 @@ extern "C" {
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_DATA_VALUE * test_value);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-#include "bacnet/datetime.h"
-    BACNET_STACK_EXPORT
-    void testBACnetApplicationDataLength(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void testBACnetApplicationData(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

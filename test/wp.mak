@@ -17,6 +17,7 @@ SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/bactext.c \
 	$(SRC_DIR)/bacnet/indtext.c \
 	$(SRC_DIR)/bacnet/wp.c \
+	$(SRC_DIR)/bacnet/basic/sys/days.c \
 	ctest.c
 
 TARGET_NAME = wp

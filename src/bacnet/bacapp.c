@@ -1798,14 +1798,14 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
     return status;
 }
 
-#ifdef BAC_TEST
+#ifdef TEST_BACNET_APPLICATION_DATA
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
 #include <assert.h>
 
-void testBACnetApplicationData_Safe(Test *pTest)
+static void testBACnetApplicationData_Safe(Test *pTest)
 {
     int i;
     uint8_t apdu[MAX_APDU];
@@ -2292,7 +2292,6 @@ void testBACnetApplicationData(Test *pTest)
     return;
 }
 
-#ifdef TEST_BACNET_APPLICATION_DATA
 int main(void)
 {
     Test *pTest;
@@ -2315,4 +2314,3 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BACNET_APPLICATION_DATA */
-#endif /* BAC_TEST */

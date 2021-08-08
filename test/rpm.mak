@@ -19,6 +19,7 @@ SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/lighting.c \
 	$(SRC_DIR)/bacnet/memcopy.c \
 	$(SRC_DIR)/bacnet/rpm.c \
+	$(SRC_DIR)/bacnet/basic/sys/days.c \
 	ctest.c
 
 TARGET_NAME = rpm

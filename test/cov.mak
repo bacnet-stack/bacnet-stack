@@ -18,6 +18,7 @@ SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/memcopy.c \
 	$(SRC_DIR)/bacnet/bactext.c \
 	$(SRC_DIR)/bacnet/cov.c \
+	$(SRC_DIR)/bacnet/basic/sys/days.c \
 	ctest.c
 
 OBJS = ${SRCS:.c=.o}

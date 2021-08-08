@@ -293,12 +293,12 @@ bool lighting_command_same(
     return status;
 }
 
-#ifdef BAC_TEST
+#ifdef TEST_LIGHTING_COMMAND
 #include <assert.h>
 #include <string.h>
 #include "ctest.h"
 
-void testBACnetLightingCommand(Test *pTest, BACNET_LIGHTING_COMMAND *data)
+static void testBACnetLightingCommand(Test *pTest, BACNET_LIGHTING_COMMAND *data)
 {
     bool status = false;
     BACNET_LIGHTING_COMMAND test_data;
@@ -320,7 +320,7 @@ void testBACnetLightingCommand(Test *pTest, BACNET_LIGHTING_COMMAND *data)
     status = lighting_command_same(&test_data, data);
 }
 
-void testBACnetLightingCommandAll(Test *pTest)
+static void testBACnetLightingCommandAll(Test *pTest)
 {
     BACNET_LIGHTING_COMMAND data;
 
@@ -345,7 +345,6 @@ void testBACnetLightingCommandAll(Test *pTest)
     testBACnetLightingCommand(pTest, &data);
 }
 
-#ifdef TEST_LIGHTING_COMMAND
 int main(void)
 {
     Test *pTest;
@@ -365,4 +364,3 @@ int main(void)
 }
 
 #endif
-#endif /* BAC_TEST */
