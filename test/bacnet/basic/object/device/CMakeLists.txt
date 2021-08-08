@@ -76,6 +76,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/datalink/bvlc.c
 	${SRC_DIR}/bacnet/cov.c
 	${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/dcc.c
 	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/lighting.c

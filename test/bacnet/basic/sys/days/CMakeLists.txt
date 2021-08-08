@@ -32,22 +32,8 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
-	${SRC_DIR}/bacnet/basic/object/access_rights.c
-    # Support files and stubs (pathname alphabetical)
-	${SRC_DIR}/bacnet/access_rule.c
-	${SRC_DIR}/bacnet/bacapp.c
-	${SRC_DIR}/bacnet/bacdcode.c
-	${SRC_DIR}/bacnet/bacdevobjpropref.c
-	${SRC_DIR}/bacnet/bacint.c
-	${SRC_DIR}/bacnet/bacreal.c
-	${SRC_DIR}/bacnet/bacstr.c
-	${SRC_DIR}/bacnet/bactext.c
-	${SRC_DIR}/bacnet/basic/sys/bigend.c
-	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
-	${SRC_DIR}/bacnet/indtext.c
-	${SRC_DIR}/bacnet/lighting.c
-	${SRC_DIR}/bacnet/wp.c
+    # Support files and stubs (pathname alphabetical)
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

@@ -4,7 +4,7 @@ SRC_DIR = ../src
 INCLUDES = -I$(SRC_DIR) -I.
 DEFINES = -DBIG_ENDIAN=0 -DBAC_TEST -DTEST_DATE_TIME
 
-CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
+CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g -Wmissing-prototypes
 
 SRCS = $(SRC_DIR)/bacnet/datetime.c \
 	$(SRC_DIR)/bacnet/bacdcode.c \
@@ -16,6 +16,7 @@ SRCS = $(SRC_DIR)/bacnet/datetime.c \
 	$(SRC_DIR)/bacnet/lighting.c \
 	$(SRC_DIR)/bacnet/bactext.c \
 	$(SRC_DIR)/bacnet/indtext.c \
+	$(SRC_DIR)/bacnet/basic/sys/days.c \
 	ctest.c
 
 OBJS = ${SRCS:.c=.o}

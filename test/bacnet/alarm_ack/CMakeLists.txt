@@ -40,6 +40,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bacstr.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/timestamp.c
     # Test and test library files
 	./src/main.c

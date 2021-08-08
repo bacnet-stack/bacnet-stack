@@ -305,6 +305,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/services.h
     src/bacnet/basic/sys/bigend.c
     src/bacnet/basic/sys/bigend.h
+    src/bacnet/basic/sys/days.c
+    src/bacnet/basic/sys/days.h
     src/bacnet/basic/sys/debug.c
     src/bacnet/basic/sys/debug.h
     src/bacnet/basic/sys/fifo.c
@@ -517,6 +519,7 @@ list(APPEND testdirs
   test/bacnet/basic/object/piv  # Build failed
   test/bacnet/basic/object/schedule # Build failed
   # basic/sys
+  test/bacnet/basic/sys/days
   test/bacnet/basic/sys/fifo
   test/bacnet/basic/sys/filename
   test/bacnet/basic/sys/key
