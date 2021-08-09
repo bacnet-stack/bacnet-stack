@@ -491,7 +491,7 @@ list(APPEND testdirs
   # basic/object/binding
   test/bacnet/basic/binding/address
   # basic/object
-  #test/bacnet/basic/object/acc		#Tests skipped, redesign to use only API
+  test/bacnet/basic/object/acc
   test/bacnet/basic/object/access_credential
   test/bacnet/basic/object/access_door
   test/bacnet/basic/object/access_point
