@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef __TC_UTIL_H__
-#define __TC_UTIL_H__
+#ifndef ZEPHYR_TESTSUITE_INCLUDE_TC_UTIL_H_
+#define ZEPHYR_TESTSUITE_INCLUDE_TC_UTIL_H_
 
 #include <zephyr.h>
 
@@ -92,6 +92,31 @@ static inline const char *TC_RESULT_TO_STR(int result)
 	}
 }
 
+static uint32_t tc_start_time;
+static uint32_t tc_spend_time;
+
+static inline void get_start_time_cyc(void)
+{
+	/* Besides the ztest framework, some testcase will also call
+	 * TC_START() in their code. But the caller thread cannot be
+	 * in userspace.
+	 */
+#if 0
+	if (!k_is_user_context()) {
+		tc_start_time = k_cycle_get_32();
+	}
+#endif
+}
+
+static inline void test_time_ms(void)
+{
+#if 0
+	uint32_t spend_cycle = k_cycle_get_32() - tc_start_time;
+
+	tc_spend_time = k_cyc_to_ms_ceil32(spend_cycle);
+#endif
+}
+
 #ifndef TC_ERROR
 #define TC_ERROR(fmt, ...)                               \
 	do {                                                 \
@@ -105,7 +130,11 @@ static inline const char *TC_RESULT_TO_STR(int result)
 #endif
 
 #ifndef TC_START
-#define TC_START(name) PRINT_DATA("starting test - %s\n", name)
+#define TC_START(name)							\
+	do {								\
+		PRINT_DATA("START - %s\n", name);			\
+		get_start_time_cyc();					\
+	} while (0)
 #endif
 
 #ifndef TC_END
@@ -114,16 +143,38 @@ static inline const char *TC_RESULT_TO_STR(int result)
 
 #ifndef Z_TC_END_RESULT
 /* prints result and the function name */
-#define Z_TC_END_RESULT(result, func)					\
-	do {								\
-		TC_END(result, "%s - %s\n", TC_RESULT_TO_STR(result), func); \
-		PRINT_LINE;						\
+#define Z_TC_END_RESULT(result, func)						\
+	do {									\
+		test_time_ms();							\
+		TC_END(result, " %s - %s in %u.%u seconds\n",			\
+			TC_RESULT_TO_STR(result), func, tc_spend_time/1000,	\
+			tc_spend_time%1000);					\
+		PRINT_LINE;							\
 	} while (0)
 #endif
 
 #ifndef TC_END_RESULT
 #define TC_END_RESULT(result)                           \
 	Z_TC_END_RESULT((result), __func__)
+#endif
+
+#ifndef TC_SUITE_START
+#define TC_SUITE_START(name)					\
+	do {							\
+		TC_PRINT("Running test suite %s\n", name);	\
+		PRINT_LINE;					\
+	} while (0)
+#endif
+
+#ifndef TC_SUITE_END
+#define TC_SUITE_END(name, result)				\
+	do {								\
+		if (result == TC_PASS) {					\
+			TC_PRINT("Test suite %s succeeded\n", name);	\
+		} else {						\
+			TC_PRINT("Test suite %s failed.\n", name);	\
+		}							\
+	} while (0)
 #endif
 
 #if defined(CONFIG_ARCH_POSIX)
@@ -157,7 +208,7 @@ static inline const char *TC_RESULT_TO_STR(int result)
 #define TC_CMD_ITEM(name)	cmd_##name
 #else
 #define TC_CMD_DEFINE(name)				\
-	int cmd_##name(int argc, char *argv[]) 		\
+	int cmd_##name(int argc, char *argv[])		\
 	{						\
 		TC_START(__func__);			\
 		name();					\
@@ -167,4 +218,4 @@ static inline const char *TC_RESULT_TO_STR(int result)
 #define TC_CMD_ITEM(name) {STRINGIFY(name), cmd_##name, "none"}
 #endif
 
-#endif /* __TC_UTIL_H__ */
+#endif /* ZEPHYR_TESTSUITE_INCLUDE_TC_UTIL_H_ */

@@ -77,7 +77,7 @@ static void testRingAroundBuffer(
  * @param  element_size - size of one data element
  * @param  element_count - number of data elements in the store
  */
-static bool testRingBuf(
+static void testRingBuf(
     uint8_t *data_store,
     uint8_t *data_element,
     unsigned element_size,
@@ -92,7 +92,7 @@ static bool testRingBuf(
     status =
         Ringbuf_Init(&test_buffer, data_store, element_size, element_count);
     if (!status) {
-        return false;
+        return;
     }
     zassert_true(Ringbuf_Empty(&test_buffer), NULL);
     zassert_equal(Ringbuf_Depth(&test_buffer), 0, NULL);
@@ -161,8 +161,6 @@ static bool testRingBuf(
 
     testRingAroundBuffer(
         &test_buffer, data_element, element_size, element_count);
-
-    return true;
 }
 
 /**
@@ -170,13 +168,11 @@ static bool testRingBuf(
  */
 static void testRingBufSizeSmall(void)
 {
-    bool status;
     uint8_t data_element[5];
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(16)];
 
-    status = testRingBuf(data_store, data_element, sizeof(data_element),
+    testRingBuf(data_store, data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
-    zassert_true(status, NULL);
 }
 
 /**
@@ -184,13 +180,11 @@ static void testRingBufSizeSmall(void)
  */
 static void testRingBufSizeLarge(void)
 {
-    bool status;
     uint8_t data_element[16];
     uint8_t data_store[sizeof(data_element) * NEXT_POWER_OF_2(99)];
 
-    status = testRingBuf(data_store, data_element, sizeof(data_element),
+    testRingBuf(data_store, data_element, sizeof(data_element),
         sizeof(data_store) / sizeof(data_element));
-    zassert_true(status, NULL);
 }
 
 /**
@@ -198,13 +192,14 @@ static void testRingBufSizeLarge(void)
  */
 static void testRingBufSizeInvalid(void)
 {
-    bool status;
+    RING_BUFFER test_buffer;
     uint8_t data_element[16];
     uint8_t data_store[sizeof(data_element) * 99];
 
-    status = testRingBuf(data_store, data_element, sizeof(data_element),
-        sizeof(data_store) / sizeof(data_element));
-    zassert_false(status, NULL);
+    zassert_false(Ringbuf_Init(&test_buffer,
+		     data_store, sizeof(data_element),
+                     sizeof(data_store) / sizeof(data_element)),
+		  NULL);
 }
 
 static void testRingBufPowerOfTwo(void)
