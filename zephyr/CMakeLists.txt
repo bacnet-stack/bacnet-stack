@@ -206,6 +206,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/services.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/bigend.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/bigend.h
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/days.c
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/days.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/debug.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/debug.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/fifo.c
