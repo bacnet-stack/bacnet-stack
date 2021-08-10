@@ -319,7 +319,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/acc.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/ao.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c # Build error: fseek not supported in Zephyr
+    ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bv.c
