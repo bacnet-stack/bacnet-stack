@@ -2140,7 +2140,7 @@ bool bvlc_address_get(BACNET_IP_ADDRESS *addr,
  */
 bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
 {
-    unsigned char tmp = 0;
+    uint16_t tmp = 0;
     char c = 0;
     unsigned char i = 0, j = 0;
     uint8_t charsread = 0;
@@ -2151,6 +2151,7 @@ bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
     if (!addrstr) {
         return false;
     }
+
     for (i = 0; i < 4; ++i) {
         j = 0;
         do {
@@ -2160,10 +2161,13 @@ bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
                 return false;
             }
             if ((c == '.') || (c == 0) || (c == ' ')) {
-                addr->address[i] = tmp;
+                addr->address[i] = (uint8_t) tmp;
                 tmp = 0;
             } else if ((c >= '0') && (c <= '9')) {
                 tmp = (tmp * 10) + (c - '0');
+		if (tmp > UINT8_MAX) {
+                    return false;
+		}
             } else {
                 return false;
             }

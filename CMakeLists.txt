@@ -532,7 +532,7 @@ list(APPEND testdirs
 list(APPEND testdirs
   test/bacnet/datalink/cobs
   test/bacnet/datalink/crc
-  #test/bacnet/datalink/bvlc		#All tests skipped, needing development
+  test/bacnet/datalink/bvlc
   )
 
 enable_testing()
