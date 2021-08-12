@@ -169,6 +169,7 @@ int datetime_compare(BACNET_DATE_TIME *datetime1, BACNET_DATE_TIME *datetime2);
 /* full comparison functions:
  * taking into account FF fields in date and time structures,
  * do a full comparison of two values */
+BACNET_STACK_EXPORT
 int datetime_wildcard_compare_date(BACNET_DATE *date1, BACNET_DATE *date2);
 BACNET_STACK_EXPORT
 int datetime_wildcard_compare_time(BACNET_TIME *time1, BACNET_TIME *time2);
