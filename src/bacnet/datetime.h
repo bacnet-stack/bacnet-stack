@@ -119,7 +119,6 @@ BACNET_STACK_EXPORT
 bool datetime_time_is_valid(BACNET_TIME *btime);
 BACNET_STACK_EXPORT
 bool datetime_date_is_valid(BACNET_DATE *bdate);
-BACNET_STACK_EXPORT
 /* date and time calculations and summaries */
 BACNET_STACK_EXPORT
 void datetime_ymd_from_days_since_epoch(
