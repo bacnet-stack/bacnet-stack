@@ -124,6 +124,7 @@ BACNET_STACK_EXPORT
 BACNET_STACK_EXPORT
 void datetime_ymd_from_days_since_epoch(
     uint32_t days, uint16_t *pYear, uint8_t *pMonth, uint8_t *pDay);
+BACNET_STACK_EXPORT
 uint32_t datetime_days_since_epoch(BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
 void datetime_days_since_epoch_into_date(uint32_t days, BACNET_DATE *bdate);
