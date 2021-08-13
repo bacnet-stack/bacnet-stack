@@ -18,6 +18,18 @@
  * @{
  */
 
+static void test_bacapp_decode_application_data(void)
+{
+    uint8_t apdu[128] = { 0 };
+    //unsigned max_apdu_len = sizeof(apdu);
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+
+    zassert_equal(bacapp_decode_application_data(NULL, sizeof(apdu), &value), 0, NULL);
+    zassert_equal(bacapp_decode_application_data(apdu, 0, &value), 0, NULL);
+    zassert_equal(bacapp_decode_application_data(apdu, sizeof(apdu), NULL), 0, NULL);
+}
+
+
 static void test_bacapp_decode_data_len(void)
 {
     uint8_t apdu[3] = { 0 };
@@ -928,6 +940,7 @@ static void testBACnetApplicationData(void)
 void test_main(void)
 {
     ztest_test_suite(bacapp_tests,
+     ztest_unit_test(test_bacapp_decode_application_data),
      ztest_unit_test(test_bacapp_decode_data_len),
      ztest_unit_test(test_bacapp_copy),
      ztest_unit_test(test_bacapp_value_list_init),
