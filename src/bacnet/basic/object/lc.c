@@ -1,4 +1,3 @@
-#include <sys/printk.h>
 /**************************************************************************
  *
  * Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
@@ -40,6 +39,16 @@
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
+
+#ifndef LOAD_CONTROL_DEBUG
+#define LOAD_CONTROL_DEBUG 0
+#endif
+#if LOAD_CONTROL_DEBUG
+#include <sys/PRINTF.h>
+#define PRINTF(...) printk(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 /* number of demo objects */
 #ifndef MAX_LOAD_CONTROLS
@@ -861,14 +870,13 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_DATE
     TempDate; /* build here in case of error in time half of datetime */
 
-printk("Load_Control_Write_Property(wp_data=%p)\n", wp_data);
+    PRINTF("Load_Control_Write_Property(wp_data=%p)\n", wp_data);
     if (wp_data == NULL) {
-printk("Load_Control_Write_Property() failure detected point A\n");
-	return false;
+        PRINTF("Load_Control_Write_Property() failure detected point A\n");
+        return false;
     }
-
     if (wp_data->application_data_len < 0) {
-printk("Load_Control_Write_Property() failure detected point A.2\n");
+        PRINTF("Load_Control_Write_Property() failure detected point A.2\n");
         /* error while decoding - a smaller larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -880,7 +888,7 @@ printk("Load_Control_Write_Property() failure detected point A.2\n");
         wp_data->application_data, wp_data->application_data_len, &value);
     /* FIXME: len < application_data_len: more data? */
     if (len < 0) {
-printk("Load_Control_Write_Property() failure detected point B\n");
+        PRINTF("Load_Control_Write_Property() failure detected point B\n");
         /* error while decoding - a value larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -889,7 +897,7 @@ printk("Load_Control_Write_Property() failure detected point B\n");
     /*  only array properties can have array options */
     if ((wp_data->object_property != PROP_SHED_LEVELS) &&
         (wp_data->array_index != BACNET_ARRAY_ALL)) {
-printk("Load_Control_Write_Property() failure detected point C\n");
+        PRINTF("Load_Control_Write_Property() failure detected point C\n");
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return false;
@@ -901,7 +909,7 @@ printk("Load_Control_Write_Property() failure detected point C\n");
                 wp_data->application_data_len, &value,
                 PROP_REQUESTED_SHED_LEVEL);
             if (len == BACNET_STATUS_ERROR) {
-printk("Load_Control_Write_Property() failure detected point D\n");
+                PRINTF("Load_Control_Write_Property() failure detected point D\n");
                 /* error! */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -927,7 +935,7 @@ printk("Load_Control_Write_Property() failure detected point D\n");
                     value.type.Real;
                 status = true;
             } else {
-printk("Load_Control_Write_Property() failure detected point E\n");
+                PRINTF("Load_Control_Write_Property() failure detected point E\n");
                 /* error! */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -941,7 +949,7 @@ printk("Load_Control_Write_Property() failure detected point E\n");
             status = write_property_type_valid(wp_data, &value,
                 BACNET_APPLICATION_TAG_DATE);
             if (!status) {
-printk("Load_Control_Write_Property() failure detected point F\n");
+                PRINTF("Load_Control_Write_Property() failure detected point F\n");
                 /* don't continue if we don't have a valid date */
                 break;
             }
@@ -960,7 +968,7 @@ printk("Load_Control_Write_Property() failure detected point F\n");
                     Start_Time_Property_Written[object_index] = true;
                 }
             } else {
-printk("Load_Control_Write_Property() failure detected point G\n");
+                PRINTF("Load_Control_Write_Property() failure detected point G\n");
                 status = false;
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -973,10 +981,9 @@ printk("Load_Control_Write_Property() failure detected point G\n");
             if (status) {
                 Shed_Duration[object_index] = value.type.Unsigned_Int;
                 Load_Control_Request_Written[object_index] = true;
+            } else {
+                PRINTF("Load_Control_Write_Property() failure detected point H\n");
             }
-	    else {
-printk("Load_Control_Write_Property() failure detected point H\n");
-	    }
             break;
 
         case PROP_DUTY_WINDOW:
@@ -1020,13 +1027,13 @@ printk("Load_Control_Write_Property() failure detected point H\n");
             }
             break;
         default:
-printk("Load_Control_Write_Property() failure detected point Z\n");
+            PRINTF("Load_Control_Write_Property() failure detected point Z\n");
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
     }
 
-printk("Load_Control_Write_Property() returning status=%d\n", status);
+    PRINTF("Load_Control_Write_Property() returning status=%d\n", status);
     return status;
 }
 
