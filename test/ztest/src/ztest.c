@@ -13,9 +13,9 @@
 #include <sys/libc-hooks.h>
 #endif
 #endif
-#include <sys/reboot.h>
 
 #ifdef KERNEL
+#include <sys/reboot.h>
 static struct k_thread ztest_thread;
 #endif
 
