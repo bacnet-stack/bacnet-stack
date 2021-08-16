@@ -206,6 +206,7 @@ clean:
 	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
 	$(MAKE) -s -C test clean
+	rm -rf ./build
 
 .PHONY: test
 test:

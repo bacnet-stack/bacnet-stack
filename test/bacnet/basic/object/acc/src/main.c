@@ -10,6 +10,7 @@
 
 #include <ztest.h>
 #include <bacnet/basic/object/acc.h>
+#include <bacnet/bactext.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -26,7 +27,7 @@ static void test_Accumulator(void)
     int test_len = 0;
     BACNET_READ_PROPERTY_DATA rpdata = {0};
     BACNET_APPLICATION_DATA_VALUE value = {0};
-    int *required_property = NULL;
+    const int *required_property = NULL;
     BACNET_UNSIGNED_INTEGER unsigned_value = 1;
 
     Accumulator_Init();

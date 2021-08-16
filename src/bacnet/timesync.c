@@ -295,7 +295,7 @@ int timesync_decode_timesync_recipients(
                 return BACNET_STATUS_ABORT;
             }
             apdu_len += len;
-        } else if (decode_is_context_tag(&apdu[apdu_len], 1)) {
+        } else if (decode_is_opening_tag_number(&apdu[apdu_len], 1)) {
             apdu_len += 1;
             pRecipient->tag = 1;
             /* network-number Unsigned16 */
@@ -339,6 +339,10 @@ int timesync_decode_timesync_recipients(
                     octetstring_copy_value(&pRecipient->type.address.mac[0],
                         sizeof(pRecipient->type.address.mac), &octet_string);
             }
+            if (!decode_is_closing_tag_number(&apdu[apdu_len], 1)) {
+                return BACNET_STATUS_ABORT;
+	    }
+            apdu_len += 1;
         } else {
             return BACNET_STATUS_ABORT;
         }

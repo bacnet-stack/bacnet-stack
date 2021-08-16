@@ -29,6 +29,7 @@ message(STATUS "BACNETSTACK: BACDL_ARCNET \"${CONFIG_BACDL_ARCNET}\"")
 message(STATUS "BACNETSTACK: BACDL_MSTP \"${CONFIG_BACDL_MSTP}\"")
 message(STATUS "BACNETSTACK: BACDL_ETHERNET \"${CONFIG_BACDL_ETHERNET}\"")
 message(STATUS "BACNETSTACK: BACDL_NONE \"${CONFIG_BACDL_NONE}\"")
+message(STATUS "BACNETSTACK: BACNET_ADDRESS_CACHE_FILE \"${CONFIG_BACNET_ADDRESS_CACHE_FILE}\"")
 
 #Do not allow in source builds
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -205,6 +206,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/services.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/bigend.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/bigend.h
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/days.c
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/days.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/debug.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/debug.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/fifo.c
@@ -316,7 +319,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/acc.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/ao.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c # Build error: fseek not supported in Zephyr
+    ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bv.c
@@ -424,6 +427,7 @@ zephyr_library_compile_definitions(
   $<$<BOOL:${CONFIG_BACNET_ROUTING}>:BACNET_ROUTING>
   $<$<BOOL:${CONFIG_BACAPP_PRINT_ENABLED}>:BACAPP_PRINT_ENABLED=1>
   $<$<BOOL:${CONFIG_BACAPP_SNPRINTF_ENABLED}>:BACAPP_SNPRINTF_ENABLED=1>
+  $<$<BOOL:${CONFIG_BACNET_ADDRESS_CACHE_FILE}>:BACNET_ADDRESS_CACHE_FILE=1>
   )
 
 zephyr_library_sources(
@@ -448,6 +452,7 @@ target_compile_definitions(
   $<$<BOOL:${CONFIG_BACNET_ROUTING}>:BACNET_ROUTING>
   $<$<BOOL:${CONFIG_BACAPP_PRINT_ENABLED}>:BACAPP_PRINT_ENABLED=1>
   $<$<BOOL:${CONFIG_BACAPP_SNPRINTF_ENABLED}>:BACAPP_SNPRINTF_ENABLED=1>
+  $<$<BOOL:${CONFIG_BACNET_ADDRESS_CACHE_FILE}>:BACNET_ADDRESS_CACHE_FILE=1>
   BACNET_STACK_STATIC_DEFINE
   PRINT_ENABLED=1
   )

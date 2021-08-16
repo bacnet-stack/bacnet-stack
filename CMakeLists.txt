@@ -305,6 +305,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/services.h
     src/bacnet/basic/sys/bigend.c
     src/bacnet/basic/sys/bigend.h
+    src/bacnet/basic/sys/days.c
+    src/bacnet/basic/sys/days.h
     src/bacnet/basic/sys/debug.c
     src/bacnet/basic/sys/debug.h
     src/bacnet/basic/sys/fifo.c
@@ -460,7 +462,7 @@ list(APPEND testdirs
   test/bacnet/bacreal
   test/bacnet/bacstr
   test/bacnet/cov
-  #test/bacnet/datetime			#Tests skipped, redesign to use only API
+  test/bacnet/datetime
   test/bacnet/dcc
   test/bacnet/event
   test/bacnet/getevent
@@ -489,34 +491,35 @@ list(APPEND testdirs
   # basic/object/binding
   test/bacnet/basic/binding/address
   # basic/object
-  #test/bacnet/basic/object/acc		#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/access_credential   # Build failed
-  test/bacnet/basic/object/access_door # Build failed
-  test/bacnet/basic/object/access_point    # Build failed
-  test/bacnet/basic/object/access_rights   # Build failed
-  test/bacnet/basic/object/access_user # Build failed
-  test/bacnet/basic/object/access_zone # Build failed
-  test/bacnet/basic/object/ai  # Build failed
-  test/bacnet/basic/object/ao  # Build failed
-  test/bacnet/basic/object/av  # Build failed
-  test/bacnet/basic/object/bi  # Build failed
-  test/bacnet/basic/object/bo  # Build failed
-  test/bacnet/basic/object/bv  # Build failed
-  #test/bacnet/basic/object/command	#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/credential_data_input    # Build failed
-  test/bacnet/basic/object/device   # Build failed
+  test/bacnet/basic/object/acc
+  test/bacnet/basic/object/access_credential
+  test/bacnet/basic/object/access_door
+  test/bacnet/basic/object/access_point
+  test/bacnet/basic/object/access_rights
+  test/bacnet/basic/object/access_user
+  test/bacnet/basic/object/access_zone
+  test/bacnet/basic/object/ai
+  test/bacnet/basic/object/ao
+  test/bacnet/basic/object/av
+  test/bacnet/basic/object/bi
+  test/bacnet/basic/object/bo
+  test/bacnet/basic/object/bv
+  test/bacnet/basic/object/command
+  test/bacnet/basic/object/credential_data_input
+  test/bacnet/basic/object/device
   #test/bacnet/basic/object/lc		#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/lo   # Build failed
-  test/bacnet/basic/object/lsp  # Build failed
-  test/bacnet/basic/object/ms-input # Build failed
-  test/bacnet/basic/object/mso  # Build failed
-  test/bacnet/basic/object/msv  # Build failed
-  test/bacnet/basic/object/netport  # Build failed
-  #test/bacnet/basic/object/objects	#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/osv  # Build failed
-  test/bacnet/basic/object/piv  # Build failed
-  test/bacnet/basic/object/schedule # Build failed
+  test/bacnet/basic/object/lo
+  test/bacnet/basic/object/lsp
+  test/bacnet/basic/object/ms-input
+  test/bacnet/basic/object/mso
+  test/bacnet/basic/object/msv
+  test/bacnet/basic/object/netport
+  test/bacnet/basic/object/objects
+  test/bacnet/basic/object/osv
+  test/bacnet/basic/object/piv
+  test/bacnet/basic/object/schedule
   # basic/sys
+  test/bacnet/basic/sys/days
   test/bacnet/basic/sys/fifo
   test/bacnet/basic/sys/filename
   test/bacnet/basic/sys/key
@@ -529,7 +532,7 @@ list(APPEND testdirs
 list(APPEND testdirs
   test/bacnet/datalink/cobs
   test/bacnet/datalink/crc
-  #test/bacnet/datalink/bvlc		#All tests skipped, needing development
+  test/bacnet/datalink/bvlc
   )
 
 enable_testing()

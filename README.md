@@ -112,6 +112,15 @@ to generate a Code::Blocks project:
     c:\> cd build/
     c:\> cmake .. -G"CodeBlocks - MinGW Makefiles"
 
+
+The the available tests may be run with the command sequence:
+
+    $ make clean
+    $ make cmake
+    $ cd build
+    $ CTEST_OUTPUT_ON_FAILURE=1 make test
+    $ cd ..
+
 The demo applications are all client applications that provide one main BACnet
 service, except the one server application and one gateway application, 
 a couple router applications, and a couple of MS/TP specific applications.

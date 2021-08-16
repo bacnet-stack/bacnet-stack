@@ -9,26 +9,24 @@
  *
  * @brief Zephyr testing framework _test.
  *
- * Modified from zephyr_v2.2.0 subsys/testsuite/ztest/src/ztest.c
- * because:
+ * From zephyr_v2.6.0 subsys/testsuite/ztest/src/ztest.c
+ * Note:
  *   1. This port will never be run in the Zephyr kernel.
  *      This repository is extended to be a Zephyr module for that.
  *   2. This port will not support multiple CPUs or toolchains.
  *
  * Modifications:
- *   a. Code conditionally compiled on the following CPP symbols were deleted
- *      (as they were kernel-specific):
- *        CONFIG_USERSPACE
- *        CONFIG_SMP
- *        KERNEL
- *   b. Inclusion of The following header files were removed as irrelevant.
- *        <app_memory/app_memdomain.h>
- *   c. syscall declarations and inclusions.
+ *   1. Added __ZEPHYR__ conditionals around:
+ *       a. #include <app_memory/app_memdomain.h>
+ *       b. syscall declarations and inclusions.
  */
 
-#ifndef __ZTEST_TEST_H__
-#define __ZTEST_TEST_H__
+#ifndef ZEPHYR_TESTSUITE_ZTEST_TEST_H_
+#define ZEPHYR_TESTSUITE_ZTEST_TEST_H_
 
+#if 0 /* __ZEPHYR__ */
+#include <app_memory/app_memdomain.h>
+#endif /* __ZEPHYR__ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +37,7 @@ struct unit_test {
 	void (*test)(void);
 	void (*setup)(void);
 	void (*teardown)(void);
-	u32_t thread_options;
+	uint32_t thread_options;
 };
 
 void z_ztest_run_test_suite(const char *name, struct unit_test *suite);
@@ -145,6 +143,11 @@ static inline void unit_test_noop(void)
 #define ztest_user_unit_test(fn) \
 	ztest_user_unit_test_setup_teardown(fn, unit_test_noop, unit_test_noop)
 
+#if 0 /* __ZEPHYR__ */
+__syscall void z_test_1cpu_start(void);
+__syscall void z_test_1cpu_stop(void);
+#endif /* __ZEPHYR__ */
+
 /**
  * @brief Define a SMP-unsafe test function
  *
@@ -153,7 +156,12 @@ static inline void unit_test_noop(void)
  *
  * @param fn Test function
  */
+#ifdef CONFIG_SMP
+#define ztest_1cpu_unit_test(fn)					\
+	ztest_unit_test_setup_teardown(fn, z_test_1cpu_start, z_test_1cpu_stop)
+#else
 #define ztest_1cpu_unit_test(fn) ztest_unit_test(fn)
+#endif
 
 /**
  * @brief Define a SMP-unsafe test function that should run as a user thread
@@ -163,12 +171,24 @@ static inline void unit_test_noop(void)
  *
  * @param fn Test function
  */
+#ifdef CONFIG_SMP
+#define ztest_1cpu_user_unit_test(fn) \
+	ztest_user_unit_test_setup_teardown(fn, z_test_1cpu_start, z_test_1cpu_stop)
+#else
 #define ztest_1cpu_user_unit_test(fn) ztest_user_unit_test(fn)
+#endif
 
 /* definitions for use with testing application shared memory   */
+#ifdef CONFIG_USERSPACE
+#define ZTEST_DMEM	K_APP_DMEM(ztest_mem_partition)
+#define ZTEST_BMEM	K_APP_BMEM(ztest_mem_partition)
+#define ZTEST_SECTION	K_APP_DMEM_SECTION(ztest_mem_partition)
+extern struct k_mem_partition ztest_mem_partition;
+#else
 #define ZTEST_DMEM
 #define ZTEST_BMEM
 #define ZTEST_SECTION	.data
+#endif
 
 /**
  * @brief Define a test suite
@@ -200,9 +220,14 @@ static inline void unit_test_noop(void)
 /**
  * @}
  */
+#ifndef ZTEST_UNITTEST
+#if 0 /* __ZEPHYR__ */
+#include <syscalls/ztest_test.h>
+#endif /* _ZEPHYR__ */
+#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __ZTEST_ASSERT_H__ */
+#endif /* ZEPHYR_TESTSUITE_ZTEST_TEST_H_ */

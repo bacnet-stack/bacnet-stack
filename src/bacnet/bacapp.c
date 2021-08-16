@@ -437,7 +437,10 @@ int bacapp_decode_data_len(
         case BACNET_APPLICATION_TAG_DATE:
         case BACNET_APPLICATION_TAG_TIME:
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            len = (int)len_value_type;
+            len = (int) (~0U >> 1);
+            if ( len_value_type < (uint32_t) len) {
+                len = (int)len_value_type;
+            }
             break;
         default:
             break;
@@ -835,9 +838,10 @@ int bacapp_encode_data(uint8_t *apdu, BACNET_APPLICATION_DATA_VALUE *value)
 bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
     BACNET_APPLICATION_DATA_VALUE *src_value)
 {
-    bool status = true; /*return value */
+    bool status = false; /* return value, assume failure */
 
     if (dest_value && src_value) {
+        status = true; /* assume successful for now */
         dest_value->tag = src_value->tag;
         switch (src_value->tag) {
 #if defined(BACAPP_NULL)
@@ -1686,13 +1690,6 @@ void bacapp_property_value_list_init(BACNET_PROPERTY_VALUE *value, size_t count)
     }
 }
 
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-#include <assert.h>
-
 /* generic - can be used by other unit tests
    returns true if matching or same, false if different */
 bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
@@ -1701,6 +1698,9 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
     bool status = false; /*return value */
 
     /* does the tag match? */
+    if ((value == NULL) || (test_value == NULL)) {
+        return false;
+    }
     if (test_value->tag == value->tag)
         status = true;
     if (status) {
@@ -1805,7 +1805,14 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
     return status;
 }
 
-void testBACnetApplicationData_Safe(Test *pTest)
+#ifdef TEST_BACNET_APPLICATION_DATA
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
+#include <assert.h>
+
+static void testBACnetApplicationData_Safe(Test *pTest)
 {
     int i;
     uint8_t apdu[MAX_APDU];
@@ -2292,7 +2299,6 @@ void testBACnetApplicationData(Test *pTest)
     return;
 }
 
-#ifdef TEST_BACNET_APPLICATION_DATA
 int main(void)
 {
     Test *pTest;
@@ -2315,4 +2321,3 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BACNET_APPLICATION_DATA */
-#endif /* BAC_TEST */

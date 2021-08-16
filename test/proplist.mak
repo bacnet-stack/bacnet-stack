@@ -15,6 +15,7 @@ SRCS = $(SRC_DIR)/bacnet/proplist.c \
 	$(SRC_DIR)/bacnet/bacstr.c \
 	$(SRC_DIR)/bacnet/datetime.c \
 	$(SRC_DIR)/bacnet/lighting.c \
+	$(SRC_DIR)/bacnet/basic/sys/days.c \
 	ctest.c
 
 TARGET_NAME = proplist

@@ -18,6 +18,7 @@ SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/indtext.c \
 	$(SRC_DIR)/bacnet/timestamp.c \
 	$(SRC_DIR)/bacnet/getevent.c \
+	$(SRC_DIR)/bacnet/basic/sys/days.c \
 	ctest.c
 
 TARGET_NAME = getevent

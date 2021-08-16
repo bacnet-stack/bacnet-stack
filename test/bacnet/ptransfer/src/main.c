@@ -169,9 +169,7 @@ static void test_Private_Transfer_Ack(void)
         test_data.serviceParametersLen, private_data.serviceParametersLen, NULL);
     len = bacapp_decode_application_data(test_data.serviceParameters,
         test_data.serviceParametersLen, &test_data_value);
-#if 0 /*TODO: Need to expose bacapp_same_value hidden under TEST conditional */
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
-#endif
 }
 
 static void test_Private_Transfer_Error(void)
@@ -222,9 +220,7 @@ static void test_Private_Transfer_Error(void)
         test_data.serviceParametersLen, private_data.serviceParametersLen, NULL);
     len = bacapp_decode_application_data(test_data.serviceParameters,
         test_data.serviceParametersLen, &test_data_value);
-#if 0 /*TODO: Need to expose bacapp_same_value hidden under TEST conditional */
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
-#endif
 }
 
 static void test_Private_Transfer_Request(void)
@@ -266,9 +262,7 @@ static void test_Private_Transfer_Request(void)
         test_data.serviceParametersLen, private_data.serviceParametersLen, NULL);
     len = bacapp_decode_application_data(test_data.serviceParameters,
         test_data.serviceParametersLen, &test_data_value);
-#if 0 /*TODO: Need to expose bacapp_same_value hidden under TEST conditional */
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
-#endif
 
     return;
 }
@@ -310,9 +304,7 @@ static void test_Unconfirmed_Private_Transfer_Request(void)
         test_data.serviceParametersLen, private_data.serviceParametersLen, NULL);
     len = bacapp_decode_application_data(test_data.serviceParameters,
         test_data.serviceParametersLen, &test_data_value);
-#if 0 /*TODO: Need to expose bacapp_same_value hidden under TEST conditional */
     zassert_true(bacapp_same_value(&data_value, &test_data_value), NULL);
-#endif
 
     return;
 }

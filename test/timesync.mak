@@ -36,6 +36,7 @@ SRCS := $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/datetime.c \
 	$(SRC_DIR)/bacnet/lighting.c \
 	$(SRC_DIR)/bacnet/timesync.c \
+	$(SRC_DIR)/bacnet/basic/sys/days.c \
 	ctest.c
 
 OBJS := ${SRCS:.c=.o}

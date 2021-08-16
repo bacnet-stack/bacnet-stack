@@ -45,6 +45,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/lighting.c
+	${SRC_DIR}/bacnet/basic/sys/days.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

@@ -22,6 +22,7 @@ SRCS = $(SRC_DIR)/bacnet/bacdcode.c \
 	$(SRC_DIR)/bacnet/bacdevobjpropref.c \
 	$(SRC_DIR)/bacnet/event.c \
 	$(SRC_DIR)/bacnet/authentication_factor.c \
+	$(SRC_DIR)/bacnet/basic/sys/days.c \
 	ctest.c
 
 TARGET_NAME = event

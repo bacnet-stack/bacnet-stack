@@ -256,21 +256,10 @@ extern "C" {
 #define bacapp_print_value(x,y) 			   false
 #endif
 
-#ifdef BAC_TEST
-#include "ctest.h"
-#include "bacnet/datetime.h"
     BACNET_STACK_EXPORT
     bool bacapp_same_value(
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_APPLICATION_DATA_VALUE * test_value);
-
-    BACNET_STACK_EXPORT
-    void testBACnetApplicationDataLength(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void testBACnetApplicationData(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }
