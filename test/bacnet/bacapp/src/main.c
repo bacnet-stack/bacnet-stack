@@ -209,7 +209,7 @@ static void test_bacapp_property_value_list_init(void)
     /* Verify zero length is properly handled */
     value[0] = value[1]; /* Struct copy */
     bacapp_property_value_list_init(&value[0], 0);
-    zassert_mem_equal(&value[0], &value[1], sizeof(value[1]), NULL);
+    zassert_equal(memcmp(&value[0], &value[1], sizeof(value[1])), 0, NULL);
 
     /* Verify one structure is initialized correctly */
     for (max_count = 1; max_count < sizeof(value)/sizeof(value[0]); ++max_count) {
