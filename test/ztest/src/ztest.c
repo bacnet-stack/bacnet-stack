@@ -239,7 +239,11 @@ static void handle_signal(int sig)
 		"teardown",
 	};
 
+#if defined(_WIN32)
+	PRINT("    %d", sig);
+#else /* defined(_WIN32) */
 	PRINT("    %s", strsignal(sig));
+#endif /* defined(_WIN32) */
 	switch (phase) {
 	case TEST_PHASE_SETUP:
 	case TEST_PHASE_TEST:
