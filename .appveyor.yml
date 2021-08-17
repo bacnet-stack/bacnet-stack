@@ -1,0 +1,8 @@
+image:
+  - Visual Studio 2019
+  - Ubuntu
+  - macOS
+
+build_script:
+  - cmake . -DBUILD_SHARED_LIBS=ON
+  - cmake --build . --config Release
