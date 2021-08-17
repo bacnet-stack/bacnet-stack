@@ -21,7 +21,6 @@ jobs:
     - name: Lint
       run: make clean lint
     - name: cppcheck
-      compiler: gcc
       run: make clean cppcheck
 
 

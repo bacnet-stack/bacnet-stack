@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Create Build Environment
-      run: 
+      run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Gateway Demo
@@ -25,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Create Build Environment
-      run: 
+      run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router Demo
@@ -36,7 +36,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Create Build Environment
-      run: 
+      run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router IPv6 Demo
@@ -47,7 +47,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Create Build Environment
-      run: 
+      run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router MSTP Demo
@@ -58,7 +58,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Create Build Environment
-      run: 
+      run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build MSTP Demos
@@ -69,7 +69,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Create Build Environment
-      run: 
+      run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Ethernet Demos
