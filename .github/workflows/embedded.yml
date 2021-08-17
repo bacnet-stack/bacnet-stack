@@ -2,16 +2,15 @@ name: Embedded ARM and AVR
 
 on:
   push:
-    branches:
-      - master
+    branches: [ $default-branch ]
   pull_request:
-    branches:    
-      - '*'
+    branches: [ $default-branch ]
 
 jobs:
-  demos-build:
+  build:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Create Build Environment
       run: |
         sudo apt-get update -qq
