@@ -1,4 +1,4 @@
-name: Embedded ARM and AVR
+name: GCC POSIX ARM AVR MinGW
 
 on:
   push:
@@ -18,10 +18,8 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Gateway Demo
-      compiler: gcc
       run: make clean gateway
 
-jobs:
   router:
     runs-on: ubuntu-latest
     steps:
@@ -31,10 +29,8 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router Demo
-      compiler: gcc
       run: make clean router
 
-jobs:
   router-ipv6:
     runs-on: ubuntu-latest
     steps:
@@ -44,10 +40,8 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router IPv6 Demo
-      compiler: gcc
       run: make clean router-ipv6
 
-jobs:
   router-mstp:
     runs-on: ubuntu-latest
     steps:
@@ -57,10 +51,8 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router MSTP Demo
-      compiler: gcc
       run: make clean router-mstp
 
-jobs:
   mstp:
     runs-on: ubuntu-latest
     steps:
@@ -70,10 +62,8 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build MSTP Demos
-      compiler: gcc
       run: make clean mstp
 
-jobs:
   ethernet:
     runs-on: ubuntu-latest
     steps:
@@ -83,27 +73,8 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Ethernet Demos
-      compiler: gcc
       run: make clean ethernet
 
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: Create Build Environment
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -qq clang-tools
-        sudo apt-get install -qq cppcheck
-    - name: Lint
-      compiler: clang
-      run: make clean lint
-    - name: cppcheck
-      compiler: gcc
-      run: make clean cppcheck
-
-jobs:
   ports-arm:
     runs-on: ubuntu-latest
     steps:
@@ -122,7 +93,6 @@ jobs:
         make stm32f4xx
         make at91sam7s
 
-jobs:
   ports-avr:
     runs-on: ubuntu-latest
     steps:
@@ -138,8 +108,7 @@ jobs:
         make atmega168
         make bdk-atxx4-mstp
 
-jobs:
-  ports-avr:
+  mingw:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
