@@ -1,0 +1,67 @@
+name: Embedded ARM and AVR
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:    
+      - '*'
+
+jobs:
+  demos-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential
+        sudo apt-get install -qq gcc-arm-none-eabi
+        sudo apt-get install -qq libnewlib-arm-none-eabi
+        sudo apt-get install -qq gcc-avr avr-libc binutils-avr
+        sudo apt-get install -qq mingw-w64
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq cppcheck
+    - name: Build Gateway Demo
+      compiler: gcc
+      run: make clean gateway
+    - name: Build Router Demo
+      compiler: gcc
+      run: make clean router
+    - name: Build Router IPv6 Demo
+      compiler: gcc
+      run: make clean router-ipv6
+    - name: Build Router MSTP Demo
+      compiler: gcc
+      run: make clean router-mstp
+    - name: Build MSTP Demos
+      compiler: gcc
+      run: make clean mstp
+    - name: Build Ethernet Demos
+      compiler: gcc
+      run: make clean ethernet
+    - name: Lint
+      compiler: clang
+      run: make clean lint
+    - name: cppcheck
+      compiler: gcc
+      run: make clean cppcheck
+    - name: ports-arm
+      run: |
+        make clean
+        arm-none-eabi-gcc --version
+        make stm32f10x
+        make stm32f4xx
+        make at91sam7s
+    - name: ports-avr
+      run: |
+        avr-gcc --version
+        make atmega168
+        make bdk-atxx4-mstp
+    - name: Build Win32 Demos
+      run: |
+        export CC=i686-w64-mingw32-gcc
+        export LD=i686-w64-mingw32-ld
+        i686-w64-mingw32-gcc --version
+        make win32
+
