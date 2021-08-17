@@ -1,4 +1,4 @@
-name: GCC POSIX ARM AVR MinGW
+name: GCC
 
 on:
   push:
