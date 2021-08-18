@@ -14,7 +14,9 @@ of robust C code and BACnet functionality.
 
 [![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
 
-[![Build Status](https://travis-ci.com/bacnet-stack/bacnet-stack.svg?branch=master)](https://travis-ci.com/bacnet-stack/bacnet-stack) Travis CI
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/GCC/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
+
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/Lint/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
 
 [![Build status](https://ci.appveyor.com/api/projects/status/5lq0d9a69g7ixskm/branch/master?svg=true)](https://ci.appveyor.com/project/skarg/bacnet-stack/branch/master) AppVeyor CI
 
