@@ -1,10 +1,12 @@
-name: "CodeQL"
+name: CodeQL
 
 on:
   push:
-    branches: [ master, bacnet-stack-?.?, develop ]
+    branches:
+      - master
   pull_request:
-    branches: [ master ]
+    branches:    
+      - '*'
   schedule:
     - cron: '36 11 * * 6'
 
