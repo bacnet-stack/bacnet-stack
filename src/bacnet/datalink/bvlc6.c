@@ -297,7 +297,7 @@ int bvlc6_encode_original_broadcast(uint8_t *pdu,
             pdu, pdu_size, BVLC6_ORIGINAL_BROADCAST_NPDU, length);
         if (bytes_encoded == 4) {
             encode_unsigned24(&pdu[4], vmac);
-            if (npdu && length) {
+            if (npdu && npdu_len) {
                 for (i = 0; i < npdu_len; i++) {
                     pdu[7 + i] = npdu[i];
                 }
