@@ -42,6 +42,7 @@
 #include "bacnet/bytes.h"
 #include "bacnet/iam.h"
 #include "bacnet/version.h"
+#include "bacnet/datetime.h"
 /* basic datalink, timer, and filename */
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -532,15 +533,14 @@ static size_t data_write_header(
 
 static void filename_create(char *filename)
 {
-    time_t my_time;
-    struct tm *today;
+    BACNET_DATE bdate;
+    BACNET_TIME btime;
 
     if (filename) {
-        my_time = time(NULL);
-        today = localtime(&my_time);
+        datetime_local(&bdate, &btime, NULL, NULL);
         sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap",
-            1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
-            today->tm_hour, today->tm_min, today->tm_sec);
+            (int)bdate.year, (int)bdate.month, (int)bdate.day,
+            (int)btime.hour, (int)btime.min, (int)btime.sec);
     }
 }
 
