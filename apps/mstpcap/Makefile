@@ -1,4 +1,4 @@
-#Makefile to build BACnet Application 
+#Makefile to build BACnet Application
 
 # Executable file name
 TARGET = mstpcap
@@ -8,13 +8,16 @@ TARGET = mstpcap
 SRCS = main.c \
 	${BACNET_PORT_DIR}/rs485.c \
 	${BACNET_PORT_DIR}/mstimer-init.c \
+	${BACNET_PORT_DIR}/datetime-init.c \
 	${BACNET_SRC_DIR}/bacnet/bacdcode.c \
 	${BACNET_SRC_DIR}/bacnet/bacint.c \
 	${BACNET_SRC_DIR}/bacnet/bacreal.c \
 	${BACNET_SRC_DIR}/bacnet/bacstr.c \
 	${BACNET_SRC_DIR}/bacnet/iam.c \
+	${BACNET_SRC_DIR}/bacnet/datetime.c \
 	${BACNET_SRC_DIR}/bacnet/indtext.c \
 	${BACNET_SRC_DIR}/bacnet/npdu.c \
+	${BACNET_SRC_DIR}/bacnet/basic/sys/days.c \
 	${BACNET_SRC_DIR}/bacnet/basic/sys/debug.c \
 	${BACNET_SRC_DIR}/bacnet/basic/sys/fifo.c \
 	${BACNET_SRC_DIR}/bacnet/basic/sys/filename.c \

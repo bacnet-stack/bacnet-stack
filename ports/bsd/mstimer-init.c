@@ -84,7 +84,7 @@ unsigned long mstimer_now(void)
 /**
  * @brief Initialization for timer
  */
-void timer_init(void)
+void mstimer_init(void)
 {
 #ifdef __MACH__
     clock_serv_t cclock;
