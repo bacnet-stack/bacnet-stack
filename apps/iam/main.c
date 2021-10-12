@@ -128,6 +128,10 @@ static void print_help(char *filename)
            "Send the message repeatedly until signalled to quit.\n"
            "Default is to not repeat, sending only a single message.\n"
            "\n"
+           "--retry C\n"
+           "Send the message C number of times\n"
+           "Default is retry 0, only sending one time.\n"
+           "\n"
            "--delay\n"
            "Delay, in milliseconds, between repeated messages.\n"
            "Default delay is 100ms.\n"
@@ -160,6 +164,7 @@ int main(int argc, char *argv[])
     int argi = 0;
     unsigned int target_args = 0;
     char *filename = NULL;
+    long retry_count = 0;
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -198,6 +203,13 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--repeat") == 0) {
             repeat_forever = true;
+        } else if (strcmp(argv[argi], "--retry") == 0) {
+            if (++argi < argc) {
+                retry_count = strtol(argv[argi], NULL, 0);
+                if (retry_count < 0) {
+                    retry_count = 0;
+                }
+            }
         } else if (strcmp(argv[argi], "--delay") == 0) {
             if (++argi < argc) {
                 timeout = strtol(argv[argi], NULL, 0);
@@ -265,7 +277,7 @@ int main(int argc, char *argv[])
     do {
         Send_I_Am_To_Network(&dest, Target_Device_ID, Target_Max_APDU,
             Target_Segmentation, Target_Vendor_ID);
-        if (repeat_forever) {
+        if (repeat_forever || retry_count) {
             /* returns 0 bytes on timeout */
             pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
             /* process */
@@ -275,8 +287,11 @@ int main(int argc, char *argv[])
             if (Error_Detected) {
                 break;
             }
+            if (retry_count > 0) {
+                retry_count--;
+            }
         }
-    } while (repeat_forever);
+    } while (repeat_forever || retry_count);
 
     return 0;
 }

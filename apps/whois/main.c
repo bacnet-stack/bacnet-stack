@@ -306,6 +306,10 @@ static void print_help(char *filename)
            "Send the message repeatedly until signalled to quit.\n"
            "Default is disabled, using the APDU timeout as time to quit.\n"
            "\n"
+           "--retry C\n"
+           "Send the message C number of times\n"
+           "Default is retry 0, only sending one time.\n"
+           "\n"
            "--delay\n"
            "Delay, in milliseconds, between repeated messages.\n"
            "Default delay is 100ms.\n"
@@ -352,6 +356,7 @@ int main(int argc, char *argv[])
     unsigned int target_args = 0;
     char *filename = NULL;
     bool repeat_forever = false;
+    long retry_count = 0;
 
     /* check for local environment settings */
     if (getenv("BACNET_DEBUG")) {
@@ -395,6 +400,13 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--repeat") == 0) {
             repeat_forever = true;
+        } else if (strcmp(argv[argi], "--retry") == 0) {
+            if (++argi < argc) {
+                retry_count = strtol(argv[argi], NULL, 0);
+                if (retry_count < 0) {
+                    retry_count = 0;
+                }
+            }
         } else if (strcmp(argv[argi], "--delay") == 0) {
             if (++argi < argc) {
                 timeout = strtol(argv[argi], NULL, 0);
@@ -488,10 +500,13 @@ int main(int argc, char *argv[])
             datalink_maintenance_timer(elapsed_seconds);
         }
         total_seconds += elapsed_seconds;
-        if (repeat_forever) {
+        if (repeat_forever || retry_count) {
             Send_WhoIs_To_Network(
                 &dest, Target_Object_Instance_Min,
                 Target_Object_Instance_Max);
+            if (retry_count > 0) {
+                retry_count--;
+            }
         } else {
             if (total_seconds > timeout_seconds) {
                 break;
