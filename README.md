@@ -8,9 +8,9 @@ Welcome to the wonderful world of BACnet and true device interoperability!
 Continuous Integration
 ----------------------
 
-This library uses various automated continuous integration services 
-to assist in automated compilation, validation, linting, and unit testing 
-of robust C code and BACnet functionality.
+This library uses automated continuous integration services
+to assist in automated compilation, validation, linting, security scanning,
+and unit testing to produce robust C code and BACnet functionality.
 
 [![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
 
@@ -18,7 +18,7 @@ of robust C code and BACnet functionality.
 
 [![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/Lint/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
 
-[![Build status](https://ci.appveyor.com/api/projects/status/5lq0d9a69g7ixskm/branch/master?svg=true)](https://ci.appveyor.com/project/skarg/bacnet-stack/branch/master) AppVeyor CI
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CodeQL/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
 
 About this Project
 ------------------

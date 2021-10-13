@@ -51,7 +51,9 @@ static uint16_t BBMD_TTL_Seconds = 60000;
 static BACNET_IP_ADDRESS BBMD_Address;
 static bool BBMD_Address_Valid;
 static uint16_t BBMD_Result = 0;
+#if BBMD_ENABLED
 static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
+#endif
 /* enable debugging */
 static bool BIP_DL_Debug = false;
 
@@ -117,7 +119,7 @@ int dlenv_bbmd_result(void)
 int dlenv_register_as_foreign_device(void)
 {
     int retval = 0;
-#if defined(BACDL_BIP)
+#if defined(BACDL_BIP) && BBMD_ENABLED
     bool bdt_entry_valid = false;
     uint16_t bdt_entry_port = 0;
     char *pEnv = NULL;

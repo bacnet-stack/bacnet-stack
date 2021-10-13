@@ -5,10 +5,38 @@ on:
     branches:
       - master
   pull_request:
-    branches:    
+    branches:
       - '*'
 
 jobs:
+  bip-apps:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Demo Apps
+      run: |
+        gcc --version
+        make clean
+        make all
+
+  bip-no-bbmd-apps:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Demo Apps BBMD=none
+      run: |
+        gcc --version
+        make clean
+        make BBMD=none all
+
   gateway:
     runs-on: ubuntu-latest
     steps:
@@ -18,7 +46,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Gateway Demo
-      run: make clean gateway
+      run: |
+        gcc --version
+        make clean
+        make gateway
 
   router:
     runs-on: ubuntu-latest
@@ -29,7 +60,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router Demo
-      run: make clean router
+      run: |
+        gcc --version
+        make clean
+        make router
 
   router-ipv6:
     runs-on: ubuntu-latest
@@ -40,7 +74,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router IPv6 Demo
-      run: make clean router-ipv6
+      run: |
+        gcc --version
+        make clean
+        make router-ipv6
 
   router-mstp:
     runs-on: ubuntu-latest
@@ -51,7 +88,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Router MSTP Demo
-      run: make clean router-mstp
+      run: |
+        gcc --version
+        make clean
+        make router-mstp
 
   mstp:
     runs-on: ubuntu-latest
@@ -62,7 +102,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build MSTP Demos
-      run: make clean mstp
+      run: |
+        gcc --version
+        make clean
+        make mstp
 
   ethernet:
     runs-on: ubuntu-latest
@@ -73,7 +116,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
     - name: Build Ethernet Demos
-      run: make clean ethernet
+      run: |
+        gcc --version
+        make clean
+        make ethernet
 
   ports-arm:
     runs-on: ubuntu-latest
@@ -123,4 +169,3 @@ jobs:
         export LD=i686-w64-mingw32-ld
         i686-w64-mingw32-gcc --version
         make win32
-
