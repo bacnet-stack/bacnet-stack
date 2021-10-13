@@ -193,12 +193,9 @@ SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter
-endif
-
-ifeq (${BBMD},none)
-	# don't build BBMD apps
-else
+	ifneq (${BBMD},none)
 	SUBDIRS += readbdt readfdt writebdt
+	endif
 endif
 
 ifeq (${BACNET_PORT},linux)
