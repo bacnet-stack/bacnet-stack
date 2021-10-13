@@ -35,12 +35,16 @@ BACDL_DEFINE ?= -DBACDL_BIP=1
 BBMD_DEFINE ?= -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
 
+ifeq (${BBMD},none)
+BBMD_DEFINE = -DBBMD_ENABLED=0
+endif
 ifeq (${BBMD},server)
-BBMD_DEFINE=-DBBMD_ENABLED=1
+BBMD_DEFINE = -DBBMD_ENABLED=1
 endif
 ifeq (${BBMD},client)
 BBMD_DEFINE = -DBBMD_ENABLED=1 -DBBMD_CLIENT_ENABLED
 endif
+
 endif
 
 # Define WEAK_FUNC for unsupported or specific compilers
@@ -188,7 +192,13 @@ SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
 	writepropm uptransfer getevent uevent abort error event ack-alarm
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-	SUBDIRS += whoisrouter iamrouter initrouter readbdt readfdt writebdt
+	SUBDIRS += whoisrouter iamrouter initrouter
+endif
+
+ifeq (${BBMD},none)
+	# don't build BBMD apps
+else
+	SUBDIRS += readbdt readfdt writebdt
 endif
 
 ifeq (${BACNET_PORT},linux)
