@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <time.h> /* for time */
 #include <errno.h>
 #include "bacnet/bactext.h"
 #include "bacnet/iam.h"
@@ -43,6 +42,7 @@
 #include "bacnet/bactext.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
@@ -310,8 +310,12 @@ static void print_help(char *filename)
            "Send the message C number of times\n"
            "Default is retry 0, only sending one time.\n"
            "\n"
-           "--delay\n"
-           "Delay, in milliseconds, between repeated messages.\n"
+           "--timeout T\n"
+           "Wait T milliseconds after sending before retry\n"
+           "Default delay is 3000ms.\n"
+           "\n"
+           "--delay M\n"
+           "Wait M milliseconds for responses after sending\n"
            "Default delay is 100ms.\n"
            "\n");
     printf("Send a WhoIs request to DNET 123:\n"
@@ -341,12 +345,10 @@ int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100; /* milliseconds */
-    time_t total_seconds = 0;
-    time_t elapsed_seconds = 0;
-    time_t last_seconds = 0;
-    time_t current_seconds = 0;
-    time_t timeout_seconds = 0;
+    unsigned timeout_milliseconds = 0;
+    unsigned delay_milliseconds = 100;
+    struct mstimer apdu_timer = { 0 };
+    struct mstimer datalink_timer = { 0 };
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
@@ -362,6 +364,7 @@ int main(int argc, char *argv[])
     if (getenv("BACNET_DEBUG")) {
         BACnet_Debug_Enabled = true;
     }
+    timeout_milliseconds = apdu_timeout();
     /* decode any command line parameters */
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -407,11 +410,18 @@ int main(int argc, char *argv[])
                     retry_count = 0;
                 }
             }
+        } else if (strcmp(argv[argi], "--timeout") == 0) {
+            if (++argi < argc) {
+                timeout_milliseconds = strtol(argv[argi], NULL, 0);
+                if (timeout_milliseconds < 0) {
+                    timeout_milliseconds = 0;
+                }
+            }
         } else if (strcmp(argv[argi], "--delay") == 0) {
             if (++argi < argc) {
-                timeout = strtol(argv[argi], NULL, 0);
-                if (timeout < 0) {
-                    timeout = 0;
+                delay_milliseconds = strtol(argv[argi], NULL, 0);
+                if (delay_milliseconds < 0) {
+                    delay_milliseconds = 0;
                 }
             }
         } else {
@@ -476,44 +486,41 @@ int main(int argc, char *argv[])
     address_init();
     dlenv_init();
     atexit(datalink_cleanup);
-    /* configure the timeout values */
-    last_seconds = time(NULL);
-    timeout_seconds = apdu_timeout() / 1000;
+    mstimer_set(&apdu_timer, timeout_milliseconds);
+    mstimer_set(&datalink_timer, 1000);
     /* send the request */
     Send_WhoIs_To_Network(
         &dest, Target_Object_Instance_Min, Target_Object_Instance_Max);
+    if (retry_count > 0) {
+        retry_count--;
+    }
     /* loop forever */
     for (;;) {
-        /* increment timer - exit if timed out */
-        current_seconds = time(NULL);
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU,
+            delay_milliseconds);
         /* process */
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-        if (Error_Detected)
+        if (Error_Detected) {
             break;
-        /* increment timer - exit if timed out */
-        elapsed_seconds = current_seconds - last_seconds;
-        if (elapsed_seconds) {
-            datalink_maintenance_timer(elapsed_seconds);
         }
-        total_seconds += elapsed_seconds;
-        if (repeat_forever || retry_count) {
-            Send_WhoIs_To_Network(
-                &dest, Target_Object_Instance_Min,
-                Target_Object_Instance_Max);
-            if (retry_count > 0) {
+        if (mstimer_expired(&datalink_timer)) {
+            datalink_maintenance_timer(mstimer_interval(&datalink_timer)/1000);
+            mstimer_reset(&datalink_timer);
+        }
+        if (mstimer_expired(&apdu_timer)) {
+            if (repeat_forever || retry_count) {
+                Send_WhoIs_To_Network(
+                    &dest, Target_Object_Instance_Min,
+                    Target_Object_Instance_Max);
                 retry_count--;
-            }
-        } else {
-            if (total_seconds > timeout_seconds) {
+            } else {
                 break;
             }
+            mstimer_reset(&apdu_timer);
         }
-        /* keep track of time for next check */
-        last_seconds = current_seconds;
     }
     print_address_cache();
 
