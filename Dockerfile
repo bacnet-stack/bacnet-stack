@@ -1,12 +1,12 @@
 FROM ubuntu:focal
 
-## Usage: 
+## Usage:
 # docker build -t bacnet .
 # docker run --rm --name bacnet -d bacnet <device_id> [<device_name>]
 
 ## To run client commands that affect this server from inside the same
 ## container, use BBMD Foreign Device Registration by first exporting
-## the following: 
+## the following:
 # BACNET_IP_PORT, BACNET_BBMD_PORT, and BACNET_BBMD_ADDRESS
 
 ## For example:
