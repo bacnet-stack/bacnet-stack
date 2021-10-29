@@ -178,20 +178,20 @@ The source code and makefiles for the bacnet-tools is included in the
 BACnet Protocol Stack library and can be found at:
 http://bacnet.sourceforge.net/
 
-The bacnet-tools source is located in bacnet-stack/demo/project where:
-bacarf - bacnet-stack/demo/readfile
-bacawf - bacnet-stack/demo/writefile
-bacdcc - bacnet-stack/demo/dcc
-bacepics - bacnet-stack/demo/epics
-bacrd - bacnet-stack/demo/reinit
-bacrp - bacnet-stack/demo/readprop
-bacrpm - bacnet-stack/demo/readpropm
-bacscov - bacnet-stack/demo/scov
-bacts - bacnet-stack/demo/timesync
-bacucov - bacnet-stack/demo/ucov
-bacupt - bacnet-stack/demo/uptransfer
-bacwh - bacnet-stack/demo/whohas
-bacwi - bacnet-stack/demo/whois
-bacwp - bacnet-stack/demo/writeprop
-bacserv - bacnet-stack/demo/server
+The bacnet-tools source is located in bacnet-stack/apps/project where:
+bacarf - bacnet-stack/apps/readfile
+bacawf - bacnet-stack/apps/writefile
+bacdcc - bacnet-stack/apps/dcc
+bacepics - bacnet-stack/apps/epics
+bacrd - bacnet-stack/apps/reinit
+bacrp - bacnet-stack/apps/readprop
+bacrpm - bacnet-stack/apps/readpropm
+bacscov - bacnet-stack/apps/scov
+bacts - bacnet-stack/apps/timesync
+bacucov - bacnet-stack/apps/ucov
+bacupt - bacnet-stack/apps/uptransfer
+bacwh - bacnet-stack/apps/whohas
+bacwi - bacnet-stack/apps/whois
+bacwp - bacnet-stack/apps/writeprop
+bacserv - bacnet-stack/apps/server
 etc.
