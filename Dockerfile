@@ -1,7 +1,7 @@
 FROM ubuntu:focal
 
 ## Usage:
-# docker build -t bacnet .
+# docker build -t bacnet --target bacnet .
 # docker run --rm --name bacnet -d bacnet <device_id> [<device_name>]
 
 ## To run client commands that affect this server from inside the same
@@ -10,7 +10,7 @@ FROM ubuntu:focal
 # BACNET_IP_PORT, BACNET_BBMD_PORT, and BACNET_BBMD_ADDRESS
 
 ## For example:
-# docker run --rm --name bacnet -d bacnet 1234 test_device
+# docker run --rm --name bacnet -d bacnet
 # docker exec -ti bacnet bash
 # export BACNET_IP_PORT=47809
 # export BACNET_BBMD_PORT=47808
