@@ -92,6 +92,17 @@ static void debug_print_ipv4(const char *str,
     }
 }
 
+
+/**
+ * @brief Return the active BIP socket
+ * @note DLS addition
+ */
+int bip_get_socket(void)
+{
+    return BIP_Socket;
+}
+
+
 /**
  * @brief Enabled debug printing of BACnet/IPv4
  */
