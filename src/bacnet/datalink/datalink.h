@@ -104,6 +104,9 @@ extern "C" {
 #endif /* __cplusplus */
 
     BACNET_STACK_EXPORT
+    bool datalink_init(char *ifname);
+
+    BACNET_STACK_EXPORT
     int datalink_send_pdu(
         BACNET_ADDRESS * dest,
         BACNET_NPDU_DATA * npdu_data,
