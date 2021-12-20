@@ -36,10 +36,14 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
+#include "bacnet/cov.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+    BACNET_STACK_EXPORT
+    void handler_ccov_notification_add(
+        BACNET_COV_NOTIFICATION *callback);
 
     BACNET_STACK_EXPORT
     void handler_ccov_notification(

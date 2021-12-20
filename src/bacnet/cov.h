@@ -53,11 +53,19 @@ typedef struct BACnet_Subscribe_COV_Data {
     struct BACnet_Subscribe_COV_Data *next;
 } BACNET_SUBSCRIBE_COV_DATA;
 
+/* generic callback for COV notifications */
+typedef void (*BACnet_COV_Notification_Callback)
+    (BACNET_COV_DATA *cov_data);
+struct BACnet_COV_Notification;
+typedef struct BACnet_COV_Notification {
+    struct BACnet_COV_Notification *next;
+    BACnet_COV_Notification_Callback callback;
+} BACNET_COV_NOTIFICATION;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    BACNET_STACK_EXPORT
     int ucov_notify_encode_apdu(
         uint8_t * apdu,
         unsigned max_apdu_len,
