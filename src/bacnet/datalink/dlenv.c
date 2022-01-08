@@ -431,6 +431,11 @@ void dlenv_init(void)
 #endif
 #if defined(BACDL_BIP6)
     BACNET_IP6_ADDRESS addr;
+    pEnv = getenv("BACNET_BIP6_DEBUG");
+    if (pEnv) {
+        bip6_debug_enable();
+        bvlc6_debug_enable();
+    }
     pEnv = getenv("BACNET_BIP6_BROADCAST");
     if (pEnv) {
         bvlc6_address_set(&addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0,

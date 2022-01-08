@@ -40,22 +40,50 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/config.h"
 #include "bacnet/datalink/bip6.h"
-#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #include "bacport.h"
 
+/* enable debugging */
+static bool BIP6_Debug = false;
+#if PRINT_ENABLED
+#include <stdarg.h>
+#include <stdio.h>
+#define PRINTF(...) \
+    if (BIP6_Debug) { \
+        fprintf(stderr,__VA_ARGS__); \
+        fflush(stderr); \
+    }
+#else
+#define PRINTF(...)
+#endif
+
+/**
+ * @brief Print the IPv6 address with debug info
+ * @param str - debug info string
+ * @param addr - IPv4 address
+ */
 static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
 {
-    debug_printf("BIP6: %s "
-                 "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%"
-                 "02x:%02x%02x\n",
+    PRINTF("BIP6: %s "
+        "%02x%02x:%02x%02x:%02x%02x:%02x%02x:"
+        "%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
         str, (int)addr->s6_addr[0], (int)addr->s6_addr[1],
-        (int)addr->s6_addr[2], (int)addr->s6_addr[3], (int)addr->s6_addr[4],
-        (int)addr->s6_addr[5], (int)addr->s6_addr[6], (int)addr->s6_addr[7],
-        (int)addr->s6_addr[8], (int)addr->s6_addr[9], (int)addr->s6_addr[10],
-        (int)addr->s6_addr[11], (int)addr->s6_addr[12], (int)addr->s6_addr[13],
+        (int)addr->s6_addr[2], (int)addr->s6_addr[3],
+        (int)addr->s6_addr[4], (int)addr->s6_addr[5],
+        (int)addr->s6_addr[6], (int)addr->s6_addr[7],
+        (int)addr->s6_addr[8], (int)addr->s6_addr[9],
+        (int)addr->s6_addr[10], (int)addr->s6_addr[11],
+        (int)addr->s6_addr[12], (int)addr->s6_addr[13],
         (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
+}
+
+/**
+ * @brief Enabled debug printing of BACnet/IPv4
+ */
+void bip6_debug_enable(void)
+{
+    BIP6_Debug = true;
 }
 
 /** @file linux/bip6.c  Initializes BACnet/IPv6 interface (Linux). */
@@ -82,10 +110,12 @@ void bip6_set_interface(char *ifname)
         exit(1);
     }
     ifa_tmp = ifa;
-    debug_printf("BIP6: seeking interface: %s\n", ifname);
+    if (BIP6_Debug) {
+        PRINTF("BIP6: seeking interface: %s\n", ifname);
+    }
     while (ifa_tmp) {
         if ((ifa_tmp->ifa_addr) && (ifa_tmp->ifa_addr->sa_family == AF_INET6)) {
-            debug_printf("BIP6: found interface: %s\n", ifa_tmp->ifa_name);
+            PRINTF("BIP6: found interface: %s\n", ifa_tmp->ifa_name);
         }
         if ((ifa_tmp->ifa_addr) && (ifa_tmp->ifa_addr->sa_family == AF_INET6) &&
             (strcasecmp(ifa_tmp->ifa_name, ifname) == 0)) {
@@ -105,7 +135,7 @@ void bip6_set_interface(char *ifname)
         ifa_tmp = ifa_tmp->ifa_next;
     }
     if (!found) {
-        debug_printf("BIP6: unable to set interface: %s\n", ifname);
+        PRINTF("BIP6: unable to set interface: %s\n", ifname);
         exit(1);
     }
 }
@@ -350,6 +380,7 @@ uint16_t bip6_receive(
  */
 void bip6_cleanup(void)
 {
+    bvlc6_cleanup();
     if (BIP6_Socket != -1) {
         close(BIP6_Socket);
     }
@@ -391,7 +422,7 @@ bool bip6_init(char *ifname)
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
     }
-    debug_printf("BIP6: IPv6 UDP port: 0x%04X\n", htons(BIP6_Addr.port));
+    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", htons(BIP6_Addr.port));
     if (BIP6_Broadcast_Addr.address[0] == 0) {
         bvlc6_address_set(&BIP6_Broadcast_Addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0,
             0, 0, 0, 0, BIP6_MULTICAST_GROUP_ID);
