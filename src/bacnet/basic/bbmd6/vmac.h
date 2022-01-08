@@ -49,6 +49,8 @@ extern "C" {
     void VMAC_Cleanup(void);
     BACNET_STACK_EXPORT
     void VMAC_Init(void);
+    BACNET_STACK_EXPORT
+    void VMAC_Debug_Enable(void);
 
 #ifdef BAC_TEST
 #include "ctest.h"

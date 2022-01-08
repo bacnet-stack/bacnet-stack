@@ -102,6 +102,10 @@ extern "C" {
     void bip6_receive_callback(
         void);
 
+    BACNET_STACK_EXPORT
+    void bip6_debug_enable(
+        void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

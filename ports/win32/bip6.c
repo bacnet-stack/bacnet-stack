@@ -50,9 +50,28 @@ static SOCKET BIP6_Socket = INVALID_SOCKET;
 static BACNET_IP6_ADDRESS BIP6_Addr;
 static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
 
+/* enable debugging */
+static bool BIP6_Debug = false;
+#if PRINT_ENABLED
+#include <stdarg.h>
+#include <stdio.h>
+#define PRINTF(...) \
+    if (BIP6_Debug) { \
+        fprintf(stderr,__VA_ARGS__); \
+        fflush(stderr); \
+    }
+#else
+#define PRINTF(...)
+#endif
+
+/**
+ * @brief Print the IPv6 address with debug info
+ * @param str - debug info string
+ * @param addr - IPv4 address
+ */
 static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
 {
-    debug_printf("BIP6: %s "
+    PRINTF("BIP6: %s "
                  "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%"
                  "02x:%02x%02x\n",
         str, (int)addr->s6_addr[0], (int)addr->s6_addr[1],
@@ -61,6 +80,14 @@ static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
         (int)addr->s6_addr[8], (int)addr->s6_addr[9], (int)addr->s6_addr[10],
         (int)addr->s6_addr[11], (int)addr->s6_addr[12], (int)addr->s6_addr[13],
         (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
+}
+
+/**
+ * @brief Enabled debug printing of BACnet/IPv4
+ */
+void bip6_debug_enable(void)
+{
+    BIP6_Debug = true;
 }
 
 static LPSTR PrintError(int ErrorCode)
@@ -104,7 +131,7 @@ void bip6_set_interface(char *ifname)
     Hints.ai_protocol = IPPROTO_UDP;
     Hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
     snprintf(port, sizeof(port), "%u", BIP6_Addr.port);
-    debug_printf("BIP6: getaddrinfo - IPv6 address %s port %s\n", ifname, port);
+    PRINTF("BIP6: getaddrinfo - IPv6 address %s port %s\n", ifname, port);
     RetVal = getaddrinfo(ifname, &port[0], &Hints, &AddrInfo);
     if (RetVal != 0) {
         fprintf(stderr, "BIP6: getaddrinfo failed with error %d: %s\n", RetVal,
@@ -512,7 +539,7 @@ bool bip6_init(char *ifname)
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
     }
-    debug_printf("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
+    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
     bip6_set_interface(ifname);
     if (BIP6_Broadcast_Addr.address[0] == 0) {
         bvlc6_address_set(&BIP6_Broadcast_Addr, BIP6_MULTICAST_LINK_LOCAL, 0, 0,
