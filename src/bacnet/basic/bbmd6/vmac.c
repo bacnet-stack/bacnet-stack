@@ -42,7 +42,8 @@
 /* me! */
 #include "bacnet/basic/bbmd6/vmac.h"
 
-static bool VMAC_Debug;
+/* enable debugging */
+static bool VMAC_Debug = false;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
@@ -55,6 +56,14 @@ static bool VMAC_Debug;
 #define PRINTF(...)
 #endif
 
+/**
+ * @brief Enable debugging if print is enabled
+ */
+void VMAC_Debug_Enable(void)
+{
+    VMAC_Debug = true;
+}
+
 /** @file
     Handle VMAC address binding */
 
@@ -63,15 +72,6 @@ static bool VMAC_Debug;
 
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist VMAC_List;
-
-
-/**
- * @brief Enable debugging if print is enabled
- */
-void VMAC_Debug_Enable(void)
-{
-    VMAC_Debug = true;
-}
 
 /**
  * Returns the number of VMAC in the list
@@ -112,11 +112,7 @@ bool VMAC_Add(uint32_t device_id, struct vmac_data *src)
             index = Keylist_Data_Add(VMAC_List, device_id, pVMAC);
             if (index >= 0) {
                 status = true;
-                PRINTF("VMAC added %u [", (unsigned int)device_id);
-                for (unsigned i = 0; i < pVMAC->mac_len; i++) {
-                    PRINTF("%02X", pVMAC->mac[i]);
-                }
-                PRINTF("]\n");
+                PRINTF("VMAC %u added.\n", (unsigned int)device_id);
             }
         }
     }
@@ -267,13 +263,13 @@ void VMAC_Cleanup(void)
         do {
             device_id = Keylist_Key(VMAC_List, index);
             pVMAC = Keylist_Data_Delete_By_Index(VMAC_List, index);
-            PRINTF("VMAC List: %lu [", (unsigned long)device_id);
-            /* print the MAC */
-            for (unsigned i = 0; i < pVMAC->mac_len; i++) {
-                PRINTF("%02X", pVMAC->mac[i]);
-            }
-            PRINTF("]\n");
             if (pVMAC) {
+                PRINTF("VMAC List: %lu [", (unsigned long)device_id);
+                /* print the MAC */
+                for (unsigned i = 0; i < pVMAC->mac_len; i++) {
+                    PRINTF("%02X", pVMAC->mac[i]);
+                }
+                PRINTF("]\n");
                 free(pVMAC);
             }
         } while (pVMAC);
