@@ -54,10 +54,6 @@
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
-#if defined(_MSC_VER)
-#define snprintf _snprintf
-#endif
-
 /** @brief Encode application data given by a pointer into the APDU.
  *  Return the number encoded bytes.
  *
