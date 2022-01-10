@@ -115,7 +115,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     void bip_debug_enable(void);
 
-    /* DLS addition */
     BACNET_STACK_EXPORT
     int bip_get_socket(void);
 

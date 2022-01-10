@@ -94,8 +94,8 @@ static void debug_print_ipv4(const char *str,
 
 
 /**
- * @brief Return the active BIP socket
- * @note DLS addition
+ * @brief Return the active BIP socket.
+ * @return The active BIP socket, or -1 if uninitialized.
  */
 int bip_get_socket(void)
 {
