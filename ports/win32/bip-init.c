@@ -88,6 +88,17 @@ static void debug_print_ipv4(const char *str,
 }
 
 /**
+ * @brief Return the active BIP socket.
+ * @return The active BIP socket, or INVALID_SOCKET if uninitialized.
+ * @note Strictly, the return type should be SOCKET, however in practice 
+ *  Windows never returns values large enough that truncation is an issue.
+ */
+int bip_get_socket(void)
+{
+    return (int)BIP_Socket;
+}
+
+/**
  * @brief Enabled debug printing of BACnet/IPv4
  */
 void bip_debug_enable(void)
