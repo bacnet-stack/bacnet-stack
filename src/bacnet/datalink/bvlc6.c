@@ -34,6 +34,7 @@
 
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
+#include <stdio.h>
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -646,6 +647,96 @@ bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr,
  * of four hexadecimal digits.
  *
  * For convenience, an IPv6 address may be abbreviated to shorter notations
+ * by application of the following rules according to RFC 5952 [1]:
+ *   - One or more leading zeros from any groups of hexadecimal digits
+ *     are removed; this is usually done to either all or none of the
+ *     leading zeros. For example, the group 0042 is converted to 42.
+ *   - Consecutive sections of zeros are replaced with a double colon (::).
+ *     The double colon may only be used once in an address, as multiple
+ *     use would render the address indeterminate. RFC 5952 requires that
+ *     a double colon not be used to denote an omitted single section of
+ *     zeros.
+ *
+ * [1] https://www.rfc-editor.org/rfc/rfc5952
+ *
+ * Adapted from the uIP TCP/IP stack and the Contiki operating system.
+ * Thank you, Adam Dunkel, and the Swedish Institute of Computer Science.
+ *
+ * @param addr - B/IPv6 address that is parsed
+ * @param buf - B/IPv6 address in 16-bit ASCII hex compressed format
+ * @param buf_size - B/IPv6 address size in bytes
+ *
+ * @return the number of characters which would be generated for the given
+ *  input, excluding the trailing null.
+ * @note buf and buf_size may be null and zero to return only the size
+ */
+int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf,
+    size_t buf_size)
+{
+    uint16_t a;
+    unsigned int i;
+    int f = 0;
+    int len = 0;
+    int n = 0;
+
+    if (!addr) {
+        return n;
+    }
+    if (!buf) {
+        return n;
+    }
+    for(i = 0; i < IP6_ADDRESS_MAX; i += 2) {
+        a = (addr->address[i] << 8) + addr->address[i + 1];
+        if ((a == 0) && (f >= 0)) {
+            if (f++ == 0) {
+                len = snprintf(buf, buf_size, "::");
+                if (buf) {
+                    buf += len;
+                }
+                if (len > buf_size) {
+                    buf_size = 0;
+                } else {
+                    buf_size -= len;
+                }
+                n += len;
+            }
+        } else {
+            if (f > 0) {
+                f = -1;
+            } else if (i > 0) {
+                len = snprintf(buf, buf_size, ":");
+                if (buf) {
+                    buf += len;
+                }
+                if (len > buf_size) {
+                    buf_size = 0;
+                } else {
+                    buf_size -= len;
+                }
+                n += len;
+            }
+            len = snprintf(buf, buf_size, "%x", a);
+            if (buf) {
+                buf += len;
+            }
+            if (len > buf_size) {
+                buf_size = 0;
+            } else {
+                buf_size -= len;
+            }
+            n += len;
+        }
+    }
+
+    return true;
+}
+
+/** Convert IPv6 Address from ASCII
+ *
+ * IPv6 addresses are represented as eight groups, separated by colons,
+ * of four hexadecimal digits.
+ *
+ * For convenience, an IPv6 address may be abbreviated to shorter notations
  * by application of the following rules.
  *   - One or more leading zeros from any groups of hexadecimal digits
  *     are removed; this is usually done to either all or none of the
@@ -672,7 +763,7 @@ bool bvlc6_address_from_ascii(BACNET_IP6_ADDRESS *addr, const char *addrstr)
     unsigned int i = 0;
     char c = 0;
 
-    if (!addrstr) {
+    if (!addr) {
         return false;
     }
     if (!addrstr) {
