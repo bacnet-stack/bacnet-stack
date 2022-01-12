@@ -140,17 +140,34 @@ void datalink_set(char *datalink_string)
 #endif
 
 #if defined(BACDL_NONE)
+bool datalink_init(char *ifname)
+{
+    (void)ifname;
+
+    return true;
+}
+
 int datalink_send_pdu(BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
 {
+    (void)dest;
+    (void)npdu_data;
+    (void)pdu;
+    (void)pdu_len;
+
     return 0;
 }
 
 uint16_t datalink_receive(
     BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
 {
+    (void)src;
+    (void)pdu;
+    (void)max_pdu;
+    (void)timeout;
+
     return 0;
 }
 
@@ -160,18 +177,22 @@ void datalink_cleanup(void)
 
 void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
 {
+    (void)dest;
 }
 
 void datalink_get_my_address(BACNET_ADDRESS *my_address)
 {
+    (void)my_address;
 }
 
 void datalink_set_interface(char *ifname)
 {
+    (void)ifname;
 }
 
 void datalink_set(char *datalink_string)
 {
+    (void)datalink_string;
 }
 
 void datalink_maintenance_timer(uint16_t seconds)
