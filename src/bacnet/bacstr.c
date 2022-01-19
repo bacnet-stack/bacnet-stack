@@ -319,7 +319,6 @@ bool bitstring_same(
     return false;
 }
 
-#if PRINT_ENABLED
 /**
  * Converts an null terminated ASCII string to an bitstring.
  *
@@ -371,7 +370,6 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
 
     return status;
 }
-#endif
 
 #define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
 /**
@@ -981,7 +979,6 @@ bool octetstring_init(
     return status;
 }
 
-#if PRINT_ENABLED
 /** @brief Converts an null terminated ASCII Hex string to an octet string.
  *
  * @param octet_string  Pointer to the octed string.
@@ -1031,7 +1028,6 @@ bool octetstring_init_ascii_hex(
 
     return status;
 }
-#endif
 
 /**
  * Copy an octed string from source to destination.

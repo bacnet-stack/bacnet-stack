@@ -1113,7 +1113,6 @@ int bacapp_decode_context_datetime(
     return apdu_len;
 }
 
-#if PRINT_ENABLED
 /**
  * @brief Parse an ascii string for the date 2021/12/31 or 2021/12/31:1
  * @param bdate - #BACNET_DATE structure
@@ -1141,9 +1140,7 @@ bool datetime_date_init_ascii(BACNET_DATE *bdate, const char *ascii)
 
     return status;
 }
-#endif
 
-#if PRINT_ENABLED
 /**
  * @brief Parse an ascii string for the time formatted 23:59:59.99
  * @param btime - #BACNET_TIME structure
@@ -1180,7 +1177,6 @@ bool datetime_time_init_ascii(BACNET_TIME *btime, const char *ascii)
 
     return status;
 }
-#endif
 
 #ifdef BAC_TEST
 #include <assert.h>

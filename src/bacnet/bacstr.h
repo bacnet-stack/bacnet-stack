@@ -190,14 +190,12 @@ extern "C" {
         BACNET_OCTET_STRING * octet_string,
         uint8_t * value,
         size_t length);
-#ifdef PRINT_ENABLED
     /* converts an null terminated ASCII Hex string to an octet string.
        returns true if successfully converted and fits; false if too long */
     BACNET_STACK_EXPORT
     bool octetstring_init_ascii_hex(
         BACNET_OCTET_STRING * octet_string,
         const char *ascii_hex);
-#endif
     BACNET_STACK_EXPORT
     bool octetstring_copy(
         BACNET_OCTET_STRING * dest,
