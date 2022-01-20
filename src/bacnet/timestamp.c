@@ -266,7 +266,6 @@ int bacapp_decode_context_timestamp(
     return len;
 }
 
-#if PRINT_ENABLED
 /**
  * @brief Parse an ascii string for the timestamp
  * @param btime - #BACNET_TIME structure
@@ -347,7 +346,6 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
 
     return status;
 }
-#endif
 
 #ifdef BAC_TEST
 

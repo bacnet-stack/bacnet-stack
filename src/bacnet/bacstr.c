@@ -34,14 +34,12 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h> /* for strlen */
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "bacnet/config.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/bits.h"
-#if PRINT_ENABLED
-#include <stdlib.h> /* for strtol */
-#include <ctype.h> /* for isalnum */
-#endif
 
 /* TODO: For some reason my Zephyr build for non-native targets does not
  *       see a definition for strnlen(), but it is visible in when
@@ -319,7 +317,6 @@ bool bitstring_same(
     return false;
 }
 
-#if PRINT_ENABLED
 /**
  * Converts an null terminated ASCII string to an bitstring.
  *
@@ -371,7 +368,6 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
 
     return status;
 }
-#endif
 
 #define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
 /**
@@ -981,7 +977,6 @@ bool octetstring_init(
     return status;
 }
 
-#if PRINT_ENABLED
 /** @brief Converts an null terminated ASCII Hex string to an octet string.
  *
  * @param octet_string  Pointer to the octed string.
@@ -1031,7 +1026,6 @@ bool octetstring_init_ascii_hex(
 
     return status;
 }
-#endif
 
 /**
  * Copy an octed string from source to destination.

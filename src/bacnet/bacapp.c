@@ -1543,10 +1543,8 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 #endif
 #if defined(BACAPP_OCTET_STRING)
             case BACNET_APPLICATION_TAG_OCTET_STRING:
-#if PRINT_ENABLED /* Apparently ain't necessarily so. */
                 status =
                     octetstring_init_ascii_hex(&value->type.Octet_String, argv);
-#endif
                 break;
 #endif
 #if defined(BACAPP_CHARACTER_STRING)
@@ -1557,9 +1555,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 #endif
 #if defined(BACAPP_BIT_STRING)
             case BACNET_APPLICATION_TAG_BIT_STRING:
-#if PRINT_ENABLED
                 status = bitstring_init_ascii(&value->type.Bit_String, argv);
-#endif
                 break;
 #endif
 #if defined(BACAPP_ENUMERATED)

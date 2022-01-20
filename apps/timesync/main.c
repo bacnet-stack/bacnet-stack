@@ -156,6 +156,8 @@ int main(int argc, char *argv[])
     const unsigned timeout = 100; /* milliseconds */
     BACNET_DATE bdate;
     BACNET_TIME btime;
+    bool override_date = false;
+    bool override_time = false;
     struct mstimer apdu_timer;
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
@@ -204,6 +206,20 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        if (strcmp(argv[argi], "--date") == 0) {
+            if (++argi < argc) {
+                if (datetime_date_init_ascii(&bdate, argv[argi])) {
+                    override_date = true;
+                }
+            }
+        }
+        if (strcmp(argv[argi], "--time") == 0) {
+            if (++argi < argc) {
+                if (datetime_time_init_ascii(&btime, argv[argi])) {
+                    override_time = true;
+                }
+            }
+        }
     }
     if (global_broadcast) {
         datalink_get_broadcast_address(&dest);
@@ -244,7 +260,8 @@ int main(int argc, char *argv[])
     atexit(datalink_cleanup);
     mstimer_init();
     /* send the request */
-    datetime_local(&bdate, &btime, NULL, NULL);
+    datetime_local(override_date?NULL:&bdate,override_time?NULL:&btime,
+        NULL, NULL);
     Send_TimeSync_Remote(&dest, &bdate, &btime);
     mstimer_set(&apdu_timer, apdu_timeout());
     /* loop forever - not necessary for time sync, but we can watch */
