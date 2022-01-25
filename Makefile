@@ -7,7 +7,11 @@
 # all: demos router-ipv6 ${DEMO_LINUX}
 
 .PHONY: all
-all: apps
+all: lib apps
+
+.PHONY: lib
+lib:
+	$(MAKE) -C lib all
 
 .PHONY: bsd
 bsd:
@@ -199,6 +203,7 @@ cppcheck:
 
 .PHONY: clean
 clean:
+	$(MAKE) -s -C lib clean
 	$(MAKE) -s -C src clean
 	$(MAKE) -s -C apps clean
 	$(MAKE) -s -C apps/router clean
