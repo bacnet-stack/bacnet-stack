@@ -40,6 +40,12 @@ SRC = main.c \
 BACNET_BASIC_SRC += \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c)
 
+# build in uci integration - use UCI=1 when invoking make
+ifeq (${UCI},1)
+BACNET_BASIC_SRC += \
+      $(wildcard $(BACNET_SRC_DIR)/bacnet/basic/ucix/*.c)
+endif
+
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
