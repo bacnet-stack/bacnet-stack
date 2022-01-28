@@ -64,7 +64,7 @@ BACNET_PORT ?= linux
 ifeq (${UCI},1)
 BACNET_DEFINES += -DBAC_UCI
 UCI_LIB_DIR ?= /usr/local/lib
-BACNET_LIB += -L$(UCI_LIB_DIR),-luci
+BACNET_LIB += -L$(UCI_LIB_DIR) -luci
 endif
 # OS specific builds
 ifeq (${BACNET_PORT},linux)
