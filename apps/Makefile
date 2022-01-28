@@ -119,7 +119,11 @@ LFLAGS += -Wl,$(BACNET_LIB)
 endif
 # GCC dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
+ifeq ($(shell uname -s),Darwin)
+LFLAGS += -Wl,-dead_strip
+else
 LFLAGS += -Wl,--gc-sections
+endif
 
 PORT_ARCNET_SRC = \
 	$(BACNET_PORT_DIR)/arcnet.c
