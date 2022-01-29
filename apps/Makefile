@@ -11,6 +11,12 @@
 BACNET_DEFINES ?=
 BACNET_LIB ?=
 
+# BACnet Library
+BACNET_LIB_DIR = $(realpath lib)
+BACNET_LIB_NAME = bacnet
+BACNET_LIB_TARGET = $(BACNET_LIB_DIR)/lib$(BACNET_LIB_NAME).a
+BACNET_LIB=-L$(BACNET_LIB_DIR),-l$(BACNET_LIB_NAME)
+
 # choose a datalink to build the example applications
 # Use BACDL=mstp or BACDL=bip and BBMD=server when invoking make
 
@@ -121,82 +127,9 @@ endif
 CFLAGS += -ffunction-sections -fdata-sections
 LFLAGS += -Wl,--gc-sections
 
-PORT_ARCNET_SRC = \
-	$(BACNET_PORT_DIR)/arcnet.c
-
-PORT_MSTP_SRC = \
-	$(BACNET_PORT_DIR)/rs485.c \
-	$(BACNET_PORT_DIR)/dlmstp.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/mstp.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/mstptext.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/crc.c
-
-PORT_ETHERNET_SRC = \
-	$(BACNET_PORT_DIR)/ethernet.c
-
-PORT_BIP_SRC = \
-	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c
-
-PORT_BIP6_SRC = \
-	$(BACNET_PORT_DIR)/bip6.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/h_bbmd6.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c \
-	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c
-
-PORT_ALL_SRC = \
-	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c \
-	$(PORT_ARCNET_SRC) \
-	$(PORT_MSTP_SRC) \
-	$(PORT_ETHERNET_SRC) \
-	$(PORT_BIP_SRC) \
-	$(PORT_BIP6_SRC)
-
-PORT_NONE_SRC = \
-	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c
-
-ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-BACNET_PORT_SRC = ${PORT_BIP_SRC}
-endif
-ifeq (${BACDL_DEFINE},-DBACDL_BIP6=1)
-BACNET_PORT_SRC = ${PORT_BIP6_SRC}
-endif
-ifeq (${BACDL_DEFINE},-DBACDL_MSTP=1)
-BACNET_PORT_SRC = ${PORT_MSTP_SRC}
-endif
-ifeq (${BACDL_DEFINE},-DBACDL_ARCNET=1)
-BACNET_PORT_SRC = ${PORT_ARCNET_SRC}
-endif
-ifeq (${BACDL_DEFINE},-DBACDL_ETHERNET=1)
-BACNET_PORT_SRC = ${PORT_ETHERNET_SRC}
-endif
-ifeq (${BACDL_DEFINE},-DBACDL_NONE=1)
-BACNET_PORT_SRC = ${PORT_NONE_SRC}
-endif
-ifdef BACDL_ALL
-BACNET_PORT_SRC = ${PORT_ALL_SRC}
-endif
-
-BACNET_PORT_SRC += \
-	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c \
-	$(BACNET_PORT_DIR)/mstimer-init.c \
-	$(BACNET_PORT_DIR)/datetime-init.c \
-
-BACNET_SRC ?= \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \
-
-BACNET_BASIC_SRC ?= \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
-	$(BACNET_SRC_DIR)/bacnet/basic/npdu/h_npdu.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
-	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c
-
 .EXPORT_ALL_VARIABLES:
 
-SUBDIRS = readprop writeprop readfile writefile reinit server dcc \
+SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
 	writepropm uptransfer getevent uevent abort error event ack-alarm
 
@@ -225,21 +158,15 @@ $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
 	$(MAKE) -b -C $(subst ., , $@)
 
+.PHONY: lib
+lib: lib/Makefile Makefile $(BACNET_LIB_TARGET)
+
+$(BACNET_LIB_TARGET):
+	$(MAKE) -s -b -C lib
+
 .PHONY: gateway
 gateway:
 	$(MAKE) -b -C gateway
-
-.PHONY: server
-server:
-	$(MAKE) -s -b -C $@
-
-.PHONY: mstpcap
-mstpcap:
-	$(MAKE) -b -C $@
-
-.PHONY: mstpcrc
-mstpcrc:
-	$(MAKE) -b -C $@
 
 .PHONY: abort
 abort:
@@ -281,6 +208,26 @@ iamrouter:
 initrouter:
 	$(MAKE) -b -C $@
 
+.PHONY: mstpcap
+mstpcap:
+	$(MAKE) -b -C $@
+
+.PHONY: mstpcrc
+mstpcrc:
+	$(MAKE) -b -C $@
+
+.PHONY: ptransfer
+ptransfer:
+	$(MAKE) -b -C $@
+
+.PHONY: readprop
+readprop: $(BACNET_LIB_TARGET)
+	$(MAKE) -s -b -C $@
+
+.PHONY: readpropm
+readpropm: $(BACNET_LIB_TARGET)
+	$(MAKE) -s -b -C $@
+
 .PHONY: readbdt
 readbdt:
 	$(MAKE) -b -C $@
@@ -288,6 +235,30 @@ readbdt:
 .PHONY: readfdt
 readfdt:
 	$(MAKE) -b -C $@
+
+.PHONY: readfile
+readfile:
+	$(MAKE) -b -C $@
+
+.PHONY: readrange
+readrange:
+	$(MAKE) -b -C $@
+
+.PHONY: reinit
+reinit:
+	$(MAKE) -b -C $@
+
+.PHONY: scov
+scov:
+	$(MAKE) -b -C $@
+
+.PHONY: server
+server:
+	$(MAKE) -s -b -C $@
+
+.PHONY: timesync
+timesync:
+	$(MAKE) -s -b -C $@
 
 .PHONY: uevent
 uevent:
@@ -299,6 +270,10 @@ whois:
 
 .PHONY: writebdt
 writebdt:
+	$(MAKE) -b -C $@
+
+.PHONY: writefile
+writefile:
 	$(MAKE) -b -C $@
 
 .PHONY: router
