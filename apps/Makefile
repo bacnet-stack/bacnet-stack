@@ -165,47 +165,47 @@ $(BACNET_LIB_TARGET):
 	$(MAKE) -s -b -C lib
 
 .PHONY: gateway
-gateway:
+gateway: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C gateway
 
 .PHONY: abort
-abort:
+abort: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: ack-alarm
-ack-alarm:
+ack-alarm: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: dcc
-dcc:
+dcc: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: epics
-epics:
+epics: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: error
-error:
+error: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: event
-event:
+event: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: getevent
-getevent:
+getevent: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: iam
-iam:
+iam: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: iamrouter
-iamrouter:
+iamrouter: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: initrouter
-initrouter:
+initrouter: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: mstpcap
@@ -217,7 +217,7 @@ mstpcrc:
 	$(MAKE) -b -C $@
 
 .PHONY: ptransfer
-ptransfer:
+ptransfer: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: readprop
@@ -229,66 +229,66 @@ readpropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -s -b -C $@
 
 .PHONY: readbdt
-readbdt:
+readbdt: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: readfdt
-readfdt:
+readfdt: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: readfile
-readfile:
+readfile: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: readrange
-readrange:
+readrange: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: reinit
-reinit:
+reinit: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: scov
-scov:
+scov: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: server
-server:
+server: $(BACNET_LIB_TARGET)
 	$(MAKE) -s -b -C $@
 
 .PHONY: timesync
-timesync:
+timesync: $(BACNET_LIB_TARGET)
 	$(MAKE) -s -b -C $@
 
 .PHONY: uevent
-uevent:
+uevent: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: whois
-whois:
+whois: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: writebdt
-writebdt:
+writebdt: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: writefile
-writefile:
+writefile: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: router
-router:
+router: $(BACNET_LIB_TARGET)
 	$(MAKE) -s -b -C $@
 
 .PHONY: router-ipv6
-router-ipv6:
+router-ipv6: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: router-mstp
-router-mstp:
+router-mstp: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: writepropm
-writepropm:
+writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 

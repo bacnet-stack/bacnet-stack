@@ -47,7 +47,13 @@ lib:
 
 .PHONY: cmake
 cmake:
-	mkdir build && cd build && cmake .. -DBUILD_SHARED_LIBS=ON && cmake --build . --clean-first
+	CMAKE_BUILD_DIR=build
+	[ -d $(CMAKE_BUILD_DIR) ] || mkdir -p $(CMAKE_BUILD_DIR)
+	[ -d $(CMAKE_BUILD_DIR) ] && cd $(CMAKE_BUILD_DIR) && cmake .. -DBUILD_SHARED_LIBS=ON && cmake --build . --clean-first
+
+.PHONY: cmake-test
+cmake-test:
+	[ -d $(CMAKE_BUILD_DIR) ] && $(MAKE) -s -C build test
 
 .PHONY: abort
 abort:

@@ -111,7 +111,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
             MSTP_Port.TxDestination = MSTP_BROADCAST_ADDRESS;
         }
         dlmstp_get_my_address(&src);
-        if ((MAX_HEADER + pdu_len) > MAX_MPDU) {
+        if ((DLMSTP_HEADER_MAX + pdu_len) > DLMSTP_MPDU_MAX) {
             return -4;
         }
         bytes_sent = MSTP_Create_Frame((uint8_t *)&MSTP_Port.TxBuffer[0],

@@ -72,8 +72,8 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* track the receive state to know when there is a broken packet */
 static MSTP_RECEIVE_STATE MSTP_Receive_State = MSTP_RECEIVE_STATE_IDLE;
 /* buffers needed by mstp port struct */
-static uint8_t RxBuffer[MAX_MPDU];
-static uint8_t TxBuffer[MAX_MPDU];
+static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
+static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
 /* method to tell main loop to exit from CTRL-C or other signals */
 static volatile bool Exit_Requested;
 /* flag to indicate Wireshark is running the show - no stdout or stderr */

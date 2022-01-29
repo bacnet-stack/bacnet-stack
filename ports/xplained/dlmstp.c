@@ -177,7 +177,7 @@ struct mstp_pdu_packet {
     bool data_expecting_reply;
     uint8_t destination_mac;
     uint16_t length;
-    uint8_t buffer[MAX_MPDU];
+    uint8_t buffer[DLMSTP_MPDU_MAX];
 };
 static volatile struct mstp_pdu_packet PDU_Buffer[MSTP_PDU_PACKET_COUNT];
 static RING_BUFFER PDU_Queue;

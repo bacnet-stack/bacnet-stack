@@ -222,7 +222,7 @@ void MSTP_Create_And_Send_Frame(
     uint8_t *data, /* any data to be sent - may be null */
     unsigned data_len)
 { /* number of bytes of data (up to 501) */
-    uint8_t buffer[MAX_MPDU] = { 0 }; /* buffer for sending */
+    uint8_t buffer[DLMSTP_MPDU_MAX] = { 0 }; /* buffer for sending */
     uint16_t len = 0; /* number of bytes to send */
 
     len = (uint16_t)MSTP_Create_Frame(&buffer[0], /* where frame is loaded */
@@ -435,7 +435,7 @@ void MSTP_Receive_Frame_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             (mstp_port->DestinationAddress ==
                                 MSTP_BROADCAST_ADDRESS)) {
                             /* FrameTooLong */
-                            if (mstp_port->DataLength > MAX_MPDU) {
+                            if (mstp_port->DataLength > DLMSTP_MPDU_MAX) {
                                 /* indicate that a frame with an illegal or  */
                                 /* unacceptable data length has been received */
                                 mstp_port->ReceivedInvalidFrame = true;

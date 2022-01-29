@@ -40,8 +40,8 @@
 #include "bacnet/basic/sys/ringbuf.h"
 /* defines specific to MS/TP */
 /* preamble+type+dest+src+len+crc8+crc16 */
-#define MAX_HEADER (2+1+1+1+2+1+2)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define DLMSTP_HEADER_MAX (2+1+1+1+2+1+2)
+#define DLMSTP_MPDU_MAX (DLMSTP_HEADER_MAX+MAX_PDU)
 
 /* count must be a power of 2 for ringbuf library */
 #ifndef MSTP_PDU_PACKET_COUNT
@@ -53,7 +53,7 @@ typedef struct dlmstp_packet {
     BACNET_ADDRESS address;     /* source address */
     uint8_t frame_type; /* type of message */
     uint16_t pdu_len;   /* packet length */
-    uint8_t pdu[MAX_MPDU];      /* packet */
+    uint8_t pdu[DLMSTP_MPDU_MAX];      /* packet */
 } DLMSTP_PACKET;
 
 /* data structure for MS/TP PDU Queue */
@@ -61,7 +61,7 @@ struct mstp_pdu_packet {
     bool data_expecting_reply;
     uint8_t destination_mac;
     uint16_t length;
-    uint8_t buffer[MAX_MPDU];
+    uint8_t buffer[DLMSTP_MPDU_MAX];
 };
 
 typedef struct shared_mstp_data {
@@ -85,8 +85,8 @@ typedef struct shared_mstp_data {
     pthread_cond_t Master_Done_Flag;
     pthread_mutex_t Master_Done_Mutex;
     /* buffers needed by mstp port struct */
-    uint8_t TxBuffer[MAX_MPDU];
-    uint8_t RxBuffer[MAX_MPDU];
+    uint8_t TxBuffer[DLMSTP_MPDU_MAX];
+    uint8_t RxBuffer[DLMSTP_MPDU_MAX];
     /* The minimum time without a DataAvailable or ReceiveError event */
     /* that a node must wait for a station to begin replying to a */
     /* confirmed request: 255 milliseconds. (Implementations may use */

@@ -80,7 +80,7 @@ static void bvlc_send_result(uint8_t *dest_addr,
 
     BACNET_BVLC_RESULT result_code)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = (uint16_t)bvlc_encode_bvlc_result(&mtu[0], result_code);

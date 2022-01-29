@@ -32,8 +32,8 @@
 #include "bacnet/npdu.h"
 
 /* specific defines for Ethernet */
-#define MAX_HEADER (6+6+2+1+1+1)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define ETHERNET_HEADER_MAX (6+6+2+1+1+1)
+#define ETHERNET_MPDU_MAX (ETHERNET_HEADER_MAX+MAX_PDU)
 
 /* Unless we explicitly need these remaps to be NOT exposed
  * (e.g. implementation where we need both bacnet and Zephyr symbols),
