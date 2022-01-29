@@ -148,7 +148,7 @@ struct mstp_port_struct_t {
 
     /* An array of octets, used to store PDU octets prior to being transmitted. */
     /* This array is only used for APDU messages */
-    uint8_t TxBuffer[MAX_MPDU];
+    uint8_t TxBuffer[DLMSTP_MPDU_MAX];
     unsigned TxLength;
     uint8_t TxDestination;
     bool TxReady;       /* true if ready to be sent or received */

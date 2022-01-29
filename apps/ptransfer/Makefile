@@ -1,24 +1,17 @@
 #Makefile to build BACnet Application using GCC compiler
 
-# tools - only if you need them.
-# Most platforms have this already defined
-# CC = gcc
-# AR = ar
-# MAKE = make
-# SIZE = size
-#
-# Assumes rm and cp are available
-
 # Executable file name
 TARGET = ptransfer
+# BACnet objects that are used with this app
+BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
+SRC = main.c \
+	$(BACNET_OBJECT_DIR)/client/device-client.c \
+	$(BACNET_OBJECT_DIR)/netport.c
 
+# TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-SRCS = main.c \
-	../object/netport.c \
-	../object/device-client.c
-
-OBJS = ${SRCS:.c=.o}
+OBJS += ${SRC:.c=.o}
 
 all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
@@ -27,19 +20,21 @@ ${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 	size $@
 	cp $@ ../../bin
 
-lib: ${BACNET_LIB_TARGET}
-
 ${BACNET_LIB_TARGET}:
-	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) )
+	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) -s )
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
 
+.PHONY: depend
 depend:
 	rm -f .depend
 	${CC} -MM ${CFLAGS} *.c >> .depend
 
+.PHONY: clean
 clean:
-	rm -rf core ${TARGET_BIN} ${OBJS} ${BACNET_LIB_TARGET}
+	rm -f core ${TARGET_BIN} ${OBJS} $(TARGET).map ${BACNET_LIB_TARGET}
 
+.PHONY: include
 include: .depend
+

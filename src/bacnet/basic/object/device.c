@@ -75,9 +75,6 @@
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
 #endif /* defined(BACFILE) */
-#if defined(BAC_UCI)
-#include "bacnet/basic/ucix/ucix.h"
-#endif /* defined(BAC_UCI) */
 
 /* local forward (semi-private) and external prototypes */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -1805,23 +1802,7 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
 void Device_Init(object_functions_t *object_table)
 {
     struct object_functions *pObject = NULL;
-#if defined(BAC_UCI)
-    const char *uciname;
-    struct uci_context *ctx;
-    fprintf(stderr, "Device_Init\n");
-    ctx = ucix_init("bacnet_dev");
-    if (!ctx)
-        fprintf(stderr, "Failed to load config file bacnet_dev\n");
-    uciname = ucix_get_option(ctx, "bacnet_dev", "0", "Name");
-    if (uciname != 0) {
-        characterstring_init_ansi(&My_Object_Name, uciname);
-    } else {
-#endif /* defined(BAC_UCI) */
-        characterstring_init_ansi(&My_Object_Name, "SimpleServer");
-#if defined(BAC_UCI)
-    }
-    ucix_cleanup(ctx);
-#endif /* defined(BAC_UCI) */
+    characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     datetime_init();
     if (object_table) {
         Object_Table = object_table;

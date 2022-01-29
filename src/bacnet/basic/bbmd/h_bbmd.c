@@ -77,7 +77,7 @@ static bool BVLC_NAT_Handling = false;
 static BACNET_IP_ADDRESS Remote_BBMD;
 #if BBMD_ENABLED
 /* local buffer & length for sending */
-static uint8_t BVLC_Buffer[MAX_MPDU];
+static uint8_t BVLC_Buffer[BIP_MPDU_MAX];
 static uint16_t BVLC_Buffer_Len;
 /* Broadcast Distribution Table */
 #ifndef MAX_BBMD_ENTRIES
@@ -317,7 +317,7 @@ static uint16_t bbmd_forward_npdu(
     BACNET_IP_ADDRESS *bip_src, uint8_t *npdu, uint16_t npdu_length)
 {
     BACNET_IP_ADDRESS broadcast_address = { 0 };
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(
@@ -345,7 +345,7 @@ static uint16_t bbmd_bdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
     uint16_t npdu_length,
     bool original)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     unsigned i = 0; /* loop counter */
     BACNET_IP_ADDRESS bip_dest = { 0 };
@@ -410,7 +410,7 @@ static uint16_t bbmd_fdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
     uint16_t npdu_length,
     bool original)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     unsigned i = 0; /* loop counter */
     BACNET_IP_ADDRESS bip_dest = { 0 };
@@ -566,7 +566,7 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest,
     unsigned pdu_len)
 {
     BACNET_IP_ADDRESS bvlc_dest = { 0 };
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 #if BBMD_ENABLED
     BACNET_IP_ADDRESS bip_src = { 0 };
@@ -633,7 +633,7 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest,
  */
 static int bvlc_send_result(BACNET_IP_ADDRESS *dest_addr, uint16_t result_code)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = bvlc_encode_result(&mtu[0], sizeof(mtu), result_code);

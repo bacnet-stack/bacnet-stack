@@ -189,7 +189,7 @@ struct mstp_pdu_packet {
     bool data_expecting_reply;
     uint8_t destination_mac;
     uint16_t length;
-    uint8_t buffer[MAX_MPDU];
+    uint8_t buffer[DLMSTP_MPDU_MAX];
 };
 /* count must be a power of 2 for ringbuf library */
 #ifndef MSTP_PDU_PACKET_COUNT

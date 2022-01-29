@@ -170,7 +170,7 @@ int bip_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     unsigned pdu_len)
 { /* number of bytes of data */
 
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     int mtu_len = 0;
     int bytes_sent = 0;
     /* addr and port in host format */

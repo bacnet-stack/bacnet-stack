@@ -97,10 +97,11 @@ static DNET *Router_Table_Head;
 static uint16_t BIP_Net;
 static uint16_t MSTP_Net;
 /* buffer for receiving packets from the directly connected ports */
-static uint8_t BIP_Rx_Buffer[MAX_MPDU];
-static uint8_t MSTP_Rx_Buffer[MAX_MPDU];
+static uint8_t BIP_Rx_Buffer[BIP_MPDU_MAX];
+static uint8_t MSTP_Rx_Buffer[DLMSTP_MPDU_MAX];
 /* buffer for transmitting from any port */
-static uint8_t Tx_Buffer[MAX_MPDU];
+#define MAX(a,b) (((a)>(b))?(a):(b))
+static uint8_t Tx_Buffer[MAX(DLMSTP_MPDU_MAX,BIP_MPDU_MAX)];
 /* main loop exit control */
 static bool Exit_Requested;
 
@@ -1161,14 +1162,16 @@ int main(int argc, char *argv[])
         /* input */
         current_seconds = time(NULL);
         /* returns 0 bytes on timeout */
-        pdu_len = bip_receive(&src, &BIP_Rx_Buffer[0], MAX_MPDU, 5);
+        pdu_len = bip_receive(&src, &BIP_Rx_Buffer[0],
+            sizeof(BIP_Rx_Buffer), 5);
         /* process */
         if (pdu_len) {
             debug_printf("BACnet/IP Received packet\n");
             my_routing_npdu_handler(BIP_Net, &src, &BIP_Rx_Buffer[0], pdu_len);
         }
         /* returns 0 bytes on timeout */
-        pdu_len = dlmstp_receive(&src, &MSTP_Rx_Buffer[0], MAX_MPDU, 5);
+        pdu_len = dlmstp_receive(&src, &MSTP_Rx_Buffer[0],
+            sizeof(MSTP_Rx_Buffer), 5);
         /* process */
         if (pdu_len) {
             debug_printf("BACnet MS/TP Received packet\n");

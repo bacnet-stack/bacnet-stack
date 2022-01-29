@@ -54,8 +54,8 @@ static DLMSTP_PACKET Transmit_Packet;
 /* local MS/TP port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
-static uint8_t TxBuffer[MAX_MPDU];
-static uint8_t RxBuffer[MAX_MPDU];
+static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
+static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
 /* Timer that indicates line silence - and functions */
 static uint32_t SilenceStartTime;
 static uint32_t TimeBeginPeriod;
@@ -282,7 +282,7 @@ uint16_t MSTP_Get_Send(
     } else {
         destination = MSTP_BROADCAST_ADDRESS;
     }
-    if ((MAX_HEADER + Transmit_Packet.pdu_len) > MAX_MPDU) {
+    if ((MAX_HEADER + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
         return 0;
     }
     /* convert the PDU into the MSTP Frame */
@@ -421,7 +421,7 @@ uint16_t MSTP_Get_Reply(
     } else {
         return 0;
     }
-    if ((MAX_HEADER + Transmit_Packet.pdu_len) > MAX_MPDU) {
+    if ((MAX_HEADER + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
         return 0;
     }
     /* is this the reply to the DER? */
