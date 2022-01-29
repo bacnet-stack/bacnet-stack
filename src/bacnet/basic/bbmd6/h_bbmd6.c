@@ -67,7 +67,7 @@ static uint8_t BVLC6_Function_Code = BVLC6_RESULT;
 static BACNET_IP6_ADDRESS Remote_BBMD;
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
 /* local buffer & length for sending */
-static uint8_t BVLC6_Buffer[MAX_MPDU];
+static uint8_t BVLC6_Buffer[BIP6_MPDU_MAX];
 static uint16_t BVLC6_Buffer_Len;
 /* Broadcast Distribution Table */
 #ifndef MAX_BBMD6_ENTRIES
@@ -281,7 +281,7 @@ int bvlc6_send_pdu(BACNET_ADDRESS *dest,
     unsigned pdu_len)
 {
     BACNET_IP6_ADDRESS bvlc_dest = { { 0 } };
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     uint32_t vmac_src = 0;
     uint32_t vmac_dst = 0;
@@ -403,7 +403,7 @@ static void bbmd6_send_forward_npdu(BACNET_IP6_ADDRESS *address,
     uint8_t *npdu,
     unsigned int npdu_len)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     unsigned i = 0; /* loop counter */
 
@@ -443,7 +443,7 @@ static void bbmd6_send_forward_npdu(BACNET_IP6_ADDRESS *address,
 static int bvlc6_send_result(
     BACNET_IP6_ADDRESS *dest_addr, uint32_t vmac_src, uint16_t result_code)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = bvlc6_encode_result(&mtu[0], sizeof(mtu), vmac_src, result_code);
@@ -465,7 +465,7 @@ static int bvlc6_send_result(
 static int bvlc6_send_address_resolution_ack(
     BACNET_IP6_ADDRESS *dest_addr, uint32_t vmac_src, uint32_t vmac_dst)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = bvlc6_encode_address_resolution_ack(
@@ -489,7 +489,7 @@ static int bvlc6_send_address_resolution_ack(
 static int bvlc6_send_virtual_address_resolution_ack(
     BACNET_IP6_ADDRESS *dest_addr, uint32_t vmac_src, uint32_t vmac_dst)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = bvlc6_encode_virtual_address_resolution_ack(
@@ -1036,7 +1036,7 @@ int bvlc6_register_with_bbmd(BACNET_IP6_ADDRESS *bbmd_addr,
     uint32_t vmac_src,
     uint16_t time_to_live_seconds)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = bvlc6_encode_register_foreign_device(

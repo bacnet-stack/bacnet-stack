@@ -94,7 +94,7 @@ int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     int i = 0; /* counter */
     int bytes = 0;
     BACNET_ADDRESS src = { 0 }; /* source address for npdu */
-    uint8_t mtu[MAX_MPDU] = { 0 }; /* our buffer */
+    uint8_t mtu[ETHERNET_MPDU_MAX] = { 0 }; /* our buffer */
     int mtu_len = 0;
 
     (void)npdu_data;
@@ -130,7 +130,7 @@ int ethernet_send_pdu(BACNET_ADDRESS *dest, /* destination address */
     mtu[15] = 0x82; /* SSAP for BACnet */
     mtu[16] = 0x03; /* Control byte in header */
     mtu_len = 17;
-    if ((mtu_len + pdu_len) > MAX_MPDU) {
+    if ((mtu_len + pdu_len) > ETHERNET_MPDU_MAX) {
         return -4;
     }
     memcpy(&mtu[mtu_len], pdu, pdu_len);
@@ -152,7 +152,7 @@ uint16_t ethernet_receive(BACNET_ADDRESS *src, /* source address */
     unsigned timeout)
 { /* number of milliseconds to wait for a packet */
     int received_bytes;
-    uint8_t buf[MAX_MPDU] = { 0 }; /* data */
+    uint8_t buf[ETHERNET_MPDU_MAX] = { 0 }; /* data */
     uint16_t pdu_len = 0; /* return value */
 
     /* Make sure the socket is open */

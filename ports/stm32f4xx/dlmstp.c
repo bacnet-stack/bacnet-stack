@@ -155,7 +155,7 @@ static volatile uint8_t Nmax_master = 127;
 /* An array of octets, used to store octets for transmitting */
 /* OutputBuffer is indexed from 0 to OutputBufferSize-1. */
 /* The maximum size of a frame is 501 octets. */
-static uint8_t OutputBuffer[MAX_MPDU];
+static uint8_t OutputBuffer[DLMSTP_MPDU_MAX];
 /* Number of bytes pending transmit. 0=nothing pending transmit  */
 uint16_t OutputBufferLength;
 

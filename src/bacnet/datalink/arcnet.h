@@ -32,8 +32,8 @@
 #include "bacnet/npdu.h"
 
 /* specific defines for ARCNET */
-#define MAX_HEADER (1+1+2+2+1+1+1+1)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define ARCNET_HEADER_MAX (1+1+2+2+1+1+1+1)
+#define ARCNET_MPDU_MAX (ARCNET_HEADER_MAX+MAX_PDU)
 
 #ifdef __cplusplus
 extern "C" {

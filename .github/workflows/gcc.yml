@@ -93,6 +93,20 @@ jobs:
         make clean
         make router-mstp
 
+  bip6:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build BACnet/IPv6 Demos
+      run: |
+        gcc --version
+        make clean
+        make bip6
+
   mstp:
     runs-on: ubuntu-latest
     steps:

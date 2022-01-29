@@ -193,7 +193,7 @@ bool ethernet_init(char *if_name)
      */
     /* Open the output device */
     pcap_eth802_fp = pcap_open(if_name, /* name of the device */
-        MAX_MPDU, /* portion of the packet to capture */
+        ETHERNET_MPDU_MAX, /* portion of the packet to capture */
         PCAP_OPENFLAG_PROMISCUOUS, /* promiscuous mode */
         eth_timeout, /* read timeout */
         NULL, /* authentication on the remote machine */
@@ -226,7 +226,7 @@ int ethernet_send(BACNET_ADDRESS *dest, /* destination address */
 )
 {
     int bytes = 0;
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[ETHERNET_MPDU_MAX] = { 0 };
     int mtu_len = 0;
     int i = 0;
 
@@ -256,7 +256,7 @@ int ethernet_send(BACNET_ADDRESS *dest, /* destination address */
         LogError("ethernet.c: invalid source MAC address!\n");
         return -3;
     }
-    if ((14 + 3 + pdu_len) > MAX_MPDU) {
+    if ((14 + 3 + pdu_len) > ETHERNET_MPDU_MAX) {
         LogError("ethernet.c: PDU is too big to send!\n");
         return -4;
     }

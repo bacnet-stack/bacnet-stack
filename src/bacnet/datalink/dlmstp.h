@@ -33,15 +33,15 @@
 
 /* defines specific to MS/TP */
 /* preamble+type+dest+src+len+crc8+crc16 */
-#define MAX_HEADER (2+1+1+1+2+1+2)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define DLMSTP_HEADER_MAX (2+1+1+1+2+1+2)
+#define DLMSTP_MPDU_MAX (DLMSTP_HEADER_MAX+MAX_PDU)
 
 typedef struct dlmstp_packet {
     bool ready; /* true if ready to be sent or received */
     BACNET_ADDRESS address;     /* source address */
     uint8_t frame_type; /* type of message */
     uint16_t pdu_len;   /* packet length */
-    uint8_t pdu[MAX_MPDU];      /* packet */
+    uint8_t pdu[DLMSTP_MPDU_MAX];      /* packet */
 } DLMSTP_PACKET;
 
 #ifdef __cplusplus
@@ -135,12 +135,12 @@ extern "C" {
     bool dlmstp_send_pdu_queue_empty(void);
     BACNET_STACK_EXPORT
     bool dlmstp_send_pdu_queue_full(void);
-    
+
     BACNET_STACK_EXPORT
     uint8_t dlmstp_max_info_frames_limit(void);
     BACNET_STACK_EXPORT
     uint8_t dlmstp_max_master_limit(void);
-    
+
 
 #ifdef __cplusplus
 }
