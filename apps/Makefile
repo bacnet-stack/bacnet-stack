@@ -119,10 +119,12 @@ BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=17
 # put all the flags together
 INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
-LFLAGS += -Wl,$(SYSTEM_LIB)
 ifneq (${BACNET_LIB},)
 LFLAGS += -Wl,$(BACNET_LIB)
 endif
+# BACnet library depends on system flags.
+# System flags must go after BACnet library flags.
+LFLAGS += -Wl,$(SYSTEM_LIB)
 # GCC dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
 LFLAGS += -Wl,--gc-sections
@@ -162,7 +164,7 @@ $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
 lib: lib/Makefile Makefile $(BACNET_LIB_TARGET)
 
 $(BACNET_LIB_TARGET):
-	$(MAKE) -s -b -C lib
+	$(MAKE) -b -C lib
 
 .PHONY: gateway
 gateway: $(BACNET_LIB_TARGET)
@@ -222,11 +224,11 @@ ptransfer: $(BACNET_LIB_TARGET)
 
 .PHONY: readprop
 readprop: $(BACNET_LIB_TARGET)
-	$(MAKE) -s -b -C $@
+	$(MAKE) -b -C $@
 
 .PHONY: readpropm
 readpropm: $(BACNET_LIB_TARGET)
-	$(MAKE) -s -b -C $@
+	$(MAKE) -b -C $@
 
 .PHONY: readbdt
 readbdt: $(BACNET_LIB_TARGET)
@@ -258,11 +260,11 @@ server: $(BACNET_LIB_TARGET)
 
 .PHONY: timesync
 timesync: $(BACNET_LIB_TARGET)
-	$(MAKE) -s -b -C $@
+	$(MAKE) -b -C $@
 
 .PHONY: uevent
 uevent: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -C $@
 
 .PHONY: whois
 whois: $(BACNET_LIB_TARGET)
@@ -278,7 +280,7 @@ writefile: $(BACNET_LIB_TARGET)
 
 .PHONY: router
 router: $(BACNET_LIB_TARGET)
-	$(MAKE) -s -b -C $@
+	$(MAKE) -b -C $@
 
 .PHONY: router-ipv6
 router-ipv6: $(BACNET_LIB_TARGET)

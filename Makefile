@@ -23,19 +23,19 @@ mstpwin32:
 
 .PHONY: mstp
 mstp:
-	$(MAKE) BACDL=mstp -C apps all
+	$(MAKE) BACDL=mstp -s -C apps all
 
 .PHONY: bip6-win32
 bip6-win32:
-	$(MAKE) BACDL=bip6 BACNET_PORT=win32 -C apps all
+	$(MAKE) BACDL=bip6 BACNET_PORT=win32 -s -C apps all
 
 .PHONY: bip6
 bip6:
-	$(MAKE) BACDL=bip6 -C apps all
+	$(MAKE) BACDL=bip6 -s -C apps all
 
 .PHONY: ethernet
 ethernet:
-	$(MAKE) BACDL=ethernet -C apps all
+	$(MAKE) BACDL=ethernet -s -C apps all
 
 .PHONY: apps
 apps:
@@ -93,7 +93,7 @@ gateway:
 
 .PHONY: gateway-win32
 gateway-win32:
-	$(MAKE) BACNET_PORT=win32 -C apps gateway
+	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
 
 .PHONY: readbdt
 readbdt:
@@ -125,7 +125,7 @@ uevent:
 
 .PHONY: whois
 whois:
-	$(MAKE) -C apps $@
+	$(MAKE) -s -C apps $@
 
 .PHONY: writepropm
 writepropm:
@@ -158,11 +158,11 @@ at91sam7s: ports/at91sam7s/Makefile
 
 .PHONY: stm32f10x
 stm32f10x: ports/stm32f10x/Makefile
-	$(MAKE) -C ports/stm32f10x clean all
+	$(MAKE) -s -C ports/stm32f10x clean all
 
 .PHONY: stm32f4xx
 stm32f4xx: ports/stm32f4xx/Makefile
-	$(MAKE) -C ports/stm32f4xx clean all
+	$(MAKE) -s -C ports/stm32f4xx clean all
 
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
