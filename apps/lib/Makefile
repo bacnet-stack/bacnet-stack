@@ -100,6 +100,12 @@ BACNET_BASIC_SRC ?= \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c
 
+# build in uci integration - use UCI=1 when invoking make
+ifeq (${UCI},1)
+BACNET_BASIC_SRC += \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/ucix/*.c)
+endif
+
 SRCS := $(BACNET_SRC) $(BACNET_BASIC_SRC) $(BACNET_PORT_SRC)
 
 OBJS = ${SRCS:.c=.o}
