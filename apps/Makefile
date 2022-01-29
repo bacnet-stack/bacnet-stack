@@ -127,7 +127,11 @@ endif
 LFLAGS += -Wl,$(SYSTEM_LIB)
 # GCC dead code removal
 CFLAGS += -ffunction-sections -fdata-sections
+ifeq ($(shell uname -s),Darwin)
+LFLAGS += -Wl,-dead_strip
+else
 LFLAGS += -Wl,--gc-sections
+endif
 
 .EXPORT_ALL_VARIABLES:
 
