@@ -11,15 +11,15 @@ all: apps
 
 .PHONY: bsd
 bsd:
-	$(MAKE) BACNET_PORT=bsd -C apps all
+	$(MAKE) BACNET_PORT=bsd -s -C apps all
 
 .PHONY: win32
 win32:
-	$(MAKE) BACNET_PORT=win32 -C apps all
+	$(MAKE) BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mstpwin32
 mstpwin32:
-	$(MAKE) BACDL=mstp BACNET_PORT=win32 -C apps all
+	$(MAKE) BACDL=mstp BACNET_PORT=win32 -s -C apps all
 
 .PHONY: mstp
 mstp:
@@ -148,29 +148,52 @@ router-mstp:
 ports:	atmega168 bdk-atxx4-mstp at91sam7s stm32f10x
 	@echo "Built the ARM7 and AVR ports"
 
+.PHONY: ports-clean
+ports-clean: atmega168-clean bdk-atxx4-mstp-clean at91sam7s-clean stm32f10x-clean
+
 .PHONY: atmega168
 atmega168: ports/atmega168/Makefile
 	$(MAKE) -s -C ports/atmega168 clean all
 
+.PHONY: atmega168-clean
+atmega168-clean: ports/atmega168/Makefile
+	$(MAKE) -s -C ports/atmega168 clean
+
+.PHONY: bdk-atxx4-mstp
+bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
+	$(MAKE) -s -C ports/bdk-atxx4-mstp clean all
+
+.PHONY: bdk-atxx4-mstp-clean
+bdk-atxx4-mstp-clean: ports/bdk-atxx4-mstp/Makefile
+	$(MAKE) -s -C ports/bdk-atxx4-mstp clean
+
 .PHONY: at91sam7s
 at91sam7s: ports/at91sam7s/Makefile
-	$(MAKE) -C ports/at91sam7s clean all
+	$(MAKE) -s -C ports/at91sam7s clean all
+
+.PHONY: at91sam7s-clean
+at91sam7s-clean: ports/at91sam7s/Makefile
+	$(MAKE) -s -C ports/at91sam7s clean
 
 .PHONY: stm32f10x
 stm32f10x: ports/stm32f10x/Makefile
 	$(MAKE) -s -C ports/stm32f10x clean all
 
+.PHONY: stm32f10x-clean
+stm32f10x-clean: ports/stm32f10x/Makefile
+	$(MAKE) -s -C ports/stm32f10x clean
+
 .PHONY: stm32f4xx
 stm32f4xx: ports/stm32f4xx/Makefile
 	$(MAKE) -s -C ports/stm32f4xx clean all
 
+.PHONY: stm32f4xx-clean
+stm32f4xx-clean: ports/stm32f4xx/Makefile
+	$(MAKE) -s -C ports/stm32f4xx clean
+
 .PHONY: mstpsnap
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
-
-.PHONY: bdk-atxx4-mstp
-bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
-	$(MAKE) -s -C ports/bdk-atxx4-mstp clean all
 
 .PHONY: pretty
 pretty:
@@ -208,7 +231,7 @@ cppcheck:
 	cppcheck $(CPPCHECK_OPTIONS) --quiet --force ./src/
 
 .PHONY: clean
-clean:
+clean: ports-clean
 	$(MAKE) -s -C src clean
 	$(MAKE) -s -C apps clean
 	$(MAKE) -s -C apps/router clean
