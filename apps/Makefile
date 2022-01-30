@@ -106,8 +106,6 @@ BACNET_DEFINES += -DBIP_DEBUG
 endif
 endif
 
-# If BACNET_DEFINES has not already been set, configure to your needs here
-BACNET_DEFINES ?=
 BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
 BACNET_DEFINES += -DBACFILE
