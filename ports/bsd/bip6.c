@@ -427,7 +427,7 @@ bool bip6_init(char *ifname)
     if (ifname) {
         bip6_set_interface(ifname);
     } else {
-        bip6_set_interface("eth0");
+        bip6_set_interface("en0");
     }
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
