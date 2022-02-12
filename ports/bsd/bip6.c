@@ -96,7 +96,7 @@ void bip6_debug_enable(void)
     BIP6_Debug = true;
 }
 
-/** @file linux/bip6.c  Initializes BACnet/IPv6 interface (Linux). */
+/** @file bsd/bip6.c  Initializes BACnet/IPv6 interface (BSD). */
 
 /* unix socket */
 static int BIP6_Socket = -1;
@@ -105,7 +105,7 @@ static BACNET_IP6_ADDRESS BIP6_Addr;
 static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
 
 /**
- * Set the interface name. On Linux, ifname is the /dev/ name of the interface.
+ * Set the interface name. On BSD, ifname is the /dev/ name of the interface.
  *
  * @param ifname - C string for name or text address
  */
@@ -409,10 +409,10 @@ void bip6_cleanup(void)
  * -# Binds the socket to the local IP address at the specified port for
  *    BACnet/IPv6 (by default, 0xBAC0 = 47808).
  *
- * @note For Linux, ifname is eth0, ath0, arc0, and others.
+ * @note For BSD, ifname is en0, e0, and others.
  *
  * @param ifname [in] The named interface to use for the network layer.
- *        If NULL, the "eth0" interface is assigned.
+ *        If NULL, the "en0" interface is assigned.
  * @return True if the socket is successfully opened for BACnet/IP,
  *         else False if the socket functions fail.
  */
