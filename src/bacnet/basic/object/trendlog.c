@@ -147,7 +147,7 @@ void Trend_Log_Init(void)
     static bool initialized = false;
     int iLog;
     int iEntry;
-    struct tm TempTime;
+    struct tm TempTime = {0};
     time_t tClock;
 
     if (!initialized) {
@@ -924,7 +924,7 @@ bool TL_Is_Enabled(int iLog)
 
 time_t TL_BAC_Time_To_Local(BACNET_DATE_TIME *SourceTime)
 {
-    struct tm LocalTime;
+    struct tm LocalTime = {0};
     int iTemp;
 
     LocalTime.tm_year =
