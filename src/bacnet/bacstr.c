@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <ctype.h>
 #include "bacnet/config.h"
 #include "bacnet/bacstr.h"
@@ -56,6 +57,14 @@ size_t	 strnlen (const char *, size_t);
 #define BACNET_STRING_UTF8_VALIDATION 1
 #endif
 
+/* check the limits of bitstring capacity */
+#if ((MAX_BITSTRING_BYTES * 8) > (UINT8_MAX+1))
+#error "MAX_BITSTRING_BYTES cannot exceed 32!"
+#endif
+#if (((MAX_BITSTRING_BYTES * 8) > UINT8_MAX) && (UINT_MAX <= UINT8_MAX))
+#error "MAX_BITSTRING_BYTES cannot exceed 31!"
+#endif
+
 /**
  * Initialize a bit string.
  *
@@ -63,7 +72,7 @@ size_t	 strnlen (const char *, size_t);
  */
 void bitstring_init(BACNET_BIT_STRING *bit_string)
 {
-    int i;
+    unsigned i;
 
     if (bit_string) {
         bit_string->bits_used = 0;
@@ -83,7 +92,7 @@ void bitstring_init(BACNET_BIT_STRING *bit_string)
 void bitstring_set_bit(
     BACNET_BIT_STRING *bit_string, uint8_t bit_number, bool value)
 {
-    uint8_t byte_number = bit_number / 8;
+    unsigned byte_number = bit_number / 8;
     uint8_t bit_mask = 1;
 
     if (bit_string) {
@@ -114,7 +123,7 @@ void bitstring_set_bit(
 bool bitstring_bit(BACNET_BIT_STRING *bit_string, uint8_t bit_number)
 {
     bool value = false;
-    uint8_t byte_number = bit_number / 8;
+    unsigned byte_number = bit_number / 8;
     uint8_t bit_mask = 1;
 
     if (bit_string) {
@@ -166,12 +175,12 @@ uint8_t bitstring_bytes_used(BACNET_BIT_STRING *bit_string)
 }
 
 /**
- * Returns an octed at the given bit position.
+ * Returns an octet at the given bit position.
  *
  * @param bit_string  Pointer to the bit string structure.
- * @param octet_index Byte index of the octed [0..MAX_BITSTRING_BYTES-1]
+ * @param octet_index Byte index of the octet [0..MAX_BITSTRING_BYTES-1]
  *
- * @return Value of the octed.
+ * @return Value of the octet.
  */
 uint8_t bitstring_octet(BACNET_BIT_STRING *bit_string, uint8_t octet_index)
 {
@@ -187,10 +196,10 @@ uint8_t bitstring_octet(BACNET_BIT_STRING *bit_string, uint8_t octet_index)
 }
 
 /**
- * Set an octed at the given bit position.
+ * Set an octet at the given bit position.
  *
  * @param bit_string  Pointer to the bit string structure.
- * @param index Byte index of the octed [0..MAX_BITSTRING_BYTES-1]
+ * @param index Byte index of the octet [0..MAX_BITSTRING_BYTES-1]
  * @param octet Octet value
  *
  * @return true on success, false otherwise.
@@ -238,16 +247,20 @@ bool bitstring_set_bits_used(
 }
 
 /**
- * Return the capcity of the bit string.
+ * Return the capacity of the bit string.
  *
  * @param bit_string  Pointer to the bit string structure.
  *
  * @return Capacitiy in bits [0..(MAX_BITSTRING_BYTES*8)]
  */
-uint8_t bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
+unsigned bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
 {
     if (bit_string) {
-        return (MAX_BITSTRING_BYTES * 8);
+        if ((MAX_BITSTRING_BYTES * 8) <= (UINT8_MAX+1)) {
+            return (MAX_BITSTRING_BYTES * 8);
+        } else {
+            return (UINT8_MAX+1);
+        }
     } else {
         return 0;
     }
@@ -342,7 +355,7 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
             status = true;
         } else {
             while (ascii[index] != 0) {
-                if (bit_number > bitstring_bits_capacity(bit_string)) {
+                if (bit_number >= bitstring_bits_capacity(bit_string)) {
                     /* too long of a string */
                     status = false;
                     break;
@@ -938,13 +951,13 @@ bool characterstring_valid(BACNET_CHARACTER_STRING *char_string)
 
 #if BACNET_USE_OCTETSTRING
 /**
- * @brief Initialize an octed string with the given bytes or
+ * @brief Initialize an octet string with the given bytes or
  * zeros, if NULL for the value is provided.
  *
- * @param octet_string  Pointer to the octed string.
- * @param value  Pointer to the bytes to be copied to the octed
- *               string or NULL to initialize the octed string.
- * @param length  Count of bytes used to fill the octed string.
+ * @param octet_string  Pointer to the octet string.
+ * @param value  Pointer to the bytes to be copied to the octet
+ *               string or NULL to initialize the octet string.
+ * @param length  Count of bytes used to fill the octet string.
  *
  * @return true on success, false if the string exceeds capacity.
  */
@@ -979,7 +992,7 @@ bool octetstring_init(
 
 /** @brief Converts an null terminated ASCII Hex string to an octet string.
  *
- * @param octet_string  Pointer to the octed string.
+ * @param octet_string  Pointer to the octet string.
  * @param ascii_hex  Pointer to the HEx-ASCII string.
  *
  * @return true if successfully converted and fits; false if too long */
@@ -1028,10 +1041,10 @@ bool octetstring_init_ascii_hex(
 }
 
 /**
- * Copy an octed string from source to destination.
+ * Copy an octet string from source to destination.
  *
- * @param dest  Pointer to the destination octed string.
- * @param src   Pointer to the source octed string.
+ * @param dest  Pointer to the destination octet string.
+ * @param src   Pointer to the source octet string.
  *
  * @return true on success, false otherwise.
  */
@@ -1042,12 +1055,12 @@ bool octetstring_copy(BACNET_OCTET_STRING *dest, BACNET_OCTET_STRING *src)
 }
 
 /**
- * @brief Copy bytes from the octed string to a byte buffer.
+ * @brief Copy bytes from the octet string to a byte buffer.
  *
  * @param dest    Pointer to the byte buffer.
  * @param length  Bytes to be copied from the
- *                octed string to the buffer.
- * @param src     Pointer to the octed string.
+ *                octet string to the buffer.
+ * @param src     Pointer to the octet string.
  *
  * @return Returns the number of bytes copied, or 0 if
  * the dest cannot hold entire octetstring value.
@@ -1071,9 +1084,9 @@ size_t octetstring_copy_value(
 }
 
 /**
- * @brief Append bytes to the end of the octed string.
+ * @brief Append bytes to the end of the octet string.
  *
- * @param octet_string  Pointer to the octed string.
+ * @param octet_string  Pointer to the octet string.
  * @param value    Pointer to the byte buffer to be appended.
  * @param length  Bytes to be appended.
  *
@@ -1103,8 +1116,8 @@ bool octetstring_append(
  * If length exceeds capacity, no modification happens and the
  * function returns false.
  *
- * @param octet_string  Pointer to the octed string.
- * @param length  New length the octed string is trucated to.
+ * @param octet_string  Pointer to the octet string.
+ * @param length  New length the octet string is trucated to.
  *
  * @return tur on success, false otherwise.
  */
@@ -1124,9 +1137,9 @@ bool octetstring_truncate(BACNET_OCTET_STRING *octet_string, size_t length)
 
 /**
  * @brief Returns a pointer to the value (data) of
- * the given octed string.
+ * the given octet string.
  *
- * @param octet_string  Pointer to the octed string.
+ * @param octet_string  Pointer to the octet string.
  *
  * @return Value as a pointer to a byte array or NULL on error.
  */
@@ -1143,9 +1156,9 @@ uint8_t *octetstring_value(BACNET_OCTET_STRING *octet_string)
 
 /**
  * @brief Returns the length in bytes of
- * the given octed string.
+ * the given octet string.
  *
- * @param octet_string  Pointer to the octed string.
+ * @param octet_string  Pointer to the octet string.
  *
  * @return Length in bytes. Returns always 0 on error.
  */
@@ -1165,9 +1178,9 @@ size_t octetstring_length(BACNET_OCTET_STRING *octet_string)
 }
 
 /**
- * @brief Returns the maximum capacity of an octed string.
+ * @brief Returns the maximum capacity of an octet string.
  *
- * @param octet_string  Pointer to the octed string.
+ * @param octet_string  Pointer to the octet string.
  *
  * @return Capacity in bytes. Returns always 0 on error.
  */
@@ -1185,10 +1198,10 @@ size_t octetstring_capacity(BACNET_OCTET_STRING *octet_string)
 /**
  * @brief Returns true if the same length and contents.
  *
- * @param octet_string1  Pointer to the first octed string.
- * @param octet_string2  Pointer to the second octed string.
+ * @param octet_string1  Pointer to the first octet string.
+ * @param octet_string2  Pointer to the second octet string.
  *
- * @return true if the octed strings are the same, false otherwise.
+ * @return true if the octet strings are the same, false otherwise.
  */
 bool octetstring_value_same(
     BACNET_OCTET_STRING *octet_string1, BACNET_OCTET_STRING *octet_string2)
