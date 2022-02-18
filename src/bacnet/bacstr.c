@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <ctype.h>
 #include "bacnet/config.h"
 #include "bacnet/bacstr.h"
@@ -56,6 +57,14 @@ size_t	 strnlen (const char *, size_t);
 #define BACNET_STRING_UTF8_VALIDATION 1
 #endif
 
+/* check the limits of bitstring capacity */
+#if ((MAX_BITSTRING_BYTES * 8) > (UINT8_MAX+1))
+#error "MAX_BITSTRING_BYTES cannot exceed 32!"
+#endif
+#if (((MAX_BITSTRING_BYTES * 8) > UINT8_MAX) && (UINT_MAX <= UINT8_MAX))
+#error "MAX_BITSTRING_BYTES cannot exceed 31!"
+#endif
+
 /**
  * Initialize a bit string.
  *
@@ -63,7 +72,7 @@ size_t	 strnlen (const char *, size_t);
  */
 void bitstring_init(BACNET_BIT_STRING *bit_string)
 {
-    int i;
+    unsigned i;
 
     if (bit_string) {
         bit_string->bits_used = 0;
@@ -83,7 +92,7 @@ void bitstring_init(BACNET_BIT_STRING *bit_string)
 void bitstring_set_bit(
     BACNET_BIT_STRING *bit_string, uint8_t bit_number, bool value)
 {
-    uint8_t byte_number = bit_number / 8;
+    unsigned byte_number = bit_number / 8;
     uint8_t bit_mask = 1;
 
     if (bit_string) {
@@ -114,7 +123,7 @@ void bitstring_set_bit(
 bool bitstring_bit(BACNET_BIT_STRING *bit_string, uint8_t bit_number)
 {
     bool value = false;
-    uint8_t byte_number = bit_number / 8;
+    unsigned byte_number = bit_number / 8;
     uint8_t bit_mask = 1;
 
     if (bit_string) {
@@ -242,15 +251,15 @@ bool bitstring_set_bits_used(
  *
  * @param bit_string  Pointer to the bit string structure.
  *
- * @return Capacitiy in bits [0..(MAX_BITSTRING_BYTES*8)-1]
+ * @return Capacitiy in bits [0..(MAX_BITSTRING_BYTES*8)]
  */
-uint8_t bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
+unsigned bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
 {
     if (bit_string) {
-        if (((MAX_BITSTRING_BYTES * 8)-1) <= UINT8_MAX) {
-            return (MAX_BITSTRING_BYTES * 8)-1;
+        if ((MAX_BITSTRING_BYTES * 8) <= (UINT8_MAX+1)) {
+            return (MAX_BITSTRING_BYTES * 8);
         } else {
-            return UINT8_MAX;
+            return (UINT8_MAX+1);
         }
     } else {
         return 0;
@@ -346,7 +355,7 @@ bool bitstring_init_ascii(BACNET_BIT_STRING *bit_string, const char *ascii)
             status = true;
         } else {
             while (ascii[index] != 0) {
-                if (bit_number > bitstring_bits_capacity(bit_string)) {
+                if (bit_number >= bitstring_bits_capacity(bit_string)) {
                     /* too long of a string */
                     status = false;
                     break;
