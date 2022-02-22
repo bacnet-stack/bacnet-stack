@@ -157,16 +157,18 @@ extern "C" {
     /* needs to monitor traffic on the MS/TP bus */
     /* The specified callback function should execute quickly so as to avoid */
     /* interfering with bus timing */
+    BACNET_STACK_EXPORT
     void dlmstp_set_frame_rx_complete_callback(
         dlmstp_hook_frame_rx_compl_cb cb_func);
 
-    /* Set the callback function to be called on every time the start of a */
+    /* Set the callback function to be called every time the start of a */
     /* frame is detected.  This is not necessary for normal usage, but is */
     /* helpful if the caller needs to know when a frame begins for timing */
     /* (timing is heavily dependent upon baud rate and the period with */
     /* which dlmstp_receive is called) */
     /* The specified callback function should execute quickly so as to avoid */
     /* interfering with bus timing */
+    BACNET_STACK_EXPORT
     void dlmstp_set_frame_rx_start_callback(
         dlmstp_hook_frame_rx_start_cb cb_func);
 
