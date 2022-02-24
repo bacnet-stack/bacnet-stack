@@ -121,19 +121,25 @@ static uint8_t Nmax_master = 127;
 
 /* The time without a DataAvailable or ReceiveError event before declaration */
 /* of loss of token: 500 milliseconds. */
+#ifndef Tno_token
 #define Tno_token 500
+#endif
 
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
+#ifndef Treply_timeout
 #define Treply_timeout 260
+#endif
 
 /* The time without a DataAvailable or ReceiveError event that a node must */
 /* wait for a remote node to begin using a token or replying to a Poll For */
 /* Master frame: 20 milliseconds. (Implementations may use larger values for */
 /* this timeout, not to exceed 35 milliseconds.) */
+#ifndef Tusage_timeout
 #define Tusage_timeout 30
+#endif
 
 /* The number of tokens received or used before a Poll For Master cycle */
 /* is executed: 50. */
@@ -166,7 +172,9 @@ static uint8_t Nmax_master = 127;
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
+#ifndef Treply_delay
 #define Treply_delay 250
+#endif
 
 /* The width of the time slot within which a node may generate a token: */
 /* 10 milliseconds. */
@@ -175,7 +183,9 @@ static uint8_t Nmax_master = 127;
 /* The maximum time a node may wait after reception of the token or */
 /* a Poll For Master frame before sending the first octet of a frame: */
 /* 15 milliseconds. */
+#ifndef Tusage_delay
 #define Tusage_delay 15
+#endif
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) \
