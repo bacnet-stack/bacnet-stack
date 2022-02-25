@@ -48,7 +48,7 @@ typedef struct dlmstp_packet {
 typedef void (*dlmstp_hook_frame_rx_start_cb)();
 
 /* callback on for receiving every valid frame */
-typedef void (*dlmstp_hook_frame_rx_compl_cb)(
+typedef void (*dlmstp_hook_frame_rx_complete_cb)(
     uint8_t src,
     uint8_t dest,
     uint8_t mstp_msg_type,
@@ -159,7 +159,7 @@ extern "C" {
     /* interfering with bus timing */
     BACNET_STACK_EXPORT
     void dlmstp_set_frame_rx_complete_callback(
-        dlmstp_hook_frame_rx_compl_cb cb_func);
+        dlmstp_hook_frame_rx_complete_cb cb_func);
 
     /* Set the callback function to be called every time the start of a */
     /* frame is detected.  This is not necessary for normal usage, but is */

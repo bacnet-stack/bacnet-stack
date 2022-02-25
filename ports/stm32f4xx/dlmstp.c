@@ -179,7 +179,7 @@ static RING_BUFFER PDU_Queue;
 static dlmstp_hook_frame_rx_start_cb PreamCallback = NULL;
 
 /* Callback function to be called every time we receive a frame */
-static dlmstp_hook_frame_rx_compl_cb FrameRxCallback = NULL;
+static dlmstp_hook_frame_rx_complete_cb FrameRxCallback = NULL;
 
 bool dlmstp_init(char *ifname)
 {
@@ -1531,7 +1531,7 @@ uint8_t dlmstp_max_master_limit(void)
     return 127;
 }
 
-void dlmstp_set_frame_rx_complete_callback(dlmstp_hook_frame_rx_compl_cb cb_func)
+void dlmstp_set_frame_rx_complete_callback(dlmstp_hook_frame_rx_complete_cb cb_func)
 {
   FrameRxCallback = cb_func;
 }
