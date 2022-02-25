@@ -105,25 +105,6 @@
 #define Tframe_abort 30
 #endif
 
-/* The maximum idle time a sending node may allow to elapse between octets */
-/* of a frame the node is transmitting: 20 bit times. */
-#ifndef Tframe_gap
-#define Tframe_gap 20
-#endif
-
-/* The time without a DataAvailable or ReceiveError event before declaration */
-/* of loss of token: 500 milliseconds. */
-#ifndef Tno_token
-#define Tno_token 500
-#endif
-
-/* The maximum time after the end of the stop bit of the final */
-/* octet of a transmitted frame before a node must disable its */
-/* EIA-485 driver: 15 bit times. */
-#ifndef Tpostdrive
-#define Tpostdrive 15
-#endif
-
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
@@ -146,19 +127,6 @@
 /* will enter the IDLE state: 29 bit times < Troff < 40 bit times. */
 #ifndef Troff
 #define Troff 30
-#endif
-
-/* The width of the time slot within which a node may generate a token: */
-/* 10 milliseconds. */
-#ifndef Tslot
-#define Tslot 10
-#endif
-
-/* The maximum time a node may wait after reception of the token or */
-/* a Poll For Master frame before sending the first octet of a frame: */
-/* 15 milliseconds. */
-#ifndef Tusage_delay
-#define Tusage_delay 15
 #endif
 
 /* The minimum time without a DataAvailable or ReceiveError event that a */

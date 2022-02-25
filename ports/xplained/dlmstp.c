@@ -123,12 +123,6 @@ static volatile uint8_t Nmax_info_frames = MSTP_PDU_PACKET_COUNT;
 /* its value shall be 127. */
 static volatile uint8_t Nmax_master = 127;
 
-/* The time without a DataAvailable or ReceiveError event before declaration */
-/* of loss of token: 500 milliseconds. */
-#ifndef Tno_token
-#define Tno_token 500
-#endif
-
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
@@ -164,19 +158,6 @@ static volatile uint8_t Nmax_master = 127;
 /* frame: 250 milliseconds. */
 #ifndef Treply_delay
 #define Treply_delay (250 - 50)
-#endif
-
-/* The width of the time slot within which a node may generate a token: */
-/* 10 milliseconds. */
-#ifndef Tslot
-#define Tslot 10
-#endif
-
-/* The maximum time a node may wait after reception of the token or */
-/* a Poll For Master frame before sending the first octet of a frame: */
-/* 15 milliseconds. */
-#ifndef Tusage_delay
-#define Tusage_delay 15
 #endif
 
 /* we need to be able to increment without rolling over */
