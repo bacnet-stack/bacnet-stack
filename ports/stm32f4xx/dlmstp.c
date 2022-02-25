@@ -176,10 +176,10 @@ static volatile struct dlmstp_packet PDU_Buffer[MSTP_PDU_PACKET_COUNT];
 static RING_BUFFER PDU_Queue;
 
 /* Callback function to be called every time we receive a preamble */
-static dlmstp_hook_frame_rx_start_cb PreamCallback = NULL;
+static dlmstp_hook_frame_rx_start_cb Preamble_Callback = NULL;
 
 /* Callback function to be called every time we receive a frame */
-static dlmstp_hook_frame_rx_complete_cb FrameRxCallback = NULL;
+static dlmstp_hook_frame_rx_complete_cb Frame_Rx_Callback = NULL;
 
 bool dlmstp_init(char *ifname)
 {
@@ -450,8 +450,8 @@ static void MSTP_Receive_Frame_FSM(void)
                     Receive_State = MSTP_RECEIVE_STATE_PREAMBLE;
 
                     /* if a frame-start callback was provided, call it */
-                    if (PreamCallback != NULL) {
-                      PreamCallback();
+                    if (Preamble_Callback != NULL) {
+                        Preamble_Callback();
                     }
                 }
             }
@@ -563,9 +563,12 @@ static void MSTP_Receive_Frame_FSM(void)
                                 /* NotForUs */
                                 MSTP_Flag.ReceivedValidFrameNotForUs = true;
                             }
-                            /* if a frame-receipt callback was provided, call it for this frame */
-                            if (FrameRxCallback != NULL) {
-                              FrameRxCallback(SourceAddress, DestinationAddress, FrameType, InputBuffer, DataLength);
+                            /* if a frame-receipt callback was provided, call */
+                            /* it for this frame */
+                            if (Frame_Rx_Callback != NULL) {
+                                Frame_Rx_Callback(SourceAddress,
+                                    DestinationAddress, FrameType, InputBuffer,
+                                    DataLength);
                             }
                             /* wait for the start of the next frame. */
                             Receive_State = MSTP_RECEIVE_STATE_IDLE;
@@ -645,9 +648,11 @@ static void MSTP_Receive_Frame_FSM(void)
                             /* NotForUs */
                             MSTP_Flag.ReceivedValidFrameNotForUs = true;
                         }
-                        /* if a frame-receipt callback was provided, call it for this frame */
-                        if (FrameRxCallback != NULL) {
-                          FrameRxCallback(SourceAddress, DestinationAddress, FrameType, InputBuffer, DataLength);
+                        /* if a frame-receipt callback was provided, call it */
+                        /* for this frame */
+                        if (Frame_Rx_Callback != NULL) {
+                            Frame_Rx_Callback(SourceAddress, DestinationAddress,
+                                FrameType, InputBuffer, DataLength);
                         }
 
                     } else {
@@ -1531,12 +1536,13 @@ uint8_t dlmstp_max_master_limit(void)
     return 127;
 }
 
-void dlmstp_set_frame_rx_complete_callback(dlmstp_hook_frame_rx_complete_cb cb_func)
+void dlmstp_set_frame_rx_complete_callback(
+    dlmstp_hook_frame_rx_complete_cb cb_func)
 {
-  FrameRxCallback = cb_func;
+    Frame_Rx_Callback = cb_func;
 }
 
 void dlmstp_set_frame_rx_start_callback(dlmstp_hook_frame_rx_start_cb cb_func)
 {
-  PreamCallback = cb_func;
+    Preamble_Callback = cb_func;
 }
