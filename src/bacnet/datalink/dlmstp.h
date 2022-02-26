@@ -44,6 +44,17 @@ typedef struct dlmstp_packet {
     uint8_t pdu[DLMSTP_MPDU_MAX];      /* packet */
 } DLMSTP_PACKET;
 
+/* callback to signify the receipt of a preamble */
+typedef void (*dlmstp_hook_frame_rx_start_cb)();
+
+/* callback on for receiving every valid frame */
+typedef void (*dlmstp_hook_frame_rx_complete_cb)(
+    uint8_t src,
+    uint8_t dest,
+    uint8_t mstp_msg_type,
+    uint8_t * pdu,
+    uint16_t pdu_len);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -141,6 +152,25 @@ extern "C" {
     BACNET_STACK_EXPORT
     uint8_t dlmstp_max_master_limit(void);
 
+    /* Set the callback function to be called on every valid received frame */
+    /* This is not necessary for normal usage, but is helpful if the caller */
+    /* needs to monitor traffic on the MS/TP bus */
+    /* The specified callback function should execute quickly so as to avoid */
+    /* interfering with bus timing */
+    BACNET_STACK_EXPORT
+    void dlmstp_set_frame_rx_complete_callback(
+        dlmstp_hook_frame_rx_complete_cb cb_func);
+
+    /* Set the callback function to be called every time the start of a */
+    /* frame is detected.  This is not necessary for normal usage, but is */
+    /* helpful if the caller needs to know when a frame begins for timing */
+    /* (timing is heavily dependent upon baud rate and the period with */
+    /* which dlmstp_receive is called) */
+    /* The specified callback function should execute quickly so as to avoid */
+    /* interfering with bus timing */
+    BACNET_STACK_EXPORT
+    void dlmstp_set_frame_rx_start_callback(
+        dlmstp_hook_frame_rx_start_cb cb_func);
 
 #ifdef __cplusplus
 }
