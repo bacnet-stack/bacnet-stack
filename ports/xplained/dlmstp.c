@@ -123,21 +123,21 @@ static volatile uint8_t Nmax_info_frames = MSTP_PDU_PACKET_COUNT;
 /* its value shall be 127. */
 static volatile uint8_t Nmax_master = 127;
 
-/* The time without a DataAvailable or ReceiveError event before declaration */
-/* of loss of token: 500 milliseconds. */
-#define Tno_token 500
-
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
+#ifndef Treply_timeout
 #define Treply_timeout 260
+#endif
 
 /* The time without a DataAvailable or ReceiveError event that a node must */
 /* wait for a remote node to begin using a token or replying to a Poll For */
 /* Master frame: 20 milliseconds. (Implementations may use larger values for */
 /* this timeout, not to exceed 35 milliseconds.) */
+#ifndef Tusage_timeout
 #define Tusage_timeout 30
+#endif
 
 /* The minimum number of DataAvailable or ReceiveError events that must be */
 /* seen by a receiving node in order to declare the line "active": 4. */
@@ -149,21 +149,16 @@ static volatile uint8_t Nmax_master = 127;
 /* not to exceed 100 milliseconds.) */
 /* At 9600 baud, 60 bit times would be about 6.25 milliseconds */
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
+#ifndef Tframe_abort
 #define Tframe_abort 30
+#endif
 
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
+#ifndef Treply_delay
 #define Treply_delay (250 - 50)
-
-/* The width of the time slot within which a node may generate a token: */
-/* 10 milliseconds. */
-#define Tslot 10
-
-/* The maximum time a node may wait after reception of the token or */
-/* a Poll For Master frame before sending the first octet of a frame: */
-/* 15 milliseconds. */
-#define Tusage_delay 15
+#endif
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) \

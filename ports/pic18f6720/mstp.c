@@ -101,53 +101,41 @@
 /* not to exceed 100 milliseconds.) */
 /* At 9600 baud, 60 bit times would be about 6.25 milliseconds */
 /* const uint16_t Tframe_abort = 1 + ((1000 * 60) / 9600); */
+#ifndef Tframe_abort
 #define Tframe_abort 30
-
-/* The maximum idle time a sending node may allow to elapse between octets */
-/* of a frame the node is transmitting: 20 bit times. */
-#define Tframe_gap 20
-
-/* The time without a DataAvailable or ReceiveError event before declaration */
-/* of loss of token: 500 milliseconds. */
-#define Tno_token 500
-
-/* The maximum time after the end of the stop bit of the final */
-/* octet of a transmitted frame before a node must disable its */
-/* EIA-485 driver: 15 bit times. */
-#define Tpostdrive 15
+#endif
 
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
 /* note: we always send a reply postponed since a message other than
    the reply may be in the transmit queue */
+#ifndef Treply_delay
 #define Treply_delay 10
+#endif
 
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */
 /* confirmed request: 255 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 300 milliseconds.) */
+#ifndef Treply_timeout
 #define Treply_timeout 255
+#endif
 
 /* Repeater turnoff delay. The duration of a continuous logical one state */
 /* at the active input port of an MS/TP repeater after which the repeater */
 /* will enter the IDLE state: 29 bit times < Troff < 40 bit times. */
+#ifndef Troff
 #define Troff 30
-
-/* The width of the time slot within which a node may generate a token: */
-/* 10 milliseconds. */
-#define Tslot 10
-
-/* The maximum time a node may wait after reception of the token or */
-/* a Poll For Master frame before sending the first octet of a frame: */
-/* 15 milliseconds. */
-#define Tusage_delay 15
+#endif
 
 /* The minimum time without a DataAvailable or ReceiveError event that a */
 /* node must wait for a remote node to begin using a token or replying to */
 /* a Poll For Master frame: 20 milliseconds. (Implementations may use */
 /* larger values for this timeout, not to exceed 100 milliseconds.) */
+#ifndef Tusage_timeout
 #define Tusage_timeout 20
+#endif
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) \

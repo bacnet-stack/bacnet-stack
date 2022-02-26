@@ -134,12 +134,16 @@ static inline void printf_master(const char *format, ...)
 /* The maximum time a node may wait after reception of a frame that expects */
 /* a reply before sending the first octet of a reply or Reply Postponed */
 /* frame: 250 milliseconds. */
+#ifndef Treply_delay
 #define Treply_delay 250
+#endif
 
 /* Repeater turnoff delay. The duration of a continuous logical one state */
 /* at the active input port of an MS/TP repeater after which the repeater */
 /* will enter the IDLE state: 29 bit times < Troff < 40 bit times. */
+#ifndef Troff
 #define Troff 30
+#endif
 
 /* The minimum time without a DataAvailable or ReceiveError event */
 /* that a node must wait for a station to begin replying to a */
