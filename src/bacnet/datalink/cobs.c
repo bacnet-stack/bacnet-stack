@@ -50,7 +50,7 @@ size_t cobs_crc32k_encode(uint8_t *buffer, size_t buffer_size, uint32_t crc)
 /**
  * @brief Accumulate "dataValue" into the CRC in "crc32kValue".
  * @param dataValue new data value equivalent to one octet.
- * @param crc32kValue accumulated alue equivalent to four octets.
+ * @param crc32kValue accumulated value equivalent to four octets.
  * @return value is updated CRC.
  * @note This function is copied directly from the BACnet standard.
  */

@@ -30,5 +30,15 @@ jobs:
         sudo apt-get install -qq cppcheck
     - name: cppcheck
       run: make clean cppcheck
-
+      
+  codespell:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq codespell
+    - name: codespell
+      run: make spell
 

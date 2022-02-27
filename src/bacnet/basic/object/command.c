@@ -682,7 +682,7 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 for (i = 0; i < MAX_COMMAND_ACTIONS; i++) {
                     BACNET_ACTION_LIST *Curr_CL_Member =
                         &CurrentCommand->Action[0];
-                    /* another loop, for aditional actions in the list */
+                    /* another loop, for additional actions in the list */
                     for (; Curr_CL_Member != NULL;
                          Curr_CL_Member = Curr_CL_Member->next) {
                         len = cl_encode_apdu(
@@ -703,7 +703,7 @@ int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 if (rpdata->array_index < MAX_COMMAND_ACTIONS) {
                     BACNET_ACTION_LIST *Curr_CL_Member =
                         &CurrentCommand->Action[rpdata->array_index];
-                    /* another loop, for aditional actions in the list */
+                    /* another loop, for additional actions in the list */
                     for (; Curr_CL_Member != NULL;
                          Curr_CL_Member = Curr_CL_Member->next) {
                         len = cl_encode_apdu(

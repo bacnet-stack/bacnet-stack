@@ -355,7 +355,7 @@ static uint16_t bbmd_bdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
     /* If we are forwarding an original broadcast message and the NAT
      * handling is enabled, change the source address to NAT routers
      * global IP address so the recipient can reply (local IP address
-     * is not accesible from internet side.
+     * is not accessible from internet side.
      *
      * If we are forwarding a message from peer BBMD or foreign device
      * or the NAT handling is disabled, leave the source address as is.
@@ -420,7 +420,7 @@ static uint16_t bbmd_fdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
     /* If we are forwarding an original broadcast message and the NAT
      * handling is enabled, change the source address to NAT routers
      * global IP address so the recipient can reply (local IP address
-     * is not accesible from internet side.
+     * is not accessible from internet side.
      *
      * If we are forwarding a message from peer BBMD or foreign device
      * or the NAT handling is disabled, leave the source address as is.

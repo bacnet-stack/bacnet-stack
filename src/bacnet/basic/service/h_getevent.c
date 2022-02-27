@@ -169,7 +169,7 @@ void handler_get_event_information(uint8_t *service_request,
                         (apdu_len >= MAX_APDU - 2)) {
                         /* Device must be able to fit minimum
                            one event information.
-                           Length of one event informations needs
+                           Length of one event information needs
                            more than 50 octets. */
                         if ((service_data->max_resp < 128) ||
                             (MAX_APDU < 128)) {

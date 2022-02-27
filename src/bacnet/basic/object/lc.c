@@ -867,8 +867,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
-    BACNET_DATE
-    TempDate; /* build here in case of error in time half of datetime */
+    /* build here in case of error in time half of datetime */
+    BACNET_DATE start_date; 
 
     PRINTF("Load_Control_Write_Property(wp_data=%p)\n", wp_data);
     if (wp_data == NULL) {
@@ -954,7 +954,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 break;
             }
             /* Hold the date until we are sure the time is also there */
-            TempDate = value.type.Date;
+            start_date = value.type.Date;
             len =
                 bacapp_decode_application_data(wp_data->application_data + len,
                     wp_data->application_data_len - len, &value);
@@ -963,7 +963,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     BACNET_APPLICATION_TAG_TIME);
                 if (status) {
                     /* Write time and date and set written flag */
-                    Start_Time[object_index].date = TempDate;
+                    Start_Time[object_index].date = start_date;
                     Start_Time[object_index].time = value.type.Time;
                     Start_Time_Property_Written[object_index] = true;
                 }

@@ -383,7 +383,7 @@ bool bacapp_decode_application_data_safe(uint8_t *new_apdu,
             apdu_len += tag_len;
             apdu_len_remaining -= tag_len;
             /* The tag is boolean then len_value_type is interpreted as value,
-             *not length, so dont bother
+             *not length, so don't bother
              ** checking with apdu_len_remaining */
             if (tag_number == BACNET_APPLICATION_TAG_BOOLEAN ||
                 len_value_type <= apdu_len_remaining) {
@@ -937,7 +937,7 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
  *
  * @param Pointer to the APDU buffer
  * @param apdu_len_max Bytes valid in the buffer
- * @param property ID of the propery to get the length for.
+ * @param property ID of the property to get the length for.
  *
  * @return Length in bytes or BACNET_STATUS_ERROR.
  */

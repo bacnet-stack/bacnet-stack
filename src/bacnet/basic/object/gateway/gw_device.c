@@ -59,7 +59,7 @@
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h" /* object list dependency */
 #endif
-/* os specfic includes */
+/* os specific includes */
 #include "bacnet/basic/sys/mstimer.h"
 
 /* local forward and external prototypes */
