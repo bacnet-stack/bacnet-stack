@@ -74,7 +74,7 @@ void Schedule_Init(void)
     SCHEDULE_DESCR *psched = &Schedule_Descr[0];
 
     for (i = 0; i < MAX_SCHEDULES; i++, psched++) {
-        /* whole year, change as neccessary */
+        /* whole year, change as necessary */
         psched->Start_Date.year = 0xFF;
         psched->Start_Date.month = 1;
         psched->Start_Date.day = 1;

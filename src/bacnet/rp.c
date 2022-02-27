@@ -91,7 +91,7 @@ int rp_encode_apdu(
 /** Decode the service request only
  *
  * @param apdu  Pointer to the buffer for encoding.
- * @param apdu_len  Count of valid bytes inthe buffer.
+ * @param apdu_len  Count of valid bytes in the buffer.
  * @param rpdata  Pointer to the property data to be encoded.
  *
  * @return Bytes decoded or zero on error.

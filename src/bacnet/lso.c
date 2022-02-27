@@ -105,7 +105,7 @@ int lso_decode_service_request(
         data->operation = (BACNET_LIFE_SAFETY_OPERATION)operation;
         len += section_length;
         /*
-         ** This is an optional parameter, so dont fail if it doesnt exist
+         ** This is an optional parameter, so don't fail if it doesn't exist
          */
         if (decode_is_context_tag(&apdu[len], 3)) {
             section_length = decode_context_object_id(&apdu[len], 3,

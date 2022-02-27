@@ -162,7 +162,7 @@ int rpm_encode_apdu(uint8_t *apdu,
     rpm_object = read_access_data;
     while (rpm_object) {
         /* The encode function will return a length not more than 12. So the
-         * temp buffer being 16 bytes is fine enought. */
+         * temp buffer being 16 bytes is fine enough. */
         len = encode_context_object_id(&apdu_temp[0], 0,
             rpm_object->object_type, rpm_object->object_instance);
         len = (int)memcopy(&apdu[0], &apdu_temp[0], (size_t)apdu_len,
@@ -182,7 +182,7 @@ int rpm_encode_apdu(uint8_t *apdu,
         rpm_property = rpm_object->listOfProperties;
         while (rpm_property) {
             /* The encode function will return a length not more than 12. So the
-             * temp buffer being 16 bytes is fine enought. Stuff as many
+             * temp buffer being 16 bytes is fine enough. Stuff as many
              * properties into it as APDU length will allow. */
             len = encode_context_enumerated(
                 &apdu_temp[0], 0, rpm_property->propertyIdentifier);

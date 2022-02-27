@@ -258,7 +258,7 @@ void Send_I_Am_Router_To_Network(const int DNET_list[])
  *                 network.  Otherwise, designates a particular router
  *                 destination.
  * @param reject_reason [in] One of the BACNET_NETWORK_REJECT_REASONS codes.
- * @param dnet [in] Which BACnet network orginated the message.
+ * @param dnet [in] Which BACnet network originated the message.
  */
 void Send_Reject_Message_To_Network(
     BACNET_ADDRESS *dst, uint8_t reject_reason, int dnet)

@@ -47,7 +47,7 @@
  * @param apdu [in] The contents of the APDU buffer.
  * @param apdu_len [in] The length of the APDU buffer.
  * @param wp_data [out] The BACNET_WRITE_PROPERTY_DATA structure
- *    which will contain the reponse values or error.
+ *    which will contain the response values or error.
  *
  * @return Count of decoded bytes.
  */
@@ -152,7 +152,7 @@ int wpm_decode_object_property(
             len++;
 
             if (imax != BACNET_STATUS_ERROR) {
-                /* copy application data, check max lengh */
+                /* copy application data, check max length */
                 if (imax > (apdu_len - len)) {
                     imax = (apdu_len - len);
                 }

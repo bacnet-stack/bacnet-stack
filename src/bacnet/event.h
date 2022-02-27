@@ -220,7 +220,7 @@ extern "C" {
 
 /***************************************************
 **
-** Sends an Unconfirmed Event Notifcation to a dest
+** Sends an Unconfirmed Event Notification to a dest
 **
 ****************************************************/
     BACNET_STACK_EXPORT

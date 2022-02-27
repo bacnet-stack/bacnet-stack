@@ -53,7 +53,7 @@ extern "C" {
 
 /* Storage structure for Trend Log data
  *
- * Note. I've tried to minimise the storage requirements here
+ * Note. I've tried to minimize the storage requirements here
  * as the memory requirements for logging in embedded
  * implementations are frequently a big issue. For PC or
  * embedded Linux type setupz this may seem like overkill

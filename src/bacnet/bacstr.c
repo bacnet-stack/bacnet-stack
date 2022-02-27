@@ -673,7 +673,7 @@ char *characterstring_value(BACNET_CHARACTER_STRING *char_string)
  *
  * @param char_string  Pointer to the character string.
  *
- * @return Length of the charcater string, but
+ * @return Length of the character string, but
  *         maximum MAX_CHARACTER_STRING_BYTES.
  */
 size_t characterstring_length(BACNET_CHARACTER_STRING *char_string)
@@ -1117,7 +1117,7 @@ bool octetstring_append(
  * function returns false.
  *
  * @param octet_string  Pointer to the octet string.
- * @param length  New length the octet string is trucated to.
+ * @param length  New length the octet string is truncated to.
  *
  * @return tur on success, false otherwise.
  */

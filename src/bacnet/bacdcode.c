@@ -840,7 +840,7 @@ int decode_bitstring(
                     bitstring_set_octet(bit_string, (uint8_t) i,
                         byte_reverse_bits(apdu[len++]));
                 }
-                /* Erase the remaining unsed bits. */
+                /* Erase the remaining unused bits. */
                 unused_bits = (uint8_t) (apdu[0] & 0x07);
                 bitstring_set_bits_used(bit_string, (uint8_t) bytes_used,
                     unused_bits);

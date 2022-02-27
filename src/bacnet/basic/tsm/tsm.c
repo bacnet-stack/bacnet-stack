@@ -316,7 +316,7 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
 
 /** Called once a millisecond or slower.
  *  This function calls the handler for a
- *  timeout 'Timeout_Function', if neccessary.
+ *  timeout 'Timeout_Function', if necessary.
  *
  * @param milliseconds - Count of milliseconds passed, since the last call.
  */

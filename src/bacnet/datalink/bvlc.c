@@ -1252,7 +1252,7 @@ bool bvlc_foreign_device_table_entry_copy(
 }
 
 /**
- * @brief Foreign-Device-Table timer maintainence
+ * @brief Foreign-Device-Table timer maintenance
  * @param fdt_list - first element in list of FDT entries
  * @param seconds - number of elapsed seconds since the last call
  */

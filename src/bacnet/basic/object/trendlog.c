@@ -231,7 +231,7 @@ void Trend_Log_Init(void)
 
 /*
  * Note: we use the instance number here and build the name based
- * on the assumption that there is a 1 to 1 correspondance. If there
+ * on the assumption that there is a 1 to 1 correspondence. If there
  * is not we need to convert to index before proceeding.
  */
 bool Trend_Log_Object_Name(
@@ -419,8 +419,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     TL_LOG_INFO *CurrentLog;
-    BACNET_DATE
-    TempDate; /* build here in case of error in time half of datetime */
+    BACNET_DATE start_date, stop_date; 
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE TempSource;
     bool bEffectiveEnable;
     int log_index;
@@ -574,7 +573,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (!status) {
                 break;
             }
-            TempDate = value.type.Date;
+            start_date = value.type.Date;
             /* Then decode the time part */
             len =
                 bacapp_decode_application_data(wp_data->application_data + len,
@@ -588,8 +587,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
                 /* First record the current enable state of the log */
                 bEffectiveEnable = TL_Is_Enabled(log_index);
-                CurrentLog->StartTime.date =
-                    TempDate; /* Safe to copy the date now */
+		/* Safe to copy the date now */
+                CurrentLog->StartTime.date = start_date; 
                 CurrentLog->StartTime.time = value.type.Time;
 
                 if (datetime_wildcard_present(&CurrentLog->StartTime)) {
@@ -625,7 +624,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (!status) {
                 break;
             }
-            TempDate = value.type.Date;
+            stop_date = value.type.Date;
             /* Then decode the time part */
             len =
                 bacapp_decode_application_data(wp_data->application_data + len,
@@ -639,8 +638,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
                 /* First record the current enable state of the log */
                 bEffectiveEnable = TL_Is_Enabled(log_index);
-                CurrentLog->StopTime.date =
-                    TempDate; /* Safe to copy the date now */
+		/* Safe to copy the date now */
+                CurrentLog->StopTime.date = stop_date; 
                 CurrentLog->StopTime.time = value.type.Time;
 
                 if (datetime_wildcard_present(&CurrentLog->StopTime)) {
@@ -988,7 +987,7 @@ void TL_Local_Time_To_BAC(BACNET_DATE_TIME *DestTime, time_t SourceTime)
  *                                                                          *
  * We take the simple approach here to filling the buffer by taking a max   *
  * size for a single entry and then stopping if there is less than that     *
- * left in the buffer. You could build each entry in a seperate buffer and  *
+ * left in the buffer. You could build each entry in a separate buffer and  *
  * determine the exact length before copying but this is time consuming,    *
  * requires more memory and would probably only let you sqeeeze one more    *
  * entry in on occasion. The value is calculated as 10 bytes for the time   *
@@ -1740,7 +1739,7 @@ void trend_log_timer(uint16_t uSeconds)
                      * and the offset to decide when to log. Also log a reading
                      * if more than interval time has elapsed since last reading
                      * to ensure we don't miss a reading if we aren't called at
-                     * the precise second when the match occurrs.
+                     * the precise second when the match occurs.
                      */
                     /*                if(((tNow % CurrentLog->ulLogInterval) >=
                      * (CurrentLog->ulIntervalOffset %

@@ -297,7 +297,7 @@ bool Ringbuf_Pop_Element(
  *
  * @param  b - pointer to RING_BUFFER structure
  * @param  data_element - one element that is copied to the ring buffer
- * @return true on succesful add, false if not added
+ * @return true on successful add, false if not added
  */
 bool Ringbuf_Put(RING_BUFFER *b, uint8_t *data_element)
 {
@@ -331,7 +331,7 @@ bool Ringbuf_Put(RING_BUFFER *b, uint8_t *data_element)
  *
  * @param  b - pointer to RING_BUFFER structure
  * @param  data_element - one element to copy to the front of the ring
- * @return true on succesful add, false if not added
+ * @return true on successful add, false if not added
  */
 bool Ringbuf_Put_Front(RING_BUFFER *b, uint8_t *data_element)
 {

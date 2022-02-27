@@ -96,7 +96,7 @@ static struct Address_Cache_Entry {
 
 #define BAC_ADDR_LONG_TIME BAC_ADDR_SECS_1DAY
 #define BAC_ADDR_SHORT_TIME BAC_ADDR_SECS_1HOUR
-#define BAC_ADDR_FOREVER 0xFFFFFFFF /* Permenant entry */
+#define BAC_ADDR_FOREVER 0xFFFFFFFF /* Permanent entry */
 
 /**
  * @brief Set the index of the first (top) address being protected.
@@ -410,7 +410,7 @@ static void address_file_init(const char *pFilename)
 
 /**
  * Clear down the cache and make sure the full complement of entries are
- * available. Assume no persistance of memory.
+ * available. Assume no persistence of memory.
  */
 void address_init(void)
 {
@@ -431,7 +431,7 @@ void address_init(void)
 /**
  * Clear down the cache of any non bound, expired  or reserved entries.
  * Leave static and unexpired bound entries alone. For use where the cache
- * is held in persistant memory which can survive a reset or power cycle.
+ * is held in persistent memory which can survive a reset or power cycle.
  * This reduces the network traffic on restarts as the cache will have much
  * of its entries intact.
  */
@@ -465,7 +465,7 @@ void address_init_partial(void)
 /**
  * Set the TTL info for the given device entry. If it is a bound entry we
  * set it to static or normal and can change the TTL. If it is unbound we
- * can only set the TTL. This is done as a seperate function at the moment
+ * can only set the TTL. This is done as a separate function at the moment
  * to avoid breaking the current API.
  *
  * @param device_id  Device-Id
@@ -940,7 +940,7 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_len)
  *
  * We take the simple approach here to filling the buffer by taking a max   *
  * size for a single entry and then stopping if there is less than that
- * left in the buffer. You could build each entry in a seperate buffer and
+ * left in the buffer. You could build each entry in a separate buffer and
  * determine the exact length before copying but this is time consuming,
  * requires more memory and would probably only let you sqeeeze one more
  * entry in on occasion. The value is calculated as 5 bytes for the device
@@ -1131,7 +1131,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  * Scan the cache and eliminate any expired entries. Should be called
  * periodically to ensure the cache is managed correctly. If this function
  * is never called at all the whole cache is effectivly rendered static and
- * entries never expire unless explictely deleted.
+ * entries never expire unless explicitly deleted.
  *
  * @param uSeconds  Approximate number of seconds since last call to this
  * function

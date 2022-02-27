@@ -58,7 +58,7 @@
  * FIFO_Init(&queue, data_store, sizeof(data_store));
  * }
  *
- * Then begin to use the FIFO queue by giving it data, retreiving data,
+ * Then begin to use the FIFO queue by giving it data, retrieving data,
  * and checking the FIFO queue to see if it is empty or full:
  * {@code
  * uint8_t in_data = 0;
