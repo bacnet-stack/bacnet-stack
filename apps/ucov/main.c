@@ -190,15 +190,17 @@ int main(int argc, char *argv[])
     tag = strtol(argv[7], NULL, 0);
     value_string = argv[8];
     /* optional priority */
-    if (argc > 9)
+    if (argc > 9) {
         value_list.priority = strtol(argv[9], NULL, 0);
-    else
+    } else {
         value_list.priority = BACNET_NO_PRIORITY;
+}
     /* optional index */
-    if (argc > 10)
+    if (argc > 10) {
         value_list.propertyArrayIndex = strtol(argv[10], NULL, 0);
-    else
+    } else {
         value_list.propertyArrayIndex = BACNET_ARRAY_ALL;
+}
 
     if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",

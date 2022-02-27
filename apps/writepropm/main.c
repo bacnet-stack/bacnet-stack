@@ -466,8 +466,9 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(((current_seconds - last_seconds) * 1000));
         }
-        if (Error_Detected)
+        if (Error_Detected) {
             break;
+}
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(

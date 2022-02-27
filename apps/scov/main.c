@@ -418,7 +418,8 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    if (Error_Detected)
+    if (Error_Detected) {
         return 1;
+}
     return 0;
 }

@@ -376,8 +376,9 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
         /* Make the change and update the database revision */
         Object_Instance_Number = object_id;
         Device_Inc_Database_Revision();
-    } else
+    } else {
         status = false;
+}
 
     return status;
 }
@@ -981,13 +982,13 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
             /* Array element zero is the number of objects in the list */
-            if (rpdata->array_index == 0)
+            if (rpdata->array_index == 0) {
                 apdu_len = encode_application_unsigned(&apdu[0], count);
             /* if no index was specified, then try to encode the entire list */
             /* into one packet.  Note that more than likely you will have */
             /* to return an error if the number of encoded objects exceeds */
             /* your maximum APDU size. */
-            else if (rpdata->array_index == BACNET_ARRAY_ALL) {
+            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= count; i++) {
                     found = Device_Object_List_Identifier(
                         i, &object_type, &instance);
@@ -1192,7 +1193,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = write_property_string_valid(&wp_data, &value,
+            status = write_property_string_valid(wp_data, &value,
                 characterstring_capacity(&My_Object_Name));
             if (status) {
                 /* All the object names in a device must be unique */
@@ -1213,7 +1214,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_LOCATION:
-            status = write_property_empty_string_valid(&wp_data, &value,
+            status = write_property_empty_string_valid(wp_data, &value,
                 MAX_DEV_LOC_LEN);
             if (status) {
                 Device_Set_Location(
@@ -1223,7 +1224,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_DESCRIPTION:
-            status = write_property_empty_string_valid(&wp_data, &value,
+            status = write_property_empty_string_valid(wp_data, &value,
                 MAX_DEV_DESC_LEN);
             if (status) {
                 Device_Set_Description(
@@ -1232,7 +1233,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MODEL_NAME:
-            status = write_property_empty_string_valid(&wp_data, &value,
+            status = write_property_empty_string_valid(wp_data, &value,
                 MAX_DEV_MOD_LEN);
             if (status) {
                 Device_Set_Model_Name(

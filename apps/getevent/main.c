@@ -125,8 +125,9 @@ static void My_Get_Event_Ack_Handler(uint8_t *service_request,
     int len = 0;
     int i;
     BACNET_GET_EVENT_INFORMATION_DATA data[MAX_OBJ_IDS_IN_GE_ACK];
-    for (i = 0; i < MAX_OBJ_IDS_IN_GE_ACK - 1; i++)
+    for (i = 0; i < MAX_OBJ_IDS_IN_GE_ACK - 1; i++) {
         data[i].next = &data[i + 1];
+}
 
     printf("Recieved Ack. Saved invoke ID was %i, service returned %i\n",
         Request_Invoke_ID, service_data->invoke_id);
@@ -140,8 +141,9 @@ static void My_Get_Event_Ack_Handler(uint8_t *service_request,
             ge_ack_print_data(&(data[0]), Target_Device_Object_Instance);
             if (More_Events) {
                 BACNET_GET_EVENT_INFORMATION_DATA *lastData = &(data[0]);
-                while (lastData->next)
+                while (lastData->next) {
                     lastData = lastData->next;
+}
                 LastReceivedObjectIdentifier = lastData->objectIdentifier;
             }
         }
@@ -283,7 +285,8 @@ int main(int argc, char *argv[])
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
-    if (Error_Detected)
+    if (Error_Detected) {
         return 1;
+}
     return 0;
 }
