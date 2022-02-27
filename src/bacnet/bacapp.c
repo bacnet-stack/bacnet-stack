@@ -1693,8 +1693,9 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
     if ((value == NULL) || (test_value == NULL)) {
         return false;
     }
-    if (test_value->tag == value->tag)
+    if (test_value->tag == value->tag) {
         status = true;
+}
     if (status) {
         /* second test for same-ness */
         status = false;
@@ -1707,52 +1708,60 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
 #endif
 #if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                if (test_value->type.Boolean == value->type.Boolean)
+                if (test_value->type.Boolean == value->type.Boolean) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                if (test_value->type.Unsigned_Int == value->type.Unsigned_Int)
+                if (test_value->type.Unsigned_Int == value->type.Unsigned_Int) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_SIGNED)
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                if (test_value->type.Signed_Int == value->type.Signed_Int)
+                if (test_value->type.Signed_Int == value->type.Signed_Int) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
-                if (test_value->type.Real == value->type.Real)
+                if (test_value->type.Real == value->type.Real) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                if (test_value->type.Double == value->type.Double)
+                if (test_value->type.Double == value->type.Double) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
-                if (test_value->type.Enumerated == value->type.Enumerated)
+                if (test_value->type.Enumerated == value->type.Enumerated) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_DATE)
             case BACNET_APPLICATION_TAG_DATE:
                 if (datetime_compare_date(
-                        &test_value->type.Date, &value->type.Date) == 0)
+                        &test_value->type.Date, &value->type.Date) == 0) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_TIME)
             case BACNET_APPLICATION_TAG_TIME:
                 if (datetime_compare_time(
-                        &test_value->type.Time, &value->type.Time) == 0)
+                        &test_value->type.Time, &value->type.Time) == 0) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_OBJECT_ID)
