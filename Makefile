@@ -230,6 +230,18 @@ CPPCHECK_OPTIONS += --suppress=selfAssignment
 cppcheck:
 	cppcheck $(CPPCHECK_OPTIONS) --quiet --force ./src/
 
+IGNORE_WORDS = ba
+CODESPELL_OPTIONS = --write-changes --interactive 3 --enable-colors
+CODESPELL_OPTIONS += --ignore-words-list $(IGNORE_WORDS)
+.PHONY: codespell
+codespell:
+	codespell $(CODESPELL_OPTIONS) ./src
+
+SPELL_OPTIONS = --enable-colors --ignore-words-list $(IGNORE_WORDS)
+.PHONY: spell
+spell:
+	codespell $(SPELL_OPTIONS) ./src
+
 .PHONY: clean
 clean: ports-clean
 	$(MAKE) -s -C src clean
