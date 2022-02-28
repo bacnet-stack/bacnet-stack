@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 0.8.6
+  VERSION 1.1.0
   LANGUAGES C)
 
 #
@@ -443,112 +443,6 @@ add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
   ALIAS
   ${PROJECT_NAME})
-
-#
-# add tests
-#
-
-list(APPEND testdirs
-  test/bacnet/abort
-  test/bacnet/alarm_ack
-  test/bacnet/arf
-  test/bacnet/awf
-  test/bacnet/bacapp
-  test/bacnet/bacdcode
-  test/bacnet/bacdevobjpropref
-  test/bacnet/bacerror
-  test/bacnet/bacint
-  test/bacnet/bacpropstates
-  test/bacnet/bacreal
-  test/bacnet/bacstr
-  test/bacnet/cov
-  test/bacnet/datetime
-  test/bacnet/dcc
-  test/bacnet/event
-  test/bacnet/getevent
-  test/bacnet/iam
-  test/bacnet/ihave
-  test/bacnet/indtext
-  test/bacnet/lighting
-  test/bacnet/lso
-  test/bacnet/memcopy
-  test/bacnet/npdu
-  test/bacnet/property
-  test/bacnet/ptransfer
-  test/bacnet/rd
-  test/bacnet/reject
-  test/bacnet/rp
-  test/bacnet/rpm
-  test/bacnet/timestamp
-  test/bacnet/timesync
-  test/bacnet/whohas
-  test/bacnet/whois
-  test/bacnet/wp
-  )
-
-# bacnet/basic/*
-list(APPEND testdirs
-  # basic/object/binding
-  test/bacnet/basic/binding/address
-  # basic/object
-  test/bacnet/basic/object/acc
-  test/bacnet/basic/object/access_credential
-  test/bacnet/basic/object/access_door
-  test/bacnet/basic/object/access_point
-  test/bacnet/basic/object/access_rights
-  test/bacnet/basic/object/access_user
-  test/bacnet/basic/object/access_zone
-  test/bacnet/basic/object/ai
-  test/bacnet/basic/object/ao
-  test/bacnet/basic/object/av
-  test/bacnet/basic/object/bi
-  test/bacnet/basic/object/bo
-  test/bacnet/basic/object/bv
-  test/bacnet/basic/object/command
-  test/bacnet/basic/object/credential_data_input
-  test/bacnet/basic/object/device
-  #test/bacnet/basic/object/lc		#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/lo
-  test/bacnet/basic/object/lsp
-  test/bacnet/basic/object/ms-input
-  test/bacnet/basic/object/mso
-  test/bacnet/basic/object/msv
-  test/bacnet/basic/object/netport
-  test/bacnet/basic/object/objects
-  test/bacnet/basic/object/osv
-  test/bacnet/basic/object/piv
-  test/bacnet/basic/object/schedule
-  # basic/sys
-  test/bacnet/basic/sys/days
-  test/bacnet/basic/sys/fifo
-  test/bacnet/basic/sys/filename
-  test/bacnet/basic/sys/key
-  test/bacnet/basic/sys/keylist
-  test/bacnet/basic/sys/ringbuf
-  test/bacnet/basic/sys/sbuf
-  )
-
-# bacnet/datalink/*
-list(APPEND testdirs
-  test/bacnet/datalink/cobs
-  test/bacnet/datalink/crc
-  test/bacnet/datalink/bvlc
-  )
-
-enable_testing()
-foreach(testdir IN ITEMS ${testdirs})
-  get_filename_component(basename ${testdir} NAME)
-  add_subdirectory(${testdir})
-  add_test(build_${basename}
-    "${CMAKE_COMMAND}"
-    --build "${CMAKE_BINARY_DIR}"
-    --config "$<CONFIG>"
-    --target test_${basename}
-    )
-  add_test(test_${basename} ${testdir}/test_${basename})
-  set_tests_properties(test_${basename}  PROPERTIES FIXTURES_REQUIRED test_fixture)
-  set_tests_properties(build_${basename} PROPERTIES FIXTURES_SETUP    test_fixture)
-endforeach()
 
 #
 # add ports
