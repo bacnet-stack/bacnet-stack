@@ -21,4 +21,4 @@ test:
 
 .PHONY: clean
 clean:
-	[ -d $(BUILD_DIR) ] && rm -rf $(BUILD_DIR)
+	-rm -rf $(BUILD_DIR)

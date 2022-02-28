@@ -92,7 +92,9 @@ static inline const char *TC_RESULT_TO_STR(int result)
 	}
 }
 
+#if 0
 static uint32_t tc_start_time;
+#endif
 static uint32_t tc_spend_time;
 
 static inline void get_start_time_cyc(void)
