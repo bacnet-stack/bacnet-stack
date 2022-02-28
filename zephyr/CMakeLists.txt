@@ -214,7 +214,6 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/sys/fifo.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/filename.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/filename.h
-    ${BACNETSTACK_SRC}/bacnet/basic/sys/key.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/key.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/keylist.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/keylist.h

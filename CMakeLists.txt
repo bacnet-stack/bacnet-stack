@@ -313,7 +313,6 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/fifo.h
     src/bacnet/basic/sys/filename.c
     src/bacnet/basic/sys/filename.h
-    src/bacnet/basic/sys/key.c
     src/bacnet/basic/sys/key.h
     src/bacnet/basic/sys/keylist.c
     src/bacnet/basic/sys/keylist.h
