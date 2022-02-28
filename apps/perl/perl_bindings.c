@@ -64,7 +64,7 @@ static void MyAbortHandler(
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
-        sprintf(msg, "BACnet Abort: %s",
+        sprintf(msg, "BACnet Abort: %d",
             bactext_abort_reason_name((int)abort_reason));
         LogError(msg);
     }
@@ -76,7 +76,7 @@ static void MyRejectHandler(
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
-        sprintf(msg, "BACnet Reject: %s",
+        sprintf(msg, "BACnet Reject: %d",
             bactext_reject_reason_name((int)reject_reason));
         LogError(msg);
     }
@@ -90,7 +90,7 @@ static void My_Error_Handler(BACNET_ADDRESS *src,
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
         char msg[MAX_ERROR_STRING];
-        sprintf(msg, "BACnet Error: %s: %s",
+        sprintf(msg, "BACnet Error: %d: %d",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         LogError(msg);
@@ -209,7 +209,7 @@ void rpm_ack_extract_data(BACNET_READ_ACCESS_DATA *rpm_data)
                 }
             } else {
                 /* AccessError */
-                sprintf(ackString, "BACnet Error: %s: %s",
+                sprintf(ackString, "BACnet Error: %d: %d",
                     bactext_error_class_name(
                         (int)listOfProperties->error.error_class),
                     bactext_error_code_name(

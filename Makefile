@@ -212,11 +212,12 @@ pretty-ports:
 	find ./ports -maxdepth 2 -type f -iname *.h -o -iname *.c -exec \
 	clang-format -i -style=file -fallback-style=none {} \;
 
+CLANG_TIDY_OPTIONS = -fix-errors -checks="readability-braces-around-statements"
+CLANG_TIDY_OPTIONS += -- -Isrc -Iports/linux
 .PHONY: tidy
 tidy:
-	find ./src -iname *.h -o -iname *.c -exec \
-	clang-tidy {} -fix-errors -checks="readability-braces-around-statements" \
-	-- -Isrc -Iports/linux \;
+	find ./src -iname *.h -o -iname *.c -exec clang-tidy {} $(CLANG_TIDY_OPTIONS) \;
+	find ./apps -iname *.c -exec clang-tidy {} $(CLANG_TIDY_OPTIONS) \;
 
 .PHONY: lint
 lint:

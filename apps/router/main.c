@@ -566,9 +566,10 @@ bool parse_cmd(int argc, char *argv[])
                                     current->params.mstp_params.max_master =
                                         (uint8_t)atoi(argv[optind]);
                                     if (current->params.mstp_params.max_master <
-                                        current->route_info.mac[0])
+                                        current->route_info.mac[0]) {
                                         current->params.mstp_params.max_master =
                                             current->route_info.mac[0];
+}
 
                                     if (argv[optind + 1][0] != '-') {
                                         current->params.mstp_params.max_frames =
@@ -778,8 +779,9 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         /* if received from another router save real source address (not other
          * router source address) */
         if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK &&
-            data->src.net != addr.net)
+            data->src.net != addr.net) {
             memmove(&data->src, &addr, sizeof(BACNET_ADDRESS));
+}
 
         /* encode both source and destination for broadcast and router-to-router
          * communication */

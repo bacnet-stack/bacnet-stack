@@ -299,12 +299,14 @@ int main(int argc, char *argv[])
                 tsm_timer_milliseconds(
                     ((current_seconds - last_seconds) * 1000));
             }
-            if (Error_Detected)
+            if (Error_Detected) {
                 break;
+}
             /* wait until the device is bound, or timeout and quit */
-            if (!found)
+            if (!found) {
                 found = address_bind_request(
                     Target_Device_Object_Instance, &max_apdu, &Target_Address);
+}
             if (found) {
                 if (invoke_id == 0) { /* Safe to send a new request */
                     switch (iType) {
@@ -394,7 +396,8 @@ int main(int argc, char *argv[])
             last_seconds = current_seconds;
         }
     }
-    if (Error_Detected)
+    if (Error_Detected) {
         return 1;
+}
     return 0;
 }

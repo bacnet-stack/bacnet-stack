@@ -307,8 +307,9 @@ int dl_ip_recv(
     }
 
     /* the signature of a BACnet/IP packet */
-    if (data->buff[0] != BVLL_TYPE_BACNET_IP)
+    if (data->buff[0] != BVLL_TYPE_BACNET_IP) {
         return 0;
+}
 
     switch (data->buff[1]) {
         case BVLC_ORIGINAL_UNICAST_NPDU:
