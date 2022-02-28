@@ -29,7 +29,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq cppcheck
     - name: cppcheck
-      run: make clean cppcheck
+      run: |
+        cppcheck --version
+        make clean
+        make cppcheck
 
   codespell:
     runs-on: ubuntu-latest

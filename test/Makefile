@@ -10,14 +10,21 @@
 all: test
 
 BUILD_DIR=build
+
+CTEST_OPTIONS := --verbose --output-on-failure --parallel 4
+CTEST_OPTIONS += --no-compress-output -T Test
+
 .PHONY: test
 test:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake .. && cd ..
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . --clean-first && cd ..
-	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) test
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest $(CTEST_OPTIONS)
 	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) lcov
-	echo "Coverage Report"
+
+.PHONY: report
+report:
+	[ -d $(BUILD_DIR) ] && cat $(BUILD_DIR)/Testing/Temporary/LastTest*.log
 
 .PHONY: clean
 clean:
