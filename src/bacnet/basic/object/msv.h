@@ -140,14 +140,6 @@ extern "C" {
     void Multistate_Value_Init(
         void);
 
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testMultistateValue(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

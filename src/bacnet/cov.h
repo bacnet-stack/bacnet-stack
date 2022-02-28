@@ -169,19 +169,6 @@ extern "C" {
         bool overridden,
         bool out_of_service);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testCOVNotify(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void testCOVSubscribeProperty(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void testCOVSubscribe(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

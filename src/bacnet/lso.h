@@ -58,14 +58,6 @@ extern "C" {
         unsigned apdu_len,
         BACNET_LSO_DATA * data);
 
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testLSO(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -137,13 +137,6 @@ extern "C" {
         uint8_t * apdu,
         int32_t * value);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testBACnetIntegers(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -162,12 +162,6 @@ extern "C" {
     void Analog_Input_Init(
         void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    void testAnalogInput(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

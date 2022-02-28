@@ -149,14 +149,6 @@ extern "C" {
     void Multistate_Input_Init(
         void);
 
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testMultistateInput(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

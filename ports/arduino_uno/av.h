@@ -64,11 +64,6 @@ extern "C" {
 
     void Analog_Value_Init(void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    void testAnalog_Value(Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -108,13 +108,6 @@ extern "C" {
         volatile uint8_t * buffer,
         unsigned buffer_len);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testFIFOBuffer(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

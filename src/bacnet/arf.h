@@ -103,17 +103,6 @@ extern "C" {
         uint8_t * invoke_id,
         BACNET_ATOMIC_READ_FILE_DATA * data);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-
-    BACNET_STACK_EXPORT
-    void test_AtomicReadFile(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void test_AtomicReadFileAck(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
