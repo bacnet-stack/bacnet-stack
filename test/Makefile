@@ -11,8 +11,8 @@ all: test
 
 BUILD_DIR=build
 
-CTEST_OPTIONS := --verbose --output-on-failure --parallel 4
-CTEST_OPTIONS += --no-compress-output -T Test
+CTEST_OPTIONS := --quiet --output-on-failure --parallel 4
+CTEST_OPTIONS += --output-junit test-results.xml
 
 .PHONY: test
 test:
