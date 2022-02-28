@@ -44,6 +44,16 @@ typedef struct dlmstp_packet {
     uint8_t pdu[DLMSTP_MPDU_MAX];      /* packet */
 } DLMSTP_PACKET;
 
+/* container for packet and token statistics */
+typedef struct dlmstp_statistics {
+    uint32_t transmit_frame_counter;
+    uint32_t receive_valid_frame_counter;
+    uint32_t receive_invalid_frame_counter;
+    uint32_t transmit_pdu_counter;
+    uint32_t receive_pdu_counter;
+    uint32_t lost_token_counter;
+} DLMSTP_STATISTICS;
+
 /* callback to signify the receipt of a preamble */
 typedef void (*dlmstp_hook_frame_rx_start_cb)();
 
@@ -171,6 +181,16 @@ extern "C" {
     BACNET_STACK_EXPORT
     void dlmstp_set_frame_rx_start_callback(
         dlmstp_hook_frame_rx_start_cb cb_func);
+
+    /* Reset the statistics counters on the MS/TP datalink */
+    BACNET_STACK_EXPORT
+    void dlmstp_reset_statistics(void);
+
+    /* Retrieve statistics counters from the MS/TP datalink */
+    /* Values for the current counters at the time this function is called */
+    /* will be copied into *statistics */
+    BACNET_STACK_EXPORT
+    void dlmstp_fill_statistics(struct dlmstp_statistics * statistics);
 
 #ifdef __cplusplus
 }
