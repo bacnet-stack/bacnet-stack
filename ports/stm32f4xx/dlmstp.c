@@ -167,11 +167,7 @@ static uint8_t OutputBuffer[DLMSTP_MPDU_MAX];
 /* Number of bytes pending transmit. 0=nothing pending transmit  */
 uint16_t OutputBufferLength;
 
-/* stats for tx and rx of packets */
-static unsigned TransmitFrameCount;
-static unsigned ReceiveFrameCount;
-static unsigned TransmitPDUCount;
-static unsigned ReceivePDUCount;
+static struct dlmstp_statistics Statistics = { 0 };
 
 /* we need to be able to increment without rolling over */
 #define INCREMENT_AND_LIMIT_UINT8(x) \
@@ -723,7 +719,7 @@ static void MSTP_Slave_Node_FSM(void)
                     /* a proprietary frame that expects a reply is received. */
                     pkt = (struct dlmstp_packet *)Ringbuf_Peek(&PDU_Queue);
                     if (pkt != NULL) {
-                        TransmitPDUCount++;
+                        Statistics.transmit_pdu_counter++;
                         MSTP_Send_Frame(pkt->frame_type, pkt->address.mac[0],
                             This_Station, (uint8_t *)&pkt->pdu[0],
                             pkt->pdu_len);
@@ -839,6 +835,7 @@ static bool MSTP_Master_Node_FSM(void)
                 MSTP_Flag.ReceivedValidFrame = false;
                 MSTP_Flag.ReceivedInvalidFrame = false;
                 MSTP_Flag.ReceivedValidFrameNotForUs = false;
+                Statistics.lost_token_counter++;
                 Master_State = MSTP_MASTER_STATE_NO_TOKEN;
                 transition_now = true;
             } else if (MSTP_Flag.ReceivedInvalidFrame == true) {
@@ -915,7 +912,7 @@ static bool MSTP_Master_Node_FSM(void)
                 MSTP_Send_Frame(pkt->frame_type, pkt->address.mac[0],
                     This_Station, (uint8_t *)&pkt->pdu[0], pkt->pdu_len);
                 FrameCount++;
-                TransmitPDUCount++;
+                Statistics.transmit_pdu_counter++;
                 switch (pkt->frame_type) {
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                         /* SendAndWait */
@@ -1274,7 +1271,7 @@ static bool MSTP_Master_Node_FSM(void)
                 MSTP_Flag.ReceivedValidFrame = false;
                 /* clear the queue */
                 (void)Ringbuf_Pop(&PDU_Queue, NULL);
-                TransmitPDUCount++;
+                Statistics.transmit_pdu_counter++;
             } else if ((pkt != NULL) || timeout) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
@@ -1348,7 +1345,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
         if (Ringbuf_Data_Put(&PDU_Queue, (volatile uint8_t *)pkt)) {
             bytes_sent = pdu_len;
         }
-        TransmitFrameCount++;
+        Statistics.transmit_frame_counter++;
     }
 
     return bytes_sent;
@@ -1394,10 +1391,10 @@ uint16_t dlmstp_receive(
     }
     if (MSTP_Flag.ReceivedValidFrameNotForUs) {
         MSTP_Flag.ReceivedValidFrameNotForUs = false;
-        ReceiveFrameCount++;
+        Statistics.receive_valid_frame_counter++;
     }
     if (MSTP_Flag.ReceivedInvalidFrame) {
-        ReceiveFrameCount++;
+        Statistics.receive_invalid_frame_counter++;
     }
     /* only do master state machine while rx is idle */
     if ((Receive_State == MSTP_RECEIVE_STATE_IDLE) && (transmitting == false)) {
@@ -1405,7 +1402,7 @@ uint16_t dlmstp_receive(
             MSTP_Flag.ReceivedValidFrameNotForUs = false;
         } else if (MSTP_Flag.ReceivedValidFrame) {
             if (rs485_turnaround_elapsed()) {
-                ReceiveFrameCount++;
+                Statistics.receive_valid_frame_counter++;
                 if ((This_Station > 127) && (This_Station < 255)) {
                     MSTP_Slave_Node_FSM();
                 } else if (This_Station <= 127) {
@@ -1427,7 +1424,7 @@ uint16_t dlmstp_receive(
     /* if there is a packet that needs processed, do it now. */
     if (MSTP_Flag.ReceivePacketPending) {
         MSTP_Flag.ReceivePacketPending = false;
-        ReceivePDUCount++;
+        Statistics.receive_pdu_counter++;
         pdu_len = DataLength;
         src->mac_len = 1;
         src->mac[0] = SourceAddress;
@@ -1553,4 +1550,16 @@ void dlmstp_set_frame_rx_complete_callback(
 void dlmstp_set_frame_rx_start_callback(dlmstp_hook_frame_rx_start_cb cb_func)
 {
     Preamble_Callback = cb_func;
+}
+
+void dlmstp_reset_statistics(void)
+{
+    memset(&Statistics, 0, sizeof(Statistics));
+}
+
+void dlmstp_fill_statistics(struct dlmstp_statistics *statistics)
+{
+    if (statistics != NULL) {
+        memcpy(statistics, &Statistics, sizeof(Statistics));
+    }
 }
