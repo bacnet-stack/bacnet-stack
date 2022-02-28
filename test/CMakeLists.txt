@@ -8,8 +8,13 @@ project(Unit_Tests)
 add_definitions(-fprofile-arcs -ftest-coverage)
 
 # Set the compiler options
-set(CMAKE_C_FLAGS "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-set(CMAKE_EXE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
+if (NOT MSVC)
+    add_compile_options(-Wall -g -O0 -W -fprofile-arcs -ftest-coverage)
+    # ignore some warnings that occur during unit testing
+    add_compile_options(-Wno-unused-variable -Wno-unused-function)
+    add_compile_options(-Wno-sign-compare -Wno-unused-parameter)
+    add_link_options(-fprofile-arcs -ftest-coverage)
+endif()
 
 # Create the lcov target. Run result tests with 'make lcov'
 add_custom_target(lcov
