@@ -36,6 +36,7 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/object/trendlog.h"
 
 /** @file h_rr_a.c  Handles Read Range Acknowledgments. */
 
@@ -45,59 +46,48 @@ static void PrintReadRangeData(BACNET_READ_RANGE_DATA *data)
 #ifdef BACAPP_PRINT_ENABLED
     BACNET_OBJECT_PROPERTY_VALUE object_value; /* for bacapp printing */
 #endif
-    BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
+    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_TRENDLOG_RECORD entry;
     int len = 0;
-    uint8_t *application_data;
-    int application_data_len;
-    bool first_value = true;
-#if PRINT_ENABLED
-    bool print_brace = false;
-#endif
+
 
     if (data) {
-        application_data = data->application_data;
-        application_data_len = data->application_data_len;
-        /* FIXME: what if application_data_len is bigger than 255? */
-        /* value? need to loop until all of the len is gone... */
-        for (;;) {
-            len = bacapp_decode_application_data(
-                application_data, (uint8_t)application_data_len, &value);
-            if (first_value && (len < application_data_len)) {
-                first_value = false;
-#if PRINT_ENABLED
-                fprintf(stdout, "{");
-                print_brace = true;
-#endif
-            }
-#ifdef BACAPP_PRINT_ENABLED
-            object_value.object_type = data->object_type;
-            object_value.object_instance = data->object_instance;
-            object_value.object_property = data->object_property;
-            object_value.array_index = data->array_index;
-            object_value.value = &value;
-            bacapp_print_value(stdout, &object_value);
-#endif
-            if (len > 0) {
-                if (len < application_data_len) {
-                    application_data += len;
-                    application_data_len -= len;
-                    /* there's more! */
-#if PRINT_ENABLED
-                    fprintf(stdout, ",");
-#endif
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-#if PRINT_ENABLED
-        if (print_brace)
-            fprintf(stdout, "}");
-        fprintf(stdout, "\r\n");
-#endif
+      object_value.object_type = data->object_type;
+      object_value.object_instance = data->object_instance;
+      object_value.object_property = data->object_property;
+      object_value.array_index = data->array_index;
+      
+      /* FIXME: what if application_data_len is bigger than 255? */
+      /* value? need to loop until all of the len is gone... */
+
+      // make sure it works if there is only one entry;
+      entry.next = NULL;
+      rr_decode_trendlog_entries(data->application_data,
+				 data->application_data_len,
+				 &entry);
+# if PRINT_ENABLED
+      printf("{\n");
+      for (BACNET_TRENDLOG_RECORD *p = &entry; p != NULL; p = p->next) {
+	printf(" {");
+	object_value.value = &value;
+	value.tag = BACNET_APPLICATION_TAG_DATE;
+	value.type.Date = p->timestamp.date;
+	bacapp_print_value(stdout, &object_value);
+
+	printf(", ");
+	value.tag = BACNET_APPLICATION_TAG_TIME;
+	value.type.Time = p->timestamp.time;
+	bacapp_print_value(stdout, &object_value);
+
+	printf(", ");
+	object_value.value = &p->value;
+	bacapp_print_value(stdout, &object_value);
+
+	printf(" }\n");
+      }
+      printf("}\n");
     }
+#endif 
 }
 
 void handler_read_range_ack(uint8_t *service_request,
