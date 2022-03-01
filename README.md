@@ -16,7 +16,7 @@ and unit testing to produce robust C code and BACnet functionality.
 
 [![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/GCC/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/Lint/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/Quality/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
 
 [![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CodeQL/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
 
