@@ -134,6 +134,15 @@ typedef struct BACnet_Object_Property_Value {
     BACNET_APPLICATION_DATA_VALUE *value;
 } BACNET_OBJECT_PROPERTY_VALUE;
 
+struct BACnet_Trendlog_Record;
+typedef struct BACnet_Trendlog_Record {
+  BACNET_DATE_TIME timestamp;
+  BACNET_APPLICATION_DATA_VALUE value;
+  BACNET_BIT_STRING status;
+  struct BACnet_Trendlog_Record *next;
+} BACNET_TRENDLOG_RECORD;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
