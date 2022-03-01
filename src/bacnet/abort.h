@@ -54,13 +54,6 @@ extern "C" {
         uint8_t * invoke_id,
         uint8_t * abort_reason);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testAbort(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

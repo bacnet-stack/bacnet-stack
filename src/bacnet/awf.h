@@ -97,17 +97,6 @@ extern "C" {
         uint8_t * invoke_id,
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-
-    BACNET_STACK_EXPORT
-    void test_AtomicWriteFile(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void test_AtomicWriteFileAck(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

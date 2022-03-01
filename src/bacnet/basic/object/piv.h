@@ -103,12 +103,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     void PositiveInteger_Value_Init(void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testPositiveInteger_Value(Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -121,13 +121,6 @@ extern "C" {
     int Keylist_Count(
         OS_Keylist list);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testKeyList(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

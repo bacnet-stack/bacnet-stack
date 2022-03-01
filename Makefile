@@ -51,10 +51,6 @@ cmake:
 	[ -d $(CMAKE_BUILD_DIR) ] || mkdir -p $(CMAKE_BUILD_DIR)
 	[ -d $(CMAKE_BUILD_DIR) ] && cd $(CMAKE_BUILD_DIR) && cmake .. -DBUILD_SHARED_LIBS=ON && cmake --build . --clean-first
 
-.PHONY: cmake-test
-cmake-test:
-	[ -d $(CMAKE_BUILD_DIR) ] && $(MAKE) -s -C build test
-
 .PHONY: abort
 abort:
 	$(MAKE) -s -C apps $@
@@ -226,7 +222,6 @@ lint:
 CPPCHECK_OPTIONS = --enable=warning,portability
 CPPCHECK_OPTIONS += --template=gcc
 CPPCHECK_OPTIONS += --suppress=selfAssignment
-
 .PHONY: cppcheck
 cppcheck:
 	cppcheck $(CPPCHECK_OPTIONS) --quiet --force ./src/
@@ -257,6 +252,4 @@ clean: ports-clean
 .PHONY: test
 test:
 	$(MAKE) -s -C test clean
-	$(MAKE) -s -C test all
-	$(MAKE) -s -C test report
-
+	$(MAKE) -s -j -C test all

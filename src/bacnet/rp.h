@@ -106,30 +106,6 @@ extern "C" {
         int apdu_len,
         struct BACnet_Read_Access_Data *read_access_data);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    int rp_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
-
-    BACNET_STACK_EXPORT
-    int rp_ack_decode_apdu(
-        uint8_t * apdu,
-        int apdu_len,   /* total length of the apdu */
-        uint8_t * invoke_id,
-        BACNET_READ_PROPERTY_DATA * rpdata);
-
-    BACNET_STACK_EXPORT
-    void test_ReadProperty(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void test_ReadPropertyAck(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

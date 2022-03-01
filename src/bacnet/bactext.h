@@ -27,10 +27,6 @@
 /* tiny implementations have no need to print */
 #if PRINT_ENABLED
 #define BACTEXT_PRINT_ENABLED
-#else
-#ifdef BAC_TEST
-#define BACTEXT_PRINT_ENABLED
-#endif
 #endif
 
 #include <stdbool.h>

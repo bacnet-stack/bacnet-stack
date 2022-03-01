@@ -98,13 +98,6 @@ extern "C" {
         unsigned apdu_len,
         BACNET_RECIPIENT_LIST * recipient);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testTimeSync(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

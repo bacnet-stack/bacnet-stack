@@ -52,13 +52,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     void VMAC_Debug_Enable(void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testVMAC(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

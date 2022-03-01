@@ -229,7 +229,7 @@ extern "C" {
         BACNET_PROPERTY_ID property);
 
 #ifndef BACAPP_PRINT_ENABLED
-#if PRINT_ENABLED || defined BAC_TEST
+#if PRINT_ENABLED
 #define BACAPP_PRINT_ENABLED
 #endif
 #endif

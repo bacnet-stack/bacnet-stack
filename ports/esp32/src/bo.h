@@ -129,12 +129,6 @@ extern "C" {
     void Binary_Output_Cleanup(
         void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    void testBinaryOutput(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

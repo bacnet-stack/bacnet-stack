@@ -222,12 +222,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Channel_Init(void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testChannelObject(Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

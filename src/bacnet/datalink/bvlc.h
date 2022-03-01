@@ -511,12 +511,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     const char *bvlc_result_code_name(uint16_t result_code);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void test_BVLC(Test *pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

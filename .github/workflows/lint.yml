@@ -1,11 +1,11 @@
-name: Lint
+name: Quality
 
 on:
   push:
     branches:
       - master
   pull_request:
-    branches:    
+    branches:
       - '*'
 
 jobs:
@@ -29,8 +29,11 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq cppcheck
     - name: cppcheck
-      run: make clean cppcheck
-      
+      run: |
+        cppcheck --version
+        make clean
+        make cppcheck
+
   codespell:
     runs-on: ubuntu-latest
     steps:
@@ -42,3 +45,13 @@ jobs:
     - name: codespell
       run: make spell
 
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq lcov
+    - name: Run Unit Test
+      run: make test
