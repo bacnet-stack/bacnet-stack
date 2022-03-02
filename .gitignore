@@ -67,3 +67,6 @@ CMakeLists.txt.user
 /out/*
 Obj/
 Release/
+apps/piface/libmcp23s17/
+apps/piface/libpifacedigital/
+

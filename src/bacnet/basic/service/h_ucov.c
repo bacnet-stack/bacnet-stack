@@ -38,11 +38,61 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 
+/** @file h_ucov.c  Handles Unconfirmed COV Notifications. */
+#if PRINT_ENABLED
+#include <stdio.h>
+#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 #ifndef MAX_COV_PROPERTIES
 #define MAX_COV_PROPERTIES 2
 #endif
 
-/** @file h_ucov.c  Handles Unconfirmed COV Notifications. */
+/* COV notification callbacks list */
+static BACNET_COV_NOTIFICATION Unconfirmed_COV_Notification_Head;
+
+/**
+ * @brief call the COV notification callbacks
+ * @param cov_data - data decoded from the COV notification
+ */
+static void handler_ucov_notification_callback(
+    BACNET_COV_DATA *cov_data)
+{
+    BACNET_COV_NOTIFICATION *head;
+
+    head = &Unconfirmed_COV_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(cov_data);
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief Add a Confirmed COV notification callback
+ * @param cb - COV notification callback to be added
+ */
+void handler_ucov_notification_add(
+    BACNET_COV_NOTIFICATION *cb)
+{
+    BACNET_COV_NOTIFICATION *head;
+
+    head = &Unconfirmed_COV_Notification_Head;
+    do {
+        if (head->next == cb) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available free node */
+            head->next = cb;
+            break;
+        }
+        head = head->next;
+    } while (head);
+}
 
 /*  */
 /** Handler for an Unconfirmed COV Notification.
@@ -61,10 +111,8 @@ void handler_ucov_notification(
 {
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE property_value[MAX_COV_PROPERTIES];
-#if PRINT_ENABLED
     BACNET_PROPERTY_VALUE *pProperty_value = NULL;
     int len = 0;
-#endif
 
     /* src not needed for this application */
     (void)src;
@@ -72,42 +120,37 @@ void handler_ucov_notification(
        than one property value is expected */
     bacapp_property_value_list_init(&property_value[0], MAX_COV_PROPERTIES);
     cov_data.listOfValues = &property_value[0];
-#if PRINT_ENABLED
-    fprintf(stderr, "UCOV: Received Notification!\n");
-#endif
+    PRINTF("UCOV: Received Notification!\n");
     /* decode the service request only */
-#if PRINT_ENABLED
     len =
-#endif
         cov_notify_decode_service_request(
             service_request, service_len, &cov_data);
-#if PRINT_ENABLED
     if (len > 0) {
-        fprintf(stderr, "UCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
-        fprintf(stderr, "instance=%u ", cov_data.initiatingDeviceIdentifier);
-        fprintf(stderr, "%s %u ",
+        handler_ucov_notification_callback(&cov_data);
+        PRINTF("UCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
+        PRINTF("instance=%u ", cov_data.initiatingDeviceIdentifier);
+        PRINTF("%s %u ",
             bactext_object_type_name(cov_data.monitoredObjectIdentifier.type),
             cov_data.monitoredObjectIdentifier.instance);
-        fprintf(stderr, "time remaining=%u seconds ", cov_data.timeRemaining);
-        fprintf(stderr, "\n");
+        PRINTF("time remaining=%u seconds ", cov_data.timeRemaining);
+        PRINTF("\n");
         pProperty_value = &property_value[0];
         while (pProperty_value) {
-            fprintf(stderr, "UCOV: ");
+            PRINTF("UCOV: ");
             if (pProperty_value->propertyIdentifier < 512) {
-                fprintf(stderr, "%s ",
+                PRINTF("%s ",
                     bactext_property_name(pProperty_value->propertyIdentifier));
             } else {
-                fprintf(stderr, "proprietary %u ",
+                PRINTF("proprietary %u ",
                     pProperty_value->propertyIdentifier);
             }
             if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
-                fprintf(stderr, "%u ", pProperty_value->propertyArrayIndex);
+                PRINTF("%u ", pProperty_value->propertyArrayIndex);
             }
-            fprintf(stderr, "\n");
+            PRINTF("\n");
             pProperty_value = pProperty_value->next;
         }
     } else {
-        fprintf(stderr, "UCOV: Unable to decode service request!\n");
+        PRINTF("UCOV: Unable to decode service request!\n");
     }
-#endif
 }

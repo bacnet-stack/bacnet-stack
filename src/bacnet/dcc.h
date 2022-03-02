@@ -80,22 +80,6 @@ extern "C" {
         BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
         BACNET_CHARACTER_STRING * password);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    int dcc_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        uint16_t * timeDuration,
-        BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
-        BACNET_CHARACTER_STRING * password);
-
-    BACNET_STACK_EXPORT
-    void test_DeviceCommunicationControl(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

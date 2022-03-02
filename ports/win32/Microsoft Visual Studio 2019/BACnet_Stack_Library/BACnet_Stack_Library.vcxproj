@@ -1,0 +1,306 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D0875CC6-8B68-404C-ABD7-823FE0C084DD}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>BACnet_Stack_Library</RootNamespace>
+    <UseAppLocalVCLibs>true</UseAppLocalVCLibs>
+    <WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\BACnet Solution Settings.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\BACnet Solution Settings.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\BACnet Solution Settings.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\BACnet Solution Settings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LibraryPath>$(VC_LibraryPath_x86);$(UniversalCRT_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(UniversalCRT_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VC_IncludePath);$(UniversalCRT_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(VC_IncludePath);$(UniversalCRT_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <AdditionalIncludeDirectories>..\..\..\..\ports\win32;..\..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BACNET_STACK_STATIC_DEFINE;BACAPP_ALL;WIN32;_DEBUG;_CONSOLE;PRINT_ENABLED=1;BIP_DEBUG;INTRINSIC_REPORTING=1;BBMD_ENABLED=1;DEBUG_ENABLED=1;BACFILE;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>BACNET_STACK_STATIC_DEFINE;BACAPP_ALL;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\ports\win32;..\..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4245;4389;4244;4996;4018;4100;4267;4701</DisableSpecificWarnings>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>BACNET_STACK_STATIC_DEFINE;BACAPP_ALL;WIN32;BACDL_BIP;USE_INADDR=0;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\ports\win32;..\..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <DisableSpecificWarnings>4245;4389;4244;4996;4018;4100;4267;4701</DisableSpecificWarnings>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>BACNET_STACK_STATIC_DEFINE;BACAPP_ALL;WIN32;BACDL_BIP;USE_INADDR=0;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\..\ports\win32;..\..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4245;4389;4244;4996;4018;4100;4267;4701</DisableSpecificWarnings>
+      <LanguageStandard>
+      </LanguageStandard>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\ports\win32\bip-init.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\abort.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\authentication_factor.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\binding\address.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\alarm_ack.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\service\h_apdu.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\arf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\awf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacaddr.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacapp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacdevobjpropref.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacerror.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacint.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacprop.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacpropstates.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacreal.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bacstr.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bactext.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\bactimevalue.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\bigend.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\days.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\bvlc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\cov.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\crc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\datalink.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datetime.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\dcc.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\debug.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\event.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\fifo.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\filename.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\getevent.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\get_alarm_sum.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\iam.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\ihave.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\indtext.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\key.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\keylist.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\lighting.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\lso.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\memcopy.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\datalink\mstptext.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\npdu.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\proplist.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\ptransfer.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\rd.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\readrange.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\reject.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\ringbuf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\rp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\rpm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\sbuf.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\timestamp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\timesync.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\tsm\tsm.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\whohas.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\whois.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\wp.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\wpm.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\src\bacnet\abort.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\address.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\alarm_ack.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\apdu.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\arcnet.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\arf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\awf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacaddr.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacapp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdcode.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdef.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacdevobjpropref.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacenum.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacerror.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacint.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacnet.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacprop.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacpropstates.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacreal.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bacstr.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bactext.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bactimevalue.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bigend.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bip.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bits.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bvlc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\bytes.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\client.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\config.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\cov.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\crc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datalink.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\datetime.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\dcc.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\debug.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\dlenv.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\dlmstp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\ethernet.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\event.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\fifo.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\filename.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\getevent.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\get_alarm_sum.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\handlers.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\iam.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\ihave.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\indtext.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\key.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\keylist.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\lighting.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\lso.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\memcopy.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\mstp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\mstpdef.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\mstptext.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\mydata.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\npdu.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\objects.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\proplist.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\ptransfer.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\rd.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\readrange.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\reject.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\ringbuf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\rp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\rpm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\sbuf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\timestamp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\timesync.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\tsm.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\txbuf.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\ucix.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\version.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\whohas.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\whois.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\wp.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\wpm.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

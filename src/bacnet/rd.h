@@ -61,21 +61,6 @@ extern "C" {
         BACNET_REINITIALIZED_STATE * state,
         BACNET_CHARACTER_STRING * password);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    int rd_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        BACNET_REINITIALIZED_STATE * state,
-        BACNET_CHARACTER_STRING * password);
-
-    BACNET_STACK_EXPORT
-    void test_ReinitializeDevice(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

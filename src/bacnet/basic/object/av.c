@@ -291,6 +291,28 @@ bool Analog_Value_Object_Name(
 }
 
 /**
+ * For a given object instance-number, gets the event-state property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  event-state property value
+ */
+unsigned Analog_Value_Event_State(uint32_t object_instance)
+{
+    unsigned index = 0;
+    unsigned state = EVENT_STATE_NORMAL;
+
+#if defined(INTRINSIC_REPORTING)
+    index = Analog_Value_Instance_To_Index(object_instance);
+    if (index < MAX_ANALOG_VALUES) {
+        state = AV_Descr[index].Event_State;
+    }
+#endif
+
+    return state;
+}
+
+/**
  * For a given object instance-number, determines if the COV flag
  * has been triggered.
  *
@@ -356,8 +378,13 @@ bool Analog_Value_Encode_Value_List(
         value_list->value.context_specific = false;
         value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
         bitstring_init(&value_list->value.type.Bit_String);
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, false);
+        if (Analog_Value_Event_State(object_instance) == EVENT_STATE_NORMAL) {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_IN_ALARM, false);
+        } else {
+            bitstring_set_bit(&value_list->value.type.Bit_String,
+                STATUS_FLAG_IN_ALARM, true);
+        }
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
         bitstring_set_bit(
@@ -497,12 +524,9 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
-#if defined(INTRINSIC_REPORTING)
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM,
-                CurrentAV->Event_State ? true : false);
-#else
-            bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM, false);
-#endif
+                Analog_Value_Event_State(rpdata->object_instance) !=
+                EVENT_STATE_NORMAL);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
@@ -721,7 +745,9 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            if (value.tag == BACNET_APPLICATION_TAG_REAL) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_REAL);
+            if (status) {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
                    object. */
@@ -746,25 +772,24 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CurrentAV->Out_Of_Service = value.type.Boolean;
             }
             break;
 
         case PROP_UNITS:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 CurrentAV->Units = value.type.Enumerated;
             }
             break;
 
         case PROP_COV_INCREMENT:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 if (value.type.Real >= 0.0) {
                     Analog_Value_COV_Increment_Set(
@@ -779,10 +804,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 #if defined(INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentAV->Time_Delay = value.type.Unsigned_Int;
                 CurrentAV->Remaining_Time_Delay = CurrentAV->Time_Delay;
@@ -790,47 +813,40 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_NOTIFICATION_CLASS:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentAV->Notification_Class = value.type.Unsigned_Int;
             }
             break;
 
         case PROP_HIGH_LIMIT:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
-                &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAV->High_Limit = value.type.Real;
             }
             break;
 
         case PROP_LOW_LIMIT:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
-                &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAV->Low_Limit = value.type.Real;
             }
             break;
 
         case PROP_DEADBAND:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_REAL,
-                &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAV->Deadband = value.type.Real;
             }
             break;
 
         case PROP_LIMIT_ENABLE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
-                    &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BIT_STRING);
             if (status) {
                 if (value.type.Bit_String.bits_used == 2) {
                     CurrentAV->Limit_Enable = value.type.Bit_String.value[0];
@@ -843,10 +859,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_EVENT_ENABLE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_BIT_STRING,
-                    &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BIT_STRING);
             if (status) {
                 if (value.type.Bit_String.bits_used == 3) {
                     CurrentAV->Event_Enable = value.type.Bit_String.value[0];
@@ -859,10 +873,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_NOTIFY_TYPE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
-
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 switch ((BACNET_NOTIFY_TYPE)value.type.Enumerated) {
                     case NOTIFY_EVENT:
@@ -1155,7 +1167,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 &event_data.notificationParams.outOfRange.statusFlags);
             bitstring_set_bit(
                 &event_data.notificationParams.outOfRange.statusFlags,
-                STATUS_FLAG_IN_ALARM, CurrentAV->Event_State ? true : false);
+                STATUS_FLAG_IN_ALARM,
+                CurrentAV->Event_State != EVENT_STATE_NORMAL);
             bitstring_set_bit(
                 &event_data.notificationParams.outOfRange.statusFlags,
                 STATUS_FLAG_FAULT, false);
@@ -1322,6 +1335,9 @@ int Analog_Value_Alarm_Ack(
                 /* Clean transitions flag. */
                 CurrentAV->Acked_Transitions[TRANSITION_TO_OFFNORMAL].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAV->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1346,6 +1362,9 @@ int Analog_Value_Alarm_Ack(
                 /* Clean transitions flag. */
                 CurrentAV->Acked_Transitions[TRANSITION_TO_FAULT].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAV->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1370,6 +1389,9 @@ int Analog_Value_Alarm_Ack(
                 /* Clean transitions flag. */
                 CurrentAV->Acked_Transitions[TRANSITION_TO_NORMAL].bIsAcked =
                     true;
+            } else if (alarmack_data->eventStateAcked ==
+                CurrentAV->Event_State) {
+                /* Send ack notification */
             } else {
                 *error_code = ERROR_CODE_INVALID_EVENT_STATE;
                 return -1;
@@ -1428,70 +1450,3 @@ int Analog_Value_Alarm_Summary(
         return -1; /* end of list  */
 }
 #endif /* defined(INTRINSIC_REPORTING) */
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
-
-void testAnalog_Value(Test *pTest)
-{
-    BACNET_READ_PROPERTY_DATA rpdata;
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    uint16_t decoded_type = 0;
-    uint32_t decoded_instance = 0;
-
-    Analog_Value_Init();
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_ANALOG_VALUE;
-    rpdata.object_instance = 1;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Analog_Value_Read_Property(&rpdata);
-    ct_test(pTest, len != 0);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == rpdata.object_type);
-    ct_test(pTest, decoded_instance == rpdata.object_instance);
-
-    return;
-}
-
-#ifdef TEST_ANALOG_VALUE
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Analog Value", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testAnalog_Value);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_ANALOG_VALUE */
-#endif /* BAC_TEST */

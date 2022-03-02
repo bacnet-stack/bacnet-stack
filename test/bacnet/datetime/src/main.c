@@ -132,9 +132,9 @@ static void testBACnetDateTimeAdd(void)
     zassert_equal(diff, 0, NULL);
 }
 
+#if 0 /*TODO: Change to use external methods */
 static void testBACnetDateTimeSeconds(void)
 {
-#if 0 /*TODO: Change to use external methods */
     uint8_t hour = 0, minute = 0, second = 0;
     uint8_t test_hour = 0, test_minute = 0, test_second = 0;
     uint32_t seconds = 0, test_seconds;
@@ -151,10 +151,8 @@ static void testBACnetDateTimeSeconds(void)
             }
         }
     }
-#else
-    ztest_test_skip();
-#endif
 }
+#endif
 
 static void testBACnetDate(void)
 {
@@ -354,9 +352,9 @@ static void testWildcardDateTime(void)
     return;
 }
 
+#if 0 /*TODO: Change to use external methods */
 static void testDayOfYear(void)
 {
-#if 0 /*TODO: Change to use external methods */
     uint32_t days = 0;
     uint8_t month = 0, test_month = 0;
     uint8_t day = 0, test_day = 0;
@@ -390,10 +388,8 @@ static void testDayOfYear(void)
             }
         }
     }
-#else
-    ztest_test_skip();
-#endif
 }
+#endif
 
 static void testDateEpochConversionCompare(
     uint16_t year, uint8_t month, uint8_t day,
@@ -431,9 +427,9 @@ static void testDateEpochConversion(void)
         BACNET_EPOCH_YEAR + 0xFF - 1, 12, 31, 23, 59, 59, 0);
 }
 
+#if 0 /*TODO: Change to use external methods */
 static void testDateEpoch(void)
 {
-#if 0 /*TODO: Change to use external methods */
     uint32_t days = 0;
     uint16_t year = 0, test_year = 0;
     uint8_t month = 0, test_month = 0;
@@ -458,10 +454,8 @@ static void testDateEpoch(void)
             }
         }
     }
-#else
-    ztest_test_skip();
-#endif
 }
+#endif
 
 static void testBACnetDayOfWeek(void)
 {
@@ -586,18 +580,20 @@ static void testDatetimeConvertUTC(void)
 
 void test_main(void)
 {
+#if 0
+     ztest_unit_test(testDateEpoch),
+     ztest_unit_test(testBACnetDateTimeSeconds),
+     ztest_unit_test(testDayOfYear),
+#endif
     ztest_test_suite(wp_tests,
      ztest_unit_test(testBACnetDate),
      ztest_unit_test(testBACnetTime),
      ztest_unit_test(testBACnetDateTime),
      ztest_unit_test(testBACnetDayOfWeek),
-     ztest_unit_test(testDateEpoch),
      ztest_unit_test(testDateEpochConversion),
-     ztest_unit_test(testBACnetDateTimeSeconds),
      ztest_unit_test(testBACnetDateTimeAdd),
      ztest_unit_test(testBACnetDateTimeWildcard),
      ztest_unit_test(testDatetimeCodec),
-     ztest_unit_test(testDayOfYear),
      ztest_unit_test(testWildcardDateTime)
      );
 

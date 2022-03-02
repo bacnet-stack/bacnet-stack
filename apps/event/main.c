@@ -151,9 +151,10 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     /* handle the ack coming back */
     apdu_set_confirmed_simple_ack_handler(
-        SERVICE_CONFIRMED_WRITE_PROPERTY, MyWritePropertySimpleAckHandler);
+        SERVICE_CONFIRMED_EVENT_NOTIFICATION, MyWritePropertySimpleAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_WRITE_PROPERTY, MyErrorHandler);
+    apdu_set_error_handler(
+        SERVICE_CONFIRMED_EVENT_NOTIFICATION, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
@@ -584,8 +585,9 @@ int main(int argc, char *argv[])
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
         }
-        if (Error_Detected)
+        if (Error_Detected) {
             break;
+}
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(

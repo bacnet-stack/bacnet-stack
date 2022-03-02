@@ -521,6 +521,217 @@ bool bvlc_broadcast_distribution_table_entry_forward_address(
 }
 
 /**
+ * @brief Encode the Broadcast-Distribution-Table for Network Port object
+ *
+ *    BACnetLIST of BACnetBDTEntry
+ *
+ *    BACnetBDTEntry ::= SEQUENCE {
+ *       bbmd-address [0] BACnetHostNPort,
+ *           BACnetHostNPort ::= SEQUENCE {
+ *               host [0] BACnetHostAddress,
+ *                   BACnetHostAddress ::= CHOICE {
+ *                       ip-address [1] OCTET STRING, -- 4 octets for B/IP
+ *                   }
+ *               port [1] Unsigned16
+ *           }
+ *        broadcast-mask [1] OCTET STRING
+ *    }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param bdt_head - head of the BDT linked list
+ * @return length of the APDU buffer
+ */
+int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+{
+    int len = 0;
+    int apdu_len = 0;
+    int entry_size = 0;
+    BACNET_OCTET_STRING octet_string;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry;
+
+    bdt_entry = bdt_head;
+    while (bdt_entry) {
+        if (bdt_entry->valid) {
+            /* bbmd-address [0] BACnetHostNPort - opening */
+            len = encode_opening_tag(&apdu[apdu_len], 0);
+            apdu_len += len;
+            /*  host [0] BACnetHostAddress - opening */
+            len = encode_opening_tag(&apdu[apdu_len], 0);
+            apdu_len += len;
+            /* CHOICE - ip-address [1] OCTET STRING */
+            octetstring_init(&octet_string,
+                &bdt_entry->dest_address.address[0], IP_ADDRESS_MAX);
+            len = encode_context_octet_string(&apdu[apdu_len], 1,
+                &octet_string);
+            apdu_len += len;
+            /*  host [0] BACnetHostAddress - closing */
+            len = encode_closing_tag(&apdu[apdu_len], 0);
+            apdu_len += len;
+            /* port [1] Unsigned16 */
+            len = encode_context_unsigned(
+                &apdu[apdu_len], 1, bdt_entry->dest_address.port);
+            apdu_len += len;
+            /* bbmd-address [0] BACnetHostNPort - closing */
+            len = encode_closing_tag(&apdu[apdu_len], 0);
+            apdu_len += len;
+            /* broadcast-mask [1] OCTET STRING */
+            octetstring_init(&octet_string,
+                &bdt_entry->broadcast_mask.address[0], IP_ADDRESS_MAX);
+            len = encode_context_octet_string(&apdu[apdu_len], 1,
+                &octet_string);
+            apdu_len += len;
+        }
+        if (!entry_size) {
+            entry_size = apdu_len;
+        }
+        /* next entry */
+        bdt_entry = bdt_entry->next;
+        if ((apdu_len + entry_size) > apdu_size) {
+            /* check for available space */
+            break;
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the Broadcast-Distribution-Table for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_len - the APDU buffer length
+ * @param bdt_head - head of a BDT linked list
+ * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ */
+int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
+    uint16_t apdu_len,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+{
+    int len = 0;
+    BACNET_OCTET_STRING octet_string = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
+    uint8_t tag_number = 0;
+    uint32_t len_value_type = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+
+    /* default reject code */
+    if (error_code) {
+        *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+    }
+    /* check for value pointers */
+    if ((apdu_len == 0) || (!apdu)) {
+        return BACNET_STATUS_REJECT;
+    }
+    bdt_entry = bdt_head;
+    while (bdt_entry) {
+        /* bbmd-address [0] BACnetHostNPort - opening */
+        if (!decode_is_opening_tag_number(&apdu[len++], 0)) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        if (len > apdu_len) {
+            return BACNET_STATUS_REJECT;
+        }
+        /* host [0] BACnetHostAddress - opening */
+        if (!decode_is_opening_tag_number(&apdu[len++], 0)) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        if (len > apdu_len) {
+            return BACNET_STATUS_REJECT;
+        }
+        /* CHOICE - ip-address [1] OCTET STRING */
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
+        if (tag_number != 1) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        len += decode_octet_string(&apdu[len], len_value_type,
+            &octet_string);
+        if (len > apdu_len) {
+            return BACNET_STATUS_REJECT;
+        }
+        octetstring_copy_value(&bdt_entry->dest_address.address[0],
+            IP_ADDRESS_MAX, &octet_string);
+        /*  host [0] BACnetHostAddress - closing */
+        if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        if (len > apdu_len) {
+            return BACNET_STATUS_REJECT;
+        }
+        /* port [1] Unsigned16 */
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
+        if (tag_number != 1) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+        if (len > apdu_len) {
+            return BACNET_STATUS_REJECT;
+        }
+        if (unsigned_value <= UINT16_MAX) {
+            bdt_entry->dest_address.port = unsigned_value;
+        } else {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        /* bbmd-address [0] BACnetHostNPort - closing */
+        if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        if (len > apdu_len) {
+            return BACNET_STATUS_REJECT;
+        }
+        /* broadcast-mask [1] OCTET STRING */
+        len += decode_tag_number_and_value(
+            &apdu[len], &tag_number, &len_value_type);
+        if (tag_number != 1) {
+            if (error_code) {
+                *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+            }
+            return BACNET_STATUS_REJECT;
+        }
+        if (len > apdu_len) {
+            return BACNET_STATUS_REJECT;
+        }
+        len += decode_octet_string(&apdu[len], len_value_type,
+            &octet_string);
+        if (len > apdu_len) {
+            return BACNET_STATUS_REJECT;
+        }
+        octetstring_copy_value(&bdt_entry->broadcast_mask.address[0],
+            IP_ADDRESS_MAX, &octet_string);
+        bdt_entry->valid = true;
+        /* next entry */
+        bdt_entry = bdt_entry->next;
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief J.2.2 Write-Broadcast-Distribution-Table: encode
  *
  * This message provides a mechanism for initializing or updating a
@@ -907,6 +1118,69 @@ int bvlc_decode_register_foreign_device(
 }
 
 /**
+ * @brief Encode the Foreign_Device-Table for Network Port object
+ *
+ *    BACnetLIST of BACnetFDTEntry
+ *
+ *    BACnetFDTEntry ::= SEQUENCE {
+ *        bacnetip-address [0] OCTET STRING, -- 6-octet B/IP registrant address
+ *        time-to-live [1] Unsigned16, -- time to live in seconds
+ *        remaining-time-to-live [2] Unsigned16 -- remaining time in seconds
+ *    }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param fdt_head - head of the BDT linked list
+ * @return length of the APDU buffer
+ */
+int bvlc_foreign_device_table_encode(uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head)
+{
+    int len = 0;
+    int apdu_len = 0;
+    int entry_size = 0;
+    BACNET_OCTET_STRING octet_string = { 0 };
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry;
+
+    fdt_entry = fdt_head;
+    while (fdt_entry) {
+        if (fdt_entry->valid) {
+            /* bacnetip-address [0] OCTET STRING */
+            len = bvlc_encode_address(
+                octetstring_value(&octet_string),
+                octetstring_capacity(&octet_string),
+                &fdt_entry->dest_address);
+            octetstring_truncate(&octet_string, len);
+            len = encode_context_octet_string(
+                &apdu[apdu_len], 0, &octet_string);
+            apdu_len += len;
+            /* time-to-live [1] Unsigned16 */
+            len = encode_context_unsigned(
+                &apdu[apdu_len], 1, fdt_entry->ttl_seconds);
+            apdu_len += len;
+            /* remaining-time-to-live [2] Unsigned16 */
+            len = encode_context_unsigned(
+                &apdu[apdu_len], 2, fdt_entry->ttl_seconds_remaining);
+            apdu_len += len;
+        }
+        if (!entry_size) {
+            entry_size = apdu_len;
+        }
+        /* next entry */
+        fdt_entry = fdt_entry->next;
+        if ((apdu_len + entry_size) > apdu_size) {
+            /* check for available space */
+            break;
+        }
+    }
+
+    return apdu_len;
+}
+
+
+
+/**
  * @brief J.2.7 Read-Foreign-Device-Table: encode
  *
  * The message provides a mechanism for retrieving the contents of a BBMD's
@@ -978,7 +1252,7 @@ bool bvlc_foreign_device_table_entry_copy(
 }
 
 /**
- * @brief Foreign-Device-Table timer maintainence
+ * @brief Foreign-Device-Table timer maintenance
  * @param fdt_list - first element in list of FDT entries
  * @param seconds - number of elapsed seconds since the last call
  */
@@ -1866,7 +2140,7 @@ bool bvlc_address_get(BACNET_IP_ADDRESS *addr,
  */
 bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
 {
-    unsigned char tmp = 0;
+    uint16_t tmp = 0;
     char c = 0;
     unsigned char i = 0, j = 0;
     uint8_t charsread = 0;
@@ -1877,6 +2151,7 @@ bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
     if (!addrstr) {
         return false;
     }
+
     for (i = 0; i < 4; ++i) {
         j = 0;
         do {
@@ -1886,10 +2161,13 @@ bool bvlc_address_from_ascii(BACNET_IP_ADDRESS *addr, const char *addrstr)
                 return false;
             }
             if ((c == '.') || (c == 0) || (c == ' ')) {
-                addr->address[i] = tmp;
+                addr->address[i] = (uint8_t) tmp;
                 tmp = 0;
             } else if ((c >= '0') && (c <= '9')) {
                 tmp = (tmp * 10) + (c - '0');
+		if (tmp > UINT8_MAX) {
+                    return false;
+		}
             } else {
                 return false;
             }
@@ -2305,891 +2583,40 @@ int bvlc_decode_foreign_device_table_entry(uint8_t *pdu,
     return bytes_consumed;
 }
 
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include "ctest.h"
-
-static void test_BVLC_Address(Test *pTest,
-    BACNET_IP_ADDRESS *bip_address_1,
-    BACNET_IP_ADDRESS *bip_address_2)
+/**
+ * @brief Get a text name for each BVLC result code
+ * @param result_code - BVLC result code
+ * @return ASCII text name for each BVLC result code or empty string
+ */
+const char *bvlc_result_code_name(uint16_t result_code)
 {
-    ct_test(pTest, !bvlc_address_different(bip_address_1, bip_address_2));
+    const char *name = "";
+
+    switch (result_code) {
+        case BVLC_RESULT_SUCCESSFUL_COMPLETION:
+            name = "Successful Completion";
+            break;
+        case BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK:
+            name= "Write-Broadcast-Distribution-Table NAK";
+            break;
+        case BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK:
+            name = "Read-Broadcast-Distribution-Table NAK";
+            break;
+        case BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK:
+            name = "Register-Foreign-Device NAK";
+            break;
+        case BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK:
+            name = "Read-Foreign-Device-Table NAK";
+            break;
+        case BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK:
+            name = "Delete-Foreign-Device-Table-Entry NAK";
+            break;
+        case BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK:
+            name = "Distribute-Broadcast-To-Network NAK";
+            break;
+        default:
+            break;
+    }
+
+    return name;
 }
-
-static void test_BVLC_Broadcast_Distribution_Mask(Test *pTest,
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask_1,
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK *bd_mask_2)
-{
-    ct_test(pTest,
-        !bvlc_broadcast_distribution_mask_different(bd_mask_1, bd_mask_2));
-}
-
-static void test_BVLC_Broadcast_Distribution_Table_Entry(Test *pTest,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry_1,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry_2)
-{
-    if (bdt_entry_1 && bdt_entry_2) {
-        ct_test(pTest, bdt_entry_1->valid == bdt_entry_2->valid);
-        test_BVLC_Address(
-            pTest, &bdt_entry_1->dest_address, &bdt_entry_2->dest_address);
-        test_BVLC_Broadcast_Distribution_Mask(
-            pTest, &bdt_entry_1->broadcast_mask, &bdt_entry_2->broadcast_mask);
-    }
-
-    return;
-}
-
-static void test_BVLC_Foreign_Device_Table_Entry(Test *pTest,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry_1,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry_2)
-{
-    if (fdt_entry_1 && fdt_entry_2) {
-        ct_test(pTest, fdt_entry_1->valid == fdt_entry_2->valid);
-        test_BVLC_Address(
-            pTest, &fdt_entry_1->dest_address, &fdt_entry_2->dest_address);
-        ct_test(pTest, fdt_entry_1->ttl_seconds == fdt_entry_2->ttl_seconds);
-        ct_test(pTest,
-            fdt_entry_1->ttl_seconds_remaining ==
-                fdt_entry_2->ttl_seconds_remaining);
-    }
-
-    return;
-}
-
-static int test_BVLC_Header(Test *pTest,
-    uint8_t *pdu,
-    uint16_t pdu_len,
-    uint8_t *message_type,
-    uint16_t *message_length)
-
-{
-    int bytes_consumed = 0;
-    int len = 0;
-
-    if (pdu && message_type && message_length) {
-        len = bvlc_decode_header(pdu, pdu_len, message_type, message_length);
-        ct_test(pTest, len == 4);
-        bytes_consumed = len;
-    }
-
-    return bytes_consumed;
-}
-
-static void test_BVLC_Result_Code(Test *pTest, uint16_t result_code)
-{
-    uint8_t pdu[50] = { 0 };
-    uint16_t test_result_code = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-
-    len = bvlc_encode_result(pdu, sizeof(pdu), result_code);
-    ct_test(pTest, len == 6);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_RESULT);
-    ct_test(pTest, length == 6);
-    test_len += bvlc_decode_result(&pdu[4], length - 4, &test_result_code);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, result_code == test_result_code);
-}
-
-static void test_BVLC_Result(Test *pTest)
-{
-    uint16_t result_code[] = { BVLC_RESULT_SUCCESSFUL_COMPLETION,
-        BVLC_RESULT_WRITE_BROADCAST_DISTRIBUTION_TABLE_NAK,
-        BVLC_RESULT_READ_BROADCAST_DISTRIBUTION_TABLE_NAK,
-        BVLC_RESULT_REGISTER_FOREIGN_DEVICE_NAK,
-        BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK,
-        BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK,
-        BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK };
-    unsigned int i = 0;
-    size_t result_code_max = sizeof(result_code) / sizeof(result_code[0]);
-
-    for (i = 0; i < result_code_max; i++) {
-        test_BVLC_Result_Code(pTest, result_code[i]);
-    }
-}
-
-static void test_BVLC_Original_Unicast_NPDU_Message(
-    Test *pTest, uint8_t *npdu, uint16_t npdu_len)
-{
-    uint8_t test_npdu[50] = { 0 };
-    uint8_t pdu[60] = { 0 };
-    uint16_t test_npdu_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc_encode_original_unicast(pdu, sizeof(pdu), npdu, npdu_len);
-    msg_len = 4 + npdu_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_ORIGINAL_UNICAST_NPDU);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_original_unicast(
-        &pdu[4], length - 4, test_npdu, sizeof(test_npdu), &test_npdu_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, npdu_len == test_npdu_len);
-    for (i = 0; i < npdu_len; i++) {
-        ct_test(pTest, npdu[i] == test_npdu[i]);
-    }
-}
-
-static void test_BVLC_Original_Unicast_NPDU(Test *pTest)
-{
-    uint8_t npdu[50] = { 0 };
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC_Original_Unicast_NPDU_Message(pTest, npdu, npdu_len);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Original_Unicast_NPDU_Message(pTest, npdu, npdu_len);
-}
-
-static void test_BVLC_Original_Broadcast_NPDU_Message(
-    Test *pTest, uint8_t *npdu, uint16_t npdu_len)
-{
-    uint8_t test_npdu[50] = { 0 };
-    uint8_t pdu[60] = { 0 };
-    uint16_t test_npdu_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc_encode_original_broadcast(pdu, sizeof(pdu), npdu, npdu_len);
-    msg_len = 4 + npdu_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_ORIGINAL_BROADCAST_NPDU);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_original_broadcast(
-        &pdu[4], length - 4, test_npdu, sizeof(test_npdu), &test_npdu_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, npdu_len == test_npdu_len);
-    for (i = 0; i < npdu_len; i++) {
-        ct_test(pTest, npdu[i] == test_npdu[i]);
-    }
-}
-
-static void test_BVLC_Original_Broadcast_NPDU(Test *pTest)
-{
-    uint8_t npdu[50] = { 0 };
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC_Original_Broadcast_NPDU_Message(pTest, npdu, npdu_len);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Original_Broadcast_NPDU_Message(pTest, npdu, npdu_len);
-}
-
-static void test_BVLC_Forwarded_NPDU_Message(Test *pTest,
-    uint8_t *npdu,
-    uint16_t npdu_len,
-    BACNET_IP_ADDRESS *bip_address)
-{
-    uint8_t test_npdu[50] = { 0 };
-    uint8_t pdu[75] = { 0 };
-    BACNET_IP_ADDRESS test_bip_address = { 0 };
-    uint16_t test_npdu_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc_encode_forwarded_npdu(
-        pdu, sizeof(pdu), bip_address, npdu, npdu_len);
-    msg_len = 1 + 1 + 2 + BIP_ADDRESS_MAX + npdu_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_FORWARDED_NPDU);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_forwarded_npdu(&pdu[4], length - 4,
-        &test_bip_address, test_npdu, sizeof(test_npdu), &test_npdu_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    test_BVLC_Address(pTest, bip_address, &test_bip_address);
-    ct_test(pTest, npdu_len == test_npdu_len);
-    for (i = 0; i < npdu_len; i++) {
-        ct_test(pTest, npdu[i] == test_npdu[i]);
-    }
-}
-
-static void test_BVLC_Forwarded_NPDU(Test *pTest)
-{
-    uint8_t npdu[50] = { 0 };
-    BACNET_IP_ADDRESS bip_address = { 0 };
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC_Forwarded_NPDU_Message(pTest, npdu, npdu_len, &bip_address);
-    for (i = 0; i < sizeof(bip_address.address); i++) {
-        bip_address.address[i] = i;
-    }
-    bip_address.port = 47808;
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Forwarded_NPDU_Message(pTest, npdu, npdu_len, &bip_address);
-}
-
-static void test_BVLC_Register_Foreign_Device_Message(
-    Test *pTest, uint16_t ttl_seconds)
-{
-    uint8_t pdu[60] = { 0 };
-    uint16_t test_ttl_seconds = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 6;
-
-    len = bvlc_encode_register_foreign_device(pdu, sizeof(pdu), ttl_seconds);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_REGISTER_FOREIGN_DEVICE);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_register_foreign_device(
-        &pdu[4], length - 4, &test_ttl_seconds);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, ttl_seconds == test_ttl_seconds);
-}
-
-static void test_BVLC_Register_Foreign_Device(Test *pTest)
-{
-    uint16_t ttl_seconds = 0;
-
-    test_BVLC_Register_Foreign_Device_Message(pTest, ttl_seconds);
-    ttl_seconds = 600;
-    test_BVLC_Register_Foreign_Device_Message(pTest, ttl_seconds);
-}
-
-static void test_BVLC_Delete_Foreign_Device_Message(
-    Test *pTest, BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
-{
-    uint8_t pdu[64] = { 0 };
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY test_fdt_entry = { 0 };
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 0x000A;
-
-    len = bvlc_encode_delete_foreign_device(
-        pdu, sizeof(pdu), &fdt_entry->dest_address);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_delete_foreign_device(
-        &pdu[4], length - 4, &test_fdt_entry.dest_address);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    if (msg_len != test_len) {
-        printf("msg:%u test:%u\n", msg_len, test_len);
-    }
-    test_BVLC_Address(
-        pTest, &fdt_entry->dest_address, &test_fdt_entry.dest_address);
-}
-
-static void test_BVLC_Delete_Foreign_Device(Test *pTest)
-{
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { 0 };
-    unsigned int i = 0;
-
-    /* test with zeros */
-    test_BVLC_Delete_Foreign_Device_Message(pTest, &fdt_entry);
-    /* test with valid values */
-    for (i = 0; i < sizeof(fdt_entry.dest_address.address); i++) {
-        fdt_entry.dest_address.address[i] = i;
-    }
-    fdt_entry.dest_address.port = 47808;
-    fdt_entry.ttl_seconds = 600;
-    fdt_entry.ttl_seconds_remaining = 42;
-    fdt_entry.next = NULL;
-    test_BVLC_Delete_Foreign_Device_Message(pTest, &fdt_entry);
-}
-
-static void test_BVLC_Secure_BVLL_Message(
-    Test *pTest, uint8_t *sbuf, uint16_t sbuf_len)
-{
-    uint8_t test_sbuf[50] = { 0 };
-    uint8_t pdu[60] = { 0 };
-    uint16_t test_sbuf_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc_encode_secure_bvll(pdu, sizeof(pdu), sbuf, sbuf_len);
-    msg_len = 1 + 1 + 2 + sbuf_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_SECURE_BVLL);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_secure_bvll(
-        &pdu[4], length - 4, test_sbuf, sizeof(test_sbuf), &test_sbuf_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, sbuf_len == test_sbuf_len);
-    for (i = 0; i < sbuf_len; i++) {
-        ct_test(pTest, sbuf[i] == test_sbuf[i]);
-    }
-}
-
-static void test_BVLC_Secure_BVLL(Test *pTest)
-{
-    uint8_t sbuf[50] = { 0 };
-    uint16_t sbuf_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC_Secure_BVLL_Message(pTest, sbuf, sbuf_len);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(sbuf); i++) {
-        sbuf[i] = i;
-    }
-    sbuf_len = sizeof(sbuf);
-    test_BVLC_Secure_BVLL_Message(pTest, sbuf, sbuf_len);
-}
-
-static void test_BVLC_Read_Broadcast_Distribution_Table_Message(Test *pTest)
-{
-    uint8_t pdu[60] = { 0 };
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-
-    len = bvlc_encode_read_broadcast_distribution_table(pdu, sizeof(pdu));
-    msg_len = 1 + 1 + 2;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_READ_BROADCAST_DIST_TABLE);
-    ct_test(pTest, length == msg_len);
-}
-
-static void test_BVLC_Distribute_Broadcast_To_Network_Message(
-    Test *pTest, uint8_t *npdu, uint16_t npdu_len)
-{
-    uint8_t test_npdu[50] = { 0 };
-    uint8_t pdu[60] = { 0 };
-    uint16_t test_npdu_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc_encode_distribute_broadcast_to_network(
-        pdu, sizeof(pdu), npdu, npdu_len);
-    msg_len = 4 + npdu_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_distribute_broadcast_to_network(
-        &pdu[4], length - 4, test_npdu, sizeof(test_npdu), &test_npdu_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, npdu_len == test_npdu_len);
-    for (i = 0; i < npdu_len; i++) {
-        ct_test(pTest, npdu[i] == test_npdu[i]);
-    }
-}
-
-static void test_BVLC_Distribute_Broadcast_To_Network(Test *pTest)
-{
-    uint8_t npdu[50] = { 0 };
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC_Distribute_Broadcast_To_Network_Message(pTest, npdu, npdu_len);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Distribute_Broadcast_To_Network_Message(pTest, npdu, npdu_len);
-}
-
-static void test_BVLC_Write_Broadcast_Distribution_Table_Message(Test *pTest,
-    uint8_t *npdu,
-    uint16_t npdu_len,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
-{
-    uint8_t pdu[480] = { 0 };
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *test_bdt_list = NULL;
-    uint16_t i = 0;
-    uint16_t count = 0;
-
-    count = bvlc_broadcast_distribution_table_valid_count(bdt_list);
-    test_bdt_list =
-        calloc(count, sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY));
-    bvlc_broadcast_distribution_table_link_array(test_bdt_list, count);
-    /* encode the message */
-    len = bvlc_encode_write_broadcast_distribution_table(
-        pdu, sizeof(pdu), bdt_list);
-    msg_len = 4 + (count * BACNET_IP_BDT_ENTRY_SIZE);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_write_broadcast_distribution_table(
-        &pdu[4], length - 4, test_bdt_list);
-    ct_test(pTest, msg_len == test_len);
-    for (i = 0; i < count; i++) {
-        test_BVLC_Broadcast_Distribution_Table_Entry(
-            pTest, &bdt_list[i], &test_bdt_list[i]);
-    }
-}
-
-static void test_BVLC_Write_Broadcast_Distribution_Table(Test *pTest)
-{
-    uint8_t npdu[480] = { 0 };
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-    uint16_t count = 0;
-    uint16_t test_count = 0;
-    bool status = false;
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_list[5] = { 0 };
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
-    BACNET_IP_ADDRESS dest_address = { 0 };
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK broadcast_mask = { 0 };
-
-    /* configure a BDT entry */
-    count = sizeof(bdt_list) / sizeof(bdt_list[0]);
-    bvlc_broadcast_distribution_table_link_array(&bdt_list[0], count);
-    for (i = 0; i < count; i++) {
-        status = bvlc_address_port_from_ascii(
-            &dest_address, "192.168.0.255", "0xBAC0");
-        ct_test(pTest, status);
-        dest_address.port += i;
-        broadcast_mask.address[0] = 255;
-        broadcast_mask.address[1] = 255;
-        broadcast_mask.address[2] = 255;
-        broadcast_mask.address[3] = 255;
-        status = bvlc_broadcast_distribution_table_entry_set(
-            &bdt_entry, &dest_address, &broadcast_mask);
-        ct_test(pTest, status);
-        status = bvlc_broadcast_distribution_table_entry_append(
-            &bdt_list[0], &bdt_entry);
-        ct_test(pTest, status);
-    }
-    test_count = bvlc_broadcast_distribution_table_count(&bdt_list[0]);
-    if (test_count != count) {
-        printf("size=%u count=%u\n", count, test_count);
-    }
-    ct_test(pTest, test_count == count);
-    test_count = bvlc_broadcast_distribution_table_valid_count(&bdt_list[0]);
-    ct_test(pTest, test_count == count);
-    for (i = 1; i < 5; i++) {
-        status = bvlc_broadcast_distribution_table_entry_different(
-            &bdt_list[0], &bdt_list[i]);
-        ct_test(pTest, status);
-    }
-    test_BVLC_Write_Broadcast_Distribution_Table_Message(
-        pTest, npdu, npdu_len, &bdt_list[0]);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Write_Broadcast_Distribution_Table_Message(
-        pTest, npdu, npdu_len, &bdt_list[0]);
-}
-
-static void test_BVLC_Read_Broadcast_Distribution_Table_Ack_Message(Test *pTest,
-    uint8_t *npdu,
-    uint16_t npdu_len,
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
-{
-    uint8_t pdu[480] = { 0 };
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *test_bdt_list = NULL;
-    uint16_t i = 0;
-    uint16_t count = 0;
-
-    count = bvlc_broadcast_distribution_table_valid_count(bdt_list);
-    test_bdt_list =
-        calloc(count, sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY));
-    bvlc_broadcast_distribution_table_link_array(test_bdt_list, count);
-    /* encode the message */
-    len = bvlc_encode_read_broadcast_distribution_table_ack(
-        pdu, sizeof(pdu), bdt_list);
-    msg_len = 4 + (count * BACNET_IP_BDT_ENTRY_SIZE);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_READ_BROADCAST_DIST_TABLE_ACK);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_read_broadcast_distribution_table_ack(
-        &pdu[4], length - 4, test_bdt_list);
-    ct_test(pTest, msg_len == test_len);
-    for (i = 0; i < count; i++) {
-        test_BVLC_Broadcast_Distribution_Table_Entry(
-            pTest, &bdt_list[i], &test_bdt_list[i]);
-    }
-}
-
-static void test_BVLC_Read_Broadcast_Distribution_Table_Ack(Test *pTest)
-{
-    uint8_t npdu[480] = { 0 };
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-    uint16_t count = 0;
-    uint16_t test_count = 0;
-    bool status = false;
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_list[5] = { 0 };
-    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
-
-    /* configure a BDT entry */
-    count = sizeof(bdt_list) / sizeof(bdt_list[0]);
-    for (i = 0; i < count; i++) {
-        status = bvlc_address_port_from_ascii(
-            &bdt_entry.dest_address, "192.168.0.255", "0xBAC0");
-        ct_test(pTest, status);
-        bdt_entry.dest_address.port += i;
-        bdt_entry.broadcast_mask.address[0] = 255;
-        bdt_entry.broadcast_mask.address[1] = 255;
-        bdt_entry.broadcast_mask.address[2] = 255;
-        bdt_entry.broadcast_mask.address[3] = 255;
-        status = bvlc_broadcast_distribution_table_entry_copy(
-            &bdt_list[i], &bdt_entry);
-        ct_test(pTest, status);
-        bdt_list[i].valid = true;
-        if (i > 0) {
-            bdt_list[i - 1].next = &bdt_list[i];
-        }
-        bdt_list[i].next = NULL;
-    }
-    test_count = bvlc_broadcast_distribution_table_count(&bdt_list[0]);
-    if (test_count != count) {
-        printf("size=%u count=%u\n", count, test_count);
-    }
-    ct_test(pTest, test_count == count);
-    test_count = bvlc_broadcast_distribution_table_valid_count(&bdt_list[0]);
-    ct_test(pTest, test_count == count);
-    bvlc_broadcast_distribution_table_entry_copy(&bdt_entry, &bdt_list[0]);
-    status = bvlc_broadcast_distribution_table_entry_different(
-        &bdt_entry, &bdt_list[0]);
-    ct_test(pTest, !status);
-    test_BVLC_Read_Broadcast_Distribution_Table_Ack_Message(
-        pTest, npdu, npdu_len, &bdt_list[0]);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Read_Broadcast_Distribution_Table_Ack_Message(
-        pTest, npdu, npdu_len, &bdt_list[0]);
-}
-
-static void test_BVLC_Read_Foreign_Device_Table_Ack_Message(Test *pTest,
-    uint8_t *npdu,
-    uint16_t npdu_len,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list)
-{
-    uint8_t pdu[480] = { 0 };
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *test_fdt_list = NULL;
-    uint16_t i = 0;
-    uint16_t count = 0;
-
-    count = bvlc_foreign_device_table_valid_count(fdt_list);
-    test_fdt_list = calloc(count, sizeof(BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY));
-    bvlc_foreign_device_table_link_array(test_fdt_list, count);
-    /* encode the message */
-    len = bvlc_encode_read_foreign_device_table_ack(pdu, sizeof(pdu), fdt_list);
-    msg_len = 4 + (count * BACNET_IP_FDT_ENTRY_SIZE);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC_READ_FOREIGN_DEVICE_TABLE_ACK);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc_decode_read_foreign_device_table_ack(
-        &pdu[4], length - 4, test_fdt_list);
-    ct_test(pTest, msg_len == test_len);
-    for (i = 0; i < count; i++) {
-        test_BVLC_Foreign_Device_Table_Entry(
-            pTest, &fdt_list[i], &test_fdt_list[i]);
-    }
-}
-
-static void test_BVLC_Read_Foreign_Device_Table_Ack(Test *pTest)
-{
-    uint8_t npdu[480] = { 0 };
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-    uint16_t count = 0;
-    uint16_t test_count = 0;
-    uint16_t test_port_start = 0xBAC1;
-    bool status = false;
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_list[5] = { 0 };
-    BACNET_IP_ADDRESS dest_address = { 0 };
-
-    status = bvlc_address_from_ascii(&dest_address, "192.168.0.1");
-    ct_test(pTest, status);
-    /* configure a FDT entry */
-    count = sizeof(fdt_list) / sizeof(fdt_list[0]);
-    bvlc_foreign_device_table_link_array(fdt_list, count);
-    for (i = 0; i < count; i++) {
-        dest_address.port = test_port_start + i;
-        status = bvlc_foreign_device_table_entry_add(
-            &fdt_list[0], &dest_address, 12345);
-        ct_test(pTest, status);
-        /* add again should only update TTL */
-        status = bvlc_foreign_device_table_entry_add(
-            &fdt_list[0], &dest_address, 12345);
-        ct_test(pTest, status);
-    }
-    test_count = bvlc_foreign_device_table_count(fdt_list);
-    ct_test(pTest, test_count == count);
-    if (test_count != count) {
-        printf("size=%u count=%u\n", count, test_count);
-    }
-    test_count = bvlc_foreign_device_table_valid_count(fdt_list);
-    ct_test(pTest, test_count == count);
-    test_BVLC_Read_Foreign_Device_Table_Ack_Message(
-        pTest, npdu, npdu_len, fdt_list);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    test_BVLC_Read_Foreign_Device_Table_Ack_Message(
-        pTest, npdu, npdu_len, fdt_list);
-    /* cleanup */
-    for (i = 0; i < count; i++) {
-        dest_address.port = test_port_start + i;
-        status =
-            bvlc_foreign_device_table_entry_delete(&fdt_list[0], &dest_address);
-        ct_test(pTest, status);
-    }
-    test_count = bvlc_foreign_device_table_valid_count(fdt_list);
-    ct_test(pTest, test_count == 0);
-}
-
-static void test_BVLC_Address_Copy(Test *pTest)
-{
-    unsigned int i = 0;
-    BACNET_IP_ADDRESS src = { 0 };
-    BACNET_IP_ADDRESS dst = { 0 };
-    bool status = false;
-
-    /* test with zeros */
-    status = bvlc_address_copy(&dst, &src);
-    ct_test(pTest, status);
-    status = bvlc_address_different(&dst, &src);
-    ct_test(pTest, !status);
-    /* test with valid values */
-    for (i = 0; i < sizeof(src.address); i++) {
-        src.address[i] = 1 + i;
-    }
-    src.port = 47808;
-    status = bvlc_address_copy(&dst, &src);
-    ct_test(pTest, status);
-    status = bvlc_address_different(&dst, &src);
-    ct_test(pTest, !status);
-    /* test for different port */
-    dst.port = 47809;
-    status = bvlc_address_different(&dst, &src);
-    ct_test(pTest, status);
-    /* test for different address */
-    dst.port = src.port;
-    for (i = 0; i < sizeof(src.address); i++) {
-        dst.address[i] = 0;
-        status = bvlc_address_different(&dst, &src);
-        ct_test(pTest, status);
-        dst.address[i] = 1 + i;
-    }
-}
-
-static void test_BVLC_Address_Get_Set(Test *pTest)
-{
-    uint16_t i = 0;
-    BACNET_ADDRESS bsrc = { 0 };
-    BACNET_IP_ADDRESS src = { 0 };
-    BACNET_IP_ADDRESS dst = { 0 };
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK mask = { 0 };
-    BACNET_IP_BROADCAST_DISTRIBUTION_MASK test_mask = { 0 };
-    const uint32_t broadcast_mask = 0x12345678;
-    uint32_t test_broadcast_mask = 0;
-    uint8_t octet0 = 192;
-    uint8_t octet1 = 168;
-    uint8_t octet2 = 1;
-    uint8_t octet3 = 255;
-    uint8_t test_octet0 = 0;
-    uint8_t test_octet1 = 0;
-    uint8_t test_octet2 = 0;
-    uint8_t test_octet3 = 0;
-    const uint16_t dnet = 12345;
-    uint16_t snet = 0;
-    bool status = false;
-
-    for (i = 0; i < 255; i++) {
-        octet0 = i;
-        octet1 = i;
-        octet2 = i;
-        octet3 = i;
-        status = bvlc_address_set(&src, octet0, octet1, octet2, octet3);
-        ct_test(pTest, status);
-        status = bvlc_address_get(
-            &src, &test_octet0, &test_octet1, &test_octet2, &test_octet3);
-        ct_test(pTest, status);
-        ct_test(pTest, octet0 == test_octet0);
-        ct_test(pTest, octet1 == test_octet1);
-        ct_test(pTest, octet2 == test_octet2);
-        ct_test(pTest, octet3 == test_octet3);
-    }
-    /* test the ASCII hex to address */
-    /* test invalid */
-    status = bvlc_address_from_ascii(&src, "256");
-    ct_test(pTest, status == false);
-    status = bvlc_address_from_ascii(&src, "192.168.0.1");
-    ct_test(pTest, status);
-    status = bvlc_address_set(&dst, 192, 168, 0, 1);
-    ct_test(pTest, status);
-    status = bvlc_address_different(&dst, &src);
-    ct_test(pTest, status == false);
-    /* test zero compression */
-    status = bvlc_address_from_ascii(&src, "127...");
-    ct_test(pTest, status);
-    status = bvlc_address_set(&dst, 127, 0, 0, 0);
-    ct_test(pTest, status);
-    status = bvlc_address_different(&dst, &src);
-    if (status) {
-        status = bvlc_address_get(
-            &src, &test_octet0, &test_octet1, &test_octet2, &test_octet3);
-        printf("src:%u.%u.%u.%u\n", (unsigned)test_octet0,
-            (unsigned)test_octet1, (unsigned)test_octet2,
-            (unsigned)test_octet3);
-        status = bvlc_address_get(
-            &dst, &test_octet0, &test_octet1, &test_octet2, &test_octet3);
-        printf("dst:%u.%u.%u.%u\n", (unsigned)test_octet0,
-            (unsigned)test_octet1, (unsigned)test_octet2,
-            (unsigned)test_octet3);
-    }
-    ct_test(pTest, status == false);
-    /* BACnet to IPv4 address conversions */
-    status = bvlc_address_port_from_ascii(&src, "192.168.0.1", "0xBAC0");
-    ct_test(pTest, status);
-    status = bvlc_ip_address_to_bacnet_local(&bsrc, &src);
-    ct_test(pTest, status);
-    status = bvlc_ip_address_from_bacnet_local(&dst, &bsrc);
-    ct_test(pTest, status);
-    status = bvlc_address_different(&dst, &src);
-    ct_test(pTest, !status);
-    status = bvlc_ip_address_to_bacnet_remote(&bsrc, dnet, &src);
-    ct_test(pTest, status);
-    status = bvlc_ip_address_from_bacnet_remote(&dst, &snet, &bsrc);
-    ct_test(pTest, status);
-    ct_test(pTest, snet == dnet);
-    status = bvlc_ip_address_from_bacnet_remote(&dst, NULL, &bsrc);
-    ct_test(pTest, status);
-    /* Broadcast Distribution Mask conversions */
-    status = bvlc_broadcast_distribution_mask_from_host(&mask, broadcast_mask);
-    ct_test(pTest, status);
-    status =
-        bvlc_broadcast_distribution_mask_to_host(&test_broadcast_mask, &mask);
-    ct_test(pTest, status);
-    ct_test(pTest, test_broadcast_mask == broadcast_mask);
-    octet0 = 0x12;
-    octet1 = 0x34;
-    octet2 = 0x56;
-    octet3 = 0x78;
-    bvlc_broadcast_distribution_mask_set(
-        &test_mask, octet0, octet1, octet2, octet3);
-    status = bvlc_broadcast_distribution_mask_different(&mask, &test_mask);
-    ct_test(pTest, !status);
-    bvlc_broadcast_distribution_mask_get(
-        &test_mask, &test_octet0, &test_octet1, &test_octet2, &test_octet3);
-    ct_test(pTest, octet0 == test_octet0);
-    ct_test(pTest, octet1 == test_octet1);
-    ct_test(pTest, octet2 == test_octet2);
-    ct_test(pTest, octet3 == test_octet3);
-}
-
-void test_BVLC(Test *pTest)
-{
-    bool rc;
-
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, test_BVLC_Result);
-    assert(rc);
-    rc =
-        ct_addTestFunction(pTest, test_BVLC_Write_Broadcast_Distribution_Table);
-    assert(rc);
-    rc = ct_addTestFunction(
-        pTest, test_BVLC_Read_Broadcast_Distribution_Table_Message);
-    assert(rc);
-    rc = ct_addTestFunction(
-        pTest, test_BVLC_Read_Broadcast_Distribution_Table_Ack);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Forwarded_NPDU);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Register_Foreign_Device);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Read_Foreign_Device_Table_Ack);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Delete_Foreign_Device);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Distribute_Broadcast_To_Network);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Original_Unicast_NPDU);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Original_Broadcast_NPDU);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Secure_BVLL);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Address_Copy);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC_Address_Get_Set);
-    assert(rc);
-}
-
-#ifdef TEST_BVLC
-int main(void)
-{
-    Test *pTest;
-
-    pTest = ct_create("BACnet Virtual Link Control IP/v4", NULL);
-    test_BVLC(pTest);
-    /* configure output */
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_BBMD */
-#endif /* BAC_TEST */

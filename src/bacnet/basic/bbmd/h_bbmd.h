@@ -68,9 +68,13 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest,
 
 BACNET_STACK_EXPORT
 uint16_t bvlc_get_last_result(void);
+BACNET_STACK_EXPORT
+void bvlc_set_last_result(uint16_t result_code);
 
 BACNET_STACK_EXPORT
 uint8_t bvlc_get_function_code(void);
+BACNET_STACK_EXPORT
+void bvlc_set_function_code(uint8_t function_code);
 
 BACNET_STACK_EXPORT
 void bvlc_maintenance_timer(uint16_t seconds);
@@ -84,6 +88,9 @@ void bvlc_debug_enable(void);
 /* send a Read BDT request */
 BACNET_STACK_EXPORT
 int bvlc_bbmd_read_bdt(BACNET_IP_ADDRESS *bbmd_addr);
+BACNET_STACK_EXPORT
+int bvlc_bbmd_write_bdt(BACNET_IP_ADDRESS *bbmd_addr,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list);
 /* send a Read FDT request */
 BACNET_STACK_EXPORT
 int bvlc_bbmd_read_fdt(BACNET_IP_ADDRESS *bbmd_addr);
@@ -105,6 +112,9 @@ BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bvlc_bdt_list(void);
 /* Invalidate all entries in the broadcast distribution table */
 BACNET_STACK_EXPORT
 void bvlc_bdt_list_clear(void);
+
+/* Get foreign device table list */
+BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *bvlc_fdt_list(void);
 
 /* Backup broadcast distribution table to a file.
  * Filename is the BBMD_BACKUP_FILE constant

@@ -41,6 +41,9 @@
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
 #if defined(BACDL_BIP)
+#ifndef BBMD_ENABLED
+#define BBMD_ENABLED 1
+#endif
 /* timer used to renew Foreign Device Registration */
 static uint16_t BBMD_Timer_Seconds;
 /* BBMD variables */
@@ -48,7 +51,9 @@ static uint16_t BBMD_TTL_Seconds = 60000;
 static BACNET_IP_ADDRESS BBMD_Address;
 static bool BBMD_Address_Valid;
 static uint16_t BBMD_Result = 0;
+#if BBMD_ENABLED
 static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
+#endif
 /* enable debugging */
 static bool BIP_DL_Debug = false;
 
@@ -114,7 +119,7 @@ int dlenv_bbmd_result(void)
 int dlenv_register_as_foreign_device(void)
 {
     int retval = 0;
-#if defined(BACDL_BIP)
+#if defined(BACDL_BIP) && BBMD_ENABLED
     bool bdt_entry_valid = false;
     uint16_t bdt_entry_port = 0;
     char *pEnv = NULL;
@@ -251,6 +256,10 @@ static void dlenv_network_port_init(void)
     Network_Port_MAC_Address_Set(instance, &addr.address[0], 6);
     Network_Port_IP_Subnet_Prefix_Set(instance, bip_get_subnet_prefix());
     Network_Port_Link_Speed_Set(instance, 0.0);
+#if BBMD_ENABLED
+    Network_Port_BBMD_BD_Table_Set(instance, bvlc_bdt_list());
+    Network_Port_BBMD_FD_Table_Set(instance, bvlc_fdt_list());
+#endif
     /* common NP data */
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
     Network_Port_Out_Of_Service_Set(instance, false);
@@ -422,6 +431,11 @@ void dlenv_init(void)
 #endif
 #if defined(BACDL_BIP6)
     BACNET_IP6_ADDRESS addr;
+    pEnv = getenv("BACNET_BIP6_DEBUG");
+    if (pEnv) {
+        bip6_debug_enable();
+        bvlc6_debug_enable();
+    }
     pEnv = getenv("BACNET_BIP6_BROADCAST");
     if (pEnv) {
         bvlc6_address_set(&addr, (uint16_t)strtol(pEnv, NULL, 0), 0, 0, 0, 0, 0,

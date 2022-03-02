@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <time.h> /* for time */
 #include <errno.h>
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/bactext.h"
@@ -37,12 +36,14 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
+#include "bacnet/datetime.h"
 #include "bacnet/basic/object/device.h"
 #include "bacport.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/timesync.h"
 #include "bacnet/version.h"
 /* some demo stuff needed */
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/services.h"
@@ -152,15 +153,12 @@ int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
-    unsigned timeout = 100; /* milliseconds */
-    time_t elapsed_seconds = 0;
-    time_t last_seconds = 0;
-    time_t current_seconds = 0;
-    time_t timeout_seconds = 0;
-    time_t rawtime;
-    struct tm *my_time;
+    const unsigned timeout = 100; /* milliseconds */
     BACNET_DATE bdate;
     BACNET_TIME btime;
+    bool override_date = false;
+    bool override_time = false;
+    struct mstimer apdu_timer;
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
@@ -208,6 +206,20 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        if (strcmp(argv[argi], "--date") == 0) {
+            if (++argi < argc) {
+                if (datetime_date_init_ascii(&bdate, argv[argi])) {
+                    override_date = true;
+                }
+            }
+        }
+        if (strcmp(argv[argi], "--time") == 0) {
+            if (++argi < argc) {
+                if (datetime_time_init_ascii(&btime, argv[argi])) {
+                    override_time = true;
+                }
+            }
+        }
     }
     if (global_broadcast) {
         datalink_get_broadcast_address(&dest);
@@ -246,40 +258,26 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
     dlenv_init();
     atexit(datalink_cleanup);
-    /* configure the timeout values */
-    last_seconds = time(NULL);
-    timeout_seconds = apdu_timeout() / 1000;
+    mstimer_init();
     /* send the request */
-    time(&rawtime);
-    my_time = localtime(&rawtime);
-    bdate.year = my_time->tm_year + 1900;
-    bdate.month = my_time->tm_mon + 1;
-    bdate.day = my_time->tm_mday;
-    bdate.wday = my_time->tm_wday ? my_time->tm_wday : 7;
-    btime.hour = my_time->tm_hour;
-    btime.min = my_time->tm_min;
-    btime.sec = my_time->tm_sec;
-    btime.hundredths = 0;
+    datetime_local(override_date?NULL:&bdate,override_time?NULL:&btime,
+        NULL, NULL);
     Send_TimeSync_Remote(&dest, &bdate, &btime);
+    mstimer_set(&apdu_timer, apdu_timeout());
     /* loop forever - not necessary for time sync, but we can watch */
     for (;;) {
-        /* increment timer - exit if timed out */
-        current_seconds = time(NULL);
         /* returns 0 bytes on timeout */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
         /* process */
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-        if (Error_Detected)
-            break;
-        /* increment timer - exit if timed out */
-        elapsed_seconds += (current_seconds - last_seconds);
-        if (elapsed_seconds > timeout_seconds) {
+        if (Error_Detected) {
             break;
         }
-        /* keep track of time for next check */
-        last_seconds = current_seconds;
+        if (mstimer_expired(&apdu_timer)) {
+            break;
+        }
     }
 
     return 0;

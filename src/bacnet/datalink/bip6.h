@@ -24,8 +24,6 @@
 /* specific defines for BACnet/IP over Ethernet */
 #define BIP6_HEADER_MAX (1 + 1 + 2)
 #define BIP6_MPDU_MAX (BIP6_HEADER_MAX+MAX_PDU)
-/* for legacy demo applications */
-#define MAX_MPDU BIP6_MPDU_MAX
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,6 +98,10 @@ extern "C" {
         void);
     BACNET_STACK_EXPORT
     void bip6_receive_callback(
+        void);
+
+    BACNET_STACK_EXPORT
+    void bip6_debug_enable(
         void);
 
 #ifdef __cplusplus

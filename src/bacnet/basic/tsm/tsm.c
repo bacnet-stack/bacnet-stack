@@ -49,7 +49,7 @@
 
 /** @file tsm.c  BACnet Transaction State Machine operations  */
 /* FIXME: modify basic service handlers to use TSM rather than this buffer! */
-uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
+uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 #if (MAX_TSM_TRANSACTIONS)
 /* Really only needed for segmented messages */
@@ -316,7 +316,7 @@ bool tsm_get_transaction_pdu(uint8_t invokeID,
 
 /** Called once a millisecond or slower.
  *  This function calls the handler for a
- *  timeout 'Timeout_Function', if neccessary.
+ *  timeout 'Timeout_Function', if necessary.
  *
  * @param milliseconds - Count of milliseconds passed, since the last call.
  */
@@ -414,59 +414,4 @@ bool tsm_invoke_id_failed(uint8_t invokeID)
 
     return status;
 }
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-/* flag to send an I-Am */
-bool I_Am_Request = true;
-
-/* dummy function stubs */
-int datalink_send_pdu(BACNET_ADDRESS *dest,
-    BACNET_NPDU_DATA *npdu_data,
-    uint8_t *pdu,
-    unsigned pdu_len)
-{
-    (void)dest;
-    (void)npdu_data;
-    (void)pdu;
-    (void)pdu_len;
-
-    return 0;
-}
-
-/* dummy function stubs */
-void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
-{
-    (void)dest;
-}
-
-void testTSM(Test *pTest)
-{
-    /* FIXME: add some unit testing... */
-    return;
-}
-
-#ifdef TEST_TSM
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet TSM", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testTSM);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_TSM */
-#endif /* BAC_TEST */
-#endif /* MAX_TSM_TRANSACTIONS */
+#endif

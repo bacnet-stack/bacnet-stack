@@ -54,6 +54,7 @@
 #define BVLC_ORIGINAL_UNICAST_NPDU 10
 #define BVLC_ORIGINAL_BROADCAST_NPDU 11
 #define BVLC_SECURE_BVLL 12
+#define BVLC_INVALID 255
 
 /** @} */
 
@@ -68,6 +69,7 @@
 #define BVLC_RESULT_READ_FOREIGN_DEVICE_TABLE_NAK 0x0040
 #define BVLC_RESULT_DELETE_FOREIGN_DEVICE_TABLE_ENTRY_NAK 0x0050
 #define BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK 0x0060
+#define BVLC_RESULT_INVALID 0xFFFF
 
 /* number of bytes in the IPv4 address */
 #define IP_ADDRESS_MAX 4
@@ -292,7 +294,6 @@ extern "C" {
         BACNET_IP_ADDRESS *dst, const BACNET_IP_ADDRESS *src,
         const BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask);
 
-
     BACNET_STACK_EXPORT
     bool bvlc_broadcast_distribution_mask_from_host(
         BACNET_IP_BROADCAST_DISTRIBUTION_MASK *mask, uint32_t broadcast_mask);
@@ -316,6 +317,17 @@ extern "C" {
         uint8_t *addr1,
         uint8_t *addr2,
         uint8_t *addr3);
+
+    BACNET_STACK_EXPORT
+    int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
+        uint16_t apdu_len,
+        BACNET_ERROR_CODE *error_code,
+        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+
+    BACNET_STACK_EXPORT
+    int bvlc_broadcast_distribution_table_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
 
     BACNET_STACK_EXPORT
     int bvlc_encode_write_broadcast_distribution_table(uint8_t *pdu,
@@ -396,6 +408,11 @@ extern "C" {
     int bvlc_decode_foreign_device_table_entry(uint8_t *pdu,
         uint16_t pdu_len,
         BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
+
+    BACNET_STACK_EXPORT
+    int bvlc_foreign_device_table_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head);
 
     BACNET_STACK_EXPORT
     int bvlc_encode_read_foreign_device_table(uint8_t *pdu, uint16_t pdu_size);
@@ -491,11 +508,8 @@ extern "C" {
         uint16_t npdu_size,
         uint16_t *npdu_len);
 
-#ifdef BAC_TEST
-#include "ctest.h"
     BACNET_STACK_EXPORT
-    void test_BVLC(Test *pTest);
-#endif
+    const char *bvlc_result_code_name(uint16_t result_code);
 
 #ifdef __cplusplus
 }

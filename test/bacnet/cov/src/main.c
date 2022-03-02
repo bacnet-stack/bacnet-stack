@@ -157,10 +157,8 @@ static void testCOVNotifyData(
             zassert_equal(
                 test_value->propertyArrayIndex, value->propertyArrayIndex, NULL);
             zassert_equal(test_value->priority, value->priority, NULL);
-#if 0 /*TODO: Need to expose bacapp_same_value hidden under TEST conditional */
             zassert_true(
                 bacapp_same_value(&test_value->value, &value->value), NULL);
-#endif
             test_value = test_value->next;
         }
         value = value->next;

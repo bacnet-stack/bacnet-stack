@@ -51,16 +51,17 @@ ROUTER_PORT *find_dnet(uint16_t net, BACNET_ADDRESS *addr)
     DNET *dnet;
 
     /* for broadcast messages no search is needed */
-    if (net == BACNET_BROADCAST_NETWORK)
+    if (net == BACNET_BROADCAST_NETWORK) {
         return port;
+}
 
     while (port != NULL) {
         /* check if DNET is directly connected to the router */
-        if (net == port->route_info.net)
+        if (net == port->route_info.net) {
             return port;
 
         /* else search router ports DNET list */
-        else if (port->route_info.dnets) {
+        } else if (port->route_info.dnets) {
             dnet = port->route_info.dnets;
             while (dnet != NULL) {
                 if (net == dnet->net) {

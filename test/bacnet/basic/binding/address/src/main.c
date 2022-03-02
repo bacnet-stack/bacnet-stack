@@ -24,6 +24,8 @@
  * @{
  */
 
+static const char *Address_Cache_Filename = "address_cache";
+
 /**
  * @brief Test
  */
@@ -42,7 +44,6 @@ static void set_address(unsigned index, BACNET_ADDRESS *dest)
     }
 }
 
-#if 0 /* Not used */
 static void set_file_address(const char *pFilename,
     uint32_t device_id,
     BACNET_ADDRESS *dest,
@@ -76,18 +77,18 @@ static void set_file_address(const char *pFilename,
         fclose(pFile);
     }
 }
-#endif
 
 #ifdef BACNET_ADDRESS_CACHE_FILE
+/* Validate that the address data in the file */
 static void testAddressFile(void)
 {
-#if 0 /* Skip file as Address_Cache_Filename is an internal data structure */
     BACNET_ADDRESS src = { 0 };
     uint32_t device_id = 0;
     unsigned max_apdu = 480;
     BACNET_ADDRESS test_address = { 0 };
     unsigned test_max_apdu = 0;
 
+    /* Create known data */
     /* create a fake address */
     device_id = 55555;
     src.mac_len = 1;
@@ -97,11 +98,18 @@ static void testAddressFile(void)
     max_apdu = 50;
     set_file_address(Address_Cache_Filename, device_id, &src, max_apdu);
     /* retrieve it from the file, and see if we can find it */
-    address_file_init(Address_Cache_Filename);
+    address_init();
+
+    /* Verify */
     zassert_true(
         address_get_by_device(device_id, &test_max_apdu, &test_address), NULL);
     zassert_equal(test_max_apdu, max_apdu, NULL);
     zassert_true(bacnet_address_same(&test_address, &src), NULL);
+
+    zassert_equal(address_count(), 1, NULL);
+    address_remove_device(device_id);
+    zassert_equal(address_count(), 0, NULL);
+
 
     /* create a fake address */
     device_id = 55555;
@@ -118,14 +126,15 @@ static void testAddressFile(void)
     max_apdu = 50;
     set_file_address(Address_Cache_Filename, device_id, &src, max_apdu);
     /* retrieve it from the file, and see if we can find it */
-    address_file_init(Address_Cache_Filename);
+    address_init();
     zassert_true(
         address_get_by_device(device_id, &test_max_apdu, &test_address), NULL);
     zassert_equal(test_max_apdu, max_apdu, NULL);
     zassert_true(bacnet_address_same(&test_address, &src), NULL);
-#else
-    ztest_test_skip();
-#endif
+
+    zassert_equal(address_count(), 1, NULL);
+    address_remove_device(device_id);
+    zassert_equal(address_count(), 0, NULL);
 }
 #endif
 

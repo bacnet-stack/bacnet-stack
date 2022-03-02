@@ -370,9 +370,8 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 priority = wp_data->priority;
                 /* Command priority 6 is reserved for use by Minimum On/Off
@@ -398,8 +397,8 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = write_property_type_valid(wp_data, &value,
+                    BACNET_APPLICATION_TAG_NULL);
                 if (status) {
                     level = BINARY_NULL;
                     priority = wp_data->priority;
@@ -423,17 +422,16 @@ bool Binary_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Binary_Output_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_POLARITY:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_ENUMERATED,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated < MAX_POLARITY) {
                     Binary_Output_Polarity_Set(wp_data->object_instance,

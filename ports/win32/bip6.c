@@ -50,17 +50,46 @@ static SOCKET BIP6_Socket = INVALID_SOCKET;
 static BACNET_IP6_ADDRESS BIP6_Addr;
 static BACNET_IP6_ADDRESS BIP6_Broadcast_Addr;
 
+/* enable debugging */
+static bool BIP6_Debug = false;
+#if PRINT_ENABLED
+#include <stdarg.h>
+#include <stdio.h>
+#define PRINTF(...) \
+    if (BIP6_Debug) { \
+        fprintf(stderr,__VA_ARGS__); \
+        fflush(stderr); \
+    }
+#else
+#define PRINTF(...)
+#endif
+
+/**
+ * @brief Print the IPv6 address with debug info
+ * @param str - debug info string
+ * @param addr - IPv6 address
+ */
 static void debug_print_ipv6(const char *str, const struct in6_addr *addr)
 {
-    debug_printf("BIP6: %s "
-                 "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%"
-                 "02x:%02x%02x\n",
-        str, (int)addr->s6_addr[0], (int)addr->s6_addr[1],
-        (int)addr->s6_addr[2], (int)addr->s6_addr[3], (int)addr->s6_addr[4],
-        (int)addr->s6_addr[5], (int)addr->s6_addr[6], (int)addr->s6_addr[7],
-        (int)addr->s6_addr[8], (int)addr->s6_addr[9], (int)addr->s6_addr[10],
-        (int)addr->s6_addr[11], (int)addr->s6_addr[12], (int)addr->s6_addr[13],
-        (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
+#if PRINT_ENABLED
+    char addstr[40] = {};
+    BACNET_IP6_ADDRESS bip6_addr = {};
+
+    if (str && addr) {
+        memcpy(&bip6_addr.address[0], &addr->s6_addr[0], IP6_ADDRESS_MAX);
+        bvlc6_address_to_ascii(&bip6_addr, addstr,
+            sizeof(addstr));
+        PRINTF("BIP6: %s %s\n", str, addstr);
+    }
+#endif
+}
+
+/**
+ * @brief Enabled debug printing of BACnet/IPv4
+ */
+void bip6_debug_enable(void)
+{
+    BIP6_Debug = true;
 }
 
 static LPSTR PrintError(int ErrorCode)
@@ -84,10 +113,10 @@ void bip6_set_interface(char *ifname)
     int i, RetVal;
     struct addrinfo Hints, *AddrInfo, *AI;
     struct sockaddr_in6 *sin;
-    struct sockaddr_in6 server;
-    struct in6_addr broadcast_address;
-    struct ipv6_mreq join_request;
-    SOCKET ServSock[FD_SETSIZE];
+    struct sockaddr_in6 server = {};
+    struct in6_addr broadcast_address = {};
+    struct ipv6_mreq join_request = {};
+    SOCKET ServSock[FD_SETSIZE] = {};
     char port[6] = "";
     int sockopt = 0;
 
@@ -99,12 +128,12 @@ void bip6_set_interface(char *ifname)
     // for that family.
     //
     memset(&Hints, 0, sizeof(Hints));
-    Hints.ai_family = PF_INET6;
+    Hints.ai_family = AF_INET6;
     Hints.ai_socktype = SOCK_DGRAM;
     Hints.ai_protocol = IPPROTO_UDP;
     Hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
     snprintf(port, sizeof(port), "%u", BIP6_Addr.port);
-    debug_printf("BIP6: getaddrinfo - IPv6 address %s port %s\n", ifname, port);
+    PRINTF("BIP6: seeking IPv6 address %s port %s...\n", ifname, port);
     RetVal = getaddrinfo(ifname, &port[0], &Hints, &AddrInfo);
     if (RetVal != 0) {
         fprintf(stderr, "BIP6: getaddrinfo failed with error %d: %s\n", RetVal,
@@ -112,6 +141,7 @@ void bip6_set_interface(char *ifname)
         WSACleanup();
         return;
     }
+    PRINTF("BIP6: getaddrinfo() succeeded!\n");
     //
     // Find the first matching address getaddrinfo returned so that
     // we can create a new socket and bind that address to it,
@@ -125,8 +155,8 @@ void bip6_set_interface(char *ifname)
                 "use.\n");
             break;
         }
-        // only support PF_INET6.
-        if (AI->ai_family != PF_INET6) {
+        // only support AF_INET6.
+        if (AI->ai_family != AF_INET6) {
             continue;
         }
         // only support SOCK_DGRAM.
@@ -137,13 +167,13 @@ void bip6_set_interface(char *ifname)
         if (AI->ai_protocol != IPPROTO_UDP) {
             continue;
         }
-        BIP6_Socket = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+        BIP6_Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
         if (BIP6_Socket == INVALID_SOCKET) {
             fprintf(stderr, "BIP6: socket() failed with error %d: %s\n",
                 WSAGetLastError(), PrintError(WSAGetLastError()));
             continue;
         }
-        if ((AI->ai_family == PF_INET6) && IN6_IS_ADDR_LINKLOCAL(AI->ai_addr) &&
+        if ((AI->ai_family == AF_INET6) && IN6_IS_ADDR_LINKLOCAL(AI->ai_addr) &&
             (((SOCKADDR_IN6 *)(AI->ai_addr))->sin6_scope_id == 0)) {
             fprintf(
                 stderr, "BIP6: IPv6 link local addresses needs a scope ID!\n");
@@ -156,6 +186,9 @@ void bip6_set_interface(char *ifname)
         if (RetVal < 0) {
             closesocket(BIP6_Socket);
             BIP6_Socket = INVALID_SOCKET;
+            fprintf(stderr,
+                "BIP6: setsockopt(SO_REUSEADDR) failed with error %d: %s\n",
+                WSAGetLastError(), PrintError(WSAGetLastError()));
             continue;
         }
         /* allow us to send a broadcast */
@@ -192,7 +225,7 @@ void bip6_set_interface(char *ifname)
         // that clients know about in advance.
         //
         memset(&server, 0, sizeof(server));
-        server.sin6_family = PF_INET6;
+        server.sin6_family = AF_INET6;
         server.sin6_port = htons(BIP6_Addr.port);
         server.sin6_addr = in6addr_any;
         if (bind(BIP6_Socket, (struct sockaddr *)&server, sizeof(server)) ==
@@ -211,6 +244,7 @@ void bip6_set_interface(char *ifname)
                 ntohs(sin->sin6_addr.s6_addr16[5]),
                 ntohs(sin->sin6_addr.s6_addr16[6]),
                 ntohs(sin->sin6_addr.s6_addr16[7]));
+            debug_print_ipv6("bind() succeeded!", &sin->sin6_addr);
             /* https://msdn.microsoft.com/en-us/library/windows/desktop/ms740496(v=vs.85).aspx
              */
         }
@@ -220,6 +254,9 @@ void bip6_set_interface(char *ifname)
         }
     }
     freeaddrinfo(AddrInfo);
+    if (BIP6_Socket == INVALID_SOCKET) {
+        fprintf(stderr, "BIP6: AF_INET6 address not found getaddrinfo()\n");
+    }
 }
 
 /**
@@ -358,7 +395,7 @@ int bip6_send_mpdu(BACNET_IP6_ADDRESS *dest, uint8_t *mtu, uint16_t mtu_len)
     bvlc_dest.sin6_addr.s6_addr16[6] = htons(addr16[6]);
     bvlc_dest.sin6_addr.s6_addr16[7] = htons(addr16[7]);
     bvlc_dest.sin6_port = htons(dest->port);
-    debug_print_ipv6("BIP6: Sending MPDU->", &bvlc_dest.sin6_addr);
+    debug_print_ipv6("Sending MPDU->", &bvlc_dest.sin6_addr);
     /* Send the packet */
     return sendto(BIP6_Socket, (char *)mtu, mtu_len, 0,
         (struct sockaddr *)&bvlc_dest, sizeof(bvlc_dest));
@@ -470,7 +507,7 @@ uint16_t bip6_receive(
 void bip6_cleanup(void)
 {
     if (BIP6_Socket != -1) {
-        close(BIP6_Socket);
+        closesocket(BIP6_Socket);
     }
     BIP6_Socket = -1;
     WSACleanup();
@@ -512,7 +549,7 @@ bool bip6_init(char *ifname)
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
     }
-    debug_printf("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
+    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
     bip6_set_interface(ifname);
     if (BIP6_Broadcast_Addr.address[0] == 0) {
         bvlc6_address_set(&BIP6_Broadcast_Addr, BIP6_MULTICAST_LINK_LOCAL, 0, 0,

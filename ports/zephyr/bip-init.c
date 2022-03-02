@@ -82,17 +82,12 @@ static char ipv4_addr_str[]="";
 */
 char* inet_ntoa(struct in_addr *a)
 {
-    #if CONFIG_BACNETSTACK_LOG_LEVEL
+    if (IS_ENABLED(CONFIG_BACNETSTACK_LOG_LEVEL)) {
 
-    /* Avoid overwhelming the logging system */
-    while(log_buffered_cnt())
-    {
-        k_sleep(K_MSEC(1));
+        snprintf(ipv4_addr_str, sizeof(ipv4_addr_str), "%d.%d.%d.%d",
+            a->s4_addr[0],a->s4_addr[1],a->s4_addr[2],a->s4_addr[3]);
     }
 
-    snprintf(ipv4_addr_str, sizeof(ipv4_addr_str), "%d.%d.%d.%d", 
-        a->s4_addr[0],a->s4_addr[1],a->s4_addr[2],a->s4_addr[3]);
-    #endif
     return &ipv4_addr_str[0];
 }
 

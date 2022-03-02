@@ -82,14 +82,14 @@ void main(void)
 	datalink_init(NULL);
 
 	/* configure the timeout values */
-	s64_t last_ms = k_uptime_get();
+	int64_t last_ms = k_uptime_get();
 
 	/* broadcast an I-Am on startup */
 	Send_I_Am(&Handler_Transmit_Buffer[0]);
 
-	s64_t address_binding_tmr = 0;
+	int64_t address_binding_tmr = 0;
 #if defined(INTRINSIC_REPORTING)
-	s64_t recipient_scan_tmr = 0;
+	int64_t recipient_scan_tmr = 0;
 #endif
 #if defined(BACNET_TIME_MASTER)
 	BACNET_DATE_TIME bdatetime = { 0 };
@@ -99,7 +99,7 @@ void main(void)
 		BACNET_ADDRESS src = { 0 }; /* address where message came from */
 		const unsigned timeout_ms = 1;
 
-		s64_t current_ms = k_uptime_get();
+		int64_t current_ms = k_uptime_get();
 
 		/* returns 0 bytes on timeout */
 		uint16_t const pdu_len = datalink_receive(&src, &Rx_Buf[0],

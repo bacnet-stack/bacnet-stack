@@ -431,17 +431,16 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_SIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
                 Integer_Value_Present_Value_Set(wp_data->object_instance,
                     value.type.Signed_Int, wp_data->priority);
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Integer_Value_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);

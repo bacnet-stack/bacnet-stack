@@ -134,16 +134,16 @@ typedef uint32_t BACNET_ARRAY_INDEX;
 #define BACNET_MAX_PRIORITY 16
 
 #define BACNET_BROADCAST_NETWORK (0xFFFF)
-/* Any size MAC address should be allowed which is less than or
-   equal to 7 bytes.  The IPv6 addresses are planned to be handled
-   outside this area. */
-/* FIXME: mac[] only needs to be as big as our local datalink MAC */
 
-#if BACDL_BIP6
-    #define MAX_MAC_LEN 19
-#else
-    #define MAX_MAC_LEN 7
-#endif
+/* Any size MAC address could be received which is less than or
+   equal to 7 bytes. Standard even allows 6 bytes max. */
+/* ARCNET = 1 byte
+   MS/TP = 1 byte
+   Ethernet = 6 bytes
+   BACnet/IPv4 = 6 bytes
+   LonTalk = 7 bytes
+   BACnet/IPv6 = 3 bytes (VMAC) */
+#define MAX_MAC_LEN 7
 
 struct BACnet_Device_Address {
     /* mac_len = 0 is a broadcast address */

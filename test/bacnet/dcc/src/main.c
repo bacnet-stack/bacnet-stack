@@ -132,7 +132,7 @@ static void test_DeviceCommunicationControlMalformedData(void)
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     len = dcc_decode_apdu(&payload_4[0], sizeof(payload_4), &test_invoke_id,
         &test_timeDuration, &test_enable_disable, &test_password);
-    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(len, BACNET_STATUS_ABORT, NULL);
     len = dcc_decode_apdu(&payload_5[0], sizeof(payload_5), &test_invoke_id,
         &test_timeDuration, &test_enable_disable, &test_password);
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);

@@ -95,16 +95,19 @@ extern "C" {
         uint32_t object_instance);
 
     BACNET_STACK_EXPORT
+    bool CharacterString_Value_Change_Of_Value(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
+    void CharacterString_Value_Change_Of_Value_Clear(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
+    bool CharacterString_Value_Encode_Value_List(
+        uint32_t object_instance,
+        BACNET_PROPERTY_VALUE * value_list);
+
+    BACNET_STACK_EXPORT
     void CharacterString_Value_Init(
         void);
-
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testCharacterStringValue(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }

@@ -159,13 +159,6 @@ extern "C" {
     void Access_Door_Init(
         void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testAccessDoor(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -53,12 +53,6 @@ extern "C" {
         uint8_t * invoke_id,
         uint8_t * reject_reason);
 
-#ifdef BAC_TEST
-    BACNET_STACK_EXPORT
-    void testReject(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

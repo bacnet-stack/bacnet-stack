@@ -53,6 +53,7 @@ void testBACnetObjects(Test *pTest)
     unsigned test_point = 0;
     const unsigned max_test_points = 20;
     OBJECT_DEVICE_T *pDevice;
+    bool status = false;
 
     for (test_point = 0; test_point < max_test_points; test_point++) {
         device_id = test_point * (BACNET_MAX_INSTANCE / max_test_points);
@@ -74,7 +75,8 @@ void testBACnetObjects(Test *pTest)
             pTest, pDevice, objects_device_id(test_point));
     }
     for (test_point = 0; test_point < max_test_points; test_point++) {
-        pDevice = objects_device_delete(0);
+        status = objects_device_delete(0);
+        ct_test(pTest, status);
     }
 }
 

@@ -37,120 +37,297 @@
 #if defined(BACDL_ALL) || defined FOR_DOXYGEN
 #include "bacnet/datalink/ethernet.h"
 #include "bacnet/datalink/bip.h"
-#include "bacnet/datalink/bip6.h"
 #include "bacnet/datalink/bvlc.h"
+#include "bacnet/basic/bbmd/h_bbmd.h"
+#include "bacnet/datalink/bip6.h"
+#include "bacnet/datalink/bvlc6.h"
+#include "bacnet/basic/bbmd6/h_bbmd6.h"
 #include "bacnet/datalink/arcnet.h"
 #include "bacnet/datalink/dlmstp.h"
 #include <string.h>
-/* Function pointers - point to your datalink */
 
-/** Function template to Initialize the DataLink services at the given
- interface.
- * @ingroup DLTemplates
- *
- * @note For Linux, ifname is eth0, ath0, arc0, ttyS0, and others.
-         For Windows, ifname is the COM port or dotted ip address of the
- interface.
-
- * @param ifname [in] The named interface to use for the network layer.
- * @return True if the interface is successfully initialized,
- *         else False if the initialization fails.
- */
-bool (*datalink_init)(char *ifname);
-
-/** Function template to send a packet via the DataLink.
- * @ingroup DLTemplates
- *
- * @param dest [in] Destination address.
- * @param npdu_data [in] The NPDU header (Network) information.
- * @param pdu [in] Buffer of data to be sent - may be null.
- * @param pdu_len [in] Number of bytes in the pdu buffer.
- * @return Number of bytes sent on success, negative number on failure.
- */
-int (*datalink_send_pdu)(BACNET_ADDRESS *dest,
-    BACNET_NPDU_DATA *npdu_data,
-    uint8_t *pdu,
-    unsigned pdu_len);
-
-uint16_t (*datalink_receive)(
-    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout);
-
-/** Function template to close the DataLink services and perform any cleanup.
- * @ingroup DLTemplates
- */
-void (*datalink_cleanup)(void);
-
-void (*datalink_get_broadcast_address)(BACNET_ADDRESS *dest);
-
-void (*datalink_get_my_address)(BACNET_ADDRESS *my_address);
+static enum {
+    DATALINK_NONE = 0,
+    DATALINK_ARCNET,
+    DATALINK_ETHERNET,
+    DATALINK_BIP,
+    DATALINK_BIP6,
+    DATALINK_MSTP
+} Datalink_Transport;
 
 void datalink_set(char *datalink_string)
 {
     if (strcasecmp("bip", datalink_string) == 0) {
-        datalink_init = bip_init;
-        datalink_send_pdu = bip_send_pdu;
-        datalink_receive = bip_receive;
-        datalink_cleanup = bip_cleanup;
-        datalink_get_broadcast_address = bip_get_broadcast_address;
-        datalink_get_my_address = bip_get_my_address;
-    } else if (strcasecmp("bvlc", datalink_string) == 0) {
-        datalink_init = bip_init;
-        datalink_send_pdu = bvlc_send_pdu;
-        datalink_receive = bvlc_receive;
-        datalink_cleanup = bip_cleanup;
-        datalink_get_broadcast_address = bip_get_broadcast_address;
-        datalink_get_my_address = bip_get_my_address;
+        Datalink_Transport = DATALINK_BIP;
     } else if (strcasecmp("bip6", datalink_string) == 0) {
-        datalink_init = bip6_init;
-        datalink_send_pdu = bip6_send_pdu;
-        datalink_receive = bip6_receive;
-        datalink_cleanup = bip6_cleanup;
-        datalink_get_broadcast_address = bip6_get_broadcast_address;
-        datalink_get_my_address = bip6_get_my_address;
-    } else if (strcasecmp("bvlc6", datalink_string) == 0) {
-        datalink_init = bip6_init;
-        datalink_send_pdu = bvlc6_send_pdu;
-        datalink_receive = bvlc6_receive;
-        datalink_cleanup = bip6_cleanup;
-        datalink_get_broadcast_address = bip6_get_broadcast_address;
-        datalink_get_my_address = bip6_get_my_address;
+        Datalink_Transport = DATALINK_BIP6;
     } else if (strcasecmp("ethernet", datalink_string) == 0) {
-        datalink_init = ethernet_init;
-        datalink_send_pdu = ethernet_send_pdu;
-        datalink_receive = ethernet_receive;
-        datalink_cleanup = ethernet_cleanup;
-        datalink_get_broadcast_address = ethernet_get_broadcast_address;
-        datalink_get_my_address = ethernet_get_my_address;
+        Datalink_Transport = DATALINK_ETHERNET;
     } else if (strcasecmp("arcnet", datalink_string) == 0) {
-        datalink_init = arcnet_init;
-        datalink_send_pdu = arcnet_send_pdu;
-        datalink_receive = arcnet_receive;
-        datalink_cleanup = arcnet_cleanup;
-        datalink_get_broadcast_address = arcnet_get_broadcast_address;
-        datalink_get_my_address = arcnet_get_my_address;
+        Datalink_Transport = DATALINK_ARCNET;
     } else if (strcasecmp("mstp", datalink_string) == 0) {
-        datalink_init = dlmstp_init;
-        datalink_send_pdu = dlmstp_send_pdu;
-        datalink_receive = dlmstp_receive;
-        datalink_cleanup = dlmstp_cleanup;
-        datalink_get_broadcast_address = dlmstp_get_broadcast_address;
-        datalink_get_my_address = dlmstp_get_my_address;
+        Datalink_Transport = DATALINK_MSTP;
+    } else if (strcasecmp("none", datalink_string) == 0) {
+        Datalink_Transport = DATALINK_NONE;
     }
 }
-#endif
 
-#if defined(BACDL_NONE)
+bool datalink_init(char *ifname)
+{
+    bool status = false;
+
+    switch (Datalink_Transport) {
+        case DATALINK_NONE:
+            status = true;
+            break;
+        case DATALINK_ARCNET:
+            status = arcnet_init(ifname);
+            break;
+        case DATALINK_ETHERNET:
+            status = ethernet_init(ifname);
+            break;
+        case DATALINK_BIP:
+            status = bip_init(ifname);
+            break;
+        case DATALINK_BIP6:
+            status = bip6_init(ifname);
+            break;
+        case DATALINK_MSTP:
+            status = dlmstp_init(ifname);
+            break;
+        default:
+            break;
+    }
+
+    return status;
+}
+
 int datalink_send_pdu(BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
     unsigned pdu_len)
 {
+    int bytes = 0;
+
+    switch (Datalink_Transport) {
+        case DATALINK_NONE:
+            bytes = pdu_len;
+            break;
+        case DATALINK_ARCNET:
+            bytes = arcnet_send_pdu(
+                dest, npdu_data, pdu, pdu_len);
+            break;
+        case DATALINK_ETHERNET:
+            bytes = ethernet_send_pdu(
+                dest, npdu_data, pdu, pdu_len);
+            break;
+        case DATALINK_BIP:
+            bytes = bip_send_pdu(
+                dest, npdu_data, pdu, pdu_len);
+            break;
+        case DATALINK_BIP6:
+            bytes = bip6_send_pdu(
+                dest, npdu_data, pdu, pdu_len);
+            break;
+        case DATALINK_MSTP:
+            bytes = dlmstp_send_pdu(
+                dest, npdu_data, pdu, pdu_len);
+            break;
+        default:
+            break;
+    }
+
+    return bytes;
+}
+
+uint16_t datalink_receive(
+    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
+{
+    uint16_t bytes = 0;
+
+    switch (Datalink_Transport) {
+        case DATALINK_NONE:
+            break;
+        case DATALINK_ARCNET:
+            bytes = arcnet_receive(
+                src, pdu, max_pdu, timeout);
+            break;
+        case DATALINK_ETHERNET:
+            bytes = ethernet_receive(
+                src, pdu, max_pdu, timeout);
+            break;
+        case DATALINK_BIP:
+            bytes = bip_receive(
+                src, pdu, max_pdu, timeout);
+            break;
+        case DATALINK_BIP6:
+            bytes = bip6_receive(
+                src, pdu, max_pdu, timeout);
+            break;
+        case DATALINK_MSTP:
+            bytes = dlmstp_receive(
+                src, pdu, max_pdu, timeout);
+            break;
+        default:
+            break;
+    }
+
+    return bytes;
+}
+
+void datalink_cleanup(void)
+{
+    switch (Datalink_Transport) {
+        case DATALINK_NONE:
+            break;
+        case DATALINK_ARCNET:
+            arcnet_cleanup();
+            break;
+        case DATALINK_ETHERNET:
+            ethernet_cleanup();
+            break;
+        case DATALINK_BIP:
+            bip_cleanup();
+            break;
+        case DATALINK_BIP6:
+            bip6_cleanup();
+            break;
+        case DATALINK_MSTP:
+            dlmstp_cleanup();
+            break;
+        default:
+            break;
+    }
+}
+
+void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
+{
+    switch (Datalink_Transport) {
+        case DATALINK_NONE:
+            break;
+        case DATALINK_ARCNET:
+            arcnet_get_broadcast_address(dest);
+            break;
+        case DATALINK_ETHERNET:
+            ethernet_get_broadcast_address(dest);
+            break;
+        case DATALINK_BIP:
+            bip_get_broadcast_address(dest);
+            break;
+        case DATALINK_BIP6:
+            bip6_get_broadcast_address(dest);
+            break;
+        case DATALINK_MSTP:
+            dlmstp_get_broadcast_address(dest);
+            break;
+        default:
+            break;
+    }
+}
+
+void datalink_get_my_address(BACNET_ADDRESS *my_address)
+{
+    switch (Datalink_Transport) {
+        case DATALINK_NONE:
+            break;
+        case DATALINK_ARCNET:
+            arcnet_get_my_address(my_address);
+            break;
+        case DATALINK_ETHERNET:
+            ethernet_get_my_address(my_address);
+            break;
+        case DATALINK_BIP:
+            bip_get_my_address(my_address);
+            break;
+        case DATALINK_BIP6:
+            bip6_get_my_address(my_address);
+            break;
+        case DATALINK_MSTP:
+            dlmstp_get_my_address(my_address);
+            break;
+        default:
+            break;
+    }
+}
+
+void datalink_set_interface(char *ifname)
+{
+    switch (Datalink_Transport) {
+        case DATALINK_NONE:
+            (void)ifname;
+            break;
+        case DATALINK_ARCNET:
+            (void)ifname;
+            break;
+        case DATALINK_ETHERNET:
+            (void)ifname;
+            break;
+        case DATALINK_BIP:
+            (void)ifname;
+            break;
+        case DATALINK_BIP6:
+            (void)ifname;
+            break;
+        case DATALINK_MSTP:
+            (void)ifname;
+            break;
+        default:
+            break;
+    }
+}
+
+void datalink_maintenance_timer(uint16_t seconds)
+{
+    switch (Datalink_Transport) {
+        case DATALINK_NONE:
+            break;
+        case DATALINK_ARCNET:
+            break;
+        case DATALINK_ETHERNET:
+            break;
+        case DATALINK_BIP:
+            bvlc_maintenance_timer(seconds);
+            break;
+        case DATALINK_BIP6:
+            bvlc6_maintenance_timer(seconds);
+            break;
+        case DATALINK_MSTP:
+            break;
+        default:
+            break;
+    }
+}
+#endif
+
+#if defined(BACDL_NONE)
+bool datalink_init(char *ifname)
+{
+    (void)ifname;
+
+    return true;
+}
+
+int datalink_send_pdu(BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len)
+{
+    (void)dest;
+    (void)npdu_data;
+    (void)pdu;
+    (void)pdu_len;
+
     return 0;
 }
 
 uint16_t datalink_receive(
     BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout)
 {
+    (void)src;
+    (void)pdu;
+    (void)max_pdu;
+    (void)timeout;
+
     return 0;
 }
 
@@ -160,18 +337,22 @@ void datalink_cleanup(void)
 
 void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
 {
+    (void)dest;
 }
 
 void datalink_get_my_address(BACNET_ADDRESS *my_address)
 {
+    (void)my_address;
 }
 
 void datalink_set_interface(char *ifname)
 {
+    (void)ifname;
 }
 
 void datalink_set(char *datalink_string)
 {
+    (void)datalink_string;
 }
 
 void datalink_maintenance_timer(uint16_t seconds)

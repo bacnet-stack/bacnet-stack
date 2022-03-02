@@ -157,7 +157,7 @@ void handler_read_property(uint8_t *service_request,
                 if (apdu_len > service_data->max_resp) {
                     /* too big for the sender - send an abort!
                        Setting of error code needed here as read property
-                       processing may have overriden the default set at start */
+                       processing may have overridden the default set at start */
                     rpdata.error_code =
                         ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                     len = BACNET_STATUS_ABORT;

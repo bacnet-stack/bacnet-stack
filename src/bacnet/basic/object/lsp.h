@@ -70,13 +70,6 @@ extern "C" {
     bool Life_Safety_Point_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testLifeSafetyPoint(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

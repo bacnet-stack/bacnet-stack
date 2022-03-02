@@ -1513,8 +1513,8 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = Channel_Present_Value_Set(wp_data, &value);
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Channel_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
@@ -1531,16 +1531,17 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
             break;
         case PROP_CHANNEL_NUMBER:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 Channel_Number_Set(
                     wp_data->object_instance, value.type.Unsigned_Int);
             }
             break;
         case PROP_CONTROL_GROUPS:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if (wp_data->array_index == 0) {
                     /* Array element zero is the number of elements in the array
                      */
@@ -1596,9 +1597,6 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_OBJECT_IDENTIFIER:

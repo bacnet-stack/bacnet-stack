@@ -27,10 +27,6 @@
 /* tiny implementations have no need to print */
 #if PRINT_ENABLED
 #define BACTEXT_PRINT_ENABLED
-#else
-#ifdef BAC_TEST
-#define BACTEXT_PRINT_ENABLED
-#endif
 #endif
 
 #include <stdbool.h>
@@ -128,6 +124,9 @@ extern "C" {
         unsigned index);
     BACNET_STACK_EXPORT
     bool bactext_event_state_index(
+        const char *search_name, unsigned *found_index);
+    BACNET_STACK_EXPORT
+    bool bactext_event_state_strtol(
         const char *search_name, unsigned *found_index);
     BACNET_STACK_EXPORT
     const char *bactext_event_type_name(unsigned index);

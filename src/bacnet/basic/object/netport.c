@@ -44,9 +44,14 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
+#include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
+
+#ifndef BBMD_ENABLED
+#define BBMD_ENABLED 1
+#endif
 
 #define BIP_DNS_MAX 3
 struct bacnet_ipv4_port {
@@ -63,6 +68,8 @@ struct bacnet_ipv4_port {
     bool IP_NAT_Traversal;
     uint32_t IP_Global_Address[4];
     bool BBMD_Accept_FD_Registrations;
+    void *BBMD_BD_Table;
+    void *BBMD_FD_Table;
 };
 
 #define IPV6_ADDR_SIZE 16
@@ -128,7 +135,7 @@ static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
 static const int BIP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
     PROP_BACNET_IP_MODE, PROP_IP_ADDRESS, PROP_BACNET_IP_UDP_PORT,
     PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY, PROP_IP_DNS_SERVER,
-#if defined(BBMD_ENABLED)
+#if defined(BACDL_BIP) && BBMD_ENABLED
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS, PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
 #endif
@@ -1282,6 +1289,113 @@ bool Network_Port_BBMD_Accept_FD_Registrations_Set(
 }
 
 /**
+ * For a given object instance-number, returns the BBMD-BD-Table head
+ * property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  BBMD-Accept-FD-Registrations property value
+ */
+void *Network_Port_BBMD_BD_Table(uint32_t object_instance)
+{
+    void *bdt_head = NULL;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv4 = &Object_List[index].Network.IPv4;
+        bdt_head = ipv4->BBMD_BD_Table;
+    }
+
+    return bdt_head;
+}
+
+/**
+ * For a given object instance-number, sets the BBMD-BD-Table head
+ * property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param bdt_head - Broadcast Distribution Table linked list head
+ *
+ * @return true if the Broadcast Distribution Table linked list head
+ *  property value was set
+ */
+bool Network_Port_BBMD_BD_Table_Set(
+    uint32_t object_instance,
+    void *bdt_head)
+{
+    bool status = false;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv4 = &Object_List[index].Network.IPv4;
+        if (bdt_head != ipv4->BBMD_BD_Table) {
+            ipv4->BBMD_BD_Table = bdt_head;
+            Object_List[index].Changes_Pending = true;
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, returns the BBMD-FD-Table head
+ * property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  BBMD-Accept-FD-Registrations property value
+ */
+void *Network_Port_BBMD_FD_Table(uint32_t object_instance)
+{
+    void *fdt_head = NULL;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv4 = &Object_List[index].Network.IPv4;
+        fdt_head = ipv4->BBMD_FD_Table;
+    }
+
+    return fdt_head;
+}
+
+/**
+ * For a given object instance-number, sets the BBMD-FD-Table head
+ * property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param fdt_head - Foreign Device Table linked list head
+ *
+ * @return true if the BBMD-Accept-FD-Registrations property value was set
+ */
+bool Network_Port_BBMD_FD_Table_Set(
+    uint32_t object_instance,
+    void *fdt_head)
+{
+    bool status = false;
+    unsigned index = 0;
+    struct bacnet_ipv4_port *ipv4 = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        ipv4 = &Object_List[index].Network.IPv4;
+        if (fdt_head != ipv4->BBMD_FD_Table) {
+            ipv4->BBMD_FD_Table = fdt_head;
+            Object_List[index].Changes_Pending = true;
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, gets the BACnet/IP UDP Port number
  * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
  *
@@ -2003,17 +2117,21 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
-#if defined(BBMD_ENABLED)
+#if defined(BACDL_BIP) && BBMD_ENABLED
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
             apdu_len = encode_application_boolean(&apdu[0],
                 Network_Port_BBMD_Accept_FD_Registrations(
                     rpdata->object_instance));
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
+            apdu_len = bvlc_broadcast_distribution_table_encode(&apdu[0],
+                rpdata->application_data_len,
+                Network_Port_BBMD_BD_Table(rpdata->object_instance));
+            break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-            rpdata->error_class = ERROR_CLASS_PROPERTY;
-            rpdata->error_code = ERROR_CODE_READ_ACCESS_DENIED;
-            apdu_len = BACNET_STATUS_ERROR;
+            apdu_len = bvlc_foreign_device_table_encode(&apdu[0],
+                rpdata->application_data_len,
+                Network_Port_BBMD_FD_Table(rpdata->object_instance));
             break;
 #endif
         case PROP_BACNET_IPV6_MODE:
@@ -2146,7 +2264,9 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_MAX_MASTER:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if (value.type.Unsigned_Int <= 255) {
                     status = Network_Port_MSTP_Max_Master_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
@@ -2158,13 +2278,12 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_MAX_INFO_FRAMES:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 if (value.type.Unsigned_Int <= 255) {
                     status = Network_Port_MSTP_Max_Info_Frames_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
@@ -2177,9 +2296,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -2260,22 +2376,23 @@ bool Network_Port_Read_Range(
 #if defined(BACDL_MSTP)
         case PROP_MAX_MASTER:
         case PROP_MAX_INFO_FRAMES:
-#elif defined(BACDL_BIP)
+#endif
+#if defined(BACDL_BIP)
         case PROP_BACNET_IP_MODE:
         case PROP_IP_ADDRESS:
         case PROP_BACNET_IP_UDP_PORT:
         case PROP_IP_SUBNET_MASK:
         case PROP_IP_DEFAULT_GATEWAY:
         case PROP_IP_DNS_SERVER:
-#if defined(BBMD_ENABLED)
-        case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
 #endif
+#if defined(BACDL_BIP) && BBMD_ENABLED
+        case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
 #endif
             pRequest->error_class = ERROR_CLASS_SERVICES;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
-#if defined(BACDL_BIP) && defined(BBMD_ENABLED)
+#if defined(BACDL_BIP) && BBMD_ENABLED
             pInfo->RequestTypes = RR_BY_POSITION;
             pInfo->Handler = Network_Port_Read_Range_BDT;
             status = true;
@@ -2285,7 +2402,7 @@ bool Network_Port_Read_Range(
 #endif
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-#if defined(BACDL_BIP) && defined(BBMD_ENABLED)
+#if defined(BACDL_BIP) && BBMD_ENABLED
             pInfo->RequestTypes = RR_BY_POSITION;
             pInfo->Handler = Network_Port_Read_Range_FDT;
             status = true;
@@ -2310,108 +2427,3 @@ void Network_Port_Init(void)
 {
     /* do something interesting */
 }
-
-#ifdef BACNET_UNIT_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
-
-void test_network_port(Test *pTest)
-{
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    int test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
-    /* for decode value data */
-    BACNET_APPLICATION_DATA_VALUE value;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
-    unsigned port = 0;
-    unsigned count = 0;
-    uint32_t object_instance = 0;
-    bool status = false;
-    uint8_t port_type[] = { PORT_TYPE_ETHERNET, PORT_TYPE_ARCNET,
-        PORT_TYPE_MSTP, PORT_TYPE_PTP, PORT_TYPE_LONTALK, PORT_TYPE_BIP,
-        PORT_TYPE_ZIGBEE, PORT_TYPE_VIRTUAL, PORT_TYPE_NON_BACNET,
-        PORT_TYPE_BIP6, PORT_TYPE_MAX };
-
-    while (port_type[port] != PORT_TYPE_MAX) {
-        object_instance = 1234;
-        status = Network_Port_Object_Instance_Number_Set(0, object_instance);
-        ct_test(pTest, status);
-        status = Network_Port_Type_Set(object_instance, port_type[port]);
-        ct_test(pTest, status);
-        Network_Port_Init();
-        count = Network_Port_Count();
-        ct_test(pTest, count > 0);
-        rpdata.application_data = &apdu[0];
-        rpdata.application_data_len = sizeof(apdu);
-        rpdata.object_type = OBJECT_NETWORK_PORT;
-        rpdata.object_instance = object_instance;
-        Network_Port_Property_Lists(&pRequired, &pOptional, &pProprietary);
-        while ((*pRequired) != -1) {
-            rpdata.object_property = *pRequired;
-            rpdata.array_index = BACNET_ARRAY_ALL;
-            len = Network_Port_Read_Property(&rpdata);
-            ct_test(pTest, len != 0);
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            ct_test(pTest, test_len >= 0);
-            if (test_len < 0) {
-                printf("<decode failed!>\n");
-            }
-            pRequired++;
-        }
-        while ((*pOptional) != -1) {
-            rpdata.object_property = *pOptional;
-            rpdata.array_index = BACNET_ARRAY_ALL;
-            len = Network_Port_Read_Property(&rpdata);
-            ct_test(pTest, len != 0);
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            ct_test(pTest, test_len >= 0);
-            if (test_len < 0) {
-                printf("<decode failed!>\n");
-            }
-            pOptional++;
-        }
-        port++;
-    }
-
-    return;
-}
-
-#ifdef TEST_NETWORK_PORT
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Network Port", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, test_network_port);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif
-#endif /* BAC_TEST */

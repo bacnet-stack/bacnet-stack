@@ -70,6 +70,12 @@ and globals in favor of more secure versions.  */
 #endif
 #include <sys/timeb.h>
 
+#if defined(__BORLANDC__) || defined(_WIN32)
+/* seems to not be defined in time.h as specified by The Open Group */
+/* difference from UTC and local standard time  */
+long int timezone;
+#endif
+
 #ifdef _MSC_VER
 #define inline __inline
 #endif
@@ -79,6 +85,7 @@ and globals in favor of more secure versions.  */
 
 #ifdef _WIN32
 #define strncasecmp(x, y, z) _strnicmp(x, y, z)
+#define snprintf _snprintf
 #endif
 
 #endif

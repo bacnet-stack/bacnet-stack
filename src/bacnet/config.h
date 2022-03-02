@@ -62,7 +62,7 @@
 /* Enable the Gateway (Routing) functionality here, if desired. */
 #if !defined(MAX_NUM_DEVICES)
 #ifdef BAC_ROUTING
-#define MAX_NUM_DEVICES 3       /* Eg, Gateway + two remote devices */
+#define MAX_NUM_DEVICES 32       /* Eg, Gateway + 31 remote devices */
 #else
 #define MAX_NUM_DEVICES 1       /* Just the one normal BACnet Device Object */
 #endif
@@ -203,15 +203,11 @@
 */
 
 /*
-** First we see if this is a test build and enable all the services as they
-** may be required.
-**
-** Note: I've left everything enabled here in the main config.h. You should
+** Note: I've left everything enabled here in the default config.h. You should
 ** use a local copy of config.h with settings configured for your needs to
-** make use of the code space reductions.
+** make use of any code space reductions in your device.
 **/
 
-#ifdef BAC_TEST
 #define BACNET_SVC_I_HAVE_A    1
 #define BACNET_SVC_WP_A        1
 #define BACNET_SVC_RP_A        1
@@ -223,19 +219,6 @@
 #define BACNET_USE_OCTETSTRING 1
 #define BACNET_USE_DOUBLE      1
 #define BACNET_USE_SIGNED      1
-#else /* Otherwise define our working set - all enabled here to avoid breaking things */
-#define BACNET_SVC_I_HAVE_A    1
-#define BACNET_SVC_WP_A        1
-#define BACNET_SVC_RP_A        1
-#define BACNET_SVC_RPM_A       1
-#define BACNET_SVC_DCC_A       1
-#define BACNET_SVC_RD_A        1
-#define BACNET_SVC_TS_A        1
-#define BACNET_SVC_SERVER      0
-#define BACNET_USE_OCTETSTRING 1
-#define BACNET_USE_DOUBLE      1
-#define BACNET_USE_SIGNED      1
-#endif
 
 /* Do them one by one */
 #ifndef BACNET_SVC_I_HAVE_A     /* Do we send I_Have requests? */

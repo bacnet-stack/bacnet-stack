@@ -42,6 +42,7 @@
 #include "bacnet/bytes.h"
 #include "bacnet/iam.h"
 #include "bacnet/version.h"
+#include "bacnet/datetime.h"
 /* basic datalink, timer, and filename */
 #include "bacnet/datalink/dlmstp.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -71,8 +72,8 @@ static volatile struct mstp_port_struct_t MSTP_Port;
 /* track the receive state to know when there is a broken packet */
 static MSTP_RECEIVE_STATE MSTP_Receive_State = MSTP_RECEIVE_STATE_IDLE;
 /* buffers needed by mstp port struct */
-static uint8_t RxBuffer[MAX_MPDU];
-static uint8_t TxBuffer[MAX_MPDU];
+static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
+static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
 /* method to tell main loop to exit from CTRL-C or other signals */
 static volatile bool Exit_Requested;
 /* flag to indicate Wireshark is running the show - no stdout or stderr */
@@ -532,15 +533,14 @@ static size_t data_write_header(
 
 static void filename_create(char *filename)
 {
-    time_t my_time;
-    struct tm *today;
+    BACNET_DATE bdate;
+    BACNET_TIME btime;
 
     if (filename) {
-        my_time = time(NULL);
-        today = localtime(&my_time);
+        datetime_local(&bdate, &btime, NULL, NULL);
         sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap",
-            1900 + today->tm_year, 1 + today->tm_mon, today->tm_mday,
-            today->tm_hour, today->tm_min, today->tm_sec);
+            (int)bdate.year, (int)bdate.month, (int)bdate.day,
+            (int)btime.hour, (int)btime.min, (int)btime.sec);
     }
 }
 

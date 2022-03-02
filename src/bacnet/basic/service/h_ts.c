@@ -155,14 +155,11 @@ bool handler_timesync_recipient_write(BACNET_WRITE_PROPERTY_DATA *wp_data)
 static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
 {
     unsigned index = 0;
-    bool status = false;
 
     for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
         if (Time_Sync_Recipients[index].tag == 1) {
-            if (status) {
-                Send_TimeSync_Remote(&Time_Sync_Recipients[index].type.address,
-                    &current_date_time->date, &current_date_time->time);
-            }
+            Send_TimeSync_Remote(&Time_Sync_Recipients[index].type.address,
+                &current_date_time->date, &current_date_time->time);
         }
     }
 }

@@ -226,7 +226,7 @@ static void RS485_Configure_Status(void)
         RS485_Print_Error();
     }
     /* Set the Comm buffer size */
-    SetupComm(RS485_Handle, MAX_MPDU, MAX_MPDU);
+    SetupComm(RS485_Handle, DLMSTP_MPDU_MAX, DLMSTP_MPDU_MAX);
     /* raise DTR */
     if (!EscapeCommFunction(RS485_Handle, SETDTR)) {
         fprintf(stderr, "Unable to set DTR on %s\n", RS485_Port_Name);

@@ -37,12 +37,12 @@
 #include "rs485.h"
 
 /* buffer for storing received bytes - size must be power of two */
-/* BACnet MAX_MPDU for MS/TP is 501 bytes */
+/* BACnet DLMSTP_MPDU_MAX for MS/TP is 501 bytes */
 static uint8_t Receive_Queue_Data[512];
 static FIFO_BUFFER Receive_Queue;
 
 /* buffer for storing bytes to transmit */
-/* BACnet MAX_MPDU for MS/TP is 501 bytes */
+/* BACnet DLMSTP_MPDU_MAX for MS/TP is 501 bytes */
 static uint8_t Transmit_Queue_Data[512];
 static FIFO_BUFFER Transmit_Queue;
 

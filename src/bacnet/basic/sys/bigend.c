@@ -1,7 +1,7 @@
 /* Derived from "Unix Incompatibility Notes: Byte Order" by Jan Wolter */
 /* http://unixpapa.com/incnote/byteorder.html */
 
-/** @file bigend.c  Determination of Endianess */
+/** @file bigend.c  Determination of Endianness */
 
 #include "bacnet/basic/sys/bigend.h"
 
@@ -9,7 +9,7 @@
 /* Big-Endian systems save the most significant byte first.  */
 /* Sun and Motorola processors, IBM-370s and PDP-10s are big-endian. */
 /* "Network Byte Order" is also know as "Big-Endian Byte Order" */
-/* for example, a 4 byte integer 67305985 is 0x04030201 in hexidecimal. */
+/* for example, a 4 byte integer 67305985 is 0x04030201 in hexadecimal. */
 /* x[0] = 0x04 */
 /* x[1] = 0x03 */
 /* x[2] = 0x02 */
@@ -17,7 +17,7 @@
 
 /* Little-Endian systems save the least significant byte first.  */
 /* The entire Intel x86 family, Vaxes, Alphas and PDP-11s are little-endian. */
-/* for example, a 4 byte integer 67305985 is 0x04030201 in hexidecimal. */
+/* for example, a 4 byte integer 67305985 is 0x04030201 in hexadecimal. */
 /* x[0] = 0x01 */
 /* x[1] = 0x02 */
 /* x[2] = 0x03 */

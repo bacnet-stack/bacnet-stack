@@ -65,7 +65,7 @@ extern "C" {
         BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
         /* time to generate event notification */
         uint32_t Remaining_Time_Delay;
-        /* AckNotification informations */
+        /* AckNotification information */
         ACK_NOTIFICATION Ack_notify_data;
 #endif
     } ANALOG_VALUE_DESCR;
@@ -116,6 +116,14 @@ extern "C" {
     BACNET_STACK_EXPORT
     float Analog_Value_Present_Value(
         uint32_t object_instance);
+
+    BACNET_STACK_EXPORT
+    unsigned Analog_Value_Event_State(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Analog_Value_Event_State_Set(
+        uint32_t object_instance,
+        unsigned state);
 
     BACNET_STACK_EXPORT
     bool Analog_Value_Change_Of_Value(
@@ -202,13 +210,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     void Analog_Value_Init(
         void);
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testAnalog_Value(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }

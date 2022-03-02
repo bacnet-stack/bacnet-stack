@@ -54,10 +54,6 @@
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
-#if defined(_MSC_VER)
-#define snprintf _snprintf
-#endif
-
 /** @brief Encode application data given by a pointer into the APDU.
  *  Return the number encoded bytes.
  *
@@ -387,7 +383,7 @@ bool bacapp_decode_application_data_safe(uint8_t *new_apdu,
             apdu_len += tag_len;
             apdu_len_remaining -= tag_len;
             /* The tag is boolean then len_value_type is interpreted as value,
-             *not length, so dont bother
+             *not length, so don't bother
              ** checking with apdu_len_remaining */
             if (tag_number == BACNET_APPLICATION_TAG_BOOLEAN ||
                 len_value_type <= apdu_len_remaining) {
@@ -437,7 +433,10 @@ int bacapp_decode_data_len(
         case BACNET_APPLICATION_TAG_DATE:
         case BACNET_APPLICATION_TAG_TIME:
         case BACNET_APPLICATION_TAG_OBJECT_ID:
-            len = (int)len_value_type;
+            len = (int) (~0U >> 1);
+            if ( len_value_type < (uint32_t) len) {
+                len = (int)len_value_type;
+            }
             break;
         default:
             break;
@@ -835,9 +834,10 @@ int bacapp_encode_data(uint8_t *apdu, BACNET_APPLICATION_DATA_VALUE *value)
 bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
     BACNET_APPLICATION_DATA_VALUE *src_value)
 {
-    bool status = true; /*return value */
+    bool status = false; /* return value, assume failure */
 
     if (dest_value && src_value) {
+        status = true; /* assume successful for now */
         dest_value->tag = src_value->tag;
         switch (src_value->tag) {
 #if defined(BACAPP_NULL)
@@ -937,7 +937,7 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
  *
  * @param Pointer to the APDU buffer
  * @param apdu_len_max Bytes valid in the buffer
- * @param property ID of the propery to get the length for.
+ * @param property ID of the property to get the length for.
  *
  * @return Length in bytes or BACNET_STATUS_ERROR.
  */
@@ -1543,10 +1543,8 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 #endif
 #if defined(BACAPP_OCTET_STRING)
             case BACNET_APPLICATION_TAG_OCTET_STRING:
-#if PRINT_ENABLED /* Apparently ain't necessarily so. */
                 status =
                     octetstring_init_ascii_hex(&value->type.Octet_String, argv);
-#endif
                 break;
 #endif
 #if defined(BACAPP_CHARACTER_STRING)
@@ -1557,9 +1555,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 #endif
 #if defined(BACAPP_BIT_STRING)
             case BACNET_APPLICATION_TAG_BIT_STRING:
-#if PRINT_ENABLED
                 status = bitstring_init_ascii(&value->type.Bit_String, argv);
-#endif
                 break;
 #endif
 #if defined(BACAPP_ENUMERATED)
@@ -1686,13 +1682,6 @@ void bacapp_property_value_list_init(BACNET_PROPERTY_VALUE *value, size_t count)
     }
 }
 
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-#include <assert.h>
-
 /* generic - can be used by other unit tests
    returns true if matching or same, false if different */
 bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
@@ -1701,8 +1690,12 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
     bool status = false; /*return value */
 
     /* does the tag match? */
-    if (test_value->tag == value->tag)
+    if ((value == NULL) || (test_value == NULL)) {
+        return false;
+    }
+    if (test_value->tag == value->tag) {
         status = true;
+}
     if (status) {
         /* second test for same-ness */
         status = false;
@@ -1715,52 +1708,60 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
 #endif
 #if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                if (test_value->type.Boolean == value->type.Boolean)
+                if (test_value->type.Boolean == value->type.Boolean) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                if (test_value->type.Unsigned_Int == value->type.Unsigned_Int)
+                if (test_value->type.Unsigned_Int == value->type.Unsigned_Int) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_SIGNED)
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                if (test_value->type.Signed_Int == value->type.Signed_Int)
+                if (test_value->type.Signed_Int == value->type.Signed_Int) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
-                if (test_value->type.Real == value->type.Real)
+                if (test_value->type.Real == value->type.Real) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                if (test_value->type.Double == value->type.Double)
+                if (test_value->type.Double == value->type.Double) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
-                if (test_value->type.Enumerated == value->type.Enumerated)
+                if (test_value->type.Enumerated == value->type.Enumerated) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_DATE)
             case BACNET_APPLICATION_TAG_DATE:
                 if (datetime_compare_date(
-                        &test_value->type.Date, &value->type.Date) == 0)
+                        &test_value->type.Date, &value->type.Date) == 0) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_TIME)
             case BACNET_APPLICATION_TAG_TIME:
                 if (datetime_compare_time(
-                        &test_value->type.Time, &value->type.Time) == 0)
+                        &test_value->type.Time, &value->type.Time) == 0) {
                     status = true;
+}
                 break;
 #endif
 #if defined(BACAPP_OBJECT_ID)
@@ -1805,7 +1806,14 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
     return status;
 }
 
-void testBACnetApplicationData_Safe(Test *pTest)
+#ifdef TEST_BACNET_APPLICATION_DATA
+#include <assert.h>
+#include <string.h>
+#include "ctest.h"
+
+#include <assert.h>
+
+static void testBACnetApplicationData_Safe(Test *pTest)
 {
     int i;
     uint8_t apdu[MAX_APDU];
@@ -2292,7 +2300,6 @@ void testBACnetApplicationData(Test *pTest)
     return;
 }
 
-#ifdef TEST_BACNET_APPLICATION_DATA
 int main(void)
 {
     Test *pTest;
@@ -2315,4 +2322,3 @@ int main(void)
     return 0;
 }
 #endif /* TEST_BACNET_APPLICATION_DATA */
-#endif /* BAC_TEST */

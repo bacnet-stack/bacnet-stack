@@ -78,8 +78,8 @@ typedef struct pcaprec_hdr_s {
 
 /* local port data - shared with RS-485 */
 volatile struct mstp_port_struct_t MSTP_Port;
-static uint8_t RxBuffer[MAX_MPDU];
-static uint8_t TxBuffer[MAX_MPDU];
+static uint8_t RxBuffer[DLMSTP_MPDU_MAX];
+static uint8_t TxBuffer[DLMSTP_MPDU_MAX];
 static uint16_t SilenceTime;
 #define INCREMENT_AND_LIMIT_UINT16(x) \
     {                                 \

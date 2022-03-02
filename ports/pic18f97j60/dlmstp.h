@@ -42,15 +42,15 @@
 #include "bacnet/npdu.h"
 
 /* defines specific to MS/TP */
-#define MAX_HEADER (2+1+1+1+2+1)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define DLMSTP_HEADER_MAX (2+1+1+1+2+1)
+#define DLMSTP_MPDU_MAX (DLMSTP_HEADER_MAX+MAX_PDU)
 
 typedef struct dlmstp_packet {
     bool ready; /* true if ready to be sent or received */
     BACNET_ADDRESS address;     /* source address */
     uint8_t frame_type; /* type of message */
     unsigned pdu_len;   /* packet length */
-    uint8_t pdu[MAX_MPDU];      /* packet */
+    uint8_t pdu[DLMSTP_MPDU_MAX];      /* packet */
 } DLMSTP_PACKET;
 
 /* number of MS/TP tx/rx packets */

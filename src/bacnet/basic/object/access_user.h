@@ -105,13 +105,6 @@ extern "C" {
     void Access_User_Init(
         void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testAccessUser(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

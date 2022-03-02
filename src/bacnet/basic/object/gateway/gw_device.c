@@ -59,14 +59,8 @@
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h" /* object list dependency */
 #endif
-/* os specfic includes */
+/* os specific includes */
 #include "bacnet/basic/sys/mstimer.h"
-
-#if defined(__BORLANDC__) || defined(_WIN32)
-/* seems to not be defined in time.h as specified by The Open Group */
-/* difference from UTC and local standard time  */
-long int timezone;
-#endif
 
 /* local forward and external prototypes */
 extern int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -220,24 +214,24 @@ void routed_get_my_address(BACNET_ADDRESS *my_address)
  *         Else False if no match or invalid idx is given.
  */
 bool Routed_Device_Address_Lookup(
-    int idx, uint8_t address_len, uint8_t *mac_adress)
+    int idx, uint8_t dlen, uint8_t *dadr)
 {
     bool result = false;
     DEVICE_OBJECT_DATA *pDev = &Devices[idx];
     int i;
 
     if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
-        if (address_len == 0) {
+        if (dlen == 0) {
             /* Automatic match */
             iCurrent_Device_Idx = idx;
             result = true;
-        } else if (mac_adress != NULL) {
-            for (i = 0; i < address_len; i++) {
-                if (pDev->bacDevAddr.mac[i] != mac_adress[i]) {
+        } else if (dadr != NULL) {
+            for (i = 0; i < dlen; i++) {
+                if (pDev->bacDevAddr.adr[i] != dadr[i]) {
                     break;
                 }
             }
-            if (i == address_len) { /* Success! */
+            if (i == dlen) { /* Success! */
                 iCurrent_Device_Idx = idx;
                 result = true;
             }
@@ -370,25 +364,51 @@ uint32_t Routed_Device_Index_To_Instance(unsigned index)
     return Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number;
 }
 
-/** See if the requested Object instance matches that for the currently
- * indexed Device Object.
- * iCurrent_Device_Idx must have been set to point to this Device Object
- * before this function is called.
- * @param object_id [in] Object ID of the desired Device object.
- * 			If the wildcard value (BACNET_MAX_INSTANCE), always
- * matches.
- * @return True if Object ID matches the present Device, else False.
+/**
+ * For a given object instance-number, determines a 1..N-1 index
+ * of Device objects where N is MAX_NUM_DEVICES
+ *
+ * @param  object_instance - object-instance number of the object
+ * @return  index for the given instance-number, or 0 if not valid.
+ */
+static uint32_t Routed_Device_Instance_To_Index(
+        uint32_t Instance_Number)
+{
+    int i;
+
+
+    for ( i=0; i < MAX_NUM_DEVICES; i++) {
+        if (Devices[i].bacObj.Object_Instance_Number == Instance_Number)
+        {
+            /* Found Instance, so return the Device Index Number */
+            return i;
+        }
+    }
+
+    /* We did not find instance... so simply return an Index of 0
+       All gateways will have at least a single root Device Object */
+    return 0;
+
+}
+
+/**
+ * Determines if a given Device instance is valid
+ *
+ * @param  object_id - object-instance number of the object
+ * @return  true if the instance is valid, and false if not
  */
 bool Routed_Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
-    bool bResult = false;
-    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+    bool valid = false;
+    DEVICE_OBJECT_DATA *pDev = NULL;
 
+    iCurrent_Device_Idx = Routed_Device_Instance_To_Index(object_id);
+    pDev = &Devices[iCurrent_Device_Idx];
     if (pDev->bacObj.Object_Instance_Number == object_id) {
-        bResult = true;
+        valid = true;
     }
 
-    return bResult;
+    return valid;
 }
 
 bool Routed_Device_Name(
@@ -472,8 +492,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_OBJECT_ID,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_OBJECT_ID);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Routed_Device_Set_Object_Instance_Number(
@@ -488,8 +508,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = WPValidateString(&value, MAX_DEV_NAME_LEN, false,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_string_valid(wp_data, &value,
+                MAX_DEV_NAME_LEN);
             if (status) {
                 Routed_Device_Set_Object_Name(
                     characterstring_encoding(&value.type.Character_String),

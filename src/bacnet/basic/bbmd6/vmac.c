@@ -42,6 +42,28 @@
 /* me! */
 #include "bacnet/basic/bbmd6/vmac.h"
 
+/* enable debugging */
+static bool VMAC_Debug = false;
+#if PRINT_ENABLED
+#include <stdarg.h>
+#include <stdio.h>
+#define PRINTF(...) \
+    if (VMAC_Debug) { \
+        fprintf(stderr,__VA_ARGS__); \
+        fflush(stderr); \
+    }
+#else
+#define PRINTF(...)
+#endif
+
+/**
+ * @brief Enable debugging if print is enabled
+ */
+void VMAC_Debug_Enable(void)
+{
+    VMAC_Debug = true;
+}
+
 /** @file
     Handle VMAC address binding */
 
@@ -90,7 +112,7 @@ bool VMAC_Add(uint32_t device_id, struct vmac_data *src)
             index = Keylist_Data_Add(VMAC_List, device_id, pVMAC);
             if (index >= 0) {
                 status = true;
-                printf("VMAC %u added.\n", (unsigned int)device_id);
+                PRINTF("VMAC %u added.\n", (unsigned int)device_id);
             }
         }
     }
@@ -234,11 +256,20 @@ bool VMAC_Find_By_Data(struct vmac_data *vmac, uint32_t *device_id)
 void VMAC_Cleanup(void)
 {
     struct vmac_data *pVMAC;
+    uint32_t device_id;
+    const int index = 0;
 
     if (VMAC_List) {
         do {
-            pVMAC = Keylist_Data_Pop(VMAC_List);
+            device_id = Keylist_Key(VMAC_List, index);
+            pVMAC = Keylist_Data_Delete_By_Index(VMAC_List, index);
             if (pVMAC) {
+                PRINTF("VMAC List: %lu [", (unsigned long)device_id);
+                /* print the MAC */
+                for (unsigned i = 0; i < pVMAC->mac_len; i++) {
+                    PRINTF("%02X", pVMAC->mac[i]);
+                }
+                PRINTF("]\n");
                 free(pVMAC);
             }
         } while (pVMAC);
@@ -255,66 +286,6 @@ void VMAC_Init(void)
     VMAC_List = Keylist_Create();
     if (VMAC_List) {
         atexit(VMAC_Cleanup);
-        printf("VMAC List initialized.\n");
+        PRINTF("VMAC List initialized.\n");
     }
 }
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-void testVMAC(Test *pTest)
-{
-    uint32_t device_id = 123;
-    uint32_t test_device_id = 0;
-    struct vmac_data test_vmac_data;
-    struct vmac_data *pVMAC;
-    unsigned int i = 0;
-    bool status = false;
-
-    VMAC_Init();
-    for (i = 0; i < VMAC_MAC_MAX; i++) {
-        test_vmac_data.mac[i] = 1 + i;
-    }
-    test_vmac_data.mac_len = VMAC_MAC_MAX;
-    status = VMAC_Add(device_id, &test_vmac_data);
-    ct_test(pTest, status);
-    pVMAC = VMAC_Find_By_Key(0);
-    ct_test(pTest, pVMAC == NULL);
-    pVMAC = VMAC_Find_By_Key(device_id);
-    ct_test(pTest, pVMAC);
-    status = VMAC_Different(pVMAC, &test_vmac_data);
-    ct_test(pTest, !status);
-    status = VMAC_Match(pVMAC, &test_vmac_data);
-    ct_test(pTest, status);
-    status = VMAC_Find_By_Data(&test_vmac_data, &test_device_id);
-    ct_test(pTest, status);
-    ct_test(pTest, test_device_id == device_id);
-    status = VMAC_Delete(device_id);
-    ct_test(pTest, status);
-    pVMAC = VMAC_Find_By_Key(device_id);
-    ct_test(pTest, pVMAC == NULL);
-    VMAC_Cleanup();
-}
-
-#ifdef TEST_VMAC
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet VMAC", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testVMAC);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif
-#endif

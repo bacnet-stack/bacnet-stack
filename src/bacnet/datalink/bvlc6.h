@@ -180,6 +180,10 @@ extern "C" {
     bool bvlc6_address_different(
         BACNET_IP6_ADDRESS * dst,
         BACNET_IP6_ADDRESS * src);
+
+    BACNET_STACK_EXPORT
+    int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf,
+        size_t buf_size);
     BACNET_STACK_EXPORT
     bool bvlc6_address_from_ascii(
         BACNET_IP6_ADDRESS *addr,
@@ -416,13 +420,6 @@ extern "C" {
         uint8_t * npdu,
         uint16_t npdu_size,
         uint16_t * npdu_len);
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void test_BVLC6(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }

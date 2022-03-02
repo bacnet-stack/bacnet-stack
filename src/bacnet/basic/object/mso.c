@@ -375,7 +375,9 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
                 priority = wp_data->priority;
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
@@ -408,8 +410,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_NULL,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = write_property_type_valid(wp_data, &value,
+                    BACNET_APPLICATION_TAG_NULL);
                 if (status) {
                     level = MULTISTATE_NULL;
                     object_index = Multistate_Output_Instance_To_Index(
@@ -435,8 +437,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Multistate_Output_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
@@ -462,70 +464,3 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     return status;
 }
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
-
-void testMultistateOutput(Test *pTest)
-{
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    uint16_t decoded_type = 0;
-    uint32_t decoded_instance = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
-
-    Multistate_Output_Init();
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_MULTI_STATE_OUTPUT;
-    rpdata.object_instance = 1;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Multistate_Output_Read_Property(&rpdata);
-    ct_test(pTest, len != 0);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == rpdata.object_type);
-    ct_test(pTest, decoded_instance == rpdata.object_instance);
-
-    return;
-}
-
-#ifdef TEST_MULTISTATE_OUTPUT
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Multi-state Output", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testMultistateOutput);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_BINARY_INPUT */
-#endif /* BAC_TEST */

@@ -51,6 +51,7 @@ bool datetime_local(BACNET_DATE *bdate,
          *   int    tm_wday  Day of week [0,6] (Sunday =0).
          *   int    tm_yday  Day of year [0,365].
          *   int    tm_isdst Daylight Savings flag.
+	 *   long   tm_gmtoff offset from UTC in seconds
          */
         datetime_set_date(bdate, (uint16_t)tblock->tm_year + 1900,
             (uint8_t)tblock->tm_mon + 1, (uint8_t)tblock->tm_mday);
@@ -70,10 +71,10 @@ bool datetime_local(BACNET_DATE *bdate,
         }
         /* note: timezone is declared in <time.h> stdlib. */
         if (utc_offset_minutes) {
-            /* timezone is set to the difference, in seconds,
+            /* tm_gmtoff is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
                 local standard time */
-            *utc_offset_minutes = timezone / 60;
+            *utc_offset_minutes = tblock->tm_gmtoff / 60;
         }
     }
 

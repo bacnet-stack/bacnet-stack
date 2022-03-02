@@ -206,6 +206,7 @@ static void routed_apdu_handler(BACNET_ADDRESS *src,
         /* If wasn't unicast to us, must have been one of the bcast types.
          * Drop it. */
         if (bvlc_get_function_code() != BVLC_ORIGINAL_UNICAST_NPDU) {
+            debug_printf("NPDU: not unicast - dropped!\n");
             return;
         }
 #endif
@@ -216,7 +217,10 @@ static void routed_apdu_handler(BACNET_ADDRESS *src,
         if (dest->len > 0) {
             Send_Reject_Message_To_Network(
                 src, NETWORK_REJECT_NO_ROUTE, dest->net);
-        } /* else, silently drop it */
+        } else {
+            /* silently drop it */
+            debug_printf("NPDU: broadcast - dropped!\n");
+        }
         return;
     }
 
@@ -229,6 +233,7 @@ static void routed_apdu_handler(BACNET_ADDRESS *src,
     }
     if (!bGotOne) {
         /* Just silently drop this packet. */
+        debug_printf("NPDU: dest not found - dropped!\n");
     }
 }
 
@@ -278,6 +283,7 @@ void routing_npdu_handler(
                 network_control_handler(src, DNET_list, &npdu_data,
                     &pdu[apdu_offset], (uint16_t)(pdu_len - apdu_offset));
             } else {
+                debug_printf("NPDU: message for our router? Discarded!\n");
                 /* The DNET is set, but we don't support downstream routers,
                  * so we just silently drop this network layer message,
                  * since only routers can handle it (even if for our DNET) */

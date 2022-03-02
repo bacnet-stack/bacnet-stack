@@ -246,6 +246,19 @@ extern "C" {
         bool value);
 
     BACNET_STACK_EXPORT
+    void *Network_Port_BBMD_BD_Table(uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Network_Port_BBMD_BD_Table_Set(
+        uint32_t object_instance,
+        void *bdt_head);
+    BACNET_STACK_EXPORT
+    void *Network_Port_BBMD_FD_Table(uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool Network_Port_BBMD_FD_Table_Set(
+        uint32_t object_instance,
+        void *fdt_head);
+
+    BACNET_STACK_EXPORT
     BACNET_IP_MODE Network_Port_BIP6_Mode(
         uint32_t object_instance);
     BACNET_STACK_EXPORT

@@ -30,6 +30,7 @@
 
 #if defined(BACDL_ETHERNET)
 #include "bacnet/datalink/ethernet.h"
+#define MAX_MPDU ETHERNET_MPDU_MAX
 
 #define datalink_init ethernet_init
 #define datalink_send_pdu ethernet_send_pdu
@@ -41,6 +42,7 @@
 
 #elif defined(BACDL_ARCNET)
 #include "bacnet/datalink/arcnet.h"
+#define MAX_MPDU ARCNET_MPDU_MAX
 
 #define datalink_init arcnet_init
 #define datalink_send_pdu arcnet_send_pdu
@@ -52,6 +54,7 @@
 
 #elif defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
+#define MAX_MPDU DLMSTP_MPDU_MAX
 
 #define datalink_init dlmstp_init
 #define datalink_send_pdu dlmstp_send_pdu
@@ -65,6 +68,7 @@
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
+#define MAX_MPDU BIP_MPDU_MAX
 
 #define datalink_init bip_init
 #define datalink_send_pdu bip_send_pdu
@@ -85,6 +89,8 @@ void routed_get_my_address(
 #include "bacnet/datalink/bip6.h"
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
+#define MAX_MPDU BIP6_MPDU_MAX
+
 #define datalink_init bip6_init
 #define datalink_send_pdu bip6_send_pdu
 #define datalink_receive bip6_receive
@@ -102,6 +108,9 @@ void routed_get_my_address(
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    BACNET_STACK_EXPORT
+    bool datalink_init(char *ifname);
 
     BACNET_STACK_EXPORT
     int datalink_send_pdu(

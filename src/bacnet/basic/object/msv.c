@@ -368,41 +368,19 @@ bool Multistate_Value_Encode_Value_List(
     uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list)
 {
     bool status = false;
+    const bool in_alarm = false;
+    const bool fault = false;
+    const bool overridden = false;
+    bool out_of_service = false;
+    uint32_t present_value = 0.0;
+    unsigned index = 0;
 
-    if (value_list) {
-        value_list->propertyIdentifier = PROP_PRESENT_VALUE;
-        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
-        value_list->value.context_specific = false;
-        value_list->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
-        value_list->value.next = NULL;
-        value_list->value.type.Enumerated =
-            Multistate_Value_Present_Value(object_instance);
-        value_list->priority = BACNET_NO_PRIORITY;
-        value_list = value_list->next;
-    }
-    if (value_list) {
-        value_list->propertyIdentifier = PROP_STATUS_FLAGS;
-        value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
-        value_list->value.context_specific = false;
-        value_list->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
-        value_list->value.next = NULL;
-        bitstring_init(&value_list->value.type.Bit_String);
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, false);
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
-        bitstring_set_bit(
-            &value_list->value.type.Bit_String, STATUS_FLAG_OVERRIDDEN, false);
-        if (Multistate_Value_Out_Of_Service(object_instance)) {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, true);
-        } else {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_OUT_OF_SERVICE, false);
-        }
-        value_list->priority = BACNET_NO_PRIORITY;
-        value_list->next = NULL;
-        status = true;
+    index = Multistate_Value_Instance_To_Index(object_instance);
+    if (index < MAX_MULTISTATE_VALUES) {
+        present_value = Present_Value[index];
+        out_of_service = Out_Of_Service[index];
+        status = cov_value_list_encode_enumerated(value_list, present_value,
+            in_alarm, fault, overridden, out_of_service);
     }
 
     return status;
@@ -560,9 +538,8 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status =
-                WPValidateArgType(&value, BACNET_APPLICATION_TAG_UNSIGNED_INT,
-                    &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 status = Multistate_Value_Present_Value_Set(
                     wp_data->object_instance, value.type.Unsigned_Int);
@@ -573,8 +550,8 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = WPValidateArgType(&value, BACNET_APPLICATION_TAG_BOOLEAN,
-                &wp_data->error_class, &wp_data->error_code);
+            status = write_property_type_valid(wp_data, &value,
+                BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Multistate_Value_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
@@ -599,70 +576,3 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     return status;
 }
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-bool WPValidateArgType(BACNET_APPLICATION_DATA_VALUE *pValue,
-    uint8_t ucExpectedTag,
-    BACNET_ERROR_CLASS *pErrorClass,
-    BACNET_ERROR_CODE *pErrorCode)
-{
-    pValue = pValue;
-    ucExpectedTag = ucExpectedTag;
-    pErrorClass = pErrorClass;
-    pErrorCode = pErrorCode;
-
-    return false;
-}
-
-void testMultistateInput(Test *pTest)
-{
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    uint16_t decoded_type = 0;
-    uint32_t decoded_instance = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
-
-    Multistate_Value_Init();
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_MULTI_STATE_VALUE;
-    rpdata.object_instance = 1;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-    len = Multistate_Value_Read_Property(&rpdata);
-    ct_test(pTest, len != 0);
-    len = decode_tag_number_and_value(&apdu[0], &tag_number, &len_value);
-    ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_OBJECT_ID);
-    len = decode_object_id(&apdu[len], &decoded_type, &decoded_instance);
-    ct_test(pTest, decoded_type == rpdata.object_type);
-    ct_test(pTest, decoded_instance == rpdata.object_instance);
-
-    return;
-}
-
-#ifdef TEST_MULTISTATE_VALUE
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Multi-state Input", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testMultistateInput);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif
-#endif /* BAC_TEST */

@@ -42,10 +42,13 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdevobjpropref.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/cov.c
 	${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/lighting.c
-	./stubs.c
+	${SRC_DIR}/bacnet/memcopy.c
+	${SRC_DIR}/bacnet/wp.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

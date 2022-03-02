@@ -10,8 +10,8 @@
  * @brief Zephyr testing framework assertion macros
  */
 
-#ifndef __ZTEST_ASSERT_H__
-#define __ZTEST_ASSERT_H__
+#ifndef ZEPHYR_TESTSUITE_ZTEST_ASSERT_H_
+#define ZEPHYR_TESTSUITE_ZTEST_ASSERT_H_
 
 #include <ztest.h>
 #include <stdarg.h>
@@ -23,16 +23,20 @@
 extern "C" {
 #endif
 
+const char *ztest_relative_filename(const char *file);
 void ztest_test_fail(void);
 #if CONFIG_ZTEST_ASSERT_VERBOSE == 0
 
-static inline void z_zassert_(bool cond, const char *file, int line)
+static inline bool z_zassert_(bool cond, const char *file, int line)
 {
 	if (cond == false) {
 		PRINT("\n    Assertion failed at %s:%d\n",
-		      file, line);
+		      ztest_relative_filename(file), line);
 		ztest_test_fail();
+		return false;
 	}
+
+	return true;
 }
 
 #define z_zassert(cond, default_msg, file, line, func, msg, ...)	\
@@ -40,7 +44,7 @@ static inline void z_zassert_(bool cond, const char *file, int line)
 
 #else /* CONFIG_ZTEST_ASSERT_VERBOSE != 0 */
 
-static inline void z_zassert(bool cond,
+static inline bool z_zassert(bool cond,
 			    const char *default_msg,
 			    const char *file,
 			    int line, const char *func,
@@ -51,18 +55,20 @@ static inline void z_zassert(bool cond,
 
 		va_start(vargs, msg);
 		PRINT("\n    Assertion failed at %s:%d: %s: %s\n",
-		      file, line, func, default_msg);
+		      ztest_relative_filename(file), line, func, default_msg);
 		vprintk(msg, vargs);
 		printk("\n");
 		va_end(vargs);
 		ztest_test_fail();
+		return false;
 	}
 #if CONFIG_ZTEST_ASSERT_VERBOSE == 2
 	else {
 		PRINT("\n   Assertion succeeded at %s:%d (%s)\n",
-		      file, line, func);
+		      ztest_relative_filename(file), line, func);
 	}
 #endif
+	return true;
 }
 
 #endif /* CONFIG_ZTEST_ASSERT_VERBOSE */
@@ -83,14 +89,19 @@ static inline void z_zassert(bool cond,
  * You probably don't need to call this macro directly. You should
  * instead use zassert_{condition} macros below.
  *
+ * Note that when CONFIG_MULTITHREADING=n macro returns from the function. It is
+ * then expected that in that case ztest asserts will be used only in the
+ * context of the test function.
+ *
  * @param cond Condition to check
  * @param msg Optional, can be NULL. Message to print if @a cond is false.
  * @param default_msg Message to print if @a cond is false
  */
-
-#define zassert(cond, default_msg, msg, ...)			    \
-	z_zassert(cond, msg ? ("(" default_msg ")") : (default_msg), \
-		 __FILE__, __LINE__, __func__, msg ? msg : "", ##__VA_ARGS__)
+#define zassert(cond, default_msg, msg, ...) do { \
+	bool _ret = z_zassert(cond, msg ? ("(" default_msg ")") : (default_msg), \
+			     __FILE__, __LINE__, __func__, \
+			     msg ? msg : "", ##__VA_ARGS__); \
+} while (0)
 
 /**
  * @brief Assert that this function call won't be reached
@@ -113,6 +124,14 @@ static inline void z_zassert(bool cond,
  * @param msg Optional message to print if the assertion fails
  */
 #define zassert_false(cond, msg, ...) zassert(!(cond), #cond " is true", \
+					      msg, ##__VA_ARGS__)
+
+/**
+ * @brief Assert that @a cond is 0 (success)
+ * @param cond Condition to check
+ * @param msg Optional message to print if the assertion fails
+ */
+#define zassert_ok(cond, msg, ...) zassert(!(cond), #cond " is non-zero", \
 					      msg, ##__VA_ARGS__)
 
 /**
@@ -181,7 +200,7 @@ static inline void z_zassert(bool cond,
  * @param msg Optional message to print if the assertion fails
  */
 #define zassert_within(a, b, d, msg, ...)			     \
-	zassert(((a) > ((b) - (d))) && ((a) < ((b) + (d))),	     \
+	zassert(((a) >= ((b) - (d))) && ((a) <= ((b) + (d))),	     \
 		#a " not within " #b " +/- " #d,		     \
 		msg, ##__VA_ARGS__)
 
@@ -222,4 +241,4 @@ static inline void z_zassert(bool cond,
 }
 #endif
 
-#endif /* __ZTEST_ASSERT_H__ */
+#endif /* ZEPHYR_TESTSUITE_ZTEST_ASSERT_H_ */

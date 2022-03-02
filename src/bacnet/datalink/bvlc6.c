@@ -34,6 +34,7 @@
 
 #include <stdint.h> /* for standard integer types uint8_t etc. */
 #include <stdbool.h> /* for the standard bool type. */
+#include <stdio.h>
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -297,7 +298,7 @@ int bvlc6_encode_original_broadcast(uint8_t *pdu,
             pdu, pdu_size, BVLC6_ORIGINAL_BROADCAST_NPDU, length);
         if (bytes_encoded == 4) {
             encode_unsigned24(&pdu[4], vmac);
-            if (npdu && length) {
+            if (npdu && npdu_len) {
                 for (i = 0; i < npdu_len; i++) {
                     pdu[7 + i] = npdu[i];
                 }
@@ -646,6 +647,96 @@ bool bvlc6_address_get(BACNET_IP6_ADDRESS *addr,
  * of four hexadecimal digits.
  *
  * For convenience, an IPv6 address may be abbreviated to shorter notations
+ * by application of the following rules according to RFC 5952 [1]:
+ *   - One or more leading zeros from any groups of hexadecimal digits
+ *     are removed; this is usually done to either all or none of the
+ *     leading zeros. For example, the group 0042 is converted to 42.
+ *   - Consecutive sections of zeros are replaced with a double colon (::).
+ *     The double colon may only be used once in an address, as multiple
+ *     use would render the address indeterminate. RFC 5952 requires that
+ *     a double colon not be used to denote an omitted single section of
+ *     zeros.
+ *
+ * [1] https://www.rfc-editor.org/rfc/rfc5952
+ *
+ * Adapted from the uIP TCP/IP stack and the Contiki operating system.
+ * Thank you, Adam Dunkel, and the Swedish Institute of Computer Science.
+ *
+ * @param addr - B/IPv6 address that is parsed
+ * @param buf - B/IPv6 address in 16-bit ASCII hex compressed format
+ * @param buf_size - B/IPv6 address size in bytes
+ *
+ * @return the number of characters which would be generated for the given
+ *  input, excluding the trailing null.
+ * @note buf and buf_size may be null and zero to return only the size
+ */
+int bvlc6_address_to_ascii(BACNET_IP6_ADDRESS *addr, char *buf,
+    size_t buf_size)
+{
+    uint16_t a;
+    unsigned int i;
+    int f = 0;
+    int len = 0;
+    int n = 0;
+
+    if (!addr) {
+        return n;
+    }
+    if (!buf) {
+        return n;
+    }
+    for(i = 0; i < IP6_ADDRESS_MAX; i += 2) {
+        a = (addr->address[i] << 8) + addr->address[i + 1];
+        if ((a == 0) && (f >= 0)) {
+            if (f++ == 0) {
+                len = snprintf(buf, buf_size, "::");
+                if (buf) {
+                    buf += len;
+                }
+                if (len > buf_size) {
+                    buf_size = 0;
+                } else {
+                    buf_size -= len;
+                }
+                n += len;
+            }
+        } else {
+            if (f > 0) {
+                f = -1;
+            } else if (i > 0) {
+                len = snprintf(buf, buf_size, ":");
+                if (buf) {
+                    buf += len;
+                }
+                if (len > buf_size) {
+                    buf_size = 0;
+                } else {
+                    buf_size -= len;
+                }
+                n += len;
+            }
+            len = snprintf(buf, buf_size, "%x", a);
+            if (buf) {
+                buf += len;
+            }
+            if (len > buf_size) {
+                buf_size = 0;
+            } else {
+                buf_size -= len;
+            }
+            n += len;
+        }
+    }
+
+    return true;
+}
+
+/** Convert IPv6 Address from ASCII
+ *
+ * IPv6 addresses are represented as eight groups, separated by colons,
+ * of four hexadecimal digits.
+ *
+ * For convenience, an IPv6 address may be abbreviated to shorter notations
  * by application of the following rules.
  *   - One or more leading zeros from any groups of hexadecimal digits
  *     are removed; this is usually done to either all or none of the
@@ -672,7 +763,7 @@ bool bvlc6_address_from_ascii(BACNET_IP6_ADDRESS *addr, const char *addrstr)
     unsigned int i = 0;
     char c = 0;
 
-    if (!addrstr) {
+    if (!addr) {
         return false;
     }
     if (!addrstr) {
@@ -1481,798 +1572,3 @@ int bvlc6_decode_distribute_broadcast_to_network(uint8_t *pdu,
 
     return bytes_consumed;
 }
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-static void test_BVLC6_Address(Test *pTest,
-    BACNET_IP6_ADDRESS *bip6_address_1,
-    BACNET_IP6_ADDRESS *bip6_address_2)
-{
-    unsigned i = 0;
-
-    if (bip6_address_1 && bip6_address_2) {
-        ct_test(pTest, bip6_address_1->port == bip6_address_2->port);
-        for (i = 0; i < IP6_ADDRESS_MAX; i++) {
-            ct_test(pTest,
-                bip6_address_1->address[i] == bip6_address_2->address[i]);
-        }
-    }
-
-    return;
-}
-
-static int test_BVLC6_Header(Test *pTest,
-    uint8_t *pdu,
-    uint16_t pdu_len,
-    uint8_t *message_type,
-    uint16_t *length)
-
-{
-    int bytes_consumed = 0;
-    int len = 0;
-
-    if (pdu && message_type && length) {
-        len = bvlc6_decode_header(pdu, pdu_len, message_type, length);
-        ct_test(pTest, len == 4);
-        bytes_consumed = len;
-    }
-
-    return bytes_consumed;
-}
-
-static void test_BVLC6_Result_Code(
-    Test *pTest, uint32_t vmac, uint16_t result_code)
-{
-    uint8_t pdu[50] = { 0 };
-    uint32_t test_vmac = 0;
-    uint16_t test_result_code = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-
-    len = bvlc6_encode_result(pdu, sizeof(pdu), vmac, result_code);
-    ct_test(pTest, len == 9);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_RESULT);
-    ct_test(pTest, length == 9);
-    test_len +=
-        bvlc6_decode_result(&pdu[4], length - 4, &test_vmac, &test_result_code);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, vmac == test_vmac);
-    ct_test(pTest, result_code == test_result_code);
-    len = bvlc6_encode_result(pdu, sizeof(pdu), 0xffffff + 1, result_code);
-    ct_test(pTest, len == 0);
-}
-
-static void test_BVLC6_Result(Test *pTest)
-{
-    uint32_t vmac = 0;
-    uint16_t result_code[6] = { BVLC6_RESULT_SUCCESSFUL_COMPLETION,
-        BVLC6_RESULT_ADDRESS_RESOLUTION_NAK,
-        BVLC6_RESULT_VIRTUAL_ADDRESS_RESOLUTION_NAK,
-        BVLC6_RESULT_REGISTER_FOREIGN_DEVICE_NAK,
-        BVLC6_RESULT_DELETE_FOREIGN_DEVICE_NAK,
-        BVLC6_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK };
-    unsigned int i = 0;
-
-    vmac = 4194303;
-    for (i = 0; i < 6; i++) {
-        test_BVLC6_Result_Code(pTest, vmac, result_code[i]);
-    }
-}
-
-static void test_BVLC6_Original_Unicast_NPDU_Message(Test *pTest,
-    uint8_t *npdu,
-    uint16_t npdu_len,
-    uint32_t vmac_src,
-    uint32_t vmac_dst)
-{
-    uint8_t test_npdu[50] = { 0 };
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac_src = 0;
-    uint32_t test_vmac_dst = 0;
-    uint16_t test_npdu_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc6_encode_original_unicast(
-        pdu, sizeof(pdu), vmac_src, vmac_dst, npdu, npdu_len);
-    msg_len = 10 + npdu_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_ORIGINAL_UNICAST_NPDU);
-    ct_test(pTest, length == msg_len);
-    test_len +=
-        bvlc6_decode_original_unicast(&pdu[4], length - 4, &test_vmac_src,
-            &test_vmac_dst, test_npdu, sizeof(test_npdu), &test_npdu_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-    ct_test(pTest, vmac_dst == test_vmac_dst);
-    ct_test(pTest, npdu_len == test_npdu_len);
-    for (i = 0; i < npdu_len; i++) {
-        ct_test(pTest, npdu[i] == test_npdu[i]);
-    }
-}
-
-static void test_BVLC6_Original_Unicast_NPDU(Test *pTest)
-{
-    uint8_t npdu[50] = { 0 };
-    uint32_t vmac_src = 0;
-    uint32_t vmac_dst = 0;
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC6_Original_Unicast_NPDU_Message(
-        pTest, npdu, npdu_len, vmac_src, vmac_dst);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    vmac_src = 4194303;
-    vmac_dst = 4194302;
-    test_BVLC6_Original_Unicast_NPDU_Message(
-        pTest, npdu, npdu_len, vmac_src, vmac_dst);
-}
-
-static void test_BVLC6_Original_Broadcast_NPDU_Message(
-    Test *pTest, uint8_t *npdu, uint16_t npdu_len, uint32_t vmac)
-{
-    uint8_t test_npdu[50] = { 0 };
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac = 0;
-    uint16_t test_npdu_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len =
-        bvlc6_encode_original_broadcast(pdu, sizeof(pdu), vmac, npdu, npdu_len);
-    msg_len = 7 + npdu_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_ORIGINAL_BROADCAST_NPDU);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_original_broadcast(&pdu[4], length - 4, &test_vmac,
-        test_npdu, sizeof(test_npdu), &test_npdu_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac == test_vmac);
-    ct_test(pTest, npdu_len == test_npdu_len);
-    for (i = 0; i < npdu_len; i++) {
-        ct_test(pTest, npdu[i] == test_npdu[i]);
-    }
-}
-
-static void test_BVLC6_Original_Broadcast_NPDU(Test *pTest)
-{
-    uint8_t npdu[50] = { 0 };
-    uint32_t vmac = 0;
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC6_Original_Broadcast_NPDU_Message(pTest, npdu, npdu_len, vmac);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    vmac = 4194303;
-    test_BVLC6_Original_Broadcast_NPDU_Message(pTest, npdu, npdu_len, vmac);
-}
-
-static void test_BVLC6_Address_Resolution_Message(
-    Test *pTest, uint32_t vmac_src, uint32_t vmac_target)
-{
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac_src = 0;
-    uint32_t test_vmac_target = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 10;
-
-    len = bvlc6_encode_address_resolution(
-        pdu, sizeof(pdu), vmac_src, vmac_target);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_ADDRESS_RESOLUTION);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_address_resolution(
-        &pdu[4], length - 4, &test_vmac_src, &test_vmac_target);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-    ct_test(pTest, vmac_target == test_vmac_target);
-}
-
-static void test_BVLC6_Address_Resolution(Test *pTest)
-{
-    uint32_t vmac_src = 0;
-    uint32_t vmac_target = 0;
-
-    test_BVLC6_Address_Resolution_Message(pTest, vmac_src, vmac_target);
-    vmac_src = 4194303;
-    vmac_target = 4194302;
-    test_BVLC6_Address_Resolution_Message(pTest, vmac_src, vmac_target);
-}
-
-static void test_BVLC6_Forwarded_Address_Resolution_Message(Test *pTest,
-    uint32_t vmac_src,
-    uint32_t vmac_dst,
-    BACNET_IP6_ADDRESS *bip6_address)
-{
-    BACNET_IP6_ADDRESS test_bip6_address = { { 0 } };
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac_src = 0;
-    uint32_t test_vmac_dst = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 4 + 3 + 3 + BIP6_ADDRESS_MAX;
-
-    len = bvlc6_encode_forwarded_address_resolution(
-        pdu, sizeof(pdu), vmac_src, vmac_dst, bip6_address);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_FORWARDED_ADDRESS_RESOLUTION);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_forwarded_address_resolution(&pdu[4], length - 4,
-        &test_vmac_src, &test_vmac_dst, &test_bip6_address);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-    ct_test(pTest, vmac_dst == test_vmac_dst);
-    test_BVLC6_Address(pTest, bip6_address, &test_bip6_address);
-}
-
-static void test_BVLC6_Forwarded_Address_Resolution(Test *pTest)
-{
-    BACNET_IP6_ADDRESS bip6_address = { { 0 } };
-    uint32_t vmac_src = 0;
-    uint32_t vmac_target = 0;
-    uint16_t i = 0;
-
-    test_BVLC6_Forwarded_Address_Resolution_Message(
-        pTest, vmac_src, vmac_target, &bip6_address);
-    /* now with some address data */
-    for (i = 0; i < sizeof(bip6_address.address); i++) {
-        bip6_address.address[i] = i;
-    }
-    bip6_address.port = 47808;
-    vmac_src = 4194303;
-    vmac_target = 4194302;
-    test_BVLC6_Forwarded_Address_Resolution_Message(
-        pTest, vmac_src, vmac_target, &bip6_address);
-}
-
-static void test_BVLC6_Address_Resolution_Ack_Message(
-    Test *pTest, uint32_t vmac_src, uint32_t vmac_dst)
-{
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac_src = 0;
-    uint32_t test_vmac_dst = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 10;
-
-    len = bvlc6_encode_address_resolution_ack(
-        pdu, sizeof(pdu), vmac_src, vmac_dst);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_ADDRESS_RESOLUTION_ACK);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_address_resolution_ack(
-        &pdu[4], length - 4, &test_vmac_src, &test_vmac_dst);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-    ct_test(pTest, vmac_dst == test_vmac_dst);
-}
-
-static void test_BVLC6_Address_Resolution_Ack(Test *pTest)
-{
-    uint32_t vmac_src = 0;
-    uint32_t vmac_dst = 0;
-
-    test_BVLC6_Address_Resolution_Ack_Message(pTest, vmac_src, vmac_dst);
-    vmac_src = 4194303;
-    vmac_dst = 4194302;
-    test_BVLC6_Address_Resolution_Ack_Message(pTest, vmac_src, vmac_dst);
-}
-
-static void test_BVLC6_Virtual_Address_Resolution_Message(
-    Test *pTest, uint32_t vmac_src)
-{
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac_src = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 7;
-
-    len = bvlc6_encode_virtual_address_resolution(pdu, sizeof(pdu), vmac_src);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_VIRTUAL_ADDRESS_RESOLUTION);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_virtual_address_resolution(
-        &pdu[4], length - 4, &test_vmac_src);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-}
-
-static void test_BVLC6_Virtual_Address_Resolution(Test *pTest)
-{
-    uint32_t vmac_src = 0;
-
-    test_BVLC6_Virtual_Address_Resolution_Message(pTest, vmac_src);
-    vmac_src = 0x1234;
-    test_BVLC6_Virtual_Address_Resolution_Message(pTest, vmac_src);
-}
-
-static void test_BVLC6_Virtual_Address_Resolution_Ack_Message(
-    Test *pTest, uint32_t vmac_src, uint32_t vmac_dst)
-{
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac_src = 0;
-    uint32_t test_vmac_dst = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 10;
-
-    len = bvlc6_encode_virtual_address_resolution_ack(
-        pdu, sizeof(pdu), vmac_src, vmac_dst);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_VIRTUAL_ADDRESS_RESOLUTION_ACK);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_virtual_address_resolution_ack(
-        &pdu[4], length - 4, &test_vmac_src, &test_vmac_dst);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-    ct_test(pTest, vmac_dst == test_vmac_dst);
-}
-
-static void test_BVLC6_Virtual_Address_Resolution_Ack(Test *pTest)
-{
-    uint32_t vmac_src = 0;
-    uint32_t vmac_dst = 0;
-
-    test_BVLC6_Virtual_Address_Resolution_Ack_Message(
-        pTest, vmac_src, vmac_dst);
-    vmac_src = 4194303;
-    vmac_dst = 4194302;
-    test_BVLC6_Virtual_Address_Resolution_Ack_Message(
-        pTest, vmac_src, vmac_dst);
-}
-
-static void test_BVLC6_Forwarded_NPDU_Message(Test *pTest,
-    uint8_t *npdu,
-    uint16_t npdu_len,
-    uint32_t vmac_src,
-    BACNET_IP6_ADDRESS *bip6_address)
-{
-    uint8_t test_npdu[50] = { 0 };
-    uint8_t pdu[75] = { 0 };
-    uint32_t test_vmac_src = 0;
-    BACNET_IP6_ADDRESS test_bip6_address = { { 0 } };
-    uint16_t test_npdu_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc6_encode_forwarded_npdu(
-        pdu, sizeof(pdu), vmac_src, bip6_address, npdu, npdu_len);
-    msg_len = 1 + 1 + 2 + 3 + BIP6_ADDRESS_MAX + npdu_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_FORWARDED_NPDU);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_forwarded_npdu(&pdu[4], length - 4, &test_vmac_src,
-        &test_bip6_address, test_npdu, sizeof(test_npdu), &test_npdu_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-    test_BVLC6_Address(pTest, bip6_address, &test_bip6_address);
-    ct_test(pTest, npdu_len == test_npdu_len);
-    for (i = 0; i < npdu_len; i++) {
-        ct_test(pTest, npdu[i] == test_npdu[i]);
-    }
-}
-
-static void test_BVLC6_Forwarded_NPDU(Test *pTest)
-{
-    uint8_t npdu[50] = { 0 };
-    uint32_t vmac_src = 0;
-    BACNET_IP6_ADDRESS bip6_address = { { 0 } };
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC6_Forwarded_NPDU_Message(
-        pTest, npdu, npdu_len, vmac_src, &bip6_address);
-    for (i = 0; i < sizeof(bip6_address.address); i++) {
-        bip6_address.address[i] = i;
-    }
-    bip6_address.port = 47808;
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    vmac_src = 4194303;
-    test_BVLC6_Forwarded_NPDU_Message(
-        pTest, npdu, npdu_len, vmac_src, &bip6_address);
-}
-
-static void test_BVLC6_Register_Foreign_Device_Message(
-    Test *pTest, uint32_t vmac_src, uint16_t ttl_seconds)
-{
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac_src = 0;
-    uint16_t test_ttl_seconds = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 9;
-
-    len = bvlc6_encode_register_foreign_device(
-        pdu, sizeof(pdu), vmac_src, ttl_seconds);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_REGISTER_FOREIGN_DEVICE);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_register_foreign_device(
-        &pdu[4], length - 4, &test_vmac_src, &test_ttl_seconds);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-    ct_test(pTest, ttl_seconds == test_ttl_seconds);
-}
-
-static void test_BVLC6_Register_Foreign_Device(Test *pTest)
-{
-    uint32_t vmac_src = 0;
-    uint16_t ttl_seconds = 0;
-
-    test_BVLC6_Register_Foreign_Device_Message(pTest, vmac_src, ttl_seconds);
-    vmac_src = 4194303;
-    ttl_seconds = 600;
-    test_BVLC6_Register_Foreign_Device_Message(pTest, vmac_src, ttl_seconds);
-}
-
-static void test_BVLC6_Delete_Foreign_Device_Message(Test *pTest,
-    uint32_t vmac_src,
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
-{
-    uint8_t pdu[64] = { 0 };
-    uint32_t test_vmac_src = 0;
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY test_fdt_entry = { 0 };
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, test_len = 0;
-    const int msg_len = 0x0019;
-
-    len = bvlc6_encode_delete_foreign_device(
-        pdu, sizeof(pdu), vmac_src, &fdt_entry->bip6_address);
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_DELETE_FOREIGN_DEVICE);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_delete_foreign_device(
-        &pdu[4], length - 4, &test_vmac_src, &test_fdt_entry.bip6_address);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac_src == test_vmac_src);
-    test_BVLC6_Address(
-        pTest, &fdt_entry->bip6_address, &test_fdt_entry.bip6_address);
-}
-
-static void test_BVLC6_Delete_Foreign_Device(Test *pTest)
-{
-    uint32_t vmac_src = 0;
-    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { 0 };
-    unsigned int i = 0;
-
-    /* test with zeros */
-    test_BVLC6_Delete_Foreign_Device_Message(pTest, vmac_src, &fdt_entry);
-    /* test with valid values */
-    vmac_src = 4194303;
-    for (i = 0; i < sizeof(fdt_entry.bip6_address.address); i++) {
-        fdt_entry.bip6_address.address[i] = i;
-    }
-    fdt_entry.bip6_address.port = 47808;
-    fdt_entry.ttl_seconds = 600;
-    fdt_entry.ttl_seconds_remaining = 42;
-    fdt_entry.next = NULL;
-    test_BVLC6_Delete_Foreign_Device_Message(pTest, vmac_src, &fdt_entry);
-}
-
-static void test_BVLC6_Secure_BVLL_Message(
-    Test *pTest, uint8_t *sbuf, uint16_t sbuf_len)
-{
-    uint8_t test_sbuf[50] = { 0 };
-    uint8_t pdu[60] = { 0 };
-    uint16_t test_sbuf_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc6_encode_secure_bvll(pdu, sizeof(pdu), sbuf, sbuf_len);
-    msg_len = 1 + 1 + 2 + sbuf_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_SECURE_BVLL);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_secure_bvll(
-        &pdu[4], length - 4, test_sbuf, sizeof(test_sbuf), &test_sbuf_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, sbuf_len == test_sbuf_len);
-    for (i = 0; i < sbuf_len; i++) {
-        ct_test(pTest, sbuf[i] == test_sbuf[i]);
-    }
-}
-
-static void test_BVLC6_Secure_BVLL(Test *pTest)
-{
-    uint8_t sbuf[50] = { 0 };
-    uint16_t sbuf_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC6_Secure_BVLL_Message(pTest, sbuf, sbuf_len);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(sbuf); i++) {
-        sbuf[i] = i;
-    }
-    sbuf_len = sizeof(sbuf);
-    test_BVLC6_Secure_BVLL_Message(pTest, sbuf, sbuf_len);
-}
-
-static void test_BVLC6_Distribute_Broadcast_To_Network_Message(
-    Test *pTest, uint8_t *npdu, uint16_t npdu_len, uint32_t vmac)
-{
-    uint8_t test_npdu[50] = { 0 };
-    uint8_t pdu[60] = { 0 };
-    uint32_t test_vmac = 0;
-    uint16_t test_npdu_len = 0;
-    uint8_t message_type = 0;
-    uint16_t length = 0;
-    int len = 0, msg_len = 0, test_len = 0;
-    uint16_t i = 0;
-
-    len = bvlc6_encode_distribute_broadcast_to_network(
-        pdu, sizeof(pdu), vmac, npdu, npdu_len);
-    msg_len = 7 + npdu_len;
-    ct_test(pTest, len == msg_len);
-    test_len = test_BVLC6_Header(pTest, pdu, len, &message_type, &length);
-    ct_test(pTest, test_len == 4);
-    ct_test(pTest, message_type == BVLC6_DISTRIBUTE_BROADCAST_TO_NETWORK);
-    ct_test(pTest, length == msg_len);
-    test_len += bvlc6_decode_distribute_broadcast_to_network(&pdu[4],
-        length - 4, &test_vmac, test_npdu, sizeof(test_npdu), &test_npdu_len);
-    ct_test(pTest, len == test_len);
-    ct_test(pTest, msg_len == test_len);
-    ct_test(pTest, vmac == test_vmac);
-    ct_test(pTest, npdu_len == test_npdu_len);
-    for (i = 0; i < npdu_len; i++) {
-        ct_test(pTest, npdu[i] == test_npdu[i]);
-    }
-}
-
-static void test_BVLC6_Distribute_Broadcast_To_Network(Test *pTest)
-{
-    uint8_t npdu[50] = { 0 };
-    uint32_t vmac = 0;
-    uint16_t npdu_len = 0;
-    uint16_t i = 0;
-
-    test_BVLC6_Distribute_Broadcast_To_Network_Message(
-        pTest, npdu, npdu_len, vmac);
-    /* now with some NPDU data */
-    for (i = 0; i < sizeof(npdu); i++) {
-        npdu[i] = i;
-    }
-    npdu_len = sizeof(npdu);
-    vmac = 4194303;
-    test_BVLC6_Distribute_Broadcast_To_Network_Message(
-        pTest, npdu, npdu_len, vmac);
-}
-
-static void test_BVLC6_Address_Copy(Test *pTest)
-{
-    unsigned int i = 0;
-    BACNET_IP6_ADDRESS src = { { 0 } };
-    BACNET_IP6_ADDRESS dst = { { 0 } };
-    bool status = false;
-
-    /* test with zeros */
-    status = bvlc6_address_copy(&dst, &src);
-    ct_test(pTest, status);
-    status = bvlc6_address_different(&dst, &src);
-    ct_test(pTest, !status);
-    /* test with valid values */
-    for (i = 0; i < sizeof(src.address); i++) {
-        src.address[i] = 1 + i;
-    }
-    src.port = 47808;
-    status = bvlc6_address_copy(&dst, &src);
-    ct_test(pTest, status);
-    status = bvlc6_address_different(&dst, &src);
-    ct_test(pTest, !status);
-    /* test for different port */
-    dst.port = 47809;
-    status = bvlc6_address_different(&dst, &src);
-    ct_test(pTest, status);
-    /* test for different address */
-    dst.port = src.port;
-    for (i = 0; i < sizeof(src.address); i++) {
-        dst.address[i] = 0;
-        status = bvlc6_address_different(&dst, &src);
-        ct_test(pTest, status);
-        dst.address[i] = 1 + i;
-    }
-}
-
-static void test_BVLC6_Address_Get_Set(Test *pTest)
-{
-    uint16_t i = 0;
-    BACNET_IP6_ADDRESS src = { { 0 } };
-    BACNET_IP6_ADDRESS dst = { { 0 } };
-    uint16_t group = 1;
-    uint16_t test_group = 0;
-    uint16_t hextet[8] = { 0 };
-    bool status = false;
-
-    for (i = 0; i < 16; i++) {
-        status = bvlc6_address_set(&src, group, 0, 0, 0, 0, 0, 0, 0);
-        ct_test(pTest, status);
-        status = bvlc6_address_get(
-            &src, &test_group, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-        ct_test(pTest, status);
-        ct_test(pTest, group == test_group);
-        group = group << 1;
-    }
-    /* test the ASCII hex to address */
-    /* test too short */
-    status = bvlc6_address_from_ascii(&src, "[1234:5678]");
-    ct_test(pTest, status == false);
-    status = bvlc6_address_from_ascii(
-        &src, "[1234:5678:9ABC:DEF0:1234:5678:9ABC:DEF0]");
-    ct_test(pTest, status);
-    status = bvlc6_address_set(
-        &dst, 0x1234, 0x5678, 0x9ABC, 0xDEF0, 0x1234, 0x5678, 0x9ABC, 0xDEF0);
-    ct_test(pTest, status);
-    status = bvlc6_address_different(&dst, &src);
-    ct_test(pTest, status == false);
-    /* test zero compression */
-    status = bvlc6_address_from_ascii(&src, "[1234:5678:9ABC::5678:9ABC:DEF0]");
-    ct_test(pTest, status);
-    status = bvlc6_address_set(
-        &dst, 0x1234, 0x5678, 0x9ABC, 0x0000, 0x0000, 0x5678, 0x9ABC, 0xDEF0);
-    ct_test(pTest, status);
-    status = bvlc6_address_different(&dst, &src);
-    if (status) {
-        status = bvlc6_address_get(&src, &hextet[0], &hextet[1], &hextet[2],
-            &hextet[3], &hextet[4], &hextet[5], &hextet[6], &hextet[7]);
-        printf("src:[%X:%X:%X:%X:%X:%X:%X:%X]\n", hextet[0], hextet[1],
-            hextet[2], hextet[3], hextet[4], hextet[5], hextet[6], hextet[7]);
-        status = bvlc6_address_get(&dst, &hextet[0], &hextet[1], &hextet[2],
-            &hextet[3], &hextet[4], &hextet[5], &hextet[6], &hextet[7]);
-        printf("dst:[%X:%X:%X:%X:%X:%X:%X:%X]\n", hextet[0], hextet[1],
-            hextet[2], hextet[3], hextet[4], hextet[5], hextet[6], hextet[7]);
-    }
-    ct_test(pTest, status == false);
-    /* test some compressed 16-bit zero fields */
-    status =
-        bvlc6_address_from_ascii(&src, "[234:678:ABC:EF0:1234:5678:9ABC:DEF0]");
-    ct_test(pTest, status);
-    status = bvlc6_address_set(
-        &dst, 0x0234, 0x0678, 0x0ABC, 0x0EF0, 0x1234, 0x5678, 0x9ABC, 0xDEF0);
-    ct_test(pTest, status);
-    status = bvlc6_address_different(&dst, &src);
-    ct_test(pTest, status == false);
-}
-
-static void test_BVLC6_VMAC_Address_Get_Set(Test *pTest)
-{
-    uint16_t i = 0;
-    BACNET_ADDRESS addr;
-    uint32_t device_id = 1;
-    uint32_t test_device_id = 0;
-    bool status = false;
-
-    for (i = 0; i < 24; i++) {
-        status = bvlc6_vmac_address_set(&addr, device_id);
-        ct_test(pTest, status);
-        ct_test(pTest, addr.mac_len == 3);
-        ct_test(pTest, addr.net == 0);
-        ct_test(pTest, addr.len == 0);
-        status = bvlc6_vmac_address_get(&addr, &test_device_id);
-        ct_test(pTest, status);
-        ct_test(pTest, device_id == test_device_id);
-        device_id = device_id << 1;
-    }
-}
-
-void test_BVLC6(Test *pTest)
-{
-    bool rc;
-
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, test_BVLC6_Result);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Original_Unicast_NPDU);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Original_Broadcast_NPDU);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Address_Resolution);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Forwarded_Address_Resolution);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Address_Resolution_Ack);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Virtual_Address_Resolution);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Virtual_Address_Resolution_Ack);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Forwarded_NPDU);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Register_Foreign_Device);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Delete_Foreign_Device);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Secure_BVLL);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Distribute_Broadcast_To_Network);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Address_Copy);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_Address_Get_Set);
-    assert(rc);
-    rc = ct_addTestFunction(pTest, test_BVLC6_VMAC_Address_Get_Set);
-    assert(rc);
-}
-
-#ifdef TEST_BVLC6
-int main(void)
-{
-    Test *pTest;
-
-    pTest = ct_create("BACnet Virtual Link Control IP/v6", NULL);
-    test_BVLC6(pTest);
-    /* configure output */
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_BBMD */
-#endif /* BAC_TEST */

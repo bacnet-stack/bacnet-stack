@@ -184,31 +184,6 @@ extern "C" {
         unsigned apdu_len,
         BACNET_PROPERTY_ID * object_property,
         BACNET_ARRAY_INDEX * array_index);
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    int rpm_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        uint8_t ** service_request,
-        unsigned *service_request_len);
-
-    BACNET_STACK_EXPORT
-    int rpm_ack_decode_apdu(
-        uint8_t * apdu,
-        int apdu_len,   /* total length of the apdu */
-        uint8_t * invoke_id,
-        uint8_t ** service_request,
-        unsigned *service_request_len);
-
-    BACNET_STACK_EXPORT
-    void testReadPropertyMultiple(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void testReadPropertyMultipleAck(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }

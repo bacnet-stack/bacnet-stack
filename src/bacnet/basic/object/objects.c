@@ -32,6 +32,7 @@
  -------------------------------------------
 ####COPYRIGHTEND####*/
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -100,8 +101,9 @@ OBJECT_DEVICE_T *objects_device_new(uint32_t device_instance)
     return pDevice;
 }
 
-OBJECT_DEVICE_T *objects_device_delete(int index)
+bool objects_device_delete(int index)
 {
+    bool result = false;
     OBJECT_DEVICE_T *pDevice = NULL;
     BACNET_OBJECT_ID *pObject;
 
@@ -121,7 +123,8 @@ OBJECT_DEVICE_T *objects_device_delete(int index)
                 Keylist_Delete(pDevice->Object_List);
             }
             free(pDevice);
+	    result = true;
         }
     }
-    return pDevice;
+    return result;
 }

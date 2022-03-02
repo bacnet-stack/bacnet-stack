@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 0.8.6
+  VERSION 1.1.0
   LANGUAGES C)
 
 #
@@ -172,7 +172,6 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/lo.h
     src/bacnet/basic/object/lsp.c
     src/bacnet/basic/object/lsp.h
-    src/bacnet/basic/object/Makefile
     src/bacnet/basic/object/ms-input.c
     src/bacnet/basic/object/ms-input.h
     src/bacnet/basic/object/mso.c
@@ -306,13 +305,14 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/services.h
     src/bacnet/basic/sys/bigend.c
     src/bacnet/basic/sys/bigend.h
+    src/bacnet/basic/sys/days.c
+    src/bacnet/basic/sys/days.h
     src/bacnet/basic/sys/debug.c
     src/bacnet/basic/sys/debug.h
     src/bacnet/basic/sys/fifo.c
     src/bacnet/basic/sys/fifo.h
     src/bacnet/basic/sys/filename.c
     src/bacnet/basic/sys/filename.h
-    src/bacnet/basic/sys/key.c
     src/bacnet/basic/sys/key.h
     src/bacnet/basic/sys/keylist.c
     src/bacnet/basic/sys/keylist.h
@@ -342,6 +342,7 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/datalink/bvlc.c>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.h>
     $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/crc.c>
+    $<$<BOOL:${BACDL_MSTP}>:src/bacnet/datalink/cobs.c>
     src/bacnet/datalink/datalink.c
     src/bacnet/datalink/datalink.h
     src/bacnet/datalink/dlenv.c
@@ -443,110 +444,6 @@ add_library(
   ${PROJECT_NAME})
 
 #
-# add tests
-#
-
-list(APPEND testdirs
-  test/bacnet/abort
-  test/bacnet/alarm_ack
-  test/bacnet/arf
-  test/bacnet/awf
-  test/bacnet/bacapp
-  test/bacnet/bacdcode
-  test/bacnet/bacdevobjpropref
-  test/bacnet/bacerror
-  test/bacnet/bacint
-  test/bacnet/bacpropstates
-  test/bacnet/bacreal
-  test/bacnet/bacstr
-  test/bacnet/cov
-  #test/bacnet/datetime			#Tests skipped, redesign to use only API
-  test/bacnet/dcc
-  test/bacnet/event
-  test/bacnet/getevent
-  test/bacnet/iam
-  test/bacnet/ihave
-  test/bacnet/indtext
-  test/bacnet/lighting
-  test/bacnet/lso
-  test/bacnet/memcopy
-  test/bacnet/npdu
-  test/bacnet/property
-  test/bacnet/ptransfer
-  test/bacnet/rd
-  test/bacnet/reject
-  test/bacnet/rp
-  test/bacnet/rpm
-  test/bacnet/timestamp
-  test/bacnet/timesync
-  test/bacnet/whohas
-  test/bacnet/whois
-  test/bacnet/wp
-  )
-
-# bacnet/basic/*
-list(APPEND testdirs
-  # basic/object/binding
-  test/bacnet/basic/binding/address
-  # basic/object
-  #test/bacnet/basic/object/acc		#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/access_credential   # Build failed
-  test/bacnet/basic/object/access_door # Build failed
-  test/bacnet/basic/object/access_point    # Build failed
-  test/bacnet/basic/object/access_rights   # Build failed
-  test/bacnet/basic/object/access_user # Build failed
-  test/bacnet/basic/object/access_zone # Build failed
-  test/bacnet/basic/object/ai  # Build failed
-  test/bacnet/basic/object/ao  # Build failed
-  test/bacnet/basic/object/av  # Build failed
-  test/bacnet/basic/object/bi  # Build failed
-  test/bacnet/basic/object/bo  # Build failed
-  test/bacnet/basic/object/bv  # Build failed
-  #test/bacnet/basic/object/command	#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/credential_data_input    # Build failed
-  test/bacnet/basic/object/device   # Build failed
-  #test/bacnet/basic/object/lc		#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/lo   # Build failed
-  test/bacnet/basic/object/lsp  # Build failed
-  test/bacnet/basic/object/ms-input # Build failed
-  test/bacnet/basic/object/mso  # Build failed
-  test/bacnet/basic/object/msv  # Build failed
-  test/bacnet/basic/object/netport  # Build failed
-  #test/bacnet/basic/object/objects	#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/osv  # Build failed
-  test/bacnet/basic/object/piv  # Build failed
-  test/bacnet/basic/object/schedule # Build failed
-  # basic/sys
-  test/bacnet/basic/sys/fifo
-  test/bacnet/basic/sys/filename
-  test/bacnet/basic/sys/key
-  test/bacnet/basic/sys/keylist
-  test/bacnet/basic/sys/ringbuf
-  test/bacnet/basic/sys/sbuf
-  )
-
-# bacnet/datalink/*
-list(APPEND testdirs
-  test/bacnet/datalink/crc
-  #test/bacnet/datalink/bvlc		#All tests skipped, needing development
-  )
-
-enable_testing()
-foreach(testdir IN ITEMS ${testdirs})
-  get_filename_component(basename ${testdir} NAME)
-  add_subdirectory(${testdir})
-  add_test(build_${basename}
-    "${CMAKE_COMMAND}"
-    --build "${CMAKE_BINARY_DIR}"
-    --config "$<CONFIG>"
-    --target test_${basename}
-    )
-  add_test(test_${basename} ${testdir}/test_${basename})
-  set_tests_properties(test_${basename}  PROPERTIES FIXTURES_REQUIRED test_fixture)
-  set_tests_properties(build_${basename} PROPERTIES FIXTURES_SETUP    test_fixture)
-endforeach()
-
-#
 # add ports
 #
 
@@ -620,6 +517,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(abort apps/abort/main.c)
   target_link_libraries(abort PRIVATE ${PROJECT_NAME})
+
+  add_executable(ack-alarm apps/ack-alarm/main.c)
+  target_link_libraries(ack-alarm PRIVATE ${PROJECT_NAME})
 
   add_executable(dcc apps/dcc/main.c)
   target_link_libraries(dcc PRIVATE ${PROJECT_NAME})

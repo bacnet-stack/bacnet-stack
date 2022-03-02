@@ -101,6 +101,11 @@ config BACDL_BIP6_PORT
 	help
 		UDP port to listen on (default=47808)
 
+config BACNET_ADDRESS_CACHE_FILE
+	bool "BACnet Address Cache file functionality"
+	help
+		BACnet Address Cache file functionality
+
 rsource "subsys/Kconfig"
 
 endif # BACNETSTACK
