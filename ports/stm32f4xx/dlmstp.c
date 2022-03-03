@@ -421,6 +421,13 @@ static void MSTP_Send_Frame(uint8_t frame_type,
     OutputBufferLength = MSTP_Create_Frame(OutputBuffer, sizeof(OutputBuffer),
         frame_type, destination, source, data, data_len);
     rs485_bytes_send(OutputBuffer, OutputBufferLength);
+
+    /* increment the transmitted frame count */
+    Statistics.transmit_frame_counter++;
+    /* if there was data, also increment transmitted pdu count */
+    if ((data != NULL) && (data_len > 0)) {
+        Statistics.transmit_pdu_counter++;
+    }
 }
 
 static void MSTP_Receive_Frame_FSM(void)
@@ -719,7 +726,6 @@ static void MSTP_Slave_Node_FSM(void)
                     /* a proprietary frame that expects a reply is received. */
                     pkt = (struct dlmstp_packet *)Ringbuf_Peek(&PDU_Queue);
                     if (pkt != NULL) {
-                        Statistics.transmit_pdu_counter++;
                         MSTP_Send_Frame(pkt->frame_type, pkt->address.mac[0],
                             This_Station, (uint8_t *)&pkt->pdu[0],
                             pkt->pdu_len);
@@ -912,7 +918,6 @@ static bool MSTP_Master_Node_FSM(void)
                 MSTP_Send_Frame(pkt->frame_type, pkt->address.mac[0],
                     This_Station, (uint8_t *)&pkt->pdu[0], pkt->pdu_len);
                 FrameCount++;
-                Statistics.transmit_pdu_counter++;
                 switch (pkt->frame_type) {
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
                         /* SendAndWait */
@@ -1271,7 +1276,6 @@ static bool MSTP_Master_Node_FSM(void)
                 MSTP_Flag.ReceivedValidFrame = false;
                 /* clear the queue */
                 (void)Ringbuf_Pop(&PDU_Queue, NULL);
-                Statistics.transmit_pdu_counter++;
             } else if ((pkt != NULL) || timeout) {
                 /* DeferredReply */
                 /* If no reply will be available from the higher layers */
@@ -1345,7 +1349,6 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
         if (Ringbuf_Data_Put(&PDU_Queue, (volatile uint8_t *)pkt)) {
             bytes_sent = pdu_len;
         }
-        Statistics.transmit_frame_counter++;
     }
 
     return bytes_sent;
