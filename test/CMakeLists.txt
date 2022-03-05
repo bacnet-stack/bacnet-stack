@@ -49,6 +49,7 @@ list(APPEND testdirs
   bacnet/datetime
   bacnet/dcc
   bacnet/event
+  bacnet/getalarm
   bacnet/getevent
   bacnet/iam
   bacnet/ihave

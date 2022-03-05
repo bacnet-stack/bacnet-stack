@@ -32,11 +32,12 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/timestamp.h"
 
-
+struct BACnet_Get_Alarm_Summary_Data;
 typedef struct BACnet_Get_Alarm_Summary_Data {
     BACNET_OBJECT_ID objectIdentifier;
     BACNET_EVENT_STATE alarmState;
     BACNET_BIT_STRING acknowledgedTransitions;
+    struct BACnet_Get_Alarm_Summary_Data *next;
 } BACNET_GET_ALARM_SUMMARY_DATA;
 
 
