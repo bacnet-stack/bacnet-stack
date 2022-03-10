@@ -521,7 +521,9 @@ bool address_get_by_device(
             if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {
                 /* If bound then fetch data */
                 bacnet_address_copy(src, &pMatch->address);
-                *max_apdu = pMatch->max_apdu;
+                if (max_apdu) {
+                    *max_apdu = pMatch->max_apdu;
+                }
                 /* Prove we found it */
                 found = true;
             }

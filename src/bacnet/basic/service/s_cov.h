@@ -39,6 +39,7 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
 #include "bacnet/cov.h"
+#include "bacnet/npdu.h"
 
 #ifdef __cplusplus
 extern "C" {

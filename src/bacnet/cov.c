@@ -768,7 +768,7 @@ void cov_data_value_list_link(
  * @param value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
  * @param value - REAL present-value
  * @param in_alarm - value of in-alarm status-flags
- * @param fault - value of in-alarm status-flags
+ * @param fault - value of fault status-flags
  * @param overridden - value of overridden status-flags
  * @param out_of_service - value of out-of-service status-flags
  *

@@ -293,7 +293,7 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
  * @param rpm_data - #BACNET_READ_ACCESS_DATA
  * @return RPM data from the next element in the linked list
  */
-static BACNET_READ_ACCESS_DATA *rpm_data_free(BACNET_READ_ACCESS_DATA *rpm_data)
+BACNET_READ_ACCESS_DATA *rpm_data_free(BACNET_READ_ACCESS_DATA *rpm_data)
 {
     BACNET_READ_ACCESS_DATA *old_rpm_data = NULL;
     BACNET_PROPERTY_REFERENCE *rpm_property = NULL;
