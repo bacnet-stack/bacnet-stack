@@ -176,4 +176,4 @@ skarg@users.sourceforge.net
 
 ASHRAE® and BACnet® are registered trademarks of the 
 American Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.
-1791 Tullie Circle NE, Atlanta, GA 30329.
+180 Technology Parkway NW, Peachtree Corners, Georgia 30092 US.
