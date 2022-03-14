@@ -300,7 +300,7 @@ static void MyReadPropertyMultipleAckHandler(uint8_t *service_request,
             if (len < 0) { /* Eg, failed due to no segmentation */
                 Error_Detected = true;
             }
-            rpm_data_free(rpm_data);
+            rpm_data = rpm_data_free(rpm_data);
             free(rpm_data);
         }
     }
