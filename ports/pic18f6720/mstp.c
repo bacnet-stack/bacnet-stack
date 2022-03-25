@@ -752,22 +752,33 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             }
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
-                            /* indicate successful reception to the higher
-                             * layers */
-                            dlmstp_put_receive(mstp_port->SourceAddress,
-                                (uint8_t *)&mstp_port->InputBuffer[0],
-                                mstp_port->DataLength);
+                            if ((mstp_port->DestinationAddress ==
+                                MSTP_BROADCAST_ADDRESS) &&
+                                (npdu_confirmed_service(mstp_port->InputBuffer,
+                                mstp_port->DataLength))) {
+                                /* BTL test: verifies that the IUT will quietly
+                                   discard any Confirmed-Request-PDU, whose
+                                   destination address is a multicast or
+                                   broadcast address, received from the
+                                   network layer. */
+                            } else {
+                                /* indicate successful reception to the higher
+                                 * layers */
+                                dlmstp_put_receive(mstp_port->SourceAddress,
+                                    (uint8_t *)&mstp_port->InputBuffer[0],
+                                    mstp_port->DataLength);
+                            }
                             break;
                         case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                            /*mstp_port->ReplyPostponedTimer = 0; */
-                            /* indicate successful reception to the higher
-                             * layers  */
-                            dlmstp_put_receive(mstp_port->SourceAddress,
-                                (uint8_t *)&mstp_port->InputBuffer[0],
-                                mstp_port->DataLength);
-                            /* broadcast DER just remains IDLE */
-                            if (mstp_port->DestinationAddress !=
+                            if (mstp_port->DestinationAddress ==
                                 MSTP_BROADCAST_ADDRESS) {
+                                /* broadcast DER just remains IDLE */
+                            } else {
+                                /* indicate successful reception to the higher
+                                 * layers  */
+                                dlmstp_put_receive(mstp_port->SourceAddress,
+                                    (uint8_t *)&mstp_port->InputBuffer[0],
+                                    mstp_port->DataLength);
                                 mstp_port->master_state =
                                     MSTP_MASTER_STATE_ANSWER_DATA_REQUEST;
                             }

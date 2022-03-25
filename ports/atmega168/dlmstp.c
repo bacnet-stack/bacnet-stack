@@ -613,14 +613,24 @@ static bool MSTP_Master_Node_FSM(void)
                         }
                         break;
                     case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
-                        /* indicate successful reception to the higher layers */
-                        MSTP_Flag.ReceivePacketPending = true;
+                        if ((DestinationAddress == MSTP_BROADCAST_ADDRESS) &&
+                            (npdu_confirmed_service(InputBuffer, DataLength))) {
+                            /* BTL test: verifies that the IUT will quietly
+                               discard any Confirmed-Request-PDU, whose
+                               destination address is a multicast or
+                               broadcast address, received from the
+                               network layer. */
+                        } else {
+                            /* indicate successful reception to higher layer */
+                            MSTP_Flag.ReceivePacketPending = true;
+                        }
                         break;
                     case FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY:
-                        /* indicate successful reception to the higher layers */
-                        MSTP_Flag.ReceivePacketPending = true;
-                        /* broadcast DER just remains IDLE */
-                        if (DestinationAddress != MSTP_BROADCAST_ADDRESS) {
+                        if (DestinationAddress == MSTP_BROADCAST_ADDRESS) {
+                            /* broadcast DER just remains IDLE */
+                        } else {
+                            /* indicate successful reception to higher layers */
+                            MSTP_Flag.ReceivePacketPending = true;
                             Master_State =
                                 MSTP_MASTER_STATE_ANSWER_DATA_REQUEST;
                         }
