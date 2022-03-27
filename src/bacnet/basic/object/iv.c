@@ -228,7 +228,7 @@ bool Integer_Value_Object_Name(
     index = Integer_Value_Instance_To_Index(object_instance);
     if (index < MAX_INTEGER_VALUES) {
         sprintf(
-            text_string, "ANALOG VALUE %lu", (unsigned long)object_instance);
+            text_string, "INTEGER VALUE %lu", (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
