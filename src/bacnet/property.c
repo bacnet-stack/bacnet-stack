@@ -1509,7 +1509,7 @@ BACNET_PROPERTY_ID property_list_special_property(
 {
     int property = -1; /* return value */
     unsigned required, optional, proprietary;
-    struct special_property_list_t PropertyList = { { 0 } };
+    struct special_property_list_t PropertyList = { 0 };
 
     property_list_special(object_type, &PropertyList);
     required = PropertyList.Required.count;
@@ -1552,7 +1552,7 @@ unsigned property_list_special_count(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID special_property)
 {
     unsigned count = 0; /* return value */
-    struct special_property_list_t PropertyList = { { 0 } };
+    struct special_property_list_t PropertyList = { 0 };
 
     property_list_special(object_type, &PropertyList);
     if (special_property == PROP_ALL) {
