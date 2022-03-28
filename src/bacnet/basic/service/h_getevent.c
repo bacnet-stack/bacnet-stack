@@ -55,7 +55,7 @@ void ge_ack_print_data(
     const char *state_strs[] = { "NO", "FA", "ON", "HL", "LL" };
     printf("DeviceID\tType\tInstance\teventState\n");
     printf("--------------- ------- --------------- ---------------\n");
-    int count = 0;
+    unsigned int count = 0;
     while (act_data) {
         printf("%u\t\t%u\t%u\t\t%s\n", device_id,
             act_data->objectIdentifier.type,
