@@ -222,9 +222,15 @@ lint:
 CPPCHECK_OPTIONS = --enable=warning,portability
 CPPCHECK_OPTIONS += --template=gcc
 CPPCHECK_OPTIONS += --suppress=selfAssignment
+CPPCHECK_OPTIONS += --suppress=integerOverflow
+CPPCHECK_OPTIONS += --error-exitcode=1
 .PHONY: cppcheck
 cppcheck:
 	cppcheck $(CPPCHECK_OPTIONS) --quiet --force ./src/
+
+.PHONY: flawfinder
+flawfinder:
+	flawfinder --minlevel 5 --error-level=5 ./src/
 
 IGNORE_WORDS = ba
 CODESPELL_OPTIONS = --write-changes --interactive 3 --enable-colors

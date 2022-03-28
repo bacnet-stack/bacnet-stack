@@ -946,8 +946,9 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
         ToState = CurrentAV->Ack_notify_data.EventState;
 
 #if PRINT_ENABLED
-        fprintf(stderr, "Send Acknotification for (%s,%d).\n",
-            bactext_object_type_name(OBJECT_ANALOG_VALUE), object_instance);
+        fprintf(stderr, "Send Acknotification for (%s,%u).\n",
+            bactext_object_type_name(OBJECT_ANALOG_VALUE),
+            (unsigned)object_instance);
 #endif /* PRINT_ENABLED */
 
         characterstring_init_ansi(&msgText, "AckNotification");
@@ -1094,8 +1095,9 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
             } /* switch (ToState) */
 
 #if PRINT_ENABLED
-            fprintf(stderr, "Event_State for (%s,%d) goes from %s to %s.\n",
-                bactext_object_type_name(OBJECT_ANALOG_VALUE), object_instance,
+            fprintf(stderr, "Event_State for (%s,%u) goes from %s to %s.\n",
+                bactext_object_type_name(OBJECT_ANALOG_VALUE),
+                (unsigned)object_instance,
                 bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
 #endif /* PRINT_ENABLED */
