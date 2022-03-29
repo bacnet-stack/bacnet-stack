@@ -61,16 +61,28 @@ struct bacnet_stats {
 struct bacnet_stats BIP_Stats;
 #define BIP_STATS_INC(x) ++BIP_Stats.x
 
+/**
+ * @brief Get the BACnet/IP transmit stats
+ * @return number of BACnet/IP transmitted packets
+ */
 uint32_t bip_stats_xmit(void)
 {
     return BIP_Stats.xmit;
 }
 
+/**
+ * @brief Get the BACnet/IP received stats
+ * @return number of BACnet/IP received packets
+ */
 uint32_t bip_stats_recv(void)
 {
     return BIP_Stats.recv;
 }
 
+/**
+ * @brief Get the BACnet/IP drop stats
+ * @return number of BACnet/IP drops
+ */
 uint32_t bip_stats_drop(void)
 {
     return BIP_Stats.drop;
@@ -148,8 +160,8 @@ uint16_t bip_get_port(void)
 
 /**
  * @brief Convert the BACnet IPv4 address
- * @param address - format
- * @param mac -
+ * @param address - IPv4 address from LwIP
+ * @param mac - IP address from BACnet/IP
  */
 static void bip_mac_to_addr(ip4_addr_t *address, uint8_t *mac)
 {
@@ -161,6 +173,12 @@ static void bip_mac_to_addr(ip4_addr_t *address, uint8_t *mac)
     }
 }
 
+/**
+ * @brief Convert from a BACnet/IP address
+ * @param baddr - BACnet/IP address
+ * @param address - IPv4 address from LwIP
+ * @param port - IPv4 UDP port number
+ */
 static int bip_decode_bip_address(BACNET_IP_ADDRESS *baddr,
     ip_addr_t *address,
     uint16_t *port)
@@ -177,7 +195,11 @@ static int bip_decode_bip_address(BACNET_IP_ADDRESS *baddr,
     return len;
 }
 
-
+/**
+ * @brief Convert the BACnet IPv4 address
+ * @param mac - IP address from BACnet/IP
+ * @param address - IPv4 address from LwIP
+ */
 static void bip_addr_to_mac(uint8_t *mac, const ip4_addr_t *address)
 {
     if (mac && address) {
@@ -188,6 +210,12 @@ static void bip_addr_to_mac(uint8_t *mac, const ip4_addr_t *address)
     }
 }
 
+/**
+ * @brief Convert to a BACnet/IP address
+ * @param baddr - BACnet/IP address
+ * @param address - IPv4 address from LwIP
+ * @param port - IPv4 UDP port number
+ */
 static int bip_encode_bip_address(BACNET_IP_ADDRESS *baddr,
     const ip_addr_t *address,
     uint16_t port)
