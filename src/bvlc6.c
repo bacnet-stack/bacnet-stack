@@ -1403,9 +1403,9 @@ int bvlc6_decode_secure_bvll(
  *
  * This message provides a mechanism whereby a foreign device
  * shall cause a BBMD to distribute a Forwarded-NPDU
- * BVLC to the local multicast domain, to all BBMD’s configured
- * in the BBMD’s BDT, and to all foreign devices in the
- * BBMD’s FDT.
+ * BVLC to the local multicast domain, to all BBMDs configured
+ * in the BBMDs BDT, and to all foreign devices in the
+ * BBMDs FDT.
  *
  * @param pdu - buffer to store the encoding
  * @param pdu_size - size of the buffer to store encoding
