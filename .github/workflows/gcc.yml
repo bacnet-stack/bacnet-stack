@@ -1,0 +1,183 @@
+name: GCC
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  bip-apps:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Demo Apps
+      run: |
+        gcc --version
+        make clean
+        make all
+
+  bip-no-bbmd-apps:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Demo Apps BBMD=none
+      run: |
+        gcc --version
+        make clean
+        make BBMD=none all
+
+  gateway:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Gateway Demo
+      run: |
+        gcc --version
+        make clean
+        make gateway
+
+  router:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Router Demo
+      run: |
+        gcc --version
+        make clean
+        make router
+
+  router-ipv6:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Router IPv6 Demo
+      run: |
+        gcc --version
+        make clean
+        make router-ipv6
+
+  bip6:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build BACnet/IPv6 Demos
+      run: |
+        gcc --version
+        make clean
+        make bip6
+
+  mstp:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build MSTP Demos
+      run: |
+        gcc --version
+        make clean
+        make mstp
+
+  ethernet:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+    - name: Build Ethernet Demos
+      run: |
+        gcc --version
+        make clean
+        make ethernet
+
+  ports-arm:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential
+        sudo apt-get install -qq gcc-arm-none-eabi
+        sudo apt-get install -qq libnewlib-arm-none-eabi
+    - name: ports-arm
+      run: |
+        make clean
+        arm-none-eabi-gcc --version
+        make stm32f10x
+        make at91sam7s
+
+  ports-avr:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential
+        sudo apt-get install -qq gcc-avr avr-libc binutils-avr
+    - name: ports-avr
+      run: |
+        avr-gcc --version
+        make atmega168
+        make bdk-atxx4-mstp
+
+  ports-lwip:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential
+        sudo apt-get install -qq liblwip-dev
+    - name: ports-lwip
+      run: |
+        make lwip
+
+  mingw:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential
+        sudo apt-get install -qq mingw-w64
+    - name: Build Win32 Demos
+      run: |
+        export CC=i686-w64-mingw32-gcc
+        export LD=i686-w64-mingw32-ld
+        i686-w64-mingw32-gcc --version
+        make win32

@@ -1,0 +1,18 @@
+---
+BasedOnStyle: WebKit
+BinPackParameters: false
+AlignEscapedNewlines: Left
+PointerAlignment: Right
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Linux
+BreakBeforeBinaryOperators: None
+KeepEmptyLinesAtTheStartOfBlocks: false
+PenaltyBreakBeforeFirstCallParameter: 1
+IndentCaseLabels: true
+IndentWidth: 4
+UseTab: Never
+SortIncludes: false
+ColumnLimit: 80
+...

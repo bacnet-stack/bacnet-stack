@@ -65,6 +65,18 @@ library:
 demos:
 	$(MAKE) -s -C demo all
 
+.PHONY: mstp
+mstp:
+	$(MAKE) BACDL=mstp -s -C demo all
+
+.PHONY: bip6
+bip6:
+	$(MAKE) BACDL=bip6 -s -C demo all
+
+.PHONY: ethernet
+ethernet:
+	$(MAKE) BACDL=ethernet -s -C demo all
+
 .PHONY: win32
 win32:
 	$(MAKE) -s BACNET_PORT=win32 -C demo all
@@ -75,7 +87,7 @@ gateway:
 mstpcap:
 	$(MAKE) -B -s -C demo mstpcap
 
-router:
+router: library
 	$(MAKE) -s -C demo router
 
 router-ipv6:
@@ -96,6 +108,30 @@ bdk-atxx4-mstp: ports/bdk-atxx4-mstp/Makefile
 
 stm32f10x: ports/stm32f10x/Makefile
 	$(MAKE) -s -C ports/stm32f10x clean all
+
+SPLINT_OPTIONS := -weak +posixlib +quiet \
+	-D__signed__=signed -D__gnuc_va_list=va_list \
+	-Iinclude -Idemo/object -Iports/linux \
+	+matchanyintegral +ignoresigns -unrecog -preproc -fullinitblock \
+	+error-stream-stderr +warning-stream-stderr -warnposix \
+
+.PHONY: splint
+splint:
+	find ./src -name "*.c" -exec splint $(SPLINT_OPTIONS) {} \;
+
+CPPCHECK_OPTIONS = --enable=warning,portability
+CPPCHECK_OPTIONS += --template=gcc
+CPPCHECK_OPTIONS += --suppress=selfAssignment
+CPPCHECK_OPTIONS += --suppress=integerOverflow
+#CPPCHECK_OPTIONS += --error-exitcode=1
+.PHONY: cppcheck
+cppcheck:
+	cppcheck $(CPPCHECK_OPTIONS) --quiet --force ./src/
+	cppcheck $(CPPCHECK_OPTIONS) --quiet --force ./demo/
+
+.PHONY: flawfinder
+flawfinder:
+	flawfinder --minlevel 5 ./src/
 
 clean:
 	$(MAKE) -s -C lib clean
