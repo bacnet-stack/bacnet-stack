@@ -191,6 +191,10 @@ stm32f4xx-clean: ports/stm32f4xx/Makefile
 mstpsnap: ports/linux/mstpsnap.mak
 	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
 
+.PHONY: lwip
+lwip: ports/lwip/Makefile
+	$(MAKE) -s -C ports/lwip clean all
+
 .PHONY: pretty
 pretty:
 	find ./src -iname *.h -o -iname *.c -exec \
@@ -252,6 +256,7 @@ clean: ports-clean
 	$(MAKE) -s -C apps/router-ipv6 clean
 	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
+	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
 	rm -rf ./build
 

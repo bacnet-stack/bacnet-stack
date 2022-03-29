@@ -168,6 +168,19 @@ jobs:
         make atmega168
         make bdk-atxx4-mstp
 
+  ports-lwip:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq build-essential
+        sudo apt-get install -qq liblwip-dev
+    - name: ports-lwip
+      run: |
+        make lwip
+
   mingw:
     runs-on: ubuntu-latest
     steps:
