@@ -148,7 +148,7 @@ void Trend_Log_Init(void)
     static bool initialized = false;
     int iLog;
     int iEntry;
-    struct tm TempTime = {0};
+    struct tm TempTime = { 0 };
     time_t tClock;
 
     if (!initialized) {
@@ -420,7 +420,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     TL_LOG_INFO *CurrentLog;
-    BACNET_DATE start_date, stop_date; 
+    BACNET_DATE start_date, stop_date;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE TempSource;
     bool bEffectiveEnable;
     int log_index;
@@ -448,8 +448,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_ENABLE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* Section 12.25.5 can't enable a full log with stop when full
                  * set */
@@ -490,8 +490,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_STOP_WHEN_FULL:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* Only trigger this on a change of state */
                 if (CurrentLog->bStopWhenFull != value.type.Boolean) {
@@ -522,8 +522,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_RECORD_COUNT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int == 0) {
                     /* Time to clear down the log */
@@ -539,8 +539,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* logic
              * triggered and polled options.
              */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated != LOGGING_TYPE_COV) {
                     CurrentLog->LoggingType =
@@ -569,8 +569,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_START_TIME:
             /* Copy the date part to safe place */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_DATE);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_DATE);
             if (!status) {
                 break;
             }
@@ -581,15 +581,15 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->application_data_len - len, &value);
 
             if (len) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_TIME);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_TIME);
                 if (!status) {
                     break;
                 }
                 /* First record the current enable state of the log */
                 bEffectiveEnable = TL_Is_Enabled(log_index);
-		/* Safe to copy the date now */
-                CurrentLog->StartTime.date = start_date; 
+                /* Safe to copy the date now */
+                CurrentLog->StartTime.date = start_date;
                 CurrentLog->StartTime.time = value.type.Time;
 
                 if (datetime_wildcard_present(&CurrentLog->StartTime)) {
@@ -620,8 +620,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_STOP_TIME:
             /* Copy the date part to safe place */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_DATE);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_DATE);
             if (!status) {
                 break;
             }
@@ -632,15 +632,15 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->application_data_len - len, &value);
 
             if (len) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_TIME);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_TIME);
                 if (!status) {
                     break;
                 }
                 /* First record the current enable state of the log */
                 bEffectiveEnable = TL_Is_Enabled(log_index);
-		/* Safe to copy the date now */
-                CurrentLog->StopTime.date = stop_date; 
+                /* Safe to copy the date now */
+                CurrentLog->StopTime.date = stop_date;
                 CurrentLog->StopTime.time = value.type.Time;
 
                 if (datetime_wildcard_present(&CurrentLog->StopTime)) {
@@ -712,8 +712,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 break;
             }
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if ((CurrentLog->LoggingType == LOGGING_TYPE_POLLED) &&
                     (value.type.Unsigned_Int == 0)) {
@@ -737,8 +737,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_ALIGN_INTERVALS:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CurrentLog->bAlignIntervals = value.type.Boolean;
             }
@@ -747,16 +747,16 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_INTERVAL_OFFSET:
             /* We only log to 1 sec accuracy so must divide by 100 before
              * passing it on */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentLog->ulIntervalOffset = value.type.Unsigned_Int / 100;
             }
             break;
 
         case PROP_TRIGGER:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* We will not allow triggered operation if polling with
                  * aligning to the clock as that will produce non aligned
@@ -924,7 +924,7 @@ bool TL_Is_Enabled(int iLog)
 
 time_t TL_BAC_Time_To_Local(BACNET_DATE_TIME *SourceTime)
 {
-    struct tm LocalTime = {0};
+    struct tm LocalTime = { 0 };
     int iTemp;
 
     LocalTime.tm_year =
@@ -1546,99 +1546,107 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
     return (iLen);
 }
 
-
-int rr_decode_trendlog_entries(uint8_t *apdu, int apdu_len, BACNET_TRENDLOG_RECORD *rec) {
+int rr_decode_trendlog_entries(
+    uint8_t *apdu, int apdu_len, BACNET_TRENDLOG_RECORD *rec)
+{
     int len;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     while (apdu_len > 0) {
         if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
-	      (decode_is_opening_tag_number(apdu, 0))) {
-	      if (!rec->next) {
-	         rec->next = calloc(sizeof(BACNET_TRENDLOG_RECORD), 1);
-	         rec = rec->next;
-	      } else {
-		rec = rec->next;
-	      }
+            (decode_is_opening_tag_number(apdu, 0))) {
+            if (!rec->next) {
+                rec->next = calloc(sizeof(BACNET_TRENDLOG_RECORD), 1);
+                rec = rec->next;
+            } else {
+                rec = rec->next;
+            }
 
-	      len = bacapp_decode_context_datetime(apdu, 0, &rec->timestamp);
-	      if (len <= 0) {
-  		  return -1;
-	      }
-	      apdu += len;
-	      apdu_len -= len;
-	} else if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
-		   decode_is_opening_tag_number(apdu, 1)) {
-	    // skip the opening tag
-	    apdu ++;
-	    apdu_len --;
+            len = bacapp_decode_context_datetime(apdu, 0, &rec->timestamp);
+            if (len <= 0) {
+                return -1;
+            }
+            apdu += len;
+            apdu_len -= len;
+        } else if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
+            decode_is_opening_tag_number(apdu, 1)) {
+            // skip the opening tag
+            apdu++;
+            apdu_len--;
 
-	    // decode the next context tag which has th value type
-	    len = decode_tag_number_and_value(apdu, &tag_number, &len_value_type);
-	    if (len <= 0) {
-	        return -1;
-	    }
-	    switch (tag_number) {
-	    case TL_TYPE_BOOL:
-	        rec->value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
-                len = decode_context_boolean2(apdu, tag_number, &rec->value.type.Boolean);
-	        break;
-	    case TL_TYPE_REAL:
-	        rec->value.tag = BACNET_APPLICATION_TAG_REAL;
-	        len = decode_context_real(apdu, tag_number, &rec->value.type.Real);
-	        break;
-	    case TL_TYPE_ENUM:
-                rec->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
-	        len = decode_context_enumerated(apdu, tag_number, &rec->value.type.Enumerated);
-	        break;
-	    case TL_TYPE_UNSIGN:
-	        rec->value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
-                len = decode_context_unsigned(apdu, tag_number, &rec->value.type.Unsigned_Int);
-	        break;
-	    case TL_TYPE_SIGN:
-	        rec->value.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
-	        len = decode_context_signed(apdu, tag_number, &rec->value.type.Signed_Int);
-	        break;
-	    case TL_TYPE_BITS:
-	        rec->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
-	        len = decode_context_bitstring(apdu, tag_number, &rec->value.type.Bit_String);
-	        break;
-	    case TL_TYPE_NULL:
-	        rec->value.tag = BACNET_APPLICATION_TAG_NULL;
-	        break;
-	    default:
-	        // skip over the value if we don't suppord decoding it
-	        len += len_value_type;
-	    }
-	    if (len <= 0) {
-		  break;
-	    }
-	    apdu += len;
-	    apdu_len -= len;
+            // decode the next context tag which has th value type
+            len =
+                decode_tag_number_and_value(apdu, &tag_number, &len_value_type);
+            if (len <= 0) {
+                return -1;
+            }
+            switch (tag_number) {
+                case TL_TYPE_BOOL:
+                    rec->value.tag = BACNET_APPLICATION_TAG_BOOLEAN;
+                    len = decode_context_boolean2(
+                        apdu, tag_number, &rec->value.type.Boolean);
+                    break;
+                case TL_TYPE_REAL:
+                    rec->value.tag = BACNET_APPLICATION_TAG_REAL;
+                    len = decode_context_real(
+                        apdu, tag_number, &rec->value.type.Real);
+                    break;
+                case TL_TYPE_ENUM:
+                    rec->value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
+                    len = decode_context_enumerated(
+                        apdu, tag_number, &rec->value.type.Enumerated);
+                    break;
+                case TL_TYPE_UNSIGN:
+                    rec->value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+                    len = decode_context_unsigned(
+                        apdu, tag_number, &rec->value.type.Unsigned_Int);
+                    break;
+                case TL_TYPE_SIGN:
+                    rec->value.tag = BACNET_APPLICATION_TAG_SIGNED_INT;
+                    len = decode_context_signed(
+                        apdu, tag_number, &rec->value.type.Signed_Int);
+                    break;
+                case TL_TYPE_BITS:
+                    rec->value.tag = BACNET_APPLICATION_TAG_BIT_STRING;
+                    len = decode_context_bitstring(
+                        apdu, tag_number, &rec->value.type.Bit_String);
+                    break;
+                case TL_TYPE_NULL:
+                    rec->value.tag = BACNET_APPLICATION_TAG_NULL;
+                    break;
+                default:
+                    // skip over the value if we don't suppord decoding it
+                    len += len_value_type;
+            }
+            if (len <= 0) {
+                break;
+            }
+            apdu += len;
+            apdu_len -= len;
 
-	    // skip over the closing tag [1]
-	    if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
-		  decode_is_closing_tag_number(apdu, 1)) {
-	        apdu ++;
-	        apdu_len --;
-	    } else {
-	        return -1;
-	    }
-	} else if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
-		   decode_is_opening_tag_number(apdu, 2)) {
-	    // context tag 2 is a status bitstring.
-	    // we don't do anything with this other than decode it.
-	    len = decode_context_bitstring(apdu, 2, &rec->status);
-	    if (len <= 0) {
-               return -1;
-	    }
-	    apdu += len;
-	    apdu_len -= len;
-	  } else {
-	      return -1;
-	  }
-      }
-      return 0;
+            // skip over the closing tag [1]
+            if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
+                decode_is_closing_tag_number(apdu, 1)) {
+                apdu++;
+                apdu_len--;
+            } else {
+                return -1;
+            }
+        } else if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
+            decode_is_opening_tag_number(apdu, 2)) {
+            // context tag 2 is a status bitstring.
+            // we don't do anything with this other than decode it.
+            len = decode_context_bitstring(apdu, 2, &rec->status);
+            if (len <= 0) {
+                return -1;
+            }
+            apdu += len;
+            apdu_len -= len;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
 }
 
 static int local_read_property(uint8_t *value,
