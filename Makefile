@@ -223,6 +223,16 @@ tidy:
 lint:
 	scan-build --status-bugs -analyze-headers make -j2 clean server
 
+SPLINT_OPTIONS := -weak +posixlib +quiet \
+	-D__signed__=signed -D__gnuc_va_list=va_list \
+	-Iinclude -Idemo/object -Iports/linux \
+	+matchanyintegral +ignoresigns -unrecog -preproc -fullinitblock \
+	+error-stream-stderr +warning-stream-stderr -warnposix \
+
+.PHONY: splint
+splint:
+	find ./src -name "*.c" -exec splint $(SPLINT_OPTIONS) {} \;
+
 CPPCHECK_OPTIONS = --enable=warning,portability
 CPPCHECK_OPTIONS += --template=gcc
 CPPCHECK_OPTIONS += --suppress=selfAssignment
