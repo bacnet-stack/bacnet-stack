@@ -55,8 +55,10 @@
 #include "crc.h"
 #include "rs485.h"
 #include "bacnet/datalink/mstptext.h"
-#if !defined(DEBUG_ENABLED)
-#define DEBUG_ENABLED 1
+#include "bacnet/npdu.h"
+
+#ifndef DEBUG_ENABLED
+#define DEBUG_ENABLED 0
 #endif
 #include "bacnet/basic/sys/debug.h"
 
