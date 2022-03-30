@@ -1,5 +1,0 @@
-image:
-  - Ubuntu
-
-build_script:
-  - make clean all

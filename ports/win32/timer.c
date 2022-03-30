@@ -32,7 +32,7 @@
 #define STRICT 1
 #include <windows.h>
 #include "net.h"
-#include <MMSystem.h>
+#include <mmsystem.h>
 #include "timer.h"
 
 /* Offset between Windows epoch 1/1/1601 and
