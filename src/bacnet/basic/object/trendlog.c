@@ -1551,15 +1551,16 @@ int rr_decode_trendlog_entries(uint8_t *apdu, int apdu_len, BACNET_TRENDLOG_RECO
     int len;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
-    bool first = true;
     while (apdu_len > 0) {
         if (IS_CONTEXT_SPECIFIC(apdu[0]) &&
 	      (decode_is_opening_tag_number(apdu, 0))) {
-	      if (!first) {
+	      if (!rec->next) {
 	         rec->next = calloc(sizeof(BACNET_TRENDLOG_RECORD), 1);
 	         rec = rec->next;
+	      } else {
+		rec = rec->next;
 	      }
-	      first = false;
+
 	      len = bacapp_decode_context_datetime(apdu, 0, &rec->timestamp);
 	      if (len <= 0) {
   		  return -1;
