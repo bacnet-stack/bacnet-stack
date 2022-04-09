@@ -25,12 +25,12 @@ manifest:
 
   remotes:
     - name: bacnet-stack
-      url-base: https://github.com/zephyrproject-rtos
-    - name: zephyrproject-rtos
       url-base: https://github.com/bacnet-stack
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
 
   defaults:
-    remote: zephyrproject-rtos
+    remote: bacnet-stack
 
   self:
     path: bacnet-stack
@@ -38,7 +38,7 @@ manifest:
   projects:
     - name: zephyr
       path: zephyr
-      revision: v2.6.0
+      revision: v3.0.0
       remote: zephyrproject-rtos
       west-commands: scripts/west-commands.yml
       import: true
