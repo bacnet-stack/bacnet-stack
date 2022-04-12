@@ -372,7 +372,7 @@ bool Multistate_Value_Encode_Value_List(
     const bool fault = false;
     const bool overridden = false;
     bool out_of_service = false;
-    uint32_t present_value = 0.0;
+    uint32_t present_value = 0;
     unsigned index = 0;
 
     index = Multistate_Value_Instance_To_Index(object_instance);

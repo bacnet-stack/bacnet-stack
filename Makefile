@@ -225,9 +225,10 @@ lint:
 
 SPLINT_OPTIONS := -weak +posixlib +quiet \
 	-D__signed__=signed -D__gnuc_va_list=va_list \
-	-Iinclude -Idemo/object -Iports/linux \
-	+matchanyintegral +ignoresigns -unrecog -preproc -fullinitblock \
+	-Isrc -Iports/linux \
+	+matchanyintegral +ignoresigns -unrecog -preproc \
 	+error-stream-stderr +warning-stream-stderr -warnposix \
+	-bufferoverflowhigh
 
 .PHONY: splint
 splint:

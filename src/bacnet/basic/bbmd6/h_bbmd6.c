@@ -181,18 +181,19 @@ static bool bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
     bool status = false;
     struct vmac_data *vmac;
     struct vmac_data new_vmac;
+    unsigned i = 0;
 
     if (addr) {
         vmac = VMAC_Find_By_Key(device_id);
         if (vmac) {
             /* already exists - replace? */
             PRINTF("VMAC existing %u [", (unsigned int)device_id);
-            for (unsigned i = 0; i < vmac->mac_len; i++) {
+            for (i = 0; i < vmac->mac_len; i++) {
                 PRINTF("%02X", vmac->mac[i]);
             }
             PRINTF("]\n");
             PRINTF("VMAC ignoring %u [", (unsigned int)device_id);
-            for (unsigned i = 0; i < IP6_ADDRESS_MAX; i++) {
+            for (i = 0; i < IP6_ADDRESS_MAX; i++) {
                 PRINTF("%02X", addr->address[i]);
             }
             PRINTF("%04X", addr->port);

@@ -299,10 +299,10 @@ bool Analog_Value_Object_Name(
  */
 unsigned Analog_Value_Event_State(uint32_t object_instance)
 {
-    unsigned index = 0;
     unsigned state = EVENT_STATE_NORMAL;
-
 #if defined(INTRINSIC_REPORTING)
+    unsigned index = 0;
+
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         state = AV_Descr[index].Event_State;

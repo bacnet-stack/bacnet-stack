@@ -661,7 +661,7 @@ int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
         if (len > apdu_len) {
             return BACNET_STATUS_REJECT;
         }
-        octetstring_copy_value(&bdt_entry->dest_address.address[0],
+        (void)octetstring_copy_value(&bdt_entry->dest_address.address[0],
             IP_ADDRESS_MAX, &octet_string);
         /*  host [0] BACnetHostAddress - closing */
         if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
@@ -721,7 +721,7 @@ int bvlc_broadcast_distribution_table_decode(uint8_t *apdu,
         if (len > apdu_len) {
             return BACNET_STATUS_REJECT;
         }
-        octetstring_copy_value(&bdt_entry->broadcast_mask.address[0],
+        (void)octetstring_copy_value(&bdt_entry->broadcast_mask.address[0],
             IP_ADDRESS_MAX, &octet_string);
         bdt_entry->valid = true;
         /* next entry */
