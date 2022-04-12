@@ -193,7 +193,7 @@ size_t cobs_frame_encode(
      * Prepare the Encoded CRC-32K field for transmission.
      */
     crc32K = ~crc32K;
-    cobs_crc32k_encode(crc_buffer, sizeof(crc_buffer), crc32K);
+    (void)cobs_crc32k_encode(crc_buffer, sizeof(crc_buffer), crc32K);
     cobs_crc_len = cobs_encode((uint8_t *)(buffer + cobs_data_len),
         buffer_size - cobs_data_len, crc_buffer, sizeof(crc_buffer),
         MSTP_PREAMBLE_X55);

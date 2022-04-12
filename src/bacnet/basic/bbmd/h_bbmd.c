@@ -592,8 +592,8 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest,
 #if BBMD_ENABLED
             if (mtu_len > 0) {
                 bip_get_addr(&bip_src);
-                bbmd_fdt_forward_npdu(&bip_src, pdu, pdu_len, true);
-                bbmd_bdt_forward_npdu(&bip_src, pdu, pdu_len, true);
+                (void)bbmd_fdt_forward_npdu(&bip_src, pdu, pdu_len, true);
+                (void)bbmd_bdt_forward_npdu(&bip_src, pdu, pdu_len, true);
             }
 #endif
         }
@@ -928,7 +928,7 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                 /*  In addition, the constructed BVLL Forwarded-NPDU
                     message shall be unicast to each foreign device in
                     the BBMD's FDT. */
-                bbmd_fdt_forward_npdu(&fwd_address, mtu, mtu_len, false);
+                (void)bbmd_fdt_forward_npdu(&fwd_address, mtu, mtu_len, false);
                 /* prepare the message for me! */
                 bvlc_ip_address_to_bacnet_local(src, &fwd_address);
                 offset = header_len + function_len - npdu_len;
@@ -1032,8 +1032,8 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                attempt was unsuccessful */
             npdu_len = bbmd_forward_npdu(addr, pdu, pdu_len);
             if (npdu_len > 0) {
-                bbmd_fdt_forward_npdu(addr, pdu, pdu_len, false);
-                bbmd_bdt_forward_npdu(addr, pdu, pdu_len, false);
+                (void)bbmd_fdt_forward_npdu(addr, pdu, pdu_len, false);
+                (void)bbmd_bdt_forward_npdu(addr, pdu, pdu_len, false);
             } else {
                 result_code = BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
                 send_result = true;
@@ -1099,8 +1099,8 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                         "Original-Broadcast-NPDU: "
                         "Confirmed Service! Discard!");
                 } else {
-                    bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
-                    bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
+                    (void)bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
+                    (void)bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
                     debug_print_npdu("Original-Broadcast-NPDU",
                         offset, npdu_len);
                 }

@@ -258,6 +258,7 @@ void VMAC_Cleanup(void)
     struct vmac_data *pVMAC;
     uint32_t device_id;
     const int index = 0;
+    unsigned i = 0;
 
     if (VMAC_List) {
         do {
@@ -266,7 +267,7 @@ void VMAC_Cleanup(void)
             if (pVMAC) {
                 PRINTF("VMAC List: %lu [", (unsigned long)device_id);
                 /* print the MAC */
-                for (unsigned i = 0; i < pVMAC->mac_len; i++) {
+                for (i = 0; i < pVMAC->mac_len; i++) {
                     PRINTF("%02X", pVMAC->mac[i]);
                 }
                 PRINTF("]\n");

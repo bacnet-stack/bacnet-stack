@@ -225,13 +225,16 @@ lint:
 
 SPLINT_OPTIONS := -weak +posixlib +quiet \
 	-D__signed__=signed -D__gnuc_va_list=va_list \
-	-Iinclude -Idemo/object -Iports/linux \
-	+matchanyintegral +ignoresigns -unrecog -preproc -fullinitblock \
+	-Isrc -Iports/linux \
+	+matchanyintegral +ignoresigns -unrecog -preproc \
 	+error-stream-stderr +warning-stream-stderr -warnposix \
+	-bufferoverflowhigh
+
+SPLINT_FIND_OPTIONS := ./src -path ./src/bacnet/basic/ucix -prune -o -name "*.c"
 
 .PHONY: splint
 splint:
-	find ./src -name "*.c" -exec splint $(SPLINT_OPTIONS) {} \;
+	find $(SPLINT_FIND_OPTIONS) -exec splint $(SPLINT_OPTIONS) {} \;
 
 CPPCHECK_OPTIONS = --enable=warning,portability
 CPPCHECK_OPTIONS += --template=gcc

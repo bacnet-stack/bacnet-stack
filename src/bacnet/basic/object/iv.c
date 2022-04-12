@@ -333,7 +333,7 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
     uint32_t units = 0;
-    int32_t integer_value = 0.0;
+    int32_t integer_value = 0;
     bool state = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
