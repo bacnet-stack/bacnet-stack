@@ -1,3 +1,6 @@
 tests:
+  bacnet.bacdevobjpropref.unit:
+    tags: bacnet
+    type: unit
   bacnet.bacdevobjpropref:
     tags: bacnet

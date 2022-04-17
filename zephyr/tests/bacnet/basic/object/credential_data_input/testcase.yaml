@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.credential_data_input:
     tags: bacnet
+  bacnet.basic.object.credential_data_input.unit:
+    tags: bacnet
+    type: unit

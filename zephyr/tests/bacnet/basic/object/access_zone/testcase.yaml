@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.access_zone:
     tags: bacnet
+  bacnet.basic.object.access_zone.unit:
+    tags: bacnet
+    type: unit

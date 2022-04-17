@@ -19,12 +19,14 @@ get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 
 
 if(BOARD STREQUAL unit_testing)
-  file(RELATIVE_PATH BACNET_INCLUDE ${ZEPHYR_BASE} ${BACNET_BASE}/src)
+  file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
   list(APPEND INCLUDE ${BACNET_INCLUDE})
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
     )
+
+  add_definitions(-DBACDL_MSTP=1)
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
   project(${BACNET_NAME})

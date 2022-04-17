@@ -1,3 +1,6 @@
 tests:
+  bacnet.arf.unit:
+    tags: bacnet
+    type: unit
   bacnet.arf:
     tags: bacnet

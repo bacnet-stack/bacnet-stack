@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.lsp:
     tags: bacnet
+  bacnet.basic.object.lsp.unit:
+    tags: bacnet
+    type: unit

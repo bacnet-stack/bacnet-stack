@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.schedule:
     tags: bacnet
+  bacnet.basic.object.schedule.unit:
+    tags: bacnet
+    type: unit

@@ -1,3 +1,6 @@
 tests:
   bacnet.property:
     tags: bacnet
+  bacnet.property.unit:
+    tags: bacnet
+    type: unit

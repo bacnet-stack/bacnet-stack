@@ -1,3 +1,6 @@
 tests:
   bacnet.rd:
     tags: bacnet
+  bacnet.rd.unit:
+    tags: bacnet
+    type: unit

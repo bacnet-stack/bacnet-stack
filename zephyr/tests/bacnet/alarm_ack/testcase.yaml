@@ -1,3 +1,6 @@
 tests:
+  bacnet.alarm_ack.unit:
+    tags: bacnet
+    type: unit
   bacnet.alarm_ack:
     tags: bacnet

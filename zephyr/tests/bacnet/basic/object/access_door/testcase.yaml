@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.access_door:
     tags: bacnet
+  bacnet.basic.object.access_door.unit:
+    tags: bacnet
+    type: unit

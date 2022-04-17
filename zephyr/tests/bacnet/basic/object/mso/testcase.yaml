@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.mso:
     tags: bacnet
+  bacnet.basic.object.mso.unit:
+    tags: bacnet
+    type: unit
