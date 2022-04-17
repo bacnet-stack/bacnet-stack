@@ -180,7 +180,8 @@ int dlenv_register_as_foreign_device(void)
                     bip_get_addr_by_name(pEnv, &BBMD_Table_Entry.dest_address);
                 if (entry_number == 1) {
                     if (BIP_DL_Debug) {
-                        fprintf(stderr, "BBMD 1 is %s=%s!\n", bbmd_env, pEnv);
+                        fprintf(stderr, "BBMD 1 address overridden %s=%s!\n",
+                            bbmd_env, pEnv);
                     }
                 }
             } else if (entry_number == 1) {
@@ -188,19 +189,25 @@ int dlenv_register_as_foreign_device(void)
                 bdt_entry_valid = bip_get_addr(&BBMD_Table_Entry.dest_address);
             }
             if (bdt_entry_valid) {
-                if (entry_number != 1) {
-                    bdt_entry_port = 0xBAC0;
-                    sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
-                    pEnv = getenv(bbmd_env);
-                    if (pEnv) {
-                        bdt_entry_port = strtol(pEnv, NULL, 0);
-                        if (bdt_entry_port > 0xFFFF) {
-                            bdt_entry_port = 0xBAC0;
-                        }
-                        /* BDT 1 is self (note: can be overridden) */
+                bdt_entry_port = 0xBAC0;
+                sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
+                pEnv = getenv(bbmd_env);
+                if (pEnv) {
+                    bdt_entry_port = strtol(pEnv, NULL, 0);
+                    if (bdt_entry_port > 0xFFFF) {
+                        bdt_entry_port = 0xBAC0;
                     }
-                    BBMD_Table_Entry.dest_address.port = bdt_entry_port;
+                    if (entry_number == 1) {
+                        if (BIP_DL_Debug) {
+                            fprintf(stderr, "BBMD 1 port overridden %s=%s!\n",
+                                bbmd_env, pEnv);
+                        }
+                    }
+                } else if (entry_number == 1) {
+                    /* BDT 1 is self (note: can be overridden) */
+                    bdt_entry_port = bip_get_port();
                 }
+                BBMD_Table_Entry.dest_address.port = bdt_entry_port;
                 /* broadcast mask */
                 bvlc_broadcast_distribution_mask_from_host(
                     &BBMD_Table_Entry.broadcast_mask, 0xFFFFFFFF);
@@ -454,6 +461,7 @@ void dlenv_init(void)
     }
 #endif
 #if defined(BACDL_BIP)
+    BACNET_IP_ADDRESS addr;
     pEnv = getenv("BACNET_IP_DEBUG");
     if (pEnv) {
         bip_debug_enable();
@@ -476,8 +484,12 @@ void dlenv_init(void)
     }
     pEnv = getenv("BACNET_IP_NAT_ADDR");
     if (pEnv) {
-        BACNET_IP_ADDRESS addr;
         if (bip_get_addr_by_name(pEnv, &addr)) {
+            addr.port = 0xBAC0;
+            pEnv = getenv("BACNET_IP_NAT_PORT");
+            if (pEnv) {
+                addr.port = strtol(pEnv, NULL, 0);
+            }
             bvlc_set_global_address_for_nat(&addr);
         }
     }
