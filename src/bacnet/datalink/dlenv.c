@@ -461,6 +461,7 @@ void dlenv_init(void)
     }
 #endif
 #if defined(BACDL_BIP)
+    BACNET_IP_ADDRESS addr;
     pEnv = getenv("BACNET_IP_DEBUG");
     if (pEnv) {
         bip_debug_enable();
@@ -483,8 +484,12 @@ void dlenv_init(void)
     }
     pEnv = getenv("BACNET_IP_NAT_ADDR");
     if (pEnv) {
-        BACNET_IP_ADDRESS addr;
         if (bip_get_addr_by_name(pEnv, &addr)) {
+            addr.port = 0xBAC0;
+            pEnv = getenv("BACNET_IP_NAT_PORT");
+            if (pEnv) {
+                addr.port = strtol(pEnv, NULL, 0);
+            }
             bvlc_set_global_address_for_nat(&addr);
         }
     }
