@@ -180,7 +180,7 @@ int dlenv_register_as_foreign_device(void)
                     bip_get_addr_by_name(pEnv, &BBMD_Table_Entry.dest_address);
                 if (entry_number == 1) {
                     if (BIP_DL_Debug) {
-                        fprintf(stderr, "BBMD 1 address overriden %s=%s!\n",
+                        fprintf(stderr, "BBMD 1 address overridden %s=%s!\n",
                             bbmd_env, pEnv);
                     }
                 }
@@ -199,7 +199,7 @@ int dlenv_register_as_foreign_device(void)
                     }
                     if (entry_number == 1) {
                         if (BIP_DL_Debug) {
-                            fprintf(stderr, "BBMD 1 port overriddden %s=%s!\n",
+                            fprintf(stderr, "BBMD 1 port overridden %s=%s!\n",
                                 bbmd_env, pEnv);
                         }
                     }
