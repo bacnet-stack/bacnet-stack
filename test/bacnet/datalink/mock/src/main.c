@@ -430,6 +430,7 @@ static void test_datalink_ethernet(void)
  * @brief Test bacnet.c
  */
 
+#ifdef UNIT_TESTING
 
 uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
 
@@ -555,6 +556,7 @@ unsigned long mstimer_now(void)
     return l++;
 }
 
+
 void dcc_timer_seconds(uint32_t seconds)
 {
     ztest_check_expected_value(seconds);
@@ -566,10 +568,13 @@ void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
     ztest_check_expected_data(pdu, pdu_len);
 }
 
+#endif /* UNIT_TESTING */
+
 //  test
 
 static void test_bacnet_task(void)
 {
+#ifdef UNIT_TESTING
     uint8_t expected_data[MAX_MPDU] = { 0x5A, 0xA5, 0xDE, 0xAD };
     uint8_t expected_data2[MAX_MPDU] = { 0xAA, 0xBB, 0xCC, 0xDD };
 
@@ -590,6 +595,7 @@ static void test_bacnet_task(void)
     ztest_returns_value(arcnet_receive, 0);
     bacnet_task();
     zassert_equal(z_cleanup_mock(), 0, NULL);
+#endif /* UNIT_TESTING */
 }
 
 /**

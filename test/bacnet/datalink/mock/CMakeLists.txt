@@ -24,11 +24,13 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	BACDL_ALL=1
+	UNIT_TESTING=1
 	)
 
 include_directories(
 	${SRC_DIR}
 	${TST_DIR}/ztest/include
+	./src/
 	)
 
 file(GLOB SRC_TEST ./src/*.c)
@@ -38,6 +40,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/datalink/datalink.c
 	${SRC_DIR}/../ports/rx62n/bacnet.c
 	# Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/basic/sys/mstimer.c
 	${SRC_DIR}/bacnet/bacdcode.c
 	${SRC_DIR}/bacnet/bacint.c
 	${SRC_DIR}/bacnet/bacreal.c
