@@ -1,3 +1,6 @@
 tests:
   bacnet.whois:
     tags: bacnet
+  bacnet.whois.unit:
+    tags: bacnet
+    type: unit

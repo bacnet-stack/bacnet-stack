@@ -1,3 +1,6 @@
 tests:
   bacnet.lighting:
     tags: bacnet
+  bacnet.lighting.unit:
+    tags: bacnet
+    type: unit

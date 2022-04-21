@@ -1,3 +1,7 @@
 tests:
+  bacnet.bacapp.unit:
+    tags: bacnet
+    type: unit
+    extra_args: BACAPP_PRINT_ENABLED=1 BACAPP_SNPRINTF_ENABLED=1
   bacnet.bacapp:
     tags: bacnet

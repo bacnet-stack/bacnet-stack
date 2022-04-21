@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.piv:
     tags: bacnet
+  bacnet.basic.object.piv.unit:
+    tags: bacnet
+    type: unit

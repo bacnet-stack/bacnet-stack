@@ -1,3 +1,6 @@
 tests:
   bacnet.rpm:
     tags: bacnet
+  bacnet.rpm.unit:
+    tags: bacnet
+    type: unit

@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.access_rights:
     tags: bacnet
+  bacnet.basic.object.access_rights.unit:
+    tags: bacnet
+    type: unit

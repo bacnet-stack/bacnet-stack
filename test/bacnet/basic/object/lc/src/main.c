@@ -520,6 +520,7 @@ static void testLoadControlStateMachine(void)
 //TODO:    zassert_equal(Load_Control_State[0], SHED_INACTIVE, NULL);
     level = Analog_Output_Present_Value(0);
 //TODO: Fails:    zassert_equal(level, 100, NULL);
+    (void)level; // TODO: remove when level will be checked
 }
 
 
@@ -616,8 +617,8 @@ static bool init_wp_data_and_value(
     bool status = false;
     if ((wp_data != NULL) && (value != NULL))
     {
-	memset(&value, 0, sizeof(value));
-	memset(&wp_data, 0, sizeof(wp_data));
+	memset(value, 0, sizeof(*value));
+	memset(wp_data, 0, sizeof(*wp_data));
 
 	wp_data->object_type = OBJECT_LOAD_CONTROL;
 	wp_data->object_instance = 0;
@@ -676,57 +677,79 @@ static void test_ShedInactive_gets_RcvShedRequests(void)
 
 static void test_ShedReqPending_gets_ReconfigPending(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedReqPending_gets_CancelShed(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedReqPending_gets_CannotMeetShed(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedReqPending_gets_PrepareToShed(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedReqPending_gets_AbleToMeetShed(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedNonCommpliant_gets_UnsuccessfulShedReconfig(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedNonCommpliant_gets_FinishedUnsuccessfulShed(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedNonCommpliant_gets_CanNowComplyWithShed(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedCommpliant_gets_FinishedSuccessfulShed(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedCommpliant_gets_SuccessfulShedReconfig(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 static void test_ShedCommpliant_gets_CanNoLongerComplyWithShed(void)
 {
+#ifndef UNIT_TESTING
     ztest_test_skip();
+#endif
 }
 
 /**

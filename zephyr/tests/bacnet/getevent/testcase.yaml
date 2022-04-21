@@ -1,3 +1,6 @@
 tests:
   bacnet.getevent:
     tags: bacnet
+  bacnet.getevent.unit:
+    tags: bacnet
+    type: unit

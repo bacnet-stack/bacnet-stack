@@ -1,3 +1,6 @@
 tests:
   bacnet.ptransfer:
     tags: bacnet
+  bacnet.ptransfer.unit:
+    tags: bacnet
+    type: unit

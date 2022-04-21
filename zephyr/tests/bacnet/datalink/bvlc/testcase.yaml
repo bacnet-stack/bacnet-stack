@@ -1,3 +1,6 @@
 tests:
+  bacnet.datalink.bvlc.unit:
+    tags: bacnet
+    type: unit
   bacnet.datalink.bvlc:
     tags: bacnet
