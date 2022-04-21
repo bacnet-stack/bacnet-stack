@@ -20,17 +20,21 @@ get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 # Update include path for this module
 list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
 
+get_filename_component(BACNET_DATALINK_SRC ${BACNET_SRC_PATH} PATH)
+get_filename_component(BACNET_SRC ${BACNET_DATALINK_SRC} PATH)
+
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
-  list(APPEND INCLUDE ${BACNET_INCLUDE})
+  list(APPEND INCLUDE ${BACNET_INCLUDE} ${BACNET_INCLUDE}/../test/bacnet/datalink/mock/src)
+  message(STATUS "tdh="${BACNET_TEST_PATH}/src)
 
   file(GLOB SRC_TEST ${BACNET_TEST_PATH}/src/*.c)
   list(APPEND SOURCES ${SRC_TEST} )
 
-  get_filename_component(BACNET_DATALINK_SRC ${BACNET_SRC_PATH} PATH)
-  get_filename_component(BACNET_SRC ${BACNET_DATALINK_SRC} PATH)
   list(APPEND SOURCES
-    ${BACNET_SRC}/datalink/datalink.c
+    ${BACNET_DATALINK_SRC}/datalink.c
+    ${BACNET_SRC}/basic/sys/mstimer.c
+    ${BACNET_SRC}/../../ports/rx62n/bacnet.c
     )
 
   add_definitions(-DBACDL_ALL=1)
@@ -46,11 +50,9 @@ else()
 
   add_definitions(-DBACDL_ALL=1 -DBACNET_ETHERNET_NO_REMAP_DEFINES=1)
 
-  get_filename_component(BACNET_DATALINK_SRC ${BACNET_SRC_PATH} PATH)
-  get_filename_component(BACNET_SRC ${BACNET_DATALINK_SRC} PATH)
-
   target_sources(app PRIVATE
-    ${BACNET_SRC}/datalink/datalink.c
+    ${BACNET_DATALINK_SRC}/datalink.c
+    ${BACNET_SRC}/../../ports/rx62n/bacnet.c
     ${SRC_TEST}
     )
 endif()

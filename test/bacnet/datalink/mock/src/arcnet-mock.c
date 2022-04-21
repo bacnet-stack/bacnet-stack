@@ -32,10 +32,13 @@ int arcnet_send_pdu(BACNET_ADDRESS *dest, BACNET_NPDU_DATA *npdu_data,
     return ztest_get_return_value();
 }
 
+bool check_arcnet_receive_src = true;
+
 uint16_t arcnet_receive(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu,
                         unsigned timeout)
 {
-    ztest_check_expected_value(src);
+    if (check_arcnet_receive_src)
+        ztest_check_expected_value(src);
     ztest_check_expected_value(timeout);
     ztest_copy_return_data(pdu, max_pdu);
     return ztest_get_return_value();

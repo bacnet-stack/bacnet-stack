@@ -36,6 +36,7 @@ file(GLOB SRC_TEST ./src/*.c)
 add_executable(${PROJECT_NAME}
 	# File(s) under test
 	${SRC_DIR}/bacnet/datalink/datalink.c
+	${SRC_DIR}/../ports/rx62n/bacnet.c
 	# Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/bacdcode.c
 	${SRC_DIR}/bacnet/bacint.c
