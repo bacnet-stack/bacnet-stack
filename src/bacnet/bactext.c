@@ -214,10 +214,15 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     { OBJECT_NETWORK_PORT, "network-port" },
     { OBJECT_ELEVATOR_GROUP, "elevator-group" },
     { OBJECT_ESCALATOR, "escalator" }, { OBJECT_LIFT, "lift" },
-    { OBJECT_STAGING, "staging" }, { 0, NULL }
+    { OBJECT_STAGING, "staging" },
+    { OBJECT_AUDIT_LOG, "audit-log" },
+    { OBJECT_AUDIT_REPORTER, "audit-reporter" },
+    { OBJECT_COLOR, "color" },
+    { OBJECT_COLOR_TEMPERATURE, "color-temperature" },
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
        Enumerated values 128-1023 may be used by others subject to
        the procedures and constraints described in Clause 23. */
+    { 0, NULL }
 };
 
 const char *bactext_object_type_name(unsigned index)
@@ -663,16 +668,70 @@ INDTEXT_DATA bacnet_property_names[] = {
     { PROP_SUBORDINATE_RELATIONSHIPS, "subordinate-relationships" },
     { PROP_DEFAULT_SUBORDINATE_RELATIONSHIP,
         "default-subordinate-relationship" },
-    { PROP_REPRESENTS, "represents" }, { 0, NULL }
-    /* Enumerated values 0-511 are reserved for definition by ASHRAE.
-       Enumerated values 512-4194303 may be used by others subject to the
-       procedures and constraints described in Clause 23. */
+    { PROP_REPRESENTS, "represents" },
+    { PROP_DEFAULT_PRESENT_VALUE, "default-present-value" },
+    { PROP_PRESENT_STAGE, "present-stage" },
+    { PROP_STAGES, "stages" },
+    { PROP_STAGE_NAMES, "stage-names" },
+    { PROP_TARGET_REFERENCES, "target-references" },
+    { PROP_AUDIT_SOURCE_LEVEL, "audit-source-level" },
+    { PROP_AUDIT_LEVEL, "audit-level" },
+    { PROP_AUDIT_NOTIFICATION_RECIPIENT, "audit-notification-recipient" },
+    { PROP_AUDIT_PRIORITY_FILTER, "audit-priority-filter" },
+    { PROP_AUDITABLE_OPERATIONS, "auditable-operations" },
+    { PROP_DELETE_ON_FORWARD, "delete-on-forward" },
+    { PROP_MAXIMUM_SEND_DELAY, "maximum-send-delay" },
+    { PROP_MONITORED_OBJECTS, "monitored-objects" },
+    { PROP_SEND_NOW, "send-now" },
+    { PROP_FLOOR_NUMBER, "floor-number" },
+    { PROP_DEVICE_UUID, "device-uuid" },
+    { PROP_ADDITIONAL_REFERENCE_PORTS, "additional-reference-ports" },
+    { PROP_CERTIFICATE_SIGNING_REQUEST_FILE, "certificate-signing-request-file" },
+    { PROP_COMMAND_VALIDATION_RESULT, "command-validation-result" },
+    { PROP_ISSUER_CERTIFICATE_FILES, "issuer-certificate-files" },
+    { PROP_MAX_BVLC_LENGTH_ACCEPTED, "max-bvlc-length-accepted" },
+    { PROP_MAX_NPDU_LENGTH_ACCEPTED, "max-npdu-length-accepted" },
+    { PROP_OPERATIONAL_CERTIFICATE_FILE, "operational-certificate-file" },
+    { PROP_CURRENT_HEALTH, "current-health" },
+    { PROP_SC_CONNECT_WAIT_TIMEOUT, "sc-connect-wait-timeout" },
+    { PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE, "sc-direct-connect-accept-enable" },
+    { PROP_SC_DIRECT_CONNECT_ACCEPT_URIS, "sc-direct-connect-accept-uris" },
+    { PROP_SC_DIRECT_CONNECT_BINDING, "sc-direct-connect-binding" },
+    { PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS, "sc-direct-connect-connection-status" },
+    { PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE, "sc-direct-connect-initiate-enable" },
+    { PROP_SC_DISCONNECT_WAIT_TIMEOUT, "sc-disconnect-wait-timeout" },
+    { PROP_SC_FAILED_CONNECTION_REQUESTS, "sc-failed-connection-requests" },
+    { PROP_SC_FAILOVER_HUB_CONNECTION_STATUS, "sc-failover-hub-connection-status" },
+    { PROP_SC_FAILOVER_HUB_URI, "sc-failover-hub-uri" },
+    { PROP_SC_HUB_CONNECTOR_STATE, "sc-hub-connector-state" },
+    { PROP_SC_HUB_FUNCTION_ACCEPT_URIS, "sc-hub-function-accept-uris" },
+    { PROP_SC_HUB_FUNCTION_BINDING, "sc-hub-function-binding" },
+    { PROP_SC_HUB_FUNCTION_CONNECTION_STATUS, "sc-hub-function-connection-status" },
+    { PROP_SC_HUB_FUNCTION_ENABLE, "sc-hub-function-enable" },
+    { PROP_SC_HEARTBEAT_TIMEOUT, "sc-heartbeat-timeout" },
+    { PROP_SC_PRIMARY_HUB_CONNECTION_STATUS, "sc-primary-hub-connection-status" },
+    { PROP_SC_PRIMARY_HUB_URI, "sc-primary-hub-uri" },
+    { PROP_SC_MAXIMUM_RECONNECT_TIME, "sc-maximum-reconnect-time" },
+    { PROP_SC_MINIMUM_RECONNECT_TIME, "sc-minimum-reconnect-time" },
+    { PROP_COLOR_OVERRIDE, "color-override" },
+    { PROP_COLOR_REFERENCE, "color-reference" },
+    { PROP_DEFAULT_COLOR, "default-color" },
+    { PROP_DEFAULT_COLOR_TEMPERATURE, "default-color-temperature" },
+    { PROP_OVERRIDE_COLOR_REFERENCE, "override-color-reference" },
+    { 0, NULL }
 };
 
 const char *bactext_property_name(unsigned index)
 {
-    return indtext_by_index_split_default(bacnet_property_names, index, 512,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    /* Enumerated values 0-511 are reserved for definition by ASHRAE.
+       Enumerated values 512-4194303 may be used by others subject to the
+       procedures and constraints described in Clause 23. */
+    if ((index >= 512) && (index <= 4194303)) {
+        return Vendor_Proprietary_String;
+    } else {
+        return indtext_by_index_default(
+            bacnet_property_names, index, ASHRAE_Reserved_String);
+    }
 }
 
 const char *bactext_property_name_default(
@@ -1490,7 +1549,9 @@ INDTEXT_DATA lighting_in_progress[] = { { BACNET_LIGHTING_IDLE, "idle" },
     { BACNET_LIGHTING_FADE_ACTIVE, "fade" },
     { BACNET_LIGHTING_RAMP_ACTIVE, "ramp" },
     { BACNET_LIGHTING_NOT_CONTROLLED, "not" },
-    { BACNET_LIGHTING_OTHER, "other" }, { 0, NULL } };
+    { BACNET_LIGHTING_OTHER, "other" },
+    { BACNET_LIGHTING_TRIM_ACTIVE, "trim-active" },
+    { 0, NULL } };
 
 const char *bactext_lighting_in_progress(unsigned index)
 {
@@ -1532,12 +1593,29 @@ const char *bactext_lighting_operation_name(unsigned index)
 {
     if (index < BACNET_LIGHTS_PROPRIETARY_FIRST) {
         return indtext_by_index_default(
-            network_layer_msg_names, index, ASHRAE_Reserved_String);
+            bacnet_lighting_operation_names, index, ASHRAE_Reserved_String);
     } else if (index <= BACNET_LIGHTS_PROPRIETARY_LAST) {
         return Vendor_Proprietary_String;
     } else {
         return "Invalid BACnetLightingOperation";
     }
+}
+
+INDTEXT_DATA bacnet_color_operation_names[] = {
+    { BACNET_COLOR_OPERATION_NONE, "none" },
+    { BACNET_COLOR_OPERATION_FADE_TO_COLOR, "fade-to-color" },
+    { BACNET_COLOR_OPERATION_FADE_TO_CCT, "fade-to-cct" },
+    { BACNET_COLOR_OPERATION_RAMP_TO_CCT, "ramp-to-cct" },
+    { BACNET_COLOR_OPERATION_STEP_UP_CCT, "step-up-cct" },
+    { BACNET_COLOR_OPERATION_STEP_DOWN_CCT, "step-down-cct" },
+    { BACNET_COLOR_OPERATION_STOP, "stop" },
+    { 0, NULL }
+};
+
+const char *bactext_color_operation_name(unsigned index)
+{
+    return indtext_by_index_default(
+            bacnet_color_operation_names, index, ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_device_communications_names[] = {

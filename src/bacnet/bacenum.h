@@ -522,16 +522,65 @@ typedef enum {
     PROP_STAGES = 494,
     PROP_STAGE_NAMES = 495,
     PROP_TARGET_REFERENCES = 496,
+    PROP_AUDIT_SOURCE_LEVEL = 497,
+    PROP_AUDIT_LEVEL = 498,
+    PROP_AUDIT_NOTIFICATION_RECIPIENT = 499,
+    PROP_AUDIT_PRIORITY_FILTER = 500,
+    PROP_AUDITABLE_OPERATIONS = 501,
+    PROP_DELETE_ON_FORWARD = 502,
+    PROP_MAXIMUM_SEND_DELAY = 503,
+    PROP_MONITORED_OBJECTS = 504,
+    PROP_SEND_NOW = 505,
+    PROP_FLOOR_NUMBER = 506,
+    PROP_DEVICE_UUID = 507,
+    /* enumerations 508-511 are defined in Addendum 2020cc */
+    PROP_ADDITIONAL_REFERENCE_PORTS = 508,
+    PROP_CERTIFICATE_SIGNING_REQUEST_FILE = 509,
+    PROP_COMMAND_VALIDATION_RESULT = 510,
+    PROP_ISSUER_CERTIFICATE_FILES = 511,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
     /* ReadPropertyMultiple services or services not defined in this standard. */
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
     /* Enumerated values 512-4194303 may be used by others subject to the  */
     /* procedures and constraints described in Clause 23.  */
+    PROP_PROPRIETARY_RANGE_MIN = 512,
+    PROP_PROPRIETARY_RANGE_MAX = 4194303,
+    /* enumerations 4194304-4194327 are defined in Addendum 2020cc */
+    PROP_MAX_BVLC_LENGTH_ACCEPTED = 4194304,
+    PROP_MAX_NPDU_LENGTH_ACCEPTED = 4194305,
+    PROP_OPERATIONAL_CERTIFICATE_FILE = 4194305,
+    PROP_CURRENT_HEALTH = 4194307,
+    PROP_SC_CONNECT_WAIT_TIMEOUT = 4194308,
+    PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE = 4194309,
+    PROP_SC_DIRECT_CONNECT_ACCEPT_URIS = 4194310,
+    PROP_SC_DIRECT_CONNECT_BINDING = 4194311,
+    PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS = 4194312,
+    PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE = 4194313,
+    PROP_SC_DISCONNECT_WAIT_TIMEOUT = 4194314,
+    PROP_SC_FAILED_CONNECTION_REQUESTS = 4194315,
+    PROP_SC_FAILOVER_HUB_CONNECTION_STATUS = 4194316,
+    PROP_SC_FAILOVER_HUB_URI = 4194317,
+    PROP_SC_HUB_CONNECTOR_STATE = 4194318,
+    PROP_SC_HUB_FUNCTION_ACCEPT_URIS = 4194319,
+    PROP_SC_HUB_FUNCTION_BINDING = 4194320,
+    PROP_SC_HUB_FUNCTION_CONNECTION_STATUS = 4194321,
+    PROP_SC_HUB_FUNCTION_ENABLE = 4194322,
+    PROP_SC_HEARTBEAT_TIMEOUT = 4194323,
+    PROP_SC_PRIMARY_HUB_CONNECTION_STATUS = 4194324,
+    PROP_SC_PRIMARY_HUB_URI = 4194325,
+    PROP_SC_MAXIMUM_RECONNECT_TIME = 4194326,
+    PROP_SC_MINIMUM_RECONNECT_TIME = 4194327,
+    /* enumerations 4194328-4194332 are defined in Addendum 2020ca */
+    PROP_COLOR_OVERRIDE = 4194328,
+    PROP_COLOR_REFERENCE = 4194329,
+    PROP_DEFAULT_COLOR = 4194330,
+    PROP_DEFAULT_COLOR_TEMPERATURE = 4194331,
+    PROP_OVERRIDE_COLOR_REFERENCE = 4194332,
     /* do the max range inside of enum so that
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
-    MAX_BACNET_PROPERTY_ID = 4194303
+    MAX_BACNET_PROPERTY_ID = UINT32_MAX
 } BACNET_PROPERTY_ID;
 
 
@@ -1176,7 +1225,7 @@ typedef enum {
     NOTIFY_MAX = 3
 } BACNET_NOTIFY_TYPE;
 
-typedef enum {
+typedef enum BACnetObjectType {
     OBJECT_ANALOG_INPUT = 0,
     OBJECT_ANALOG_OUTPUT = 1,
     OBJECT_ANALOG_VALUE = 2,
@@ -1239,16 +1288,21 @@ typedef enum {
     OBJECT_ESCALATOR = 58,   /* Addendum 135-2012aq */
     OBJECT_LIFT = 59,   /* Addendum 135-2012aq */
     OBJECT_STAGING = 60,   /* Addendum 135-2016bd */
+    OBJECT_AUDIT_LOG = 61,   /* Addendum 135-2016bi */
+    OBJECT_AUDIT_REPORTER = 62,   /* Addendum 135-2016bi */
+    OBJECT_COLOR = 63, /* Addendum 135-2020ca */
+    OBJECT_COLOR_TEMPERATURE = 64, /* Addendum 135-2020ca */
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */
+    OBJECT_PROPRIETARY_MIN = 128,
+    OBJECT_PROPRIETARY_MAX = 1023,
     /* do the max range inside of enum so that
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
-    OBJECT_PROPRIETARY_MIN = 128,
-    OBJECT_PROPRIETARY_MAX = 1023,
     MAX_BACNET_OBJECT_TYPE = 1024,
-    OBJECT_NONE = 0xFFFFu
+    /* special usage for this library */
+    OBJECT_NONE = UINT16_MAX
 } BACNET_OBJECT_TYPE;
 
 typedef enum {
@@ -1863,7 +1917,8 @@ typedef enum BACnetLightingInProgress {
     BACNET_LIGHTING_RAMP_ACTIVE = 2,
     BACNET_LIGHTING_NOT_CONTROLLED = 3,
     BACNET_LIGHTING_OTHER = 4,
-    MAX_BACNET_LIGHTING_IN_PROGRESS = 5
+    BACNET_LIGHTING_TRIM_ACTIVE = 5,
+    MAX_BACNET_LIGHTING_IN_PROGRESS = 6
 } BACNET_LIGHTING_IN_PROGRESS;
 
 typedef enum BACnetLightingTransition {
@@ -1877,6 +1932,17 @@ typedef enum BACnetLightingTransition {
     BACNET_LIGHTING_TRANSITION_PROPRIETARY_FIRST = 64,
     BACNET_LIGHTING_TRANSITION_PROPRIETARY_LAST = 255
 } BACNET_LIGHTING_TRANSITION;
+
+typedef enum BACnetColorOperation {
+    BACNET_COLOR_OPERATION_NONE = 0,
+    BACNET_COLOR_OPERATION_FADE_TO_COLOR = 1,
+    BACNET_COLOR_OPERATION_FADE_TO_CCT = 2,
+    BACNET_COLOR_OPERATION_RAMP_TO_CCT = 3,
+    BACNET_COLOR_OPERATION_STEP_UP_CCT = 4,
+    BACNET_COLOR_OPERATION_STEP_DOWN_CCT = 5,
+    BACNET_COLOR_OPERATION_STOP = 6,
+    BACNET_COLOR_OPERATION_MAX = 7
+} BACNET_COLOR_OPERATION;
 
 /* NOTE: BACNET_DAYS_OF_WEEK is different than BACNET_WEEKDAY */
 /* 0=Monday-6=Sunday */
