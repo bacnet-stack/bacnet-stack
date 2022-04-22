@@ -201,6 +201,11 @@ extern "C" {
     BACNET_STACK_EXPORT
 	const char *bactext_lighting_transition(
 		unsigned index);
+
+    BACNET_STACK_EXPORT
+    const char *bactext_color_operation_name(
+        unsigned index);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
