@@ -25,22 +25,16 @@ get_filename_component(BACNET_SRC ${BACNET_DATALINK_SRC} PATH)
 
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
-  list(APPEND INCLUDE
-    ${BACNET_INCLUDE}
-    ${BACNET_INCLUDE}/../test/bacnet/datalink/mock/src
-    )
+  list(APPEND INCLUDE ${BACNET_INCLUDE})
 
   file(GLOB SRC_TEST ${BACNET_TEST_PATH}/src/*.c)
   list(APPEND SOURCES ${SRC_TEST} )
 
   list(APPEND SOURCES
     ${BACNET_DATALINK_SRC}/datalink.c
-    ${BACNET_SRC}/basic/sys/mstimer.c
-    ${BACNET_SRC}/../../ports/rx62n/bacnet.c
     )
 
   add_definitions(-DBACDL_ALL=1)
-  add_definitions(-DUNIT_TESTING=1)
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
   project(${BACNET_NAME})
@@ -48,17 +42,13 @@ else()
   include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
   project(${BACNET_NAME})
 
-  target_include_directories(app PRIVATE
-    ${BACNET_INCLUDE}
-    ${BACNET_INCLUDE}/../test/bacnet/datalink/mock/src
-    )
+  target_include_directories(app PRIVATE ${BACNET_INCLUDE})
   file(GLOB SRC_TEST ${BACNET_TEST_PATH}/src/*.c)
 
   add_definitions(-DBACDL_ALL=1 -DBACNET_ETHERNET_NO_REMAP_DEFINES=1)
 
   target_sources(app PRIVATE
     ${BACNET_DATALINK_SRC}/datalink.c
-    ${BACNET_SRC}/../../ports/rx62n/bacnet.c
     ${SRC_TEST}
     )
 endif()

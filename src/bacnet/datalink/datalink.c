@@ -44,7 +44,7 @@
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #include "bacnet/datalink/arcnet.h"
 #include "bacnet/datalink/dlmstp.h"
-#include <string.h>
+#include <strings.h>
 
 static enum {
     DATALINK_NONE = 0,

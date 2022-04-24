@@ -11,7 +11,6 @@
 #include <stdlib.h>  /* For calloc() */
 #include <ztest.h>
 #include <bacnet/datalink/datalink.h>
-#include <../ports/rx62n/bacnet.h>
 #include "bacnet/apdu.h"
 
 extern bool check_arcnet_receive_src;
@@ -426,177 +425,6 @@ static void test_datalink_ethernet(void)
     datalink_maintenance_timer(42);
 }
 
-/**
- * @brief Test bacnet.c
- */
-
-#ifdef UNIT_TESTING
-
-uint8_t Handler_Transmit_Buffer[MAX_PDU] = { 0 };
-
-// Mock functions
-
-bool Binary_Output_Out_Of_Service(uint32_t instance)
-{
-    (void)instance;
-    return true;
-}
-
-BACNET_BINARY_PV Binary_Output_Present_Value(uint32_t instance)
-{
-    (void)instance;
-    return BINARY_INACTIVE;
-}
-
-BACNET_POLARITY Binary_Output_Polarity(uint32_t instance)
-{
-    (void)instance;
-    return POLARITY_NORMAL;
-}
-
-void Device_Init(void)
-{}
-
-void apdu_set_unrecognized_service_handler_handler(void* pFunction)
-{
-    (void)pFunction;
-}
-
-void apdu_set_unconfirmed_handler(BACNET_UNCONFIRMED_SERVICE service_choice,
-    void* pFunction)
-{
-    (void)service_choice;
-    (void)pFunction;
-}
-
-void apdu_set_confirmed_handler(BACNET_CONFIRMED_SERVICE service_choice,
-    void* pFunction)
-{
-    (void)service_choice;
-    (void)pFunction;
-}
-
-void handler_unrecognized_service(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * dest,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)dest;
-    (void)service_data;
-}
-void handler_who_is(uint8_t * service_request, uint16_t service_len,
-        BACNET_ADDRESS * src)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-}
-void handler_who_has(uint8_t * service_request, uint16_t service_len,
-        BACNET_ADDRESS * src)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-}
-void handler_read_property(uint8_t *service_request,
-    uint16_t service_len, BACNET_ADDRESS *src,
-    BACNET_CONFIRMED_SERVICE_DATA *service_data)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-    (void)service_data;
-}
-void handler_read_property_multiple(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-    (void)service_data;
-}
-void handler_reinitialize_device( uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-    (void)service_data;
-}
-void handler_write_property(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-    (void)service_data;
-}
-void handler_device_communication_control(uint8_t * service_request,
-        uint16_t service_len, BACNET_ADDRESS * src,
-        BACNET_CONFIRMED_SERVICE_DATA * service_data)
-{
-    (void)service_request;
-    (void)service_len;
-    (void)src;
-    (void)service_data;
-}
-
-void Send_I_Am(uint8_t *buffer)
-{
-    (void)buffer;
-}
-
-unsigned long mstimer_now(void)
-{
-    static unsigned long l = 1;
-    return l++;
-}
-
-
-void dcc_timer_seconds(uint32_t seconds)
-{
-    ztest_check_expected_value(seconds);
-}
-
-void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
-{
-    ztest_check_expected_value(pdu_len);
-    ztest_check_expected_data(pdu, pdu_len);
-}
-
-#endif /* UNIT_TESTING */
-
-//  test
-
-static void test_bacnet_task(void)
-{
-#ifdef UNIT_TESTING
-    uint8_t expected_data[MAX_MPDU] = { 0x5A, 0xA5, 0xDE, 0xAD };
-    uint8_t expected_data2[MAX_MPDU] = { 0xAA, 0xBB, 0xCC, 0xDD };
-
-    check_arcnet_receive_src = false;
-    zassert_equal(z_cleanup_mock(), 0, NULL);
-    datalink_set("arcnet");
-
-    ztest_expect_value(arcnet_receive, timeout, 0);
-    ztest_expect_data(arcnet_receive, pdu, expected_data);
-    ztest_returns_value(arcnet_receive, 4);
-    ztest_expect_value(npdu_handler, pdu_len, 4);
-    ztest_expect_data(npdu_handler, pdu, expected_data);
-    bacnet_task();
-    zassert_equal(z_cleanup_mock(), 0, NULL);
-
-    ztest_expect_value(arcnet_receive, timeout, 0);
-    ztest_expect_data(arcnet_receive, pdu, expected_data2);
-    ztest_returns_value(arcnet_receive, 0);
-    bacnet_task();
-    zassert_equal(z_cleanup_mock(), 0, NULL);
-#endif /* UNIT_TESTING */
-}
 
 /**
  * @}
@@ -609,8 +437,7 @@ void test_main(void)
      ztest_unit_test(test_datalink_bip),
      ztest_unit_test(test_datalink_bip6),
      ztest_unit_test(test_datalink_dlmstp),
-     ztest_unit_test(test_datalink_ethernet),
-     ztest_unit_test(test_bacnet_task)
+     ztest_unit_test(test_datalink_ethernet)
      );
 
     ztest_run_test_suite(datalink_tests);
