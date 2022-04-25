@@ -13,8 +13,6 @@
 #include <bacnet/datalink/datalink.h>
 #include "bacnet/apdu.h"
 
-extern bool check_arcnet_receive_src;
-
 void bvlc_maintenance_timer(uint16_t seconds)
 {
     ztest_check_expected_value(seconds);
@@ -50,7 +48,6 @@ static void test_datalink_arcnet(void)
     BACNET_ADDRESS addr2 = {0};
     BACNET_NPDU_DATA npdu = {0};
 
-    check_arcnet_receive_src = true;
     zassert_equal(z_cleanup_mock(), 0, NULL);
     datalink_set("arcnet");
 
