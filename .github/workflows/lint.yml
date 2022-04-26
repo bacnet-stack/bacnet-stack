@@ -9,7 +9,7 @@ on:
       - '*'
 
 jobs:
-  lint:
+  scan-build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -20,7 +20,7 @@ jobs:
     - name: Static Defect Analysis using scan-build
       run: |
         make clean
-        make lint
+        make scan-build
 
   splint:
     runs-on: ubuntu-latest
