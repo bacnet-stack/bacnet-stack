@@ -219,9 +219,9 @@ tidy:
 	find ./src -iname *.h -o -iname *.c -exec clang-tidy {} $(CLANG_TIDY_OPTIONS) \;
 	find ./apps -iname *.c -exec clang-tidy {} $(CLANG_TIDY_OPTIONS) \;
 
-.PHONY: lint
-lint:
-	scan-build --status-bugs -analyze-headers make -j2 clean server
+.PHONY: scan-build
+scan-build:
+	scan-build --status-bugs -analyze-headers make -j2 server
 
 SPLINT_OPTIONS := -weak +posixlib +quiet \
 	-D__signed__=signed -D__gnuc_va_list=va_list \
