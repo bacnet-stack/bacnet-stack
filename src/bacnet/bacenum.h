@@ -1,26 +1,26 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *********************************************************************/
 #ifndef BACENUM_H
 #define BACENUM_H
 
@@ -120,7 +120,7 @@ typedef enum {
     PROP_PROGRAM_STATE = 92,
     PROP_PROPORTIONAL_CONSTANT = 93,
     PROP_PROPORTIONAL_CONSTANT_UNITS = 94,
-    PROP_PROTOCOL_CONFORMANCE_CLASS = 95,       /* deleted in version 1 revision 2 */
+    PROP_PROTOCOL_CONFORMANCE_CLASS = 95, /* deleted in version 1 revision 2 */
     PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED = 96,
     PROP_PROTOCOL_SERVICES_SUPPORTED = 97,
     PROP_PROTOCOL_VERSION = 98,
@@ -540,7 +540,8 @@ typedef enum {
     PROP_ISSUER_CERTIFICATE_FILES = 511,
     /* The special property identifiers all, optional, and required  */
     /* are reserved for use in the ReadPropertyConditional and */
-    /* ReadPropertyMultiple services or services not defined in this standard. */
+    /* ReadPropertyMultiple services or services not defined in this standard.
+     */
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
     /* Enumerated values 512-4194303 may be used by others subject to the  */
     /* procedures and constraints described in Clause 23.  */
@@ -577,29 +578,31 @@ typedef enum {
     PROP_DEFAULT_COLOR = 4194330,
     PROP_DEFAULT_COLOR_TEMPERATURE = 4194331,
     PROP_OVERRIDE_COLOR_REFERENCE = 4194332,
+    PROP_COLOR_COMMAND = 4194334,
+    PROP_HIGH_END_TRIM = 4194335,
+    PROP_LOW_END_TRIM = 4194336,
+    PROP_TRIM_FADE_TIME = 4194337,
+    /* Enumerated values 4194303-16777215 are reserved
+       for definition by ASHRAE.  */
     /* do the max range inside of enum so that
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
-    MAX_BACNET_PROPERTY_ID = UINT32_MAX
+    MAX_BACNET_PROPERTY_ID = 16777215
 } BACNET_PROPERTY_ID;
-
 
 typedef enum {
     EVENT_LOW_LIMIT_ENABLE = 1,
     EVENT_HIGH_LIMIT_ENABLE = 2
 } BACNET_LIMIT_ENABLE;
 
-typedef enum {
-    ACTION_DIRECT = 0,
-    ACTION_REVERSE = 1
-} BACNET_ACTION;
+typedef enum { ACTION_DIRECT = 0, ACTION_REVERSE = 1 } BACNET_ACTION;
 
 typedef enum {
-    MIN_BINARY_PV = 0,  /* for validating incoming values */
+    MIN_BINARY_PV = 0, /* for validating incoming values */
     BINARY_INACTIVE = 0,
     BINARY_ACTIVE = 1,
-    MAX_BINARY_PV = 1,  /* for validating incoming values */
-    BINARY_NULL = 255   /* our homemade way of storing this info */
+    MAX_BINARY_PV = 1, /* for validating incoming values */
+    BINARY_NULL = 255 /* our homemade way of storing this info */
 } BACNET_BINARY_PV;
 
 typedef enum {
@@ -671,7 +674,7 @@ typedef enum {
     UNITS_MEGOHMS = 123,
     UNITS_MICROSIEMENS = 190,
     UNITS_MILLISIEMENS = 202,
-    UNITS_SIEMENS = 173,        /* 1 mho equals 1 siemens */
+    UNITS_SIEMENS = 173, /* 1 mho equals 1 siemens */
     UNITS_SIEMENS_PER_METER = 174,
     UNITS_TESLAS = 175,
     UNITS_VOLTS = 5,
@@ -987,9 +990,9 @@ typedef enum {
     RESTART_REASON_HARDWARE_WATCHDOG = 5,
     RESTART_REASON_SOFTWARE_WATCHDOG = 6,
     RESTART_REASON_SUSPENDED = 7,
-/* Enumerated values 0-63 are reserved for definition by ASHRAE.
-   Enumerated values 64-255 may be used by others subject to the
-   procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-255 may be used by others subject to the
+       procedures and constraints described in Clause 23. */
     /* do the max range inside of enum so that
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
@@ -1259,37 +1262,37 @@ typedef enum BACnetObjectType {
     OBJECT_ACCESS_DOOR = 30,
     OBJECT_TIMER = 31,
     /* Note: 31 was lighting output, but BACnet editor changed it... */
-    OBJECT_ACCESS_CREDENTIAL = 32,      /* Addendum 2008-j */
+    OBJECT_ACCESS_CREDENTIAL = 32, /* Addendum 2008-j */
     OBJECT_ACCESS_POINT = 33,
     OBJECT_ACCESS_RIGHTS = 34,
     OBJECT_ACCESS_USER = 35,
     OBJECT_ACCESS_ZONE = 36,
-    OBJECT_CREDENTIAL_DATA_INPUT = 37,  /* authentication-factor-input */
-    OBJECT_NETWORK_SECURITY = 38,       /* Addendum 2008-g */
-    OBJECT_BITSTRING_VALUE = 39,        /* Addendum 2008-w */
-    OBJECT_CHARACTERSTRING_VALUE = 40,  /* Addendum 2008-w */
-    OBJECT_DATE_PATTERN_VALUE = 41,     /* Addendum 2008-w */
-    OBJECT_DATE_VALUE = 42,     /* Addendum 2008-w */
+    OBJECT_CREDENTIAL_DATA_INPUT = 37, /* authentication-factor-input */
+    OBJECT_NETWORK_SECURITY = 38, /* Addendum 2008-g */
+    OBJECT_BITSTRING_VALUE = 39, /* Addendum 2008-w */
+    OBJECT_CHARACTERSTRING_VALUE = 40, /* Addendum 2008-w */
+    OBJECT_DATE_PATTERN_VALUE = 41, /* Addendum 2008-w */
+    OBJECT_DATE_VALUE = 42, /* Addendum 2008-w */
     OBJECT_DATETIME_PATTERN_VALUE = 43, /* Addendum 2008-w */
     OBJECT_DATETIME_VALUE = 44, /* Addendum 2008-w */
-    OBJECT_INTEGER_VALUE = 45,  /* Addendum 2008-w */
-    OBJECT_LARGE_ANALOG_VALUE = 46,     /* Addendum 2008-w */
-    OBJECT_OCTETSTRING_VALUE = 47,      /* Addendum 2008-w */
+    OBJECT_INTEGER_VALUE = 45, /* Addendum 2008-w */
+    OBJECT_LARGE_ANALOG_VALUE = 46, /* Addendum 2008-w */
+    OBJECT_OCTETSTRING_VALUE = 47, /* Addendum 2008-w */
     OBJECT_POSITIVE_INTEGER_VALUE = 48, /* Addendum 2008-w */
-    OBJECT_TIME_PATTERN_VALUE = 49,     /* Addendum 2008-w */
-    OBJECT_TIME_VALUE = 50,     /* Addendum 2008-w */
+    OBJECT_TIME_PATTERN_VALUE = 49, /* Addendum 2008-w */
+    OBJECT_TIME_VALUE = 50, /* Addendum 2008-w */
     OBJECT_NOTIFICATION_FORWARDER = 51, /* Addendum 2010-af */
-    OBJECT_ALERT_ENROLLMENT = 52,       /* Addendum 2010-af */
-    OBJECT_CHANNEL = 53,        /* Addendum 2010-aa */
-    OBJECT_LIGHTING_OUTPUT = 54,        /* Addendum 2010-i */
+    OBJECT_ALERT_ENROLLMENT = 52, /* Addendum 2010-af */
+    OBJECT_CHANNEL = 53, /* Addendum 2010-aa */
+    OBJECT_LIGHTING_OUTPUT = 54, /* Addendum 2010-i */
     OBJECT_BINARY_LIGHTING_OUTPUT = 55, /* Addendum 135-2012az */
-    OBJECT_NETWORK_PORT = 56,   /* Addendum 135-2012az */
-    OBJECT_ELEVATOR_GROUP = 57,   /* Addendum 135-2012aq */
-    OBJECT_ESCALATOR = 58,   /* Addendum 135-2012aq */
-    OBJECT_LIFT = 59,   /* Addendum 135-2012aq */
-    OBJECT_STAGING = 60,   /* Addendum 135-2016bd */
-    OBJECT_AUDIT_LOG = 61,   /* Addendum 135-2016bi */
-    OBJECT_AUDIT_REPORTER = 62,   /* Addendum 135-2016bi */
+    OBJECT_NETWORK_PORT = 56, /* Addendum 135-2012az */
+    OBJECT_ELEVATOR_GROUP = 57, /* Addendum 135-2012aq */
+    OBJECT_ESCALATOR = 58, /* Addendum 135-2012aq */
+    OBJECT_LIFT = 59, /* Addendum 135-2012aq */
+    OBJECT_STAGING = 60, /* Addendum 135-2016bd */
+    OBJECT_AUDIT_LOG = 61, /* Addendum 135-2016bi */
+    OBJECT_AUDIT_REPORTER = 62, /* Addendum 135-2016bi */
     OBJECT_COLOR = 63, /* Addendum 135-2020ca */
     OBJECT_COLOR_TEMPERATURE = 64, /* Addendum 135-2020ca */
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
@@ -1315,11 +1318,11 @@ typedef enum {
 
 typedef enum {
     VT_CLASS_DEFAULT = 0,
-    VT_CLASS_ANSI_X34 = 1,      /* real name is ANSI X3.64 */
+    VT_CLASS_ANSI_X34 = 1, /* real name is ANSI X3.64 */
     VT_CLASS_DEC_VT52 = 2,
     VT_CLASS_DEC_VT100 = 3,
     VT_CLASS_DEC_VT220 = 4,
-    VT_CLASS_HP_700_94 = 5,     /* real name is HP 700/94 */
+    VT_CLASS_HP_700_94 = 5, /* real name is HP 700/94 */
     VT_CLASS_IBM_3130 = 6,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.  */
     /* Enumerated values 64-65535 may be used by others subject to  */
@@ -1332,7 +1335,7 @@ typedef enum {
 } BACNET_VT_CLASS;
 
 typedef enum {
-    CHARACTER_ANSI_X34 = 0,     /* deprecated */
+    CHARACTER_ANSI_X34 = 0, /* deprecated */
     CHARACTER_UTF8 = 0,
     CHARACTER_MS_DBCS = 1,
     CHARACTER_JISC_6226 = 2,
@@ -1527,9 +1530,9 @@ typedef enum {
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION = 36,
     SERVICE_SUPPORTED_WHO_HAS = 33,
     SERVICE_SUPPORTED_WHO_IS = 34
-        /* Other services to be added as they are defined. */
-        /* All values in this production are reserved */
-        /* for definition by ASHRAE. */
+    /* Other services to be added as they are defined. */
+    /* All values in this production are reserved */
+    /* for definition by ASHRAE. */
 } BACNET_SERVICES_SUPPORTED;
 
 /* Bit String Enumerations */
@@ -1843,10 +1846,77 @@ typedef enum {
     ERROR_CODE_VALUE_TOO_LONG = 134,
     ERROR_CODE_ABORT_INSUFFICIENT_SECURITY = 135,
     ERROR_CODE_ABORT_SECURITY_ERROR = 136,
-
-    MAX_BACNET_ERROR_CODE = 137,
-
+    ERROR_CODE_DUPLICATE_ENTRY = 137,
+    ERROR_CODE_INVALID_VALUE_IN_THIS_STATE = 138,
+    ERROR_CODE_INVALID_OPERATION_IN_THIS_STATE = 139,
+    ERROR_CODE_LIST_ITEM_NOT_NUMBERED = 140,
+    ERROR_CODE_LIST_ITEM_NOT_TIMESTAMPED = 141,
+    ERROR_CODE_INVALID_DATA_ENCODING = 142,
+    ERROR_CODE_BVLC_FUNCTION_UNKNOWN = 143,
+    ERROR_CODE_BVLC_PROPRIETARY_FUNCTION_UNKNOWN = 144,
+    ERROR_CODE_HEADER_ENCODING_ERROR = 145,
+    ERROR_CODE_HEADER_NOT_UNDERSTOOD = 146,
+    ERROR_CODE_MESSAGE_INCOMPLETE = 147,
+    ERROR_CODE_NOT_A_BACNET_SC_HUB = 148,
+    ERROR_CODE_PAYLOAD_EXPECTED = 149,
+    ERROR_CODE_UNEXPECTED_DATA = 150,
+    ERROR_CODE_NODE_DUPLICATE_VMAC = 151,
+    ERROR_CODE_HTTP_UNEXPECTED_RESPONSE_CODE = 152,
+    ERROR_CODE_HTTP_NO_UPGRADE = 153,
+    ERROR_CODE_HTTP_RESOURCE_NOT_LOCAL = 154,
+    ERROR_CODE_HTTP_PROXY_AUTHENTICATION_FAILED = 155,
+    ERROR_CODE_HTTP_RESPONSE_TIMEOUT = 156,
+    ERROR_CODE_HTTP_RESPONSE_SYNTAX_ERROR = 157,
+    ERROR_CODE_HTTP_RESPONSE_VALUE_ERROR = 158,
+    ERROR_CODE_HTTP_RESPONSE_MISSING_HEADER = 159,
+    ERROR_CODE_HTTP_WEBSOCKET_HEADER_ERROR = 160,
+    ERROR_CODE_HTTP_UPGRADE_REQUIRED = 161,
+    ERROR_CODE_HTTP_UPGRADE_ERROR = 162,
+    ERROR_CODE_HTTP_TEMPORARY_UNAVAILABLE = 163,
+    ERROR_CODE_HTTP_NOT_A_SERVER = 164,
+    ERROR_CODE_HTTP_ERROR = 165,
+    ERROR_CODE_WEBSOCKET_SCHEME_NOT_SUPPORTED = 166,
+    ERROR_CODE_WEBSOCKET_UNKNOWN_CONTROL_MESSAGE = 167,
+    ERROR_CODE_WEBSOCKET_CLOSE_ERROR = 168,
+    ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER = 169,
+    ERROR_CODE_WEBSOCKET_ENDPOINT_LEAVES = 170,
+    ERROR_CODE_WEBSOCKET_PROTOCOL_ERROR = 171,
+    ERROR_CODE_WEBSOCKET_DATA_NOT_ACCEPTED = 172,
+    ERROR_CODE_WEBSOCKET_CLOSED_ABNORMALLY = 173,
+    ERROR_CODE_WEBSOCKET_DATA_INCONSISTENT = 174,
+    ERROR_CODE_WEBSOCKET_DATA_AGAINST_POLICY = 175,
+    ERROR_CODE_WEBSOCKET_FRAME_TOO_LONG = 176,
+    ERROR_CODE_WEBSOCKET_EXTENSION_MISSING = 177,
+    ERROR_CODE_WEBSOCKET_REQUEST_UNAVAILABLE = 178,
+    ERROR_CODE_WEBSOCKET_ERROR = 179,
+    ERROR_CODE_TLS_CLIENT_CERTIFICATE_ERROR = 180,
+    ERROR_CODE_TLS_SERVER_CERTIFICATE_ERROR = 181,
+    ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED = 182,
+    ERROR_CODE_TLS_SERVER_AUTHENTICATION_FAILED = 183,
+    ERROR_CODE_TLS_CLIENT_CERTIFICATE_EXPIRED = 184,
+    ERROR_CODE_TLS_SERVER_CERTIFICATE_EXPIRED = 185,
+    ERROR_CODE_TLS_CLIENT_CERTIFICATE_REVOKED = 186,
+    ERROR_CODE_TLS_SERVER_CERTIFICATE_REVOKED = 187,
+    ERROR_CODE_TLS_ERROR = 188,
+    ERROR_CODE_DNS_UNAVAILABLE = 189,
+    ERROR_CODE_DNS_NAME_RESOLUTION_FAILED = 190,
+    ERROR_CODE_DNS_RESOLVER_FAILURE = 191,
+    ERROR_CODE_DNS_ERROR = 192,
+    ERROR_CODE_TCP_CONNECT_TIMEOUT = 193,
+    ERROR_CODE_TCP_CONNECTION_REFUSED = 194,
+    ERROR_CODE_TCP_CLOSED_BY_LOCAL = 195,
+    ERROR_CODE_TCP_CLOSED_OTHER = 196,
+    ERROR_CODE_TCP_ERROR = 197,
+    ERROR_CODE_IP_ADDRESS_NOT_REACHABLE = 198,
+    ERROR_CODE_IP_ERROR = 199,
+    ERROR_CODE_CERTIFICATE_EXPIRED = 200,
+    ERROR_CODE_CERTIFICATE_INVALID = 201,
+    ERROR_CODE_CERTIFICATE_MALFORMED = 202,
+    ERROR_CODE_CERTIFICATE_REVOKED = 203,
+    ERROR_CODE_UNKNOWN_KEY2 = 204,
+    ERROR_CODE_REFERENCED_PORT_IN_ERROR = 205,
     /* Enumerated values 0-255 are reserved for definition by ASHRAE. */
+    ERROR_CODE_RESERVED_MAX = 255,
     /* Enumerated values 256-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
     /* do the max range inside of enum so that
@@ -2281,9 +2351,9 @@ typedef enum {
     ACCESS_CREDENTIAL_DISABLE_MANUAL = 2,
     ACCESS_CREDENTIAL_DISABLE_LOCKOUT = 3,
     ACCESS_CREDENTIAL_DISABLE_MAX = 4
-        /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-           Enumerated values 64-65535 may be used by others subject to
-           the procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
 } BACNET_ACCESS_CREDENTIAL_DISABLE;
 
 typedef enum {
@@ -2298,9 +2368,9 @@ typedef enum {
     CREDENTIAL_DISABLED_INACTIVITY = 8,
     CREDENTIAL_DISABLED_MANUAL = 9,
     CREDENTIAL_DISABLED_MAX = 10
-        /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-           Enumerated values 64-65535 may be used by others subject to
-           the procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
 } BACNET_ACCESS_CREDENTIAL_DISABLE_REASON;
 
 typedef enum {
@@ -2311,9 +2381,9 @@ typedef enum {
     AUTHENTICATION_DISABLED_DAMAGED = 4,
     AUTHENTICATION_DISABLED_DESTROYED = 5,
     AUTHENTICATION_DISABLED_MAX = 6
-        /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-           Enumerated values 64-65535 may be used by others subject to
-           the procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-65535 may be used by others subject to
+       the procedures and constraints described in Clause 23. */
 } BACNET_AUTHENTICATION_DISABLE_REASON;
 
 typedef enum {
@@ -2357,9 +2427,9 @@ typedef enum {
     /* (8), removed in version 1 revision 18 */
     NETWORK_TYPE_BACNET_IPV6 = 9,
     NETWORK_TYPE_SERIAL = 10,
-/* Enumerated values 0-63 are reserved for definition by ASHRAE.
-   Enumerated values 64-255 may be used by others subject to the
-   procedures and constraints described in Clause 23. */
+    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
+       Enumerated values 64-255 may be used by others subject to the
+       procedures and constraints described in Clause 23. */
     /* do the max range inside of enum so that
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
@@ -2396,10 +2466,10 @@ typedef enum BACnetNetworkPortCommand_T {
 } BACNET_NETWORK_PORT_COMMAND;
 
 typedef enum BACnetProtocolLevel_T {
-    BACNET_PROTOCOL_LEVEL_PHYSICAL=0,
-    BACNET_PROTOCOL_LEVEL_PROTOCOL=1,
-    BACNET_PROTOCOL_LEVEL_BACNET_APPLICATION=2,
-    BACNET_PROTOCOL_LEVEL_NON_BACNET_APPLICATION=3
+    BACNET_PROTOCOL_LEVEL_PHYSICAL = 0,
+    BACNET_PROTOCOL_LEVEL_PROTOCOL = 1,
+    BACNET_PROTOCOL_LEVEL_BACNET_APPLICATION = 2,
+    BACNET_PROTOCOL_LEVEL_NON_BACNET_APPLICATION = 3
 } BACNET_PROTOCOL_LEVEL;
 
 typedef enum BACnetIPMode_T {
