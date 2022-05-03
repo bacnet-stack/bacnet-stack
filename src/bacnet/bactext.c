@@ -1303,7 +1303,7 @@ INDTEXT_DATA bacnet_error_code_names[] = { { ERROR_CODE_OTHER, "other" },
     { ERROR_CODE_CERTIFICATE_INVALID, "certificate-invalid" },
     { ERROR_CODE_CERTIFICATE_MALFORMED, "certificate-malformed" },
     { ERROR_CODE_CERTIFICATE_REVOKED, "certificate-revoked" },
-    { ERROR_CODE_UNKNOWN_KEY2, "unknown-key" },
+    { ERROR_CODE_UNKNOWN_SECURITY_KEY, "unknown-security-key" },
     { ERROR_CODE_REFERENCED_PORT_IN_ERROR, "referenced-port-in-error" },
     /* Enumerated values 256-65535 may be used by others subject to */
     /* the procedures and constraints described in Clause 23. */
