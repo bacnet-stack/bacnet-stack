@@ -498,6 +498,7 @@ void apdu_handler(BACNET_ADDRESS *src,
     uint8_t service_choice = 0;
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
+    uint16_t len = 0;
     int len = 0; /* counts where we are in PDU */
     uint8_t tag_number = 0;
     uint32_t len_value = 0;
@@ -510,9 +511,13 @@ void apdu_handler(BACNET_ADDRESS *src,
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                (void)apdu_decode_confirmed_service_request(&apdu[0], apdu_len,
-                    &service_data, &service_choice, &service_request,
-                    &service_request_len);
+                len = apdu_decode_confirmed_service_request(
+                    &apdu[0], apdu_len, &service_data, &service_choice,
+                    &service_request, &service_request_len);
+                if (len == 0) {
+                    /* service data unable to be decoded - simply drop */
+                    break;
+                }
                 if (apdu_confirmed_dcc_disabled(service_choice)) {
                     /* When network communications are completely disabled,
                        only DeviceCommunicationControl and ReinitializeDevice
