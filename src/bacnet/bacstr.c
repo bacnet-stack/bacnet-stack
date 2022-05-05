@@ -993,7 +993,7 @@ bool octetstring_init(
 /** @brief Converts an null terminated ASCII Hex string to an octet string.
  *
  * @param octet_string  Pointer to the octet string.
- * @param ascii_hex  Pointer to the HEx-ASCII string.
+ * @param ascii_hex  Pointer to the HEX-ASCII string.
  *
  * @return true if successfully converted and fits; false if too long */
 bool octetstring_init_ascii_hex(
@@ -1017,6 +1017,8 @@ bool octetstring_init_ascii_hex(
                     continue;
                 }
                 if (ascii_hex[index + 1] == 0) {
+                    /* not a hex pair */
+                    status = false;
                     break;
                 }
                 hex_pair_string[0] = ascii_hex[index];
@@ -1028,8 +1030,9 @@ bool octetstring_init_ascii_hex(
                     /* at least one pair was decoded */
                     status = true;
                 } else {
-                    break;
+                    /* too long */
                     status = false;
+                    break;
                 }
                 /* set up for next pair */
                 index += 2;

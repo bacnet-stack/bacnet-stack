@@ -138,6 +138,10 @@ static void testOctetString(void)
     uint8_t test_value[MAX_APDU] = "Patricia";
     uint8_t test_append_value[MAX_APDU] = " and the Kids";
     uint8_t test_append_string[MAX_APDU] = "";
+    const char * hex_value_valid = "1234567890ABCDEF";
+    const char * hex_value_skips = "12:34:56:78:90:AB:CD:EF";
+    const char * hex_value_odd = "1234567890ABCDE";
+    const char * hex_value_long = NULL;
     bool status = false;
     size_t length = 0;
     size_t test_length = 0;
@@ -188,6 +192,35 @@ static void testOctetString(void)
     for (i = 0; i < test_length; i++) {
         zassert_equal(value[i], test_append_string[i], NULL);
     }
+    /* valid case - empty string */
+    status = octetstring_init_ascii_hex(&bacnet_string, "");
+    zassert_true(status, NULL);
+    /* valid case - valid hex string */
+    status = octetstring_init_ascii_hex(&bacnet_string, hex_value_valid);
+    zassert_true(status, NULL);
+    test_length = strlen(hex_value_valid)/2;
+    length = octetstring_length(&bacnet_string);
+    zassert_equal(length, test_length, NULL);
+    /* valid case - with non-hex characters interspersed */
+    status = octetstring_init_ascii_hex(&bacnet_string, hex_value_skips);
+    zassert_true(status, NULL);
+    length = octetstring_length(&bacnet_string);
+    zassert_equal(length, test_length, NULL);
+    /* invalid case - not enough pairs */
+    status = octetstring_init_ascii_hex(&bacnet_string, hex_value_odd);
+    zassert_false(status, NULL);
+    /* invalid case - too long */
+    memset(test_value, 'F', sizeof(test_value));
+    hex_value_long = test_value;
+    status = octetstring_init_ascii_hex(&bacnet_string, hex_value_long);
+    zassert_false(status, NULL);
+    /* invalid case - null arguments */
+    status = octetstring_init_ascii_hex(&bacnet_string, NULL);
+    zassert_false(status, NULL);
+    status = octetstring_init_ascii_hex(NULL, hex_value_long);
+    zassert_false(status, NULL);
+    status = octetstring_init_ascii_hex(NULL, NULL);
+    zassert_false(status, NULL);
 }
 /**
  * @}
