@@ -1140,7 +1140,7 @@
         </file>
     </group>
     <group>
-        <name>BACnet Service Handlers</name>
+        <name>BACnet Basic Services</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_apdu.c</name>
         </file>
@@ -1176,7 +1176,10 @@
         </file>
     </group>
     <group>
-        <name>BACnet System</name>
+        <name>BACnet Basic System</name>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\bigend.c</name>
+        </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>
         </file>
