@@ -577,9 +577,13 @@ static void MSTP_Receive_Frame_FSM(void)
                             /* if a frame-receipt callback was provided, call */
                             /* it for this frame */
                             if (Frame_Rx_Callback != NULL) {
-                                Frame_Rx_Callback(SourceAddress,
-                                    DestinationAddress, FrameType, InputBuffer,
-                                    DataLength);
+                                /* convert from volatile in defined order */
+                                uint8_t source, destination, frame;
+                                source = SourceAddress;
+                                destination = DestinationAddress;
+                                frame = FrameType;
+                                Frame_Rx_Callback(source, destination, 
+                                    frame, InputBuffer, DataLength);
                             }
                             /* wait for the start of the next frame. */
                             Receive_State = MSTP_RECEIVE_STATE_IDLE;
@@ -587,7 +591,10 @@ static void MSTP_Receive_Frame_FSM(void)
                             /* receive the data portion of the frame. */
                             if ((Address == This_Station) ||
                                 (Address == MSTP_BROADCAST_ADDRESS)) {
-                                if (DataLength <= InputBufferSize) {
+                                /* convert from volatile in defined order */
+                                uint32_t length;
+                                length = DataLength;
+                                if (length <= InputBufferSize) {
                                     /* Data */
                                     Receive_State = MSTP_RECEIVE_STATE_DATA;
                                 } else {
@@ -662,8 +669,13 @@ static void MSTP_Receive_Frame_FSM(void)
                         /* if a frame-receipt callback was provided, call it */
                         /* for this frame */
                         if (Frame_Rx_Callback != NULL) {
-                            Frame_Rx_Callback(SourceAddress, DestinationAddress,
-                                FrameType, InputBuffer, DataLength);
+                            /* convert from volatile in defined order */
+                            uint8_t source, destination, frame;
+                            source = SourceAddress;
+                            destination = DestinationAddress;
+                            frame = FrameType;
+                            Frame_Rx_Callback(source, destination,
+                                frame, InputBuffer, DataLength);
                         }
 
                     } else {
@@ -866,7 +878,7 @@ static bool MSTP_Master_Node_FSM(void)
                         /* ReceivedPFM */
                         destination = SourceAddress;
                         source = This_Station;
-                        if (DestinationAddress == This_Station) {
+                        if (DestinationAddress == source) {
                             MSTP_Send_Frame(FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER,
                                 destination, source, NULL, 0);
                         }
