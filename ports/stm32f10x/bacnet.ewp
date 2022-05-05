@@ -1126,7 +1126,7 @@
         </file>
     </group>
     <group>
-        <name>BACnet-Handlers</name>
+        <name>BACnet-Basic-Services</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_apdu.c</name>
         </file>
@@ -1158,12 +1158,6 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_wp.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\mstimer.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\ringbuf.c</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\s_iam.c</name>
         </file>
         <file>
@@ -1171,6 +1165,18 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\tsm\tsm.c</name>
+        </file>
+    </group>
+    <group>
+        <name>BACnet-Basic-System</name>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\bigend.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\mstimer.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\ringbuf.c</name>
         </file>
     </group>
     <group>
