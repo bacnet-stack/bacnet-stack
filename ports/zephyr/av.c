@@ -40,6 +40,8 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/av.h"
+#include <zephyr.h>
+#include "objects.h"
 
 #ifndef MAX_ANALOG_VALUES
 #define MAX_ANALOG_VALUES 4
@@ -62,6 +64,15 @@ static const int Analog_Value_Properties_Optional[] = { PROP_DESCRIPTION,
     -1 };
 
 static const int Analog_Value_Properties_Proprietary[] = { -1 };
+
+BACNET_OBJECT_TABLE(Analog_Value_object, OBJECT_ANALOG_VALUE,
+    Analog_Value_Init, Analog_Value_Count,
+    Analog_Value_Index_To_Instance, Analog_Value_Valid_Instance,
+    Analog_Value_Object_Name, Analog_Value_Read_Property,
+    Analog_Value_Write_Property, Analog_Value_Property_Lists,
+    NULL /* ReadRangeInfo */, NULL /* Iterator */,
+    Analog_Value_Encode_Value_List, Analog_Value_Change_Of_Value,
+    Analog_Value_Change_Of_Value_Clear, Analog_Value_Intrinsic_Reporting );
 
 /**
  * Initialize the pointers for the required, the optional and the properitary

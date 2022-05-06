@@ -40,6 +40,8 @@
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/basic/object/ai.h"
+#include <zephyr.h>
+#include "objects.h"
 
 #if PRINT_ENABLED
 #include <stdio.h>
@@ -69,6 +71,15 @@ static const int Properties_Optional[] = { PROP_DESCRIPTION, PROP_RELIABILITY,
     -1 };
 
 static const int Properties_Proprietary[] = { 9997, 9998, 9999, -1 };
+
+BACNET_OBJECT_TABLE(Analog_Input_object, OBJECT_ANALOG_INPUT,
+    Analog_Input_Init, Analog_Input_Count,
+    Analog_Input_Index_To_Instance, Analog_Input_Valid_Instance,
+    Analog_Input_Object_Name, Analog_Input_Read_Property,
+    Analog_Input_Write_Property, Analog_Input_Property_Lists,
+    NULL /* ReadRangeInfo */, NULL /* Iterator */,
+    Analog_Input_Encode_Value_List, Analog_Input_Change_Of_Value,
+    Analog_Input_Change_Of_Value_Clear, Analog_Input_Intrinsic_Reporting );
 
 void Analog_Input_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)

@@ -316,33 +316,10 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_rights.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_user.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/acc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/ao.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/channel.c
     #${BACNETSTACK_SRC}/bacnet/basic/object/client/device-client.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/command.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/csv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/device.c
     $<$<BOOL:${CONFIG_BAC_ROUTING}>:${BACNETSTACK_SRC}/bacnet/basic/object/gateway/gw_device.c>
-    ${BACNETSTACK_SRC}/bacnet/basic/object/iv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lo.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lsp.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/ms-input.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/mso.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/nc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/netport.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/objects.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf_a.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf.c
@@ -400,10 +377,35 @@ list(
       $<$<BOOL:${CONFIG_BACDL_ETHERNET}>:${BACNETSTACK_PORT}/ethernet.c>
       ${BACNETSTACK_PORT}/main.c
       ${BACNETSTACK_PORT}/mstimer-init.c
-      ${BACNETSTACK_PORT}/ai.c
-      ${BACNETSTACK_PORT}/av.c
       ${BACNETSTACK_PORT}/event.c
+      ${BACNETSTACK_PORT}/acc.c
+      ${BACNETSTACK_PORT}/ai.c
+      ${BACNETSTACK_PORT}/ao.c
+      ${BACNETSTACK_PORT}/av.c
+      ${BACNETSTACK_PORT}/bacfile.c
+      ${BACNETSTACK_PORT}/bi.c
+      ${BACNETSTACK_PORT}/bo.c
+      ${BACNETSTACK_PORT}/bv.c
+      ${BACNETSTACK_PORT}/channel.c
+      ${BACNETSTACK_PORT}/command.c
+      ${BACNETSTACK_PORT}/csv.c
+      ${BACNETSTACK_PORT}/device.c
+      ${BACNETSTACK_PORT}/iv.c
+      ${BACNETSTACK_PORT}/lc.c
+      ${BACNETSTACK_PORT}/lo.c
+      ${BACNETSTACK_PORT}/lsp.c
+      ${BACNETSTACK_PORT}/ms-input.c
+      ${BACNETSTACK_PORT}/mso.c
+      ${BACNETSTACK_PORT}/msv.c
+      ${BACNETSTACK_PORT}/nc.c
+      ${BACNETSTACK_PORT}/netport.c
+      ${BACNETSTACK_PORT}/osv.c
+      ${BACNETSTACK_PORT}/piv.c
+      ${BACNETSTACK_PORT}/schedule.c
+      ${BACNETSTACK_PORT}/trendlog.c
   )
+
+zephyr_linker_sources(DATA_SECTIONS ${BACNETSTACK_PORT}/objects.ld)
 
 
 add_subdirectory(subsys)
