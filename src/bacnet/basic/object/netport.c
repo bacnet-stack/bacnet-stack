@@ -1399,6 +1399,7 @@ bool Network_Port_BBMD_FD_Table_Set(
     return status;
 }
 
+#if defined(BACDL_BIP) && BBMD_ENABLED
 /**
  * For a given object instance-number, gets the ip-address and port
  * Note: depends on Network_Type being set for this object
@@ -1431,6 +1432,7 @@ static bool Network_Port_Remote_BBMD_IP_Address_And_Port(
 
     return status;
 }
+#endif
 
 /**
  * For a given object instance-number, loads the ip-address into
@@ -2443,6 +2445,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
+            (void)apdu_size;
             break;
     }
 
