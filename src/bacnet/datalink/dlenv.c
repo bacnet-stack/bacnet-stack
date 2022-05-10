@@ -271,19 +271,8 @@ static void dlenv_network_port_init(void)
     bvlc_address_get(&BBMD_Address, &addr0, &addr1, &addr2, &addr3);
     Network_Port_Remote_BBMD_IP_Address_Set(instance,
         addr0, addr1, addr2, addr3);
-    Network_Port_BIP_Remote_BBMD_Port_Set(instance, BBMD_Address.port);
-    Network_Port_BIP_Remote_BBMD_Lifetime_Set(instance, BBMD_TTL_Seconds);
-#endif
-}
-
-/** Set the Lease Time (Time-to-Live) for BBMD registration.
- * Default if not set is 60000 (1000 minutes).
- * @param ttl_secs - The Lease Time, in seconds.
- */
-void dlenv_bbmd_ttl_set(uint16_t ttl_secs)
-{
-    BBMD_TTL_Seconds = ttl_secs;
-
+    Network_Port_Remote_BBMD_BIP_Port_Set(instance, BBMD_Address.port);
+    Network_Port_Remote_BBMD_BIP_Lifetime_Set(instance, BBMD_TTL_Seconds);
 #endif
     /* common NP data */
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);

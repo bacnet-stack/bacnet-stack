@@ -1399,7 +1399,9 @@ typedef enum {
     /* BACnetReadAccessSpecification */
     BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,
     /* BACnetLightingCommand */
-    BACNET_APPLICATION_TAG_LIGHTING_COMMAND
+    BACNET_APPLICATION_TAG_LIGHTING_COMMAND,
+    /* BACnetHostNPort */
+    BACNET_APPLICATION_TAG_HOST_N_PORT
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */

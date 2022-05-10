@@ -2643,7 +2643,6 @@ int bvlc_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
 {
     int len = 0;
     int apdu_len = 0;
-    int entry_size = 0;
     BACNET_OCTET_STRING octet_string;
 
     if (apdu && (apdu_size >= 9) && ip_address) {

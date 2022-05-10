@@ -270,14 +270,14 @@ extern "C" {
     uint16_t Network_Port_Remote_BBMD_BIP_Port(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
-    bool Network_Port_BIP_Remote_BBMD_Port_Set(
+    bool Network_Port_Remote_BBMD_BIP_Port_Set(
         uint32_t object_instance,
         uint16_t value);
     BACNET_STACK_EXPORT
-    uint16_t Network_Port_BIP_Remote_BBMD_Lifetime(
+    uint16_t Network_Port_Remote_BBMD_BIP_Lifetime(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
-    bool Network_Port_BIP_Remote_BBMD_Lifetime_Set(
+    bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
         uint32_t object_instance,
         uint16_t value);
 

@@ -1564,7 +1564,7 @@ bool Network_Port_Remote_BBMD_BIP_Port_Set(uint32_t object_instance,
  *
  * @return BBMD lifetime seconds
  */
-uint16_t Network_Port_BIP_Remote_BBMD_Lifetime(uint32_t object_instance)
+uint16_t Network_Port_Remote_BBMD_BIP_Lifetime(uint32_t object_instance)
 {
     uint16_t value = 0;
     unsigned index = 0;
@@ -1588,7 +1588,7 @@ uint16_t Network_Port_BIP_Remote_BBMD_Lifetime(uint32_t object_instance)
  *
  * @return  true if values are within range and property is set.
  */
-bool Network_Port_BIP_Remote_BBMD_Lifetime_Set(uint32_t object_instance,
+bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(uint32_t object_instance,
     uint16_t value)
 {
     bool status = false;
@@ -2359,14 +2359,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
             apdu_len = encode_application_unsigned(
-                &apdu[0], Network_Port_BIP_Remote_BBMD_Lifetime(
+                &apdu[0], Network_Port_Remote_BBMD_BIP_Lifetime(
                 rpdata->object_instance));
             break;
 #endif
         case PROP_BACNET_IPV6_MODE:
             apdu_len = encode_application_enumerated(
-                &apdu[0], Network_Port_BIP_Remote_BBMD_Lifetime(
-                rpdata->object_instance));
+                &apdu[0], Network_Port_BIP6_Mode(rpdata->object_instance));
             break;
         case PROP_IPV6_ADDRESS:
             Network_Port_IPv6_Address(rpdata->object_instance, &octet_string);

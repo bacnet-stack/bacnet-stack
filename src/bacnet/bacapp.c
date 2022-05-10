@@ -51,6 +51,9 @@
 #include "bacnet/datetime.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/lighting.h"
+#if defined(BACAPP_HOST_N_PORT)
+#include "bacnet/datalink/datalink.h"
+#endif
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
@@ -148,6 +151,13 @@ int bacapp_encode_application_data(
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 apdu_len = lighting_command_encode(
                     &apdu[0], &value->type.Lighting_Command);
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                apdu_len = bvlc_foreign_device_bbmd_host_address_encode(
+                    &apdu[0], MAX_APDU, &value->type.IP_Address);
+
                 break;
 #endif
 #if defined(BACAPP_DEVICE_OBJECT_PROP_REF)
@@ -271,6 +281,14 @@ int bacapp_decode_data(uint8_t *apdu,
                 len = lighting_command_decode(
                     &apdu[0], len_value_type, &value->type.Lighting_Command);
                 break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT: {
+                BACNET_ERROR_CODE error_code;
+                len = bvlc_foreign_device_bbmd_host_address_decode(
+                    &apdu[0], len_value_type, &error_code,
+                    &value->type.IP_Address);
+            } break;
 #endif
             default:
                 break;
@@ -565,6 +583,16 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 apdu_len = lighting_command_encode_context(&apdu[0],
                     context_tag_number, &value->type.Lighting_Command);
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                apdu_len = encode_opening_tag(&apdu[0], context_tag_number);
+                apdu_len += bvlc_foreign_device_bbmd_host_address_encode(
+                    &apdu[apdu_len], MAX_APDU-apdu_len,
+                    &value->type.IP_Address);
+                apdu_len += encode_closing_tag(&apdu[apdu_len],
+                    context_tag_number);
                 break;
 #endif
             default:
@@ -917,6 +945,13 @@ bool bacapp_copy(BACNET_APPLICATION_DATA_VALUE *dest_value,
                 status =
                     lighting_command_copy(&dest_value->type.Lighting_Command,
                         &src_value->type.Lighting_Command);
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                status =
+                    bvlc_address_copy(&dest_value->type.IP_Address,
+                        &src_value->type.IP_Address);
                 break;
 #endif
             default:
@@ -1437,6 +1472,16 @@ int bacapp_snprintf_value(
                 ret_val = str_len - rem_str_len;
                 break;
 #endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                ret_val = snprintf(str, str_len, "%u.%u.%u.%u:%u",
+                    (unsigned)value->type.IP_Address.address[0],
+                    (unsigned)value->type.IP_Address.address[1],
+                    (unsigned)value->type.IP_Address.address[2],
+                    (unsigned)value->type.IP_Address.address[3],
+                    (unsigned)value->type.IP_Address.port);
+                break;
+#endif
             default:
                 ret_val = 0;
                 break;
@@ -1503,6 +1548,9 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
     unsigned long unsigned_long_value = 0;
     double double_value = 0.0;
     int count = 0;
+#if defined(BACAPP_HOST_N_PORT)
+    unsigned a[4] = { 0 }, p = 0;
+#endif
 
     if (value && (tag_number < MAX_BACNET_APPLICATION_TAG)) {
         status = true;
@@ -1619,6 +1667,26 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 #if defined(BACAPP_LIGHTING_COMMAND)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 /* FIXME: add parsing for lighting command */
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                count = sscanf(argv, "%3u.%3u.%3u.%3u:%5u",
+                    &a[0], &a[1], &a[2], &a[3], &p);
+                if ((count == 4) || (count == 5)) {
+                    value->type.IP_Address.address[0] = a[0];
+                    value->type.IP_Address.address[1] = a[1];
+                    value->type.IP_Address.address[2] = a[2];
+                    value->type.IP_Address.address[3] = a[3];
+                    if (count == 4) {
+                        value->type.IP_Address.port = 0xBAC0U;
+                    } else {
+                        value->type.IP_Address.port = (uint16_t)p;
+                    }
+                    status = true;
+                } else {
+                    status = false;
+                }
                 break;
 #endif
             default:
@@ -1796,6 +1864,13 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 status = lighting_command_same(&value->type.Lighting_Command,
                     &test_value->type.Lighting_Command);
+                break;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                status =
+                    !bvlc_address_different(&value->type.IP_Address,
+                        &value->type.IP_Address);
                 break;
 #endif
             default:

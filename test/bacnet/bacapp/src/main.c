@@ -148,6 +148,9 @@ static void test_bacapp_copy(void)
         #if defined(BACAPP_LIGHTING_COMMAND)
             BACNET_APPLICATION_TAG_LIGHTING_COMMAND,
         #endif
+        #if defined(BACAPP_HOST_N_PORT)
+            BACNET_APPLICATION_TAG_HOST_N_PORT,
+        #endif
     };
     for (i = 0; i < sizeof(tags)/sizeof(tags[0]); ++i) {
         BACNET_APPLICATION_TAG tag = tags[i];
