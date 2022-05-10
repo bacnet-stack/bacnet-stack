@@ -254,6 +254,7 @@ static void dlenv_network_port_init(void)
 {
     const uint32_t instance = 1;
     BACNET_IP_ADDRESS addr = { 0 };
+    uint8_t addr0, addr1, addr2, addr3;
 
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IP Port");
@@ -266,6 +267,12 @@ static void dlenv_network_port_init(void)
 #if BBMD_ENABLED
     Network_Port_BBMD_BD_Table_Set(instance, bvlc_bdt_list());
     Network_Port_BBMD_FD_Table_Set(instance, bvlc_fdt_list());
+    /* foreign device registration */
+    bvlc_address_get(&BBMD_Address, &addr0, &addr1, &addr2, &addr3);
+    Network_Port_Remote_BBMD_IP_Address_Set(instance,
+        addr0, addr1, addr2, addr3);
+    Network_Port_Remote_BBMD_BIP_Port_Set(instance, BBMD_Address.port);
+    Network_Port_Remote_BBMD_BIP_Lifetime_Set(instance, BBMD_TTL_Seconds);
 #endif
     /* common NP data */
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);

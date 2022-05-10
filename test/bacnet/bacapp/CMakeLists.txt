@@ -24,6 +24,7 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	PRINT_ENABLED=1
+	BACAPP_HOST_N_PORT=1
 	)
 
 include_directories(
@@ -46,6 +47,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/lighting.c
 	${SRC_DIR}/bacnet/indtext.c
+	${SRC_DIR}/bacnet/datalink/bvlc.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

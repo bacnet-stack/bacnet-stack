@@ -38,7 +38,9 @@
 #if defined (BACAPP_DEVICE_OBJECT_PROP_REF)
 #include "bacnet/bacdevobjpropref.h"
 #endif
-
+#if defined(BACAPP_HOST_N_PORT)
+#include "bacnet/datalink/datalink.h"
+#endif
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -85,6 +87,9 @@ typedef struct BACnet_Application_Data_Value {
 #endif
 #if defined (BACAPP_LIGHTING_COMMAND)
         BACNET_LIGHTING_COMMAND Lighting_Command;
+#endif
+#if defined(BACAPP_HOST_N_PORT)
+        BACNET_IP_ADDRESS IP_Address;
 #endif
 #if defined (BACAPP_DEVICE_OBJECT_PROP_REF)
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE

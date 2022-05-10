@@ -22,6 +22,12 @@ test:
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest $(CTEST_OPTIONS)
 	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) lcov
 
+.PHONY: retest
+retest:
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . && cd ..
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest $(CTEST_OPTIONS)
+	[ -d $(BUILD_DIR) ] && $(MAKE) -C $(BUILD_DIR) lcov
+
 .PHONY: report
 report:
 	[ -d $(BUILD_DIR) ] && cat $(BUILD_DIR)/Testing/Temporary/LastTest*.log

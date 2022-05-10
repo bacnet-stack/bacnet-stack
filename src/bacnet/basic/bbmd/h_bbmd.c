@@ -75,6 +75,8 @@ static BACNET_IP_ADDRESS BVLC_Global_Address;
 static bool BVLC_NAT_Handling = false;
 /** if we are a foreign device, store the remote BBMD address/port here */
 static BACNET_IP_ADDRESS Remote_BBMD;
+/** if we are a foreign device, store the Time-To-Live Seconds here */
+static uint16_t Remote_BBMD_TTL_Seconds;
 #if BBMD_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC_Buffer[BIP_MPDU_MAX];
@@ -1162,10 +1164,34 @@ int bvlc_register_with_bbmd(BACNET_IP_ADDRESS *bbmd_addr, uint16_t ttl_seconds)
     /* Store the BBMD address and port so that we won't broadcast locally. */
     /* We are a foreign device! */
     bvlc_address_copy(&Remote_BBMD, bbmd_addr);
+    Remote_BBMD_TTL_Seconds = ttl_seconds;
     BVLC_Buffer_Len = bvlc_encode_register_foreign_device(
         &BVLC_Buffer[0], sizeof(BVLC_Buffer), ttl_seconds);
 
     return bip_send_mpdu(bbmd_addr, &BVLC_Buffer[0], BVLC_Buffer_Len);
+}
+
+/** Get the remote BBMD address that was used to Register as a foreign device
+ * @param bbmd_addr - IPv4 address of BBMD with which to register
+ * @return Positive number (of bytes sent) on success,
+ *         0 if no registration request is sent, or
+ *         -1 if registration fails.
+ */
+void bvlc_remote_bbmd_address(
+    BACNET_IP_ADDRESS *bbmd_addr)
+{
+    bvlc_address_copy(bbmd_addr, &Remote_BBMD);
+}
+
+/**
+ * @brief Get the remote BBMD time-to-live seconds used to
+ *  Register Foreign Device
+ * @return Lease time in seconds to use when registering.
+ */
+uint16_t bvlc_remote_bbmd_lifetime(
+    void)
+{
+    return Remote_BBMD_TTL_Seconds;
 }
 #endif
 

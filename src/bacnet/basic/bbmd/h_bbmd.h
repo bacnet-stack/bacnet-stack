@@ -99,6 +99,12 @@ int bvlc_bbmd_read_fdt(BACNET_IP_ADDRESS *bbmd_addr);
 BACNET_STACK_EXPORT
 int bvlc_register_with_bbmd(
     BACNET_IP_ADDRESS *address, uint16_t time_to_live_seconds);
+BACNET_STACK_EXPORT
+void bvlc_remote_bbmd_address(
+    BACNET_IP_ADDRESS *address);
+BACNET_STACK_EXPORT
+uint16_t bvlc_remote_bbmd_lifetime(
+    void);
 
 /* Local interface to manage BBMD.
  * The interface user needs to handle mutual exclusion if needed i.e.
