@@ -2620,3 +2620,156 @@ const char *bvlc_result_code_name(uint16_t result_code)
 
     return name;
 }
+
+/**
+ * @brief Encode a BBMD Address for Network Port object
+ *
+ *  BACnetHostNPort ::= SEQUENCE {
+ *      host [0] BACnetHostAddress,
+ *          BACnetHostAddress ::= CHOICE {
+ *              ip-address [1] OCTET STRING, -- 4 octets for B/IP
+ *          }
+ *      port [1] Unsigned16
+ *  }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer size
+ * @param ip_address - IP address and port number
+ * @return length of the APDU buffer
+ */
+int bvlc_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_ADDRESS *ip_address)
+{
+    int len = 0;
+    int apdu_len = 0;
+    int entry_size = 0;
+    BACNET_OCTET_STRING octet_string;
+
+    if (apdu && (apdu_size >= 9) && ip_address) {
+        /*  host [0] BACnetHostAddress - opening */
+        len = encode_opening_tag(&apdu[apdu_len], 0);
+        apdu_len += len;
+        /* CHOICE - ip-address [1] OCTET STRING */
+        octetstring_init(&octet_string,
+            &ip_address->address[0], IP_ADDRESS_MAX);
+        len = encode_context_octet_string(&apdu[apdu_len], 1,
+            &octet_string);
+        apdu_len += len;
+        /*  host [0] BACnetHostAddress - closing */
+        len = encode_closing_tag(&apdu[apdu_len], 0);
+        apdu_len += len;
+        /* port [1] Unsigned16 */
+        len = encode_context_unsigned(
+            &apdu[apdu_len], 1, ip_address->port);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode the Broadcast-Distribution-Table for Network Port object
+ *
+ *  BACnetHostNPort ::= SEQUENCE {
+ *      host [0] BACnetHostAddress,
+ *          BACnetHostAddress ::= CHOICE {
+ *              ip-address [1] OCTET STRING, -- 4 octets for B/IP
+ *          }
+ *      port [1] Unsigned16
+ *  }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_len - the APDU buffer length
+ * @param ip_address - IP address and port number
+ * @return length of the APDU buffer decoded, or ERROR, REJECT, or ABORT
+ */
+int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
+    uint16_t apdu_len,
+    BACNET_ERROR_CODE *error_code,
+    BACNET_IP_ADDRESS *ip_address)
+{
+    int len = 0;
+    BACNET_OCTET_STRING octet_string = { 0 };
+    uint8_t tag_number = 0;
+    uint32_t len_value_type = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+
+    /* default reject code */
+    if (error_code) {
+        *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+    }
+    /* check for value pointers */
+    if ((apdu_len == 0) || (!apdu)) {
+        return BACNET_STATUS_REJECT;
+    }
+    /* host [0] BACnetHostAddress - opening */
+    if (!decode_is_opening_tag_number(&apdu[len++], 0)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    if (len > apdu_len) {
+        return BACNET_STATUS_REJECT;
+    }
+    /* CHOICE - ip-address [1] OCTET STRING */
+    len += decode_tag_number_and_value(
+        &apdu[len], &tag_number, &len_value_type);
+    if (tag_number != 1) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    len += decode_octet_string(&apdu[len], len_value_type,
+        &octet_string);
+    if (len > apdu_len) {
+        return BACNET_STATUS_REJECT;
+    }
+    (void)octetstring_copy_value(&ip_address->address[0],
+        IP_ADDRESS_MAX, &octet_string);
+    /*  host [0] BACnetHostAddress - closing */
+    if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    if (len > apdu_len) {
+        return BACNET_STATUS_REJECT;
+    }
+    /* port [1] Unsigned16 */
+    len += decode_tag_number_and_value(
+        &apdu[len], &tag_number, &len_value_type);
+    if (tag_number != 1) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    len += decode_unsigned(&apdu[len], len_value_type, &unsigned_value);
+    if (len > apdu_len) {
+        return BACNET_STATUS_REJECT;
+    }
+    if (unsigned_value <= UINT16_MAX) {
+        ip_address->port = unsigned_value;
+    } else {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    /* bbmd-address [0] BACnetHostNPort - closing */
+    if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
+        if (error_code) {
+            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
+        }
+        return BACNET_STATUS_REJECT;
+    }
+    if (len > apdu_len) {
+        return BACNET_STATUS_REJECT;
+    }
+
+    return apdu_len;
+}
