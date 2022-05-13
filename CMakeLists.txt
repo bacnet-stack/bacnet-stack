@@ -30,6 +30,11 @@ option(
   OFF)
 
 option(
+  BACNET_BUILD_BACPOLL_APP
+  "compile the bacpoll app"
+  ON)
+
+option(
   BACDL_ETHERNET
   "compile with ethernet support"
   OFF)
@@ -558,16 +563,17 @@ if(BACNET_STACK_BUILD_APPS)
     target_link_libraries(piface PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_PIFACE_APP)
 
-  # add_executable(
-  #   ptransfer
-  #   apps/ptransfer/main.c
-  #   apps/ptransfer/h_pt_a.h
-  #   apps/ptransfer/h_pt_a.c
-  #   apps/ptransfer/h_pt.h
-  #   apps/ptransfer/h_pt.c
-  #   apps/ptransfer/s_ptransfer.h
-  #   apps/ptransfer/s_ptransfer.c)
-  # target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
+  if(BACNET_BUILD_BACPOLL_APP)
+    add_executable(bacpoll
+        apps/server-client/main.c
+        apps/server-client/main.c
+        src/bacnet/basic/objects/client/device-client.c
+        src/bacnet/basic/objects/netport.c
+        src/bacnet/basic/client/bacnet.c
+        src/bacnet/basic/client/bac-data.c
+        src/bacnet/basic/client/bac-rw.c)
+    target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_BACPOLL_APP)
 
   if(NOT BACDL_ETHERNET)
     add_executable(readbdt apps/readbdt/main.c)
