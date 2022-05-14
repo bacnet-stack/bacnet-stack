@@ -11,7 +11,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/netport.c \
 	$(BACNET_CLIENT_DIR)/bac-data.c \
 	$(BACNET_CLIENT_DIR)/bac-rw.c \
-	$(BACNET_CLIENT_DIR)/bacnet.c
+	$(BACNET_CLIENT_DIR)/bac-task.c
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)

@@ -2,7 +2,7 @@
  * @file
  * @author Steve Karg
  * @date 2013
- * @brief High level BACnet handling
+ * @brief High level BACnet Task handling
  *
  * SPDX-License-Identifier: MIT
  */
@@ -33,9 +33,9 @@
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/object/device.h"
 /* us */
-#include "bac-rw.h"
-#include "bac-data.h"
-#include "bacnet.h"
+#include "bacnet/basic/client/bac-rw.h"
+#include "bacnet/basic/client/bac-data.h"
+#include "bacnet/basic/client/bac-task.h"
 
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU];
@@ -83,7 +83,7 @@ void bacnet_task(void)
 /**
  * @brief Initialize the handlers we will utilize.
  */
-void bacnet_init(void)
+void bacnet_task_init(void)
 {
     Device_Init(NULL);
     /* we need to handle who-is to support dynamic device binding */

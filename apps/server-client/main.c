@@ -19,7 +19,7 @@
 #include "bacnet/version.h"
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/mstimer.h"
-#include "bacnet/basic/client/bacnet.h"
+#include "bacnet/basic/client/bac-task.h"
 #include "bacnet/basic/client/bac-data.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/datalink/datalink.h"
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
     fflush(stdout);
     dlenv_init();
     atexit(datalink_cleanup);
-    bacnet_init();
+    bacnet_task_init();
     bacnet_data_poll_seconds_set(print_seconds);
     if (!bacnet_data_object_add(target_device_object_instance,
             target_object_type, target_object_instance)) {
