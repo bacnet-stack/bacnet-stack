@@ -567,9 +567,9 @@ if(BACNET_STACK_BUILD_APPS)
     add_executable(bacpoll
         apps/server-client/main.c
         apps/server-client/main.c
-        src/bacnet/basic/objects/client/device-client.c
-        src/bacnet/basic/objects/netport.c
-        src/bacnet/basic/client/bacnet.c
+        src/bacnet/basic/object/client/device-client.c
+        src/bacnet/basic/object/netport.c
+        src/bacnet/basic/client/bac-task.c
         src/bacnet/basic/client/bac-data.c
         src/bacnet/basic/client/bac-rw.c)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
