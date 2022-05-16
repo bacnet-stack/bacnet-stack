@@ -68,6 +68,7 @@ extern "C" {
         /* AckNotification information */
         ACK_NOTIFICATION Ack_notify_data;
 #endif
+        uint32_t instance;
     } ANALOG_INPUT_DESCR;
 
     BACNET_STACK_EXPORT

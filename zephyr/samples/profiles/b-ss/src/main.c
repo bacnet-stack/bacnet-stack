@@ -30,6 +30,7 @@
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
+#include "objects.h"
 
 /* Logging module registration is already done in ports/zephyr/main.c */
 #include <logging/log.h>
@@ -37,6 +38,12 @@ LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+
+AI_DESCR_STRUCT(ai_descr1, 1);
+AI_DESCR_STRUCT(ai_descr2, 5);
+AI_DESCR_STRUCT(ai_descr3, 15);
+AI_DESCR_STRUCT(ai_descr4, 9999);
+
 
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler

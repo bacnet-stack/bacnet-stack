@@ -32,6 +32,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/object/ai.h"
 
 #define BACNET_OBJECT_TABLE(table_name, _type, _init, _count, \
                             _index_to_instance, _valid_instance, _object_name, \
@@ -55,5 +56,12 @@ STRUCT_SECTION_ITERABLE(object_functions, table_name) = {   \
     .Object_COV_Clear = _COV_clear,                         \
     .Object_Intrinsic_Reporting = _intrinsic_reporting      \
 }
+
+#define AI_DESCR_STRUCT(table_name, _instance)              \
+STRUCT_SECTION_ITERABLE(analog_input_descr, table_name) = { \
+    .instance = _instance                                   \
+}
+
+
 
 #endif /* OBJECTS_H */
