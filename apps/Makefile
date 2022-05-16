@@ -135,7 +135,8 @@ endif
 
 SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
-	writepropm uptransfer getevent uevent abort error event ack-alarm
+	writepropm uptransfer getevent uevent abort error event ack-alarm \
+	server-client
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 	SUBDIRS += whoisrouter iamrouter initrouter
@@ -258,6 +259,10 @@ scov: $(BACNET_LIB_TARGET)
 
 .PHONY: server
 server: $(BACNET_LIB_TARGET)
+	$(MAKE) -s -b -C $@
+
+.PHONY: server-client
+server-client: $(BACNET_LIB_TARGET)
 	$(MAKE) -s -b -C $@
 
 .PHONY: timesync
