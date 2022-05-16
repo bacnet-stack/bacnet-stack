@@ -566,9 +566,6 @@ if(BACNET_STACK_BUILD_APPS)
   if(BACNET_BUILD_BACPOLL_APP)
     add_executable(bacpoll
         apps/server-client/main.c
-        apps/server-client/main.c
-        src/bacnet/basic/object/client/device-client.c
-        src/bacnet/basic/object/netport.c
         src/bacnet/basic/client/bac-task.c
         src/bacnet/basic/client/bac-data.c
         src/bacnet/basic/client/bac-rw.c)
