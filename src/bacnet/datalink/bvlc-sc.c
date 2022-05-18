@@ -1,17 +1,20 @@
 #include "bacnet/datalink/bvlc-sc.h"
 
-static bool bsc_bvlc_validate_options_headers(uint8_t   *option_headers,
-                                              uint16_t   option_headers_max_len,
-                                              uint16_t  *out_option_headers_real_length,
-                                              uint8_t  **out_last_option_marker_ptr,
-                                              uint16_t   *out_option_header_num )
+static bool bsc_bvlc_validate_options_headers(uint8_t            *option_headers,
+                                              uint16_t            option_headers_max_len,
+                                              uint16_t           *out_option_headers_real_length,
+                                              uint8_t           **out_last_option_marker_ptr,
+                                              uint16_t           *out_option_header_num,
+                                              BACNET_ERROR_CODE  *error,
+                                              BACNET_ERROR_CLASS *class)
 {
   int options_len = 0;
   uint8_t flags = 0;
   uint8_t option;
   uint16_t hdr_len;
   
-  if(!option_headers_max_len || !out_option_headers_real_length) {
+  if(!option_headers_max_len || !out_option_headers_real_length ||
+     !error || !class) {
     return false;
   }
 
@@ -30,12 +33,16 @@ static bool bsc_bvlc_validate_options_headers(uint8_t   *option_headers,
 
     if(option != BSC_BVLC_OPTION_TYPE_SECURE_PATH && 
        option != BSC_BVLC_OPTION_TYPE_PROPRIETARY ) {
+      *error = ERROR_CODE_HEADER_ENCODING_ERROR;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
 
     if(option == BSC_BVLC_OPTION_TYPE_SECURE_PATH) {
       if(flags & BSC_BVLC_HEADER_DATA) {
         /* securepath option header does not have data header according bacnet stadard */
+        *error = ERROR_CODE_HEADER_ENCODING_ERROR;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
       options_len++;
@@ -43,10 +50,15 @@ static bool bsc_bvlc_validate_options_headers(uint8_t   *option_headers,
     else if (option == BSC_BVLC_OPTION_TYPE_PROPRIETARY) {
       if(!(flags & BSC_BVLC_HEADER_DATA)) {
         /* proprietary option must have header data */
+        *error = ERROR_CODE_HEADER_ENCODING_ERROR;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
       options_len++;
       if(options_len + 2 > option_headers_max_len) {
+        /* not enough data to process header that means that probably message is incomplete */
+        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
       memcpy(&hdr_len, &option_headers[options_len], 2);
@@ -55,6 +67,9 @@ static bool bsc_bvlc_validate_options_headers(uint8_t   *option_headers,
     }
 
     if(options_len > option_headers_max_len) {
+      /* not enough data to process header that means that probably message is incomplete */
+      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
 
@@ -92,6 +107,8 @@ static uint16_t bsc_bvlc_add_sc_option(bool to_data_option,
   uint16_t options_len = 0;
   uint8_t* last_option_marker_ptr = NULL;
   uint8_t mask;
+  BACNET_ERROR_CODE  error;
+  BACNET_ERROR_CLASS class;
 
   if(!blvc_message_len || !sc_option_len || !outbuf_len ||
      !outbuf || !blvc_message || !sc_option ) {
@@ -122,7 +139,8 @@ static uint16_t bsc_bvlc_add_sc_option(bool to_data_option,
 
   /* ensure that user wants to add valid option */
 
-  if(!bsc_bvlc_validate_options_headers(sc_option, sc_option_len, &options_len, NULL, NULL)) {
+  if(!bsc_bvlc_validate_options_headers(sc_option, sc_option_len, &options_len,
+                                        NULL, NULL, &error, &class)) {
     return 0;
   }
 
@@ -150,7 +168,9 @@ static uint16_t bsc_bvlc_add_sc_option(bool to_data_option,
                                              blvc_message_len - offs, 
                                             &options_len,
                                             &last_option_marker_ptr,
-                                            NULL)) {
+                                            NULL,
+                                            &error,
+                                            &class)) {
         return 0;
       }
       offs += options_len;
@@ -173,7 +193,9 @@ static uint16_t bsc_bvlc_add_sc_option(bool to_data_option,
                                            blvc_message_len - offs, 
                                           &options_len,
                                           &last_option_marker_ptr,
-                                           NULL)) {
+                                           NULL,
+                                           &error,
+                                           &class)) {
       return 0;
     }
     memmove(&outbuf[0], &blvc_message[0], offs);
@@ -277,8 +299,8 @@ uint16_t bsc_bvlc_encode_secure_path_option(uint8_t* outbuf,
  * @param out_next_option - pointer to next option list item to be decoded, can be NULL
  *                          if no any option items left.
  *
- * @return negative value in a case if decoding failed, otherwise returns
- *         length value of decoded option > 0 in bytes.
+ * @return 0 in a case if decoding failed, otherwise returns
+ *         length value of decoded option in bytes.
  *
  * Typically code for parsing of option list looks like following:
  *
@@ -295,11 +317,11 @@ uint16_t bsc_bvlc_encode_secure_path_option(uint8_t* outbuf,
  *
  */
 
-static int bsc_bvlc_decode_option_hdr(uint8_t                     *in_options_list,
-                                      uint16_t                     in_option_list_len,
-                                      bsc_bvlc_hdr_option_type_t  *out_opt_type,
-                                      bool                        *out_must_understand,
-                                      uint8_t                    **out_next_option)
+static unsigned int bsc_bvlc_decode_option_hdr(uint8_t                     *in_options_list,
+                                               uint16_t                     in_option_list_len,
+                                               bsc_bvlc_hdr_option_type_t  *out_opt_type,
+                                               bool                        *out_must_understand,
+                                               uint8_t                    **out_next_option)
 {
   uint16_t len;
 
@@ -324,7 +346,7 @@ static int bsc_bvlc_decode_option_hdr(uint8_t                     *in_options_li
     return hdr_len;
   }
   else {
-    return -1;
+    return (unsigned int) 0;
   }
 }
 
@@ -354,11 +376,6 @@ static bool bsc_bvlc_decode_proprietary_option(uint8_t   *in_options_list,
      !out_proprietary_option_type ||
      !out_proprietary_data ||
      !out_proprietary_data_len) {
-    return false;
-  }
-
-  if(!bsc_bvlc_validate_options_headers(in_options_list, 
-                                        in_options_list_len, &len, NULL, NULL)) {
     return false;
   }
 
@@ -504,26 +521,31 @@ unsigned int bsc_bvlc_encode_result(uint8_t        *out_buf,
 
 static bool bsc_bvlc_decode_result(bsc_bvlc_unpacked_data_t *payload,
                                    uint8_t                  *packed_payload,
-                                   uint16_t                  packed_payload_len)
+                                   uint16_t                  packed_payload_len,
+                                   BACNET_ERROR_CODE        *error,
+                                   BACNET_ERROR_CLASS       *class
+                                   )
 {
   if(packed_payload_len < 2) {
+    *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+    *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
   memset(&payload->result, 0, sizeof(payload->result));
 
   if(packed_payload[0] > (uint8_t) BSC_BVLC_PROPRIETARY_MESSAGE) {
     /* unknown BVLC function */
+    *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+    *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
 
   payload->result.bvlc_function = packed_payload[0];
   payload->result.result = packed_payload[1];
-  if(!packed_payload[1]) {
-    return false;
-  }
-
-  if(packed_payload[1] != 1) {
+  if(packed_payload[1] != 0 && packed_payload[2] != 1) {
     /* result code must be 1 or 0 */
+    *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+    *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
 
@@ -631,13 +653,19 @@ unsigned int bsc_bvlc_encode_advertisiment(uint8_t                              
 
 static bool bsc_bvlc_decode_advertisiment(bsc_bvlc_unpacked_data_t *payload,
                                           uint8_t                  *packed_payload,
-                                          uint16_t                  packed_payload_len)
+                                          uint16_t                  packed_payload_len,
+                                          BACNET_ERROR_CODE        *error,
+                                          BACNET_ERROR_CLASS       *class)
 {
   if(packed_payload[0] > BSC_BVLC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED) {
+    *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+    *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
 
   if(packed_payload[1] > BSC_BVLC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED) {
+    *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+    *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
   payload->advertisiment.hub_status = packed_payload[0];
@@ -698,9 +726,18 @@ unsigned int bsc_bvlc_encode_connect_request(uint8_t        *out_buf,
 
 static bool bsc_bvlc_decode_connect_request(bsc_bvlc_unpacked_data_t *payload,
                                             uint8_t                  *packed_payload,
-                                            uint16_t                  packed_payload_len)
+                                            uint16_t                  packed_payload_len,
+                                            BACNET_ERROR_CODE        *error,
+                                            BACNET_ERROR_CLASS       *class)
 {
-  if(packed_payload_len != 26) {
+  if(packed_payload_len < 26) {
+    *error = ERROR_CODE_PAYLOAD_EXPECTED;
+    *class = ERROR_CLASS_COMMUNICATION;
+    return false;
+  }
+  else if(packed_payload_len > 26) {
+    *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+    *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
 
@@ -752,9 +789,18 @@ unsigned int bsc_bvlc_encode_connect_accept(uint8_t        *out_buf,
 
 static bool bsc_bvlc_decode_connect_accept(bsc_bvlc_unpacked_data_t *payload,
                                           uint8_t                  *packed_payload,
-                                          uint16_t                  packed_payload_len)
+                                          uint16_t                  packed_payload_len,
+                                          BACNET_ERROR_CODE        *error,
+                                          BACNET_ERROR_CLASS       *class)
 {
-  if(packed_payload_len != 26) {
+  if(packed_payload_len < 26) {
+    *error = ERROR_CODE_PAYLOAD_EXPECTED;
+    *class = ERROR_CLASS_COMMUNICATION;
+    return false;
+  }
+  else if(packed_payload_len > 26) {
+    *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+    *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
 
@@ -846,11 +892,16 @@ unsigned int bsc_bvlc_encode_proprietary_message(uint8_t         *out_buf,
 
 static bool bsc_bvlc_decode_proprietary(bsc_bvlc_unpacked_data_t *payload,
                                         uint8_t                  *packed_payload,
-                                        uint16_t                  packed_payload_len)
+                                        uint16_t                  packed_payload_len,
+                                        BACNET_ERROR_CODE        *error,
+                                        BACNET_ERROR_CLASS       *class)
 {
   if(packed_payload_len < 3) {
+    *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+    *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
+
   memcpy(&payload->proprietary.vendor_id, packed_payload, sizeof(payload->proprietary.vendor_id));
   packed_payload += sizeof(payload->proprietary.vendor_id);
   payload->proprietary.proprietary_function = packed_payload[0];
@@ -868,21 +919,23 @@ static bool bsc_bvlc_decode_proprietary(bsc_bvlc_unpacked_data_t *payload,
 
 static bool bsc_bvlc_decode_hdr(uint8_t                 *message,
                                 int                      message_len,
-                                bsc_bvlc_unpacked_hdr_t *hdr)
+                                bsc_bvlc_unpacked_hdr_t *hdr,
+                                BACNET_ERROR_CODE       *error,
+                                BACNET_ERROR_CLASS      *class)
 {
   int offs = 4;
   bool ret = false;
   uint16_t hdr_opt_len = 0;
 
-  if(!hdr) {
-    return ret;
-  }
-
   if(message_len < 4) {
+    *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+    *class = ERROR_CLASS_COMMUNICATION;
     return ret;
   }
 
   if(message[0] > BSC_BVLC_PROPRIETARY_MESSAGE) {
+    *error = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
+    *class = ERROR_CLASS_COMMUNICATION;
     return ret;
   }
 
@@ -892,6 +945,8 @@ static bool bsc_bvlc_decode_hdr(uint8_t                 *message,
 
   if(message[1] & BSC_BVLC_CONTROL_ORIG_VADDR) {
     if(offs >= message_len) {
+      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
     hdr->origin.mac_len = BSC_VMAC_SIZE;
@@ -901,6 +956,8 @@ static bool bsc_bvlc_decode_hdr(uint8_t                 *message,
 
   if(message[1] & BSC_BVLC_CONTROL_DEST_VADDR) {
     if(offs >= message_len) {
+      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
     hdr->dest.mac_len = BSC_VMAC_SIZE;
@@ -910,13 +967,17 @@ static bool bsc_bvlc_decode_hdr(uint8_t                 *message,
 
   if(message[1] & BSC_BVLC_CONTROL_DATA_OPTIONS) {
     if(offs >= message_len) {
+      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
     ret = bsc_bvlc_validate_options_headers(&message[offs],
                                              message_len - offs,
                                             &hdr_opt_len,
                                              NULL,
-                                            &hdr->data_options_num);
+                                            &hdr->data_options_num,
+                                            error,
+                                            class);
     if(!ret) {
       return false;
     }
@@ -927,13 +988,17 @@ static bool bsc_bvlc_decode_hdr(uint8_t                 *message,
 
   if(message[1] & BSC_BVLC_CONTROL_DEST_OPTIONS) {
     if(offs >= message_len) {
+      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
     ret = bsc_bvlc_validate_options_headers(&message[offs],
                                              message_len - offs,
                                             &hdr_opt_len,
                                             NULL,
-                                            &hdr->dest_options_num);
+                                            &hdr->dest_options_num,
+                                            error,
+                                            class);
     if(!ret) {
       return false;
     }
@@ -996,26 +1061,34 @@ static bool bsc_bvlc_decode_header_options(bsc_blvc_unpacked_hdr_option_t *optio
   return true;
 }
 
-static bool bsc_bvlc_decode_dest_options_if_exists(bsc_bvlc_unpacked_message_t *message)
+static bool bsc_bvlc_decode_dest_options_if_exists(bsc_bvlc_unpacked_message_t *message,
+                                                   BACNET_ERROR_CODE           *error,
+                                                   BACNET_ERROR_CLASS          *class)
 {
   if(message->hdr.dest_options) {
     if(!bsc_bvlc_decode_header_options(message->dest_options,
                                        BSC_HEADER_OPTION_MAX,
                                        message->hdr.dest_options,
                                        message->hdr.dest_options_len)) {
+      *error = ERROR_CODE_HEADER_ENCODING_ERROR;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
   }
   return true;
 }
 
-static bool bsc_bvlc_decode_data_options_if_exists(bsc_bvlc_unpacked_message_t *message)
+static bool bsc_bvlc_decode_data_options_if_exists(bsc_bvlc_unpacked_message_t *message,
+                                                   BACNET_ERROR_CODE           *error,
+                                                   BACNET_ERROR_CLASS          *class)
 {
   if(message->hdr.data_options) {
     if(!bsc_bvlc_decode_header_options(message->data_options,
                                        BSC_HEADER_OPTION_MAX,
                                        message->hdr.data_options,
                                        message->hdr.data_options_len)) {
+      *error = ERROR_CODE_HEADER_ENCODING_ERROR;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
   }
@@ -1023,24 +1096,28 @@ static bool bsc_bvlc_decode_data_options_if_exists(bsc_bvlc_unpacked_message_t *
 }
 
 bool bsc_bvlc_decode_message(uint8_t                     *buf,
-                             int                          buf_len,
-                             bsc_bvlc_unpacked_message_t *message )
+                             uint16_t                     buf_len,
+                             bsc_bvlc_unpacked_message_t *message,
+                             BACNET_ERROR_CODE           *error,
+                             BACNET_ERROR_CLASS          *class)
 {
-  if(!message) {
-    return NULL;
+  if(!message || !buf_len || !error || !class) {
+    return false;
   }
 
   memset(message->data_options, 0, sizeof(message->data_options));
   memset(message->dest_options, 0, sizeof(message->dest_options));
   memset(&message->payload, 0, sizeof(message->payload));
 
-  if(!bsc_bvlc_decode_hdr(buf, buf_len, &message->hdr)) {
+  if(!bsc_bvlc_decode_hdr(buf, buf_len, &message->hdr, error, class)) {
     return false;
   }
 
   if(message->hdr.dest_options) {
     if(message->hdr.dest_options_num > BSC_HEADER_OPTION_MAX) {
       /* dest header options list is too long */
+      *error = ERROR_CODE_OUT_OF_MEMORY;
+      *class = ERROR_CLASS_RESOURCES;
       return false;
     }
   }
@@ -1048,6 +1125,8 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
   if(message->hdr.data_options) {
     if(message->hdr.data_options_num > BSC_HEADER_OPTION_MAX) {
       /* data header options list is too long */
+      *error = ERROR_CODE_OUT_OF_MEMORY;
+      *class = ERROR_CLASS_RESOURCES;
       return false;
     }
   }
@@ -1057,20 +1136,26 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
     {
         if(message->hdr.data_options) {
           /* The BVLC-Result message must not have data options */
+          *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+          *class = ERROR_CLASS_COMMUNICATION;
           return false;
         }
 
         if(!message->hdr.payload || !message->hdr.payload_len) {
+          *error = ERROR_CODE_PAYLOAD_EXPECTED;
+          *class = ERROR_CLASS_COMMUNICATION;
           return false;
         }
 
-        if(!bsc_bvlc_decode_dest_options_if_exists(message)) {
+        if(!bsc_bvlc_decode_dest_options_if_exists(message, error, class)) {
           return false;
         }
 
         if(!bsc_bvlc_decode_result(&message->payload,
                                     message->hdr.payload,
-                                    message->hdr.payload_len)) {
+                                    message->hdr.payload_len,
+                                    error,
+                                    class )) {
           return false;
         }
         break;
@@ -1078,14 +1163,16 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
     case BSC_BVLC_ENCAPSULATED_NPDU:
     {
       if(!message->hdr.payload || !message->hdr.payload_len) {
+        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
-      if(!bsc_bvlc_decode_dest_options_if_exists(message)) {
+      if(!bsc_bvlc_decode_dest_options_if_exists(message, error, class)) {
         return false;
       }
 
-      if(!bsc_bvlc_decode_data_options_if_exists(message)) {
+      if(!bsc_bvlc_decode_data_options_if_exists(message, error, class)) {
         return false;
       }
 
@@ -1097,31 +1184,38 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
     {
       if(message->hdr.data_options) {
         /* The Address-Resolution message must not have data options */
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
       if(message->hdr.payload || message->hdr.payload_len) {
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
-      if(!bsc_bvlc_decode_dest_options_if_exists(message)) {
+      if(!bsc_bvlc_decode_dest_options_if_exists(message, error, class)) {
         return false;
       }
-
       break;
     }
     case BSC_BVLC_ADDRESS_RESOLUTION_ACK:
     {
       if(message->hdr.data_options) {
         /* The Address-Resolution Ack message must not have data options */
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
       if(!message->hdr.payload || !message->hdr.payload_len) {
+        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
-      if(!bsc_bvlc_decode_dest_options_if_exists(message)) {
+      if(!bsc_bvlc_decode_dest_options_if_exists(message, error, class)) {
         return false;
       }
       message->payload.address_resolution_ack.utf8_websocket_uri_string = message->hdr.payload;
@@ -1132,24 +1226,37 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
     {
       if(message->hdr.data_options) {
         /* The advertisiment message must not have data options */
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
       if(!message->hdr.payload || !message->hdr.payload_len) {
+        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
-      if(message->hdr.payload_len != 6) {
+      if(message->hdr.payload_len < 6) {
+        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *class = ERROR_CLASS_COMMUNICATION;
+        return false;
+      }
+      else if(message->hdr.payload_len > 6) {
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
-      if(!bsc_bvlc_decode_dest_options_if_exists(message)) {
+      if(!bsc_bvlc_decode_dest_options_if_exists(message, error, class)) {
         return false;
       }
 
       if(!bsc_bvlc_decode_advertisiment(&message->payload,
                                          message->hdr.payload,
-                                         message->hdr.payload_len)) {
+                                         message->hdr.payload_len,
+                                         error,
+                                         class)) {
         return false;
       }
       break;
@@ -1157,15 +1264,19 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
     case BSC_BVLC_ADVERTISIMENT_SOLICITATION:
     {
       if(message->hdr.data_options) {
-        /* The advertisiment solicitationn message must not have data options */
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
+        /* The advertisiment solicitation message must not have data options */
         return false;
       }
 
       if(message->hdr.payload || message->hdr.payload_len) {
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
-      if(!bsc_bvlc_decode_dest_options_if_exists(message)) {
+      if(!bsc_bvlc_decode_dest_options_if_exists(message, error, class)) {
         return false;
       }
       break;
@@ -1178,37 +1289,58 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
     case BSC_BVLC_HEARTBEAT_ACK:
     {
       if(message->hdr.origin.mac_len != 0) {
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
       if(message->hdr.dest.mac_len != 0) {
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
       if(message->hdr.data_options) {
-        /* The connect request message must not have data options */
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
-      if(!message->hdr.payload || !message->hdr.payload_len) {
-        return false;
+      if(message->hdr.bvlc_function == BSC_BVLC_CONNECT_REQUEST ||
+         message->hdr.bvlc_function == BSC_BVLC_CONNECT_ACCEPT) {
+        if(!message->hdr.payload || !message->hdr.payload_len) {
+          *error = ERROR_CODE_PAYLOAD_EXPECTED;
+          *class = ERROR_CLASS_COMMUNICATION;
+          return false;
+        }
+      }
+      else {
+        if(message->hdr.payload || message->hdr.payload_len) {
+          *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+          *class = ERROR_CLASS_COMMUNICATION;
+          return false;
+        }
       }
 
-      if(!bsc_bvlc_decode_dest_options_if_exists(message)) {
+      if(!bsc_bvlc_decode_dest_options_if_exists(message, error, class)) {
         return false;
       }
 
       if(message->hdr.bvlc_function == BSC_BVLC_CONNECT_REQUEST) {
         if(!bsc_bvlc_decode_connect_request(&message->payload,
                                             message->hdr.payload,
-                                            message->hdr.payload_len)) {
+                                            message->hdr.payload_len,
+                                            error,
+                                            class)) {
           return false;
         }
       }
       else if(message->hdr.bvlc_function == BSC_BVLC_CONNECT_ACCEPT) {
         if(!bsc_bvlc_decode_connect_accept(&message->payload,
                                             message->hdr.payload,
-                                            message->hdr.payload_len)) {
+                                            message->hdr.payload_len,
+                                            error,
+                                            class)) {
           return false;
         }
       }
@@ -1217,21 +1349,27 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
     case BSC_BVLC_PROPRIETARY_MESSAGE:
     {
       if(message->hdr.data_options) {
-        /* The connect request message must not have data options */
+        /* The proprietary message must not have data options */
+        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
       if(!message->hdr.payload || !message->hdr.payload_len) {
+        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
 
-      if(!bsc_bvlc_decode_dest_options_if_exists(message)) {
+      if(!bsc_bvlc_decode_dest_options_if_exists(message, error, class)) {
         return false;
       }
 
       if(!bsc_bvlc_decode_proprietary(&message->payload,
                                        message->hdr.payload,
-                                       message->hdr.payload_len)) {
+                                       message->hdr.payload_len,
+                                       error,
+                                       class)) {
         return false;
       }
       break;
@@ -1243,4 +1381,3 @@ bool bsc_bvlc_decode_message(uint8_t                     *buf,
   }
   return true;
 }
-

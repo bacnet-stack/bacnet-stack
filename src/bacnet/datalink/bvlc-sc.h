@@ -8,6 +8,7 @@
 #include <limits.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
+#include "bacnet/bacenum.h"
 
 #define BSC_MPDU_MAX  1440
 #define BSC_VMAC_SIZE 6
@@ -163,7 +164,7 @@ typedef union {
   bsc_bvlc_unpacked_advertisiment_t           advertisiment;
   bsc_bvlc_unpacked_conect_request_t          connect_request;
   bsc_bvlc_unpacked_conect_accept_t           connect_accept;
-   bsc_bvlc_unpacked_proprietary_t            proprietary;
+  bsc_bvlc_unpacked_proprietary_t             proprietary;
 } bsc_bvlc_unpacked_data_t;
 
 typedef struct 
@@ -192,5 +193,127 @@ typedef struct
   bsc_blvc_unpacked_hdr_option_t dest_options[BSC_HEADER_OPTION_MAX];
   bsc_bvlc_unpacked_data_t       payload;
 } bsc_bvlc_unpacked_message_t;
+
+
+uint16_t bsc_bvlc_add_sc_option_to_destination_options(uint8_t* outbuf,
+                                                       uint16_t outbuf_len,
+                                                       uint8_t* blvc_message,
+                                                       uint16_t blvc_message_len,
+                                                       uint8_t* sc_option,
+                                                       uint16_t sc_option_len);
+
+
+uint16_t bsc_bvlc_add_sc_option_to_data_options(uint8_t* outbuf,
+                                                uint16_t outbuf_len,
+                                                uint8_t* blvc_message,
+                                                uint16_t blvc_message_len,
+                                                uint8_t* sc_option,
+                                                uint16_t sc_option_len);
+
+uint16_t bsc_bvlc_encode_proprietary_option(uint8_t* outbuf,
+                                            uint16_t outbuf_len,
+                                            bool     must_understand,
+                                            uint16_t vendor_id,
+                                            uint8_t  proprietary_option_type,
+                                            uint8_t* proprietary_data,
+                                            uint16_t proprietary_data_len);
+
+uint16_t bsc_bvlc_encode_secure_path_option(uint8_t* outbuf,
+                                            uint16_t outbuf_len,
+                                            bool     must_understand);
+
+unsigned int bsc_bvlc_encode_result(uint8_t        *out_buf,
+                                    int             out_buf_len,
+                                    uint16_t        message_id,
+                                    BACNET_ADDRESS *origin,
+                                    BACNET_ADDRESS *dest,
+                                    uint8_t         bvlc_function,
+                                    uint8_t         result_code,
+                                    uint8_t        *error_header_marker,
+                                    uint16_t       *error_class,
+                                    uint16_t       *error_code,
+                                    uint8_t        *utf8_details_string );
+
+unsigned int bsc_bvlc_encode_encapsulated_npdu(uint8_t        *out_buf,
+                                               int             out_buf_len,
+                                               uint16_t        message_id,
+                                               BACNET_ADDRESS *origin,
+                                               BACNET_ADDRESS *dest,
+                                               uint8_t        *npdu,
+                                               uint16_t        npdu_len);
+
+unsigned int bsc_bvlc_encode_address_resolution(uint8_t        *out_buf,
+                                               int             out_buf_len,
+                                               uint16_t        message_id,
+                                               BACNET_ADDRESS *origin,
+                                               BACNET_ADDRESS *dest);
+
+unsigned int bsc_bvlc_encode_address_resolution_ack(uint8_t        *out_buf,
+                                                    int             out_buf_len,
+                                                    uint16_t        message_id,
+                                                    BACNET_ADDRESS *origin,
+                                                    BACNET_ADDRESS *dest,
+                                                    uint8_t        *web_socket_uris,
+                                                    uint16_t        web_socket_uris_len);
+
+unsigned int bsc_bvlc_encode_advertisiment(uint8_t                              *out_buf,
+                                           int                                   out_buf_len,
+                                           uint16_t                              message_id,
+                                           BACNET_ADDRESS                       *origin,
+                                           BACNET_ADDRESS                       *dest,
+                                           bsc_bvlc_hub_connection_status_t      hub_status,
+                                           bsc_bvlc_direct_connection_support_t  support,
+                                           uint16_t                              max_blvc_len,
+                                           uint16_t                              max_npdu_len);
+
+unsigned int bsc_bvlc_encode_advertisiment_solicitation(uint8_t        *out_buf,
+                                                        int             out_buf_len,
+                                                        uint16_t        message_id,
+                                                        BACNET_ADDRESS *origin,
+                                                        BACNET_ADDRESS *dest );
+
+unsigned int bsc_bvlc_encode_connect_request(uint8_t        *out_buf,
+                                             int             out_buf_len,
+                                             uint16_t        message_id,
+                                             uint8_t         (*local_vmac)[BSC_VMAC_SIZE],
+                                             uint8_t         (*local_uuid)[BSC_DEVICE_UUID_SIZE],
+                                             uint16_t        max_blvc_len,
+                                             uint16_t        max_npdu_len);
+
+unsigned int bsc_bvlc_encode_connect_accept(uint8_t        *out_buf,
+                                            int             out_buf_len,
+                                            uint16_t        message_id,
+                                            uint8_t         (*local_vmac)[BSC_VMAC_SIZE],
+                                            uint8_t         (*local_uuid)[BSC_DEVICE_UUID_SIZE],
+                                            uint16_t        max_blvc_len,
+                                            uint16_t        max_npdu_len);
+
+unsigned int bsc_bvlc_encode_disconnect_request(uint8_t *out_buf,
+                                                int      out_buf_len,
+                                                uint16_t message_id);
+
+unsigned int bsc_bvlc_encode_heartbeat_request(uint8_t *out_buf,
+                                               int      out_buf_len,
+                                               uint16_t message_id);
+
+unsigned int bsc_bvlc_encode_heartbeat_ack(uint8_t *out_buf,
+                                           int      out_buf_len,
+                                           uint16_t message_id);
+
+unsigned int bsc_bvlc_encode_proprietary_message(uint8_t         *out_buf,
+                                                 int              out_buf_len,
+                                                 uint16_t         message_id,
+                                                 BACNET_ADDRESS  *origin,
+                                                 BACNET_ADDRESS  *dest,
+                                                 uint16_t         vendor_id,
+                                                 uint8_t          proprietary_function,
+                                                 uint8_t         *proprietary_data,
+                                                 uint16_t         proprietary_data_len);
+
+bool bsc_bvlc_decode_message(uint8_t                     *buf,
+                             uint16_t                     buf_len,
+                             bsc_bvlc_unpacked_message_t *message,
+                             BACNET_ERROR_CODE           *error,
+                             BACNET_ERROR_CLASS          *class);
 
 #endif
