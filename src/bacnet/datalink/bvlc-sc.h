@@ -181,6 +181,7 @@ typedef union {
 
 typedef struct
 {
+  uint8_t                                    packed_header_marker;
   bsc_bvlc_hdr_option_type_t                 type;
   bool                                       must_understand;
   bsc_blvc_unpacked_specific_option_data_t   specific;
