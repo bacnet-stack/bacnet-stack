@@ -31,7 +31,7 @@ typedef struct
 #endif
 
 static bool verify_bsc_bvll_header(
-                   bvlc_sc_unpacked_hdr_t *hdr,
+                   BVLC_SC_DECODED_HDR     *hdr,
                    uint8_t                  bvlc_function,
                    uint16_t                 message_id,
                    BACNET_SC_VMAC_ADDRESS  *origin,
@@ -135,7 +135,7 @@ static void test_BVLC_RESULT(void)
   uint8_t bvlc_function = 1;
   uint8_t result_bvlc_function = 3;
   bool ret;
-  bvlc_sc_unpacked_message_t message;
+  BVLC_SC_DECODED_MESSAGE message;
   BACNET_ERROR_CODE error;
   BACNET_ERROR_CLASS class;
   uint8_t error_header_marker = 0xcc;

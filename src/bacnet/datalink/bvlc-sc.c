@@ -30,7 +30,7 @@ static bool bvlc_sc_validate_options_headers(
       *out_last_option_marker_ptr = &option_headers[options_len];
     }
 
-    option = flags & BSL_BVLC_HEADER_OPTION_TYPE_MASK;
+    option = flags & BVLC_SC_HEADER_OPTION_TYPE_MASK;
 
     if(option != BVLC_SC_OPTION_TYPE_SECURE_PATH && 
        option != BVLC_SC_OPTION_TYPE_PROPRIETARY ) {
@@ -230,26 +230,26 @@ static uint16_t bvlc_sc_add_option(bool to_data_option,
 }
 
 
-uint16_t bvlc_sc_add_option_to_destination_options(uint8_t* outbuf,
-                                                   uint16_t outbuf_len,
-                                                   uint8_t* blvc_message,
-                                                   uint16_t blvc_message_len,
-                                                   uint8_t* sc_option,
-                                                   uint16_t sc_option_len)
+uint16_t bvlc_sc_add_option_to_destination_options(uint8_t  *out_pdu,
+                                                   uint16_t  out_pdu_size,
+                                                   uint8_t  *pdu,
+                                                   uint16_t  pdu_size,
+                                                   uint8_t  *sc_option,
+                                                   uint16_t  sc_option_len)
 {
-  return bvlc_sc_add_option(false, outbuf, outbuf_len, blvc_message,
-                            blvc_message_len, sc_option, sc_option_len);
+  return bvlc_sc_add_option(false, out_pdu, out_pdu_size, pdu,
+                            pdu_size, sc_option, sc_option_len);
 }
 
-uint16_t bvlc_sc_add_option_to_data_options(uint8_t* outbuf,
-                                            uint16_t outbuf_len,
-                                            uint8_t* blvc_message,
-                                            uint16_t blvc_message_len,
-                                            uint8_t* sc_option,
-                                            uint16_t sc_option_len)
+uint16_t bvlc_sc_add_option_to_data_options(uint8_t  *out_pdu,
+                                            uint16_t  out_pdu_size,
+                                            uint8_t  *pdu,
+                                            uint16_t  pdu_size,
+                                            uint8_t  *sc_option,
+                                            uint16_t  sc_option_len)
 {
-  return bvlc_sc_add_option(true, outbuf, outbuf_len, blvc_message,
-                            blvc_message_len, sc_option, sc_option_len);
+  return bvlc_sc_add_option(true, out_pdu, out_pdu_size, pdu,
+                            pdu_size, sc_option, sc_option_len);
 }
 // returns length of created option
 
@@ -345,15 +345,15 @@ uint16_t bvlc_sc_encode_secure_path_option(uint8_t* outbuf,
 static unsigned int bvlc_sc_decode_option_hdr(
                          uint8_t                     *in_options_list,
                          uint16_t                     in_option_list_len,
-                         bvlc_sc_hdr_option_type_t  *out_opt_type,
+                         BVLC_SC_OPTION_TYPE  *out_opt_type,
                          bool                        *out_must_understand,
                          uint8_t                    **out_next_option)
 {
   uint16_t len;
 
   *out_next_option = NULL;
-  *out_opt_type = (bvlc_sc_hdr_option_type_t)
-                  (in_options_list[0] & BSL_BVLC_HEADER_OPTION_TYPE_MASK);
+  *out_opt_type = (BVLC_SC_OPTION_TYPE)
+                  (in_options_list[0] & BVLC_SC_HEADER_OPTION_TYPE_MASK);
   *out_must_understand = (in_options_list[0] & BVLC_SC_HEADER_MUST_UNDERSTAND)
                           ? true : false;
 
@@ -557,7 +557,7 @@ unsigned int bvlc_sc_encode_result(uint8_t        *out_buf,
   return offs;
 }
 
-static bool bvlc_sc_decode_result(bvlc_sc_unpacked_data_t *payload,
+static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
                                   uint8_t                  *packed_payload,
                                   uint16_t                  packed_payload_len,
                                   BACNET_ERROR_CODE        *error,
@@ -682,8 +682,8 @@ unsigned int bvlc_sc_encode_advertisiment(
                   uint16_t                              message_id,
                   BACNET_SC_VMAC_ADDRESS                       *origin,
                   BACNET_SC_VMAC_ADDRESS                       *dest,
-                  bvlc_sc_hub_connection_status_t      hub_status,
-                  bvlc_sc_direct_connection_support_t  support,
+                  BVLC_SC_HUB_CONNECTION_STATUS      hub_status,
+                  BVLC_SC_DIRECT_CONNECTION_SUPPORT  support,
                   uint16_t                              max_blvc_len,
                   uint16_t                              max_npdu_len) 
 {
@@ -706,7 +706,7 @@ unsigned int bvlc_sc_encode_advertisiment(
 }
 
 static bool bvlc_sc_decode_advertisiment(
-                 bvlc_sc_unpacked_data_t *payload,
+                 BVLC_SC_DECODED_DATA *payload,
                  uint8_t                  *packed_payload,
                  uint16_t                  packed_payload_len,
                  BACNET_ERROR_CODE        *error,
@@ -787,7 +787,7 @@ unsigned int bvlc_sc_encode_connect_request(
 }
 
 static bool bvlc_sc_decode_connect_request(
-                  bvlc_sc_unpacked_data_t *payload,
+                  BVLC_SC_DECODED_DATA *payload,
                   uint8_t                  *packed_payload,
                   uint16_t                  packed_payload_len,
                   BACNET_ERROR_CODE        *error,
@@ -856,7 +856,7 @@ unsigned int bvlc_sc_encode_connect_accept(
 }
 
 static bool bvlc_sc_decode_connect_accept(
-                 bvlc_sc_unpacked_data_t *payload,
+                 BVLC_SC_DECODED_DATA *payload,
                  uint8_t                  *packed_payload,
                  uint16_t                  packed_payload_len,
                  BACNET_ERROR_CODE        *error,
@@ -970,7 +970,7 @@ unsigned int bvlc_sc_encode_proprietary_message(
 }
 
 static bool bvlc_sc_decode_proprietary(
-                 bvlc_sc_unpacked_data_t *payload,
+                 BVLC_SC_DECODED_DATA *payload,
                  uint8_t                  *packed_payload,
                  uint16_t                  packed_payload_len,
                  BACNET_ERROR_CODE        *error,
@@ -1000,7 +1000,7 @@ static bool bvlc_sc_decode_proprietary(
 
 static bool bvlc_sc_decode_hdr(uint8_t                 *message,
                                 int                      message_len,
-                                bvlc_sc_unpacked_hdr_t *hdr,
+                                BVLC_SC_DECODED_HDR *hdr,
                                 BACNET_ERROR_CODE       *error,
                                 BACNET_ERROR_CLASS      *class)
 {
@@ -1097,7 +1097,7 @@ static bool bvlc_sc_decode_hdr(uint8_t                 *message,
 }
 
 static bool bvlc_sc_decode_header_options(
-                 bsc_blvc_unpacked_hdr_option_t *option_array,
+                 BVLC_SC_DECODED_HDR_OPTION *option_array,
                  uint16_t                        option_array_length,
                  uint8_t                        *options_list,
                  uint16_t                        options_list_len)
@@ -1143,7 +1143,7 @@ static bool bvlc_sc_decode_header_options(
 }
 
 static bool bvlc_sc_decode_dest_options_if_exists(
-                 bvlc_sc_unpacked_message_t *message,
+                 BVLC_SC_DECODED_MESSAGE *message,
                  BACNET_ERROR_CODE           *error,
                  BACNET_ERROR_CLASS          *class)
 {
@@ -1161,7 +1161,7 @@ static bool bvlc_sc_decode_dest_options_if_exists(
 }
 
 static bool bvlc_sc_decode_data_options_if_exists(
-                 bvlc_sc_unpacked_message_t *message,
+                 BVLC_SC_DECODED_MESSAGE *message,
                  BACNET_ERROR_CODE           *error,
                  BACNET_ERROR_CLASS          *class)
 {
@@ -1180,7 +1180,7 @@ static bool bvlc_sc_decode_data_options_if_exists(
 
 bool bvlc_sc_decode_message(uint8_t                     *buf,
                              uint16_t                     buf_len,
-                             bvlc_sc_unpacked_message_t *message,
+                             BVLC_SC_DECODED_MESSAGE *message,
                              BACNET_ERROR_CODE           *error,
                              BACNET_ERROR_CLASS          *class)
 {

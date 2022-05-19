@@ -29,7 +29,7 @@
  * BACnet/SC BVLC Messages (funcitons) (AB.2 BACnet/SC Virtual Link Layer Messages)
  */
 
-typedef enum {
+typedef enum BVLC_SC_Message_Type {
     BVLC_SC_RESULT                      = 0x00,
     BVLC_SC_ENCAPSULATED_NPDU           = 0x01,
     BVLC_SC_ADDRESS_RESOLUTION          = 0x02,
@@ -43,7 +43,7 @@ typedef enum {
     BVLC_SC_HEARTBEAT_REQUEST           = 0x0a,
     BVLC_SC_HEARTBEAT_ACK               = 0x0b,
     BVLC_SC_PROPRIETARY_MESSAGE         = 0x0c
-} bvlc_sc_message_type_t;
+} BVLC_SC_MESSAGE_TYPE;
 
 
 /*
@@ -62,7 +62,7 @@ typedef enum {
 #define BVLC_SC_HEADER_DATA                 (1 << 5)
 #define BVLC_SC_HEADER_MUST_UNDERSTAND      (1 << 6)
 #define BVLC_SC_HEADER_MORE                 (1 << 7)
-#define BSL_BVLC_HEADER_OPTION_TYPE_MASK    (0x1F)
+#define BVLC_SC_HEADER_OPTION_TYPE_MASK    (0x1F)
 
 /**
 * BACnet SC VMAC Address
@@ -109,26 +109,26 @@ typedef struct BACnet_SC_Uuid {
 /*
  * AB.2.3.1 Secure Path Header Option
  */
-typedef enum 
+typedef enum BVLC_SC_Option_Type
 {
    BVLC_SC_OPTION_TYPE_SECURE_PATH = 1,
    BVLC_SC_OPTION_TYPE_PROPRIETARY = 31
-} bvlc_sc_hdr_option_type_t;
+} BVLC_SC_OPTION_TYPE;
 
-typedef enum 
+typedef enum BVLC_SC_Hub_Connection_Status
 {
   BVLC_SC_HUB_CONNECTION_ABSENT = 0,
   BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED = 1,
   BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED = 2
-} bvlc_sc_hub_connection_status_t;
+} BVLC_SC_HUB_CONNECTION_STATUS;
 
-typedef enum 
+typedef enum BVLC_SC_Direct_Connection_Support
 {
   BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_UNSUPPORTED = 0,
   BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED  = 1
-} bvlc_sc_direct_connection_support_t;
+} BVLC_SC_DIRECT_CONNECTION_SUPPORT;
 
-typedef struct
+typedef struct BVLC_SC_Decoded_Hdr
 {
   uint8_t                 bvlc_function;
   uint16_t                message_id;
@@ -142,9 +142,9 @@ typedef struct
   uint16_t                data_options_num; /* number of filled items in data_options */
   uint8_t                *payload;          /* packed payload, points to data in message */
   uint16_t                payload_len;
-} bvlc_sc_unpacked_hdr_t;
+} BVLC_SC_DECODED_HDR;
 
-typedef struct
+typedef struct BVLC_SC_Decoded_Result
 {
   uint8_t        bvlc_function;
   uint8_t        result;
@@ -153,92 +153,89 @@ typedef struct
   uint16_t       error_code;
   uint8_t       *utf8_details_string;     /* NOTE!: this is utf 8 string without trailing zero */
   uint8_t        utf8_details_string_len; 
-} bvlc_sc_unpacked_result_t;
+} BVLC_SC_DECODED_RESULT;
 
-typedef struct 
+typedef struct BVLC_SC_Decoded_Address_Resolution_Ack
 {
   uint8_t       *utf8_websocket_uri_string;      /* NOTE!: this is utf 8 string without trailing zero */
   uint8_t        utf8_websocket_uri_string_len; 
-} bvlc_sc_unpacked_address_resolution_ack_t;
+} BVLC_SC_DECODED_ADDRESS_RESOLUTION_ACK;
 
-typedef struct
+typedef struct BVLC_SC_Decoded_Ecapsulated_NPDU
 {
   uint8_t        *npdu;
   uint16_t        npdu_len;
-} bvlc_sc_unpacked_encapsulated_npdu_t;
+} BVLC_SC_DECODED_ENCAPSULATED_NPDU;
 
-typedef struct
+typedef struct BVLC_SC_Decoded_Advertisiment
 {
-  bvlc_sc_hub_connection_status_t     hub_status;
-  bvlc_sc_direct_connection_support_t support;
-  uint16_t                             max_blvc_len;
-  uint16_t                             max_npdu_len;
-} bvlc_sc_unpacked_advertisiment_t;
+  BVLC_SC_HUB_CONNECTION_STATUS      hub_status;
+  BVLC_SC_DIRECT_CONNECTION_SUPPORT  support;
+  uint16_t                           max_blvc_len;
+  uint16_t                           max_npdu_len;
+} BVLC_SC_DECODED_ADVERTISIMENT;
 
-typedef struct
-{
-  BACNET_SC_VMAC_ADDRESS *local_vmac;
-  BACNET_SC_UUID         *local_uuid;
-  uint16_t                max_blvc_len;
-  uint16_t                max_npdu_len;
-} bvlc_sc_unpacked_conect_request_t;
-
-typedef struct
+typedef struct BVLC_SC_Decoded_Connect_Request
 {
   BACNET_SC_VMAC_ADDRESS *local_vmac;
   BACNET_SC_UUID         *local_uuid;
   uint16_t                max_blvc_len;
   uint16_t                max_npdu_len;
-} bvlc_sc_unpacked_conect_accept_t;
+} BVLC_SC_DECODED_CONNECT_REQUEST;
 
-typedef struct
+typedef struct BVLC_SC_Decoded_Connect_Accept
+{
+  BACNET_SC_VMAC_ADDRESS *local_vmac;
+  BACNET_SC_UUID         *local_uuid;
+  uint16_t                max_blvc_len;
+  uint16_t                max_npdu_len;
+} BVLC_SC_DECODED_CONNECT_ACCEPT;
+
+typedef struct BVLC_SC_Decoded_Proprietary
 {
   uint16_t         vendor_id;
   uint8_t          proprietary_function;
   uint8_t         *proprietary_data;
   uint16_t         proprietary_data_len;
-} bvlc_sc_unpacked_proprietary_t;
+} BVLC_SC_DECODED_PROPRIETARY;
 
-typedef union {
-  bvlc_sc_unpacked_result_t                  result;
-  bvlc_sc_unpacked_encapsulated_npdu_t       encapsulated_npdu;
-  bvlc_sc_unpacked_address_resolution_ack_t  address_resolution_ack;
-  bvlc_sc_unpacked_advertisiment_t           advertisiment;
-  bvlc_sc_unpacked_conect_request_t          connect_request;
-  bvlc_sc_unpacked_conect_accept_t           connect_accept;
-  bvlc_sc_unpacked_proprietary_t             proprietary;
-} bvlc_sc_unpacked_data_t;
+typedef union BVLC_SC_Decoded_Data {
+  BVLC_SC_DECODED_RESULT                 result;
+  BVLC_SC_DECODED_ENCAPSULATED_NPDU      encapsulated_npdu;
+  BVLC_SC_DECODED_ADDRESS_RESOLUTION_ACK address_resolution_ack;
+  BVLC_SC_DECODED_ADVERTISIMENT          advertisiment;
+  BVLC_SC_DECODED_CONNECT_REQUEST        connect_request;
+  BVLC_SC_DECODED_CONNECT_ACCEPT         connect_accept;
+  BVLC_SC_DECODED_PROPRIETARY            proprietary;
+} BVLC_SC_DECODED_DATA;
 
-typedef struct 
+typedef struct BVLC_SC_Decoded_Hdr_Proprietary_Option
 {
   uint16_t  vendor_id;
   uint8_t   option_type;
   uint8_t  *data;
   uint16_t  data_len;
-} bsc_blvc_unpacked_hdr_proprietary_option_t;
+} BVLC_SC_DECODED_HDR_PROPRIETARY_OPTION;
 
-typedef union {
-  bsc_blvc_unpacked_hdr_proprietary_option_t proprietary;
-} bsc_blvc_unpacked_specific_option_data_t;
+typedef union BVLC_SC_Decoded_Specific_Option_Data {
+  BVLC_SC_DECODED_HDR_PROPRIETARY_OPTION proprietary;
+} BVLC_SC_DECODED_SPECIFIC_OPTION_DATA;
 
-typedef struct
+typedef struct BVLC_SC_Decoded_Hdr_Option
 {
   uint8_t                                    packed_header_marker;
-  bvlc_sc_hdr_option_type_t                 type;
+  BVLC_SC_OPTION_TYPE                        type;
   bool                                       must_understand;
-  bsc_blvc_unpacked_specific_option_data_t   specific;
-} bsc_blvc_unpacked_hdr_option_t;
+  BVLC_SC_DECODED_SPECIFIC_OPTION_DATA       specific;
+} BVLC_SC_DECODED_HDR_OPTION;
 
-typedef struct //BACnet_SC_Unpacked_Message
+typedef struct BVLC_SC_Decoded_Message
 {
-  bvlc_sc_unpacked_hdr_t        hdr;
-  bsc_blvc_unpacked_hdr_option_t data_options[BVLC_SC_HEADER_OPTION_MAX];
-  bsc_blvc_unpacked_hdr_option_t dest_options[BVLC_SC_HEADER_OPTION_MAX];
-  bvlc_sc_unpacked_data_t       payload;
-} bvlc_sc_unpacked_message_t;
-//BACNET_SC_UNPACKED_MESSAGE;
-//bvlc_sc_unpacked_message_t;
-
+  BVLC_SC_DECODED_HDR        hdr;
+  BVLC_SC_DECODED_HDR_OPTION data_options[BVLC_SC_HEADER_OPTION_MAX];
+  BVLC_SC_DECODED_HDR_OPTION dest_options[BVLC_SC_HEADER_OPTION_MAX];
+  BVLC_SC_DECODED_DATA       payload;
+} BVLC_SC_DECODED_MESSAGE;
 
 uint16_t bvlc_sc_add_option_to_destination_options(uint8_t* outbuf,
                                                    uint16_t outbuf_len,
@@ -306,8 +303,8 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t                              *
                                           uint16_t                              message_id,
                                           BACNET_SC_VMAC_ADDRESS                       *origin,
                                           BACNET_SC_VMAC_ADDRESS                       *dest,
-                                          bvlc_sc_hub_connection_status_t      hub_status,
-                                          bvlc_sc_direct_connection_support_t  support,
+                                          BVLC_SC_HUB_CONNECTION_STATUS      hub_status,
+                                          BVLC_SC_DIRECT_CONNECTION_SUPPORT  support,
                                           uint16_t                              max_blvc_len,
                                           uint16_t                              max_npdu_len);
 
@@ -357,7 +354,7 @@ unsigned int bvlc_sc_encode_proprietary_message(uint8_t         *out_buf,
 
 bool bvlc_sc_decode_message(uint8_t                     *buf,
                             uint16_t                     buf_len,
-                            bvlc_sc_unpacked_message_t *message,
+                            BVLC_SC_DECODED_MESSAGE     *message,
                             BACNET_ERROR_CODE           *error,
                             BACNET_ERROR_CLASS          *class);
 
