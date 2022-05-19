@@ -34,8 +34,8 @@ static bool verify_bsc_bvll_header(
                    bvlc_sc_unpacked_hdr_t *hdr,
                    uint8_t                  bvlc_function,
                    uint16_t                 message_id,
-                   BACNET_ADDRESS          *origin,
-                   BACNET_ADDRESS          *dest,
+                   BACNET_SC_VMAC_ADDRESS  *origin,
+                   BACNET_SC_VMAC_ADDRESS  *dest,
                    bool                     dest_options_absent,
                    bool                     data_options_absent,
                    uint16_t                 payload_len)
@@ -49,35 +49,23 @@ static bool verify_bsc_bvll_header(
   }
 
   if(origin) {
-    if(origin->mac_len != BSC_VMAC_SIZE) {
-      return false;
-    }
-    if(origin->mac_len != hdr->origin.mac_len) {
-      return false;
-    }
-    if(memcmp(hdr->origin.mac, origin->mac, origin->mac_len) != 0) {
+    if(memcmp(hdr->origin->address, origin->address, BVLC_SC_VMAC_SIZE) != 0) {
       return false;
     }
   }
   else {
-    if(hdr->origin.mac_len != 0) {
+    if(hdr->origin) {
       return false;
     }
   }
 
   if(dest) {
-    if(dest->mac_len != BSC_VMAC_SIZE) {
-      return false;
-    }
-    if(dest->mac_len != hdr->dest.mac_len) {
-      return false;
-    }
-    if(memcmp(hdr->dest.mac, dest->mac, dest->mac_len) != 0) {
+    if(memcmp(hdr->dest->address, dest->address, BVLC_SC_VMAC_SIZE) != 0) {
       return false;
     }
   }
   else {
-    if(hdr->dest.mac_len != 0) {
+    if(hdr->dest) {
       return false;
     }
   }
@@ -141,8 +129,8 @@ static void test_BVLC_RESULT(void)
   uint8_t optbuf[256];
   int optlen;
   int len;
-  BACNET_ADDRESS origin;
-  BACNET_ADDRESS dest;
+  BACNET_SC_VMAC_ADDRESS origin;
+  BACNET_SC_VMAC_ADDRESS dest;
   uint16_t message_id = 0x7777;
   uint8_t bvlc_function = 1;
   uint8_t result_bvlc_function = 3;
@@ -155,10 +143,8 @@ static void test_BVLC_RESULT(void)
   uint16_t error_code = 0xdd;
   char* error_details_string = "something bad has happend";
 
-  origin.mac_len = BSC_VMAC_SIZE;
-  dest.mac_len = BSC_VMAC_SIZE;
-  memset(origin.mac, 0x23, origin.mac_len);
-  memset(dest.mac, 0x44, origin.mac_len);
+  memset(origin.address, 0x23, BVLC_SC_VMAC_SIZE);
+  memset(dest.address, 0x44, BVLC_SC_VMAC_SIZE);
 
   /* simple test, no options, origin and dest presented */
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
@@ -167,7 +153,7 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                &origin, &dest, true, true, 2);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.payload.result.bvlc_function,
@@ -184,7 +170,7 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                &origin, NULL, true, true, 2);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.payload.result.bvlc_function,
@@ -201,7 +187,7 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                NULL, &dest, true, true, 2);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.payload.result.bvlc_function,
@@ -218,7 +204,7 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                NULL, NULL, true, true, 2);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.payload.result.bvlc_function,
@@ -235,7 +221,7 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                NULL, NULL, true, true, 2);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.payload.result.bvlc_function,
@@ -253,7 +239,7 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                NULL, NULL, true, true, 7);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.payload.result.bvlc_function,
@@ -277,7 +263,7 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                NULL, NULL, true, true,
                                7 + strlen(error_details_string));
   zassert_equal(ret, true, NULL);
@@ -306,7 +292,7 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                &dest, &origin, true, true,
                                7 + strlen(error_details_string));
   zassert_equal(ret, true, NULL);
@@ -365,12 +351,12 @@ static void test_BVLC_RESULT(void)
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BSC_BVLC_RESULT, message_id,
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
                                NULL, NULL, false, true, 2);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.hdr.dest_options_num, 1, NULL);
   zassert_equal(message.dest_options[0].type,
-                BSC_BVLC_OPTION_TYPE_SECURE_PATH, NULL);
+                BVLC_SC_OPTION_TYPE_SECURE_PATH, NULL);
   zassert_equal(message.dest_options[0].must_understand, true, NULL);
 }
 
