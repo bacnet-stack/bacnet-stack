@@ -187,25 +187,7 @@ static uint16_t bvlc_sc_add_option(bool      to_data_option,
     mask = BVLC_SC_CONTROL_DEST_OPTIONS;
   }
 
-  if(!(flags & mask)) {
-    /* first option addded to message */
-    if(pdu == in_pdu) {
-      /* user would like to use the same buffer where in_pdu
-         is already stored. So we need to expand it for sc_option_len */
-      memmove(&pdu[offs + sc_option_len], 
-              &pdu[offs], in_pdu_len -  offs);
-      memcpy(&pdu[offs], sc_option, sc_option_len);
-    }
-    else {
-       /* user would like to use a new buffer for in_pdu with option.*/
-      memcpy(pdu, in_pdu, offs);
-      memcpy(&pdu[offs], sc_option, sc_option_len);
-      memcpy(&pdu[offs+sc_option_len],
-             &in_pdu[offs], in_pdu_len -  offs);
-    }
-    pdu[1] |= mask;
-  }
-  else {
+  if((flags & mask)) {
     /* some options are already presented in message.
        Validate them at first. */
     if(!bvlc_sc_validate_options_headers(&in_pdu[offs], 
@@ -217,22 +199,31 @@ static uint16_t bvlc_sc_add_option(bool      to_data_option,
                                           &class)) {
       return 0;
     }
-    if(pdu == in_pdu) {
-      /* user would like to use the same buffer where in_pdu
-         is already stored. So we need to expand it for sc_option_len */
-      memmove(&pdu[offs + sc_option_len], 
-              &pdu[offs], in_pdu_len -  offs);
-      memcpy(&pdu[offs], sc_option, sc_option_len);
+  }
+
+  if(pdu == in_pdu) {
+    /* user would like to use the same buffer where in_pdu
+       is already stored. So we need to expand it for sc_option_len */
+    memmove(&pdu[offs + sc_option_len], 
+            &pdu[offs], in_pdu_len -  offs);
+    memcpy(&pdu[offs], sc_option, sc_option_len);
+    if((flags & mask)) {
       pdu[offs] |= BVLC_SC_HEADER_MORE;
     }
-    else {
-       /* user would like to use a new buffer for in_pdu with option.*/
-      memcpy(pdu, in_pdu, offs);
-      memcpy(&pdu[offs], sc_option, sc_option_len);
+  }
+  else {
+     /* user would like to use a new buffer for in_pdu with option.*/
+    memcpy(pdu, in_pdu, offs);
+    memcpy(&pdu[offs], sc_option, sc_option_len);
+    if((flags & mask)) {
       pdu[offs] |= BVLC_SC_HEADER_MORE;
-      memcpy(&pdu[offs+sc_option_len],
-             &in_pdu[offs], in_pdu_len -  offs);
     }
+    memcpy(&pdu[offs+sc_option_len],
+           &in_pdu[offs], in_pdu_len -  offs);
+  }
+  
+  if(!(flags & mask)) {
+    pdu[1] |= mask;
   }
   return in_pdu_len + sc_option_len;
 }
@@ -417,7 +408,7 @@ static bool bvlc_sc_decode_proprietary_option(
   *out_proprietary_data = NULL;
   *out_proprietary_data_len = 0;
   memcpy(&hdr_len, &in_options_list[1], sizeof(hdr_len));
-  memcpy(&out_vendor_id, &in_options_list[3], sizeof(uint16_t));
+  memcpy(out_vendor_id, &in_options_list[3], sizeof(uint16_t));
   *out_proprietary_option_type =  in_options_list[5];
 
   if(hdr_len > 3) {

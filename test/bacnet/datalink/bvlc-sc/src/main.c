@@ -131,6 +131,7 @@ static void test_1_option(uint8_t                 *pdu,
                           BACNET_SC_VMAC_ADDRESS  *dest,
                           bool                     dest_options_absent,
                           bool                     data_options_absent,
+                          uint8_t                 *payload,
                           uint16_t                 payload_len)
 {
   uint8_t buf[256];
@@ -141,6 +142,7 @@ static void test_1_option(uint8_t                 *pdu,
   int optlen;
   int len;
   bool ret;
+  int res;
 
   zassert_equal(true, sizeof(buf)>= pdu_size ? true : false, NULL);
   memcpy(buf, pdu, pdu_size);
@@ -164,7 +166,9 @@ static void test_1_option(uint8_t                 *pdu,
   zassert_equal(message.dest_options[0].type,
                 BVLC_SC_OPTION_TYPE_SECURE_PATH, NULL);
   zassert_equal(message.dest_options[0].must_understand, true, NULL);
-
+  zassert_equal(message.hdr.payload_len, payload_len, NULL);
+  res = memcmp(message.hdr.payload, payload, payload_len);
+  zassert_equal(res, 0, NULL);
 }
 
 /* 3 options are added to pdu in total: 1 sc, 2 proprietary */
@@ -177,6 +181,7 @@ static void test_3_options(uint8_t                *pdu,
                           BACNET_SC_VMAC_ADDRESS  *dest,
                           bool                     dest_options_absent,
                           bool                     data_options_absent,
+                          uint8_t                 *payload,
                           uint16_t                 payload_len)
 {
   uint8_t                 buf[256];
@@ -193,6 +198,7 @@ static void test_3_options(uint8_t                *pdu,
   uint8_t                 proprietary_option_type2;
   uint8_t                 proprietary_data1[17];
   uint8_t                 proprietary_data2[1];
+  int                     res;
 
   zassert_equal(true, sizeof(buf)>= pdu_size ? true : false, NULL);
   memcpy(buf, pdu, pdu_size);
@@ -254,13 +260,36 @@ static void test_3_options(uint8_t                *pdu,
   zassert_equal(message.dest_options[0].type,
                 BVLC_SC_OPTION_TYPE_PROPRIETARY, NULL);
   zassert_equal(message.dest_options[0].must_understand, true, NULL);
+  zassert_equal(message.dest_options[0].packed_header_marker & 
+                BVLC_SC_HEADER_MORE, BVLC_SC_HEADER_MORE, NULL);
+  zassert_equal(message.dest_options[0].packed_header_marker & 
+                BVLC_SC_HEADER_DATA, BVLC_SC_HEADER_DATA, NULL);
+  zassert_equal(message.dest_options[0].specific.proprietary.vendor_id,
+                vendor_id2, NULL);
+  zassert_equal(message.dest_options[0].specific.proprietary.option_type,
+                proprietary_option_type2, NULL);
+  zassert_equal(message.dest_options[0].specific.proprietary.data_len,
+                sizeof(proprietary_data2), NULL);
+  res = memcmp(message.dest_options[0].specific.proprietary.data,
+               proprietary_data2, sizeof(proprietary_data2));
+  zassert_equal(res, 0, NULL);
   zassert_equal(message.dest_options[1].type,
                 BVLC_SC_OPTION_TYPE_PROPRIETARY, NULL);
   zassert_equal(message.dest_options[1].must_understand, true, NULL);
+  zassert_equal(message.dest_options[1].packed_header_marker & 
+                BVLC_SC_HEADER_MORE, BVLC_SC_HEADER_MORE, NULL);
+  zassert_equal(message.dest_options[1].packed_header_marker & 
+                BVLC_SC_HEADER_DATA, BVLC_SC_HEADER_DATA, NULL);
   zassert_equal(message.dest_options[2].type,
                 BVLC_SC_OPTION_TYPE_SECURE_PATH, NULL);
   zassert_equal(message.dest_options[2].must_understand, true, NULL);
-
+  zassert_equal(message.dest_options[2].packed_header_marker & 
+                BVLC_SC_HEADER_MORE, 0, NULL);
+  zassert_equal(message.dest_options[2].packed_header_marker & 
+                BVLC_SC_HEADER_DATA, 0, NULL);
+  zassert_equal(message.hdr.payload_len, payload_len, NULL);
+  res = memcmp(message.hdr.payload, payload, payload_len);
+  zassert_equal(res, 0, NULL);
 }
 
 static void test_options(uint8_t                 *pdu, 
@@ -271,12 +300,15 @@ static void test_options(uint8_t                 *pdu,
                          BACNET_SC_VMAC_ADDRESS  *dest,
                          bool                     dest_options_absent,
                          bool                     data_options_absent,
+                         uint8_t                 *payload,
                          uint16_t                 payload_len)
 {
   test_1_option(pdu, pdu_size, bvlc_function, message_id, origin,
-                dest, dest_options_absent, data_options_absent, payload_len);
+                dest, dest_options_absent, data_options_absent,
+                payload,payload_len);
   test_3_options(pdu, pdu_size, bvlc_function, message_id, origin,
-                 dest, dest_options_absent, data_options_absent, payload_len);
+                 dest, dest_options_absent, data_options_absent,
+                 payload, payload_len);
 }
 
 static void test_BVLC_RESULT(void)
@@ -495,8 +527,10 @@ static void test_BVLC_RESULT(void)
                               NULL, NULL, result_bvlc_function,
                               0, NULL, NULL, NULL, NULL );
   zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, true, NULL);
   test_options(buf, len, BVLC_SC_RESULT, message_id,
-               NULL, NULL, false, true, 2);
+               NULL, NULL, false, true, message.hdr.payload, 2);
 
 }
 
