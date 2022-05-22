@@ -596,7 +596,7 @@ static void test_BVLC_RESULT(void)
   memset(origin.address, 0x23, BVLC_SC_VMAC_SIZE);
   memset(dest.address, 0x44, BVLC_SC_VMAC_SIZE);
 
-  /* simple test, no options, origin and dest presented */
+  /* origin and dest presented */
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
                               &origin, &dest, result_bvlc_function,
                               0, NULL, NULL, NULL, NULL );
@@ -616,7 +616,7 @@ static void test_BVLC_RESULT(void)
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
 
-  /* no options, origin presented */
+  /* origin presented */
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
                               &origin, NULL, result_bvlc_function,
                               0,NULL, NULL, NULL, NULL );
@@ -629,11 +629,14 @@ static void test_BVLC_RESULT(void)
   zassert_equal(message.payload.result.bvlc_function,
                result_bvlc_function, NULL);
   zassert_equal(message.payload.result.result, 0, NULL);
+  test_options(buf, len, BVLC_SC_RESULT, message_id,
+               &origin, NULL, true, false,
+               message.hdr.payload, message.hdr.payload_len);
 
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
 
-  /* no options, dest presented */
+  /* dest presented */
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
                               NULL, &dest, result_bvlc_function,
                               0, NULL, NULL, NULL, NULL );
@@ -646,11 +649,14 @@ static void test_BVLC_RESULT(void)
   zassert_equal(message.payload.result.bvlc_function,
                 result_bvlc_function, NULL);
   zassert_equal(message.payload.result.result, 0, NULL);
+  test_options(buf, len, BVLC_SC_RESULT, message_id,
+               NULL, &dest, true, false,
+               message.hdr.payload, message.hdr.payload_len);
 
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
 
-  /* no options, dest and origin absent */
+  /* dest and origin absent */
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
                               NULL, NULL, result_bvlc_function,
                               0, NULL, NULL, NULL, NULL );
@@ -663,28 +669,14 @@ static void test_BVLC_RESULT(void)
   zassert_equal(message.payload.result.bvlc_function,
                 result_bvlc_function, NULL);
   zassert_equal(message.payload.result.result, 0, NULL);
+  test_options(buf, len, BVLC_SC_RESULT, message_id,
+               NULL, NULL, true, false,
+               message.hdr.payload, message.hdr.payload_len);
 
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
 
-  /* no options, dest and origin absent */
-  len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
-                              NULL, NULL, result_bvlc_function,
-                              0, NULL, NULL, NULL, NULL );
-  zassert_not_equal(len, 0, NULL);
-  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
-  zassert_equal(ret, true, NULL);
-  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_RESULT, message_id,
-                               NULL, NULL, true, true, 2);
-  zassert_equal(ret, true, NULL);
-  zassert_equal(message.payload.result.bvlc_function,
-                result_bvlc_function, NULL);
-  zassert_equal(message.payload.result.result, 0, NULL);
-
-  memset(buf, 0, sizeof(buf));
-  memset(&message, 0, sizeof(message));
-
-  /* no options, nak,no details string */
+  /* nak, no details string */
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
                                NULL, NULL, result_bvlc_function, 1,
                                &error_header_marker, &error_class,
@@ -704,11 +696,14 @@ static void test_BVLC_RESULT(void)
   zassert_equal(message.payload.result.error_code, error_code, NULL);
   zassert_equal(message.payload.result.utf8_details_string, NULL, NULL);
   zassert_equal(message.payload.result.utf8_details_string_len, 0, NULL);
+  test_options(buf, len, BVLC_SC_RESULT, message_id,
+               NULL, NULL, true, false,
+               message.hdr.payload, message.hdr.payload_len);
 
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
 
-  /* no options, nak , details string */
+  /* nak , details string */
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
                                NULL, NULL, result_bvlc_function, 1,
                                &error_header_marker, &error_class,
@@ -733,11 +728,14 @@ static void test_BVLC_RESULT(void)
                error_details_string, strlen(error_details_string)) == 0 ?
                true : false;
   zassert_equal(ret, true, NULL);
+  test_options(buf, len, BVLC_SC_RESULT, message_id,
+               NULL, NULL, true, false,
+               message.hdr.payload, message.hdr.payload_len);
 
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
 
-  /* no options, dest and origin, nak , details string */
+  /* dest and origin, nak , details string */
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
                                &origin, &dest, result_bvlc_function, 1,
                                &error_header_marker, &error_class,
@@ -789,7 +787,7 @@ static void test_BVLC_RESULT(void)
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
 
-  /* origin and dest absent, option test*/
+  /* origin and dest absent, result ok*/
   len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
                               NULL, NULL, result_bvlc_function,
                               0, NULL, NULL, NULL, NULL );
