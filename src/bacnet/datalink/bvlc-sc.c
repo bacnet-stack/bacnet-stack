@@ -207,9 +207,6 @@ static uint16_t bvlc_sc_add_option(bool      to_data_option,
     memmove(&pdu[offs + sc_option_len], 
             &pdu[offs], in_pdu_len -  offs);
     memcpy(&pdu[offs], sc_option, sc_option_len);
-    if((flags & mask)) {
-      pdu[offs] |= BVLC_SC_HEADER_MORE;
-    }
   }
   else {
      /* user would like to use a new buffer for in_pdu with option.*/
@@ -221,8 +218,10 @@ static uint16_t bvlc_sc_add_option(bool      to_data_option,
     memcpy(&pdu[offs+sc_option_len],
            &in_pdu[offs], in_pdu_len -  offs);
   }
-  
-  if(!(flags & mask)) {
+  if((flags & mask)) {
+    pdu[offs] |= BVLC_SC_HEADER_MORE;
+  }
+  else {
     pdu[1] |= mask;
   }
   return in_pdu_len + sc_option_len;
@@ -563,6 +562,8 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
                                   BACNET_ERROR_CODE    *error,
                                   BACNET_ERROR_CLASS   *class)
 {
+  int i;
+
   if(packed_payload_len < 2) {
     *error = ERROR_CODE_MESSAGE_INCOMPLETE;
     *class = ERROR_CLASS_COMMUNICATION;
@@ -603,9 +604,28 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
     if(packed_payload_len > 7) {
       payload->result.utf8_details_string = &packed_payload[7];
       payload->result.utf8_details_string_len = packed_payload_len - 7;
+      for( i = 0; i < packed_payload_len - 7; i++) {
+        if(payload->result.utf8_details_string[i] == 0) {
+           break;
+        }
+      }
+      if(i != packed_payload_len - 7) {
+        *error = ERROR_CODE_UNEXPECTED_DATA;
+        *class = ERROR_CLASS_COMMUNICATION;
+        return false;
+      }
+    }
+    else if(packed_payload_len != 7) {
+      *error = ERROR_CODE_UNEXPECTED_DATA;
+      *class = ERROR_CLASS_COMMUNICATION;
+      return false;
     }
   }
-
+  else if(packed_payload_len != 2) {
+    *error = ERROR_CODE_UNEXPECTED_DATA;
+    *class = ERROR_CLASS_COMMUNICATION;
+    return false;
+  }
   return true;
 }
 
