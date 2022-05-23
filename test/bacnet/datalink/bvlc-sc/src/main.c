@@ -12,23 +12,6 @@
 #include <ztest.h>
 #include <bacnet/datalink/bvlc-sc.h>
 
-#if 0
-typedef struct
-{
-  uint8_t         bvlc_function;
-  uint16_t        message_id;
-  BACNET_ADDRESS  origin;
-  BACNET_ADDRESS  dest;
-  uint8_t        *dest_options;     /* pointer to packed dest options list in message */
-  uint16_t        dest_options_len;
-  uint16_t        dest_options_num; /* number of filled items in dest_options */
-  uint8_t        *data_options;     /* pointer to packed data options list in message */
-  uint16_t        data_options_len;
-  uint16_t        data_options_num; /* number of filled items in data_options */
-  uint8_t        *payload;          /* packed payload, points to data in message */
-  uint16_t        payload_len;
-} bvlc_sc_unpacked_hdr_t;
-#endif
 
 static bool verify_bsc_bvll_header(
                    BVLC_SC_DECODED_HDR     *hdr,
@@ -537,10 +520,74 @@ static void test_options_incorrect_more_bit_dest(
     offs += BVLC_SC_VMAC_SIZE;
   }
 
-  buf[offs+1] &= ~(BVLC_SC_HEADER_MORE);
+  buf[offs] &= ~(BVLC_SC_HEADER_MORE);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, false, NULL);
   zassert_equal(error, ERROR_CODE_UNEXPECTED_DATA, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+}
+
+
+/* check message decoding when header option has incorrect more bit flag */
+
+static void test_options_incorrect_data_bit_dest(
+                           uint8_t                 *pdu, 
+                           uint16_t                 pdu_size,
+                           uint8_t                  bvlc_function,
+                           uint16_t                 message_id,
+                           BACNET_SC_VMAC_ADDRESS  *origin,
+                           BACNET_SC_VMAC_ADDRESS  *dest,
+                           uint8_t                 *payload,
+                           uint16_t                 payload_len)
+{
+  uint8_t                 buf[256];
+  uint8_t                 optbuf[256];
+  BVLC_SC_DECODED_MESSAGE message;
+  BACNET_ERROR_CODE       error;
+  BACNET_ERROR_CLASS      class;
+  int                     optlen;
+  int                     len = pdu_size;
+  bool                    ret;
+  int                     res;
+  uint16_t                vendor_id1;
+  uint8_t                 proprietary_option_type1;
+  uint8_t                 proprietary_data1[17];
+  int                     offs = 4;
+
+  zassert_equal(true, sizeof(buf)>= pdu_size ? true : false, NULL);
+  memcpy(buf, pdu, pdu_size);
+
+  vendor_id1 = 0xdead;
+  proprietary_option_type1 = 0x77;
+  memset(proprietary_data1, 0x99, sizeof(proprietary_data1));
+
+  optlen = bvlc_sc_encode_proprietary_option(optbuf,
+                                             sizeof(optbuf),
+                                             true,
+                                             vendor_id1,
+                                             proprietary_option_type1,
+                                             proprietary_data1,
+                                             sizeof(proprietary_data1));
+  zassert_not_equal(optlen, 0, NULL);
+  len = bvlc_sc_add_option_to_destination_options(buf,
+                                                  sizeof(buf),
+                                                  buf,
+                                                  len,
+                                                  optbuf,
+                                                  optlen);
+  zassert_not_equal(len, 0, NULL);
+  if(buf[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
+    offs += BVLC_SC_VMAC_SIZE;
+  }
+
+  if(buf[1] & BVLC_SC_CONTROL_DEST_VADDR) {
+    offs += BVLC_SC_VMAC_SIZE;
+  }
+
+  buf[offs] &= ~(BVLC_SC_HEADER_DATA);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
   zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
@@ -555,22 +602,19 @@ static void test_options(uint8_t                 *pdu,
                          uint8_t                 *payload,
                          uint16_t                 payload_len)
 {
-  if(test_dest_option) {
+  if(test_dest_option && !test_data_option) {
     test_1_option_dest(pdu, pdu_size, bvlc_function, message_id, origin,
-                  dest,
-                  payload,payload_len);
+                  dest, payload, payload_len);
     test_3_options_dest(pdu, pdu_size, bvlc_function, message_id, origin,
-                   dest,
-                   payload, payload_len);
-    test_3_options_different_buffer_dest(pdu, pdu_size, bvlc_function, message_id,
-                   origin, dest, 
-                   payload, payload_len);
+                   dest, payload, payload_len);
+    test_3_options_different_buffer_dest(pdu, pdu_size, bvlc_function,
+                   message_id, origin, dest, payload, payload_len);
     test_5_options_dest(pdu, pdu_size, bvlc_function, message_id, origin,
-                   dest, 
-                   payload, payload_len);
-    test_options_incorrect_more_bit_dest(pdu, pdu_size, bvlc_function, message_id,
-                   origin, dest, 
-                   payload, payload_len);
+                   dest, payload, payload_len);
+    test_options_incorrect_more_bit_dest(pdu, pdu_size, bvlc_function,
+                   message_id, origin, dest, payload, payload_len);
+    test_options_incorrect_data_bit_dest(pdu, pdu_size, bvlc_function,
+                   message_id, origin, dest, payload, payload_len);
   }
 }
 
