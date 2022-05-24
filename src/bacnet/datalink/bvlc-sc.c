@@ -184,7 +184,7 @@ static uint16_t bvlc_sc_add_option(bool      to_data_option,
     offs += BVLC_SC_VMAC_SIZE;
   }
 
-  if(offs >= in_pdu_len) {
+  if(offs > in_pdu_len) {
     return 0;
   }
 
@@ -1077,31 +1077,26 @@ static bool bvlc_sc_decode_hdr(uint8_t                 *message,
   memcpy(&hdr->message_id, &message[2], sizeof(hdr->message_id));
 
   if(message[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
-    if(offs >= message_len) {
+    hdr->origin = (BACNET_SC_VMAC_ADDRESS *) &message[offs];
+    offs += BVLC_SC_VMAC_SIZE;
+    if(offs > message_len) {
       *error = ERROR_CODE_MESSAGE_INCOMPLETE;
       *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
-    hdr->origin = (BACNET_SC_VMAC_ADDRESS *) &message[offs];
-    offs += BVLC_SC_VMAC_SIZE;
   }
 
   if(message[1] & BVLC_SC_CONTROL_DEST_VADDR) {
-    if(offs >= message_len) {
+    hdr->dest = (BACNET_SC_VMAC_ADDRESS *) &message[offs];
+    offs += BVLC_SC_VMAC_SIZE;
+    if(offs > message_len) {
       *error = ERROR_CODE_MESSAGE_INCOMPLETE;
       *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
-    hdr->dest = (BACNET_SC_VMAC_ADDRESS *) &message[offs];
-    offs += BVLC_SC_VMAC_SIZE;
   }
 
   if(message[1] & BVLC_SC_CONTROL_DATA_OPTIONS) {
-    if(offs >= message_len) {
-      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-      *class = ERROR_CLASS_COMMUNICATION;
-      return false;
-    }
     ret = bvlc_sc_validate_options_headers(BACNET_PDU_DATA_OPTION_VALIDATION,
                                           &message[offs],
                                            message_len - offs,
@@ -1116,14 +1111,14 @@ static bool bvlc_sc_decode_hdr(uint8_t                 *message,
     hdr->data_options = &message[offs];
     hdr->data_options_len = hdr_opt_len;
     offs += hdr_opt_len;
-  }
-
-  if(message[1] & BVLC_SC_CONTROL_DEST_OPTIONS) {
-    if(offs >= message_len) {
+    if(offs > message_len) {
       *error = ERROR_CODE_MESSAGE_INCOMPLETE;
       *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
+  }
+
+  if(message[1] & BVLC_SC_CONTROL_DEST_OPTIONS) {
     ret = bvlc_sc_validate_options_headers(BACNET_PDU_DEST_OPTION_VALIDATION,
                                           &message[offs],
                                            message_len - offs,
@@ -1138,6 +1133,11 @@ static bool bvlc_sc_decode_hdr(uint8_t                 *message,
     hdr->dest_options = &message[offs];
     hdr->dest_options_len = hdr_opt_len;
     offs += hdr_opt_len;
+    if(offs > message_len) {
+      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+      *class = ERROR_CLASS_COMMUNICATION;
+      return false;
+    }
   }
 
   if(message_len - offs <= 0) {
@@ -1300,7 +1300,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
     case BVLC_SC_ENCAPSULATED_NPDU:
     {
       if(!message->hdr.payload || !message->hdr.payload_len) {
-        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
@@ -1327,7 +1327,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
       }
 
       if(message->hdr.payload || message->hdr.payload_len) {
-        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *error = ERROR_CODE_UNEXPECTED_DATA;
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
@@ -1347,7 +1347,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
       }
 
       if(!message->hdr.payload || !message->hdr.payload_len) {
-        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
@@ -1371,7 +1371,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
       }
 
       if(!message->hdr.payload || !message->hdr.payload_len) {
-        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
@@ -1495,7 +1495,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
       }
 
       if(!message->hdr.payload || !message->hdr.payload_len) {
-        *error = ERROR_CODE_PAYLOAD_EXPECTED;
+        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
