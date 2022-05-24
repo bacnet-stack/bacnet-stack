@@ -1615,8 +1615,6 @@ static void test_ENCAPSULATED_NPDU(void)
   zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
   zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 
-  memset(buf, 0, sizeof(buf));
-  memset(&message, 0, sizeof(message));
   /* zero payload test */
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
@@ -1755,12 +1753,199 @@ static void test_ADDRESS_RESOLUTION(void)
   zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
+static void test_ADDRESS_RESOLUTION_ACK(void)
+{
+  uint8_t buf[256];
+  int len;
+  BVLC_SC_DECODED_MESSAGE message;
+  BACNET_ERROR_CODE error;
+  BACNET_ERROR_CLASS class;
+  uint16_t message_id = 0xf1d3;
+  int res;
+  BACNET_SC_VMAC_ADDRESS origin;
+  BACNET_SC_VMAC_ADDRESS dest;
+  bool ret;
+  char web_socket_uris[256];
+
+  web_socket_uris[0] = 0;
+  sprintf(web_socket_uris, "%s %s", "web_socket_uri1", "web_socket_uri2");
+  memset(&origin.address, 0x91, BVLC_SC_VMAC_SIZE);
+  memset(&dest.address, 0xef, BVLC_SC_VMAC_SIZE);
+
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  /* dest and origin absent */
+  len = bvlc_sc_encode_address_resolution_ack(
+             buf, sizeof(buf), message_id,
+             NULL, NULL, (uint8_t *)web_socket_uris, strlen(web_socket_uris));
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, true, NULL);
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK,
+                               message_id, NULL, NULL, true,
+                               true, strlen(web_socket_uris));
+  zassert_equal(ret, true, NULL);
+  res = memcmp(message.hdr.payload,
+               web_socket_uris, strlen(web_socket_uris));
+  zassert_equal(res, 0, NULL);
+  zassert_not_equal(message.payload.address_resolution_ack.
+                    utf8_websocket_uri_string, NULL, NULL);
+  zassert_equal(message.payload.address_resolution_ack.
+                utf8_websocket_uri_string_len, strlen(web_socket_uris), NULL);
+  zassert_equal(message.hdr.payload_len, strlen(web_socket_uris), NULL);
+  test_options(buf, len, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id,
+               NULL, NULL, true, false,
+               (uint8_t *)web_socket_uris, strlen(web_socket_uris), true);
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  /* origin is presented, dest is absent */
+  len = bvlc_sc_encode_address_resolution_ack(
+             buf, sizeof(buf), message_id,
+             &origin, NULL, (uint8_t *)web_socket_uris,
+             strlen(web_socket_uris));
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, true, NULL);
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK,
+                               message_id, &origin, NULL, true,
+                               true, strlen(web_socket_uris));
+  zassert_equal(ret, true, NULL);
+  res = memcmp(message.hdr.payload,
+               web_socket_uris, strlen(web_socket_uris));
+  zassert_equal(res, 0, NULL);
+  zassert_not_equal(message.payload.address_resolution_ack.
+                    utf8_websocket_uri_string, NULL, NULL);
+  zassert_equal(message.payload.address_resolution_ack.
+                utf8_websocket_uri_string_len, strlen(web_socket_uris), NULL);
+  zassert_equal(message.hdr.payload_len, strlen(web_socket_uris), NULL);
+  test_options(buf, len, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id,
+               &origin, NULL, true, false,
+               (uint8_t *)web_socket_uris, strlen(web_socket_uris), true);
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  /* origin is absent, dest is presented */
+  len = bvlc_sc_encode_address_resolution_ack(
+             buf, sizeof(buf), message_id,
+             NULL, &dest, (uint8_t *)web_socket_uris,
+             strlen(web_socket_uris));
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, true, NULL);
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK,
+                               message_id, NULL, &dest, true,
+                               true, strlen(web_socket_uris));
+  zassert_equal(ret, true, NULL);
+  res = memcmp(message.hdr.payload,
+               web_socket_uris, strlen(web_socket_uris));
+  zassert_equal(res, 0, NULL);
+  zassert_not_equal(message.payload.address_resolution_ack.
+                    utf8_websocket_uri_string, NULL, NULL);
+  zassert_equal(message.payload.address_resolution_ack.
+                utf8_websocket_uri_string_len, strlen(web_socket_uris), NULL);
+  zassert_equal(message.hdr.payload_len, strlen(web_socket_uris), NULL);
+  test_options(buf, len, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id,
+               NULL, &dest, true, false,
+               (uint8_t *)web_socket_uris, strlen(web_socket_uris), true);
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  /* origin and dest are presented */
+  len = bvlc_sc_encode_address_resolution_ack(
+             buf, sizeof(buf), message_id,
+             &origin, &dest, (uint8_t *)web_socket_uris,
+             strlen(web_socket_uris));
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, true, NULL);
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK,
+                               message_id, &origin, &dest, true,
+                               true, strlen(web_socket_uris));
+  zassert_equal(ret, true, NULL);
+  res = memcmp(message.hdr.payload,
+               web_socket_uris, strlen(web_socket_uris));
+  zassert_equal(res, 0, NULL);
+  zassert_not_equal(message.payload.address_resolution_ack.
+                    utf8_websocket_uri_string, NULL, NULL);
+  zassert_equal(message.payload.address_resolution_ack.
+                utf8_websocket_uri_string_len, strlen(web_socket_uris), NULL);
+  zassert_equal(message.hdr.payload_len, strlen(web_socket_uris), NULL);
+  test_options(buf, len, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id,
+               &origin, &dest, true, false,
+               (uint8_t *)web_socket_uris, strlen(web_socket_uris), true);
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  /* zero payload test */
+  len = bvlc_sc_encode_address_resolution_ack(
+             buf, sizeof(buf), message_id,
+             &origin, &dest, NULL, 0);
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, true, NULL);
+  ret = verify_bsc_bvll_header(&message.hdr, BVLC_SC_ADDRESS_RESOLUTION_ACK,
+                               message_id, &origin, &dest, true,
+                               true, 0);
+  zassert_equal(ret, true, NULL);
+  zassert_equal(message.hdr.payload, NULL, NULL);
+  zassert_equal(message.payload.address_resolution_ack.
+                utf8_websocket_uri_string, NULL, NULL);
+  zassert_equal(message.payload.address_resolution_ack.
+                utf8_websocket_uri_string_len, 0, NULL);
+  zassert_equal(message.hdr.payload_len, 0, NULL);
+  test_options(buf, len, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id,
+               &origin, &dest, true, false,
+               NULL, 0, true);
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  /* truncated message, case 1 */
+
+  len = bvlc_sc_encode_address_resolution_ack(
+             buf, sizeof(buf), message_id,
+             &origin, &dest, (uint8_t *)web_socket_uris,
+             strlen(web_socket_uris));
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+  /* truncated message, case 2 */
+
+  ret = bvlc_sc_decode_message(buf, 6, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+
+  /* truncated message, case 3 */
+
+  ret = bvlc_sc_decode_message(buf, 13, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+  /* truncated message, case 4 */
+
+  ret = bvlc_sc_decode_message(buf, 15, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+  /* truncated message, case 5 */
+
+  ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+}
+
 void test_main(void)
 {
     ztest_test_suite(bvlc_sc_tests,
         ztest_unit_test(test_BVLC_RESULT),
         ztest_unit_test(test_ENCAPSULATED_NPDU),
-        ztest_unit_test(test_ADDRESS_RESOLUTION)
+        ztest_unit_test(test_ADDRESS_RESOLUTION),
+        ztest_unit_test(test_ADDRESS_RESOLUTION_ACK)
      );
 
     ztest_run_test_suite(bvlc_sc_tests);

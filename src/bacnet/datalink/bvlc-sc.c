@@ -1345,18 +1345,17 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
-
-      if(!message->hdr.payload || !message->hdr.payload_len) {
-        *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-        *class = ERROR_CLASS_COMMUNICATION;
-        return false;
-      }
-
       if(!bvlc_sc_decode_dest_options_if_exists(message, error, class)) {
         return false;
       }
-      message->payload.address_resolution_ack.utf8_websocket_uri_string =
-               message->hdr.payload;
+      if(message->hdr.payload_len) {
+        message->payload.address_resolution_ack.utf8_websocket_uri_string =
+                 message->hdr.payload;
+      }
+      else {
+        message->payload.address_resolution_ack.utf8_websocket_uri_string =
+                 NULL;
+      }
       message->payload.address_resolution_ack.utf8_websocket_uri_string_len =
                message->hdr.payload_len;
       break;
