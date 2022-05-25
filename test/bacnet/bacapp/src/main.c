@@ -724,10 +724,12 @@ static bool verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *valu
 {
     uint8_t apdu[480] = { 0 };
     int apdu_len = 0;
-    BACNET_APPLICATION_DATA_VALUE test_value;
+    BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
 
     apdu_len = bacapp_encode_application_data(&apdu[0], value);
-    bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
+    zassert_true(apdu_len > 0, NULL);
+    apdu_len = bacapp_decode_application_data(&apdu[0], apdu_len, &test_value);
+    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
 
     return bacapp_same_value(value, &test_value);
 }
@@ -737,7 +739,7 @@ static bool verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *valu
  */
 static void testBACnetApplicationData(void)
 {
-    BACNET_APPLICATION_DATA_VALUE value;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     bool status = false;
 
     status = bacapp_parse_application_data(
@@ -813,6 +815,64 @@ static void testBACnetApplicationData(void)
     zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_REAL, "-3.14159", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_DOUBLE, "0.0", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_DOUBLE, "-1.0", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_DOUBLE, "1.0", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_DOUBLE, "3.14159", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_DOUBLE, "-3.14159", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "1234567890ABCDEF", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "12-34-56-78-90-AB-CD-EF", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "12 34 56 78 90 AB CD EF", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    /* test empty string */
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_OCTET_STRING, "", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_CHARACTER_STRING, "Karg!", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    /* test empty string */
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_CHARACTER_STRING, "", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_BIT_STRING, "1011010010011111", &value);
+    zassert_true(status, NULL);
+    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_BIT_STRING, "111100001111", &value);
     zassert_true(status, NULL);
     zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
 
@@ -906,30 +966,11 @@ static void testBACnetApplicationData(void)
     zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
 
     status = bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_CHARACTER_STRING, "Karg!", &value);
-    zassert_true(status, NULL);
-    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
-    /* test empty string */
-    status = bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_CHARACTER_STRING, "", &value);
-    zassert_true(status, NULL);
-    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
-
-    status = bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_OCTET_STRING, "1234567890ABCDEF", &value);
+        BACNET_APPLICATION_TAG_OBJECT_ID, "8:4194303", &value);
     zassert_true(status, NULL);
     zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
     status = bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_OCTET_STRING, "12-34-56-78-90-AB-CD-EF", &value);
-    zassert_true(status, NULL);
-    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
-    status = bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_OCTET_STRING, "12 34 56 78 90 AB CD EF", &value);
-    zassert_true(status, NULL);
-    zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
-    /* test empty string */
-    status = bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_OCTET_STRING, "", &value);
+        BACNET_APPLICATION_TAG_OBJECT_ID, "0:0", &value);
     zassert_true(status, NULL);
     zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
 
