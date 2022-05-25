@@ -44,6 +44,10 @@ extern "C" {
         void);
 
     BACNET_STACK_EXPORT
+    void dlenv_network_port_init(
+        void);
+
+    BACNET_STACK_EXPORT
     void dlenv_maintenance_timer(
         uint16_t elapsed_seconds);
 

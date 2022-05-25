@@ -250,7 +250,7 @@ int dlenv_register_as_foreign_device(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     const uint32_t instance = 1;
     BACNET_IP_ADDRESS addr = { 0 };
@@ -288,7 +288,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
     uint8_t mac[1] = { 0 };
@@ -315,7 +315,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
     uint8_t prefix = 0;
@@ -348,7 +348,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     /* do nothing */
 }
