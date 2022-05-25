@@ -103,6 +103,14 @@ void bvlc_debug_enable(void)
 }
 
 /**
+ * @brief Disable debug printing of BACnet/IPv4 BBMD
+ */
+void bvlc_debug_disable(void)
+{
+    BVLC_Debug = true;
+}
+
+/**
  * @brief Print the IPv4 address with debug info for this module
  * @param str - debug info string
  * @param addr - IPv4 address
