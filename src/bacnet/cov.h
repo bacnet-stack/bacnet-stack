@@ -45,6 +45,7 @@ typedef struct BACnet_Subscribe_COV_Data {
     bool cancellationRequest;   /* true if this is a cancellation request */
     bool issueConfirmedNotifications;   /* optional */
     uint32_t lifetime;  /* seconds, optional */
+    bool covSubscribeToProperty;  /* true to use per-property subscription */
     BACNET_PROPERTY_REFERENCE monitoredProperty;
     bool covIncrementPresent;   /* true if present */
     float covIncrement; /* optional */
