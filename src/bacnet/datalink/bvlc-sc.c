@@ -846,12 +846,12 @@ static bool bvlc_sc_decode_connect_request(
                   BACNET_ERROR_CLASS   *class)
 {
   if(packed_payload_len < 26) {
-    *error = ERROR_CODE_PAYLOAD_EXPECTED;
+    *error = ERROR_CODE_MESSAGE_INCOMPLETE;
     *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
   else if(packed_payload_len > 26) {
-    *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+    *error = ERROR_CODE_UNEXPECTED_DATA;
     *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
@@ -915,12 +915,12 @@ static bool bvlc_sc_decode_connect_accept(
                  BACNET_ERROR_CLASS   *class)
 {
   if(packed_payload_len < 26) {
-    *error = ERROR_CODE_PAYLOAD_EXPECTED;
+    *error = ERROR_CODE_MESSAGE_INCOMPLETE;
     *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
   else if(packed_payload_len > 26) {
-    *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+    *error = ERROR_CODE_UNEXPECTED_DATA;
     *class = ERROR_CLASS_COMMUNICATION;
     return false;
   }
@@ -1381,7 +1381,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
         return false;
       }
       else if(message->hdr.payload_len > 6) {
-        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *error = ERROR_CODE_UNEXPECTED_DATA;
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
@@ -1409,7 +1409,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
       }
 
       if(message->hdr.payload || message->hdr.payload_len) {
-        *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+        *error = ERROR_CODE_UNEXPECTED_DATA;
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
       }
@@ -1447,7 +1447,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
       if(message->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST ||
          message->hdr.bvlc_function == BVLC_SC_CONNECT_ACCEPT) {
         if(!message->hdr.payload || !message->hdr.payload_len) {
-          *error = ERROR_CODE_PAYLOAD_EXPECTED;
+          *error = ERROR_CODE_MESSAGE_INCOMPLETE;
           *class = ERROR_CLASS_COMMUNICATION;
           return false;
         }
