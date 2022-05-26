@@ -103,7 +103,7 @@ static void test_bacapp_copy(void)
 
     memset(&src_value, 0xAA, sizeof(src_value));
     memset(&dest_value, 0, sizeof(dest_value));
-    zassert_false(bacapp_copy(&dest_value, &src_value), NULL);
+    zassert_true(bacapp_copy(&dest_value, &src_value), NULL);
     zassert_equal(dest_value.tag, src_value.tag, NULL);
     zassert_equal(dest_value.next, src_value.next, NULL);
 
