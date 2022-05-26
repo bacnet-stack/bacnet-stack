@@ -1037,15 +1037,15 @@ static bool bvlc_sc_decode_proprietary(
   memcpy(&payload->proprietary.vendor_id,
           packed_payload, sizeof(payload->proprietary.vendor_id));
   packed_payload += sizeof(payload->proprietary.vendor_id);
-  payload->proprietary.proprietary_function = packed_payload[0];
+  payload->proprietary.function = packed_payload[0];
   packed_payload++;
   if(packed_payload_len - 3 > 0) {
-    payload->proprietary.proprietary_data = packed_payload;
-    payload->proprietary.proprietary_data_len = packed_payload_len - 3;
+    payload->proprietary.data = packed_payload;
+    payload->proprietary.data_len = packed_payload_len - 3;
   }
   else {
-    payload->proprietary.proprietary_data = NULL;
-    payload->proprietary.proprietary_data_len = 0;
+    payload->proprietary.data = NULL;
+    payload->proprietary.data_len = 0;
   }
   return true;
 }
@@ -1454,7 +1454,7 @@ bool bvlc_sc_decode_message(uint8_t                  *buf,
       }
       else {
         if(message->hdr.payload || message->hdr.payload_len) {
-          *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+          *error = ERROR_CODE_UNEXPECTED_DATA;
           *class = ERROR_CLASS_COMMUNICATION;
           return false;
         }

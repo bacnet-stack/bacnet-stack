@@ -194,9 +194,9 @@ typedef struct BVLC_SC_Decoded_Connect_Accept
 typedef struct BVLC_SC_Decoded_Proprietary
 {
   uint16_t         vendor_id;
-  uint8_t          proprietary_function;
-  uint8_t         *proprietary_data;
-  uint16_t         proprietary_data_len;
+  uint8_t          function;
+  uint8_t         *data;
+  uint16_t         data_len;
 } BVLC_SC_DECODED_PROPRIETARY;
 
 typedef union BVLC_SC_Decoded_Data {
@@ -333,6 +333,10 @@ unsigned int bvlc_sc_encode_connect_accept(uint8_t        *out_buf,
 unsigned int bvlc_sc_encode_disconnect_request(uint8_t *out_buf,
                                                int      out_buf_len,
                                                uint16_t message_id);
+
+unsigned int bvlc_sc_encode_disconnect_ack(uint8_t *pdu,
+                                           int      pdu_len,
+                                           uint16_t message_id);
 
 unsigned int bvlc_sc_encode_heartbeat_request(uint8_t *out_buf,
                                               int      out_buf_len,
