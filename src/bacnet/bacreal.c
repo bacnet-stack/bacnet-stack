@@ -69,11 +69,11 @@ int decode_real(uint8_t *apdu, float *real_value)
             my_data.byte[2] = apdu[1];
             my_data.byte[3] = apdu[0];
         }
+        if (real_value) {
+            *real_value = my_data.real_value;
+        }
     }
 
-    if (real_value) {
-        *real_value = my_data.real_value;
-    }
 
     return 4;
 }
@@ -150,9 +150,9 @@ int decode_double(uint8_t *apdu, double *double_value)
             my_data.byte[6] = apdu[1];
             my_data.byte[7] = apdu[0];
         }
-    }
-    if (double_value) {
-        *double_value = my_data.double_value;
+        if (double_value) {
+            *double_value = my_data.double_value;
+        }
     }
 
     return 8;
