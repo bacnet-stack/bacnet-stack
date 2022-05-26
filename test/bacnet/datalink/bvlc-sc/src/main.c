@@ -3238,7 +3238,6 @@ static void test_PROPRIETARY_MESSAGE(void)
   test_options(buf, len, BVLC_SC_PROPRIETARY_MESSAGE, message_id,
                NULL, NULL, true, false,
                message.hdr.payload, message.hdr.payload_len, true);
-
   memset(buf, 0, sizeof(buf));
   memset(&message, 0, sizeof(message));
 
@@ -3268,6 +3267,9 @@ static void test_PROPRIETARY_MESSAGE(void)
   test_options(buf, len, BVLC_SC_PROPRIETARY_MESSAGE, message_id,
                &origin, NULL, true, false,
                message.hdr.payload, message.hdr.payload_len, true);
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
   /* origin is absent, dest is presented */
   len = bvlc_sc_encode_proprietary_message(
               buf, sizeof(buf), message_id, NULL, &dest, vendor_id,
@@ -3294,6 +3296,9 @@ static void test_PROPRIETARY_MESSAGE(void)
   test_options(buf, len, BVLC_SC_PROPRIETARY_MESSAGE, message_id,
                NULL, &dest, true, false,
                message.hdr.payload, message.hdr.payload_len, true);
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
   /* origin and dest are presented */
   len = bvlc_sc_encode_proprietary_message(
               buf, sizeof(buf), message_id, &origin, &dest, vendor_id,
@@ -3320,6 +3325,9 @@ static void test_PROPRIETARY_MESSAGE(void)
   test_options(buf, len, BVLC_SC_PROPRIETARY_MESSAGE, message_id,
                &origin, &dest, true, false,
                message.hdr.payload, message.hdr.payload_len, true);
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
   /* truncated message, case 1 */
   len = bvlc_sc_encode_proprietary_message(
               buf, sizeof(buf), message_id, &origin, &dest, vendor_id,
