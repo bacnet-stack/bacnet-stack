@@ -1096,28 +1096,6 @@ static bool bvlc_sc_decode_hdr(uint8_t                 *message,
     }
   }
 
-  if(message[1] & BVLC_SC_CONTROL_DATA_OPTIONS) {
-    ret = bvlc_sc_validate_options_headers(BACNET_PDU_DATA_OPTION_VALIDATION,
-                                          &message[offs],
-                                           message_len - offs,
-                                          &hdr_opt_len,
-                                           NULL,
-                                          &hdr->data_options_num,
-                                          error,
-                                          class);
-    if(!ret) {
-      return false;
-    }
-    hdr->data_options = &message[offs];
-    hdr->data_options_len = hdr_opt_len;
-    offs += hdr_opt_len;
-    if(offs > message_len) {
-      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
-      *class = ERROR_CLASS_COMMUNICATION;
-      return false;
-    }
-  }
-
   if(message[1] & BVLC_SC_CONTROL_DEST_OPTIONS) {
     ret = bvlc_sc_validate_options_headers(BACNET_PDU_DEST_OPTION_VALIDATION,
                                           &message[offs],
@@ -1132,6 +1110,28 @@ static bool bvlc_sc_decode_hdr(uint8_t                 *message,
     }
     hdr->dest_options = &message[offs];
     hdr->dest_options_len = hdr_opt_len;
+    offs += hdr_opt_len;
+    if(offs > message_len) {
+      *error = ERROR_CODE_MESSAGE_INCOMPLETE;
+      *class = ERROR_CLASS_COMMUNICATION;
+      return false;
+    }
+  }
+
+  if(message[1] & BVLC_SC_CONTROL_DATA_OPTIONS) {
+    ret = bvlc_sc_validate_options_headers(BACNET_PDU_DATA_OPTION_VALIDATION,
+                                          &message[offs],
+                                           message_len - offs,
+                                          &hdr_opt_len,
+                                           NULL,
+                                          &hdr->data_options_num,
+                                          error,
+                                          class);
+    if(!ret) {
+      return false;
+    }
+    hdr->data_options = &message[offs];
+    hdr->data_options_len = hdr_opt_len;
     offs += hdr_opt_len;
     if(offs > message_len) {
       *error = ERROR_CODE_MESSAGE_INCOMPLETE;
