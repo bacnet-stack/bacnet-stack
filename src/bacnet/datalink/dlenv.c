@@ -57,6 +57,24 @@ static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
 /* enable debugging */
 static bool BIP_DL_Debug = false;
 
+/* Debug toggle */
+
+/**
+ * @brief Enabled debug printing of BACnet/IPv4 DL
+ */
+void bip_dl_debug_enable(void)
+{
+    BIP_DL_Debug = true;
+}
+
+/**
+ * @brief Disable debug printing of BACnet/IPv4 DL
+ */
+void bip_dl_debug_disable(void)
+{
+    BIP_DL_Debug = false;
+}
+
 /* Simple setters for BBMD registration variables. */
 
 /**
@@ -473,7 +491,7 @@ void dlenv_init(void)
     if (pEnv) {
         bip_debug_enable();
         bvlc_debug_enable();
-        BIP_DL_Debug = true;
+        bip_dl_debug_enable();
     }
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {

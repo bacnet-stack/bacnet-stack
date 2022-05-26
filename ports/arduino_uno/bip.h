@@ -102,6 +102,8 @@ extern "C" {
 
     void bip_debug_enable(void);
 
+    void bip_debug_disable(void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

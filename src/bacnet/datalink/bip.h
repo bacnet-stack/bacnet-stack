@@ -114,6 +114,9 @@ extern "C" {
     void bip_debug_enable(void);
 
     BACNET_STACK_EXPORT
+    void bip_debug_disable(void);
+
+    BACNET_STACK_EXPORT
     int bip_get_socket(void);
 
 #ifdef __cplusplus

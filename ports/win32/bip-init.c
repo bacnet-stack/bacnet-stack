@@ -107,6 +107,14 @@ void bip_debug_enable(void)
 }
 
 /**
+ * @brief Disalbe debug printing of BACnet/IPv4
+ */
+void bip_debug_disable(void)
+{
+    BIP_Debug = false;
+}
+
+/**
  * @brief Get the text string for Windows Error Codes
  */
 static char *winsock_error_code_text(int code)

@@ -85,6 +85,9 @@ void bvlc_init(void);
 BACNET_STACK_EXPORT
 void bvlc_debug_enable(void);
 
+BACNET_STACK_EXPORT
+void bvlc_debug_disable(void);
+
 /* send a Read BDT request */
 BACNET_STACK_EXPORT
 int bvlc_bbmd_read_bdt(BACNET_IP_ADDRESS *bbmd_addr);
