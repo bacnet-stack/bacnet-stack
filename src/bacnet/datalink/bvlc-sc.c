@@ -112,13 +112,13 @@ static bool bvlc_sc_validate_options_headers(
   return true;
 }
 
-static uint16_t bvlc_sc_add_option(bool      to_data_option,
-                                   uint8_t  *pdu,
-                                   uint16_t  pdu_size,
-                                   uint8_t  *in_pdu,
-                                   uint16_t  in_pdu_len,
-                                   uint8_t  *sc_option,
-                                   uint16_t  sc_option_len)
+static unsigned int bvlc_sc_add_option(bool      to_data_option,
+                                       uint8_t  *pdu,
+                                       uint16_t  pdu_size,
+                                       uint8_t  *in_pdu,
+                                       uint16_t  in_pdu_len,
+                                       uint8_t  *sc_option,
+                                       uint16_t  sc_option_len)
 {
   uint16_t offs = 4;
   uint8_t flags = 0;
@@ -257,36 +257,101 @@ static uint16_t bvlc_sc_add_option(bool      to_data_option,
   return in_pdu_len + sc_option_len;
 }
 
+/**
+ * @brief Function adds header option to destination option list
+          into provided pdu and stores the result in out_pdu.
+          Note that last added option will be the first option in
+          the list.
+ * @param out_pdu - buffer where modified pdu will be stored in
+ * @param out_pdu_size - size of the out_pdu
+ * @param pdu - input pdu to which user wants to add option
+ * @param pdu_size - size of input pdu
+ * @param sc_option - pointer to encoded header option
+ * @param sc_option_len - length of encoded header option
+ * @return returns lenght (>0) in bytes of a pdu with added option
+           or 0 in a case of error (validation of pdu or sc_option fails)
+ */
 
-uint16_t bvlc_sc_add_option_to_destination_options(uint8_t  *out_pdu,
-                                                   uint16_t  out_pdu_size,
-                                                   uint8_t  *pdu,
-                                                   uint16_t  pdu_size,
-                                                   uint8_t  *sc_option,
-                                                   uint16_t  sc_option_len)
+unsigned int bvlc_sc_add_option_to_destination_options(
+                  uint8_t  *out_pdu,
+                  uint16_t  out_pdu_size,
+                  uint8_t  *pdu,
+                  uint16_t  pdu_size,
+                  uint8_t  *sc_option,
+                  uint16_t  sc_option_len)
 {
   return bvlc_sc_add_option(false, out_pdu, out_pdu_size, pdu,
                             pdu_size, sc_option, sc_option_len);
 }
 
-uint16_t bvlc_sc_add_option_to_data_options(uint8_t  *out_pdu,
-                                            uint16_t  out_pdu_size,
-                                            uint8_t  *pdu,
-                                            uint16_t  pdu_size,
-                                            uint8_t  *sc_option,
-                                            uint16_t  sc_option_len)
+/**
+ * @brief Function adds header option to data option list
+          into provided pdu and stores the result in out_pdu.
+          Note that last added option will be the first option in
+          the list.
+ * @param out_pdu - buffer where modified pdu will be stored in
+ * @param out_pdu_size - size of the out_pdu
+ * @param pdu - input pdu to which user wants to add option
+ * @param pdu_size - size of input pdu
+ * @param sc_option - pointer to encoded header option
+ * @param sc_option_len - length of encoded header option
+ * @return returns lenght (>0) in bytes of a pdu with added option
+           or 0 in a case of error (validation of pdu or sc_option fails)
+ */
+
+unsigned int bvlc_sc_add_option_to_data_options(
+                  uint8_t  *out_pdu,
+                  uint16_t  out_pdu_size,
+                  uint8_t  *pdu,
+                  uint16_t  pdu_size,
+                  uint8_t  *sc_option,
+                  uint16_t  sc_option_len)
 {
   return bvlc_sc_add_option(true, out_pdu, out_pdu_size, pdu,
                             pdu_size, sc_option, sc_option_len);
 }
 
-uint16_t bvlc_sc_encode_proprietary_option(uint8_t  *pdu,
-                                           uint16_t  pdu_size,
-                                           bool      must_understand,
-                                           uint16_t  vendor_id,
-                                           uint8_t   proprietary_option_type,
-                                           uint8_t  *proprietary_data,
-                                           uint16_t  proprietary_data_len)
+/**
+ * @brief Function encodes proprietary header option in correspondence
+ *        of BACNet standard AB.2.3.2 Proprietary Header Options.
+ *        Any proprietary header option shall consist of the 
+ *        following fields:
+ *
+ * Header Marker                 1-octet   'More Options' = 0 or 1,
+ *                                         'Must Understand' = 0 or 1,
+ *                                         'Header Data Flag' = 1,
+ *                                         'Header Option Type' = 31
+ * Header Length                 2-octets   Length of 'Header Data' field,
+ *                                          in octets.
+ * Header Data                   3-N octets Required to include:
+ *   Vendor Identifier           2-octets   Vendor Identifier, with most
+ *                                          significant octet first, of the
+ *                                          organization defining this option.
+ *   Proprietary Option Type     1-octet    An indication of the proprietary
+ *                                          header option type.
+ *   Proprietary Header data     Variable   A proprietary string of octets.
+ *                                          Can be zero length.
+ *
+ * @param pdu - buffer to store encoded option
+ * @param pdu_size - size of pdu
+ * @param must_understand - value for 'Must Understand' flag.
+ * @param pdu_size - size of input pdu
+ * @param vendor_id - vendor identifier
+ * @param proprietary_option_type - proprietary header option type.
+ * @param proprietary_data - buffer with proprietary data
+ * @param proprietary_data_len - size of buffer with proprietary data
+ * @return value (>0) in bytes of a encoded options or 0 in a case of
+           an error
+ */
+
+unsigned int bvlc_sc_encode_proprietary_option(
+                  uint8_t  *pdu,
+                  uint16_t  pdu_size,
+                  bool      must_understand,
+                  uint16_t  vendor_id,
+                  uint8_t   proprietary_option_type,
+                  uint8_t  *proprietary_data,
+                  uint16_t  proprietary_data_len)
 {
   uint16_t total_len = sizeof(vendor_id) + 
                        proprietary_data_len + sizeof(uint8_t);
@@ -319,10 +384,28 @@ uint16_t bvlc_sc_encode_proprietary_option(uint8_t  *pdu,
   return total_len + 3;
 }
 
-// returns length of created option
-uint16_t bvlc_sc_encode_secure_path_option(uint8_t* pdu,
-                                           uint16_t pdu_size,
-                                           bool     must_understand)
+/**
+ * @brief Function encodes security path header option in correspondence
+ *        of BACNet standard AB.2.3.1 Secure Path Header Option.
+ *        Any proprietary header option shall consist of the 
+ *        following fields:
+ *
+ * Header Marker                 1-octet   'Last Option' = 0 or 1,
+ *                                         'Must Understand' = 0 or 1,
+ *                                         'Header Data Flag' = 1,
+ *                                         'Header Option Type' = 31
+ *
+ * @param pdu - buffer to store encoded option
+ * @param pdu_size - size of pdu
+ * @param must_understand - value for 'Must Understand' flag.
+ * @return value (>0) in bytes of a encoded options or 0 in a case of
+           an error
+ */
+
+unsigned int bvlc_sc_encode_secure_path_option(
+                  uint8_t* pdu,
+                  uint16_t pdu_size,
+                  bool     must_understand)
 {
   if(pdu_size < 1) {
     return 0;
@@ -337,19 +420,21 @@ uint16_t bvlc_sc_encode_secure_path_option(uint8_t* pdu,
 }
 
 /**
- * @brief Decodes BVLC header options marker. Function assumes to be called iteratively
- *        until end of option list will be reached. User must call this function on
- *        previously validated options list only because sanity checks are omitted.
- *        That valided option list can be get by some bvlc_sc_encode_ function calls.
+ * @brief Decodes BVLC header options marker. Function assumes to be called
+ *        iteratively until end of option list will be reached. User must
+ *        call this function on previously validated options list only
+ *        because sanity checks are omitted.That valided option list can
+ *        be get by some bvlc_sc_encode_ function calls.
  *
- * @param in_option_list - buffer contaning list of header options.It must point
- *                         to head list item to be decoded.
+ * @param in_option_list - buffer contaning list of header options.It must
+                           point  to head list item to be decoded.
  * @param in_option_list_len - length in bytes of header options list
- * @param out_opt_type - pointer to store decoded option type, must not be NULL
+ * @param out_opt_type - pointer to store decoded option type, must not
+                         be NULL
  * @param out_must_understand - pointer to store decoded 'must understand'
  *                              flag from options marker, must not be NULL.
- * @param out_next_option - pointer to next option list item to be decoded, can be NULL
- *                          if no any option items left.
+ * @param out_next_option - pointer to next option list item to be decoded,
+ *                          can be NULL if no any option items left.
  *
  * @return 0 in a case if decoding failed, otherwise returns
  *         length value of decoded option in bytes.
@@ -359,11 +444,12 @@ uint16_t bvlc_sc_encode_secure_path_option(uint8_t* pdu,
  *  uint8_t *current = in_options_list;
  *  int option_len = 0;
  *  while(current) {
- *    option_len = bvlc_sc_decode_option_hdr(current, &in_options_list_len, &type, ...., &current);
+ *    option_len = bvlc_sc_decode_option_hdr(current, &in_options_list_len,
+ *                                           &type, ...., &current);
  *    if(option_len == 0) {
-        // handle error
-        break;
-      }
+ *      // handle error
+ *      break;
+ *    }
  *    in_options_list_len -= option_len;
  *  }
  *
@@ -487,24 +573,73 @@ static unsigned int bvlc_sc_encode_common(
 
 
 /**
- * @brief bvlc_sc_encode_result
+ * @brief Function encodes the BVLC-Result message according BACNet standard
+ *        AB.2.4.1 BVLC-Result Format.
+ *
+ * BVLC Function               1-octet(X'00') BVLC-Result
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0 or 6-octets  If absent, message is from
+ *                                            connection peer node
+ * Destination Virtual Address 0 or 6-octets  If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ * Payload
+ *  Result For BVLC Function   1-octet        BVLC function for which this
+ *                                            is a result
+ *  Result Code                1-octet(X'00') ACK: Successful completion. The
+ *                                           'Error Header Marker' and all
+ *                                            subsequent parameters shall be
+ *                                            absent.
+ *                                    (X'01') NAK: The BVLC function failed.
+ *                                            The 'Error Header Marker',
+ *                                            the 'Error Class', the 'Error
+ *                                            Code', and the 'Error Details'
+ *                                            shall be present.
+ *  Error Header Marker        1-octet        The header marker of the
+ *  (Conditional)                             destination option that caused
+ *                                            the BVLC function to fail. If
+ *                                            the NAK is unrelated to a header
+ *                                            option, this parameter shall be
+ *                                            X'00'.
+ *  Error Class                2-octets       The 'Error Class' field of the
+ *  (Conditional)                            'Error' datatype defined in
+ *                                            Clause 21.
+ *  Error Code                 2-octets       The 'Error Code' field of the
+ *  (Conditional)                            'Error' datatype defined in
+ *                                            Clause 21.
+ *  Error Details              Variable       UTF-8 reason text. Can be an
+ *  (Conditional)                             empty string using no octets.
+ *                                            Note that this string is not
+ *                                            encoded as defined in Clause
+ *                                            20.2.9, has no character set
+ *                                            indication octet, and no trailing
+ *                                            zero octets. See BVLC-Result
+ *                                            examples in Clause AB.2.17.
  *
  *
- * @param pdu - buffer to store the encoding
- * @param pdu_size - size of the buffer to store encoding
- * @param result_code - BVLC result code
- *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param origin - Originating virtual address, can be NULL
+ * @param dest  - Destination virtual address, can be NULL
+ * @param bvlc_function - BVLC function for which this is a result.
+ *                        check BVLC_SC_MESSAGE_TYPE enum.
+ * @param result_code - 0 (ACK) or 1 (NAK)
+ * @param error_header_marker -can be NULL depending on result code.
+ *                             The header marker of the destination option
+ *                             that caused the BVLC function to fail
+ * @param error_class - can be NULL depending on result code.
+ *                      Check BACNET_ERROR_CLASS enum.
+ * @param error_code - can be NULL depending on result code.
+ *                     check BACNET_ERROR_CODE enum.
+ * @param utf8_details_string - can be NULL depending on result code.
+ *                              UTF-8 reason text.
  * @return number of bytes encoded, in a case of error returns 0.
  *
- * bvlc_function: 1-octet   check bvlc-sc.h for valid values
- * result_code:   1-octet   X'00' ACK: Successful completion.
-                                  The 'Error Header Marker'
-                                  and all subsequent parameters
-                                  shall be absent.
- *                          X'01' NAK: The BVLC function failed.
-                                  The 'Error Header Marker',
-                                  the 'Error Class', the 'Error Code',
-                                  and the 'Error Details' shall be present.
  */
 
 unsigned int bvlc_sc_encode_result(
@@ -659,6 +794,34 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
   return true;
 }
 
+/**
+ * @brief Function encodes the Encapsulated-NPDU message according
+ *        BACNet standard AB.2.5 Encapsulated-NPDU.
+ *
+ * BVLC Function               1-octet(X'01') Encapsulated-NPDU
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0 or 6-octets  If absent, message is from
+ *                                            connection peer node
+ * Destination Virtual Address 0 or 6-octets  If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Optional, 0 to N header options
+ * Payload
+ *  BACnet NPDU                Variable
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param origin - Originating virtual address, can be NULL
+ * @param dest  - Destination virtual address, can be NULL
+ * @param npdu - Buffer which contains BACnet NPDU
+ * @param npdu_size - Size of buffer which contains BACnet NPDU
+ * @return number of bytes encoded, in a case of error returns 0.
+ *
+ */
 unsigned int bvlc_sc_encode_encapsulated_npdu(
                   uint8_t                *pdu,
                   int                     pdu_len,
@@ -686,6 +849,30 @@ unsigned int bvlc_sc_encode_encapsulated_npdu(
   return offs;
 }
 
+/**
+ * @brief Function encodes the Address-Resolution message according BACNet standard
+ *        AB.2.6 Address-Resolution
+ *
+ * BVLC Function               1-octet(X'02') Address-Resolution
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0 or 6-octets  If absent, message is from
+ *                                            connection peer node
+ * Destination Virtual Address 0 or 6-octets  If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param origin - Originating virtual address, can be NULL
+ * @param dest  - Destination virtual address, can be NULL
+ * @return number of bytes encoded, in a case of error returns 0.
+ *
+ */
 unsigned int bvlc_sc_encode_address_resolution(
                   uint8_t                *pdu,
                   int                     pdu_len,

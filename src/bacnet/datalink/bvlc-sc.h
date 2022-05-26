@@ -26,7 +26,7 @@
 #endif
 
 /*
- * BACnet/SC BVLC Messages (funcitons) (AB.2 BACnet/SC Virtual Link Layer Messages)
+ * BACnet/SC BVLC Messages (functions) (AB.2 BACnet/SC Virtual Link Layer Messages)
  */
 
 typedef enum BVLC_SC_Message_Type {
@@ -237,58 +237,65 @@ typedef struct BVLC_SC_Decoded_Message
   BVLC_SC_DECODED_DATA       payload;
 } BVLC_SC_DECODED_MESSAGE;
 
-uint16_t bvlc_sc_add_option_to_destination_options(uint8_t* outbuf,
-                                                   uint16_t outbuf_len,
-                                                   uint8_t* blvc_message,
-                                                   uint16_t blvc_message_len,
-                                                   uint8_t* sc_option,
-                                                   uint16_t sc_option_len);
+unsigned int bvlc_sc_add_option_to_destination_options(
+                  uint8_t  *out_pdu,
+                  uint16_t  out_pdu_size,
+                  uint8_t  *pdu,
+                  uint16_t  pdu_size,
+                  uint8_t  *sc_option,
+                  uint16_t  sc_option_len);
+
+unsigned int bvlc_sc_add_option_to_data_options(
+                  uint8_t  *out_pdu,
+                  uint16_t  out_pdu_size,
+                  uint8_t  *pdu,
+                  uint16_t  pdu_size,
+                  uint8_t  *sc_option,
+                  uint16_t  sc_option_len);
+
+unsigned int bvlc_sc_encode_proprietary_option(
+                  uint8_t  *pdu,
+                  uint16_t  pdu_size,
+                  bool      must_understand,
+                  uint16_t  vendor_id,
+                  uint8_t   proprietary_option_type,
+                  uint8_t  *proprietary_data,
+                  uint16_t  proprietary_data_len);
+
+unsigned int bvlc_sc_encode_secure_path_option(
+                  uint8_t* pdu,
+                  uint16_t pdu_size,
+                  bool     must_understand);
 
 
-uint16_t bvlc_sc_add_option_to_data_options(uint8_t* outbuf,
-                                            uint16_t outbuf_len,
-                                            uint8_t* blvc_message,
-                                            uint16_t blvc_message_len,
-                                            uint8_t* sc_option,
-                                            uint16_t sc_option_len);
+unsigned int bvlc_sc_encode_result(
+                  uint8_t                *pdu,
+                  int                     pdu_len,
+                  uint16_t                message_id,
+                  BACNET_SC_VMAC_ADDRESS *origin,
+                  BACNET_SC_VMAC_ADDRESS *dest,
+                  uint8_t                 bvlc_function,
+                  uint8_t                 result_code,
+                  uint8_t                *error_header_marker,
+                  uint16_t               *error_class,
+                  uint16_t               *error_code,
+                  uint8_t                *utf8_details_string);
 
-uint16_t bvlc_sc_encode_proprietary_option(uint8_t* outbuf,
-                                           uint16_t outbuf_len,
-                                           bool     must_understand,
-                                           uint16_t vendor_id,
-                                           uint8_t  proprietary_option_type,
-                                           uint8_t* proprietary_data,
-                                           uint16_t proprietary_data_len);
+unsigned int bvlc_sc_encode_encapsulated_npdu(
+                  uint8_t                *pdu,
+                  int                     pdu_len,
+                  uint16_t                message_id,
+                  BACNET_SC_VMAC_ADDRESS *origin,
+                  BACNET_SC_VMAC_ADDRESS *dest,
+                  uint8_t                *npdu,
+                  uint16_t                npdu_size);
 
-uint16_t bvlc_sc_encode_secure_path_option(uint8_t* outbuf,
-                                           uint16_t outbuf_len,
-                                           bool     must_understand);
-
-unsigned int bvlc_sc_encode_result(uint8_t        *out_buf,
-                                   int             out_buf_len,
-                                   uint16_t        message_id,
-                                   BACNET_SC_VMAC_ADDRESS *origin,
-                                   BACNET_SC_VMAC_ADDRESS *dest,
-                                   uint8_t         bvlc_function,
-                                   uint8_t         result_code,
-                                   uint8_t        *error_header_marker,
-                                   uint16_t       *error_class,
-                                   uint16_t       *error_code,
-                                   uint8_t        *utf8_details_string );
-
-unsigned int bvlc_sc_encode_encapsulated_npdu(uint8_t        *out_buf,
-                                              int             out_buf_len,
-                                              uint16_t        message_id,
-                                              BACNET_SC_VMAC_ADDRESS *origin,
-                                              BACNET_SC_VMAC_ADDRESS *dest,
-                                              uint8_t        *npdu,
-                                              uint16_t        npdu_len);
-
-unsigned int bvlc_sc_encode_address_resolution(uint8_t        *out_buf,
-                                               int             out_buf_len,
-                                               uint16_t        message_id,
-                                               BACNET_SC_VMAC_ADDRESS *origin,
-                                               BACNET_SC_VMAC_ADDRESS *dest);
+unsigned int bvlc_sc_encode_address_resolution(
+                  uint8_t                *pdu,
+                  int                     pdu_len,
+                  uint16_t                message_id,
+                  BACNET_SC_VMAC_ADDRESS *origin,
+                  BACNET_SC_VMAC_ADDRESS *dest);
 
 unsigned int bvlc_sc_encode_address_resolution_ack(uint8_t        *out_buf,
                                                    int             out_buf_len,
