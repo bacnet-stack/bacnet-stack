@@ -576,7 +576,7 @@ static unsigned int bvlc_sc_encode_common(
  * @brief Function encodes the BVLC-Result message according BACNet standard
  *        AB.2.4.1 BVLC-Result Format.
  *
- * BVLC Function               1-octet(X'00') BVLC-Result
+ * BVLC Function               1-octet        (X'00') BVLC-Result
  * Control Flags               1-octet        Control flags.
  * Message ID                  2-octets       The message identifier of the
  *                                            message for which this message
@@ -798,7 +798,7 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
  * @brief Function encodes the Encapsulated-NPDU message according
  *        BACNet standard AB.2.5 Encapsulated-NPDU.
  *
- * BVLC Function               1-octet(X'01') Encapsulated-NPDU
+ * BVLC Function               1-octet        (X'01') Encapsulated-NPDU
  * Control Flags               1-octet        Control flags.
  * Message ID                  2-octets       The message identifier of the
  *                                            message for which this message
@@ -853,7 +853,7 @@ unsigned int bvlc_sc_encode_encapsulated_npdu(
  * @brief Function encodes the Address-Resolution message according BACNet standard
  *        AB.2.6 Address-Resolution
  *
- * BVLC Function               1-octet(X'02') Address-Resolution
+ * BVLC Function               1-octet        (X'02') Address-Resolution
  * Control Flags               1-octet        Control flags.
  * Message ID                  2-octets       The message identifier of the
  *                                            message for which this message
@@ -889,6 +889,41 @@ unsigned int bvlc_sc_encode_address_resolution(
   return offs;
 }
 
+/**
+ * @brief Function encodes the Address-Resolution-ACK message according
+ *        BACNet standard AB.2.7.1 Address-Resolution-ACK Format.
+ *
+ * BVLC Function               1-octet        (X'03') Address-Resolution-ACK
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0 or 6-octets  If absent, message is from
+ *                                            connection peer node
+ * Destination Virtual Address 0 or 6-octets  If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ * Payload
+ *  WebSocket-URIs             Variable       UTF-8 string containing a list
+ *                                            of WebSocket URIs as of RFC3986,
+ *                                            separated by a single space
+ *                                            character (X'20'), where the
+ *                                            source BACnet/SC node accepts
+ *                                            direct connections. Can be an
+ *                                            empty string using zero octets.
+ *                                            See Clause AB.3.3.
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param origin - Originating virtual address, can be NULL
+ * @param dest  - Destination virtual address, can be NULL
+ * @param web_socket_uris - UTF-8 string.
+ * @param web_socket_uris_len- length of web_socket_uris without trailing zero.
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
+
 unsigned int bvlc_sc_encode_address_resolution_ack(
                   uint8_t                *pdu,
                   int                     pdu_len,
@@ -914,6 +949,51 @@ unsigned int bvlc_sc_encode_address_resolution_ack(
 
   return offs;
 }
+
+/**
+ * @brief Function encodes the Advertisement message according
+ *        BACNet standard AB.2.8.1 Advertisement Format.
+ *
+ * BVLC Function               1-octet        (X'04') Advertisement
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0 or 6-octets  If absent, message is from
+ *                                            connection peer node
+ * Destination Virtual Address 0 or 6-octets  If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ *
+ * Payload
+ *  Hub Connection Status      1-octet        X'00' No hub connection.
+ *                                            X'01' Connected to primary hub.
+ *                                            X'02' Connected to failover hub.
+ *  Accept Direct Connections  1-octet        X'00' The node does not support
+ *                                                  accepting direct
+ *                                                  connections.
+ *                                            X'01' The node supports accepting
+ *                                                  direct connections.
+ *  Maximum BVLC Length        2-octet        The maximum BVLC message size
+ *                                            that can be received and
+ *                                            processed by the node, in number
+ *                                            of octets.
+ *  Maximum NPDU Length        2-octet        The maximum NPDU message size
+ *                                            that can be handled by the node's
+ *                                            network entity, in number of
+ *                                            octets.
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param origin - Originating virtual address, can be NULL
+ * @param dest  - Destination virtual address, can be NULL
+ * @param hub_status - hub connection status
+ * @param support- accept direct connections
+ * @param max_blvc_len - the maximum BVLC message size
+ * @param max_npdu_size - the maximum NPDU message size
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
 
 unsigned int bvlc_sc_encode_advertisiment(
                   uint8_t                           *pdu,
@@ -971,6 +1051,30 @@ static bool bvlc_sc_decode_advertisiment(
   return true;
 }
 
+/**
+ * @brief Function encodes the Advertisement-Solicitation message according
+ *        BACNet standard AB.2.9.1 Advertisement-Solicitation Format.
+ *
+ * BVLC Function               1-octet        (X'05') Advertisement
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0 or 6-octets  If absent, message is from
+ *                                            connection peer node
+ * Destination Virtual Address 0 or 6-octets  If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param origin - Originating virtual address, can be NULL
+ * @param dest  - Destination virtual address, can be NULL
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
+
 unsigned int bvlc_sc_encode_advertisiment_solicitation(
                   uint8_t                *pdu,
                   int                     pdu_len,
@@ -986,6 +1090,44 @@ unsigned int bvlc_sc_encode_advertisiment_solicitation(
   return offs;
 }
 
+/**
+ * @brief Function encodes the Connect-Request message according
+ *        BACNet standard AB.2.10.1 Connect-Request Format.
+ *
+ * BVLC Function               1-octet        (X'06') Advertisement
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0              Absent, is always for
+ *                                            connection peer node.
+ * Destination Virtual Address 0              If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ *
+ * Payload
+ *  VMAC Address               6-octets       The VMAC address of the
+ *                                            requesting node.
+ *  Device UUID                16-octet       The device UUID of the
+ *                                            requesting node.
+ *  Maximum BVLC Length        2-octet        The maximum BVLC message size
+ *                                            that can be received and
+ *                                            processed by the node, in number
+ *                                            of octets.
+ *  Maximum NPDU Length        2-octet        The maximum NPDU message size
+ *                                            that can be handled by the node's
+ *                                            network entity, in number of
+ *                                            octets.
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param local_vmac - VMAC address
+ * @param local_uuid  - The device UUID
+ * @param max_blvc_len - the maximum BVLC message size
+ * @param max_npdu_size - the maximum NPDU message size
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
 
 unsigned int bvlc_sc_encode_connect_request(
                   uint8_t                *pdu,
@@ -994,7 +1136,7 @@ unsigned int bvlc_sc_encode_connect_request(
                   BACNET_SC_VMAC_ADDRESS *local_vmac,
                   BACNET_SC_UUID         *local_uuid,
                   uint16_t                max_blvc_len,
-                  uint16_t                max_npdu_size) 
+                  uint16_t                max_npdu_size)
 {
   uint16_t offs;
 
@@ -1056,6 +1198,45 @@ static bool bvlc_sc_decode_connect_request(
   return true;
 }
 
+/**
+ * @brief Function encodes the Connect-Accept message according
+ *        BACNet standard AB.2.11.1 Connect-Accept Format.
+ *
+ * BVLC Function               1-octet        (X'07') Advertisement
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0              Absent, is always for
+ *                                            connection peer node.
+ * Destination Virtual Address 0              If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ *
+ * Payload
+ *  VMAC Address               6-octets       The VMAC address of the
+ *                                            requesting node.
+ *  Device UUID                16-octet       The device UUID of the
+ *                                            requesting node.
+ *  Maximum BVLC Length        2-octet        The maximum BVLC message size
+ *                                            that can be received and
+ *                                            processed by the node, in number
+ *                                            of octets.
+ *  Maximum NPDU Length        2-octet        The maximum NPDU message size
+ *                                            that can be handled by the node's
+ *                                            network entity, in number of
+ *                                            octets.
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param local_vmac - VMAC address
+ * @param local_uuid  - The device UUID
+ * @param max_blvc_len - the maximum BVLC message size
+ * @param max_npdu_size - the maximum NPDU message size
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
+
 unsigned int bvlc_sc_encode_connect_accept(
                   uint8_t                *pdu,
                   int                     pdu_len,
@@ -1063,7 +1244,7 @@ unsigned int bvlc_sc_encode_connect_accept(
                   BACNET_SC_VMAC_ADDRESS *local_vmac,
                   BACNET_SC_UUID         *local_uuid,
                   uint16_t                max_blvc_len,
-                  uint16_t                max_npdu_len) 
+                  uint16_t                max_npdu_len)
 {
   uint16_t offs;
 
@@ -1126,6 +1307,27 @@ static bool bvlc_sc_decode_connect_accept(
   return true;
 }
 
+/**
+ * @brief Function encodes the Disconnect-Request message according
+ *        BACNet standard AB.2.12.1 Disconnect-Request Format.
+ *
+ * BVLC Function               1-octet        (X'08') Advertisement
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0              Absent, is always for
+ *                                            connection peer node.
+ * Destination Virtual Address 0              If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
 unsigned int bvlc_sc_encode_disconnect_request(uint8_t *pdu,
                                                int      pdu_len,
                                                uint16_t message_id)
@@ -1138,6 +1340,27 @@ unsigned int bvlc_sc_encode_disconnect_request(uint8_t *pdu,
   return offs;
 }
 
+/**
+ * @brief Function encodes the  Disconnect-ACK message according
+ *        BACNet standard AB.2.13.1 Disconnect-ACK Format.
+ *
+ * BVLC Function               1-octet        (X'09') Advertisement
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0              Absent, is always for
+ *                                            connection peer node.
+ * Destination Virtual Address 0              If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
 unsigned int bvlc_sc_encode_disconnect_ack(uint8_t *pdu,
                                            int      pdu_len,
                                            uint16_t message_id)
@@ -1150,6 +1373,27 @@ unsigned int bvlc_sc_encode_disconnect_ack(uint8_t *pdu,
   return offs;
 }
 
+/**
+ * @brief Function encodes the  Heartbeat-Request message according
+ *        BACNet standard AB.2.14.1 Heartbeat-Request Format.
+ *
+ * BVLC Function               1-octet        (X'0A') Advertisement
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0              Absent, is always for
+ *                                            connection peer node.
+ * Destination Virtual Address 0              If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
 unsigned int bvlc_sc_encode_heartbeat_request(uint8_t *pdu,
                                               int      pdu_len,
                                               uint16_t message_id)
@@ -1162,6 +1406,27 @@ unsigned int bvlc_sc_encode_heartbeat_request(uint8_t *pdu,
   return offs;
 }
 
+/**
+ * @brief Function encodes the Heartbeat-ACK message according
+ *        BACNet standard AB.2.15.1 Heartbeat-ACK Format.
+ *
+ * BVLC Function               1-octet        (X'0B') Advertisement
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0              Absent, is always for
+ *                                            connection peer node.
+ * Destination Virtual Address 0              If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ *
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @return number of bytes encoded, in a case of error returns 0.
+ */
 unsigned int bvlc_sc_encode_heartbeat_ack(uint8_t *pdu,
                                           int      pdu_len,
                                           uint16_t message_id)
@@ -1173,6 +1438,46 @@ unsigned int bvlc_sc_encode_heartbeat_ack(uint8_t *pdu,
                                NULL, NULL);
   return offs;
 }
+
+/**
+ * @brief Function encodes the Proprietary Message according BACNet standard
+ *        AB.2.16.1 Proprietary Message Format.
+ *
+ * BVLC Function               1-octet        (X'0C') Proprietary-Message.
+ * Control Flags               1-octet        Control flags.
+ * Message ID                  2-octets       The message identifier of the
+ *                                            message for which this message
+ *                                            is the result.
+ * Originating Virtual Address 0 or 6-octets  If absent, message is from
+ *                                            connection peer node
+ * Destination Virtual Address 0 or 6-octets  If absent, message is for
+ *                                            connection peer node
+ * Destination Options         Variable       Optional, 0 to N header options
+ * Data Options                0-octets       Shall be absent.
+ * Payload                     3-N octets     The payload shall consist of at
+ *                                            least the vendor identifier and
+ *                                            the proprietary function octet.
+ *  Vendor identifier          2-octets       Vendor Identifier, with most
+ *                                            significant octet first, of the
+ *                                            organization defining this
+ *                                            message.
+ *  Proprietary Function       1-octet        The vendor-defined function code.
+ *
+ *  Proprietary Data           Variable       Optional vendor-defined payload
+ *                                            data.
+ * @param pdu - A buffer to store the encoded pdu.
+ * @param pdu_len - Size of the buffer to store the encoded pdu.
+ * @param message_id- The message identifier
+ * @param origin - Originating virtual address, can be NULL
+ * @param dest  - Destination virtual address, can be NULL
+ * @param vendor_id - vendor identifier.
+ * @param proprietary_function - The vendor-defined function code
+ * @param proprietary_data - buffer which holds optional vendor-defined
+ *                           payload data.
+ * @param proprietary_data_len - length of proprietary_data buffer.
+ * @return number of bytes encoded, in a case of error returns 0.
+ *
+ */
 
 unsigned int bvlc_sc_encode_proprietary_message(
                   uint8_t                 *pdu,
@@ -1419,11 +1724,25 @@ static bool bvlc_sc_decode_data_options_if_exists(
   return true;
 }
 
-bool bvlc_sc_decode_message(uint8_t                  *buf,
-                             uint16_t                 buf_len,
-                             BVLC_SC_DECODED_MESSAGE *message,
-                             BACNET_ERROR_CODE       *error,
-                             BACNET_ERROR_CLASS      *class)
+/**
+ * @brief Function decodes BACNet/SC message.
+ *
+ * @param buf - A buffer which holds BACNet/SC PDU.
+ * @param buf_len - length of a buffer which holds BACNet/SC PDU.
+ * @param message- pointer to structure for decoded data.
+ * @param error - the value of parameter is filled if function returns false.
+ *                Check BACNET_ERROR_CLASS enum.
+ * @param class - the value of parameter is filled if function returns false.
+ *                heck BACNET_ERROR_CODE enum.
+ * @return true if PDU was successfully decoded otherwise returns false,
+ *         and error and class parameters are filled with corresponded codes.
+ */
+
+bool bvlc_sc_decode_message(uint8_t                 *buf,
+                            uint16_t                 buf_len,
+                            BVLC_SC_DECODED_MESSAGE *message,
+                            BACNET_ERROR_CODE       *error,
+                            BACNET_ERROR_CLASS      *class)
 {
   if(!message || !buf_len || !error || !class) {
     return false;
