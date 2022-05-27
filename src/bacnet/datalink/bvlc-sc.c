@@ -2020,6 +2020,8 @@ bool bvlc_sc_decode_message(uint8_t                 *buf,
     }
     default:
     {
+      *error = ERROR_CODE_INCONSISTENT_PARAMETERS;
+      *class = ERROR_CLASS_COMMUNICATION;
       return false;
     }
   }
