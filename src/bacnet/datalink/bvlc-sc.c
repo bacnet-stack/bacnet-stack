@@ -1744,7 +1744,7 @@ bool bvlc_sc_decode_message(uint8_t                 *buf,
                             BACNET_ERROR_CODE       *error,
                             BACNET_ERROR_CLASS      *class)
 {
-  if(!message || !buf_len || !error || !class) {
+  if(!message || !buf_len || !error || !class || !buf) {
     return false;
   }
 
