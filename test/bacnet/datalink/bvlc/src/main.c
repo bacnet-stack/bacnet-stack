@@ -819,12 +819,11 @@ static void test_BVLC_Address_Get_Set(void)
 static void test_BVLC_BBMD_Address(void)
 {
     uint8_t apdu[480] = { 0 };
-    uint16_t apdu_len = 0;
-    uint16_t test_apdu_len = 0;
-    uint16_t i = 0;
+    int apdu_len = 0;
+    int test_apdu_len = 0;
     BACNET_IP_ADDRESS bbmd_address;
     BACNET_IP_ADDRESS test_bbmd_address;
-    BACNET_ERROR_CODE error_code = 0;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     bool status = false;
 
     status = bvlc_address_port_from_ascii(
@@ -835,6 +834,9 @@ static void test_BVLC_BBMD_Address(void)
     zassert_not_equal(apdu_len, 0, NULL);
     test_apdu_len = bvlc_foreign_device_bbmd_host_address_decode(apdu,
         apdu_len, &error_code, &test_bbmd_address);
+    if (test_apdu_len < 0) {
+        printf("BVLC: error-code=%s\n", bactext_error_code_name(error_code));
+    }
     zassert_not_equal(test_apdu_len, 0, NULL);
     zassert_not_equal(test_apdu_len, BACNET_STATUS_ERROR, NULL);
     zassert_not_equal(test_apdu_len, BACNET_STATUS_ABORT, NULL);

@@ -24,6 +24,7 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	PRINT_ENABLED=1
+	BACAPP_ALL=1
 	BACAPP_HOST_N_PORT=1
 	)
 

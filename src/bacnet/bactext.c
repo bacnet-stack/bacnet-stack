@@ -129,8 +129,8 @@ const char *bactext_unconfirmed_service_name(unsigned index)
         bacnet_unconfirmed_service_names, index, ASHRAE_Reserved_String);
 }
 
-INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
-                                                    "Null" },
+INDTEXT_DATA bacnet_application_tag_names[] = {
+    { BACNET_APPLICATION_TAG_NULL, "Null" },
     { BACNET_APPLICATION_TAG_BOOLEAN, "Boolean" },
     { BACNET_APPLICATION_TAG_UNSIGNED_INT, "Unsigned Int" },
     { BACNET_APPLICATION_TAG_SIGNED_INT, "Signed Int" },
@@ -145,7 +145,29 @@ INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
     { BACNET_APPLICATION_TAG_OBJECT_ID, "Object ID" },
     { BACNET_APPLICATION_TAG_RESERVE1, "Reserved 1" },
     { BACNET_APPLICATION_TAG_RESERVE2, "Reserved 2" },
-    { BACNET_APPLICATION_TAG_RESERVE3, "Reserved 3" }, { 0, NULL } };
+    { BACNET_APPLICATION_TAG_RESERVE3, "Reserved 3" },
+    /* complex data types */
+    { BACNET_APPLICATION_TAG_EMPTYLIST, "Empty List" },
+    { BACNET_APPLICATION_TAG_WEEKNDAY, "BACnetWeeknday" },
+    { BACNET_APPLICATION_TAG_DATERANGE, "BACnetDateRange" },
+    { BACNET_APPLICATION_TAG_DATETIME, "BACnetDateTime" },
+    { BACNET_APPLICATION_TAG_TIMESTAMP, "BACnetTimeStamp" },
+    { BACNET_APPLICATION_TAG_ERROR, "Error" },
+    { BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE,
+        "BACnetDeviceObjectPropertyReference" },
+    { BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE,
+        "BACnetDeviceObjectReference" },
+    { BACNET_APPLICATION_TAG_DESTINATION, "BACnetDestination" },
+    { BACNET_APPLICATION_TAG_RECIPIENT, "BACnetRecipient" },
+    { BACNET_APPLICATION_TAG_COV_SUBSCRIPTION, "BACnetCOVSubscription" },
+    { BACNET_APPLICATION_TAG_CALENDAR_ENTRY, "BACnetCalendarEntry" },
+    { BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE, "BACnetWeeklySchedule" },
+    { BACNET_APPLICATION_TAG_SPECIAL_EVENT, "BACnetSpecialEvent" },
+    { BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,
+        "BACnetReadAccessSpecification" },
+    { BACNET_APPLICATION_TAG_LIGHTING_COMMAND, "BACnetLightingCommand" },
+    { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" },
+    { 0, NULL } };
 
 const char *bactext_application_tag_name(unsigned index)
 {
