@@ -2759,16 +2759,6 @@ int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
         }
         return BACNET_STATUS_REJECT;
     }
-    /* bbmd-address [0] BACnetHostNPort - closing */
-    if (!decode_is_closing_tag_number(&apdu[len++], 0)) {
-        if (error_code) {
-            *error_code = ERROR_CODE_REJECT_INVALID_TAG;
-        }
-        return BACNET_STATUS_REJECT;
-    }
-    if (len > apdu_len) {
-        return BACNET_STATUS_REJECT;
-    }
 
     return apdu_len;
 }
