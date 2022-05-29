@@ -41,6 +41,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
+	${SRC_DIR}/bacnet/hostnport.c
 	${SRC_DIR}/bacnet/indtext.c
     # Test and test library files
 	./src/main.c

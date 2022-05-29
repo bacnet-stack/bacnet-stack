@@ -32,15 +32,9 @@
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
-#if defined (BACAPP_LIGHTING_COMMAND)
 #include "bacnet/lighting.h"
-#endif
-#if defined (BACAPP_DEVICE_OBJECT_PROP_REF)
 #include "bacnet/bacdevobjpropref.h"
-#endif
-#if defined(BACAPP_HOST_N_PORT)
-#include "bacnet/datalink/datalink.h"
-#endif
+#include "bacnet/hostnport.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -85,13 +79,9 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_OBJECT_ID)
         BACNET_OBJECT_ID Object_Id;
 #endif
-#if defined (BACAPP_LIGHTING_COMMAND)
+#if defined (BACAPP_TYPES_EXTRA)
         BACNET_LIGHTING_COMMAND Lighting_Command;
-#endif
-#if defined(BACAPP_HOST_N_PORT)
-        BACNET_IP_ADDRESS IP_Address;
-#endif
-#if defined (BACAPP_DEVICE_OBJECT_PROP_REF)
+        BACNET_HOST_N_PORT Host_Address;
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Device_Object_Property_Reference;
 #endif

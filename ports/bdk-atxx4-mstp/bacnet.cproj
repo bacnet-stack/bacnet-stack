@@ -395,6 +395,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Core\ihave.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\hostnport.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\hostnport.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\lighting.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\lighting.c</Link>

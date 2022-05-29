@@ -586,6 +586,10 @@
     <None Include="ASF\common\drivers\nvm\common_nvm.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="..\..\src\bacnet\hostnport.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\hostnport.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\lighting.c">
       <SubType>compile</SubType>
       <Link>bacnet-stack\lighting.c</Link>

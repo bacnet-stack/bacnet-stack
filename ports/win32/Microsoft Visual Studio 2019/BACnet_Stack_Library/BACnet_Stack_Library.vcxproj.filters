@@ -90,6 +90,9 @@
     <ClCompile Include="..\..\..\..\src\bacnet\indtext.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\bacnet\hostnport.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\bacnet\lighting.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -53,10 +53,8 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     #if defined(BACAPP_OBJECT_ID)
     BACNET_APPLICATION_TAG_OBJECT_ID,
     #endif
-    #if defined(BACAPP_LIGHTING_COMMAND)
+    #if defined(BACAPP_TYPES_EXTRA)
     BACNET_APPLICATION_TAG_LIGHTING_COMMAND,
-    #endif
-    #if defined(BACAPP_HOST_N_PORT)
     BACNET_APPLICATION_TAG_HOST_N_PORT,
     #endif
 };
@@ -156,6 +154,7 @@ static void test_bacapp_copy(void)
 
     for (i = 0; i < sizeof(tag_list)/sizeof(tag_list[0]); ++i) {
         BACNET_APPLICATION_TAG tag = tag_list[i];
+        bool result;
         bool expected_result = true;
 
         #if ! defined(BACAPP_NULL)
@@ -169,9 +168,14 @@ static void test_bacapp_copy(void)
         memset(&dest_value, 0xBB, sizeof(dest_value));
         dest_value.next = NULL;
         src_value.tag = tag;
-        zassert_equal(bacapp_copy(&dest_value, &src_value), expected_result,
-            NULL);
-        zassert_true(bacapp_same_value(&dest_value, &src_value), NULL);
+        result = bacapp_copy(&dest_value, &src_value);
+        zassert_equal(result, expected_result, NULL);
+        result = bacapp_same_value(&dest_value, &src_value);
+        if (!result) {
+            printf("bacapp: same-value of tag=%s[%u]\n", 
+                bactext_application_tag_name(tag), tag);
+        }
+        zassert_true(result, NULL);
         zassert_equal(dest_value.next, src_value.next, NULL);
     }
 }
@@ -432,7 +436,7 @@ static void test_bacapp_same_value(void)
     memset(&test_value, 0, sizeof(test_value));
     test_value.tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
     value = test_value;  /* Struct copy */
-#if defined(BACAPP_LIGHTING_COMMAND)
+#if defined(BACAPP_TYPES_EXTRA)
     zassert_true(bacapp_same_value(&value, &test_value), NULL);
 #else
     zassert_false(bacapp_same_value(&value, &test_value), NULL);
