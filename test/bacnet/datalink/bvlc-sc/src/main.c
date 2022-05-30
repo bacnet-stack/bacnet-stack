@@ -2068,7 +2068,7 @@ static void test_BVLC_RESULT(void)
                               NULL, NULL, result_bvlc_function,
                               0, NULL, NULL, NULL, NULL );
   zassert_not_equal(len, 0, NULL);
-  optlen = bvlc_sc_encode_secure_path_option(optbuf, optlen, true);
+  optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
   zassert_not_equal(optlen, 0, NULL);
   len = bvlc_sc_add_option_to_data_options(buf, sizeof(buf),
                                            buf, len, optbuf, optlen);
@@ -2630,6 +2630,8 @@ static void test_ADVERTISIMENT(void)
 {
   uint8_t buf[256];
   int len;
+  uint8_t optbuf[256];
+  int optlen;
   BVLC_SC_DECODED_MESSAGE message;
   BACNET_ERROR_CODE error;
   BACNET_ERROR_CLASS class;
@@ -2789,6 +2791,76 @@ static void test_ADVERTISIMENT(void)
   ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class);
   zassert_equal(ret, false, NULL);
   zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+
+  /* bad hub connection param */
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  len = bvlc_sc_encode_advertisiment(
+             buf, sizeof(buf), message_id, NULL, NULL,
+             5, support, max_blvc_len, max_npdu_len);
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+
+  /* bad support param */
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  len = bvlc_sc_encode_advertisiment(
+             buf, sizeof(buf), message_id, NULL, NULL,
+             hub_status, 4, max_blvc_len, max_npdu_len);
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+  /* payload len < 6 */
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  len = bvlc_sc_encode_advertisiment(
+             buf, sizeof(buf), message_id, NULL, NULL,
+             hub_status, support, max_blvc_len, max_npdu_len);
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+  /* zero payload test  */
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  len = bvlc_sc_encode_advertisiment(
+             buf, sizeof(buf), message_id, NULL, NULL,
+             hub_status, support, max_blvc_len, max_npdu_len);
+  zassert_not_equal(len, 0, NULL);
+  ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+  zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
+  /* data options presented */
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  len = bvlc_sc_encode_advertisiment(
+             buf, sizeof(buf), message_id, NULL, NULL,
+             hub_status, support, max_blvc_len, max_npdu_len);
+  zassert_not_equal(len, 0, NULL);
+  optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true );
+  zassert_not_equal(optlen, 0, NULL);
+  len = bvlc_sc_add_option_to_data_options(buf,
+                                           sizeof(buf),
+                                           buf,
+                                           len,
+                                           optbuf,
+                                           optlen);
+  ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
+  zassert_equal(ret, false, NULL);
+  zassert_equal(error, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
   zassert_equal(class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 

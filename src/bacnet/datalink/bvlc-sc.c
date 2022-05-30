@@ -1799,17 +1799,6 @@ bool bvlc_sc_decode_message(uint8_t                 *buf,
         return false;
       }
 
-      if(message->hdr.payload_len < 6) {
-        *error = ERROR_CODE_PAYLOAD_EXPECTED;
-        *class = ERROR_CLASS_COMMUNICATION;
-        return false;
-      }
-      else if(message->hdr.payload_len > 6) {
-        *error = ERROR_CODE_UNEXPECTED_DATA;
-        *class = ERROR_CLASS_COMMUNICATION;
-        return false;
-      }
-
       bvlc_sc_decode_dest_options_if_exists(message);
 
       if(!bvlc_sc_decode_advertisiment(&message->payload,
