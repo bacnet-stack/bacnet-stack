@@ -325,21 +325,13 @@ bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
     } else {
         c = sscanf(arg, "%2x:%2x:%2x:%2x:%2x:%2x", &a[0], &a[1], &a[2], &a[3],
             &a[4], &a[5]);
-        if (c == 6) {
-            mac->adr[0] = a[0];
-            mac->adr[1] = a[1];
-            mac->adr[2] = a[2];
-            mac->adr[3] = a[3];
-            mac->adr[4] = a[4];
-            mac->adr[5] = a[5];
-            mac->len = 6;
-            status = true;
-        } else if (c == 1) {
-            if (a[0] <= 255) {
-                mac->adr[0] = a[0];
-                mac->len = 1;
-                status = true;
+
+        if (c > 0) {
+            for (int i = 0; i < c; i++) {
+                mac->adr[i] = a[i];
             }
+            mac->len = c;
+            status = true;
         }
     }
 

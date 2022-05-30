@@ -2677,6 +2677,7 @@ int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
                 *error_code = REJECT_REASON_PARAMETER_OUT_OF_RANGE;
             }
         }
+        return BACNET_STATUS_REJECT;
     }
     
     return len;

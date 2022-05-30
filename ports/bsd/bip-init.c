@@ -98,6 +98,14 @@ void bip_debug_enable(void)
 }
 
 /**
+ * @brief Disalbe debug printing of BACnet/IPv4
+ */
+void bip_debug_disable(void)
+{
+    BIP_Debug = false;
+}
+
+/**
  * @brief Set the BACnet IPv4 UDP port number
  * @param port - IPv4 UDP port number - in host byte order
  */

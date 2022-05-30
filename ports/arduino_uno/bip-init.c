@@ -53,6 +53,14 @@ void bip_debug_enable(void)
     BIP_Debug = true;
 }
 
+/**
+ * @brief Disalbe debug printing of BACnet/IPv4
+ */
+void bip_debug_disable(void)
+{
+    BIP_Debug = false;
+}
+
 /* gets an IP address by name, where name can be a
    string that is an IP address in dotted form, or
    a name that is a domain name
