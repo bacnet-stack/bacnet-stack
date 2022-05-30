@@ -195,6 +195,13 @@ extern "C" {
         uint8_t tag_number);
 
     BACNET_STACK_EXPORT
+    int bacapp_decode_generic_property(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_PROPERTY_ID prop);
+
+    BACNET_STACK_EXPORT
     bool bacapp_copy(
         BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);

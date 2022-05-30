@@ -824,7 +824,7 @@ int bacapp_decode_context_data(uint8_t *apdu,
  * @param property - context property identifier
  * @return  number of bytes decoded, or ERROR if errors occur
  */
-static int bacapp_decode_generic_property(
+int bacapp_decode_generic_property(
     uint8_t * apdu,
     int max_apdu_len,
     BACNET_APPLICATION_DATA_VALUE * value,

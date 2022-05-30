@@ -55,7 +55,7 @@ typedef struct dlmstp_statistics {
 } DLMSTP_STATISTICS;
 
 /* callback to signify the receipt of a preamble */
-typedef void (*dlmstp_hook_frame_rx_start_cb)();
+typedef void (*dlmstp_hook_frame_rx_start_cb)(void);
 
 /* callback on for receiving every valid frame */
 typedef void (*dlmstp_hook_frame_rx_complete_cb)(
