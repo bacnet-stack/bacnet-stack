@@ -444,6 +444,8 @@ static unsigned int bvlc_sc_decode_option_hdr(
                          bool                 *out_must_understand,
                          uint8_t             **out_next_option)
 {
+  unsigned int ret = 0;
+
   *out_next_option = NULL;
   *out_opt_type = (BVLC_SC_OPTION_TYPE)
                   (in_options_list[0] & BVLC_SC_HEADER_OPTION_TYPE_MASK);
@@ -454,7 +456,7 @@ static unsigned int bvlc_sc_decode_option_hdr(
     if(in_options_list[0] & BVLC_SC_HEADER_MORE) {
       *out_next_option = in_options_list + 1;
     }
-    return 1;
+    ret = 1;
   }
   else if(*out_opt_type == BVLC_SC_OPTION_TYPE_PROPRIETARY) {
     uint16_t hdr_len;
@@ -463,21 +465,18 @@ static unsigned int bvlc_sc_decode_option_hdr(
     if(in_options_list[0] & BVLC_SC_HEADER_MORE) {
       *out_next_option = in_options_list + hdr_len;
     }
-    return hdr_len;
+    ret = hdr_len;
   }
-  else {
-    return (unsigned int) 0;
-  }
+
+  return ret;
 }
 
 /**
  * @brief Decodes BVLC header proprietary option
  *
- * @return true if proprietary option was decoded succefully, otherwise returns false.
- *
  */
 
-static bool bvlc_sc_decode_proprietary_option(
+static void bvlc_sc_decode_proprietary_option(
                  uint8_t   *in_options_list,
                  uint16_t  *out_vendor_id,
                  uint8_t   *out_proprietary_option_type,
@@ -496,8 +495,6 @@ static bool bvlc_sc_decode_proprietary_option(
     *out_proprietary_data = &in_options_list[6];
     *out_proprietary_data_len = hdr_len - 3;
   }
-
-  return true;
 }
 
 static unsigned int bvlc_sc_encode_common(
@@ -746,13 +743,8 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
         return false;
       }
     }
-    else if(packed_payload_len != 7) {
-      *error = ERROR_CODE_UNEXPECTED_DATA;
-      *class = ERROR_CLASS_COMMUNICATION;
-      return false;
-    }
   }
-  else if(packed_payload_len != 2) {
+  else if(packed_payload_len > 2) {
     *error = ERROR_CODE_UNEXPECTED_DATA;
     *class = ERROR_CLASS_COMMUNICATION;
     return false;
@@ -1612,7 +1604,6 @@ static bool bvlc_sc_decode_header_options(
 {
   uint8_t* next_option = options_list;
   int ret;
-  bool res;
   int i = 0;
 
   while(next_option) {
@@ -1628,15 +1619,12 @@ static bool bvlc_sc_decode_header_options(
      option_array[i].packed_header_marker = options_list[0];
 
      if(option_array[i].type == BVLC_SC_OPTION_TYPE_PROPRIETARY) {
-       res = bvlc_sc_decode_proprietary_option(
-                  options_list,
-                  &option_array[i].specific.proprietary.vendor_id,
-                  &option_array[i].specific.proprietary.option_type,
-                  &option_array[i].specific.proprietary.data,
-                  &option_array[i].specific.proprietary.data_len );
-       if(!res) {
-        return false;
-       }
+       bvlc_sc_decode_proprietary_option(
+            options_list,
+            &option_array[i].specific.proprietary.vendor_id,
+            &option_array[i].specific.proprietary.option_type,
+            &option_array[i].specific.proprietary.data,
+            &option_array[i].specific.proprietary.data_len );
      }
      i++;
      options_list = next_option;
@@ -1724,7 +1712,7 @@ bool bvlc_sc_decode_message(uint8_t                 *buf,
         }
 
         if(!message->hdr.payload || !message->hdr.payload_len) {
-          *error = ERROR_CODE_PAYLOAD_EXPECTED;
+          *error = ERROR_CODE_MESSAGE_INCOMPLETE;
           *class = ERROR_CLASS_COMMUNICATION;
           return false;
         }
