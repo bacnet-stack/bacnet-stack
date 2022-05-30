@@ -342,7 +342,7 @@ unsigned int bvlc_sc_encode_proprietary_option(
                        proprietary_data_len + sizeof(uint8_t);
 
   if(proprietary_data_len > BVLC_SC_NPDU_MAX - 
-                            3 /* header marker len + headerlength len) */ - 
+                            3 /* header marker len + header length len) */ - 
                             sizeof(vendor_id)) {
     return 0;
   }
@@ -485,15 +485,7 @@ static bool bvlc_sc_decode_proprietary_option(
                  uint16_t  *out_proprietary_data_len)
 {
   uint16_t  hdr_len;
-
-  if(!in_options_list ||
-     !out_vendor_id ||
-     !out_proprietary_option_type ||
-     !out_proprietary_data ||
-     !out_proprietary_data_len) {
-    return false;
-  }
-
+  
   *out_proprietary_data = NULL;
   *out_proprietary_data_len = 0;
   memcpy(&hdr_len, &in_options_list[1], sizeof(hdr_len));

@@ -3696,9 +3696,194 @@ static void test_BAD_HEADER_OPTIONS(void)
   zassert_equal(len, 0, NULL);
 }
 
+static void test_BAD_ENCODE_PARAMS(void)
+{
+  uint8_t buf[256];
+  uint8_t optbuf[256];
+  uint8_t npdu[256];
+  uint16_t npdulen;
+  int len;
+  int optlen;
+  BVLC_SC_DECODED_MESSAGE message;
+  BACNET_ERROR_CODE error;
+  BACNET_ERROR_CLASS class;
+  uint16_t message_id = 0x0203;
+  int res;
+  bool ret;
+  uint16_t                vendor_id1;
+  uint8_t                 proprietary_option_type1;
+  uint8_t                 proprietary_data1[17];
+  BACNET_SC_VMAC_ADDRESS origin;
+  BACNET_SC_VMAC_ADDRESS dest;
+  uint8_t error_header_marker = 0xcc;
+  uint16_t error_class = 0xaa;
+  uint16_t error_code = 0xdd;
+  char* error_details_string = "something bad has happend";
+  BACNET_SC_VMAC_ADDRESS local_vmac;
+  BACNET_SC_UUID         local_uuid;
+  uint8_t data[34];
+  uint8_t proprietary_function = 0xea;
+
+  memset(data, 0x66, sizeof(data));
+  memset(&local_uuid, 0x22, sizeof(local_uuid));
+  memset(&local_vmac, 0x42, sizeof(local_vmac));
+  memset(&origin.address, 0x63, BVLC_SC_VMAC_SIZE);
+  memset(&dest.address, 0x24, BVLC_SC_VMAC_SIZE);
+  memset(npdu, 0x99, sizeof(npdu));
+  npdulen = 50;
+
+  memset(buf, 0, sizeof(buf));
+  memset(&message, 0, sizeof(message));
+
+  vendor_id1 = 0xdead;
+  proprietary_option_type1 = 0x77;
+  memset(proprietary_data1, 0x99, sizeof(proprietary_data1));
+  /* case 1 */
+  optlen = bvlc_sc_encode_proprietary_option(optbuf,
+                                             sizeof(optbuf),
+                                             true,
+                                             vendor_id1,
+                                             proprietary_option_type1,
+                                             proprietary_data1,
+                                             BVLC_SC_NPDU_MAX - 3);
+  zassert_equal(optlen, 0, NULL);
+  /* case 2 */
+  optlen = bvlc_sc_encode_proprietary_option(optbuf,
+                                             3,
+                                             true,
+                                             vendor_id1,
+                                             proprietary_option_type1,
+                                             proprietary_data1,
+                                             sizeof(proprietary_data1));
+  zassert_equal(optlen, 0, NULL);
+  /* case 3 */
+  optlen = bvlc_sc_encode_secure_path_option(optbuf, 0, true);
+  zassert_equal(optlen, 0, NULL);
+  /* case 4 */
+  len = bvlc_sc_encode_heartbeat_request(
+               buf, 3, message_id);
+  zassert_equal(len, 0, NULL);
+  /* case 5 */
+  len = bvlc_sc_encode_heartbeat_request(
+               buf, 3, message_id);
+  zassert_equal(len, 0, NULL);
+  /* case 6 */
+  len = bvlc_sc_encode_encapsulated_npdu(buf, 5, message_id,
+                                         &origin, NULL,
+                                         npdu, npdulen );
+  zassert_equal(len, 0, NULL);
+  /* case 7 */
+  len = bvlc_sc_encode_encapsulated_npdu(buf, 6 + BVLC_SC_VMAC_SIZE,
+                                         message_id,
+                                         &origin, &dest,
+                                         npdu, npdulen );
+  zassert_equal(len, 0, NULL);
+  /* case 8 */
+  len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
+                              &origin, &dest, 99, 0,
+                              NULL, NULL, NULL, NULL);
+  zassert_equal(len, 0, NULL);
+  /* case 9 */
+  len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
+                              &origin, &dest, 1, 4,
+                              NULL, NULL, NULL, NULL);
+  zassert_equal(len, 0, NULL);
+  /* case 9 */
+  len = bvlc_sc_encode_result(buf, sizeof(buf), message_id,
+                              &origin, &dest, 1, 1,
+                              NULL, NULL, NULL, NULL);
+  zassert_equal(len, 0, NULL);
+  /* case 10  */
+  len = bvlc_sc_encode_result(buf, 3, message_id,
+                              &origin, &dest, 1, 0,
+                              NULL, NULL, NULL, NULL);
+  zassert_equal(len, 0, NULL);
+  /* case 11  */
+  len = bvlc_sc_encode_result(buf, 5, message_id,
+                              NULL, NULL, 1, 0,
+                              NULL, NULL, NULL, NULL);
+  zassert_equal(len, 0, NULL);
+  /* case 12  */
+  len = bvlc_sc_encode_result(buf, 7, message_id,
+                               NULL, NULL, 1, 0,
+                              (uint8_t *)1, NULL, NULL, NULL);
+  zassert_equal(len, 0, NULL);
+  /* case 13  */
+  len = bvlc_sc_encode_result(buf, 7, message_id,
+                              NULL, NULL, 1, 1,
+                              &error_header_marker,
+                              &error_code, &error_class,
+                              (uint8_t *)error_details_string);
+  zassert_equal(len, 0, NULL);
+  /* case 13  */
+  len = bvlc_sc_encode_result(buf, 12, message_id,
+                              NULL, NULL, 1, 1,
+                              &error_header_marker,
+                              &error_code, &error_class,
+                              (uint8_t *)error_details_string);
+  zassert_equal(len, 0, NULL);
+  /* case 14  */
+  len = bvlc_sc_encode_encapsulated_npdu(buf, 3,
+                                         message_id,
+                                         NULL, NULL,
+                                         npdu, npdulen );
+  zassert_equal(len, 0, NULL);
+  /* case 15  */
+  len = bvlc_sc_encode_encapsulated_npdu(buf, 6,
+                                         message_id,
+                                         NULL, NULL,
+                                         npdu, npdulen );
+  zassert_equal(len, 0, NULL);
+  /* case 16  */
+  len = bvlc_sc_encode_address_resolution_ack(
+             buf, 3, message_id,
+             NULL, NULL, NULL, 0);
+  zassert_equal(len, 0, NULL);
+  /* case 17 */
+  len = bvlc_sc_encode_advertisiment(
+             buf, 3, message_id, NULL, NULL,
+             1, 1, 1, 1);
+  zassert_equal(len, 0, NULL);
+  /* case 18 */
+  len = bvlc_sc_encode_connect_request(buf, sizeof(buf), message_id,
+                                       NULL, NULL, 1, 1);
+  zassert_equal(len, 0, NULL);
+  /* case 19 */
+  len = bvlc_sc_encode_connect_request(buf, 3, message_id,
+                                       &local_vmac, &local_uuid, 1, 1);
+  zassert_equal(len, 0, NULL);
+  /* case 20 */
+  len = bvlc_sc_encode_connect_request(buf, 5, message_id,
+                                       &local_vmac, &local_uuid, 1, 1);
+  zassert_equal(len, 0, NULL);
+  /* case 21 */
+  len = bvlc_sc_encode_connect_accept(buf, sizeof(buf), message_id,
+                                       NULL, NULL, 1, 1);
+  zassert_equal(len, 0, NULL);
+  /* case 22 */
+  len = bvlc_sc_encode_connect_accept(buf, 3, message_id,
+                                       &local_vmac, &local_uuid, 1, 1);
+  zassert_equal(len, 0, NULL);
+  /* case 23 */
+  len = bvlc_sc_encode_connect_accept(buf, 5, message_id,
+                                       &local_vmac, &local_uuid, 1, 1);
+  zassert_equal(len, 0, NULL);
+  /* case 24 */
+  len = bvlc_sc_encode_proprietary_message(
+              buf, 3, message_id, NULL, NULL, vendor_id1,
+              proprietary_function, data, sizeof(data) );
+  zassert_equal(len, 0, NULL);
+  /* case 25 */
+  len = bvlc_sc_encode_proprietary_message(
+              buf, 5, message_id, NULL, NULL, vendor_id1,
+              proprietary_function, data, sizeof(data) );
+  zassert_equal(len, 0, NULL);
+}
+
 void test_main(void)
 {
     ztest_test_suite(bvlc_sc_tests,
+#if 1
         ztest_unit_test(test_BVLC_RESULT),
         ztest_unit_test(test_ENCAPSULATED_NPDU),
         ztest_unit_test(test_ADDRESS_RESOLUTION),
@@ -3712,7 +3897,9 @@ void test_main(void)
         ztest_unit_test(test_HEARTBEAT_REQUEST),
         ztest_unit_test(test_HEARTBEAT_ACK),
         ztest_unit_test(test_PROPRIETARY_MESSAGE),
-        ztest_unit_test(test_BAD_HEADER_OPTIONS)
+        ztest_unit_test(test_BAD_HEADER_OPTIONS),
+#endif
+        ztest_unit_test(test_BAD_ENCODE_PARAMS)
      );
 
     ztest_run_test_suite(bvlc_sc_tests);
