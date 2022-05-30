@@ -820,7 +820,7 @@ static void test_BVLC_BBMD_Address(void)
 {
     uint8_t apdu[480] = { 0 };
     uint16_t apdu_len = 0;
-    uint16_t test_apdu_len = 0;
+    int16_t test_apdu_len = 0;
     uint16_t i = 0;
     BACNET_IP_ADDRESS bbmd_address;
     BACNET_IP_ADDRESS test_bbmd_address;
