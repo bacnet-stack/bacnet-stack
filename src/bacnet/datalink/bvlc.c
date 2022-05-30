@@ -2638,7 +2638,8 @@ int bvlc_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
 
     address.host_ip_address = true;
     address.host_name = false;
-    octetstring_init(&address.host.ip_address, &ip_address->address[0], IP_ADDRESS_MAX);
+    octetstring_init(&address.host.ip_address, &ip_address->address[0],
+        IP_ADDRESS_MAX);
     address.port = ip_address->port;
     apdu_len = host_n_port_encode(NULL, &address);
     if (apdu_len <= apdu_size) {
@@ -2668,7 +2669,7 @@ int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
         if (address.host_ip_address) {
             ip_address->port = address.port;
             octetstring_copy_value(
-                &ip_address->address[0], 
+                &ip_address->address[0],
                 IP_ADDRESS_MAX,
                 &address.host.ip_address);
         } else {
@@ -2677,8 +2678,7 @@ int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
                 *error_code = REJECT_REASON_PARAMETER_OUT_OF_RANGE;
             }
         }
-        return BACNET_STATUS_REJECT;
     }
-    
+
     return len;
 }
