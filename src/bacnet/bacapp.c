@@ -157,6 +157,10 @@ int bacapp_encode_application_data(
                 apdu_len = lighting_command_encode(
                     apdu, &value->type.Lighting_Command);
                 break;
+            case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                apdu_len = host_n_port_encode(apdu,
+                    &value->type.Host_Address);
+                break;
             case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
                 /* BACnetDeviceObjectPropertyReference */
                 apdu_len = bacapp_encode_device_obj_property_ref(
@@ -279,6 +283,11 @@ int bacapp_decode_data(uint8_t *apdu,
                 len = host_n_port_decode(
                     apdu, len_value_type, NULL,
                     &value->type.Host_Address);
+                break;
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
+                /* BACnetDeviceObjectPropertyReference */
+                len = bacapp_decode_device_obj_property_ref(
+                    apdu, &value->type.Device_Object_Property_Reference);
                 break;
 #endif
             default:
@@ -574,6 +583,12 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 apdu_len = host_n_port_context_encode(apdu,
                     context_tag_number, &value->type.Host_Address);
                 break;
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE:
+                /* BACnetDeviceObjectPropertyReference */
+                apdu_len = bacapp_encode_context_device_obj_property_ref(
+                    apdu, context_tag_number,
+                    &value->type.Device_Object_Property_Reference);
+                break;
 #endif
             default:
                 break;
@@ -668,6 +683,7 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             }
             break;
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
+        case PROP_OBJECT_PROPERTY_REFERENCE:
             switch (tag_number) {
                 case 0: /* Object ID */
                 case 3: /* Device ID */
@@ -737,6 +753,36 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             switch (tag_number) {
                 case 0:
                     tag = BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case PROP_FD_BBMD_ADDRESS:
+        case PROP_BACNET_IP_GLOBAL_ADDRESS:
+            switch (tag_number) {
+                case 0:
+                    tag = BACNET_APPLICATION_TAG_HOST_N_PORT;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case PROP_LIGHTING_COMMAND:
+            switch (tag_number) {
+                case 0:
+                    tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
+        case PROP_GROUP_MEMBERS:
+            switch (tag_number) {
+                case 0:
+                    tag =
+                        BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE;
                     break;
                 default:
                     break;

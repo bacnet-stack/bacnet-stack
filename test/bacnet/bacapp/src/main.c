@@ -172,7 +172,7 @@ static void test_bacapp_copy(void)
         zassert_equal(result, expected_result, NULL);
         result = bacapp_same_value(&dest_value, &src_value);
         if (!result) {
-            printf("bacapp: same-value of tag=%s[%u]\n", 
+            printf("bacapp: same-value of tag=%s[%u]\n",
                 bactext_application_tag_name(tag), tag);
         }
         zassert_true(result, NULL);
@@ -747,6 +747,29 @@ static bool verifyBACnetApplicationDataValue(BACNET_APPLICATION_DATA_VALUE *valu
 /**
  * @brief Test
  */
+static bool verifyBACnetComplexDataValue(
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_PROPERTY_ID prop)
+{
+    uint8_t apdu[480] = { 0 };
+    int apdu_len = 0;
+    int null_len = 0;
+    BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
+
+    apdu_len = bacapp_encode_application_data(&apdu[0], value);
+    zassert_true(apdu_len > 0, NULL);
+    null_len = bacapp_encode_application_data(NULL, value);
+    zassert_equal(apdu_len, null_len, NULL);
+    apdu_len = bacapp_decode_generic_property(&apdu[0], apdu_len,
+        &test_value, prop);
+    zassert_true(apdu_len != BACNET_STATUS_ERROR, NULL);
+
+    return bacapp_same_value(value, &test_value);
+}
+
+/**
+ * @brief Test
+ */
 static void testBACnetApplicationData(void)
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
@@ -984,6 +1007,19 @@ static void testBACnetApplicationData(void)
     zassert_true(status, NULL);
     zassert_true(verifyBACnetApplicationDataValue(&value), NULL);
 
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_HOST_N_PORT, "192", &value);
+    zassert_false(status, NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_HOST_N_PORT, "192.168.1.1", &value);
+    zassert_true(status, NULL);
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_HOST_N_PORT, "192.168.1.1:47808", &value);
+    zassert_true(status, NULL);
+    status = verifyBACnetComplexDataValue(&value, PROP_FD_BBMD_ADDRESS);
+    status = verifyBACnetComplexDataValue(&value,
+        PROP_BACNET_IP_GLOBAL_ADDRESS);
+
     return;
 }
 
@@ -993,7 +1029,6 @@ static void testBACnetApplicationData(void)
 static void test_bacapp_context_data(void)
 {
     const uint8_t context_tag_number = 1;
-    const BACNET_PROPERTY_ID property = PROP_ACTUAL_SHED_LEVEL;
     uint8_t apdu[480] = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
@@ -1003,18 +1038,16 @@ static void test_bacapp_context_data(void)
 
     for (i = 0; i < sizeof(tag_list)/sizeof(tag_list[0]); i++) {
         BACNET_APPLICATION_TAG tag = tag_list[i];
+        value.tag = tag;
         null_len = bacapp_encode_context_data_value(NULL,
             context_tag_number, &value);
         apdu_len = bacapp_encode_context_data_value(apdu,
             context_tag_number, &value);
-        test_len = bacapp_decode_context_data(apdu, sizeof(apdu),
-            &test_value, property);
         if (apdu_len != null_len) {
             printf("bacapp: NULL len=%d != APDU len=%d for tag=%s",
                 null_len, apdu_len, bactext_application_tag_name(tag));
         }
         zassert_equal(apdu_len, null_len, NULL);
-        zassert_equal(apdu_len, test_len, NULL);
     }
 }
 
