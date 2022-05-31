@@ -1568,11 +1568,23 @@ bool bacapp_print_value(
     /* get the string length first */
     str_len = bacapp_snprintf_value(NULL, 0, object_value);
     if (str_len > 0) {
+#if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
         char str[str_len+1];
+#else
+        char *str;
+        str = calloc(sizeof(char), str_len+1);
+#endif
         bacapp_snprintf_value(str, str_len+1, object_value);
         if (stream) {
             fprintf(stream, "%s", str);
         }
+#if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+        /* nothing to do with stack based RAM */
+#else
+        if (str) {
+            free(str);
+        }
+#endif
         retval = true;
     }
 
