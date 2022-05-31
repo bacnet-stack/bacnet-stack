@@ -1505,10 +1505,6 @@ int bacapp_snprintf_value(
                         (unsigned)octet_str[2],
                         (unsigned)octet_str[3],
                         (unsigned)value->type.Host_Address.port);
-                    if (str) {
-                        str += slen;
-                        str_len -= slen;
-                    }
                     ret_val += slen;
                 } else if (value->type.Host_Address.host_name) {
                     BACNET_CHARACTER_STRING *name;
