@@ -428,24 +428,18 @@ unsigned int bvlc_sc_encode_secure_path_option(
  *  uint8_t *current = in_options_list;
  *  int option_len = 0;
  *  while(current) {
- *    option_len = bvlc_sc_decode_option_hdr(current,
- *                                           &type, ...., &current);
- *    if(option_len == 0) {
- *      // handle error
- *      break;
- *    }
+ *    bvlc_sc_decode_option_hdr(current,
+ *                              &type, ...., &current);
  *  }
  *
  */
 
-static unsigned int bvlc_sc_decode_option_hdr(
-                         uint8_t              *in_options_list,
-                         BVLC_SC_OPTION_TYPE  *out_opt_type,
-                         bool                 *out_must_understand,
-                         uint8_t             **out_next_option)
+static void bvlc_sc_decode_option_hdr(
+                 uint8_t              *in_options_list,
+                 BVLC_SC_OPTION_TYPE  *out_opt_type,
+                 bool                 *out_must_understand,
+                 uint8_t             **out_next_option)
 {
-  unsigned int ret = 0;
-
   *out_next_option = NULL;
   *out_opt_type = (BVLC_SC_OPTION_TYPE)
                   (in_options_list[0] & BVLC_SC_HEADER_OPTION_TYPE_MASK);
@@ -456,7 +450,6 @@ static unsigned int bvlc_sc_decode_option_hdr(
     if(in_options_list[0] & BVLC_SC_HEADER_MORE) {
       *out_next_option = in_options_list + 1;
     }
-    ret = 1;
   }
   else if(*out_opt_type == BVLC_SC_OPTION_TYPE_PROPRIETARY) {
     uint16_t hdr_len;
@@ -465,10 +458,7 @@ static unsigned int bvlc_sc_decode_option_hdr(
     if(in_options_list[0] & BVLC_SC_HEADER_MORE) {
       *out_next_option = in_options_list + hdr_len;
     }
-    ret = hdr_len;
   }
-
-  return ret;
 }
 
 /**
@@ -1607,14 +1597,10 @@ static bool bvlc_sc_decode_header_options(
   int i = 0;
 
   while(next_option) {
-
-     ret = bvlc_sc_decode_option_hdr(options_list,
-                                     &option_array[i].type,
-                                     &option_array[i].must_understand,
-                                     &next_option);
-     if(!ret) {
-      return false;
-     }
+     bvlc_sc_decode_option_hdr(options_list,
+                               &option_array[i].type,
+                               &option_array[i].must_understand,
+                               &next_option);
 
      option_array[i].packed_header_marker = options_list[0];
 
