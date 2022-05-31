@@ -235,7 +235,6 @@ extern "C" {
 #define BACAPP_PRINT_ENABLED
 #endif
 #endif
-
     BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,

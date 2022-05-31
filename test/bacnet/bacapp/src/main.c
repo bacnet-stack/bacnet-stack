@@ -1052,6 +1052,33 @@ static void test_bacapp_context_data(void)
 }
 
 /**
+ * @brief Test
+ */
+static void test_bacapp_sprintf_data(void)
+{
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
+    bool status = false;
+    int str_len = 0;
+
+    object_value.object_type = OBJECT_DEVICE;
+    object_value.object_instance = 0;
+    object_value.object_property = PROP_DAYLIGHT_SAVINGS_STATUS;
+    object_value.array_index = BACNET_ARRAY_ALL;
+    object_value.value = &value;
+
+    status = bacapp_parse_application_data(
+        BACNET_APPLICATION_TAG_NULL, NULL, &value);
+    zassert_true(status, NULL);
+    str_len = bacapp_snprintf_value(NULL, 0, &object_value);
+    if (str_len > 0) {
+        char str[str_len+1];
+        bacapp_snprintf_value(str, str_len+1, &object_value);
+        zassert_mem_equal(str, "Null", str_len, NULL);
+    }
+}
+
+/**
  * @}
  */
 
@@ -1068,7 +1095,8 @@ void test_main(void)
      ztest_unit_test(testBACnetApplicationData),
      ztest_unit_test(testBACnetApplicationDataLength),
      ztest_unit_test(testBACnetApplicationData_Safe),
-     ztest_unit_test(test_bacapp_context_data)
+     ztest_unit_test(test_bacapp_context_data),
+     ztest_unit_test(test_bacapp_sprintf_data)
      );
 
     ztest_run_test_suite(bacapp_tests);
