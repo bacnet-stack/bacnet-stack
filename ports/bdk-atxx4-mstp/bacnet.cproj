@@ -359,6 +359,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Core\bacdcode.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\bacdevobjpropref.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\bacdevobjpropref.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\bacerror.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\bacerror.c</Link>

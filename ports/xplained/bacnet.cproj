@@ -772,6 +772,10 @@
       <SubType>compile</SubType>
       <Link>bacnet-stack\bacdcode.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\bacdevobjpropref.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\bacdevobjpropref.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\bacerror.c">
       <SubType>compile</SubType>
       <Link>bacnet-stack\bacerror.c</Link>
