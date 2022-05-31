@@ -227,6 +227,11 @@ typedef struct BVLC_SC_Decoded_Message {
     BVLC_SC_DECODED_DATA payload;
 } BVLC_SC_DECODED_MESSAGE;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_add_option_to_destination_options(uint8_t *out_pdu,
     uint16_t out_pdu_size,
     uint8_t *pdu,
@@ -234,6 +239,7 @@ unsigned int bvlc_sc_add_option_to_destination_options(uint8_t *out_pdu,
     uint8_t *sc_option,
     uint16_t sc_option_len);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_add_option_to_data_options(uint8_t *out_pdu,
     uint16_t out_pdu_size,
     uint8_t *pdu,
@@ -241,6 +247,7 @@ unsigned int bvlc_sc_add_option_to_data_options(uint8_t *out_pdu,
     uint8_t *sc_option,
     uint16_t sc_option_len);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_proprietary_option(uint8_t *pdu,
     uint16_t pdu_size,
     bool must_understand,
@@ -249,9 +256,11 @@ unsigned int bvlc_sc_encode_proprietary_option(uint8_t *pdu,
     uint8_t *proprietary_data,
     uint16_t proprietary_data_len);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_secure_path_option(
     uint8_t *pdu, uint16_t pdu_size, bool must_understand);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_result(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
@@ -264,6 +273,7 @@ unsigned int bvlc_sc_encode_result(uint8_t *pdu,
     uint16_t *error_code,
     uint8_t *utf8_details_string);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_encapsulated_npdu(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
@@ -272,12 +282,14 @@ unsigned int bvlc_sc_encode_encapsulated_npdu(uint8_t *pdu,
     uint8_t *npdu,
     uint16_t npdu_size);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_address_resolution(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_address_resolution_ack(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
@@ -286,6 +298,7 @@ unsigned int bvlc_sc_encode_address_resolution_ack(uint8_t *pdu,
     uint8_t *web_socket_uris,
     uint16_t web_socket_uris_len);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
@@ -296,12 +309,14 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
     uint16_t max_blvc_len,
     uint16_t max_npdu_size);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_advertisiment_solicitation(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
@@ -310,6 +325,7 @@ unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
     uint16_t max_blvc_len,
     uint16_t max_npdu_size);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
@@ -318,18 +334,23 @@ unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
     uint16_t max_blvc_len,
     uint16_t max_npdu_len);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_disconnect_request(
     uint8_t *pdu, int pdu_len, uint16_t message_id);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_disconnect_ack(
     uint8_t *pdu, int pdu_len, uint16_t message_id);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_heartbeat_request(
     uint8_t *out_buf, int out_buf_len, uint16_t message_id);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_heartbeat_ack(
     uint8_t *out_buf, int out_buf_len, uint16_t message_id);
 
+BACNET_STACK_EXPORT
 unsigned int bvlc_sc_encode_proprietary_message(uint8_t *pdu,
     int pdu_len,
     uint16_t message_id,
@@ -340,10 +361,14 @@ unsigned int bvlc_sc_encode_proprietary_message(uint8_t *pdu,
     uint8_t *proprietary_data,
     uint16_t proprietary_data_len);
 
+BACNET_STACK_EXPORT
 bool bvlc_sc_decode_message(uint8_t *buf,
     uint16_t buf_len,
     BVLC_SC_DECODED_MESSAGE *message,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif
