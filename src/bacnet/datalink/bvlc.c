@@ -2668,14 +2668,14 @@ int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
     if (len > 0) {
         if (address.host_ip_address) {
             ip_address->port = address.port;
-            octetstring_copy_value(
+            (void)octetstring_copy_value(
                 &ip_address->address[0],
                 IP_ADDRESS_MAX,
                 &address.host.ip_address);
         } else {
             len = BACNET_STATUS_REJECT;
             if (error_code) {
-                *error_code = REJECT_REASON_PARAMETER_OUT_OF_RANGE;
+                *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
             }
         }
     }
