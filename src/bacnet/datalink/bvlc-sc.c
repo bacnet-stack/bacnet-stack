@@ -1,3 +1,16 @@
+/**
+ * @file
+ * @brief API for encoding/decoding of BACnet/SC BVLC messages
+ * @author Kirill Neznamov
+ * @date May 2022
+ * @section LICENSE
+ *
+ * Copyright (C) 2022 Legrand North America, LLC 
+ * as an unpublished work.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
+
 #include "bacnet/datalink/bvlc-sc.h"
 
 typedef enum BACNet_Option_Validation_Type {

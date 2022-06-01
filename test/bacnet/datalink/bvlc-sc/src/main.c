@@ -1,11 +1,14 @@
-/*
- * Copyright (c) 2022 Legrand North America, LLC.
+/**
+ * @file
+ * @brief tests for BACnet/SC encode/decode APIs
+ * @author Kirill Neznamov
+ * @date May 2022
+ * @section LICENSE
+ *
+ * Copyright (C) 2022 Legrand North America, LLC 
+ * as an unpublished work.
  *
  * SPDX-License-Identifier: MIT
- */
-
-/* @file
- * @brief test BACnet integer encode/decode APIs
  */
 
 #include <stdlib.h>  /* For calloc() */
