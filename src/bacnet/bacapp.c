@@ -1196,7 +1196,11 @@ int bacapp_snprintf_value(
                     octet_str++;
                     if (str) {
                         str += slen;
-                        str_len -= slen;
+                        if (str_len >= slen) {
+                            str_len -= slen;
+                        } else {
+                            str_len = 0;
+                        }
                     }
                     ret_val += slen;
                 }
@@ -1209,6 +1213,11 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, "\"");
                 if (str) {
                     str += slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 #ifdef __STDC_ISO_10646__
@@ -1232,7 +1241,11 @@ int bacapp_snprintf_value(
                         slen = snprintf(str, str_len, "%lc", (wint_t)wc);
                         if (str) {
                             str += slen;
-                            str_len -= slen;
+                            if (str_len >= slen) {
+                                str_len -= slen;
+                            } else {
+                                str_len = 0;
+                            }
                         }
                         ret_val += slen;
                         if (len > wclen) {
@@ -1253,7 +1266,11 @@ int bacapp_snprintf_value(
                         }
                         if (str) {
                             str += slen;
-                            str_len -= slen;
+                            if (str_len >= slen) {
+                                str_len -= slen;
+                            } else {
+                                str_len = 0;
+                            }
                         }
                         ret_val += slen;
                         char_str++;
@@ -1269,7 +1286,11 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, "{");
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 for (i = 0; i < len; i++) {
@@ -1278,14 +1299,22 @@ int bacapp_snprintf_value(
                     slen = snprintf(str, str_len, "%s", bit ? "true" : "false");
                     if (str) {
                         str += slen;
-                        str_len -= slen;
+                        if (str_len >= slen) {
+                            str_len -= slen;
+                        } else {
+                            str_len = 0;
+                        }
                     }
                     ret_val += slen;
                     if (i < (len - 1)) {
                         slen = snprintf(str, str_len, ",");
                         if (str) {
                             str += slen;
-                            str_len -= slen;
+                            if (str_len >= slen) {
+                                str_len -= slen;
+                            } else {
+                                str_len = 0;
+                            }
                         }
                         ret_val += slen;
                     }
@@ -1380,7 +1409,11 @@ int bacapp_snprintf_value(
                     bactext_month_name(value->type.Date.month));
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 if (value->type.Date.day == 255) {
@@ -1391,7 +1424,11 @@ int bacapp_snprintf_value(
                 }
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 if (value->type.Date.year == 2155) {
@@ -1413,7 +1450,11 @@ int bacapp_snprintf_value(
                 }
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 if (value->type.Time.min == 255) {
@@ -1424,7 +1465,11 @@ int bacapp_snprintf_value(
                 }
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 if (value->type.Time.sec == 255) {
@@ -1435,7 +1480,11 @@ int bacapp_snprintf_value(
                 }
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 if (value->type.Time.hundredths == 255) {
@@ -1452,7 +1501,11 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, "(");
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
@@ -1467,7 +1520,11 @@ int bacapp_snprintf_value(
                 }
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 slen = snprintf(str, str_len, "%lu",
@@ -1480,7 +1537,11 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, "(");
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 slen = snprintf(str, str_len, "%s",
@@ -1488,7 +1549,11 @@ int bacapp_snprintf_value(
                         value->type.Lighting_Command.operation));
                 if (str) {
                     str += slen;
-                    str_len -= slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
                 }
                 ret_val += slen;
                 /* FIXME: add the Lighting Command optional values */
@@ -1514,7 +1579,11 @@ int bacapp_snprintf_value(
                     slen = snprintf(str, str_len, "\"");
                     if (str) {
                         str += slen;
-                        str_len -= slen;
+                        if (str_len >= slen) {
+                            str_len -= slen;
+                        } else {
+                            str_len = 0;
+                        }
                     }
                     ret_val += slen;
                     for (i = 0; i < len; i++) {
@@ -1526,7 +1595,11 @@ int bacapp_snprintf_value(
                         char_str++;
                         if (str) {
                             str += slen;
-                            str_len -= slen;
+                            if (str_len >= slen) {
+                                str_len -= slen;
+                            } else {
+                                str_len = 0;
+                            }
                         }
                         ret_val += slen;
                     }
