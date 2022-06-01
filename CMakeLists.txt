@@ -369,6 +369,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/get_alarm_sum.h
     src/bacnet/getevent.c
     src/bacnet/getevent.h
+    src/bacnet/hostnport.c
+    src/bacnet/hostnport.h
     src/bacnet/iam.c
     src/bacnet/iam.h
     src/bacnet/ihave.c

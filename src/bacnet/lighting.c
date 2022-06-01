@@ -50,44 +50,58 @@
 /**
  * Encodes into bytes from the lighting-command structure
  *
- * @param apdu - buffer to hold the bytes
+ * @param apdu - buffer to hold the bytes, or null for length
  * @param value - lighting command value to encode
  *
- * @return  number of bytes encoded, or 0 if unable to encode.
+ * @return  number of bytes encoded
  */
 int lighting_command_encode(uint8_t *apdu, BACNET_LIGHTING_COMMAND *data)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
     int len = 0; /* total length of the apdu, return value */
+    uint8_t *apdu_offset = NULL;
 
-    if (apdu) {
-        len = encode_context_enumerated(&apdu[apdu_len], 0, data->operation);
+    len = encode_context_enumerated(apdu, 0, data->operation);
+    apdu_len += len;
+    /* optional target-level */
+    if (data->use_target_level) {
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
+        }
+        len = encode_context_real(apdu_offset, 1, data->target_level);
         apdu_len += len;
-        /* optional target-level */
-        if (data->use_target_level) {
-            len = encode_context_real(&apdu[apdu_len], 1, data->target_level);
-            apdu_len += len;
+    }
+    /* optional ramp-rate */
+    if (data->use_ramp_rate) {
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
         }
-        /* optional ramp-rate */
-        if (data->use_ramp_rate) {
-            len = encode_context_real(&apdu[apdu_len], 2, data->ramp_rate);
-            apdu_len += len;
+        len = encode_context_real(apdu_offset, 2, data->ramp_rate);
+        apdu_len += len;
+    }
+    /* optional step increment */
+    if (data->use_step_increment) {
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
         }
-        /* optional step increment */
-        if (data->use_step_increment) {
-            len = encode_context_real(&apdu[apdu_len], 3, data->step_increment);
-            apdu_len += len;
+        len = encode_context_real(apdu_offset, 3, data->step_increment);
+        apdu_len += len;
+    }
+    /* optional fade time */
+    if (data->use_fade_time) {
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
         }
-        /* optional fade time */
-        if (data->use_fade_time) {
-            len = encode_context_unsigned(&apdu[apdu_len], 4, data->fade_time);
-            apdu_len += len;
+        len = encode_context_unsigned(apdu_offset, 4, data->fade_time);
+        apdu_len += len;
+    }
+    /* optional priority */
+    if (data->use_priority) {
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
         }
-        /* optional priority */
-        if (data->use_priority) {
-            len = encode_context_unsigned(&apdu[apdu_len], 5, data->priority);
-            apdu_len += len;
-        }
+        len = encode_context_unsigned(apdu_offset, 5, data->priority);
+        apdu_len += len;
     }
 
     return apdu_len;
@@ -107,10 +121,17 @@ int lighting_command_encode_context(
     uint8_t *apdu, uint8_t tag_number, BACNET_LIGHTING_COMMAND *value)
 {
     int apdu_len = 0;
+    uint8_t *apdu_offset = NULL;
 
-    apdu_len += encode_opening_tag(&apdu[apdu_len], tag_number);
-    apdu_len += lighting_command_encode(&apdu[apdu_len], value);
-    apdu_len += encode_closing_tag(&apdu[apdu_len], tag_number);
+    apdu_len += encode_opening_tag(apdu, tag_number);
+    if (apdu) {
+        apdu_offset = &apdu[apdu_len];
+    }
+    apdu_len += lighting_command_encode(apdu_offset, value);
+    if (apdu) {
+        apdu_offset = &apdu[apdu_len];
+    }
+    apdu_len += encode_closing_tag(apdu_offset, tag_number);
 
     return apdu_len;
 }
@@ -292,75 +313,3 @@ bool lighting_command_same(
 
     return status;
 }
-
-#ifdef TEST_LIGHTING_COMMAND
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-static void testBACnetLightingCommand(Test *pTest, BACNET_LIGHTING_COMMAND *data)
-{
-    bool status = false;
-    BACNET_LIGHTING_COMMAND test_data;
-    int len, apdu_len;
-    uint8_t apdu[MAX_APDU] = { 0 };
-
-    status = lighting_command_copy(&test_data, NULL);
-    ct_test(pTest, status == false);
-    status = lighting_command_copy(NULL, data);
-    ct_test(pTest, status == false);
-    status = lighting_command_copy(&test_data, data);
-    ct_test(pTest, status == true);
-    status = lighting_command_same(&test_data, data);
-    ct_test(pTest, status == true);
-    len = lighting_command_encode(apdu, data);
-    apdu_len = lighting_command_decode(apdu, sizeof(apdu), &test_data);
-    ct_test(pTest, len > 0);
-    ct_test(pTest, apdu_len > 0);
-    status = lighting_command_same(&test_data, data);
-}
-
-static void testBACnetLightingCommandAll(Test *pTest)
-{
-    BACNET_LIGHTING_COMMAND data;
-
-    data.operation = BACNET_LIGHTS_NONE;
-    data.use_target_level = false;
-    data.use_ramp_rate = false;
-    data.use_step_increment = false;
-    data.use_fade_time = false;
-    data.use_priority = false;
-    data.target_level = 0.0;
-    data.ramp_rate = 100.0;
-    data.step_increment = 1.0;
-    data.fade_time = 100;
-    data.priority = 1;
-    testBACnetLightingCommand(pTest, &data);
-    data.operation = BACNET_LIGHTS_STOP;
-    data.use_target_level = true;
-    data.use_ramp_rate = true;
-    data.use_step_increment = true;
-    data.use_fade_time = true;
-    data.use_priority = true;
-    testBACnetLightingCommand(pTest, &data);
-}
-
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Lighting Command", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testBACnetLightingCommandAll);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-
-#endif

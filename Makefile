@@ -212,6 +212,11 @@ pretty-ports:
 	find ./ports -maxdepth 2 -type f -iname *.h -o -iname *.c -exec \
 	clang-format -i -style=file -fallback-style=none {} \;
 
+.PHONY: pretty-test
+pretty-test:
+	find ./test/bacnet -maxdepth 2 -type f -iname *.h -o -iname *.c -exec \
+	clang-format -i -style=file -fallback-style=none {} \;
+
 CLANG_TIDY_OPTIONS = -fix-errors -checks="readability-braces-around-statements"
 CLANG_TIDY_OPTIONS += -- -Isrc -Iports/linux
 .PHONY: tidy

@@ -359,6 +359,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Core\bacdcode.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\bacdevobjpropref.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\bacdevobjpropref.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\bacerror.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\bacerror.c</Link>
@@ -394,6 +398,10 @@
     <Compile Include="..\..\src\bacnet\ihave.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\ihave.c</Link>
+    </Compile>
+    <Compile Include="..\..\src\bacnet\hostnport.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\hostnport.c</Link>
     </Compile>
     <Compile Include="..\..\src\bacnet\lighting.c">
       <SubType>compile</SubType>
