@@ -552,15 +552,7 @@ int wpm_error_ack_decode_apdu(
     }
     if (decode_is_closing_tag_number(apdu_offset, 1)) {
         len = 1;
-        apdu_len -= len;
-        if (apdu) {
-            apdu_offset = &apdu[apdu_len];
-            if (apdu_size > len) {
-                apdu_size -= len;
-            } else {
-                return 0;
-            }
-        }
+        apdu_len += len;
     } else {
         return 0;
     }
