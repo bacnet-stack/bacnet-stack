@@ -460,7 +460,7 @@ int wpm_error_ack_decode_apdu(
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     BACNET_OBJECT_PROPERTY_REFERENCE value;
 
-    if (apdu && (apdu_size > 0)) {
+    if (apdu) {
         apdu_offset = apdu;
     }
     if (wp_data) {
@@ -468,6 +468,9 @@ int wpm_error_ack_decode_apdu(
         wp_data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
     }
     /* Context tag 0 - Error */
+    if (apdu_size == 0) {
+        return 0;
+    }
     if (decode_is_opening_tag_number(apdu_offset, 0)) {
         len = 1;
         apdu_len -= len;
@@ -501,6 +504,9 @@ int wpm_error_ack_decode_apdu(
     } else {
         return 0;
     }
+    if (apdu_size == 0) {
+        return 0;
+    }
     if (decode_is_closing_tag_number(apdu_offset, 0)) {
         len = 1;
         apdu_len -= len;
@@ -516,6 +522,9 @@ int wpm_error_ack_decode_apdu(
         return 0;
     }
     /* Context tag 1 - BACnetObjectPropertyReference */
+    if (apdu_size == 0) {
+        return 0;
+    }
     if (decode_is_opening_tag_number(apdu_offset, 1)) {
         len = 1;
         apdu_len -= len;
@@ -548,6 +557,9 @@ int wpm_error_ack_decode_apdu(
             }
         }
     } else {
+        return 0;
+    }
+    if (apdu_size == 0) {
         return 0;
     }
     if (decode_is_closing_tag_number(apdu_offset, 1)) {
