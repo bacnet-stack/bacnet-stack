@@ -1417,17 +1417,21 @@ typedef enum {
     PDU_TYPE_ABORT = 0x70
 } BACNET_PDU_TYPE;
 
-typedef enum {
+/* BACnetConfirmedServiceChoice ::= ENUMERATED */
+typedef enum BACnet_Confirmed_Service_Choice {
     /* Alarm and Event Services */
     SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM = 0,
+    SERVICE_CONFIRMED_AUDIT_NOTIFICATION = 32,
     SERVICE_CONFIRMED_COV_NOTIFICATION = 1,
+    SERVICE_CONFIRMED_COV_NOTIFICATION_MULTIPLE = 31,
     SERVICE_CONFIRMED_EVENT_NOTIFICATION = 2,
     SERVICE_CONFIRMED_GET_ALARM_SUMMARY = 3,
     SERVICE_CONFIRMED_GET_ENROLLMENT_SUMMARY = 4,
     SERVICE_CONFIRMED_GET_EVENT_INFORMATION = 29,
+    SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION = 27,
     SERVICE_CONFIRMED_SUBSCRIBE_COV = 5,
     SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY = 28,
-    SERVICE_CONFIRMED_LIFE_SAFETY_OPERATION = 27,
+    SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY_MULTIPLE = 30,
     /* File Access Services */
     SERVICE_CONFIRMED_ATOMIC_READ_FILE = 6,
     SERVICE_CONFIRMED_ATOMIC_WRITE_FILE = 7,
@@ -1442,6 +1446,7 @@ typedef enum {
     SERVICE_CONFIRMED_READ_RANGE = 26,
     SERVICE_CONFIRMED_WRITE_PROPERTY = 15,
     SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE = 16,
+    SERVICE_CONFIRMED_AUDIT_LOG_QUERY = 33,
     /* Remote Device Management Services */
     SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL = 17,
     SERVICE_CONFIRMED_PRIVATE_TRANSFER = 18,
@@ -1455,14 +1460,21 @@ typedef enum {
     SERVICE_CONFIRMED_AUTHENTICATE = 24,
     SERVICE_CONFIRMED_REQUEST_KEY = 25,
     /* Services added after 1995 */
-    /* readRange (26) see Object Access Services */
-    /* lifeSafetyOperation (27) see Alarm and Event Services */
-    /* subscribeCOVProperty (28) see Alarm and Event Services */
-    /* getEventInformation (29) see Alarm and Event Services */
+    /* readRange [26] see Object Access Services */
+    /* lifeSafetyOperation [27] see Alarm and Event Services */
+    /* subscribeCOVProperty [28] see Alarm and Event Services */
+    /* getEventInformation [29] see Alarm and Event Services */
+    /* Services added after 2012 */
+    /* subscribe-cov-property-multiple [30] see Alarm and Event Services */
+    /* confirmed-cov-notification-multiple [31] see Alarm and Event Services */
+    /* Services added after 2016 */
+    /* confirmed-audit-notification [32] see Alarm and Event Services */
+    /* audit-log-query [33] see Object Access Services */
     MAX_BACNET_CONFIRMED_SERVICE = 30
 } BACNET_CONFIRMED_SERVICE;
 
-typedef enum {
+/* BACnetUnconfirmedServiceChoice ::= ENUMERATED */
+typedef enum BACnet_Unconfirmed_Service_Choice {
     SERVICE_UNCONFIRMED_I_AM = 0,
     SERVICE_UNCONFIRMED_I_HAVE = 1,
     SERVICE_UNCONFIRMED_COV_NOTIFICATION = 2,
@@ -1475,16 +1487,21 @@ typedef enum {
     SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION = 9,
     /* addendum 2010-aa */
     SERVICE_UNCONFIRMED_WRITE_GROUP = 10,
+    /* addendum 2012-aq */
+    SERVICE_UNCONFIRMED_COV_NOTIFICATION_MULTIPLE = 11,
+    /* addendum 2016-bz */
+    SERVICE_UNCONFIRMED_WHO_AM_I = 13,
+    SERVICE_UNCONFIRMED_YOU_ARE = 14,
     /* Other services to be added as they are defined. */
     /* All choice values in this production are reserved */
     /* for definition by ASHRAE. */
     /* Proprietary extensions are made by using the */
     /* UnconfirmedPrivateTransfer service. See Clause 23. */
-    MAX_BACNET_UNCONFIRMED_SERVICE = 11
+    MAX_BACNET_UNCONFIRMED_SERVICE = 15
 } BACNET_UNCONFIRMED_SERVICE;
 
-/* Bit String Enumerations */
-typedef enum {
+/* BACnetServicesSupported ::= BIT STRING */
+typedef enum BACnet_Services_Supported {
     /* Alarm and Event Services */
     SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM = 0,
     SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION = 1,
@@ -1494,7 +1511,10 @@ typedef enum {
     SERVICE_SUPPORTED_GET_EVENT_INFORMATION = 39,
     SERVICE_SUPPORTED_SUBSCRIBE_COV = 5,
     SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY = 38,
+    SERVICE_SUPPORTED_SUBSCRIBE_COV_PROPERTY_MULTIPLE = 41,
     SERVICE_SUPPORTED_LIFE_SAFETY_OPERATION = 37,
+    SERVICE_SUPPORTED_CONFIRMED_AUDIT_NOTIFICATION = 44,
+    SERVICE_SUPPORTED_AUDIT_LOG_QUERY = 45,
     /* File Access Services */
     SERVICE_SUPPORTED_ATOMIC_READ_FILE = 6,
     SERVICE_SUPPORTED_ATOMIC_WRITE_FILE = 7,
@@ -1515,6 +1535,8 @@ typedef enum {
     SERVICE_SUPPORTED_PRIVATE_TRANSFER = 18,
     SERVICE_SUPPORTED_TEXT_MESSAGE = 19,
     SERVICE_SUPPORTED_REINITIALIZE_DEVICE = 20,
+    SERVICE_SUPPORTED_WHO_AM_I = 47,
+    SERVICE_SUPPORTED_YOU_ARE = 48,
     /* Virtual Terminal Services */
     SERVICE_SUPPORTED_VT_OPEN = 21,
     SERVICE_SUPPORTED_VT_CLOSE = 22,
@@ -1524,17 +1546,21 @@ typedef enum {
     SERVICE_SUPPORTED_REQUEST_KEY = 25,
     SERVICE_SUPPORTED_I_AM = 26,
     SERVICE_SUPPORTED_I_HAVE = 27,
+    /* Unconfirmed Services */
     SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION = 28,
+    SERVICE_SUPPORTED_UNCONFIRMED_COV_NOTIFICATION_MULTIPLE = 43,
     SERVICE_SUPPORTED_UNCONFIRMED_EVENT_NOTIFICATION = 29,
     SERVICE_SUPPORTED_UNCONFIRMED_PRIVATE_TRANSFER = 30,
     SERVICE_SUPPORTED_UNCONFIRMED_TEXT_MESSAGE = 31,
     SERVICE_SUPPORTED_TIME_SYNCHRONIZATION = 32,
     SERVICE_SUPPORTED_UTC_TIME_SYNCHRONIZATION = 36,
     SERVICE_SUPPORTED_WHO_HAS = 33,
-    SERVICE_SUPPORTED_WHO_IS = 34
+    SERVICE_SUPPORTED_WHO_IS = 34,
+    SERVICE_SUPPORTED_UNCONFIRMED_AUDIT_NOTIFICATION = 46,
     /* Other services to be added as they are defined. */
     /* All values in this production are reserved */
     /* for definition by ASHRAE. */
+    BACNET_SERVICES_SUPPORTED_MAX = 47
 } BACNET_SERVICES_SUPPORTED;
 
 /* Bit String Enumerations */

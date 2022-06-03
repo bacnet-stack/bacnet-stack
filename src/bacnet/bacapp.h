@@ -84,6 +84,10 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_HOST_N_PORT Host_Address;
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Device_Object_Property_Reference;
+        BACNET_DEVICE_OBJECT_REFERENCE
+            Device_Object_Reference;
+        BACNET_OBJECT_PROPERTY_REFERENCE
+            Object_Property_Reference;
 #endif
     } type;
     /* simple linked list if needed */
