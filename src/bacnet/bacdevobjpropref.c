@@ -425,7 +425,10 @@ int bacapp_encode_obj_property_ref(uint8_t *apdu,
     uint8_t *apdu_offset = NULL;
     int apdu_len = 0;
 
-    if (reference && (reference->object_identifier.type == OBJECT_NONE)) {
+    if (!reference) {
+        return 0;
+    }
+    if (reference->object_identifier.type == OBJECT_NONE) {
         return 0;
     }
     if (apdu) {
