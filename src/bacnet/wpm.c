@@ -445,7 +445,7 @@ int wpm_error_ack_encode_apdu(
  *  }
  *
  * @param apdu [in] The contents of the APDU buffer.
- * @param apdu_len [in] The length of the APDU buffer.
+ * @param apdu_size [in] The size of the APDU buffer.
  * @param wp_data [out] The BACNET_WRITE_PROPERTY_DATA structure
  *    which will contain the response values or error.
  *
