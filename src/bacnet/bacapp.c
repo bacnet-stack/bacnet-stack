@@ -158,6 +158,7 @@ int bacapp_encode_application_data(
                     apdu, &value->type.Lighting_Command);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
+                /* BACnetHostNPort */
                 apdu_len = host_n_port_encode(apdu,
                     &value->type.Host_Address);
                 break;
@@ -165,6 +166,16 @@ int bacapp_encode_application_data(
                 /* BACnetDeviceObjectPropertyReference */
                 apdu_len = bacapp_encode_device_obj_property_ref(
                     apdu, &value->type.Device_Object_Property_Reference);
+                break;
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
+                /* BACnetDeviceObjectReference */
+                apdu_len = bacapp_encode_device_obj_ref(
+                    apdu, &value->type.Device_Object_Reference);
+                break;
+            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+                /* BACnetObjectPropertyReference */
+                apdu_len = bacapp_encode_obj_property_ref(
+                    apdu, &value->type.Object_Property_Reference);
                 break;
 #endif
             default:
@@ -288,6 +299,17 @@ int bacapp_decode_data(uint8_t *apdu,
                 /* BACnetDeviceObjectPropertyReference */
                 len = bacapp_decode_device_obj_property_ref(
                     apdu, &value->type.Device_Object_Property_Reference);
+                break;
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
+                /* BACnetDeviceObjectReference */
+                len = bacapp_decode_device_obj_ref(
+                    apdu, &value->type.Device_Object_Reference);
+                break;
+            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+                /* BACnetObjectPropertyReference */
+                len = bacapp_decode_obj_property_ref(
+                    apdu, len_value_type,
+                    &value->type.Object_Property_Reference);
                 break;
 #endif
             default:
@@ -588,6 +610,18 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 apdu_len = bacapp_encode_context_device_obj_property_ref(
                     apdu, context_tag_number,
                     &value->type.Device_Object_Property_Reference);
+                break;
+            case BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE:
+                /* BACnetDeviceObjectReference */
+                apdu_len = bacapp_encode_context_device_obj_ref(
+                    apdu, context_tag_number,
+                    &value->type.Device_Object_Reference);
+                break;
+            case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+                /* BACnetObjectPropertyReference */
+                apdu_len = bacapp_encode_context_obj_property_ref(
+                    apdu, context_tag_number,
+                    &value->type.Object_Property_Reference);
                 break;
 #endif
             default:

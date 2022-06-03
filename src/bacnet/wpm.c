@@ -29,6 +29,7 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacdef.h"
+#include "bacnet/bacerror.h"
 #include "bacnet/wp.h"
 #include "bacnet/wpm.h"
 
@@ -453,10 +454,6 @@ int wpm_error_ack_encode_apdu(
 int wpm_error_ack_decode_apdu(
     uint8_t *apdu, uint16_t apdu_size, BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
-    uint8_t tag_number = 0;
-    uint32_t len_value = 0;
-    uint32_t object_instance = 0;
-    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     int len = 0, apdu_len = 0;
     uint8_t *apdu_offset = NULL;
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
@@ -485,7 +482,7 @@ int wpm_error_ack_decode_apdu(
     } else {
         return 0;
     }
-    len = bacerror_decode_error_class_and_code(apdu_offset, apdu_size
+    len = bacerror_decode_error_class_and_code(apdu_offset, apdu_size,
         &error_class, &error_code);
     if (len > 0) {
         if (wp_data) {
