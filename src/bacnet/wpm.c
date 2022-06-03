@@ -435,3 +435,138 @@ int wpm_error_ack_encode_apdu(
     }
     return len;
 }
+
+/** Decoding for WritePropertyMultiple Error
+ * @ingroup DSWPM
+ *  WritePropertyMultiple-Error ::= SEQUENCE {
+ *      error-type [0] Error,
+ *      first-failed-write-attempt [1] BACnetObjectPropertyReference
+ *  }
+ *
+ * @param apdu [in] The contents of the APDU buffer.
+ * @param apdu_len [in] The length of the APDU buffer.
+ * @param wp_data [out] The BACNET_WRITE_PROPERTY_DATA structure
+ *    which will contain the response values or error.
+ *
+ * @return Count of decoded bytes.
+ */
+int wpm_error_ack_decode_apdu(
+    uint8_t *apdu, uint16_t apdu_size, BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    uint8_t tag_number = 0;
+    uint32_t len_value = 0;
+    uint32_t object_instance = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    int len = 0, apdu_len = 0;
+    uint8_t *apdu_offset = NULL;
+    BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    BACNET_OBJECT_PROPERTY_REFERENCE value;
+
+    if (apdu && (apdu_size > 0)) {
+        apdu_offset = apdu;
+    }
+    if (wp_data) {
+        wp_data->error_class = ERROR_CLASS_SERVICES;
+        wp_data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+    }
+    /* Context tag 0 - Error */
+    if (decode_is_opening_tag_number(apdu_offset, 0)) {
+        len = 1;
+        apdu_len -= len;
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
+            if (apdu_size > len) {
+                apdu_size -= len;
+            } else {
+                return 0;
+            }
+        }
+    } else {
+        return 0;
+    }
+    len = bacerror_decode_error_class_and_code(apdu_offset, apdu_size
+        &error_class, &error_code);
+    if (len > 0) {
+        if (wp_data) {
+            wp_data->error_class = error_class;
+            wp_data->error_code = error_code;
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
+            if (apdu_size > len) {
+                apdu_size -= len;
+            } else {
+                return 0;
+            }
+        }
+    } else {
+        return 0;
+    }
+    if (decode_is_closing_tag_number(apdu_offset, 0)) {
+        len = 1;
+        apdu_len -= len;
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
+            if (apdu_size > len) {
+                apdu_size -= len;
+            } else {
+                return 0;
+            }
+        }
+    } else {
+        return 0;
+    }
+    /* Context tag 1 - BACnetObjectPropertyReference */
+    if (decode_is_opening_tag_number(apdu_offset, 1)) {
+        len = 1;
+        apdu_len -= len;
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
+            if (apdu_size > len) {
+                apdu_size -= len;
+            } else {
+                return 0;
+            }
+        }
+    } else {
+        return 0;
+    }
+    len = bacapp_decode_obj_property_ref(apdu_offset, apdu_size, &value);
+    if (len > 0) {
+        if (wp_data) {
+            wp_data->object_instance = value.object_identifier.instance;
+            wp_data->object_type = value.object_identifier.type;
+            wp_data->object_property = value.property_identifier;
+            wp_data->array_index = value.property_array_index;
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
+            if (apdu_size > len) {
+                apdu_size -= len;
+            } else {
+                return 0;
+            }
+        }
+    } else {
+        return 0;
+    }
+    if (decode_is_closing_tag_number(apdu_offset, 1)) {
+        len = 1;
+        apdu_len -= len;
+        if (apdu) {
+            apdu_offset = &apdu[apdu_len];
+            if (apdu_size > len) {
+                apdu_size -= len;
+            } else {
+                return 0;
+            }
+        }
+    } else {
+        return 0;
+    }
+
+    return apdu_len;
+}

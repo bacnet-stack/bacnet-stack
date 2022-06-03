@@ -49,7 +49,22 @@ typedef struct BACnetDeviceObjectReference {
     BACNET_OBJECT_ID objectIdentifier;
 } BACNET_DEVICE_OBJECT_REFERENCE;
 
-
+/**
+ *  BACnetObjectPropertyReference ::= SEQUENCE {
+ *      object-identifier [0] BACnetObjectIdentifier,
+ *      property-identifier [1] BACnetPropertyIdentifier,
+ *      property-array-index [2] Unsigned OPTIONAL
+ *      -- used only with array datatype
+ *      -- if omitted with an array the entire array is referenced
+ * }
+ */
+typedef struct BACnet_Object_Property_Reference {
+    /* note: use type = OBJECT_NONE for unused reference */
+    BACNET_OBJECT_ID object_identifier;
+    BACNET_PROPERTY_ID property_identifier;
+    /* optional array index - use BACNET_ARRAY_ALL when not used */
+    BACNET_ARRAY_INDEX property_array_index;
+} BACNET_OBJECT_PROPERTY_REFERENCE;
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,7 +92,6 @@ extern "C" {
         uint8_t tag_number,
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE * value);
 
-
     BACNET_STACK_EXPORT
     int bacapp_encode_device_obj_ref(
         uint8_t * apdu,
@@ -99,6 +113,30 @@ extern "C" {
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_DEVICE_OBJECT_REFERENCE * value);
+
+    BACNET_STACK_EXPORT
+    int bacapp_encode_obj_property_ref(
+        uint8_t * apdu,
+        BACNET_OBJECT_PROPERTY_REFERENCE * value);
+
+    BACNET_STACK_EXPORT
+    int bacapp_encode_context_obj_property_ref(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_OBJECT_PROPERTY_REFERENCE * value);
+
+    BACNET_STACK_EXPORT
+    int bacapp_decode_obj_property_ref(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        BACNET_OBJECT_PROPERTY_REFERENCE * value);
+
+    BACNET_STACK_EXPORT
+    int bacapp_decode_context_obj_property_ref(
+        uint8_t * apdu,
+        uint16_t apdu_len_max,
+        uint8_t tag_number,
+        BACNET_OBJECT_PROPERTY_REFERENCE * value);
 
 #ifdef __cplusplus
 }
