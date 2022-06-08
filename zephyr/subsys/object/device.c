@@ -6,13 +6,13 @@
 
 /** @file device.c Zephyr specific part of the Base "class". */
 
-#ifdef CONFIG_BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
+#ifdef CONFIG_BACNETSTACK_USE_SECTION_ITERABLE_OBJECT_TABLE
 #include <zephyr.h>
 #endif
 #include "bacnet/basic/object/device.h"
 #include "object.h"
 
-#ifdef CONFIG_BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
+#ifdef CONFIG_BACNETSTACK_USE_SECTION_ITERABLE_OBJECT_TABLE
   extern struct object_functions _object_functions_list_end[];
 #endif
 
@@ -50,7 +50,7 @@ void Routing_Device_Init(uint32_t first_object_instance)
 
 #endif /* BAC_ROUTING */
 
-#ifdef CONFIG_BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
+#ifdef CONFIG_BACNETSTACK_USE_SECTION_ITERABLE_OBJECT_TABLE
 static struct object_functions *Device_Object_Filter_Out(
     struct object_functions *pObject)
 {
@@ -95,7 +95,7 @@ struct object_functions *Device_Objects_Get_Next_Object(
     }
     return NULL;
 }
-#endif /* CONFIG_BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE */
+#endif /* CONFIG_BACNETSTACK_USE_SECTION_ITERABLE_OBJECT_TABLE */
 
 /**
  * Allocate a Bacnet object

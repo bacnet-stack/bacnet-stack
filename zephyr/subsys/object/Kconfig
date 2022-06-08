@@ -3,12 +3,196 @@
 # Copyright (c) 2022 Legrand North America, LLC.
 # SPDX-License-Identifier: MIT
 
-if BACNETSTACK
 
-config BACNET_USE_DYNAMIC_DESCRIPTION
+config BACNETSTACK_USE_SECTION_ITERABLE_OBJECT_TABLE
+	bool "Use the Section Iterable for the Object Table"
+	default y
+	help
+		Use the Section Iterable for the Object Table
+
+config BACNETSTACK_USE_DYNAMIC_DESCRIPTION
 	bool "Use dynalic allocate for objects descriptions"
-	default false
+	default n
 	help
 		Use dynalic allocate for objects descriptions
 
-endif # BACNETSTACK
+config BACNETSTACK_OBJECT_ACC_ENABLE
+	bool "Accumulator objects"
+	default n
+	help
+		Support accumulator objects
+
+config BACNETSTACK_OBJECT_ACCESS_CREDENTIAL_ENABLE
+	bool "Access Credential objects"
+	default n
+	help
+		Support access credential objects
+
+config BACNETSTACK_OBJECT_ACCESS_DOOR_ENABLE
+	bool "Access Door objects"
+	default n
+	help
+		Support access door objects
+
+config BACNETSTACK_OBJECT_ACCESS_POINT_ENABLE
+	bool "Access Point objects"
+	default n
+	help
+		Support access point objects
+
+config BACNETSTACK_OBJECT_ACCESS_RIGHTS_ENABLE
+	bool "Access Rights objects"
+	default n
+	help
+		Support access rights objects
+
+config BACNETSTACK_OBJECT_ACCESS_USER_ENABLE
+	bool "Access User objects"
+	default n
+	help
+		Support access user objects
+
+config BACNETSTACK_OBJECT_ACCESS_ZONE_ENABLE
+	bool "Access Zone objects"
+	default n
+	help
+		Support access zone objects
+
+config BACNETSTACK_OBJECT_ANALOG_INPUT_ENABLE
+	bool "Analog Input objects"
+	default n
+	help
+		Support analog input objects
+
+config BACNETSTACK_OBJECT_ANALOG_OUTPUT_ENABLE
+	bool "Analog Output objects"
+	default n
+	help
+		Support analog output objects
+
+config BACNETSTACK_OBJECT_ANALOG_VALUE_ENABLE
+	bool "Analog Value objects"
+	default n
+	help
+		Support analog value objects
+
+config BACNETSTACK_OBJECT_BACFILE_ENABLE
+	bool "BACfile objects"
+	default n
+	help
+		Support BACfile objects
+
+config BACNETSTACK_OBJECT_BINARY_INPUT_ENABLE
+	bool "Binary Input objects"
+	default n
+	help
+		Support binary input objects
+
+config BACNETSTACK_OBJECT_BINARY_OUTPUT_ENABLE
+	bool "Binary Output objects"
+	default n
+	help
+		Support binary output objects
+
+config BACNETSTACK_OBJECT_BINARY_VALUE_ENABLE
+	bool "Binary Value objects"
+	default n
+	help
+		Support binary value objects
+
+config BACNETSTACK_OBJECT_CHANNEL_ENABLE
+	bool "Channel objects"
+	default n
+	help
+		Support channel objects
+
+config BACNETSTACK_OBJECT_COMMAND_ENABLE
+	bool "Command objects"
+	default n
+	help
+		Support command objects
+
+config BACNETSTACK_OBJECT_CREDENTIAL_DATA_INPUT_ENABLE
+	bool "Credential Data Input objects"
+	default n
+	help
+		Support credential data input objects
+
+config BACNETSTACK_OBJECT_CHARACTERSTRING_VALUE_ENABLE
+	bool "CharacterString Value objects"
+	default n
+	help
+		Support character-string value objects
+
+config BACNETSTACK_OBJECT_INTEGER_VALUE_ENABLE
+	bool "Integer Value objects"
+	default n
+	help
+		Support integer value objects
+
+config BACNETSTACK_OBJECT_LOAD_CONTROL_ENABLE
+	bool "Load Control Objects"
+	default n
+	help
+		Support load control objects
+
+config BACNETSTACK_OBJECT_LIGHTING_OUTPUT_ENABLE
+	bool "Lighting Output objects"
+	default n
+	help
+		Support lighting output objects
+
+config BACNETSTACK_OBJECT_LIFE_SAFETY_POINT_ENABLE
+	bool "Life Safety Point objects"
+	default n
+	help
+		Support life safety point objects
+
+config BACNETSTACK_OBJECT_MULTISTATE_INPUT_ENABLE
+	bool "Multistate Input objects"
+	default n
+	help
+		Supportmultistate input objects
+
+config BACNETSTACK_OBJECT_MULTISTATE_OUTPUT_ENABLE
+	bool "Multistate Output objects"
+	default n
+	help
+		Support multistate output objects
+
+config BACNETSTACK_OBJECT_MULTISTATE_VALUE_ENABLE
+	bool "Multistate Value objects"
+	default n
+	help
+		Support multistate value objects
+
+
+config BACNETSTACK_OBJECT_NOTIFICATION_CLASS_ENABLE
+	bool "Notification Class objects"
+	default n
+	help
+		Support notification class objects
+
+config BACNETSTACK_OBJECT_OCTETSTRING_VALUE_ENABLE
+	bool "OctetString Value objects"
+	default n
+	help
+		Support octet-string value objects
+
+config BACNETSTACK_OBJECT_POSITIVEINTEGER_VALUE_ENABLE
+	bool "PositiveInteger Value objects"
+	default n
+	help
+		Support positive-integer value objects
+
+config BACNETSTACK_OBJECT_SCHEDULE_ENABLE
+	bool "Schedule objects"
+	default n
+	help
+		Support schedule objects
+
+config BACNETSTACK_OBJECT_TREND_LOG_ENABLE
+	bool "Trend Log objects"
+	default n
+	help
+		Support trend log objects

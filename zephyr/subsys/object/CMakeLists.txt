@@ -6,7 +6,7 @@
 
 zephyr_sources(device.c)
 
-if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
+if(CONFIG_BACNETSTACK_USE_DYNAMIC_DESCRIPTION)
   zephyr_sources(
     acc.c
     access_credential.c

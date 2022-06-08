@@ -12,8 +12,8 @@ menuconfig BACNETSTACK
 if BACNETSTACK
 
 module = BACNETSTACK
-module-str = Log level for BACnet
-module-help = Enable BACnet library to output debug messages
+module-str = BACnet library
+module-help = BACnet library
 source "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"
 
 config BAC_ROUTING
@@ -43,23 +43,29 @@ config BACDL_ARCNET
 
 config BACDL_BIP
 	bool "BACnet BIP datalink"
+	default n
+	select NET_NATIVE_IPV4
+	select NET_NATIVE
+	select NETWORKING
+	select NET_SOCKETS
 	help
 	  Enable BACnet BIP datalink
 
+config BACDL_BIP6
+	bool "BACnet BIP6"
+	select NET_NATIVE_IPV6
+	select NET_NATIVE
+	select NETWORKING
+	help
+	  Enable BACnet BIP6
+
 config BACDL_NONE
 	bool "BACnet without datalink"
+	default y if !BACDL_ETHERNET && !BACDL_ARCNET && !BACDL_MSTP && !BACDL_BIP && !BACDL_BIP6
 	help
 	  Enable BACnet without datalink
 
-config BACAPP_PRINT_ENABLED
-	bool "BACnet app print"
-	help
-		Enable BACnet app print
-
-config BACAPP_SNPRINTF_ENABLED
-	bool "BACnet app snprintf"
-	help
-		Enable BACnet app snprintf
+if BACDL_BIP
 
 config BACDL_BIP_PORT
 	int "BACnet IPv4 UDP port"
@@ -75,10 +81,9 @@ config BACDL_BIP_ADDRESS_INDEX
 	help
 		Select IPv4 address
 
-config BACDL_BIP6
-	bool "BACnet BIP6"
-	help
-	  Enable BACnet BIP6
+endif # BACDL_BIP
+
+if BACDL_BIP6
 
 config BACDL_BIP6_ADDRESS_INDEX
 	int "Unicast address index"
@@ -101,16 +106,57 @@ config BACDL_BIP6_PORT
 	help
 		UDP port to listen on (default=47808)
 
+endif # BACDL_BIP6
+
+config BACAPP_PRINT_ENABLED
+	bool "BACnet app print"
+	help
+		Enable BACnet app print
+
+config BACAPP_SNPRINTF_ENABLED
+	bool "BACnet app snprintf"
+	help
+		Enable BACnet app snprintf
+
 config BACNET_ADDRESS_CACHE_FILE
 	bool "BACnet Address Cache file functionality"
 	help
 		BACnet Address Cache file functionality
 
-config BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
-	bool "Use the Section Iterable for the Object Table"
-	default true
+choice BBMD_ROLE
+	prompt "BBMD role"
+	default BBMD_NONE
 	help
-		Use the Section Iterable for the Object Table
+		BBMD role: BBMD_NONE (default), BBMD_SERVER or BBMD_CLIENT
+
+	config BBMD_NONE
+		bool "BBMD disable"
+
+	config BBMD_SERVER
+		bool "BBMD server"
+
+	config BBMD_CLIENT
+		bool "BBMD client"
+
+endchoice # BBMD_ROLE
+
+config BBMD_ENABLED
+	bool
+	depends on !BBMD_NONE
+
+config DEBUG_ENABLED
+	bool "Enable debug logs"
+	help
+		Enable debug logs
+
+config BIP_DEBUG
+	bool
+	depends on DEBUG_ENABLED && BACDL_BIP
+
+config BAC_UCI
+	bool "Using uci lib"
+	help
+		Using uci libs
 
 rsource "subsys/Kconfig"
 
