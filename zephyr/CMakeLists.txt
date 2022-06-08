@@ -261,6 +261,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/get_alarm_sum.h
     ${BACNETSTACK_SRC}/bacnet/getevent.c
     ${BACNETSTACK_SRC}/bacnet/getevent.h
+    ${BACNETSTACK_SRC}/bacnet/hostnport.c
+    ${BACNETSTACK_SRC}/bacnet/hostnport.h
     ${BACNETSTACK_SRC}/bacnet/iam.c
     ${BACNETSTACK_SRC}/bacnet/iam.h
     ${BACNETSTACK_SRC}/bacnet/ihave.c

@@ -353,6 +353,9 @@
     <ClInclude Include="..\..\..\..\src\bacnet\lighting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\src\bacnet\hostnport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\src\bacnet\lso.h">
       <Filter>Header Files</Filter>
     </ClInclude>
