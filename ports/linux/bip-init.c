@@ -62,6 +62,11 @@
 /* unix socket */
 static int BIP_Socket = -1;
 
+#ifdef BIP_BROADCAST_SOCKET
+/* unix socket */
+static int BIP_Broadcast_Socket = -1;
+#endif
+
 /* NOTE: we store address and port in network byte order
    since BACnet/IP uses network byte order for all address byte arrays
 */
@@ -350,10 +355,25 @@ uint16_t bip_receive(
     FD_ZERO(&read_fds);
     FD_SET(BIP_Socket, &read_fds);
     max = BIP_Socket;
+
+#ifdef BIP_BROADCAST_SOCKET
+    FD_SET(BIP_Broadcast_Socket, &read_fds);
+    max = max > BIP_Broadcast_Socket ? max : BIP_Broadcast_Socket;
+#endif
+
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = recvfrom(max, (char *)&npdu[0], max_npdu, 0,
-            (struct sockaddr *)&sin, &sin_len);
+        received_bytes = 0;
+        if (FD_ISSET(BIP_Socket, &read_fds)) {
+            received_bytes = recvfrom(BIP_Socket, (char *)&npdu[0], max_npdu, 0,
+                (struct sockaddr *)&sin, &sin_len);
+        }
+#ifdef BIP_BROADCAST_SOCKET
+        if (FD_ISSET(BIP_Broadcast_Socket, &read_fds)) {
+            received_bytes = recvfrom(BIP_Broadcast_Socket, (char *)&npdu[0],
+                 max_npdu, 0, (struct sockaddr *)&sin, &sin_len);
+        }
+#endif
     } else {
         return 0;
     }
@@ -766,6 +786,48 @@ void bip_set_interface(char *ifname)
     }
 }
 
+static int createSocket(struct sockaddr_in *sin)
+{
+    int status = 0; /* return from socket lib calls */
+    int sockopt = 0;
+    int sock_fd = -1;
+
+    /* assumes that the driver has already been initialized */
+    sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock_fd < 0) {
+        return sock_fd;
+    }
+    /* Allow us to use the same socket for sending and receiving */
+    /* This makes sure that the src port is correct when sending */
+    sockopt = 1;
+    status = setsockopt(
+        sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
+    if (status < 0) {
+        close(sock_fd);
+        return status;
+    }
+    /* allow us to send a broadcast */
+    status = setsockopt(
+        sock_fd, SOL_SOCKET, SO_BROADCAST, &sockopt, sizeof(sockopt));
+    if (status < 0) {
+        close(sock_fd);
+        return status;
+    }
+    /* Bind to the proper interface to send without default gateway */
+    setsockopt(sock_fd, SOL_SOCKET, SO_BINDTODEVICE, BIP_Interface_Name,
+        strlen(BIP_Interface_Name));
+
+    /* bind the socket to the local port number and IP address */
+    status =
+        bind(sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
+    if (status < 0) {
+        close(sock_fd);
+        return status;
+    }
+
+    return sock_fd;
+}
+
 /** Initialize the BACnet/IP services at the given interface.
  * @ingroup DLBIP
  * -# Gets the local IP address and local broadcast address from the system,
@@ -785,9 +847,7 @@ void bip_set_interface(char *ifname)
  */
 bool bip_init(char *ifname)
 {
-    int status = 0; /* return from socket lib calls */
     struct sockaddr_in sin;
-    int sockopt = 0;
     int sock_fd = -1;
 
     if (ifname) {
@@ -802,46 +862,34 @@ bool bip_init(char *ifname)
         fflush(stderr);
         return false;
     }
-    /* assumes that the driver has already been initialized */
-    sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+    sin.sin_family = AF_INET;
+    sin.sin_port = BIP_Port;
+    memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
+
+#ifdef BIP_BROADCAST_SOCKET
+    sin.sin_addr.s_addr = BIP_Address.s_addr;
+    sock_fd = createSocket(&sin);
     BIP_Socket = sock_fd;
     if (sock_fd < 0) {
         return false;
     }
-    /* Allow us to use the same socket for sending and receiving */
-    /* This makes sure that the src port is correct when sending */
-    sockopt = 1;
-    status = setsockopt(
-        sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
-    if (status < 0) {
-        close(sock_fd);
-        BIP_Socket = -1;
-        return status;
-    }
-    /* allow us to send a broadcast */
-    status = setsockopt(
-        sock_fd, SOL_SOCKET, SO_BROADCAST, &sockopt, sizeof(sockopt));
-    if (status < 0) {
-        close(sock_fd);
-        BIP_Socket = -1;
-        return false;
-    }
-    /* Bind to the proper interface to send without default gateway */
-    setsockopt(sock_fd, SOL_SOCKET, SO_BINDTODEVICE, BIP_Interface_Name,
-        sizeof(BIP_Interface_Name));
 
-    /* bind the socket to the local port number and IP address */
-    sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
-    sin.sin_port = BIP_Port;
-    memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
-    status =
-        bind(sock_fd, (const struct sockaddr *)&sin, sizeof(struct sockaddr));
-    if (status < 0) {
-        close(sock_fd);
-        BIP_Socket = -1;
+    sock_fd = createSocket(&sin);
+    BIP_Broadcast_Socket = sock_fd;
+    if (sock_fd < 0) {
         return false;
     }
+#else
+    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    sock_fd = createSocket(&sin);
+    BIP_Socket = sock_fd;
+    if (sock_fd < 0) {
+        return false;
+    }
+#endif
+
     bvlc_init();
 
     return true;
@@ -865,6 +913,13 @@ void bip_cleanup(void)
         close(BIP_Socket);
     }
     BIP_Socket = -1;
+
+#ifdef BIP_BROADCAST_SOCKET
+    if (BIP_Broadcast_Socket != -1) {
+        close(BIP_Broadcast_Socket);
+    }
+    BIP_Broadcast_Socket = -1;
+#endif
 
     return;
 }
