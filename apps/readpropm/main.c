@@ -256,14 +256,35 @@ static void print_usage(char *filename)
     printf("Usage: %s device-instance object-type object-instance "
            "property[index][,property[index]] [object-type ...]\n",
         filename);
+    printf("       [--dnet][--dadr][--mac]\n");
     printf("       [--version][--help]\n");
 }
 
 static void print_help(char *filename)
 {
     printf("Read one or more properties from one or more objects\n"
-           "in a BACnet device and print the value(s).\n"
-           "device-instance:\n"
+           "in a BACnet device and print the value(s).\n");
+
+    printf("--mac A\n"
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n"
+           "--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n"
+           "\n"
+           "--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n");
+
+    printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
            "trying to communicate to.  This number will be used\n"
            "to try and bind with the device using Who-Is and\n"
