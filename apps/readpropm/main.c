@@ -143,7 +143,7 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
             while (rpm_data) {
                 rpm_ack_print_data(rpm_data);
                 rpm_data = rpm_data_free(rpm_data);
-                
+
             }
         } else {
             fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
@@ -211,6 +211,44 @@ static void cleanup(void)
         rpm_object = rpm_object->next;
         free(old_rpm_object);
     }
+}
+
+static void target_address_add(
+    long dnet,
+    BACNET_MAC_ADDRESS *mac,
+    BACNET_MAC_ADDRESS *adr)
+{
+    BACNET_ADDRESS dest = { 0 };
+
+    if (adr->len && mac->len) {
+        memcpy(&dest.mac[0], &mac->adr[0], mac->len);
+        dest.mac_len = mac->len;
+        memcpy(&dest.adr[0], &adr->adr[0], adr->len);
+        dest.len = adr->len;
+        if ((dnet >= 0) && (dnet <= UINT16_MAX)) {
+            dest.net = dnet;
+        } else {
+            dest.net = BACNET_BROADCAST_NETWORK;
+        }
+    } else if (mac->len) {
+        memcpy(&dest.mac[0], &mac->adr[0], mac->len);
+        dest.mac_len = mac->len;
+        dest.len = 0;
+        if ((dnet >= 0) && (dnet <= UINT16_MAX)) {
+            dest.net = dnet;
+        } else {
+            dest.net = 0;
+        }
+    } else {
+        if ((dnet >= 0) && (dnet <= UINT16_MAX)) {
+            dest.net = dnet;
+        } else {
+            dest.net = BACNET_BROADCAST_NETWORK;
+        }
+        dest.mac_len = 0;
+        dest.len = 0;
+    }
+    address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
 }
 
 static void print_usage(char *filename)
@@ -285,20 +323,26 @@ int main(int argc, char *argv[])
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
-    int args_remaining = 0, tag_value_arg = 0, arg_sets = 0;
+    int tag_value_arg = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
     bool found = false;
     uint8_t buffer[MAX_PDU] = { 0 };
-    BACNET_READ_ACCESS_DATA *rpm_object;
-    BACNET_PROPERTY_REFERENCE *rpm_property;
+    BACNET_READ_ACCESS_DATA *rpm_object = NULL;
+    BACNET_PROPERTY_REFERENCE *rpm_property = NULL;
     char *property_token = NULL;
     unsigned property_id = 0;
     unsigned property_array_index = 0;
     int scan_count = 0;
     int argi = 0;
+    long dnet = -1;
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    bool specific_address = false;
+    unsigned int target_args = 0;
+    bool status = false;
     char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
@@ -317,100 +361,125 @@ int main(int argc, char *argv[])
                    "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
-    }
-    if (argc < 5) {
-        print_usage(filename);
-        return 0;
-    }
-    /* decode the command line parameters */
-    Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
-            Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
-        return 1;
-    }
-    atexit(cleanup);
-    Read_Access_Data = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
-    rpm_object = Read_Access_Data;
-    args_remaining = (argc - 2);
-    arg_sets = 0;
-    while (rpm_object) {
-        tag_value_arg = 2 + (arg_sets * 3);
-        if (bactext_object_type_strtol(
-                argv[tag_value_arg], &rpm_object->object_type) == false) {
-            fprintf(
-                stderr, "Error: object-type=%s invalid\n", argv[tag_value_arg]);
-            return 1;
-        }
-        tag_value_arg++;
-        args_remaining--;
-        if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough object property triples.\n");
-            return 1;
-        }
-        if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
-            fprintf(stderr, "object-type=%u - it must be less than %u\n",
-                rpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
-            return 1;
-        }
-        rpm_object->object_instance = strtol(argv[tag_value_arg], NULL, 0);
-        tag_value_arg++;
-        args_remaining--;
-        if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough object property triples.\n");
-            return 1;
-        }
-        if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
-            fprintf(stderr, "object-instance=%u - it must be less than %u\n",
-                rpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
-            return 1;
-        }
-        rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
-        rpm_object->listOfProperties = rpm_property;
-        property_token = strtok(argv[tag_value_arg], ",");
-        /* add all the properties and optional index to our list */
-        while (rpm_property) {
-            scan_count = sscanf(
-                property_token, "%u[%u]", &property_id, &property_array_index);
-            if (scan_count > 0) {
-                rpm_property->propertyIdentifier = property_id;
-                if (rpm_property->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-                    fprintf(stderr, "property=%u - it must be less than %u\n",
-                        rpm_property->propertyIdentifier,
-                        MAX_BACNET_PROPERTY_ID + 1);
-                    return 1;
+        if (strcmp(argv[argi], "--mac") == 0) {
+            if (++argi < argc) {
+                if (address_mac_from_ascii(&mac, argv[argi])) {
+                    specific_address = true;
                 }
             }
-            if (scan_count > 1) {
-                rpm_property->propertyArrayIndex = property_array_index;
-            } else {
-                rpm_property->propertyArrayIndex = BACNET_ARRAY_ALL;
+        } else if (strcmp(argv[argi], "--dnet") == 0) {
+            if (++argi < argc) {
+                dnet = strtol(argv[argi], NULL, 0);
+                if ((dnet >= 0) && (dnet <= UINT16_MAX)) {
+                    specific_address = true;
+                }
             }
-            /* is there another property? */
-            property_token = strtok(NULL, ",");
-            if (property_token) {
-                rpm_property->next =
-                    calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
-                rpm_property = rpm_property->next;
-            } else {
-                rpm_property->next = NULL;
-                break;
+        } else if (strcmp(argv[argi], "--dadr") == 0) {
+            if (++argi < argc) {
+                if (address_mac_from_ascii(&adr, argv[argi])) {
+                    specific_address = true;
+                }
             }
-        }
-        /* used up another arg */
-        tag_value_arg++;
-        args_remaining--;
-        if (args_remaining) {
-            arg_sets++;
-            rpm_object->next = calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
-            rpm_object = rpm_object->next;
         } else {
-            break;
+            if (target_args == 0) {
+                Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
+                if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
+                    fprintf(stderr,
+                        "device-instance=%u - it must be less than %u\n",
+                        Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
+                    return 1;
+                }
+                tag_value_arg = 0;
+                target_args++;
+            } else if (target_args >= 1) {
+                if (tag_value_arg == 0) {
+                    if (rpm_object) {
+                        rpm_object->next = calloc(1,
+                            sizeof(BACNET_READ_ACCESS_DATA));
+                        rpm_object = rpm_object->next;
+                    } else {
+                        Read_Access_Data = calloc(1,
+                            sizeof(BACNET_READ_ACCESS_DATA));
+                        rpm_object = Read_Access_Data;
+                        atexit(cleanup);
+                    }
+                    status = bactext_object_type_strtol(
+                        argv[argi], &rpm_object->object_type);
+                    if (status == false) {
+                        fprintf(stderr, "Error: object-type=%s invalid\n",
+                            argv[argi]);
+                        return 1;
+                    }
+                    if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
+                        fprintf(stderr,
+                            "object-type=%u - it must be less than %u\n",
+                            rpm_object->object_type, MAX_BACNET_OBJECT_TYPE);
+                        return 1;
+                    }
+                    tag_value_arg++;
+                } else if (tag_value_arg == 1) {
+                    rpm_object->object_instance = strtol(argv[argi], NULL, 0);
+                    if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
+                        fprintf(stderr,
+                            "object-instance=%u - it must be less than %u\n",
+                            rpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
+                        return 1;
+                    }
+                    tag_value_arg++;
+                } else if (tag_value_arg == 2) {
+                    rpm_property = calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+                    rpm_object->listOfProperties = rpm_property;
+                    property_token = strtok(argv[argi], ",");
+                    /* add all the properties and optional index to our list */
+                    while (rpm_property) {
+                        scan_count = sscanf(
+                            property_token, "%u[%u]", &property_id,
+                            &property_array_index);
+                        if (scan_count > 0) {
+                            rpm_property->propertyIdentifier = property_id;
+                            if (rpm_property->propertyIdentifier >
+                                MAX_BACNET_PROPERTY_ID) {
+                                fprintf(stderr,
+                                    "property=%u - it must be less than %u\n",
+                                    rpm_property->propertyIdentifier,
+                                    MAX_BACNET_PROPERTY_ID + 1);
+                                return 1;
+                            }
+                        }
+                        if (scan_count > 1) {
+                            rpm_property->propertyArrayIndex =
+                                property_array_index;
+                        } else {
+                            rpm_property->propertyArrayIndex = BACNET_ARRAY_ALL;
+                        }
+                        /* is there another property? */
+                        property_token = strtok(NULL, ",");
+                        if (property_token) {
+                            rpm_property->next =
+                                calloc(1, sizeof(BACNET_PROPERTY_REFERENCE));
+                            rpm_property = rpm_property->next;
+                        } else {
+                            rpm_property->next = NULL;
+                            break;
+                        }
+                    }
+                    /* start over with the next arg set */
+                    tag_value_arg = 0;
+                }
+
+            }
         }
+    }
+    if (tag_value_arg != 0) {
+        fprintf(stderr, "Error: not enough object property triples.\n");
+        return 1;
     }
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
+    if (specific_address) {
+        target_address_add(dnet, &mac, &adr);
+    }
     Init_Service_Handlers();
     dlenv_init();
 #ifdef __STDC_ISO_10646__
