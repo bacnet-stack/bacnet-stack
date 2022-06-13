@@ -108,4 +108,6 @@ config BACNET_ADDRESS_CACHE_FILE
 
 rsource "subsys/Kconfig"
 
+rsource "Kconfig.object"
+
 endif # BACNETSTACK

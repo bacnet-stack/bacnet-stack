@@ -1,0 +1,17 @@
+config BACNET_OBJECT_COMMAND
+	bool "BACnet command object"
+    default n
+	help
+	  Enable to support the command object of BACnet
+
+config BACNET_OBJECT_SCHEDULE
+	bool "BACnet schedule object"
+    default n
+	help
+	  Enable to support the schedule object of BACnet
+
+config BACNET_OBJECT_TRENDLOG
+	bool "BACnet trendlog object"
+    default n
+	help
+	  Enable to support the trendlog object of BACnet

@@ -326,10 +326,9 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/bv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/channel.c
     #${BACNETSTACK_SRC}/bacnet/basic/object/client/device-client.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/command.c
+    $<$<BOOL:${CONFIG_BACNET_OBJECT_COMMAND}>:${BACNETSTACK_SRC}/bacnet/basic/object/command.c>
     ${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/csv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/device.c
     $<$<BOOL:${CONFIG_BAC_ROUTING}>:${BACNETSTACK_SRC}/bacnet/basic/object/gateway/gw_device.c>
     ${BACNETSTACK_SRC}/bacnet/basic/object/iv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/lc.c
@@ -343,8 +342,8 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/objects.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c
+    $<$<BOOL:${CONFIG_BACNET_OBJECT_SCHEDULE}>:${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c>
+    $<$<BOOL:${CONFIG_BACNET_OBJECT_TRENDLOG}>:${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c>
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf_a.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf.c
@@ -404,6 +403,7 @@ list(
       ${BACNETSTACK_PORT}/mstimer-init.c
       ${BACNETSTACK_PORT}/ai.c
       ${BACNETSTACK_PORT}/av.c
+      ${BACNETSTACK_PORT}/device.c
       ${BACNETSTACK_PORT}/event.c
   )
 
