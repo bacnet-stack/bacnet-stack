@@ -32,7 +32,6 @@
 #include <stdint.h>
 #include <string.h> /* for memmove */
 /* OS specific include*/
-#include "bacport.h"
 #include "bacnet/basic/sys/mstimer.h"
 /* BACnet includes */
 #include "bacnet/bacdef.h"
