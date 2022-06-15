@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (C) 2020 Steve Karg <skarg@users.sourceforge.net>
+* Copyright (c) 2022 Legrand North America, LLC.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -23,24 +23,16 @@
 *
 *********************************************************************/
 
+/* ztest mock file */
+
 #ifndef BACPORT_H
 #define BACPORT_H
-
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include "lwip/def.h"
-#include "lwip/udp.h"
-#include "lwip/memp.h"
-#include "netif/etharp.h"
-#include "lwip/dhcp.h"
-#include "lwip/inet.h"
 
 #define BACNET_OBJECT_TABLE(table_name, _type, _init, _count,               \
                             _index_to_instance, _valid_instance, _object_name, \
                             _read_property, _write_property, _RPM_list,     \
                             _RR_info, _iterator, _value_list, _COV,         \
                             _COV_clear, _intrinsic_reporting)               \
-    /*TODO Add compile error "Unsupported BACNET_OBJECT_TABLE for this platform."  */
+    /* Empty define */
 
 #endif

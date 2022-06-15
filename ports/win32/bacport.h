@@ -70,6 +70,12 @@ and globals in favor of more secure versions.  */
 #endif
 #include <sys/timeb.h>
 
+#if defined(__BORLANDC__) || defined(_WIN32)
+/* seems to not be defined in time.h as specified by The Open Group */
+/* difference from UTC and local standard time  */
+long int timezone;
+#endif
+
 #ifdef _MSC_VER
 #define inline __inline
 #endif
@@ -81,5 +87,13 @@ and globals in favor of more secure versions.  */
 #define strncasecmp(x, y, z) _strnicmp(x, y, z)
 #define snprintf _snprintf
 #endif
+
+#define BACNET_OBJECT_TABLE(table_name, _type, _init, _count,               \
+                            _index_to_instance, _valid_instance, _object_name, \
+                            _read_property, _write_property, _RPM_list,     \
+                            _RR_info, _iterator, _value_list, _COV,         \
+                            _COV_clear, _intrinsic_reporting)               \
+/*TODO Add compile error "Unsupported BACNET_OBJECT_TABLE for this platform."  */
+
 
 #endif
