@@ -63,8 +63,6 @@
 static int BIP_Socket = -1;
 static int BIP_Broadcast_Socket = -1;
 
-static bool BIP_Broadcast_Support = false;
-
 /* NOTE: we store address and port in network byte order
    since BACnet/IP uses network byte order for all address byte arrays
 */
@@ -334,6 +332,7 @@ uint16_t bip_receive(
     int received_bytes = 0;
     int offset = 0;
     uint16_t i = 0;
+    int socket;
 
     /* Make sure the socket is open */
     if (BIP_Socket < 0) {
@@ -352,25 +351,16 @@ uint16_t bip_receive(
     }
     FD_ZERO(&read_fds);
     FD_SET(BIP_Socket, &read_fds);
-    max = BIP_Socket;
+    FD_SET(BIP_Broadcast_Socket, &read_fds);
 
-    if (BIP_Broadcast_Socket >= 0) {
-        FD_SET(BIP_Broadcast_Socket, &read_fds);
-        max = max > BIP_Broadcast_Socket ? max : BIP_Broadcast_Socket;
-    }
+    max = BIP_Socket > BIP_Broadcast_Socket ? BIP_Socket : BIP_Broadcast_Socket;
 
     /* see if there is a packet for us */
     if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = 0;
-        if (FD_ISSET(BIP_Socket, &read_fds)) {
-            received_bytes = recvfrom(BIP_Socket, (char *)&npdu[0], max_npdu, 0,
-                (struct sockaddr *)&sin, &sin_len);
-        }
-        if ((BIP_Broadcast_Socket >= 0) &&
-            FD_ISSET(BIP_Broadcast_Socket, &read_fds)) {
-            received_bytes = recvfrom(BIP_Broadcast_Socket, (char *)&npdu[0],
-                 max_npdu, 0, (struct sockaddr *)&sin, &sin_len);
-        }
+        socket = FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
+            BIP_Broadcast_Socket;
+        received_bytes = recvfrom(socket, (char *)&npdu[0], max_npdu, 0,
+            (struct sockaddr *)&sin, &sin_len);
     } else {
         return 0;
     }
@@ -407,7 +397,9 @@ uint16_t bip_receive(
     debug_print_ipv4(
         "Received MPDU->", &sin.sin_addr, sin.sin_port, received_bytes);
     /* pass the packet into the BBMD handler */
-    offset = bvlc_handler(&addr, src, npdu, received_bytes);
+    offset = socket == BIP_Socket ?
+        bvlc_handler(&addr, src, npdu, received_bytes) :
+        bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
         npdu_len = received_bytes - offset;
         debug_print_ipv4(
@@ -524,28 +516,6 @@ int bip_get_local_address_ioctl(char *ifname, struct in_addr *addr, int request)
 
     return rv;
 }
-
-/**
- * @brief Issue a specific request foor an interface via an ioctl() call.
- * @param ifname - the interface name
- * @param flags [out] the active flag word of the device.
- * @param request - the ioctl() request
- * @return 0 on success, else the error from the ioctl() call.
- */
-int bip_get_flags_ioctl(char *ifname, short *flags, int request)
-{
-    struct ifreq ifr = { { { 0 } }, { { 0 } } };
-    struct sockaddr_in *tcpip_address;
-    int rv; /* return value */
-
-    rv = get_local_ifr_ioctl(ifname, &ifr, request);
-    if (rv >= 0) {
-        *flags = ifr.ifr_flags;
-    }
-
-    return rv;
-}
-
 
 /* structure to hold IPv4 route info when dynamically finding interface */
 struct route_info {
@@ -804,10 +774,6 @@ void bip_set_interface(char *ifname)
             ntohs(BIP_Port));
         fflush(stderr);
     }
-
-    /* setup local flags */
-    rv = bip_get_flags_ioctl(ifname, &flags, SIOCGIFFLAGS);
-    BIP_Broadcast_Support = (rv >= 0) && (flags & IFF_BROADCAST);
 }
 
 static int createSocket(struct sockaddr_in *sin)
@@ -891,28 +857,18 @@ bool bip_init(char *ifname)
     sin.sin_port = BIP_Port;
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
 
+    sin.sin_addr.s_addr = BIP_Address.s_addr;
+    sock_fd = createSocket(&sin);
+    BIP_Socket = sock_fd;
+    if (sock_fd < 0) {
+        return false;
+    }
 
-    if (BIP_Broadcast_Support) {
-        sin.sin_addr.s_addr = htonl(INADDR_ANY);
-        sock_fd = createSocket(&sin);
-        BIP_Socket = sock_fd;
-        if (sock_fd < 0) {
-            return false;
-        }
-    } else {
-        sin.sin_addr.s_addr = BIP_Address.s_addr;
-        sock_fd = createSocket(&sin);
-        BIP_Socket = sock_fd;
-        if (sock_fd < 0) {
-            return false;
-        }
-
-        sin.sin_addr.s_addr = htonl(INADDR_ANY);
-        sock_fd = createSocket(&sin);
-        BIP_Broadcast_Socket = sock_fd;
-        if (sock_fd < 0) {
-            return false;
-        }
+    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    sock_fd = createSocket(&sin);
+    BIP_Broadcast_Socket = sock_fd;
+    if (sock_fd < 0) {
+        return false;
     }
 
     bvlc_init();
@@ -939,12 +895,10 @@ void bip_cleanup(void)
     }
     BIP_Socket = -1;
 
-#ifdef BIP_BROADCAST_SOCKET
     if (BIP_Broadcast_Socket != -1) {
         close(BIP_Broadcast_Socket);
     }
     BIP_Broadcast_Socket = -1;
-#endif
 
     return;
 }
