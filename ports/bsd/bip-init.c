@@ -592,9 +592,6 @@ static int createSocket(struct sockaddr_in *sin)
         close(sock_fd);
         return status;
     }
-    /* Bind to the proper interface to send without default gateway */
-    setsockopt(sock_fd, SOL_SOCKET, SO_BINDTODEVICE, BIP_Interface_Name,
-        strlen(BIP_Interface_Name));
 
     /* bind the socket to the local port number and IP address */
     status =
