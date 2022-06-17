@@ -39,6 +39,8 @@ static inline char *inet_ntoa(struct in_addr in) {
 extern int bip_get_local_netmask(
     struct in_addr *netmask);
 
+#ifdef CONFIG_BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
+
 #define BACNET_OBJECT_TABLE(table_name, _type, _init, _count, \
                             _index_to_instance, _valid_instance, _object_name, \
                             _read_property, _write_property, _RPM_list, \
@@ -61,5 +63,16 @@ STRUCT_SECTION_ITERABLE(object_functions, table_name) = {   \
     .Object_COV_Clear = _COV_clear,                         \
     .Object_Intrinsic_Reporting = _intrinsic_reporting      \
 }
+
+#else
+
+#define BACNET_OBJECT_TABLE(table_name, _type, _init, _count, \
+                            _index_to_instance, _valid_instance, _object_name, \
+                            _read_property, _write_property, _RPM_list, \
+                            _RR_info, _iterator, _value_list, _COV, \
+                            _COV_clear, _intrinsic_reporting) \
+    /* empty define */
+
+#endif
 
 #endif
