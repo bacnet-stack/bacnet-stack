@@ -29,7 +29,7 @@
 #include <net/net_ip.h>
 #include <net/socket.h>
 #include <zephyr.h>
-#include "bacnet/basic/object/device.h"
+#include <bacnet/basic/object/device.h>
 
 static inline char *inet_ntoa(struct in_addr in) {
     return "(inet_ntoa() to be implemented)";
@@ -71,7 +71,7 @@ STRUCT_SECTION_ITERABLE(object_functions, table_name) = {   \
                             _read_property, _write_property, _RPM_list, \
                             _RR_info, _iterator, _value_list, _COV, \
                             _COV_clear, _intrinsic_reporting) \
-    /* empty define */
+    while{}(0)
 
 #endif
 

@@ -33,6 +33,6 @@
                             _read_property, _write_property, _RPM_list,     \
                             _RR_info, _iterator, _value_list, _COV,         \
                             _COV_clear, _intrinsic_reporting)               \
-    /* Empty define */
+    while{}(0)
 
 #endif
