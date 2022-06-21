@@ -72,6 +72,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/mso.c
     ${BACNET_SRC}/basic/object/msv.c
     ${BACNET_SRC}/basic/object/netport.c
+    ${BACNET_SRC}/basic/object/sc_netport.c
     ${BACNET_SRC}/basic/object/osv.c
     ${BACNET_SRC}/basic/object/piv.c
     ${BACNET_SRC}/basic/object/schedule.c

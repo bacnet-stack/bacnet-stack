@@ -68,7 +68,7 @@ BACNET_PORT ?= linux
 
 # build in uci integration - use UCI=1 when invoking make
 ifeq (${UCI},1)
-BACNET_DEFINES += -DBAC_UCI
+BACNET_DEFINES +=4 -DBAC_UCI
 UCI_LIB_DIR ?= /usr/local/lib
 BACNET_LIB += -L$(UCI_LIB_DIR) -luci
 endif
@@ -104,6 +104,10 @@ DEBUGGING = -g -DDEBUG_ENABLED=1
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
 BACNET_DEFINES += -DBIP_DEBUG
 endif
+endif
+
+ifneq (${SC_NETPORT},)
+BACNET_DEFINES += -DBACNET_SECURE_CONNECT
 endif
 
 BACNET_DEFINES += -DPRINT_ENABLED=1
@@ -309,3 +313,6 @@ router-mstp: $(BACNET_LIB_TARGET)
 writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
+.PHONY: sc-server
+sc-server: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@

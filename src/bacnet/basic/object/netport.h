@@ -42,6 +42,7 @@
 #include "bacnet/apdu.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+#include "bacnet/basic/object/sc_netport.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -399,6 +400,12 @@ extern "C" {
     bool Network_Port_Read_Range(
         BACNET_READ_RANGE_DATA * pRequest,
         RR_PROP_INFO * pInfo);
+
+#ifdef BACNET_SECURE_CONNECT
+    BACNET_STACK_EXPORT
+    BACNET_SC_PARAMS *Network_Port_SC_Params(
+        uint32_t object_instance);
+#endif
 
     BACNET_STACK_EXPORT
     bool Network_Port_Create(

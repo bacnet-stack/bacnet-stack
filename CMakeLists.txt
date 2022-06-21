@@ -199,6 +199,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/nc.h
     src/bacnet/basic/object/netport.c
     src/bacnet/basic/object/netport.h
+    src/bacnet/basic/object/sc_netport.c
+    src/bacnet/basic/object/sc_netport.h
     src/bacnet/basic/object/objects.c
     src/bacnet/basic/object/objects.h
     src/bacnet/basic/object/osv.c
