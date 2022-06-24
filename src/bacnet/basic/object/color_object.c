@@ -32,6 +32,7 @@
 #include "bacnet/apdu.h"
 #include "bacnet/npdu.h"
 #include "bacnet/abort.h"
+#include "bacnet/lighting.h"
 #include "bacnet/reject.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -57,8 +58,7 @@ struct object_data {
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 /* callback for present value writes */
-static color_write_present_value_callback
-    Color_Write_Present_Value_Callback;
+static color_write_present_value_callback Color_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int Color_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -99,7 +99,7 @@ void Color_Property_Lists(
 }
 
 /**
- * Determines if a given Analog Value instance is valid
+ * Determines if a given Color instance is valid
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -118,9 +118,9 @@ bool Color_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * Determines the number of Analog Value objects
+ * Determines the number of Color objects
  *
- * @return  Number of Analog Value objects
+ * @return  Number of Color objects
  */
 unsigned Color_Count(void)
 {
@@ -129,9 +129,9 @@ unsigned Color_Count(void)
 
 /**
  * Determines the object instance-number for a given 0..N index
- * of Analog Value objects where N is Color_Count().
+ * of Color objects where N is Color_Count().
  *
- * @param  index - 0..MAX_ANALOG_VALUES value
+ * @param  index - 0..N where N is Color_Count()
  *
  * @return  object instance-number for the given index
  */
@@ -142,11 +142,11 @@ uint32_t Color_Index_To_Instance(unsigned index)
 
 /**
  * For a given object instance-number, determines a 0..N index
- * of Analog Value objects where N is Color_Count().
+ * of Color objects where N is Color_Count().
  *
  * @param  object_instance - object-instance number of the object
  *
- * @return  index for the given instance-number, or MAX_ANALOG_VALUES
+ * @return  index for the given instance-number, or Color_Count()
  * if not valid.
  */
 unsigned Color_Instance_To_Index(uint32_t object_instance)
@@ -179,12 +179,12 @@ bool Color_Present_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog value
+ * @param  value - floating point Color
  *
  * @return  true if values are within range and present-value is set.
  */
 bool Color_Present_Value_Set(
-    uint32_t object_instance, BACNET_XY_COLOR * value, uint8_t priority)
+    uint32_t object_instance, BACNET_XY_COLOR *value, uint8_t priority)
 {
     bool status = false;
     struct object_data *pObject;
@@ -199,62 +199,19 @@ bool Color_Present_Value_Set(
 }
 
 /**
- * For a given object instance-number, determines the present-value
- *
- * @param  object_instance - object-instance number of the object
- *
- * @return  present-value of the object
- */
-bool Color_Tracking_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        xy_color_copy(value, &pObject->Tracking_Value);
-        status = true;
-    }
-
-    return status;
-}
-
-/**
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog value
- *
- * @return  true if values are within range and present-value is set.
- */
-bool Color_Tracking_Value_Set(
-    uint32_t object_instance, BACNET_XY_COLOR * value, uint8_t priority)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        xy_color_copy(&pObject->Tracking_Value, value);
-        status = true;
-    }
-
-    return status;
-}
-
-/**
- * For a given object instance-number, sets the present-value
- *
- * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog value
+ * @param  value - floating point Color
  * @param  priority - priority-array index value 1..16
  * @param  error_class - the BACnet error class
  * @param  error_code - BACnet Error code
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Color_Present_Value_Write(
-    uint32_t object_instance, BACNET_XY_COLOR *value, uint8_t priority,
+static bool Color_Present_Value_Write(uint32_t object_instance,
+    BACNET_XY_COLOR *value,
+    uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
@@ -286,6 +243,222 @@ static bool Color_Present_Value_Write(
 }
 
 /**
+ * For a given object instance-number, determines the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  present-value of the object
+ */
+bool Color_Tracking_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        xy_color_copy(value, &pObject->Tracking_Value);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point Color
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+bool Color_Tracking_Value_Set(
+    uint32_t object_instance, BACNET_XY_COLOR *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        xy_color_copy(&pObject->Tracking_Value, value);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param value - color command data
+ * @return  true if the property value is copied
+ */
+bool Color_Command(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && value) {
+        color_command_copy(value, &pObject->Color_Command);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - color command data
+ * @return  true if values are within range and value is set.
+ */
+bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && value) {
+        color_command_copy(&pObject->Color_Command, value);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @return property value
+ */
+BACNET_COLOR_OPERATION_IN_PROGRESS Color_In_Progress(uint32_t object_instance)
+{
+    BACNET_COLOR_OPERATION_IN_PROGRESS value = BACNET_COLOR_OPERATION_IN_PROGRESS_MAX;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->In_Progress;
+        status = true;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BACNET_COLOR_OPERATION_IN_PROGRESS
+ * @return  true if values are within range and value is set.
+ */
+bool Color_In_Progress_Set(
+    uint32_t object_instance, BACNET_COLOR_OPERATION_IN_PROGRESS value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (value < BACNET_COLOR_OPERATION_IN_PROGRESS_MAX) {
+            pObject->In_Progress = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, determines the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  present-value of the object
+ */
+bool Color_Default_Color(uint32_t object_instance, BACNET_XY_COLOR *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        xy_color_copy(value, &pObject->Default_Color);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point Color
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+bool Color_Default_Color_Set(
+    uint32_t object_instance, BACNET_XY_COLOR *value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        xy_color_copy(&pObject->Default_Color, value);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @return property value
+ */
+uint32_t Color_Default_Fade_Time(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Default_Fade_Time;
+        status = true;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BACNET_COLOR_OPERATION_IN_PROGRESS
+ * @return  true if values are within range and value is set.
+ */
+bool Color_In_Progress_Set(
+    uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Default_Fade_Time = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, loads the object-name into
  * a characterstring. Note that the object name must be unique
  * within this device.
@@ -305,13 +478,11 @@ bool Color_Object_Name(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Object_Name) {
-            status = characterstring_init_ansi(object_name,
-                pObject->Object_Name);
+            status =
+                characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "COLOR-%u",
-                object_instance);
-            status = characterstring_init_ansi(object_name,
-                name_text);
+            snprintf(name_text, sizeof(name_text), "COLOR-%u", object_instance);
+            status = characterstring_init_ansi(object_name, name_text);
         }
     }
 
@@ -421,8 +592,8 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
-    uint32_t units = 0;
     BACNET_XY_COLOR color_value = { 0.0, 0.0 };
+    BACNET_COLOR_COMMAND color_command = { 0 };
     bool state = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -434,8 +605,7 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
-                &apdu[0], rpdata->object_type,
-                rpdata->object_instance);
+                &apdu[0], rpdata->object_type, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
             Color_Object_Name(rpdata->object_instance, &char_string);
@@ -457,16 +627,25 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_COLOR_COMMAND:
+            if (Color_Command(rpdata->object_instance, &color_command)) {
+                apdu_len = color_command_encode(apdu, &color_value);
+            }
             break;
         case PROP_IN_PROGRESS:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], 
+                Color_In_Progress(rpdata->object_instance));
             break;
         case PROP_DEFAULT_COLOR:
+            if (Color_Default_Color(rpdata->object_instance, &color_value)) {
+                apdu_len = xy_color_encode(apdu, &color_value);
+            }
             break;
         case PROP_DEFAULT_FADE_TIME:
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(&char_string,
-                Color_Description(rpdata->object_instance));
+            characterstring_init_ansi(
+                &char_string, Color_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -523,11 +702,10 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
-                status = Color_Present_Value_Write(
-                    wp_data->object_instance,
+                status = Color_Present_Value_Write(wp_data->object_instance,
                     &value.type.XY_Color, wp_data->priority,
                     &wp_data->error_class, &wp_data->error_code);
             }
@@ -605,7 +783,7 @@ void Color_Write_Disable(uint32_t object_instance)
 }
 
 /**
- * Creates a Analog Value object
+ * Creates a Color object
  * @param object_instance - object-instance number of the object
  */
 bool Color_Create(uint32_t object_instance)
@@ -644,7 +822,7 @@ bool Color_Create(uint32_t object_instance)
 }
 
 /**
- * Deletes an Analog Value object
+ * Deletes an Color object
  * @param object_instance - object-instance number of the object
  * @return true if the object is deleted
  */
@@ -664,7 +842,7 @@ bool Color_Delete(uint32_t object_instance)
 }
 
 /**
- * Deletes all the Analog Values and their data
+ * Deletes all the Colors and their data
  */
 void Color_Cleanup(void)
 {
@@ -684,7 +862,7 @@ void Color_Cleanup(void)
 }
 
 /**
- * Initializes the Analog Value object data
+ * Initializes the Color object data
  */
 void Color_Init(void)
 {

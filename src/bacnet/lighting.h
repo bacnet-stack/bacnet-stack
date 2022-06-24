@@ -78,6 +78,14 @@ typedef struct BACnetColorCommand {
     } transit;
 } BACNET_COLOR_COMMAND;
 
+/* range restrictions */
+#define BACNET_COLOR_FADE_TIME_MIN 100ul
+#define BACNET_COLOR_FADE_TIME_MAX 86400000ul
+#define BACNET_COLOR_RAMP_RATE_MIN 1ul
+#define BACNET_COLOR_RAMP_RATE_MAX 30000ul
+#define BACNET_COLOR_STEP_INCREMENT_MIN 1ul
+#define BACNET_COLOR_STEP_INCREMENT_MAX 30000ul
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

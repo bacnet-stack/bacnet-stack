@@ -21,7 +21,7 @@
 #include "bacnet/lighting.h"
 
 #ifndef islessgreater
-#define islessgreater( x, y) ((x) < (y) || (x) > (y))
+#define islessgreater(x, y) ((x) < (y) || (x) > (y))
 #endif
 
 /** @file lighting.c  Manipulate BACnet lighting command values */
@@ -304,8 +304,7 @@ bool lighting_command_same(
  * @param value - BACnetxyColor structure
  * @return length of the encoded APDU buffer
  */
-int xy_color_encode(uint8_t *apdu,
-    BACNET_XY_COLOR *value)
+int xy_color_encode(uint8_t *apdu, BACNET_XY_COLOR *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -337,9 +336,7 @@ int xy_color_encode(uint8_t *apdu,
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int xy_color_context_encode(
-    uint8_t * apdu,
-    uint8_t tag_number,
-    BACNET_XY_COLOR *value)
+    uint8_t *apdu, uint8_t tag_number, BACNET_XY_COLOR *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -373,10 +370,7 @@ int xy_color_context_encode(
  *
  * @return the number of apdu bytes consumed
  */
-int xy_color_decode(
-    uint8_t *apdu,
-    uint32_t apdu_size,
-    BACNET_XY_COLOR *value)
+int xy_color_decode(uint8_t *apdu, uint32_t apdu_size, BACNET_XY_COLOR *value)
 {
     float real_value;
     int len = 0;
@@ -412,8 +406,7 @@ int xy_color_decode(
  *
  * @return the number of apdu bytes consumed
  */
-int xy_color_context_decode(
-    uint8_t *apdu,
+int xy_color_context_decode(uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
     BACNET_XY_COLOR *value)
@@ -426,17 +419,17 @@ int xy_color_context_decode(
     if (apdu_size > 0) {
         if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
             apdu_len += 1;
-            len = xy_color_decode(&apdu[apdu_len], apdu_size-apdu_len,
-                &color);
+            len =
+                xy_color_decode(&apdu[apdu_len], apdu_size - apdu_len, &color);
             if (len > 0) {
                 apdu_len += len;
                 if (value) {
                     value->x_coordinate = color.x_coordinate;
                     value->y_coordinate = color.y_coordinate;
                 }
-                if ((apdu_size-apdu_len) > 0) {
-                    if (decode_is_closing_tag_number(&apdu[apdu_len],
-                        tag_number)) {
+                if ((apdu_size - apdu_len) > 0) {
+                    if (decode_is_closing_tag_number(
+                            &apdu[apdu_len], tag_number)) {
                         apdu_len += 1;
                         rlen = apdu_len;
                     }
@@ -454,9 +447,7 @@ int xy_color_context_decode(
  * @param src - source BACNET_XY_COLOR structure
  * @return true if successfully copied
  */
-int xy_color_copy(
-    BACNET_XY_COLOR *dst,
-    BACNET_XY_COLOR *src)
+int xy_color_copy(BACNET_XY_COLOR *dst, BACNET_XY_COLOR *src)
 {
     bool status = false;
 
@@ -475,9 +466,7 @@ int xy_color_copy(
  * @param value2 - BACNET_XY_COLOR structure
  * @return true if the same
  */
-bool xy_color_same(
-    BACNET_XY_COLOR *value1,
-    BACNET_XY_COLOR *value2)
+bool xy_color_same(BACNET_XY_COLOR *value1, BACNET_XY_COLOR *value2)
 {
     bool status = false;
 
@@ -507,8 +496,7 @@ bool xy_color_same(
  * @param value - BACnetColorCommand structure
  * @return length of the encoded APDU buffer
  */
-int color_command_encode(uint8_t *apdu,
-    BACNET_COLOR_COMMAND *value)
+int color_command_encode(uint8_t *apdu, BACNET_COLOR_COMMAND *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -530,18 +518,18 @@ int color_command_encode(uint8_t *apdu,
                     apdu_offset = &apdu[apdu_len];
                 }
                 /* target-color [1] BACnetxyColor */
-                len = xy_color_context_encode(apdu_offset, 1,
-                    &value->target.color);
+                len = xy_color_context_encode(
+                    apdu_offset, 1, &value->target.color);
                 apdu_len += len;
-                if ((value->transit.fade_time >= 100) &&
-                    (value->transit.fade_time <= 86400000)) {
+                if ((value->transit.fade_time >= BACNET_COLOR_FADE_TIME_MIN) &&
+                    (value->transit.fade_time <= BACNET_COLOR_FADE_TIME_MAX)) {
                     /* fade-time [3] Unsigned (100.. 86400000) */
                     unsigned_value = value->transit.fade_time;
                     if (apdu) {
                         apdu_offset = &apdu[apdu_len];
                     }
-                    len = encode_context_unsigned(apdu_offset, 3,
-                        unsigned_value);
+                    len =
+                        encode_context_unsigned(apdu_offset, 3, unsigned_value);
                     apdu_len += len;
                 }
                 break;
@@ -554,18 +542,17 @@ int color_command_encode(uint8_t *apdu,
                 if (apdu) {
                     apdu_offset = &apdu[apdu_len];
                 }
-                len = encode_context_unsigned(apdu_offset, 2,
-                    unsigned_value);
+                len = encode_context_unsigned(apdu_offset, 2, unsigned_value);
                 apdu_len += len;
-                if ((value->transit.fade_time >= 100) &&
-                    (value->transit.fade_time <= 86400000)) {
+                if ((value->transit.fade_time >= BACNET_COLOR_FADE_TIME_MIN) &&
+                    (value->transit.fade_time <= BACNET_COLOR_FADE_TIME_MAX)) {
                     /* fade-time [3] Unsigned (100.. 86400000) */
                     unsigned_value = value->transit.fade_time;
                     if (apdu) {
                         apdu_offset = &apdu[apdu_len];
                     }
-                    len = encode_context_unsigned(apdu_offset, 3,
-                        unsigned_value);
+                    len =
+                        encode_context_unsigned(apdu_offset, 3, unsigned_value);
                     apdu_len += len;
                 }
                 break;
@@ -578,25 +565,26 @@ int color_command_encode(uint8_t *apdu,
                 if (apdu) {
                     apdu_offset = &apdu[apdu_len];
                 }
-                len = encode_context_unsigned(apdu_offset, 2,
-                    unsigned_value);
+                len = encode_context_unsigned(apdu_offset, 2, unsigned_value);
                 apdu_len += len;
-                if ((value->transit.ramp_rate >= 1) &&
-                    (value->transit.ramp_rate <= 30000)) {
+                if ((value->transit.ramp_rate >= BACNET_COLOR_RAMP_RATE_MIN) &&
+                    (value->transit.ramp_rate <= BACNET_COLOR_RAMP_RATE_MAX)) {
                     /* ramp-rate      [4] Unsigned (1..30000) */
                     unsigned_value = value->transit.ramp_rate;
                     if (apdu) {
                         apdu_offset = &apdu[apdu_len];
                     }
-                    len = encode_context_unsigned(apdu_offset, 4,
-                        unsigned_value);
+                    len =
+                        encode_context_unsigned(apdu_offset, 4, unsigned_value);
                     apdu_len += len;
                 }
                 break;
             case BACNET_COLOR_OPERATION_STEP_UP_CCT:
             case BACNET_COLOR_OPERATION_STEP_DOWN_CCT:
-                if ((value->transit.step_increment >= 1) &&
-                    (value->transit.step_increment <= 30000)) {
+                if ((value->transit.step_increment >=
+                        BACNET_COLOR_STEP_INCREMENT_MIN) &&
+                    (value->transit.step_increment <=
+                        BACNET_COLOR_STEP_INCREMENT_MAX)) {
                     if (apdu) {
                         apdu_offset = &apdu[apdu_len];
                     }
@@ -605,8 +593,8 @@ int color_command_encode(uint8_t *apdu,
                     if (apdu) {
                         apdu_offset = &apdu[apdu_len];
                     }
-                    len = encode_context_unsigned(apdu_offset, 5,
-                        unsigned_value);
+                    len =
+                        encode_context_unsigned(apdu_offset, 5, unsigned_value);
                     apdu_len += len;
                 }
                 break;
@@ -628,9 +616,7 @@ int color_command_encode(uint8_t *apdu,
  * @return length of the APDU buffer, or 0 if not able to encode
  */
 int color_command_context_encode(
-    uint8_t * apdu,
-    uint8_t tag_number,
-    BACNET_COLOR_COMMAND *value)
+    uint8_t *apdu, uint8_t tag_number, BACNET_COLOR_COMMAND *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -692,8 +678,8 @@ int color_command_decode(uint8_t *apdu,
         return BACNET_STATUS_REJECT;
     }
     /* operation [0] BACnetColorOperation */
-    len = bacnet_unsigned_context_decode(apdu,
-        apdu_size-apdu_len, 0, &unsigned_value);
+    len = bacnet_unsigned_context_decode(
+        apdu, apdu_size - apdu_len, 0, &unsigned_value);
     if (len <= 0) {
         if (len == 0) {
             if (error_code) {
@@ -722,14 +708,14 @@ int color_command_decode(uint8_t *apdu,
             break;
         case BACNET_COLOR_OPERATION_FADE_TO_COLOR:
             /* target-color [1] BACnetxyColor */
-            if ((apdu_size-apdu_len) == 0) {
+            if ((apdu_size - apdu_len) == 0) {
                 if (error_code) {
                     *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
                 }
                 return BACNET_STATUS_REJECT;
             }
-            len = xy_color_context_decode(&apdu[apdu_len], apdu_size-apdu_len,
-                1, &color);
+            len = xy_color_context_decode(
+                &apdu[apdu_len], apdu_size - apdu_len, 1, &color);
             if (len == 0) {
                 if (error_code) {
                     *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
@@ -741,10 +727,10 @@ int color_command_decode(uint8_t *apdu,
                 value->target.color.x_coordinate = color.x_coordinate;
                 value->target.color.y_coordinate = color.y_coordinate;
             }
-            if ((apdu_size-apdu_len) != 0) {
+            if ((apdu_size - apdu_len) != 0) {
                 /* fade-time [3] Unsigned (100.. 86400000) OPTIONAL */
-                len = bacnet_unsigned_context_decode(&apdu[apdu_len],
-                    apdu_size-apdu_len, 3, &unsigned_value);
+                len = bacnet_unsigned_context_decode(
+                    &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
                 if (len <= 0) {
                     if (len == 0) {
                         if (error_code) {
@@ -759,7 +745,8 @@ int color_command_decode(uint8_t *apdu,
                     return BACNET_STATUS_REJECT;
                 }
                 apdu_len += len;
-                if ((unsigned_value < 100) || (unsigned_value > 86400000)) {
+                if ((unsigned_value < BACNET_COLOR_FADE_TIME_MIN) ||
+                    (unsigned_value > BACNET_COLOR_FADE_TIME_MAX)) {
                     if (error_code) {
                         *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
                     }
@@ -772,14 +759,14 @@ int color_command_decode(uint8_t *apdu,
             break;
         case BACNET_COLOR_OPERATION_FADE_TO_CCT:
             /* target-color-temperature [2] Unsigned */
-            if ((apdu_size-apdu_len) == 0) {
+            if ((apdu_size - apdu_len) == 0) {
                 if (error_code) {
                     *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
                 }
                 return BACNET_STATUS_REJECT;
             }
-            len = bacnet_unsigned_context_decode(apdu,
-                apdu_size-apdu_len, 2, &unsigned_value);
+            len = bacnet_unsigned_context_decode(
+                apdu, apdu_size - apdu_len, 2, &unsigned_value);
             if (len <= 0) {
                 if (len == 0) {
                     if (error_code) {
@@ -803,10 +790,10 @@ int color_command_decode(uint8_t *apdu,
             if (value) {
                 value->target.color_temperature = unsigned_value;
             }
-            if ((apdu_size-apdu_len) != 0) {
+            if ((apdu_size - apdu_len) != 0) {
                 /* fade-time [3] Unsigned (100.. 86400000) OPTIONAL */
-                len = bacnet_unsigned_context_decode(&apdu[apdu_len],
-                    apdu_size-apdu_len, 3, &unsigned_value);
+                len = bacnet_unsigned_context_decode(
+                    &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
                 if (len <= 0) {
                     if (len == 0) {
                         if (error_code) {
@@ -821,7 +808,8 @@ int color_command_decode(uint8_t *apdu,
                     return BACNET_STATUS_REJECT;
                 }
                 apdu_len += len;
-                if ((unsigned_value < 100) || (unsigned_value > 86400000)) {
+                if ((unsigned_value < BACNET_COLOR_FADE_TIME_MIN) ||
+                    (unsigned_value > BACNET_COLOR_FADE_TIME_MAX)) {
                     if (error_code) {
                         *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
                     }
@@ -834,14 +822,14 @@ int color_command_decode(uint8_t *apdu,
             break;
         case BACNET_COLOR_OPERATION_RAMP_TO_CCT:
             /* target-color-temperature [2] Unsigned */
-            if ((apdu_size-apdu_len) == 0) {
+            if ((apdu_size - apdu_len) == 0) {
                 if (error_code) {
                     *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
                 }
                 return BACNET_STATUS_REJECT;
             }
-            len = bacnet_unsigned_context_decode(apdu,
-                apdu_size-apdu_len, 2, &unsigned_value);
+            len = bacnet_unsigned_context_decode(
+                apdu, apdu_size - apdu_len, 2, &unsigned_value);
             if (len <= 0) {
                 if (len == 0) {
                     if (error_code) {
@@ -865,10 +853,10 @@ int color_command_decode(uint8_t *apdu,
             if (value) {
                 value->target.color_temperature = unsigned_value;
             }
-            if ((apdu_size-apdu_len) != 0) {
+            if ((apdu_size - apdu_len) != 0) {
                 /* ramp-rate      [4] Unsigned (1..30000) */
-                len = bacnet_unsigned_context_decode(&apdu[apdu_len],
-                    apdu_size-apdu_len, 4, &unsigned_value);
+                len = bacnet_unsigned_context_decode(
+                    &apdu[apdu_len], apdu_size - apdu_len, 4, &unsigned_value);
                 if (len <= 0) {
                     if (len == 0) {
                         if (error_code) {
@@ -883,7 +871,8 @@ int color_command_decode(uint8_t *apdu,
                     return BACNET_STATUS_REJECT;
                 }
                 apdu_len += len;
-                if ((unsigned_value < 1) || (unsigned_value > 30000)) {
+                if ((unsigned_value < BACNET_COLOR_RAMP_RATE_MIN) ||
+                    (unsigned_value > BACNET_COLOR_RAMP_RATE_MAX)) {
                     if (error_code) {
                         *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
                     }
@@ -897,14 +886,14 @@ int color_command_decode(uint8_t *apdu,
         case BACNET_COLOR_OPERATION_STEP_UP_CCT:
         case BACNET_COLOR_OPERATION_STEP_DOWN_CCT:
             /* step-increment [5] Unsigned (1..30000) */
-            if ((apdu_size-apdu_len) == 0) {
+            if ((apdu_size - apdu_len) == 0) {
                 if (error_code) {
                     *error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
                 }
                 return BACNET_STATUS_REJECT;
             }
-            len = bacnet_unsigned_context_decode(apdu,
-                apdu_size-apdu_len, 3, &unsigned_value);
+            len = bacnet_unsigned_context_decode(
+                apdu, apdu_size - apdu_len, 3, &unsigned_value);
             if (len <= 0) {
                 if (len == 0) {
                     if (error_code) {
@@ -919,7 +908,8 @@ int color_command_decode(uint8_t *apdu,
                 return BACNET_STATUS_REJECT;
             }
             apdu_len += len;
-            if ((unsigned_value < 1) || (unsigned_value > 30000)) {
+            if ((unsigned_value < BACNET_COLOR_STEP_INCREMENT_MIN) ||
+                (unsigned_value > BACNET_COLOR_STEP_INCREMENT_MAX)) {
                 if (error_code) {
                     *error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
                 }
@@ -944,9 +934,7 @@ int color_command_decode(uint8_t *apdu,
  * @param src - source structure
  * @return true if successfully copied
  */
-bool color_command_copy(
-    BACNET_COLOR_COMMAND * dst,
-    BACNET_COLOR_COMMAND * src)
+bool color_command_copy(BACNET_COLOR_COMMAND *dst, BACNET_COLOR_COMMAND *src)
 {
     bool status = false;
 
@@ -965,8 +953,7 @@ bool color_command_copy(
  * @return true if the same
  */
 bool color_command_same(
-    BACNET_COLOR_COMMAND * value1,
-    BACNET_COLOR_COMMAND * value2)
+    BACNET_COLOR_COMMAND *value1, BACNET_COLOR_COMMAND *value2)
 {
     bool status = false;
 
