@@ -547,8 +547,8 @@ void apdu_handler(BACNET_ADDRESS *src,
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
     int len = 0; /* counts where we are in PDU */
-    uint32_t error_code = 0;
-    uint32_t error_class = 0;
+    BACNET_ERROR_CODE error_code = 0;
+    BACNET_ERROR_CLASS error_class = 0;
     uint8_t reason = 0;
     bool server = false;
 

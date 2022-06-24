@@ -582,7 +582,7 @@ static void MSTP_Receive_Frame_FSM(void)
                                 source = SourceAddress;
                                 destination = DestinationAddress;
                                 frame = FrameType;
-                                Frame_Rx_Callback(source, destination, 
+                                Frame_Rx_Callback(source, destination,
                                     frame, InputBuffer, DataLength);
                             }
                             /* wait for the start of the next frame. */
@@ -1418,16 +1418,18 @@ uint16_t dlmstp_receive(
         MSTP_Flag.ReceivedValidFrameNotForUs = false;
         Statistics.receive_valid_frame_counter++;
     }
-    if (MSTP_Flag.ReceivedInvalidFrame) {
-        Statistics.receive_invalid_frame_counter++;
-    }
     /* only do master state machine while rx is idle */
-    if ((Receive_State == MSTP_RECEIVE_STATE_IDLE) && (transmitting == false)) {
-        if (MSTP_Flag.ReceivedValidFrameNotForUs) {
-            MSTP_Flag.ReceivedValidFrameNotForUs = false;
-        } else if (MSTP_Flag.ReceivedValidFrame) {
+    if ((Receive_State == MSTP_RECEIVE_STATE_IDLE) &&
+        (transmitting == false)) {
+        if (MSTP_Flag.ReceivedValidFrame ||
+            MSTP_Flag.ReceivedInvalidFrame) {
             if (rs485_turnaround_elapsed()) {
-                Statistics.receive_valid_frame_counter++;
+                if (MSTP_Flag.ReceivedInvalidFrame) {
+                    Statistics.receive_invalid_frame_counter++;
+                }
+                if (MSTP_Flag.ReceivedValidFrame) {
+                    Statistics.receive_valid_frame_counter++;
+                }
                 if ((This_Station > 127) && (This_Station < 255)) {
                     MSTP_Slave_Node_FSM();
                 } else if (This_Station <= 127) {

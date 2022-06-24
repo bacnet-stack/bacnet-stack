@@ -518,6 +518,7 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
     BACNET_OBJECT_ID object_identifier;
     BACNET_PROPERTY_ID property_identifier;
     BACNET_UNSIGNED_INTEGER unsigned_value;
+    uint32_t enumerated_value;
 
     if (apdu && (apdu_len_max > 0)) {
         /* object-identifier    [0] BACnetObjectIdentifier */
@@ -531,8 +532,9 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
         }
         /* property-identifier  [1] BACnetPropertyIdentifier */
         len = bacnet_enumerated_context_decode(
-            &apdu[apdu_len], apdu_len_max - apdu_len, 1, &property_identifier);
+            &apdu[apdu_len], apdu_len_max - apdu_len, 1, &enumerated_value);
         if (len > 0) {
+            property_identifier = enumerated_value;
             apdu_len += len;
         } else if (len <= 0) {
             return 0;

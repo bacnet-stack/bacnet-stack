@@ -155,7 +155,7 @@ CFLAGS += -Wall
 CFLAGS += -Wno-missing-braces
 # don't warn about missing prototypes since STM32 library doesn't have some
 CFLAGS += -Wno-missing-prototypes
-
+CFLAGS += -Wno-char-subscripts
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
 
