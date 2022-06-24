@@ -60,24 +60,16 @@ static void testColorObject(void)
         len = Color_Read_Property(&rpdata);
         zassert_true(len >= 0, NULL);
         if (len >= 0) {
-            if (IS_CONTEXT_SPECIFIC(rpdata.application_data[0])) {
-                test_len = bacapp_decode_context_data(rpdata.application_data,
-                    len, &value, rpdata.object_property);
-            } else {
-                if ((rpdata.object_property == PROP_PRESENT_VALUE) ||
-                    (rpdata.object_property == PROP_TRACKING_VALUE)) {
-                    /* FIXME: how to detect decoding REAL,REAL? */
-                    test_len = len;
-                    printf("property '%s': failed to decode!\n",
-                        bactext_property_name(rpdata.object_property));
-                } else {
-                    test_len = bacapp_decode_application_data(
-                        rpdata.application_data, len, &value);
-                }
-            }
+            test_len = bacapp_decode_generic_property(rpdata.application_data,
+                len, &value, rpdata.object_property);
             if (len != test_len) {
                 printf("property '%s': failed to decode!\n",
                     bactext_property_name(rpdata.object_property));
+            }
+            if ((rpdata.object_property == PROP_PRESENT_VALUE) ||
+                (rpdata.object_property == PROP_TRACKING_VALUE)) {
+                /* FIXME: how to detect decoding REAL,REAL? */
+                test_len = len;
             }
             zassert_equal(len, test_len, NULL);
         }
