@@ -66,7 +66,7 @@ static const int Color_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_COLOR_COMMAND, PROP_IN_PROGRESS, PROP_DEFAULT_COLOR,
     PROP_DEFAULT_FADE_TIME, -1 };
 
-static const int Color_Properties_Optional[] = { PROP_RELIABILITY,
+static const int Color_Properties_Optional[] = {
     PROP_DESCRIPTION, PROP_TRANSITION, -1 };
 
 static const int Color_Properties_Proprietary[] = { -1 };
@@ -443,7 +443,7 @@ uint32_t Color_Default_Fade_Time(uint32_t object_instance)
  * @param  value - BACNET_COLOR_OPERATION_IN_PROGRESS
  * @return  true if values are within range and value is set.
  */
-bool Color_In_Progress_Set(
+bool Color_Default_Fade_Time_Set(
     uint32_t object_instance, uint32_t value)
 {
     bool status = false;
@@ -451,8 +451,56 @@ bool Color_In_Progress_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Default_Fade_Time = value;
+        if ((value == 0) ||
+            ((value >= BACNET_COLOR_FADE_TIME_MIN) &&
+             (value <= BACNET_COLOR_FADE_TIME_MAX))) {
+            pObject->Default_Fade_Time = value;
+        }
         status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @return property value
+ */
+BACNET_COLOR_TRANSITION Color_Transition(uint32_t object_instance)
+{
+    BACNET_COLOR_TRANSITION value = BACNET_COLOR_OPERATION_IN_PROGRESS_MAX;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Transition;
+        status = true;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BACNET_COLOR_TRANSITION
+ * @return  true if values are within range and value is set.
+ */
+bool Color_Transition_Set(
+    uint32_t object_instance, BACNET_COLOR_TRANSITION value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (value < BACNET_COLOR_TRANSITION_MAX) {
+            pObject->Transition = value;
+            status = true;
+        }
     }
 
     return status;
@@ -633,7 +681,7 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_IN_PROGRESS:
             apdu_len =
-                encode_application_enumerated(&apdu[0], 
+                encode_application_enumerated(apdu, 
                 Color_In_Progress(rpdata->object_instance));
             break;
         case PROP_DEFAULT_COLOR:
@@ -642,12 +690,20 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_DEFAULT_FADE_TIME:
+            apdu_len =
+                encode_application_unsigned(apdu, 
+                Color_Default_Fade_Time(rpdata->object_instance));
+            break;
+        case PROP_TRANSITION:
+            apdu_len =
+                encode_application_enumerated(apdu, 
+                Color_Transition(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
                 &char_string, Color_Description(rpdata->object_instance));
             apdu_len =
-                encode_application_character_string(&apdu[0], &char_string);
+                encode_application_character_string(apdu, &char_string);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
