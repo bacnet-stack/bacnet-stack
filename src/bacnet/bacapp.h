@@ -82,6 +82,7 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_TYPES_EXTRA)
         BACNET_LIGHTING_COMMAND Lighting_Command;
         BACNET_COLOR_COMMAND Color_Command;
+        BACNET_XY_COLOR XY_Color;
         BACNET_HOST_N_PORT Host_Address;
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Device_Object_Property_Reference;

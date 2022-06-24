@@ -1401,7 +1401,11 @@ typedef enum {
     /* BACnetLightingCommand */
     BACNET_APPLICATION_TAG_LIGHTING_COMMAND,
     /* BACnetHostNPort */
-    BACNET_APPLICATION_TAG_HOST_N_PORT
+    BACNET_APPLICATION_TAG_HOST_N_PORT,
+    /* BACnetxyColor */
+    BACNET_APPLICATION_TAG_XY_COLOR,
+    /* BACnetColorCommand */
+    BACNET_APPLICATION_TAG_COLOR_COMMAND
 } BACNET_APPLICATION_TAG;
 
 /* note: these are not the real values, */

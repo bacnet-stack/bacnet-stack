@@ -398,6 +398,17 @@ static const int CharacterString_Value_Properties_Optional[] = {
     PROP_PROFILE_LOCATION, PROP_PROFILE_NAME, -1
 };
 
+static const int Color_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE, PROP_TRACKING_VALUE, PROP_COLOR_COMMAND,
+    PROP_IN_PROGRESS, PROP_DEFAULT_COLOR, PROP_DEFAULT_FADE_TIME, -1
+};
+
+static const int Color_Properties_Optional[] = { PROP_RELIABILITY,
+    PROP_DESCRIPTION, PROP_TRANSITION, PROP_VALUE_SOURCE,
+    PROP_AUDIT_LEVEL, PROP_AUDITABLE_OPERATIONS, PROP_TAGS,
+    PROP_PROFILE_LOCATION, PROP_PROFILE_NAME, -1 };
+
 static const int Credential_Data_Input_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_RELIABILITY,
@@ -1141,6 +1152,9 @@ const int *property_list_optional(BACNET_OBJECT_TYPE object_type)
         case OBJECT_CHARACTERSTRING_VALUE:
             pList = CharacterString_Value_Properties_Optional;
             break;
+        case OBJECT_COLOR:
+            pList = Color_Properties_Optional;
+            break;
         case OBJECT_CREDENTIAL_DATA_INPUT:
             pList = Credential_Data_Input_Properties_Optional;
             break;
@@ -1345,6 +1359,9 @@ const int *property_list_required(BACNET_OBJECT_TYPE object_type)
             break;
         case OBJECT_CHARACTERSTRING_VALUE:
             pList = CharacterString_Value_Properties_Required;
+            break;
+        case OBJECT_COLOR:
+            pList = Color_Properties_Required;
             break;
         case OBJECT_CREDENTIAL_DATA_INPUT:
             pList = Credential_Data_Input_Properties_Required;

@@ -157,6 +157,16 @@ int bacapp_encode_application_data(
                 apdu_len = lighting_command_encode(
                     apdu, &value->type.Lighting_Command);
                 break;
+            case BACNET_APPLICATION_TAG_XY_COLOR:
+                /* BACnetxyColor */
+                apdu_len = xy_color_encode(
+                    apdu, &value->type.XY_Color);
+                break;
+            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+                /* BACnetColorCommand */
+                apdu_len = color_command_encode(
+                    apdu, &value->type.Color_Command);
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 /* BACnetHostNPort */
                 apdu_len = host_n_port_encode(apdu,
@@ -289,6 +299,16 @@ int bacapp_decode_data(uint8_t *apdu,
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 len = lighting_command_decode(
                     apdu, len_value_type, &value->type.Lighting_Command);
+                break;
+            case BACNET_APPLICATION_TAG_XY_COLOR:
+                /* BACnetxyColor */
+                len = xy_color_decode(
+                    apdu, len_value_type, &value->type.XY_Color);
+                break;
+            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+                /* BACnetColorCommand */
+                len = color_command_decode(
+                    apdu, len_value_type, NULL, &value->type.Color_Command);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 len = host_n_port_decode(
@@ -601,6 +621,16 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 apdu_len = lighting_command_encode_context(apdu,
                     context_tag_number, &value->type.Lighting_Command);
                 break;
+            case BACNET_APPLICATION_TAG_XY_COLOR:
+                /* BACnetxyColor */
+                apdu_len = xy_color_context_encode(
+                    apdu, context_tag_number, &value->type.XY_Color);
+                break;
+            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+                /* BACnetColorCommand */
+                apdu_len = color_command_context_encode(
+                    apdu, context_tag_number, &value->type.Color_Command);
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 apdu_len = host_n_port_context_encode(apdu,
                     context_tag_number, &value->type.Host_Address);
@@ -806,6 +836,15 @@ BACNET_APPLICATION_TAG bacapp_context_tag_type(
             switch (tag_number) {
                 case 0:
                     tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case PROP_COLOR_COMMAND:
+            switch (tag_number) {
+                case 0:
+                    tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
                     break;
                 default:
                     break;
@@ -1594,6 +1633,40 @@ int bacapp_snprintf_value(
                 slen = snprintf(str, str_len, ")");
                 ret_val += slen;
                 break;
+            case BACNET_APPLICATION_TAG_XY_COLOR:
+                /* BACnetxyColor */
+                ret_val = snprintf(str, str_len, "(%f,%f)",
+                    value->type.XY_Color.x_coordinate,
+                    value->type.XY_Color.x_coordinate);
+                break;
+            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+                /* BACnetColorCommand */
+                slen = snprintf(str, str_len, "(");
+                if (str) {
+                    str += slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
+                }
+                ret_val += slen;
+                slen = snprintf(str, str_len, "%s",
+                    bactext_color_operation_name(
+                        value->type.Color_Command.operation));
+                if (str) {
+                    str += slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
+                }
+                ret_val += slen;
+                /* FIXME: add the Lighting Command optional values */
+                slen = snprintf(str, str_len, ")");
+                ret_val += slen;
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 if (value->type.Host_Address.host_ip_address) {
                     octet_str = octetstring_value(
@@ -1712,6 +1785,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
     int count = 0;
 #if defined(BACAPP_TYPES_EXTRA)
     unsigned a[4] = { 0 }, p = 0;
+    float x,y;
 #endif
 
     if (value && (tag_number != MAX_BACNET_APPLICATION_TAG)) {
@@ -1829,6 +1903,20 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 #if defined (BACAPP_TYPES_EXTRA)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 /* FIXME: add parsing for lighting command */
+                break;
+            case BACNET_APPLICATION_TAG_XY_COLOR:
+                /* BACnetxyColor */
+                count = sscanf(
+                    argv, "%f,%f", &x, &y);
+                if (count == 2) {
+                    value->type.XY_Color.x_coordinate = x;
+                    value->type.XY_Color.y_coordinate = y;
+                } else {
+                    status = false;
+                }
+                break;
+            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+                /* FIXME: add parsing for BACnetColorCommand */
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 count = sscanf(argv, "%3u.%3u.%3u.%3u:%5u",
@@ -2028,6 +2116,16 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 status = lighting_command_same(&value->type.Lighting_Command,
                     &test_value->type.Lighting_Command);
+                break;
+            case BACNET_APPLICATION_TAG_XY_COLOR:
+                /* BACnetxyColor */
+                status = xy_color_same(&value->type.XY_Color,
+                    &test_value->type.XY_Color);
+                break;
+            case BACNET_APPLICATION_TAG_COLOR_COMMAND:
+                /* BACnetColorCommand */
+                status = color_command_same(&value->type.Color_Command,
+                    &test_value->type.Color_Command);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 status = host_n_port_same(&value->type.Host_Address,
