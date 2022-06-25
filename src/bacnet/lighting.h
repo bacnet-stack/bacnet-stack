@@ -180,6 +180,11 @@ extern "C" {
         float x_coordinate,
         float y_coordinate,
         float brightness);
+    BACNET_STACK_EXPORT
+    const char * color_rgb_to_ascii(uint8_t red, uint8_t green, uint8_t blue);
+    BACNET_STACK_EXPORT
+    bool color_rgb_from_ascii(uint8_t *red, uint8_t *green, uint8_t *blue,
+        const char *name);
 
 #ifdef __cplusplus
 }
