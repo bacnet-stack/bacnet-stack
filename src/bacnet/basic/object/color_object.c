@@ -336,13 +336,13 @@ bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
  */
 BACNET_COLOR_OPERATION_IN_PROGRESS Color_In_Progress(uint32_t object_instance)
 {
-    BACNET_COLOR_OPERATION_IN_PROGRESS value = BACNET_COLOR_OPERATION_IN_PROGRESS_MAX;
+    BACNET_COLOR_OPERATION_IN_PROGRESS value =
+        BACNET_COLOR_OPERATION_IN_PROGRESS_MAX;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         value = pObject->In_Progress;
-        status = true;
     }
 
     return value;
@@ -430,7 +430,6 @@ uint32_t Color_Default_Fade_Time(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         value = pObject->Default_Fade_Time;
-        status = true;
     }
 
     return value;
@@ -476,7 +475,6 @@ BACNET_COLOR_TRANSITION Color_Transition(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         value = pObject->Transition;
-        status = true;
     }
 
     return value;
@@ -676,12 +674,12 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_COLOR_COMMAND:
             if (Color_Command(rpdata->object_instance, &color_command)) {
-                apdu_len = color_command_encode(apdu, &color_value);
+                apdu_len = color_command_encode(apdu, &color_command);
             }
             break;
         case PROP_IN_PROGRESS:
             apdu_len =
-                encode_application_enumerated(apdu, 
+                encode_application_enumerated(apdu,
                 Color_In_Progress(rpdata->object_instance));
             break;
         case PROP_DEFAULT_COLOR:
@@ -691,12 +689,12 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_DEFAULT_FADE_TIME:
             apdu_len =
-                encode_application_unsigned(apdu, 
+                encode_application_unsigned(apdu,
                 Color_Default_Fade_Time(rpdata->object_instance));
             break;
         case PROP_TRANSITION:
             apdu_len =
-                encode_application_enumerated(apdu, 
+                encode_application_enumerated(apdu,
                 Color_Transition(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
