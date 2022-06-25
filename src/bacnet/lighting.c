@@ -699,7 +699,7 @@ int color_command_decode(uint8_t *apdu,
         }
         return BACNET_STATUS_REJECT;
     }
-    operation = unsigned_value;
+    operation = (BACNET_COLOR_OPERATION)unsigned_value;
     if (value) {
         value->operation = operation;
     }
@@ -1001,4 +1001,154 @@ bool color_command_same(
     }
 
     return status;
+}
+
+/**
+ * @brief Convert sRGB to CIE xy
+ * @param r - R value of sRGB
+ * @param g - G value of sRGB
+ * @param b - B value of sRGB
+ * @param x_coordinate - return x of CIE xy
+ * @param y_coordinate - return y of CIE xy
+ * @param brightness - return brightness of the CIE xy color
+ * @note Taken from Philips Hue Application Design Notes
+ *  RGB to xy Color conversion
+ *  See also: http://en.wikipedia.org/wiki/Srgb
+ */
+void color_rgb_to_xy(uint8_t r, uint8_t g, uint8_t b,
+    float *x_coordinate, float *y_coordinate, float *brightness)
+{
+    /*  Color to xy
+        We start with the color to xy conversion,
+        which we will do in a couple of steps:
+
+        1. Get the RGB values from your color object
+        and convert them to be between 0 and 1.
+        So the RGB color (255, 0, 100) becomes (1.0, 0.0, 0.39) */
+    float red = (float)r;
+    float green = (float)g;
+    float blue = (float)b;
+
+    red /= 255.0;
+    green /= 255.0;
+    blue /= 255.0;
+
+    /* Apply a gamma correction to the RGB values,
+       which makes the color more vivid and more the
+       like the color displayed on the screen of your device.
+       This gamma correction is also applied to the screen
+       of your computer or phone, thus we need this to create
+       the same color on the light as on screen. */
+    red = (red > 0.04045f) ?
+        pow((red + 0.055f) / (1.0f + 0.055f), 2.4f) :
+        (red / 12.92f);
+    green = (green > 0.04045f) ?
+        pow((green + 0.055f) / (1.0f + 0.055f), 2.4f) :
+        (green / 12.92f);
+    blue = (blue > 0.04045f) ?
+        pow((blue + 0.055f) / (1.0f + 0.055f), 2.4f) :
+        (blue / 12.92f);
+
+    /*  Convert the RGB values to XYZ using the
+        Wide RGB D65 conversion formula */
+    float X = red * 0.649926f + green * 0.103455f + blue * 0.197109f;
+    float Y = red * 0.234327f + green * 0.743075f + blue * 0.022598f;
+    float Z = red * 0.0000000f + green * 0.053077f + blue * 1.035763f;
+
+    /* Calculate the xy values from the XYZ values */
+    float x = X / (X + Y + Z);
+    float y = Y / (X + Y + Z);
+
+    if (x_coordinate) {
+        *x_coordinate = x;
+    }
+    if (y_coordinate) {
+        *y_coordinate = y;
+    }
+    /*  note:
+        Check if the found xy value is within the
+        color gamut of the light, if not continue with step 6,
+        otherwise step 7 When we sent a value which the light
+        is not capable of, the resulting color might not be optimal.
+        Therefor we try to only sent values which are inside
+        the color gamut of the selected light.
+
+        Calculate the closest point on the color gamut triangle
+        and use that as xy value.
+
+        The closest value is calculated by making a perpendicular line
+        to one of the lines the triangle consists of and when it is
+        then still not inside the triangle, we choose the closest
+        corner point of the triangle. */
+
+    /*  Use the Y value of XYZ as brightness
+        The Y value indicates the brightness
+        of the converted color. */
+    if (brightness) {
+        *brightness = Y;
+    }
+}
+
+/**
+ * @brief Convert sRGB from CIE xy and brightness
+ * @param red - return R value of sRGB
+ * @param green - return G value of sRGB
+ * @param blue - return B value of sRGB
+ * @param x_coordinate - x of CIE xy
+ * @param y_coordinate - y of CIE xy
+ * @param brightness - brightness of the CIE xy color
+ * @note Taken from Philips Hue Application Design Notes
+ *  RGB to xy Color conversion
+ *  See also: http://en.wikipedia.org/wiki/Srgb
+ */
+void color_rgb_from_xy(uint8_t *red, uint8_t *green, uint8_t *blue,
+    float x_coordinate, float y_coordinate, float brightness)
+{
+    /*  xy to RGB color
+        The xy to color conversion is almost the same,
+        but in reverse order.
+
+        Check if the xy value is within the color gamut of the lamp,
+        if not continue with step 2, otherwise step 3
+        We do this to calculate the most accurate color
+        that the given lamp can actually do.
+
+        Calculate the closest point on the color
+        gamut triangle and use that as xy value
+        See step 6 of color to xy. */
+
+    /*  Calculate XYZ values */
+    float x = x_coordinate;
+    float y = y_coordinate;
+    float z = 1.0f - x - y;
+    float Y = brightness;
+    float X = (Y / y) * x;
+    float Z = (Y / y) * z;
+
+    /*  Convert to RGB using Wide RGB D65 conversion
+       (THIS IS A D50 conversion currently) */
+    float r = X * 1.4628067f - Y * 0.1840623f - Z * 0.2743606f;
+    float g = -X * 0.5217933f + Y * 1.4472381f + Z * 0.0677227f;
+    float b = X * 0.0349342f - Y * 0.0968930f + Z * 1.2884099f;
+
+    /*  Apply reverse gamma correction */
+    r = r <= 0.0031308f ? 12.92f * r :
+        (1.0f + 0.055f) * pow(r, (1.0f / 2.4f)) - 0.055f;
+    g = g <= 0.0031308f ? 12.92f * g :
+        (1.0f + 0.055f) * pow(g, (1.0f / 2.4f)) - 0.055f;
+    b = b <= 0.0031308f ? 12.92f * b :
+        (1.0f + 0.055f) * pow(b, (1.0f / 2.4f)) - 0.055f;
+
+    /*  Convert the RGB values to your color object
+        The rgb values from the above formulas are
+        between 0.0 and 1.0. */
+    if (red) {
+        *red = (uint8_t)(r*255.0);
+    }
+    if (green) {
+        *green = (uint8_t)(g*255.0);
+    }
+    if (blue) {
+        *blue = (uint8_t)(b*255.0);
+    }
 }
