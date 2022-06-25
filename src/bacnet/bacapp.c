@@ -1332,6 +1332,7 @@ int bacapp_data_len(
     return total_len;
 }
 
+#if defined(BACAPP_DATE)
 /* 135.1-4.4 Notational Rules for Parameter Values
 (j)
 dates are represented enclosed in parenthesis:
@@ -1383,7 +1384,9 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
 
     return ret_val;
 }
+#endif
 
+#if defined(BACAPP_TIME)
 /* 135.1-4.4 Notational Rules for Parameter Values
 (k)
 times are represented as hours, minutes, seconds, hundredths in the format
@@ -1449,6 +1452,7 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
 
     return ret_val;
 }
+#endif
 
 /**
  * @brief Extract the value into a text string

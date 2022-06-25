@@ -516,7 +516,7 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
     int apdu_len = 0;
     int len = 0;
     BACNET_OBJECT_ID object_identifier;
-    BACNET_PROPERTY_ID property_identifier;
+    uint32_t property_identifier;
     BACNET_UNSIGNED_INTEGER unsigned_value;
 
     if (apdu && (apdu_len_max > 0)) {
