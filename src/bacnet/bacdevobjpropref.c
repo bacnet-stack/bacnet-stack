@@ -540,7 +540,8 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
         if (reference) {
             reference->object_identifier.type = object_identifier.type;
             reference->object_identifier.instance = object_identifier.instance;
-            reference->property_identifier = property_identifier;
+            reference->property_identifier = 
+                (BACNET_PROPERTY_ID)property_identifier;
             reference->property_array_index = BACNET_ARRAY_ALL;
         }
         /* property-array-index [2] Unsigned OPTIONAL */
