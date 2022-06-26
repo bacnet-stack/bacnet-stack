@@ -105,6 +105,7 @@ list(APPEND testdirs
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
   # basic/sys
+  bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
   bacnet/basic/sys/fifo
   bacnet/basic/sys/filename
