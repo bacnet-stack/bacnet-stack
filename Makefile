@@ -45,11 +45,17 @@ apps:
 lib:
 	$(MAKE) -s -C apps $@
 
+CMAKE_BUILD_DIR=build
 .PHONY: cmake
 cmake:
-	CMAKE_BUILD_DIR=build
 	[ -d $(CMAKE_BUILD_DIR) ] || mkdir -p $(CMAKE_BUILD_DIR)
 	[ -d $(CMAKE_BUILD_DIR) ] && cd $(CMAKE_BUILD_DIR) && cmake .. -DBUILD_SHARED_LIBS=ON && cmake --build . --clean-first
+
+.PHONY: cmake-win32
+cmake-win32:
+	mkdir -p $(CMAKE_BUILD_DIR)
+	cd $(CMAKE_BUILD_DIR) && cmake ../ -DBACNET_STACK_BUILD_APPS=ON && cmake --build ./ --clean-first
+	cp $(CMAKE_BUILD_DIR)/Debug/*.exe ./bin/.
 
 .PHONY: abort
 abort:

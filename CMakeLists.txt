@@ -66,6 +66,14 @@ option(
 
 set(BACNET_PROTOCOL_REVISION 19)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 #
 # library
 #
@@ -159,6 +167,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/bv.h
     src/bacnet/basic/object/channel.c
     src/bacnet/basic/object/channel.h
+    src/bacnet/basic/object/color_object.c
+    src/bacnet/basic/object/color_object.h
     # src/bacnet/basic/object/client/device-client.c
     src/bacnet/basic/object/command.c
     src/bacnet/basic/object/command.h
@@ -310,6 +320,9 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/services.h
     src/bacnet/basic/sys/bigend.c
     src/bacnet/basic/sys/bigend.h
+    src/bacnet/basic/sys/color_rgb.c
+    src/bacnet/basic/sys/color_rgb.h
+    src/bacnet/basic/sys/debug.h
     src/bacnet/basic/sys/days.c
     src/bacnet/basic/sys/days.h
     src/bacnet/basic/sys/debug.c
@@ -715,6 +728,7 @@ message(STATUS "BACNET: CMAKE_C_COMPILER_ID:............\"${CMAKE_C_COMPILER_ID}
 message(STATUS "BACNET: CMAKE_C_COMPILER_VERSION:.......\"${CMAKE_C_COMPILER_VERSION}\"")
 message(STATUS "BACNET: CMAKE_CXX_COMPILER_ID:..........\"${CMAKE_CXX_COMPILER_ID}\"")
 message(STATUS "BACNET: CMAKE_CXX_COMPILER_VERSION:.....\"${CMAKE_CXX_COMPILER_VERSION}\"")
+message(STATUS "BACNET: CMAKE_BUILD_TYPE:...............\"${CMAKE_BUILD_TYPE}\"")
 message(STATUS "BACNET: CMAKE_INSTALL_PREFIX:...........\"${CMAKE_INSTALL_PREFIX}\"")
 message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVISION}\"")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")
