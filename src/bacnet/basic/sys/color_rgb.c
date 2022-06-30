@@ -17,34 +17,45 @@
 #include "bacnet/basic/sys/color_rgb.h"
 
 /**
+ * @brief Clamp a double precision value between two limits
+ * @param d - value to be clamped
+ * @param min - minimum value to clamp within
+ * @param max - maximum value to clamp within
+ * @return value clamped between min and max inclusive
+ */
+static double clamp(double d, double min, double max)
+{
+    if (isnan(d)) {
+        return min;
+    } else {
+        const double t = d < min ? min : d;
+        return t > max ? max : t;
+    }
+}
+
+/**
  * @brief Convert sRGB to CIE xy
- * @param r - R value of sRGB
- * @param g - G value of sRGB
- * @param b - B value of sRGB
- * @param x_coordinate - return x of CIE xy
- * @param y_coordinate - return y of CIE xy
- * @param brightness - return brightness of the CIE xy color
- * @note Taken from Philips Hue Application Design Notes
- *  RGB to xy Color conversion
- *  See also: http://en.wikipedia.org/wiki/Srgb
+ * @param r - R value of sRGB 0..255
+ * @param g - G value of sRGB 0..255
+ * @param b - B value of sRGB 0..255
+ * @param x_coordinate - return x of CIE xy 0.0..1.0
+ * @param y_coordinate - return y of CIE xy 0.0..1.0
+ * @param brightness - return brightness of the CIE xy color 0..255
+ * @note http://en.wikipedia.org/wiki/Srgb
  */
 void color_rgb_to_xy(uint8_t r, uint8_t g, uint8_t b,
-    float *x_coordinate, float *y_coordinate, float *brightness)
+    float *x_coordinate, float *y_coordinate, uint8_t *brightness)
 {
-    /*  Color to xy
-        We start with the color to xy conversion,
-        which we will do in a couple of steps:
-
-        1. Get the RGB values from your color object
+    /*  Get the RGB values from your color object
         and convert them to be between 0 and 1.
         So the RGB color (255, 0, 100) becomes (1.0, 0.0, 0.39) */
     float red = (float)r;
     float green = (float)g;
     float blue = (float)b;
 
-    red /= 255.0;
-    green /= 255.0;
-    blue /= 255.0;
+    red /= 255.0f;
+    green /= 255.0f;
+    blue /= 255.0f;
 
     /* Apply a gamma correction to the RGB values,
        which makes the color more vivid and more the
@@ -72,33 +83,24 @@ void color_rgb_to_xy(uint8_t r, uint8_t g, uint8_t b,
     float x = X / (X + Y + Z);
     float y = Y / (X + Y + Z);
 
+    x = clamp(x, 0.0f, 1.0f);
+    y = clamp(y, 0.0f, 1.0f);
+
+    /* copy to return values if possible */
     if (x_coordinate) {
         *x_coordinate = x;
     }
     if (y_coordinate) {
         *y_coordinate = y;
     }
-    /*  note:
-        Check if the found xy value is within the
-        color gamut of the light, if not continue with step 6,
-        otherwise step 7 When we sent a value which the light
-        is not capable of, the resulting color might not be optimal.
-        Therefor we try to only sent values which are inside
-        the color gamut of the selected light.
-
-        Calculate the closest point on the color gamut triangle
-        and use that as xy value.
-
-        The closest value is calculated by making a perpendicular line
-        to one of the lines the triangle consists of and when it is
-        then still not inside the triangle, we choose the closest
-        corner point of the triangle. */
 
     /*  Use the Y value of XYZ as brightness
         The Y value indicates the brightness
         of the converted color. */
+    Y = Y*255.0f;
+    Y = clamp(Y, 0.0f, 255.0f);
     if (brightness) {
-        *brightness = Y;
+        *brightness = (uint8_t)Y;
     }
 }
 
@@ -110,31 +112,17 @@ void color_rgb_to_xy(uint8_t r, uint8_t g, uint8_t b,
  * @param x_coordinate - x of CIE xy
  * @param y_coordinate - y of CIE xy
  * @param brightness - brightness of the CIE xy color
- * @note Taken from Philips Hue Application Design Notes
- *  RGB to xy Color conversion
- *  See also: http://en.wikipedia.org/wiki/Srgb
+ * @note http://en.wikipedia.org/wiki/Srgb
  */
 void color_rgb_from_xy(uint8_t *red, uint8_t *green, uint8_t *blue,
-    float x_coordinate, float y_coordinate, float brightness)
+    float x_coordinate, float y_coordinate, uint8_t brightness)
 {
-    /*  xy to RGB color
-        The xy to color conversion is almost the same,
-        but in reverse order.
-
-        Check if the xy value is within the color gamut of the lamp,
-        if not continue with step 2, otherwise step 3
-        We do this to calculate the most accurate color
-        that the given lamp can actually do.
-
-        Calculate the closest point on the color
-        gamut triangle and use that as xy value
-        See step 6 of color to xy. */
-
     /*  Calculate XYZ values */
     float x = x_coordinate;
     float y = y_coordinate;
     float z = 1.0f - x - y;
     float Y = brightness;
+    Y /= 255.0f;
     float X = (Y / y) * x;
     float Z = (Y / y) * z;
 
@@ -155,14 +143,21 @@ void color_rgb_from_xy(uint8_t *red, uint8_t *green, uint8_t *blue,
     /*  Convert the RGB values to your color object
         The rgb values from the above formulas are
         between 0.0 and 1.0. */
+    r = r*255.0f;
+    r = clamp(r, 0.0f, 255.0f);
+    g = g*255;
+    g = clamp(g, 0.0f, 255.0f);
+    b = b*255;
+    b = clamp(b, 0.0f, 255.0f);
+    /* copy to return value if possible */
     if (red) {
-        *red = (uint8_t)(r*255.0);
+        *red = (uint8_t)r;
     }
     if (green) {
-        *green = (uint8_t)(g*255.0);
+        *green = (uint8_t)g;
     }
     if (blue) {
-        *blue = (uint8_t)(b*255.0);
+        *blue = (uint8_t)b;
     }
 }
 
@@ -427,4 +422,65 @@ unsigned color_rgb_count(void)
     }
 
     return count;
+}
+
+/**
+ * @brief Return an RGB color from a color temperature in Kelvin.
+ * @note This is a rough approximation based on the formula
+ *  provided by T. Helland
+ *  http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
+ */
+void color_rgb_from_temperature(
+    uint16_t temperature_kelvin,
+    uint8_t *r, uint8_t *g, uint8_t *b)
+{
+    float red = 0, green = 0, blue = 0;
+
+    if (temperature_kelvin < 1000) {
+        temperature_kelvin = 1000;
+    } else if (temperature_kelvin > 40000) {
+        temperature_kelvin = 40000;
+    }
+    temperature_kelvin /= 100;
+
+    /* Calculate Red */
+    if (temperature_kelvin <= 66) {
+        /* Red values below 6600 K are always 255 */
+        red = 255.0;
+    } else {
+        red = temperature_kelvin - 60;
+        red = 329.698727446 * pow(red, -0.1332047592);
+        red = clamp(red, 0.0, 255.0);
+    }
+    /* Calculate Green */
+    if (temperature_kelvin <= 66) {
+        /* Green values below 6600 K */
+        green = temperature_kelvin;
+        green = 99.4708025861 * log(green) - 161.1195681661;
+    } else {
+        green = temperature_kelvin - 60;
+        green = 288.1221695283 * pow(green, -0.0755148492);
+    }
+    green = clamp(green, 0.0, 255.0);
+    /* Calculate Blue */
+    if (temperature_kelvin >= 66) {
+        /* Blue values above 6600 K */
+        blue = 255.0;
+    } else if (temperature_kelvin <= 19) {
+        /* Blue values below 1900 K */
+        blue = 0.0;
+    } else {
+        blue = temperature_kelvin - 10;
+        blue = 138.5177312231 * log(blue) - 305.0447927307;
+        blue = clamp(blue, 0, 255);
+    }
+    if (r) {
+        *r = red;
+    }
+    if (g) {
+        *g = green;
+    }
+    if (b) {
+        *b = blue;
+    }
 }
