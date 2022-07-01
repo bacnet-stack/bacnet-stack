@@ -143,7 +143,7 @@ void handler_atomic_read_file(uint8_t *service_request,
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
         } else if (data.access == FILE_STREAM_ACCESS) {
-            if (data.type.stream.requestedOctetCount <
+            if (data.type.stream.requestedOctetCount <=
                 octetstring_capacity(&data.fileData[0])) {
                 bacfile_read_stream_data(&data);
 #if PRINT_ENABLED
