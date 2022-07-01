@@ -111,5 +111,4 @@ extern int bip_get_local_address_ioctl(
     char *ifname,
     struct in_addr *addr,
     int request);
-
 #endif
