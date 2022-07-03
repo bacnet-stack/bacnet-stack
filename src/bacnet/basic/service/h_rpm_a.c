@@ -115,13 +115,9 @@ int rpm_ack_decode_service_request(
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
                 while (value && (apdu_len > 0)) {
-                    if (IS_CONTEXT_SPECIFIC(*apdu)) {
-                        len = bacapp_decode_context_data(apdu, apdu_len, value,
-                            rpm_property->propertyIdentifier);
-                    } else {
-                        len = bacapp_decode_application_data(
-                            apdu, apdu_len, value);
-                    }
+                    len = bacapp_decode_known_property(
+                        apdu, (unsigned)apdu_len, value,
+                        rpm_property->propertyIdentifier);
                     /* If len == 0 then it's an empty structure, which is OK. */
                     if (len < 0) {
                         /* problem decoding */
