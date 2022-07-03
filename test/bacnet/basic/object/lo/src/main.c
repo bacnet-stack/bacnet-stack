@@ -47,7 +47,7 @@ static void testLightingOutput(void)
         zassert_true(len >= 0, NULL);
         if (len >= 0) {
             test_len = bacapp_decode_known_property(rpdata.application_data,
-                len, &value, rpdata.object_property);
+                len, &value, rpdata.object_type, rpdata.object_property);
             if (len != test_len) {
                 printf("property '%s': failed to decode!\n",
                     bactext_property_name(rpdata.object_property));

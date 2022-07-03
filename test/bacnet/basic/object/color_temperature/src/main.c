@@ -8,7 +8,7 @@
  */
 #include <ztest.h>
 #include <bacnet/bactext.h>
-#include <bacnet/basic/object/color_object.h>
+#include <bacnet/basic/object/color_temperature.h>
 
 
 bool Device_Valid_Object_Name(
@@ -34,7 +34,7 @@ void Device_Inc_Database_Revision(
 /**
  * @brief Test
  */
-static void testColorObject(void)
+static void testColorTemperature(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -44,12 +44,12 @@ static void testColorObject(void)
     const int *required_property = NULL;
     const uint32_t instance = 123;
 
-    Color_Init();
-    Color_Create(instance);
+    Color_Temperature_Init();
+    Color_Temperature_Create(instance);
 
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_COLOR;
+    rpdata.object_type = OBJECT_COLOR_TEMPERATURE;
     rpdata.object_instance = instance;
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
 
@@ -80,9 +80,9 @@ static void testColorObject(void)
 
 void test_main(void)
 {
-    ztest_test_suite(color_object_tests,
-     ztest_unit_test(testColorObject)
+    ztest_test_suite(color_temperature_tests,
+     ztest_unit_test(testColorTemperature)
      );
 
-    ztest_run_test_suite(color_object_tests);
+    ztest_run_test_suite(color_temperature_tests);
 }

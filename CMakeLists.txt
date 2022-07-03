@@ -169,6 +169,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/channel.h
     src/bacnet/basic/object/color_object.c
     src/bacnet/basic/object/color_object.h
+    src/bacnet/basic/object/color_temperature.c
+    src/bacnet/basic/object/color_temperature.h
     # src/bacnet/basic/object/client/device-client.c
     src/bacnet/basic/object/command.c
     src/bacnet/basic/object/command.h
@@ -322,7 +324,6 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/bigend.h
     src/bacnet/basic/sys/color_rgb.c
     src/bacnet/basic/sys/color_rgb.h
-    src/bacnet/basic/sys/debug.h
     src/bacnet/basic/sys/days.c
     src/bacnet/basic/sys/days.h
     src/bacnet/basic/sys/debug.c

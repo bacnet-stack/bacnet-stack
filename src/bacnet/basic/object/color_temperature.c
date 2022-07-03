@@ -1,13 +1,13 @@
 /**
  * @file
  * @author Steve Karg
- * @date June 2022
- * @brief Color objects, customize for your use
+ * @date July 2022
+ * @brief Color Temperature object, customize for your use
  *
  * @section DESCRIPTION
  *
- * The Color object is an object with a present-value that
- * uses an x,y color single precision floating point data type.
+ * The Color Temperature object is an object with a present-value that
+ * uses an Color Temperature INTEGER type
  *
  * @section LICENSE
  *
@@ -40,36 +40,43 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/keylist.h"
 /* me! */
-#include "color_object.h"
+#include "color_temperature.h"
 
 struct object_data {
     bool Changed : 1;
     bool Write_Enabled : 1;
-    BACNET_XY_COLOR Present_Value;
-    BACNET_XY_COLOR Tracking_Value;
+    uint32_t Present_Value;
+    uint32_t Tracking_Value;
     BACNET_COLOR_COMMAND Color_Command;
     BACNET_COLOR_OPERATION_IN_PROGRESS In_Progress;
-    BACNET_XY_COLOR Default_Color;
+    uint32_t Default_Color_Temperature;
     uint32_t Default_Fade_Time;
+    uint32_t Default_Ramp_Rate;
+    uint32_t Default_Step_Increment;
     BACNET_COLOR_TRANSITION Transition;
+    uint32_t Present_Value_Minimum;
+    uint32_t Present_Value_Maximum;
     const char *Object_Name;
     const char *Description;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
 /* callback for present value writes */
-static color_write_present_value_callback Color_Write_Present_Value_Callback;
+static color_temperature_write_present_value_callback
+    Color_Temperature_Write_Present_Value_Callback;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int Color_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-    PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_PRESENT_VALUE, PROP_TRACKING_VALUE,
-    PROP_COLOR_COMMAND, PROP_IN_PROGRESS, PROP_DEFAULT_COLOR,
-    PROP_DEFAULT_FADE_TIME, -1 };
+static const int Color_Temperature_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE, PROP_TRACKING_VALUE, PROP_COLOR_COMMAND,
+    PROP_IN_PROGRESS, PROP_DEFAULT_COLOR_TEMPERATURE, PROP_DEFAULT_FADE_TIME,
+    PROP_DEFAULT_RAMP_RATE, PROP_DEFAULT_STEP_INCREMENT, -1
+};
 
-static const int Color_Properties_Optional[] = { PROP_DESCRIPTION,
-    PROP_TRANSITION, -1 };
+static const int Color_Temperature_Properties_Optional[] = { PROP_DESCRIPTION,
+    PROP_TRANSITION, PROP_MIN_PRES_VALUE, PROP_MAX_PRES_VALUE, -1 };
 
-static const int Color_Properties_Proprietary[] = { -1 };
+static const int Color_Temperature_Properties_Proprietary[] = { -1 };
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -82,17 +89,17 @@ static const int Color_Properties_Proprietary[] = { -1 };
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
-void Color_Property_Lists(
+void Color_Temperature_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
     if (pRequired) {
-        *pRequired = Color_Properties_Required;
+        *pRequired = Color_Temperature_Properties_Required;
     }
     if (pOptional) {
-        *pOptional = Color_Properties_Optional;
+        *pOptional = Color_Temperature_Properties_Optional;
     }
     if (pProprietary) {
-        *pProprietary = Color_Properties_Proprietary;
+        *pProprietary = Color_Temperature_Properties_Proprietary;
     }
 
     return;
@@ -105,7 +112,7 @@ void Color_Property_Lists(
  *
  * @return  true if the instance is valid, and false if not
  */
-bool Color_Valid_Instance(uint32_t object_instance)
+bool Color_Temperature_Valid_Instance(uint32_t object_instance)
 {
     struct object_data *pObject;
 
@@ -122,34 +129,34 @@ bool Color_Valid_Instance(uint32_t object_instance)
  *
  * @return  Number of Color objects
  */
-unsigned Color_Count(void)
+unsigned Color_Temperature_Count(void)
 {
     return Keylist_Count(Object_List);
 }
 
 /**
  * Determines the object instance-number for a given 0..N index
- * of Color objects where N is Color_Count().
+ * of Color objects where N is Color_Temperature_Count().
  *
- * @param  index - 0..N where N is Color_Count()
+ * @param  index - 0..N where N is Color_Temperature_Count()
  *
  * @return  object instance-number for the given index
  */
-uint32_t Color_Index_To_Instance(unsigned index)
+uint32_t Color_Temperature_Index_To_Instance(unsigned index)
 {
     return Keylist_Key(Object_List, index);
 }
 
 /**
  * For a given object instance-number, determines a 0..N index
- * of Color objects where N is Color_Count().
+ * of Color objects where N is Color_Temperature_Count().
  *
  * @param  object_instance - object-instance number of the object
  *
- * @return  index for the given instance-number, or Color_Count()
+ * @return  index for the given instance-number, or Color_Temperature_Count()
  * if not valid.
  */
-unsigned Color_Instance_To_Index(uint32_t object_instance)
+unsigned Color_Temperature_Instance_To_Index(uint32_t object_instance)
 {
     return Keylist_Index(Object_List, object_instance);
 }
@@ -158,21 +165,19 @@ unsigned Color_Instance_To_Index(uint32_t object_instance)
  * For a given object instance-number, determines the present-value
  *
  * @param  object_instance - object-instance number of the object
- *
  * @return  present-value of the object
  */
-bool Color_Present_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
+uint32_t Color_Temperature_Present_Value(uint32_t object_instance)
 {
-    bool status = false;
+    uint32_t value = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        xy_color_copy(value, &pObject->Present_Value);
-        status = true;
+        value = pObject->Present_Value;
     }
 
-    return status;
+    return value;
 }
 
 /**
@@ -183,14 +188,15 @@ bool Color_Present_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Color_Present_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
+bool Color_Temperature_Present_Value_Set(
+    uint32_t object_instance, uint32_t value)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        xy_color_copy(&pObject->Present_Value, value);
+        pObject->Present_Value = value;
         status = true;
     }
 
@@ -208,25 +214,25 @@ bool Color_Present_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
  *
  * @return  true if values are within range and present-value is set.
  */
-static bool Color_Present_Value_Write(uint32_t object_instance,
-    BACNET_XY_COLOR *value,
+static bool Color_Temperature_Present_Value_Write(uint32_t object_instance,
+    uint32_t value,
     uint8_t priority,
     BACNET_ERROR_CLASS *error_class,
     BACNET_ERROR_CODE *error_code)
 {
     bool status = false;
     struct object_data *pObject;
-    BACNET_XY_COLOR old_value = { 0.0, 0.0 };
+    uint32_t old_value = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         (void)priority;
         if (pObject->Write_Enabled) {
-            xy_color_copy(&old_value, &pObject->Present_Value);
-            xy_color_copy(&pObject->Present_Value, value);
-            if (Color_Write_Present_Value_Callback) {
-                Color_Write_Present_Value_Callback(
-                    object_instance, &old_value, value);
+            old_value = pObject->Present_Value;
+            pObject->Present_Value = value;
+            if (Color_Temperature_Write_Present_Value_Callback) {
+                Color_Temperature_Write_Present_Value_Callback(
+                    object_instance, old_value, value);
             }
             status = true;
         } else {
@@ -248,18 +254,17 @@ static bool Color_Present_Value_Write(uint32_t object_instance,
  *
  * @return  present-value of the object
  */
-bool Color_Tracking_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
+uint32_t Color_Temperature_Tracking_Value(uint32_t object_instance)
 {
-    bool status = false;
+    uint32_t value = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        xy_color_copy(value, &pObject->Tracking_Value);
-        status = true;
+        value = pObject->Tracking_Value;
     }
 
-    return status;
+    return value;
 }
 
 /**
@@ -270,14 +275,99 @@ bool Color_Tracking_Value(uint32_t object_instance, BACNET_XY_COLOR *value)
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Color_Tracking_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
+bool Color_Temperature_Tracking_Value_Set(
+    uint32_t object_instance, uint32_t value)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        xy_color_copy(&pObject->Tracking_Value, value);
+        pObject->Tracking_Value = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, determines the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @return  present-value of the object
+ */
+uint32_t Color_Temperature_Min_Pres_Value(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Present_Value_Minimum;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - color temperature Kelvin
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+bool Color_Temperature_Min_Pres_Value_Set(
+    uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Present_Value_Minimum = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, determines the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @return  present-value of the object
+ */
+uint32_t Color_Temperature_Max_Pres_Value(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Present_Value_Maximum;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the present-value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - color temperature Kelvin
+ *
+ * @return  true if values are within range and present-value is set.
+ */
+bool Color_Temperature_Max_Pres_Value_Set(
+    uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Present_Value_Maximum = value;
         status = true;
     }
 
@@ -291,7 +381,8 @@ bool Color_Tracking_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
  * @param value - color command data
  * @return  true if the property value is copied
  */
-bool Color_Command(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
+bool Color_Temperature_Command(
+    uint32_t object_instance, BACNET_COLOR_COMMAND *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -312,7 +403,8 @@ bool Color_Command(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
  * @param  value - color command data
  * @return  true if values are within range and value is set.
  */
-bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
+bool Color_Temperature_Command_Set(
+    uint32_t object_instance, BACNET_COLOR_COMMAND *value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -332,7 +424,8 @@ bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value)
  * @param object_instance - object-instance number of the object
  * @return property value
  */
-BACNET_COLOR_OPERATION_IN_PROGRESS Color_In_Progress(uint32_t object_instance)
+BACNET_COLOR_OPERATION_IN_PROGRESS Color_Temperature_In_Progress(
+    uint32_t object_instance)
 {
     BACNET_COLOR_OPERATION_IN_PROGRESS value =
         BACNET_COLOR_OPERATION_IN_PROGRESS_MAX;
@@ -353,7 +446,7 @@ BACNET_COLOR_OPERATION_IN_PROGRESS Color_In_Progress(uint32_t object_instance)
  * @param  value - BACNET_COLOR_OPERATION_IN_PROGRESS
  * @return  true if values are within range and value is set.
  */
-bool Color_In_Progress_Set(
+bool Color_Temperature_In_Progress_Set(
     uint32_t object_instance, BACNET_COLOR_OPERATION_IN_PROGRESS value)
 {
     bool status = false;
@@ -377,36 +470,36 @@ bool Color_In_Progress_Set(
  *
  * @return  present-value of the object
  */
-bool Color_Default_Color(uint32_t object_instance, BACNET_XY_COLOR *value)
+uint32_t Color_Temperature_Default_Color_Temperature(uint32_t object_instance)
 {
-    bool status = false;
+    uint32_t value = 0;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        xy_color_copy(value, &pObject->Default_Color);
-        status = true;
+        value = pObject->Default_Color_Temperature;
     }
 
-    return status;
+    return value;
 }
 
 /**
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point Color
+ * @param  value - color temperature Kelvin
  *
  * @return  true if values are within range and present-value is set.
  */
-bool Color_Default_Color_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
+bool Color_Temperature_Default_Color_Temperature_Set(
+    uint32_t object_instance, uint32_t value)
 {
     bool status = false;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        xy_color_copy(&pObject->Default_Color, value);
+        pObject->Default_Color_Temperature = value;
         status = true;
     }
 
@@ -419,7 +512,7 @@ bool Color_Default_Color_Set(uint32_t object_instance, BACNET_XY_COLOR *value)
  * @param object_instance - object-instance number of the object
  * @return property value
  */
-uint32_t Color_Default_Fade_Time(uint32_t object_instance)
+uint32_t Color_Temperature_Default_Fade_Time(uint32_t object_instance)
 {
     uint32_t value = 0;
     struct object_data *pObject;
@@ -439,7 +532,8 @@ uint32_t Color_Default_Fade_Time(uint32_t object_instance)
  * @param  value - BACNET_COLOR_OPERATION_IN_PROGRESS
  * @return  true if values are within range and value is set.
  */
-bool Color_Default_Fade_Time_Set(uint32_t object_instance, uint32_t value)
+bool Color_Temperature_Default_Fade_Time_Set(
+    uint32_t object_instance, uint32_t value)
 {
     bool status = false;
     struct object_data *pObject;
@@ -463,7 +557,89 @@ bool Color_Default_Fade_Time_Set(uint32_t object_instance, uint32_t value)
  * @param object_instance - object-instance number of the object
  * @return property value
  */
-BACNET_COLOR_TRANSITION Color_Transition(uint32_t object_instance)
+uint32_t Color_Temperature_Default_Ramp_Rate(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Default_Ramp_Rate;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - property value
+ * @return  true if values are within range and value is set.
+ */
+bool Color_Temperature_Default_Ramp_Rate_Set(
+    uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Default_Ramp_Rate = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @return property value
+ */
+uint32_t Color_Temperature_Default_Step_Increment(uint32_t object_instance)
+{
+    uint32_t value = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        value = pObject->Default_Step_Increment;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - property value
+ * @return  true if values are within range and value is set.
+ */
+bool Color_Temperature_Default_Step_Increment_Set(
+    uint32_t object_instance, uint32_t value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Default_Step_Increment = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @return property value
+ */
+BACNET_COLOR_TRANSITION Color_Temperature_Transition(uint32_t object_instance)
 {
     BACNET_COLOR_TRANSITION value = BACNET_COLOR_OPERATION_IN_PROGRESS_MAX;
     struct object_data *pObject;
@@ -483,7 +659,7 @@ BACNET_COLOR_TRANSITION Color_Transition(uint32_t object_instance)
  * @param  value - BACNET_COLOR_TRANSITION
  * @return  true if values are within range and value is set.
  */
-bool Color_Transition_Set(
+bool Color_Temperature_Transition_Set(
     uint32_t object_instance, BACNET_COLOR_TRANSITION value)
 {
     bool status = false;
@@ -510,7 +686,7 @@ bool Color_Transition_Set(
  *
  * @return  true if object-name was retrieved
  */
-bool Color_Object_Name(
+bool Color_Temperature_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
@@ -540,7 +716,7 @@ bool Color_Object_Name(
  *
  * @return  true if object-name was set
  */
-bool Color_Name_Set(uint32_t object_instance, char *new_name)
+bool Color_Temperature_Name_Set(uint32_t object_instance, char *new_name)
 {
     bool status = false; /* return value */
     BACNET_CHARACTER_STRING object_name;
@@ -579,7 +755,7 @@ bool Color_Name_Set(uint32_t object_instance, char *new_name)
  *
  * @return description text or NULL if not found
  */
-char *Color_Description(uint32_t object_instance)
+char *Color_Temperature_Description(uint32_t object_instance)
 {
     char *name = NULL;
     struct object_data *pObject;
@@ -604,7 +780,7 @@ char *Color_Description(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Color_Description_Set(uint32_t object_instance, char *new_name)
+bool Color_Temperature_Description_Set(uint32_t object_instance, char *new_name)
 {
     bool status = false; /* return value */
     struct object_data *pObject;
@@ -628,7 +804,7 @@ bool Color_Description_Set(uint32_t object_instance, char *new_name)
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
+int Color_Temperature_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
     BACNET_CHARACTER_STRING char_string;
@@ -648,7 +824,8 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], rpdata->object_type, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            Color_Object_Name(rpdata->object_instance, &char_string);
+            Color_Temperature_Object_Name(
+                rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -657,41 +834,70 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         case PROP_PRESENT_VALUE:
-            if (Color_Present_Value(rpdata->object_instance, &color_value)) {
-                apdu_len = xy_color_encode(apdu, &color_value);
-            }
+            apdu_len =
+                encode_application_unsigned(apdu,
+                    Color_Temperature_Present_Value(
+                    rpdata->object_instance));
+            break;
+        case PROP_MIN_PRES_VALUE:
+            apdu_len =
+                encode_application_unsigned(apdu,
+                Color_Temperature_Min_Pres_Value(
+                    rpdata->object_instance));
+            break;
+        case PROP_MAX_PRES_VALUE:
+            apdu_len =
+                encode_application_unsigned(apdu,
+                Color_Temperature_Max_Pres_Value(
+                    rpdata->object_instance));
             break;
         case PROP_TRACKING_VALUE:
-            if (Color_Tracking_Value(rpdata->object_instance, &color_value)) {
-                apdu_len = xy_color_encode(apdu, &color_value);
-            }
+            apdu_len =
+                encode_application_unsigned(apdu,
+                Color_Temperature_Tracking_Value(
+                    rpdata->object_instance));
             break;
         case PROP_COLOR_COMMAND:
-            if (Color_Command(rpdata->object_instance, &color_command)) {
+            if (Color_Temperature_Command(rpdata->object_instance, &color_command)) {
                 apdu_len = color_command_encode(apdu, &color_command);
             }
             break;
         case PROP_IN_PROGRESS:
-            apdu_len = encode_application_enumerated(
-                apdu, Color_In_Progress(rpdata->object_instance));
+            apdu_len =
+                encode_application_enumerated(apdu,
+                Color_Temperature_In_Progress(rpdata->object_instance));
             break;
-        case PROP_DEFAULT_COLOR:
-            if (Color_Default_Color(rpdata->object_instance, &color_value)) {
-                apdu_len = xy_color_encode(apdu, &color_value);
-            }
+        case PROP_DEFAULT_COLOR_TEMPERATURE:
+            apdu_len =
+                encode_application_unsigned(apdu,
+                Color_Temperature_Default_Color_Temperature(
+                    rpdata->object_instance));
             break;
         case PROP_DEFAULT_FADE_TIME:
-            apdu_len = encode_application_unsigned(
-                apdu, Color_Default_Fade_Time(rpdata->object_instance));
+            apdu_len =
+                encode_application_unsigned(apdu,
+                Color_Temperature_Default_Fade_Time(rpdata->object_instance));
+            break;
+        case PROP_DEFAULT_RAMP_RATE:
+            apdu_len =
+                encode_application_unsigned(apdu,
+                Color_Temperature_Default_Ramp_Rate(rpdata->object_instance));
+            break;
+        case PROP_DEFAULT_STEP_INCREMENT:
+            apdu_len =
+                encode_application_unsigned(apdu,
+                Color_Temperature_Default_Step_Increment(rpdata->object_instance));
             break;
         case PROP_TRANSITION:
-            apdu_len = encode_application_enumerated(
-                apdu, Color_Transition(rpdata->object_instance));
+            apdu_len =
+                encode_application_enumerated(apdu,
+                Color_Temperature_Transition(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
-                &char_string, Color_Description(rpdata->object_instance));
-            apdu_len = encode_application_character_string(apdu, &char_string);
+                &char_string, Color_Temperature_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(apdu, &char_string);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
@@ -720,7 +926,7 @@ int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  *
  * @return false if an error is loaded, true if no errors
  */
-bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
+bool Color_Temperature_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
@@ -747,11 +953,12 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Color_Present_Value_Write(wp_data->object_instance,
-                    &value.type.XY_Color, wp_data->priority,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = Color_Temperature_Present_Value_Write(
+                    wp_data->object_instance, value.type.Unsigned_Int,
+                    wp_data->priority, &wp_data->error_class,
+                    &wp_data->error_code);
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -774,10 +981,10 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  * @brief Sets a callback used when present-value is written from BACnet
  * @param cb - callback used to provide indications
  */
-void Color_Write_Present_Value_Callback_Set(
-    color_write_present_value_callback cb)
+void Color_Temperature_Write_Present_Value_Callback_Set(
+    color_temperature_write_present_value_callback cb)
 {
-    Color_Write_Present_Value_Callback = cb;
+    Color_Temperature_Write_Present_Value_Callback = cb;
 }
 
 /**
@@ -785,7 +992,7 @@ void Color_Write_Present_Value_Callback_Set(
  * @param object_instance - object-instance number of the object
  * @return  write-enabled status flag
  */
-bool Color_Write_Enabled(uint32_t object_instance)
+bool Color_Temperature_Write_Enabled(uint32_t object_instance)
 {
     bool value = false;
     struct object_data *pObject;
@@ -802,7 +1009,7 @@ bool Color_Write_Enabled(uint32_t object_instance)
  * @brief For a given object instance-number, sets the write-enabled flag
  * @param object_instance - object-instance number of the object
  */
-void Color_Write_Enable(uint32_t object_instance)
+void Color_Temperature_Write_Enable(uint32_t object_instance)
 {
     struct object_data *pObject;
 
@@ -816,7 +1023,7 @@ void Color_Write_Enable(uint32_t object_instance)
  * @brief For a given object instance-number, clears the write-enabled flag
  * @param object_instance - object-instance number of the object
  */
-void Color_Write_Disable(uint32_t object_instance)
+void Color_Temperature_Write_Disable(uint32_t object_instance)
 {
     struct object_data *pObject;
 
@@ -830,7 +1037,7 @@ void Color_Write_Disable(uint32_t object_instance)
  * Creates a Color object
  * @param object_instance - object-instance number of the object
  */
-bool Color_Create(uint32_t object_instance)
+bool Color_Temperature_Create(uint32_t object_instance)
 {
     bool status = false;
     struct object_data *pObject = NULL;
@@ -841,16 +1048,17 @@ bool Color_Create(uint32_t object_instance)
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
             pObject->Object_Name = NULL;
-            pObject->Present_Value.x_coordinate = 0.0;
-            pObject->Present_Value.y_coordinate = 0.0;
-            pObject->Tracking_Value.x_coordinate = 0.0;
-            pObject->Tracking_Value.y_coordinate = 0.0;
+            pObject->Present_Value = 0;
+            pObject->Tracking_Value = 0;
             pObject->Color_Command.operation = BACNET_COLOR_OPERATION_NONE;
             pObject->In_Progress = BACNET_COLOR_OPERATION_IN_PROGRESS_IDLE;
-            pObject->Default_Color.x_coordinate = 1.0;
-            pObject->Default_Color.y_coordinate = 1.0;
+            pObject->Default_Color_Temperature = 5000;
             pObject->Default_Fade_Time = 0;
+            pObject->Default_Ramp_Rate = 0;
+            pObject->Default_Step_Increment = 0;
             pObject->Transition = BACNET_COLOR_TRANSITION_NONE;
+            pObject->Present_Value_Minimum = 0;
+            pObject->Present_Value_Maximum = 0;
             pObject->Changed = false;
             pObject->Write_Enabled = false;
             /* add to list */
@@ -870,7 +1078,7 @@ bool Color_Create(uint32_t object_instance)
  * @param object_instance - object-instance number of the object
  * @return true if the object is deleted
  */
-bool Color_Delete(uint32_t object_instance)
+bool Color_Temperature_Delete(uint32_t object_instance)
 {
     bool status = false;
     struct object_data *pObject = NULL;
@@ -888,7 +1096,7 @@ bool Color_Delete(uint32_t object_instance)
 /**
  * Deletes all the Colors and their data
  */
-void Color_Cleanup(void)
+void Color_Temperature_Cleanup(void)
 {
     struct object_data *pObject;
 
@@ -908,10 +1116,10 @@ void Color_Cleanup(void)
 /**
  * Initializes the Color object data
  */
-void Color_Init(void)
+void Color_Temperature_Init(void)
 {
     Object_List = Keylist_Create();
     if (Object_List) {
-        atexit(Color_Cleanup);
+        atexit(Color_Temperature_Cleanup);
     }
 }

@@ -1,7 +1,7 @@
 /**
  * @file
  * @author Steve Karg
- * @date 2022
+ * @date June 2022
  * @brief Color object, customize for your use
  *
  * @section DESCRIPTION
@@ -67,8 +67,7 @@ BACNET_STACK_EXPORT
 bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 BACNET_STACK_EXPORT
-bool Color_Present_Value_Set(
-    uint32_t object_instance, BACNET_XY_COLOR *value, uint8_t priority);
+bool Color_Present_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value);
 BACNET_STACK_EXPORT
 bool Color_Present_Value(uint32_t object_instance, BACNET_XY_COLOR *value);
 BACNET_STACK_EXPORT
@@ -76,8 +75,7 @@ void Color_Write_Present_Value_Callback_Set(
     color_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
-bool Color_Tracking_Value_Set(
-    uint32_t object_instance, BACNET_XY_COLOR *value);
+bool Color_Tracking_Value_Set(uint32_t object_instance, BACNET_XY_COLOR *value);
 BACNET_STACK_EXPORT
 bool Color_Tracking_Value(uint32_t object_instance, BACNET_XY_COLOR *value);
 
@@ -87,16 +85,14 @@ BACNET_STACK_EXPORT
 bool Color_Command_Set(uint32_t object_instance, BACNET_COLOR_COMMAND *value);
 
 BACNET_STACK_EXPORT
-bool Color_Default_Color_Set(
-    uint32_t object_instance, BACNET_XY_COLOR *value);
+bool Color_Default_Color_Set(uint32_t object_instance, BACNET_XY_COLOR *value);
 BACNET_STACK_EXPORT
 bool Color_Default_Color(uint32_t object_instance, BACNET_XY_COLOR *value);
 
 BACNET_STACK_EXPORT
 uint32_t Color_Default_Fade_Time(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Color_Default_Fade_Time_Set(
-    uint32_t object_instance, uint32_t value);
+bool Color_Default_Fade_Time_Set(uint32_t object_instance, uint32_t value);
 
 BACNET_STACK_EXPORT
 BACNET_COLOR_OPERATION_IN_PROGRESS Color_In_Progress(uint32_t object_instance);
