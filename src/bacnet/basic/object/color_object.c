@@ -635,12 +635,10 @@ bool Color_Description_Set(uint32_t object_instance, char *new_name)
 int Color_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
     BACNET_XY_COLOR color_value = { 0.0, 0.0 };
     BACNET_COLOR_COMMAND color_command = { 0 };
-    bool state = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {

@@ -75,6 +75,9 @@
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
 #endif /* defined(BACFILE) */
+#if (BACNET_PROTOCOL_REVISION >= 24)
+#include "bacnet/basic/object/color_object.h"
+#endif
 
 /* local forward (semi-private) and external prototypes */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -220,6 +223,14 @@ static object_functions_t My_Object_Table[] = {
     { OBJECT_CHANNEL, Channel_Init, Channel_Count, Channel_Index_To_Instance,
         Channel_Valid_Instance, Channel_Object_Name, Channel_Read_Property,
         Channel_Write_Property, Channel_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    { OBJECT_COLOR, Color_Init, Color_Count,
+        Color_Index_To_Instance, Color_Valid_Instance,
+        Color_Object_Name, Color_Read_Property,
+        Color_Write_Property, Color_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif
@@ -1890,6 +1901,9 @@ void Device_Init(object_functions_t *object_table)
         }
         pObject++;
     }
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    Color_Create(1);
+#endif
 }
 
 bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */

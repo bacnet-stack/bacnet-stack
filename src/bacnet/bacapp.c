@@ -984,6 +984,7 @@ int bacapp_decode_generic_property(
 int bacapp_decode_known_property(uint8_t *apdu,
     int max_apdu_len,
     BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_OBJECT_TYPE object_type,
     BACNET_PROPERTY_ID property)
 {
     int len = 0;
@@ -1060,10 +1061,28 @@ int bacapp_decode_known_property(uint8_t *apdu,
             break;
         case PROP_DEFAULT_COLOR:
         case PROP_TRACKING_VALUE:
-            /* Properties using ReadAccessSpecification */
+            /* Properties using BACnetxyColor */
             value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
-            len = xy_color_decode(&apdu[0], max_apdu_len,
+            len = xy_color_decode(apdu, max_apdu_len,
                 &value->type.XY_Color);
+            break;
+        case PROP_PRESENT_VALUE:
+            if (object_type == OBJECT_COLOR) {
+                /* Properties using BACnetxyColor */
+                value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
+                len = xy_color_decode(apdu, max_apdu_len,
+                    &value->type.XY_Color);
+            } else {
+                /* Decode a "classic" simple property */
+                len = bacapp_decode_generic_property(apdu, max_apdu_len, value,
+                    property);
+            }
+            break;
+        case PROP_COLOR_COMMAND:
+            /* Properties using BACnetColorCommand */
+            value->tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
+            len = color_command_decode(apdu, max_apdu_len, NULL,
+                &value->type.Color_Command);
             break;
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */

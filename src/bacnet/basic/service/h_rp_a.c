@@ -66,7 +66,7 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
         for (;;) {
             len = bacapp_decode_known_property(
                 application_data, (unsigned)application_data_len, &value,
-                data->object_property);
+                data->object_type, data->object_property);
             if (first_value && (len < application_data_len)) {
                 first_value = false;
 #if PRINT_ENABLED

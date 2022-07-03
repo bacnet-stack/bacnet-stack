@@ -213,6 +213,7 @@ extern "C" {
     int bacapp_decode_known_property(uint8_t *apdu,
         int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE *value,
+        BACNET_OBJECT_TYPE object_type,
         BACNET_PROPERTY_ID property);
 
     BACNET_STACK_EXPORT
