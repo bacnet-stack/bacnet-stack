@@ -55,8 +55,9 @@ LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
 #define THIS_FILE "bip-init.c"
 
-/* zephyr socket */
+/* zephyr sockets */
 static int BIP_Socket = -1;
+static int BIP_Broadcast_Socket = -1;
 
 /* NOTE: we store address and port in network byte order
    since BACnet/IP uses network byte order for all address byte arrays
@@ -320,6 +321,7 @@ uint16_t bip_receive(
     int received_bytes = 0;
     int offset = 0;
     uint16_t i = 0;
+    int socket;
 
     /* Make sure the socket is open */
     if (BIP_Socket < 0) {
@@ -339,11 +341,15 @@ uint16_t bip_receive(
     }
     ZSOCK_FD_ZERO(&read_fds);
     ZSOCK_FD_SET(BIP_Socket, &read_fds);
-    max = BIP_Socket;
+    FD_SET(BIP_Broadcast_Socket, &read_fds);
+
+    max = BIP_Socket > BIP_Broadcast_Socket ? BIP_Socket : BIP_Broadcast_Socket;
 
     /* see if there is a packet for us */
     if (zsock_select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        received_bytes = zsock_recvfrom(BIP_Socket, (char *)&npdu[0], max_npdu,
+        socket = FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
+            BIP_Broadcast_Socket;
+        received_bytes = zsock_recvfrom(socket, (char *)&npdu[0], max_npdu,
             0, (struct sockaddr *)&sin, &sin_len);
     }
     else 
@@ -378,7 +384,9 @@ uint16_t bip_receive(
     debug_print_ipv4("Received MPDU->", &sin.sin_addr, sin.sin_port,
         received_bytes);
     /* pass the packet into the BBMD handler */
-    offset = bvlc_handler(&addr, src, npdu, received_bytes);
+    offset = socket == BIP_Socket ?
+        bvlc_handler(&addr, src, npdu, received_bytes) :
+        bvlc_broadcast_handler(&addr, src, npdu, received_bytes);
     if (offset > 0) {
         npdu_len = received_bytes - offset;
         debug_print_ipv4("Received NPDU->", &sin.sin_addr, sin.sin_port,
@@ -504,6 +512,48 @@ void bip_set_interface(char *ifname)
     }
 }
 
+static int createSocket(struct sockaddr_in *sin)
+{
+    int sock_fd = -1;
+    const int sockopt = 1;
+    int status = -1;
+
+    /* assumes that the driver has already been initialized */
+    sock_fd = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock_fd < 0) {
+        LOG_ERR("%s:%d - Failed to create socket", THIS_FILE, __LINE__);
+        return sock_fd;
+    }
+    else
+    {
+        LOG_DBG("Socket created");
+    }
+
+    /* Allow us to use the same socket for sending and receiving */
+    /* This makes sure that the src port is correct when sending */
+    status = zsock_setsockopt(
+        sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
+    if (status < 0) {
+        zsock_close(sock_fd);
+        return status;
+    }
+
+    /* bind the socket to the local port number and IP address */
+    status =
+        zsock_bind(sock_fd, (const struct sockaddr *)sin, sizeof(struct sockaddr));
+    if (status < 0) {
+        zsock_close(sock_fd);
+        LOG_ERR("%s:%d - zsock_bind() failure", THIS_FILE, __LINE__);
+        return status;
+    }
+    else
+    {
+        LOG_DBG("Socket bound");
+    }
+
+    return sock_fd;
+}
+
 /** Initialize the BACnet/IP services at the given interface.
  * @ingroup DLBIP
  * -# Gets the local IP address and local broadcast address from the system,
@@ -523,8 +573,6 @@ void bip_set_interface(char *ifname)
  */
 bool bip_init(char *ifname)
 {
-    int sock_fd = -1;
-    const int sockopt = 1;
     int status = -1;
     struct sockaddr_in sin = { 0 };
 
@@ -535,44 +583,22 @@ bool bip_init(char *ifname)
         return false;
     }
 
-    /* assumes that the driver has already been initialized */
-    sock_fd = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    BIP_Socket = sock_fd;
-    if (sock_fd < 0) {
-        LOG_ERR("%s:%d - Failed to create socket", THIS_FILE, __LINE__);
-        return false;
-    }
-    else
-    {
-        LOG_DBG("Socket created");
-    }
-
-    /* Allow us to use the same socket for sending and receiving */
-    /* This makes sure that the src port is correct when sending */
-    status = zsock_setsockopt(
-        sock_fd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof(sockopt));
-    if (status < 0) {
-        zsock_close(sock_fd);
-        BIP_Socket = -1;
-        return false;
-    }
-
     /* bind the socket to the local port number and IP address */
     sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = BIP_Port;
 
-    status =
-        zsock_bind(sock_fd, (const struct sockaddr *)&sin, sizeof(struct sockaddr));
-    if (status < 0) {
-        zsock_close(sock_fd);
-        BIP_Socket = -1;
-        LOG_ERR("%s:%d - zsock_bind() failure", THIS_FILE, __LINE__);
+    sin.sin_addr.s_addr = BIP_Address.s_addr;
+    sock_fd = createSocket(&sin);
+    BIP_Socket = sock_fd;
+    if (sock_fd < 0) {
         return false;
     }
-    else
-    {
-        LOG_DBG("Socket bound");
+
+    sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    sock_fd = createSocket(&sin);
+    BIP_Broadcast_Socket = sock_fd;
+    if (sock_fd < 0) {
+        return false;
     }
 
     bvlc_init();

@@ -39,8 +39,7 @@
 #endif
 
 #include <windows.h>
-#if (!defined(USE_INADDR) || (USE_INADDR == 0)) && \
- (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
+#if (!defined(USE_CLASSADDR) || (USE_CLASSADDR == 0))
 #include <iphlpapi.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "IPHLPAPI.lib")

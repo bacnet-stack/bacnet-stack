@@ -1159,6 +1159,32 @@ int bvlc_handler(BACNET_IP_ADDRESS *addr,
 #endif
 }
 
+int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
+    BACNET_ADDRESS *src,
+    uint8_t *npdu,
+    uint16_t npdu_len)
+{
+    int offset = 0;
+    uint8_t message_type = 0;
+    uint16_t message_length = 0;
+    int header_len = 0;
+
+    header_len =
+        bvlc_decode_header(npdu, npdu_len, &message_type, &message_length);
+    if (header_len == 4) {
+        switch (message_type) {
+            case BVLC_ORIGINAL_UNICAST_NPDU:
+                /* drop unicast when sent as a broadcast */
+                break;
+            default:
+                offset = bvlc_handler(addr, src, npdu, npdu_len);
+                break;
+        }
+    }
+
+    return offset;
+}
+
 #if BBMD_CLIENT_ENABLED
 /** Register as a foreign device with the indicated BBMD.
  * @param bbmd_addr - IPv4 address of BBMD with which to register
