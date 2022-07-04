@@ -292,6 +292,7 @@ static int bws_websocket_event(struct lws *wsi,
             }
             break;
         }
+        case LWS_CALLBACK_CLIENT_CLOSED:
         case LWS_CALLBACK_CLOSED:
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR: {
             bws_cli_conn[h].events.closed = 1;
