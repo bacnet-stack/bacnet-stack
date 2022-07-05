@@ -775,33 +775,10 @@ BACNET_WEBSOCKET_RET bws_stop(void)
     return BACNET_WEBSOCKET_SUCCESS;
 }
 
-BACNET_WEBSOCKET_RET (*bws_start)
-(int port,
-    uint8_t *ca_cert,
-    size_t ca_cert_size,
-    uint8_t *cert,
-    size_t cert_size,
-    uint8_t *key,
-    size_t key_size);
-// TODO: write note that user must check if out_handle is used.
-BACNET_WEBSOCKET_RET (*bws_accept)(BACNET_WEBSOCKET_HANDLE *out_handle);
-BACNET_WEBSOCKET_RET (*bws_disconnect)(BACNET_WEBSOCKET_HANDLE h);
-BACNET_WEBSOCKET_RET (*bws_send)
-(BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size);
-
-BACNET_WEBSOCKET_RET(*bws_recv)
-(BACNET_WEBSOCKET_HANDLE h,
-    uint8_t *buf,
-    size_t bufsize,
-    size_t *bytes_received,
-    int timeout);
-
-BACNET_WEBSOCKET_RET (*bws_stop)(void);
-
 static BACNET_WEBSOCKET_SERVER bws_srv = { bws_start, bws_accept,
     bws_disconnect, bws_send, bws_recv, bws_stop };
 
-BACNET_WEBSOCKET_CLIENT *bws_srv_get(void)
+BACNET_WEBSOCKET_SERVER *bws_srv_get(void)
 {
     return &bws_srv;
 }
