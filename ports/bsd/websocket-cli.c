@@ -365,7 +365,7 @@ static void *bws_cli_worker(void *arg)
     return NULL;
 }
 
-BACNET_WEBSOCKET_RET bws_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
+BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
     char *url,
     uint8_t *ca_cert,
     size_t ca_cert_size,
@@ -489,7 +489,7 @@ BACNET_WEBSOCKET_RET bws_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
     return ret;
 }
 
-BACNET_WEBSOCKET_RET bws_disconnect(BACNET_WEBSOCKET_HANDLE h)
+BACNET_WEBSOCKET_RET bws_cli_disconnect(BACNET_WEBSOCKET_HANDLE h)
 {
     if (h < 0 || h >= BACNET_CLIENT_WEBSOCKETS_MAX_NUM) {
         return BACNET_WEBSOCKET_BAD_PARAM;
@@ -519,7 +519,7 @@ BACNET_WEBSOCKET_RET bws_disconnect(BACNET_WEBSOCKET_HANDLE h)
     return BACNET_WEBSOCKET_SUCCESS;
 }
 
-BACNET_WEBSOCKET_RET bws_send(
+BACNET_WEBSOCKET_RET bws_cli_send(
     BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size)
 {
     BACNET_WEBSOCKET_OPERATION_ENTRY e;
@@ -579,7 +579,7 @@ BACNET_WEBSOCKET_RET bws_send(
     return e.retcode;
 }
 
-BACNET_WEBSOCKET_RET bws_recv(BACNET_WEBSOCKET_HANDLE h,
+BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
     uint8_t *buf,
     size_t bufsize,
     size_t *bytes_received,
@@ -645,8 +645,8 @@ BACNET_WEBSOCKET_RET bws_recv(BACNET_WEBSOCKET_HANDLE h,
     return e.retcode;
 }
 
-static BACNET_WEBSOCKET_CLIENT bws_cli = { bws_connect, bws_disconnect, bws_send,
-    bws_recv };
+static BACNET_WEBSOCKET_CLIENT bws_cli = { bws_cli_connect, bws_cli_disconnect,
+    bws_cli_send, bws_cli_recv };
 
 BACNET_WEBSOCKET_CLIENT *bws_cli_get(void)
 {

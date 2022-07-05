@@ -436,7 +436,7 @@ static void *bws_srv_worker(void *arg)
     return NULL;
 }
 
-BACNET_WEBSOCKET_RET bws_start(int port,
+BACNET_WEBSOCKET_RET bws_srv_start(int port,
     uint8_t *ca_cert,
     size_t ca_cert_size,
     uint8_t *cert,
@@ -503,7 +503,7 @@ BACNET_WEBSOCKET_RET bws_start(int port,
     return BACNET_WEBSOCKET_SUCCESS;
 }
 
-BACNET_WEBSOCKET_RET bws_accept(BACNET_WEBSOCKET_HANDLE *out_handle)
+BACNET_WEBSOCKET_RET bws_srv_accept(BACNET_WEBSOCKET_HANDLE *out_handle)
 {
     BACNET_WEBSOCKET_OPERATION_ENTRY e;
 
@@ -542,7 +542,7 @@ BACNET_WEBSOCKET_RET bws_accept(BACNET_WEBSOCKET_HANDLE *out_handle)
     return e.retcode;
 }
 
-BACNET_WEBSOCKET_RET bws_disconnect(BACNET_WEBSOCKET_HANDLE h)
+BACNET_WEBSOCKET_RET bws_srv_disconnect(BACNET_WEBSOCKET_HANDLE h)
 {
     if (h < 0 || h >= BACNET_SERVER_WEBSOCKETS_MAX_NUM) {
         return BACNET_WEBSOCKET_BAD_PARAM;
@@ -589,7 +589,7 @@ BACNET_WEBSOCKET_RET bws_disconnect(BACNET_WEBSOCKET_HANDLE h)
     return BACNET_WEBSOCKET_SUCCESS;
 }
 
-BACNET_WEBSOCKET_RET bws_send(
+BACNET_WEBSOCKET_RET bws_srv_send(
     BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size)
 {
     BACNET_WEBSOCKET_OPERATION_ENTRY e;
@@ -666,7 +666,7 @@ BACNET_WEBSOCKET_RET bws_send(
     return e.retcode;
 }
 
-BACNET_WEBSOCKET_RET bws_recv(BACNET_WEBSOCKET_HANDLE h,
+BACNET_WEBSOCKET_RET bws_srv_recv(BACNET_WEBSOCKET_HANDLE h,
     uint8_t *buf,
     size_t bufsize,
     size_t *bytes_received,
@@ -749,7 +749,7 @@ BACNET_WEBSOCKET_RET bws_recv(BACNET_WEBSOCKET_HANDLE h,
     return e.retcode;
 }
 
-BACNET_WEBSOCKET_RET bws_stop(void)
+BACNET_WEBSOCKET_RET bws_srv_stop(void)
 {
     pthread_mutex_lock(&bws_srv_mutex);
 
@@ -775,8 +775,8 @@ BACNET_WEBSOCKET_RET bws_stop(void)
     return BACNET_WEBSOCKET_SUCCESS;
 }
 
-static BACNET_WEBSOCKET_SERVER bws_srv = { bws_start, bws_accept,
-    bws_disconnect, bws_send, bws_recv, bws_stop };
+static BACNET_WEBSOCKET_SERVER bws_srv = { bws_srv_start, bws_srv_accept,
+    bws_srv_disconnect, bws_srv_send, bws_srv_recv, bws_srv_stop };
 
 BACNET_WEBSOCKET_SERVER *bws_srv_get(void)
 {
