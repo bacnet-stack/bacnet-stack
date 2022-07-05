@@ -645,8 +645,7 @@ BACNET_WEBSOCKET_RET bws_recv(BACNET_WEBSOCKET_HANDLE h,
     return e.retcode;
 }
 
-static BACNET_WEBSOCKET_CLIENT bws_cli = { bws_connect, bws_send, bws_recv,
-    bws_disconnect };
+static BACNET_WEBSOCKET_CLIENT bws_cli = { bws_connect, bws_disconnect bws_send, bws_recv };
 
 BACNET_WEBSOCKET_CLIENT *bws_cli_get(void)
 {

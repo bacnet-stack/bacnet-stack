@@ -20,7 +20,9 @@
 #define BACNET_CLIENT_WEBSOCKETS_MAX_NUM 4
 /* constant must be a power of 2 */
 #define BACNET_CLIENT_WEBSOCKET_RX_BUFFER_SIZE 4096
+
 #define BACNET_SERVER_WEBSOCKETS_MAX_NUM 4
+#define BACNET_SERVER_WEBSOCKET_RX_BUFFER_SIZE 4096
 #define BACNET_WSURL_MAX_LEN 256
 
 typedef int BACNET_WEBSOCKET_HANDLE;
@@ -43,7 +45,8 @@ typedef enum {
     BACNET_WEBSOCKET_BUFFER_TOO_BIG = 4,
     BACNET_WEBSOCKET_OPERATION_IN_PROGRESS = 5,
     BACNET_WEBSOCKET_BAD_PARAM = 6,
-    BACNET_WEBSOCKET_TIMEDOUT = 7
+    BACNET_WEBSOCKET_TIMEDOUT = 7,
+    BACNET_WEBSOCKET_INVALID_OPERATION = 8
 } BACNET_WEBSOCKET_RET;
 
 typedef struct BACNetWebsocketClient {
@@ -83,6 +86,8 @@ typedef struct BACNetWebsocketClient {
         size_t key_size,
         BACNET_WEBSOCKET_HANDLE *out_handle);
 
+    BACNET_WEBSOCKET_RET (*bws_disconnect)(BACNET_WEBSOCKET_HANDLE h);
+
     BACNET_WEBSOCKET_RET (*bws_send)
     (BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size);
 
@@ -92,20 +97,30 @@ typedef struct BACNetWebsocketClient {
         size_t bufsize,
         size_t *bytes_received,
         int timeout);
-
-    BACNET_WEBSOCKET_RET (*bws_disconnect)(BACNET_WEBSOCKET_HANDLE h);
-
 } BACNET_WEBSOCKET_CLIENT;
 
 typedef struct BACNetWebsocketServer {
-#if 0
-  bool bws_init(uint8_t* cert, unsigned int cert_size);
-  unsigned int bws_recv(struct BACNET_WEBSOCKET_HANDLE* h, uint8_t* buf,
-                        unsigned int bufsize, int timeout);
-  bool bws_send(struct BACNET_WEBSOCKET_HANDLE* h, uint8_t *payload,
-                unsigned int payload size, int timeout);
-  void bws_deinit(void);
-#endif
+  BACNET_WEBSOCKET_RET (*bws_start)(
+                                    int port,
+                                    uint8_t *ca_cert,
+                                    size_t ca_cert_size,
+                                    uint8_t *cert,
+                                    size_t cert_size,
+                                    uint8_t *key,
+                                    size_t key_size);
+  // TODO: write note that user must check if out_handle is used.
+  BACNET_WEBSOCKET_RET (*bws_accept)(BACNET_WEBSOCKET_HANDLE* out_handle);
+  BACNET_WEBSOCKET_RET (*bws_disconnect)(BACNET_WEBSOCKET_HANDLE h);
+  BACNET_WEBSOCKET_RET (*bws_send)(BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size);
+
+  BACNET_WEBSOCKET_RET (*bws_recv)
+  (BACNET_WEBSOCKET_HANDLE h,
+      uint8_t *buf,
+      size_t bufsize,
+      size_t *bytes_received,
+      int timeout);
+
+  BACNET_WEBSOCKET_RET (*bws_stop)(void);
 } BACNET_WEBSOCKET_SERVER;
 
 BACNET_STACK_EXPORT

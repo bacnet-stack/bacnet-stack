@@ -479,6 +479,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     # ports/linux/rx_fsm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
@@ -516,6 +517,7 @@ elseif(APPLE)
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     ports/bsd/stdbool.h)
 endif()
 
