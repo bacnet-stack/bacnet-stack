@@ -43,12 +43,6 @@ extern "C" {
 #endif /* __cplusplus */
 
     BACNET_STACK_EXPORT
-    void npdu_encode_npdu_network(
-        BACNET_NPDU_DATA *npdu_data,
-        BACNET_NETWORK_MESSAGE_TYPE network_message_type,
-        bool data_expecting_reply,
-        BACNET_MESSAGE_PRIORITY priority);
-    BACNET_STACK_EXPORT
     int Send_Network_Layer_Message(
         BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         BACNET_ADDRESS * dst,
