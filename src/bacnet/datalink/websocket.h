@@ -17,6 +17,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 
+#define BACNET_WEBSOCKET_DEBUG_ENABLED 1
 #define BACNET_CLIENT_WEBSOCKETS_MAX_NUM 4
 /* constant must be a power of 2 */
 #define BACNET_CLIENT_WEBSOCKET_RX_BUFFER_SIZE 4096

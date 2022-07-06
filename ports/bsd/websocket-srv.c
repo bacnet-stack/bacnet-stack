@@ -19,7 +19,7 @@
 #include "bacnet/datalink/websocket.h"
 #include "bacnet/basic/sys/fifo.h"
 
-#if BACNET_WEBSOCKET_SERVER_DEBUG_ENABLED
+#if BACNET_WEBSOCKET_DEBUG_ENABLED == 1
 static bool bws_srv_debug = true;
 #else
 static bool bws_srv_debug = false;
@@ -468,7 +468,11 @@ BACNET_WEBSOCKET_RET bws_srv_start(int port,
     }
 
     if (bws_srv_debug) {
-        lws_set_log_level(LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE, NULL);
+//        lws_set_log_level(LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE, NULL);
+        lws_set_log_level(4095, NULL);
+    }
+    else {
+        lws_set_log_level(0, NULL);
     }
 
     info.port = port;
@@ -481,7 +485,7 @@ BACNET_WEBSOCKET_RET bws_srv_start(int port,
     info.server_ssl_ca_mem_len = ca_cert_size;
     info.server_ssl_private_key_mem = key;
     info.server_ssl_private_key_mem_len = key_size;
-
+    info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
     bws_srv_ctx = lws_create_context(&info);
 
     if (!bws_srv_ctx) {

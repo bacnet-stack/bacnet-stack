@@ -46,7 +46,7 @@ typedef struct {
     BACNET_WEBSOCKET_CONNECTION_TYPE type;
 } BACNET_WEBSOCKET_CONNECTION;
 
-#if BACNET_WEBSOCKET_CLIENT_DEBUG_ENABLED
+#if BACNET_WEBSOCKET_DEBUG_ENABLED == 1
 static bool bws_cli_debug = true;
 #else
 static bool bws_cli_debug = false;
@@ -395,18 +395,21 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
 
     strncpy(tmp_url, url, BACNET_WSURL_MAX_LEN);
 
-    if (strcmp(prot, "wss") != 0) {
-        return BACNET_WEBSOCKET_BAD_PARAM;
-    }
-
     pthread_mutex_lock(&bws_cli_mutex);
 
     if (bws_cli_debug) {
-        lws_set_log_level(LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE, NULL);
+        lws_set_log_level(4095, NULL);
+    }
+    else {
+        lws_set_log_level(0, NULL);
     }
 
     if (lws_parse_uri(tmp_url, &prot, &addr, &port, &path) != 0) {
         pthread_mutex_unlock(&bws_cli_mutex);
+        return BACNET_WEBSOCKET_BAD_PARAM;
+    }
+
+    if (strcmp(prot, "wss") != 0) {
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
@@ -427,6 +430,7 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
     info.client_ssl_ca_mem_len = ca_cert_size;
     info.client_ssl_key_mem = key;
     info.client_ssl_key_mem_len = key_size;
+    info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 
     bws_cli_conn[h].ctx = lws_create_context(&info);
 
@@ -437,7 +441,7 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
     }
 
     ret = pthread_create(
-        &bws_cli_conn[h].thread_id, NULL, &bws_cli_worker, bws_cli_conn[h].ctx);
+        &bws_cli_conn[h].thread_id, NULL, &bws_cli_worker, &bws_cli_conn[h]);
 
     if (ret != 0) {
         lws_context_destroy(bws_cli_conn[h].ctx);
@@ -458,7 +462,7 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
     cinfo.alpn = "h2;http/1.1";
     cinfo.retry_and_idle_policy = &retry;
     cinfo.ssl_connection =
-        LCCSCF_USE_SSL | LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK;
+        LCCSCF_USE_SSL | LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_SELFSIGNED;
 
     if (type == BACNET_WEBSOCKET_HUB_CONNECTION) {
         cinfo.protocol = bws_hub_protocol;
