@@ -1061,17 +1061,30 @@ unsigned char server_cert[] = {
 
 #define BACNET_WEBSOCKET_SERVER_PORT 40000
 #define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
+#define BACNET_WEBSOCKET_TIMEOUT 100000
 
 static BACNET_WEBSOCKET_CLIENT* cli = NULL;
 static BACNET_WEBSOCKET_SERVER* srv = NULL;
 static pthread_t cli_th;
 static pthread_t srv_th;
 
+static bool cmp(uint8_t* buf, size_t bufsize, uint8_t val)
+{
+  for(int i =0; i < bufsize; i++) {
+    if(buf[i]!=val) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static void* cli_th_simple_test(void *arg)
 {
   BACNET_WEBSOCKET_RET ret;
   BACNET_WEBSOCKET_HANDLE h;
   char url[128];
+  uint8_t buf[16384];
+  size_t bytes_received = 0;
   sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
 
   ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION,
@@ -1085,6 +1098,16 @@ static void* cli_th_simple_test(void *arg)
                          &h);
   zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
   zassert_not_equal(h, BACNET_WEBSOCKET_INVALID_HANDLE, NULL);
+
+  while(bytes_received != sizeof(buf)) {
+    size_t r;
+    ret =  cli->bws_recv(h, &buf[bytes_received], sizeof(buf) - bytes_received, &r, BACNET_WEBSOCKET_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    bytes_received += r;
+  }
+
+  zassert_equal(bytes_received, sizeof(buf), NULL);
+  zassert_equal(cmp(buf, sizeof(buf), 0x77), true, NULL);
   ret = cli->bws_disconnect(h);
   zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
   return NULL;
@@ -1094,7 +1117,8 @@ static void* srv_th_simple_test(void *arg)
 {
   BACNET_WEBSOCKET_RET ret;
   BACNET_WEBSOCKET_HANDLE h;
-
+  uint8_t buf[16384];
+  memset(buf, 0x77, sizeof(buf));
   ret = srv->bws_start(40000, ca_cert, sizeof(ca_cert),
                        server_cert, sizeof(server_cert), server_key,
                        sizeof(server_key));
@@ -1102,6 +1126,10 @@ static void* srv_th_simple_test(void *arg)
   zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
   ret = srv->bws_accept(&h);
   zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  ret = srv->bws_send(h, buf, sizeof(buf));
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  // wait a bit while all data is transfered to client
+  sleep(1);
   ret = srv->bws_stop();
   zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
   return NULL;

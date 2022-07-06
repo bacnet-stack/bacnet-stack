@@ -85,6 +85,7 @@ elseif(APPLE)
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

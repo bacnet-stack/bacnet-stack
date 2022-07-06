@@ -5,13 +5,14 @@
 #include <pthread.h>
 #include "bacnet/datalink/websocket.h"
 #include "bacnet/basic/sys/fifo.h"
+#include "bacnet/basic/sys/debug.h"
 
 typedef enum {
     BACNET_WEBSOCKET_STATE_IDLE = 0,
-    BACNET_WEBSOCKET_STATE_CONNECTING,
-    BACNET_WEBSOCKET_STATE_CONNECTED,
-    BACNET_WEBSOCKET_STATE_DISCONNECTING,
-    BACNET_WEBSOCKET_STATE_DISCONNECTED,
+    BACNET_WEBSOCKET_STATE_CONNECTING = 1,
+    BACNET_WEBSOCKET_STATE_CONNECTED = 2,
+    BACNET_WEBSOCKET_STATE_DISCONNECTING = 3,
+    BACNET_WEBSOCKET_STATE_DISCONNECTED = 4
 } BACNET_WEBSOCKET_STATE;
 
 typedef struct BACNetWebsocketOperationListEntry {
@@ -46,14 +47,9 @@ typedef struct {
     BACNET_WEBSOCKET_CONNECTION_TYPE type;
 } BACNET_WEBSOCKET_CONNECTION;
 
-#if BACNET_WEBSOCKET_DEBUG_ENABLED == 1
-static bool bws_cli_debug = true;
-#else
-static bool bws_cli_debug = false;
-#endif
 // Some forward function declarations
 
-static int bws_websocket_event(struct lws *wsi,
+static int bws_cli_websocket_event(struct lws *wsi,
     enum lws_callback_reasons reason,
     void *user,
     void *in,
@@ -67,8 +63,8 @@ static const char *bws_direct_protocol =
 static pthread_mutex_t bws_cli_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 
 static struct lws_protocols bws_cli_protos[] = {
-    { BACNET_WEBSOCKET_HUB_PROTOCOL, bws_websocket_event, 0, 0, 0, NULL, 0 },
-    { BACNET_WEBSOCKET_DIRECT_CONNECTION_PROTOCOL, bws_websocket_event, 0, 0, 0,
+    { BACNET_WEBSOCKET_HUB_PROTOCOL, bws_cli_websocket_event, 0, 0, 0, NULL, 0 },
+    { BACNET_WEBSOCKET_DIRECT_CONNECTION_PROTOCOL, bws_cli_websocket_event, 0, 0, 0,
         NULL, 0 },
     LWS_PROTOCOL_LIST_TERM
 };
@@ -81,25 +77,31 @@ static const lws_retry_bo_t retry = {
 static BACNET_WEBSOCKET_CONNECTION
     bws_cli_conn[BACNET_CLIENT_WEBSOCKETS_MAX_NUM] = { 0 };
 
-static bool bws_init_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e)
+static bool bws_cli_init_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
+    debug_printf("bws_cli_init_operation() >>> e = %p\n", e);
+
     memset(e, 0, sizeof(*e));
 
     if (pthread_cond_init(&e->cond, NULL) != 0) {
+        debug_printf("bws_cli_init_operation() <<< ret = false\n");
         return false;
     }
 
+    debug_printf("bws_cli_init_operation() <<< ret = true\n");
     return true;
 }
 
-static void bws_deinit_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e)
+static void bws_cli_deinit_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
+    debug_printf("bws_cli_deinit_operation() >>> e = %p\n", e);
     if (e) {
         pthread_cond_destroy(&e->cond);
     }
+    debug_printf("bws_cli_deinit_operation() <<<\n");
 }
 
-static void bws_enqueue_send_operation(
+static void bws_cli_enqueue_send_operation(
     BACNET_WEBSOCKET_CONNECTION *c, BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
     if (c->send_head == NULL && c->send_tail == NULL) {
@@ -119,7 +121,7 @@ static void bws_enqueue_send_operation(
     }
 }
 
-static void bws_dequeue_send_operation(BACNET_WEBSOCKET_CONNECTION *c)
+static void bws_cli_dequeue_send_operation(BACNET_WEBSOCKET_CONNECTION *c)
 {
     if (c->send_head == c->send_tail) {
         c->send_head = NULL;
@@ -130,19 +132,22 @@ static void bws_dequeue_send_operation(BACNET_WEBSOCKET_CONNECTION *c)
     }
 }
 
-static void bws_dequeue_all_send_operations(BACNET_WEBSOCKET_CONNECTION *c)
+static void bws_cli_dequeue_all_send_operations(BACNET_WEBSOCKET_CONNECTION *c)
 {
+    debug_printf("bws_cli_dequeue_all_send_operations() >>> c = %p\n", c);
     while (c->send_head) {
         c->send_head->retcode = BACNET_WEBSOCKET_WEBSOCKET_CLOSED;
         c->send_head->processed = 1;
         pthread_cond_signal(&c->send_head->cond);
-        bws_dequeue_send_operation(c);
+        bws_cli_dequeue_send_operation(c);
     }
+    debug_printf("bws_cli_dequeue_all_send_operations() <<<\n");
 }
 
-static void bws_enqueue_recv_operation(
+static void bws_cli_enqueue_recv_operation(
     BACNET_WEBSOCKET_CONNECTION *c, BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
+    debug_printf("bws_cli_enqueue_recv_operation() >>> c = %p, e = %p\n", c, e);
     if (c->recv_head == NULL && c->recv_tail == NULL) {
         c->recv_head = e;
         c->recv_tail = e;
@@ -158,10 +163,12 @@ static void bws_enqueue_recv_operation(
         e->next = NULL;
         c->recv_tail->next = e;
     }
+    debug_printf("bws_cli_enqueue_recv_operation() <<<\n");
 }
 
-static void bws_dequeue_recv_operation(BACNET_WEBSOCKET_CONNECTION *c)
+static void bws_cli_dequeue_recv_operation(BACNET_WEBSOCKET_CONNECTION *c)
 {
+    debug_printf("bws_cli_dequeue_recv_operation() >>> c = %p\n", c);
     if (c->recv_head == c->recv_tail) {
         c->recv_head = NULL;
         c->recv_tail = NULL;
@@ -169,19 +176,22 @@ static void bws_dequeue_recv_operation(BACNET_WEBSOCKET_CONNECTION *c)
         c->recv_head->next->last = NULL;
         c->recv_head = c->recv_head->next;
     }
+    debug_printf("bws_cli_dequeue_recv_operation() <<<\n");
 }
 
-static void bws_dequeue_all_recv_operations(BACNET_WEBSOCKET_CONNECTION *c)
+static void bws_cli_dequeue_all_recv_operations(BACNET_WEBSOCKET_CONNECTION *c)
 {
+    debug_printf("bws_cli_dequeue_all_recv_operations() >>> c = %p\n", c);
     while (c->recv_head) {
         c->recv_head->retcode = BACNET_WEBSOCKET_WEBSOCKET_CLOSED;
         c->recv_head->processed = 1;
         pthread_cond_signal(&c->recv_head->cond);
-        bws_dequeue_recv_operation(c);
+        bws_cli_dequeue_recv_operation(c);
     }
+    debug_printf("bws_cli_dequeue_all_recv_operations() <<<\n");
 }
 
-static BACNET_WEBSOCKET_HANDLE bws_alloc_connection(void)
+static BACNET_WEBSOCKET_HANDLE bws_cli_alloc_connection(void)
 {
     int ret;
     int i;
@@ -201,7 +211,7 @@ static BACNET_WEBSOCKET_HANDLE bws_alloc_connection(void)
     return BACNET_WEBSOCKET_INVALID_HANDLE;
 }
 
-static void bws_free_connection_ptr(BACNET_WEBSOCKET_CONNECTION *c)
+static void bws_cli_free_connection_ptr(BACNET_WEBSOCKET_CONNECTION *c)
 {
     if (c->state != BACNET_WEBSOCKET_STATE_IDLE) {
         c->state = BACNET_WEBSOCKET_STATE_IDLE;
@@ -210,14 +220,14 @@ static void bws_free_connection_ptr(BACNET_WEBSOCKET_CONNECTION *c)
     }
 }
 
-static void bws_free_connection(BACNET_WEBSOCKET_HANDLE h)
+static void bws_cli_free_connection(BACNET_WEBSOCKET_HANDLE h)
 {
     if (h >= 0 && h < BACNET_CLIENT_WEBSOCKETS_MAX_NUM) {
-        bws_free_connection_ptr(&bws_cli_conn[h]);
+        bws_cli_free_connection_ptr(&bws_cli_conn[h]);
     }
 }
 
-static BACNET_WEBSOCKET_HANDLE bws_find_connnection(struct lws *ws)
+static BACNET_WEBSOCKET_HANDLE bws_cli_find_connnection(struct lws *ws)
 {
     for (int i = 0; i < BACNET_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
         if (bws_cli_conn[i].ws == ws &&
@@ -229,7 +239,7 @@ static BACNET_WEBSOCKET_HANDLE bws_find_connnection(struct lws *ws)
     return BACNET_WEBSOCKET_INVALID_HANDLE;
 }
 
-static int bws_websocket_event(struct lws *wsi,
+static int bws_cli_websocket_event(struct lws *wsi,
     enum lws_callback_reasons reason,
     void *user,
     void *in,
@@ -238,34 +248,40 @@ static int bws_websocket_event(struct lws *wsi,
     BACNET_WEBSOCKET_HANDLE h;
     int written;
 
+    debug_printf("bws_cli_websocket_event() >>> reason = %d\n", reason);
     pthread_mutex_lock(&bws_cli_mutex);
-    h = bws_find_connnection(wsi);
+    h = bws_cli_find_connnection(wsi);
 
     if (h == BACNET_WEBSOCKET_INVALID_HANDLE) {
+        debug_printf("bws_cli_websocket_event() can not find websocket handle for wsi %p\n", wsi);
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_websocket_event() <<< ret = 0\n");
         return 0;
     }
 
     switch (reason) {
         case LWS_CALLBACK_CLIENT_ESTABLISHED: {
+            debug_printf("bws_cli_websocket_event() connection established\n");
             bws_cli_conn[h].events.established = 1;
             // wakeup worker to process incoming connection event
             lws_cancel_service(bws_cli_conn[h].ctx);
             break;
         }
         case LWS_CALLBACK_CLIENT_RECEIVE: {
+            debug_printf("bws_cli_websocket_event() received %d bytes of data\n", len);
             if (bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_CONNECTED) {
                 if (FIFO_Add(&bws_cli_conn[h].in_data, in, len)) {
                     bws_cli_conn[h].events.data_received = 1;
                     // wakeup worker to process incoming data
                     lws_cancel_service(bws_cli_conn[h].ctx);
                 } else {
-                    // TODO: add logginng here
+                    debug_printf("bws_cli_websocket_event() drop %d bytes of data\n", len);
                 }
             }
             break;
         }
         case LWS_CALLBACK_CLIENT_WRITEABLE: {
+            debug_printf("bws_cli_websocket_event() can write\n");
             if (bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_CONNECTED) {
                 if (bws_cli_conn[h].send_head) {
                     written = lws_write(bws_cli_conn[h].ws,
@@ -285,7 +301,7 @@ static int bws_websocket_event(struct lws *wsi,
 
                     bws_cli_conn[h].send_head->processed = 1;
                     pthread_cond_signal(&bws_cli_conn[h].send_head->cond);
-                    bws_dequeue_send_operation(&bws_cli_conn[h]);
+                    bws_cli_dequeue_send_operation(&bws_cli_conn[h]);
                     // wakeup worker to process internal state
                     lws_cancel_service(bws_cli_conn[h].ctx);
                 }
@@ -295,6 +311,7 @@ static int bws_websocket_event(struct lws *wsi,
         case LWS_CALLBACK_CLIENT_CLOSED:
         case LWS_CALLBACK_CLOSED:
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR: {
+            debug_printf("bws_cli_websocket_event() connection closed\n");
             bws_cli_conn[h].events.closed = 1;
             // wakeup worker to process pending vent
             lws_cancel_service(bws_cli_conn[h].ctx);
@@ -308,24 +325,26 @@ static int bws_websocket_event(struct lws *wsi,
         }
     }
     pthread_mutex_unlock(&bws_cli_mutex);
+    debug_printf("bws_cli_websocket_event() <<< ret = 0\n");
     return 0;
 }
 
 static void *bws_cli_worker(void *arg)
 {
-    BACNET_WEBSOCKET_CONNECTION *conn = (BACNET_WEBSOCKET_CONNECTION *)arg;
+    BACNET_WEBSOCKET_HANDLE h = *((int*) arg);
+    BACNET_WEBSOCKET_CONNECTION *conn = &bws_cli_conn[h];
     BACNET_WEBSOCKET_STATE old_state;
 
     while (1) {
         pthread_mutex_lock(&bws_cli_mutex);
-
+        debug_printf("bws_cli_worker() unblocked, socket = %d, socket state = %d\n", h, conn->state);
         if (conn->events.closed ||
             conn->state == BACNET_WEBSOCKET_STATE_DISCONNECTING) {
             conn->events.closed = 0;
             old_state = conn->state;
             conn->state = BACNET_WEBSOCKET_STATE_DISCONNECTED;
-            bws_dequeue_all_send_operations(conn);
-            bws_dequeue_all_recv_operations(conn);
+            bws_cli_dequeue_all_send_operations(conn);
+            bws_cli_dequeue_all_recv_operations(conn);
             // Note! lws_conext_destroy() implicitly calls bws_websocket_event()
             // callback. So connection state must be changed before that call.
             lws_context_destroy(conn->ctx);
@@ -336,7 +355,7 @@ static void *bws_cli_worker(void *arg)
             pthread_cond_broadcast(&conn->cond);
 
             if (old_state == BACNET_WEBSOCKET_STATE_CONNECTED) {
-                bws_free_connection_ptr(conn);
+                bws_cli_free_connection_ptr(conn);
             }
             pthread_mutex_unlock(&bws_cli_mutex);
             break;
@@ -347,25 +366,29 @@ static void *bws_cli_worker(void *arg)
                 pthread_cond_signal(&conn->cond);
             }
         } else if (conn->state == BACNET_WEBSOCKET_STATE_CONNECTED) {
+            debug_printf("bws_cli_worker() process BACNET_WEBSOCKET_STATE_CONNECTED\n");
             if (conn->send_head) {
+                debug_printf("bws_cli_worker() request callback for sending data\n");
                 lws_callback_on_writable(conn->ws);
             }
             while (conn->recv_head && !FIFO_Empty(&conn->in_data)) {
                 conn->recv_head->payload_size = FIFO_Pull(&conn->in_data,
                     conn->recv_head->payload, conn->recv_head->payload_size);
+                debug_printf("signal that %d bytes received on websocket %d\n", conn->recv_head->payload_size, h);
                 conn->recv_head->processed = 1;
                 pthread_cond_signal(&conn->recv_head->cond);
-                bws_dequeue_recv_operation(conn);
+                bws_cli_dequeue_recv_operation(conn);
             }
         }
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_worker() going to block on lws_service() call\n");
         lws_service(conn->ctx, 0);
     }
 
     return NULL;
 }
 
-BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
+static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
     char *url,
     uint8_t *ca_cert,
     size_t ca_cert_size,
@@ -397,12 +420,13 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
 
     pthread_mutex_lock(&bws_cli_mutex);
 
-    if (bws_cli_debug) {
-        lws_set_log_level(4095, NULL);
-    }
-    else {
-        lws_set_log_level(0, NULL);
-    }
+#ifdef DEBUG_ENABLED
+    lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG |
+                      LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY |
+                      LLL_USER | LLL_THREAD, NULL);
+#else
+    lws_set_log_level(0, NULL);
+#endif
 
     if (lws_parse_uri(tmp_url, &prot, &addr, &port, &path) != 0) {
         pthread_mutex_unlock(&bws_cli_mutex);
@@ -413,7 +437,7 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
-    h = bws_alloc_connection();
+    h = bws_cli_alloc_connection();
 
     if (h == BACNET_WEBSOCKET_INVALID_HANDLE) {
         pthread_mutex_unlock(&bws_cli_mutex);
@@ -435,13 +459,13 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
     bws_cli_conn[h].ctx = lws_create_context(&info);
 
     if (!bws_cli_conn[h].ctx) {
-        bws_free_connection(h);
+        bws_cli_free_connection(h);
         pthread_mutex_unlock(&bws_cli_mutex);
         return BACNET_WEBSOCKET_NO_RESOURCES;
     }
 
     ret = pthread_create(
-        &bws_cli_conn[h].thread_id, NULL, &bws_cli_worker, &bws_cli_conn[h]);
+        &bws_cli_conn[h].thread_id, NULL, &bws_cli_worker, &h);
 
     if (ret != 0) {
         lws_context_destroy(bws_cli_conn[h].ctx);
@@ -484,7 +508,7 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
         *out_handle = h;
         ret = BACNET_WEBSOCKET_SUCCESS;
     } else {
-        bws_free_connection(h);
+        bws_cli_free_connection(h);
         *out_handle = BACNET_WEBSOCKET_INVALID_HANDLE;
         ret = BACNET_WEBSOCKET_WEBSOCKET_CLOSED;
     }
@@ -493,9 +517,12 @@ BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE type,
     return ret;
 }
 
-BACNET_WEBSOCKET_RET bws_cli_disconnect(BACNET_WEBSOCKET_HANDLE h)
+static BACNET_WEBSOCKET_RET bws_cli_disconnect(BACNET_WEBSOCKET_HANDLE h)
 {
+    debug_printf("bws_cli_disconnect() >>> h = %d\n", h);
+
     if (h < 0 || h >= BACNET_CLIENT_WEBSOCKETS_MAX_NUM) {
+        debug_printf("bws_cli_disconnect() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
@@ -503,27 +530,32 @@ BACNET_WEBSOCKET_RET bws_cli_disconnect(BACNET_WEBSOCKET_HANDLE h)
 
     if (bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_IDLE) {
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_disconnect() <<< ret = BACNET_WEBSOCKET_WEBSOCKET_CLOSED\n");
         return BACNET_WEBSOCKET_WEBSOCKET_CLOSED;
     } else if (bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_DISCONNECTING ||
         bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_DISCONNECTED) {
         // some thread has already started disconnect process.
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_disconnect() <<< ret = BACNET_WEBSOCKET_OPERATION_IN_PROGRESS\n");
         return BACNET_WEBSOCKET_OPERATION_IN_PROGRESS;
     } else {
         bws_cli_conn[h].state = BACNET_WEBSOCKET_STATE_DISCONNECTING;
         // signal worker to process change of connection state
         lws_cancel_service(bws_cli_conn[h].ctx);
         // let's wait while worker thread processes changes
+        debug_printf("bws_cli_disconnect() going to block on pthread_cond_wait()\n");
         while (bws_cli_conn[h].state != BACNET_WEBSOCKET_STATE_DISCONNECTED) {
             pthread_cond_wait(&bws_cli_conn[h].cond, &bws_cli_mutex);
         }
-        bws_free_connection(h);
+        debug_printf("bws_cli_disconnect() unblocked\n");
+        bws_cli_free_connection(h);
     }
     pthread_mutex_unlock(&bws_cli_mutex);
+    debug_printf("bws_cli_disconnect() <<< ret = BACNET_WEBSOCKET_SUCCESS\n");
     return BACNET_WEBSOCKET_SUCCESS;
 }
 
-BACNET_WEBSOCKET_RET bws_cli_send(
+static BACNET_WEBSOCKET_RET bws_cli_send(
     BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size)
 {
     BACNET_WEBSOCKET_OPERATION_ENTRY e;
@@ -552,7 +584,7 @@ BACNET_WEBSOCKET_RET bws_cli_send(
     // user is allowed to send data if websocket connection is already
     // established or it is in a process of establishing
 
-    if (!bws_init_operation(&e)) {
+    if (!bws_cli_init_operation(&e)) {
         pthread_mutex_unlock(&bws_cli_mutex);
         return BACNET_WEBSOCKET_NO_RESOURCES;
     }
@@ -566,7 +598,7 @@ BACNET_WEBSOCKET_RET bws_cli_send(
 
     e.payload_size = payload_size;
     memcpy(&e.payload[LWS_PRE], payload, payload_size);
-    bws_enqueue_send_operation(&bws_cli_conn[h], &e);
+    bws_cli_enqueue_send_operation(&bws_cli_conn[h], &e);
 
     // wake up libwebsockets runloop
     lws_cancel_service(bws_cli_conn[h].ctx);
@@ -579,11 +611,11 @@ BACNET_WEBSOCKET_RET bws_cli_send(
 
     pthread_mutex_unlock(&bws_cli_mutex);
     free(e.payload);
-    bws_deinit_operation(&e);
+    bws_cli_deinit_operation(&e);
     return e.retcode;
 }
 
-BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
+static BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
     uint8_t *buf,
     size_t bufsize,
     size_t *bytes_received,
@@ -591,12 +623,14 @@ BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
 {
     BACNET_WEBSOCKET_OPERATION_ENTRY e;
     struct timespec to;
-
+    debug_printf("bws_cli_recv() >>> h = %d, buf = %p, bufsize = %d, timeout = %d\n", h ,buf, bufsize, timeout);
     if (h < 0 || h >= BACNET_CLIENT_WEBSOCKETS_MAX_NUM) {
+        debug_printf("bws_cli_recv() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
     if (!buf || !bufsize || !bytes_received) {
+        debug_printf("bws_cli_recv() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
@@ -605,20 +639,28 @@ BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
     if (bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_IDLE ||
         bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_DISCONNECTED) {
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_recv() <<< ret = BACNET_WEBSOCKET_WEBSOCKET_CLOSED\n");
         return BACNET_WEBSOCKET_WEBSOCKET_CLOSED;
     }
 
     if (bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_DISCONNECTING) {
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_recv() <<< ret = BACNET_WEBSOCKET_OPERATION_IN_PROGRESS\n");
         return BACNET_WEBSOCKET_OPERATION_IN_PROGRESS;
     }
 
     // user is allowed to recv data if websocket connection is already
     // established or it is in a process of establishing
 
+    if (!bws_cli_init_operation(&e)) {
+        pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_recv() <<< ret =  BACNET_WEBSOCKET_NO_RESOURCES\n");
+        return BACNET_WEBSOCKET_NO_RESOURCES;
+    }
+
     e.payload = buf;
     e.payload_size = bufsize;
-    bws_enqueue_recv_operation(&bws_cli_conn[h], &e);
+    bws_cli_enqueue_recv_operation(&bws_cli_conn[h], &e);
 
     // wake up libwebsockets runloop
     lws_cancel_service(bws_cli_conn[h].ctx);
@@ -630,22 +672,26 @@ BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
     to.tv_nsec = to.tv_nsec + (timeout % 1000) * 1000000;
     to.tv_sec += to.tv_nsec / 1000000000;
     to.tv_nsec %= 1000000000;
+    debug_printf("bws_cli_recv() websocket state %d\n", bws_cli_conn[h].state);
+    debug_printf("bws_cli_recv() going to block on pthread_cond_timedwait()\n");
 
     while (!e.processed) {
         if (pthread_cond_timedwait(&e.cond, &bws_cli_mutex, &to) == ETIMEDOUT) {
             pthread_mutex_unlock(&bws_cli_mutex);
-            bws_deinit_operation(&e);
+            bws_cli_deinit_operation(&e);
+            debug_printf("bws_cli_recv() <<< ret = BACNET_WEBSOCKET_TIMEDOUT\n");
             return BACNET_WEBSOCKET_TIMEDOUT;
         }
     }
-
+    debug_printf("bws_cli_recv() unblocked\n");
     pthread_mutex_unlock(&bws_cli_mutex);
 
     if (e.retcode == BACNET_WEBSOCKET_SUCCESS) {
         *bytes_received = e.payload_size;
     }
 
-    bws_deinit_operation(&e);
+    bws_cli_deinit_operation(&e);
+    debug_printf("bws_cli_recv() <<< ret = %d\n", e.retcode);
     return e.retcode;
 }
 
