@@ -20,6 +20,13 @@ get_filename_component(BACNET_NAME ${BACNET_BASE} NAME)
 # Update include path for this module
 list(APPEND BACNET_INCLUDE ${BACNET_BASE}/src)
 
+add_compile_definitions(
+	BACNET_SECURE_CONNECT=1
+	BACNET_SECURE_CONNECT_ROUTING_TABLE=1
+	BACNET_SECURE_CONNECT_HUB=1
+	BACNET_SECURE_CONNECT_DIRECT=1
+)
+
 if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
   list(APPEND INCLUDE ${BACNET_INCLUDE})
@@ -40,6 +47,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/datetime.c
     ${BACNET_SRC}/timestamp.c
     ${BACNET_SRC}/basic/sys/days.c
+    ${BACNET_SRC}/basic/sys/keylist.c
     ${BACNET_SRC}/bacdevobjpropref.c
     ${BACNET_SRC}/bactext.c
     ${BACNET_SRC}/indtext.c
@@ -47,6 +55,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/wp.c
     ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/datalink/bvlc.c
+    ${BACNET_SRC}/basic/object/sc_netport.c
+    ${BACNET_SRC}/hostnport.c
     )
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)

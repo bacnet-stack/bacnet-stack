@@ -430,6 +430,11 @@ extern "C" {
     bool Network_Port_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    void Network_Port_Pending_Params_Apply(
+        uint32_t object_instance);
+    void Network_Port_Pending_Params_Discard(
+        uint32_t object_instance);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

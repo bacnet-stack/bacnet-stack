@@ -158,15 +158,22 @@ static const int BIP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
     PROP_SC_HUB_CONNECTOR_STATE, PROP_OPERATIONAL_CERTIFICATE_FILE,
     PROP_ISSUER_CERTIFICATE_FILES, PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
     /*SC optional*/ 
-    PROP_ROUTING_TABLE, PROP_SC_PRIMARY_HUB_CONNECTION_STATUS,
+  #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
+    PROP_ROUTING_TABLE,
+  #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
+  #ifdef BACNET_SECURE_CONNECT_HUB
+    PROP_SC_PRIMARY_HUB_CONNECTION_STATUS,
     PROP_SC_FAILOVER_HUB_CONNECTION_STATUS, PROP_SC_HUB_FUNCTION_ENABLE,
     PROP_SC_HUB_FUNCTION_ACCEPT_URIS, PROP_SC_HUB_FUNCTION_BINDING,
     PROP_SC_HUB_FUNCTION_CONNECTION_STATUS,
+  #endif /* BACNET_SECURE_CONNECT_HUB */
+  #ifdef BACNET_SECURE_CONNECT_DIRECT
     PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE,
     PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE, PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
     PROP_SC_DIRECT_CONNECT_BINDING, PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
+  #endif /* BACNET_SECURE_CONNECT_DIRECT */
     PROP_SC_FAILED_CONNECTION_REQUESTS,
-#endif
+#endif /* BACNET_SECURE_CONNECT */
     -1 };
 
 static const int BIP6_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
@@ -828,6 +835,9 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Changes_Pending = value;
+        if (value == false) {
+            Network_Port_Pending_Params_Discard(object_instance);
+        }
         status = true;
     }
 
@@ -2575,11 +2585,14 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
             break;
         /* SC optionals */ 
+#if BACNET_SECURE_CONNECT_ROUTING_TABLE
         case PROP_ROUTING_TABLE:
             ENCODE_KEYLIST_ARRAY(Network_Port_Routing_Table_Get,
                 bacapp_encode_RouterEntry, Network_Port_Routing_Table_Count,
                 BACNET_ROUTER_ENTRY);
             break;
+#endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
+#ifdef BACNET_SECURE_CONNECT_HUB
         case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
             apdu_len = bacapp_encode_SCHubConnection(&apdu[0],
                 Network_Port_SC_Primary_Hub_Connection_Status(
@@ -2610,6 +2623,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Network_Port_SC_Hub_Function_Connection_Status(
                     rpdata->object_instance));
             break;
+#endif /* BACNET_SECURE_CONNECT_HUB */
+#ifdef BACNET_SECURE_CONNECT_DIRECT
         case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
             apdu_len = encode_application_boolean(&apdu[0],
                 Network_Port_SC_Direct_Connect_Initiate_Enable(
@@ -2636,6 +2651,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Network_Port_SC_Direct_Connect_Connection_Status(
                     rpdata->object_instance));
             break;
+#endif /* BACNET_SECURE_CONNECT_DIRECT */
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
             ENCODE_KEYLIST_ARRAY(Network_Port_SC_Failed_Connection_Requests_Get,
                 bacapp_encode_SCFailedConnectionRequest, 
@@ -2759,24 +2775,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             DECODE_UNSIGNED(Network_Port_Max_NPDU_Length_Accepted_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
-        case PROP_SC_PRIMARY_HUB_URI:
-            status = write_property_empty_string_valid(wp_data, &value,
-                MAX_DEV_DESC_LEN);
-            if (status) {
-                status = Network_Port_SC_Primary_Hub_URI_Set(
-                    wp_data->object_instance,
-                    characterstring_value(&value.type.Character_String));
-            }
-            break;
-        case PROP_SC_FAILOVER_HUB_URI:
-            status = write_property_empty_string_valid(wp_data, &value,
-                MAX_DEV_DESC_LEN);
-            if (status) {
-                status = Network_Port_SC_Failover_Hub_URI_Set(
-                    wp_data->object_instance,
-                    characterstring_value(&value.type.Character_String));
-            }
-            break;
         case PROP_SC_MINIMUM_RECONNECT_TIME:
             DECODE_UNSIGNED(Network_Port_SC_Minimum_Reconnect_Time_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
@@ -2809,11 +2807,30 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             break;
         /* SC optionals */ 
+#ifdef BACNET_SECURE_CONNECT_HUB
+        case PROP_SC_PRIMARY_HUB_URI:
+            status = write_property_empty_string_valid(wp_data, &value,
+                MAX_DEV_DESC_LEN);
+            if (status) {
+                status = Network_Port_SC_Primary_Hub_URI_Dirty_Set(
+                    wp_data->object_instance,
+                    characterstring_value(&value.type.Character_String));
+            }
+            break;
+        case PROP_SC_FAILOVER_HUB_URI:
+            status = write_property_empty_string_valid(wp_data, &value,
+                MAX_DEV_DESC_LEN);
+            if (status) {
+                status = Network_Port_SC_Failover_Hub_URI_Dirty_Set(
+                    wp_data->object_instance,
+                    characterstring_value(&value.type.Character_String));
+            }
+            break;
         case PROP_SC_HUB_FUNCTION_ENABLE:
             status = write_property_type_valid(wp_data, &value,
                 BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                Network_Port_SC_Hub_Function_Enable_Set(
+                status = Network_Port_SC_Hub_Function_Enable_Dirty_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
@@ -2825,16 +2842,18 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_empty_string_valid(wp_data, &value,
                 MAX_DEV_DESC_LEN);
             if (status) {
-                status = Network_Port_SC_Hub_Function_Binding_Set(
+                status = Network_Port_SC_Hub_Function_Binding_Dirty_Set(
                     wp_data->object_instance,
                     characterstring_value(&value.type.Character_String));
             }
             break;
+#endif /* BACNET_SECURE_CONNECT_HUB */
+#ifdef BACNET_SECURE_CONNECT_DIRECT
         case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
             status = write_property_type_valid(wp_data, &value,
                 BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                Network_Port_SC_Direct_Connect_Initiate_Enable_Set(
+                status = Network_Port_SC_Direct_Connect_Initiate_Enable_Dirty_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
@@ -2842,7 +2861,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(wp_data, &value,
                 BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                Network_Port_SC_Direct_Connect_Accept_Enable_Set(
+                status = Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
@@ -2854,11 +2873,12 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_empty_string_valid(wp_data, &value,
                 MAX_DEV_DESC_LEN);
             if (status) {
-                status = Network_Port_SC_Direct_Connect_Binding_Set(
+                status = Network_Port_SC_Direct_Connect_Binding_Dirty_Set(
                     wp_data->object_instance,
                     characterstring_value(&value.type.Character_String));
             }
             break;
+#endif /* BACNET_SECURE_CONNECT_DIRECT */
         case PROP_OPERATIONAL_CERTIFICATE_FILE:
         case PROP_ISSUER_CERTIFICATE_FILES:
         case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:
@@ -2986,10 +3006,26 @@ void Network_Port_Init(void)
     /* do something interesting */
     for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
         memset(&Object_List[index], 0, sizeof(Object_List[index]));
-#if BACNET_SECURE_CONNECT
+#ifdef BACNET_SECURE_CONNECT
         BACNET_SC_PARAMS *sc = &Object_List[index].Secure_Connect;
+  #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
+  #endif
         sc->SC_Failed_Connection_Requests = Keylist_Create();
 #endif /* BACNET_SECURE_CONNECT */
     }
+}
+
+void Network_Port_Pending_Params_Apply(uint32_t object_instance)
+{
+#if BACNET_SECURE_CONNECT
+    Network_Port_SC_Pending_Params_Apply(object_instance);
+#endif /* BACNET_SECURE_CONNECT */
+}
+
+void Network_Port_Pending_Params_Discard(uint32_t object_instance)
+{
+#if BACNET_SECURE_CONNECT
+    Network_Port_SC_Pending_Params_Discard(object_instance);
+#endif /* BACNET_SECURE_CONNECT */
 }
