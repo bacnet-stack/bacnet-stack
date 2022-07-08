@@ -1734,43 +1734,79 @@ static void test_srv_stop_multiple_recv(void)
   while(!test_srv_stop_multiple_recv_worker());
 }
 
+static void test_srv_normal_disconnect(void)
+{
+  int ret;
+  char url[128];
+  BACNET_WEBSOCKET_HANDLE h;
+  BACNET_WEBSOCKET_HANDLE h2;
+
+  ret = srv->bws_start(40000, ca_cert, sizeof(ca_cert),
+                       server_cert, sizeof(server_cert), server_key,
+                       sizeof(server_key));
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+  ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION,
+                         url,
+                         ca_cert,
+                         sizeof(ca_cert),
+                         client_cert,
+                         sizeof(client_cert),
+                         client_key,
+                         sizeof(client_key),
+                         &h);
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  ret = srv->bws_accept(&h2);
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  ret = srv->bws_disconnect(h2);
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  ret = srv->bws_stop();
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  ret = cli->bws_disconnect(h);
+  zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+}
+
 void test_main(void)
 {
   // Tests must not be run in parallel threads!
   // Thats why tests functions are in differennt suites.
 
   ztest_test_suite(websocket_test_1,
-   ztest_unit_test(test_srv_bad_function_params));
+   ztest_unit_test(test_simple));
 
   ztest_test_suite(websocket_test_2,
-   ztest_unit_test(test_srv_stop_simple));
+   ztest_unit_test(test_srv_bad_function_params));
 
   ztest_test_suite(websocket_test_3,
-   ztest_unit_test(test_srv_stop_during_blocked_accept));
+   ztest_unit_test(test_srv_stop_simple));
 
   ztest_test_suite(websocket_test_4,
-   ztest_unit_test(test_srv_stop_during_blocked_send));
+   ztest_unit_test(test_srv_stop_during_blocked_accept));
 
   ztest_test_suite(websocket_test_5,
-   ztest_unit_test(test_srv_stop_during_blocked_recv));
+   ztest_unit_test(test_srv_stop_during_blocked_send));
 
   ztest_test_suite(websocket_test_6,
-   ztest_unit_test(test_srv_stop_multiple_accept));
+   ztest_unit_test(test_srv_stop_during_blocked_recv));
 
   ztest_test_suite(websocket_test_7,
-   ztest_unit_test(test_srv_recv_timeout));
+   ztest_unit_test(test_srv_stop_multiple_accept));
 
   ztest_test_suite(websocket_test_8,
-   ztest_unit_test(test_srv_stop_multiple_send));
+   ztest_unit_test(test_srv_recv_timeout));
 
   ztest_test_suite(websocket_test_9,
-   ztest_unit_test(test_srv_stop_multiple_recv));
+   ztest_unit_test(test_srv_stop_multiple_send));
 
   ztest_test_suite(websocket_test_10,
-   ztest_unit_test(test_simple));
+   ztest_unit_test(test_srv_stop_multiple_recv));
+
+  ztest_test_suite(websocket_test_11,
+   ztest_unit_test(test_srv_normal_disconnect));
 
   cli = bws_cli_get();
   srv = bws_srv_get();
+
   ztest_run_test_suite(websocket_test_1);
   ztest_run_test_suite(websocket_test_2);
   ztest_run_test_suite(websocket_test_3);
@@ -1781,4 +1817,5 @@ void test_main(void)
   ztest_run_test_suite(websocket_test_8);
   ztest_run_test_suite(websocket_test_9);
   ztest_run_test_suite(websocket_test_10);
+  ztest_run_test_suite(websocket_test_11);
 }
