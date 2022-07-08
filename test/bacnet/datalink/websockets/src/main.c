@@ -1766,6 +1766,39 @@ static void test_srv_normal_disconnect(void)
   zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
 
+static void test_srv_bad_send_recv(void)
+{
+  int ret;
+  char url[128];
+  BACNET_WEBSOCKET_HANDLE h;
+  BACNET_WEBSOCKET_HANDLE h2;
+  size_t r;
+
+
+  ret = srv->bws_start(40000, ca_cert, sizeof(ca_cert),
+                       server_cert, sizeof(server_cert), server_key,
+                       sizeof(server_key));
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+  ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION,
+                         url,
+                         ca_cert,
+                         sizeof(ca_cert),
+                         client_cert,
+                         sizeof(client_cert),
+                         client_key,
+                         sizeof(client_key),
+                         &h);
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  ret = srv->bws_send(0, (uint8_t *)url, sizeof(url));
+  zassert_equal(ret, BACNET_WEBSOCKET_INVALID_OPERATION, NULL);
+  ret = srv->bws_recv(0, (uint8_t *)url, sizeof(url), &r, 100000);
+  zassert_equal(ret, BACNET_WEBSOCKET_INVALID_OPERATION, NULL);
+  ret = srv->bws_stop();
+  zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+  ret = cli->bws_disconnect(h);
+  zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+}
 void test_main(void)
 {
   // Tests must not be run in parallel threads!
@@ -1804,6 +1837,9 @@ void test_main(void)
   ztest_test_suite(websocket_test_11,
    ztest_unit_test(test_srv_normal_disconnect));
 
+  ztest_test_suite(websocket_test_12,
+   ztest_unit_test(test_srv_bad_send_recv));
+
   cli = bws_cli_get();
   srv = bws_srv_get();
 
@@ -1818,4 +1854,5 @@ void test_main(void)
   ztest_run_test_suite(websocket_test_9);
   ztest_run_test_suite(websocket_test_10);
   ztest_run_test_suite(websocket_test_11);
+  ztest_run_test_suite(websocket_test_12);
 }
