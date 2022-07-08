@@ -20,12 +20,6 @@
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/debug.h"
 
-#ifdef DEBUG_ENABLED
-static bool bws_srv_debug = true;
-#else
-static bool bws_srv_debug = false;
-#endif
-
 typedef enum {
     BACNET_WEBSOCKET_STATE_IDLE = 0,
     BACNET_WEBSOCKET_STATE_CONNECTING,
@@ -129,19 +123,21 @@ static void bws_srv_enqueue_accept_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e
     } else if (bws_accept_head == bws_accept_tail) {
         e->last = bws_accept_head;
         e->next = NULL;
-        bws_accept_head->next = e;
         bws_accept_tail = e;
+        bws_accept_head->next = e;
     } else {
         e->last = bws_accept_tail;
         e->next = NULL;
         bws_accept_tail->next = e;
+        bws_accept_tail = e;
     }
     debug_printf("bws_srv_enqueue_accept_operation() <<<\n");
 }
 
 static void bws_srv_dequeue_accept_operation(void)
 {
-    debug_printf("bws_srv_dequeue_accept_operation() >>>\n");
+    debug_printf("bws_srv_dequeue_accept_operation() >>> e = %p\n", bws_accept_head);
+
     if (bws_accept_head == bws_accept_tail) {
         bws_accept_head = NULL;
         bws_accept_tail = NULL;
@@ -149,6 +145,7 @@ static void bws_srv_dequeue_accept_operation(void)
         bws_accept_head->next->last = NULL;
         bws_accept_head = bws_accept_head->next;
     }
+
     debug_printf("bws_srv_dequeue_accept_operation() <<<\n");
 }
 
@@ -176,12 +173,13 @@ static void bws_srv_enqueue_recv_operation(
     } else if (c->recv_head == c->recv_tail) {
         e->last = c->recv_head;
         e->next = NULL;
-        c->recv_head->next = e;
         c->recv_tail = e;
+        c->recv_head->next = e;
     } else {
         e->last = c->recv_tail;
         e->next = NULL;
         c->recv_tail->next = e;
+        c->recv_tail = e;
     }
     debug_printf("bws_srv_enqueue_recv_operation() <<< \n");
 }
@@ -215,7 +213,6 @@ static void bws_srv_enqueue_send_operation(
     BACNET_WEBSOCKET_CONNECTION *c, BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
     debug_printf("bws_srv_enqueue_send_operation() >>> c = %p, e = %p\n", c, e);
-
     if (c->send_head == NULL && c->send_tail == NULL) {
         c->send_head = e;
         c->send_tail = e;
@@ -224,12 +221,13 @@ static void bws_srv_enqueue_send_operation(
     } else if (c->send_head == c->send_tail) {
         e->last = c->send_head;
         e->next = NULL;
-        c->send_head->next = e;
         c->send_tail = e;
+        c->send_head->next = e;
     } else {
         e->last = c->send_tail;
         e->next = NULL;
         c->send_tail->next = e;
+        c->send_tail = e;
     }
     debug_printf("bws_srv_enqueue_send_operation() <<<\n");
 }
@@ -358,9 +356,11 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         // wakeup worker to process incoming data
                         lws_cancel_service(bws_srv_ctx);
                     }
+#ifdef DEBUG_ENABLED
                     else {
                         debug_printf("bws_srv_websocket_event() drop %d bytes of data on socket %d\n", len, h);
                     }
+#endif
                 }
             }
             break;
@@ -525,7 +525,7 @@ static BACNET_WEBSOCKET_RET bws_srv_start(int port,
         return BACNET_WEBSOCKET_INVALID_OPERATION;
     }
 
-#ifdef DEBUG_ENABLED
+#if DEBUG_ENABLED == 1
     lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG |
                       LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY |
                       LLL_USER | LLL_THREAD, NULL);
@@ -573,7 +573,13 @@ static BACNET_WEBSOCKET_RET bws_srv_accept(BACNET_WEBSOCKET_HANDLE *out_handle)
     BACNET_WEBSOCKET_OPERATION_ENTRY e;
     debug_printf("bws_srv_accept() >>> out_handle = %p\n");
 
+    if(!out_handle) {
+        debug_printf("bws_srv_accept() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
+        return BACNET_WEBSOCKET_BAD_PARAM;
+    }
+
     *out_handle = BACNET_WEBSOCKET_INVALID_HANDLE;
+
     pthread_mutex_lock(&bws_srv_mutex);
 
     if (bws_srv_stop_worker) {
