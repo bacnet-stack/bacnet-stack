@@ -17,6 +17,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 
+#define BACNET_WEBSOCKET_TIMEOUT_SECONDS 10
 #define BACNET_WEBSOCKET_DEBUG_ENABLED 1
 #define BACNET_CLIENT_WEBSOCKETS_MAX_NUM 4
 /* constant must be a power of 2 */

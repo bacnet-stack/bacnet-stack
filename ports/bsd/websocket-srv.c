@@ -434,9 +434,6 @@ static int bws_srv_websocket_event(struct lws *wsi,
             }
             break;
         }
-        case LWS_CALLBACK_EVENT_WAIT_CANCELLED: {
-            break;
-        }
         default: {
             break;
         }
@@ -596,6 +593,9 @@ static BACNET_WEBSOCKET_RET bws_srv_start(int port,
     info.server_ssl_private_key_mem = key;
     info.server_ssl_private_key_mem_len = key_size;
     info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+    info.timeout_secs = BACNET_WEBSOCKET_TIMEOUT_SECONDS;
+    info.connect_timeout_secs = BACNET_WEBSOCKET_TIMEOUT_SECONDS;
+
     bws_srv_ctx = lws_create_context(&info);
 
     if (!bws_srv_ctx) {

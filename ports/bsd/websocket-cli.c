@@ -45,6 +45,7 @@ typedef struct {
     FIFO_DATA_STORE(in_data_buf, BACNET_CLIENT_WEBSOCKET_RX_BUFFER_SIZE);
     BACNET_WEBSOCKET_EVENTS events;
     BACNET_WEBSOCKET_CONNECTION_TYPE type;
+    int wait_threads_cnt;
 } BACNET_WEBSOCKET_CONNECTION;
 
 // Some forward function declarations
@@ -319,17 +320,14 @@ static int bws_cli_websocket_event(struct lws *wsi,
         case LWS_CALLBACK_CLOSED:
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR: {
               if(bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_CONNECTING) {
-                printf("got disconnect while connecting reason = %d\n", reason);
-                printf("desc = %s\n", (char*)in);
+                debug_printf("got disconnect while connecting reason = %d\n", reason);
+                debug_printf("desc = %s\n", (char*)in);
               }
 
             debug_printf("bws_cli_websocket_event() connection closed, reason = %d\n", reason);
             bws_cli_conn[h].events.closed = 1;
             // wakeup worker to process pending vent
             lws_cancel_service(bws_cli_conn[h].ctx);
-            break;
-        }
-        case LWS_CALLBACK_EVENT_WAIT_CANCELLED: {
             break;
         }
         default: {
@@ -348,7 +346,9 @@ static void *bws_cli_worker(void *arg)
     BACNET_WEBSOCKET_STATE old_state;
 
     while (1) {
+        debug_printf("bws_cli_worker() lock mutex\n");
         pthread_mutex_lock(&bws_cli_mutex);
+        debug_printf("bws_cli_worker() unlock mutex\n");
         debug_printf("bws_cli_worker() unblocked, socket = %d, socket state = %d\n", h, conn->state);
         if (conn->events.closed ||
             conn->state == BACNET_WEBSOCKET_STATE_DISCONNECTING) {
@@ -367,7 +367,9 @@ static void *bws_cli_worker(void *arg)
             pthread_cond_broadcast(&conn->cond);
 
             if (old_state == BACNET_WEBSOCKET_STATE_CONNECTED) {
-                bws_cli_free_connection_ptr(conn);
+                if(bws_cli_conn[h].wait_threads_cnt == 0) {
+                    bws_cli_free_connection_ptr(conn);
+                }
             }
             pthread_mutex_unlock(&bws_cli_mutex);
             break;
@@ -412,19 +414,23 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE typ
 {
     struct lws_context_creation_info info = { 0 };
     char tmp_url[BACNET_WSURL_MAX_LEN];
-    const char *prot, *addr, *path;
-    int port;
+    const char *prot = NULL, *addr = NULL, *path = NULL;
+    int port = - 1;
     BACNET_WEBSOCKET_HANDLE h;
     struct lws_client_connect_info cinfo = { 0 };
     BACNET_WEBSOCKET_RET ret;
 
+    debug_printf("bws_cli_connect() >>> type = %d, url = %s\n", type, url);
+
     if (!ca_cert || !ca_cert_size || !cert || !cert_size || !key || !key_size ||
         !url || !out_handle) {
+        debug_printf("bws_cli_connect() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
     if (type != BACNET_WEBSOCKET_HUB_CONNECTION &&
         type != BACNET_WEBSOCKET_DIRECT_CONNECTION) {
+        debug_printf("bws_cli_connect() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
@@ -440,12 +446,17 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE typ
     lws_set_log_level(0, NULL);
 #endif
 
-    if (lws_parse_uri(tmp_url, &prot, &addr, &port, &path) != 0) {
+    (void) lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
+
+    if(port == -1 || !prot || !addr || !path ) {
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_connect() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
     if (strcmp(prot, "wss") != 0) {
+        pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_connect() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
@@ -453,6 +464,7 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE typ
 
     if (h == BACNET_WEBSOCKET_INVALID_HANDLE) {
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_connect() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES\n");
         return BACNET_WEBSOCKET_NO_RESOURCES;
     }
 
@@ -467,12 +479,15 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE typ
     info.client_ssl_key_mem = key;
     info.client_ssl_key_mem_len = key_size;
     info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+    info.timeout_secs = BACNET_WEBSOCKET_TIMEOUT_SECONDS;
+    info.connect_timeout_secs = BACNET_WEBSOCKET_TIMEOUT_SECONDS;
 
     bws_cli_conn[h].ctx = lws_create_context(&info);
 
     if (!bws_cli_conn[h].ctx) {
         bws_cli_free_connection(h);
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_connect() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES\n");
         return BACNET_WEBSOCKET_NO_RESOURCES;
     }
 
@@ -483,6 +498,7 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE typ
         bws_cli_free_connection(h);
         lws_context_destroy(bws_cli_conn[h].ctx);
         pthread_mutex_unlock(&bws_cli_mutex);
+        debug_printf("bws_cli_connect() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES\n");
         return BACNET_WEBSOCKET_NO_RESOURCES;
     }
 
@@ -512,22 +528,30 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE typ
     lws_client_connect_via_info(&cinfo);
 
     // let's unblock worker thread and wait for connection over websocket
+    debug_printf("bws_cli_connect() going to block on pthread_cond_wait()\n");
+    bws_cli_conn[h].wait_threads_cnt++;
     while (bws_cli_conn[h].state != BACNET_WEBSOCKET_STATE_CONNECTED &&
         bws_cli_conn[h].state != BACNET_WEBSOCKET_STATE_DISCONNECTED) {
         pthread_cond_wait(&bws_cli_conn[h].cond, &bws_cli_mutex);
     }
 
+    debug_printf("bws_cli_connect() unblocked\n");
+    bws_cli_conn[h].wait_threads_cnt--;
+
     if (bws_cli_conn[h].state == BACNET_WEBSOCKET_STATE_CONNECTED) {
         *out_handle = h;
         ret = BACNET_WEBSOCKET_SUCCESS;
     } else {
-        printf("socket %d state = %d\n", h, bws_cli_conn[h].state );
-        bws_cli_free_connection(h);
+        debug_printf("socket %d state = %d\n", h, bws_cli_conn[h].state );
+        if(bws_cli_conn[h].wait_threads_cnt == 0) {
+            bws_cli_free_connection(h);
+        }
         *out_handle = BACNET_WEBSOCKET_INVALID_HANDLE;
         ret = BACNET_WEBSOCKET_CLOSED;
     }
 
     pthread_mutex_unlock(&bws_cli_mutex);
+    debug_printf("bws_cli_connect() <<< ret = %d\n", ret);
     return ret;
 }
 
@@ -558,11 +582,15 @@ static BACNET_WEBSOCKET_RET bws_cli_disconnect(BACNET_WEBSOCKET_HANDLE h)
         lws_cancel_service(bws_cli_conn[h].ctx);
         // let's wait while worker thread processes changes
         debug_printf("bws_cli_disconnect() going to block on pthread_cond_wait()\n");
+        bws_cli_conn[h].wait_threads_cnt++;
         while (bws_cli_conn[h].state != BACNET_WEBSOCKET_STATE_DISCONNECTED) {
             pthread_cond_wait(&bws_cli_conn[h].cond, &bws_cli_mutex);
         }
+        bws_cli_conn[h].wait_threads_cnt--;
         debug_printf("bws_cli_disconnect() unblocked\n");
-        bws_cli_free_connection(h);
+        if(bws_cli_conn[h].wait_threads_cnt == 0) {
+            bws_cli_free_connection(h);
+        }
     }
     pthread_mutex_unlock(&bws_cli_mutex);
     debug_printf("bws_cli_disconnect() <<< ret = BACNET_WEBSOCKET_SUCCESS\n");

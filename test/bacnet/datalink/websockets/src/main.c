@@ -2173,6 +2173,238 @@ static void test_srv_stop_during_multiple_accept(void)
     zassert_equal(ret, BACNET_WEBSOCKET_INVALID_OPERATION, NULL);
 }
 
+static void test_cli_bad_function_params(void)
+{
+    int ret;
+    BACNET_WEBSOCKET_HANDLE h;
+    uint8_t buf[128];
+    size_t bufsize = sizeof(buf);
+    size_t r;
+    char url[128];
+
+    sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+
+    ret = cli->bws_connect(5, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h);
+
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, NULL, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h);
+
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+
+    sprintf(url, "ws://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h);
+
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+
+    sprintf(url, "wss:://///dafsdfsdsd23");
+
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h);
+
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+
+    sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        48000);
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h);
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+
+    ret = cli->bws_disconnect(BACNET_CLIENT_WEBSOCKETS_MAX_NUM + 1);
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+
+    ret = cli->bws_send(BACNET_CLIENT_WEBSOCKETS_MAX_NUM + 1, buf, sizeof(buf));
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+
+    ret = cli->bws_send(0, NULL, sizeof(buf));
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+
+    ret = cli->bws_send(0, buf, sizeof(buf));
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+
+    ret = cli->bws_recv(BACNET_CLIENT_WEBSOCKETS_MAX_NUM + 1, buf, sizeof(buf), &r, 100000);
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+
+    ret = cli->bws_recv(0, NULL, sizeof(buf), &r, 100000);
+    zassert_equal(ret, BACNET_WEBSOCKET_BAD_PARAM, NULL);
+    ret = cli->bws_recv(0, buf, sizeof(buf), &r, 100000);
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+}
+
+static void test_cli_recv_timeout(void)
+{
+    int ret;
+    int ret1;
+    int ret2;
+    char url[128];
+    BACNET_WEBSOCKET_HANDLE h;
+    BACNET_WEBSOCKET_HANDLE h2;
+    uint8_t buf[128];
+    size_t bufsize = sizeof(buf);
+    size_t r;
+
+    ret = srv->bws_start(40000, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_recv(h, buf, sizeof(buf), &r, 1);
+    zassert_equal(ret, BACNET_WEBSOCKET_TIMEDOUT, NULL);
+    ret = srv->bws_stop();
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_disconnect(h);
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+}
+
+BACNET_WEBSOCKET_HANDLE test_cli_disconnect_during_multiple_send_h;
+
+static void *test_cli_disconnect_during_multiple_send_th(void *arg)
+{
+    int ret;
+    uint8_t buf[128];
+    ret = cli->bws_send(test_cli_disconnect_during_multiple_send_h, buf, sizeof(buf));
+    *(int *)arg = ret;
+    return NULL;
+}
+
+static bool test_cli_disconnect_during_multiple_send_worker(void)
+{
+    int ret;
+    int rets[TEST_THREAD_NUM];
+    char url[128];
+    BACNET_WEBSOCKET_HANDLE h2;
+    uint8_t buf[128];
+    size_t bufsize = sizeof(buf);
+    size_t r;
+    pthread_t pid[TEST_THREAD_NUM];
+    int i;
+
+    ret = srv->bws_start(40000, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &test_cli_disconnect_during_multiple_send_h);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    ret = srv->bws_accept(&h2);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    for (i = 0; i < TEST_THREAD_NUM; i++) {
+        ret = pthread_create(&pid[i], NULL,
+            &test_cli_disconnect_during_multiple_send_th, &rets[i]);
+        zassert_equal(ret, 0, NULL);
+    }
+
+    ret = cli->bws_disconnect(test_cli_disconnect_during_multiple_send_h);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    for (i = 0; i < TEST_THREAD_NUM; i++) {
+        pthread_join(pid[i], NULL);
+    }
+
+    ret = srv->bws_stop();
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_disconnect(test_cli_disconnect_during_multiple_send_h);
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+    for (i = 0; i < TEST_THREAD_NUM; i++) {
+        if(rets[i] == BACNET_WEBSOCKET_OPERATION_IN_PROGRESS)
+            return true;
+    }
+    return false;
+}
+
+static void test_cli_disconnect_during_multiple_send(void)
+{
+    while(!test_cli_disconnect_during_multiple_send_worker());
+}
+
+BACNET_WEBSOCKET_HANDLE test_cli_disconnect_during_multiple_recv_h;
+
+static void *test_cli_disconnect_during_multiple_recv_th(void *arg)
+{
+    int ret;
+    uint8_t buf[128];
+    size_t r;
+
+    ret = cli->bws_recv(test_cli_disconnect_during_multiple_recv_h, buf, sizeof(buf), &r, 100000);
+    *(int *)arg = ret;
+    return NULL;
+}
+
+static bool test_cli_disconnect_during_multiple_recv_worker(void)
+{
+    int ret;
+    int rets[TEST_THREAD_NUM];
+    char url[128];
+    BACNET_WEBSOCKET_HANDLE h2;
+    uint8_t buf[128];
+    size_t bufsize = sizeof(buf);
+    size_t r;
+    pthread_t pids[TEST_THREAD_NUM];
+    int i;
+
+    ret = srv->bws_start(40000, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+
+    ret = cli->bws_connect(BACNET_WEBSOCKET_HUB_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &test_cli_disconnect_during_multiple_recv_h);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    ret = srv->bws_accept(&h2);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    for (i = 0; i < TEST_THREAD_NUM; i++) {
+        ret = pthread_create(&pids[i], NULL,
+            &test_cli_disconnect_during_multiple_recv_th, &rets[i]);
+        zassert_equal(ret, 0, NULL);
+    }
+
+    ret = cli->bws_disconnect(test_cli_disconnect_during_multiple_recv_h);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    ret = srv->bws_stop();
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_disconnect(test_cli_disconnect_during_multiple_recv_h);
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+
+    for (i = 0; i < TEST_THREAD_NUM; i++) {
+        if(rets[i] == BACNET_WEBSOCKET_OPERATION_IN_PROGRESS)
+            return true;
+    }
+
+    return false;
+}
+
+static void test_cli_disconnect_during_multiple_recv(void)
+{
+    while(!test_cli_disconnect_during_multiple_recv_worker());
+}
+
 void test_main(void)
 {
     // Tests must not be run in parallel threads!
@@ -2181,89 +2413,105 @@ void test_main(void)
     cli = bws_cli_get();
     srv = bws_srv_get();
 
-    ztest_test_suite(websocket_test_1, ztest_unit_test(test_simple));
+    ztest_test_suite(websocket_srv_test_1, ztest_unit_test(test_simple));
 
     ztest_test_suite(
-        websocket_test_2, ztest_unit_test(test_srv_bad_function_params));
+        websocket_srv_test_2, ztest_unit_test(test_srv_bad_function_params));
 
-    ztest_test_suite(websocket_test_3, ztest_unit_test(test_srv_stop_simple));
-
-    ztest_test_suite(
-        websocket_test_4, ztest_unit_test(test_srv_stop_during_blocked_accept));
+    ztest_test_suite(websocket_srv_test_3, ztest_unit_test(test_srv_stop_simple));
 
     ztest_test_suite(
-        websocket_test_5, ztest_unit_test(test_srv_stop_during_blocked_send));
+        websocket_srv_test_4, ztest_unit_test(test_srv_stop_during_blocked_accept));
 
     ztest_test_suite(
-        websocket_test_6, ztest_unit_test(test_srv_stop_during_blocked_recv));
+        websocket_srv_test_5, ztest_unit_test(test_srv_stop_during_blocked_send));
 
     ztest_test_suite(
-        websocket_test_7, ztest_unit_test(test_srv_stop_multiple_accept));
-
-    ztest_test_suite(websocket_test_8, ztest_unit_test(test_srv_recv_timeout));
+        websocket_srv_test_6, ztest_unit_test(test_srv_stop_during_blocked_recv));
 
     ztest_test_suite(
-        websocket_test_9, ztest_unit_test(test_srv_stop_multiple_send));
+        websocket_srv_test_7, ztest_unit_test(test_srv_stop_multiple_accept));
+
+    ztest_test_suite(websocket_srv_test_8, ztest_unit_test(test_srv_recv_timeout));
 
     ztest_test_suite(
-        websocket_test_10, ztest_unit_test(test_srv_stop_multiple_recv));
+        websocket_srv_test_9, ztest_unit_test(test_srv_stop_multiple_send));
 
     ztest_test_suite(
-        websocket_test_11, ztest_unit_test(test_srv_normal_disconnect));
+        websocket_srv_test_10, ztest_unit_test(test_srv_stop_multiple_recv));
 
     ztest_test_suite(
-        websocket_test_12, ztest_unit_test(test_srv_bad_send_recv));
+        websocket_srv_test_11, ztest_unit_test(test_srv_normal_disconnect));
 
     ztest_test_suite(
-        websocket_test_13, ztest_unit_test(test_srv_multiple_disconnect));
+        websocket_srv_test_12, ztest_unit_test(test_srv_bad_send_recv));
 
-    ztest_test_suite(websocket_test_14,
+    ztest_test_suite(
+        websocket_srv_test_13, ztest_unit_test(test_srv_multiple_disconnect));
+
+    ztest_test_suite(websocket_srv_test_14,
         ztest_unit_test(test_srv_stop_during_multiple_disconnect));
 
-    ztest_test_suite(websocket_test_15,
+    ztest_test_suite(websocket_srv_test_15,
         ztest_unit_test(test_srv_disconnect_during_multiple_recv));
 
-    ztest_test_suite(websocket_test_16,
+    ztest_test_suite(websocket_srv_test_16,
         ztest_unit_test(test_srv_disconnect_during_multiple_send));
 
-    ztest_test_suite(websocket_test_17,
+    ztest_test_suite(websocket_srv_test_17,
         ztest_unit_test(test_srv_disconnect_in_disconnected_state));
 
-    ztest_test_suite(websocket_test_18,
+    ztest_test_suite(websocket_srv_test_18,
         ztest_unit_test(test_srv_recv_in_disconnected_state));
 
-    ztest_test_suite(websocket_test_19,
+    ztest_test_suite(websocket_srv_test_19,
         ztest_unit_test(test_srv_send_in_disconnected_state));
 
-    ztest_test_suite(websocket_test_20,
+    ztest_test_suite(websocket_srv_test_20,
         ztest_unit_test(test_srv_disconnect_in_connecting_state));
 
     ztest_test_suite(
-        websocket_test_21, ztest_unit_test(test_srv_multiple_stop));
+        websocket_srv_test_21, ztest_unit_test(test_srv_multiple_stop));
 
-    ztest_test_suite(websocket_test_22,
+    ztest_test_suite(websocket_srv_test_22,
         ztest_unit_test(test_srv_stop_during_multiple_accept));
 
-    ztest_run_test_suite(websocket_test_1);
-    ztest_run_test_suite(websocket_test_2);
-    ztest_run_test_suite(websocket_test_3);
-    ztest_run_test_suite(websocket_test_4);
-    ztest_run_test_suite(websocket_test_5);
-    ztest_run_test_suite(websocket_test_6);
-    ztest_run_test_suite(websocket_test_7);
-    ztest_run_test_suite(websocket_test_8);
-    ztest_run_test_suite(websocket_test_9);
-    ztest_run_test_suite(websocket_test_10);
-    ztest_run_test_suite(websocket_test_11);
-    ztest_run_test_suite(websocket_test_12);
-    ztest_run_test_suite(websocket_test_13);
-    ztest_run_test_suite(websocket_test_14);
-    ztest_run_test_suite(websocket_test_15);
-    ztest_run_test_suite(websocket_test_16);
-    ztest_run_test_suite(websocket_test_17);
-    ztest_run_test_suite(websocket_test_18);
-    ztest_run_test_suite(websocket_test_19);
-    ztest_run_test_suite(websocket_test_20);
-    ztest_run_test_suite(websocket_test_21);
-    ztest_run_test_suite(websocket_test_22);
+    ztest_test_suite(websocket_cli_test_1,
+        ztest_unit_test(test_cli_bad_function_params));
+
+    ztest_test_suite(websocket_cli_test_2,
+        ztest_unit_test(test_cli_recv_timeout));
+
+    ztest_test_suite(websocket_cli_test_3,
+        ztest_unit_test(test_cli_disconnect_during_multiple_send));
+
+    ztest_test_suite(websocket_cli_test_4,
+        ztest_unit_test(test_cli_disconnect_during_multiple_recv));
+
+    ztest_run_test_suite(websocket_srv_test_1);
+    ztest_run_test_suite(websocket_srv_test_2);
+    ztest_run_test_suite(websocket_srv_test_3);
+    ztest_run_test_suite(websocket_srv_test_4);
+    ztest_run_test_suite(websocket_srv_test_5);
+    ztest_run_test_suite(websocket_srv_test_6);
+    ztest_run_test_suite(websocket_srv_test_7);
+    ztest_run_test_suite(websocket_srv_test_8);
+    ztest_run_test_suite(websocket_srv_test_9);
+    ztest_run_test_suite(websocket_srv_test_10);
+    ztest_run_test_suite(websocket_srv_test_11);
+    ztest_run_test_suite(websocket_srv_test_12);
+    ztest_run_test_suite(websocket_srv_test_13);
+    ztest_run_test_suite(websocket_srv_test_14);
+    ztest_run_test_suite(websocket_srv_test_15);
+    ztest_run_test_suite(websocket_srv_test_16);
+    ztest_run_test_suite(websocket_srv_test_17);
+    ztest_run_test_suite(websocket_srv_test_18);
+    ztest_run_test_suite(websocket_srv_test_19);
+    ztest_run_test_suite(websocket_srv_test_20);
+    ztest_run_test_suite(websocket_srv_test_21);
+    ztest_run_test_suite(websocket_srv_test_22);
+    ztest_run_test_suite(websocket_cli_test_1);
+    ztest_run_test_suite(websocket_cli_test_2);
+    ztest_run_test_suite(websocket_cli_test_3);
+    ztest_run_test_suite(websocket_cli_test_4);
 }
