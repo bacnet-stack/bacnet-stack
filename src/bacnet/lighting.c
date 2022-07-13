@@ -414,7 +414,7 @@ int xy_color_context_decode(uint8_t *apdu,
     int len = 0;
     int rlen = 0;
     int apdu_len = 0;
-    BACNET_XY_COLOR color;
+    BACNET_XY_COLOR color = { 0.0, 0.0 };
 
     if (apdu_size > 0) {
         if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {

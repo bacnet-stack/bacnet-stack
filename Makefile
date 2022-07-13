@@ -251,6 +251,7 @@ CPPCHECK_OPTIONS = --enable=warning,portability
 CPPCHECK_OPTIONS += --template=gcc
 CPPCHECK_OPTIONS += --suppress=selfAssignment
 CPPCHECK_OPTIONS += --suppress=integerOverflow
+CPPCHECK_OPTIONS += --suppress=nullPointer
 CPPCHECK_OPTIONS += --error-exitcode=1
 .PHONY: cppcheck
 cppcheck:
