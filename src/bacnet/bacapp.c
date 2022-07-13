@@ -1366,6 +1366,9 @@ static int bacapp_snprintf_date(char *str, size_t str_len, BACNET_DATE *bdate)
     int ret_val = 0;
     int slen = 0;
 
+    // false positive cppcheck - snprintf allows null pointers
+    // cppcheck-suppress nullPointer
+    // cppcheck-suppress ctunullpointer
     slen = snprintf(str, str_len, "%s, %s",
         bactext_day_of_week_name(bdate->wday),
         bactext_month_name(bdate->month));
@@ -1419,7 +1422,9 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
     if (btime->hour == 255) {
         slen = snprintf(str, str_len, "**:");
     } else {
-        slen= snprintf(str, str_len, "%02u:",
+        // false positive cppcheck - snprintf allows null pointers
+        // cppcheck-suppress nullPointer
+        slen = snprintf(str, str_len, "%02u:",
             (unsigned)btime->hour);
     }
     if (str) {

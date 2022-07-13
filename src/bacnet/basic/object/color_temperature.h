@@ -112,6 +112,20 @@ bool Color_Temperature_Default_Fade_Time_Set(
     uint32_t object_instance, uint32_t value);
 
 BACNET_STACK_EXPORT
+uint32_t Color_Temperature_Default_Ramp_Rate(
+    uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Color_Temperature_Default_Ramp_Rate_Set(
+    uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
+uint32_t Color_Temperature_Default_Step_Increment(
+    uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Color_Temperature_Default_Step_Increment_Set(
+    uint32_t object_instance, uint32_t value);
+
+BACNET_STACK_EXPORT
 BACNET_COLOR_OPERATION_IN_PROGRESS Color_Temperature_In_Progress(
     uint32_t object_instance);
 BACNET_STACK_EXPORT

@@ -809,7 +809,6 @@ int Color_Temperature_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     int apdu_len = 0; /* return value */
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
-    BACNET_XY_COLOR color_value = { 0.0, 0.0 };
     BACNET_COLOR_COMMAND color_command = { 0 };
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||

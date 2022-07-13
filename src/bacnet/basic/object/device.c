@@ -77,6 +77,7 @@
 #endif /* defined(BACFILE) */
 #if (BACNET_PROTOCOL_REVISION >= 24)
 #include "bacnet/basic/object/color_object.h"
+#include "bacnet/basic/object/color_temperature.h"
 #endif
 
 /* local forward (semi-private) and external prototypes */
@@ -231,6 +232,12 @@ static object_functions_t My_Object_Table[] = {
         Color_Index_To_Instance, Color_Valid_Instance,
         Color_Object_Name, Color_Read_Property,
         Color_Write_Property, Color_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+    { OBJECT_COLOR_TEMPERATURE, Color_Temperature_Init, Color_Temperature_Count,
+        Color_Temperature_Index_To_Instance, Color_Temperature_Valid_Instance,
+        Color_Temperature_Object_Name, Color_Temperature_Read_Property,
+        Color_Temperature_Write_Property, Color_Temperature_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif

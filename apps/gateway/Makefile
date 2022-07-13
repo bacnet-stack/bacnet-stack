@@ -14,6 +14,8 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
+	$(BACNET_OBJECT_DIR)/color_object.c \
+	$(BACNET_OBJECT_DIR)/color_temperature.c \
 	$(BACNET_OBJECT_DIR)/command.c \
 	$(BACNET_OBJECT_DIR)/csv.c \
 	$(BACNET_OBJECT_DIR)/device.c \
