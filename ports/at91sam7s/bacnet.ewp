@@ -1182,6 +1182,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\rpm.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\timestamp.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\whohas.c</name>
         </file>
         <file>

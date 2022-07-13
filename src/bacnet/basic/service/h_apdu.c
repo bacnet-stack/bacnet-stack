@@ -313,7 +313,7 @@ static union {
  * @param service_choice  Service, see SERVICE_CONFIRMED_X enumeration.
  * @return true if the service uses a Complex Error function
  */
-bool apdu_complex_error(BACNET_CONFIRMED_SERVICE service_choice)
+bool apdu_complex_error(uint8_t service_choice)
 {
     bool status = false;
 
@@ -547,8 +547,8 @@ void apdu_handler(BACNET_ADDRESS *src,
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
     int len = 0; /* counts where we are in PDU */
-    uint32_t error_code = 0;
-    uint32_t error_class = 0;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
     uint8_t reason = 0;
     bool server = false;
 

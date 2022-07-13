@@ -745,7 +745,6 @@ void bip_set_interface(char *ifname)
 {
     struct in_addr local_address;
     struct in_addr netmask;
-    short flags;
     int rv = 0;
 
     /* setup local address */

@@ -127,6 +127,7 @@ CORESRC =  \
 	$(BACNET_CORE)/bacint.c \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
+	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
@@ -237,6 +238,7 @@ CFLAGS += -fshort-enums
 CFLAGS += -Wall
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
+CFLAGS += -Wno-char-subscripts
 # put it all together
 CFLAGS += -gdwarf-2 $(BFLAGS) $(OPTIMIZATION)
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d

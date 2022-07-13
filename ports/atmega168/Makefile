@@ -112,6 +112,8 @@ CFLAGS = $(COMMON)
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
+# silence some warnings
+CFLAGS += -Wno-switch
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)

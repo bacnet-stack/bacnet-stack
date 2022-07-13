@@ -61,6 +61,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacreal.c \
 	$(BACNET_CORE)/bacstr.c \
 	$(BACNET_CORE)/datalink/crc.c \
+	$(BACNET_CORE)/datetime.c \
 	$(BACNET_CORE)/dcc.c \
 	$(BACNET_CORE)/iam.c \
 	$(BACNET_CORE)/ihave.c \
@@ -73,6 +74,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c
@@ -158,6 +160,8 @@ CFLAGS += -Wall
 CFLAGS += -Wno-missing-braces
 # don't warn about missing prototypes since STM32 library doesn't have some
 CFLAGS += -Wno-missing-prototypes
+# don't warn about array subscript being char
+CFLAGS += -Wno-char-subscripts
 
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
