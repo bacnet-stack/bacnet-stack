@@ -49,6 +49,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${PORTS_DIR}/linux/websocket-cli.c
     ${PORTS_DIR}/linux/websocket-srv.c
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

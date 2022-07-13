@@ -459,7 +459,7 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_CONNECTION_TYPE typ
     lws_set_log_level(0, NULL);
 #endif
 
-    (void) lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
+    ret = lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
 
     if(port == -1 || !prot || !addr || !path ) {
         pthread_mutex_unlock(&bws_cli_mutex);
