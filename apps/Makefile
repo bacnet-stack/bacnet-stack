@@ -139,7 +139,7 @@ SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	server-client
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-	SUBDIRS += whoisrouter iamrouter initrouter
+	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
 	ifneq (${BBMD},none)
 	SUBDIRS += readbdt readfdt writebdt
 	endif
@@ -211,6 +211,14 @@ iamrouter: $(BACNET_LIB_TARGET)
 
 .PHONY: initrouter
 initrouter: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@
+
+.PHONY: whatisnetnum
+whatisnetnum: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@
+
+.PHONY: netnumis
+netnumis: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: mstpcap

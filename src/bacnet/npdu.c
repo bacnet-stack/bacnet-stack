@@ -286,6 +286,36 @@ void npdu_encode_npdu_data(BACNET_NPDU_DATA *npdu_data,
     }
 }
 
+/** Initialize an npdu_data structure with given parameters and good defaults,
+ * and add the Network Layer Message fields.
+ * The name is a misnomer, as it doesn't do any actual encoding here.
+ * @see npdu_encode_npdu_data for a simpler version to use when sending an
+ *           APDU instead of a Network Layer Message.
+ *
+ * @param npdu_data [out] Returns a filled-out structure with information
+ * 					 provided by the other arguments and
+ * good defaults.
+ * @param network_message_type [in] The type of Network Layer Message.
+ * @param data_expecting_reply [in] True if message should have a reply.
+ * @param priority [in] One of the 4 priorities defined in section 6.2.2,
+ *                      like B'11' = Life Safety message
+ */
+void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
+    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
+    bool data_expecting_reply,
+    BACNET_MESSAGE_PRIORITY priority)
+{
+    if (npdu_data) {
+        npdu_data->data_expecting_reply = data_expecting_reply;
+        npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
+        npdu_data->network_layer_message = true; /* false if APDU */
+        npdu_data->network_message_type = network_message_type; /* optional */
+        npdu_data->vendor_id = 0; /* optional, if net message type is > 0x80 */
+        npdu_data->priority = priority;
+        npdu_data->hop_count = HOP_COUNT_DEFAULT;
+    }
+}
+
 /** Decode the NPDU portion of a received message, particularly the NCPI byte.
  *  The Network Layer Protocol Control Information byte is described
  *  in section 6.2.2 of the BACnet standard.

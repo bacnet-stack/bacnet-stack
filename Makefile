@@ -109,6 +109,14 @@ readfdt:
 writebdt:
 	$(MAKE) -s -C apps $@
 
+.PHONY: whatisnetnum
+whatisnetnum:
+	$(MAKE) -s -C apps $@
+
+.PHONY: netnumis
+netnumis:
+	$(MAKE) -s -C apps $@
+
 .PHONY: server
 server:
 	$(MAKE) -s -C apps $@

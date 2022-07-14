@@ -29,6 +29,7 @@
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacaddr.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/bactext.h"
@@ -42,36 +43,6 @@
 
 /** @file s_router.c  Methods to send various BACnet Router Network Layer
  * Messages. */
-
-/** Initialize an npdu_data structure with given parameters and good defaults,
- * and add the Network Layer Message fields.
- * The name is a misnomer, as it doesn't do any actual encoding here.
- * @see npdu_encode_npdu_data for a simpler version to use when sending an
- *           APDU instead of a Network Layer Message.
- *
- * @param npdu_data [out] Returns a filled-out structure with information
- * 					 provided by the other arguments and
- * good defaults.
- * @param network_message_type [in] The type of Network Layer Message.
- * @param data_expecting_reply [in] True if message should have a reply.
- * @param priority [in] One of the 4 priorities defined in section 6.2.2,
- *                      like B'11' = Life Safety message
- */
-void npdu_encode_npdu_network(BACNET_NPDU_DATA *npdu_data,
-    BACNET_NETWORK_MESSAGE_TYPE network_message_type,
-    bool data_expecting_reply,
-    BACNET_MESSAGE_PRIORITY priority)
-{
-    if (npdu_data) {
-        npdu_data->data_expecting_reply = data_expecting_reply;
-        npdu_data->protocol_version = BACNET_PROTOCOL_VERSION;
-        npdu_data->network_layer_message = true; /* false if APDU */
-        npdu_data->network_message_type = network_message_type; /* optional */
-        npdu_data->vendor_id = 0; /* optional, if net message type is > 0x80 */
-        npdu_data->priority = priority;
-        npdu_data->hop_count = HOP_COUNT_DEFAULT;
-    }
-}
 
 /** Function to encode and send any supported Network Layer Message.
  * The payload for the message is encoded from information in the iArgs[] array.
@@ -148,6 +119,18 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
                 pdu_len += len;
                 pVal++;
             }
+            break;
+
+        case NETWORK_MESSAGE_NETWORK_NUMBER_IS:
+            /* Encode the DNET */
+            len = encode_unsigned16(
+                &Handler_Transmit_Buffer[pdu_len], (uint16_t)*pVal);
+            pdu_len += len;
+            pVal++;
+            /* Encode the Status byte */
+            Handler_Transmit_Buffer[pdu_len] = (uint8_t)*pVal;
+            pdu_len++;
+            pVal++;
             break;
 
         case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
@@ -316,4 +299,24 @@ void Send_Initialize_Routing_Table_Ack(
 {
     Send_Network_Layer_Message(
         NETWORK_MESSAGE_INIT_RT_TABLE_ACK, dst, (int *)DNET_list);
+}
+
+/**
+ * @brief Sets a BACnet network number for the local network
+ *
+ * @param dst [in] If NULL, request will be broadcast to the local BACnet
+ *                 network.  Optionally may designate a particular router
+ *                 destination to respond.
+ * @param dnet [in] Which BACnet network to request for; if -1, no DNET
+ *                 will be sent and the receiving router(s) will send
+ *                 their full list of reachable BACnet networks.
+ */
+void Send_Network_Number_Is(BACNET_ADDRESS *dst, int dnet, int status)
+{
+    int iArgs[2];
+    iArgs[0] = dnet;
+    iArgs[1] = status;
+
+    Send_Network_Layer_Message(
+        NETWORK_MESSAGE_NETWORK_NUMBER_IS, dst, iArgs);
 }
