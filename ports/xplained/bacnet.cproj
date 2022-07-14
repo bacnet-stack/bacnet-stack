@@ -840,6 +840,10 @@
       <SubType>compile</SubType>
       <Link>bacnet-stack\ringbuf.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\basic\sys\debug.c">
+      <SubType>compile</SubType>
+      <Link>bacnet-stack\debug.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\rp.c">
       <SubType>compile</SubType>
       <Link>bacnet-stack\rp.c</Link>

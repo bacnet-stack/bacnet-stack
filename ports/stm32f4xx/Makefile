@@ -44,6 +44,7 @@ BASIC_SRC = \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
 	$(BACNET_BASIC)/tsm/tsm.c \
+	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/sys/fifo.c \
 	$(BACNET_BASIC)/sys/mstimer.c

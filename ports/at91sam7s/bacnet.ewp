@@ -1101,6 +1101,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\ringbuf.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\debug.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\s_iam.c</name>
         </file>
         <file>

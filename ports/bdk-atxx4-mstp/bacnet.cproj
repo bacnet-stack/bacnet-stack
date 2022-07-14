@@ -427,6 +427,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Core\reject.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\basic\sys\debug.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\debug.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\basic\sys\mstimer.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\mstimer.c</Link>

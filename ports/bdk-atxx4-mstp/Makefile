@@ -110,6 +110,7 @@ BASICSRC = $(BACNET_BASIC)/service/h_dcc.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/s_ihave.c \
 	$(BACNET_BASIC)/sys/bigend.c \
+	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/fifo.c \
 	$(BACNET_BASIC)/sys/mstimer.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
