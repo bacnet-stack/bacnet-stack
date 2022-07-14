@@ -67,7 +67,11 @@ extern "C" {
     void Send_Initialize_Routing_Table_Ack(
         BACNET_ADDRESS * dst,
         const int DNET_list[]);
-
+    BACNET_STACK_EXPORT
+    void Send_Network_Number_Is(
+        BACNET_ADDRESS *dst,
+        int dnet,
+        int status);
 
 #ifdef __cplusplus
 }

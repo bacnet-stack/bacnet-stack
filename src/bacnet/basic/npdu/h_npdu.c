@@ -24,6 +24,7 @@
  *********************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacaddr.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
@@ -41,6 +42,7 @@
 #endif
 
 static uint16_t Local_Network_Number;
+static uint8_t Local_Network_Number_Status = NETWORK_NUMBER_LEARNED;
 
 /**
  * @brief get the local network number
@@ -64,10 +66,11 @@ void npdu_network_number_set(uint16_t net)
  * @brief send the local network number is message
  * @param dst - the destination address for the message
  * @param net - local network number
+ * @param status - 0=learned, 1=assigned
  * @return number of bytes sent
  */
 int npdu_send_network_number_is(BACNET_ADDRESS *dst,
-    uint16_t net)
+    uint16_t net, uint8_t status)
 {
     uint16_t len = 0;
     int pdu_len = 0;
@@ -89,12 +92,45 @@ int npdu_send_network_number_is(BACNET_ADDRESS *dst,
     len = encode_unsigned16(
         &Handler_Transmit_Buffer[pdu_len], net);
     pdu_len += len;
-    Handler_Transmit_Buffer[pdu_len] = NETWORK_NUMBER_LEARNED;
+    Handler_Transmit_Buffer[pdu_len] = status;
     pdu_len++;
     bytes_sent = datalink_send_pdu(
         dst, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
 
     return bytes_sent;
+}
+
+/**
+ * @brief send the local network number is message
+ * @param dst - the destination address for the message
+ * @param net - local network number
+ * @return number of bytes sent
+ */
+int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
+{
+    int pdu_len = 0;
+    bool data_expecting_reply = false;
+    BACNET_NPDU_DATA npdu_data;
+    BACNET_ADDRESS daddr = { 0 };
+    BACNET_ADDRESS saddr = { 0 };
+
+    if (dst) {
+        bacnet_address_copy(&daddr, dst);
+    } else {
+        datalink_get_broadcast_address(&daddr);
+    }
+    datalink_get_my_address(&saddr);
+    npdu_encode_npdu_network(&npdu_data,
+        NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
+        data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0],
+        &daddr, &saddr, &npdu_data);
+
+    /* Now send the message */
+    return datalink_send_pdu(
+        dst, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
+
 }
 
 /** @file h_npdu.c  Handles messages at the NPDU level of the BACnet stack. */
@@ -127,7 +163,8 @@ static void network_control_handler(BACNET_ADDRESS *src,
         case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
             if (src->net == 0) {
                 if (Local_Network_Number) {
-                    npdu_send_network_number_is(src, Local_Network_Number);
+                    npdu_send_network_number_is(src, Local_Network_Number,
+                        Local_Network_Number_Status);
                 } else {
                     /*  Upon receipt of a What-Is-Network-Number message,
                         a device that does not know the local network number

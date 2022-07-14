@@ -29,6 +29,7 @@
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacaddr.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/bactext.h"
@@ -118,6 +119,18 @@ int Send_Network_Layer_Message(BACNET_NETWORK_MESSAGE_TYPE network_message_type,
                 pdu_len += len;
                 pVal++;
             }
+            break;
+
+        case NETWORK_MESSAGE_NETWORK_NUMBER_IS:
+            /* Encode the DNET */
+            len = encode_unsigned16(
+                &Handler_Transmit_Buffer[pdu_len], (uint16_t)*pVal);
+            pdu_len += len;
+            pVal++;
+            /* Encode the Status byte */
+            Handler_Transmit_Buffer[pdu_len] = (uint8_t)*pVal;
+            pdu_len++;
+            pVal++;
             break;
 
         case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK:
@@ -286,4 +299,24 @@ void Send_Initialize_Routing_Table_Ack(
 {
     Send_Network_Layer_Message(
         NETWORK_MESSAGE_INIT_RT_TABLE_ACK, dst, (int *)DNET_list);
+}
+
+/**
+ * @brief Sets a BACnet network number for the local network
+ *
+ * @param dst [in] If NULL, request will be broadcast to the local BACnet
+ *                 network.  Optionally may designate a particular router
+ *                 destination to respond.
+ * @param dnet [in] Which BACnet network to request for; if -1, no DNET
+ *                 will be sent and the receiving router(s) will send
+ *                 their full list of reachable BACnet networks.
+ */
+void Send_Network_Number_Is(BACNET_ADDRESS *dst, int dnet, int status)
+{
+    int iArgs[2];
+    iArgs[0] = dnet;
+    iArgs[1] = status;
+
+    Send_Network_Layer_Message(
+        NETWORK_MESSAGE_NETWORK_NUMBER_IS, dst, iArgs);
 }
