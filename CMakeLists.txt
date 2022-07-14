@@ -668,6 +668,12 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(whoisrouter apps/whoisrouter/main.c)
   target_link_libraries(whoisrouter PRIVATE ${PROJECT_NAME})
 
+  add_executable(whatisnetnum apps/whatisnetnum/main.c)
+  target_link_libraries(whatisnetnum PRIVATE ${PROJECT_NAME})
+
+  add_executable(netnumis apps/netnumis/main.c)
+  target_link_libraries(netnumis PRIVATE ${PROJECT_NAME})
+
   add_executable(writefile apps/writefile/main.c)
   target_link_libraries(writefile PRIVATE ${PROJECT_NAME})
 
