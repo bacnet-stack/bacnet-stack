@@ -158,6 +158,7 @@ static void network_control_handler(BACNET_ADDRESS *src,
 {
     uint16_t dnet = 0;
     uint16_t len = 0;
+    uint8_t status = 0;
 
     switch (npdu_data->network_message_type) {
         case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
@@ -181,8 +182,15 @@ static void network_control_handler(BACNET_ADDRESS *src,
                 /*  It shall be transmitted with a local broadcast address,
                     and shall never be routed. */
                 if (npdu_len >= 2) {
-                    len += decode_unsigned16(&npdu[len], &dnet);
+                    (void)decode_unsigned16(npdu, &dnet);
                     Local_Network_Number = dnet;
+                }
+                if (npdu_len >= 3) {
+                    status = npdu[2];
+                    /*  Our net number is always learned, unless we
+                        are a router.  Ignore the learned/configured
+                        status */
+                    (void)status;
                 }
             } else {
                 /*  Devices shall ignore Network-Number-Is messages that
