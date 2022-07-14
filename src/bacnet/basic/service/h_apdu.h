@@ -161,7 +161,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     bool apdu_complex_error(
-        BACNET_CONFIRMED_SERVICE service_choice);
+        uint8_t service_choice);
 
     BACNET_STACK_EXPORT
     void apdu_set_error_handler(

@@ -89,6 +89,7 @@ list(APPEND testdirs
   bacnet/basic/object/bi
   bacnet/basic/object/bo
   bacnet/basic/object/bv
+  bacnet/basic/object/color_object
   bacnet/basic/object/command
   bacnet/basic/object/credential_data_input
   bacnet/basic/object/device
@@ -104,6 +105,7 @@ list(APPEND testdirs
   bacnet/basic/object/piv
   bacnet/basic/object/schedule
   # basic/sys
+  bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
   bacnet/basic/sys/fifo
   bacnet/basic/sys/filename
