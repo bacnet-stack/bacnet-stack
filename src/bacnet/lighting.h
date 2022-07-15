@@ -164,28 +164,6 @@ extern "C" {
         BACNET_COLOR_COMMAND * dst,
         BACNET_COLOR_COMMAND * src);
 
-    BACNET_STACK_EXPORT
-    void color_rgb_to_xy(
-        uint8_t r,
-        uint8_t g,
-        uint8_t b,
-        float *x_coordinate,
-        float *y_coordinate,
-        float *brightness);
-    BACNET_STACK_EXPORT
-    void color_rgb_from_xy(
-        uint8_t *red,
-        uint8_t *green,
-        uint8_t *blue,
-        float x_coordinate,
-        float y_coordinate,
-        float brightness);
-    BACNET_STACK_EXPORT
-    const char * color_rgb_to_ascii(uint8_t red, uint8_t green, uint8_t blue);
-    BACNET_STACK_EXPORT
-    bool color_rgb_from_ascii(uint8_t *red, uint8_t *green, uint8_t *blue,
-        const char *name);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
