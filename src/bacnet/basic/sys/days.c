@@ -22,8 +22,9 @@
  */
 bool days_is_leap_year(uint16_t year)
 {
-    if ((year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0))
+    if ((year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0)) {
         return true;
+}
 
     return (false);
 }
@@ -42,10 +43,11 @@ uint8_t days_per_month(uint16_t year, uint8_t month)
     uint8_t month_days[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30,
         31 };
 
-    if ((month == 2) && days_is_leap_year(year))
+    if ((month == 2) && days_is_leap_year(year)) {
         return (29);
-    else if (month >= 1 && month <= 12)
+    } else if (month >= 1 && month <= 12) {
         return (month_days[month]);
+}
 
     return 0;
 }

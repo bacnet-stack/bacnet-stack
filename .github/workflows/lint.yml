@@ -1,34 +1,85 @@
-name: Lint
+name: Quality
 
 on:
   push:
     branches:
       - master
   pull_request:
-    branches:    
+    branches:
       - '*'
 
 jobs:
-  lint:
+  scan-build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Create Build Environment
+    - name: Create LLVM clang-tools scan-build Workspace
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq clang-tools
-    - name: Lint
-      run: make clean lint
+    - name: Static Defect Analysis using scan-build
+      run: |
+        make clean
+        make scan-build
+
+  splint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create SPLint Workspace
+      run: |
+        sudo apt-get update --quiet --assume-yes
+        sudo apt-get install --quiet --assume-yes splint
+    - name: Static Defect Analysis using SPLint
+      run: make splint
+
 
   cppcheck:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Create Build Environment
+    - name: Create CPPcheck Workspace
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq cppcheck
-    - name: cppcheck
-      run: make clean cppcheck
+    - name: Static Defect Analysis using CPPcheck
+      run: |
+        cppcheck --version
+        make clean
+        make cppcheck
 
+  flawfinder:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Flawfinder Workspace
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq flawfinder
+    - name: Static Defect Analysis using flawfinder
+      run: |
+        flawfinder --version
+        make clean
+        make flawfinder
 
+  codespell:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create codespell Workspace
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq codespell
+    - name: Static Spelling Analysis using codespell
+      run: make spell
+
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq lcov
+    - name: Run Unit Test with Code Coverage
+      run: make test

@@ -100,9 +100,14 @@ extern "C" {
         uint8_t * buffer,
         uint64_t * value);
 #endif
+
     BACNET_STACK_EXPORT
     int bacnet_unsigned_length(
         BACNET_UNSIGNED_INTEGER value);
+    BACNET_STACK_EXPORT
+    int bacnet_signed_length(
+        int32_t value);
+
     /* signed value encoding and decoding */
     BACNET_STACK_EXPORT
     int encode_signed8(
@@ -136,13 +141,6 @@ extern "C" {
     int decode_signed32(
         uint8_t * apdu,
         int32_t * value);
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testBACnetIntegers(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }

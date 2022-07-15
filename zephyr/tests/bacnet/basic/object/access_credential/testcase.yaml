@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.access_credential:
     tags: bacnet
+  bacnet.basic.object.access_credential.unit:
+    tags: bacnet
+    type: unit

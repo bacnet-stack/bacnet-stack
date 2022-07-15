@@ -43,12 +43,6 @@ extern "C" {
 #endif /* __cplusplus */
 
     BACNET_STACK_EXPORT
-    void npdu_encode_npdu_network(
-        BACNET_NPDU_DATA *npdu_data,
-        BACNET_NETWORK_MESSAGE_TYPE network_message_type,
-        bool data_expecting_reply,
-        BACNET_MESSAGE_PRIORITY priority);
-    BACNET_STACK_EXPORT
     int Send_Network_Layer_Message(
         BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         BACNET_ADDRESS * dst,
@@ -73,7 +67,11 @@ extern "C" {
     void Send_Initialize_Routing_Table_Ack(
         BACNET_ADDRESS * dst,
         const int DNET_list[]);
-
+    BACNET_STACK_EXPORT
+    void Send_Network_Number_Is(
+        BACNET_ADDRESS *dst,
+        int dnet,
+        int status);
 
 #ifdef __cplusplus
 }

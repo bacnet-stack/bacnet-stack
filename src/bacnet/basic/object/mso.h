@@ -126,14 +126,6 @@ extern "C" {
         uint32_t object_instance,
         uint32_t state_index);
 
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testMultistateOutput(
-        Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

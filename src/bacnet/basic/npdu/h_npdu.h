@@ -47,6 +47,20 @@ extern "C" {
         BACNET_ADDRESS * src,
         uint8_t * pdu,
         uint16_t pdu_len);
+
+    BACNET_STACK_EXPORT
+    uint16_t npdu_network_number(void);
+    BACNET_STACK_EXPORT
+    void npdu_network_number_set(uint16_t net);
+    BACNET_STACK_EXPORT
+    int npdu_send_network_number_is(
+        BACNET_ADDRESS *dst,
+        uint16_t net,
+        uint8_t status);
+    BACNET_STACK_EXPORT
+    int npdu_send_what_is_network_number(
+        BACNET_ADDRESS *dst);
+
     BACNET_STACK_EXPORT
     void npdu_handler_cleanup(void);
     BACNET_STACK_EXPORT

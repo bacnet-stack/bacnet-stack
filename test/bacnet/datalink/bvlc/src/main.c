@@ -10,6 +10,7 @@
 
 #include <stdlib.h>  /* For calloc() */
 #include <ztest.h>
+#include <bacnet/bactext.h>
 #include <bacnet/datalink/bvlc.h>
 
 /**
@@ -816,6 +817,35 @@ static void test_BVLC_Address_Get_Set(void)
     zassert_equal(octet3, test_octet3, NULL);
 }
 
+static void test_BVLC_BBMD_Address(void)
+{
+    uint8_t apdu[480] = { 0 };
+    int apdu_len = 0;
+    int test_apdu_len = 0;
+    BACNET_IP_ADDRESS bbmd_address;
+    BACNET_IP_ADDRESS test_bbmd_address;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    bool status = false;
+
+    status = bvlc_address_port_from_ascii(
+        &bbmd_address, "192.168.0.255", "0xBAC0");
+    zassert_true(status, NULL);
+    apdu_len = bvlc_foreign_device_bbmd_host_address_encode(apdu, sizeof(apdu),
+        &bbmd_address);
+    zassert_not_equal(apdu_len, 0, NULL);
+    test_apdu_len = bvlc_foreign_device_bbmd_host_address_decode(apdu,
+        apdu_len, &error_code, &test_bbmd_address);
+    if (test_apdu_len < 0) {
+        printf("BVLC: error-code=%s\n", bactext_error_code_name(error_code));
+    }
+    zassert_not_equal(test_apdu_len, 0, NULL);
+    zassert_not_equal(test_apdu_len, BACNET_STATUS_ERROR, NULL);
+    zassert_not_equal(test_apdu_len, BACNET_STATUS_ABORT, NULL);
+    zassert_not_equal(test_apdu_len, BACNET_STATUS_REJECT, NULL);
+    status = bvlc_address_different(&bbmd_address, &test_bbmd_address);
+    zassert_false(status, NULL);
+}
+
 /**
  * @}
  */
@@ -837,7 +867,8 @@ void test_main(void)
      ztest_unit_test(test_BVLC_Original_Broadcast_NPDU),
      ztest_unit_test(test_BVLC_Secure_BVLL),
      ztest_unit_test(test_BVLC_Address_Copy),
-     ztest_unit_test(test_BVLC_Address_Get_Set)
+     ztest_unit_test(test_BVLC_Address_Get_Set),
+     ztest_unit_test(test_BVLC_BBMD_Address)
      );
 
     ztest_run_test_suite(bvlc_tests);

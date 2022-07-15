@@ -61,11 +61,6 @@ extern "C" {
         BACNET_ERROR_CLASS * error_class,
         BACNET_ERROR_CODE * error_code);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    void testBinary_Value(Test * pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

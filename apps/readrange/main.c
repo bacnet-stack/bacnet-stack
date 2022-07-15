@@ -131,7 +131,6 @@ static void Init_Service_Handlers(void)
 
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
-    apdu_set_error_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
@@ -355,8 +354,9 @@ int main(int argc, char *argv[])
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
         }
-        if (Error_Detected)
+        if (Error_Detected) {
             break;
+}
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(
@@ -397,7 +397,8 @@ int main(int argc, char *argv[])
         last_seconds = current_seconds;
     }
 
-    if (Error_Detected)
+    if (Error_Detected) {
         return 1;
+}
     return 0;
 }

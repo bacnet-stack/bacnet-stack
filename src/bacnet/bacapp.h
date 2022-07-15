@@ -1,26 +1,26 @@
 /**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+ *
+ * Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *********************************************************************/
 #ifndef BACAPP_H
 #define BACAPP_H
 
@@ -32,13 +32,10 @@
 #include "bacnet/bacint.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
-#if defined (BACAPP_LIGHTING_COMMAND)
 #include "bacnet/lighting.h"
-#endif
-#if defined (BACAPP_DEVICE_OBJECT_PROP_REF)
 #include "bacnet/bacdevobjpropref.h"
-#endif
-
+#include "bacnet/hostnport.h"
+#include "bacnet/timestamp.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -83,12 +80,19 @@ typedef struct BACnet_Application_Data_Value {
 #if defined (BACAPP_OBJECT_ID)
         BACNET_OBJECT_ID Object_Id;
 #endif
-#if defined (BACAPP_LIGHTING_COMMAND)
+#if defined (BACAPP_TYPES_EXTRA)
+        BACNET_TIMESTAMP Time_Stamp;
+        BACNET_DATE_TIME Date_Time;
         BACNET_LIGHTING_COMMAND Lighting_Command;
-#endif
-#if defined (BACAPP_DEVICE_OBJECT_PROP_REF)
+        BACNET_COLOR_COMMAND Color_Command;
+        BACNET_XY_COLOR XY_Color;
+        BACNET_HOST_N_PORT Host_Address;
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Device_Object_Property_Reference;
+        BACNET_DEVICE_OBJECT_REFERENCE
+            Device_Object_Reference;
+        BACNET_OBJECT_PROPERTY_REFERENCE
+            Object_Property_Reference;
 #endif
     } type;
     /* simple linked list if needed */
@@ -200,6 +204,19 @@ extern "C" {
         uint8_t tag_number);
 
     BACNET_STACK_EXPORT
+    int bacapp_decode_generic_property(
+        uint8_t * apdu,
+        int max_apdu_len,
+        BACNET_APPLICATION_DATA_VALUE * value,
+        BACNET_PROPERTY_ID prop);
+    BACNET_STACK_EXPORT
+    int bacapp_decode_known_property(uint8_t *apdu,
+        int max_apdu_len,
+        BACNET_APPLICATION_DATA_VALUE *value,
+        BACNET_OBJECT_TYPE object_type,
+        BACNET_PROPERTY_ID property);
+
+    BACNET_STACK_EXPORT
     bool bacapp_copy(
         BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
@@ -229,11 +246,10 @@ extern "C" {
         BACNET_PROPERTY_ID property);
 
 #ifndef BACAPP_PRINT_ENABLED
-#if PRINT_ENABLED || defined BAC_TEST
+#if PRINT_ENABLED
 #define BACAPP_PRINT_ENABLED
 #endif
 #endif
-
     BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,

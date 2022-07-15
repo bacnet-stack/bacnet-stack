@@ -359,6 +359,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Core\bacdcode.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\bacdevobjpropref.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\bacdevobjpropref.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\bacerror.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\bacerror.c</Link>
@@ -395,6 +399,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Core\ihave.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\hostnport.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\hostnport.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\lighting.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\lighting.c</Link>
@@ -418,6 +426,10 @@
     <Compile Include="..\..\src\bacnet\reject.c">
       <SubType>compile</SubType>
       <Link>BACnet Core\reject.c</Link>
+    </Compile>
+    <Compile Include="..\..\src\bacnet\basic\sys\debug.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Core\debug.c</Link>
     </Compile>
     <Compile Include="..\..\src\bacnet\basic\sys\mstimer.c">
       <SubType>compile</SubType>

@@ -1,3 +1,6 @@
 tests:
   bacnet.basic.object.osv:
     tags: bacnet
+  bacnet.basic.object.osv.unit:
+    tags: bacnet
+    type: unit

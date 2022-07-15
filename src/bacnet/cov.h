@@ -45,6 +45,7 @@ typedef struct BACnet_Subscribe_COV_Data {
     bool cancellationRequest;   /* true if this is a cancellation request */
     bool issueConfirmedNotifications;   /* optional */
     uint32_t lifetime;  /* seconds, optional */
+    bool covSubscribeToProperty;  /* true to use per-property subscription */
     BACNET_PROPERTY_REFERENCE monitoredProperty;
     bool covIncrementPresent;   /* true if present */
     float covIncrement; /* optional */
@@ -168,19 +169,6 @@ extern "C" {
         bool fault,
         bool overridden,
         bool out_of_service);
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testCOVNotify(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void testCOVSubscribeProperty(
-        Test * pTest);
-    BACNET_STACK_EXPORT
-    void testCOVSubscribe(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }

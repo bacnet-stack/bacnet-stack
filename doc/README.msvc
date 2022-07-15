@@ -13,7 +13,6 @@ BACDL_BIP=1 - chooses BACnet/IP for the datalink layer
 BACDL_ETHERNET=0 - chooses BACnet Ethernet for the datalink layer
 BACDL_ARCNET=0 - chooses BACnet ARCNET for the datalink layer
 BACDL_MSTP=0 - chooses BACnet MS/TP for the datalink layer
-USE_INADDR=1 - uses INADDR_BROADCAST for broadcast rather than CLASSx
 TSM_ENABLED=1 - enables the Transaction State Machine for clients
 BIP_DEBUG=1 - enables print statements for debugging
 In Visual C++, add a Preprocessor Definition by:

@@ -129,8 +129,8 @@ const char *bactext_unconfirmed_service_name(unsigned index)
         bacnet_unconfirmed_service_names, index, ASHRAE_Reserved_String);
 }
 
-INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
-                                                    "Null" },
+INDTEXT_DATA bacnet_application_tag_names[] = {
+    { BACNET_APPLICATION_TAG_NULL, "Null" },
     { BACNET_APPLICATION_TAG_BOOLEAN, "Boolean" },
     { BACNET_APPLICATION_TAG_UNSIGNED_INT, "Unsigned Int" },
     { BACNET_APPLICATION_TAG_SIGNED_INT, "Signed Int" },
@@ -145,7 +145,29 @@ INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
     { BACNET_APPLICATION_TAG_OBJECT_ID, "Object ID" },
     { BACNET_APPLICATION_TAG_RESERVE1, "Reserved 1" },
     { BACNET_APPLICATION_TAG_RESERVE2, "Reserved 2" },
-    { BACNET_APPLICATION_TAG_RESERVE3, "Reserved 3" }, { 0, NULL } };
+    { BACNET_APPLICATION_TAG_RESERVE3, "Reserved 3" },
+    /* complex data types */
+    { BACNET_APPLICATION_TAG_EMPTYLIST, "Empty List" },
+    { BACNET_APPLICATION_TAG_WEEKNDAY, "BACnetWeeknday" },
+    { BACNET_APPLICATION_TAG_DATERANGE, "BACnetDateRange" },
+    { BACNET_APPLICATION_TAG_DATETIME, "BACnetDateTime" },
+    { BACNET_APPLICATION_TAG_TIMESTAMP, "BACnetTimeStamp" },
+    { BACNET_APPLICATION_TAG_ERROR, "Error" },
+    { BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE,
+        "BACnetDeviceObjectPropertyReference" },
+    { BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE,
+        "BACnetDeviceObjectReference" },
+    { BACNET_APPLICATION_TAG_DESTINATION, "BACnetDestination" },
+    { BACNET_APPLICATION_TAG_RECIPIENT, "BACnetRecipient" },
+    { BACNET_APPLICATION_TAG_COV_SUBSCRIPTION, "BACnetCOVSubscription" },
+    { BACNET_APPLICATION_TAG_CALENDAR_ENTRY, "BACnetCalendarEntry" },
+    { BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE, "BACnetWeeklySchedule" },
+    { BACNET_APPLICATION_TAG_SPECIAL_EVENT, "BACnetSpecialEvent" },
+    { BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,
+        "BACnetReadAccessSpecification" },
+    { BACNET_APPLICATION_TAG_LIGHTING_COMMAND, "BACnetLightingCommand" },
+    { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" },
+    { 0, NULL } };
 
 const char *bactext_application_tag_name(unsigned index)
 {
@@ -160,8 +182,8 @@ bool bactext_application_tag_index(
         bacnet_application_tag_names, search_name, found_index);
 }
 
-INDTEXT_DATA bacnet_object_type_names[] = {
-    { OBJECT_ANALOG_INPUT, "analog-input" },
+INDTEXT_DATA bacnet_object_type_names[] = { { OBJECT_ANALOG_INPUT,
+                                                "analog-input" },
     { OBJECT_ANALOG_OUTPUT, "analog-output" },
     { OBJECT_ANALOG_VALUE, "analog-value" },
     { OBJECT_BINARY_INPUT, "binary-input" },
@@ -214,11 +236,13 @@ INDTEXT_DATA bacnet_object_type_names[] = {
     { OBJECT_NETWORK_PORT, "network-port" },
     { OBJECT_ELEVATOR_GROUP, "elevator-group" },
     { OBJECT_ESCALATOR, "escalator" }, { OBJECT_LIFT, "lift" },
-    { OBJECT_STAGING, "staging" }, { 0, NULL }
+    { OBJECT_STAGING, "staging" }, { OBJECT_AUDIT_LOG, "audit-log" },
+    { OBJECT_AUDIT_REPORTER, "audit-reporter" }, { OBJECT_COLOR, "color" },
+    { OBJECT_COLOR_TEMPERATURE, "color-temperature" },
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
        Enumerated values 128-1023 may be used by others subject to
        the procedures and constraints described in Clause 23. */
-};
+    { 0, NULL } };
 
 const char *bactext_object_type_name(unsigned index)
 {
@@ -663,16 +687,78 @@ INDTEXT_DATA bacnet_property_names[] = {
     { PROP_SUBORDINATE_RELATIONSHIPS, "subordinate-relationships" },
     { PROP_DEFAULT_SUBORDINATE_RELATIONSHIP,
         "default-subordinate-relationship" },
-    { PROP_REPRESENTS, "represents" }, { 0, NULL }
-    /* Enumerated values 0-511 are reserved for definition by ASHRAE.
-       Enumerated values 512-4194303 may be used by others subject to the
-       procedures and constraints described in Clause 23. */
+    { PROP_REPRESENTS, "represents" },
+    { PROP_DEFAULT_PRESENT_VALUE, "default-present-value" },
+    { PROP_PRESENT_STAGE, "present-stage" }, { PROP_STAGES, "stages" },
+    { PROP_STAGE_NAMES, "stage-names" },
+    { PROP_TARGET_REFERENCES, "target-references" },
+    { PROP_AUDIT_SOURCE_LEVEL, "audit-source-level" },
+    { PROP_AUDIT_LEVEL, "audit-level" },
+    { PROP_AUDIT_NOTIFICATION_RECIPIENT, "audit-notification-recipient" },
+    { PROP_AUDIT_PRIORITY_FILTER, "audit-priority-filter" },
+    { PROP_AUDITABLE_OPERATIONS, "auditable-operations" },
+    { PROP_DELETE_ON_FORWARD, "delete-on-forward" },
+    { PROP_MAXIMUM_SEND_DELAY, "maximum-send-delay" },
+    { PROP_MONITORED_OBJECTS, "monitored-objects" },
+    { PROP_SEND_NOW, "send-now" }, { PROP_FLOOR_NUMBER, "floor-number" },
+    { PROP_DEVICE_UUID, "device-uuid" },
+    { PROP_ADDITIONAL_REFERENCE_PORTS, "additional-reference-ports" },
+    { PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
+        "certificate-signing-request-file" },
+    { PROP_COMMAND_VALIDATION_RESULT, "command-validation-result" },
+    { PROP_ISSUER_CERTIFICATE_FILES, "issuer-certificate-files" },
+    { PROP_MAX_BVLC_LENGTH_ACCEPTED, "max-bvlc-length-accepted" },
+    { PROP_MAX_NPDU_LENGTH_ACCEPTED, "max-npdu-length-accepted" },
+    { PROP_OPERATIONAL_CERTIFICATE_FILE, "operational-certificate-file" },
+    { PROP_CURRENT_HEALTH, "current-health" },
+    { PROP_SC_CONNECT_WAIT_TIMEOUT, "sc-connect-wait-timeout" },
+    { PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE, "sc-direct-connect-accept-enable" },
+    { PROP_SC_DIRECT_CONNECT_ACCEPT_URIS, "sc-direct-connect-accept-uris" },
+    { PROP_SC_DIRECT_CONNECT_BINDING, "sc-direct-connect-binding" },
+    { PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
+        "sc-direct-connect-connection-status" },
+    { PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE,
+        "sc-direct-connect-initiate-enable" },
+    { PROP_SC_DISCONNECT_WAIT_TIMEOUT, "sc-disconnect-wait-timeout" },
+    { PROP_SC_FAILED_CONNECTION_REQUESTS, "sc-failed-connection-requests" },
+    { PROP_SC_FAILOVER_HUB_CONNECTION_STATUS,
+        "sc-failover-hub-connection-status" },
+    { PROP_SC_FAILOVER_HUB_URI, "sc-failover-hub-uri" },
+    { PROP_SC_HUB_CONNECTOR_STATE, "sc-hub-connector-state" },
+    { PROP_SC_HUB_FUNCTION_ACCEPT_URIS, "sc-hub-function-accept-uris" },
+    { PROP_SC_HUB_FUNCTION_BINDING, "sc-hub-function-binding" },
+    { PROP_SC_HUB_FUNCTION_CONNECTION_STATUS,
+        "sc-hub-function-connection-status" },
+    { PROP_SC_HUB_FUNCTION_ENABLE, "sc-hub-function-enable" },
+    { PROP_SC_HEARTBEAT_TIMEOUT, "sc-heartbeat-timeout" },
+    { PROP_SC_PRIMARY_HUB_CONNECTION_STATUS,
+        "sc-primary-hub-connection-status" },
+    { PROP_SC_PRIMARY_HUB_URI, "sc-primary-hub-uri" },
+    { PROP_SC_MAXIMUM_RECONNECT_TIME, "sc-maximum-reconnect-time" },
+    { PROP_SC_MINIMUM_RECONNECT_TIME, "sc-minimum-reconnect-time" },
+    { PROP_COLOR_OVERRIDE, "color-override" },
+    { PROP_COLOR_REFERENCE, "color-reference" },
+    { PROP_DEFAULT_COLOR, "default-color" },
+    { PROP_DEFAULT_COLOR_TEMPERATURE, "default-color-temperature" },
+    { PROP_OVERRIDE_COLOR_REFERENCE, "override-color-reference" },
+    { PROP_COLOR_COMMAND, "color-command" },
+    { PROP_HIGH_END_TRIM, "high-end-trim" },
+    { PROP_LOW_END_TRIM, "low-end-trim" },
+    { PROP_TRIM_FADE_TIME, "trim-fade-time" },
+    { 0, NULL }
 };
 
 const char *bactext_property_name(unsigned index)
 {
-    return indtext_by_index_split_default(bacnet_property_names, index, 512,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    /* Enumerated values 0-511 are reserved for definition by ASHRAE.
+       Enumerated values 512-4194303 may be used by others subject to the
+       procedures and constraints described in Clause 23. */
+    if ((index >= 512) && (index <= 4194303)) {
+        return Vendor_Proprietary_String;
+    } else {
+        return indtext_by_index_default(
+            bacnet_property_names, index, ASHRAE_Reserved_String);
+    }
 }
 
 const char *bactext_property_name_default(
@@ -1162,7 +1248,93 @@ INDTEXT_DATA bacnet_error_code_names[] = { { ERROR_CODE_OTHER, "other" },
     { ERROR_CODE_OUT_OF_MEMORY, "out-of-memory" },
     { ERROR_CODE_VALUE_TOO_LONG, "value-too-long" },
     { ERROR_CODE_ABORT_INSUFFICIENT_SECURITY, "abort-insufficient-security" },
-    { ERROR_CODE_ABORT_SECURITY_ERROR, "abort-security-error" }, { 0, NULL } };
+    { ERROR_CODE_ABORT_SECURITY_ERROR, "abort-security-error" },
+    { ERROR_CODE_DUPLICATE_ENTRY, "duplicate-entry" },
+    { ERROR_CODE_INVALID_VALUE_IN_THIS_STATE, "invalid-value-in-this-state" },
+    { ERROR_CODE_INVALID_OPERATION_IN_THIS_STATE,
+        "invalid-operation-in-this-state" },
+    { ERROR_CODE_LIST_ITEM_NOT_NUMBERED, "list-item-not-numbered" },
+    { ERROR_CODE_LIST_ITEM_NOT_TIMESTAMPED, "list-item-not-timestamped" },
+    { ERROR_CODE_INVALID_DATA_ENCODING, "invalid-data-encoding" },
+    { ERROR_CODE_BVLC_FUNCTION_UNKNOWN, "bvlc-function-unknown" },
+    { ERROR_CODE_BVLC_PROPRIETARY_FUNCTION_UNKNOWN,
+        "bvlc-proprietary-function-unknown" },
+    { ERROR_CODE_HEADER_ENCODING_ERROR, "header-encoding-error" },
+    { ERROR_CODE_HEADER_NOT_UNDERSTOOD, "header-not-understood" },
+    { ERROR_CODE_MESSAGE_INCOMPLETE, "message-incomplete" },
+    { ERROR_CODE_NOT_A_BACNET_SC_HUB, "not-a-bacnet-sc-hub" },
+    { ERROR_CODE_PAYLOAD_EXPECTED, "payload-expected" },
+    { ERROR_CODE_UNEXPECTED_DATA, "unexpected-data" },
+    { ERROR_CODE_NODE_DUPLICATE_VMAC, "node-duplicate-vmac" },
+    { ERROR_CODE_HTTP_UNEXPECTED_RESPONSE_CODE,
+        "http-unexpected-response-code" },
+    { ERROR_CODE_HTTP_NO_UPGRADE, "http-no-upgrade" },
+    { ERROR_CODE_HTTP_RESOURCE_NOT_LOCAL, "http-resource-not-local" },
+    { ERROR_CODE_HTTP_PROXY_AUTHENTICATION_FAILED,
+        "http-proxy-authentication-failed" },
+    { ERROR_CODE_HTTP_RESPONSE_TIMEOUT, "http-response-timeout" },
+    { ERROR_CODE_HTTP_RESPONSE_SYNTAX_ERROR, "http-response-syntax-error" },
+    { ERROR_CODE_HTTP_RESPONSE_VALUE_ERROR, "http-response-value-error" },
+    { ERROR_CODE_HTTP_RESPONSE_MISSING_HEADER, "http-response-missing-header" },
+    { ERROR_CODE_HTTP_WEBSOCKET_HEADER_ERROR, "http-websocket-header-error" },
+    { ERROR_CODE_HTTP_UPGRADE_REQUIRED, "http-upgrade-required" },
+    { ERROR_CODE_HTTP_UPGRADE_ERROR, "http-upgrade-error" },
+    { ERROR_CODE_HTTP_TEMPORARY_UNAVAILABLE, "http-temporary-unavailable" },
+    { ERROR_CODE_HTTP_NOT_A_SERVER, "http-not-a-server" },
+    { ERROR_CODE_HTTP_ERROR, "http-error" },
+    { ERROR_CODE_WEBSOCKET_SCHEME_NOT_SUPPORTED,
+        "websocket-scheme-not-supported" },
+    { ERROR_CODE_WEBSOCKET_UNKNOWN_CONTROL_MESSAGE,
+        "websocket-unknown-control-message" },
+    { ERROR_CODE_WEBSOCKET_CLOSE_ERROR, "websocket-close-error" },
+    { ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER, "websocket-closed-by-peer" },
+    { ERROR_CODE_WEBSOCKET_ENDPOINT_LEAVES, "websocket-endpoint-leaves" },
+    { ERROR_CODE_WEBSOCKET_PROTOCOL_ERROR, "websocket-protocol-error" },
+    { ERROR_CODE_WEBSOCKET_DATA_NOT_ACCEPTED, "websocket-data-not-accepted" },
+    { ERROR_CODE_WEBSOCKET_CLOSED_ABNORMALLY, "websocket-closed-abnormally" },
+    { ERROR_CODE_WEBSOCKET_DATA_INCONSISTENT, "websocket-data-inconsistent" },
+    { ERROR_CODE_WEBSOCKET_DATA_AGAINST_POLICY,
+        "websocket-data-against-policy" },
+    { ERROR_CODE_WEBSOCKET_FRAME_TOO_LONG, "websocket-frame-too-long" },
+    { ERROR_CODE_WEBSOCKET_EXTENSION_MISSING, "websocket-extension-missing" },
+    { ERROR_CODE_WEBSOCKET_REQUEST_UNAVAILABLE,
+        "websocket-request-unavailable" },
+    { ERROR_CODE_WEBSOCKET_ERROR, "websocket-error" },
+    { ERROR_CODE_TLS_CLIENT_CERTIFICATE_ERROR, "tls-client-certificate-error" },
+    { ERROR_CODE_TLS_SERVER_CERTIFICATE_ERROR, "tls-server-certificate-error" },
+    { ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED,
+        "tls-client-authentication-failed" },
+    { ERROR_CODE_TLS_SERVER_AUTHENTICATION_FAILED,
+        "tls-server-authentication-failed" },
+    { ERROR_CODE_TLS_CLIENT_CERTIFICATE_EXPIRED,
+        "tls-client-certificate-expired" },
+    { ERROR_CODE_TLS_SERVER_CERTIFICATE_EXPIRED,
+        "tls-server-certificate-expired" },
+    { ERROR_CODE_TLS_CLIENT_CERTIFICATE_REVOKED,
+        "tls-client-certificate-revoked" },
+    { ERROR_CODE_TLS_SERVER_CERTIFICATE_REVOKED,
+        "tls-server-certificate-revoked" },
+    { ERROR_CODE_TLS_ERROR, "tls-error" },
+    { ERROR_CODE_DNS_UNAVAILABLE, "dns-unavailable" },
+    { ERROR_CODE_DNS_NAME_RESOLUTION_FAILED, "dns-name-resolution-failed" },
+    { ERROR_CODE_DNS_RESOLVER_FAILURE, "dns-resolver-failure" },
+    { ERROR_CODE_DNS_ERROR, "dns-error" },
+    { ERROR_CODE_TCP_CONNECT_TIMEOUT, "tcp-connect-timeout" },
+    { ERROR_CODE_TCP_CONNECTION_REFUSED, "tcp-connection-refused" },
+    { ERROR_CODE_TCP_CLOSED_BY_LOCAL, "tcp-closed-by-local" },
+    { ERROR_CODE_TCP_CLOSED_OTHER, "tcp-closed-other" },
+    { ERROR_CODE_TCP_ERROR, "tcp-error" },
+    { ERROR_CODE_IP_ADDRESS_NOT_REACHABLE, "ip-address-not-reachable" },
+    { ERROR_CODE_IP_ERROR, "ip-error" },
+    { ERROR_CODE_CERTIFICATE_EXPIRED, "certificate-expired" },
+    { ERROR_CODE_CERTIFICATE_INVALID, "certificate-invalid" },
+    { ERROR_CODE_CERTIFICATE_MALFORMED, "certificate-malformed" },
+    { ERROR_CODE_CERTIFICATE_REVOKED, "certificate-revoked" },
+    { ERROR_CODE_UNKNOWN_SECURITY_KEY, "unknown-security-key" },
+    { ERROR_CODE_REFERENCED_PORT_IN_ERROR, "referenced-port-in-error" },
+    /* Enumerated values 256-65535 may be used by others subject to */
+    /* the procedures and constraints described in Clause 23. */
+    { 0, NULL } };
 
 const char *bactext_error_code_name(unsigned index)
 {
@@ -1228,10 +1400,8 @@ bool bactext_days_of_week_index(const char *search_name, unsigned *found_index)
         bacnet_days_of_week_names, search_name, found_index);
 }
 
-INDTEXT_DATA bacnet_notify_type_names[] = {
-    { NOTIFY_ALARM, "alarm" },
-    { NOTIFY_EVENT, "event" },
-    { NOTIFY_ACK_NOTIFICATION, "ack-notification" },
+INDTEXT_DATA bacnet_notify_type_names[] = { { NOTIFY_ALARM, "alarm" },
+    { NOTIFY_EVENT, "event" }, { NOTIFY_ACK_NOTIFICATION, "ack-notification" },
     { 0, NULL } };
 
 const char *bactext_notify_type_name(unsigned index)
@@ -1240,8 +1410,7 @@ const char *bactext_notify_type_name(unsigned index)
         bacnet_notify_type_names, index, ASHRAE_Reserved_String);
 }
 
-bool bactext_notify_type_index(
-    const char *search_name, unsigned *found_index)
+bool bactext_notify_type_index(const char *search_name, unsigned *found_index)
 {
     return indtext_by_istring(
         bacnet_notify_type_names, search_name, found_index);
@@ -1276,8 +1445,7 @@ const char *bactext_event_state_name(unsigned index)
         bacnet_event_state_names, index, ASHRAE_Reserved_String);
 }
 
-bool bactext_event_state_index(
-    const char *search_name, unsigned *found_index)
+bool bactext_event_state_index(const char *search_name, unsigned *found_index)
 {
     return indtext_by_istring(
         bacnet_event_state_names, search_name, found_index);
@@ -1289,16 +1457,15 @@ bool bactext_event_state_strtol(const char *search_name, unsigned *found_index)
         bacnet_event_state_names, search_name, found_index);
 }
 
-INDTEXT_DATA bacnet_event_type_names[] = {
-    { EVENT_CHANGE_OF_BITSTRING, "change-of-bitstring" },
+INDTEXT_DATA bacnet_event_type_names[] = { { EVENT_CHANGE_OF_BITSTRING,
+                                               "change-of-bitstring" },
     { EVENT_CHANGE_OF_STATE, "change-of-state" },
     { EVENT_CHANGE_OF_VALUE, "change-of-value" },
     { EVENT_COMMAND_FAILURE, "command-failure" },
     { EVENT_FLOATING_LIMIT, "floating-limit" },
     { EVENT_OUT_OF_RANGE, "out-of-range" },
     { EVENT_CHANGE_OF_LIFE_SAFETY, "change-of-life-safety" },
-    { EVENT_EXTENDED, "extended" },
-    { EVENT_BUFFER_READY, "buffer-ready" },
+    { EVENT_EXTENDED, "extended" }, { EVENT_BUFFER_READY, "buffer-ready" },
     { EVENT_UNSIGNED_RANGE, "unsigned-range" },
     { EVENT_ACCESS_EVENT, "access-event" },
     { EVENT_DOUBLE_OUT_OF_RANGE, "double-out-of-range" },
@@ -1309,8 +1476,7 @@ INDTEXT_DATA bacnet_event_type_names[] = {
     { EVENT_CHANGE_OF_RELIABILITY, "change-of-reliability" },
     { EVENT_NONE, "none" },
     { EVENT_CHANGE_OF_DISCRETE_VALUE, "change-of-discrete-value" },
-    { EVENT_CHANGE_OF_TIMER, "change-of-timer" },
-    { 0, NULL } };
+    { EVENT_CHANGE_OF_TIMER, "change-of-timer" }, { 0, NULL } };
 
 const char *bactext_event_type_name(unsigned index)
 {
@@ -1319,13 +1485,11 @@ const char *bactext_event_type_name(unsigned index)
         Vendor_Proprietary_String);
 }
 
-bool bactext_event_type_index(
-    const char *search_name, unsigned *found_index)
+bool bactext_event_type_index(const char *search_name, unsigned *found_index)
 {
     return indtext_by_istring(
         bacnet_event_type_names, search_name, found_index);
 }
-
 
 INDTEXT_DATA bacnet_binary_present_value_names[] = {
     { BINARY_INACTIVE, "inactive" }, { BINARY_ACTIVE, "active" }, { 0, NULL }
@@ -1490,7 +1654,8 @@ INDTEXT_DATA lighting_in_progress[] = { { BACNET_LIGHTING_IDLE, "idle" },
     { BACNET_LIGHTING_FADE_ACTIVE, "fade" },
     { BACNET_LIGHTING_RAMP_ACTIVE, "ramp" },
     { BACNET_LIGHTING_NOT_CONTROLLED, "not" },
-    { BACNET_LIGHTING_OTHER, "other" }, { 0, NULL } };
+    { BACNET_LIGHTING_OTHER, "other" },
+    { BACNET_LIGHTING_TRIM_ACTIVE, "trim-active" }, { 0, NULL } };
 
 const char *bactext_lighting_in_progress(unsigned index)
 {
@@ -1532,12 +1697,27 @@ const char *bactext_lighting_operation_name(unsigned index)
 {
     if (index < BACNET_LIGHTS_PROPRIETARY_FIRST) {
         return indtext_by_index_default(
-            network_layer_msg_names, index, ASHRAE_Reserved_String);
+            bacnet_lighting_operation_names, index, ASHRAE_Reserved_String);
     } else if (index <= BACNET_LIGHTS_PROPRIETARY_LAST) {
         return Vendor_Proprietary_String;
     } else {
         return "Invalid BACnetLightingOperation";
     }
+}
+
+INDTEXT_DATA bacnet_color_operation_names[] = { { BACNET_COLOR_OPERATION_NONE,
+                                                    "none" },
+    { BACNET_COLOR_OPERATION_FADE_TO_COLOR, "fade-to-color" },
+    { BACNET_COLOR_OPERATION_FADE_TO_CCT, "fade-to-cct" },
+    { BACNET_COLOR_OPERATION_RAMP_TO_CCT, "ramp-to-cct" },
+    { BACNET_COLOR_OPERATION_STEP_UP_CCT, "step-up-cct" },
+    { BACNET_COLOR_OPERATION_STEP_DOWN_CCT, "step-down-cct" },
+    { BACNET_COLOR_OPERATION_STOP, "stop" }, { 0, NULL } };
+
+const char *bactext_color_operation_name(unsigned index)
+{
+    return indtext_by_index_default(
+        bacnet_color_operation_names, index, ASHRAE_Reserved_String);
 }
 
 INDTEXT_DATA bacnet_device_communications_names[] = {

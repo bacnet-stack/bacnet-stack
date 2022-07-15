@@ -12,13 +12,13 @@ This library uses automated continuous integration services
 to assist in automated compilation, validation, linting, security scanning,
 and unit testing to produce robust C code and BACnet functionality.
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CMake/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/main.yml) GitHub Workflow: CMake build of library and demo apps on Ubuntu, Windows and MacOS
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/GCC/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/GCC/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/gcc.yml) GitHub Workflow: Ubuntu Makefile GCC build of library, BACnet/IP demo apps with and without BBMD, BACnet/IPv6, BACnet Ethernet, and BACnet MSTP demo apps, gateway, router, router-ipv6, router-mstp, ARM ports (STM, Atmel), AVR ports, and BACnet/IP demo apps compiled with MinGW32.
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/Lint/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/Quality/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/lint.yml) GitHub Workflow: scan-build (LLVM Clang Tools), cppcheck, codespell, unit tests and code coverage.
 
-[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CodeQL/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions) GitHub Workflow
+[![Actions Status](https://github.com/bacnet-stack/bacnet-stack/workflows/CodeQL/badge.svg)](https://github.com/bacnet-stack/bacnet-stack/actions/workflows/codeql-analysis.yml) GitHub Workflow CodeQL Analysis
 
 About this Project
 ------------------
@@ -114,14 +114,14 @@ to generate a Code::Blocks project:
     c:\> cd build/
     c:\> cmake .. -G"CodeBlocks - MinGW Makefiles"
 
+The unit tests also use CMake and may be run with the command sequence:
 
-The the available tests may be run with the command sequence:
-
-    $ make clean
-    $ make cmake
-    $ cd build
-    $ CTEST_OUTPUT_ON_FAILURE=1 make test
-    $ cd ..
+    $ make test
+    
+The unit test framework uses a slightly modified ztest, and the tests are located
+in the test/ folder.  The unit test builder uses CMake, and the test coverage 
+uses LCOV.  The HTML results of the unit testing coverage are available starting 
+in the test/build/lcoverage/index.html file.
 
 The demo applications are all client applications that provide one main BACnet
 service, except the one server application and one gateway application, 
@@ -176,4 +176,4 @@ skarg@users.sourceforge.net
 
 ASHRAE® and BACnet® are registered trademarks of the 
 American Society of Heating, Refrigerating and Air-Conditioning Engineers, Inc.
-1791 Tullie Circle NE, Atlanta, GA 30329.
+180 Technology Parkway NW, Peachtree Corners, Georgia 30092 US.

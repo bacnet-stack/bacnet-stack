@@ -41,7 +41,7 @@
 /* Although this stack can implement a later revision,
  * sometimes another revision is desired */
 #ifndef BACNET_PROTOCOL_REVISION
-#define BACNET_PROTOCOL_REVISION 19
+#define BACNET_PROTOCOL_REVISION 24
 #endif
 
 /* there are a few dependencies on the BACnet Protocol-Revision */
@@ -108,10 +108,21 @@
     /* from 135-2016 version of the BACnet Standard */
 #define MAX_ASHRAE_OBJECT_TYPE 60
 #define MAX_BACNET_SERVICES_SUPPORTED 44
-#elif (BACNET_PROTOCOL_REVISION == 20)
-    /* Addendum 135-2016bd  */
-#define MAX_ASHRAE_OBJECT_TYPE 61
-#define MAX_BACNET_SERVICES_SUPPORTED 44
+#elif (BACNET_PROTOCOL_REVISION == 20) || (BACNET_PROTOCOL_REVISION == 21)
+    /* Addendum 135-2016bd, 135-2016be, 135-2016bi */
+#define MAX_ASHRAE_OBJECT_TYPE 63
+#define MAX_BACNET_SERVICES_SUPPORTED 47
+#elif (BACNET_PROTOCOL_REVISION == 22)
+#define MAX_ASHRAE_OBJECT_TYPE 63
+#define MAX_BACNET_SERVICES_SUPPORTED 47
+#elif (BACNET_PROTOCOL_REVISION == 23)
+    /* Addendum 135-2020cd */
+#define MAX_ASHRAE_OBJECT_TYPE 63
+#define MAX_BACNET_SERVICES_SUPPORTED 47
+#elif (BACNET_PROTOCOL_REVISION == 24)
+    /* Addendum 135-2020ca, 135-2020cc, 135-2020bv */
+#define MAX_ASHRAE_OBJECT_TYPE 65
+#define MAX_BACNET_SERVICES_SUPPORTED 47
 #else
 #error MAX_ASHRAE_OBJECT_TYPE and MAX_BACNET_SERVICES_SUPPORTED not defined!
 #endif

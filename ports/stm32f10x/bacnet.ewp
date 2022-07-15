@@ -229,13 +229,6 @@
                     <state>BACDL_MSTP</state>
                     <state>MAX_APDU=480</state>
                     <state>MAX_TSM_TRANSACTIONS=0</state>
-                    <state>BACAPP_BOOLEAN</state>
-                    <state>BACAPP_REAL</state>
-                    <state>BACAPP_OBJECT_ID</state>
-                    <state>BACAPP_UNSIGNED</state>
-                    <state>BACAPP_ENUMERATED</state>
-                    <state>BACAPP_CHARACTER_STRING</state>
-                    <state>WRITE_PROPERTY</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -275,7 +268,7 @@
                 </option>
                 <option>
                     <name>CCDiagSuppress</name>
-                    <state></state>
+                    <state>Pe550,Pa084</state>
                 </option>
                 <option>
                     <name>CCDiagRemark</name>
@@ -1065,6 +1058,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdcode.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\bacdevobjpropref.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacerror.c</name>
         </file>
         <file>
@@ -1077,19 +1073,19 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\bacstr.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\dcc.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\iam.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\ihave.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\hostnport.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\lighting.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\memcopy.c</name>
@@ -1116,6 +1112,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\rpm.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\timestamp.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\whohas.c</name>
         </file>
         <file>
@@ -1126,7 +1125,19 @@
         </file>
     </group>
     <group>
-        <name>BACnet-Handlers</name>
+        <name>BACnet-Datalink</name>
+        <file>
+            <name>$PROJ_DIR$\automac.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\datalink\crc.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\dlmstp.c</name>
+        </file>
+    </group>
+    <group>
+        <name>BACnet-Basic-Services</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_apdu.c</name>
         </file>
@@ -1158,12 +1169,6 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\h_wp.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\mstimer.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\ringbuf.c</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\s_iam.c</name>
         </file>
         <file>
@@ -1171,6 +1176,24 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\tsm\tsm.c</name>
+        </file>
+    </group>
+    <group>
+        <name>BACnet-Basic-System</name>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\bigend.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\debug.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\mstimer.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\ringbuf.c</name>
         </file>
     </group>
     <group>
@@ -1252,9 +1275,6 @@
         </file>
     </group>
     <file>
-        <name>$PROJ_DIR$\automac.c</name>
-    </file>
-    <file>
         <name>$PROJ_DIR$\bacnet.c</name>
     </file>
     <file>
@@ -1262,9 +1282,6 @@
     </file>
     <file>
         <name>$PROJ_DIR$\device.c</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\dlmstp.c</name>
     </file>
     <file>
         <name>$PROJ_DIR$\led.c</name>

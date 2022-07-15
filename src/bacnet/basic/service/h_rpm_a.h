@@ -56,6 +56,9 @@ extern "C" {
     BACNET_STACK_EXPORT
     void rpm_ack_print_data(
         BACNET_READ_ACCESS_DATA * rpm_data);
+    BACNET_STACK_EXPORT
+    BACNET_READ_ACCESS_DATA *rpm_data_free(
+        BACNET_READ_ACCESS_DATA *rpm_data);
 
 #ifdef __cplusplus
 }

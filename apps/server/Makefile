@@ -1,7 +1,8 @@
-#Makefile to build BACnet Application for the GCC port
+#Makefile to build BACnet Application using GCC compiler
 
 # Executable file name
 TARGET = bacserv
+# BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/device.c \
@@ -12,6 +13,8 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
+	$(BACNET_OBJECT_DIR)/color_object.c \
+	$(BACNET_OBJECT_DIR)/color_temperature.c \
 	$(BACNET_OBJECT_DIR)/command.c \
 	$(BACNET_OBJECT_DIR)/csv.c \
 	$(BACNET_OBJECT_DIR)/iv.c \
@@ -37,23 +40,20 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/acc.c \
 	$(BACNET_OBJECT_DIR)/bacfile.c
 
-BACNET_BASIC_SRC += \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c)
-
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-SRCS = $(SRC) $(BACNET_SRC) $(BACNET_BASIC_SRC) $(BACNET_PORT_SRC)
+OBJS += ${SRC:.c=.o}
 
-OBJS = ${SRCS:.c=.o}
+all: ${BACNET_LIB_TARGET} Makefile ${TARGET_BIN}
 
-.PHONY: all
-all: Makefile ${TARGET_BIN}
-
-${TARGET_BIN}: ${OBJS}
+${TARGET_BIN}: ${OBJS} Makefile ${BACNET_LIB_TARGET}
 	${CC} ${PFLAGS} ${OBJS} ${LFLAGS} -o $@
 	size $@
 	cp $@ ../../bin
+
+${BACNET_LIB_TARGET}:
+	( cd ${BACNET_LIB_DIR} ; $(MAKE) clean ; $(MAKE) -s )
 
 .c.o:
 	${CC} -c ${CFLAGS} $*.c -o $@
@@ -65,7 +65,7 @@ depend:
 
 .PHONY: clean
 clean:
-	rm -f core ${TARGET_BIN} ${OBJS} $(TARGET).map
+	rm -f core ${TARGET_BIN} ${OBJS} $(TARGET).map ${BACNET_LIB_TARGET}
 
 .PHONY: include
 include: .depend

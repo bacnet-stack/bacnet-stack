@@ -37,7 +37,8 @@
    see datalink.h for possible defines. */
 #if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || \
     defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_BIP6) || \
-    defined(BACDL_TEST) || defined(BACDL_ALL) || defined(BACDL_NONE))
+    defined(BACDL_TEST) || defined(BACDL_ALL) || defined(BACDL_NONE) || \
+    defined(BACDL_CUSTOM))
 #define BACDL_BIP
 #endif
 
@@ -143,9 +144,8 @@
     defined(BACAPP_ENUMERATED) || \
     defined(BACAPP_DATE) || \
     defined(BACAPP_TIME) || \
-    defined(BACAPP_LIGHTING_COMMAND) || \
-    defined(BACAPP_DEVICE_OBJECT_PROP_REF) || \
-    defined(BACAPP_OBJECT_ID))
+    defined(BACAPP_OBJECT_ID) || \
+    defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
 
@@ -163,8 +163,7 @@
 #define BACAPP_DATE
 #define BACAPP_TIME
 #define BACAPP_OBJECT_ID
-#define BACAPP_DEVICE_OBJECT_PROP_REF
-#define BACAPP_LIGHTING_COMMAND
+#define BACAPP_TYPES_EXTRA
 #elif defined (BACAPP_MINIMAL)
 #define BACAPP_NULL
 #define BACAPP_BOOLEAN
@@ -203,15 +202,11 @@
 */
 
 /*
-** First we see if this is a test build and enable all the services as they
-** may be required.
-**
-** Note: I've left everything enabled here in the main config.h. You should
+** Note: I've left everything enabled here in the default config.h. You should
 ** use a local copy of config.h with settings configured for your needs to
-** make use of the code space reductions.
+** make use of any code space reductions in your device.
 **/
 
-#ifdef BAC_TEST
 #define BACNET_SVC_I_HAVE_A    1
 #define BACNET_SVC_WP_A        1
 #define BACNET_SVC_RP_A        1
@@ -223,19 +218,6 @@
 #define BACNET_USE_OCTETSTRING 1
 #define BACNET_USE_DOUBLE      1
 #define BACNET_USE_SIGNED      1
-#else /* Otherwise define our working set - all enabled here to avoid breaking things */
-#define BACNET_SVC_I_HAVE_A    1
-#define BACNET_SVC_WP_A        1
-#define BACNET_SVC_RP_A        1
-#define BACNET_SVC_RPM_A       1
-#define BACNET_SVC_DCC_A       1
-#define BACNET_SVC_RD_A        1
-#define BACNET_SVC_TS_A        1
-#define BACNET_SVC_SERVER      0
-#define BACNET_USE_OCTETSTRING 1
-#define BACNET_USE_DOUBLE      1
-#define BACNET_USE_SIGNED      1
-#endif
 
 /* Do them one by one */
 #ifndef BACNET_SVC_I_HAVE_A     /* Do we send I_Have requests? */

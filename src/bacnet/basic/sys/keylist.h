@@ -39,7 +39,7 @@ struct Keylist_Node {
 
 typedef struct Keylist {
     struct Keylist_Node **array;        /* array of nodes */
-    int count;  /* number of nodes in this list - more effecient than loop */
+    int count;  /* number of nodes in this list - more efficient than loop */
     int size;   /* number of available nodes on this list - can grow or shrink */
 } KEYLIST_TYPE;
 typedef KEYLIST_TYPE *OS_Keylist;
@@ -120,13 +120,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     int Keylist_Count(
         OS_Keylist list);
-
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    void testKeyList(
-        Test * pTest);
-#endif
 
 #ifdef __cplusplus
 }

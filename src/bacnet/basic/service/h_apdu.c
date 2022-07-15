@@ -39,6 +39,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
+#include "bacnet/bacerror.h"
 #include "bacnet/dcc.h"
 #include "bacnet/iam.h"
 /* basic objects, services, TSM */
@@ -302,7 +303,36 @@ void apdu_set_confirmed_ack_handler(
     }
 }
 
-static error_function Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
+static union {
+    error_function error;
+    complex_error_function complex;
+} Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
+
+/**
+ * @brief Determine if the service uses Complex Error function
+ * @param service_choice  Service, see SERVICE_CONFIRMED_X enumeration.
+ * @return true if the service uses a Complex Error function
+ */
+bool apdu_complex_error(uint8_t service_choice)
+{
+    bool status = false;
+
+    switch (service_choice) {
+        case SERVICE_CONFIRMED_SUBSCRIBE_COV_PROPERTY_MULTIPLE:
+        case SERVICE_CONFIRMED_ADD_LIST_ELEMENT:
+        case SERVICE_CONFIRMED_REMOVE_LIST_ELEMENT:
+        case SERVICE_CONFIRMED_CREATE_OBJECT:
+        case SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE:
+        case SERVICE_CONFIRMED_PRIVATE_TRANSFER:
+        case SERVICE_CONFIRMED_VT_CLOSE:
+            status = true;
+            break;
+        default:
+            break;
+    }
+
+    return status;
+}
 
 /**
  * @brief Set a error handler function for the given confirmed service.
@@ -312,10 +342,28 @@ static error_function Error_Function[MAX_BACNET_CONFIRMED_SERVICE];
  * handling.
  */
 void apdu_set_error_handler(
-    BACNET_CONFIRMED_SERVICE service_choice, error_function pFunction)
+    BACNET_CONFIRMED_SERVICE service_choice,
+    error_function pFunction)
 {
-    if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
-        Error_Function[service_choice] = pFunction;
+    if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
+        (!apdu_complex_error(service_choice))) {
+        Error_Function[service_choice].error = pFunction;
+    }
+}
+
+/**
+ * @brief Set a complex error handler function for the given confirmed service.
+ *
+ * @param service_choice  Service, see SERVICE_CONFIRMED_X enumeration.
+ * @param pFunction  Pointer to the function, being in charge of the error
+ * handling.
+ */
+void apdu_set_complex_error_handler(
+    BACNET_CONFIRMED_SERVICE service_choice,
+    complex_error_function pFunction)
+{
+    if (apdu_complex_error(service_choice)) {
+        Error_Function[service_choice].complex = pFunction;
     }
 }
 
@@ -499,10 +547,8 @@ void apdu_handler(BACNET_ADDRESS *src,
     uint8_t *service_request = NULL;
     uint16_t service_request_len = 0;
     int len = 0; /* counts where we are in PDU */
-    uint8_t tag_number = 0;
-    uint32_t len_value = 0;
-    uint32_t error_code = 0;
-    uint32_t error_class = 0;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    BACNET_ERROR_CLASS error_class = ERROR_CLASS_SERVICES;
     uint8_t reason = 0;
     bool server = false;
 
@@ -510,9 +556,13 @@ void apdu_handler(BACNET_ADDRESS *src,
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                (void)apdu_decode_confirmed_service_request(&apdu[0], apdu_len,
-                    &service_data, &service_choice, &service_request,
-                    &service_request_len);
+                len = apdu_decode_confirmed_service_request(
+                    &apdu[0], apdu_len, &service_data, &service_choice,
+                    &service_request, &service_request_len);
+                if (len == 0) {
+                    /* service data unable to be decoded - simply drop */
+                    break;
+                }
                 if (apdu_confirmed_dcc_disabled(service_choice)) {
                     /* When network communications are completely disabled,
                        only DeviceCommunicationControl and ReinitializeDevice
@@ -644,65 +694,19 @@ void apdu_handler(BACNET_ADDRESS *src,
                 if (apdu_len >= 3) {
                     invoke_id = apdu[1];
                     service_choice = apdu[2];
-                    len = 3;
-
-                    /* FIXME: Currently special case for C_P_T but there are
-                       others which may need consideration such as
-                       ChangeList-Error, CreateObject-Error,
-                       WritePropertyMultiple-Error and VTClose_Error but they
-                       may be left as is for now until support for these
-                       services is added */
-
-                    if (service_choice ==
-                        SERVICE_CONFIRMED_PRIVATE_TRANSFER) { /* skip over
-                                                                 opening tag 0
-                                                               */
-                        if (decode_is_opening_tag_number(&apdu[len], 0)) {
-                            len++; /* a tag number of 0 is not extended so only
-                                      one octet */
+                    if (apdu_complex_error(service_choice)) {
+                        if (Error_Function[service_choice].complex) {
+                            Error_Function[service_choice].complex(src,
+                                invoke_id, service_choice,
+                                &apdu[3], apdu_len - 3);
                         }
-                    }
-
-                    if (len < apdu_len) {
-                        len += decode_tag_number_and_value(
-                            &apdu[len], &tag_number, &len_value);
-
-                        if (len < apdu_len) {
-                            /* FIXME: we could validate that the tag is
-                             * enumerated... */
-                            len += decode_enumerated(
-                                &apdu[len], len_value, &error_class);
-
-                            if (len < apdu_len) {
-                                len += decode_tag_number_and_value(
-                                    &apdu[len], &tag_number, &len_value);
-
-                                if (len < apdu_len) {
-                                    /* FIXME: we could validate that the tag is
-                                     * enumerated... */
-                                    len += decode_enumerated(
-                                        &apdu[len], len_value, &error_code);
-
-                                    if (service_choice ==
-                                        SERVICE_CONFIRMED_PRIVATE_TRANSFER) {
-                                        if (len < apdu_len) {
-                                            /* skip over closing tag 0 */
-                                            if (decode_is_closing_tag_number(
-                                                    &apdu[len], 0)) {
-                                                len++; /* a tag number of 0 is
-                                                          not extended so only
-                                                          one octet */
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
-                        if (Error_Function[service_choice]) {
-                            Error_Function[service_choice](src, invoke_id,
+                    } else if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+                        len = bacerror_decode_error_class_and_code(&apdu[3],
+                            apdu_len - 3, &error_class, &error_code);
+                        if ((len != 0) &&
+                            (Error_Function[service_choice].error)) {
+                            Error_Function[service_choice].error(src,
+                                invoke_id,
                                 (BACNET_ERROR_CLASS)error_class,
                                 (BACNET_ERROR_CODE)error_code);
                         }

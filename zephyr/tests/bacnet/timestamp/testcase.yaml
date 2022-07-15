@@ -1,3 +1,6 @@
 tests:
   bacnet.timestamp:
     tags: bacnet
+  bacnet.timestamp.unit:
+    tags: bacnet
+    type: unit

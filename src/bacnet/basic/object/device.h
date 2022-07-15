@@ -91,7 +91,7 @@ typedef bool(
 
 /** Helper function to step through an array of objects and find either the
  * first one or the next one of a given type. Used to step through an array
- * of objects which is not necessarily contiguious for each type i.e. the
+ * of objects which is not necessarily contiguous for each type i.e. the
  * index for the 'n'th object of a given type is not necessarily 'n'.
  * @ingroup ObjHelpers
  * @param [in] The index of the current object or a value of ~0 to indicate

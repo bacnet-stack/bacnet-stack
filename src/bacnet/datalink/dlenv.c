@@ -57,6 +57,24 @@ static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
 /* enable debugging */
 static bool BIP_DL_Debug = false;
 
+/* Debug toggle */
+
+/**
+ * @brief Enabled debug printing of BACnet/IPv4 DL
+ */
+void bip_dl_debug_enable(void)
+{
+    BIP_DL_Debug = true;
+}
+
+/**
+ * @brief Disable debug printing of BACnet/IPv4 DL
+ */
+void bip_dl_debug_disable(void)
+{
+    BIP_DL_Debug = false;
+}
+
 /* Simple setters for BBMD registration variables. */
 
 /**
@@ -180,7 +198,8 @@ int dlenv_register_as_foreign_device(void)
                     bip_get_addr_by_name(pEnv, &BBMD_Table_Entry.dest_address);
                 if (entry_number == 1) {
                     if (BIP_DL_Debug) {
-                        fprintf(stderr, "BBMD 1 is %s=%s!\n", bbmd_env, pEnv);
+                        fprintf(stderr, "BBMD 1 address overridden %s=%s!\n",
+                            bbmd_env, pEnv);
                     }
                 }
             } else if (entry_number == 1) {
@@ -188,19 +207,25 @@ int dlenv_register_as_foreign_device(void)
                 bdt_entry_valid = bip_get_addr(&BBMD_Table_Entry.dest_address);
             }
             if (bdt_entry_valid) {
-                if (entry_number != 1) {
-                    bdt_entry_port = 0xBAC0;
-                    sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
-                    pEnv = getenv(bbmd_env);
-                    if (pEnv) {
-                        bdt_entry_port = strtol(pEnv, NULL, 0);
-                        if (bdt_entry_port > 0xFFFF) {
-                            bdt_entry_port = 0xBAC0;
-                        }
-                        /* BDT 1 is self (note: can be overridden) */
+                bdt_entry_port = 0xBAC0;
+                sprintf(bbmd_env, "BACNET_BDT_PORT_%u", entry_number);
+                pEnv = getenv(bbmd_env);
+                if (pEnv) {
+                    bdt_entry_port = strtol(pEnv, NULL, 0);
+                    if (bdt_entry_port > 0xFFFF) {
+                        bdt_entry_port = 0xBAC0;
                     }
-                    BBMD_Table_Entry.dest_address.port = bdt_entry_port;
+                    if (entry_number == 1) {
+                        if (BIP_DL_Debug) {
+                            fprintf(stderr, "BBMD 1 port overridden %s=%s!\n",
+                                bbmd_env, pEnv);
+                        }
+                    }
+                } else if (entry_number == 1) {
+                    /* BDT 1 is self (note: can be overridden) */
+                    bdt_entry_port = bip_get_port();
                 }
+                BBMD_Table_Entry.dest_address.port = bdt_entry_port;
                 /* broadcast mask */
                 bvlc_broadcast_distribution_mask_from_host(
                     &BBMD_Table_Entry.broadcast_mask, 0xFFFFFFFF);
@@ -243,10 +268,11 @@ int dlenv_register_as_foreign_device(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     const uint32_t instance = 1;
     BACNET_IP_ADDRESS addr = { 0 };
+    uint8_t addr0, addr1, addr2, addr3;
 
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/IP Port");
@@ -259,6 +285,12 @@ static void dlenv_network_port_init(void)
 #if BBMD_ENABLED
     Network_Port_BBMD_BD_Table_Set(instance, bvlc_bdt_list());
     Network_Port_BBMD_FD_Table_Set(instance, bvlc_fdt_list());
+    /* foreign device registration */
+    bvlc_address_get(&BBMD_Address, &addr0, &addr1, &addr2, &addr3);
+    Network_Port_Remote_BBMD_IP_Address_Set(instance,
+        addr0, addr1, addr2, addr3);
+    Network_Port_Remote_BBMD_BIP_Port_Set(instance, BBMD_Address.port);
+    Network_Port_Remote_BBMD_BIP_Lifetime_Set(instance, BBMD_TTL_Seconds);
 #endif
     /* common NP data */
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
@@ -274,7 +306,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
     uint8_t mac[1] = { 0 };
@@ -301,7 +333,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
     uint8_t prefix = 0;
@@ -334,7 +366,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     /* do nothing */
 }
@@ -454,11 +486,12 @@ void dlenv_init(void)
     }
 #endif
 #if defined(BACDL_BIP)
+    BACNET_IP_ADDRESS addr;
     pEnv = getenv("BACNET_IP_DEBUG");
     if (pEnv) {
         bip_debug_enable();
         bvlc_debug_enable();
-        BIP_DL_Debug = true;
+        bip_dl_debug_enable();
     }
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
@@ -476,8 +509,12 @@ void dlenv_init(void)
     }
     pEnv = getenv("BACNET_IP_NAT_ADDR");
     if (pEnv) {
-        BACNET_IP_ADDRESS addr;
         if (bip_get_addr_by_name(pEnv, &addr)) {
+            addr.port = 0xBAC0;
+            pEnv = getenv("BACNET_IP_NAT_PORT");
+            if (pEnv) {
+                addr.port = strtol(pEnv, NULL, 0);
+            }
             bvlc_set_global_address_for_nat(&addr);
         }
     }

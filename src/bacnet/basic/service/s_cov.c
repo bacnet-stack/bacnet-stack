@@ -142,8 +142,15 @@ uint8_t Send_COV_Subscribe(
         pdu_len = npdu_encode_pdu(
             &Handler_Transmit_Buffer[0], &dest, &my_address, &npdu_data);
         /* encode the APDU portion of the packet */
-        len = cov_subscribe_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-            sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
+        if (cov_data->covSubscribeToProperty) {
+            // subscribe to 1 property
+            len = cov_subscribe_property_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
+        } else {
+            // subscribe to object
+            len = cov_subscribe_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+                sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
+        }
         pdu_len += len;
         /* will it fit in the sender?
            note: if there is a bottleneck router in between

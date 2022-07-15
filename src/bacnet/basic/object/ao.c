@@ -154,7 +154,7 @@ float Analog_Output_Present_Value(uint32_t object_instance)
     if (index < MAX_ANALOG_OUTPUTS) {
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
             if (Analog_Output_Level[index][i] != AO_LEVEL_NULL) {
-                value = Analog_Output_Level[index][i];
+                value = (float)Analog_Output_Level[index][i];
                 break;
             }
         }
@@ -342,7 +342,8 @@ int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     if (Analog_Output_Level[object_index][i] == AO_LEVEL_NULL) {
                         len = encode_application_null(&apdu[apdu_len]);
                     } else {
-                        real_value = Analog_Output_Level[object_index][i];
+                        real_value =
+                            (float)Analog_Output_Level[object_index][i];
                         len = encode_application_real(
                             &apdu[apdu_len], real_value);
                     }
@@ -365,7 +366,7 @@ int Analog_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                         apdu_len = encode_application_null(&apdu[0]);
                     } else {
                         real_value =
-                            Analog_Output_Level[object_index]
+                            (float)Analog_Output_Level[object_index]
                                                [rpdata->array_index - 1];
                         apdu_len =
                             encode_application_real(&apdu[0], real_value);

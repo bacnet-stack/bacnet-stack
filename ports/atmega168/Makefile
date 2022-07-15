@@ -51,6 +51,7 @@ CSRC = main.c \
 BASICSRC = $(BACNET_BASIC)/tsm/tsm.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/sys/bigend.c \
+	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/service/s_iam.c \
 	$(BACNET_BASIC)/service/h_noserv.c
 
@@ -112,6 +113,8 @@ CFLAGS = $(COMMON)
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wall -gdwarf-2 $(BFLAGS) $(OPTIMIZATION) -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
+# silence some warnings
+CFLAGS += -Wno-switch
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)

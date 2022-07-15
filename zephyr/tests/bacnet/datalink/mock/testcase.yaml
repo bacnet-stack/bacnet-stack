@@ -1,0 +1,6 @@
+tests:
+  bacnet.datalink.mock.unit:
+    tags: bacnet
+    type: unit
+  bacnet.datalink.mock:
+    tags: bacnet

@@ -27,10 +27,6 @@
 /* tiny implementations have no need to print */
 #if PRINT_ENABLED
 #define BACTEXT_PRINT_ENABLED
-#else
-#ifdef BAC_TEST
-#define BACTEXT_PRINT_ENABLED
-#endif
 #endif
 
 #include <stdbool.h>
@@ -205,6 +201,11 @@ extern "C" {
     BACNET_STACK_EXPORT
 	const char *bactext_lighting_transition(
 		unsigned index);
+
+    BACNET_STACK_EXPORT
+    const char *bactext_color_operation_name(
+        unsigned index);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -75,9 +75,11 @@ static BACNET_IP_ADDRESS BVLC_Global_Address;
 static bool BVLC_NAT_Handling = false;
 /** if we are a foreign device, store the remote BBMD address/port here */
 static BACNET_IP_ADDRESS Remote_BBMD;
+/** if we are a foreign device, store the Time-To-Live Seconds here */
+static uint16_t Remote_BBMD_TTL_Seconds;
 #if BBMD_ENABLED
 /* local buffer & length for sending */
-static uint8_t BVLC_Buffer[MAX_MPDU];
+static uint8_t BVLC_Buffer[BIP_MPDU_MAX];
 static uint16_t BVLC_Buffer_Len;
 /* Broadcast Distribution Table */
 #ifndef MAX_BBMD_ENTRIES
@@ -96,6 +98,14 @@ static BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY FD_Table[MAX_FD_ENTRIES];
  * @brief Enabled debug printing of BACnet/IPv4 BBMD
  */
 void bvlc_debug_enable(void)
+{
+    BVLC_Debug = true;
+}
+
+/**
+ * @brief Disable debug printing of BACnet/IPv4 BBMD
+ */
+void bvlc_debug_disable(void)
 {
     BVLC_Debug = true;
 }
@@ -317,7 +327,7 @@ static uint16_t bbmd_forward_npdu(
     BACNET_IP_ADDRESS *bip_src, uint8_t *npdu, uint16_t npdu_length)
 {
     BACNET_IP_ADDRESS broadcast_address = { 0 };
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = (uint16_t)bvlc_encode_forwarded_npdu(
@@ -345,7 +355,7 @@ static uint16_t bbmd_bdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
     uint16_t npdu_length,
     bool original)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     unsigned i = 0; /* loop counter */
     BACNET_IP_ADDRESS bip_dest = { 0 };
@@ -355,7 +365,7 @@ static uint16_t bbmd_bdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
     /* If we are forwarding an original broadcast message and the NAT
      * handling is enabled, change the source address to NAT routers
      * global IP address so the recipient can reply (local IP address
-     * is not accesible from internet side.
+     * is not accessible from internet side.
      *
      * If we are forwarding a message from peer BBMD or foreign device
      * or the NAT handling is disabled, leave the source address as is.
@@ -410,7 +420,7 @@ static uint16_t bbmd_fdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
     uint16_t npdu_length,
     bool original)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
     unsigned i = 0; /* loop counter */
     BACNET_IP_ADDRESS bip_dest = { 0 };
@@ -420,7 +430,7 @@ static uint16_t bbmd_fdt_forward_npdu(BACNET_IP_ADDRESS *bip_src,
     /* If we are forwarding an original broadcast message and the NAT
      * handling is enabled, change the source address to NAT routers
      * global IP address so the recipient can reply (local IP address
-     * is not accesible from internet side.
+     * is not accessible from internet side.
      *
      * If we are forwarding a message from peer BBMD or foreign device
      * or the NAT handling is disabled, leave the source address as is.
@@ -566,7 +576,7 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest,
     unsigned pdu_len)
 {
     BACNET_IP_ADDRESS bvlc_dest = { 0 };
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 #if BBMD_ENABLED
     BACNET_IP_ADDRESS bip_src = { 0 };
@@ -592,8 +602,8 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest,
 #if BBMD_ENABLED
             if (mtu_len > 0) {
                 bip_get_addr(&bip_src);
-                bbmd_fdt_forward_npdu(&bip_src, pdu, pdu_len, true);
-                bbmd_bdt_forward_npdu(&bip_src, pdu, pdu_len, true);
+                (void)bbmd_fdt_forward_npdu(&bip_src, pdu, pdu_len, true);
+                (void)bbmd_bdt_forward_npdu(&bip_src, pdu, pdu_len, true);
             }
 #endif
         }
@@ -633,7 +643,7 @@ int bvlc_send_pdu(BACNET_ADDRESS *dest,
  */
 static int bvlc_send_result(BACNET_IP_ADDRESS *dest_addr, uint16_t result_code)
 {
-    uint8_t mtu[MAX_MPDU] = { 0 };
+    uint8_t mtu[BIP_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
 
     mtu_len = bvlc_encode_result(&mtu[0], sizeof(mtu), result_code);
@@ -928,7 +938,7 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                 /*  In addition, the constructed BVLL Forwarded-NPDU
                     message shall be unicast to each foreign device in
                     the BBMD's FDT. */
-                bbmd_fdt_forward_npdu(&fwd_address, mtu, mtu_len, false);
+                (void)bbmd_fdt_forward_npdu(&fwd_address, mtu, mtu_len, false);
                 /* prepare the message for me! */
                 bvlc_ip_address_to_bacnet_local(src, &fwd_address);
                 offset = header_len + function_len - npdu_len;
@@ -1032,8 +1042,8 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                attempt was unsuccessful */
             npdu_len = bbmd_forward_npdu(addr, pdu, pdu_len);
             if (npdu_len > 0) {
-                bbmd_fdt_forward_npdu(addr, pdu, pdu_len, false);
-                bbmd_bdt_forward_npdu(addr, pdu, pdu_len, false);
+                (void)bbmd_fdt_forward_npdu(addr, pdu, pdu_len, false);
+                (void)bbmd_bdt_forward_npdu(addr, pdu, pdu_len, false);
             } else {
                 result_code = BVLC_RESULT_DISTRIBUTE_BROADCAST_TO_NETWORK_NAK;
                 send_result = true;
@@ -1099,8 +1109,8 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                         "Original-Broadcast-NPDU: "
                         "Confirmed Service! Discard!");
                 } else {
-                    bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
-                    bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
+                    (void)bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
+                    (void)bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
                     debug_print_npdu("Original-Broadcast-NPDU",
                         offset, npdu_len);
                 }
@@ -1149,6 +1159,32 @@ int bvlc_handler(BACNET_IP_ADDRESS *addr,
 #endif
 }
 
+int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
+    BACNET_ADDRESS *src,
+    uint8_t *npdu,
+    uint16_t npdu_len)
+{
+    int offset = 0;
+    uint8_t message_type = 0;
+    uint16_t message_length = 0;
+    int header_len = 0;
+
+    header_len =
+        bvlc_decode_header(npdu, npdu_len, &message_type, &message_length);
+    if (header_len == 4) {
+        switch (message_type) {
+            case BVLC_ORIGINAL_UNICAST_NPDU:
+                /* drop unicast when sent as a broadcast */
+                break;
+            default:
+                offset = bvlc_handler(addr, src, npdu, npdu_len);
+                break;
+        }
+    }
+
+    return offset;
+}
+
 #if BBMD_CLIENT_ENABLED
 /** Register as a foreign device with the indicated BBMD.
  * @param bbmd_addr - IPv4 address of BBMD with which to register
@@ -1162,10 +1198,34 @@ int bvlc_register_with_bbmd(BACNET_IP_ADDRESS *bbmd_addr, uint16_t ttl_seconds)
     /* Store the BBMD address and port so that we won't broadcast locally. */
     /* We are a foreign device! */
     bvlc_address_copy(&Remote_BBMD, bbmd_addr);
+    Remote_BBMD_TTL_Seconds = ttl_seconds;
     BVLC_Buffer_Len = bvlc_encode_register_foreign_device(
         &BVLC_Buffer[0], sizeof(BVLC_Buffer), ttl_seconds);
 
     return bip_send_mpdu(bbmd_addr, &BVLC_Buffer[0], BVLC_Buffer_Len);
+}
+
+/** Get the remote BBMD address that was used to Register as a foreign device
+ * @param bbmd_addr - IPv4 address of BBMD with which to register
+ * @return Positive number (of bytes sent) on success,
+ *         0 if no registration request is sent, or
+ *         -1 if registration fails.
+ */
+void bvlc_remote_bbmd_address(
+    BACNET_IP_ADDRESS *bbmd_addr)
+{
+    bvlc_address_copy(bbmd_addr, &Remote_BBMD);
+}
+
+/**
+ * @brief Get the remote BBMD time-to-live seconds used to
+ *  Register Foreign Device
+ * @return Lease time in seconds to use when registering.
+ */
+uint16_t bvlc_remote_bbmd_lifetime(
+    void)
+{
+    return Remote_BBMD_TTL_Seconds;
 }
 #endif
 

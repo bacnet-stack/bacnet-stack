@@ -118,6 +118,12 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
     if (required_count >= 3) {
         /* less the 3 always required properties */
         count -= 3;
+        if (property_list_member(pListRequired, PROP_PROPERTY_LIST)) {
+            /* property-list should not be in the required list
+               because this module handles it transparently.
+               Handle the case where it might be in the required list. */
+            count -= 1;
+        }
     }
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -138,7 +144,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                     for (i = 0; i < required_count; i++) {
                         if ((pListRequired[i] == PROP_OBJECT_TYPE) ||
                             (pListRequired[i] == PROP_OBJECT_IDENTIFIER) ||
-                            (pListRequired[i] == PROP_OBJECT_NAME)) {
+                            (pListRequired[i] == PROP_OBJECT_NAME) ||
+                            (pListRequired[i] == PROP_PROPERTY_LIST)) {
                             continue;
                         } else {
                             len = encode_application_enumerated(
@@ -192,7 +199,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
                         for (i = 0; i < required_count; i++) {
                             if ((pListRequired[i] == PROP_OBJECT_TYPE) ||
                                 (pListRequired[i] == PROP_OBJECT_IDENTIFIER) ||
-                                (pListRequired[i] == PROP_OBJECT_NAME)) {
+                                (pListRequired[i] == PROP_OBJECT_NAME) ||
+                                (pListRequired[i] == PROP_PROPERTY_LIST)) {
                                 continue;
                             } else {
                                 count++;

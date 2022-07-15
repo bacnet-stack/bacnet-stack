@@ -31,8 +31,8 @@
 #include "bacnet/npdu.h"
 
 /* specific defines for BACnet/IP over Ethernet */
-#define MAX_HEADER (1 + 1 + 2)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define BIP_HEADER_MAX (1 + 1 + 2)
+#define BIP_MPDU_MAX (BIP_HEADER_MAX+MAX_PDU)
 
 #define BVLL_TYPE_BACNET_IP (0x81)
 
@@ -101,6 +101,8 @@ extern "C" {
     long bip_getaddrbyname(const char *host_name);
 
     void bip_debug_enable(void);
+
+    void bip_debug_disable(void);
 
 #ifdef __cplusplus
 }

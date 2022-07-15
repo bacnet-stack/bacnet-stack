@@ -28,7 +28,6 @@ static void testAccessCredential(void)
     BACNET_APPLICATION_DATA_VALUE value = {0};
     BACNET_APPLICATION_DATA_VALUE value2 = {0};
     const int *required_property = NULL;
-    BACNET_UNSIGNED_INTEGER unsigned_value = 1;
 
     Access_Credential_Init();
     rpdata.application_data = &apdu[0];

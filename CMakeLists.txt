@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 0.8.6
+  VERSION 1.1.0
   LANGUAGES C)
 
 #
@@ -28,6 +28,11 @@ option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
   OFF)
+
+option(
+  BACNET_BUILD_BACPOLL_APP
+  "compile the bacpoll app"
+  ON)
 
 option(
   BACDL_ETHERNET
@@ -60,6 +65,14 @@ option(
   OFF)
 
 set(BACNET_PROTOCOL_REVISION 19)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 #
 # library
@@ -154,6 +167,10 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/bv.h
     src/bacnet/basic/object/channel.c
     src/bacnet/basic/object/channel.h
+    src/bacnet/basic/object/color_object.c
+    src/bacnet/basic/object/color_object.h
+    src/bacnet/basic/object/color_temperature.c
+    src/bacnet/basic/object/color_temperature.h
     # src/bacnet/basic/object/client/device-client.c
     src/bacnet/basic/object/command.c
     src/bacnet/basic/object/command.h
@@ -305,6 +322,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/services.h
     src/bacnet/basic/sys/bigend.c
     src/bacnet/basic/sys/bigend.h
+    src/bacnet/basic/sys/color_rgb.c
+    src/bacnet/basic/sys/color_rgb.h
     src/bacnet/basic/sys/days.c
     src/bacnet/basic/sys/days.h
     src/bacnet/basic/sys/debug.c
@@ -313,7 +332,6 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/sys/fifo.h
     src/bacnet/basic/sys/filename.c
     src/bacnet/basic/sys/filename.h
-    src/bacnet/basic/sys/key.c
     src/bacnet/basic/sys/key.h
     src/bacnet/basic/sys/keylist.c
     src/bacnet/basic/sys/keylist.h
@@ -365,6 +383,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/get_alarm_sum.h
     src/bacnet/getevent.c
     src/bacnet/getevent.h
+    src/bacnet/hostnport.c
+    src/bacnet/hostnport.h
     src/bacnet/iam.c
     src/bacnet/iam.h
     src/bacnet/ihave.c
@@ -443,112 +463,6 @@ add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}
   ALIAS
   ${PROJECT_NAME})
-
-#
-# add tests
-#
-
-list(APPEND testdirs
-  test/bacnet/abort
-  test/bacnet/alarm_ack
-  test/bacnet/arf
-  test/bacnet/awf
-  test/bacnet/bacapp
-  test/bacnet/bacdcode
-  test/bacnet/bacdevobjpropref
-  test/bacnet/bacerror
-  test/bacnet/bacint
-  test/bacnet/bacpropstates
-  test/bacnet/bacreal
-  test/bacnet/bacstr
-  test/bacnet/cov
-  test/bacnet/datetime
-  test/bacnet/dcc
-  test/bacnet/event
-  test/bacnet/getevent
-  test/bacnet/iam
-  test/bacnet/ihave
-  test/bacnet/indtext
-  test/bacnet/lighting
-  test/bacnet/lso
-  test/bacnet/memcopy
-  test/bacnet/npdu
-  test/bacnet/property
-  test/bacnet/ptransfer
-  test/bacnet/rd
-  test/bacnet/reject
-  test/bacnet/rp
-  test/bacnet/rpm
-  test/bacnet/timestamp
-  test/bacnet/timesync
-  test/bacnet/whohas
-  test/bacnet/whois
-  test/bacnet/wp
-  )
-
-# bacnet/basic/*
-list(APPEND testdirs
-  # basic/object/binding
-  test/bacnet/basic/binding/address
-  # basic/object
-  test/bacnet/basic/object/acc
-  test/bacnet/basic/object/access_credential
-  test/bacnet/basic/object/access_door
-  test/bacnet/basic/object/access_point
-  test/bacnet/basic/object/access_rights
-  test/bacnet/basic/object/access_user
-  test/bacnet/basic/object/access_zone
-  test/bacnet/basic/object/ai
-  test/bacnet/basic/object/ao
-  test/bacnet/basic/object/av
-  test/bacnet/basic/object/bi
-  test/bacnet/basic/object/bo
-  test/bacnet/basic/object/bv
-  test/bacnet/basic/object/command
-  test/bacnet/basic/object/credential_data_input
-  test/bacnet/basic/object/device
-  #test/bacnet/basic/object/lc		#Tests skipped, redesign to use only API
-  test/bacnet/basic/object/lo
-  test/bacnet/basic/object/lsp
-  test/bacnet/basic/object/ms-input
-  test/bacnet/basic/object/mso
-  test/bacnet/basic/object/msv
-  test/bacnet/basic/object/netport
-  test/bacnet/basic/object/objects
-  test/bacnet/basic/object/osv
-  test/bacnet/basic/object/piv
-  test/bacnet/basic/object/schedule
-  # basic/sys
-  test/bacnet/basic/sys/days
-  test/bacnet/basic/sys/fifo
-  test/bacnet/basic/sys/filename
-  test/bacnet/basic/sys/key
-  test/bacnet/basic/sys/keylist
-  test/bacnet/basic/sys/ringbuf
-  test/bacnet/basic/sys/sbuf
-  )
-
-# bacnet/datalink/*
-list(APPEND testdirs
-  test/bacnet/datalink/cobs
-  test/bacnet/datalink/crc
-  test/bacnet/datalink/bvlc
-  )
-
-enable_testing()
-foreach(testdir IN ITEMS ${testdirs})
-  get_filename_component(basename ${testdir} NAME)
-  add_subdirectory(${testdir})
-  add_test(build_${basename}
-    "${CMAKE_COMMAND}"
-    --build "${CMAKE_BINARY_DIR}"
-    --config "$<CONFIG>"
-    --target test_${basename}
-    )
-  add_test(test_${basename} ${testdir}/test_${basename})
-  set_tests_properties(test_${basename}  PROPERTIES FIXTURES_REQUIRED test_fixture)
-  set_tests_properties(build_${basename} PROPERTIES FIXTURES_SETUP    test_fixture)
-endforeach()
 
 #
 # add ports
@@ -665,16 +579,14 @@ if(BACNET_STACK_BUILD_APPS)
     target_link_libraries(piface PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_PIFACE_APP)
 
-  # add_executable(
-  #   ptransfer
-  #   apps/ptransfer/main.c
-  #   apps/ptransfer/h_pt_a.h
-  #   apps/ptransfer/h_pt_a.c
-  #   apps/ptransfer/h_pt.h
-  #   apps/ptransfer/h_pt.c
-  #   apps/ptransfer/s_ptransfer.h
-  #   apps/ptransfer/s_ptransfer.c)
-  # target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
+  if(BACNET_BUILD_BACPOLL_APP)
+    add_executable(bacpoll
+        apps/server-client/main.c
+        src/bacnet/basic/client/bac-task.c
+        src/bacnet/basic/client/bac-data.c
+        src/bacnet/basic/client/bac-rw.c)
+    target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_BACPOLL_APP)
 
   if(NOT BACDL_ETHERNET)
     add_executable(readbdt apps/readbdt/main.c)
@@ -756,6 +668,12 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(whoisrouter apps/whoisrouter/main.c)
   target_link_libraries(whoisrouter PRIVATE ${PROJECT_NAME})
 
+  add_executable(whatisnetnum apps/whatisnetnum/main.c)
+  target_link_libraries(whatisnetnum PRIVATE ${PROJECT_NAME})
+
+  add_executable(netnumis apps/netnumis/main.c)
+  target_link_libraries(netnumis PRIVATE ${PROJECT_NAME})
+
   add_executable(writefile apps/writefile/main.c)
   target_link_libraries(writefile PRIVATE ${PROJECT_NAME})
 
@@ -817,6 +735,7 @@ message(STATUS "BACNET: CMAKE_C_COMPILER_ID:............\"${CMAKE_C_COMPILER_ID}
 message(STATUS "BACNET: CMAKE_C_COMPILER_VERSION:.......\"${CMAKE_C_COMPILER_VERSION}\"")
 message(STATUS "BACNET: CMAKE_CXX_COMPILER_ID:..........\"${CMAKE_CXX_COMPILER_ID}\"")
 message(STATUS "BACNET: CMAKE_CXX_COMPILER_VERSION:.....\"${CMAKE_CXX_COMPILER_VERSION}\"")
+message(STATUS "BACNET: CMAKE_BUILD_TYPE:...............\"${CMAKE_BUILD_TYPE}\"")
 message(STATUS "BACNET: CMAKE_INSTALL_PREFIX:...........\"${CMAKE_INSTALL_PREFIX}\"")
 message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVISION}\"")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")

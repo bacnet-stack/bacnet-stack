@@ -511,11 +511,16 @@ extern "C" {
     BACNET_STACK_EXPORT
     const char *bvlc_result_code_name(uint16_t result_code);
 
-#ifdef BAC_TEST
-#include "ctest.h"
     BACNET_STACK_EXPORT
-    void test_BVLC(Test *pTest);
-#endif
+    int bvlc_foreign_device_bbmd_host_address_encode(uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_IP_ADDRESS *ip_address);
+
+    BACNET_STACK_EXPORT
+    int bvlc_foreign_device_bbmd_host_address_decode(uint8_t *apdu,
+        uint16_t apdu_len,
+        BACNET_ERROR_CODE *error_code,
+        BACNET_IP_ADDRESS *ip_address);
 
 #ifdef __cplusplus
 }

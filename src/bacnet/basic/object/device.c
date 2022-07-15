@@ -75,9 +75,10 @@
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
 #endif /* defined(BACFILE) */
-#if defined(BAC_UCI)
-#include "bacnet/basic/ucix/ucix.h"
-#endif /* defined(BAC_UCI) */
+#if (BACNET_PROTOCOL_REVISION >= 24)
+#include "bacnet/basic/object/color_object.h"
+#include "bacnet/basic/object/color_temperature.h"
+#endif
 
 /* local forward (semi-private) and external prototypes */
 int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -213,7 +214,7 @@ static object_functions_t My_Object_Table[] = {
         Trend_Log_Write_Property, Trend_Log_Property_Lists, TrendLogGetRRInfo,
         NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
         NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
-#if (BACNET_PROTOCOL_REVISION >= 14) && defined(BACAPP_LIGHTING_COMMAND)
+#if (BACNET_PROTOCOL_REVISION >= 14)
     { OBJECT_LIGHTING_OUTPUT, Lighting_Output_Init, Lighting_Output_Count,
         Lighting_Output_Index_To_Instance, Lighting_Output_Valid_Instance,
         Lighting_Output_Object_Name, Lighting_Output_Read_Property,
@@ -223,6 +224,20 @@ static object_functions_t My_Object_Table[] = {
     { OBJECT_CHANNEL, Channel_Init, Channel_Count, Channel_Index_To_Instance,
         Channel_Valid_Instance, Channel_Object_Name, Channel_Read_Property,
         Channel_Write_Property, Channel_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+#endif
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    { OBJECT_COLOR, Color_Init, Color_Count,
+        Color_Index_To_Instance, Color_Valid_Instance,
+        Color_Object_Name, Color_Read_Property,
+        Color_Write_Property, Color_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+    { OBJECT_COLOR_TEMPERATURE, Color_Temperature_Init, Color_Temperature_Count,
+        Color_Temperature_Index_To_Instance, Color_Temperature_Valid_Instance,
+        Color_Temperature_Object_Name, Color_Temperature_Read_Property,
+        Color_Temperature_Write_Property, Color_Temperature_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif
@@ -1315,6 +1330,91 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
+/** Looks up the common Object and Property, and encodes its Value in an
+ * APDU. Sets the error class and code if request is not appropriate.
+ * @param pObject - object table
+ * @param rpdata [in,out] Structure with the requested Object & Property info
+ *  on entry, and APDU message on return.
+ * @return The length of the APDU on success, else BACNET_STATUS_ERROR
+ */
+static int Read_Property_Common(
+    struct object_functions *pObject, BACNET_READ_PROPERTY_DATA *rpdata)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    BACNET_CHARACTER_STRING char_string;
+    uint8_t *apdu = NULL;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+    struct special_property_list_t property_list;
+#endif
+
+    if ((rpdata->application_data == NULL) ||
+        (rpdata->application_data_len == 0)) {
+        return 0;
+    }
+    apdu = rpdata->application_data;
+    switch (rpdata->object_property) {
+        case PROP_OBJECT_IDENTIFIER:
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                /* Device Object exception: requested instance
+                   may not match our instance if a wildcard */
+                if (rpdata->object_type == OBJECT_DEVICE) {
+                    rpdata->object_instance = Object_Instance_Number;
+                }
+                apdu_len = encode_application_object_id(
+                    &apdu[0], rpdata->object_type, rpdata->object_instance);
+            }
+            break;
+        case PROP_OBJECT_NAME:
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                characterstring_init_ansi(&char_string, "");
+                if (pObject->Object_Name) {
+                    (void)pObject->Object_Name(
+                        rpdata->object_instance, &char_string);
+                }
+                apdu_len =
+                    encode_application_character_string(&apdu[0], &char_string);
+            }
+            break;
+        case PROP_OBJECT_TYPE:
+            /*  only array properties can have array options */
+            if (rpdata->array_index != BACNET_ARRAY_ALL) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                apdu_len = encode_application_enumerated(
+                    &apdu[0], rpdata->object_type);
+            }
+            break;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+        case PROP_PROPERTY_LIST:
+            Device_Objects_Property_List(
+                rpdata->object_type, rpdata->object_instance, &property_list);
+            apdu_len = property_list_encode(rpdata,
+                property_list.Required.pList, property_list.Optional.pList,
+                property_list.Proprietary.pList);
+            break;
+#endif
+        default:
+            if (pObject->Object_Read_Property) {
+                apdu_len = pObject->Object_Read_Property(rpdata);
+            }
+            break;
+    }
+
+    return apdu_len;
+}
+
 /** Looks up the requested Object and Property, and encodes its Value in an
  * APDU.
  * @ingroup ObjIntf
@@ -1328,9 +1428,6 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     struct object_functions *pObject = NULL;
-#if (BACNET_PROTOCOL_REVISION >= 14)
-    struct special_property_list_t property_list;
-#endif
 
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
@@ -1339,22 +1436,14 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     if (pObject != NULL) {
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
-            if (pObject->Object_Read_Property) {
-#if (BACNET_PROTOCOL_REVISION >= 14)
-                if ((int)rpdata->object_property == PROP_PROPERTY_LIST) {
-                    Device_Objects_Property_List(rpdata->object_type,
-                        rpdata->object_instance, &property_list);
-                    apdu_len = property_list_encode(rpdata,
-                        property_list.Required.pList,
-                        property_list.Optional.pList,
-                        property_list.Proprietary.pList);
-                } else
-#endif
-                {
-                    apdu_len = pObject->Object_Read_Property(rpdata);
-                }
-            }
+            apdu_len = Read_Property_Common(pObject, rpdata);
+        } else {
+            rpdata->error_class = ERROR_CLASS_OBJECT;
+            rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         }
+    } else {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return apdu_len;
@@ -1805,23 +1894,7 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
 void Device_Init(object_functions_t *object_table)
 {
     struct object_functions *pObject = NULL;
-#if defined(BAC_UCI)
-    const char *uciname;
-    struct uci_context *ctx;
-    fprintf(stderr, "Device_Init\n");
-    ctx = ucix_init("bacnet_dev");
-    if (!ctx)
-        fprintf(stderr, "Failed to load config file bacnet_dev\n");
-    uciname = ucix_get_option(ctx, "bacnet_dev", "0", "Name");
-    if (uciname != 0) {
-        characterstring_init_ansi(&My_Object_Name, uciname);
-    } else {
-#endif /* defined(BAC_UCI) */
-        characterstring_init_ansi(&My_Object_Name, "SimpleServer");
-#if defined(BAC_UCI)
-    }
-    ucix_cleanup(ctx);
-#endif /* defined(BAC_UCI) */
+    characterstring_init_ansi(&My_Object_Name, "SimpleServer");
     datetime_init();
     if (object_table) {
         Object_Table = object_table;
@@ -1835,6 +1908,9 @@ void Device_Init(object_functions_t *object_table)
         }
         pObject++;
     }
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    Color_Create(1);
+#endif
 }
 
 bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
@@ -1909,104 +1985,3 @@ void Routing_Device_Init(uint32_t first_object_instance)
 }
 
 #endif /* BAC_ROUTING */
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-bool write_property_type_valid(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value,
-    uint8_t expected_tag)
-{
-    (void)wp_data;
-    (void)value;
-    (void)expected_tag;
-
-    return false;
-}
-
-bool write_property_string_valid(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value,
-    int len_max)
-{
-    (void)wp_data;
-    (void)value;
-    (void)len_max;
-
-    return false;
-}
-
-bool write_property_empty_string_valid(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value,
-    int len_max)
-{
-    (void)wp_data;
-    (void)value;
-    (void)len_max;
-
-    return false;
-}
-
-int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
-{
-    apdu = apdu;
-    max_apdu = max_apdu;
-
-    return 0;
-}
-
-void testDevice(Test *pTest)
-{
-    bool status = false;
-    const char *name = "Patricia";
-
-    status = Device_Set_Object_Instance_Number(0);
-    ct_test(pTest, Device_Object_Instance_Number() == 0);
-    ct_test(pTest, status == true);
-    status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
-    ct_test(pTest, Device_Object_Instance_Number() == BACNET_MAX_INSTANCE);
-    ct_test(pTest, status == true);
-    status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE / 2);
-    ct_test(
-        pTest, Device_Object_Instance_Number() == (BACNET_MAX_INSTANCE / 2));
-    ct_test(pTest, status == true);
-    status = Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE + 1);
-    ct_test(
-        pTest, Device_Object_Instance_Number() != (BACNET_MAX_INSTANCE + 1));
-    ct_test(pTest, status == false);
-
-    Device_Set_System_Status(STATUS_NON_OPERATIONAL, true);
-    ct_test(pTest, Device_System_Status() == STATUS_NON_OPERATIONAL);
-
-    ct_test(pTest, Device_Vendor_Identifier() == BACNET_VENDOR_ID);
-
-    Device_Set_Model_Name(name, strlen(name));
-    ct_test(pTest, strcmp(Device_Model_Name(), name) == 0);
-
-    return;
-}
-
-#ifdef TEST_DEVICE
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Device", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testDevice);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_DEVICE */
-#endif /* BAC_TEST */

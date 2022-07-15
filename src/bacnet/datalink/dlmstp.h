@@ -33,16 +33,37 @@
 
 /* defines specific to MS/TP */
 /* preamble+type+dest+src+len+crc8+crc16 */
-#define MAX_HEADER (2+1+1+1+2+1+2)
-#define MAX_MPDU (MAX_HEADER+MAX_PDU)
+#define DLMSTP_HEADER_MAX (2+1+1+1+2+1+2)
+#define DLMSTP_MPDU_MAX (DLMSTP_HEADER_MAX+MAX_PDU)
 
 typedef struct dlmstp_packet {
     bool ready; /* true if ready to be sent or received */
     BACNET_ADDRESS address;     /* source address */
     uint8_t frame_type; /* type of message */
     uint16_t pdu_len;   /* packet length */
-    uint8_t pdu[MAX_MPDU];      /* packet */
+    uint8_t pdu[DLMSTP_MPDU_MAX];      /* packet */
 } DLMSTP_PACKET;
+
+/* container for packet and token statistics */
+typedef struct dlmstp_statistics {
+    uint32_t transmit_frame_counter;
+    uint32_t receive_valid_frame_counter;
+    uint32_t receive_invalid_frame_counter;
+    uint32_t transmit_pdu_counter;
+    uint32_t receive_pdu_counter;
+    uint32_t lost_token_counter;
+} DLMSTP_STATISTICS;
+
+/* callback to signify the receipt of a preamble */
+typedef void (*dlmstp_hook_frame_rx_start_cb)(void);
+
+/* callback on for receiving every valid frame */
+typedef void (*dlmstp_hook_frame_rx_complete_cb)(
+    uint8_t src,
+    uint8_t dest,
+    uint8_t mstp_msg_type,
+    uint8_t * pdu,
+    uint16_t pdu_len);
 
 #ifdef __cplusplus
 extern "C" {
@@ -135,12 +156,41 @@ extern "C" {
     bool dlmstp_send_pdu_queue_empty(void);
     BACNET_STACK_EXPORT
     bool dlmstp_send_pdu_queue_full(void);
-    
+
     BACNET_STACK_EXPORT
     uint8_t dlmstp_max_info_frames_limit(void);
     BACNET_STACK_EXPORT
     uint8_t dlmstp_max_master_limit(void);
-    
+
+    /* Set the callback function to be called on every valid received frame */
+    /* This is not necessary for normal usage, but is helpful if the caller */
+    /* needs to monitor traffic on the MS/TP bus */
+    /* The specified callback function should execute quickly so as to avoid */
+    /* interfering with bus timing */
+    BACNET_STACK_EXPORT
+    void dlmstp_set_frame_rx_complete_callback(
+        dlmstp_hook_frame_rx_complete_cb cb_func);
+
+    /* Set the callback function to be called every time the start of a */
+    /* frame is detected.  This is not necessary for normal usage, but is */
+    /* helpful if the caller needs to know when a frame begins for timing */
+    /* (timing is heavily dependent upon baud rate and the period with */
+    /* which dlmstp_receive is called) */
+    /* The specified callback function should execute quickly so as to avoid */
+    /* interfering with bus timing */
+    BACNET_STACK_EXPORT
+    void dlmstp_set_frame_rx_start_callback(
+        dlmstp_hook_frame_rx_start_cb cb_func);
+
+    /* Reset the statistics counters on the MS/TP datalink */
+    BACNET_STACK_EXPORT
+    void dlmstp_reset_statistics(void);
+
+    /* Retrieve statistics counters from the MS/TP datalink */
+    /* Values for the current counters at the time this function is called */
+    /* will be copied into *statistics */
+    BACNET_STACK_EXPORT
+    void dlmstp_fill_statistics(struct dlmstp_statistics * statistics);
 
 #ifdef __cplusplus
 }

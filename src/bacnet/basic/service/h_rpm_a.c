@@ -115,17 +115,20 @@ int rpm_ack_decode_service_request(
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
                 while (value && (apdu_len > 0)) {
-                    if (IS_CONTEXT_SPECIFIC(*apdu)) {
-                        len = bacapp_decode_context_data(apdu, apdu_len, value,
-                            rpm_property->propertyIdentifier);
-                    } else {
-                        len = bacapp_decode_application_data(
-                            apdu, apdu_len, value);
-                    }
+                    len = bacapp_decode_known_property(
+                        apdu, (unsigned)apdu_len, value,
+                        rpm_object->object_type,
+                        rpm_property->propertyIdentifier);
                     /* If len == 0 then it's an empty structure, which is OK. */
                     if (len < 0) {
                         /* problem decoding */
-                        /* calling function will free the memory */
+#if PRINT_ENABLED
+                        fprintf(stderr, "RPM Ack: unable to decode! %s:%s\n",
+                            bactext_object_type_name(rpm_object->object_type),
+                            bactext_property_name(
+                            rpm_property->propertyIdentifier));
+#endif
+                        /* note: caller will free the memory */
                         return BACNET_STATUS_ERROR;
                     }
                     decoded_len += len;
@@ -220,11 +223,17 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
         listOfProperties = rpm_data->listOfProperties;
         while (listOfProperties) {
 #if PRINT_ENABLED
-            if (listOfProperties->propertyIdentifier < 512) {
+            if ((listOfProperties->propertyIdentifier < 512) ||
+                (listOfProperties->propertyIdentifier > 4194303)) {
+                /* Enumerated values 0-511 and 4194304+ are reserved
+                   for definition by ASHRAE.*/
                 fprintf(stdout, "    %s: ",
                     bactext_property_name(
                         listOfProperties->propertyIdentifier));
             } else {
+                /* Enumerated values 512-4194303 may be used
+                    by others subject to the procedures and
+                    constraints described in Clause 23. */
                 fprintf(stdout, "    proprietary %u: ",
                     (unsigned)listOfProperties->propertyIdentifier);
             }
@@ -293,7 +302,7 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
  * @param rpm_data - #BACNET_READ_ACCESS_DATA
  * @return RPM data from the next element in the linked list
  */
-static BACNET_READ_ACCESS_DATA *rpm_data_free(BACNET_READ_ACCESS_DATA *rpm_data)
+BACNET_READ_ACCESS_DATA *rpm_data_free(BACNET_READ_ACCESS_DATA *rpm_data)
 {
     BACNET_READ_ACCESS_DATA *old_rpm_data = NULL;
     BACNET_PROPERTY_REFERENCE *rpm_property = NULL;
@@ -357,7 +366,7 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
                 rpm_data = rpm_data_free(rpm_data);
             }
         } else {
-#if 1
+#if PRINT_ENABLED
             fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
 #endif
             while (rpm_data) {

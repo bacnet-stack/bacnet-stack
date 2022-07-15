@@ -93,33 +93,6 @@ extern "C" {
         BACNET_GET_EVENT_INFORMATION_DATA * get_event_data,
         bool * moreEvents);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-    BACNET_STACK_EXPORT
-    int getevent_decode_apdu(
-        uint8_t * apdu,
-        unsigned apdu_len,
-        uint8_t * invoke_id,
-        BACNET_OBJECT_ID * lastReceivedObjectIdentifier);
-
-    BACNET_STACK_EXPORT
-    int getevent_ack_decode_apdu(
-        uint8_t * apdu,
-        int apdu_len,   /* total length of the apdu */
-        uint8_t * invoke_id,
-        BACNET_GET_EVENT_INFORMATION_DATA * get_event_data,
-        bool * moreEvents);
-
-    BACNET_STACK_EXPORT
-    void testGetEventInformationAck(
-        Test * pTest);
-
-    BACNET_STACK_EXPORT
-    void testGetEventInformation(
-        Test * pTest);
-
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

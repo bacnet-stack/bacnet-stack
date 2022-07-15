@@ -1,14 +1,8 @@
-#Makefile to build BACnet Gateway Demonstration Application for the Linux Port
-
-# tools - only if you need them.
-# Most platforms have this already defined
-# CC = gcc
+#Makefile to build BACnet Application using GCC compiler
 
 # Executable file name
 TARGET = bacgateway
-
-TARGET_BIN = ${TARGET}$(TARGET_EXT)
-
+# BACnet objects that are used with this app
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/gateway/gw_device.c \
@@ -20,6 +14,8 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \
 	$(BACNET_OBJECT_DIR)/channel.c \
+	$(BACNET_OBJECT_DIR)/color_object.c \
+	$(BACNET_OBJECT_DIR)/color_temperature.c \
 	$(BACNET_OBJECT_DIR)/command.c \
 	$(BACNET_OBJECT_DIR)/csv.c \
 	$(BACNET_OBJECT_DIR)/device.c \
@@ -53,6 +49,9 @@ BACNET_BASIC_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/s_router.c \
 	$(BACNET_SRC_DIR)/bacnet/basic/tsm/tsm.c \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c)
+
+# TARGET_EXT is defined in apps/Makefile as .exe or nothing
+TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
 SRCS = $(SRC) $(BACNET_SRC) $(BACNET_BASIC_SRC) $(BACNET_PORT_SRC)
 

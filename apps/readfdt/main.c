@@ -170,8 +170,9 @@ int main(int argc, char *argv[])
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-        if (Error_Detected)
+        if (Error_Detected) {
             break;
+}
         /* increment timer - exit if timed out */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {

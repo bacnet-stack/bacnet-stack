@@ -393,7 +393,7 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
     if (found) {
         if (!npdu_data.network_layer_message &&
             npdu_data.data_expecting_reply &&
-            (apdu[0] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
+            ((apdu[0] & 0xF0) == PDU_TYPE_CONFIRMED_SERVICE_REQUEST)) {
             len = apdu_decode_confirmed_service_request(&apdu[0], apdu_len,
                 &service_data, &service_choice, &service_request,
                 &service_request_len);
@@ -544,7 +544,7 @@ bool bacfile_read_ack_stream_data(
     pFilename = bacfile_name(instance);
     if (pFilename) {
         found = true;
-        pFile = fopen(pFilename, "rb");
+        pFile = fopen(pFilename, "rb+");
         if (pFile) {
             (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
             if (fwrite(octetstring_value(&data->fileData[0]),
@@ -574,7 +574,7 @@ bool bacfile_read_ack_record_data(
     pFilename = bacfile_name(instance);
     if (pFilename) {
         found = true;
-        pFile = fopen(pFilename, "rb");
+        pFile = fopen(pFilename, "rb+");
         if (pFile) {
             if (data->type.record.fileStartRecord > 0) {
                 for (i = 0; i < (uint32_t)data->type.record.fileStartRecord;

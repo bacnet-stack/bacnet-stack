@@ -96,7 +96,7 @@ void Integer_Value_Property_Lists(
 }
 
 /**
- * Determines if a given Analog Value instance is valid
+ * Determines if a given Integer Value instance is valid
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -115,9 +115,9 @@ bool Integer_Value_Valid_Instance(uint32_t object_instance)
 }
 
 /**
- * Determines the number of Analog Value objects
+ * Determines the number of Integer Value objects
  *
- * @return  Number of Analog Value objects
+ * @return  Number of Integer Value objects
  */
 unsigned Integer_Value_Count(void)
 {
@@ -126,7 +126,7 @@ unsigned Integer_Value_Count(void)
 
 /**
  * Determines the object instance-number for a given 0..N index
- * of Analog Value objects where N is Integer_Value_Count().
+ * of Integer Value objects where N is Integer_Value_Count().
  *
  * @param  index - 0..MAX_INTEGER_VALUES value
  *
@@ -143,7 +143,7 @@ uint32_t Integer_Value_Index_To_Instance(unsigned index)
 
 /**
  * For a given object instance-number, determines a 0..N index
- * of Analog Value objects where N is Integer_Value_Count().
+ * of Integer Value objects where N is Integer_Value_Count().
  *
  * @param  object_instance - object-instance number of the object
  *
@@ -228,7 +228,7 @@ bool Integer_Value_Object_Name(
     index = Integer_Value_Instance_To_Index(object_instance);
     if (index < MAX_INTEGER_VALUES) {
         sprintf(
-            text_string, "ANALOG VALUE %lu", (unsigned long)object_instance);
+            text_string, "INTEGER VALUE %lu", (unsigned long)object_instance);
         status = characterstring_init_ansi(object_name, text_string);
     }
 
@@ -333,7 +333,7 @@ int Integer_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_CHARACTER_STRING char_string;
     uint8_t *apdu = NULL;
     uint32_t units = 0;
-    int32_t integer_value = 0.0;
+    int32_t integer_value = 0;
     bool state = false;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||

@@ -398,6 +398,17 @@ static const int CharacterString_Value_Properties_Optional[] = {
     PROP_PROFILE_LOCATION, PROP_PROFILE_NAME, -1
 };
 
+static const int Color_Properties_Required[] = {
+    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE, PROP_TRACKING_VALUE, PROP_COLOR_COMMAND,
+    PROP_IN_PROGRESS, PROP_DEFAULT_COLOR, PROP_DEFAULT_FADE_TIME, -1
+};
+
+static const int Color_Properties_Optional[] = { PROP_RELIABILITY,
+    PROP_DESCRIPTION, PROP_TRANSITION, PROP_VALUE_SOURCE,
+    PROP_AUDIT_LEVEL, PROP_AUDITABLE_OPERATIONS, PROP_TAGS,
+    PROP_PROFILE_LOCATION, PROP_PROFILE_NAME, -1 };
+
 static const int Credential_Data_Input_Properties_Required[] = {
     PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME, PROP_OBJECT_TYPE,
     PROP_PRESENT_VALUE, PROP_STATUS_FLAGS, PROP_RELIABILITY,
@@ -1141,6 +1152,9 @@ const int *property_list_optional(BACNET_OBJECT_TYPE object_type)
         case OBJECT_CHARACTERSTRING_VALUE:
             pList = CharacterString_Value_Properties_Optional;
             break;
+        case OBJECT_COLOR:
+            pList = Color_Properties_Optional;
+            break;
         case OBJECT_CREDENTIAL_DATA_INPUT:
             pList = Credential_Data_Input_Properties_Optional;
             break;
@@ -1346,6 +1360,9 @@ const int *property_list_required(BACNET_OBJECT_TYPE object_type)
         case OBJECT_CHARACTERSTRING_VALUE:
             pList = CharacterString_Value_Properties_Required;
             break;
+        case OBJECT_COLOR:
+            pList = Color_Properties_Required;
+            break;
         case OBJECT_CREDENTIAL_DATA_INPUT:
             pList = Credential_Data_Input_Properties_Required;
             break;
@@ -1509,7 +1526,7 @@ BACNET_PROPERTY_ID property_list_special_property(
 {
     int property = -1; /* return value */
     unsigned required, optional, proprietary;
-    struct special_property_list_t PropertyList = { { 0 } };
+    struct special_property_list_t PropertyList = { 0 };
 
     property_list_special(object_type, &PropertyList);
     required = PropertyList.Required.count;
@@ -1552,7 +1569,7 @@ unsigned property_list_special_count(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID special_property)
 {
     unsigned count = 0; /* return value */
-    struct special_property_list_t PropertyList = { { 0 } };
+    struct special_property_list_t PropertyList = { 0 };
 
     property_list_special(object_type, &PropertyList);
     if (special_property == PROP_ALL) {
@@ -1567,73 +1584,3 @@ unsigned property_list_special_count(
     return count;
 }
 #endif
-
-#ifdef BAC_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-void testPropList(Test *pTest)
-{
-    unsigned i = 0, j = 0;
-    unsigned count = 0;
-    BACNET_PROPERTY_ID property = MAX_BACNET_PROPERTY_ID;
-    unsigned object_id = 0, object_name = 0, object_type = 0;
-    struct special_property_list_t property_list = { 0 };
-
-    for (i = 0; i < OBJECT_PROPRIETARY_MIN; i++) {
-        count = property_list_special_count((BACNET_OBJECT_TYPE)i, PROP_ALL);
-        ct_test(pTest, count >= 3);
-        object_id = 0;
-        object_name = 0;
-        object_type = 0;
-        for (j = 0; j < count; j++) {
-            property = property_list_special_property(
-                (BACNET_OBJECT_TYPE)i, PROP_ALL, j);
-            if (property == PROP_OBJECT_TYPE) {
-                object_type++;
-            }
-            if (property == PROP_OBJECT_IDENTIFIER) {
-                object_id++;
-            }
-            if (property == PROP_OBJECT_NAME) {
-                object_name++;
-            }
-        }
-        ct_test(pTest, object_type == 1);
-        ct_test(pTest, object_id == 1);
-        ct_test(pTest, object_name == 1);
-        /* test member function */
-        property_list_special((BACNET_OBJECT_TYPE)i, &property_list);
-        ct_test(pTest,
-            property_list_member(
-                property_list.Required.pList, PROP_OBJECT_TYPE));
-        ct_test(pTest,
-            property_list_member(
-                property_list.Required.pList, PROP_OBJECT_IDENTIFIER));
-        ct_test(pTest,
-            property_list_member(
-                property_list.Required.pList, PROP_OBJECT_NAME));
-    }
-}
-
-#ifdef TEST_PROPLIST
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Property List", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, testPropList);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif /* TEST_PROPLIST */
-#endif /* BAC_TEST */

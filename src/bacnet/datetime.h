@@ -277,12 +277,6 @@ bool datetime_local(BACNET_DATE *bdate,
 BACNET_STACK_EXPORT
 void datetime_init(void);
 
-#ifdef BAC_TEST
-#include "ctest.h"
-BACNET_STACK_EXPORT
-void testDateTime(Test *pTest);
-#endif
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

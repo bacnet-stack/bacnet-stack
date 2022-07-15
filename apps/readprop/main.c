@@ -53,7 +53,6 @@
 /* some demo stuff needed */
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/services.h"
-#include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
 
@@ -398,8 +397,9 @@ int main(int argc, char *argv[])
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
         }
-        if (Error_Detected)
+        if (Error_Detected) {
             break;
+}
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(
@@ -442,7 +442,8 @@ int main(int argc, char *argv[])
         last_seconds = current_seconds;
     }
 
-    if (Error_Detected)
+    if (Error_Detected) {
         return 1;
+}
     return 0;
 }

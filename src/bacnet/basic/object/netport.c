@@ -70,6 +70,10 @@ struct bacnet_ipv4_port {
     bool BBMD_Accept_FD_Registrations;
     void *BBMD_BD_Table;
     void *BBMD_FD_Table;
+    /* used for foreign device registration to remote BBMD */
+    uint8_t BBMD_IP_Address[4];
+    uint16_t BBMD_Port;
+    uint16_t BBMD_Lifetime;
 };
 
 #define IPV6_ADDR_SIZE 16
@@ -137,7 +141,8 @@ static const int BIP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
     PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY, PROP_IP_DNS_SERVER,
 #if defined(BACDL_BIP) && BBMD_ENABLED
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS, PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
-    PROP_BBMD_FOREIGN_DEVICE_TABLE,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE, PROP_FD_BBMD_ADDRESS,
+    PROP_FD_SUBSCRIPTION_LIFETIME,
 #endif
     -1 };
 
@@ -1395,6 +1400,217 @@ bool Network_Port_BBMD_FD_Table_Set(
     return status;
 }
 
+#if defined(BACDL_BIP) && BBMD_ENABLED
+/**
+ * For a given object instance-number, gets the ip-address and port
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  addr - holds the ip-address and port retrieved
+ *
+ * @return  true if ip-address and port were retrieved
+ */
+static bool Network_Port_Remote_BBMD_IP_Address_And_Port(
+    uint32_t object_instance, BACNET_IP_ADDRESS *addr)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    if (addr) {
+        index = Network_Port_Instance_To_Index(object_instance);
+        if (index < BACNET_NETWORK_PORTS_MAX) {
+            if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+                bvlc_address_set(addr,
+                    Object_List[index].Network.IPv4.BBMD_IP_Address[0],
+                    Object_List[index].Network.IPv4.BBMD_IP_Address[1],
+                    Object_List[index].Network.IPv4.BBMD_IP_Address[2],
+                    Object_List[index].Network.IPv4.BBMD_IP_Address[3]);
+                addr->port = Object_List[index].Network.IPv4.BBMD_Port;
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+#endif
+
+/**
+ * For a given object instance-number, loads the ip-address into
+ * an octet string.
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  a - ip-address first octet
+ * @param  b - ip-address first octet
+ * @param  c - ip-address first octet
+ * @param  d - ip-address first octet
+ *
+ * @return  true if ip-address was retrieved
+ */
+bool Network_Port_Remote_BBMD_IP_Address(
+    uint32_t object_instance,
+    uint8_t *a, uint8_t *b, uint8_t *c, uint8_t *d)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            if (a) {
+                *a = Object_List[index].Network.IPv4.BBMD_IP_Address[0];
+            }
+            if (b) {
+                *b = Object_List[index].Network.IPv4.BBMD_IP_Address[1];
+            }
+            if (c) {
+                *c = Object_List[index].Network.IPv4.BBMD_IP_Address[2];
+            }
+            if (d) {
+                *d = Object_List[index].Network.IPv4.BBMD_IP_Address[3];
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the ip-address
+ * Note: depends on Network_Type being set for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  a - ip-address first octet
+ * @param  b - ip-address first octet
+ * @param  c - ip-address first octet
+ * @param  d - ip-address first octet
+ *
+ * @return  true if ip-address was set
+ */
+bool Network_Port_Remote_BBMD_IP_Address_Set(
+    uint32_t object_instance, uint8_t a, uint8_t b, uint8_t c, uint8_t d)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            Object_List[index].Network.IPv4.BBMD_IP_Address[0] = a;
+            Object_List[index].Network.IPv4.BBMD_IP_Address[1] = b;
+            Object_List[index].Network.IPv4.BBMD_IP_Address[2] = c;
+            Object_List[index].Network.IPv4.BBMD_IP_Address[3] = d;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the BBMD UDP Port number
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return BBMD UDP Port number
+ */
+uint16_t Network_Port_Remote_BBMD_BIP_Port(uint32_t object_instance)
+{
+    uint16_t value = 0;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            value = Object_List[index].Network.IPv4.BBMD_Port;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the BBMD UDP Port number
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BBMD UDP Port number (default=0xBAC0)
+ *
+ * @return  true if values are within range and property is set.
+ */
+bool Network_Port_Remote_BBMD_BIP_Port_Set(uint32_t object_instance,
+    uint16_t value)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            if (Object_List[index].Network.IPv4.BBMD_Port != value) {
+                Object_List[index].Changes_Pending = true;
+            }
+            Object_List[index].Network.IPv4.BBMD_Port = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, gets the BBMD lifetime seconds
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return BBMD lifetime seconds
+ */
+uint16_t Network_Port_Remote_BBMD_BIP_Lifetime(uint32_t object_instance)
+{
+    uint16_t value = 0;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            value = Object_List[index].Network.IPv4.BBMD_Lifetime;
+        }
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the BBMD lifetime seconds
+ * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BBMD lifetime seconds
+ *
+ * @return  true if values are within range and property is set.
+ */
+bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(uint32_t object_instance,
+    uint16_t value)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            if (Object_List[index].Network.IPv4.BBMD_Lifetime != value) {
+                Object_List[index].Changes_Pending = true;
+            }
+            Object_List[index].Network.IPv4.BBMD_Lifetime = value;
+            status = true;
+        }
+    }
+
+    return status;
+}
+
 /**
  * For a given object instance-number, gets the BACnet/IP UDP Port number
  * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
@@ -1962,9 +2178,13 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
 int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0;
+    int apdu_size = 0;
     BACNET_BIT_STRING bit_string;
     BACNET_OCTET_STRING octet_string;
     BACNET_CHARACTER_STRING char_string;
+#if defined(BACDL_BIP) && BBMD_ENABLED
+    BACNET_IP_ADDRESS ip_address;
+#endif
     uint8_t *apdu = NULL;
     const int *pRequired = NULL;
     const int *pOptional = NULL;
@@ -1984,6 +2204,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         return BACNET_STATUS_ERROR;
     }
     apdu = rpdata->application_data;
+    apdu_size = rpdata->application_data_len;
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -2133,6 +2354,17 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->application_data_len,
                 Network_Port_BBMD_FD_Table(rpdata->object_instance));
             break;
+        case PROP_FD_BBMD_ADDRESS:
+            Network_Port_Remote_BBMD_IP_Address_And_Port(
+                rpdata->object_instance, &ip_address);
+            apdu_len = bvlc_foreign_device_bbmd_host_address_encode(&apdu[0],
+                apdu_size, &ip_address);
+            break;
+        case PROP_FD_SUBSCRIPTION_LIFETIME:
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Network_Port_Remote_BBMD_BIP_Lifetime(
+                rpdata->object_instance));
+            break;
 #endif
         case PROP_BACNET_IPV6_MODE:
             apdu_len = encode_application_enumerated(
@@ -2214,6 +2446,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
+            (void)apdu_size;
             break;
     }
 
@@ -2427,95 +2660,3 @@ void Network_Port_Init(void)
 {
     /* do something interesting */
 }
-
-#ifdef BACNET_UNIT_TEST
-#include <assert.h>
-#include <string.h>
-#include "ctest.h"
-
-void test_network_port(Test *pTest)
-{
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    int test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata;
-    /* for decode value data */
-    BACNET_APPLICATION_DATA_VALUE value;
-    const int *pRequired = NULL;
-    const int *pOptional = NULL;
-    const int *pProprietary = NULL;
-    unsigned port = 0;
-    unsigned count = 0;
-    uint32_t object_instance = 0;
-    bool status = false;
-    uint8_t port_type[] = { PORT_TYPE_ETHERNET, PORT_TYPE_ARCNET,
-        PORT_TYPE_MSTP, PORT_TYPE_PTP, PORT_TYPE_LONTALK, PORT_TYPE_BIP,
-        PORT_TYPE_ZIGBEE, PORT_TYPE_VIRTUAL, PORT_TYPE_NON_BACNET,
-        PORT_TYPE_BIP6, PORT_TYPE_MAX };
-
-    while (port_type[port] != PORT_TYPE_MAX) {
-        object_instance = 1234;
-        status = Network_Port_Object_Instance_Number_Set(0, object_instance);
-        ct_test(pTest, status);
-        status = Network_Port_Type_Set(object_instance, port_type[port]);
-        ct_test(pTest, status);
-        Network_Port_Init();
-        count = Network_Port_Count();
-        ct_test(pTest, count > 0);
-        rpdata.application_data = &apdu[0];
-        rpdata.application_data_len = sizeof(apdu);
-        rpdata.object_type = OBJECT_NETWORK_PORT;
-        rpdata.object_instance = object_instance;
-        Network_Port_Property_Lists(&pRequired, &pOptional, &pProprietary);
-        while ((*pRequired) != -1) {
-            rpdata.object_property = *pRequired;
-            rpdata.array_index = BACNET_ARRAY_ALL;
-            len = Network_Port_Read_Property(&rpdata);
-            ct_test(pTest, len != 0);
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            ct_test(pTest, test_len >= 0);
-            if (test_len < 0) {
-                printf("<decode failed!>\n");
-            }
-            pRequired++;
-        }
-        while ((*pOptional) != -1) {
-            rpdata.object_property = *pOptional;
-            rpdata.array_index = BACNET_ARRAY_ALL;
-            len = Network_Port_Read_Property(&rpdata);
-            ct_test(pTest, len != 0);
-            test_len = bacapp_decode_application_data(rpdata.application_data,
-                (uint8_t)rpdata.application_data_len, &value);
-            ct_test(pTest, test_len >= 0);
-            if (test_len < 0) {
-                printf("<decode failed!>\n");
-            }
-            pOptional++;
-        }
-        port++;
-    }
-
-    return;
-}
-
-#ifdef TEST_NETWORK_PORT
-int main(void)
-{
-    Test *pTest;
-    bool rc;
-
-    pTest = ct_create("BACnet Network Port", NULL);
-    /* individual tests */
-    rc = ct_addTestFunction(pTest, test_network_port);
-    assert(rc);
-
-    ct_setStream(pTest, stdout);
-    ct_run(pTest);
-    (void)ct_report(pTest);
-    ct_destroy(pTest);
-
-    return 0;
-}
-#endif
-#endif /* BAC_TEST */

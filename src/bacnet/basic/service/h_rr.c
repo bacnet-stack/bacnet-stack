@@ -116,7 +116,7 @@ static int Encode_RR_payload(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  *
  *  @param service_request  Pointer to the service request.
  *  @param service_len  Bytes valid in the service request.
- *  @param src  Pointer to the BACnet addresss.
+ *  @param src  Pointer to the BACnet address.
  *  @param service_data  Pointer to the service data,
  *                       taken from the request.
  */

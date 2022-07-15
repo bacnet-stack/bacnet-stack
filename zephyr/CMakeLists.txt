@@ -214,7 +214,6 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/sys/fifo.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/filename.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/filename.h
-    ${BACNETSTACK_SRC}/bacnet/basic/sys/key.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/key.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/keylist.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/keylist.h
@@ -262,6 +261,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/get_alarm_sum.h
     ${BACNETSTACK_SRC}/bacnet/getevent.c
     ${BACNETSTACK_SRC}/bacnet/getevent.h
+    ${BACNETSTACK_SRC}/bacnet/hostnport.c
+    ${BACNETSTACK_SRC}/bacnet/hostnport.h
     ${BACNETSTACK_SRC}/bacnet/iam.c
     ${BACNETSTACK_SRC}/bacnet/iam.h
     ${BACNETSTACK_SRC}/bacnet/ihave.c
@@ -338,7 +339,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/mso.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/nc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/netport.c
+    $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/object/netport.c>
     ${BACNETSTACK_SRC}/bacnet/basic/object/objects.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c
