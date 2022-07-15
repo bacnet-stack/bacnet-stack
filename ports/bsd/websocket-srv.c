@@ -65,6 +65,11 @@ typedef struct {
     BACNET_WEBSOCKET_OPERATION_ENTRY *recv_head;
     BACNET_WEBSOCKET_OPERATION_ENTRY *recv_tail;
     pthread_cond_t cond;
+    FIFO_BUFFER in_size;
+    // It is assumed that typical minimal BACNet/SC packet size is 16 bytes.
+    // So size of the fifo that holds lengths of received datagrams calculated
+    // as BACNET_SERVER_WEBSOCKET_RX_BUFFER_SIZE / 16
+    FIFO_DATA_STORE(in_size_buf, BACNET_SERVER_WEBSOCKET_RX_BUFFER_SIZE / 16);
     FIFO_BUFFER in_data;
     FIFO_DATA_STORE(in_data_buf, BACNET_SERVER_WEBSOCKET_RX_BUFFER_SIZE);
     BACNET_WEBSOCKET_CONNECTION_TYPE type;
@@ -273,6 +278,8 @@ static BACNET_WEBSOCKET_HANDLE bws_srv_alloc_connection(void)
             if (pthread_cond_init(&bws_srv_conn[i].cond, NULL) != 0) {
                 return BACNET_WEBSOCKET_INVALID_HANDLE;
             }
+            FIFO_Init(&bws_srv_conn[i].in_size, bws_srv_conn[i].in_size_buf,
+                sizeof(bws_srv_conn[i].in_size_buf));
             FIFO_Init(&bws_srv_conn[i].in_data, bws_srv_conn[i].in_data_buf,
                 sizeof(bws_srv_conn[i].in_data_buf));
             debug_printf("bws_srv_alloc_connection() <<< ret = %d, cond = %p\n",
@@ -374,11 +381,18 @@ static int bws_srv_websocket_event(struct lws *wsi,
                              "data for websocket %d\n",
                     len, h);
                 if (bws_srv_conn[h].state == BACNET_WEBSOCKET_STATE_CONNECTED) {
-                    if (FIFO_Add(&bws_srv_conn[h].in_data, in, len)) {
+                    if (len <= 65535 &&
+                        FIFO_Available(&bws_srv_conn[h].in_data, len) &&
+                        FIFO_Available(
+                            &bws_srv_conn[h].in_size, sizeof(uint16_t))) {
+                        uint16_t packet_len = len;
+                        FIFO_Add(&bws_srv_conn[h].in_size,
+                            (uint8_t *)&packet_len, sizeof(packet_len));
+                        FIFO_Add(&bws_srv_conn[h].in_data, in, len);
                         // wakeup worker to process incoming data
                         lws_cancel_service(bws_srv_ctx);
                     }
-#ifdef DEBUG_ENABLED
+#if DEBUG_ENABLED == 1
                     else {
                         debug_printf("bws_srv_websocket_event() drop %d bytes "
                                      "of data on socket %d\n",
@@ -515,11 +529,33 @@ static void *bws_srv_worker(void *arg)
                     lws_callback_on_writable(bws_srv_conn[i].ws);
                 }
                 while (bws_srv_conn[i].recv_head &&
-                    !FIFO_Empty(&bws_srv_conn[i].in_data)) {
-                    bws_srv_conn[i].recv_head->payload_size =
+                    !FIFO_Empty(&bws_srv_conn[i].in_size)) {
+                    uint16_t packet_len;
+                    FIFO_Pull(&bws_srv_conn[i].in_size, (uint8_t *)&packet_len,
+                        sizeof(packet_len));
+                    if (bws_srv_conn[i].recv_head->payload_size < packet_len) {
                         FIFO_Pull(&bws_srv_conn[i].in_data,
                             bws_srv_conn[i].recv_head->payload,
                             bws_srv_conn[i].recv_head->payload_size);
+                        // remove part of datagram which does not fit into user
+                        // buffer
+                        packet_len -= bws_srv_conn[i].recv_head->payload_size;
+                        while (packet_len > 0) {
+                            FIFO_Get(&bws_srv_conn[i].in_data);
+                            packet_len--;
+                        }
+                        bws_srv_conn[i].recv_head->retcode =
+                            BACNET_WEBSOCKET_BUFFER_TOO_SMALL;
+                    } else {
+                        bws_srv_conn[i].recv_head->retcode =
+                            BACNET_WEBSOCKET_SUCCESS;
+                        FIFO_Pull(&bws_srv_conn[i].in_data,
+                            bws_srv_conn[i].recv_head->payload, packet_len);
+                        bws_srv_conn[i].recv_head->payload_size = packet_len;
+                    }
+                    debug_printf("bws_cli_worker() signal that %d bytes "
+                                 "received on websocket %d\n",
+                        bws_srv_conn[i].recv_head->payload_size, i);
                     bws_srv_conn[i].recv_head->processed = 1;
                     pthread_cond_signal(&bws_srv_conn[i].recv_head->cond);
                     bws_srv_dequeue_recv_operation(&bws_srv_conn[i]);
@@ -952,7 +988,8 @@ BACNET_WEBSOCKET_RET bws_srv_recv(BACNET_WEBSOCKET_HANDLE h,
     debug_printf("bws_srv_recv() unblocked\n");
     pthread_mutex_unlock(&bws_srv_mutex);
 
-    if (e.retcode == BACNET_WEBSOCKET_SUCCESS) {
+    if (e.retcode == BACNET_WEBSOCKET_SUCCESS || 
+        e.retcode == BACNET_WEBSOCKET_BUFFER_TOO_SMALL) {
         *bytes_received = e.payload_size;
     }
 

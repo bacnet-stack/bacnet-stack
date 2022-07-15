@@ -82,7 +82,8 @@ typedef enum {
     BACNET_WEBSOCKET_OPERATION_IN_PROGRESS = 3,
     BACNET_WEBSOCKET_BAD_PARAM = 4,
     BACNET_WEBSOCKET_TIMEDOUT = 5,
-    BACNET_WEBSOCKET_INVALID_OPERATION = 6
+    BACNET_WEBSOCKET_INVALID_OPERATION = 6,
+    BACNET_WEBSOCKET_BUFFER_TOO_SMALL = 7
 } BACNET_WEBSOCKET_RET;
 
 typedef struct BACNetWebsocketClient {
@@ -196,6 +197,10 @@ typedef struct BACNetWebsocketClient {
      *     BACNET_WEBSOCKET_TIMEDOUT - timeout was elapsed but no data was
      *                                 received.
      *     BACNET_WEBSOCKET_SUCCESS - operation has succeded.
+     *     BACNET_WEBSOCKET_BUFFER_TOO_SMALL - received datagram sized
+     *                         is larger than provided buffer size.
+     *                         In that case only part of websocket datagram
+     *                         equal to bufsize is copied into buf.
      */
 
     BACNET_WEBSOCKET_RET(*bws_recv)
@@ -337,6 +342,10 @@ typedef struct BACNetWebsocketServer {
      *    BACNET_WEBSOCKET_TIMEDOUT - timeout was elapsed but no data
      *           was received.
      *    BACNET_WEBSOCKET_SUCCESS - operation has succeded.
+     *    BACNET_WEBSOCKET_BUFFER_TOO_SMALL - received datagram sized
+     *                         is larger than provided buffer size.
+     *                         In that case only part of websocket datagram
+     *                         equal to bufsize is copied into buf.
      */
 
     BACNET_WEBSOCKET_RET(*bws_recv)
