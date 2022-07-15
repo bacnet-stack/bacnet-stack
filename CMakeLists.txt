@@ -566,6 +566,9 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(initrouter apps/initrouter/main.c)
   target_link_libraries(initrouter PRIVATE ${PROJECT_NAME})
 
+  add_executable(property apps/property/main.c)
+  target_link_libraries(property PRIVATE ${PROJECT_NAME})
+
   if(BACDL_MSTP)
     add_executable(mstpcap apps/mstpcap/main.c)
     target_link_libraries(mstpcap PRIVATE ${PROJECT_NAME})

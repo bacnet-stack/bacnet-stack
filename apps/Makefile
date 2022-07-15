@@ -205,6 +205,10 @@ getevent: $(BACNET_LIB_TARGET)
 iam: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
+.PHONY: property
+property: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@
+
 .PHONY: iamrouter
 iamrouter: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@

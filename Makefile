@@ -97,6 +97,10 @@ gateway:
 gateway-win32:
 	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
 
+.PHONY: property
+property:
+	$(MAKE) -s -C apps $@
+
 .PHONY: readbdt
 readbdt:
 	$(MAKE) -s -C apps $@
