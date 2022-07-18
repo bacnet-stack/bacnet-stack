@@ -122,26 +122,24 @@ static void bws_cli_deinit_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 }
 
 static void bws_cli_remove_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e,
-                                     BACNET_WEBSOCKET_OPERATION_ENTRY **head,
-                                     BACNET_WEBSOCKET_OPERATION_ENTRY **tail)
+    BACNET_WEBSOCKET_OPERATION_ENTRY **head,
+    BACNET_WEBSOCKET_OPERATION_ENTRY **tail)
 {
-    debug_printf("bws_cli_remove_operation() >>> e = %p, head = %p, tail = %p\n", e, head, tail);
-    if(*head == *tail) {
-      *head = NULL;
-      *tail = NULL;
-    }
-    else if(!e->last) {
-      *head = e->next;
-      (*head)->last = NULL;
-    }
-    else if(!e->next) {
-      *tail = e->last;
-      (*tail)->next = NULL;
-    }
-    else
-    {
-      e->next->last = e->last;
-      e->last->next = e->next;
+    debug_printf(
+        "bws_cli_remove_operation() >>> e = %p, head = %p, tail = %p\n", e,
+        head, tail);
+    if (*head == *tail) {
+        *head = NULL;
+        *tail = NULL;
+    } else if (!e->last) {
+        *head = e->next;
+        (*head)->last = NULL;
+    } else if (!e->next) {
+        *tail = e->last;
+        (*tail)->next = NULL;
+    } else {
+        e->next->last = e->last;
+        e->last->next = e->next;
     }
     debug_printf("bws_cli_remove_operation() <<<\n");
 }
@@ -324,9 +322,10 @@ static int bws_cli_websocket_event(struct lws *wsi,
                 }
 #if DEBUG_ENABLED == 1
                 else {
-                   debug_printf("bws_cli_websocket_event() drop %d bytes of data "
-                                "for socket in state %d\n",
-                       len, bws_cli_conn[h].state);
+                    debug_printf(
+                        "bws_cli_websocket_event() drop %d bytes of data "
+                        "for socket in state %d\n",
+                        len, bws_cli_conn[h].state);
                 }
 #endif
             }
@@ -432,38 +431,40 @@ static void *bws_cli_worker(void *arg)
                 conn->state = BACNET_WEBSOCKET_STATE_CONNECTED;
                 pthread_cond_signal(&conn->cond);
             }
-         } else if (conn->state == BACNET_WEBSOCKET_STATE_CONNECTED) {
-             debug_printf(
-                 "bws_cli_worker() process BACNET_WEBSOCKET_STATE_CONNECTED\n");
-             if (conn->send_head) {
-                 debug_printf(
-                     "bws_cli_worker() request callback for sending data\n");
-                 lws_callback_on_writable(conn->ws);
-             }
-             while (conn->recv_head && !FIFO_Empty(&conn->in_size)) {
-                 uint16_t packet_len;
-                 FIFO_Pull(
-                     &conn->in_size, (uint8_t *)&packet_len, sizeof(packet_len));
-                 debug_printf("bws_cli_worker() packet_len = %d\n", packet_len);
-                 debug_printf("bws_cli_worker() conn->recv_head->payload_size = %d\n", conn->recv_head->payload_size);
+        } else if (conn->state == BACNET_WEBSOCKET_STATE_CONNECTED) {
+            debug_printf(
+                "bws_cli_worker() process BACNET_WEBSOCKET_STATE_CONNECTED\n");
+            if (conn->send_head) {
+                debug_printf(
+                    "bws_cli_worker() request callback for sending data\n");
+                lws_callback_on_writable(conn->ws);
+            }
+            while (conn->recv_head && !FIFO_Empty(&conn->in_size)) {
+                uint16_t packet_len;
+                FIFO_Pull(
+                    &conn->in_size, (uint8_t *)&packet_len, sizeof(packet_len));
+                debug_printf("bws_cli_worker() packet_len = %d\n", packet_len);
+                debug_printf(
+                    "bws_cli_worker() conn->recv_head->payload_size = %d\n",
+                    conn->recv_head->payload_size);
 
-                 if (conn->recv_head->payload_size < packet_len) {
-                     FIFO_Pull(&conn->in_data, conn->recv_head->payload,
-                         conn->recv_head->payload_size);
-                     // remove part of datagram which does not fit into user
-                     // buffer
-                     packet_len -= conn->recv_head->payload_size;
-                     while (packet_len > 0) {
-                         FIFO_Get(&conn->in_data);
-                         packet_len--;
-                     }
-                     conn->recv_head->retcode =
-                         BACNET_WEBSOCKET_BUFFER_TOO_SMALL;
-                 } else {
-                     conn->recv_head->retcode = BACNET_WEBSOCKET_SUCCESS;
-                     FIFO_Pull(
-                         &conn->in_data, conn->recv_head->payload, packet_len);
-                     conn->recv_head->payload_size = packet_len;
+                if (conn->recv_head->payload_size < packet_len) {
+                    FIFO_Pull(&conn->in_data, conn->recv_head->payload,
+                        conn->recv_head->payload_size);
+                    // remove part of datagram which does not fit into user
+                    // buffer
+                    packet_len -= conn->recv_head->payload_size;
+                    while (packet_len > 0) {
+                        FIFO_Get(&conn->in_data);
+                        packet_len--;
+                    }
+                    conn->recv_head->retcode =
+                        BACNET_WEBSOCKET_BUFFER_TOO_SMALL;
+                } else {
+                    conn->recv_head->retcode = BACNET_WEBSOCKET_SUCCESS;
+                    FIFO_Pull(
+                        &conn->in_data, conn->recv_head->payload, packet_len);
+                    conn->recv_head->payload_size = packet_len;
                 }
                 debug_printf("bws_cli_worker() signal that %d bytes received "
                              "on websocket %d\n",
@@ -827,9 +828,8 @@ static BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
 
     while (!e.processed) {
         if (pthread_cond_timedwait(&e.cond, &bws_cli_mutex, &to) == ETIMEDOUT) {
-            bws_cli_remove_operation(&e,
-                                     &bws_cli_conn[h].recv_head,
-                                     &bws_cli_conn[h].recv_tail);
+            bws_cli_remove_operation(
+                &e, &bws_cli_conn[h].recv_head, &bws_cli_conn[h].recv_tail);
             pthread_mutex_unlock(&bws_cli_mutex);
             bws_cli_deinit_operation(&e);
             debug_printf(
@@ -840,7 +840,7 @@ static BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
     debug_printf("bws_cli_recv() unblocked\n");
     pthread_mutex_unlock(&bws_cli_mutex);
 
-    if (e.retcode == BACNET_WEBSOCKET_SUCCESS || 
+    if (e.retcode == BACNET_WEBSOCKET_SUCCESS ||
         e.retcode == BACNET_WEBSOCKET_BUFFER_TOO_SMALL) {
         *bytes_received = e.payload_size;
     }

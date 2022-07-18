@@ -120,26 +120,24 @@ static void bws_srv_deinit_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 }
 
 static void bws_srv_remove_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e,
-                                     BACNET_WEBSOCKET_OPERATION_ENTRY **head,
-                                     BACNET_WEBSOCKET_OPERATION_ENTRY **tail)
+    BACNET_WEBSOCKET_OPERATION_ENTRY **head,
+    BACNET_WEBSOCKET_OPERATION_ENTRY **tail)
 {
-    debug_printf("bws_srv_remove_operation() >>> e = %p, head = %p, tail = %p\n", e, head, tail);
-    if(*head == *tail) {
-      *head = NULL;
-      *tail = NULL;
-    }
-    else if(!e->last) {
-      *head = e->next;
-      (*head)->last = NULL;
-    }
-    else if(!e->next) {
-      *tail = e->last;
-      (*tail)->next = NULL;
-    }
-    else
-    {
-      e->next->last = e->last;
-      e->last->next = e->next;
+    debug_printf(
+        "bws_srv_remove_operation() >>> e = %p, head = %p, tail = %p\n", e,
+        head, tail);
+    if (*head == *tail) {
+        *head = NULL;
+        *tail = NULL;
+    } else if (!e->last) {
+        *head = e->next;
+        (*head)->last = NULL;
+    } else if (!e->next) {
+        *tail = e->last;
+        (*tail)->next = NULL;
+    } else {
+        e->next->last = e->last;
+        e->last->next = e->next;
     }
     debug_printf("bws_srv_remove_operation() <<<\n");
 }
@@ -171,7 +169,8 @@ static void bws_srv_dequeue_accept_operation(void)
 {
     debug_printf(
         "bws_srv_dequeue_accept_operation() >>> e = %p\n", bws_accept_head);
-    bws_srv_remove_operation(bws_accept_head, &bws_accept_head, &bws_accept_tail);
+    bws_srv_remove_operation(
+        bws_accept_head, &bws_accept_head, &bws_accept_tail);
     debug_printf("bws_srv_dequeue_accept_operation() <<<\n");
 }
 
@@ -982,9 +981,8 @@ BACNET_WEBSOCKET_RET bws_srv_recv(BACNET_WEBSOCKET_HANDLE h,
 
     while (!e.processed) {
         if (pthread_cond_timedwait(&e.cond, &bws_srv_mutex, &to) == ETIMEDOUT) {
-            bws_srv_remove_operation(&e,
-                                     &bws_srv_conn[h].recv_head,
-                                     &bws_srv_conn[h].recv_tail);
+            bws_srv_remove_operation(
+                &e, &bws_srv_conn[h].recv_head, &bws_srv_conn[h].recv_tail);
             pthread_mutex_unlock(&bws_srv_mutex);
             bws_srv_deinit_operation(&e);
             debug_printf(
@@ -996,7 +994,7 @@ BACNET_WEBSOCKET_RET bws_srv_recv(BACNET_WEBSOCKET_HANDLE h,
     debug_printf("bws_srv_recv() unblocked\n");
     pthread_mutex_unlock(&bws_srv_mutex);
 
-    if (e.retcode == BACNET_WEBSOCKET_SUCCESS || 
+    if (e.retcode == BACNET_WEBSOCKET_SUCCESS ||
         e.retcode == BACNET_WEBSOCKET_BUFFER_TOO_SMALL) {
         *bytes_received = e.payload_size;
     }
