@@ -1466,12 +1466,6 @@ static bool bvlc_sc_decode_hdr(uint8_t *message,
         return ret;
     }
 
-    if (message[0] > BVLC_SC_PROPRIETARY_MESSAGE) {
-        *error = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
-        *class = ERROR_CLASS_COMMUNICATION;
-        return ret;
-    }
-
     memset(hdr, 0, sizeof(*hdr));
     hdr->bvlc_function = message[0];
     memcpy(&hdr->message_id, &message[2], sizeof(hdr->message_id));
@@ -1494,6 +1488,17 @@ static bool bvlc_sc_decode_hdr(uint8_t *message,
             *class = ERROR_CLASS_COMMUNICATION;
             return false;
         }
+    }
+
+    // in order to handle correctly item AB.3.1.5 Common Error Situations,
+    // in a case a BVLC message is received with unknown BVLC function,
+    // upper layer logic must understand if the message is unicast or not.
+    // That's why that error handling is put after filling of address fields.
+
+    if (message[0] > BVLC_SC_PROPRIETARY_MESSAGE) {
+        *error = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
+        *class = ERROR_CLASS_COMMUNICATION;
+        return ret;
     }
 
     if (message[1] & BVLC_SC_CONTROL_DEST_OPTIONS) {
