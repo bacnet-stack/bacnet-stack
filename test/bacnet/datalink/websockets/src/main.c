@@ -1365,6 +1365,7 @@ static bool test_srv_stop_during_blocked_send_worker(void)
     pthread_join(srv_stop_th5, NULL);
     pthread_join(srv_stop_th6, NULL);
     zassert_equal(ret1, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
     srv->bws_stop();
@@ -1430,6 +1431,7 @@ static bool test_srv_stop_during_blocked_recv_worker(void)
     pthread_join(srv_stop_th7, NULL);
     pthread_join(srv_stop_th8, NULL);
     zassert_equal(ret1, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
     if (ret2 != BACNET_WEBSOCKET_INVALID_OPERATION)
@@ -1470,6 +1472,7 @@ static void test_srv_recv_timeout(void)
     zassert_equal(ret, BACNET_WEBSOCKET_TIMEDOUT, NULL);
     ret = srv->bws_stop();
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
@@ -1520,7 +1523,7 @@ static bool test_srv_stop_multiple_accept_worker(void)
     for (i = 0; i < TEST_THREAD_NUM; i++) {
         pthread_join(test_srv_multiple_accept_pid[i], NULL);
     }
-
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
     for (i = 0; i < TEST_THREAD_NUM; i++) {
@@ -1589,7 +1592,7 @@ static bool test_srv_stop_multiple_send_worker(void)
     for (i = 0; i < TEST_THREAD_NUM; i++) {
         pthread_join(test_srv_multiple_send_pid[i], NULL);
     }
-
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
     for (i = 0; i < TEST_THREAD_NUM; i++) {
@@ -1660,7 +1663,7 @@ static bool test_srv_stop_multiple_recv_worker(void)
     for (i = 0; i < TEST_THREAD_NUM; i++) {
         pthread_join(test_srv_multiple_recv_pid[i], NULL);
     }
-
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
     for (i = 0; i < TEST_THREAD_NUM; i++) {
@@ -1704,6 +1707,7 @@ static void test_srv_normal_disconnect(void)
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
     ret = srv->bws_stop();
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
@@ -1733,6 +1737,7 @@ static void test_srv_bad_send_recv(void)
     zassert_equal(ret, BACNET_WEBSOCKET_INVALID_OPERATION, NULL);
     ret = srv->bws_stop();
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
@@ -1792,6 +1797,7 @@ static void test_srv_multiple_disconnect(void)
     zassert_equal(success, 1, NULL);
     ret = srv->bws_stop();
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
@@ -1852,6 +1858,7 @@ static void test_srv_stop_during_multiple_disconnect(void)
     }
 
     zassert_equal(success, 1, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
@@ -1906,6 +1913,7 @@ static void test_srv_disconnect_during_multiple_recv(void)
     }
     ret = srv->bws_stop();
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
@@ -1960,6 +1968,7 @@ static void test_srv_disconnect_during_multiple_send(void)
     }
     ret = srv->bws_stop();
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
@@ -1987,6 +1996,7 @@ static void test_srv_disconnect_in_disconnected_state(void)
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
     ret = srv->bws_accept(&h2);
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
     sleep(1);
@@ -2225,6 +2235,7 @@ static void test_srv_multiple_recv_timedout(void)
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
     ret = srv->bws_stop();
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
@@ -2356,6 +2367,7 @@ static void test_cli_recv_timeout(void)
     zassert_equal(ret, BACNET_WEBSOCKET_TIMEDOUT, NULL);
     ret = srv->bws_stop();
     zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sleep(0.5);
     ret = cli->bws_disconnect(h);
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
