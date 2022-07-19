@@ -489,13 +489,25 @@ static const char *Reinit_Password = "filister";
 bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
 {
     bool status = false;
+    int i;
 
     /* Note: you could use a mix of state and password to multiple things */
     if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
         switch (rd_data->state) {
             case BACNET_REINIT_COLDSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
             case BACNET_REINIT_WARMSTART:
                 dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Pending_Params_Apply(
+                        Network_Port_Index_To_Instance(i));
+                }
                 /* note: you probably want to restart *after* the
                    simple ack has been sent from the return handler
                    so just set a flag from here */
@@ -515,6 +527,14 @@ bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
                     rd_data->error_code =
                         ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 }
+                break;
+            case BACNET_REINIT_ACTIVATE_CHANGES:
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Pending_Params_Apply(
+                        Network_Port_Index_To_Instance(i));
+                }
+                Reinitialize_State = rd_data->state;
+                status = true;
                 break;
             default:
                 rd_data->error_class = ERROR_CLASS_SERVICES;

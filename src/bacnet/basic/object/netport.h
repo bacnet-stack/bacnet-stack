@@ -42,6 +42,7 @@
 #include "bacnet/apdu.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+#include "bacnet/basic/object/sc_netport.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -400,6 +401,12 @@ extern "C" {
         BACNET_READ_RANGE_DATA * pRequest,
         RR_PROP_INFO * pInfo);
 
+#ifdef BACNET_SECURE_CONNECT
+    BACNET_STACK_EXPORT
+    BACNET_SC_PARAMS *Network_Port_SC_Params(
+        uint32_t object_instance);
+#endif
+
     BACNET_STACK_EXPORT
     bool Network_Port_Create(
         uint32_t object_instance);
@@ -422,6 +429,11 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    void Network_Port_Pending_Params_Apply(
+        uint32_t object_instance);
+    void Network_Port_Pending_Params_Discard(
+        uint32_t object_instance);
 
 #ifdef __cplusplus
 }

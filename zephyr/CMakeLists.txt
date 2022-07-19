@@ -124,6 +124,7 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/msv.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/nc.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/netport.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/sc_netport.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/objects.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.h
@@ -339,7 +340,8 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/mso.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/nc.c
-    $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/object/netport.c>
+    ${BACNETSTACK_SRC}/bacnet/basic/object/netport.c
+    ${BACNETSTACK_SRC}/bacnet/basic/object/sc_netport.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/objects.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c

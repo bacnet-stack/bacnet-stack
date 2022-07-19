@@ -41,12 +41,12 @@ static void test_network_port(void)
         PORT_TYPE_BIP6, PORT_TYPE_MAX };
 
     while (port_type[port] != PORT_TYPE_MAX) {
+        Network_Port_Init();
         object_instance = 1234;
         status = Network_Port_Object_Instance_Number_Set(0, object_instance);
         zassert_true(status, NULL);
         status = Network_Port_Type_Set(object_instance, port_type[port]);
         zassert_true(status, NULL);
-        Network_Port_Init();
         count = Network_Port_Count();
         zassert_true(count > 0, NULL);
         rpdata.application_data = &apdu[0];
@@ -95,11 +95,125 @@ static void test_network_port(void)
  * @}
  */
 
+static void test_network_port_pending_param(void)
+{
+#if BACNET_SECURE_CONNECT
+    /* for decode value data */
+    unsigned count = 0;
+    uint32_t object_instance = 0;
+    bool status = false;
+#if defined(BACNET_SECURE_CONNECT_HUB) || defined(BACNET_SECURE_CONNECT_DIRECT)
+    bool val;
+    BACNET_CHARACTER_STRING str;
+#endif
+
+    Network_Port_Init();
+    object_instance = 1234;
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP);
+    zassert_true(status, NULL);
+    count = Network_Port_Count();
+    zassert_true(count > 0, NULL);
+
+    // write properties
+#ifdef BACNET_SECURE_CONNECT_HUB
+    Network_Port_SC_Primary_Hub_URI_Set(object_instance,
+        "SC_Primary_Hub_URI_test");
+    Network_Port_SC_Failover_Hub_URI_Set(object_instance,
+        "SC_Failover_Hub_URI_test");
+    Network_Port_SC_Hub_Function_Enable_Set(object_instance, false);
+    Network_Port_SC_Hub_Function_Binding_Set(object_instance,
+        "SC_Hub_Function_Binding_test");
+#endif /* BACNET_SECURE_CONNECT_HUB */
+#ifdef BACNET_SECURE_CONNECT_DIRECT
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(object_instance,
+        false);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(object_instance,
+        false);
+    Network_Port_SC_Direct_Connect_Binding_Set(object_instance,
+        "SC_Direct_Connect_Binding_test");
+#endif /* BACNET_SECURE_CONNECT_DIRECT */
+
+    // write dirty properties
+#ifdef BACNET_SECURE_CONNECT_HUB
+    Network_Port_SC_Primary_Hub_URI_Dirty_Set(object_instance,
+        "SC_Primary_Hub_URI_test2");
+    Network_Port_SC_Failover_Hub_URI_Dirty_Set(object_instance,
+        "SC_Failover_Hub_URI_test2");
+    Network_Port_SC_Hub_Function_Enable_Dirty_Set(object_instance, true);
+    Network_Port_SC_Hub_Function_Binding_Dirty_Set(object_instance,
+        "SC_Hub_Function_Binding_test2");
+#endif /* BACNET_SECURE_CONNECT_HUB */
+#ifdef BACNET_SECURE_CONNECT_DIRECT
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Dirty_Set(object_instance,
+        true);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(object_instance,
+        true);
+    Network_Port_SC_Direct_Connect_Binding_Dirty_Set(object_instance,
+        "SC_Direct_Connect_Binding_test2");
+#endif /* BACNET_SECURE_CONNECT_DIRECT */
+
+    // check old value
+#ifdef BACNET_SECURE_CONNECT_HUB
+    Network_Port_SC_Primary_Hub_URI(object_instance, &str);
+    zassert_true(strcmp(characterstring_value(&str),
+        "SC_Primary_Hub_URI_test") == 0, NULL);
+    Network_Port_SC_Failover_Hub_URI(object_instance, &str);
+    zassert_true(strcmp(characterstring_value(&str),
+        "SC_Failover_Hub_URI_test") == 0, NULL);
+    val = Network_Port_SC_Hub_Function_Enable(object_instance);
+    zassert_true(val == false, NULL);
+    Network_Port_SC_Hub_Function_Binding(object_instance, &str);
+    zassert_true(strcmp(characterstring_value(&str),
+        "SC_Hub_Function_Binding_test") == 0, NULL);
+#endif /* BACNET_SECURE_CONNECT_HUB */
+#ifdef BACNET_SECURE_CONNECT_DIRECT
+    val = Network_Port_SC_Direct_Connect_Initiate_Enable(object_instance);
+    zassert_true(val == false, NULL);
+    val = Network_Port_SC_Direct_Connect_Accept_Enable(object_instance);
+    zassert_true(val == false, NULL);
+    Network_Port_SC_Direct_Connect_Binding(object_instance, &str);
+    zassert_true(strcmp(characterstring_value(&str),
+        "SC_Direct_Connect_Binding_test") == 0, NULL);
+#endif /* BACNET_SECURE_CONNECT_DIRECT */
+
+    // apply
+    Network_Port_Pending_Params_Apply(object_instance);
+
+    // check new value
+#ifdef BACNET_SECURE_CONNECT_HUB
+    Network_Port_SC_Primary_Hub_URI(object_instance, &str);
+    zassert_true(strcmp(characterstring_value(&str),
+        "SC_Primary_Hub_URI_test2") == 0, NULL);
+    Network_Port_SC_Failover_Hub_URI(object_instance, &str);
+    zassert_true(strcmp(characterstring_value(&str),
+        "SC_Failover_Hub_URI_test2") == 0, NULL);
+    val = Network_Port_SC_Hub_Function_Enable(object_instance);
+    zassert_true(val == true, NULL);
+    Network_Port_SC_Hub_Function_Binding(object_instance, &str);
+    zassert_true(strcmp(characterstring_value(&str),
+        "SC_Hub_Function_Binding_test2") == 0, NULL);
+#endif /* BACNET_SECURE_CONNECT_HUB */
+#ifdef BACNET_SECURE_CONNECT_DIRECT
+    val = Network_Port_SC_Direct_Connect_Initiate_Enable(object_instance);
+    zassert_true(val == true, NULL);
+    val = Network_Port_SC_Direct_Connect_Accept_Enable(object_instance);
+    zassert_true(val == true, NULL);
+    Network_Port_SC_Direct_Connect_Binding(object_instance, &str);
+    zassert_true(strcmp(characterstring_value(&str),
+        "SC_Direct_Connect_Binding_test2") == 0, NULL);
+#endif /* BACNET_SECURE_CONNECT_DIRECT */
+
+#endif /* BACNET_SECURE_CONNECT */
+    return;
+}
 
 void test_main(void)
 {
     ztest_test_suite(netport_tests,
-     ztest_unit_test(test_network_port)
+     ztest_unit_test(test_network_port),
+     ztest_unit_test(test_network_port_pending_param)
      );
 
     ztest_run_test_suite(netport_tests);

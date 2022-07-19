@@ -23,6 +23,10 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
+	BACNET_SECURE_CONNECT=1
+	BACNET_SECURE_CONNECT_ROUTING_TABLE=1
+	BACNET_SECURE_CONNECT_HUB=1
+	BACNET_SECURE_CONNECT_DIRECT=1
 	)
 
 include_directories(
@@ -33,6 +37,7 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/basic/object/netport.c
+	${SRC_DIR}/bacnet/basic/object/sc_netport.c
     # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
@@ -46,6 +51,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/datalink/bvlc.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
+	${SRC_DIR}/bacnet/basic/sys/keylist.c
 	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/hostnport.c
 	${SRC_DIR}/bacnet/lighting.c

@@ -66,6 +66,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/mso.c
 	${SRC_DIR}/bacnet/basic/object/msv.c
 	${SRC_DIR}/bacnet/basic/object/netport.c
+	${SRC_DIR}/bacnet/basic/object/sc_netport.c
 	${SRC_DIR}/bacnet/basic/object/osv.c
 	${SRC_DIR}/bacnet/basic/object/piv.c
 	${SRC_DIR}/bacnet/basic/object/schedule.c
