@@ -341,7 +341,7 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/nc.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/netport.c
-    ${BACNETSTACK_SRC}bacnet/basic/object/sc_netport.c
+    ${BACNETSTACK_SRC}/bacnet/basic/object/sc_netport.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/objects.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c

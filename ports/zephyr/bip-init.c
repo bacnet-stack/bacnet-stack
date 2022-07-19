@@ -573,8 +573,8 @@ static int createSocket(struct sockaddr_in *sin)
  */
 bool bip_init(char *ifname)
 {
-    int status = -1;
     struct sockaddr_in sin = { 0 };
+    int sock_fd;
 
     bip_set_interface(ifname);
 
