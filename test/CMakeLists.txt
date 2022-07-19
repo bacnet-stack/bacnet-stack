@@ -119,6 +119,8 @@ list(APPEND testdirs
   bacnet/datalink/cobs
   bacnet/datalink/crc
   bacnet/datalink/bvlc
+  bacnet/datalink/bvlc-sc
+  bacnet/datalink/websockets
   )
 
 enable_testing()

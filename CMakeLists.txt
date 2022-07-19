@@ -64,6 +64,13 @@ option(
   "compile without datalink"
   OFF)
 
+# TODO: turn this off by default
+
+option(
+  BACDL_BSC
+  "compile with secure-connect support"
+  ON)
+
 set(BACNET_PROTOCOL_REVISION 19)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -79,6 +86,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 #
 
 find_package(Threads)
+
+if(BACDL_BSC)
+find_package(libwebsockets CONFIG REQUIRED)
+endif()
 
 add_library(${PROJECT_NAME}
     src/bacnet/abort.c
@@ -130,6 +141,7 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bvlc-sc.c>
     src/bacnet/basic/binding/address.c
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c
@@ -487,6 +499,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     # ports/linux/rx_fsm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
@@ -523,6 +537,8 @@ elseif(APPLE)
     ports/bsd/bip-init.c
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     ports/bsd/stdbool.h)
 endif()
 
@@ -740,6 +756,7 @@ message(STATUS "BACNET: CMAKE_INSTALL_PREFIX:...........\"${CMAKE_INSTALL_PREFIX
 message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVISION}\"")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")
 message(STATUS "BACNET: BACDL_BIP:......................\"${BACDL_BIP}\"")
+message(STATUS "BACNET: BACDL_BSC:......................\"${BACDL_BSC}\"")
 message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
