@@ -198,6 +198,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\indtext.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\key.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\sys\keylist.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\hostnport.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\lighting.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\lso.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\memcopy.c" />
@@ -272,6 +273,7 @@
     <ClInclude Include="..\..\..\..\src\bacnet\key.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\keylist.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\lighting.h" />
+    <ClInclude Include="..\..\..\..\src\bacnet\hostnport.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\lso.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\memcopy.h" />
     <ClInclude Include="..\..\..\..\src\bacnet\mstp.h" />

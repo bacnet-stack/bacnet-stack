@@ -114,6 +114,54 @@ static void testDevIdRef(void)
     zassert_equal(
         inData.deviceIdentifier.type, outData.deviceIdentifier.type, NULL);
 }
+
+static void testObjPropRef(void)
+{
+    BACNET_OBJECT_PROPERTY_REFERENCE inData;
+    BACNET_OBJECT_PROPERTY_REFERENCE outData;
+    uint8_t apdu[MAX_APDU];
+    uint8_t tag_number = 1;
+    int inLen;
+    int outLen;
+
+    inData.object_identifier.instance = 12345;
+    inData.object_identifier.type = OBJECT_ANALOG_VALUE;
+    inData.property_identifier = PROP_PRESENT_VALUE;
+    inData.property_array_index = BACNET_ARRAY_ALL;
+    inLen = bacapp_encode_obj_property_ref(apdu, &inData);
+    outLen = bacapp_decode_obj_property_ref(apdu, inLen, &outData);
+    zassert_equal(outLen, inLen, NULL);
+    zassert_equal(
+        inData.object_identifier.type,
+        outData.object_identifier.type, NULL);
+    zassert_equal(
+        inData.object_identifier.instance,
+        outData.object_identifier.instance, NULL);
+    zassert_equal(
+        inData.property_identifier,
+        outData.property_identifier, NULL);
+    zassert_equal(
+        inData.property_array_index,
+        outData.property_array_index, NULL);
+    /* context */
+    inLen = bacapp_encode_context_obj_property_ref(apdu, tag_number, &inData);
+    outLen = bacapp_decode_context_obj_property_ref(apdu, inLen, tag_number,
+        &outData);
+    zassert_equal(outLen, inLen, NULL);
+    zassert_equal(
+        inData.object_identifier.type,
+        outData.object_identifier.type, NULL);
+    zassert_equal(
+        inData.object_identifier.instance,
+        outData.object_identifier.instance, NULL);
+    zassert_equal(
+        inData.property_identifier,
+        outData.property_identifier, NULL);
+    zassert_equal(
+        inData.property_array_index,
+        outData.property_array_index, NULL);
+}
+
 /**
  * @}
  */
@@ -123,7 +171,8 @@ void test_main(void)
 {
     ztest_test_suite(bacdevobjpropref_tests,
      ztest_unit_test(testDevIdPropRef),
-     ztest_unit_test(testDevIdRef)
+     ztest_unit_test(testDevIdRef),
+     ztest_unit_test(testObjPropRef)
      );
 
     ztest_run_test_suite(bacdevobjpropref_tests);

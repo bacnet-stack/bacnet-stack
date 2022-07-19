@@ -38,8 +38,11 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bacint.c
 	${SRC_DIR}/bacnet/bacreal.c
 	${SRC_DIR}/bacnet/bacstr.c
+	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
+	${SRC_DIR}/bacnet/hostnport.c
+	${SRC_DIR}/bacnet/indtext.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

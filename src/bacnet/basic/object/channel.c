@@ -45,7 +45,7 @@
 #include "bacnet/proplist.h"
 #include "bacnet/lighting.h"
 #include "bacnet/basic/object/device.h"
-#if defined(CHANNEL_LIGHTING_COMMAND) || defined(BACAPP_LIGHTING_COMMAND)
+#if defined(CHANNEL_LIGHTING_COMMAND)
 #include "bacnet/basic/object/lo.h"
 #endif
 /* me! */
@@ -628,7 +628,7 @@ bool Channel_Value_Copy(
             status = true;
             break;
 #endif
-#if defined(BACAPP_LIGHTING_COMMAND) && defined(CHANNEL_LIGHTING_COMMAND)
+#if defined(BACAPP_TYPES_EXTRA) && defined(CHANNEL_LIGHTING_COMMAND)
         case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
             cvalue->tag = value->tag;
             lighting_command_copy(
@@ -1045,7 +1045,7 @@ int Channel_Coerce_Data_Encode(uint8_t *apdu,
                 }
                 break;
 #endif
-#if defined(BACAPP_LIGHTING_COMMAND)
+#if defined(BACAPP_TYPES_EXTRA)
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 if (tag == BACNET_APPLICATION_TAG_LIGHTING_COMMAND) {
                     apdu_len = lighting_command_encode(

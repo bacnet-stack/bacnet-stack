@@ -61,6 +61,9 @@ typedef struct router_port_t {
     struct router_port_t *next;         /**< Point to next in linked list */
 } BACNET_ROUTER_PORT;
 
+#define NETWORK_NUMBER_LEARNED 0
+#define NETWORK_NUMBER_CONFIGURED 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -80,6 +83,13 @@ extern "C" {
     BACNET_STACK_EXPORT
     void npdu_encode_npdu_data(
         BACNET_NPDU_DATA * npdu,
+        bool data_expecting_reply,
+        BACNET_MESSAGE_PRIORITY priority);
+
+    BACNET_STACK_EXPORT
+    void npdu_encode_npdu_network(
+        BACNET_NPDU_DATA *npdu_data,
+        BACNET_NETWORK_MESSAGE_TYPE network_message_type,
         bool data_expecting_reply,
         BACNET_MESSAGE_PRIORITY priority);
 

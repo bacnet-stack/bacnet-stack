@@ -112,7 +112,7 @@ BACNET_DEFINES += -DBACFILE
 BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
-BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=17
+BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=24
 
 # put all the flags together
 INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
@@ -135,10 +135,11 @@ endif
 
 SUBDIRS = lib readprop writeprop readfile writefile reinit server dcc \
 	whohas whois iam ucov scov timesync epics readpropm readrange \
-	writepropm uptransfer getevent uevent abort error event ack-alarm
+	writepropm uptransfer getevent uevent abort error event ack-alarm \
+	server-client
 
 ifeq (${BACDL_DEFINE},-DBACDL_BIP=1)
-	SUBDIRS += whoisrouter iamrouter initrouter
+	SUBDIRS += whoisrouter iamrouter initrouter whatisnetnum netnumis
 	ifneq (${BBMD},none)
 	SUBDIRS += readbdt readfdt writebdt
 	endif
@@ -212,6 +213,14 @@ iamrouter: $(BACNET_LIB_TARGET)
 initrouter: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
+.PHONY: whatisnetnum
+whatisnetnum: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@
+
+.PHONY: netnumis
+netnumis: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@
+
 .PHONY: mstpcap
 mstpcap:
 	$(MAKE) -b -C $@
@@ -258,6 +267,10 @@ scov: $(BACNET_LIB_TARGET)
 
 .PHONY: server
 server: $(BACNET_LIB_TARGET)
+	$(MAKE) -s -b -C $@
+
+.PHONY: server-client
+server-client: $(BACNET_LIB_TARGET)
 	$(MAKE) -s -b -C $@
 
 .PHONY: timesync

@@ -64,8 +64,9 @@ void rp_ack_print_data(BACNET_READ_PROPERTY_DATA *data)
         /* FIXME: what if application_data_len is bigger than 255? */
         /* value? need to loop until all of the len is gone... */
         for (;;) {
-            len = bacapp_decode_application_data(
-                application_data, (unsigned)application_data_len, &value);
+            len = bacapp_decode_known_property(
+                application_data, (unsigned)application_data_len, &value,
+                data->object_type, data->object_property);
             if (first_value && (len < application_data_len)) {
                 first_value = false;
 #if PRINT_ENABLED

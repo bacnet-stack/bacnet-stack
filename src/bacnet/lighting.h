@@ -1,26 +1,15 @@
-/**************************************************************************
-*
-* Copyright (C) 2012 Steve Karg <skarg@users.sourceforge.net>
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*********************************************************************/
+/**
+ * @file
+ * @brief API for BACnetLightingCommand and BACnetColorCommand
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date June 2022
+ * @section LICENSE
+ *
+ * Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
+ *
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef LIGHTING_H
 #define LIGHTING_H
 
@@ -55,6 +44,48 @@ typedef struct BACnetLightingCommand {
     uint8_t priority;
 } BACNET_LIGHTING_COMMAND;
 
+/**
+ * BACnetxyColor::= SEQUENCE {
+ *      x-coordinate REAL, --(0.0 to 1.0)
+ *      y-coordinate REAL --(0.0 to 1.0)
+ * }
+ */
+typedef struct BACnetXYColor {
+    float x_coordinate;
+    float y_coordinate;
+} BACNET_XY_COLOR;
+
+/**
+ *  BACnetColorCommand ::= SEQUENCE {
+ *      operation      [0] BACnetColorOperation,
+ *      target-color   [1] BACnetxyColor OPTIONAL,
+ *      target-color-temperature [2] Unsigned OPTIONAL,
+ *      fade-time      [3] Unsigned (100.. 86400000) OPTIONAL,
+ *      ramp-rate      [4] Unsigned (1..30000) OPTIONAL,
+ *      step-increment [5] Unsigned (1..30000) OPTIONAL
+ *  }
+ */
+typedef struct BACnetColorCommand {
+    BACNET_COLOR_OPERATION operation;
+    union {
+        BACNET_XY_COLOR color;
+        uint16_t color_temperature;
+    } target;
+    union {
+        uint32_t fade_time;
+        uint16_t ramp_rate;
+        uint16_t step_increment;
+    } transit;
+} BACNET_COLOR_COMMAND;
+
+/* range restrictions */
+#define BACNET_COLOR_FADE_TIME_MIN 100ul
+#define BACNET_COLOR_FADE_TIME_MAX 86400000ul
+#define BACNET_COLOR_RAMP_RATE_MIN 1ul
+#define BACNET_COLOR_RAMP_RATE_MAX 30000ul
+#define BACNET_COLOR_STEP_INCREMENT_MIN 1ul
+#define BACNET_COLOR_STEP_INCREMENT_MAX 30000ul
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -81,6 +112,57 @@ extern "C" {
     bool lighting_command_same(
         BACNET_LIGHTING_COMMAND * dst,
         BACNET_LIGHTING_COMMAND * src);
+
+    BACNET_STACK_EXPORT
+    int xy_color_encode(uint8_t *apdu,
+        BACNET_XY_COLOR *value);
+    BACNET_STACK_EXPORT
+    int xy_color_context_encode(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_XY_COLOR *value);
+    BACNET_STACK_EXPORT
+    int xy_color_decode(
+        uint8_t *apdu,
+        uint32_t apdu_size,
+        BACNET_XY_COLOR *value);
+    BACNET_STACK_EXPORT
+    int xy_color_context_decode(
+        uint8_t *apdu,
+        uint32_t apdu_size,
+        uint8_t tag_number,
+        BACNET_XY_COLOR *value);
+    BACNET_STACK_EXPORT
+    int xy_color_copy(
+        BACNET_XY_COLOR *dst,
+        BACNET_XY_COLOR *src);
+    BACNET_STACK_EXPORT
+    bool xy_color_same(
+        BACNET_XY_COLOR *value1,
+        BACNET_XY_COLOR *value2);
+
+    BACNET_STACK_EXPORT
+    int color_command_encode(
+        uint8_t * apdu,
+        BACNET_COLOR_COMMAND *address);
+    BACNET_STACK_EXPORT
+    int color_command_context_encode(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_COLOR_COMMAND *address);
+    BACNET_STACK_EXPORT
+    int color_command_decode(uint8_t *apdu,
+        uint16_t apdu_len,
+        BACNET_ERROR_CODE *error_code,
+        BACNET_COLOR_COMMAND *address);
+    BACNET_STACK_EXPORT
+    bool color_command_copy(
+        BACNET_COLOR_COMMAND * dst,
+        BACNET_COLOR_COMMAND * src);
+    BACNET_STACK_EXPORT
+    bool color_command_same(
+        BACNET_COLOR_COMMAND * dst,
+        BACNET_COLOR_COMMAND * src);
 
 #ifdef __cplusplus
 }

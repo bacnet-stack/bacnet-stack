@@ -166,7 +166,7 @@ bool bacnet_name_write_unique(uint16_t offset,
     bool status = false;
     size_t length = 0;
     uint8_t encoding = 0;
-    int duplicate_type = 0;
+    BACNET_OBJECT_TYPE duplicate_type = 0;
     uint32_t duplicate_instance = 0;
 
     length = characterstring_length(char_string);

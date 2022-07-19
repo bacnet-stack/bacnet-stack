@@ -4310,6 +4310,9 @@
     <group>
         <name>BACnet Basic Sys</name>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\debug.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>
         </file>
         <file>
@@ -4441,6 +4444,9 @@
     </file>
     <file>
         <name>$PROJ_DIR$\mstimer-init.c</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\netport.c</name>
     </file>
     <file>
         <name>$PROJ_DIR$\rs485.c</name>

@@ -70,18 +70,30 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyErrorHandler(BACNET_ADDRESS *src,
+static void MyWritePropertyMultipleErrorHandler(
+    BACNET_ADDRESS * src,
     uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class,
-    BACNET_ERROR_CODE error_code)
+    uint8_t service_choice,
+    uint8_t * service_request,
+    uint16_t service_len)
 {
+    int len = 0;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+
+    (void)service_choice;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\n",
-            bactext_error_class_name((int)error_class),
-            bactext_error_code_name((int)error_code));
+        len = wpm_error_ack_decode_apdu(service_request, service_len, &wp_data);
+        if (len > 0) {
+            printf("BACnet Error: %s: %s\n",
+                bactext_error_class_name((int)wp_data.error_class),
+                bactext_error_code_name((int)wp_data.error_code));
+            printf("BACnet Error: %s %u: %s\n",
+                bactext_object_type_name((int)wp_data.object_type),
+                (unsigned)wp_data.object_instance,
+                bactext_property_name((int)wp_data.object_property));
+        }
         Error_Detected = true;
-        /* FIXME: WPM error has extra data for first failed write. */
     }
 }
 
@@ -108,6 +120,7 @@ static void MyRejectHandler(
         Error_Detected = true;
     }
 }
+
 
 static void MyWritePropertyMultipleSimpleAckHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id)
@@ -136,7 +149,8 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_simple_ack_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
         MyWritePropertyMultipleSimpleAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
+    apdu_set_complex_error_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
+        MyWritePropertyMultipleErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }

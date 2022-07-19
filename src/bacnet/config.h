@@ -37,7 +37,8 @@
    see datalink.h for possible defines. */
 #if !(defined(BACDL_ETHERNET) || defined(BACDL_ARCNET) || \
     defined(BACDL_BSC) || defined(BACDL_MSTP) || defined(BACDL_BIP) || defined(BACDL_BIP6) || \
-    defined(BACDL_TEST) || defined(BACDL_ALL) || defined(BACDL_NONE))
+    defined(BACDL_TEST) || defined(BACDL_ALL) || defined(BACDL_NONE) || \
+    defined(BACDL_CUSTOM))
 #define BACDL_BIP
 #endif
 
@@ -143,9 +144,8 @@
     defined(BACAPP_ENUMERATED) || \
     defined(BACAPP_DATE) || \
     defined(BACAPP_TIME) || \
-    defined(BACAPP_LIGHTING_COMMAND) || \
-    defined(BACAPP_DEVICE_OBJECT_PROP_REF) || \
-    defined(BACAPP_OBJECT_ID))
+    defined(BACAPP_OBJECT_ID) || \
+    defined(BACAPP_TYPES_EXTRA))
 #define BACAPP_ALL
 #endif
 
@@ -163,8 +163,7 @@
 #define BACAPP_DATE
 #define BACAPP_TIME
 #define BACAPP_OBJECT_ID
-#define BACAPP_DEVICE_OBJECT_PROP_REF
-#define BACAPP_LIGHTING_COMMAND
+#define BACAPP_TYPES_EXTRA
 #elif defined (BACAPP_MINIMAL)
 #define BACAPP_NULL
 #define BACAPP_BOOLEAN

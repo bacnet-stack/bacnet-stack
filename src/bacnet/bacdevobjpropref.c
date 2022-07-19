@@ -1,6 +1,7 @@
 /*####COPYRIGHTBEGIN####
  -------------------------------------------
  Copyright (C) 2008 John Minack
+ Copyright (C) 2022 Steve Karg <skarg@users.sourceforge.net>
 
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -399,4 +400,218 @@ int bacapp_decode_context_device_obj_ref(
         len = BACNET_STATUS_ERROR;
     }
     return len;
+}
+
+
+/**
+ * @brief Encode a BACnetObjectPropertyReference
+ *
+ *   BACnetObjectPropertyReference ::= SEQUENCE {
+ *       object-identifier    [0] BACnetObjectIdentifier,
+ *       property-identifier  [1] BACnetPropertyIdentifier,
+ *       property-array-index [2] Unsigned OPTIONAL
+ *       -- used only with array datatype
+ *       -- if omitted with an array the entire array is referenced
+ *   }
+ *
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param reference - BACnetObjectPropertyReference
+ * @return length of the APDU buffer
+ */
+int bacapp_encode_obj_property_ref(uint8_t *apdu,
+    BACNET_OBJECT_PROPERTY_REFERENCE *reference)
+{
+    int len = 0;
+    uint8_t *apdu_offset = NULL;
+    int apdu_len = 0;
+
+    if (!reference) {
+        return 0;
+    }
+    if (reference->object_identifier.type == OBJECT_NONE) {
+        return 0;
+    }
+    if (apdu) {
+        apdu_offset = apdu;
+    }
+    len = encode_context_object_id(apdu_offset, 0,
+        reference->object_identifier.type,
+        reference->object_identifier.instance);
+    apdu_len += len;
+    if (apdu) {
+        apdu_offset = &apdu[apdu_len];
+    }
+    len = encode_context_enumerated(
+        apdu_offset, 1, reference->property_identifier);
+    apdu_len += len;
+    if (apdu) {
+        apdu_offset = &apdu[apdu_len];
+    }
+    if (reference->property_array_index != BACNET_ARRAY_ALL) {
+        len = encode_context_unsigned(
+            apdu_offset, 2, reference->property_array_index);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Encode the BACnetObjectPropertyReference as Context Tagged
+ * @param apdu - the APDU buffer
+ * @param tag_number - context tag number to be encoded
+ * @param reference - BACnetObjectPropertyReference to encode
+ * @return length of the APDU buffer
+ */
+int bacapp_encode_context_obj_property_ref(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_OBJECT_PROPERTY_REFERENCE *reference)
+{
+    int len = 0;
+    int apdu_len = 0;
+    uint8_t *apdu_offset = NULL;
+
+    if (reference && (reference->object_identifier.type == OBJECT_NONE)) {
+        return 0;
+    }
+    if (apdu) {
+        apdu_offset = apdu;
+    }
+    len = encode_opening_tag(apdu_offset, tag_number);
+    apdu_len += len;
+    if (apdu) {
+        apdu_offset = &apdu[apdu_len];
+    }
+    len = bacapp_encode_obj_property_ref(apdu_offset, reference);
+    apdu_len += len;
+    if (apdu) {
+        apdu_offset = &apdu[apdu_len];
+    }
+    len = encode_closing_tag(apdu_offset, tag_number);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a BACnetObjectPropertyReference
+ *
+ *   BACnetObjectPropertyReference ::= SEQUENCE {
+ *       object-identifier    [0] BACnetObjectIdentifier,
+ *       property-identifier  [1] BACnetPropertyIdentifier,
+ *       property-array-index [2] Unsigned OPTIONAL
+ *       -- used only with array datatype
+ *       -- if omitted with an array the entire array is referenced
+ *   }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_len_max - the APDU buffer length
+ * @param reference - BACnetObjectPropertyReference to decode into
+ * @return length of the APDU buffer decoded, or 0 if failed to decode
+ */
+int bacapp_decode_obj_property_ref(uint8_t *apdu,
+    uint16_t apdu_len_max,
+    BACNET_OBJECT_PROPERTY_REFERENCE *reference)
+{
+    int apdu_len = 0;
+    int len = 0;
+    BACNET_OBJECT_ID object_identifier;
+    uint32_t property_identifier;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+
+    if (apdu && (apdu_len_max > 0)) {
+        /* object-identifier    [0] BACnetObjectIdentifier */
+        len = bacnet_object_id_context_decode(&apdu[apdu_len],
+            apdu_len_max - apdu_len, 0, &object_identifier.type,
+            &object_identifier.instance);
+        if (len > 0) {
+            apdu_len += len;
+        } else if (len <= 0) {
+            return 0;
+        }
+        /* property-identifier  [1] BACnetPropertyIdentifier */
+        len = bacnet_enumerated_context_decode(
+            &apdu[apdu_len], apdu_len_max - apdu_len, 1, &property_identifier);
+        if (len > 0) {
+            apdu_len += len;
+        } else if (len <= 0) {
+            return 0;
+        }
+        if (reference) {
+            reference->object_identifier.type = object_identifier.type;
+            reference->object_identifier.instance = object_identifier.instance;
+            reference->property_identifier = 
+                (BACNET_PROPERTY_ID)property_identifier;
+            reference->property_array_index = BACNET_ARRAY_ALL;
+        }
+        /* property-array-index [2] Unsigned OPTIONAL */
+        if (apdu_len_max > apdu_len) {
+            if (decode_is_context_tag(&apdu[apdu_len], 2)) {
+                len = bacnet_unsigned_context_decode(
+                    &apdu[apdu_len], apdu_len_max - apdu_len, 2,
+                    &unsigned_value);
+                if (len > 0) {
+                    apdu_len += len;
+                    if (unsigned_value > UINT32_MAX) {
+                        return 0;
+                    }
+                    if (reference) {
+                        reference->property_array_index = unsigned_value;
+                    }
+                } else if (len <= 0) {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
+ * Decode the context object property reference. Check for
+ * an opening tag and a closing tag as well.
+ *
+ * @param apdu  Pointer to the buffer containing the data to decode.
+ * @param apdu_len_max - the APDU buffer length
+ * @param tag_number  Tag number
+ * @param value  Pointer to the context device object reference,
+ *               that shall be decoded.
+ *
+ * @return Bytes decoded or BACNET_STATUS_ERROR on failure.
+ */
+int bacapp_decode_context_obj_property_ref(
+    uint8_t * apdu,
+    uint16_t apdu_len_max,
+    uint8_t tag_number,
+    BACNET_OBJECT_PROPERTY_REFERENCE * value)
+{
+    int len = 0;
+    int apdu_len = 0;
+
+    if (apdu_len_max == 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
+        apdu_len++;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+    len = bacapp_decode_obj_property_ref(&apdu[apdu_len],
+        apdu_len_max - apdu_len, value);
+    if (len == 0) {
+        return BACNET_STATUS_ERROR;
+    } else {
+        apdu_len += len;
+    }
+    if ((apdu_len_max - apdu_len) == 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
+        apdu_len++;
+    } else {
+        return BACNET_STATUS_ERROR;
+    }
+
+    return apdu_len;
 }

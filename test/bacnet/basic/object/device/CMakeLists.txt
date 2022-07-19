@@ -54,6 +54,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/object/bo.c
 	${SRC_DIR}/bacnet/basic/object/bv.c
 	${SRC_DIR}/bacnet/basic/object/channel.c
+	${SRC_DIR}/bacnet/basic/object/color_object.c
+	${SRC_DIR}/bacnet/basic/object/color_temperature.c
 	${SRC_DIR}/bacnet/basic/object/command.c
 	${SRC_DIR}/bacnet/basic/object/csv.c
 	${SRC_DIR}/bacnet/basic/object/iv.c
@@ -72,6 +74,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/service/h_cov.c
 	${SRC_DIR}/bacnet/basic/service/h_wp.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/basic/sys/keylist.c
 	${SRC_DIR}/bacnet/basic/tsm/tsm.c
 	${SRC_DIR}/bacnet/datalink/bvlc.c
 	${SRC_DIR}/bacnet/cov.c
@@ -79,6 +82,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/dcc.c
 	${SRC_DIR}/bacnet/indtext.c
+	${SRC_DIR}/bacnet/hostnport.c
 	${SRC_DIR}/bacnet/lighting.c
 	${SRC_DIR}/bacnet/memcopy.c
 	${SRC_DIR}/bacnet/npdu.c

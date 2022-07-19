@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
@@ -28,6 +28,11 @@ option(
   BACNET_BUILD_PIFACE_APP
   "compile the piface app"
   OFF)
+
+option(
+  BACNET_BUILD_BACPOLL_APP
+  "compile the bacpoll app"
+  ON)
 
 option(
   BACDL_ETHERNET
@@ -67,6 +72,14 @@ option(
   ON)
 
 set(BACNET_PROTOCOL_REVISION 19)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 #
 # library
@@ -166,6 +179,10 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/bv.h
     src/bacnet/basic/object/channel.c
     src/bacnet/basic/object/channel.h
+    src/bacnet/basic/object/color_object.c
+    src/bacnet/basic/object/color_object.h
+    src/bacnet/basic/object/color_temperature.c
+    src/bacnet/basic/object/color_temperature.h
     # src/bacnet/basic/object/client/device-client.c
     src/bacnet/basic/object/command.c
     src/bacnet/basic/object/command.h
@@ -317,6 +334,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/services.h
     src/bacnet/basic/sys/bigend.c
     src/bacnet/basic/sys/bigend.h
+    src/bacnet/basic/sys/color_rgb.c
+    src/bacnet/basic/sys/color_rgb.h
     src/bacnet/basic/sys/days.c
     src/bacnet/basic/sys/days.h
     src/bacnet/basic/sys/debug.c
@@ -376,6 +395,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/get_alarm_sum.h
     src/bacnet/getevent.c
     src/bacnet/getevent.h
+    src/bacnet/hostnport.c
+    src/bacnet/hostnport.h
     src/bacnet/iam.c
     src/bacnet/iam.h
     src/bacnet/ihave.c
@@ -574,16 +595,14 @@ if(BACNET_STACK_BUILD_APPS)
     target_link_libraries(piface PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_PIFACE_APP)
 
-  # add_executable(
-  #   ptransfer
-  #   apps/ptransfer/main.c
-  #   apps/ptransfer/h_pt_a.h
-  #   apps/ptransfer/h_pt_a.c
-  #   apps/ptransfer/h_pt.h
-  #   apps/ptransfer/h_pt.c
-  #   apps/ptransfer/s_ptransfer.h
-  #   apps/ptransfer/s_ptransfer.c)
-  # target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
+  if(BACNET_BUILD_BACPOLL_APP)
+    add_executable(bacpoll
+        apps/server-client/main.c
+        src/bacnet/basic/client/bac-task.c
+        src/bacnet/basic/client/bac-data.c
+        src/bacnet/basic/client/bac-rw.c)
+    target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
+  endif(BACNET_BUILD_BACPOLL_APP)
 
   if(NOT BACDL_ETHERNET)
     add_executable(readbdt apps/readbdt/main.c)
@@ -665,6 +684,12 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(whoisrouter apps/whoisrouter/main.c)
   target_link_libraries(whoisrouter PRIVATE ${PROJECT_NAME})
 
+  add_executable(whatisnetnum apps/whatisnetnum/main.c)
+  target_link_libraries(whatisnetnum PRIVATE ${PROJECT_NAME})
+
+  add_executable(netnumis apps/netnumis/main.c)
+  target_link_libraries(netnumis PRIVATE ${PROJECT_NAME})
+
   add_executable(writefile apps/writefile/main.c)
   target_link_libraries(writefile PRIVATE ${PROJECT_NAME})
 
@@ -726,6 +751,7 @@ message(STATUS "BACNET: CMAKE_C_COMPILER_ID:............\"${CMAKE_C_COMPILER_ID}
 message(STATUS "BACNET: CMAKE_C_COMPILER_VERSION:.......\"${CMAKE_C_COMPILER_VERSION}\"")
 message(STATUS "BACNET: CMAKE_CXX_COMPILER_ID:..........\"${CMAKE_CXX_COMPILER_ID}\"")
 message(STATUS "BACNET: CMAKE_CXX_COMPILER_VERSION:.....\"${CMAKE_CXX_COMPILER_VERSION}\"")
+message(STATUS "BACNET: CMAKE_BUILD_TYPE:...............\"${CMAKE_BUILD_TYPE}\"")
 message(STATUS "BACNET: CMAKE_INSTALL_PREFIX:...........\"${CMAKE_INSTALL_PREFIX}\"")
 message(STATUS "BACNET: BACNET_PROTOCOL_REVISION:.......\"${BACNET_PROTOCOL_REVISION}\"")
 message(STATUS "BACNET: BACDL_BIP6:.....................\"${BACDL_BIP6}\"")

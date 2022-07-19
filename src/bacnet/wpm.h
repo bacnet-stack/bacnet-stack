@@ -93,6 +93,11 @@ extern "C" {
         uint8_t invoke_id,
         BACNET_WRITE_PROPERTY_DATA * wp_data);
 
+    BACNET_STACK_EXPORT
+    int wpm_error_ack_decode_apdu(
+        uint8_t *apdu,
+        uint16_t apdu_size,
+        BACNET_WRITE_PROPERTY_DATA * wp_data);
 
 #ifdef __cplusplus
 }

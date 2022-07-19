@@ -1058,6 +1058,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\bacdcode.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\bacdevobjpropref.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\bacerror.c</name>
         </file>
         <file>
@@ -1077,6 +1080,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\ihave.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\hostnport.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\lighting.c</name>
@@ -1104,6 +1110,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\rpm.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\timestamp.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\whohas.c</name>
@@ -1173,6 +1182,9 @@
         <name>BACnet-Basic-System</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\bigend.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\debug.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>

@@ -161,6 +161,12 @@ static void network_control_handler(BACNET_ADDRESS *src,
         case NETWORK_MESSAGE_DISCONNECT_CONNECTION_TO_NETWORK:
             /* Do nothing - don't support PTP half-router control */
             break;
+        case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
+            /* FIXME: add procedure for this message */
+            break;
+        case NETWORK_MESSAGE_NETWORK_NUMBER_IS:
+            /* FIXME: add procedure for this message */
+            break;
         default:
             /* An unrecognized message is bad; send an error response. */
             Send_Reject_Message_To_Network(

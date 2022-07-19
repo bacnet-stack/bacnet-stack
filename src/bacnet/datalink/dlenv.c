@@ -57,6 +57,24 @@ static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
 /* enable debugging */
 static bool BIP_DL_Debug = false;
 
+/* Debug toggle */
+
+/**
+ * @brief Enabled debug printing of BACnet/IPv4 DL
+ */
+void bip_dl_debug_enable(void)
+{
+    BIP_DL_Debug = true;
+}
+
+/**
+ * @brief Disable debug printing of BACnet/IPv4 DL
+ */
+void bip_dl_debug_disable(void)
+{
+    BIP_DL_Debug = false;
+}
+
 /* Simple setters for BBMD registration variables. */
 
 /**
@@ -250,7 +268,7 @@ int dlenv_register_as_foreign_device(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     const uint32_t instance = 1;
     BACNET_IP_ADDRESS addr = { 0 };
@@ -288,7 +306,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
     uint8_t mac[1] = { 0 };
@@ -315,7 +333,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     uint32_t instance = 1;
     uint8_t prefix = 0;
@@ -348,7 +366,7 @@ static void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-static void dlenv_network_port_init(void)
+void dlenv_network_port_init(void)
 {
     /* do nothing */
 }
@@ -473,7 +491,7 @@ void dlenv_init(void)
     if (pEnv) {
         bip_debug_enable();
         bvlc_debug_enable();
-        BIP_DL_Debug = true;
+        bip_dl_debug_enable();
     }
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
