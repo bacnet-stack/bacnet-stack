@@ -157,7 +157,6 @@ static void network_control_handler(BACNET_ADDRESS *src,
     uint16_t npdu_len)
 {
     uint16_t dnet = 0;
-    uint16_t len = 0;
     uint8_t status = 0;
 
     switch (npdu_data->network_message_type) {
