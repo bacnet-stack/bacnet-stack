@@ -48,6 +48,12 @@ int bvlc_handler(BACNET_IP_ADDRESS *addr,
     uint16_t npdu_len);
 
 BACNET_STACK_EXPORT
+int bvlc_broadcast_handler(BACNET_IP_ADDRESS *addr,
+    BACNET_ADDRESS *src,
+    uint8_t *npdu,
+    uint16_t npdu_len);
+
+BACNET_STACK_EXPORT
 int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
     BACNET_ADDRESS *src,
     uint8_t *mtu,

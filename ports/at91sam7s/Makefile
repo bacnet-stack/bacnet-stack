@@ -30,10 +30,14 @@ BACNET_BASIC = $(BACNET_CORE)/basic
 INCLUDES = -I. -I$(BACNET_SRC)
 #OPTIMIZATION = -O0
 OPTIMIZATION = -Os
-CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -Wall -g
+CFLAGS = -fno-common $(INCLUDES) $(BACNET_FLAGS) -g
 CFLAGS += -mno-thumb-interwork
 # dead code removal
 CFLAGS += -fdata-sections -ffunction-sections
+# warning control
+CFLAGS += -Wall
+CFLAGS += -Wno-char-subscripts
+
 LIBRARY = lib$(TARGET).a
 #  -Wa,<options> Pass comma-separated <options> on to the assembler
 AFLAGS = -Wa,-ahls,-mapcs-32,-adhlns=$(<:.s=.lst)
@@ -45,6 +49,7 @@ LDFLAGS += -Wl,-nostdlib,-Map=$(TARGET).map,$(LIBRARIES),-T$(LDSCRIPT)
 LDFLAGS += -Wl,--gc-sections,-static
 CPFLAGS = --output-target=binary
 ODFLAGS	= -x --syms
+
 
 ASRC = crt.s
 
@@ -63,6 +68,7 @@ DEMOSRC = ai.c \
 	device.c \
 	netport.c \
 	$(BACNET_BASIC)/tsm/tsm.c \
+	$(BACNET_BASIC)/sys/debug.c \
 	$(BACNET_BASIC)/sys/ringbuf.c \
 	$(BACNET_BASIC)/npdu/h_npdu.c \
 	$(BACNET_BASIC)/service/h_noserv.c \
@@ -100,6 +106,7 @@ CORESRC = $(BACNET_CORE)/abort.c \
 	$(BACNET_CORE)/reject.c \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
+	$(BACNET_CORE)/timestamp.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c

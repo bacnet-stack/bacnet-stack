@@ -34,9 +34,6 @@
 #endif
 /** @file bsd/timer.c  Provides BSD-specific time and timer functions. */
 
-/* counter for the various timers */
-static volatile unsigned long Millisecond_Counter;
-
 /* start time for the clock */
 static struct timespec start;
 /* The timeGetTime function retrieves the system time, in milliseconds.
@@ -69,16 +66,7 @@ unsigned long timeGetTime(void)
  */
 unsigned long mstimer_now(void)
 {
-    unsigned long now = timeGetTime();
-    unsigned long delta_time = 0;
-
-    if (Millisecond_Counter <= now) {
-        delta_time = now - Millisecond_Counter;
-    } else {
-        delta_time = (ULONG_MAX - Millisecond_Counter) + now + 1;
-    }
-
-    return delta_time;
+    return timeGetTime();
 }
 
 /**

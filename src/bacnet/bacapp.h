@@ -35,6 +35,7 @@
 #include "bacnet/lighting.h"
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/hostnport.h"
+#include "bacnet/timestamp.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -80,7 +81,11 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_OBJECT_ID Object_Id;
 #endif
 #if defined (BACAPP_TYPES_EXTRA)
+        BACNET_TIMESTAMP Time_Stamp;
+        BACNET_DATE_TIME Date_Time;
         BACNET_LIGHTING_COMMAND Lighting_Command;
+        BACNET_COLOR_COMMAND Color_Command;
+        BACNET_XY_COLOR XY_Color;
         BACNET_HOST_N_PORT Host_Address;
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Device_Object_Property_Reference;
@@ -204,6 +209,12 @@ extern "C" {
         int max_apdu_len,
         BACNET_APPLICATION_DATA_VALUE * value,
         BACNET_PROPERTY_ID prop);
+    BACNET_STACK_EXPORT
+    int bacapp_decode_known_property(uint8_t *apdu,
+        int max_apdu_len,
+        BACNET_APPLICATION_DATA_VALUE *value,
+        BACNET_OBJECT_TYPE object_type,
+        BACNET_PROPERTY_ID property);
 
     BACNET_STACK_EXPORT
     bool bacapp_copy(

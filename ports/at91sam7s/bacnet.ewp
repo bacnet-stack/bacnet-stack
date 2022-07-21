@@ -1101,6 +1101,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\ringbuf.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\debug.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\service\s_iam.c</name>
         </file>
         <file>
@@ -1180,6 +1183,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\rpm.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\timestamp.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\whohas.c</name>

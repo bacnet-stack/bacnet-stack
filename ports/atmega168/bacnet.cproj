@@ -156,6 +156,10 @@
       <SubType>compile</SubType>
       <Link>BACnet Handlers\bigend.c</Link>
     </Compile>
+    <Compile Include="..\..\src\bacnet\basic\sys\debug.c">
+      <SubType>compile</SubType>
+      <Link>BACnet Handlers\debug.c</Link>
+    </Compile>
     <Compile Include="..\..\src\bacnet\basic\npdu\h_npdu.c">
       <SubType>compile</SubType>
       <Link>BACnet Handlers\h_npdu.c</Link>

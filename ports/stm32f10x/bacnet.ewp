@@ -1112,6 +1112,9 @@
             <name>$PROJ_DIR$\..\..\src\bacnet\rpm.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\timestamp.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\whohas.c</name>
         </file>
         <file>
@@ -1179,6 +1182,9 @@
         <name>BACnet-Basic-System</name>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\bigend.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\debug.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\src\bacnet\basic\sys\fifo.c</name>

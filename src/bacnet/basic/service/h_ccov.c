@@ -189,7 +189,7 @@ CCOV_ABORT:
     if (bytes_sent <= 0) {
         PRINTF("CCOV: Failed to send PDU (%s)!\n", strerror(errno));
     }
-    bytes_sent = bytes_sent;
+    (void)bytes_sent;
 
     return;
 }
