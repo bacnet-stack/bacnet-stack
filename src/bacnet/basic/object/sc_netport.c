@@ -45,6 +45,8 @@
 #include <bacnet/datalink/datalink.h>
 #include <bacnet/basic/object/device.h>
 #include <bacnet/timestamp.h>
+#include <bacnet/arf.h>
+#include <bacnet/basic/object/bacfile.h>
 /* me */
 #include <bacnet/basic/object/netport.h>
 
@@ -461,7 +463,7 @@ BACNET_ROUTER_ENTRY *Network_Port_Routing_Table_Get(uint32_t object_instance,
     return Keylist_Data_Index(params->Routing_Table, index);
 }
 
-bool Network_Port_Routing_Table_Add(uint32_t object_instance,
+int32_t Network_Port_Routing_Table_Add(uint32_t object_instance,
     uint16_t network_number, uint8_t *mac, uint8_t mac_len, uint8_t status,
     uint8_t performance_index)
 {
@@ -867,9 +869,10 @@ Network_Port_SC_Failed_Connection_Requests_Get(uint32_t object_instance,
     return Keylist_Data_Index(params->SC_Failed_Connection_Requests, index);
 }
 
-bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
-    BACNET_DATE_TIME *ts, BACNET_HOST_N_PORT *peer_address, uint8_t *peer_VMAC,
-    uint8_t *peer_UUID, BACNET_ERROR_CODE error, char *error_details)
+int32_t Network_Port_SC_Failed_Connection_Requests_Add(
+    uint32_t object_instance, BACNET_DATE_TIME *ts,
+    BACNET_HOST_N_PORT *peer_address, uint8_t *peer_VMAC, uint8_t *peer_UUID,
+    BACNET_ERROR_CODE error, char *error_details)
 {
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
@@ -905,7 +908,7 @@ bool Network_Port_SC_Failed_Connection_Requests_Delete_By_Index(
     BACNET_SC_FAILED_CONNECTION_REQUEST *entry = Keylist_Data_Delete_By_Index(
             params->SC_Failed_Connection_Requests, index);
     free(entry);
-    return true;
+    return entry != NULL;
 }
 
 bool Network_Port_SC_Failed_Connection_Requests_Delete_All(
@@ -919,12 +922,65 @@ bool Network_Port_SC_Failed_Connection_Requests_Delete_All(
     return true;
 }
 
-bool Network_Port_SC_Failed_Connection_Requests_Count(uint32_t object_instance)
+int Network_Port_SC_Failed_Connection_Requests_Count(uint32_t object_instance)
 {
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return 0;
     return Keylist_Count(params->SC_Failed_Connection_Requests);
+}
+
+BACNET_SC_FAILED_CONNECTION_REQUEST *
+Network_Port_SC_Failed_Connection_Requests_Get_By_Peer(uint32_t object_instance,
+    BACNET_HOST_N_PORT *peer_address)
+{
+    uint8_t index;
+    BACNET_SC_FAILED_CONNECTION_REQUEST *rec;
+    BACNET_HOST_N_PORT peer;
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return NULL;
+
+    for (index = 0;
+        index < Keylist_Count(params->SC_Failed_Connection_Requests);
+        ++index)
+    {
+        rec = Keylist_Data_Index(params->SC_Failed_Connection_Requests, index);
+        if (rec == NULL)
+            continue;
+        host_n_port_from_data(&(rec->Peer_Address), &peer);
+        if (host_n_port_same(&peer, peer_address))
+            return rec;
+    }
+    return NULL;
+}
+
+bool Network_Port_SC_Failed_Connection_Requests_Delete_By_Peer(
+    uint32_t object_instance, BACNET_HOST_N_PORT *peer_address)
+{
+    uint8_t index;
+    BACNET_SC_FAILED_CONNECTION_REQUEST *rec;
+    BACNET_HOST_N_PORT peer;
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return NULL;
+
+    for (index = 0;
+        index < Keylist_Count(params->SC_Failed_Connection_Requests);
+        ++index)
+    {
+        rec = Keylist_Data_Index(params->SC_Failed_Connection_Requests, index);
+        if (rec == NULL)
+            continue;
+        host_n_port_from_data(&(rec->Peer_Address), &peer);
+        if (host_n_port_same(&peer, peer_address)) {
+            rec = Keylist_Data_Delete_By_Index(
+                params->SC_Failed_Connection_Requests, index);
+            free(rec);
+            return true;
+        }
+    }
+    return false;
 }
 
 #ifdef BACNET_SECURE_CONNECT_HUB
@@ -1712,6 +1768,64 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
         params->SC_Direct_Connect_Binding,
         sizeof(params->SC_Direct_Connect_Binding_dirty));
 #endif /* BACNET_SECURE_CONNECT_DIRECT */
+}
+
+
+static BACNET_UNSIGNED_INTEGER fileRead(uint32_t instance, uint8_t *buffer,
+    BACNET_UNSIGNED_INTEGER length)
+{
+    BACNET_ATOMIC_READ_FILE_DATA data;
+
+    if (buffer == NULL || length == 0)
+        return bacfile_file_size(instance);
+
+    data.object_instance = instance;
+    data.access = FILE_STREAM_ACCESS;
+    data.type.stream.fileStartPosition = 0;
+
+    while (data.type.stream.fileStartPosition < length) {
+        data.type.stream.requestedOctetCount =
+          MAX_OCTET_STRING_BYTES < length - data.type.stream.fileStartPosition ?
+          MAX_OCTET_STRING_BYTES :
+          length - data.type.stream.fileStartPosition;
+
+        if (!bacfile_read_stream_data(&data))
+            break;
+        memcpy(buffer + data.type.stream.fileStartPosition,
+            octetstring_value(&data.fileData[0]), data.fileData[0].length);
+        data.type.stream.fileStartPosition += data.fileData[0].length;
+        if (data.endOfFile)
+            break;
+    }
+    return data.type.stream.fileStartPosition;
+}
+
+BACNET_UNSIGNED_INTEGER Network_Port_Operational_Certificate_File_Read(
+    uint32_t object_instance, uint8_t *buffer, BACNET_UNSIGNED_INTEGER length)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return 0;
+    return fileRead(params->Operational_Certificate_File, buffer, length);
+}
+
+BACNET_UNSIGNED_INTEGER Network_Port_Issuer_Certificate_File_Read(
+    uint32_t object_instance, uint8_t index, uint8_t *buffer,
+    BACNET_UNSIGNED_INTEGER length)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params || index >= BACNET_ISSUER_CERT_FILE_MAX)
+        return 0;
+    return fileRead(params->Issuer_Certificate_Files[index], buffer, length);
+}
+
+BACNET_UNSIGNED_INTEGER Network_Port_Certificate_Signing_Request_File_Read(
+    uint32_t object_instance, uint8_t *buffer, BACNET_UNSIGNED_INTEGER length)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return 0;
+    return fileRead(params->Certificate_Signing_Request_File, buffer, length);
 }
 
 #endif /* BACNET_SECURE_CONNECT */

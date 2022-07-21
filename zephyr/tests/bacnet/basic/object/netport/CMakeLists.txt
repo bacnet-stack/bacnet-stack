@@ -57,7 +57,10 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/datalink/bvlc.c
     ${BACNET_SRC}/basic/object/sc_netport.c
     ${BACNET_SRC}/hostnport.c
+    ${BACNET_SRC}/basic/object/bacfile.c
     )
+
+    add_compile_definitions(MAX_TSM_TRANSACTIONS=0)
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
   project(${BACNET_NAME})

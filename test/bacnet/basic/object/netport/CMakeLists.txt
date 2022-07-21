@@ -27,6 +27,7 @@ add_compile_definitions(
 	BACNET_SECURE_CONNECT_ROUTING_TABLE=1
 	BACNET_SECURE_CONNECT_HUB=1
 	BACNET_SECURE_CONNECT_DIRECT=1
+	MAX_TSM_TRANSACTIONS=0
 	)
 
 include_directories(
@@ -58,6 +59,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/proplist.c
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/wp.c
+	${SRC_DIR}/bacnet/basic/object/bacfile.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

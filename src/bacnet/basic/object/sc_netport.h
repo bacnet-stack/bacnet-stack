@@ -306,7 +306,7 @@ extern "C" {
         uint32_t object_instance,
         uint8_t index);
     BACNET_STACK_EXPORT
-    bool Network_Port_Routing_Table_Add(
+    int32_t Network_Port_Routing_Table_Add(
         uint32_t object_instance,
         uint16_t network_number,
         uint8_t *mac,
@@ -476,7 +476,7 @@ extern "C" {
         uint32_t object_instance,
         uint8_t index);
     BACNET_STACK_EXPORT
-    bool Network_Port_SC_Failed_Connection_Requests_Add(
+    int32_t Network_Port_SC_Failed_Connection_Requests_Add(
         uint32_t object_instance,
         BACNET_DATE_TIME *ts,
         BACNET_HOST_N_PORT *peer_address,
@@ -492,8 +492,17 @@ extern "C" {
     bool Network_Port_SC_Failed_Connection_Requests_Delete_All(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
-    bool Network_Port_SC_Failed_Connection_Requests_Count(
+    int Network_Port_SC_Failed_Connection_Requests_Count(
         uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    BACNET_SC_FAILED_CONNECTION_REQUEST *
+    Network_Port_SC_Failed_Connection_Requests_Get_By_Peer(
+        uint32_t object_instance,
+        BACNET_HOST_N_PORT *peer_address);
+    BACNET_STACK_EXPORT
+    bool Network_Port_SC_Failed_Connection_Requests_Delete_By_Peer(
+        uint32_t object_instance,
+        BACNET_HOST_N_PORT *peer_address);
 
     //
     // Encode / decode
@@ -604,6 +613,22 @@ extern "C" {
         uint32_t object_instance);
     void Network_Port_SC_Pending_Params_Discard(
         uint32_t object_instance);
+
+    BACNET_UNSIGNED_INTEGER Network_Port_Operational_Certificate_File_Read(
+        uint32_t object_instance,
+        uint8_t *buffer,
+        BACNET_UNSIGNED_INTEGER length);
+
+    BACNET_UNSIGNED_INTEGER Network_Port_Issuer_Certificate_File_Read(
+        uint32_t object_instance,
+        uint8_t index,
+        uint8_t *buffer,
+        BACNET_UNSIGNED_INTEGER length);
+
+    BACNET_UNSIGNED_INTEGER Network_Port_Certificate_Signing_Request_File_Read(
+        uint32_t object_instance,
+        uint8_t *buffer,
+        BACNET_UNSIGNED_INTEGER length);
 
 #endif /* BACNET_SECURE_CONNECT */
 
