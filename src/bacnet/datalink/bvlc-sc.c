@@ -1108,10 +1108,10 @@ static bool bvlc_sc_decode_connect_request(BVLC_SC_DECODED_DATA *payload,
         *class = ERROR_CLASS_COMMUNICATION;
         return false;
     }
-    payload->connect_request.local_vmac =
+    payload->connect_request.vmac =
         (BACNET_SC_VMAC_ADDRESS *)packed_payload;
     packed_payload += BVLC_SC_VMAC_SIZE;
-    payload->connect_request.local_uuid = (BACNET_SC_UUID *)packed_payload;
+    payload->connect_request.uuid = (BACNET_SC_UUID *)packed_payload;
     packed_payload += BVLC_SC_UUID_SIZE;
     memcpy(&payload->connect_request.max_blvc_len, packed_payload,
         sizeof(payload->connect_request.max_blvc_len));
@@ -1213,10 +1213,10 @@ static bool bvlc_sc_decode_connect_accept(BVLC_SC_DECODED_DATA *payload,
         return false;
     }
 
-    payload->connect_accept.local_vmac =
+    payload->connect_accept.vmac =
         (BACNET_SC_VMAC_ADDRESS *)packed_payload;
     packed_payload += BVLC_SC_VMAC_SIZE;
-    payload->connect_accept.local_uuid = (BACNET_SC_UUID *)packed_payload;
+    payload->connect_accept.uuid = (BACNET_SC_UUID *)packed_payload;
     packed_payload += BVLC_SC_UUID_SIZE;
     memcpy(&payload->connect_accept.max_blvc_len, packed_payload,
         sizeof(payload->connect_accept.max_blvc_len));

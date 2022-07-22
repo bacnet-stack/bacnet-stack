@@ -184,15 +184,15 @@ typedef struct BVLC_SC_Decoded_Advertisiment {
 } BVLC_SC_DECODED_ADVERTISIMENT;
 
 typedef struct BVLC_SC_Decoded_Connect_Request {
-    BACNET_SC_VMAC_ADDRESS *local_vmac;
-    BACNET_SC_UUID *local_uuid;
+    BACNET_SC_VMAC_ADDRESS *vmac;
+    BACNET_SC_UUID *uuid;
     uint16_t max_blvc_len;
     uint16_t max_npdu_len;
 } BVLC_SC_DECODED_CONNECT_REQUEST;
 
 typedef struct BVLC_SC_Decoded_Connect_Accept {
-    BACNET_SC_VMAC_ADDRESS *local_vmac;
-    BACNET_SC_UUID *local_uuid;
+    BACNET_SC_VMAC_ADDRESS *vmac;
+    BACNET_SC_UUID *uuid;
     uint16_t max_blvc_len;
     uint16_t max_npdu_len;
 } BVLC_SC_DECODED_CONNECT_ACCEPT;

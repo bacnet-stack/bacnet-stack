@@ -3072,10 +3072,10 @@ static void test_CONNECT_REQUEST(void)
                                message_id, NULL, NULL, true, true, 26);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.hdr.payload_len, 26, NULL);
-  res = memcmp(message.payload.connect_request.local_vmac,
+  res = memcmp(message.payload.connect_request.vmac,
                &local_vmac, BVLC_SC_VMAC_SIZE);
   zassert_equal(res, 0, NULL);
-  res = memcmp(message.payload.connect_request.local_uuid,
+  res = memcmp(message.payload.connect_request.uuid,
                &local_uuid, BVLC_SC_VMAC_SIZE);
   zassert_equal(res, 0, NULL);
   zassert_equal(message.payload.connect_request.max_blvc_len,
@@ -3171,10 +3171,10 @@ static void test_CONNECT_ACCEPT(void)
                                message_id, NULL, NULL, true, true, 26);
   zassert_equal(ret, true, NULL);
   zassert_equal(message.hdr.payload_len, 26, NULL);
-  res = memcmp(message.payload.connect_accept.local_vmac,
+  res = memcmp(message.payload.connect_accept.vmac,
                &local_vmac, BVLC_SC_VMAC_SIZE);
   zassert_equal(res, 0, NULL);
-  res = memcmp(message.payload.connect_accept.local_uuid,
+  res = memcmp(message.payload.connect_accept.uuid,
                &local_uuid, BVLC_SC_VMAC_SIZE);
   zassert_equal(res, 0, NULL);
   zassert_equal(message.payload.connect_accept.max_blvc_len,
