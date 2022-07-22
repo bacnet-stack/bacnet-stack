@@ -384,6 +384,21 @@ static int bws_srv_websocket_event(struct lws *wsi,
                 debug_printf("bws_srv_websocket_event() received %d bytes of "
                              "data for websocket %d\n",
                     len, h);
+                if(!lws_frame_is_binary(wsi)) {
+                   // According AB.7.5.3 BACnet/SC BVLC Message Exchange,
+                   // if a received data frame is not binary,
+                   // the WebSocket connection shall be closed with a
+                   // status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED.
+                    debug_printf(
+                      "bws_srv_websocket_event() got non-binary frame, "\
+                      "close websocket %d\n");
+                    lws_close_reason(wsi,
+                                     LWS_CLOSE_STATUS_UNACCEPTABLE_OPCODE,
+                                     NULL, 0 );
+                    pthread_mutex_unlock(&bws_srv_mutex);
+                    debug_printf("bws_srv_websocket_event() <<< ret = -1\n");
+                    return -1;
+                }
                 if (bws_srv_conn[h].state == BACNET_WEBSOCKET_STATE_CONNECTED) {
                     if (len <= 65535 &&
                         FIFO_Available(&bws_srv_conn[h].in_data, len) &&
