@@ -141,6 +141,15 @@ BACNET_FLAGS += -DMAX_OCTET_STRING_BYTES=64
 # if called from root Makefile, PRINT was already defined
 BACNET_FLAGS += -UPRINT_ENABLED
 BACNET_FLAGS += -DPRINT_ENABLED=0
+ifeq (${SHIELD},)
+BACNET_FLAGS += -DRS485_DFR0259_ENABLED=1
+endif
+ifeq (${SHIELD},dfr0259)
+BACNET_FLAGS += -DRS485_DFR0259_ENABLED=1
+endif
+ifeq (${SHIELD},linksprite)
+BACNET_FLAGS += -DRS485_LINKSPRITE_ENABLED=1
+endif
 
 CFLAGS += $(MCU_FLAGS)
 CFLAGS += $(OPTIMIZE_FLAGS)
@@ -187,18 +196,10 @@ $(TARGET).bin:  $(TARGET).elf
 $(TARGET).elf: $(COBJ) $(AOBJ) Makefile
 	$(CC) $(CFLAGS) $(AOBJ) $(COBJ) $(LDFLAGS) -o $@
 
-# allow a single file to be unoptimized for debugging purposes
-#dlmstp.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#main.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#$(BACNET_CORE)/npdu.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
-#
-#$(BACNET_CORE)/apdu.o:
-#	$(CC) -c $(CFLAGS) $*.c -o $@
+.PHONY: install
+install:
+	openocd -f st_nucleo_f429.cfg \
+	-c "program $(TARGET).elf verify reset exit"
 
 .c.o:
 	$(CC) -c $(OPTIMIZATION) $(CFLAGS) $*.c -o $@
