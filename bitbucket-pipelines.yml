@@ -1,0 +1,66 @@
+#
+# Copyright (c) 2022 Legrand North America, LLC., as an unplublished work.
+# All Rights Reserved.
+#
+# The information contained herein is confidential property of Legrand.
+# The use, copying, transfer, or disclosure of such information is
+# prohibited except by the express written agreement with Legrand.
+#
+
+# This is a build configuration for LMSH-MCA and LMSH-PSxx
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as
+# your build environment.
+#
+image: legrandbcs/linux-zephyr-firmware:v0.20.0
+clone:
+  depth: 6
+options:
+pipelines:
+  size: 2x
+  default:
+      - step:
+          name: ZephyrProject-based project builds
+          script:
+            # main repo is already cloned, but sub-repos and west projects are not cloned yet
+            #
+            # Now find the project-specific manifest and update the modules
+            #
+            - eval `ssh-agent`
+            - ssh-add /opt/atlassian/pipelines/agent/data/id_rsa
+            #
+            # Finish setting up the required environment
+            # 
+            - cd $BITBUCKET_CLONE_DIR
+            - ln -s $BITBUCKET_CLONE_DIR $BITBUCKET_CLONE_DIR/../bacnet-stack
+            - export ZEPHYR_BASE=$BITBUCKET_CLONE_DIR/../zephyr
+            - export ZEPHYR_TOOLCHAIN_VARIANT=gnuarmemb
+            #
+            - rm -rf ../.west
+            - west init -l .
+            - west update
+            - west zephyr-export
+            - pip3 install --user -r
+                $BITBUCKET_CLONE_DIR/../zephyr/scripts/requirements.txt
+            #- pip3 install --user -r
+            #@    $BITBUCKET_CLONE_DIR/../cutter-amatis-6lo/zephyr/scripts/requirements.txt
+            - west config build.dir-fmt ${ZEPHYR_BASE}/../buildOutput/{source_dir}/{board}
+            #
+            # Build the project(s)
+            # 
+            - cd $BITBUCKET_CLONE_DIR/..
+            - ./zephyr/scripts/twister
+                -p $boardName
+                --testcase-root ./bacnet-stack/zephyr/tests/bacnet
+                --list-tests --list-tags
+            #
+            # BUNDLE UP THE OUTPUT - need zip, curl in environment
+            #
+            - FOLDER_NAME=DEV_BACNET_zp_$(date +%Y%m%d_%H%M%S)
+            - mkdir $BITBUCKET_CLONE_DIR/$FOLDER_NAME
+            - cp -r $BITBUCKET_CLONE_DIR/../buildOutput/$projectPath/$boardName/zephyr/zephyr.*
+                $BITBUCKET_CLONE_DIR/$FOLDER_NAME/
+            - zip -r $BITBUCKET_CLONE_DIR/${FOLDER_NAME}.zip $BITBUCKET_CLONE_DIR/$FOLDER_NAME
+            #- curl -X POST "https://${SKARG_APP_PASSWORD}@api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"${BITBUCKET_CLONE_DIR}/${FOLDER_NAME}.zip" -v
+            - rm -rf $BITBUCKET_CLONE_DIR/../buildOutput $BITBUCKET_CLONE_DIR/$FOLDER_NAME
