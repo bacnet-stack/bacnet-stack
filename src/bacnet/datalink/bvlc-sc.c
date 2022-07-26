@@ -913,7 +913,7 @@ unsigned int bvlc_sc_encode_address_resolution_ack(uint8_t *pdu,
  * @param dest  - Destination virtual address, can be NULL
  * @param hub_status - hub connection status
  * @param support- accept direct connections
- * @param max_blvc_len - the maximum BVLC message size
+ * @param max_bvlc_len - the maximum BVLC message size
  * @param max_npdu_size - the maximum NPDU message size
  * @return number of bytes encoded, in a case of error returns 0.
  */
@@ -925,7 +925,7 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
     BACNET_SC_VMAC_ADDRESS *dest,
     BVLC_SC_HUB_CONNECTION_STATUS hub_status,
     BVLC_SC_DIRECT_CONNECTION_SUPPORT support,
-    uint16_t max_blvc_len,
+    uint16_t max_bvlc_len,
     uint16_t max_npdu_size)
 {
     uint16_t offs;
@@ -938,8 +938,8 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
 
     pdu[offs++] = (uint8_t)hub_status;
     pdu[offs++] = (uint8_t)support;
-    memcpy(&pdu[offs], &max_blvc_len, sizeof(max_blvc_len));
-    offs += sizeof(max_blvc_len);
+    memcpy(&pdu[offs], &max_bvlc_len, sizeof(max_bvlc_len));
+    offs += sizeof(max_bvlc_len);
     memcpy(&pdu[offs], &max_npdu_size, sizeof(max_npdu_size));
     offs += sizeof(max_npdu_size);
     return offs;
@@ -974,8 +974,8 @@ static bool bvlc_sc_decode_advertisiment(BVLC_SC_DECODED_DATA *payload,
     }
     payload->advertisiment.hub_status = packed_payload[0];
     payload->advertisiment.support = packed_payload[1];
-    memcpy(&payload->advertisiment.max_blvc_len, &packed_payload[2],
-        sizeof(payload->advertisiment.max_blvc_len));
+    memcpy(&payload->advertisiment.max_bvlc_len, &packed_payload[2],
+        sizeof(payload->advertisiment.max_bvlc_len));
     memcpy(&payload->advertisiment.max_npdu_len, &packed_payload[4],
         sizeof(payload->advertisiment.max_npdu_len));
     return true;
@@ -1052,7 +1052,7 @@ unsigned int bvlc_sc_encode_advertisiment_solicitation(uint8_t *pdu,
  * @param message_id- The message identifier
  * @param local_vmac - VMAC address
  * @param local_uuid  - The device UUID
- * @param max_blvc_len - the maximum BVLC message size
+ * @param max_bvlc_len - the maximum BVLC message size
  * @param max_npdu_size - the maximum NPDU message size
  * @return number of bytes encoded, in a case of error returns 0.
  */
@@ -1062,7 +1062,7 @@ unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     BACNET_SC_UUID *local_uuid,
-    uint16_t max_blvc_len,
+    uint16_t max_bvlc_len,
     uint16_t max_npdu_size)
 {
     int offs;
@@ -1086,8 +1086,8 @@ unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
     offs += BVLC_SC_VMAC_SIZE;
     memcpy(&pdu[offs], local_uuid, BVLC_SC_UUID_SIZE);
     offs += BVLC_SC_UUID_SIZE;
-    memcpy(&pdu[offs], &max_blvc_len, sizeof(max_blvc_len));
-    offs += sizeof(max_blvc_len);
+    memcpy(&pdu[offs], &max_bvlc_len, sizeof(max_bvlc_len));
+    offs += sizeof(max_bvlc_len);
     memcpy(&pdu[offs], &max_npdu_size, sizeof(max_npdu_size));
     offs += sizeof(max_npdu_size);
     return (unsigned int)offs;
@@ -1113,9 +1113,9 @@ static bool bvlc_sc_decode_connect_request(BVLC_SC_DECODED_DATA *payload,
     packed_payload += BVLC_SC_VMAC_SIZE;
     payload->connect_request.uuid = (BACNET_SC_UUID *)packed_payload;
     packed_payload += BVLC_SC_UUID_SIZE;
-    memcpy(&payload->connect_request.max_blvc_len, packed_payload,
-        sizeof(payload->connect_request.max_blvc_len));
-    packed_payload += sizeof(payload->connect_request.max_blvc_len);
+    memcpy(&payload->connect_request.max_bvlc_len, packed_payload,
+        sizeof(payload->connect_request.max_bvlc_len));
+    packed_payload += sizeof(payload->connect_request.max_bvlc_len);
     memcpy(&payload->connect_request.max_npdu_len, packed_payload,
         sizeof(payload->connect_request.max_npdu_len));
     packed_payload += sizeof(payload->connect_request.max_npdu_len);
@@ -1156,7 +1156,7 @@ static bool bvlc_sc_decode_connect_request(BVLC_SC_DECODED_DATA *payload,
  * @param message_id- The message identifier
  * @param local_vmac - VMAC address
  * @param local_uuid  - The device UUID
- * @param max_blvc_len - the maximum BVLC message size
+ * @param max_bvlc_len - the maximum BVLC message size
  * @param max_npdu_size - the maximum NPDU message size
  * @return number of bytes encoded, in a case of error returns 0.
  */
@@ -1166,7 +1166,7 @@ unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     BACNET_SC_UUID *local_uuid,
-    uint16_t max_blvc_len,
+    uint16_t max_bvlc_len,
     uint16_t max_npdu_len)
 {
     int offs;
@@ -1190,8 +1190,8 @@ unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
     offs += BVLC_SC_VMAC_SIZE;
     memcpy(&pdu[offs], local_uuid, BVLC_SC_UUID_SIZE);
     offs += BVLC_SC_UUID_SIZE;
-    memcpy(&pdu[offs], &max_blvc_len, sizeof(max_blvc_len));
-    offs += sizeof(max_blvc_len);
+    memcpy(&pdu[offs], &max_bvlc_len, sizeof(max_bvlc_len));
+    offs += sizeof(max_bvlc_len);
     memcpy(&pdu[offs], &max_npdu_len, sizeof(max_npdu_len));
     offs += sizeof(max_npdu_len);
     return (unsigned int)offs;
@@ -1218,9 +1218,9 @@ static bool bvlc_sc_decode_connect_accept(BVLC_SC_DECODED_DATA *payload,
     packed_payload += BVLC_SC_VMAC_SIZE;
     payload->connect_accept.uuid = (BACNET_SC_UUID *)packed_payload;
     packed_payload += BVLC_SC_UUID_SIZE;
-    memcpy(&payload->connect_accept.max_blvc_len, packed_payload,
-        sizeof(payload->connect_accept.max_blvc_len));
-    packed_payload += sizeof(payload->connect_accept.max_blvc_len);
+    memcpy(&payload->connect_accept.max_bvlc_len, packed_payload,
+        sizeof(payload->connect_accept.max_bvlc_len));
+    packed_payload += sizeof(payload->connect_accept.max_bvlc_len);
     memcpy(&payload->connect_accept.max_npdu_len, packed_payload,
         sizeof(payload->connect_accept.max_npdu_len));
     packed_payload += sizeof(payload->connect_accept.max_npdu_len);

@@ -179,21 +179,21 @@ typedef struct BVLC_SC_Decoded_Ecapsulated_NPDU {
 typedef struct BVLC_SC_Decoded_Advertisiment {
     BVLC_SC_HUB_CONNECTION_STATUS hub_status;
     BVLC_SC_DIRECT_CONNECTION_SUPPORT support;
-    uint16_t max_blvc_len;
+    uint16_t max_bvlc_len;
     uint16_t max_npdu_len;
 } BVLC_SC_DECODED_ADVERTISIMENT;
 
 typedef struct BVLC_SC_Decoded_Connect_Request {
     BACNET_SC_VMAC_ADDRESS *vmac;
     BACNET_SC_UUID *uuid;
-    uint16_t max_blvc_len;
+    uint16_t max_bvlc_len;
     uint16_t max_npdu_len;
 } BVLC_SC_DECODED_CONNECT_REQUEST;
 
 typedef struct BVLC_SC_Decoded_Connect_Accept {
     BACNET_SC_VMAC_ADDRESS *vmac;
     BACNET_SC_UUID *uuid;
-    uint16_t max_blvc_len;
+    uint16_t max_bvlc_len;
     uint16_t max_npdu_len;
 } BVLC_SC_DECODED_CONNECT_ACCEPT;
 
@@ -318,7 +318,7 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
     BACNET_SC_VMAC_ADDRESS *dest,
     BVLC_SC_HUB_CONNECTION_STATUS hub_status,
     BVLC_SC_DIRECT_CONNECTION_SUPPORT support,
-    uint16_t max_blvc_len,
+    uint16_t max_bvlc_len,
     uint16_t max_npdu_size);
 
 BACNET_STACK_EXPORT
@@ -334,7 +334,7 @@ unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     BACNET_SC_UUID *local_uuid,
-    uint16_t max_blvc_len,
+    uint16_t max_bvlc_len,
     uint16_t max_npdu_size);
 
 BACNET_STACK_EXPORT
@@ -343,7 +343,7 @@ unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     BACNET_SC_UUID *local_uuid,
-    uint16_t max_blvc_len,
+    uint16_t max_bvlc_len,
     uint16_t max_npdu_len);
 
 BACNET_STACK_EXPORT

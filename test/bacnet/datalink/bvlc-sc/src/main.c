@@ -2679,7 +2679,7 @@ static void test_ADVERTISIMENT(void)
           BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED;
   BVLC_SC_DIRECT_CONNECTION_SUPPORT support =
           BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED;
-  uint16_t max_blvc_len = 567;
+  uint16_t max_bvlc_len = 567;
   uint16_t max_npdu_len = 1323;
 
   memset(&origin.address, 0xe1, BVLC_SC_VMAC_SIZE);
@@ -2691,7 +2691,7 @@ static void test_ADVERTISIMENT(void)
   /* dest and origin absent */
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id,NULL, NULL,
-             hub_status, support, max_blvc_len, max_npdu_len);
+             hub_status, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
@@ -2703,8 +2703,8 @@ static void test_ADVERTISIMENT(void)
                 hub_status, NULL);
   zassert_equal(message.payload.advertisiment.support,
                 support, NULL);
-  zassert_equal(message.payload.advertisiment.max_blvc_len,
-                max_blvc_len, NULL);
+  zassert_equal(message.payload.advertisiment.max_bvlc_len,
+                max_bvlc_len, NULL);
   zassert_equal(message.payload.advertisiment.max_npdu_len,
                 max_npdu_len, NULL);
   test_options(buf, len, BVLC_SC_ADVERTISIMENT, message_id,
@@ -2716,7 +2716,7 @@ static void test_ADVERTISIMENT(void)
   /* origin is presented, dest is absent */
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, &origin, NULL,
-             hub_status, support, max_blvc_len, max_npdu_len);
+             hub_status, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
@@ -2728,8 +2728,8 @@ static void test_ADVERTISIMENT(void)
                 hub_status, NULL);
   zassert_equal(message.payload.advertisiment.support,
                 support, NULL);
-  zassert_equal(message.payload.advertisiment.max_blvc_len,
-                max_blvc_len, NULL);
+  zassert_equal(message.payload.advertisiment.max_bvlc_len,
+                max_bvlc_len, NULL);
   zassert_equal(message.payload.advertisiment.max_npdu_len,
                 max_npdu_len, NULL);
   test_options(buf, len, BVLC_SC_ADVERTISIMENT, message_id,
@@ -2742,7 +2742,7 @@ static void test_ADVERTISIMENT(void)
   /* origin is absent, dest is presented */
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, NULL, &dest,
-             hub_status, support, max_blvc_len, max_npdu_len);
+             hub_status, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
@@ -2754,8 +2754,8 @@ static void test_ADVERTISIMENT(void)
                 hub_status, NULL);
   zassert_equal(message.payload.advertisiment.support,
                 support, NULL);
-  zassert_equal(message.payload.advertisiment.max_blvc_len,
-                max_blvc_len, NULL);
+  zassert_equal(message.payload.advertisiment.max_bvlc_len,
+                max_bvlc_len, NULL);
   zassert_equal(message.payload.advertisiment.max_npdu_len,
                 max_npdu_len, NULL);
   test_options(buf, len, BVLC_SC_ADVERTISIMENT, message_id,
@@ -2769,7 +2769,7 @@ static void test_ADVERTISIMENT(void)
 
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, &origin, &dest,
-             hub_status, support, max_blvc_len, max_npdu_len);
+             hub_status, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
@@ -2781,8 +2781,8 @@ static void test_ADVERTISIMENT(void)
                 hub_status, NULL);
   zassert_equal(message.payload.advertisiment.support,
                 support, NULL);
-  zassert_equal(message.payload.advertisiment.max_blvc_len,
-                max_blvc_len, NULL);
+  zassert_equal(message.payload.advertisiment.max_bvlc_len,
+                max_bvlc_len, NULL);
   zassert_equal(message.payload.advertisiment.max_npdu_len,
                 max_npdu_len, NULL);
   test_options(buf, len, BVLC_SC_ADVERTISIMENT, message_id,
@@ -2796,7 +2796,7 @@ static void test_ADVERTISIMENT(void)
 
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, &origin, &dest,
-             hub_status, support, max_blvc_len, max_npdu_len);
+             hub_status, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class);
   zassert_equal(ret, false, NULL);
@@ -2834,7 +2834,7 @@ static void test_ADVERTISIMENT(void)
 
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, NULL, NULL,
-             5, support, max_blvc_len, max_npdu_len);
+             5, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, false, NULL);
@@ -2847,7 +2847,7 @@ static void test_ADVERTISIMENT(void)
 
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, NULL, NULL,
-             hub_status, 4, max_blvc_len, max_npdu_len);
+             hub_status, 4, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, false, NULL);
@@ -2859,7 +2859,7 @@ static void test_ADVERTISIMENT(void)
 
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, NULL, NULL,
-             hub_status, support, max_blvc_len, max_npdu_len);
+             hub_status, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class);
   zassert_equal(ret, false, NULL);
@@ -2871,7 +2871,7 @@ static void test_ADVERTISIMENT(void)
 
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, NULL, NULL,
-             hub_status, support, max_blvc_len, max_npdu_len);
+             hub_status, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, 4, &message, &error, &class);
   zassert_equal(ret, false, NULL);
@@ -2883,7 +2883,7 @@ static void test_ADVERTISIMENT(void)
 
   len = bvlc_sc_encode_advertisiment(
              buf, sizeof(buf), message_id, NULL, NULL,
-             hub_status, support, max_blvc_len, max_npdu_len);
+             hub_status, support, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true );
   zassert_not_equal(optlen, 0, NULL);
@@ -3050,7 +3050,7 @@ static void test_CONNECT_REQUEST(void)
   BACNET_SC_VMAC_ADDRESS origin;
   BACNET_SC_VMAC_ADDRESS dest;
   bool ret;
-  uint16_t max_blvc_len = 9997;
+  uint16_t max_bvlc_len = 9997;
   uint16_t max_npdu_len = 3329;
   BACNET_SC_VMAC_ADDRESS local_vmac;
   BACNET_SC_UUID         local_uuid;
@@ -3063,7 +3063,7 @@ static void test_CONNECT_REQUEST(void)
 
   len = bvlc_sc_encode_connect_request(
                buf, sizeof(buf), message_id,
-               &local_vmac, &local_uuid, max_blvc_len, max_npdu_len);
+               &local_vmac, &local_uuid, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
@@ -3078,8 +3078,8 @@ static void test_CONNECT_REQUEST(void)
   res = memcmp(message.payload.connect_request.uuid,
                &local_uuid, BVLC_SC_VMAC_SIZE);
   zassert_equal(res, 0, NULL);
-  zassert_equal(message.payload.connect_request.max_blvc_len,
-                max_blvc_len, NULL);
+  zassert_equal(message.payload.connect_request.max_bvlc_len,
+                max_bvlc_len, NULL);
   zassert_equal(message.payload.connect_request.max_npdu_len,
                 max_npdu_len, NULL);
   test_options(buf, len, BVLC_SC_CONNECT_REQUEST, message_id,
@@ -3090,7 +3090,7 @@ static void test_CONNECT_REQUEST(void)
   /* truncated message, case 1 */
   len = bvlc_sc_encode_connect_request(
                buf, sizeof(buf), message_id,
-               &local_vmac, &local_uuid, max_blvc_len, max_npdu_len);
+               &local_vmac, &local_uuid, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class);
   zassert_equal(ret, false, NULL);
@@ -3149,7 +3149,7 @@ static void test_CONNECT_ACCEPT(void)
   BACNET_SC_VMAC_ADDRESS origin;
   BACNET_SC_VMAC_ADDRESS dest;
   bool ret;
-  uint16_t max_blvc_len = 1027;
+  uint16_t max_bvlc_len = 1027;
   uint16_t max_npdu_len = 22;
   BACNET_SC_VMAC_ADDRESS local_vmac;
   BACNET_SC_UUID         local_uuid;
@@ -3162,7 +3162,7 @@ static void test_CONNECT_ACCEPT(void)
 
   len = bvlc_sc_encode_connect_accept(
                buf, sizeof(buf), message_id,
-               &local_vmac, &local_uuid, max_blvc_len, max_npdu_len);
+               &local_vmac, &local_uuid, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, len, &message, &error, &class);
   zassert_equal(ret, true, NULL);
@@ -3177,8 +3177,8 @@ static void test_CONNECT_ACCEPT(void)
   res = memcmp(message.payload.connect_accept.uuid,
                &local_uuid, BVLC_SC_VMAC_SIZE);
   zassert_equal(res, 0, NULL);
-  zassert_equal(message.payload.connect_accept.max_blvc_len,
-                max_blvc_len, NULL);
+  zassert_equal(message.payload.connect_accept.max_bvlc_len,
+                max_bvlc_len, NULL);
   zassert_equal(message.payload.connect_accept.max_npdu_len,
                 max_npdu_len, NULL);
   test_options(buf, len, BVLC_SC_CONNECT_ACCEPT, message_id,
@@ -3189,7 +3189,7 @@ static void test_CONNECT_ACCEPT(void)
   /* truncated message, case 1 */
   len = bvlc_sc_encode_connect_accept(
                buf, sizeof(buf), message_id,
-               &local_vmac, &local_uuid, max_blvc_len, max_npdu_len);
+               &local_vmac, &local_uuid, max_bvlc_len, max_npdu_len);
   zassert_not_equal(len, 0, NULL);
   ret = bvlc_sc_decode_message(buf, 5, &message, &error, &class);
   zassert_equal(ret, false, NULL);
