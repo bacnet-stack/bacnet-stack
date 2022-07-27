@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:focal as builder
 
 ## Usage:
 # docker build -t bacnet --target bacnet .
@@ -33,7 +33,7 @@ RUN set -xe; \
 	apt-get -y autoclean; apt-get -y clean
 
 RUN set -euxo pipefail; \
-  mkdir -p bin; \
+  mkdir -p /build/bin; \
   curl -LSs https://github.com/bacnet-stack/bacnet-stack/archive/refs/tags/bacnet-stack-1.0.0.tar.gz -o bacnet-stack.tar.gz; \
   tar -xzf bacnet-stack.tar.gz; \
   ( cd bacnet-*/; \
