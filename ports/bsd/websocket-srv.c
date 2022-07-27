@@ -677,9 +677,12 @@ static BACNET_WEBSOCKET_RET bws_srv_start(int port,
     return BACNET_WEBSOCKET_SUCCESS;
 }
 
-static BACNET_WEBSOCKET_RET bws_srv_accept(BACNET_WEBSOCKET_HANDLE *out_handle)
+static BACNET_WEBSOCKET_RET bws_srv_accept(BACNET_WEBSOCKET_HANDLE *out_handle,
+    int timeout)
 {
     BACNET_WEBSOCKET_OPERATION_ENTRY e;
+    struct timespec to;
+
     debug_printf("bws_srv_accept() >>> out_handle = %p\n");
 
     if (!out_handle) {
@@ -717,11 +720,26 @@ static BACNET_WEBSOCKET_RET bws_srv_accept(BACNET_WEBSOCKET_HANDLE *out_handle)
     // wake up libwebsockets runloop
     lws_cancel_service(bws_srv_ctx);
 
+    clock_gettime(CLOCK_REALTIME, &to);
+
+    to.tv_sec = to.tv_sec + timeout / 1000;
+    to.tv_nsec = to.tv_nsec + (timeout % 1000) * 1000000;
+    to.tv_sec += to.tv_nsec / 1000000000;
+    to.tv_nsec %= 1000000000;
+
     // now wait for a new client connection
-    debug_printf("bws_srv_accept() going to block on pthread_cond_wait()\n");
+    debug_printf("bws_srv_accept() going to block on pthread_cond_timedwait()\n");
 
     while (!e.processed) {
-        pthread_cond_wait(&e.cond, &bws_srv_mutex);
+        if (pthread_cond_timedwait(&e.cond, &bws_srv_mutex, &to) == ETIMEDOUT) {
+            bws_srv_remove_operation(
+                &e, &bws_accept_head, &bws_accept_tail);
+            pthread_mutex_unlock(&bws_srv_mutex);
+            bws_srv_deinit_operation(&e);
+            debug_printf(
+                "bws_srv_accept() <<< ret = BACNET_WEBSOCKET_TIMEDOUT\n");
+            return BACNET_WEBSOCKET_TIMEDOUT;
+        }
     }
 
     debug_printf("bws_srv_accept() unblocked\n");

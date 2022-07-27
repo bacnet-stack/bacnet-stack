@@ -250,13 +250,15 @@ typedef struct BACNetWebsocketServer {
         size_t cert_size,
         uint8_t *key,
         size_t key_size);
+
     /**
      * @brief Blocking bws_accept() function waits for incoming connection over
      * websocket from client. The function blocks the caller until a connection
      * is present or no pending connections are present on the internal server
-     * accept queue.
+     * accept queue or timeout elapses.
      *
      * @param out_handle- if function succeded conntains valid websocket handle.
+     * @param timeout - timeout in milliseconds for accept operation.
      *
      * @return error code from BACNET_WEBSOCKET_RET enum.
      *  The following error codes can be returned:
@@ -272,9 +274,12 @@ typedef struct BACNetWebsocketServer {
      *         socket was closed or if a remote peer has closed the connection
      *         or server was stopped.
      *    BACNET_WEBSOCKET_SUCCESS - incoming connection attempt has succeded.
+     *    BACNET_WEBSOCKET_TIMEDOUT - timeout was elapsed but incoming connection
+     *           was not established.
      */
 
-    BACNET_WEBSOCKET_RET (*bws_accept)(BACNET_WEBSOCKET_HANDLE *out_handle);
+    BACNET_WEBSOCKET_RET (*bws_accept)(BACNET_WEBSOCKET_HANDLE *out_handle, 
+        int timeout);
 
     /**
      * @brief Blocking bws_disconnnect() function closes websocket handle.
