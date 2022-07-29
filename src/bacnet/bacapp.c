@@ -1060,12 +1060,12 @@ int bacapp_decode_known_property(uint8_t *apdu,
             len = bacapp_decode_timestamp(apdu, &value->type.Time_Stamp);
             break;
         case PROP_DEFAULT_COLOR:
-        case PROP_TRACKING_VALUE:
             /* Properties using BACnetxyColor */
             value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
             len = xy_color_decode(apdu, max_apdu_len,
                 &value->type.XY_Color);
             break;
+        case PROP_TRACKING_VALUE:
         case PROP_PRESENT_VALUE:
             if (object_type == OBJECT_COLOR) {
                 /* Properties using BACnetxyColor */
@@ -1083,6 +1083,12 @@ int bacapp_decode_known_property(uint8_t *apdu,
             value->tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
             len = color_command_decode(apdu, max_apdu_len, NULL,
                 &value->type.Color_Command);
+            break;
+        case PROP_LIGHTING_COMMAND:
+            /* Properties using BACnetLightingCommand */
+            value->tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
+            len = lighting_command_decode(apdu, max_apdu_len,
+                &value->type.Lighting_Command);
             break;
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */
@@ -1696,11 +1702,12 @@ int bacapp_snprintf_value(
                         }
                         break;
                     case PROP_OBJECT_TYPE:
-                        if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
+                        if (value->type.Enumerated < BACNET_OBJECT_TYPE_LAST) {
                             ret_val = snprintf(str, str_len, "%s",
                                 bactext_object_type_name(
                                     value->type.Enumerated));
-                        } else if (value->type.Enumerated < 128) {
+                        } else if (value->type.Enumerated <
+                            BACNET_OBJECT_TYPE_RESERVED_MAX) {
                             ret_val = snprintf(str, str_len, "reserved %lu",
                                 (unsigned long)value->type.Enumerated);
                         } else {
@@ -1713,13 +1720,14 @@ int bacapp_snprintf_value(
                             bactext_event_state_name(value->type.Enumerated));
                         break;
                     case PROP_UNITS:
-                        if (value->type.Enumerated < 256) {
+                        if (bactext_engineering_unit_name_proprietary(
+                            (unsigned)value->type.Enumerated)) {
+                            ret_val = snprintf(str, str_len, "proprietary %lu",
+                                (unsigned long)value->type.Enumerated);
+                        } else {
                             ret_val = snprintf(str, str_len, "%s",
                                 bactext_engineering_unit_name(
                                     value->type.Enumerated));
-                        } else {
-                            ret_val = snprintf(str, str_len, "proprietary %lu",
-                                (unsigned long)value->type.Enumerated);
                         }
                         break;
                     case PROP_POLARITY:
@@ -1785,10 +1793,11 @@ int bacapp_snprintf_value(
                     }
                 }
                 ret_val += slen;
-                if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
+                if (value->type.Object_Id.type <= BACNET_OBJECT_TYPE_LAST) {
                     slen = snprintf(str, str_len, "%s, ",
                         bactext_object_type_name(value->type.Object_Id.type));
-                } else if (value->type.Object_Id.type < 128) {
+                } else if (value->type.Object_Id.type <
+                    BACNET_OBJECT_TYPE_RESERVED_MAX) {
                     slen = snprintf(str, str_len, "reserved %u, ",
                         (unsigned)value->type.Object_Id.type);
                 } else {
