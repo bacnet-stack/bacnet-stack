@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Legrand North America, Inc.
+ * Copyright (C) 2022 Legrand North America, Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -63,8 +63,8 @@ static void service_handlers_init(void)
 //  apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
 //                 handler_read_property_multiple);
     /* spec. K.1.6 DM-WP-B  */
-//  apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-//                 handler_write_property);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
+                   handler_write_property);
 //  apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
 //                 handler_write_property_multiple);
 //  apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
@@ -77,7 +77,7 @@ static void service_handlers_init(void)
 
 void main(void)
 {
-    LOG_INF("\n*** BACnet Profile B-SS Sample ***\n");
+    LOG_INF("\n*** BACnet Profile B-SA Sample ***\n");
     LOG_INF("BACnet Stack Version " BACNET_VERSION_TEXT);
     LOG_INF("BACnet Device ID: %u", Device_Object_Instance_Number());
     LOG_INF("BACnet Device Max APDU: %d", MAX_APDU);
