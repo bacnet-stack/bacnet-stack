@@ -1,22 +1,24 @@
-.. _b-ss_sample:
+.. _b-rtr_sample:
 
-BACnet Profile B-SS Sample
-##########################
+BACnet Profile B-RTR Sample
+###########################
 
 Overview
 ********
 
 This is a simple application demonstrating configuration of a
-BACnet B-SS device profile.
+BACnet B-RTR device profile.
 
 BACnet INTEROPERABILITY BUILDING BLOCKS
 ***************************************
 
 Data sharing:
 - DS-RP-B
+- DS-WP-B
 Device & Network Management:
 - DM-DDB-B
 - DM-DOB-B
+- NM-RC-B 
 
 Requirements
 ************
@@ -26,7 +28,7 @@ Requirements
 Building and Running
 ********************
 
-This sample can be found under :bacnet_file:`samples/profiles/b-ss` in
+This sample can be found under :bacnet_file:`samples/profiles/b-rtr` in
 the BACnet tree.
 
 The sample can be built for several platforms.
@@ -53,8 +55,8 @@ Steps to testing
     CONFIG_NET_CONFIG_PEER_IPV4_ADDR="192.0.2.2"
 4 Set BACNET_IFACE to tap0:
     export BACNET_IFACE=tap0
-5 Compile and run b-ss profile:
-    west build -b qemu_x86 -p always -t run bacnet-stack/zephyr/samples/profiles/b-ss/
+5 Compile and run b-trt profile:
+    west build -b qemu_x86 -p always -t run bacnet-stack/zephyr/samples/profiles/b-rtr/
 6 Run bacnet-stack app tools as a test tool, like readprop:
     bacnet-stack/apps/readprop/bacrp --mac 192.0.2.1:47808 55 17 1 77
     here:

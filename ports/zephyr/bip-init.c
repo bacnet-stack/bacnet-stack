@@ -341,13 +341,13 @@ uint16_t bip_receive(
     }
     ZSOCK_FD_ZERO(&read_fds);
     ZSOCK_FD_SET(BIP_Socket, &read_fds);
-    FD_SET(BIP_Broadcast_Socket, &read_fds);
+    ZSOCK_FD_SET(BIP_Broadcast_Socket, &read_fds);
 
     max = BIP_Socket > BIP_Broadcast_Socket ? BIP_Socket : BIP_Broadcast_Socket;
 
     /* see if there is a packet for us */
     if (zsock_select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0) {
-        socket = FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
+        socket = ZSOCK_FD_ISSET(BIP_Socket, &read_fds) ? BIP_Socket :
             BIP_Broadcast_Socket;
         received_bytes = zsock_recvfrom(socket, (char *)&npdu[0], max_npdu,
             0, (struct sockaddr *)&sin, &sin_len);

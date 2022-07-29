@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Legrand North America, Inc.
+ * Copyright (C) 2022 Legrand North America, Inc.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -38,6 +38,15 @@ LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 /** Buffer used for receiving */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
 
+#define VIRTUAL_DNET  2709      /* your choice of number here */
+
+int DNET_list[2] = {
+    VIRTUAL_DNET, -1 /* Need -1 terminator */
+};
+
+/* routed devices - I-Am on startup */
+//static unsigned Routed_Device_Index;
+
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
@@ -63,8 +72,8 @@ static void service_handlers_init(void)
 //  apdu_set_confirmed_handler(SERVICE_CONFIRMED_READ_PROP_MULTIPLE,
 //                 handler_read_property_multiple);
     /* spec. K.1.6 DM-WP-B  */
-//  apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
-//                 handler_write_property);
+    apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROPERTY,
+                   handler_write_property);
 //  apdu_set_confirmed_handler(SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE,
 //                 handler_write_property_multiple);
 //  apdu_set_confirmed_handler(SERVICE_CONFIRMED_REINITIALIZE_DEVICE,
@@ -73,11 +82,22 @@ static void service_handlers_init(void)
 //  apdu_set_confirmed_handler(
 //      SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
 //      handler_device_communication_control);
+
+/* spec. K.6.4 NM-RC-B  */
+/*
+Who-Is-Router-To-Network    i e
+I-Am-Router-To-Network      i e
+Reject-Message-To-Network   i e
+Router-Busy-To-Network      i e
+Router-Available-To-Network i e
+Network-Number-Is           i e
+What-Is-Network-Number        e
+*/
 }
 
 void main(void)
 {
-    LOG_INF("\n*** BACnet Profile B-SS Sample ***\n");
+    LOG_INF("\n*** BACnet Profile B-RTR Sample ***\n");
     LOG_INF("BACnet Stack Version " BACNET_VERSION_TEXT);
     LOG_INF("BACnet Device ID: %u", Device_Object_Instance_Number());
     LOG_INF("BACnet Device Max APDU: %d", MAX_APDU);
@@ -90,6 +110,10 @@ void main(void)
 
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
+
+    /* broadcast an I-am-router-to-network on startup */
+    printf("Remote Network DNET Number %d \n", DNET_list[0]);
+    Send_I_Am_Router_To_Network(DNET_list);
 
     int64_t address_binding_tmr = 0;
 #if defined(INTRINSIC_REPORTING)
@@ -111,7 +135,7 @@ void main(void)
 
         /* process */
         if (pdu_len > 0) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+            routing_npdu_handler(&src, DNET_list, &Rx_Buf[0], pdu_len);
         }
 
         if (current_ms - last_ms > 1000) {
