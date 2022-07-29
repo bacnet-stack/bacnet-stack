@@ -60,6 +60,13 @@ extern "C" {
         const int *pListRequired,
         const int *pListOptional,
         const int *pListProprietary);
+    BACNET_STACK_EXPORT
+    int property_list_common_encode(
+        BACNET_READ_PROPERTY_DATA *rpdata,
+        uint32_t device_instance_number);
+    BACNET_STACK_EXPORT
+    bool property_list_common(
+        BACNET_PROPERTY_ID property);
 
 #ifdef __cplusplus
 }
