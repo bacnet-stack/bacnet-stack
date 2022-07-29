@@ -54,6 +54,11 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/npdu.c
     ${BACNET_SRC}/proplist.c
     ${BACNET_SRC}/reject.c
+    ${BACNET_SRC}/abort.c
+    ${BACNET_SRC}/bacaddr.c
+    ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/bacerror.c
+    ${BACNET_SRC}/basic/binding/address.c
     ${BACNET_SRC}/basic/object/acc.c
     ${BACNET_SRC}/basic/object/ai.c
     ${BACNET_SRC}/basic/object/ao.c
@@ -62,6 +67,8 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/bo.c
     ${BACNET_SRC}/basic/object/bv.c
     ${BACNET_SRC}/basic/object/channel.c
+    ${BACNET_SRC}/basic/object/color_object.c
+    ${BACNET_SRC}/basic/object/color_temperature.c
     ${BACNET_SRC}/basic/object/command.c
     ${BACNET_SRC}/basic/object/csv.c
     ${BACNET_SRC}/basic/object/iv.c
@@ -76,6 +83,14 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/object/piv.c
     ${BACNET_SRC}/basic/object/schedule.c
     ${BACNET_SRC}/basic/object/trendlog.c
+    ${BACNET_SRC}/hostnport.c
+    ${BACNET_SRC}/basic/service/h_apdu.c
+    ${BACNET_SRC}/basic/service/h_cov.c
+    ${BACNET_SRC}/basic/service/h_wp.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/basic/sys/keylist.c
+    ${BACNET_SRC}/basic/tsm/tsm.c
+    ${BACNET_SRC}/datalink/bvlc.c
     )
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
@@ -87,6 +102,6 @@ else()
   target_include_directories(app PRIVATE ${BACNET_INCLUDE})
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c
-    ${BACNET_TEST_PATH}/stubs.c
+    #${BACNET_TEST_PATH}/stubs.c
     )
 endif()

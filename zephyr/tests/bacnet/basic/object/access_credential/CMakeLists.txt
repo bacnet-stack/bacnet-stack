@@ -48,6 +48,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/authentication_factor.c
     ${BACNET_SRC}/assigned_access_rights.c
     ${BACNET_SRC}/wp.c
+    ${BACNET_SRC}/hostnport.c
     )
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
