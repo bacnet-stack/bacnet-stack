@@ -45,6 +45,7 @@ list(APPEND testdirs
   bacnet/bacpropstates
   bacnet/bacreal
   bacnet/bacstr
+  bacnet/bactimevalue
   bacnet/cov
   bacnet/datetime
   bacnet/dcc
