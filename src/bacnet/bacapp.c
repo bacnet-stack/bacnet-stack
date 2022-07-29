@@ -972,6 +972,45 @@ int bacapp_decode_generic_property(
 #endif
 
 #if defined(BACAPP_TYPES_EXTRA)
+/* decode one value of a priority array */
+static int decode_priority_value(uint8_t *apdu,
+    unsigned max_apdu_len,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_PROPERTY_ID prop)
+{
+    int val_len = 0;
+    uint32_t len_value_type = 0;
+    int len = 0;
+    bool is_opening_tag;
+    uint8_t tag_number;
+
+    if (decode_is_context_tag(apdu, 0) && !decode_is_closing_tag(apdu)) {
+        /* Contextual Abstract-syntax & type */
+        val_len =
+            decode_tag_number_and_value(apdu, &tag_number, &len_value_type);
+        is_opening_tag = decode_is_opening_tag(apdu);
+        len += val_len;
+        val_len = bacapp_decode_generic_property(
+            &apdu[len], max_apdu_len - len, value, prop);
+        if (val_len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        len += val_len;
+        if (is_opening_tag) {
+            if (!decode_is_closing_tag_number(apdu, 0)) {
+                return BACNET_STATUS_ERROR;
+            }
+            len++;
+        }
+    } else {
+        len = bacapp_decode_generic_property(apdu, max_apdu_len, value, prop);
+    }
+
+    return len;
+}
+#endif
+
+#if defined(BACAPP_TYPES_EXTRA)
 /**
  * @brief Decodes a well-known, possibly complex property value
  *  Used to reverse operations in bacapp_encode_application_data
@@ -1089,6 +1128,10 @@ int bacapp_decode_known_property(uint8_t *apdu,
             value->tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
             len = lighting_command_decode(apdu, max_apdu_len,
                 &value->type.Lighting_Command);
+            break;
+        case PROP_PRIORITY_ARRAY:
+            /* [16] BACnetPriorityValue : 16x values (simple property) */
+            len = decode_priority_value(apdu, max_apdu_len, value, property);
             break;
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */
