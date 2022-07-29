@@ -748,12 +748,24 @@ INDTEXT_DATA bacnet_property_names[] = {
     { 0, NULL }
 };
 
+bool bactext_property_name_proprietary(unsigned index)
+{
+    bool status = false;
+
+    if ((index >= PROP_PROPRIETARY_RANGE_MIN) &&
+        (index <= PROP_PROPRIETARY_RANGE_MAX)) {
+        status = true;
+    }
+
+    return status;
+}
+
 const char *bactext_property_name(unsigned index)
 {
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.
        Enumerated values 512-4194303 may be used by others subject to the
        procedures and constraints described in Clause 23. */
-    if ((index >= 512) && (index <= 4194303)) {
+    if (bactext_property_name_proprietary(index)) {
         return Vendor_Proprietary_String;
     } else {
         return indtext_by_index_default(
@@ -1018,18 +1030,28 @@ INDTEXT_DATA bacnet_engineering_unit_names[] = {
        the procedures and constraints described in Clause 23. */
 };
 
+bool bactext_engineering_unit_name_proprietary(unsigned index)
+{
+    bool status = false;
+
+    if ((index >= UNITS_PROPRIETARY_RANGE_MIN) &&
+        (index <= UNITS_PROPRIETARY_RANGE_MAX)) {
+        status = true;
+    } else if ((index >= UNITS_PROPRIETARY_RANGE_MIN2) &&
+        (index <= UNITS_PROPRIETARY_RANGE_MAX2)) {
+        status = true;
+    }
+
+    return status;
+}
+
 const char *bactext_engineering_unit_name(unsigned index)
 {
-    if (index <= UNITS_RESERVED_RANGE_MAX) {
-        return indtext_by_index_default(
-            bacnet_engineering_unit_names, index, ASHRAE_Reserved_String);
-    } else if (index <= UNITS_PROPRIETARY_RANGE_MAX) {
+    if (bactext_engineering_unit_name_proprietary(index)) {
         return Vendor_Proprietary_String;
     } else if (index <= UNITS_RESERVED_RANGE_MAX2) {
         return indtext_by_index_default(
             bacnet_engineering_unit_names, index, ASHRAE_Reserved_String);
-    } else if (index <= UNITS_PROPRIETARY_RANGE_MAX2) {
-        return Vendor_Proprietary_String;
     }
 
     return ASHRAE_Reserved_String;

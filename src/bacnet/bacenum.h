@@ -545,8 +545,10 @@ typedef enum {
     /* Enumerated values 0-511 are reserved for definition by ASHRAE.  */
     /* Enumerated values 512-4194303 may be used by others subject to the  */
     /* procedures and constraints described in Clause 23.  */
+    PROP_RESERVED_RANGE_MAX = 511,
     PROP_PROPRIETARY_RANGE_MIN = 512,
     PROP_PROPRIETARY_RANGE_MAX = 4194303,
+    PROP_RESERVED_RANGE_MIN2 = 4194304,
     /* enumerations 4194304-4194327 are defined in Addendum 2020cc */
     PROP_MAX_BVLC_LENGTH_ACCEPTED = 4194304,
     PROP_MAX_NPDU_LENGTH_ACCEPTED = 4194305,
@@ -1295,6 +1297,8 @@ typedef enum BACnetObjectType {
     OBJECT_AUDIT_REPORTER = 62, /* Addendum 135-2016bi */
     OBJECT_COLOR = 63, /* Addendum 135-2020ca */
     OBJECT_COLOR_TEMPERATURE = 64, /* Addendum 135-2020ca */
+    BACNET_OBJECT_TYPE_LAST = OBJECT_COLOR_TEMPERATURE,
+    BACNET_OBJECT_TYPE_RESERVED_MAX = 127,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE. */
     /* Enumerated values 128-1023 may be used by others subject to  */
     /* the procedures and constraints described in Clause 23. */

@@ -69,6 +69,9 @@ extern "C" {
     const char *bactext_event_type_name(
         unsigned index);
     BACNET_STACK_EXPORT
+    bool bactext_property_name_proprietary(
+        unsigned index);
+    BACNET_STACK_EXPORT
     const char *bactext_property_name(
         unsigned index);
     BACNET_STACK_EXPORT
@@ -83,6 +86,9 @@ extern "C" {
     bool bactext_property_strtol(
         const char *search_name,
         unsigned *found_index);
+    BACNET_STACK_EXPORT
+    bool bactext_engineering_unit_name_proprietary(
+        unsigned index);
     BACNET_STACK_EXPORT
     const char *bactext_engineering_unit_name(
         unsigned index);

@@ -52,11 +52,9 @@ static void testLightingOutput(void)
                 printf("property '%s': failed to decode!\n",
                     bactext_property_name(rpdata.object_property));
             }
-            if ((rpdata.object_property == PROP_LIGHTING_COMMAND) ||
-                (rpdata.object_property == PROP_PRIORITY_ARRAY) ||
-                (rpdata.object_property == PROP_TRACKING_VALUE)) {
-                /* FIXME: how to decode the complex data? */
-                test_len = len;
+            if (rpdata.object_property == PROP_PRIORITY_ARRAY) {
+                /* FIXME: known fail to decode */
+                len = test_len;
             }
             zassert_equal(len, test_len, NULL);
         }

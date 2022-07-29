@@ -122,7 +122,7 @@ int lighting_command_encode_context(
  * @param apdu_max_len - number of bytes in the buffer to decode
  * @param value - lighting command value to place the decoded values
  *
- * @return  number of bytes encoded
+ * @return  number of bytes decoded
  */
 int lighting_command_decode(
     uint8_t *apdu, unsigned apdu_max_len, BACNET_LIGHTING_COMMAND *data)
@@ -133,11 +133,11 @@ int lighting_command_decode(
     uint32_t len_value_type = 0;
     uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_LIGHTING_OPERATION operation= BACNET_LIGHTS_NONE;
     float real_value = 0.0;
 
-    (void)apdu_max_len;
     /* check for value pointers */
-    if (apdu_max_len && data) {
+    if (apdu_max_len) {
         /* Tag 0: operation */
         if (!decode_is_context_tag(&apdu[apdu_len], 0)) {
             return BACNET_STATUS_ERROR;
@@ -148,73 +148,206 @@ int lighting_command_decode(
         len = decode_enumerated(&apdu[apdu_len], len_value_type, &enum_value);
         if (len > 0) {
             if (unsigned_value <= BACNET_LIGHTS_PROPRIETARY_LAST) {
-                data->operation = (BACNET_LIGHTING_OPERATION)enum_value;
+                if (data) {
+                    data->operation = (BACNET_LIGHTING_OPERATION)enum_value;
+                }
             } else {
                 return BACNET_STATUS_ERROR;
             }
         }
         apdu_len += len;
-        /* Tag 1: target-level - OPTIONAL */
-        if (decode_is_context_tag(&apdu[apdu_len], 1)) {
-            len = decode_tag_number_and_value(
-                &apdu[apdu_len], &tag_number, &len_value_type);
-            apdu_len += len;
-            len = decode_real(&apdu[apdu_len], &real_value);
-            data->target_level = real_value;
-            apdu_len += len;
-            data->use_target_level = true;
-        } else {
-            data->use_target_level = false;
-        }
-        /* Tag 2: ramp-rate - OPTIONAL */
-        if (decode_is_context_tag(&apdu[apdu_len], 2)) {
-            len = decode_tag_number_and_value(
-                &apdu[apdu_len], &tag_number, &len_value_type);
-            apdu_len += len;
-            len = decode_real(&apdu[apdu_len], &real_value);
-            data->ramp_rate = real_value;
-            data->use_ramp_rate = true;
-        } else {
-            data->use_ramp_rate = false;
-        }
-        /* Tag 3: step-increment - OPTIONAL */
-        if (decode_is_context_tag(&apdu[apdu_len], 3)) {
-            len = decode_tag_number_and_value(
-                &apdu[apdu_len], &tag_number, &len_value_type);
-            apdu_len += len;
-            len = decode_real(&apdu[apdu_len], &real_value);
-            data->step_increment = real_value;
-            data->use_step_increment = true;
-        } else {
-            data->use_step_increment = false;
-        }
-        /* Tag 4: fade-time - OPTIONAL */
-        if (decode_is_context_tag(&apdu[apdu_len], 4)) {
-            len = decode_tag_number_and_value(
-                &apdu[apdu_len], &tag_number, &len_value_type);
-            apdu_len += len;
-            len = decode_unsigned(
-                &apdu[apdu_len], len_value_type, &unsigned_value);
-            data->fade_time = (uint32_t)unsigned_value;
-            data->use_fade_time = true;
-        } else {
-            data->use_fade_time = false;
-        }
-        /* Tag 5: priority - OPTIONAL */
-        if (decode_is_context_tag(&apdu[apdu_len], 4)) {
-            len = decode_tag_number_and_value(
-                &apdu[apdu_len], &tag_number, &len_value_type);
-            apdu_len += len;
-            len = decode_unsigned(
-                &apdu[apdu_len], len_value_type, &unsigned_value);
-            data->priority = (uint8_t)unsigned_value;
-            data->use_priority = true;
-        } else {
-            data->use_priority = false;
-        }
+    }
+    switch (operation) {
+        case BACNET_LIGHTS_NONE:
+            break;
+        case BACNET_LIGHTS_FADE_TO:
+            if ((apdu_max_len - apdu_len) == 0) {
+                return BACNET_STATUS_REJECT;
+            }
+            /* Tag 1: target-level */
+            if (decode_is_context_tag(&apdu[apdu_len], 1)) {
+                len = decode_tag_number_and_value(
+                    &apdu[apdu_len], &tag_number, &len_value_type);
+                apdu_len += len;
+                len = decode_real(&apdu[apdu_len], &real_value);
+                apdu_len += len;
+                if (data) {
+                    data->target_level = real_value;
+                    data->use_target_level = true;
+                }
+            } else {
+                if (data) {
+                    data->use_target_level = false;
+                }
+            }
+            if ((apdu_max_len - apdu_len) != 0) {
+                /* Tag 4: fade-time - OPTIONAL */
+                if (decode_is_context_tag(&apdu[apdu_len], 4)) {
+                    len = decode_tag_number_and_value(
+                        &apdu[apdu_len], &tag_number, &len_value_type);
+                    apdu_len += len;
+                    len = decode_unsigned(
+                        &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
+                    if (data) {
+                        data->fade_time = (uint32_t)unsigned_value;
+                        data->use_fade_time = true;
+                    }
+                } else {
+                    if (data) {
+                        data->use_fade_time = false;
+                    }
+                }
+            }
+            if ((apdu_max_len - apdu_len) != 0) {
+                /* Tag 5: priority - OPTIONAL */
+                if (decode_is_context_tag(&apdu[apdu_len], 4)) {
+                    len = decode_tag_number_and_value(
+                        &apdu[apdu_len], &tag_number, &len_value_type);
+                    apdu_len += len;
+                    len = decode_unsigned(
+                        &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
+                    if (data) {
+                        data->priority = (uint8_t)unsigned_value;
+                        data->use_priority = true;
+                    }
+                } else {
+                    if (data) {
+                        data->use_priority = false;
+                    }
+                }
+            }
+            break;
+        case BACNET_LIGHTS_RAMP_TO:
+            if ((apdu_max_len - apdu_len) == 0) {
+                return BACNET_STATUS_REJECT;
+            }
+            /* Tag 1: target-level */
+            if (decode_is_context_tag(&apdu[apdu_len], 1)) {
+                len = decode_tag_number_and_value(
+                    &apdu[apdu_len], &tag_number, &len_value_type);
+                apdu_len += len;
+                len = decode_real(&apdu[apdu_len], &real_value);
+                apdu_len += len;
+                if (data) {
+                    data->target_level = real_value;
+                    data->use_target_level = true;
+                }
+            } else {
+                if (data) {
+                    data->use_target_level = false;
+                }
+            }
+            if ((apdu_max_len - apdu_len) != 0) {
+                /* Tag 2: ramp-rate - OPTIONAL */
+                if (decode_is_context_tag(&apdu[apdu_len], 2)) {
+                    len = decode_tag_number_and_value(
+                        &apdu[apdu_len], &tag_number, &len_value_type);
+                    apdu_len += len;
+                    len = decode_real(&apdu[apdu_len], &real_value);
+                    apdu_len += len;
+                    if (data) {
+                        data->ramp_rate = real_value;
+                        data->use_ramp_rate = true;
+                    }
+                } else {
+                    if (data) {
+                        data->use_ramp_rate = false;
+                    }
+                }
+            }
+            if ((apdu_max_len - apdu_len) != 0) {
+                /* Tag 5: priority - OPTIONAL */
+                if (decode_is_context_tag(&apdu[apdu_len], 4)) {
+                    len = decode_tag_number_and_value(
+                        &apdu[apdu_len], &tag_number, &len_value_type);
+                    apdu_len += len;
+                    len = decode_unsigned(
+                        &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
+                    if (data) {
+                        data->priority = (uint8_t)unsigned_value;
+                        data->use_priority = true;
+                    }
+                } else {
+                    if (data) {
+                        data->use_priority = false;
+                    }
+                }
+            }
+            break;
+        case BACNET_LIGHTS_STEP_UP:
+        case BACNET_LIGHTS_STEP_DOWN:
+        case BACNET_LIGHTS_STEP_ON:
+        case BACNET_LIGHTS_STEP_OFF:
+            if ((apdu_max_len - apdu_len) != 0) {
+                /* Tag 3: step-increment - OPTIONAL */
+                if (decode_is_context_tag(&apdu[apdu_len], 3)) {
+                    len = decode_tag_number_and_value(
+                        &apdu[apdu_len], &tag_number, &len_value_type);
+                    apdu_len += len;
+                    len = decode_real(&apdu[apdu_len], &real_value);
+                    apdu_len += len;
+                    if (data) {
+                        data->step_increment = real_value;
+                        data->use_step_increment = true;
+                    }
+                } else {
+                    if (data) {
+                        data->use_step_increment = false;
+                    }
+                }
+            }
+            if ((apdu_max_len - apdu_len) != 0) {
+                /* Tag 5: priority - OPTIONAL */
+                if (decode_is_context_tag(&apdu[apdu_len], 4)) {
+                    len = decode_tag_number_and_value(
+                        &apdu[apdu_len], &tag_number, &len_value_type);
+                    apdu_len += len;
+                    len = decode_unsigned(
+                        &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
+                    if (data) {
+                        data->priority = (uint8_t)unsigned_value;
+                        data->use_priority = true;
+                    }
+                } else {
+                    if (data) {
+                        data->use_priority = false;
+                    }
+                }
+            }
+            break;
+        case BACNET_LIGHTS_WARN:
+        case BACNET_LIGHTS_WARN_OFF:
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+        case BACNET_LIGHTS_STOP:
+            if ((apdu_max_len - apdu_len) != 0) {
+                /* Tag 5: priority - OPTIONAL */
+                if (decode_is_context_tag(&apdu[apdu_len], 4)) {
+                    len = decode_tag_number_and_value(
+                        &apdu[apdu_len], &tag_number, &len_value_type);
+                    apdu_len += len;
+                    len = decode_unsigned(
+                        &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
+                    if (data) {
+                        data->priority = (uint8_t)unsigned_value;
+                        data->use_priority = true;
+                    }
+                } else {
+                    if (data) {
+                        data->use_priority = false;
+                    }
+                }
+            }
+            break;
+        default:
+            break;
     }
 
-    return len;
+    return apdu_len;
 }
 
 /**
