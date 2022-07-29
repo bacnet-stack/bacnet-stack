@@ -188,6 +188,7 @@ int lighting_command_decode(
                     apdu_len += len;
                     len = decode_unsigned(
                         &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
                     if (data) {
                         data->fade_time = (uint32_t)unsigned_value;
                         data->use_fade_time = true;
@@ -206,6 +207,7 @@ int lighting_command_decode(
                     apdu_len += len;
                     len = decode_unsigned(
                         &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
                     if (data) {
                         data->priority = (uint8_t)unsigned_value;
                         data->use_priority = true;
@@ -244,6 +246,7 @@ int lighting_command_decode(
                         &apdu[apdu_len], &tag_number, &len_value_type);
                     apdu_len += len;
                     len = decode_real(&apdu[apdu_len], &real_value);
+                    apdu_len += len;
                     if (data) {
                         data->ramp_rate = real_value;
                         data->use_ramp_rate = true;
@@ -262,6 +265,7 @@ int lighting_command_decode(
                     apdu_len += len;
                     len = decode_unsigned(
                         &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
                     if (data) {
                         data->priority = (uint8_t)unsigned_value;
                         data->use_priority = true;
@@ -284,6 +288,7 @@ int lighting_command_decode(
                         &apdu[apdu_len], &tag_number, &len_value_type);
                     apdu_len += len;
                     len = decode_real(&apdu[apdu_len], &real_value);
+                    apdu_len += len;
                     if (data) {
                         data->step_increment = real_value;
                         data->use_step_increment = true;
@@ -302,6 +307,7 @@ int lighting_command_decode(
                     apdu_len += len;
                     len = decode_unsigned(
                         &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
                     if (data) {
                         data->priority = (uint8_t)unsigned_value;
                         data->use_priority = true;
@@ -325,6 +331,7 @@ int lighting_command_decode(
                     apdu_len += len;
                     len = decode_unsigned(
                         &apdu[apdu_len], len_value_type, &unsigned_value);
+                    apdu_len += len;
                     if (data) {
                         data->priority = (uint8_t)unsigned_value;
                         data->use_priority = true;
