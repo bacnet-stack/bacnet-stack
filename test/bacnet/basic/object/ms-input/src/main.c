@@ -12,19 +12,6 @@
 #include <bacnet/basic/object/ms-input.h>
 
 /**
- * stub
- */
-bool Device_Valid_Object_Name(BACNET_CHARACTER_STRING *object_name,
-    BACNET_OBJECT_TYPE *object_type,
-    uint32_t *object_instance)
-{
-    (void)object_name;
-    (void)object_type;
-    (void)object_instance;
-    return false;
-}
-
-/**
  * @addtogroup bacnet_tests
  * @{
  */

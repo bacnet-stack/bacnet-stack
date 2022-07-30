@@ -19,7 +19,7 @@
 /**
  * @brief Test
  */
-static void testMultistateInput(void)
+static void testMultistateValue(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0;
@@ -54,7 +54,7 @@ static void testMultistateInput(void)
 void test_main(void)
 {
     ztest_test_suite(msv_tests,
-     ztest_unit_test(testMultistateInput)
+     ztest_unit_test(testMultistateValue)
      );
 
     ztest_run_test_suite(msv_tests);

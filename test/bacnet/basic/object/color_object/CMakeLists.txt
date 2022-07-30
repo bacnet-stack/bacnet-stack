@@ -54,6 +54,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/wp.c
     # Test and test library files
 	./src/main.c
+	../mock/device_mock.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
