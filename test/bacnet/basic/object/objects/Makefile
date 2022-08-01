@@ -10,7 +10,6 @@ CFLAGS  = -Wall $(INCLUDES) $(DEFINES) -g
 SRCS = main.c \
 	$(SRC_DIR)/bacnet/basic/object/objects.c \
 	$(SRC_DIR)/bacnet/basic/sys/keylist.c \
-	$(SRC_DIR)/bacnet/basic/sys/key.c \
 	$(TEST_DIR)/ctest.c
 
 TARGET_NAME = unittest
