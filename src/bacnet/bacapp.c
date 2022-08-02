@@ -52,6 +52,7 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/lighting.h"
 #include "bacnet/hostnport.h"
+#include "weeklyschedule.h"
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
@@ -170,6 +171,11 @@ int bacapp_encode_application_data(
                 /* BACnetColorCommand */
                 apdu_len = color_command_encode(
                     apdu, &value->type.Color_Command);
+                break;
+            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
+                /* BACnetWeeklySchedule */
+                apdu_len = weeklyschedule_encode(
+                    apdu, &value->type.Weekly_Schedule);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 /* BACnetHostNPort */
@@ -637,6 +643,11 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 /* BACnetxyColor */
                 apdu_len = xy_color_context_encode(
                     apdu, context_tag_number, &value->type.XY_Color);
+                break;
+            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
+                /* BACnetWeeklySchedule */
+                apdu_len = weeklyschedule_context_encode(
+                    apdu, context_tag_number, &value->type.Weekly_Schedule);
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* BACnetColorCommand */
@@ -1133,10 +1144,13 @@ int bacapp_decode_known_property(uint8_t *apdu,
             /* [16] BACnetPriorityValue : 16x values (simple property) */
             len = decode_priority_value(apdu, max_apdu_len, value, property);
             break;
+        case PROP_WEEKLY_SCHEDULE:
+            /* BACnetWeeklySchedule ([7] BACnetDailySchedule*/
+            value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
+            len = weeklyschedule_decode(apdu, max_apdu_len, &value->type.Weekly_Schedule);
+            break;
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */
-        case PROP_WEEKLY_SCHEDULE:
-            /* BACnetDailySchedule[7] (Schedule) */
         case PROP_EXCEPTION_SCHEDULE:
             /* BACnetSpecialEvent (Schedule) */
         case PROP_DATE_LIST:
@@ -1526,6 +1540,106 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
     return ret_val;
 }
 #endif
+
+#if defined(BACAPP_TYPES_EXTRA)
+static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEKLY_SCHEDULE *ws)
+{
+    int slen;
+    size_t i, j;
+    int ret_val;
+
+    slen = snprintf(str, str_len, "(");
+    if (str) {
+        str += slen;
+        if (str_len >= slen) {
+            str_len -= slen;
+        } else {
+            str_len = 0;
+        }
+    }
+    ret_val += slen;
+    const char *weekdaynames[7] = {
+        "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+    };
+    for (i = 0; i < 7; i++) {
+        BACNET_DAILY_SCHEDULE *ds = &ws->weeklySchedule[i];
+        slen = snprintf(str, str_len, "%s: ", weekdaynames[i]);
+        ret_val += slen;
+        if (str) {
+            str += slen;
+            if (str_len >= slen) {
+                str_len -= slen;
+            } else {
+                str_len = 0;
+            }
+        }
+
+        for (j = 0; j < ds->TV_Count; j++) {
+            slen = bacapp_snprintf_time(str, str_len, &ds->Time_Values[j].Time);
+            if (str) {
+                str += slen;
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
+                }
+            }
+
+            slen = snprintf(str, str_len, " ");
+            ret_val += slen;
+            if (str) {
+                str += slen;
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
+                }
+            }
+
+            BACNET_OBJECT_PROPERTY_VALUE dummyPropValue;
+            dummyPropValue.value = (BACNET_APPLICATION_DATA_VALUE*) &ds->Time_Values[j].Value;
+            dummyPropValue.object_property = PROP_PRESENT_VALUE;
+
+            slen = bacapp_snprintf_value(str, str_len, &dummyPropValue);
+            if (str) {
+                str += slen;
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
+                }
+            }
+
+            if (j < ds->TV_Count - 1) {
+                slen = snprintf(str, str_len, ", ");
+                ret_val += slen;
+                if (str) {
+                    str += slen;
+                    if (str_len >= slen) {
+                        str_len -= slen;
+                    } else {
+                        str_len = 0;
+                    }
+                }
+            }
+        }
+
+        if (i < 6) {
+            slen = snprintf(str, str_len, "; ");
+            ret_val += slen;
+            if (str) {
+                str += slen;
+                if (str_len >= slen) {
+                    str_len -= slen;
+                } else {
+                    str_len = 0;
+                }
+            }
+        }
+    }
+}
+#endif
+
 
 /**
  * @brief Extract the value into a text string
@@ -1938,6 +2052,11 @@ int bacapp_snprintf_value(
                 /* FIXME: add the Lighting Command optional values */
                 slen = snprintf(str, str_len, ")");
                 ret_val += slen;
+                break;
+            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
+                /* BACnetWeeklySchedule */
+                ret_val = bacapp_snprintf_weeklyschedule(
+                    str, str_len, &value->type.Weekly_Schedule);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 if (value->type.Host_Address.host_ip_address) {

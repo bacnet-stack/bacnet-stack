@@ -36,8 +36,7 @@ License.
 #include "bacnet/dailyschedule.h"
 #include "bacnet/bactimevalue.h"
 
-/*/ BACnetDailySchedule */
-int decode_daily_schedule(
+int dailyschedule_decode(
     uint8_t * apdu,
     int max_apdu_len,
     BACNET_DAILY_SCHEDULE * day)
@@ -46,10 +45,8 @@ int decode_daily_schedule(
         &day->Time_Values[0], MAX_DAY_SCHEDULE_VALUES);
 }
 
-/*/ BACnetDailySchedule */
-int encode_daily_schedule(
+int dailyschedule_encode(
     uint8_t * apdu,
-    int max_apdu_len,
     BACNET_DAILY_SCHEDULE * day)
 {
     return bacapp_encode_context_time_values(apdu, 0,

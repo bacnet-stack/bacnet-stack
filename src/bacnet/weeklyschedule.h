@@ -21,48 +21,41 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *********************************************************************/
-#ifndef DAILYSCHEDULE_H
-#define DAILYSCHEDULE_H
+#ifndef WEEKLYSCHEDULE_H
+#define WEEKLYSCHEDULE_H
 
 #include <stdint.h>
 #include <stdbool.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/dailyschedule.h"
 #include "bacnet/bactimevalue.h"
-
-/* arbitrary value, shall be unlimited for B-OWS but we don't care, 640k shall be enough */
-/* however we try not to boost the bacnet application value structure size,  */
-/* so 7 x (this value) x sizeof(BACNET_TIME_VALUE) fits. */
-#define MAX_DAY_SCHEDULE_VALUES 40
-
-/*
-    BACnetDailySchedule ::= SEQUENCE {
-        day-schedule [0] SEQUENCE OF BACnetTimeValue
-    }
-*/
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-    typedef struct bacnet_daily_schedule {
-        BACNET_TIME_VALUE Time_Values[MAX_DAY_SCHEDULE_VALUES];
-        uint16_t TV_Count;      /* the number of time values actually used */
-    } BACNET_DAILY_SCHEDULE;
+    typedef struct BACnet_Weekly_Schedule {
+        BACNET_DAILY_SCHEDULE weeklySchedule[7];
+    } BACNET_WEEKLY_SCHEDULE;
 
-    /** Decode DailySchedule (sequence of times and values) */
+    /** Decode WeeklySchedule */
     BACNET_STACK_EXPORT
-    int dailyschedule_decode(
+    int weeklyschedule_decode(
         uint8_t * apdu,
         int max_apdu_len,
-        BACNET_DAILY_SCHEDULE * day);
+        BACNET_WEEKLY_SCHEDULE * week);
 
-    /** Encode DailySchedule (sequence of times and values) */
+    /** Encode WeeklySchedule */
     BACNET_STACK_EXPORT
-    int dailyschedule_encode(
+    int weeklyschedule_encode(
         uint8_t * apdu,
-        BACNET_DAILY_SCHEDULE * day);
+        BACNET_WEEKLY_SCHEDULE * week);
+
+    BACNET_STACK_EXPORT
+    int weeklyschedule_context_encode(
+        uint8_t *apdu, uint8_t tag_number, BACNET_WEEKLY_SCHEDULE *value);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* DAILYSCHEDULE_H */
+#endif /* WEEKLYSCHEDULE_H */
