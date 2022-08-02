@@ -124,6 +124,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/bactext.h
     src/bacnet/bactimevalue.c
     src/bacnet/bactimevalue.h
+    src/bacnet/dailyschedule.c
+    src/bacnet/dailyschedule.h
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>

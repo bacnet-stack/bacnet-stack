@@ -61,6 +61,21 @@ extern "C" {
         uint8_t tag_number,
         BACNET_TIME_VALUE * value);
 
+    BACNET_STACK_EXPORT
+    int bacapp_decode_context_time_values(
+        uint8_t * apdu,
+        int max_apdu_len,
+        uint8_t tag_number,
+        BACNET_TIME_VALUE *time_values,
+        unsigned int max_time_values);
+
+    BACNET_STACK_EXPORT
+    int bacapp_encode_context_time_values(
+        uint8_t * apdu,
+        uint8_t tag_number,
+        BACNET_TIME_VALUE * time_values,
+        unsigned int max_time_values)
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
