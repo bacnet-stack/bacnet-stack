@@ -2526,6 +2526,11 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
                 status = color_command_same(&value->type.Color_Command,
                     &test_value->type.Color_Command);
                 break;
+            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
+                /* BACnetWeeklySchedule */
+                status = bacnet_weeklyschedule_same(&value->type.Weekly_Schedule,
+                    &test_value->type.Weekly_Schedule);
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 status = host_n_port_same(&value->type.Host_Address,
                         &value->type.Host_Address);

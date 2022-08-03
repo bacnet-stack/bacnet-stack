@@ -55,6 +55,10 @@ extern "C" {
     int bacnet_weeklyschedule_context_encode(
         uint8_t *apdu, uint8_t tag_number, BACNET_WEEKLY_SCHEDULE *value);
 
+    BACNET_STACK_EXPORT
+    bool bacnet_weeklyschedule_same(
+        BACNET_WEEKLY_SCHEDULE *value1, BACNET_WEEKLY_SCHEDULE *value2);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

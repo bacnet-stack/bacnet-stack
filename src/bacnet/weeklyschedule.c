@@ -35,6 +35,7 @@ License.
 #include <stdint.h>
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/bacdcode.h"
+#include "bacapp.h"
 
 int bacnet_weeklyschedule_decode(
     uint8_t * apdu,
@@ -111,4 +112,37 @@ int bacnet_weeklyschedule_context_encode(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Compare the BACnetWeeklySchedule complex data
+ * @param value1 - BACNET_COLOR_COMMAND structure
+ * @param value2 - BACNET_COLOR_COMMAND structure
+ * @return true if the same
+ */
+bool bacnet_weeklyschedule_same(
+    BACNET_WEEKLY_SCHEDULE *value1, BACNET_WEEKLY_SCHEDULE *value2)
+{
+    for (int wi = 0; wi < 7; wi++) {
+        BACNET_DAILY_SCHEDULE *ds1 = &value1->weeklySchedule[wi];
+        BACNET_DAILY_SCHEDULE *ds2 = &value2->weeklySchedule[wi];
+        if (ds1->TV_Count != ds2->TV_Count) {
+            return false;
+        }
+        for (int ti = 0; ti < ds1->TV_Count; ti++) {
+            BACNET_TIME_VALUE *tv1 = &ds1->Time_Values[ti];
+            BACNET_TIME_VALUE *tv2 = &ds2->Time_Values[ti];
+            if (0 != datetime_compare_time(&tv1->Time, &tv2->Time)) {
+                return false;
+            }
+            if (!bacapp_same_value(
+                    (BACNET_APPLICATION_DATA_VALUE *)&tv1->Value,
+                    (BACNET_APPLICATION_DATA_VALUE *)&tv2->Value))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
