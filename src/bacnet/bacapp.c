@@ -1543,13 +1543,19 @@ static int bacapp_snprintf_time(char *str, size_t str_len, BACNET_TIME *btime)
 #endif
 
 #if defined(BACAPP_TYPES_EXTRA)
-static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEKLY_SCHEDULE *ws)
+static int bacapp_snprintf_weeklyschedule(
+    char *str,
+    size_t str_len,
+    BACNET_WEEKLY_SCHEDULE *ws,
+    BACNET_ARRAY_INDEX arrayIndex)
 {
     int slen;
-    size_t i, j;
     int ret_val = 0;
+    BACNET_OBJECT_PROPERTY_VALUE dummyPropValue;
+    BACNET_APPLICATION_DATA_VALUE dummyDataValue;
 
     slen = snprintf(str, str_len, "(");
+    ret_val += slen;
     if (str) {
         str += slen;
         if (str_len >= slen) {
@@ -1558,13 +1564,17 @@ static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEK
             str_len = 0;
         }
     }
-    ret_val += slen;
     const char *weekdaynames[7] = {
         "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
     };
-    for (i = 0; i < 7; i++) {
-        BACNET_DAILY_SCHEDULE *ds = &ws->weeklySchedule[i];
-        slen = snprintf(str, str_len, "%s: ", weekdaynames[i]);
+    const int loopend = ((arrayIndex == BACNET_ARRAY_ALL) ? 7 : 1);
+    for (int wi = 0; wi < loopend; wi++) {
+        BACNET_DAILY_SCHEDULE *ds = &ws->weeklySchedule[wi];
+        if (arrayIndex == BACNET_ARRAY_ALL) {
+            slen = snprintf(str, str_len, "%s: [", weekdaynames[wi]);
+        } else {
+            slen = snprintf(str, str_len, "[");
+        }
         ret_val += slen;
         if (str) {
             str += slen;
@@ -1575,8 +1585,9 @@ static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEK
             }
         }
 
-        for (j = 0; j < ds->TV_Count; j++) {
-            slen = bacapp_snprintf_time(str, str_len, &ds->Time_Values[j].Time);
+        for (int ti = 0; ti < ds->TV_Count; ti++) {
+            slen = bacapp_snprintf_time(str, str_len, &ds->Time_Values[ti].Time);
+            ret_val += slen;
             if (str) {
                 str += slen;
                 if (str_len >= slen) {
@@ -1597,11 +1608,13 @@ static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEK
                 }
             }
 
-            BACNET_OBJECT_PROPERTY_VALUE dummyPropValue;
-            dummyPropValue.value = (BACNET_APPLICATION_DATA_VALUE*) &ds->Time_Values[j].Value;
+            bacnet_short_data_value_to_data_value(&dummyDataValue, &ds->Time_Values[ti].Value);
+            dummyPropValue.value = &dummyDataValue;
             dummyPropValue.object_property = PROP_PRESENT_VALUE;
+            dummyPropValue.object_type = OBJECT_SCHEDULE;
 
             slen = bacapp_snprintf_value(str, str_len, &dummyPropValue);
+            ret_val += slen;
             if (str) {
                 str += slen;
                 if (str_len >= slen) {
@@ -1611,7 +1624,7 @@ static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEK
                 }
             }
 
-            if (j < ds->TV_Count - 1) {
+            if (ti < ds->TV_Count - 1) {
                 slen = snprintf(str, str_len, ", ");
                 ret_val += slen;
                 if (str) {
@@ -1625,8 +1638,8 @@ static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEK
             }
         }
 
-        if (i < 6) {
-            slen = snprintf(str, str_len, "; ");
+        if (wi < loopend - 1) {
+            slen = snprintf(str, str_len, "]; ");
             ret_val += slen;
             if (str) {
                 str += slen;
@@ -1638,6 +1651,8 @@ static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEK
             }
         }
     }
+    slen = snprintf(str, str_len, "])");
+    ret_val += slen;
     return ret_val;
 }
 #endif
@@ -2058,7 +2073,7 @@ int bacapp_snprintf_value(
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 /* BACnetWeeklySchedule */
                 ret_val = bacapp_snprintf_weeklyschedule(
-                    str, str_len, &value->type.Weekly_Schedule);
+                    str, str_len, &value->type.Weekly_Schedule, object_value->array_index);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 if (value->type.Host_Address.host_ip_address) {
@@ -2109,6 +2124,7 @@ int bacapp_snprintf_value(
                 break;
 #endif
             default:
+                ret_val = snprintf(str, str_len, "UnknownType(tag=%d)", value->tag);
                 break;
         }
     }
@@ -2310,6 +2326,9 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
                 /* FIXME: add parsing for BACnetColorCommand */
+                break;
+            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
+                /* FIXME: add parsing for BACnetWeeklySchedule */
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 count = sscanf(argv, "%3u.%3u.%3u.%3u:%5u",

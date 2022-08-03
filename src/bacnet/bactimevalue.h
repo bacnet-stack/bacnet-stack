@@ -95,14 +95,14 @@ extern "C" {
     /** returns 0 if OK, -1 on error */
     BACNET_STACK_EXPORT
     int bacnet_data_value_to_short_data_value(
-        const struct BACnet_Application_Data_Value * data_value,
-        BACNET_SHORT_APPLICATION_DATA_VALUE * short_data_value);
+        BACNET_SHORT_APPLICATION_DATA_VALUE * dest,
+        const struct BACnet_Application_Data_Value * src);
 
     /** returns 0 if OK, -1 on error */
     BACNET_STACK_EXPORT
     int bacnet_short_data_value_to_data_value(
-        const BACNET_SHORT_APPLICATION_DATA_VALUE * short_data_value,
-        struct BACnet_Application_Data_Value * data_value);
+        struct BACnet_Application_Data_Value * dest,
+        const BACNET_SHORT_APPLICATION_DATA_VALUE * src);
 
     BACNET_STACK_EXPORT
     int bacnet_time_value_encode(uint8_t * apdu,
@@ -147,6 +147,7 @@ extern "C" {
      * @param tag_number - number expected in the context tag; 0 used for DailySchedule
      * @param time_values
      * @param max_time_values - number of time values to encode
+     * @param[out] out_count - actual number of time values found
      * @return used bytes, <0 if decoding failed
      */
     BACNET_STACK_EXPORT
@@ -155,7 +156,8 @@ extern "C" {
         int max_apdu_len,
         uint8_t tag_number,
         BACNET_TIME_VALUE *time_values,
-        unsigned int max_time_values);
+        unsigned int max_time_values,
+        unsigned int *out_count);
 
     /**
      * Encode array of time-values wrapped in a context tag

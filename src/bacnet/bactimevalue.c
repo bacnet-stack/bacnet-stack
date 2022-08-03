@@ -138,30 +138,32 @@ int bacapp_encode_context_time_value(uint8_t *apdu, uint8_t tag_number, BACNET_T
 
 /** returns 0 if OK, -1 on error */
 int bacnet_data_value_to_short_data_value(
-    const struct BACnet_Application_Data_Value * data_value,
-    BACNET_SHORT_APPLICATION_DATA_VALUE * short_data_value)
+    BACNET_SHORT_APPLICATION_DATA_VALUE *dest,
+    const struct BACnet_Application_Data_Value *src)
 {
     // make sure the value passed is valid
-    if (!data_value || !short_data_value || !is_data_value_schedule_compatible(data_value->tag)) {
+    if (!src || !dest || !is_data_value_schedule_compatible(src->tag)) {
         return BACNET_STATUS_ERROR;
     }
-    short_data_value->tag = data_value->tag;
-    // Cast to short value, so the number of copied bytes is restricted to the short union's size
-    short_data_value->type = ((BACNET_SHORT_APPLICATION_DATA_VALUE*)&data_value)->type;
+    dest->tag = src->tag;
+    memcpy(&dest->type, &src->type, sizeof(dest->type));
     return BACNET_STATUS_OK;
 }
 
 /** returns 0 if OK, -1 on error */
 int bacnet_short_data_value_to_data_value(
-    const BACNET_SHORT_APPLICATION_DATA_VALUE * short_data_value,
-    struct BACnet_Application_Data_Value * data_value)
+    struct BACnet_Application_Data_Value * dest,
+    const BACNET_SHORT_APPLICATION_DATA_VALUE * src)
 {
     // make sure the value passed is valid
-    if (!data_value || !short_data_value || !is_data_value_schedule_compatible(data_value->tag)) {
+    if (!dest || !src || !is_data_value_schedule_compatible(src->tag)) {
         return BACNET_STATUS_ERROR;
     }
-    data_value->tag = short_data_value->tag;
-    memcpy(&data_value->type, &short_data_value->type, sizeof(short_data_value->type));
+    dest->tag = src->tag;
+    dest->context_specific = false;
+    dest->context_tag = 0;
+    dest->next = NULL;
+    memcpy(&dest->type, &src->type, sizeof(src->type));
     return BACNET_STATUS_OK; /* OK */
 }
 
@@ -181,7 +183,7 @@ int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len, BACNET_TIME_VALUE 
     if (len <= 0) {
         return -1;
     }
-    if (BACNET_STATUS_OK != bacnet_data_value_to_short_data_value(&full_data_value, &value->Value)) {
+    if (BACNET_STATUS_OK != bacnet_data_value_to_short_data_value(&value->Value, &full_data_value)) {
         return -1;
     }
     apdu_len += len;
@@ -232,7 +234,8 @@ int bacnet_time_values_context_decode(
     const int max_apdu_len,
     const uint8_t tag_number,
     BACNET_TIME_VALUE *time_values,
-    const unsigned int max_time_values)
+    const unsigned int max_time_values,
+    unsigned int *out_count)
 {
     unsigned int j;
     int len;
@@ -271,6 +274,9 @@ int bacnet_time_values_context_decode(
             return -1;
         }
         apdu_len++;     /* closing tag */
+        if (out_count) {
+            *out_count = count_values;
+        }
         return apdu_len;
     }
     return -1;
