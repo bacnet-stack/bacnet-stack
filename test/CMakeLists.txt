@@ -70,6 +70,7 @@ list(APPEND testdirs
   bacnet/whohas
   bacnet/whois
   bacnet/wp
+  bacnet/weeklyschedule
   )
 
 # bacnet/basic/*
