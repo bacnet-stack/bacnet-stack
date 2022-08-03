@@ -68,6 +68,10 @@ extern "C" {
         /* Properties concerning Present Value */
         BACNET_OBJ_DAILY_SCHEDULE Weekly_Schedule[7];
         BACNET_APPLICATION_DATA_VALUE Schedule_Default;
+        /*
+         * Caution: This is a casted BACNET_SHORT_APPLICATION_DATA_VALUE.
+         * Only some data types may be used!
+         */
         BACNET_APPLICATION_DATA_VALUE *Present_Value;   /* must be set to a valid value
                                                          * default is Schedule_Default */
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE

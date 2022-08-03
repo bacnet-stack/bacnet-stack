@@ -89,7 +89,7 @@ void Schedule_Init(void)
         psched->Present_Value = &psched->Schedule_Default;
         psched->Schedule_Default.context_specific = false;
         psched->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
-        psched->Schedule_Default.type.Real = 21.0; /* 21 C, room temperature */
+        psched->Schedule_Default.type.Real = 21.0f; /* 21 C, room temperature */
         psched->obj_prop_ref_cnt = 0; /* no references, add as needed */
         psched->Priority_For_Writing = 16; /* lowest priority */
         psched->Out_Of_Service = false;
@@ -224,7 +224,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
                     for (i = 0; i < CurrentSC->Weekly_Schedule[day].TV_Count;
                          i++) {
-                        apdu_len += bacapp_encode_time_value(&apdu[apdu_len],
+                        apdu_len += bacnet_time_value_encode(&apdu[apdu_len],
                             &CurrentSC->Weekly_Schedule[day].Time_Values[i]);
                     }
                     apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
@@ -233,7 +233,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 int day = rpdata->array_index - 1;
                 apdu_len += encode_opening_tag(&apdu[apdu_len], 0);
                 for (i = 0; i < CurrentSC->Weekly_Schedule[day].TV_Count; i++) {
-                    apdu_len += bacapp_encode_time_value(&apdu[apdu_len],
+                    apdu_len += bacnet_time_value_encode(&apdu[apdu_len],
                         &CurrentSC->Weekly_Schedule[day].Time_Values[i]);
                 }
                 apdu_len += encode_closing_tag(&apdu[apdu_len], 0);
@@ -416,7 +416,8 @@ void Schedule_Recalculate_PV(
             desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag !=
                 BACNET_APPLICATION_TAG_NULL) {
             desc->Present_Value =
-                &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value;
+                (BACNET_APPLICATION_DATA_VALUE *)
+                    &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value;
         }
     }
 

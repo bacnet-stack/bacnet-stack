@@ -33,19 +33,32 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/datetime.h"
 
-/*
+/**
  * One small value for the BACnetTimeValue
  *
  * This must be a separate struct to avoid recursive structure.
- * Keeping it small also helps keep the size of BACNET_APPLICATION_DATA_VALUE small,
- * plus schedule typically doesn't contain complex types.
+ * Keeping it small also helps keep the size of BACNET_APPLICATION_DATA_VALUE
+ * small. Besides, schedule doesn't normally contain complex types.
+ *
+ * "up-casting" to BACNET_APPLICATION_DATA_VALUE is safe, so long as "tag"
+ * is one of the types defined in the union here, and the function it's passed to
+ * does not try to access the "next" field
  */
 typedef struct BACnet_Short_Application_Data_Value {
-    /* Padding fields to keep binary compatibility with BACNET_APPLICATION_DATA_VALUE */
+    /*
+     * Padding fields to keep binary compatibility with
+     * BACNET_APPLICATION_DATA_VALUE.
+     */
     bool dummy1;
     uint8_t dummy2;
     uint8_t tag;        /* application tag data type */
     union {
+        /*
+         * ATTENTION! If a new type is added here, update
+         * `is_data_value_schedule_compatible()` in bactimevalue.c!
+         */
+
+        /* NULL - not needed as it is encoded in the tag alone */
 #if defined (BACAPP_BOOLEAN)
         bool Boolean;
 #endif
@@ -57,6 +70,9 @@ typedef struct BACnet_Short_Application_Data_Value {
 #endif
 #if defined (BACAPP_REAL)
         float Real;
+#endif
+#if defined (BACAPP_DOUBLE)
+        double Double;
 #endif
 #if defined (BACAPP_ENUMERATED)
         uint32_t Enumerated;
@@ -73,24 +89,55 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+    struct BACnet_Application_Data_Value;
+
+    /** returns 0 if OK, -1 on error */
+    BACNET_STACK_EXPORT
+    int bacnet_data_value_to_short_data_value(
+        const struct BACnet_Application_Data_Value * data_value,
+        BACNET_SHORT_APPLICATION_DATA_VALUE * short_data_value);
+
+    /** returns 0 if OK, -1 on error */
+    BACNET_STACK_EXPORT
+    int bacnet_short_data_value_to_data_value(
+        const BACNET_SHORT_APPLICATION_DATA_VALUE * short_data_value,
+        struct BACnet_Application_Data_Value * data_value);
 
     BACNET_STACK_EXPORT
-    int bacapp_encode_time_value(uint8_t * apdu,
+    int bacnet_time_value_encode(uint8_t * apdu,
         BACNET_TIME_VALUE * value);
 
     BACNET_STACK_EXPORT
-    int bacapp_encode_context_time_value(uint8_t * apdu,
+    int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
+        __attribute__((deprecated("Use bacnet_time_value_encode() instead")));
+
+    BACNET_STACK_EXPORT
+    int bacnet_time_value_context_encode(uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIME_VALUE * value);
 
     BACNET_STACK_EXPORT
+    int bacapp_encode_context_time_value(uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
+        __attribute__((deprecated("Use bacnet_time_value_context_encode() instead")));
+
+    BACNET_STACK_EXPORT
     int bacapp_decode_time_value(uint8_t * apdu,
-        BACNET_TIME_VALUE * value);
+        BACNET_TIME_VALUE * value)
+        __attribute__((deprecated("Use bacnet_time_value_decode() instead")));
+
+    BACNET_STACK_EXPORT
+    int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len,
+        BACNET_TIME_VALUE *value);
 
     BACNET_STACK_EXPORT
     int bacapp_decode_context_time_value(uint8_t * apdu,
         uint8_t tag_number,
-        BACNET_TIME_VALUE * value);
+        BACNET_TIME_VALUE * value)
+        __attribute__((deprecated("Use bacnet_time_value_context_decode() instead")));
+
+    BACNET_STACK_EXPORT
+    int bacnet_time_value_context_decode(uint8_t *apdu, int max_apdu_len,
+        uint8_t tag_number, BACNET_TIME_VALUE *value);
 
     /**
      * Decode array of time-values wrapped in a context tag
@@ -102,7 +149,7 @@ extern "C" {
      * @return used bytes, <0 if decoding failed
      */
     BACNET_STACK_EXPORT
-    int bacapp_decode_context_time_values(
+    int bacnet_time_values_context_decode(
         uint8_t * apdu,
         int max_apdu_len,
         uint8_t tag_number,
@@ -119,7 +166,7 @@ extern "C" {
      * @return used bytes, <=0 if encoding failed
      */
     BACNET_STACK_EXPORT
-    int bacapp_encode_context_time_values(
+    int bacnet_time_values_context_encode(
         uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIME_VALUE * time_values,

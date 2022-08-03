@@ -174,7 +174,7 @@ int bacapp_encode_application_data(
                 break;
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 /* BACnetWeeklySchedule */
-                apdu_len = weeklyschedule_encode(
+                apdu_len = bacnet_weeklyschedule_encode(
                     apdu, &value->type.Weekly_Schedule);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
@@ -646,7 +646,7 @@ int bacapp_encode_context_data_value(uint8_t *apdu,
                 break;
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
                 /* BACnetWeeklySchedule */
-                apdu_len = weeklyschedule_context_encode(
+                apdu_len = bacnet_weeklyschedule_context_encode(
                     apdu, context_tag_number, &value->type.Weekly_Schedule);
                 break;
             case BACNET_APPLICATION_TAG_COLOR_COMMAND:
@@ -1147,7 +1147,8 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_WEEKLY_SCHEDULE:
             /* BACnetWeeklySchedule ([7] BACnetDailySchedule*/
             value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
-            len = weeklyschedule_decode(apdu, max_apdu_len, &value->type.Weekly_Schedule);
+            len = bacnet_weeklyschedule_decode(
+                apdu, max_apdu_len, &value->type.Weekly_Schedule);
             break;
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */
@@ -1546,7 +1547,7 @@ static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEK
 {
     int slen;
     size_t i, j;
-    int ret_val;
+    int ret_val = 0;
 
     slen = snprintf(str, str_len, "(");
     if (str) {
@@ -1637,6 +1638,7 @@ static int bacapp_snprintf_weeklyschedule(char *str, size_t str_len, BACNET_WEEK
             }
         }
     }
+    return ret_val;
 }
 #endif
 

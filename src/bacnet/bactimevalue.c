@@ -34,15 +34,54 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h> /* memcpy */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bactimevalue.h"
 #include "bacnet/bacapp.h"
 
-int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
+static bool is_data_value_schedule_compatible(uint8_t tag) {
+    switch (tag) {
+        /* Every member of the union must be listed here to allow decoding */
+        case BACNET_APPLICATION_TAG_NULL:
+            return true;
+#if defined (BACAPP_BOOLEAN)
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            return true;
+#endif
+#if defined (BACAPP_UNSIGNED)
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            return true;
+#endif
+#if defined (BACAPP_SIGNED)
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            return true;
+#endif
+#if defined (BACAPP_REAL)
+        case BACNET_APPLICATION_TAG_REAL:
+            return true;
+#endif
+#if defined (BACAPP_DOUBLE)
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            return true;
+#endif
+#if defined (BACAPP_ENUMERATED)
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            return true;
+#endif
+        default:
+            return false;
+    }
+}
+
+int bacnet_time_value_encode(uint8_t *apdu, BACNET_TIME_VALUE *value)
 {
     int len;
     int apdu_len = 0;
     uint8_t *apdu_offset = NULL;
+
+    if (!value || !is_data_value_schedule_compatible(value->Value.tag)) {
+        return BACNET_STATUS_ERROR;
+    }
 
     if (apdu) {
         apdu_offset = &apdu[apdu_len];
@@ -53,13 +92,18 @@ int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
     if (apdu) {
         apdu_offset = &apdu[apdu_len];
     }
+
     len = bacapp_encode_application_data(apdu_offset, (BACNET_APPLICATION_DATA_VALUE*) &value->Value);
     apdu_len += len;
 
     return apdu_len;
 }
 
-int bacapp_encode_context_time_value(
+int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value) {
+    return bacnet_time_value_encode(apdu, value);
+}
+
+int bacnet_time_value_context_encode(
     uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
 {
     int len;
@@ -75,7 +119,7 @@ int bacapp_encode_context_time_value(
     if (apdu) {
         apdu_offset = &apdu[apdu_len];
     }
-    len = bacapp_encode_time_value(apdu_offset, value);
+    len = bacnet_time_value_encode(apdu_offset, value);
     apdu_len += len;
 
     if (apdu) {
@@ -87,20 +131,57 @@ int bacapp_encode_context_time_value(
     return apdu_len;
 }
 
-// TODO max_apdu_len
-int bacapp_decode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
+int bacapp_encode_context_time_value(uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
+{
+    return bacnet_time_value_context_encode(apdu, tag_number, value);
+}
+
+/** returns 0 if OK, -1 on error */
+int bacnet_data_value_to_short_data_value(
+    const struct BACnet_Application_Data_Value * data_value,
+    BACNET_SHORT_APPLICATION_DATA_VALUE * short_data_value)
+{
+    // make sure the value passed is valid
+    if (!data_value || !short_data_value || !is_data_value_schedule_compatible(data_value->tag)) {
+        return BACNET_STATUS_ERROR;
+    }
+    short_data_value->tag = data_value->tag;
+    // Cast to short value, so the number of copied bytes is restricted to the short union's size
+    short_data_value->type = ((BACNET_SHORT_APPLICATION_DATA_VALUE*)&data_value)->type;
+    return BACNET_STATUS_OK;
+}
+
+/** returns 0 if OK, -1 on error */
+int bacnet_short_data_value_to_data_value(
+    const BACNET_SHORT_APPLICATION_DATA_VALUE * short_data_value,
+    struct BACnet_Application_Data_Value * data_value)
+{
+    // make sure the value passed is valid
+    if (!data_value || !short_data_value || !is_data_value_schedule_compatible(data_value->tag)) {
+        return BACNET_STATUS_ERROR;
+    }
+    data_value->tag = short_data_value->tag;
+    memcpy(&data_value->type, &short_data_value->type, sizeof(short_data_value->type));
+    return BACNET_STATUS_OK; /* OK */
+}
+
+int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len, BACNET_TIME_VALUE *value)
 {
     int len;
     int apdu_len = 0;
 
-    len = decode_application_time(&apdu[apdu_len], &value->Time);
+    len = bacnet_time_application_decode(&apdu[apdu_len], max_apdu_len, &value->Time);
     if (len <= 0) {
         return -1;
     }
     apdu_len += len;
 
-    len = bacapp_decode_application_data(&apdu[apdu_len], 2048, (BACNET_APPLICATION_DATA_VALUE*) &value->Value);
+    BACNET_APPLICATION_DATA_VALUE full_data_value = {};
+    len = bacapp_decode_application_data(&apdu[apdu_len], max_apdu_len - apdu_len, &full_data_value);
     if (len <= 0) {
+        return -1;
+    }
+    if (BACNET_STATUS_OK != bacnet_data_value_to_short_data_value(&full_data_value, &value->Value)) {
         return -1;
     }
     apdu_len += len;
@@ -108,44 +189,53 @@ int bacapp_decode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
     return apdu_len;
 }
 
-// TODO max_apdu_len
+int bacapp_decode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
+{
+    return bacnet_time_value_decode(apdu, MAX_APDU, value);
+}
+
+int bacnet_time_value_context_decode(uint8_t *apdu, int max_apdu_len, uint8_t tag_number, BACNET_TIME_VALUE *value)
+{
+    int len;
+    int apdu_len = 0;
+
+    if ((max_apdu_len - apdu_len) >= 1 && decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
+        apdu_len += 1;
+    } else {
+        return -1;
+    }
+
+    len = bacnet_time_value_decode(&apdu[apdu_len], max_apdu_len - apdu_len, value);
+    if (len > 0) {
+        apdu_len += len;
+    } else {
+        return -1;
+    }
+
+    if ((max_apdu_len - apdu_len) >= 1 && decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
+        apdu_len += 1;
+    } else {
+        return -1;
+    }
+
+    return apdu_len;
+}
+
 int bacapp_decode_context_time_value(
     uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
 {
-    int len = 0;
-    int section_length;
-
-    if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
-        len++;
-    } else {
-        return -1;
-    }
-
-    section_length = bacapp_decode_time_value(&apdu[len], value);
-    if (section_length > 0) {
-        len += section_length;
-    } else {
-        return -1;
-    }
-
-    if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
-        len++;
-    } else {
-        return -1;
-    }
-
-    return len;
+    return bacnet_time_value_context_decode(apdu, MAX_APDU, tag_number, value);
 }
 
-int bacapp_decode_context_time_values(
+int bacnet_time_values_context_decode(
     uint8_t * apdu,
-    int max_apdu_len,
-    uint8_t tag_number,
+    const int max_apdu_len,
+    const uint8_t tag_number,
     BACNET_TIME_VALUE *time_values,
-    unsigned int max_time_values)
+    const unsigned int max_time_values)
 {
     unsigned int j;
-    int len = 0;
+    int len;
     int apdu_len = 0;
     unsigned int count_values = 0;
     BACNET_TIME_VALUE dummy;
@@ -155,16 +245,16 @@ int bacapp_decode_context_time_values(
         apdu_len++;
         while ((apdu_len < max_apdu_len) &&
             !decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
-            if (count_values < max_time_values)
-                len =
-                    bacapp_decode_time_value(&apdu[apdu_len], /*max_apdu_len - apdu_len,*/
-                        &time_values[count_values++]);
-            else
-                len =
-                    bacapp_decode_time_value(&apdu[apdu_len], /*max_apdu_len - apdu_len,*/
-                        &dummy);
-            if (len < 0)
+            if (count_values < max_time_values) {
+                len = bacnet_time_value_decode(&apdu[apdu_len],
+                    max_apdu_len - apdu_len, &time_values[count_values++]);
+            } else {
+                len = bacnet_time_value_decode(
+                    &apdu[apdu_len], max_apdu_len - apdu_len, &dummy);
+            }
+            if (len < 0) {
                 return -1;
+            }
             apdu_len += len;
         }
         /* Zeroing other values */
@@ -177,8 +267,9 @@ int bacapp_decode_context_time_values(
             time_values[j].Time.hundredths = 0;
         }
         /* overflow ! */
-        if (apdu_len >= max_apdu_len)
+        if (apdu_len >= max_apdu_len) {
             return -1;
+        }
         apdu_len++;     /* closing tag */
         return apdu_len;
     }
@@ -186,7 +277,7 @@ int bacapp_decode_context_time_values(
 }
 
 /* Encodes a : [x] SEQUENCE OF BACnetTimeValue into a fixed-size buffer */
-int bacapp_encode_context_time_values(
+int bacnet_time_values_context_encode(
     uint8_t * apdu,
     uint8_t tag_number,
     BACNET_TIME_VALUE *time_values,
@@ -212,7 +303,7 @@ int bacapp_encode_context_time_values(
                 apdu_offset = &apdu[apdu_len];
             }
             len =
-                bacapp_encode_time_value(apdu_offset,
+                bacnet_time_value_encode(apdu_offset,
                 &time_values[j]);
             if (len < 0)
                 return -1;

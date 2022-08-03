@@ -40,19 +40,19 @@ extern "C" {
 
     /** Decode WeeklySchedule */
     BACNET_STACK_EXPORT
-    int weeklyschedule_decode(
+    int bacnet_weeklyschedule_decode(
         uint8_t * apdu,
         int max_apdu_len,
         BACNET_WEEKLY_SCHEDULE * week);
 
     /** Encode WeeklySchedule */
     BACNET_STACK_EXPORT
-    int weeklyschedule_encode(
+    int bacnet_weeklyschedule_encode(
         uint8_t * apdu,
         BACNET_WEEKLY_SCHEDULE * week);
 
     BACNET_STACK_EXPORT
-    int weeklyschedule_context_encode(
+    int bacnet_weeklyschedule_context_encode(
         uint8_t *apdu, uint8_t tag_number, BACNET_WEEKLY_SCHEDULE *value);
 
 #ifdef __cplusplus

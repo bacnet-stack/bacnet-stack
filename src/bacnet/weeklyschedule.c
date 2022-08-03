@@ -36,7 +36,7 @@ License.
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/bacdcode.h"
 
-int weeklyschedule_decode(
+int bacnet_weeklyschedule_decode(
     uint8_t * apdu,
     int max_apdu_len,
     BACNET_WEEKLY_SCHEDULE * week)
@@ -46,9 +46,8 @@ int weeklyschedule_decode(
     int apdu_len = 0;
 
     for (j = 0; j < 7; j++) {
-        len =
-            dailyschedule_decode(&apdu[apdu_len], max_apdu_len - apdu_len,
-                &week->weeklySchedule[j]);
+        len = bacnet_dailyschedule_decode(
+            &apdu[apdu_len], max_apdu_len - apdu_len, &week->weeklySchedule[j]);
         if (len < 0)
             return -1;
         apdu_len += len;
@@ -56,7 +55,7 @@ int weeklyschedule_decode(
     return apdu_len;
 }
 
-int weeklyschedule_encode(
+int bacnet_weeklyschedule_encode(
     uint8_t * apdu,
     BACNET_WEEKLY_SCHEDULE * week)
 {
@@ -71,8 +70,7 @@ int weeklyschedule_encode(
             apdu_offset = &apdu[apdu_len];
         }
         len =
-            dailyschedule_encode(apdu_offset,
-                &week->weeklySchedule[j]);
+            bacnet_dailyschedule_encode(apdu_offset, &week->weeklySchedule[j]);
         if (len < 0)
             return -1;
         apdu_len += len;
@@ -89,7 +87,7 @@ int weeklyschedule_encode(
  * @param value - WeeklySchedule structure
  * @return length of the APDU buffer, or 0 if not able to encode
  */
-int weeklyschedule_context_encode(
+int bacnet_weeklyschedule_context_encode(
     uint8_t *apdu, uint8_t tag_number, BACNET_WEEKLY_SCHEDULE *value)
 {
     int len = 0;
@@ -103,7 +101,7 @@ int weeklyschedule_context_encode(
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
         }
-        len = weeklyschedule_encode(apdu_offset, value);
+        len = bacnet_weeklyschedule_encode(apdu_offset, value);
         apdu_len += len;
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
