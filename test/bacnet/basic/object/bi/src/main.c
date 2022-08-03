@@ -10,6 +10,7 @@
 
 #include <ztest.h>
 #include <bacnet/basic/object/bi.h>
+#include <bacnet/bactext.h>
 
 /**
  * @addtogroup bacnet_tests
