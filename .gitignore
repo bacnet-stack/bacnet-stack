@@ -70,3 +70,6 @@ Release/
 apps/piface/libmcp23s17/
 apps/piface/libpifacedigital/
 
+/test/build/
+/cmake-build-*
+/.idea
