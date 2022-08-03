@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "bacnet/bacnet_stack_exports.h"
+#include "bacnet/bacnet_compiler_support.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/datetime.h"
@@ -107,33 +108,33 @@ extern "C" {
     int bacnet_time_value_encode(uint8_t * apdu,
         BACNET_TIME_VALUE * value);
 
+    BACNET_STACK_DEPRECATED("Use bacnet_time_value_encode() instead")
     BACNET_STACK_EXPORT
-    int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value)
-        __attribute__((deprecated("Use bacnet_time_value_encode() instead")));
+    int bacapp_encode_time_value(uint8_t *apdu, BACNET_TIME_VALUE *value);
 
     BACNET_STACK_EXPORT
     int bacnet_time_value_context_encode(uint8_t * apdu,
         uint8_t tag_number,
         BACNET_TIME_VALUE * value);
 
+    BACNET_STACK_DEPRECATED("Use bacnet_time_value_context_encode() instead")
     BACNET_STACK_EXPORT
-    int bacapp_encode_context_time_value(uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value)
-        __attribute__((deprecated("Use bacnet_time_value_context_encode() instead")));
+    int bacapp_encode_context_time_value(uint8_t *apdu, uint8_t tag_number, BACNET_TIME_VALUE *value);
 
+    BACNET_STACK_DEPRECATED("Use bacnet_time_value_decode() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_time_value(uint8_t * apdu,
-        BACNET_TIME_VALUE * value)
-        __attribute__((deprecated("Use bacnet_time_value_decode() instead")));
+        BACNET_TIME_VALUE * value);
 
     BACNET_STACK_EXPORT
     int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len,
         BACNET_TIME_VALUE *value);
 
+    BACNET_STACK_DEPRECATED("Use bacnet_time_value_context_decode() instead")
     BACNET_STACK_EXPORT
     int bacapp_decode_context_time_value(uint8_t * apdu,
         uint8_t tag_number,
-        BACNET_TIME_VALUE * value)
-        __attribute__((deprecated("Use bacnet_time_value_context_decode() instead")));
+        BACNET_TIME_VALUE * value);
 
     BACNET_STACK_EXPORT
     int bacnet_time_value_context_decode(uint8_t *apdu, int max_apdu_len,
