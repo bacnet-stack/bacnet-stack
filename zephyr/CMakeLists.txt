@@ -111,6 +111,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/bv.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/channel.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/color_object.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/color_temperature.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/command.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.h
     ${BACNETSTACK_SRC}/bacnet/basic/object/csv.h
@@ -328,6 +330,8 @@ set(BACNETSTACK_BASIC_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/object/channel.c
     #${BACNETSTACK_SRC}/bacnet/basic/object/client/device-client.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/command.c
+    ${BACNETSTACK_SRC}/bacnet/basic/object/color_object.c
+    ${BACNETSTACK_SRC}/bacnet/basic/object/color_temperature.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/csv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/device.c

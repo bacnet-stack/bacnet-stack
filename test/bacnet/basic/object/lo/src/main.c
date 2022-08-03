@@ -24,10 +24,6 @@ static void testLightingOutput(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = 0;
-    uint32_t decoded_instance = 0;
     BACNET_READ_PROPERTY_DATA rpdata;
     BACNET_APPLICATION_DATA_VALUE value = {0};
     const int *required_property = NULL;
@@ -52,11 +48,9 @@ static void testLightingOutput(void)
                 printf("property '%s': failed to decode!\n",
                     bactext_property_name(rpdata.object_property));
             }
-            if ((rpdata.object_property == PROP_LIGHTING_COMMAND) ||
-                (rpdata.object_property == PROP_PRIORITY_ARRAY) ||
-                (rpdata.object_property == PROP_TRACKING_VALUE)) {
-                /* FIXME: how to decode the complex data? */
-                test_len = len;
+            if (rpdata.object_property == PROP_PRIORITY_ARRAY) {
+                /* FIXME: known fail to decode */
+                len = test_len;
             }
             zassert_equal(len, test_len, NULL);
         }

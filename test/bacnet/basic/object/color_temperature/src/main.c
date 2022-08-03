@@ -11,21 +11,6 @@
 #include <bacnet/basic/object/color_temperature.h>
 
 
-bool Device_Valid_Object_Name(
-    BACNET_CHARACTER_STRING * object_name,
-    BACNET_OBJECT_TYPE *object_type,
-    uint32_t * object_instance)
-{
-    return true;
-}
-
-void Device_Inc_Database_Revision(
-    void)
-{
-
-}
-
-
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -53,11 +38,11 @@ static void testColorTemperature(void)
     rpdata.object_instance = instance;
     rpdata.object_property = PROP_OBJECT_IDENTIFIER;
 
-    Color_Property_Lists(&required_property, NULL, NULL);
+    Color_Temperature_Property_Lists(&required_property, NULL, NULL);
     while ((*required_property) >= 0) {
         rpdata.object_property = *required_property;
         rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Color_Read_Property(&rpdata);
+        len = Color_Temperature_Read_Property(&rpdata);
         zassert_true(len >= 0, NULL);
         if (len >= 0) {
             test_len = bacapp_decode_known_property(rpdata.application_data,

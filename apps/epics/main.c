@@ -793,10 +793,10 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
  */
 static void Print_Property_Identifier(unsigned propertyIdentifier)
 {
-    if (propertyIdentifier < 512) {
-        fprintf(stdout, "%s", bactext_property_name(propertyIdentifier));
-    } else {
+    if (bactext_property_name_proprietary(propertyIdentifier)) {
         fprintf(stdout, "-- proprietary %u", propertyIdentifier);
+    } else {
+        fprintf(stdout, "%s", bactext_property_name(propertyIdentifier));
     }
 }
 
@@ -1675,7 +1675,7 @@ int main(int argc, char *argv[])
                         myState = PRINT_HEADING;
                     /* just press ahead without the data */
                     } else {
-                        myState = NEXT_OBJECT; 
+                        myState = NEXT_OBJECT;
 }/* Give up and move on to the
                                                   next. */
                     Error_Count++;

@@ -45,6 +45,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/indtext.c
     ${BACNET_SRC}/lighting.c
     ${BACNET_SRC}/wp.c
+    ${BACNET_SRC}/hostnport.c
     )
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)

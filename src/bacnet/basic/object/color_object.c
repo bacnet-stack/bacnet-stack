@@ -465,7 +465,7 @@ bool Color_Default_Fade_Time_Set(uint32_t object_instance, uint32_t value)
  */
 BACNET_COLOR_TRANSITION Color_Transition(uint32_t object_instance)
 {
-    BACNET_COLOR_TRANSITION value = BACNET_COLOR_OPERATION_IN_PROGRESS_MAX;
+    BACNET_COLOR_TRANSITION value = BACNET_COLOR_TRANSITION_NONE;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);

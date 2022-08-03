@@ -23,6 +23,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
+	BACAPP_ALL
 	)
 
 include_directories(
@@ -32,29 +33,24 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
-	${SRC_DIR}/bacnet/basic/object/color_temperature.c
+	${SRC_DIR}/bacnet/bactimevalue.c
     # Support files and stubs (pathname alphabetical)
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
-	${SRC_DIR}/bacnet/bacdevobjpropref.c
 	${SRC_DIR}/bacnet/bacint.c
+	${SRC_DIR}/bacnet/bacdevobjpropref.c
 	${SRC_DIR}/bacnet/bacreal.c
 	${SRC_DIR}/bacnet/bacstr.c
 	${SRC_DIR}/bacnet/bactext.c
 	${SRC_DIR}/bacnet/basic/sys/bigend.c
-	${SRC_DIR}/bacnet/basic/sys/keylist.c
-	${SRC_DIR}/bacnet/cov.c
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/basic/sys/days.c
 	${SRC_DIR}/bacnet/indtext.c
 	${SRC_DIR}/bacnet/hostnport.c
 	${SRC_DIR}/bacnet/lighting.c
 	${SRC_DIR}/bacnet/timestamp.c
-	${SRC_DIR}/bacnet/memcopy.c
-	${SRC_DIR}/bacnet/wp.c
     # Test and test library files
 	./src/main.c
-	../mock/device_mock.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

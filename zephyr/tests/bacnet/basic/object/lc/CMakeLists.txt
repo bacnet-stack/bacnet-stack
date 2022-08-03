@@ -47,6 +47,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/lighting.c
     ${BACNET_SRC}/wp.c
     ${BACNET_OBJECT_SRC}/ao.c
+    ${BACNET_SRC}/hostnport.c
     )
 
   add_definitions(-DUNIT_TESTING)

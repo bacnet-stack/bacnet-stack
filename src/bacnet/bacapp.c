@@ -972,6 +972,45 @@ int bacapp_decode_generic_property(
 #endif
 
 #if defined(BACAPP_TYPES_EXTRA)
+/* decode one value of a priority array */
+static int decode_priority_value(uint8_t *apdu,
+    unsigned max_apdu_len,
+    BACNET_APPLICATION_DATA_VALUE *value,
+    BACNET_PROPERTY_ID prop)
+{
+    int val_len = 0;
+    uint32_t len_value_type = 0;
+    int len = 0;
+    bool is_opening_tag;
+    uint8_t tag_number;
+
+    if (decode_is_context_tag(apdu, 0) && !decode_is_closing_tag(apdu)) {
+        /* Contextual Abstract-syntax & type */
+        val_len =
+            decode_tag_number_and_value(apdu, &tag_number, &len_value_type);
+        is_opening_tag = decode_is_opening_tag(apdu);
+        len += val_len;
+        val_len = bacapp_decode_generic_property(
+            &apdu[len], max_apdu_len - len, value, prop);
+        if (val_len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        len += val_len;
+        if (is_opening_tag) {
+            if (!decode_is_closing_tag_number(apdu, 0)) {
+                return BACNET_STATUS_ERROR;
+            }
+            len++;
+        }
+    } else {
+        len = bacapp_decode_generic_property(apdu, max_apdu_len, value, prop);
+    }
+
+    return len;
+}
+#endif
+
+#if defined(BACAPP_TYPES_EXTRA)
 /**
  * @brief Decodes a well-known, possibly complex property value
  *  Used to reverse operations in bacapp_encode_application_data
@@ -1060,12 +1099,12 @@ int bacapp_decode_known_property(uint8_t *apdu,
             len = bacapp_decode_timestamp(apdu, &value->type.Time_Stamp);
             break;
         case PROP_DEFAULT_COLOR:
-        case PROP_TRACKING_VALUE:
             /* Properties using BACnetxyColor */
             value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
             len = xy_color_decode(apdu, max_apdu_len,
                 &value->type.XY_Color);
             break;
+        case PROP_TRACKING_VALUE:
         case PROP_PRESENT_VALUE:
             if (object_type == OBJECT_COLOR) {
                 /* Properties using BACnetxyColor */
@@ -1083,6 +1122,16 @@ int bacapp_decode_known_property(uint8_t *apdu,
             value->tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
             len = color_command_decode(apdu, max_apdu_len, NULL,
                 &value->type.Color_Command);
+            break;
+        case PROP_LIGHTING_COMMAND:
+            /* Properties using BACnetLightingCommand */
+            value->tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
+            len = lighting_command_decode(apdu, max_apdu_len,
+                &value->type.Lighting_Command);
+            break;
+        case PROP_PRIORITY_ARRAY:
+            /* [16] BACnetPriorityValue : 16x values (simple property) */
+            len = decode_priority_value(apdu, max_apdu_len, value, property);
             break;
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */
@@ -1696,11 +1745,12 @@ int bacapp_snprintf_value(
                         }
                         break;
                     case PROP_OBJECT_TYPE:
-                        if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
+                        if (value->type.Enumerated < BACNET_OBJECT_TYPE_LAST) {
                             ret_val = snprintf(str, str_len, "%s",
                                 bactext_object_type_name(
                                     value->type.Enumerated));
-                        } else if (value->type.Enumerated < 128) {
+                        } else if (value->type.Enumerated <
+                            BACNET_OBJECT_TYPE_RESERVED_MAX) {
                             ret_val = snprintf(str, str_len, "reserved %lu",
                                 (unsigned long)value->type.Enumerated);
                         } else {
@@ -1713,13 +1763,14 @@ int bacapp_snprintf_value(
                             bactext_event_state_name(value->type.Enumerated));
                         break;
                     case PROP_UNITS:
-                        if (value->type.Enumerated < 256) {
+                        if (bactext_engineering_unit_name_proprietary(
+                            (unsigned)value->type.Enumerated)) {
+                            ret_val = snprintf(str, str_len, "proprietary %lu",
+                                (unsigned long)value->type.Enumerated);
+                        } else {
                             ret_val = snprintf(str, str_len, "%s",
                                 bactext_engineering_unit_name(
                                     value->type.Enumerated));
-                        } else {
-                            ret_val = snprintf(str, str_len, "proprietary %lu",
-                                (unsigned long)value->type.Enumerated);
                         }
                         break;
                     case PROP_POLARITY:
@@ -1785,10 +1836,11 @@ int bacapp_snprintf_value(
                     }
                 }
                 ret_val += slen;
-                if (value->type.Object_Id.type < MAX_ASHRAE_OBJECT_TYPE) {
+                if (value->type.Object_Id.type <= BACNET_OBJECT_TYPE_LAST) {
                     slen = snprintf(str, str_len, "%s, ",
                         bactext_object_type_name(value->type.Object_Id.type));
-                } else if (value->type.Object_Id.type < 128) {
+                } else if (value->type.Object_Id.type <
+                    BACNET_OBJECT_TYPE_RESERVED_MAX) {
                     slen = snprintf(str, str_len, "reserved %u, ",
                         (unsigned)value->type.Object_Id.type);
                 } else {
