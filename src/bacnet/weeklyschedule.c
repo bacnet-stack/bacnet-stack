@@ -40,7 +40,7 @@ License.
 int bacnet_weeklyschedule_decode(
     uint8_t * apdu,
     int max_apdu_len,
-    BACNET_WEEKLY_SCHEDULE * week)
+    BACNET_WEEKLY_SCHEDULE *value)
 {
     int j;
     int len = 0;
@@ -48,7 +48,7 @@ int bacnet_weeklyschedule_decode(
 
     for (j = 0; j < 7; j++) {
         len = bacnet_dailyschedule_decode(
-            &apdu[apdu_len], max_apdu_len - apdu_len, &week->weeklySchedule[j]);
+            &apdu[apdu_len], max_apdu_len - apdu_len, &value->weeklySchedule[j]);
         if (len < 0)
             return -1;
         apdu_len += len;
@@ -58,7 +58,7 @@ int bacnet_weeklyschedule_decode(
 
 int bacnet_weeklyschedule_encode(
     uint8_t * apdu,
-    BACNET_WEEKLY_SCHEDULE * week)
+    BACNET_WEEKLY_SCHEDULE *value)
 {
     int j;
     int apdu_len = 0;
@@ -71,7 +71,7 @@ int bacnet_weeklyschedule_encode(
             apdu_offset = &apdu[apdu_len];
         }
         len =
-            bacnet_dailyschedule_encode(apdu_offset, &week->weeklySchedule[j]);
+            bacnet_dailyschedule_encode(apdu_offset, &value->weeklySchedule[j]);
         if (len < 0)
             return -1;
         apdu_len += len;
@@ -111,6 +111,33 @@ int bacnet_weeklyschedule_context_encode(
         apdu_len += len;
     }
 
+    return apdu_len;
+}
+
+int bacnet_weeklyschedule_context_decode(
+    uint8_t *apdu, int max_apdu_len, uint8_t tag_number,
+    BACNET_WEEKLY_SCHEDULE *value)
+{
+    int apdu_len = 0;
+    int len;
+
+    if ((max_apdu_len - apdu_len) >= 1 && decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
+        apdu_len += 1;
+    } else {
+        return -1;
+    }
+
+    if (-1 == (len = bacnet_weeklyschedule_decode(&apdu[apdu_len], max_apdu_len - apdu_len, value))) {
+        return -1;
+    } else {
+        apdu_len += len;
+    }
+
+    if ((max_apdu_len - apdu_len) >= 1 && decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
+        apdu_len += 1;
+    } else {
+        return -1;
+    }
     return apdu_len;
 }
 
