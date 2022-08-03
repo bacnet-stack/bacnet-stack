@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <ztest.h>
-#include <bacnet/datalink/websocket.h>
+#include <bacnet/datalink/bsc/websocket.h>
 #include <unistd.h>
 
 #define TEST_THREAD_NUM 10
@@ -2197,6 +2197,7 @@ static void *test_srv_multiple_recv_timedout_th(void *arg)
     size_t bufsize = sizeof(buf);
     size_t r;
     int timeout = *(int *)arg;
+    (void) ret;
     ret = srv->bws_recv(
         test_srv_multiple_recv_timedout_h, buf, sizeof(buf), &r, timeout);
     return NULL;
@@ -2643,6 +2644,7 @@ static void *test_cli_multiple_recv_timedout_th(void *arg)
     size_t bufsize = sizeof(buf);
     size_t r;
     int timeout = *(int *)arg;
+    (void) ret;
     ret = cli->bws_recv(
         test_cli_multiple_recv_timedout_h, buf, sizeof(buf), &r, timeout);
     return NULL;
@@ -2826,7 +2828,7 @@ void test_main(void)
     ztest_test_suite(
         websocket_cli_test_7, ztest_unit_test(test_cli_multiple_recv_timedout));
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         ztest_run_test_suite(websocket_srv_test_1);
         ztest_run_test_suite(websocket_srv_test_2);
         ztest_run_test_suite(websocket_srv_test_3);

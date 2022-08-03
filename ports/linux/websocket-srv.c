@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "bacnet/datalink/websocket.h"
+#include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/debug.h"
 

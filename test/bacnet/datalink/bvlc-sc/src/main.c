@@ -13,7 +13,7 @@
 
 #include <stdlib.h>  /* For calloc() */
 #include <ztest.h>
-#include <bacnet/datalink/bvlc-sc.h>
+#include <bacnet/datalink/bsc/bvlc-sc.h>
 
 
 static bool verify_bsc_bvll_header(

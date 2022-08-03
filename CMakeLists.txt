@@ -141,7 +141,10 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
-    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bvlc-sc.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc.h>
     src/bacnet/basic/binding/address.c
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c
