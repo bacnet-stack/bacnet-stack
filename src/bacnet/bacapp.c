@@ -2203,11 +2203,15 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
         switch (tag_number) {
 #if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
-                long_value = strtol(argv, NULL, 0);
-                if (long_value)
+                if (strcasecmp(argv, "true") == 0 || strcasecmp(argv, "active") == 0) {
                     value->type.Boolean = true;
-                else
-                    value->type.Boolean = false;
+                } else {
+                    long_value = strtol(argv, NULL, 0);
+                    if (long_value)
+                        value->type.Boolean = true;
+                    else
+                        value->type.Boolean = false;
+                }
                 break;
 #endif
 #if defined(BACAPP_UNSIGNED)
