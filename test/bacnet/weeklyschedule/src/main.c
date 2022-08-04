@@ -32,9 +32,13 @@
 static void test_BACnetWeeklySchedule()
 {
     int len, apdu_len;
-    uint8_t apdu[MAX_APDU] = {};
-    BACNET_WEEKLY_SCHEDULE empty_value = {};
-    BACNET_WEEKLY_SCHEDULE value = {};
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_WEEKLY_SCHEDULE empty_value = { 0 };
+    BACNET_WEEKLY_SCHEDULE value = { 0 };
+    BACNET_WEEKLY_SCHEDULE decoded = { 0 };
+    int diff = 0;
+    bool status = false;
+    uint8_t tag_number = 0;
 
     value.weeklySchedule[0].TV_Count = 2;
 
@@ -62,10 +66,6 @@ static void test_BACnetWeeklySchedule()
         .type.Unsigned_Int = 777,
     };
 
-    BACNET_WEEKLY_SCHEDULE decoded = {};
-    int diff = 0;
-    bool status = false;
-    uint8_t tag_number = 0;
 
     len = bacnet_weeklyschedule_encode(apdu, &value);
     apdu_len = bacnet_weeklyschedule_decode(apdu, len, &decoded);

@@ -171,6 +171,7 @@ int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len, BACNET_TIME_VALUE 
 {
     int len;
     int apdu_len = 0;
+    BACNET_APPLICATION_DATA_VALUE full_data_value = { 0 };
 
     len = bacnet_time_application_decode(&apdu[apdu_len], max_apdu_len, &value->Time);
     if (len <= 0) {
@@ -178,7 +179,6 @@ int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len, BACNET_TIME_VALUE 
     }
     apdu_len += len;
 
-    BACNET_APPLICATION_DATA_VALUE full_data_value = {};
     len = bacapp_decode_application_data(&apdu[apdu_len], max_apdu_len - apdu_len, &full_data_value);
     if (len <= 0) {
         return -1;
