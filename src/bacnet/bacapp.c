@@ -2176,11 +2176,133 @@ bool bacapp_print_value(
 }
 #endif
 
+static char* ltrim(char *str, const char *trimmedchars) {
+    while(strchr(trimmedchars, *str)) {
+        str++;
+    }
+    return str;
+}
+
+static char* rtrim(char *str, const char *trimmedchars) {
+    char *end = str + strlen(str) - 1;
+    while (end != str && strchr(trimmedchars, *end)) {
+        *end = 0;
+        end--;
+    }
+    return str;
+}
+
+static char* trim(char *str, const char *trimmedchars) {
+    return ltrim(rtrim(str, trimmedchars), trimmedchars);
+}
+
+static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
+{
+    char *chunk, *comma, *space, *t, *v;
+    int daynum = 0, tvnum = 0, inner_tag;
+    BACNET_APPLICATION_DATA_VALUE dummy_value = { 0 };
+    BACNET_DAILY_SCHEDULE *dsch;
+
+    /*
+     Format:
+
+     (1; Mon: [02:00:00.00 FALSE, 07:35:00.00 active, 07:40:00.00 inactive]; Tue: [02:00:00.00 inactive]; ...)
+
+     - the first number is the inner tag (e.g. 1 = boolean, 4 = real, 9 = enum)
+     - Day name prefix is optional and ignored.
+     - Entries are separated by semicolons.
+     - There can be a full week, or only one entry - when using array index to modify a single day
+     - time-value array can be empty: []
+    */
+
+    value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
+
+    // Parse the inner tag
+    chunk = strtok(str, ";");
+    chunk = ltrim(chunk, "(");
+    if (false == bacapp_parse_application_data(BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
+        return false;
+    }
+    inner_tag = (int) dummy_value.type.Unsigned_Int;
+
+    chunk = strtok(NULL, ";");
+
+    while(chunk != NULL) {
+        dsch = &value->type.Weekly_Schedule.weeklySchedule[daynum];
+
+        // Strip day name prefix, if present
+        char *colonpos = strchr(chunk, ':');
+        char *sqpos = strchr(chunk, '[');
+        if (colonpos && colonpos < sqpos) {
+            chunk = colonpos + 1;
+        }
+
+        // Extract the inner list of time-values
+        chunk = rtrim(ltrim(chunk, "([ "), " ])");
+
+        // The list can be empty
+        if (chunk[0] != 0) {
+            // loop through the time value pairs
+            tvnum = 0;
+            do {
+                // Find the comma delimiter, replace with NUL (like strtok)
+                comma = strchr(chunk, ',');
+                if (comma) {
+                    *comma = 0;
+                }
+                // trim the time-value pair and find the delimiter space
+                chunk = trim(chunk, " ");
+                space = strchr(chunk, ' ');
+                if (!space) {
+                    // malformed time-value pair
+                    return false;
+                }
+                *space = 0;
+
+                // Extract time and value
+                t = chunk;
+                // value starts one byte after the space, and there can be multiple spaces
+                chunk = ltrim(space + 1, " ");
+                v = chunk;
+
+                // Parse time
+                if (false == bacapp_parse_application_data(BACNET_APPLICATION_TAG_TIME, t, &dummy_value)) {
+                    return false;
+                }
+                dsch->Time_Values[tvnum].Time = dummy_value.type.Time;
+
+                // Parse value
+                if (false == bacapp_parse_application_data(inner_tag, v, &dummy_value)) {
+                    return false;
+                }
+                if (BACNET_STATUS_OK != bacnet_data_value_to_short_data_value(&dsch->Time_Values[tvnum].Value, &dummy_value)) {
+                    return false;
+                }
+
+                // Advance past the comma to the next chunk
+                if (comma) {
+                    chunk = comma + 1;
+                }
+                tvnum++;
+            } while (comma != NULL);
+        }
+
+        value->type.Weekly_Schedule.weeklySchedule[daynum].TV_Count = tvnum;
+
+        // Find the start of the next day
+        chunk = strtok(NULL, ";");
+        daynum++;
+    }
+
+    return true;
+}
+
 #ifdef BACAPP_PRINT_ENABLED
 /* used to load the app data struct with the proper data
-   converted from a command line argument */
+   converted from a command line argument.
+   "argv" is not const to allow using strtok internally. It MAY be modified. */
 bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
-    const char *argv,
+    char *argv,
     BACNET_APPLICATION_DATA_VALUE *value)
 {
     int hour, min, sec, hundredths;
@@ -2332,7 +2454,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
                 /* FIXME: add parsing for BACnetColorCommand */
                 break;
             case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
-                /* FIXME: add parsing for BACnetWeeklySchedule */
+                status = parse_weeklyschedule(argv, value);
                 break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 count = sscanf(argv, "%3u.%3u.%3u.%3u:%5u",

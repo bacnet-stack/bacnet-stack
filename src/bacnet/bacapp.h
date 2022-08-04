@@ -262,7 +262,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool bacapp_parse_application_data(
         BACNET_APPLICATION_TAG tag_number,
-        const char *argv,
+        char *argv,
         BACNET_APPLICATION_DATA_VALUE * value);
     BACNET_STACK_EXPORT
     bool bacapp_print_value(
