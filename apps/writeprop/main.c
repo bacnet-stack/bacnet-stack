@@ -335,11 +335,13 @@ int main(int argc, char *argv[])
         args_remaining--;
         /* printf("tag[%d]=%u value[%d]=%s\n",
            i, property_tag, i, value_string); */
+#if 0
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
             fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
+#endif
         status = bacapp_parse_application_data(
             property_tag, value_string, &Target_Object_Property_Value[i]);
         if (!status) {
@@ -347,6 +349,14 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Error: unable to parse the tag value\n");
             return 1;
         }
+
+        // Prepare fake struct for the print function
+        BACNET_OBJECT_PROPERTY_VALUE dummy_opv = {
+            .value = &Target_Object_Property_Value[i],
+            .object_property = 123
+        };
+        bacapp_print_value(stderr, &dummy_opv);
+
         Target_Object_Property_Value[i].next = NULL;
         if (i > 0) {
             Target_Object_Property_Value[i - 1].next =
