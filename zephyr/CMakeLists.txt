@@ -411,6 +411,8 @@ list(
       ${BACNETSTACK_PORT}/ai.c
       ${BACNETSTACK_PORT}/av.c
       ${BACNETSTACK_PORT}/event.c
+      $<$<BOOL:${CONFIG_WEBSOCKET_CLIENT}>:${BACNETSTACK_PORT}/websocket-cli.c>
+      $<$<BOOL:${CONFIG_WEBSOCKET_CLIENT}>:${BACNETSTACK_PORT}/websocket-srv.c>
   )
 
 

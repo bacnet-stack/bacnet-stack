@@ -316,3 +316,11 @@ writepropm: $(BACNET_LIB_TARGET)
 .PHONY: sc-server
 sc-server: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
+
+.PHONY: websocketssrv
+websocketssrv: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@
+
+.PHONY: websocketscli
+websocketscli: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@
