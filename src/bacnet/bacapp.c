@@ -2198,6 +2198,7 @@ static char* trim(char *str, const char *trimmedchars) {
     return ltrim(rtrim(str, trimmedchars), trimmedchars);
 }
 
+#if defined (BACAPP_TYPES_EXTRA)
 static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
     char *chunk, *comma, *space, *t, *v;
@@ -2298,6 +2299,7 @@ static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value
 
     return true;
 }
+#endif
 
 static bool strtol_checked(const char *s, long *out)
 {
