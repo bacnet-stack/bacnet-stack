@@ -1556,7 +1556,33 @@ static int bacapp_snprintf_weeklyschedule(
     BACNET_OBJECT_PROPERTY_VALUE dummyPropValue;
     BACNET_APPLICATION_DATA_VALUE dummyDataValue;
 
-    slen = snprintf(str, str_len, "(");
+
+    const char *weekdaynames[7] = {
+        "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+    };
+    const int loopend = ((arrayIndex == BACNET_ARRAY_ALL) ? 7 : 1);
+
+    // Find what inner type it uses
+    int inner_tag = -1;
+    for (int wi = 0; wi < loopend; wi++) {
+        BACNET_DAILY_SCHEDULE *ds = &ws->weeklySchedule[wi];
+        for (int ti = 0; ti < ds->TV_Count; ti++) {
+            int tag = ds->Time_Values[ti].Value.tag;
+            if (inner_tag == -1) {
+                inner_tag = tag;
+            } else if (inner_tag != tag) {
+                inner_tag = -2;
+            }
+        }
+    }
+
+    if (inner_tag == -1) {
+        slen = snprintf(str, str_len, "(UNKNOWN_TYPE; ");
+    } else if (inner_tag == -1) {
+        slen = snprintf(str, str_len, "(MIXED_TYPES; ");
+    } else {
+        slen = snprintf(str, str_len, "(%d; ", inner_tag);
+    }
     ret_val += slen;
     if (str) {
         str += slen;
@@ -1566,10 +1592,7 @@ static int bacapp_snprintf_weeklyschedule(
             str_len = 0;
         }
     }
-    const char *weekdaynames[7] = {
-        "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
-    };
-    const int loopend = ((arrayIndex == BACNET_ARRAY_ALL) ? 7 : 1);
+
     for (int wi = 0; wi < loopend; wi++) {
         BACNET_DAILY_SCHEDULE *ds = &ws->weeklySchedule[wi];
         if (arrayIndex == BACNET_ARRAY_ALL) {
