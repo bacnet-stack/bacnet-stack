@@ -1575,7 +1575,10 @@ static int bacapp_snprintf_weeklyschedule(
         if (arrayIndex == BACNET_ARRAY_ALL) {
             slen = snprintf(str, str_len, "%s: [", weekdaynames[wi]);
         } else {
-            slen = snprintf(str, str_len, "[");
+            slen = snprintf(
+                str, str_len, "%s: [",
+                (arrayIndex >= 1 && arrayIndex <= 7) ? weekdaynames[arrayIndex - 1] : "???"
+            );
         }
         ret_val += slen;
         if (str) {
