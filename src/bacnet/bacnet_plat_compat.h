@@ -21,11 +21,11 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef BACNET_COMPILER_SUPPORT_H
-#define BACNET_COMPILER_SUPPORT_H
+#ifndef BACNET_PLAT_COMPAT_H
+#define BACNET_PLAT_COMPAT_H
 
 /*
- * Macros to support different compilers
+ * Macros to support different compilers and platforms
  */
 
 # ifdef _MSC_VER
@@ -34,4 +34,8 @@
 #   define BACNET_STACK_DEPRECATED(message) __attribute__((deprecated(message)))
 # endif
 
-#endif  // BACNET_COMPILER_SUPPORT_H
+# if defined(WIN32) || defined(WIN64)
+#  define strcasecmp _stricmp
+# endif
+
+#endif // BACNET_PLAT_COMPAT_H
