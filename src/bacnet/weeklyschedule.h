@@ -36,6 +36,7 @@ extern "C" {
 
     typedef struct BACnet_Weekly_Schedule {
         BACNET_DAILY_SCHEDULE weeklySchedule[7];
+        bool singleDay;
     } BACNET_WEEKLY_SCHEDULE;
 
     /** Decode WeeklySchedule */
