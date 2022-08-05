@@ -48,8 +48,12 @@ int bacnet_weeklyschedule_decode(
     for (int wi = 0; wi < 7; wi++) {
         len = bacnet_dailyschedule_decode(
             &apdu[apdu_len], max_apdu_len - apdu_len, &value->weeklySchedule[wi]);
-        if (len < 0)
+        if (len < 0) {
+            if (wi == 1) {
+                break;
+            }
             return -1;
+        }
         apdu_len += len;
     }
     return apdu_len;
