@@ -350,12 +350,16 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        // Prepare fake struct for the print function
+        // Print the written value (for debug)
+#if 0
+        fprintf(stderr, "Writing: ");
         BACNET_OBJECT_PROPERTY_VALUE dummy_opv = {
             .value = &Target_Object_Property_Value[i],
-            .object_property = 123
+            .array_index = Target_Object_Property_Index,
         };
         bacapp_print_value(stderr, &dummy_opv);
+        fprintf(stderr, "\n");
+#endif
 
         Target_Object_Property_Value[i].next = NULL;
         if (i > 0) {
