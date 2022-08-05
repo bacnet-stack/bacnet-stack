@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h> /* for strtol */
 #include <ctype.h> /* for isalnum */
+#include <errno.h>
 #ifdef __STDC_ISO_10646__
 #include <wchar.h>
 #include <wctype.h>
@@ -2287,13 +2288,61 @@ static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value
             } while (comma != NULL);
         }
 
-        value->type.Weekly_Schedule.weeklySchedule[daynum].TV_Count = tvnum;
+        dsch->TV_Count = tvnum;
 
         // Find the start of the next day
         chunk = strtok(NULL, ";");
         daynum++;
     }
 
+    return true;
+}
+
+static bool strtol_checked(const char *s, long *out)
+{
+    char *end;
+    errno = 0;
+    *out = strtol(s, &end, 0);
+    if (end == s) {
+        // Conversion was not possible
+        return false;
+    }
+    if (errno == ERANGE) {
+        // Number too large
+        return false;
+    }
+    return true;
+}
+
+static bool strtoul_checked(const char *s, unsigned long *out)
+{
+    char *end;
+    errno = 0;
+    *out = strtoul(s, &end, 0);
+    if (end == s) {
+        // Conversion was not possible
+        return false;
+    }
+    if (errno == ERANGE) {
+        // Number too large
+        return false;
+    }
+    return true;
+}
+
+static bool strtod_checked(const char *s, double *out)
+{
+    char *end;
+    errno = 0;
+    *out = strtod(s, &end);
+    if (end == s) {
+        // Conversion was not possible
+        return false;
+    }
+    if (errno == ERANGE) {
+        // Number too large
+        return false;
+    }
     return true;
 }
 
@@ -2311,7 +2360,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
     uint32_t instance = 0;
     bool status = false;
     long long_value = 0;
-    unsigned long unsigned_long_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_long_value = 0;
     double double_value = 0.0;
     int count = 0;
 #if defined(BACAPP_TYPES_EXTRA)
@@ -2327,36 +2376,57 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 if (strcasecmp(argv, "true") == 0 || strcasecmp(argv, "active") == 0) {
                     value->type.Boolean = true;
+                } else if (strcasecmp(argv, "false") == 0 || strcasecmp(argv, "inactive") == 0) {
+                    value->type.Boolean = false;
                 } else {
-                    long_value = strtol(argv, NULL, 0);
-                    if (long_value)
+                    status = strtol_checked(argv, &long_value);
+                    if (!status) {
+                        return false;
+                    }
+                    if (long_value) {
                         value->type.Boolean = true;
-                    else
+                    } else {
                         value->type.Boolean = false;
+                    }
                 }
                 break;
 #endif
 #if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                unsigned_long_value = strtoul(argv, NULL, 0);
+                status = strtoul_checked(argv, &unsigned_long_value);
+                if (!status) {
+                    return false;
+                }
+                if (unsigned_long_value > BACNET_UNSIGNED_INTEGER_MAX) {
+                    return false;
+                }
                 value->type.Unsigned_Int = unsigned_long_value;
                 break;
 #endif
 #if defined(BACAPP_SIGNED)
             case BACNET_APPLICATION_TAG_SIGNED_INT:
-                long_value = strtol(argv, NULL, 0);
-                value->type.Signed_Int = long_value;
+                status = strtol_checked(argv, &long_value);
+                if (!status || long_value > INT32_MAX || long_value < INT32_MIN) {
+                    return false;
+                }
+                value->type.Signed_Int = (int32_t) long_value;
                 break;
 #endif
 #if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
-                double_value = strtod(argv, NULL);
+                status = strtod_checked(argv, &double_value);
+                if (!status) {
+                    return false;
+                }
                 value->type.Real = (float)double_value;
                 break;
 #endif
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                double_value = strtod(argv, NULL);
+                status = strtod_checked(argv, &double_value);
+                if (!status) {
+                    return false;
+                }
                 value->type.Double = double_value;
                 break;
 #endif
@@ -2379,8 +2449,11 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 #endif
 #if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
-                unsigned_long_value = strtoul(argv, NULL, 0);
-                value->type.Enumerated = unsigned_long_value;
+                status = strtoul_checked(argv, &unsigned_long_value);
+                if (!status || unsigned_long_value > UINT32_MAX) {
+                    return false;
+                }
+                value->type.Enumerated = (uint32_t) unsigned_long_value;
                 break;
 #endif
 #if defined(BACAPP_DATE)
