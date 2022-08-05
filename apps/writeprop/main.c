@@ -359,6 +359,13 @@ int main(int argc, char *argv[])
         };
         bacapp_print_value(stderr, &dummy_opv);
         fprintf(stderr, "\n");
+
+        uint8_t apdu[1000];
+        int len = bacapp_encode_application_data(apdu, &Target_Object_Property_Value[i]);
+        for(int q=0;q<len;q++) {
+            printf("%02x ", apdu[q]);
+        }
+        printf("\n");
 #endif
 
         Target_Object_Property_Value[i].next = NULL;

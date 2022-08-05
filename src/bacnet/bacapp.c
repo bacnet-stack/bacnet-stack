@@ -1577,11 +1577,11 @@ static int bacapp_snprintf_weeklyschedule(
     }
 
     if (inner_tag == -1) {
-        slen = snprintf(str, str_len, "(UNKNOWN_TYPE; ");
-    } else if (inner_tag == -1) {
+        slen = snprintf(str, str_len, "(Null; ");
+    } else if (inner_tag == -2) {
         slen = snprintf(str, str_len, "(MIXED_TYPES; ");
     } else {
-        slen = snprintf(str, str_len, "(%d; ", inner_tag);
+        slen = snprintf(str, str_len, "(%s; ", bactext_application_tag_name(inner_tag));
     }
     ret_val += slen;
     if (str) {
@@ -2205,6 +2205,9 @@ bool bacapp_print_value(
 #endif
 
 static char* ltrim(char *str, const char *trimmedchars) {
+    if (str[0] == 0) {
+        return str;
+    }
     while(strchr(trimmedchars, *str)) {
         str++;
     }
@@ -2212,9 +2215,13 @@ static char* ltrim(char *str, const char *trimmedchars) {
 }
 
 static char* rtrim(char *str, const char *trimmedchars) {
+    if (str[0] == 0) {
+        return str;
+    }
     char *end = str + strlen(str) - 1;
-    while (end != str && strchr(trimmedchars, *end)) {
+    while (strchr(trimmedchars, *end)) {
         *end = 0;
+        if (end == str) break;
         end--;
     }
     return str;
@@ -2228,7 +2235,8 @@ static char* trim(char *str, const char *trimmedchars) {
 static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
     char *chunk, *comma, *space, *t, *v;
-    int daynum = 0, tvnum = 0, inner_tag;
+    int daynum = 0, tvnum = 0;
+    unsigned int inner_tag;
     BACNET_APPLICATION_DATA_VALUE dummy_value = { 0 };
     BACNET_DAILY_SCHEDULE *dsch;
 
@@ -2250,9 +2258,13 @@ static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value
     chunk = strtok(str, ";");
     chunk = ltrim(chunk, "(");
     if (false == bacapp_parse_application_data(BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
-        return false;
+        // Try searching it by name
+        if (false == bactext_application_tag_index(chunk, &inner_tag)) {
+            return false;
+        }
+    } else {
+        inner_tag = (int)dummy_value.type.Unsigned_Int;
     }
-    inner_tag = (int) dummy_value.type.Unsigned_Int;
 
     chunk = strtok(NULL, ";");
 
@@ -2321,6 +2333,10 @@ static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value
         // Find the start of the next day
         chunk = strtok(NULL, ";");
         daynum++;
+    }
+
+    if (daynum == 1) {
+        value->type.Weekly_Schedule.singleDay = true;
     }
 
     return true;
