@@ -326,6 +326,10 @@ int bacapp_decode_data(uint8_t *apdu,
                 len = color_command_decode(
                     apdu, len_value_type, NULL, &value->type.Color_Command);
                 break;
+            case BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE:
+                len = bacnet_weeklyschedule_decode(
+                    apdu, len_value_type, &value->type.Weekly_Schedule);
+                break;
             case BACNET_APPLICATION_TAG_HOST_N_PORT:
                 len = host_n_port_decode(
                     apdu, len_value_type, NULL,
