@@ -2208,6 +2208,7 @@ bool bacapp_print_value(
 }
 #endif
 
+#ifdef BACAPP_PRINT_ENABLED
 static char* ltrim(char *str, const char *trimmedchars) {
     if (str[0] == 0) {
         return str;
@@ -2401,7 +2402,6 @@ static bool strtod_checked(const char *s, double *out)
 }
 #endif
 
-#ifdef BACAPP_PRINT_ENABLED
 /* used to load the app data struct with the proper data
    converted from a command line argument.
    "argv" is not const to allow using strtok internally. It MAY be modified. */
@@ -2615,7 +2615,7 @@ bool bacapp_parse_application_data(BACNET_APPLICATION_TAG tag_number,
 
     return status;
 }
-#endif
+#endif /* BACAPP_PRINT_ENABLED */
 
 /**
  * Initialize an array (or single) #BACNET_APPLICATION_DATA_VALUE
