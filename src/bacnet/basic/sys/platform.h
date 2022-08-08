@@ -21,8 +21,8 @@
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *********************************************************************/
-#ifndef BACNET_PLAT_COMPAT_H
-#define BACNET_PLAT_COMPAT_H
+#ifndef BAC_PLATFORM_H
+#define BAC_PLATFORM_H
 
 /*
  * Macros to support different compilers and platforms
@@ -38,4 +38,4 @@
 #  define strcasecmp _stricmp
 # endif
 
-#endif // BACNET_PLAT_COMPAT_H
+#endif // BAC_PLATFORM_H

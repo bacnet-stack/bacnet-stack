@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "bacnet/bacnet_stack_exports.h"
-#include "bacnet/bacnet_plat_compat.h"
+#include "bacnet/basic/sys/platform.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/datetime.h"
