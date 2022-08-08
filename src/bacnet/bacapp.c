@@ -2347,6 +2347,7 @@ static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value
 }
 #endif
 
+#if defined(BACAPP_SIGNED) || defined(BACAPP_BOOLEAN)
 static bool strtol_checked(const char *s, long *out)
 {
     char *end;
@@ -2362,7 +2363,9 @@ static bool strtol_checked(const char *s, long *out)
     }
     return true;
 }
+#endif
 
+#if defined(BACAPP_UNSIGNED) || defined(BACAPP_ENUMERATED)
 static bool strtoul_checked(const char *s, unsigned long *out)
 {
     char *end;
@@ -2378,7 +2381,9 @@ static bool strtoul_checked(const char *s, unsigned long *out)
     }
     return true;
 }
+#endif
 
+#if defined(BACAPP_REAL) || defined(BACAPP_DOUBLE)
 static bool strtod_checked(const char *s, double *out)
 {
     char *end;
@@ -2394,6 +2399,7 @@ static bool strtod_checked(const char *s, double *out)
     }
     return true;
 }
+#endif
 
 #ifdef BACAPP_PRINT_ENABLED
 /* used to load the app data struct with the proper data
