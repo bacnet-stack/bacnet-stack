@@ -425,11 +425,13 @@ int main(int argc, char *argv[])
                 if (Verbose) {
                     printf("tag=%u value=%s\n", property_tag, value_string);
                 }
+#if 0
                 if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
                     fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
                         property_tag, MAX_BACNET_APPLICATION_TAG);
                     return 1;
                 }
+#endif
                 status = bacapp_parse_application_data(
                     property_tag, value_string, &wpm_property->value);
                 if (!status) {
