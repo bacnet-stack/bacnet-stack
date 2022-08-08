@@ -64,7 +64,7 @@ typedef struct BACnet_Short_Application_Data_Value {
         bool Boolean;
 #endif
 #if defined (BACAPP_UNSIGNED)
-        uint32_t Unsigned_Int;
+        BACNET_UNSIGNED_INTEGER Unsigned_Int;
 #endif
 #if defined (BACAPP_SIGNED)
         int32_t Signed_Int;
