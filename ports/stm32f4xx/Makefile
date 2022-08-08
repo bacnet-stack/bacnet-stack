@@ -74,6 +74,9 @@ BACNET_SRC = \
 	$(BACNET_CORE)/rp.c \
 	$(BACNET_CORE)/rpm.c \
 	$(BACNET_CORE)/timestamp.c \
+	$(BACNET_CORE)/weeklyschedule.c \
+	$(BACNET_CORE)/dailyschedule.c \
+	$(BACNET_CORE)/bactimevalue.c \
 	$(BACNET_CORE)/whohas.c \
 	$(BACNET_CORE)/whois.c \
 	$(BACNET_CORE)/wp.c
