@@ -142,9 +142,13 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.c>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/vmac.h>
     $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.c>
-    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc.c>
     $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bvlc-sc.h>
-    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-connection.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-connection.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-util.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-util.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-connector.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-connector.c>
     src/bacnet/basic/binding/address.c
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c

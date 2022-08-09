@@ -16,41 +16,12 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "bacnet/datalink/bsc/bvlc-sc.h"
-#include "bacnet/datalink/bsc/bsc.h"
+#include "bacnet/datalink/bsc/bsc-connection.h"
+#include "bacnet/datalink/bsc/bsc-util.h"
+#include "bacnet/datalink/bsc/bsc-connection-private.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/debug.h"
 
-typedef enum {
-    BSC_CONN_STATE_IDLE = 0,
-    BSC_CONN_STATE_AWAITING_WEBSOCKET = 1,
-    BSC_CONN_STATE_AWAITING_REQUEST = 2,
-    BSC_CONN_STATE_AWAITING_ACCEPT = 3,
-    BSC_CONN_STATE_CONNECTED = 4,
-    BSC_CONN_STATE_DISCONNECTING = 5
-} BSC_CONN_STATE;
-
-typedef enum {
-    BSC_PEER_INITIATOR = 1,
-    BSC_PEER_ACCEPTOR = 2
-} BSC_CONN_PEER_TYPE;
-
-struct BSC_Connection {
-    BSC_CONNECTION *next;
-    BSC_CONNECTION *last;
-    BACNET_WEBSOCKET_HANDLE wh;
-    BSC_CONN_STATE state;
-    unsigned long time_stamp;
-    BACNET_SC_VMAC_ADDRESS vmac; // VMAC address of the requesting node.
-    BACNET_SC_UUID uuid;
-    uint16_t message_id;
-    uint16_t max_bvlc_len; // remote peer max bvlc len
-    uint16_t max_npdu_len; // remote peer max npdu len
-    BSC_CONN_PEER_TYPE peer_type;
-    unsigned long heartbeat_seconds_elapsed;
-    uint16_t expected_connect_accept_message_id;
-    uint16_t expected_disconnect_message_id;
-    uint16_t expected_heartbeat_message_id;
-};
 
 static uint8_t *bsc_ca_cert_chain = NULL;
 static size_t bsc_ca_cert_chain_size = 0;
@@ -72,11 +43,10 @@ static pthread_mutex_t bsc_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 static unsigned long bsc_connect_timeout_s = 10;
 static unsigned long bsc_disconnect_timeout_s = 10;
 
-// According 12.56.Y10 SC_Heartbeat_Timeout (http://www.bacnet.org/Addenda/Add-135-2020cc.pdf)
-// the recommended default value is 300 seconds.
+// According 12.56.Y10 SC_Heartbeat_Timeout
+// (http://www.bacnet.org/Addenda/Add-135-2020cc.pdf) the recommended default
+// value is 300 seconds.
 static unsigned long bsc_heartbeat_timeout_s = 300;
-
-
 
 static void bsc_remove_connection(BSC_CONNECTION *c)
 {
@@ -122,6 +92,7 @@ static void bsc_add_connection(BSC_CONNECTION *c)
         bsc_conn_list_tail->next = c;
         bsc_conn_list_tail = c;
     }
+    debug_printf("bsc_add_connection() <<<\n");
 }
 
 static char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
@@ -223,87 +194,101 @@ bool bsc_set_configuration(int port,
     return true;
 }
 
-static unsigned long bsc_seconds_left(
-    BSC_CONNECTION *c, unsigned long timeout_s)
-{
-    unsigned long cur = mstimer_now();
-    unsigned long delta;
-
-    if (cur > c->time_stamp) {
-        delta = cur - c->time_stamp;
-    } else {
-        delta = c->time_stamp - cur;
-    }
-    if (delta > timeout_s * 1000) {
-        return 0;
-    }
-
-    return timeout_s * 1000 - delta;
-}
-
-static bool bsc_check_connection_heartbeat(BSC_CONNECTION *c, uint16_t seconds_elapsed)
+static bool bsc_check_connection_heartbeat(
+    BSC_CONNECTION *c, uint16_t seconds_elapsed)
 {
     bool ret = true;
 
-    debug_printf("bsc_check_connection_heartbeat() >>> c = %p, state = %d\n", c, c->state);
-    if(c->state == BSC_CONN_STATE_CONNECTED) {
-       c->heartbeat_seconds_elapsed += seconds_elapsed;
-       if(c->peer_type == BSC_PEER_INITIATOR ) {
-          if(c->heartbeat_seconds_elapsed >= bsc_heartbeat_timeout_s) {
-            return false;
-          }
-       }
-       else if(c->peer_type == BSC_PEER_ACCEPTOR) {
-          if(c->heartbeat_seconds_elapsed >= 2*bsc_heartbeat_timeout_s) {
-            return false;
-          }
-       }
+    debug_printf("bsc_check_connection_heartbeat() >>> c = %p, state = %d\n", c,
+        c->state);
+    if (c->state == BSC_CONN_STATE_CONNECTED) {
+        c->heartbeat_seconds_elapsed += seconds_elapsed;
+        if (c->peer_type == BSC_PEER_INITIATOR) {
+            if (c->heartbeat_seconds_elapsed >= bsc_heartbeat_timeout_s) {
+                return false;
+            }
+        } else if (c->peer_type == BSC_PEER_ACCEPTOR) {
+            if (c->heartbeat_seconds_elapsed >= 2 * bsc_heartbeat_timeout_s) {
+                return false;
+            }
+        }
     }
 
     debug_printf("bsc_check_connection_heartbeat() <<< ret = %d\n", ret);
     return ret;
 }
 
-static BACNET_WEBSOCKET_RET bsc_disconnect_websocket(BSC_CONNECTION *c) 
+static BACNET_WEBSOCKET_RET bsc_disconnect_websocket(BSC_CONNECTION *c)
 {
-   BACNET_WEBSOCKET_RET ret;
-   if(c->peer_type == BSC_PEER_INITIATOR) {
-     ret = bws_cli_get()->bws_disconnect(c->wh);
-   }
-   else {
-     ret = bws_srv_get()->bws_disconnect(c->wh);
-   }
-   return ret;
+    BACNET_WEBSOCKET_RET ret;
+    if (c->peer_type == BSC_PEER_INITIATOR) {
+        ret = bws_cli_get()->bws_disconnect(c->wh);
+    } else {
+        ret = bws_srv_get()->bws_disconnect(c->wh);
+    }
+    return ret;
 }
 
-static BACNET_WEBSOCKET_RET bsc_websocket_send(BSC_CONNECTION *c, uint8_t* buf, unsigned int len)
+static BACNET_WEBSOCKET_RET bsc_websocket_send(
+    BSC_CONNECTION *c, uint8_t *buf, unsigned int len)
 {
-   BACNET_WEBSOCKET_RET ret;
-   if(c->peer_type == BSC_PEER_INITIATOR) {
-     ret = bws_cli_get()->bws_send(c->wh, buf, len);
-   }
-   else {
-     ret = bws_srv_get()->bws_send(c->wh, buf, len);
-   }
-   return ret;
+    BACNET_WEBSOCKET_RET ret;
+    if (c->peer_type == BSC_PEER_INITIATOR) {
+        ret = bws_cli_get()->bws_send(c->wh, buf, len);
+    } else {
+        ret = bws_srv_get()->bws_send(c->wh, buf, len);
+    }
+    return ret;
 }
 
 static BACNET_WEBSOCKET_RET bsc_websocket_recv(BSC_CONNECTION *c,
-  uint8_t* buf,
-  size_t   bufsize,
-  size_t*  bytes_received,
-  int      timeout)
+    uint8_t *buf,
+    size_t bufsize,
+    size_t *bytes_received,
+    int timeout)
 {
-   BACNET_WEBSOCKET_RET ret;
-   if(c->peer_type == BSC_PEER_INITIATOR) {
-     ret = bws_cli_get()->bws_recv(c->wh, buf, bufsize, bytes_received, timeout);
-   }
-   else {
-     ret = bws_srv_get()->bws_recv(c->wh, buf, bufsize, bytes_received, timeout);
-   }
-   return ret;
-}
+    BACNET_WEBSOCKET_RET final_ret = BACNET_WEBSOCKET_TIMEDOUT;
+    BACNET_WEBSOCKET_RET ret;
+    unsigned long time_stamp = mstimer_now() / 1000;
 
+    debug_printf(
+        "bsc_websocket_recv() >>> c = %p, timeout_s = %d\n", c, timeout);
+
+    while(bsc_seconds_left(time_stamp, timeout)) {
+       if (c->peer_type == BSC_PEER_INITIATOR) {
+           ret = bws_cli_get()->bws_recv(
+                   c->wh, buf, bufsize, bytes_received, timeout);
+       } else {
+           ret = bws_srv_get()->bws_recv(
+                   c->wh, buf, bufsize, bytes_received, timeout);
+       }
+
+       // AB.7.5.3 BACnet/SC BVLC Message Exchange:
+       //   If the length of a BVLC message received through a WebSocket connection
+       //   exceeds the maximum BVLC length supported by the receiving node,
+       //   the BVLC message shall be discarded and not be processed.
+
+       if(ret != BACNET_WEBSOCKET_SUCCESS) {
+         final_ret = ret;
+         break;
+       }
+       else {
+         if(*bytes_received > bsc_max_bvlc_len) {
+           debug_printf("bsc_websocket_recv() received message of size %d is discarded,"
+                        " bsc_max_bvlc_len = %d\n", *bytes_received, c->max_bvlc_len );
+           *bytes_received = 0;
+           continue;
+         }
+         final_ret = BACNET_WEBSOCKET_SUCCESS;
+         break;
+       }
+    }
+
+    debug_printf(
+        "bsc_websocket_recv() <<< ret = %d\n", final_ret);
+
+    return final_ret;
+}
 
 static bool bsc_conn_accept(BSC_CONNECTION *c, unsigned int timeout_s)
 {
@@ -334,8 +319,7 @@ static bool bsc_conn_accept(BSC_CONNECTION *c, unsigned int timeout_s)
         c->time_stamp = mstimer_now();
 
         while (1) {
-            int left_time =
-                (int)bsc_seconds_left(c, bsc_connect_timeout_s);
+            int left_time = (int)bsc_seconds_left(c->time_stamp, bsc_connect_timeout_s);
 
             if (!left_time) {
                 // connection timeout is elapsed, but connection was not
@@ -348,8 +332,8 @@ static bool bsc_conn_accept(BSC_CONNECTION *c, unsigned int timeout_s)
                 break;
             }
 
-            ret = bws_srv_get()->bws_recv(
-                c->wh, buf, sizeof(buf), &r, left_time);
+            ret =
+                bws_srv_get()->bws_recv(c->wh, buf, sizeof(buf), &r, left_time);
 
             if (ret != BACNET_WEBSOCKET_SUCCESS) {
                 debug_printf(
@@ -557,8 +541,9 @@ static bool bsc_connect_prepare(BSC_CONNECTION *c,
     c->time_stamp = mstimer_now();
     c->message_id = (uint16_t)(rand() % USHRT_MAX);
     c->expected_connect_accept_message_id = c->message_id;
-    debug_printf("bsc_connect_prepare() expected connect accept message id = %04x\n",
-                 c->expected_connect_accept_message_id);
+    debug_printf(
+        "bsc_connect_prepare() expected connect accept message id = %04x\n",
+        c->expected_connect_accept_message_id);
 
     len = bvlc_sc_encode_connect_request(buf, sizeof(buf), c->message_id,
         &bsc_local_vmac, &bsc_local_uuid, bsc_max_bvlc_len, bsc_max_ndpu_len);
@@ -616,9 +601,11 @@ bool bsc_connect(
         } else if (ret == BACNET_WEBSOCKET_SUCCESS) {
             if (bvlc_sc_decode_message(buf, r, &dm, &code, &class)) {
                 if (dm.hdr.bvlc_function == BVLC_SC_CONNECT_ACCEPT) {
-                    if (dm.hdr.message_id != c->expected_connect_accept_message_id) {
+                    if (dm.hdr.message_id !=
+                        c->expected_connect_accept_message_id) {
                         debug_printf("bsc_connect() got bvlc result packet "
-                                     "with unexpected message id %04x\n", dm.hdr.message_id);
+                                     "with unexpected message id %04x\n",
+                            dm.hdr.message_id);
                         continue;
                     }
                     memcpy(&c->vmac, dm.payload.connect_accept.vmac,
@@ -640,9 +627,11 @@ bool bsc_connect(
                             dm.payload.result.bvlc_function);
                         continue;
                     }
-                    if (dm.hdr.message_id != c->expected_connect_accept_message_id) {
+                    if (dm.hdr.message_id !=
+                        c->expected_connect_accept_message_id) {
                         debug_printf("bsc_connect() got bvlc result packet "
-                                     "with unexpected message id %04x\n", dm.hdr.message_id);
+                                     "with unexpected message id %04x\n",
+                            dm.hdr.message_id);
                         break;
                     }
                     // check for transition "BVLC-Result NAK, VMAC collision"
@@ -713,56 +702,70 @@ bool bsc_connect(
  *         otherwise false is returned
  */
 
-static bool bsc_process_incoming(BSC_CONNECTION* c, BVLC_SC_DECODED_MESSAGE *message)
+static bool bsc_process_incoming(
+    BSC_CONNECTION *c, BVLC_SC_DECODED_MESSAGE *message)
 {
     bool ret = false;
     BACNET_WEBSOCKET_RET res;
 
-    (void) res;
-    debug_printf("bsc_process_incoming() >>> c = %p, state = %d\n", c, c->state);
+    (void)res;
+    debug_printf(
+        "bsc_process_incoming() >>> c = %p, state = %d\n", c, c->state);
 
     c->heartbeat_seconds_elapsed = 0;
 
-    if(c->state == BSC_CONN_STATE_CONNECTED) {
-      if(message->hdr.bvlc_function == BVLC_SC_HEARTBEAT_ACK) {
-        if(message->hdr.message_id != c->expected_heartbeat_message_id) {
-          debug_printf("bsc_process_incoming() got heartbeat ack with unexpected message id %d for connection %p\n", message->hdr.message_id, c);
+    if (c->state == BSC_CONN_STATE_CONNECTED) {
+        if (message->hdr.bvlc_function == BVLC_SC_HEARTBEAT_ACK) {
+            if (message->hdr.message_id != c->expected_heartbeat_message_id) {
+                debug_printf("bsc_process_incoming() got heartbeat ack with "
+                             "unexpected message id %d for connection %p\n",
+                    message->hdr.message_id, c);
+            } else {
+                debug_printf("bsc_process_incoming() got heartbeat ack for "
+                             "connection %p\n",
+                    c);
+            }
+            ret = true;
+        } else if (c->state == BSC_CONN_STATE_DISCONNECTING) {
+            if (message->hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
+                if (message->hdr.message_id !=
+                    c->expected_disconnect_message_id) {
+                    debug_printf(
+                        "bsc_process_incoming() got disconect ack with "
+                        "unexpected message id %d for connection %p\n",
+                        message->hdr.message_id, c);
+                } else {
+                    debug_printf("bsc_process_incoming() got disconect ack for "
+                                 "connection %p\n",
+                        c);
+                }
+                res = bsc_disconnect_websocket(c);
+                debug_printf("bsc_process_incoming() websocket disconnected, "
+                             "status = %d\n",
+                    res);
+                bsc_remove_connection(c);
+                ret = true;
+            } else if (message->hdr.bvlc_function == BVLC_SC_RESULT) {
+                if (message->payload.result.bvlc_function ==
+                        BVLC_SC_DISCONNECT_REQUEST &&
+                    message->payload.result.result != 0) {
+                    debug_printf("bsc_process_incoming() got BVLC_SC_RESULT "
+                                 "NAK on BVLC_SC_DISCONNECT_REQUEST\n");
+                    res = bsc_disconnect_websocket(c);
+                    debug_printf("bsc_process_incoming() websocket "
+                                 "disconnected, status = %d\n",
+                        res);
+                    bsc_remove_connection(c);
+                    ret = true;
+                }
+            }
         }
-        else {
-          debug_printf("bsc_process_incoming() got heartbeat ack for connection %p\n", c);
-        }
-        ret = true;
-      }
-      else if (c->state == BSC_CONN_STATE_DISCONNECTING) {
-       if(message->hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
-          if(message->hdr.message_id != c->expected_disconnect_message_id) {
-            debug_printf("bsc_process_incoming() got disconect ack with unexpected message id %d for connection %p\n", message->hdr.message_id, c);
-          }
-          else {
-            debug_printf("bsc_process_incoming() got disconect ack for connection %p\n", c);
-          }
-          res = bsc_disconnect_websocket(c);
-          debug_printf("bsc_process_incoming() websocket disconnected, status = %d\n", res );
-          bsc_remove_connection(c);
-          ret = true;
-       }
-       else if(message->hdr.bvlc_function == BVLC_SC_RESULT) {
-          if(message->payload.result.bvlc_function ==  BVLC_SC_DISCONNECT_REQUEST &&
-             message->payload.result.result != 0) {
-             debug_printf("bsc_process_incoming() got BVLC_SC_RESULT NAK on BVLC_SC_DISCONNECT_REQUEST\n");
-             res = bsc_disconnect_websocket(c);
-             debug_printf("bsc_process_incoming() websocket disconnected, status = %d\n", res );
-             bsc_remove_connection(c);
-             ret = true;
-          }
-       }
-     }
-   }
-   debug_printf("bsc_process_incoming() <<< ret = %d\n", ret);
-   return ret;
+    }
+    debug_printf("bsc_process_incoming() <<< ret = %d\n", ret);
+    return ret;
 }
 
-void bsc_disconnect(BSC_CONNECTION* c)
+void bsc_disconnect(BSC_CONNECTION *c)
 {
     BACNET_WEBSOCKET_RET ret;
     BVLC_SC_DECODED_MESSAGE dm;
@@ -774,27 +777,31 @@ void bsc_disconnect(BSC_CONNECTION* c)
 
     debug_printf("bsc_disconnect() >>> c = %p, state = %d\n", c, c->state);
 
-    // Do not allow a user to send disconnect request on non-connected BACNet/SC link
-    if(c->state == BSC_CONN_STATE_CONNECTED || 
-       c->state == BSC_CONN_STATE_DISCONNECTING) {
-       c->message_id++;
-       c->expected_disconnect_message_id = c->message_id;
-       c->state = BSC_CONN_STATE_DISCONNECTING;
-       c->time_stamp = mstimer_now();
-       len = bvlc_sc_encode_disconnect_request(buf, sizeof(buf), c->message_id);
-       ret = bsc_websocket_send(c, buf, len);
-       debug_printf("bsc_disconnect() disconnect request is sent, status = %d\n", ret);
+    // Do not allow a user to send disconnect request on non-connected BACNet/SC
+    // link
+    if (c->state == BSC_CONN_STATE_CONNECTED ||
+        c->state == BSC_CONN_STATE_DISCONNECTING) {
+        c->message_id++;
+        c->expected_disconnect_message_id = c->message_id;
+        c->state = BSC_CONN_STATE_DISCONNECTING;
+        c->time_stamp = mstimer_now();
+        len =
+            bvlc_sc_encode_disconnect_request(buf, sizeof(buf), c->message_id);
+        ret = bsc_websocket_send(c, buf, len);
+        debug_printf(
+            "bsc_disconnect() disconnect request is sent, status = %d\n", ret);
 
-       while (1) {
-            int left_time =
-                (int)bsc_seconds_left(c, bsc_disconnect_timeout_s);
+        while (1) {
+            int left_time = (int)bsc_seconds_left(c->time_stamp, bsc_disconnect_timeout_s);
 
             if (!left_time) {
-                debug_printf(
-                    "bsc_disconnect() connnection disconnect timeout of %d ms elapsed\n",
-                     bsc_disconnect_timeout_s * 1000);
+                debug_printf("bsc_disconnect() connnection disconnect timeout "
+                             "of %d ms elapsed\n",
+                    bsc_disconnect_timeout_s * 1000);
                 ret = bsc_disconnect_websocket(c);
-                debug_printf("bsc_disconnect() websocket disconnected by timeout, status = %d\n", ret );
+                debug_printf("bsc_disconnect() websocket disconnected by "
+                             "timeout, status = %d\n",
+                    ret);
                 bsc_remove_connection(c);
                 break;
             }
@@ -802,10 +809,13 @@ void bsc_disconnect(BSC_CONNECTION* c)
             ret = bsc_websocket_recv(c, buf, sizeof(buf), &r, left_time);
 
             if (ret != BACNET_WEBSOCKET_SUCCESS) {
-                debug_printf(
-                    "bsc_disconnect() websocket recv data failed, error = %d \n", ret);
+                debug_printf("bsc_disconnect() websocket recv data failed, "
+                             "error = %d \n",
+                    ret);
                 ret = bsc_disconnect_websocket(c);
-                debug_printf("bsc_disconnect() websocket disconnected, status = %d\n", ret );
+                debug_printf(
+                    "bsc_disconnect() websocket disconnected, status = %d\n",
+                    ret);
                 bsc_remove_connection(c);
                 break;
             }
@@ -813,13 +823,13 @@ void bsc_disconnect(BSC_CONNECTION* c)
             if (!bvlc_sc_decode_message(buf, r, &dm, &code, &class)) {
                 debug_printf("bsc_disconnect() decoding of received message "
                              "failed, error code = %d, class = %d\n",
-                             code, class);
-            }
-            else {
+                    code, class);
+            } else {
                 bsc_process_incoming(c, &dm);
-                if(c->state == BSC_CONN_STATE_IDLE) {
-                  debug_printf("bsc_disconnect() successfull websocket disconnect\n");
-                  break;
+                if (c->state == BSC_CONN_STATE_IDLE) {
+                    debug_printf(
+                        "bsc_disconnect() successfull websocket disconnect\n");
+                    break;
                 }
             }
         }
@@ -828,23 +838,81 @@ void bsc_disconnect(BSC_CONNECTION* c)
     debug_printf("bsc_disconnect() <<<\n");
 }
 
-int bsc_send(BSC_CONNECTION* c,
-             BACNET_SC_VMAC_ADDRESS *dest,
-             uint8_t *pdu,
-             unsigned pdu_len)
+int bsc_send(BSC_CONNECTION *c, uint8_t *pdu, uint16_t pdu_len)
 {
-  return 0;
+    int ret = -1;
+    BACNET_WEBSOCKET_RET wr;
+
+    debug_printf(
+        "bsc_send() >>> c = %p, pdu = %p, pdu_len = %d\n", c, pdu, pdu_len);
+
+    if (c->state == BSC_CONN_STATE_CONNECTED) {
+        if (c->peer_type == BSC_PEER_ACCEPTOR) {
+            c->heartbeat_seconds_elapsed = 0;
+        }
+        wr = bsc_websocket_send(c, pdu, (size_t) pdu_len);
+        if (wr == BACNET_WEBSOCKET_SUCCESS) {
+            debug_printf("bsc_send() pdu with size %d is sent\n", pdu_len);
+            ret = (int) pdu_len;
+        } else {
+            debug_printf(
+                "bsc_send() sendig of pdu with size %d is failed, error =%d\n",
+                pdu_len, ret);
+
+            if(wr != BACNET_WEBSOCKET_CLOSED) {
+               // non fatal error occured
+               ret = 0;
+            }
+        }
+    }
+
+    debug_printf("bsc_send() <<< ret = %d\n", ret);
+    return ret;
 }
 
- uint16_t bsc_recv(BSC_CONNECTION* c,
-                   BACNET_SC_VMAC_ADDRESS *src,
-                   uint8_t *pdu,
-                   uint16_t max_pdu,
-                   unsigned int timeout)
- {
-   // TODO: reset keepalive timer on any packet received
-  return 0;
- }
+int bsc_recv(
+    BSC_CONNECTION *c, uint8_t *pdu, uint16_t max_pdu, unsigned int timeout)
+{
+    BACNET_WEBSOCKET_RET ret;
+    BVLC_SC_DECODED_MESSAGE dm;
+    BACNET_ERROR_CODE code;
+    BACNET_ERROR_CLASS class;
+    size_t r;
+    int retval = 0;
+
+    debug_printf(
+        "bsc_recv() >>> c = %p,  pdu = %p, pdu_len = %d, timeout = %d\n", c,
+        pdu, max_pdu, timeout);
+
+    if (c->state == BSC_CONN_STATE_CONNECTED) {
+        ret = bsc_websocket_recv(c, pdu, max_pdu, &r, timeout);
+
+        if (ret != BACNET_WEBSOCKET_SUCCESS) {
+            debug_printf("bsc_recv() recv data failed, error = %d \n", ret);
+            if(ret == BACNET_WEBSOCKET_CLOSED) {
+              retval = -1;
+            }
+        } else {
+            if (!bvlc_sc_decode_message(pdu, r, &dm, &code, &class)) {
+                debug_printf("bsc_recv() decoding of received message "
+                             "failed, error code = %d, class = %d\n",
+                    code, class);
+            } else {
+                if (bsc_process_incoming(c, &dm)) {
+                    debug_printf("bsc_recv() discarded service pdu of "
+                                 "bvlc_function %d and size %d",
+                        dm.hdr.bvlc_function, r);
+                }
+                else {
+                  retval = (int) r;
+                }
+            }
+        }
+    }
+
+    debug_printf("bsc_recv() <<< ret = %d\n", retval);
+    return retval;
+}
 
 void bsc_maintainence_timer(uint16_t seconds_elapsed)
 {
@@ -853,34 +921,59 @@ void bsc_maintainence_timer(uint16_t seconds_elapsed)
     uint8_t buf[sizeof(BVLC_SC_DECODED_HDR)];
     unsigned int len;
 
-    debug_printf("bsc_maintainence_timer() >>> seconds_elapsed = %d\n", seconds_elapsed);
+    debug_printf(
+        "bsc_maintainence_timer() >>> seconds_elapsed = %d\n", seconds_elapsed);
 
     while (e) {
-        if(bsc_check_connection_heartbeat(e, seconds_elapsed)) {
-           e = e->next;
-        }
-        else {
-          debug_printf("bsc_maintainence_timer() heartbeat timeout elapsed for connection %p\n", e);
-          if(e->peer_type == BSC_PEER_INITIATOR) {
-            debug_printf("bsc_maintainence_timer() going to send heartbeat request on connection %p\n", e);
-            e->message_id++;
-            e->expected_heartbeat_message_id = e->message_id;
-            debug_printf("bsc_maintainence_timer() heartbeat message_id %04x\n", e->expected_heartbeat_message_id);
-            len = bvlc_sc_encode_heartbeat_request(buf, sizeof(buf), e->message_id);
-            bws_cli_get()->bws_send(e->wh, buf, len);
-            e->heartbeat_seconds_elapsed = 0;
+        if (bsc_check_connection_heartbeat(e, seconds_elapsed)) {
             e = e->next;
-          }
-          else if(e->peer_type == BSC_PEER_ACCEPTOR) {
-            debug_printf("bsc_maintainence_timer() zombie connection %p is removed\n", e);
-            bws_srv_get()->bws_disconnect(e->wh);
-            c = e;
-            e = e->next;
-            bsc_remove_connection(c);
-          }
+        } else {
+            debug_printf("bsc_maintainence_timer() heartbeat timeout elapsed "
+                         "for connection %p\n",
+                e);
+            if (e->peer_type == BSC_PEER_INITIATOR) {
+                debug_printf("bsc_maintainence_timer() going to send heartbeat "
+                             "request on connection %p\n",
+                    e);
+                e->message_id++;
+                e->expected_heartbeat_message_id = e->message_id;
+                debug_printf(
+                    "bsc_maintainence_timer() heartbeat message_id %04x\n",
+                    e->expected_heartbeat_message_id);
+                len = bvlc_sc_encode_heartbeat_request(
+                    buf, sizeof(buf), e->message_id);
+                bws_cli_get()->bws_send(e->wh, buf, len);
+                e->heartbeat_seconds_elapsed = 0;
+                e = e->next;
+            } else if (e->peer_type == BSC_PEER_ACCEPTOR) {
+                debug_printf("bsc_maintainence_timer() zombie connection %p is "
+                             "removed\n",
+                    e);
+                bws_srv_get()->bws_disconnect(e->wh);
+                c = e;
+                e = e->next;
+                bsc_remove_connection(c);
+            }
         }
     }
 
     debug_printf("bsc_maintainence_timer() <<<\n");
 }
 
+void bsc_get_remote_bvlc(BSC_CONNECTION *c, uint16_t *p_val)
+{
+  *p_val = 0;
+  if(c->state == BSC_CONN_STATE_CONNECTED ||
+     c->state == BSC_CONN_STATE_DISCONNECTING ) {
+     *p_val = c->max_bvlc_len;
+  }
+}
+
+void bsc_get_remote_npdu(BSC_CONNECTION *c, uint16_t *p_val)
+{
+  *p_val = 0;
+  if(c->state == BSC_CONN_STATE_CONNECTED ||
+     c->state == BSC_CONN_STATE_DISCONNECTING ) {
+     *p_val = c->max_npdu_len;
+  }
+}

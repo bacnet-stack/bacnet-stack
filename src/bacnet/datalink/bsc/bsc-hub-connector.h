@@ -14,24 +14,33 @@
 #ifndef __BACNET__HUB__CONNECTOR__INCLUDED__
 #define __BACNET__HUB__CONNECTOR__INCLUDED__
 
-BACNET_STACK_EXPORT
-bool bsc_hub_connector_set_configuration(void);
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include "bacnet/datalink/bsc/bsc-connection.h"
+
+struct BSC_Hub_Connector;
+typedef struct BSC_Hub_Connector BSC_HUB_CONNECTOR;
 
 BACNET_STACK_EXPORT
-bool bsc_hub_connector_start(void);
+bool bsc_hub_connector_start(BSC_HUB_CONNECTOR *c,
+                             char* primaryURL,
+                             char* failoverURL,
+                             unsigned int reconnnect_timeout_s);
 
 BACNET_STACK_EXPORT
-bool bsc_hub_connector_stop(void);
+void bsc_hub_connector_stop(BSC_HUB_CONNECTOR *c);
 
- BACNET_STACK_EXPORT
- int bsc_hub_connector_send(BACNET_SC_VMAC_ADDRESS *dest,
+BACNET_STACK_EXPORT
+bool bsc_hub_connector_send(BSC_HUB_CONNECTOR *c,
      uint8_t *pdu,
      unsigned pdu_len);
 
- BACNET_STACK_EXPORT
- uint16_t bsc_hub_connector_recv(BACNET_SC_VMAC_ADDRESS *src,
-                   uint8_t *pdu,
-                   uint16_t max_pdu,
-                   unsigned int timeout);
+BACNET_STACK_EXPORT
+int bsc_hub_connector_recv(BSC_HUB_CONNECTOR *c,
+               uint8_t *pdu,
+               uint16_t max_pdu,
+               unsigned int timeout);
 
 #endif
