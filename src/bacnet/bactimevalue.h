@@ -81,7 +81,7 @@ typedef struct BACnet_Short_Application_Data_Value {
     } type;
 } BACNET_SHORT_APPLICATION_DATA_VALUE;
 
-typedef struct {
+typedef struct BACnet_Time_Value {
     BACNET_TIME Time;
     BACNET_SHORT_APPLICATION_DATA_VALUE Value;
 } BACNET_TIME_VALUE;
