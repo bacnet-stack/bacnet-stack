@@ -44,7 +44,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    typedef struct bacnet_daily_schedule {
+    typedef struct BACnet_Daily_Schedule {
         BACNET_TIME_VALUE Time_Values[MAX_DAY_SCHEDULE_VALUES];
         uint16_t TV_Count;      /* the number of time values actually used */
     } BACNET_DAILY_SCHEDULE;
