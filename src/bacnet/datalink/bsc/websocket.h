@@ -83,7 +83,8 @@ typedef enum {
     BACNET_WEBSOCKET_BAD_PARAM = 4,
     BACNET_WEBSOCKET_TIMEDOUT = 5,
     BACNET_WEBSOCKET_INVALID_OPERATION = 6,
-    BACNET_WEBSOCKET_BUFFER_TOO_SMALL = 7
+    BACNET_WEBSOCKET_BUFFER_TOO_SMALL = 7,
+    BACNET_WEBSOCKET_OPERATION_CANCELED = 8
 } BACNET_WEBSOCKET_RET;
 
 typedef struct BACNetWebsocketClient {
@@ -276,10 +277,21 @@ typedef struct BACNetWebsocketServer {
      *    BACNET_WEBSOCKET_SUCCESS - incoming connection attempt has succeded.
      *    BACNET_WEBSOCKET_TIMEDOUT - timeout was elapsed but incoming connection
      *           was not established.
+     *    BACNET_WEBSOCKET_OPERATION_CANCELED - the execution of call was
+     *           canceled by bws_cancel_accept() call from other thread.
      */
 
     BACNET_WEBSOCKET_RET (*bws_accept)(BACNET_WEBSOCKET_HANDLE *out_handle, 
         int timeout);
+
+    /**
+     * @brief bws_cancel_accept() function cancel waiting for result 
+     *        of all blocked bws_accept() calls. As a result
+     *        all pending bws_accept() calls will failed with
+     *        BACNET_WEBSOCKET_OPERATION_CANCELED error.
+     */
+
+    void (*bws_cancel_accept)(void);
 
     /**
      * @brief Blocking bws_disconnnect() function closes websocket handle.
@@ -325,8 +337,8 @@ typedef struct BACNetWebsocketServer {
     BACNET_WEBSOCKET_RET (*bws_send)
     (BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size);
     /**
-     * @brief Blocking bws_recv() function recveived data from a websocket
-     * client.
+     * @brief Blocking bws_recv() function receives data from a websocket
+     * client specified by the websocket handle.
      *
      * @param h - websocket handle.
      * @param buf - pointer to a buffer to store received data.
@@ -347,6 +359,9 @@ typedef struct BACNetWebsocketServer {
      *    BACNET_WEBSOCKET_TIMEDOUT - timeout was elapsed but no data
      *           was received.
      *    BACNET_WEBSOCKET_SUCCESS - operation has succeded.
+     *    BACNET_WEBSOCKET_NO_RESOURCES - if some mem allocation has
+     *           failed or some allocations of system resources like mutex,
+     *           thread, etc.., has failed.
      *    BACNET_WEBSOCKET_BUFFER_TOO_SMALL - received datagram sized
      *                         is larger than provided buffer size.
      *                         In that case only part of websocket datagram
@@ -355,6 +370,58 @@ typedef struct BACNetWebsocketServer {
 
     BACNET_WEBSOCKET_RET(*bws_recv)
     (BACNET_WEBSOCKET_HANDLE h,
+        uint8_t *buf,
+        size_t bufsize,
+        size_t *bytes_received,
+        int timeout);
+
+   /**
+     * @brief Blocking bws_recv_from() function receives data from any connected
+     *        websocket client. Basically bws_recv() function assumes that you
+     *        want to receive a data for a specified websocket handle. As a
+     *        result if you want to receive data from several websockets
+     *        simultaneously you have to create several threads which may be
+     *        waste of resource for embedded systems. That's why
+     *        bws_recv_from() can be usefull if you wants to reduce
+     *        number of threads in a whole system. In a case of successful
+     *        completition ph pointer contains handle of a connection
+     *        corresponding to received data. You should also note that it
+     *        is not allowed to use bws_recv() and bws_recv_from() calls
+     *        simultaneously. In that case one call will failed with
+     *        BACNET_WEBSOCKET_INVALID_OPERATION error.
+     *
+     * @param ph - pointer to a websocket handle for which data is received.
+     *             The value is assumed valid only if function returned
+     *             BACNET_WEBSOCKET_SUCCESS.
+     * @param buf - pointer to a buffer to store received data.
+     * @param bufsize - size in bytes of a buffer to store received data.
+     * @param bytes_received - pointer to actual number of bytes received.
+     * @param timeout - timeout in milliseconds for receive operation.
+     *
+     * @return error code from BACNET_WEBSOCKET_RET enum.
+     *  The following error codes can be returned:
+     *    BACNET_WEBSOCKET_BAD_PARAM - In a case if some input parameter is
+     *                                 incorrect.
+     *    BACNET_WEBSOCKET_CLOSED - there are no any active websockets
+     *                              available.
+     *    BACNET_WEBSOCKET_INVALID_OPERATION - if server was stopped or
+     *           server shutdown process is in progress or there is
+     *           at least one pending receive operationn on some socket.
+     *    BACNET_WEBSOCKET_TIMEDOUT - timeout was elapsed but no data
+     *           was received.
+     *    BACNET_WEBSOCKET_SUCCESS - operation has succeded.
+     *    BACNET_WEBSOCKET_NO_RESOURCES - if some mem allocation has
+     *           failed or some allocations of system resources like mutex,
+     *           thread, etc.., has failed.
+     *    BACNET_WEBSOCKET_BUFFER_TOO_SMALL - received datagram sized
+     *                         is larger than provided buffer size.
+     *                         In that case only part of websocket datagram
+     *                         equal to bufsize is copied into buf.
+     */
+
+
+    BACNET_WEBSOCKET_RET (*bws_recv_from)
+    (BACNET_WEBSOCKET_HANDLE* ph,
         uint8_t *buf,
         size_t bufsize,
         size_t *bytes_received,
