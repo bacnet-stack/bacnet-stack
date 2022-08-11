@@ -95,6 +95,9 @@ static BACNET_WEBSOCKET_CONNECTION
 
 static BACNET_WEBSOCKET_OPERATION_ENTRY *bws_accept_head = NULL;
 static BACNET_WEBSOCKET_OPERATION_ENTRY *bws_accept_tail = NULL;
+static BACNET_WEBSOCKET_OPERATION_ENTRY *bws_recvfrom_head = NULL;
+static BACNET_WEBSOCKET_OPERATION_ENTRY *bws_recvfrom_tail = NULL;
+static BACNET_WEBSOCKET_HANDLE bws_recvfrom_handle = 0;
 
 static bool bws_srv_init_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
@@ -143,26 +146,35 @@ static void bws_srv_remove_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e,
     debug_printf("bws_srv_remove_operation() <<<\n");
 }
 
+static void bws_srv_enqueue_operation(BACNET_WEBSOCKET_OPERATION_ENTRY *e,
+    BACNET_WEBSOCKET_OPERATION_ENTRY **head,
+    BACNET_WEBSOCKET_OPERATION_ENTRY **tail)
+{
+    debug_printf("bws_srv_enqueue_operation() >>> e = %p\n", e);
+    if (*head == NULL && *tail == NULL) {
+        *head = e;
+        *tail = e;
+        e->next = NULL;
+        e->last = NULL;
+    } else if (*head == *tail) {
+        e->last = *head;
+        e->next = NULL;
+        *tail = e;
+        (*head)->next = e;
+    } else {
+        e->last = *tail;
+        e->next = NULL;
+        (*tail)->next = e;
+        *tail = e;
+    }
+    debug_printf("bws_srv_enqueue_accept_operation() <<<\n");
+}
+
 static void bws_srv_enqueue_accept_operation(
     BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
     debug_printf("bws_srv_enqueue_accept_operation() >>> e = %p\n", e);
-    if (bws_accept_head == NULL && bws_accept_tail == NULL) {
-        bws_accept_head = e;
-        bws_accept_tail = e;
-        e->next = NULL;
-        e->last = NULL;
-    } else if (bws_accept_head == bws_accept_tail) {
-        e->last = bws_accept_head;
-        e->next = NULL;
-        bws_accept_tail = e;
-        bws_accept_head->next = e;
-    } else {
-        e->last = bws_accept_tail;
-        e->next = NULL;
-        bws_accept_tail->next = e;
-        bws_accept_tail = e;
-    }
+    bws_srv_enqueue_operation(e, &bws_accept_head, &bws_accept_tail);
     debug_printf("bws_srv_enqueue_accept_operation() <<<\n");
 }
 
@@ -187,26 +199,40 @@ static void bws_srv_dequeue_all_accept_operations(void)
     debug_printf("bws_srv_dequeue_all_accept_operations() <<<\n");
 }
 
+static void bws_srv_enqueue_recvfrom_operation(
+    BACNET_WEBSOCKET_OPERATION_ENTRY *e)
+{
+    debug_printf("bws_srv_enqueue_recvfrom_operation() >>> e = %p\n", e);
+    bws_srv_enqueue_operation(e, &bws_recvfrom_head, &bws_recvfrom_tail);
+    debug_printf("bws_srv_enqueue_accept_operation() <<<\n");
+}
+
+static void bws_srv_dequeue_recvfrom_operation(void)
+{
+    debug_printf(
+        "bws_srv_dequeue_recvfrom_operation() >>> e = %p\n", bws_recvfrom_head);
+    bws_srv_remove_operation(
+        bws_recvfrom_head, &bws_recvfrom_head, &bws_recvfrom_tail);
+    debug_printf("bws_srv_dequeue_recvfrom_operation() <<<\n");
+}
+
+static void bws_srv_dequeue_all_recvfrom_operations(void)
+{
+    debug_printf("bws_srv_dequeue_all_recvfrom_operations() >>>\n");
+    while (bws_recvfrom_head) {
+        bws_recvfrom_head->retcode = BACNET_WEBSOCKET_CLOSED;
+        bws_recvfrom_head->processed = 1;
+        pthread_cond_signal(&bws_recvfrom_head->cond);
+        bws_srv_dequeue_recvfrom_operation();
+    }
+    debug_printf("bws_srv_dequeue_all_recvfrom_operations() <<<\n");
+}
+
 static void bws_srv_enqueue_recv_operation(
     BACNET_WEBSOCKET_CONNECTION *c, BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
     debug_printf("bws_srv_enqueue_recv_operation() >>> c = %p, e = %p\n", c, e);
-    if (c->recv_head == NULL && c->recv_tail == NULL) {
-        c->recv_head = e;
-        c->recv_tail = e;
-        e->next = NULL;
-        e->last = NULL;
-    } else if (c->recv_head == c->recv_tail) {
-        e->last = c->recv_head;
-        e->next = NULL;
-        c->recv_tail = e;
-        c->recv_head->next = e;
-    } else {
-        e->last = c->recv_tail;
-        e->next = NULL;
-        c->recv_tail->next = e;
-        c->recv_tail = e;
-    }
+    bws_srv_enqueue_operation(e, &c->recv_head, &c->recv_tail);
     debug_printf("bws_srv_enqueue_recv_operation() <<< \n");
 }
 
@@ -233,22 +259,7 @@ static void bws_srv_enqueue_send_operation(
     BACNET_WEBSOCKET_CONNECTION *c, BACNET_WEBSOCKET_OPERATION_ENTRY *e)
 {
     debug_printf("bws_srv_enqueue_send_operation() >>> c = %p, e = %p\n", c, e);
-    if (c->send_head == NULL && c->send_tail == NULL) {
-        c->send_head = e;
-        c->send_tail = e;
-        e->next = NULL;
-        e->last = NULL;
-    } else if (c->send_head == c->send_tail) {
-        e->last = c->send_head;
-        e->next = NULL;
-        c->send_tail = e;
-        c->send_head->next = e;
-    } else {
-        e->last = c->send_tail;
-        e->next = NULL;
-        c->send_tail->next = e;
-        c->send_tail = e;
-    }
+    bws_srv_enqueue_operation(e, &c->send_head, &c->send_tail);
     debug_printf("bws_srv_enqueue_send_operation() <<<\n");
 }
 
@@ -476,9 +487,45 @@ static int bws_srv_websocket_event(struct lws *wsi,
     return ret;
 }
 
+static void bws_srv_process_recv_operation_for(BACNET_WEBSOCKET_HANDLE h,
+    BACNET_WEBSOCKET_OPERATION_ENTRY *e,
+    BACNET_WEBSOCKET_OPERATION_ENTRY **head,
+    BACNET_WEBSOCKET_OPERATION_ENTRY **tail)
+{
+    uint16_t packet_len;
+    debug_printf("bws_srv_process_recv_operation_for() >>> h = %d\n", h);
+
+    FIFO_Pull(
+        &bws_srv_conn[h].in_size, (uint8_t *)&packet_len, sizeof(packet_len));
+
+    if (e->payload_size < packet_len) {
+        FIFO_Pull(&bws_srv_conn[h].in_data, e->payload, e->payload_size);
+        // remove part of datagram which does not fit into user's
+        // buffer
+        packet_len -= e->payload_size;
+        while (packet_len > 0) {
+            FIFO_Get(&bws_srv_conn[h].in_data);
+            packet_len--;
+        }
+        e->retcode = BACNET_WEBSOCKET_BUFFER_TOO_SMALL;
+    } else {
+        e->retcode = BACNET_WEBSOCKET_SUCCESS;
+        FIFO_Pull(&bws_srv_conn[h].in_data, e->payload, packet_len);
+        e->payload_size = packet_len;
+    }
+    e->h = h;
+    debug_printf("bws_srv_process_recv_operation_for() signal that %d bytes "
+                 "received on websocket %d\n",
+        e->payload_size, h);
+    e->processed = 1;
+    pthread_cond_signal(&e->cond);
+    bws_srv_remove_operation(*head, head, tail);
+    debug_printf("bws_srv_process_recv_operation_for() <<<\n");
+}
+
 static void *bws_srv_worker(void *arg)
 {
-    int i;
+    int i, j;
 
     while (1) {
         pthread_mutex_lock(&bws_srv_mutex);
@@ -487,6 +534,7 @@ static void *bws_srv_worker(void *arg)
         if (bws_srv_stop_worker) {
             debug_printf("bws_srv_worker() going to stop\n");
             bws_srv_dequeue_all_accept_operations();
+            bws_srv_dequeue_all_recvfrom_operations();
             for (i = 0; i < BACNET_SERVER_WEBSOCKETS_MAX_NUM; i++) {
                 bws_srv_dequeue_all_recv_operations(&bws_srv_conn[i]);
                 bws_srv_dequeue_all_send_operations(&bws_srv_conn[i]);
@@ -497,6 +545,11 @@ static void *bws_srv_worker(void *arg)
                         "bws_srv_worker() signal socket %d to unblock\n", i);
                     pthread_cond_broadcast(&bws_srv_conn[i].cond);
                 } else {
+                    /* if there are no any pending bws_disconnect() calls we
+                       can safely free connection object. Otherwise,
+                       only last thread must free connection object
+                       to prevent access to already freed connection
+                       object. */
                     if (bws_srv_conn[i].wait_threads_cnt == 0) {
                         bws_srv_free_connection(i);
                     } else {
@@ -510,6 +563,29 @@ static void *bws_srv_worker(void *arg)
             pthread_mutex_unlock(&bws_srv_mutex);
             debug_printf("bws_srv_worker() stopped\n");
             break;
+        }
+
+        if (bws_recvfrom_head) {
+            // the code below allows to share reading workload
+            // across all sockets in equal way, no one socket should have
+            // higher priority for it's data to be readed using
+            // bws_recv_from() call
+
+            for (j = 0, i = bws_recvfrom_handle;
+                 j < BACNET_SERVER_WEBSOCKETS_MAX_NUM; j++, i++) {
+                if (i >= BACNET_SERVER_WEBSOCKETS_MAX_NUM) {
+                    i = 0;
+                }
+                if (bws_srv_conn[i].state == BACNET_WEBSOCKET_STATE_CONNECTED) {
+                    if (!FIFO_Empty(&bws_srv_conn[i].in_size)) {
+                        bws_srv_process_recv_operation_for(i, bws_recvfrom_head,
+                            &bws_recvfrom_head, &bws_recvfrom_tail);
+                        i++;
+                        break;
+                    }
+                }
+            }
+            bws_recvfrom_handle = i;
         }
 
         for (i = 0; i < BACNET_SERVER_WEBSOCKETS_MAX_NUM; i++) {
@@ -549,35 +625,9 @@ static void *bws_srv_worker(void *arg)
                 }
                 while (bws_srv_conn[i].recv_head &&
                     !FIFO_Empty(&bws_srv_conn[i].in_size)) {
-                    uint16_t packet_len;
-                    FIFO_Pull(&bws_srv_conn[i].in_size, (uint8_t *)&packet_len,
-                        sizeof(packet_len));
-                    if (bws_srv_conn[i].recv_head->payload_size < packet_len) {
-                        FIFO_Pull(&bws_srv_conn[i].in_data,
-                            bws_srv_conn[i].recv_head->payload,
-                            bws_srv_conn[i].recv_head->payload_size);
-                        // remove part of datagram which does not fit into user
-                        // buffer
-                        packet_len -= bws_srv_conn[i].recv_head->payload_size;
-                        while (packet_len > 0) {
-                            FIFO_Get(&bws_srv_conn[i].in_data);
-                            packet_len--;
-                        }
-                        bws_srv_conn[i].recv_head->retcode =
-                            BACNET_WEBSOCKET_BUFFER_TOO_SMALL;
-                    } else {
-                        bws_srv_conn[i].recv_head->retcode =
-                            BACNET_WEBSOCKET_SUCCESS;
-                        FIFO_Pull(&bws_srv_conn[i].in_data,
-                            bws_srv_conn[i].recv_head->payload, packet_len);
-                        bws_srv_conn[i].recv_head->payload_size = packet_len;
-                    }
-                    debug_printf("bws_cli_worker() signal that %d bytes "
-                                 "received on websocket %d\n",
-                        bws_srv_conn[i].recv_head->payload_size, i);
-                    bws_srv_conn[i].recv_head->processed = 1;
-                    pthread_cond_signal(&bws_srv_conn[i].recv_head->cond);
-                    bws_srv_dequeue_recv_operation(&bws_srv_conn[i]);
+                    bws_srv_process_recv_operation_for(i,
+                        bws_srv_conn[i].recv_head, &bws_srv_conn[i].recv_head,
+                        &bws_srv_conn[i].recv_tail);
                 }
             }
         }
@@ -750,7 +800,25 @@ static BACNET_WEBSOCKET_RET bws_srv_accept(
     return e.retcode;
 }
 
-BACNET_WEBSOCKET_RET bws_srv_disconnect(BACNET_WEBSOCKET_HANDLE h)
+static void bws_srv_cancel_accept(void)
+{
+    debug_printf("bws_srv_cancel_accept() >>>\n");
+    pthread_mutex_lock(&bws_srv_mutex);
+
+    if (!bws_srv_stop_worker && bws_srv_ctx) {
+        while (bws_accept_head) {
+            bws_accept_head->retcode = BACNET_WEBSOCKET_OPERATION_CANCELED;
+            bws_accept_head->processed = 1;
+            pthread_cond_signal(&bws_accept_head->cond);
+            bws_srv_dequeue_accept_operation();
+        }
+    }
+
+    pthread_mutex_unlock(&bws_srv_mutex);
+    debug_printf("bws_srv_cancel_accept() <<<\n");
+}
+
+static BACNET_WEBSOCKET_RET bws_srv_disconnect(BACNET_WEBSOCKET_HANDLE h)
 {
     debug_printf("bws_srv_disconnect() >>> h = %d\n", h);
 
@@ -793,6 +861,12 @@ BACNET_WEBSOCKET_RET bws_srv_disconnect(BACNET_WEBSOCKET_HANDLE h)
                      "BACNET_WEBSOCKET_OPERATION_IN_PROGRESS\n");
         return BACNET_WEBSOCKET_OPERATION_IN_PROGRESS;
     } else if (bws_srv_conn[h].state == BACNET_WEBSOCKET_STATE_DISCONNECTED) {
+        /* The situation below can happen if remote peer has already dropped
+           connection. Also one or more threads can be blocked on
+           bws_srv_disconnect() call. As pthread_cond_broadcast() does not
+           gurantee the order in which all blocked threads becomes unblocked,
+           the connection object is freed and is set to IDLE state only by
+           last thread.*/
         if (bws_srv_conn[h].wait_threads_cnt == 0) {
             bws_srv_free_connection(h);
         }
@@ -828,7 +902,7 @@ BACNET_WEBSOCKET_RET bws_srv_disconnect(BACNET_WEBSOCKET_HANDLE h)
     return BACNET_WEBSOCKET_SUCCESS;
 }
 
-BACNET_WEBSOCKET_RET bws_srv_send(
+static BACNET_WEBSOCKET_RET bws_srv_send(
     BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size)
 {
     BACNET_WEBSOCKET_OPERATION_ENTRY e;
@@ -981,6 +1055,12 @@ BACNET_WEBSOCKET_RET bws_srv_recv(BACNET_WEBSOCKET_HANDLE h,
     }
 
     if (bws_srv_conn[h].state == BACNET_WEBSOCKET_STATE_DISCONNECTED) {
+        /* The situation below can happen if remote peer has already dropped
+           connection. Also one or more threads can be blocked on
+           bws_srv_disconnect() call. As pthread_cond_broadcast() does not
+           gurantee the order in which all blocked threads becomes unblocked,
+           the connection object is freed and is set to IDLE state only by
+           last thread.*/
         if (bws_srv_conn[h].wait_threads_cnt == 0) {
             bws_srv_free_connection(h);
         }
@@ -994,6 +1074,13 @@ BACNET_WEBSOCKET_RET bws_srv_recv(BACNET_WEBSOCKET_HANDLE h,
         debug_printf(
             "bws_srv_recv() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES\n");
         return BACNET_WEBSOCKET_NO_RESOURCES;
+    }
+
+    if (bws_recvfrom_head) {
+        pthread_mutex_unlock(&bws_srv_mutex);
+        debug_printf(
+            "bws_srv_recv() <<< ret = BACNET_WEBSOCKET_INVALID_OPERATION\n");
+        return BACNET_WEBSOCKET_INVALID_OPERATION;
     }
 
     e.payload = buf;
@@ -1037,7 +1124,105 @@ BACNET_WEBSOCKET_RET bws_srv_recv(BACNET_WEBSOCKET_HANDLE h,
     return e.retcode;
 }
 
-BACNET_WEBSOCKET_RET bws_srv_stop(void)
+static BACNET_WEBSOCKET_RET bws_srv_recv_from(BACNET_WEBSOCKET_HANDLE *ph,
+    uint8_t *buf,
+    size_t bufsize,
+    size_t *bytes_received,
+    int timeout)
+{
+    BACNET_WEBSOCKET_OPERATION_ENTRY e;
+    struct timespec to;
+    int i;
+
+    debug_printf("bws_srv_recv_from() >>> h = %p, buf = %p, bufsize = %d, "
+                 "timeout = %d\n",
+        ph, buf, bufsize, timeout);
+
+    if (!ph || !buf || !bufsize || !bytes_received) {
+        debug_printf(
+            "bws_srv_recv_from() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
+        return BACNET_WEBSOCKET_BAD_PARAM;
+    }
+
+    pthread_mutex_lock(&bws_srv_mutex);
+
+    if (bws_srv_stop_worker) {
+        pthread_mutex_unlock(&bws_srv_mutex);
+        debug_printf("bws_srv_recv_from() <<< ret = "
+                     "BACNET_WEBSOCKET_INVALID_OPERATION\n");
+        return BACNET_WEBSOCKET_INVALID_OPERATION;
+    }
+
+    if (!bws_srv_ctx) {
+        pthread_mutex_unlock(&bws_srv_mutex);
+        debug_printf("bws_srv_recv_from() <<< ret = "
+                     "BACNET_WEBSOCKET_INVALID_OPERATION\n");
+        return BACNET_WEBSOCKET_INVALID_OPERATION;
+    }
+
+    // ensure that there are no any pending bws_srv_recv() calls
+
+    for (i = 0; i < BACNET_SERVER_WEBSOCKETS_MAX_NUM; i++) {
+        if (bws_srv_conn[i].recv_head) {
+            pthread_mutex_unlock(&bws_srv_mutex);
+            debug_printf("bws_srv_recv_from() <<< ret = "
+                         "BACNET_WEBSOCKET_INVALID_OPERATION\n");
+            return BACNET_WEBSOCKET_INVALID_OPERATION;
+        }
+    }
+
+    if (!bws_srv_init_operation(&e)) {
+        pthread_mutex_unlock(&bws_srv_mutex);
+        debug_printf(
+            "bws_srv_recv_from() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES\n");
+        return BACNET_WEBSOCKET_NO_RESOURCES;
+    }
+
+    e.payload = buf;
+    e.payload_size = bufsize;
+    bws_srv_enqueue_recvfrom_operation(&e);
+
+    // wake up libwebsockets runloop
+    lws_cancel_service(bws_srv_ctx);
+
+    // now wait until libwebsockets runloop processes write request
+    clock_gettime(CLOCK_REALTIME, &to);
+
+    to.tv_sec = to.tv_sec + timeout / 1000;
+    to.tv_nsec = to.tv_nsec + (timeout % 1000) * 1000000;
+    to.tv_sec += to.tv_nsec / 1000000000;
+    to.tv_nsec %= 1000000000;
+    debug_printf(
+        "bws_srv_recv_from() going to block on pthread_cond_timedwait()\n");
+
+    while (!e.processed) {
+        if (pthread_cond_timedwait(&e.cond, &bws_srv_mutex, &to) == ETIMEDOUT) {
+            bws_srv_remove_operation(
+                &e, &bws_recvfrom_head, &bws_recvfrom_tail);
+            pthread_mutex_unlock(&bws_srv_mutex);
+            bws_srv_deinit_operation(&e);
+            debug_printf(
+                "bws_srv_recv_from() <<< ret = BACNET_WEBSOCKET_TIMEDOUT\n");
+            return BACNET_WEBSOCKET_TIMEDOUT;
+        }
+    }
+
+    debug_printf("bws_srv_recv_from() unblocked\n");
+    pthread_mutex_unlock(&bws_srv_mutex);
+
+    *ph = e.h;
+
+    if (e.retcode == BACNET_WEBSOCKET_SUCCESS ||
+        e.retcode == BACNET_WEBSOCKET_BUFFER_TOO_SMALL) {
+        *bytes_received = e.payload_size;
+    }
+
+    bws_srv_deinit_operation(&e);
+    debug_printf("bws_srv_recv_from() <<< ret = %d\n", e.retcode);
+    return e.retcode;
+}
+
+static BACNET_WEBSOCKET_RET bws_srv_stop(void)
 {
     debug_printf("bws_srv_stop() >>>\n");
     pthread_mutex_lock(&bws_srv_mutex);
@@ -1072,7 +1257,8 @@ BACNET_WEBSOCKET_RET bws_srv_stop(void)
 }
 
 static BACNET_WEBSOCKET_SERVER bws_srv = { bws_srv_start, bws_srv_accept,
-    bws_srv_disconnect, bws_srv_send, bws_srv_recv, bws_srv_stop };
+    bws_srv_cancel_accept, bws_srv_disconnect, bws_srv_send, bws_srv_recv,
+    bws_srv_recv_from, bws_srv_stop };
 
 BACNET_WEBSOCKET_SERVER *bws_srv_get(void)
 {
