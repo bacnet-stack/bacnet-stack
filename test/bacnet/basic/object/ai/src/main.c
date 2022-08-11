@@ -10,7 +10,7 @@
 
 #include <ztest.h>
 #include <bacnet/basic/object/ai.h>
-
+#include <bacnet/bactext.h>
 /**
  * @addtogroup bacnet_tests
  * @{
