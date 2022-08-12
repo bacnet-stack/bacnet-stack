@@ -2712,6 +2712,159 @@ static void test_cli_recv_timeout(void)
     zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
 }
 
+// The test case below checks that bws_recv_from() call performs
+// correct loading balance of data flow between all opened 
+// websockets
+
+static void test_srv_recvfrom_data_flow(void)
+{
+    BACNET_WEBSOCKET_HANDLE h1;
+    BACNET_WEBSOCKET_HANDLE h2;
+    BACNET_WEBSOCKET_HANDLE h3;
+    BACNET_WEBSOCKET_HANDLE hs_1;
+    BACNET_WEBSOCKET_HANDLE hs_2;
+    BACNET_WEBSOCKET_HANDLE hs_3;
+    BACNET_WEBSOCKET_HANDLE hh;
+    int ret;
+    uint8_t buf1[32] = { 0x1 };
+    uint8_t buf2[33] = { 0x2 };
+    uint8_t buf3[34] = { 0x3 };
+    uint8_t buf4[35] = { 0x4 };
+    uint8_t buf5[36] = { 0x5 };
+    uint8_t buf6[37] = { 0x6 };
+    uint8_t buf7[38] = { 0x7 };
+    uint8_t buf8[39] = { 0x8 };
+    uint8_t buf9[40] = { 0x9 };
+    char url[128];
+    uint8_t buf[128];
+    size_t r;
+
+    ret = srv->bws_start(40000, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h1);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = srv->bws_accept(&hs_1, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h2);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = srv->bws_accept(&hs_2, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_CONNECTION, url, ca_cert,
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &h3);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    ret = srv->bws_accept(&hs_3, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h1, buf1, sizeof(buf1));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h1, buf2, sizeof(buf2));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h1, buf3, sizeof(buf3));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h2, buf4, sizeof(buf4));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h2, buf5, sizeof(buf5));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h2, buf6, sizeof(buf6));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h3, buf7, sizeof(buf7));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h3, buf8, sizeof(buf8));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = cli->bws_send(h3, buf9, sizeof(buf9));
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+
+    sleep(1);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h1, hh, NULL);
+    zassert_equal(r, sizeof(buf1), NULL);
+    ret = memcmp(buf1, buf, sizeof(buf1));
+    zassert_equal(ret, 0, NULL);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h2, hh, NULL);
+    zassert_equal(r, sizeof(buf4), NULL);
+    ret = memcmp(buf4, buf, sizeof(buf4));
+    zassert_equal(ret, 0, NULL);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h3, hh, NULL);
+    zassert_equal(r, sizeof(buf7), NULL);
+    ret = memcmp(buf7, buf, sizeof(buf7));
+    zassert_equal(ret, 0, NULL);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h1, hh, NULL);
+    zassert_equal(r, sizeof(buf2), NULL);
+    ret = memcmp(buf2, buf, sizeof(buf2));
+    zassert_equal(ret, 0, NULL);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h2, hh, NULL);
+    zassert_equal(r, sizeof(buf5), NULL);
+    ret = memcmp(buf5, buf, sizeof(buf5));
+    zassert_equal(ret, 0, NULL);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h3, hh, NULL);
+    zassert_equal(r, sizeof(buf8), NULL);
+    ret = memcmp(buf8, buf, sizeof(buf8));
+    zassert_equal(ret, 0, NULL);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h1, hh, NULL);
+    zassert_equal(r, sizeof(buf3), NULL);
+    ret = memcmp(buf3, buf, sizeof(buf3));
+    zassert_equal(ret, 0, NULL);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h2, hh, NULL);
+    zassert_equal(r, sizeof(buf6), NULL);
+    ret = memcmp(buf6, buf, sizeof(buf6));
+    zassert_equal(ret, 0, NULL);
+
+    ret = srv->bws_recv_from(&hh, buf, sizeof(buf), &r, INFINITE_TIMEOUT);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    zassert_equal(h3, hh, NULL);
+    zassert_equal(r, sizeof(buf9), NULL);
+    ret = memcmp(buf9, buf, sizeof(buf9));
+    zassert_equal(ret, 0, NULL);
+    ret = srv->bws_disconnect(hs_1);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = srv->bws_disconnect(hs_2);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = srv->bws_disconnect(hs_3);
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    ret = srv->bws_stop();
+    zassert_equal(ret, BACNET_WEBSOCKET_SUCCESS, NULL);
+    usleep(500000);
+    ret = cli->bws_disconnect(h1);
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+    ret = cli->bws_disconnect(h2);
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+    ret = cli->bws_disconnect(h3);
+    zassert_equal(ret, BACNET_WEBSOCKET_CLOSED, NULL);
+}
+
 BACNET_WEBSOCKET_HANDLE test_cli_disconnect_during_multiple_send_h;
 
 static void *test_cli_disconnect_during_multiple_send_th(void *arg)
@@ -3120,6 +3273,9 @@ void test_main(void)
         websocket_srv_test_31, ztest_unit_test(test_srv_recv_from_during_recv));
 
     ztest_test_suite(
+        websocket_srv_test_32, ztest_unit_test(test_srv_recvfrom_data_flow));
+
+    ztest_test_suite(
         websocket_cli_test_1, ztest_unit_test(test_cli_bad_function_params));
 
     ztest_test_suite(
@@ -3139,7 +3295,10 @@ void test_main(void)
 
     ztest_test_suite(
         websocket_cli_test_7, ztest_unit_test(test_cli_multiple_recv_timedout));
-#if 1
+
+    // can be run only once
+    ztest_run_test_suite(websocket_srv_test_32);
+
     for (int i = 0; i < 3; i++) {
         ztest_run_test_suite(websocket_srv_test_1);
         ztest_run_test_suite(websocket_srv_test_2);
@@ -3180,5 +3339,4 @@ void test_main(void)
         ztest_run_test_suite(websocket_cli_test_6);
         ztest_run_test_suite(websocket_cli_test_7);
     }
-#endif
 }
