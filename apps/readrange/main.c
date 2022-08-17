@@ -203,6 +203,7 @@ int main(int argc, char *argv[])
     int count = 0;
     int hour, min, sec, hundredths;
     int year, month, day, wday;
+    unsigned object_type = 0;
     char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
@@ -228,10 +229,11 @@ int main(int argc, char *argv[])
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    if (bactext_object_type_strtol(argv[2], &Target_Object_Type) == false) {
+    if (bactext_object_type_strtol(argv[2], &object_type) == false) {
         fprintf(stderr, "object-type=%s invalid\n", argv[2]);
         return 1;
     }
+    Target_Object_Type = object_type;
     Target_Object_Instance = strtol(argv[3], NULL, 0);
     if (bactext_property_strtol(argv[4], &Target_Object_Property) == false) {
         fprintf(stderr, "property=%s invalid\n", argv[4]);

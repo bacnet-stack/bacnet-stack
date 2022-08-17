@@ -786,11 +786,11 @@ int event_notify_decode_service_request(
                                 if (-1 == (section_length =
                                         decode_enumerated(&apdu[len],
                                             len_value,
-                                            &data->
-                                            notificationParams.commandFailure.
-                                            commandValue.binaryValue))) {
+                                            &enum_value))) {
                                     return -1;
                                 }
+                                data->notificationParams.commandFailure.
+                                    commandValue.binaryValue = enum_value;
                                 break;
 
                             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
@@ -836,13 +836,12 @@ int event_notify_decode_service_request(
                         switch (tag_number) {
                             case BACNET_APPLICATION_TAG_ENUMERATED:
                                 if (-1 == (section_length =
-                                        decode_enumerated(&apdu[len],
-                                            len_value,
-                                            &data->
-                                            notificationParams.commandFailure.
-                                            feedbackValue.binaryValue))) {
+                                    decode_enumerated(&apdu[len], len_value,
+                                    &enum_value))) {
                                     return -1;
                                 }
+                                data->notificationParams.commandFailure.
+                                    feedbackValue.binaryValue = enum_value;
                                 break;
 
                             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
@@ -1060,12 +1059,12 @@ int event_notify_decode_service_request(
                     case EVENT_ACCESS_EVENT:
                         if (-1 == (section_length =
                                 decode_context_enumerated(&apdu[len], 0,
-                                    &data->notificationParams.
-                                    accessEvent.accessEvent))) {
+                                &enum_value))) {
                             return -1;
                         }
+                        data->notificationParams.accessEvent.accessEvent =
+                            enum_value;
                         len += section_length;
-
                         if (-1 == (section_length =
                                 decode_context_bitstring(&apdu[len], 1,
                                     &data->notificationParams.

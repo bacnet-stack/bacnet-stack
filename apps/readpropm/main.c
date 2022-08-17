@@ -359,6 +359,7 @@ int main(int argc, char *argv[])
     int scan_count = 0;
     int argi = 0;
     long dnet = -1;
+    unsigned object_type = 0;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     bool specific_address = false;
@@ -425,12 +426,13 @@ int main(int argc, char *argv[])
                         atexit(cleanup);
                     }
                     status = bactext_object_type_strtol(
-                        argv[argi], &rpm_object->object_type);
+                        argv[argi], &object_type);
                     if (status == false) {
                         fprintf(stderr, "Error: object-type=%s invalid\n",
                             argv[argi]);
                         return 1;
                     }
+                    rpm_object->object_type = object_type;
                     if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
                         fprintf(stderr,
                             "object-type=%u - it must be less than %u\n",

@@ -252,6 +252,7 @@ int main(int argc, char *argv[])
     BACNET_ADDRESS dest = { 0 };
     bool specific_address = false;
     int argi = 0;
+    unsigned object_type = 0;
     unsigned int target_args = 0;
     char *filename = NULL;
 
@@ -296,10 +297,11 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 1) {
                 if (bactext_object_type_strtol(
-                        argv[argi], &Target_Object_Type) == false) {
+                        argv[argi], &object_type) == false) {
                     fprintf(stderr, "object-type=%s invalid\n", argv[argi]);
                     return 1;
                 }
+                Target_Object_Type = object_type;
                 target_args++;
             } else if (target_args == 2) {
                 Target_Object_Instance = strtol(argv[argi], NULL, 0);

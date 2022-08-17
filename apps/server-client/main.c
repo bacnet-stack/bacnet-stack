@@ -91,6 +91,7 @@ int main(int argc, char *argv[])
     struct mstimer print_value_timer = { 0 };
     float float_value = 0.0;
     bool bool_value = false;
+    unsigned object_type = 0;
     uint32_t unsigned_value = 0;
     /* data from the command line */
     unsigned long print_seconds = 10;
@@ -132,11 +133,12 @@ int main(int argc, char *argv[])
                 target_device_object_instance = strtol(argv[argi], NULL, 0);
                 target_args++;
             } else if (target_args == 1) {
-                if (bactext_object_type_strtol(
-                        argv[argi], &target_object_type) == false) {
+                if (bactext_object_type_strtol(argv[argi], &object_type) ==
+                    false) {
                     fprintf(stderr, "object-type=%s invalid\n", argv[argi]);
                     return 1;
                 }
+                target_object_type = object_type;
                 target_args++;
             } else if (target_args == 2) {
                 target_object_instance = strtol(argv[argi], NULL, 0);
