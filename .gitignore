@@ -61,10 +61,10 @@ bin/
 Backup*
 BACnet_BDT_table
 address_cache
-/build/*
-/_build/*
+**/build/*
+**/_build/*
 CMakeLists.txt.user
-/out/*
+**/out/*
 Obj/
 Release/
 apps/piface/libmcp23s17/
