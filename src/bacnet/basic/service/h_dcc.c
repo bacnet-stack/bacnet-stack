@@ -169,7 +169,7 @@ void handler_device_communication_control(uint8_t *service_request,
 #ifdef BAC_ROUTING
         /* Check to see if the current Device supports this service. */
         len = Routed_Device_Service_Approval(
-            SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL, (int)state,
+            SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, (int)state,
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
         if (len > 0)
             goto DCC_ABORT;

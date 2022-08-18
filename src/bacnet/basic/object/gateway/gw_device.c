@@ -613,14 +613,14 @@ void Routed_Device_Inc_Database_Revision(void)
  *          just 1 if no apdu_buff was supplied and service is not supported,
  *          else 0 if service is approved for the current device.
  */
-int Routed_Device_Service_Approval(BACNET_CONFIRMED_SERVICE service,
+int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
     int service_argument,
     uint8_t *apdu_buff,
     uint8_t invoke_id)
 {
     int len = 0;
     switch (service) {
-        case SERVICE_CONFIRMED_REINITIALIZE_DEVICE:
+        case SERVICE_SUPPORTED_REINITIALIZE_DEVICE:
             /* If not the gateway device, we don't support RD */
             if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL) {
@@ -631,7 +631,7 @@ int Routed_Device_Service_Approval(BACNET_CONFIRMED_SERVICE service,
                 }
             }
             break;
-        case SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL:
+        case SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL:
             /* If not the gateway device, we don't support DCC */
             if (iCurrent_Device_Idx > 0) {
                 if (apdu_buff != NULL) {
