@@ -16,12 +16,18 @@
 
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
-
+#include "bacnet/datalink/bsc/bsc-conf.h"
 /**
  * Websocket connection timeout
  * @{
  */
+
+#ifndef BSC_CONF_WEBSOCKET_TIMEOUT_SECONDS
 #define BACNET_WEBSOCKET_TIMEOUT_SECONDS 10
+#else
+#define BACNET_WEBSOCKET_TIMEOUT_SECONDS BSC_CONF_WEBSOCKET_TIMEOUT_SECONDS
+#endif
+
 /** @} */
 
 /**
@@ -35,7 +41,12 @@
  * Maximum number of sockets that can be opened on client's side.
  * @{
  */
+#ifndef BSC_CONF_CLIENT_CONNECTIONS_NUM
 #define BACNET_CLIENT_WEBSOCKETS_MAX_NUM 4
+#else
+#define BACNET_CLIENT_WEBSOCKETS_MAX_NUM BSC_CONF_CLIENT_CONNECTIONS_NUM
+#endif
+
 /** @} */
 
 /**
@@ -43,14 +54,37 @@
  * Value must be a power of 2.
  * @{
  */
+#ifndef BSC_CONF_CLIENT_WEBSOCKET_RX_BUFFER_SIZE
 #define BACNET_CLIENT_WEBSOCKET_RX_BUFFER_SIZE 4096
+#else
+#define BACNET_CLIENT_WEBSOCKET_RX_BUFFER_SIZE BSC_CONF_CLIENT_WEBSOCKET_RX_BUFFER_SIZE
+#endif
+
 /** @} */
 
 /**
- * Maximum number of sockets that can be opened on server's side.
+ * Maximum number of sockets supported for hub websocket server
  * @{
  */
-#define BACNET_SERVER_WEBSOCKETS_MAX_NUM 4
+#ifndef BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM
+#define BACNET_SERVER_HUB_WEBSOCKETS_MAX_NUM 4
+#else
+#define BACNET_SERVER_HUB_WEBSOCKETS_MAX_NUM BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM
+#endif
+
+/** @} */
+
+
+/**
+ * Maximum number of sockets supported for direct websocket server
+ * @{
+ */
+#ifndef BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
+#define BACNET_SERVER_DIRECT_WEBSOCKETS_MAX_NUM 4
+#else
+#define BACNET_SERVER_DIRECT_WEBSOCKETS_MAX_NUM BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
+#endif
+
 /** @} */
 
 /**
@@ -58,8 +92,15 @@
  * Value must be a power of 2.
  * @{
  */
+
+#ifndef BSC_CONF_SERVER_WEBSOCKET_RX_BUFFER_SIZE
 #define BACNET_SERVER_WEBSOCKET_RX_BUFFER_SIZE 4096
+#else
+#define BACNET_SERVER_WEBSOCKET_RX_BUFFER_SIZE BSC_CONF_SERVER_WEBSOCKET_RX_BUFFER_SIZE
+#endif
+
 /** @} */
+
 
 #define BACNET_WSURL_MAX_LEN 256
 
@@ -67,13 +108,14 @@ typedef int BACNET_WEBSOCKET_HANDLE;
 #define BACNET_WEBSOCKET_INVALID_HANDLE (-1)
 
 // Websockets protocol defined in BACnet/SC \S AB.7.1.
-#define BACNET_WEBSOCKET_HUB_PROTOCOL "hub.bsc.bacnet.org"
-#define BACNET_WEBSOCKET_DIRECT_CONNECTION_PROTOCOL "dc.bsc.bacnet.org"
+#define BACNET_WEBSOCKET_HUB_PROTOCOL_STR "hub.bsc.bacnet.org"
+#define BACNET_WEBSOCKET_DIRECT_PROTOCOL_STR "dc.bsc.bacnet.org"
 
 typedef enum {
-    BACNET_WEBSOCKET_HUB_CONNECTION = 0,
-    BACNET_WEBSOCKET_DIRECT_CONNECTION = 1
-} BACNET_WEBSOCKET_CONNECTION_TYPE;
+    BACNET_WEBSOCKET_HUB_PROTOCOL = 0,
+    BACNET_WEBSOCKET_DIRECT_PROTOCOL = 1,
+    BACNET_WEBSOCKET_PROTOCOLS_AMOUNT = 2   // must be always last
+} BACNET_WEBSOCKET_PROTOCOL;
 
 typedef enum {
     BACNET_WEBSOCKET_SUCCESS = 0,
@@ -120,7 +162,7 @@ typedef struct BACNetWebsocketClient {
      */
 
     BACNET_WEBSOCKET_RET(*bws_connect)
-    (BACNET_WEBSOCKET_CONNECTION_TYPE type,
+    (BACNET_WEBSOCKET_PROTOCOL proto,
         char *url,
         uint8_t *ca_cert,
         size_t ca_cert_size,
@@ -216,8 +258,10 @@ typedef struct BACNetWebsocketClient {
 typedef struct BACNetWebsocketServer {
     /**
      * @brief Blocking bws_start() function starts a websocket server on a
-     * specified port.
+     * specified port for specified BACNet websocket protocol.
      *
+     * @param proto - type of BACNet websocket protocol defined in
+     *                BACNET_WEBSOCKET_PROTOCOL enum.
      * @param port- port number.
      * @param ca_cert - pointer to certificate authority (CA) cert in PEM or DER
      * format.
@@ -230,27 +274,25 @@ typedef struct BACNetWebsocketServer {
      * @return error code from BACNET_WEBSOCKET_RET enum.
      *  The following error codes can be returned:
      *    BACNET_WEBSOCKET_BAD_PARAM - In a case if some input parameter is
-     *                                 incorrect.
+     *            incorrect.
      *    BACNET_WEBSOCKET_NO_RESOURCES - if a user has already opened
-     *                          more sockets than the limit defined by
-     *                          BACNET_CLIENT_WEBSOCKETS_MAX_NUM, or if some
-     *                          mem allocation has failed or some allocation
-     *                          of system resources like mutex, thread,
-     *                          etc .., failed.
-     *    BACNET_WEBSOCKET_CLOSED - if the bws_disconnect() was called on same
-     *                          websocket handle from some other thread and
-     *                          socket was closed.
+     *            more sockets than the limit defined to corresponded protocol
+     *            (BACNET_SERVER_HUB_WEBSOCKETS_MAX_NUM or
+     *             BACNET_CLIENT_WEBSOCKETS_MAX_NUM), or if some mem allocation
+     *             has failed or some allocation of system resources like
+     *             mutex, thread, condition variable etc .., failed.
      *    BACNET_WEBSOCKET_SUCCESS - the connection attempt has succeded.
      */
 
-    BACNET_WEBSOCKET_RET (*bws_start)
-    (int port,
-        uint8_t *ca_cert,
-        size_t ca_cert_size,
-        uint8_t *cert,
-        size_t cert_size,
-        uint8_t *key,
-        size_t key_size);
+    BACNET_WEBSOCKET_RET (*bws_start) (
+                            BACNET_WEBSOCKET_PROTOCOL proto,
+                            int port,
+                            uint8_t *ca_cert,
+                            size_t ca_cert_size,
+                            uint8_t *cert,
+                            size_t cert_size,
+                            uint8_t *key,
+                            size_t key_size);
 
     /**
      * @brief Blocking bws_accept() function waits for incoming connection over
@@ -281,8 +323,10 @@ typedef struct BACNetWebsocketServer {
      *           canceled by bws_cancel_accept() call from other thread.
      */
 
-    BACNET_WEBSOCKET_RET (*bws_accept)(BACNET_WEBSOCKET_HANDLE *out_handle, 
-        int timeout);
+    BACNET_WEBSOCKET_RET (*bws_accept)(
+                            BACNET_WEBSOCKET_PROTOCOL protocol,
+                            BACNET_WEBSOCKET_HANDLE* out_handle,
+                            int timeout);
 
     /**
      * @brief bws_cancel_accept() function cancel waiting for result 
@@ -291,7 +335,7 @@ typedef struct BACNetWebsocketServer {
      *        BACNET_WEBSOCKET_OPERATION_CANCELED error.
      */
 
-    void (*bws_cancel_accept)(void);
+    void (*bws_cancel_accept)(BACNET_WEBSOCKET_PROTOCOL protocol);
 
     /**
      * @brief Blocking bws_disconnnect() function closes websocket handle.
@@ -312,7 +356,9 @@ typedef struct BACNetWebsocketServer {
      *    BACNET_WEBSOCKET_SUCCESS - operation has succeded.
      */
 
-    BACNET_WEBSOCKET_RET (*bws_disconnect)(BACNET_WEBSOCKET_HANDLE h);
+    BACNET_WEBSOCKET_RET (*bws_disconnect) (
+                            BACNET_WEBSOCKET_PROTOCOL protocol,
+                            BACNET_WEBSOCKET_HANDLE h);
 
     /**
      * @brief Blocking bws_send() function sends data to a websocket client.
@@ -334,8 +380,11 @@ typedef struct BACNetWebsocketServer {
      *    BACNET_WEBSOCKET_SUCCESS - operation has succeded.
      */
 
-    BACNET_WEBSOCKET_RET (*bws_send)
-    (BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size);
+    BACNET_WEBSOCKET_RET (*bws_send) (
+                            BACNET_WEBSOCKET_PROTOCOL protocol,
+                            BACNET_WEBSOCKET_HANDLE h,
+                            uint8_t *payload,
+                            size_t payload_size);
     /**
      * @brief Blocking bws_recv() function receives data from a websocket
      * client specified by the websocket handle.
@@ -368,12 +417,13 @@ typedef struct BACNetWebsocketServer {
      *                         equal to bufsize is copied into buf.
      */
 
-    BACNET_WEBSOCKET_RET(*bws_recv)
-    (BACNET_WEBSOCKET_HANDLE h,
-        uint8_t *buf,
-        size_t bufsize,
-        size_t *bytes_received,
-        int timeout);
+    BACNET_WEBSOCKET_RET(*bws_recv) (
+                           BACNET_WEBSOCKET_PROTOCOL protocol,
+                           BACNET_WEBSOCKET_HANDLE h,
+                           uint8_t *buf,
+                           size_t bufsize,
+                           size_t *bytes_received,
+                           int timeout);
 
    /**
      * @brief Blocking bws_recv_from() function receives data from any connected
@@ -420,12 +470,13 @@ typedef struct BACNetWebsocketServer {
      */
 
 
-    BACNET_WEBSOCKET_RET (*bws_recv_from)
-    (BACNET_WEBSOCKET_HANDLE* ph,
-        uint8_t *buf,
-        size_t bufsize,
-        size_t *bytes_received,
-        int timeout);
+    BACNET_WEBSOCKET_RET (*bws_recv_from) (
+                            BACNET_WEBSOCKET_PROTOCOL protocol,
+                            BACNET_WEBSOCKET_HANDLE* ph,
+                            uint8_t *buf,
+                            size_t bufsize,
+                            size_t *bytes_received,
+                            int timeout);
 
     /**
      * @brief Blocking bws_stop() function shutdowns a websocket server. All
@@ -438,7 +489,7 @@ typedef struct BACNetWebsocketServer {
      *                server shutdown is already in progress.
      */
 
-    BACNET_WEBSOCKET_RET (*bws_stop)(void);
+    BACNET_WEBSOCKET_RET (*bws_stop)(BACNET_WEBSOCKET_PROTOCOL protocol);
 } BACNET_WEBSOCKET_SERVER;
 
 BACNET_STACK_EXPORT
