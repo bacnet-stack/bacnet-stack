@@ -121,7 +121,7 @@ void color_rgb_from_xy(uint8_t *red, uint8_t *green, uint8_t *blue,
     float x = x_coordinate;
     float y = y_coordinate;
     float z = 1.0f - x - y;
-    float Y = brightness;
+    float Y = (float)brightness;
     Y /= 255.0f;
     float X = (Y / y) * x;
     float Z = (Y / y) * z;
@@ -448,17 +448,17 @@ void color_rgb_from_temperature(
         /* Red values below 6600 K are always 255 */
         red = 255.0;
     } else {
-        red = temperature_kelvin - 60;
+        red = (float)(temperature_kelvin - 60);
         red = 329.698727446 * pow(red, -0.1332047592);
         red = clamp(red, 0.0, 255.0);
     }
     /* Calculate Green */
     if (temperature_kelvin <= 66) {
         /* Green values below 6600 K */
-        green = temperature_kelvin;
+        green = (float)temperature_kelvin;
         green = 99.4708025861 * log(green) - 161.1195681661;
     } else {
-        green = temperature_kelvin - 60;
+        green = (float)(temperature_kelvin - 60);
         green = 288.1221695283 * pow(green, -0.0755148492);
     }
     green = clamp(green, 0.0, 255.0);
@@ -470,17 +470,17 @@ void color_rgb_from_temperature(
         /* Blue values below 1900 K */
         blue = 0.0;
     } else {
-        blue = temperature_kelvin - 10;
+        blue = (float)(temperature_kelvin - 10);
         blue = 138.5177312231 * log(blue) - 305.0447927307;
         blue = clamp(blue, 0, 255);
     }
     if (r) {
-        *r = red;
+        *r = (uint8_t)red;
     }
     if (g) {
-        *g = green;
+        *g = (uint8_t)green;
     }
     if (b) {
-        *b = blue;
+        *b = (uint8_t)blue;
     }
 }

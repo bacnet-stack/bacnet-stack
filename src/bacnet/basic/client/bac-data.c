@@ -114,8 +114,8 @@ static void bacnet_data_object_store(int index,
 {
     BACNET_DATA_OBJECT *object = NULL;
 
-    assert(rp_data);
-    assert(value);
+    assert(rp_data != NULL);
+    assert(value != NULL);
     if ((index < BACNET_DATA_OBJECT_MAX) && (!value->context_specific)) {
         object = &Object_Table[index];
         switch (rp_data->object_property) {

@@ -239,6 +239,8 @@ int main(int argc, char *argv[])
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
     unsigned max_apdu = 0;
+    unsigned object_type = 0;
+    unsigned object_property = 0;
     time_t elapsed_seconds = 0;
     time_t last_seconds = 0;
     time_t current_seconds = 0;
@@ -275,15 +277,17 @@ int main(int argc, char *argv[])
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
-    if (bactext_object_type_strtol(argv[2], &Target_Object_Type) == false) {
+    if (bactext_object_type_strtol(argv[2], &object_type) == false) {
         fprintf(stderr, "object-type=%s invalid\n", argv[2]);
         return 1;
     }
+    Target_Object_Type = object_type;
     Target_Object_Instance = strtol(argv[3], NULL, 0);
-    if (bactext_property_strtol(argv[4], &Target_Object_Property) == false) {
+    if (bactext_property_strtol(argv[4], &object_property) == false) {
         fprintf(stderr, "property=%s invalid\n", argv[4]);
         return 1;
     }
+    Target_Object_Property = object_property;
     Target_Object_Property_Priority = (uint8_t)strtol(argv[5], NULL, 0);
     Target_Object_Property_Index = strtol(argv[6], NULL, 0);
     if (Target_Object_Property_Index == -1) {

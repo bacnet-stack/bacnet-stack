@@ -235,6 +235,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     bool found = false;
     long dnet = -1;
+    unsigned object_type = 0;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -289,8 +290,8 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 2) {
                 /* event-object-type */
-                if (bactext_object_type_strtol(argv[argi],
-                    &data.eventObjectIdentifier.type)) {
+                if (bactext_object_type_strtol(argv[argi], &object_type)) {
+                    data.eventObjectIdentifier.type = object_type;
                     target_args++;
                 } else {
                     fprintf(stderr, "event-object-type=%s invalid\n",
@@ -305,7 +306,8 @@ int main(int argc, char *argv[])
             } else if (target_args == 4) {
                 /* event-state-acked */
                 if (bactext_event_state_strtol(argv[argi],
-                    &data.eventStateAcked)) {
+                    &object_type)) {
+                    data.eventStateAcked = object_type;
                     target_args++;
                 } else {
                     fprintf(stderr, "event-state=%s invalid\n",

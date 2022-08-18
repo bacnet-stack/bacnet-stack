@@ -277,6 +277,7 @@ int main(int argc, char *argv[])
     bool status = false;
     BACNET_APPLICATION_TAG property_tag;
     uint8_t context_tag = 0;
+    unsigned object_type = 0;
     unsigned property_id = 0;
     unsigned property_array_index = 0;
     int scan_count = 0;
@@ -318,12 +319,13 @@ int main(int argc, char *argv[])
     arg_sets = 0;
     while (wpm_object) {
         tag_value_arg = 2 + (arg_sets * 6);
-        if (bactext_object_type_strtol(
-                argv[tag_value_arg], &wpm_object->object_type) == false) {
+        if (bactext_object_type_strtol(argv[tag_value_arg], &object_type) ==
+            false) {
             fprintf(
                 stderr, "Error: object-type=%s invalid\n", argv[tag_value_arg]);
             return 1;
         }
+        wpm_object->object_type = object_type;
         tag_value_arg++;
         args_remaining--;
         if (Verbose) {
