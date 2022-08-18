@@ -1028,6 +1028,142 @@ static int decode_priority_value(uint8_t *apdu,
 #endif
 
 #if defined(BACAPP_TYPES_EXTRA)
+int bacapp_known_property_tag(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID property)
+{
+    switch (property) {
+        case PROP_MEMBER_OF:
+        case PROP_ZONE_MEMBERS:
+        case PROP_DOOR_MEMBERS:
+        case PROP_SUBORDINATE_LIST:
+        case PROP_ACCESS_EVENT_CREDENTIAL:
+        case PROP_ACCESS_DOORS:
+        case PROP_ZONE_FROM:
+        case PROP_ZONE_TO:
+        case PROP_CREDENTIALS_IN_ZONE:
+        case PROP_LAST_CREDENTIAL_ADDED:
+        case PROP_LAST_CREDENTIAL_REMOVED:
+        case PROP_ENTRY_POINTS:
+        case PROP_EXIT_POINTS:
+        case PROP_MEMBERS:
+        case PROP_CREDENTIALS:
+        case PROP_ACCOMPANIMENT:
+        case PROP_BELONGS_TO:
+        case PROP_LAST_ACCESS_POINT:
+            /* Properties using BACnetDeviceObjectReference */
+            return BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE;
+
+        case PROP_TIME_OF_ACTIVE_TIME_RESET:
+        case PROP_TIME_OF_STATE_COUNT_RESET:
+        case PROP_CHANGE_OF_STATE_TIME:
+        case PROP_MAXIMUM_VALUE_TIMESTAMP:
+        case PROP_MINIMUM_VALUE_TIMESTAMP:
+        case PROP_VALUE_CHANGE_TIME:
+        case PROP_START_TIME:
+        case PROP_STOP_TIME:
+        case PROP_MODIFICATION_DATE:
+        case PROP_UPDATE_TIME:
+        case PROP_COUNT_CHANGE_TIME:
+        case PROP_LAST_CREDENTIAL_ADDED_TIME:
+        case PROP_LAST_CREDENTIAL_REMOVED_TIME:
+        case PROP_ACTIVATION_TIME:
+        case PROP_EXPIRATION_TIME:
+        case PROP_LAST_USE_TIME:
+            /* Properties using BACnetDateTime value */
+            return BACNET_APPLICATION_TAG_DATETIME;
+
+        case PROP_OBJECT_PROPERTY_REFERENCE:
+        case PROP_LOG_DEVICE_OBJECT_PROPERTY:
+        case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
+            /* Properties using BACnetDeviceObjectPropertyReference */
+            return BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE;
+
+        case PROP_MANIPULATED_VARIABLE_REFERENCE:
+        case PROP_CONTROLLED_VARIABLE_REFERENCE:
+        case PROP_INPUT_REFERENCE:
+            /* Properties using BACnetObjectPropertyReference */
+            return BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
+
+        case PROP_EVENT_TIME_STAMPS:
+        case PROP_LAST_RESTORE_TIME:
+        case PROP_TIME_OF_DEVICE_RESTART:
+        case PROP_ACCESS_EVENT_TIME:
+            /* Properties using BACnetTimeStamp */
+            return BACNET_APPLICATION_TAG_TIMESTAMP;
+
+        case PROP_DEFAULT_COLOR:
+            /* Properties using BACnetxyColor */
+            return BACNET_APPLICATION_TAG_XY_COLOR;
+
+        case PROP_TRACKING_VALUE:
+        case PROP_PRESENT_VALUE:
+            if (object_type == OBJECT_COLOR) {
+                /* Properties using BACnetxyColor */
+                return BACNET_APPLICATION_TAG_XY_COLOR;
+            }
+            return -1;
+
+        case PROP_COLOR_COMMAND:
+            /* Properties using BACnetColorCommand */
+            return BACNET_APPLICATION_TAG_COLOR_COMMAND;
+
+        case PROP_LIGHTING_COMMAND:
+            /* Properties using BACnetLightingCommand */
+            return BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
+
+        case PROP_WEEKLY_SCHEDULE:
+            /* BACnetWeeklySchedule ([7] BACnetDailySchedule*/
+            return BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
+
+        case PROP_PRIORITY_ARRAY:
+            /* [16] BACnetPriorityValue : 16x values (simple property) */
+            return -1;
+
+        case PROP_LIST_OF_GROUP_MEMBERS:
+            /* Properties using ReadAccessSpecification */
+            return -1;
+
+        case PROP_EXCEPTION_SCHEDULE:
+            /* BACnetSpecialEvent (Schedule) */
+            return -1;
+
+        case PROP_DATE_LIST:
+            /* FIXME: Properties using : BACnetCalendarEntry */
+            return -1;
+
+        case PROP_ACTIVE_COV_SUBSCRIPTIONS:
+            /* FIXME: BACnetCOVSubscription */
+            return -1;
+
+        case PROP_EFFECTIVE_PERIOD:
+            /* FIXME: Properties using BACnetDateRange  (Schedule) */
+            return -1;
+
+        case PROP_RECIPIENT_LIST:
+            /* FIXME: Properties using BACnetDestination */
+            return -1;
+
+        case PROP_TIME_SYNCHRONIZATION_RECIPIENTS:
+        case PROP_RESTART_NOTIFICATION_RECIPIENTS:
+        case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
+            /* FIXME: Properties using BACnetRecipient */
+            return -1;
+
+        case PROP_DEVICE_ADDRESS_BINDING:
+        case PROP_MANUAL_SLAVE_ADDRESS_BINDING:
+        case PROP_SLAVE_ADDRESS_BINDING:
+            /* FIXME: BACnetAddressBinding */
+            return -1;
+
+        case PROP_ACTION:
+            return -1;
+
+        default:
+            return -1;
+    }
+}
+
 /**
  * @brief Decodes a well-known, possibly complex property value
  *  Used to reverse operations in bacapp_encode_application_data
@@ -1044,6 +1180,15 @@ int bacapp_decode_known_property(uint8_t *apdu,
     BACNET_PROPERTY_ID property)
 {
     int len = 0;
+
+    // NOTE:
+    //   When adding impl for a new prop, also add its tag
+    //   to bacapp_known_property_tag()
+
+    int tag = bacapp_known_property_tag(object_type, property);
+    if (tag != -1) {
+        value->tag = tag;
+    }
 
     switch (property) {
         case PROP_MEMBER_OF:
@@ -1065,10 +1210,10 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_BELONGS_TO:
         case PROP_LAST_ACCESS_POINT:
             /* Properties using BACnetDeviceObjectReference */
-            value->tag = BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE;
             len = bacapp_decode_device_obj_ref(
                      apdu, &value->type.Device_Object_Reference);
             break;
+
         case PROP_TIME_OF_ACTIVE_TIME_RESET:
         case PROP_TIME_OF_STATE_COUNT_RESET:
         case PROP_CHANGE_OF_STATE_TIME:
@@ -1086,46 +1231,44 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_EXPIRATION_TIME:
         case PROP_LAST_USE_TIME:
             /* Properties using BACnetDateTime value */
-            value->tag = BACNET_APPLICATION_TAG_DATETIME;
             len = bacapp_decode_datetime(apdu, &value->type.Date_Time);
             break;
+
         case PROP_OBJECT_PROPERTY_REFERENCE:
         case PROP_LOG_DEVICE_OBJECT_PROPERTY:
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
             /* Properties using BACnetDeviceObjectPropertyReference */
-            value->tag =
-                BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE;
             len = bacapp_decode_device_obj_property_ref(apdu,
                 &value->type.Device_Object_Property_Reference);
             break;
+
         case PROP_MANIPULATED_VARIABLE_REFERENCE:
         case PROP_CONTROLLED_VARIABLE_REFERENCE:
         case PROP_INPUT_REFERENCE:
             /* Properties using BACnetObjectPropertyReference */
-            value->tag = BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
             len = bacapp_decode_obj_property_ref(
                 apdu, max_apdu_len,
                 &value->type.Object_Property_Reference);
             break;
+
         case PROP_EVENT_TIME_STAMPS:
         case PROP_LAST_RESTORE_TIME:
         case PROP_TIME_OF_DEVICE_RESTART:
         case PROP_ACCESS_EVENT_TIME:
             /* Properties using BACnetTimeStamp */
-            value->tag = BACNET_APPLICATION_TAG_TIMESTAMP;
             len = bacapp_decode_timestamp(apdu, &value->type.Time_Stamp);
             break;
+
         case PROP_DEFAULT_COLOR:
             /* Properties using BACnetxyColor */
-            value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
             len = xy_color_decode(apdu, max_apdu_len,
                 &value->type.XY_Color);
             break;
+
         case PROP_TRACKING_VALUE:
         case PROP_PRESENT_VALUE:
             if (object_type == OBJECT_COLOR) {
                 /* Properties using BACnetxyColor */
-                value->tag = BACNET_APPLICATION_TAG_XY_COLOR;
                 len = xy_color_decode(apdu, max_apdu_len,
                     &value->type.XY_Color);
             } else {
@@ -1134,28 +1277,32 @@ int bacapp_decode_known_property(uint8_t *apdu,
                     property);
             }
             break;
+
         case PROP_COLOR_COMMAND:
             /* Properties using BACnetColorCommand */
-            value->tag = BACNET_APPLICATION_TAG_COLOR_COMMAND;
             len = color_command_decode(apdu, max_apdu_len, NULL,
                 &value->type.Color_Command);
             break;
+
         case PROP_LIGHTING_COMMAND:
             /* Properties using BACnetLightingCommand */
-            value->tag = BACNET_APPLICATION_TAG_LIGHTING_COMMAND;
             len = lighting_command_decode(apdu, max_apdu_len,
                 &value->type.Lighting_Command);
             break;
+
         case PROP_PRIORITY_ARRAY:
             /* [16] BACnetPriorityValue : 16x values (simple property) */
             len = decode_priority_value(apdu, max_apdu_len, value, property);
             break;
+
         case PROP_WEEKLY_SCHEDULE:
             /* BACnetWeeklySchedule ([7] BACnetDailySchedule*/
-            value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
             len = bacnet_weeklyschedule_decode(
                 apdu, max_apdu_len, &value->type.Weekly_Schedule);
             break;
+
+            /* properties without a specific decoder - fall through to default */
+
         case PROP_LIST_OF_GROUP_MEMBERS:
             /* Properties using ReadAccessSpecification */
         case PROP_EXCEPTION_SCHEDULE:

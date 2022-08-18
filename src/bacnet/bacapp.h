@@ -219,6 +219,11 @@ extern "C" {
         BACNET_PROPERTY_ID property);
 
     BACNET_STACK_EXPORT
+    int bacapp_known_property_tag(
+        BACNET_OBJECT_TYPE object_type,
+        BACNET_PROPERTY_ID property);
+
+    BACNET_STACK_EXPORT
     bool bacapp_copy(
         BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);

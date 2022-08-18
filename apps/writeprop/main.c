@@ -333,20 +333,25 @@ int main(int argc, char *argv[])
         value_string = argv[tag_value_arg];
         tag_value_arg++;
         args_remaining--;
-        /* printf("tag[%d]=%u value[%d]=%s\n",
-           i, property_tag, i, value_string); */
-#if 0
-        if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
+        if (property_tag < 0) {
+            property_tag = bacapp_known_property_tag(Target_Object_Type, Target_Object_Property);
+        } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
             fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
-#endif
-        status = bacapp_parse_application_data(
-            property_tag, value_string, &Target_Object_Property_Value[i]);
-        if (!status) {
+        if (property_tag >= 0) {
+            status = bacapp_parse_application_data(
+                property_tag, value_string, &Target_Object_Property_Value[i]);
+            if (!status) {
+                /* FIXME: show the expected entry format for the tag */
+                fprintf(stderr, "Error: unable to parse the tag value\n");
+                return 1;
+            }
+        } else {
             /* FIXME: show the expected entry format for the tag */
-            fprintf(stderr, "Error: unable to parse the tag value\n");
+            fprintf(stderr, "Error: unable to parse the known property"
+                            " \"%s\"\r\n", value_string);
             return 1;
         }
 
