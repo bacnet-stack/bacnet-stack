@@ -617,23 +617,23 @@ extern "C" {
 
 /* from clause 20.2.1.2 Tag Number */
 /* true if extended tag numbering is used */
-#define IS_EXTENDED_TAG_NUMBER(x) ((x & 0xF0) == 0xF0)
+#define IS_EXTENDED_TAG_NUMBER(x) (((x) & 0xF0) == 0xF0)
 
 /* from clause 20.2.1.3.1 Primitive Data */
 /* true if the extended value is used */
-#define IS_EXTENDED_VALUE(x) ((x & 0x07) == 5)
+#define IS_EXTENDED_VALUE(x) (((x) & 0x07) == 5)
 
 /* from clause 20.2.1.1 Class */
 /* true if the tag is context specific */
-#define IS_CONTEXT_SPECIFIC(x) ((x & BIT(3)) == BIT(3))
+#define IS_CONTEXT_SPECIFIC(x) (((x) & BIT(3)) == BIT(3))
 
 /* from clause 20.2.1.3.2 Constructed Data */
 /* true if the tag is an opening tag */
-#define IS_OPENING_TAG(x) ((x & 0x07) == 6)
+#define IS_OPENING_TAG(x) (((x) & 0x07) == 6)
 
 /* from clause 20.2.1.3.2 Constructed Data */
 /* true if the tag is a closing tag */
-#define IS_CLOSING_TAG(x) ((x & 0x07) == 7)
+#define IS_CLOSING_TAG(x) (((x) & 0x07) == 7)
 
 #ifdef __cplusplus
 }
