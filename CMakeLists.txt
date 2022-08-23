@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(
   bacnet-stack
@@ -475,6 +475,7 @@ if(ZEPHYR_BASE)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNET: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
+  target_link_libraries(${PROJECT_NAME} PUBLIC m)
 
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
