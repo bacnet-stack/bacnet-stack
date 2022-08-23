@@ -98,7 +98,7 @@ BACNET_SRC_DIR =  $(realpath ../src)
 # gnu89 - c89 plus GCC extensions
 # c99   - ISO C99 standard
 # gnu99 - c99 plus GCC extensions
-CSTANDARD = -std=c89
+CSTANDARD = -std=gnu89
 
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
