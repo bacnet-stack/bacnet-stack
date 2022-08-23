@@ -674,15 +674,15 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             len = bacapp_decode_device_obj_property_ref(
                 wp_data->application_data, &TempSource);
             if ((len < 0) ||
-                (len > wp_data->application_data_len)) // Hmm, that didn't go
-                                                       // as planned...
+                (len > wp_data->application_data_len)) /* Hmm, that didn't go */
+                                                       /* as planned... */
             {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_OTHER;
                 break;
             }
 
-            // We only support references to objects in ourself for now
+            /* We only support references to objects in ourself for now */
             if ((TempSource.deviceIdentifier.type == OBJECT_DEVICE) &&
                 (TempSource.deviceIdentifier.instance !=
                     Device_Object_Instance_Number())) {

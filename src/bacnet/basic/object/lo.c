@@ -394,10 +394,10 @@ bool Lighting_Output_Lighting_Command_Set(
 
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
-        // FIXME: check lighting command member values
+        /* FIXME: check lighting command member values */
         status = lighting_command_copy(
             &Lighting_Output[index].Lighting_Command, value);
-        // FIXME: set all the other values, and get the light levels moving
+        /* FIXME: set all the other values, and get the light levels moving */
     }
 
     return status;

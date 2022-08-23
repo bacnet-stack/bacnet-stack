@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        // blocking dequeue here
+        /* blocking dequeue here */
         bacmsg = recv_from_msgbox(head->main_id, &msg_storage, 0);
         if (bacmsg) {
             switch (bacmsg->type) {
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    // print_msg(bacmsg);
+                    /* print_msg(bacmsg); */
 
                     if (is_network_msg(bacmsg)) {
                         buff_len =
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
                         msg_storage.type = DATA;
                         msg_storage.data = msg_data;
 
-                        // print_msg(bacmsg);
+                        /* print_msg(bacmsg); */
 
                         if (is_network_msg(bacmsg)) {
                             msg_data->ref_count = 1;

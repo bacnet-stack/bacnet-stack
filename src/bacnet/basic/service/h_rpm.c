@@ -287,8 +287,8 @@ void handler_read_property_multiple(uint8_t *service_request,
 #endif
                         error = len;
                         berror = true;
-                        break; // The berror flag ensures that both loops will
-                               // be broken!
+                        break; /* The berror flag ensures that both loops will */
+                               /* be broken! */
                     }
                     decode_len += len;
                     /* handle the special properties */
@@ -320,8 +320,8 @@ void handler_read_property_multiple(uint8_t *service_request,
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
                                 berror = true;
-                                break; // The berror flag ensures that both
-                                       // loops will be broken!
+                                break; /* The berror flag ensures that both */
+                                       /* loops will be broken! */
                             }
 
                             apdu_len += len;
@@ -342,8 +342,8 @@ void handler_read_property_multiple(uint8_t *service_request,
                                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                                 error = BACNET_STATUS_ABORT;
                                 berror = true;
-                                break; // The berror flag ensures that both
-                                       // loops will be broken!
+                                break; /* The berror flag ensures that both */
+                                       /* loops will be broken! */
                             }
                             apdu_len += len;
                         } else {
@@ -379,8 +379,8 @@ void handler_read_property_multiple(uint8_t *service_request,
 #endif
                                         error = len;
                                         berror = true;
-                                        break; // The berror flag ensures that
-                                               // both loops will be broken!
+                                        break; /* The berror flag ensures that */
+                                               /* both loops will be broken! */
                                     }
                                 }
                             }
@@ -399,8 +399,8 @@ void handler_read_property_multiple(uint8_t *service_request,
 #endif
                             error = len;
                             berror = true;
-                            break; // The berror flag ensures that both loops
-                                   // will be broken!
+                            break; /* The berror flag ensures that both loops */
+                                   /* will be broken! */
                         }
                     }
 
@@ -421,14 +421,14 @@ void handler_read_property_multiple(uint8_t *service_request,
                                 ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
                             error = BACNET_STATUS_ABORT;
                             berror = true;
-                            break; // The berror flag ensures that both loops
-                                   // will be broken!
+                            break; /* The berror flag ensures that both loops */
+                                   /* will be broken! */
                         } else {
                             apdu_len += copy_len;
                         }
                         break; /* finished with this property list */
                     }
-                } // for(;;)
+                } /* for(;;) */
                 if (berror) {
                     break;
                 }
@@ -436,7 +436,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                     /* Reached the end so finish up */
                     break;
                 }
-            } // for(;;)
+            } /* for(;;) */
 
             /* If not having an error so far, check the remaining space. */
             if (!berror) {
