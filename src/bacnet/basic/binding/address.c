@@ -302,7 +302,7 @@ bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
 {
     unsigned a[6] = { 0 }, p = 0;
     uint16_t port = 0;
-    int c;
+    int c, i;
     bool status = false;
 
     if (!(mac && arg)) {
@@ -327,7 +327,7 @@ bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
             &a[4], &a[5]);
 
         if (c > 0) {
-            for (int i = 0; i < c; i++) {
+            for (i = 0; i < c; i++) {
                 mac->adr[i] = a[i];
             }
             mac->len = c;
