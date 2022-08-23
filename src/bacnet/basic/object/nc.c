@@ -86,6 +86,7 @@ void Notification_Class_Property_Lists(
 void Notification_Class_Init(void)
 {
     uint8_t NotifyIdx = 0;
+    unsigned i;
 
     for (NotifyIdx = 0; NotifyIdx < MAX_NOTIFICATION_CLASSES; NotifyIdx++) {
         /* init with zeros */
@@ -99,7 +100,7 @@ void Notification_Class_Init(void)
         NC_Info[NotifyIdx].Priority[TRANSITION_TO_NORMAL] =
             255; /* PRINTF lowest priority for Normal message. */
         /* configure for every day, all day long */
-        for (unsigned i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++) {
+        for (i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++) {
             NC_Info[NotifyIdx].Recipient_List->ValidDays |= (1<<i);
         }
 		NC_Info[NotifyIdx].Recipient_List->FromTime.hour = 0;

@@ -1521,11 +1521,11 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
-            // FIXME: add property handling
-            //            status =
-            //            Channel_List_Of_Object_Property_References_Set(
-            //                wp_data,
-            //                &value);
+            /* FIXME: add property handling */
+            /*            status = */
+            /*            Channel_List_Of_Object_Property_References_Set( */
+            /*                wp_data, */
+            /*                &value); */
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code =
                 ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;

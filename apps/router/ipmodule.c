@@ -189,7 +189,7 @@ bool dl_ip_init(ROUTER_PORT *port, IP_DATA *ip_data)
 
     /* bind the socket to the local port number */
     sin.sin_family = AF_INET;
-    //    sin.sin_addr.s_addr, ip_data->local_addr.s_addr;// = htonl(INADDR_ANY);
+    /*    sin.sin_addr.s_addr, ip_data->local_addr.s_addr;// = htonl(INADDR_ANY); */
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = ip_data->port;
 

@@ -96,9 +96,9 @@ BACNET_SRC_DIR =  $(realpath ../src)
 # Compiler flag to set the C Standard level.
 # c89   - "ANSI" C
 # gnu89 - c89 plus GCC extensions
-# c99   - ISO C99 standard (not yet fully implemented)
+# c99   - ISO C99 standard
 # gnu99 - c99 plus GCC extensions
-CSTANDARD = -std=gnu99
+CSTANDARD = -std=gnu89
 
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
