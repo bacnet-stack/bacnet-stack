@@ -28,15 +28,6 @@
 #define BACNET_WEBSOCKET_TIMEOUT_SECONDS BSC_CONF_WEBSOCKET_TIMEOUT_SECONDS
 #endif
 
-/** @} */
-
-/**
- * Enables debug output of websocket layer.
- * @{
- */
-#define BACNET_WEBSOCKET_DEBUG_ENABLED 0
-/** @} */
-
 /**
  * Maximum number of sockets that can be opened on client's side.
  * @{

@@ -10,7 +10,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
-
 #define _GNU_SOURCE
 #include <libwebsockets.h>
 #include <string.h>
@@ -20,6 +19,10 @@
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/debug.h"
+
+#ifndef LWS_PROTOCOL_LIST_TERM
+#define LWS_PROTOCOL_LIST_TERM { NULL, NULL, 0, 0, 0, NULL, 0 }
+#endif
 
 typedef enum {
     BACNET_WEBSOCKET_STATE_IDLE = 0,
@@ -63,7 +66,7 @@ typedef struct {
     FIFO_BUFFER in_data;
     FIFO_DATA_STORE(in_data_buf, BACNET_CLIENT_WEBSOCKET_RX_BUFFER_SIZE);
     BACNET_WEBSOCKET_EVENTS events;
-    BACNET_WEBSOCKET_CONNECTION_TYPE type;
+    BACNET_WEBSOCKET_PROTOCOL proto;
     int wait_threads_cnt;
 } BACNET_WEBSOCKET_CONNECTION;
 
@@ -75,18 +78,22 @@ static int bws_cli_websocket_event(struct lws *wsi,
     void *in,
     size_t len);
 
-// Websockets protocol defined in BACnet/SC \S AB.7.1.
-static const char *bws_hub_protocol = BACNET_WEBSOCKET_HUB_PROTOCOL;
-static const char *bws_direct_protocol =
-    BACNET_WEBSOCKET_DIRECT_CONNECTION_PROTOCOL;
+static const char *bws_hub_protocol = BACNET_WEBSOCKET_HUB_PROTOCOL_STR;
+static const char *bws_direct_protocol = BACNET_WEBSOCKET_DIRECT_PROTOCOL_STR;
 
 static pthread_mutex_t bws_cli_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
-static struct lws_protocols bws_cli_protos[] = {
-    { BACNET_WEBSOCKET_HUB_PROTOCOL, bws_cli_websocket_event, 0, 0, 0, NULL,
+// Websockets protocol defined in BACnet/SC \S AB.7.1.
+
+static struct lws_protocols bws_cli_direct_protocol[] = {
+    { BACNET_WEBSOCKET_DIRECT_PROTOCOL_STR, bws_cli_websocket_event, 0, 0, 0,
+        NULL, 0 },
+    LWS_PROTOCOL_LIST_TERM
+};
+
+static struct lws_protocols bws_cli_hub_protocol[] = {
+    { BACNET_WEBSOCKET_HUB_PROTOCOL_STR, bws_cli_websocket_event, 0, 0, 0, NULL,
         0 },
-    { BACNET_WEBSOCKET_DIRECT_CONNECTION_PROTOCOL, bws_cli_websocket_event, 0,
-        0, 0, NULL, 0 },
     LWS_PROTOCOL_LIST_TERM
 };
 
@@ -307,17 +314,16 @@ static int bws_cli_websocket_event(struct lws *wsi,
         case LWS_CALLBACK_CLIENT_RECEIVE: {
             debug_printf(
                 "bws_cli_websocket_event() received %d bytes of data\n", len);
-            if(!lws_frame_is_binary(wsi)) {
-               // According AB.7.5.3 BACnet/SC BVLC Message Exchange,
-               // if a received data frame is not binary,
-               // the WebSocket connection shall be closed with a
-               // status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED.
-                debug_printf(
-                  "bws_cli_websocket_event() got non-binary frame, "\
-                  "close connection for socket %d\n", h);
-                lws_close_reason(wsi,
-                                 LWS_CLOSE_STATUS_UNACCEPTABLE_OPCODE,
-                                 NULL, 0 );
+            if (!lws_frame_is_binary(wsi)) {
+                // According AB.7.5.3 BACnet/SC BVLC Message Exchange,
+                // if a received data frame is not binary,
+                // the WebSocket connection shall be closed with a
+                // status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED.
+                debug_printf("bws_cli_websocket_event() got non-binary frame, "
+                             "close connection for socket %d\n",
+                    h);
+                lws_close_reason(
+                    wsi, LWS_CLOSE_STATUS_UNACCEPTABLE_OPCODE, NULL, 0);
                 pthread_mutex_unlock(&bws_cli_mutex);
                 debug_printf("bws_cli_websocket_event() <<< ret = -1\n");
                 return -1;
@@ -498,8 +504,7 @@ static void *bws_cli_worker(void *arg)
     return NULL;
 }
 
-static BACNET_WEBSOCKET_RET bws_cli_connect(
-    BACNET_WEBSOCKET_CONNECTION_TYPE type,
+static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_PROTOCOL proto,
     char *url,
     uint8_t *ca_cert,
     size_t ca_cert_size,
@@ -517,7 +522,7 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(
     struct lws_client_connect_info cinfo = { 0 };
     BACNET_WEBSOCKET_RET ret;
 
-    debug_printf("bws_cli_connect() >>> type = %d, url = %s\n", type, url);
+    debug_printf("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
 
     if (!ca_cert || !ca_cert_size || !cert || !cert_size || !key || !key_size ||
         !url || !out_handle) {
@@ -526,8 +531,8 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(
         return BACNET_WEBSOCKET_BAD_PARAM;
     }
 
-    if (type != BACNET_WEBSOCKET_HUB_CONNECTION &&
-        type != BACNET_WEBSOCKET_DIRECT_CONNECTION) {
+    if (proto != BACNET_WEBSOCKET_HUB_PROTOCOL &&
+        proto != BACNET_WEBSOCKET_DIRECT_PROTOCOL) {
         debug_printf(
             "bws_cli_connect() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BACNET_WEBSOCKET_BAD_PARAM;
@@ -572,7 +577,11 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(
     }
 
     info.port = CONTEXT_PORT_NO_LISTEN;
-    info.protocols = bws_cli_protos;
+    if (proto == BACNET_WEBSOCKET_HUB_PROTOCOL) {
+        info.protocols = bws_cli_hub_protocol;
+    } else {
+        info.protocols = bws_cli_direct_protocol;
+    }
     info.gid = -1;
     info.uid = -1;
     info.client_ssl_cert_mem = cert;
@@ -584,6 +593,8 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(
     info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
     info.timeout_secs = BACNET_WEBSOCKET_TIMEOUT_SECONDS;
     info.connect_timeout_secs = BACNET_WEBSOCKET_TIMEOUT_SECONDS;
+//    info.ka_time = 1;
+//    info.ka_interval = 1;
 
     bws_cli_conn[h].ctx = lws_create_context(&info);
 
@@ -621,13 +632,13 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(
     cinfo.ssl_connection = LCCSCF_USE_SSL |
         LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_SELFSIGNED;
 
-    if (type == BACNET_WEBSOCKET_HUB_CONNECTION) {
+    if (proto == BACNET_WEBSOCKET_HUB_PROTOCOL) {
         cinfo.protocol = bws_hub_protocol;
     } else {
         cinfo.protocol = bws_direct_protocol;
     }
 
-    bws_cli_conn[h].type = type;
+    bws_cli_conn[h].proto = proto;
     bws_cli_conn[h].state = BACNET_WEBSOCKET_STATE_CONNECTING;
     lws_client_connect_via_info(&cinfo);
 

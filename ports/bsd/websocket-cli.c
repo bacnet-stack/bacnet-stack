@@ -20,6 +20,10 @@
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/debug.h"
 
+#ifndef LWS_PROTOCOL_LIST_TERM
+#define LWS_PROTOCOL_LIST_TERM { NULL, NULL, 0, 0, 0, NULL, 0 }
+#endif
+
 typedef enum {
     BACNET_WEBSOCKET_STATE_IDLE = 0,
     BACNET_WEBSOCKET_STATE_CONNECTING = 1,
@@ -589,7 +593,6 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(BACNET_WEBSOCKET_PROTOCOL proto,
     info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
     info.timeout_secs = BACNET_WEBSOCKET_TIMEOUT_SECONDS;
     info.connect_timeout_secs = BACNET_WEBSOCKET_TIMEOUT_SECONDS;
-
     bws_cli_conn[h].ctx = lws_create_context(&info);
 
     if (!bws_cli_conn[h].ctx) {
