@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implementation of websocket client interface for MAC OS.
+ * @brief Implementation of websocket client interface for MAC OS / BSD.
  * @author Kirill Neznamov
  * @date May 2022
  * @section LICENSE
@@ -20,8 +20,30 @@
 #include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/debug.h"
 
+#if (LWS_LIBRARY_VERSION_MAJOR >= 4) && (LWS_LIBRARY_VERSION_MINOR > 2)
+#error \
+    "Unsupported version of libwebsockets. Check details here: bacnet_stack/ports/bsd/websocket-cli.c:26"
+/*
+  Current version of libwebsockets has an issue under macosx.
+  Websockets test shows leakage of file descriptors (pipes) inside
+  libwebsockets library. If you want to use that version of the
+  libwebsockets you must ensure that the issue is fixed.
+
+  You can check it in the following way:
+
+  1. Build websockets test in bacnet_stack/test/bacnet/datalink/websockets.
+  2. Run the test in background mode 'test_websocket &' and remember pid
+  3. Run 'lsof -p your_pid' and check that used file descriptors number
+    are not constatly growing"
+*/
+
+#endif
+
 #ifndef LWS_PROTOCOL_LIST_TERM
-#define LWS_PROTOCOL_LIST_TERM { NULL, NULL, 0, 0, 0, NULL, 0 }
+#define LWS_PROTOCOL_LIST_TERM       \
+    {                                \
+        NULL, NULL, 0, 0, 0, NULL, 0 \
+    }
 #endif
 
 typedef enum {
