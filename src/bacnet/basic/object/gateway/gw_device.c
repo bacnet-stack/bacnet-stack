@@ -29,12 +29,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h> /* for memmove */
-#include <time.h> /* for timezone, localtime */
 #include "bacnet/bacdef.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/config.h" /* the custom stuff */
+#include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
 #include "bacnet/wp.h" /* write property handling */
 #include "bacnet/rp.h" /* read property handling */
