@@ -78,6 +78,12 @@ typedef struct BACnet_Weeknday {
     uint8_t dayofweek; /* 1=Monday-7=Sunday, FF=any */
 } BACNET_WEEKNDAY;
 
+#ifdef UINT64_MAX
+typedef uint64_t bacnet_time_t;
+#else
+typedef uint32_t bacnet_time_t;
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -189,10 +195,12 @@ BACNET_STACK_EXPORT
 void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes);
 
 BACNET_STACK_EXPORT
-uint64_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime);
+bacnet_time_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime);
 BACNET_STACK_EXPORT
 void datetime_since_epoch_seconds(
-    BACNET_DATE_TIME *bdatetime, uint64_t seconds);
+    BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds);
+BACNET_STACK_EXPORT
+bacnet_time_t datetime_seconds_since_epoch_max(void);
 
 /* date and time wildcards */
 BACNET_STACK_EXPORT
