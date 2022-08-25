@@ -56,8 +56,6 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/datalink/bip6.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
-#undef MAX_HEADER
-#undef MAX_MPDU
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
