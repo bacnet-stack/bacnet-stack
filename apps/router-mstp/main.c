@@ -54,8 +54,6 @@
 #include "bacport.h"
 /* our datalink layers */
 #include "bacnet/datalink/dlmstp.h"
-#undef MAX_HEADER
-#undef MAX_MPDU
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
