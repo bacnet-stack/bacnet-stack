@@ -72,7 +72,7 @@ extern "C" {
          * Caution: This is a casted BACNET_SHORT_APPLICATION_DATA_VALUE.
          * Only some data types may be used!
          */
-        BACNET_APPLICATION_DATA_VALUE *Present_Value;   /* must be set to a valid value
+        BACNET_APPLICATION_DATA_VALUE Present_Value;   /* must be set to a valid value
                                                          * default is Schedule_Default */
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Object_Property_References[BACNET_SCHEDULE_OBJ_PROP_REF_SIZE];

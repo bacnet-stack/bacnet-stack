@@ -93,7 +93,10 @@ int bacnet_time_value_encode(uint8_t *apdu, BACNET_TIME_VALUE *value)
         apdu_offset = &apdu[apdu_len];
     }
 
-    len = bacapp_encode_application_data(apdu_offset, (BACNET_APPLICATION_DATA_VALUE*) &value->Value);
+    BACNET_APPLICATION_DATA_VALUE adv;
+    bacnet_primitive_to_data_value(&adv, &value->Value);
+
+    len = bacapp_encode_application_data(apdu_offset, &adv);
     apdu_len += len;
 
     return apdu_len;
@@ -137,32 +140,31 @@ int bacapp_encode_context_time_value(uint8_t *apdu, uint8_t tag_number, BACNET_T
 }
 
 /** returns 0 if OK, -1 on error */
-int bacnet_data_value_to_short_data_value(
-    BACNET_SHORT_APPLICATION_DATA_VALUE *dest,
+int bacnet_data_value_to_primitive(
+    struct BACnet_Primitive_Application_Data_Value *dest,
     const struct BACnet_Application_Data_Value *src)
 {
     // make sure the value passed is valid
     if (!src || !dest || !is_data_value_schedule_compatible(src->tag)) {
         return BACNET_STATUS_ERROR;
     }
+    memset(dest, 0, sizeof(struct BACnet_Primitive_Application_Data_Value));
     dest->tag = src->tag;
     memcpy(&dest->type, &src->type, sizeof(dest->type));
     return BACNET_STATUS_OK;
 }
 
 /** returns 0 if OK, -1 on error */
-int bacnet_short_data_value_to_data_value(
+int bacnet_primitive_to_data_value(
     struct BACnet_Application_Data_Value * dest,
-    const BACNET_SHORT_APPLICATION_DATA_VALUE * src)
+    const struct BACnet_Primitive_Application_Data_Value * src)
 {
     // make sure the value passed is valid
-    if (!dest || !src || !is_data_value_schedule_compatible(src->tag)) {
+    if (!dest || !src) {
         return BACNET_STATUS_ERROR;
     }
+    memset(dest, 0, sizeof(struct BACnet_Application_Data_Value));
     dest->tag = src->tag;
-    dest->context_specific = false;
-    dest->context_tag = 0;
-    dest->next = NULL;
     memcpy(&dest->type, &src->type, sizeof(src->type));
     return BACNET_STATUS_OK; /* OK */
 }
@@ -183,7 +185,8 @@ int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len, BACNET_TIME_VALUE 
     if (len <= 0) {
         return -1;
     }
-    if (BACNET_STATUS_OK != bacnet_data_value_to_short_data_value(&value->Value, &full_data_value)) {
+    if (BACNET_STATUS_OK !=
+        bacnet_data_value_to_primitive(&value->Value, &full_data_value)) {
         return -1;
     }
     apdu_len += len;

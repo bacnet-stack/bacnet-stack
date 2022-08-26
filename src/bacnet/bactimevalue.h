@@ -35,23 +35,13 @@
 #include "bacnet/datetime.h"
 
 /**
- * One small value for the BACnetTimeValue
+ * Smaller version of BACnet_Application_Data_Value used in BACnetTimeValue
  *
  * This must be a separate struct to avoid recursive structure.
  * Keeping it small also helps keep the size of BACNET_APPLICATION_DATA_VALUE
- * small. Besides, schedule doesn't normally contain complex types.
- *
- * "up-casting" to BACNET_APPLICATION_DATA_VALUE is safe, so long as "tag"
- * is one of the types defined in the union here, and the function it's passed to
- * does not try to access the "next" field
+ * small. Besides, schedule can't contain complex types.
  */
-typedef struct BACnet_Short_Application_Data_Value {
-    /*
-     * Padding fields to keep binary compatibility with
-     * BACNET_APPLICATION_DATA_VALUE.
-     */
-    bool dummy1;
-    uint8_t dummy2;
+typedef struct BACnet_Primitive_Application_Data_Value {
     uint8_t tag;        /* application tag data type */
     union {
         /*
@@ -79,11 +69,11 @@ typedef struct BACnet_Short_Application_Data_Value {
         uint32_t Enumerated;
 #endif
     } type;
-} BACNET_SHORT_APPLICATION_DATA_VALUE;
+} BACNET_PRIMITIVE_APPLICATION_DATA_VALUE;
 
 typedef struct BACnet_Time_Value {
     BACNET_TIME Time;
-    BACNET_SHORT_APPLICATION_DATA_VALUE Value;
+    BACNET_PRIMITIVE_APPLICATION_DATA_VALUE Value;
 } BACNET_TIME_VALUE;
 
 
@@ -94,15 +84,15 @@ extern "C" {
 
     /** returns 0 if OK, -1 on error */
     BACNET_STACK_EXPORT
-    int bacnet_data_value_to_short_data_value(
-        BACNET_SHORT_APPLICATION_DATA_VALUE * dest,
+    int bacnet_data_value_to_primitive(
+        BACNET_PRIMITIVE_APPLICATION_DATA_VALUE * dest,
         const struct BACnet_Application_Data_Value * src);
 
     /** returns 0 if OK, -1 on error */
     BACNET_STACK_EXPORT
-    int bacnet_short_data_value_to_data_value(
+    int bacnet_primitive_to_data_value(
         struct BACnet_Application_Data_Value * dest,
-        const BACNET_SHORT_APPLICATION_DATA_VALUE * src);
+        const BACNET_PRIMITIVE_APPLICATION_DATA_VALUE * src);
 
     BACNET_STACK_EXPORT
     int bacnet_time_value_encode(uint8_t * apdu,

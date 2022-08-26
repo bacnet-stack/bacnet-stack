@@ -166,9 +166,12 @@ bool bacnet_weeklyschedule_same(
             if (0 != datetime_compare_time(&tv1->Time, &tv2->Time)) {
                 return false;
             }
-            if (!bacapp_same_value(
-                    (BACNET_APPLICATION_DATA_VALUE *)&tv1->Value,
-                    (BACNET_APPLICATION_DATA_VALUE *)&tv2->Value))
+
+            BACNET_APPLICATION_DATA_VALUE adv1, adv2;
+            bacnet_primitive_to_data_value(&adv1, &tv1->Value);
+            bacnet_primitive_to_data_value(&adv2, &tv2->Value);
+
+            if (!bacapp_same_value(&adv1, &adv2))
             {
                 return false;
             }

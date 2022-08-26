@@ -1787,7 +1787,8 @@ static int bacapp_snprintf_weeklyschedule(
                 }
             }
 
-            bacnet_short_data_value_to_data_value(&dummyDataValue, &ds->Time_Values[ti].Value);
+            bacnet_primitive_to_data_value(
+                &dummyDataValue, &ds->Time_Values[ti].Value);
             dummyPropValue.value = &dummyDataValue;
             dummyPropValue.object_property = PROP_PRESENT_VALUE;
             dummyPropValue.object_type = OBJECT_SCHEDULE;
@@ -2468,7 +2469,9 @@ static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value
                 if (false == bacapp_parse_application_data(inner_tag, v, &dummy_value)) {
                     return false;
                 }
-                if (BACNET_STATUS_OK != bacnet_data_value_to_short_data_value(&dsch->Time_Values[tvnum].Value, &dummy_value)) {
+                if (BACNET_STATUS_OK !=
+                    bacnet_data_value_to_primitive(
+                        &dsch->Time_Values[tvnum].Value, &dummy_value)) {
                     return false;
                 }
 

@@ -86,7 +86,7 @@ void Schedule_Init(void)
         for (j = 0; j < 7; j++) {
             psched->Weekly_Schedule[j].TV_Count = 0;
         }
-        psched->Present_Value = &psched->Schedule_Default;
+        memcpy(&psched->Present_Value, &psched->Schedule_Default, sizeof(psched->Present_Value));
         psched->Schedule_Default.context_specific = false;
         psched->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
         psched->Schedule_Default.type.Real = 21.0f; /* 21 C, room temperature */
@@ -197,7 +197,7 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_SCHEDULE);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len = bacapp_encode_data(&apdu[0], CurrentSC->Present_Value);
+            apdu_len = bacapp_encode_data(&apdu[0], &CurrentSC->Present_Value);
             break;
         case PROP_EFFECTIVE_PERIOD:
             /* 	BACnet Testing Observed Incident oi00110
@@ -396,7 +396,7 @@ void Schedule_Recalculate_PV(
     SCHEDULE_DESCR *desc, BACNET_WEEKDAY wday, BACNET_TIME *time)
 {
     int i;
-    desc->Present_Value = NULL;
+    desc->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
     /* for future development, here should be the loop for Exception Schedule */
 
@@ -408,20 +408,19 @@ void Schedule_Recalculate_PV(
        broker an early release on a case-by-case basis. */
 
     for (i = 0; i < desc->Weekly_Schedule[wday - 1].TV_Count &&
-         desc->Present_Value == NULL;
+         desc->Present_Value.tag == BACNET_APPLICATION_TAG_NULL;
          i++) {
         int diff = datetime_wildcard_compare_time(
             time, &desc->Weekly_Schedule[wday - 1].Time_Values[i].Time);
         if (diff >= 0 &&
             desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag !=
                 BACNET_APPLICATION_TAG_NULL) {
-            desc->Present_Value =
-                (BACNET_APPLICATION_DATA_VALUE *)
-                    &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value;
+            bacnet_primitive_to_data_value(&desc->Present_Value,
+                &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value);
         }
     }
 
-    if (desc->Present_Value == NULL) {
-        desc->Present_Value = &desc->Schedule_Default;
+    if (desc->Present_Value.tag == BACNET_APPLICATION_TAG_NULL) {
+        memcpy(&desc->Present_Value, &desc->Schedule_Default, sizeof(desc->Present_Value));
     }
 }
