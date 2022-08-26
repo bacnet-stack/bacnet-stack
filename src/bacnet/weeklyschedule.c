@@ -173,8 +173,8 @@ bool bacnet_weeklyschedule_same(
             // TODO the conversion can be avoided by adding a "primitive" variant of bacapp_same_value(),
             //  at the cost of some code duplication
             BACNET_APPLICATION_DATA_VALUE adv1, adv2;
-            bacnet_primitive_to_data_value(&adv1, &tv1->Value);
-            bacnet_primitive_to_data_value(&adv2, &tv2->Value);
+            bacnet_primitive_to_application_data_value(&adv1, &tv1->Value);
+            bacnet_primitive_to_application_data_value(&adv2, &tv2->Value);
 
             if (!bacapp_same_value(&adv1, &adv2))
             {

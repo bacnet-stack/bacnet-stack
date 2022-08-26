@@ -41,7 +41,7 @@
  * Keeping it small also helps keep the size of BACNET_APPLICATION_DATA_VALUE
  * small. Besides, schedule can't contain complex types.
  */
-typedef struct BACnet_Primitive_Application_Data_Value {
+typedef struct BACnet_Primitive_Data_Value {
     uint8_t tag;        /* application tag data type */
     union {
         /*
@@ -69,11 +69,11 @@ typedef struct BACnet_Primitive_Application_Data_Value {
         uint32_t Enumerated;
 #endif
     } type;
-} BACNET_PRIMITIVE_APPLICATION_DATA_VALUE;
+} BACNET_PRIMITIVE_DATA_VALUE;
 
 typedef struct BACnet_Time_Value {
     BACNET_TIME Time;
-    BACNET_PRIMITIVE_APPLICATION_DATA_VALUE Value;
+    BACNET_PRIMITIVE_DATA_VALUE Value;
 } BACNET_TIME_VALUE;
 
 
@@ -84,15 +84,14 @@ extern "C" {
 
     /** returns 0 if OK, -1 on error */
     BACNET_STACK_EXPORT
-    int bacnet_data_value_to_primitive(
-        BACNET_PRIMITIVE_APPLICATION_DATA_VALUE * dest,
+    int bacnet_application_to_primitive_data_value(BACNET_PRIMITIVE_DATA_VALUE * dest,
         const struct BACnet_Application_Data_Value * src);
 
     /** returns 0 if OK, -1 on error */
     BACNET_STACK_EXPORT
-    int bacnet_primitive_to_data_value(
+    int bacnet_primitive_to_application_data_value(
         struct BACnet_Application_Data_Value * dest,
-        const BACNET_PRIMITIVE_APPLICATION_DATA_VALUE * src);
+        const BACNET_PRIMITIVE_DATA_VALUE * src);
 
     BACNET_STACK_EXPORT
     int bacnet_time_value_encode(uint8_t * apdu,

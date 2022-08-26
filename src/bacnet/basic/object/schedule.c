@@ -415,7 +415,7 @@ void Schedule_Recalculate_PV(
         if (diff >= 0 &&
             desc->Weekly_Schedule[wday - 1].Time_Values[i].Value.tag !=
                 BACNET_APPLICATION_TAG_NULL) {
-            bacnet_primitive_to_data_value(&desc->Present_Value,
+            bacnet_primitive_to_application_data_value(&desc->Present_Value,
                 &desc->Weekly_Schedule[wday - 1].Time_Values[i].Value);
         }
     }

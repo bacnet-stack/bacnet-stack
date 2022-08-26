@@ -1787,7 +1787,7 @@ static int bacapp_snprintf_weeklyschedule(
                 }
             }
 
-            bacnet_primitive_to_data_value(
+            bacnet_primitive_to_application_data_value(
                 &dummyDataValue, &ds->Time_Values[ti].Value);
             dummyPropValue.value = &dummyDataValue;
             dummyPropValue.object_property = PROP_PRESENT_VALUE;
@@ -2470,7 +2470,7 @@ static bool parse_weeklyschedule(char *str, BACNET_APPLICATION_DATA_VALUE *value
                     return false;
                 }
                 if (BACNET_STATUS_OK !=
-                    bacnet_data_value_to_primitive(
+                    bacnet_application_to_primitive_data_value(
                         &dsch->Time_Values[tvnum].Value, &dummy_value)) {
                     return false;
                 }

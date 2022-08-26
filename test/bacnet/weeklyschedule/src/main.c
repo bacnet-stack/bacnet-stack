@@ -46,7 +46,7 @@ static void test_BACnetWeeklySchedule()
         .hour = 5,
         .min = 30
     };
-    value.weeklySchedule[0].Time_Values[0].Value = (BACNET_PRIMITIVE_APPLICATION_DATA_VALUE) {
+    value.weeklySchedule[0].Time_Values[0].Value = (BACNET_PRIMITIVE_DATA_VALUE) {
         .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
         .type.Unsigned_Int = 123,
     };
@@ -55,13 +55,13 @@ static void test_BACnetWeeklySchedule()
         .hour = 15,
         .min = 0
     };
-    value.weeklySchedule[0].Time_Values[1].Value = (BACNET_PRIMITIVE_APPLICATION_DATA_VALUE) {
+    value.weeklySchedule[0].Time_Values[1].Value = (BACNET_PRIMITIVE_DATA_VALUE) {
         .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
         .type.Unsigned_Int = 456,
     };
 
     value.weeklySchedule[6].TV_Count = 1;
-    value.weeklySchedule[6].Time_Values[0].Value = (BACNET_PRIMITIVE_APPLICATION_DATA_VALUE) {
+    value.weeklySchedule[6].Time_Values[0].Value = (BACNET_PRIMITIVE_DATA_VALUE) {
         .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
         .type.Unsigned_Int = 777,
     };

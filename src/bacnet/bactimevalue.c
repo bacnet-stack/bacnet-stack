@@ -94,7 +94,7 @@ int bacnet_time_value_encode(uint8_t *apdu, BACNET_TIME_VALUE *value)
     }
 
     BACNET_APPLICATION_DATA_VALUE adv;
-    bacnet_primitive_to_data_value(&adv, &value->Value);
+    bacnet_primitive_to_application_data_value(&adv, &value->Value);
 
     len = bacapp_encode_application_data(apdu_offset, &adv);
     apdu_len += len;
@@ -140,24 +140,24 @@ int bacapp_encode_context_time_value(uint8_t *apdu, uint8_t tag_number, BACNET_T
 }
 
 /** returns 0 if OK, -1 on error */
-int bacnet_data_value_to_primitive(
-    struct BACnet_Primitive_Application_Data_Value *dest,
+int bacnet_application_to_primitive_data_value(
+    struct BACnet_Primitive_Data_Value *dest,
     const struct BACnet_Application_Data_Value *src)
 {
     // make sure the value passed is valid
     if (!src || !dest || !is_data_value_schedule_compatible(src->tag)) {
         return BACNET_STATUS_ERROR;
     }
-    memset(dest, 0, sizeof(struct BACnet_Primitive_Application_Data_Value));
+    memset(dest, 0, sizeof(struct BACnet_Primitive_Data_Value));
     dest->tag = src->tag;
     memcpy(&dest->type, &src->type, sizeof(dest->type));
     return BACNET_STATUS_OK;
 }
 
 /** returns 0 if OK, -1 on error */
-int bacnet_primitive_to_data_value(
+int bacnet_primitive_to_application_data_value(
     struct BACnet_Application_Data_Value * dest,
-    const struct BACnet_Primitive_Application_Data_Value * src)
+    const struct BACnet_Primitive_Data_Value * src)
 {
     // make sure the value passed is valid
     if (!dest || !src) {
@@ -186,7 +186,8 @@ int bacnet_time_value_decode(uint8_t *apdu, int max_apdu_len, BACNET_TIME_VALUE 
         return -1;
     }
     if (BACNET_STATUS_OK !=
-        bacnet_data_value_to_primitive(&value->Value, &full_data_value)) {
+        bacnet_application_to_primitive_data_value(
+            &value->Value, &full_data_value)) {
         return -1;
     }
     apdu_len += len;
