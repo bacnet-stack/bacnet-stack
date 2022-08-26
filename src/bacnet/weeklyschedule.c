@@ -44,9 +44,10 @@ int bacnet_weeklyschedule_decode(
 {
     int len = 0;
     int apdu_len = 0;
+    int wi;
 
     value->singleDay = false;
-    for (int wi = 0; wi < 7; wi++) {
+    for (wi = 0; wi < 7; wi++) {
         len = bacnet_dailyschedule_decode(
             &apdu[apdu_len], max_apdu_len - apdu_len, &value->weeklySchedule[wi]);
         if (len < 0) {
@@ -67,9 +68,10 @@ int bacnet_weeklyschedule_encode(
 {
     int apdu_len = 0;
     int len = 0;
+    int wi;
     uint8_t *apdu_offset = NULL;
 
-    for (int wi = 0; wi < (value->singleDay ? 1 : 7); wi++) {
+    for (wi = 0; wi < (value->singleDay ? 1 : 7); wi++) {
         /* not enough room to write data */
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
@@ -154,13 +156,14 @@ int bacnet_weeklyschedule_context_decode(
 bool bacnet_weeklyschedule_same(
     BACNET_WEEKLY_SCHEDULE *value1, BACNET_WEEKLY_SCHEDULE *value2)
 {
-    for (int wi = 0; wi < 7; wi++) {
+    int wi, ti;
+    for (wi = 0; wi < 7; wi++) {
         BACNET_DAILY_SCHEDULE *ds1 = &value1->weeklySchedule[wi];
         BACNET_DAILY_SCHEDULE *ds2 = &value2->weeklySchedule[wi];
         if (ds1->TV_Count != ds2->TV_Count) {
             return false;
         }
-        for (int ti = 0; ti < ds1->TV_Count; ti++) {
+        for (ti = 0; ti < ds1->TV_Count; ti++) {
             BACNET_TIME_VALUE *tv1 = &ds1->Time_Values[ti];
             BACNET_TIME_VALUE *tv2 = &ds2->Time_Values[ti];
             if (0 != datetime_compare_time(&tv1->Time, &tv2->Time)) {
