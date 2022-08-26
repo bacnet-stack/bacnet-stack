@@ -69,7 +69,7 @@ extern "C" {
         BACNET_OBJ_DAILY_SCHEDULE Weekly_Schedule[7];
         BACNET_APPLICATION_DATA_VALUE Schedule_Default;
         /*
-         * Caution: This is a casted BACNET_SHORT_APPLICATION_DATA_VALUE.
+         * Caution: This is a converted to BACNET_PRIMITIVE_APPLICATION_DATA_VALUE.
          * Only some data types may be used!
          */
         BACNET_APPLICATION_DATA_VALUE Present_Value;   /* must be set to a valid value
