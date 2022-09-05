@@ -16,8 +16,18 @@
 
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/debug.h"
+#include "bacnet/datalink/bsc/websocket.h"
+#include "bacnet/datalink/bsc/bsc-retcodes.h"
+#include "bacnet/datalink/bsc/bvlc-sc.h"
 
 unsigned long bsc_seconds_left(
     unsigned long timestamp_ms, unsigned long timeout_s);
+
+BACNET_SC_RET bsc_map_websocket_retcode(BACNET_WEBSOCKET_RET ret);
+
+char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac);
+char *bsc_uuid_to_string(BACNET_SC_UUID *uuid);
+void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p);
 
 #endif

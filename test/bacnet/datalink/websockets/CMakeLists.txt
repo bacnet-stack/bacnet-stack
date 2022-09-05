@@ -11,6 +11,7 @@ find_package(Threads)
 find_package(libwebsockets CONFIG REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
+find_package(OpenSSL)
 
 string(REGEX REPLACE
     "/test/bacnet/[a-zA-Z_/-]*$"

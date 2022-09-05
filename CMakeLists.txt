@@ -89,6 +89,9 @@ find_package(Threads)
 
 if(BACDL_BSC)
 find_package(libwebsockets CONFIG REQUIRED)
+find_package(PkgConfig)
+pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
+find_package(OpenSSL)
 endif()
 
 add_library(${PROJECT_NAME}
@@ -478,7 +481,12 @@ target_compile_definitions(
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   PRINT_ENABLED=1)
+
+if(BACDL_BSC)
+target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads ${LIB_WEBSOCKETS_LIBRARIES} )
+else()
 target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+endif()
 
 add_library(
   ${PROJECT_NAME}::${PROJECT_NAME}

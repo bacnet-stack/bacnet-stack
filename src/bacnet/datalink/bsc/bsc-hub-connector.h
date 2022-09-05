@@ -19,12 +19,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "bacnet/datalink/bsc/bsc-connection.h"
+#include "bacnet/datalink/bsc/bsc-retcodes.h"
 
 struct BSC_Hub_Connector;
 typedef struct BSC_Hub_Connector BSC_HUB_CONNECTOR;
 
 BACNET_STACK_EXPORT
-bool bsc_hub_connector_start(BSC_HUB_CONNECTOR *c,
+bool bsc_hub_connector_start(BSC_CONNECTION_CTX *ctx,
+                             BSC_HUB_CONNECTOR *c,
                              char* primaryURL,
                              char* failoverURL,
                              unsigned int reconnnect_timeout_s);
