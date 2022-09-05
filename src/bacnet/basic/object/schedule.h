@@ -51,19 +51,28 @@
 extern "C" {
 #endif /* __cplusplus */
 
-    typedef struct bacnet_daily_schedule {
+    /*
+     * Note:
+     * This is a different struct from BACNET_DAILY_SCHEDULE used in prop value encoding!
+     * The number of entries is different.
+     */
+    typedef struct bacnet_obj_daily_schedule {
         BACNET_TIME_VALUE Time_Values[BACNET_WEEKLY_SCHEDULE_SIZE];
         uint16_t TV_Count;      /* the number of time values actually used */
-    } BACNET_DAILY_SCHEDULE;
+    } BACNET_OBJ_DAILY_SCHEDULE;
 
     typedef struct schedule {
         /* Effective Period: Start and End Date */
         BACNET_DATE Start_Date;
         BACNET_DATE End_Date;
         /* Properties concerning Present Value */
-        BACNET_DAILY_SCHEDULE Weekly_Schedule[7];
+        BACNET_OBJ_DAILY_SCHEDULE Weekly_Schedule[7];
         BACNET_APPLICATION_DATA_VALUE Schedule_Default;
-        BACNET_APPLICATION_DATA_VALUE *Present_Value;   /* must be set to a valid value
+        /*
+         * Caution: This is a converted to BACNET_PRIMITIVE_APPLICATION_DATA_VALUE.
+         * Only some data types may be used!
+         */
+        BACNET_APPLICATION_DATA_VALUE Present_Value;   /* must be set to a valid value
                                                          * default is Schedule_Default */
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Object_Property_References[BACNET_SCHEDULE_OBJ_PROP_REF_SIZE];

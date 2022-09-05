@@ -90,6 +90,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/reject.c
 	${SRC_DIR}/bacnet/timestamp.c
 	${SRC_DIR}/bacnet/wp.c
+	${SRC_DIR}/bacnet/weeklyschedule.c
+	${SRC_DIR}/bacnet/dailyschedule.c
 	./stubs.c
     # Test and test library files
 	./src/main.c
