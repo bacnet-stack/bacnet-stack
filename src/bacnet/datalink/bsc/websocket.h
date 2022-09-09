@@ -116,8 +116,8 @@ typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_PROTOCOL proto,
  * @param cert_size - size in bytes of client certificate.
  * @param key - pointer to client private key in PEM or DER format.
  * @param key_size - size of private key in bytes of of client certificate.
- * @param timeout - timeout for connect operation in seconds. Must not
- *                  be NULL.
+ * @param timeout_s - timeout for socket operations (connect, etc..) in seconds.
+ *                     Must be > 0.
  * @param dispatch_func - pointer to dispatch callback function to handle
  *                        events from websocket specified by *out_handle.
  * @param out_handle - pointer to a websocket handle.
@@ -215,6 +215,8 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  * @param cert_size - size in bytes of server certificate.
  * @param key - pointer to server private key in PEM or DER format.
  * @param key_size - size of private key in bytes of of client certificate.
+ * @param timeout_s - timeout for socket operations (connect, etc..) in seconds.
+ *                     Must be > 0.
  * @param dispatch_func - pointer to dispatch callback function to handle
  *                        events from a websocket which is corresponded to
  *                        server specified by proto param.
@@ -229,10 +231,9 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  *             BSC_CLIENT_WEBSOCKETS_MAX_NUM), or if some mem allocation
  *             has failed or some allocation of system resources like
  *             mutex, thread, condition variable etc .., failed.
- *    BSC_WEBSOCKET_SUCCESS - the operation is started or server was already
- *            started before.
+ *    BSC_WEBSOCKET_SUCCESS - the start operation is in progress.
  *    BSC_WEBSOCKET_INVALID_OPERATION - operation is not started because
- *            server in a process of shutdown.
+ *            server in a process of shutdown of server is alread started.
  */
 
 BSC_WEBSOCKET_RET bws_srv_start(
@@ -244,6 +245,7 @@ BSC_WEBSOCKET_RET bws_srv_start(
                         size_t cert_size,
                         uint8_t *key,
                         size_t key_size,
+                        size_t timeout_s,
                         BSC_WEBSOCKET_SRV_DISPATCH dispatch_func);
 
 /**
@@ -313,7 +315,7 @@ void bws_srv_send(BSC_WEBSOCKET_PROTOCOL proto, BSC_WEBSOCKET_HANDLE h);
  *         etc .., has failed.
  *     BSC_WEBSOCKET_INVALID_OPERATION - if the function was called not from
  *         dispatch_func() callback context or websocket is not in connected
- *         state.
+ *         state or server in a process of a shutdown or server is not started.
  *     BSC_WEBSOCKET_SUCCESS - data is sent successfuly.
  */
 
