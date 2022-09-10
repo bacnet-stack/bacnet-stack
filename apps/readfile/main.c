@@ -134,8 +134,8 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                         data.endOfFile = true;
                     }
                 } else {
-                    result = fseek(pFile, data.type.stream.fileStartPosition,
-                        SEEK_SET);
+                    result = fseek(
+                        pFile, data.type.stream.fileStartPosition, SEEK_SET);
                     if (result == 0) {
                         /* unit to write in bytes -
                            in our case, an octet is one byte */
@@ -150,8 +150,8 @@ static void AtomicReadFileAckHandler(uint8_t *service_request,
                             Target_File_Start_Position =
                                 data.type.stream.fileStartPosition +
                                 octets_written;
-                            printf("\r%d bytes",
-                                (int)Target_File_Start_Position);
+                            printf(
+                                "\r%d bytes", (int)Target_File_Start_Position);
                         }
                         fflush(pFile);
                     } else {

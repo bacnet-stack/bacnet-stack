@@ -104,8 +104,8 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
                     that are sent with a local unicast address. */
                 if (npdu_len >= 2) {
                     len += decode_unsigned16(npdu, &dnet);
-                    printf(": network number = %u. SNET=%u\n",
-                        (unsigned)dnet, (unsigned)src->net);
+                    printf(": network number = %u. SNET=%u\n", (unsigned)dnet,
+                        (unsigned)src->net);
                 } else {
                     printf(": network number = missing! SNET=%u\n", src->net);
                 }
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* increment timer - exit if timed out */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {

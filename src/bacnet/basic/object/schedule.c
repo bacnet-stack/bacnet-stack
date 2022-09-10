@@ -86,7 +86,8 @@ void Schedule_Init(void)
         for (j = 0; j < 7; j++) {
             psched->Weekly_Schedule[j].TV_Count = 0;
         }
-        memcpy(&psched->Present_Value, &psched->Schedule_Default, sizeof(psched->Present_Value));
+        memcpy(&psched->Present_Value, &psched->Schedule_Default,
+            sizeof(psched->Present_Value));
         psched->Schedule_Default.context_specific = false;
         psched->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
         psched->Schedule_Default.type.Real = 21.0f; /* 21 C, room temperature */
@@ -347,8 +348,8 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                suitable time for
                     review by all interested parties. Say 6 months -> September
                2016 */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Schedule_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
@@ -421,6 +422,7 @@ void Schedule_Recalculate_PV(
     }
 
     if (desc->Present_Value.tag == BACNET_APPLICATION_TAG_NULL) {
-        memcpy(&desc->Present_Value, &desc->Schedule_Default, sizeof(desc->Present_Value));
+        memcpy(&desc->Present_Value, &desc->Schedule_Default,
+            sizeof(desc->Present_Value));
     }
 }

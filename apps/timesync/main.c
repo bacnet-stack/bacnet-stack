@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
     atexit(datalink_cleanup);
     mstimer_init();
     /* send the request */
-    datetime_local(override_date?NULL:&bdate,override_time?NULL:&btime,
+    datetime_local(override_date ? NULL : &bdate, override_time ? NULL : &btime,
         NULL, NULL);
     Send_TimeSync_Remote(&dest, &bdate, &btime);
     mstimer_set(&apdu_timer, apdu_timeout());

@@ -38,9 +38,7 @@ License.
 #include "bacapp.h"
 
 int bacnet_weeklyschedule_decode(
-    uint8_t * apdu,
-    int max_apdu_len,
-    BACNET_WEEKLY_SCHEDULE *value)
+    uint8_t *apdu, int max_apdu_len, BACNET_WEEKLY_SCHEDULE *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -48,8 +46,8 @@ int bacnet_weeklyschedule_decode(
 
     value->singleDay = false;
     for (wi = 0; wi < 7; wi++) {
-        len = bacnet_dailyschedule_decode(
-            &apdu[apdu_len], max_apdu_len - apdu_len, &value->weeklySchedule[wi]);
+        len = bacnet_dailyschedule_decode(&apdu[apdu_len],
+            max_apdu_len - apdu_len, &value->weeklySchedule[wi]);
         if (len < 0) {
             if (wi == 1) {
                 value->singleDay = true;
@@ -62,9 +60,7 @@ int bacnet_weeklyschedule_decode(
     return apdu_len;
 }
 
-int bacnet_weeklyschedule_encode(
-    uint8_t * apdu,
-    BACNET_WEEKLY_SCHEDULE *value)
+int bacnet_weeklyschedule_encode(uint8_t *apdu, BACNET_WEEKLY_SCHEDULE *value)
 {
     int apdu_len = 0;
     int len = 0;
@@ -76,16 +72,14 @@ int bacnet_weeklyschedule_encode(
         if (apdu) {
             apdu_offset = &apdu[apdu_len];
         }
-        len =
-            bacnet_dailyschedule_encode(apdu_offset, &value->weeklySchedule[wi]);
+        len = bacnet_dailyschedule_encode(
+            apdu_offset, &value->weeklySchedule[wi]);
         if (len < 0)
             return -1;
         apdu_len += len;
     }
     return apdu_len;
 }
-
-
 
 /**
  * @brief Encode a context tagged WeeklySchedule complex data type
@@ -120,26 +114,31 @@ int bacnet_weeklyschedule_context_encode(
     return apdu_len;
 }
 
-int bacnet_weeklyschedule_context_decode(
-    uint8_t *apdu, int max_apdu_len, uint8_t tag_number,
+int bacnet_weeklyschedule_context_decode(uint8_t *apdu,
+    int max_apdu_len,
+    uint8_t tag_number,
     BACNET_WEEKLY_SCHEDULE *value)
 {
     int apdu_len = 0;
     int len;
 
-    if ((max_apdu_len - apdu_len) >= 1 && decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
+    if ((max_apdu_len - apdu_len) >= 1 &&
+        decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
         apdu_len += 1;
     } else {
         return -1;
     }
 
-    if (-1 == (len = bacnet_weeklyschedule_decode(&apdu[apdu_len], max_apdu_len - apdu_len, value))) {
+    if (-1 ==
+        (len = bacnet_weeklyschedule_decode(
+             &apdu[apdu_len], max_apdu_len - apdu_len, value))) {
         return -1;
     } else {
         apdu_len += len;
     }
 
-    if ((max_apdu_len - apdu_len) >= 1 && decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
+    if ((max_apdu_len - apdu_len) >= 1 &&
+        decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
         apdu_len += 1;
     } else {
         return -1;
@@ -170,14 +169,14 @@ bool bacnet_weeklyschedule_same(
                 return false;
             }
 
-            // TODO the conversion can be avoided by adding a "primitive" variant of bacapp_same_value(),
+            // TODO the conversion can be avoided by adding a "primitive"
+            // variant of bacapp_same_value(),
             //  at the cost of some code duplication
             BACNET_APPLICATION_DATA_VALUE adv1, adv2;
             bacnet_primitive_to_application_data_value(&adv1, &tv1->Value);
             bacnet_primitive_to_application_data_value(&adv2, &tv2->Value);
 
-            if (!bacapp_same_value(&adv1, &adv2))
-            {
+            if (!bacapp_same_value(&adv1, &adv2)) {
                 return false;
             }
         }

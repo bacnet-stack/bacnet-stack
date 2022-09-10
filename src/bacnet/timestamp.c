@@ -284,8 +284,7 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
     int sequence;
     int count = 0;
 
-    count = sscanf(
-        ascii, "%3d:%3d:%3d.%3d", &hour, &min, &sec, &hundredths);
+    count = sscanf(ascii, "%3d:%3d:%3d.%3d", &hour, &min, &sec, &hundredths);
     if (count == 4) {
         timestamp->tag = TIME_STAMP_TIME;
         timestamp->value.time.hour = (uint8_t)hour;
@@ -309,13 +308,12 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
         status = true;
     }
     if (!status) {
-        count =
-            sscanf(ascii, "%4d/%3d/%3d-%3d:%3d:%3d.%3d",
-            &year, &month, &day, &hour, &min, &sec, &hundredths);
+        count = sscanf(ascii, "%4d/%3d/%3d-%3d:%3d:%3d.%3d", &year, &month,
+            &day, &hour, &min, &sec, &hundredths);
         if (count >= 3) {
             timestamp->tag = TIME_STAMP_DATETIME;
-            datetime_set_date(&timestamp->value.dateTime.date,
-                (uint16_t)year, (uint8_t)month, (uint8_t)day);
+            datetime_set_date(&timestamp->value.dateTime.date, (uint16_t)year,
+                (uint8_t)month, (uint8_t)day);
             if (count >= 7) {
                 datetime_set_time(&timestamp->value.dateTime.time,
                     (uint8_t)hour, (uint8_t)min, (uint8_t)sec,
@@ -327,8 +325,8 @@ bool bacapp_timestamp_init_ascii(BACNET_TIMESTAMP *timestamp, const char *ascii)
                 datetime_set_time(&timestamp->value.dateTime.time,
                     (uint8_t)hour, (uint8_t)min, 0, 0);
             } else if (count >= 4) {
-                datetime_set_time(&timestamp->value.dateTime.time,
-                    (uint8_t)hour, 0, 0, 0);
+                datetime_set_time(
+                    &timestamp->value.dateTime.time, (uint8_t)hour, 0, 0, 0);
             } else {
                 datetime_set_time(&timestamp->value.dateTime.time, 0, 0, 0, 0);
             }

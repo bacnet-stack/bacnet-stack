@@ -183,8 +183,7 @@ int main(int argc, char *argv[])
     cov_data.timeRemaining = strtol(argv[5], NULL, 0);
     cov_data.listOfValues = &value_list;
     value_list.next = NULL;
-    if (bactext_property_strtol(argv[6], &object_property) ==
-        false) {
+    if (bactext_property_strtol(argv[6], &object_property) == false) {
         fprintf(stderr, "property=%s invalid\n", argv[6]);
         return 1;
     }
@@ -196,13 +195,13 @@ int main(int argc, char *argv[])
         value_list.priority = strtol(argv[9], NULL, 0);
     } else {
         value_list.priority = BACNET_NO_PRIORITY;
-}
+    }
     /* optional index */
     if (argc > 10) {
         value_list.propertyArrayIndex = strtol(argv[10], NULL, 0);
     } else {
         value_list.propertyArrayIndex = BACNET_ARRAY_ALL;
-}
+    }
 
     if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",

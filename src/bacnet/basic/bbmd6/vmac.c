@@ -47,10 +47,10 @@ static bool VMAC_Debug = false;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
-#define PRINTF(...) \
-    if (VMAC_Debug) { \
-        fprintf(stderr,__VA_ARGS__); \
-        fflush(stderr); \
+#define PRINTF(...)                   \
+    if (VMAC_Debug) {                 \
+        fprintf(stderr, __VA_ARGS__); \
+        fflush(stderr);               \
     }
 #else
 #define PRINTF(...)

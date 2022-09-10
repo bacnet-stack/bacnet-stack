@@ -195,8 +195,7 @@ int cl_decode_apdu(uint8_t *apdu,
     if (tag_number != 2) {
         return BACNET_STATUS_REJECT;
     }
-    len = decode_enumerated(
-        &apdu[dec_len], len_value_type, &enum_value);
+    len = decode_enumerated(&apdu[dec_len], len_value_type, &enum_value);
     if (len < 0) {
         return BACNET_STATUS_REJECT;
     }
@@ -783,8 +782,8 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch ((int)wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int >= MAX_COMMAND_ACTIONS) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;

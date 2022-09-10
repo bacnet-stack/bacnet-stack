@@ -784,9 +784,8 @@ int bvlc_bbmd_disabled_handler(BACNET_IP_ADDRESS *addr,
                     npdu = &mtu[offset];
                     if (npdu_confirmed_service(npdu, npdu_len)) {
                         offset = 0;
-                        debug_print_string(
-                            "Original-Broadcast-NPDU: "
-                            "Confirmed Service! Discard!");
+                        debug_print_string("Original-Broadcast-NPDU: "
+                                           "Confirmed Service! Discard!");
                     } else {
                         debug_print_npdu(
                             "Original-Broadcast-NPDU", offset, npdu_len);
@@ -1105,14 +1104,13 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                    network layer. */
                 if (npdu_confirmed_service(npdu, npdu_len)) {
                     offset = 0;
-                    debug_print_string(
-                        "Original-Broadcast-NPDU: "
-                        "Confirmed Service! Discard!");
+                    debug_print_string("Original-Broadcast-NPDU: "
+                                       "Confirmed Service! Discard!");
                 } else {
                     (void)bbmd_fdt_forward_npdu(addr, npdu, npdu_len, true);
                     (void)bbmd_bdt_forward_npdu(addr, npdu, npdu_len, true);
-                    debug_print_npdu("Original-Broadcast-NPDU",
-                        offset, npdu_len);
+                    debug_print_npdu(
+                        "Original-Broadcast-NPDU", offset, npdu_len);
                 }
             } else {
                 debug_print_string(
@@ -1211,8 +1209,7 @@ int bvlc_register_with_bbmd(BACNET_IP_ADDRESS *bbmd_addr, uint16_t ttl_seconds)
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
-void bvlc_remote_bbmd_address(
-    BACNET_IP_ADDRESS *bbmd_addr)
+void bvlc_remote_bbmd_address(BACNET_IP_ADDRESS *bbmd_addr)
 {
     bvlc_address_copy(bbmd_addr, &Remote_BBMD);
 }
@@ -1222,8 +1219,7 @@ void bvlc_remote_bbmd_address(
  *  Register Foreign Device
  * @return Lease time in seconds to use when registering.
  */
-uint16_t bvlc_remote_bbmd_lifetime(
-    void)
+uint16_t bvlc_remote_bbmd_lifetime(void)
 {
     return Remote_BBMD_TTL_Seconds;
 }

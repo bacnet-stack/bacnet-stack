@@ -129,8 +129,8 @@ const char *bactext_unconfirmed_service_name(unsigned index)
         bacnet_unconfirmed_service_names, index, ASHRAE_Reserved_String);
 }
 
-INDTEXT_DATA bacnet_application_tag_names[] = {
-    { BACNET_APPLICATION_TAG_NULL, "Null" },
+INDTEXT_DATA bacnet_application_tag_names[] = { { BACNET_APPLICATION_TAG_NULL,
+                                                    "Null" },
     { BACNET_APPLICATION_TAG_BOOLEAN, "Boolean" },
     { BACNET_APPLICATION_TAG_UNSIGNED_INT, "Unsigned Int" },
     { BACNET_APPLICATION_TAG_SIGNED_INT, "Signed Int" },
@@ -166,8 +166,7 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
     { BACNET_APPLICATION_TAG_READ_ACCESS_SPECIFICATION,
         "BACnetReadAccessSpecification" },
     { BACNET_APPLICATION_TAG_LIGHTING_COMMAND, "BACnetLightingCommand" },
-    { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" },
-    { 0, NULL } };
+    { BACNET_APPLICATION_TAG_HOST_N_PORT, "BACnetHostNPort" }, { 0, NULL } };
 
 const char *bactext_application_tag_name(unsigned index)
 {
@@ -744,8 +743,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     { PROP_COLOR_COMMAND, "color-command" },
     { PROP_HIGH_END_TRIM, "high-end-trim" },
     { PROP_LOW_END_TRIM, "low-end-trim" },
-    { PROP_TRIM_FADE_TIME, "trim-fade-time" },
-    { 0, NULL }
+    { PROP_TRIM_FADE_TIME, "trim-fade-time" }, { 0, NULL }
 };
 
 bool bactext_property_name_proprietary(unsigned index)

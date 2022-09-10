@@ -213,8 +213,7 @@ void routed_get_my_address(BACNET_ADDRESS *my_address)
  *         meaning MAC broadcast, so it's an automatic match).
  *         Else False if no match or invalid idx is given.
  */
-bool Routed_Device_Address_Lookup(
-    int idx, uint8_t dlen, uint8_t *dadr)
+bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
 {
     bool result = false;
     DEVICE_OBJECT_DATA *pDev = &Devices[idx];
@@ -371,15 +370,12 @@ uint32_t Routed_Device_Index_To_Instance(unsigned index)
  * @param  object_instance - object-instance number of the object
  * @return  index for the given instance-number, or 0 if not valid.
  */
-static uint32_t Routed_Device_Instance_To_Index(
-        uint32_t Instance_Number)
+static uint32_t Routed_Device_Instance_To_Index(uint32_t Instance_Number)
 {
     int i;
 
-
-    for ( i=0; i < MAX_NUM_DEVICES; i++) {
-        if (Devices[i].bacObj.Object_Instance_Number == Instance_Number)
-        {
+    for (i = 0; i < MAX_NUM_DEVICES; i++) {
+        if (Devices[i].bacObj.Object_Instance_Number == Instance_Number) {
             /* Found Instance, so return the Device Index Number */
             return i;
         }
@@ -388,7 +384,6 @@ static uint32_t Routed_Device_Instance_To_Index(
     /* We did not find instance... so simply return an Index of 0
        All gateways will have at least a single root Device Object */
     return 0;
-
 }
 
 /**
@@ -492,8 +487,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_OBJECT_ID);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_OBJECT_ID);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Routed_Device_Set_Object_Instance_Number(
@@ -508,8 +503,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = write_property_string_valid(wp_data, &value,
-                MAX_DEV_NAME_LEN);
+            status =
+                write_property_string_valid(wp_data, &value, MAX_DEV_NAME_LEN);
             if (status) {
                 Routed_Device_Set_Object_Name(
                     characterstring_encoding(&value.type.Character_String),

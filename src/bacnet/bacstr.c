@@ -48,8 +48,8 @@
  *       emitting a warning, forcing Zephyr's sanitycheck() script to stop.
  *       Until this is chased down, the definition is being provided here.
  */
-#if __ZEPHYR__ && ! CONFIG_NATIVE_APPLICATION
-size_t	 strnlen (const char *, size_t);
+#if __ZEPHYR__ && !CONFIG_NATIVE_APPLICATION
+size_t strnlen(const char *, size_t);
 #endif
 
 /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
@@ -58,7 +58,7 @@ size_t	 strnlen (const char *, size_t);
 #endif
 
 /* check the limits of bitstring capacity */
-#if ((MAX_BITSTRING_BYTES * 8) > (UINT8_MAX+1))
+#if ((MAX_BITSTRING_BYTES * 8) > (UINT8_MAX + 1))
 #error "MAX_BITSTRING_BYTES cannot exceed 32!"
 #endif
 #if (((MAX_BITSTRING_BYTES * 8) > UINT8_MAX) && (UINT_MAX <= UINT8_MAX))
@@ -231,9 +231,7 @@ bool bitstring_set_octet(
  * @return true on success or false on error.
  */
 bool bitstring_set_bits_used(
-    BACNET_BIT_STRING * bit_string,
-    uint8_t bytes_used,
-    uint8_t unused_bits)
+    BACNET_BIT_STRING *bit_string, uint8_t bytes_used, uint8_t unused_bits)
 {
     bool status = false;
 
@@ -256,10 +254,10 @@ bool bitstring_set_bits_used(
 unsigned bitstring_bits_capacity(BACNET_BIT_STRING *bit_string)
 {
     if (bit_string) {
-        if ((MAX_BITSTRING_BYTES * 8) <= (UINT8_MAX+1)) {
+        if ((MAX_BITSTRING_BYTES * 8) <= (UINT8_MAX + 1)) {
             return (MAX_BITSTRING_BYTES * 8);
         } else {
-            return (UINT8_MAX+1);
+            return (UINT8_MAX + 1);
         }
     } else {
         return 0;
@@ -479,7 +477,7 @@ bool characterstring_copy(
 {
     if (dest && src) {
         return characterstring_init(dest, characterstring_encoding(src),
-               characterstring_value(src), characterstring_length(src));
+            characterstring_value(src), characterstring_length(src));
     }
 
     return false;
@@ -500,7 +498,8 @@ bool characterstring_ansi_copy(
     size_t i; /* counter */
 
     if (dest && src) {
-        if ((src->encoding == CHARACTER_ANSI_X34) && (src->length < dest_max_len)) {
+        if ((src->encoding == CHARACTER_ANSI_X34) &&
+            (src->length < dest_max_len)) {
             for (i = 0; i < dest_max_len; i++) {
                 if (i < src->length) {
                     dest[i] = src->value[i];
@@ -839,7 +838,7 @@ bool utf8_isvalid(const char *str, size_t length)
         return false;
     }
     /* Check characters. */
-    pend = (unsigned char *) str + length;
+    pend = (unsigned char *)str + length;
     for (p = (const unsigned char *)str; p < pend; p++) {
         c = *p;
         /* null in middle of string */

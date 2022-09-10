@@ -497,8 +497,8 @@ int main(int argc, char *argv[])
     /* loop forever */
     for (;;) {
         /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU,
-            delay_milliseconds);
+        pdu_len =
+            datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, delay_milliseconds);
         /* process */
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
@@ -507,13 +507,13 @@ int main(int argc, char *argv[])
             break;
         }
         if (mstimer_expired(&datalink_timer)) {
-            datalink_maintenance_timer(mstimer_interval(&datalink_timer)/1000);
+            datalink_maintenance_timer(
+                mstimer_interval(&datalink_timer) / 1000);
             mstimer_reset(&datalink_timer);
         }
         if (mstimer_expired(&apdu_timer)) {
             if (repeat_forever || retry_count) {
-                Send_WhoIs_To_Network(
-                    &dest, Target_Object_Instance_Min,
+                Send_WhoIs_To_Network(&dest, Target_Object_Instance_Min,
                     Target_Object_Instance_Max);
                 retry_count--;
             } else {

@@ -224,23 +224,23 @@ static void print_help(char *filename)
         "The event-type of the event.\n"
         "\n");
     printf("--mac A\n"
-        "Optional BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n"
-        "--dnet N\n"
-        "Optional BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n"
-        "\n"
-        "--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network "
-        "number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n");
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n"
+           "--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n"
+           "\n"
+           "--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n");
 }
 
 int main(int argc, char *argv[])
@@ -481,7 +481,8 @@ int main(int argc, char *argv[])
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_OUT_OF_RANGE) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_LIFE_SAFETY) {
+                } else if (event_data.eventType ==
+                    EVENT_CHANGE_OF_LIFE_SAFETY) {
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_EXTENDED) {
                     /* FIXME: add event type parameters */
@@ -495,17 +496,22 @@ int main(int argc, char *argv[])
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_SIGNED_OUT_OF_RANGE) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_UNSIGNED_OUT_OF_RANGE) {
+                } else if (event_data.eventType ==
+                    EVENT_UNSIGNED_OUT_OF_RANGE) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_CHARACTERSTRING) {
+                } else if (event_data.eventType ==
+                    EVENT_CHANGE_OF_CHARACTERSTRING) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_STATUS_FLAGS) {
+                } else if (event_data.eventType ==
+                    EVENT_CHANGE_OF_STATUS_FLAGS) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_RELIABILITY) {
+                } else if (event_data.eventType ==
+                    EVENT_CHANGE_OF_RELIABILITY) {
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_NONE) {
                     /* FIXME: add event type parameters */
-                } else if (event_data.eventType == EVENT_CHANGE_OF_DISCRETE_VALUE) {
+                } else if (event_data.eventType ==
+                    EVENT_CHANGE_OF_DISCRETE_VALUE) {
                     /* FIXME: add event type parameters */
                 } else if (event_data.eventType == EVENT_CHANGE_OF_TIMER) {
                     /* FIXME: add event type parameters */
@@ -587,7 +593,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(
@@ -595,12 +601,9 @@ int main(int argc, char *argv[])
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
-                Request_Invoke_ID =
-                    Send_CEvent_Notify_Address(
-                        Handler_Transmit_Buffer,
-                        sizeof(Handler_Transmit_Buffer),
-                        &event_data,
-                        &Target_Address);
+                Request_Invoke_ID = Send_CEvent_Notify_Address(
+                    Handler_Transmit_Buffer, sizeof(Handler_Transmit_Buffer),
+                    &event_data, &Target_Address);
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {

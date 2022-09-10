@@ -704,8 +704,8 @@ bacnet_time_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime)
  * @param bdatetime [out] the starting date and time
  * @param seconds since epoch
  */
-void datetime_since_epoch_seconds(BACNET_DATE_TIME *bdatetime,
-    bacnet_time_t seconds)
+void datetime_since_epoch_seconds(
+    BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds)
 {
     uint32_t seconds_after_midnight = 0;
     uint32_t days = 0;

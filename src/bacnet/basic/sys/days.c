@@ -24,7 +24,7 @@ bool days_is_leap_year(uint16_t year)
 {
     if ((year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0)) {
         return true;
-}
+    }
 
     return (false);
 }
@@ -47,7 +47,7 @@ uint8_t days_per_month(uint16_t year, uint8_t month)
         return (29);
     } else if (month >= 1 && month <= 12) {
         return (month_days[month]);
-}
+    }
 
     return 0;
 }
@@ -200,20 +200,18 @@ uint32_t days_apart(uint16_t year1,
  * @param day - day of month (1-31)
  * @return number of days since epoch, or 0 if out of range
  */
-uint32_t days_since_epoch(uint16_t epoch_year,
-    uint16_t year,
-    uint8_t month,
-    uint8_t day)
+uint32_t days_since_epoch(
+    uint16_t epoch_year, uint16_t year, uint8_t month, uint8_t day)
 {
-    uint32_t days = 0;  /* return value */
-    uint16_t yy = 0;    /* year */
-    uint8_t mm = 0;     /* months counter */
-    uint8_t monthdays = 0;      /* days in a month */
+    uint32_t days = 0; /* return value */
+    uint16_t yy = 0; /* year */
+    uint8_t mm = 0; /* months counter */
+    uint8_t monthdays = 0; /* days in a month */
 
     /* validate the date conforms to our range */
     monthdays = days_per_month(year, month);
-    if ((year >= epoch_year) && (year <= 9999) &&
-        (monthdays > 0) && (day >= 1) && (day <= monthdays)) {
+    if ((year >= epoch_year) && (year <= 9999) && (monthdays > 0) &&
+        (day >= 1) && (day <= monthdays)) {
         for (yy = epoch_year; yy < year; yy++) {
             days += 365;
             if (days_is_leap_year(yy)) {
@@ -238,12 +236,11 @@ uint32_t days_since_epoch(uint16_t epoch_year,
  * @param pDay - day of month (1-31)
  * @return nothing
  */
-void days_since_epoch_to_date(
-    uint16_t epoch_year,
+void days_since_epoch_to_date(uint16_t epoch_year,
     uint32_t days,
-    uint16_t * pYear,
-    uint8_t * pMonth,
-    uint8_t * pDay)
+    uint16_t *pYear,
+    uint8_t *pMonth,
+    uint8_t *pDay)
 {
     uint8_t month = 1;
     uint8_t day = 0;
@@ -281,9 +278,7 @@ void days_since_epoch_to_date(
  * @param day - day of month (1-31)
  * @return true if the date is valid
  */
-bool days_date_is_valid(uint16_t year,
-    uint8_t month,
-    uint8_t day)
+bool days_date_is_valid(uint16_t year, uint8_t month, uint8_t day)
 {
     uint8_t month_days = 0;
     bool valid = false; /* return value */

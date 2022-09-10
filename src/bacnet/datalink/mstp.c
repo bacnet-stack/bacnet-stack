@@ -658,9 +658,9 @@ bool MSTP_Master_Node_FSM(volatile struct mstp_port_struct_t *mstp_port)
                             break;
                         case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
                             if ((mstp_port->DestinationAddress ==
-                                MSTP_BROADCAST_ADDRESS) &&
+                                    MSTP_BROADCAST_ADDRESS) &&
                                 (npdu_confirmed_service(mstp_port->InputBuffer,
-                                mstp_port->DataLength))) {
+                                    mstp_port->DataLength))) {
                                 /* BTL test: verifies that the IUT will quietly
                                    discard any Confirmed-Request-PDU, whose
                                    destination address is a multicast or

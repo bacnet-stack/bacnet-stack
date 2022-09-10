@@ -133,14 +133,14 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                         i = data->pdu[apdu_offset + i + 3] + 4;
                     } else {
                         i = i + 4;
-}
+                    }
                 }
                 buff_len = create_network_message(
                     NETWORK_MESSAGE_INIT_RT_TABLE_ACK, data, buff, NULL);
             } else {
                 buff_len = create_network_message(
                     NETWORK_MESSAGE_INIT_RT_TABLE_ACK, data, buff, &buff);
-}
+            }
             break;
 
         case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
@@ -158,7 +158,7 @@ uint16_t process_network_message(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
                         i = data->pdu[apdu_offset + i + 3] + 4;
                     } else {
                         i = i + 4;
-}
+                    }
                 }
             }
             break;
@@ -207,7 +207,7 @@ uint16_t create_network_message(
 
     if (network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE) {
         data_expecting_reply = true;
-}
+    }
     init_npdu(&npdu_data, network_message_type, data_expecting_reply);
 
     *buff = (uint8_t *)malloc(128); /* resolve different length */
@@ -282,7 +282,7 @@ uint16_t create_network_message(
                 }
             } else {
                 (*buff)[buff_len++] = (uint8_t)0;
-}
+            }
             break;
 
         case NETWORK_MESSAGE_INVALID:

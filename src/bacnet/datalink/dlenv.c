@@ -287,8 +287,8 @@ void dlenv_network_port_init(void)
     Network_Port_BBMD_FD_Table_Set(instance, bvlc_fdt_list());
     /* foreign device registration */
     bvlc_address_get(&BBMD_Address, &addr0, &addr1, &addr2, &addr3);
-    Network_Port_Remote_BBMD_IP_Address_Set(instance,
-        addr0, addr1, addr2, addr3);
+    Network_Port_Remote_BBMD_IP_Address_Set(
+        instance, addr0, addr1, addr2, addr3);
     Network_Port_Remote_BBMD_BIP_Port_Set(instance, BBMD_Address.port);
     Network_Port_Remote_BBMD_BIP_Lifetime_Set(instance, BBMD_TTL_Seconds);
 #endif

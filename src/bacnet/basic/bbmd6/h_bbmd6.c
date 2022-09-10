@@ -44,15 +44,14 @@
 #include "bacnet/basic/bbmd6/vmac.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 
-
 static bool BVLC6_Debug;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
-#define PRINTF(...) \
-    if (BVLC6_Debug) { \
-        fprintf(stderr,__VA_ARGS__); \
-        fflush(stderr); \
+#define PRINTF(...)                   \
+    if (BVLC6_Debug) {                \
+        fprintf(stderr, __VA_ARGS__); \
+        fflush(stderr);               \
     }
 #else
 #define PRINTF(...)
@@ -709,7 +708,7 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
                             offset = header_len + (function_len - npdu_len);
                         } else {
                             PRINTF("BIP6: Original-Unicast-NPDU: "
-                                         "VMAC is not me!\n");
+                                   "VMAC is not me!\n");
                         }
                     } else {
                         PRINTF(
@@ -740,13 +739,12 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
                         npdu = &mtu[offset];
                         if (npdu_confirmed_service(npdu, npdu_len)) {
                             offset = 0;
-                            PRINTF(
-                                "BIP6: Original-Broadcast-NPDU: "
-                                "Confirmed Service! Discard!");
+                            PRINTF("BIP6: Original-Broadcast-NPDU: "
+                                   "Confirmed Service! Discard!");
                         }
                     } else {
                         PRINTF("BIP6: Original-Broadcast-NPDU: Unable to "
-                                     "decode!\n");
+                               "decode!\n");
                     }
                 }
                 break;
@@ -766,8 +764,7 @@ int bvlc6_bbmd_disabled_handler(BACNET_IP6_ADDRESS *addr,
                         bvlc6_vmac_address_set(src, vmac_src);
                         offset = header_len + (function_len - npdu_len);
                     } else {
-                        PRINTF(
-                            "BIP6: Forwarded-NPDU: Unable to decode!\n");
+                        PRINTF("BIP6: Forwarded-NPDU: Unable to decode!\n");
                     }
                 }
                 break;
@@ -908,9 +905,8 @@ int bvlc6_bbmd_enabled_handler(BACNET_IP6_ADDRESS *addr,
                        network layer. */
                     if (npdu_confirmed_service(npdu, npdu_len)) {
                         offset = 0;
-                        PRINTF(
-                            "BIP6: Original-Broadcast-NPDU: "
-                            "Confirmed Service! Discard!");
+                        PRINTF("BIP6: Original-Broadcast-NPDU: "
+                               "Confirmed Service! Discard!");
                     } else {
                         /*  Upon receipt of a BVLL Original-Broadcast-NPDU
                             message from the local multicast domain, a BBMD

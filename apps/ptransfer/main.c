@@ -100,12 +100,11 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
 }
 
 /* complex error reply function */
-static void MyPrivateTransferErrorHandler(
-        BACNET_ADDRESS * src,
-        uint8_t invoke_id,
-        uint8_t service_choice,
-        uint8_t * service_request,
-        uint16_t service_len)
+static void MyPrivateTransferErrorHandler(BACNET_ADDRESS *src,
+    uint8_t invoke_id,
+    uint8_t service_choice,
+    uint8_t *service_request,
+    uint16_t service_len)
 {
     (void)src;
     (void)invoke_id;
@@ -163,8 +162,8 @@ static void Init_Service_Handlers(void)
 
     /* handle any errors coming back */
     apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
-    apdu_set_complex_error_handler(SERVICE_CONFIRMED_PRIVATE_TRANSFER,
-        MyPrivateTransferErrorHandler);
+    apdu_set_complex_error_handler(
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, MyPrivateTransferErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
@@ -317,12 +316,12 @@ int main(int argc, char *argv[])
             }
             if (Error_Detected) {
                 break;
-}
+            }
             /* wait until the device is bound, or timeout and quit */
             if (!found) {
                 found = address_bind_request(
                     Target_Device_Object_Instance, &max_apdu, &Target_Address);
-}
+            }
             if (found) {
                 if (invoke_id == 0) { /* Safe to send a new request */
                     switch (iType) {
@@ -414,6 +413,6 @@ int main(int argc, char *argv[])
     }
     if (Error_Detected) {
         return 1;
-}
+    }
     return 0;
 }

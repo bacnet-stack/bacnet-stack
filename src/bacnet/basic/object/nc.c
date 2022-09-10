@@ -50,7 +50,7 @@
 
 #if PRINT_ENABLED
 #include <stdio.h>
-#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -101,25 +101,24 @@ void Notification_Class_Init(void)
             255; /* PRINTF lowest priority for Normal message. */
         /* configure for every day, all day long */
         for (i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++) {
-            NC_Info[NotifyIdx].Recipient_List->ValidDays |= (1<<i);
+            NC_Info[NotifyIdx].Recipient_List->ValidDays |= (1 << i);
         }
-		NC_Info[NotifyIdx].Recipient_List->FromTime.hour = 0;
-		NC_Info[NotifyIdx].Recipient_List->FromTime.min = 0;
-		NC_Info[NotifyIdx].Recipient_List->FromTime.sec = 0;
-		NC_Info[NotifyIdx].Recipient_List->FromTime.hundredths = 0;
-		NC_Info[NotifyIdx].Recipient_List->ToTime.hour = 23;
-		NC_Info[NotifyIdx].Recipient_List->ToTime.min = 59;
-		NC_Info[NotifyIdx].Recipient_List->ToTime.sec = 59;
-		NC_Info[NotifyIdx].Recipient_List->ToTime.hundredths = 0;
-		NC_Info[NotifyIdx].Recipient_List->Transitions =
-            TRANSITION_TO_OFFNORMAL_MASKED |
-            TRANSITION_TO_FAULT_MASKED |
+        NC_Info[NotifyIdx].Recipient_List->FromTime.hour = 0;
+        NC_Info[NotifyIdx].Recipient_List->FromTime.min = 0;
+        NC_Info[NotifyIdx].Recipient_List->FromTime.sec = 0;
+        NC_Info[NotifyIdx].Recipient_List->FromTime.hundredths = 0;
+        NC_Info[NotifyIdx].Recipient_List->ToTime.hour = 23;
+        NC_Info[NotifyIdx].Recipient_List->ToTime.min = 59;
+        NC_Info[NotifyIdx].Recipient_List->ToTime.sec = 59;
+        NC_Info[NotifyIdx].Recipient_List->ToTime.hundredths = 0;
+        NC_Info[NotifyIdx].Recipient_List->Transitions =
+            TRANSITION_TO_OFFNORMAL_MASKED | TRANSITION_TO_FAULT_MASKED |
             TRANSITION_TO_NORMAL_MASKED;
-		NC_Info[NotifyIdx].Recipient_List->ConfirmedNotify = false;
-		NC_Info[NotifyIdx].Recipient_List->ConfirmedNotify = false;
-		NC_Info[NotifyIdx].Recipient_List->Recipient.RecipientType =
+        NC_Info[NotifyIdx].Recipient_List->ConfirmedNotify = false;
+        NC_Info[NotifyIdx].Recipient_List->ConfirmedNotify = false;
+        NC_Info[NotifyIdx].Recipient_List->Recipient.RecipientType =
             RECIPIENT_TYPE_DEVICE;
-		NC_Info[NotifyIdx].Recipient_List->Recipient._.DeviceIdentifier =
+        NC_Info[NotifyIdx].Recipient_List->Recipient._.DeviceIdentifier =
             4194303;
     }
 
@@ -418,8 +417,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRIORITY:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (wp_data->array_index == 0) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -471,8 +470,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_ACK_REQUIRED:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BIT_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BIT_STRING);
             if (status) {
                 if (value.type.Bit_String.bits_used == 3) {
                     CurrentNotify->Ack_Required =

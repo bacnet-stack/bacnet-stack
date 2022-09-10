@@ -70,11 +70,10 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyWritePropertyMultipleErrorHandler(
-    BACNET_ADDRESS * src,
+static void MyWritePropertyMultipleErrorHandler(BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
-    uint8_t * service_request,
+    uint8_t *service_request,
     uint16_t service_len)
 {
     int len = 0;
@@ -120,7 +119,6 @@ static void MyRejectHandler(
         Error_Detected = true;
     }
 }
-
 
 static void MyWritePropertyMultipleSimpleAckHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id)
@@ -428,7 +426,9 @@ int main(int argc, char *argv[])
                     printf("tag=%u value=%s\n", property_tag, value_string);
                 }
                 if (property_tag < 0) {
-                    property_tag = bacapp_known_property_tag(wpm_object->object_type, wpm_property->propertyIdentifier);
+                    property_tag =
+                        bacapp_known_property_tag(wpm_object->object_type,
+                            wpm_property->propertyIdentifier);
                 } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
                     fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
                         property_tag, MAX_BACNET_APPLICATION_TAG);
@@ -439,13 +439,16 @@ int main(int argc, char *argv[])
                         property_tag, value_string, &wpm_property->value);
                     if (!status) {
                         /* FIXME: show the expected entry format for the tag */
-                        fprintf(stderr, "Error: unable to parse the tag value\n");
+                        fprintf(
+                            stderr, "Error: unable to parse the tag value\n");
                         return 1;
                     }
                 } else {
                     /* FIXME: show the expected entry format for the tag */
-                    fprintf(stderr, "Error: unable to parse the known property"
-                                    " \"%s\"\r\n", value_string);
+                    fprintf(stderr,
+                        "Error: unable to parse the known property"
+                        " \"%s\"\r\n",
+                        value_string);
                     return 1;
                 }
                 wpm_property->value.next = NULL;
@@ -493,7 +496,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(

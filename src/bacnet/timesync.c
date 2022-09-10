@@ -341,7 +341,7 @@ int timesync_decode_timesync_recipients(
             }
             if (!decode_is_closing_tag_number(&apdu[apdu_len], 1)) {
                 return BACNET_STATUS_ABORT;
-	    }
+            }
             apdu_len += 1;
         } else {
             return BACNET_STATUS_ABORT;

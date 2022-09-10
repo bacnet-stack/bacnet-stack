@@ -272,7 +272,7 @@ bool read_config(char *filepath)
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
                     current->iface =
-                      (char *)calloc(sizeof(char), strlen(iface) + 1);
+                        (char *)calloc(sizeof(char), strlen(iface) + 1);
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -314,7 +314,7 @@ bool read_config(char *filepath)
                 result = config_setting_lookup_string(port, "device", &iface);
                 if (result) {
                     current->iface =
-                      (char *)calloc(sizeof(char), strlen(iface) + 1);
+                        (char *)calloc(sizeof(char), strlen(iface) + 1);
                     strcpy(current->iface, iface);
 
                     /* check if interface is valid */
@@ -569,7 +569,7 @@ bool parse_cmd(int argc, char *argv[])
                                         current->route_info.mac[0]) {
                                         current->params.mstp_params.max_master =
                                             current->route_info.mac[0];
-}
+                                    }
 
                                     if (argv[optind + 1][0] != '-') {
                                         current->params.mstp_params.max_frames =
@@ -781,7 +781,7 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK &&
             data->src.net != addr.net) {
             memmove(&data->src, &addr, sizeof(BACNET_ADDRESS));
-}
+        }
 
         /* encode both source and destination for broadcast and router-to-router
          * communication */

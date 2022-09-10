@@ -205,9 +205,8 @@ int wp_decode_service_request(
  * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
  * @param expected_tag - the tag that is expected for this property value
  */
-bool write_property_type_valid(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value,
+bool write_property_type_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_APPLICATION_DATA_VALUE *value,
     uint8_t expected_tag)
 {
     /* assume success */
@@ -231,9 +230,8 @@ bool write_property_type_valid(
  * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
  * @param expected_tag - the tag that is expected for this property value
  */
-bool write_property_string_valid(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value,
+bool write_property_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_APPLICATION_DATA_VALUE *value,
     int len_max)
 {
     bool valid = false;
@@ -247,7 +245,7 @@ bool write_property_string_valid(
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else if (!characterstring_printable(
-                &value->type.Character_String)) {
+                           &value->type.Character_String)) {
                 /* assumption: non-empty also means must be "printable" */
                 if (wp_data) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -287,9 +285,8 @@ bool write_property_string_valid(
  * @param value - #BACNET_APPLICATION_DATA_VALUE data, for the tag
  * @param expected_tag - the tag that is expected for this property value
  */
-bool write_property_empty_string_valid(
-    BACNET_WRITE_PROPERTY_DATA * wp_data,
-    BACNET_APPLICATION_DATA_VALUE * value,
+bool write_property_empty_string_valid(BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_APPLICATION_DATA_VALUE *value,
     int len_max)
 {
     bool valid = false;

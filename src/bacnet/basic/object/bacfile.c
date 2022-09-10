@@ -309,8 +309,8 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                property shall be logical TRUE only if no changes have been
                made to the file data by internal processes or through File
                Access Services since the last time the object was archived. */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 if (value.type.Boolean) {
                     /* FIXME: do something to wp_data->object_instance */
@@ -323,8 +323,8 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* If the file size can be changed by writing to the file,
                and File_Access_Method is STREAM_ACCESS, then this property
                shall be writable. */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* FIXME: do something with value.type.Unsigned
                    to wp_data->object_instance */

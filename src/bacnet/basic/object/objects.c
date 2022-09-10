@@ -123,7 +123,7 @@ bool objects_device_delete(int index)
                 Keylist_Delete(pDevice->Object_List);
             }
             free(pDevice);
-	    result = true;
+            result = true;
         }
     }
     return result;

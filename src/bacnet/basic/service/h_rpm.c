@@ -287,8 +287,9 @@ void handler_read_property_multiple(uint8_t *service_request,
 #endif
                         error = len;
                         berror = true;
-                        break; /* The berror flag ensures that both loops will */
-                               /* be broken! */
+                        break; /* The berror flag ensures that both loops will
+                                */
+                        /* be broken! */
                     }
                     decode_len += len;
                     /* handle the special properties */
@@ -321,7 +322,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                                 error = BACNET_STATUS_ABORT;
                                 berror = true;
                                 break; /* The berror flag ensures that both */
-                                       /* loops will be broken! */
+                                /* loops will be broken! */
                             }
 
                             apdu_len += len;
@@ -343,7 +344,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                                 error = BACNET_STATUS_ABORT;
                                 berror = true;
                                 break; /* The berror flag ensures that both */
-                                       /* loops will be broken! */
+                                /* loops will be broken! */
                             }
                             apdu_len += len;
                         } else {
@@ -379,8 +380,9 @@ void handler_read_property_multiple(uint8_t *service_request,
 #endif
                                         error = len;
                                         berror = true;
-                                        break; /* The berror flag ensures that */
-                                               /* both loops will be broken! */
+                                        break; /* The berror flag ensures that
+                                                */
+                                        /* both loops will be broken! */
                                     }
                                 }
                             }
@@ -400,7 +402,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                             error = len;
                             berror = true;
                             break; /* The berror flag ensures that both loops */
-                                   /* will be broken! */
+                            /* will be broken! */
                         }
                     }
 
@@ -422,7 +424,7 @@ void handler_read_property_multiple(uint8_t *service_request,
                             error = BACNET_STATUS_ABORT;
                             berror = true;
                             break; /* The berror flag ensures that both loops */
-                                   /* will be broken! */
+                            /* will be broken! */
                         } else {
                             apdu_len += copy_len;
                         }

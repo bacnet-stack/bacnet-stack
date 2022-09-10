@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
     Target_Object_Property_Index = strtol(argv[6], NULL, 0);
     if (Target_Object_Property_Index == -1) {
         Target_Object_Property_Index = BACNET_ARRAY_ALL;
-}
+    }
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE + 1);
@@ -338,7 +338,8 @@ int main(int argc, char *argv[])
         tag_value_arg++;
         args_remaining--;
         if (property_tag < 0) {
-            property_tag = bacapp_known_property_tag(Target_Object_Type, Target_Object_Property);
+            property_tag = bacapp_known_property_tag(
+                Target_Object_Type, Target_Object_Property);
         } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
             fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
@@ -354,8 +355,10 @@ int main(int argc, char *argv[])
             }
         } else {
             /* FIXME: show the expected entry format for the tag */
-            fprintf(stderr, "Error: unable to parse the known property"
-                            " \"%s\"\r\n", value_string);
+            fprintf(stderr,
+                "Error: unable to parse the known property"
+                " \"%s\"\r\n",
+                value_string);
             return 1;
         }
 
@@ -419,7 +422,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(
@@ -465,6 +468,6 @@ int main(int argc, char *argv[])
     }
     if (Error_Detected) {
         return 1;
-}
+    }
     return 0;
 }

@@ -44,7 +44,7 @@
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
 #include "bacnet/datalink/arcnet.h"
 #include "bacnet/datalink/dlmstp.h"
-#include <strings.h>                /* for strcasecmp() */
+#include <strings.h> /* for strcasecmp() */
 
 static enum {
     DATALINK_NONE = 0,
@@ -114,24 +114,19 @@ int datalink_send_pdu(BACNET_ADDRESS *dest,
             bytes = pdu_len;
             break;
         case DATALINK_ARCNET:
-            bytes = arcnet_send_pdu(
-                dest, npdu_data, pdu, pdu_len);
+            bytes = arcnet_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
         case DATALINK_ETHERNET:
-            bytes = ethernet_send_pdu(
-                dest, npdu_data, pdu, pdu_len);
+            bytes = ethernet_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
         case DATALINK_BIP:
-            bytes = bip_send_pdu(
-                dest, npdu_data, pdu, pdu_len);
+            bytes = bip_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
         case DATALINK_BIP6:
-            bytes = bip6_send_pdu(
-                dest, npdu_data, pdu, pdu_len);
+            bytes = bip6_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
         case DATALINK_MSTP:
-            bytes = dlmstp_send_pdu(
-                dest, npdu_data, pdu, pdu_len);
+            bytes = dlmstp_send_pdu(dest, npdu_data, pdu, pdu_len);
             break;
         default:
             break;
@@ -149,24 +144,19 @@ uint16_t datalink_receive(
         case DATALINK_NONE:
             break;
         case DATALINK_ARCNET:
-            bytes = arcnet_receive(
-                src, pdu, max_pdu, timeout);
+            bytes = arcnet_receive(src, pdu, max_pdu, timeout);
             break;
         case DATALINK_ETHERNET:
-            bytes = ethernet_receive(
-                src, pdu, max_pdu, timeout);
+            bytes = ethernet_receive(src, pdu, max_pdu, timeout);
             break;
         case DATALINK_BIP:
-            bytes = bip_receive(
-                src, pdu, max_pdu, timeout);
+            bytes = bip_receive(src, pdu, max_pdu, timeout);
             break;
         case DATALINK_BIP6:
-            bytes = bip6_receive(
-                src, pdu, max_pdu, timeout);
+            bytes = bip6_receive(src, pdu, max_pdu, timeout);
             break;
         case DATALINK_MSTP:
-            bytes = dlmstp_receive(
-                src, pdu, max_pdu, timeout);
+            bytes = dlmstp_receive(src, pdu, max_pdu, timeout);
             break;
         default:
             break;

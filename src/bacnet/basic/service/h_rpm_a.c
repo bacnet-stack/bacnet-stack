@@ -41,8 +41,8 @@
 
 #if PRINT_ENABLED
 #include <stdio.h>
-#define PRINTF(...) fprintf(stdout,__VA_ARGS__)
-#define PRINTF_ERR(...) fprintf(stderr,__VA_ARGS__)
+#define PRINTF(...) fprintf(stdout, __VA_ARGS__)
+#define PRINTF_ERR(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define PRINTF(...)
 #define PRINTF_ERR(...)
@@ -124,9 +124,8 @@ int rpm_ack_decode_service_request(
                 value = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                 rpm_property->value = value;
                 while (value && (apdu_len > 0)) {
-                    len = bacapp_decode_known_property(
-                        apdu, (unsigned)apdu_len, value,
-                        rpm_object->object_type,
+                    len = bacapp_decode_known_property(apdu, (unsigned)apdu_len,
+                        value, rpm_object->object_type,
                         rpm_property->propertyIdentifier);
                     /* If len == 0 then it's an empty structure, which is OK. */
                     if (len < 0) {
@@ -134,7 +133,7 @@ int rpm_ack_decode_service_request(
                         PRINTF_ERR("RPM Ack: unable to decode! %s:%s\n",
                             bactext_object_type_name(rpm_object->object_type),
                             bactext_property_name(
-                            rpm_property->propertyIdentifier));
+                                rpm_property->propertyIdentifier));
                         /* note: caller will free the memory */
                         return BACNET_STATUS_ERROR;
                     }
@@ -155,7 +154,8 @@ int rpm_ack_decode_service_request(
                         PRINTF_ERR("RPM Ack: decoded %s:%s len=%d\n",
                             bactext_object_type_name(rpm_object->object_type),
                             bactext_property_name(
-                                rpm_property->propertyIdentifier), len);
+                                rpm_property->propertyIdentifier),
+                            len);
                         break;
                     }
                 }
@@ -225,8 +225,7 @@ void rpm_ack_print_data(BACNET_READ_ACCESS_DATA *rpm_data)
     bool array_value = false;
 
     if (rpm_data) {
-        PRINTF("%s #%lu\r\n",
-            bactext_object_type_name(rpm_data->object_type),
+        PRINTF("%s #%lu\r\n", bactext_object_type_name(rpm_data->object_type),
             (unsigned long)rpm_data->object_instance);
         PRINTF("{\r\n");
         listOfProperties = rpm_data->listOfProperties;

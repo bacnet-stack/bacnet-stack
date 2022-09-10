@@ -144,7 +144,8 @@ uint8_t Send_COV_Subscribe(
         /* encode the APDU portion of the packet */
         if (cov_data->covSubscribeToProperty) {
             /* subscribe to 1 property */
-            len = cov_subscribe_property_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
+            len = cov_subscribe_property_encode_apdu(
+                &Handler_Transmit_Buffer[pdu_len],
                 sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id, cov_data);
         } else {
             /* subscribe to object */
