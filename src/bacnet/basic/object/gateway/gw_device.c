@@ -216,10 +216,11 @@ void routed_get_my_address(BACNET_ADDRESS *my_address)
 bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
 {
     bool result = false;
-    DEVICE_OBJECT_DATA *pDev = &Devices[idx];
+    DEVICE_OBJECT_DATA *pDev;
     int i;
 
     if ((idx >= 0) && (idx < MAX_NUM_DEVICES)) {
+        pDev = &Devices[idx];
         if (dlen == 0) {
             /* Automatic match */
             iCurrent_Device_Idx = idx;
@@ -236,6 +237,7 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, uint8_t *dadr)
             }
         }
     }
+
     return result;
 }
 
