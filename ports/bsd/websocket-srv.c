@@ -111,14 +111,15 @@ typedef struct BACNetWebsocketServerContext {
     BSC_WEBSOCKET_CONNECTION *conn;
     int conn_size;
     BSC_WEBSOCKET_SRV_DISPATCH dispatch_func;
+    void *user_param;
     bool stop_worker;
 } BSC_WEBSOCKET_CONTEXT;
 
 static BSC_WEBSOCKET_CONTEXT bws_ctx[BSC_WEBSOCKET_PROTOCOLS_AMOUNT] = {
     { NULL, &bws_srv_hub_mutex, bws_hub_conn, BSC_SERVER_HUB_WEBSOCKETS_MAX_NUM,
-        NULL, false },
+        NULL, NULL, false },
     { NULL, &bws_srv_direct_mutex, bws_direct_conn,
-        BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM, NULL, false }
+        BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM, NULL, NULL, false }
 };
 
 static BSC_WEBSOCKET_PROTOCOL bws_srv_proto_by_ctx(BSC_WEBSOCKET_CONTEXT *ctx)
@@ -240,8 +241,8 @@ static int bws_srv_websocket_event(BSC_WEBSOCKET_PROTOCOL proto,
                 proto, h);
             bws_ctx[proto].conn[h].ws = wsi;
             bws_ctx[proto].conn[h].state = BSC_WEBSOCKET_STATE_CONNECTED;
-            bws_ctx[proto].dispatch_func(
-                proto, h, BSC_WEBSOCKET_CONNECTED, NULL, 0);
+            bws_ctx[proto].dispatch_func(proto, h, BSC_WEBSOCKET_CONNECTED,
+                NULL, 0, bws_ctx[proto].user_param);
             // wakeup worker to process pending event
             lws_cancel_service(bws_ctx[proto].wsctx);
             break;
@@ -255,8 +256,9 @@ static int bws_srv_websocket_event(BSC_WEBSOCKET_PROTOCOL proto,
                     proto, h, bws_ctx[proto].conn[h].state);
                 bws_srv_free_connection(proto, h);
                 if (!bws_ctx[proto].stop_worker) {
-                    bws_ctx[proto].dispatch_func(
-                        proto, h, BSC_WEBSOCKET_DISCONNECTED, NULL, 0);
+                    bws_ctx[proto].dispatch_func(proto, h,
+                        BSC_WEBSOCKET_DISCONNECTED, NULL, 0,
+                        bws_ctx[proto].user_param);
                 }
             }
             break;
@@ -286,8 +288,9 @@ static int bws_srv_websocket_event(BSC_WEBSOCKET_PROTOCOL proto,
                 if (bws_ctx[proto].conn[h].state ==
                     BSC_WEBSOCKET_STATE_CONNECTED) {
                     if (!bws_ctx[proto].stop_worker) {
-                        bws_ctx[proto].dispatch_func(
-                            proto, h, BSC_WEBSOCKET_RECEIVED, in, len);
+                        bws_ctx[proto].dispatch_func(proto, h,
+                            BSC_WEBSOCKET_RECEIVED, in, len,
+                            bws_ctx[proto].user_param);
                     }
                 }
             }
@@ -311,8 +314,9 @@ static int bws_srv_websocket_event(BSC_WEBSOCKET_PROTOCOL proto,
                     !bws_ctx[proto].stop_worker &&
                     bws_ctx[proto].conn[h].want_send_data) {
                     bws_ctx[proto].conn[h].can_send_data = true;
-                    bws_ctx[proto].dispatch_func(
-                        proto, h, BSC_WEBSOCKET_SENDABLE, NULL, 0);
+                    bws_ctx[proto].dispatch_func(proto, h,
+                        BSC_WEBSOCKET_SENDABLE, NULL, 0,
+                        bws_ctx[proto].user_param);
                     bws_ctx[proto].conn[h].want_send_data = false;
                     bws_ctx[proto].conn[h].can_send_data = false;
                     // wakeup worker to process internal state
@@ -341,8 +345,8 @@ static void *bws_srv_worker(void *arg)
     debug_printf("bws_srv_worker() started for proto %d\n", proto);
 
     pthread_mutex_lock(bws_ctx[proto].mutex);
-    bws_ctx[proto].dispatch_func(
-        proto, 0, BSC_WEBSOCKET_SERVER_STARTED, NULL, 0);
+    bws_ctx[proto].dispatch_func(proto, 0, BSC_WEBSOCKET_SERVER_STARTED, NULL,
+        0, bws_ctx[proto].user_param);
     pthread_mutex_unlock(bws_ctx[proto].mutex);
 
     while (1) {
@@ -356,8 +360,8 @@ static void *bws_srv_worker(void *arg)
             bws_ctx[proto].stop_worker = false;
             debug_printf(
                 "bws_srv_worker() proto %d emitting stop event\n", proto);
-            bws_ctx[proto].dispatch_func(
-                proto, 0, BSC_WEBSOCKET_SERVER_STOPPED, NULL, 0);
+            bws_ctx[proto].dispatch_func(proto, 0, BSC_WEBSOCKET_SERVER_STOPPED,
+                NULL, 0, bws_ctx[proto].user_param);
             pthread_mutex_unlock(bws_ctx[proto].mutex);
             debug_printf("bws_srv_worker() proto %d stopped\n", proto);
             break;
@@ -403,7 +407,8 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     uint8_t *key,
     size_t key_size,
     size_t timeout_s,
-    BSC_WEBSOCKET_SRV_DISPATCH dispatch_func)
+    BSC_WEBSOCKET_SRV_DISPATCH dispatch_func,
+    void *dispatch_func_user_param)
 {
     pthread_t thread_id;
     struct lws_context_creation_info info = { 0 };
@@ -501,6 +506,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     }
 
     bws_ctx[proto].dispatch_func = dispatch_func;
+    bws_ctx[proto].user_param = dispatch_func_user_param;
     pthread_mutex_unlock(bws_ctx[proto].mutex);
     debug_printf("bws_srv_start() <<< ret = BSC_WEBSOCKET_SUCCESS\n");
     return BSC_WEBSOCKET_SUCCESS;

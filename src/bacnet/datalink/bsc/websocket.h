@@ -90,13 +90,15 @@ typedef enum {
 typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
                               uint8_t* buf,
-                              size_t bufsize);
+                              size_t bufsize,
+                              void* dispatch_func_user_param);
 
 typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_PROTOCOL proto,
                               BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
                               uint8_t* buf,
-                              size_t bufsize);
+                              size_t bufsize,
+                              void* dispatch_func_user_param);
 
 /**
  * @brief Asynchronous bws_cli_сonnect() function starts establishing
@@ -120,6 +122,8 @@ typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_PROTOCOL proto,
  *                     Must be > 0.
  * @param dispatch_func - pointer to dispatch callback function to handle
  *                        events from websocket specified by *out_handle.
+ * @param dispatch_func_user_param - parameter which is passed into
+                          dispatch_func call.
  * @param out_handle - pointer to a websocket handle.
  *
  * @return error code from BSC_WEBSOCKET_RET enum.
@@ -144,6 +148,7 @@ BSC_WEBSOCKET_RET bws_cli_connect
        size_t key_size,
        size_t timeout_s,
        BSC_WEBSOCKET_CLI_DISPATCH dispatch_func,
+       void* dispatch_func_user_param,
        BSC_WEBSOCKET_HANDLE *out_handle);
 
 /**
@@ -220,7 +225,8 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  * @param dispatch_func - pointer to dispatch callback function to handle
  *                        events from a websocket which is corresponded to
  *                        server specified by proto param.
- *
+ * @param dispatch_func_user_param - parameter which is passed into
+                          dispatch_func call.
  * @return error code from BSC_WEBSOCKET_RET enum.
  *  The following error codes can be returned:
  *    BSC_WEBSOCKET_BAD_PARAM - In a case if some input parameter is
@@ -246,7 +252,8 @@ BSC_WEBSOCKET_RET bws_srv_start(
                         uint8_t *key,
                         size_t key_size,
                         size_t timeout_s,
-                        BSC_WEBSOCKET_SRV_DISPATCH dispatch_func);
+                        BSC_WEBSOCKET_SRV_DISPATCH dispatch_func,
+                        void* dispatch_func_user_param);
 
 /**
  * @brief Asynchronous bws_srv_stop() function starts process of a shutdowns
