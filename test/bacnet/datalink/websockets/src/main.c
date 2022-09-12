@@ -1060,9 +1060,9 @@ typedef struct
 {
   BSC_WEBSOCKET_EVENT ev;
   BSC_WEBSOCKET_HANDLE h;
-  uint8_t in_buf[256];
+  uint8_t in_buf[12*1024];
   size_t in_buf_size;
-  uint8_t out_buf[256];
+  uint8_t out_buf[12*1024];
   size_t out_buf_size;
 } test_ctx_t;
 

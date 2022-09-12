@@ -39,6 +39,8 @@
 
 #endif
 
+#define BSC_INITIAL_BUFFER_LEN 512
+
 #ifndef LWS_PROTOCOL_LIST_TERM
 #define LWS_PROTOCOL_LIST_TERM       \
     {                                \
@@ -79,6 +81,9 @@ typedef struct {
     BSC_WEBSOCKET_STATE state;
     bool want_send_data;
     bool can_send_data;
+    uint8_t *fragment_buffer;
+    size_t fragment_buffer_size;
+    int fragment_buffer_len;
 } BSC_WEBSOCKET_CONNECTION;
 
 static struct lws_protocols bws_srv_direct_protos[] = {
@@ -170,6 +175,11 @@ static void bws_srv_free_connection(
 
     if (h >= 0 && h < bws_srv_get_max_sockets(proto)) {
         if (bws_ctx[proto].conn[h].state != BSC_WEBSOCKET_STATE_IDLE) {
+            if (bws_ctx[proto].conn[h].fragment_buffer) {
+                free(bws_ctx[proto].conn[h].fragment_buffer);
+                bws_ctx[proto].conn[h].fragment_buffer_len = 0;
+                bws_ctx[proto].conn[h].fragment_buffer_size = 0;
+            }
             bws_ctx[proto].conn[h].state = BSC_WEBSOCKET_STATE_IDLE;
             bws_ctx[proto].conn[h].ws = NULL;
         }
@@ -287,10 +297,55 @@ static int bws_srv_websocket_event(BSC_WEBSOCKET_PROTOCOL proto,
                 }
                 if (bws_ctx[proto].conn[h].state ==
                     BSC_WEBSOCKET_STATE_CONNECTED) {
-                    if (!bws_ctx[proto].stop_worker) {
-                        bws_ctx[proto].dispatch_func(proto, h,
-                            BSC_WEBSOCKET_RECEIVED, in, len,
-                            bws_ctx[proto].user_param);
+                    if (!bws_ctx[proto].conn[h].fragment_buffer) {
+                        bws_ctx[proto].conn[h].fragment_buffer = 
+                                malloc(len <= BSC_INITIAL_BUFFER_LEN ?
+                                       BSC_INITIAL_BUFFER_LEN : len );
+                        if (!bws_ctx[proto].conn[h].fragment_buffer) {
+                            lws_close_reason(wsi,
+                                LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
+                            pthread_mutex_unlock(bws_ctx[proto].mutex);
+                            debug_printf("bws_srv_websocket_event() <<< ret = "
+                                         "-1, allocation of %d bytes failed\n",
+                                         len <= BSC_INITIAL_BUFFER_LEN ?
+                                          BSC_INITIAL_BUFFER_LEN : len);
+                            return -1;
+                        }
+                        bws_ctx[proto].conn[h].fragment_buffer_len = 0;
+                        bws_ctx[proto].conn[h].fragment_buffer_size = len;
+                    }
+                    if (bws_ctx[proto].conn[h].fragment_buffer_len + len >
+                        bws_ctx[proto].conn[h].fragment_buffer_size) {
+                        bws_ctx[proto].conn[h].fragment_buffer = realloc(
+                            bws_ctx[proto].conn[h].fragment_buffer,
+                            bws_ctx[proto].conn[h].fragment_buffer_len + len);
+                        if (!bws_ctx[proto].conn[h].fragment_buffer) {
+                            lws_close_reason(wsi,
+                                LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
+                            pthread_mutex_unlock(bws_ctx[proto].mutex);
+                            debug_printf(
+                                "bws_srv_websocket_event() <<< ret = -1, "
+                                "re-allocation of %d bytes failed\n",
+                                bws_ctx[proto].conn[h].fragment_buffer_len +
+                                    len);
+                            return -1;
+                        }
+                        bws_ctx[proto].conn[h].fragment_buffer_size =
+                            bws_ctx[proto].conn[h].fragment_buffer_len + len;
+                    }
+                    memcpy(&bws_ctx[proto].conn[h].fragment_buffer
+                                [bws_ctx[proto].conn[h].fragment_buffer_len],
+                        in, len);
+                    bws_ctx[proto].conn[h].fragment_buffer_len += len;
+                    if (lws_is_final_fragment(wsi)) {
+                        if (!bws_ctx[proto].stop_worker) {
+                            bws_ctx[proto].dispatch_func(proto, h,
+                                BSC_WEBSOCKET_RECEIVED,
+                                bws_ctx[proto].conn[h].fragment_buffer,
+                                bws_ctx[proto].conn[h].fragment_buffer_len,
+                                bws_ctx[proto].user_param);
+                            bws_ctx[proto].conn[h].fragment_buffer_len = 0;
+                        }
                     }
                 }
             }
