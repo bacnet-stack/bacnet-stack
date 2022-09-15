@@ -937,10 +937,11 @@ int bvlc_bbmd_enabled_handler(BACNET_IP_ADDRESS *addr,
                 /*  In addition, the constructed BVLL Forwarded-NPDU
                     message shall be unicast to each foreign device in
                     the BBMD's FDT. */
-                (void)bbmd_fdt_forward_npdu(&fwd_address, mtu, mtu_len, false);
+                offset = header_len + function_len - npdu_len;
+                npdu = &mtu[offset];
+                (void)bbmd_fdt_forward_npdu(&fwd_address, npdu, npdu_len, false);
                 /* prepare the message for me! */
                 bvlc_ip_address_to_bacnet_local(src, &fwd_address);
-                offset = header_len + function_len - npdu_len;
                 debug_print_npdu("Forwarded-NPDU", offset, npdu_len);
             }
             break;
