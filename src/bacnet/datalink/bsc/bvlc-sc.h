@@ -22,7 +22,8 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
-#define BVLC_SC_NPDU_MAX 1440
+#define BVLC_SC_NPDU_SIZE 1440
+#define BVLC_SC_NPDU_MAX_SIZE 61327 /* Table 6-1. NPDU Lengths of BACnet Data Link Layers */
 #define BVLC_SC_VMAC_SIZE 6
 #define BVLC_SC_UUID_SIZE 16
 
@@ -34,9 +35,9 @@
 #define BVLC_SC_HEADER_OPTION_MAX USER_DEFINED_BVLC_SC_HEADER_OPTION_MAX
 #endif
 
-#if BVLC_SC_NPDU_MAX > \
-    61327 /* Table 6-1. NPDU Lengths of BACnet Data Link Layers */
-#error "Maximum NPDU Length on BACNet/SC Data Link must be <= 61327"
+#if BVLC_SC_NPDU_SIZE > \
+    BVLC_SC_NPDU_MAX_SIZE
+#error "Maximum NPDU Length on BACNet/SC Data Link must be <= BVLC_SC_NPDU_MAX_SIZE"
 #endif
 
 /*

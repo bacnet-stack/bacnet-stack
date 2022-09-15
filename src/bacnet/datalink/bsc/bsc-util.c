@@ -33,29 +33,19 @@ unsigned long bsc_seconds_left(
     return timeout_s * 1000 - delta;
 }
 
-BACNET_SC_RET bsc_map_websocket_retcode(BACNET_WEBSOCKET_RET ret)
+BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
 {
     switch(ret) {
-        case BACNET_WEBSOCKET_SUCCESS:
-             return BACNET_SC_SUCCESS;
-        case BACNET_WEBSOCKET_CLOSED:
-             return BACNET_SC_CLOSED;
-        case BACNET_WEBSOCKET_NO_RESOURCES:
-             return BACNET_SC_NO_RESOURCES;
-        case BACNET_WEBSOCKET_OPERATION_IN_PROGRESS:
-             return BACNET_SC_OPERATION_IN_PROGRESS;
-        case BACNET_WEBSOCKET_BAD_PARAM:
-             return BACNET_SC_BAD_PARAM;
-        case BACNET_WEBSOCKET_TIMEDOUT:
-             return BACNET_SC_TIMEDOUT;
-        case BACNET_WEBSOCKET_INVALID_OPERATION:
-             return BACNET_SC_INVALID_OPERATION;
-        case BACNET_WEBSOCKET_BUFFER_TOO_SMALL:
-             return BACNET_SC_BUFFER_TOO_SMALL;
-        case BACNET_WEBSOCKET_OPERATION_CANCELED:
-             return BACNET_SC_OPERATION_CANCELED;
+        case BSC_WEBSOCKET_SUCCESS:
+            return BSC_SC_SUCCESS;
+        case BSC_WEBSOCKET_NO_RESOURCES:
+            return BSC_SC_NO_RESOURCES;
+        case BSC_WEBSOCKET_BAD_PARAM:
+            return BSC_SC_BAD_PARAM;
+        case BSC_WEBSOCKET_INVALID_OPERATION:
+            return BSC_SC_INVALID_OPERATION;
         default:
-            return BACNET_SC_CLOSED;
+            return BSC_SC_INVALID_OPERATION;
     }
 }
 

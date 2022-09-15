@@ -333,7 +333,7 @@ unsigned int bvlc_sc_encode_proprietary_option(uint8_t *pdu,
     uint16_t total_len =
         sizeof(vendor_id) + proprietary_data_len + sizeof(uint8_t);
 
-    if (proprietary_data_len > BVLC_SC_NPDU_MAX -
+    if (proprietary_data_len > BVLC_SC_NPDU_SIZE -
             3 /* header marker len + header length len) */ -
             sizeof(vendor_id)) {
         return 0;
