@@ -118,8 +118,9 @@ void Notification_Class_Init(void)
         NC_Info[NotifyIdx].Recipient_List->ConfirmedNotify = false;
         NC_Info[NotifyIdx].Recipient_List->Recipient.RecipientType =
             RECIPIENT_TYPE_DEVICE;
+        /* initialize to *wildcard* device instance - invalid! */
         NC_Info[NotifyIdx].Recipient_List->Recipient._.DeviceIdentifier =
-            4194303;
+            BACNET_MAX_INSTANCE;
     }
 
     return;
@@ -961,8 +962,12 @@ void Notification_Class_find_recipient(void)
                                .Recipient._.DeviceIdentifier;
                 /* Send who_ is request only when address of device is unknown.
                  */
-                if (!address_bind_request(DeviceID, &max_apdu, &src))
-                    Send_WhoIs(DeviceID, DeviceID);
+                if (DeviceID < BACNET_MAX_INSTANCE) {
+                    /* note: BACNET_MAX_INSTANCE = wildcard, not valid */
+                    if (!address_bind_request(DeviceID, &max_apdu, &src)) {
+                        Send_WhoIs(DeviceID, DeviceID);
+                    }
+                }
             } else if (CurrentNotify->Recipient_List[idx]
                            .Recipient.RecipientType == RECIPIENT_TYPE_ADDRESS) {
             }
