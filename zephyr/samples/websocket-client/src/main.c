@@ -1062,18 +1062,64 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define BACNET_WEBSOCKET_SERVER_PORT 40000
 #define BACNET_WEBSOCKET_SERVER_ADDR "10.0.2.15"
 //#define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
-#define INFINITE_TIMEOUT 10000000
+#define CONNECT_TIMEOUT 15000
+
+#define BUFSIZE 1024
+uint8_t buf1[BUFSIZE];
+uint8_t buf2[BUFSIZE];
+
+size_t offset = 0;
+bool connected = false;
+K_MUTEX_DEFINE(mutex);
+struct k_condvar cond;
+
+void cli_dispatch(BSC_WEBSOCKET_HANDLE h, BSC_WEBSOCKET_EVENT ev,
+                 uint8_t* buf, size_t bufsize, void* user_param)
+{
+    BSC_WEBSOCKET_RET ret;
+    size_t len;
+
+    if (h < 0 || h >= BSC_CLIENT_WEBSOCKETS_MAX_NUM) {
+        LOG_ERR("cli_dispatch() error context index %d", h);
+        return;
+    }
+
+    switch (ev) {
+        case BSC_WEBSOCKET_CONNECTED:
+            connected = true;
+            k_condvar_signal(&cond);
+            break;
+        case BSC_WEBSOCKET_DISCONNECTED:
+            connected = false;
+            k_condvar_signal(&cond);
+            break;
+        case BSC_WEBSOCKET_RECEIVED:
+            LOG_INF("Websockets received %d", bufsize);
+            len = MIN(BUFSIZE-offset, bufsize);
+            memcpy(buf2+offset, buf, len);
+            offset += len;
+            LOG_INF("Websockets offset %d", offset);
+            if (offset == BUFSIZE) {
+                k_condvar_signal(&cond);
+            }
+            break;
+        case BSC_WEBSOCKET_SENDABLE:
+            ret = bws_cli_dispatch_send(h, buf1, BUFSIZE);
+            LOG_INF("Websockets bws_cli_dispatch_send status %d", ret);
+            break;
+        default:
+            break;
+    }
+}
 
 void main(void)
 {
-    int ret;
+    BSC_WEBSOCKET_RET ret;
     char url[128];
-    BACNET_WEBSOCKET_HANDLE h;
-    uint8_t buf[1024];
-    uint8_t buf2[1024];
-    size_t r;
-    size_t len;
-    BACNET_WEBSOCKET_CLIENT *cli = bws_cli_get();
+    BSC_WEBSOCKET_HANDLE h;
+
+    memset(buf1, 0x44, BUFSIZE);
+    memset(buf2, 0x99, BUFSIZE);
 
     LOG_INF("BACnet websockets client Demo\n"
         "Server %s:%d",
@@ -1081,22 +1127,29 @@ void main(void)
 
     sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
-    ret = cli->bws_connect(BACNET_WEBSOCKET_DIRECT_PROTOCOL, url, ca_cert,
+
+    ret = bws_cli_connect(BSC_WEBSOCKET_HUB_PROTOCOL, url, ca_cert,
         sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &h);
-    LOG_INF("Websockets bws_connect status %d", ret);
+        sizeof(client_key), CONNECT_TIMEOUT, &cli_dispatch, NULL, &h);
+    LOG_INF("Websockets bws_cli_connect status %d", ret);
 
-    len = sizeof(buf);
-    memset(buf, 0x44, len);
-    ret = cli->bws_send(h, buf, len);
-    LOG_INF("Websockets bws_send status %d", ret);
+    // wait connected
+    k_condvar_init(&cond);
+    k_condvar_wait(&cond, &mutex, K_FOREVER);
+    LOG_INF("Websockets connected status %d", connected?1:0);
 
-    memset(buf2, 0x99, len);
-    ret = cli->bws_recv(h, buf2, len, &r, INFINITE_TIMEOUT);
-    LOG_INF("Websockets bws_recv status %d, len %d", ret, r);
-    ret = memcmp(buf, buf2, r);
-    LOG_INF("Websockets data compare %s", (ret == 0) && (r > 0) ? "OK" : "Error");
-    
-    ret = cli->bws_disconnect(h);
-    LOG_INF("Websockets bws_disconnect status %d", ret);
+    // send
+    bws_cli_send(h);
+
+    // wait receive
+    k_condvar_init(&cond);
+    k_condvar_wait(&cond, &mutex, K_FOREVER);
+    ret = memcmp(buf1, buf2, BUFSIZE);
+    LOG_INF("Websockets data compare %s", (ret == 0) ? "OK" : "Error");
+
+    // disconnect
+    bws_cli_disconnect(h);
+    k_condvar_init(&cond);
+    k_condvar_wait(&cond, &mutex, K_FOREVER);
+    LOG_INF("Websockets connected status %d", connected?1:0);
 }

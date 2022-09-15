@@ -22,12 +22,11 @@
 #include <fcntl.h>
 #include <net/net_ip.h>
 #include <net/socket.h>
-#include <net/websocket.h>
+//#include <net/websocket.h>
 #include <net/tls_credentials.h>
 #include <sys_clock.h>
-#include <posix/sys/eventfd.h>
+#include <websocket.h>
 #include "bacnet/datalink/bsc/websocket.h"
-#include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/debug.h"
 
 /* Logging module registration is already done in ports/zephyr/main.c */
@@ -37,12 +36,21 @@
 LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 
 typedef enum {
-    BACNET_WEBSOCKET_STATE_IDLE = 0,
-    BACNET_WEBSOCKET_STATE_CONNECTING = 1,
-    BACNET_WEBSOCKET_STATE_CONNECTED = 2,
-    BACNET_WEBSOCKET_STATE_DISCONNECTING = 3,
-    BACNET_WEBSOCKET_STATE_DISCONNECTED = 4
-} BACNET_WEBSOCKET_STATE;
+    BSC_WEBSOCKET_STATE_IDLE = 0,
+    BSC_WEBSOCKET_STATE_CONFIGURING = 1,
+    BSC_WEBSOCKET_STATE_TCP_CONNECTING = 2,
+    BSC_WEBSOCKET_STATE_WEB_CONNECTING = 3,
+    BSC_WEBSOCKET_STATE_CONNECTED = 4,
+    BSC_WEBSOCKET_STATE_DISCONNECTING = 5,
+    BSC_WEBSOCKET_STATE_DISCONNECTED = 6
+} BSC_WEBSOCKET_STATE;
+
+typedef enum {
+    WORKER_ID_CONNECT = 0,
+    WORKER_ID_DISCONNECT = 1,
+    WORKER_ID_SEND = 2,
+    WORKER_ID_ERROR = 3,
+} WORKER_ID_EVENT;
 
 #define WEBSOCKET_CLOSE_CODE_1000   {0x03, 0xe8}
 
@@ -59,81 +67,110 @@ typedef enum {
 
 /* We need to allocate bigger buffer for the websocket data we receive so that
  * the websocket header fits into it.
+ * This buffer is used for pass sever parameters (see
+ * BSC_WEBSOCKET_CONNECTION_PARAM) befor start HTTP request into the websocket 
+ * connect and for saving the security accept key during HTTP request.
  */
-#define EXTRA_BUF_SPACE 30
+#define MAX_RECV_BUF_LEN 276
 
-#define MAX_RECV_BUF_LEN 1024
-
-typedef struct BACNetWebsocketTask {
-    uint16_t queue_reserved;
-    uint8_t *payload;
-    size_t payload_size;
-    size_t received;
-    struct k_condvar cond;
-    BACNET_WEBSOCKET_RET retcode;
-} BACNET_WEBSOCKET_TASK;
+typedef struct {
+    BSC_WEBSOCKET_PROTOCOL proto;
+    const char *prot;
+    const char *addr;
+    const char *path;
+    int port;
+    char url[BSC_WSURL_MAX_LEN];
+} BSC_WEBSOCKET_CONNECTION_PARAM;
 
 typedef struct {
     int sock;
     int websock;
-    struct k_queue sends;
-    struct k_queue recvs;
-    uint8_t buf[MAX_RECV_BUF_LEN + EXTRA_BUF_SPACE];
-    BACNET_WEBSOCKET_STATE state;
-} BACNET_WEBSOCKET_CONNECTION;
+    uint64_t connect_deadline;
+    BSC_WEBSOCKET_STATE state;
+    BSC_WEBSOCKET_CLI_DISPATCH dispatch;
+    void* user_param;
+    uint8_t buf[MAX_RECV_BUF_LEN];
+} BSC_WEBSOCKET_CONNECTION;
 
-BUILD_ASSERT(BACNET_CLIENT_WEBSOCKETS_MAX_NUM < CONFIG_NET_SOCKETS_POLL_MAX,
-    "BACNET_CLIENT_WEBSOCKETS_MAX_NUM must be greater than CONFIG_NET_SOCKETS_POLL_MAX");
+BUILD_ASSERT(BSC_CLIENT_WEBSOCKETS_MAX_NUM < CONFIG_NET_SOCKETS_POLL_MAX,
+    "BSC_CLIENT_WEBSOCKETS_MAX_NUM must be greater than CONFIG_NET_SOCKETS_POLL_MAX");
 
-static BACNET_WEBSOCKET_CONNECTION
-    bws_cli_conn[BACNET_CLIENT_WEBSOCKETS_MAX_NUM] = { 0 };
-static int fds_num = 0;
-static struct zsock_pollfd fds[BACNET_CLIENT_WEBSOCKETS_MAX_NUM +1] = { 0 };
+BUILD_ASSERT(sizeof(BSC_WEBSOCKET_CONNECTION_PARAM) <= MAX_RECV_BUF_LEN,
+    "Connection buffer must be greater then size of BSC_WEBSOCKET_CONNECTION_PARAM");
 
-#define EVENT_ID_CHANGED_LIST   1
-#define EVENT_ID_SEND           10
+static BSC_WEBSOCKET_CONNECTION
+    bws_cli_conn[BSC_CLIENT_WEBSOCKETS_MAX_NUM] = { 0 };
+static struct zsock_pollfd fds[BSC_CLIENT_WEBSOCKETS_MAX_NUM +1] = { 0 };
 
-static int worker_event_fd = -1;
+#define EVENT_FDS_INDEX BSC_CLIENT_WEBSOCKETS_MAX_NUM
 
 #define STACKSIZE (4096 + CONFIG_TEST_EXTRA_STACKSIZE)
+static int worker_event_fd = -1;
+static void bws_cli_worker(void *p1, void *p2, void *p3);
 
-K_MUTEX_DEFINE(bws_cli_mutex);
+K_THREAD_DEFINE(worker_thread, STACKSIZE, bws_cli_worker, NULL, NULL, NULL,
+        -1, K_USER | K_INHERIT_PERMS, 0);
 
-static BACNET_WEBSOCKET_HANDLE bws_cli_alloc_connection(void)
+static void setblocking(int fd, bool val)
 {
+    int fl, res;
+
+    fl = zsock_fcntl(fd, F_GETFL, 0);
+    if (fl == -1) {
+        LOG_ERR("fcntl(F_GETFL): %d", errno);
+    }
+
+    if (val) {
+        fl &= ~O_NONBLOCK;
+    } else {
+        fl |= O_NONBLOCK;
+    }
+
+    res = zsock_fcntl(fd, F_SETFL, fl);
+    if (fl == -1) {
+        LOG_ERR("fcntl(F_SETFL): %d", errno);
+    }
+}
+
+static BSC_WEBSOCKET_HANDLE bws_cli_alloc_connection(void)
+{
+    BSC_WEBSOCKET_CONNECTION *ctx;
     int i;
-    for (i = 0; i < BACNET_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
-        if (bws_cli_conn[i].state == BACNET_WEBSOCKET_STATE_IDLE) {
-            memset(&bws_cli_conn[i], 0, sizeof(bws_cli_conn[i]));
-            k_queue_init(&bws_cli_conn[i].sends);
-            k_queue_init(&bws_cli_conn[i].recvs);
-            bws_cli_conn[i].state = BACNET_WEBSOCKET_STATE_CONNECTING;
+    for (i = 0; i < BSC_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
+        ctx = &bws_cli_conn[i];
+        if (ctx->state == BSC_WEBSOCKET_STATE_IDLE) {
+            memset(ctx, 0, sizeof(*ctx));
+            ctx->sock = -1;
+            ctx->websock = -1;
+            ctx->state = BSC_WEBSOCKET_STATE_CONFIGURING;
             break;
         }
     }
 
-    return i < BACNET_CLIENT_WEBSOCKETS_MAX_NUM ?
-        i : BACNET_WEBSOCKET_INVALID_HANDLE;
+    return i < BSC_CLIENT_WEBSOCKETS_MAX_NUM ?
+        i : BSC_WEBSOCKET_INVALID_HANDLE;
 }
 
-static int setup_socket(uint16_t family, const char *server, int port,
-            int *sock, struct sockaddr *addr, socklen_t addr_len,
-            BACNET_WEBSOCKET_HANDLE h)
+static void setup_addr(uint16_t family, const char *server, int port,
+            struct sockaddr *addr, socklen_t addr_len)
 {
-    const char *family_str = family == AF_INET ? "IPv4" : "IPv6";
-    int ret = 0;
-
     memset(addr, 0, addr_len);
 
     if (family == AF_INET) {
         net_sin(addr)->sin_family = AF_INET;
         net_sin(addr)->sin_port = htons(port);
-        inet_pton(family, server, &net_sin(addr)->sin_addr);
+        zsock_inet_pton(family, server, &net_sin(addr)->sin_addr);
     } else {
         net_sin6(addr)->sin6_family = AF_INET6;
         net_sin6(addr)->sin6_port = htons(port);
-        inet_pton(family, server, &net_sin6(addr)->sin6_addr);
+        zsock_inet_pton(family, server, &net_sin6(addr)->sin6_addr);
     }
+}
+
+static int setup_socket(uint16_t family, int *sock, BSC_WEBSOCKET_HANDLE h)
+{
+    const char *family_str = family == AF_INET ? "IPv4" : "IPv6";
+    int ret = 0;
 
     if (IS_ENABLED(CONFIG_NET_SOCKETS_SOCKOPT_TLS)) {
         sec_tag_t sec_tag_list[] = {
@@ -182,84 +219,63 @@ fail:
     return ret;
 }
 
-static int connect_socket(uint16_t family, const char *server, int port,
-              int *sock, struct sockaddr *addr, socklen_t addr_len,
-              BACNET_WEBSOCKET_HANDLE h)
+/*
+ * Calcualte timeout in msec
+ * connect_timeout - connect deadline in tick
+ * current_timeout - current timeout in msec
+ * return: timeout in msec
+ */
+static int calc_timeout(uint64_t connect_timeout, int current_timeout)
 {
-    int ret;
-
-    ret = setup_socket(family, server, port, sock, addr, addr_len, h);
-    if (ret < 0 || *sock < 0) {
-        return -1;
-    }
-
-    ret = zsock_connect(*sock, addr, addr_len);
-    if (ret < 0) {
-        LOG_ERR("Cannot connect to %s remote (%d)",
-            family == AF_INET ? "IPv4" : "IPv6",
-            -errno);
-        ret = -errno;
-    }
-
-    return ret;
+    uint64_t t = k_ticks_to_ms_floor64(connect_timeout - sys_clock_tick_get());
+    if (current_timeout < 0)
+        return (int)t;
+    return MIN(t, current_timeout);
 }
 
-static void renumber_fds(void)
+// return poll timeout (msec)
+static int renumber_fds(void)
 {
+    int timeout = -1;
     int i;
-    fds_num = 1;
-    for (i = 0; i < BACNET_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
-        if (bws_cli_conn[i].state == BACNET_WEBSOCKET_STATE_CONNECTED) {
-            LOG_INF("Add socket %d for listening", bws_cli_conn[i].sock);
-            fds[fds_num].fd = bws_cli_conn[i].sock;
-            fds[fds_num].events = ZSOCK_POLLIN;
-            fds[fds_num].revents = 0;
-            fds_num++;
+
+    for (i = 0; i < BSC_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
+        switch(bws_cli_conn[i].state) {
+            case BSC_WEBSOCKET_STATE_CONNECTED:
+                fds[i].fd = bws_cli_conn[i].sock;
+                fds[i].events = ZSOCK_POLLIN;
+                break;
+            case BSC_WEBSOCKET_STATE_TCP_CONNECTING:
+                fds[i].fd = bws_cli_conn[i].sock;
+                fds[i].events = ZSOCK_POLLIN | ZSOCK_POLLOUT;
+                timeout = calc_timeout(bws_cli_conn[i].connect_deadline, timeout);
+                break;
+            case BSC_WEBSOCKET_STATE_WEB_CONNECTING:
+                fds[i].fd = bws_cli_conn[i].sock;
+                fds[i].events = ZSOCK_POLLIN;
+                //timeout = calc_timeout(bws_cli_conn[i].connect_deadline, timeout);
+                break;
+            default:
+                fds[i].fd = -1;
+                fds[i].events = 0;
+                break;
         }
+        fds[i].revents = 0;
     }
+    return timeout;
 }
 
-static BACNET_WEBSOCKET_CONNECTION *find_context(int fd)
+static void emit_worker_event(uint8_t event_id, BSC_WEBSOCKET_HANDLE h)
 {
-    int i;
-    for (i = 0; i < BACNET_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
-        if ((bws_cli_conn[i].state == BACNET_WEBSOCKET_STATE_CONNECTED) &&
-            (bws_cli_conn[i].sock == fd)) {
-                return &bws_cli_conn[i];
-        }
-    }
-    return NULL;
+    uint8_t event[2] = {event_id, h};
+    LOG_INF("run worker event %d for %d", event_id, h);
+    zsock_send(worker_event_fd, event, sizeof(event), 0);
 }
 
-static void worker_event(uint8_t event_id)
+static BSC_WEBSOCKET_RET bsc_websocket_retcode(int ret)
 {
-    uint8_t value = event_id;
-    LOG_INF("run worker event %d", event_id);
-    zsock_send(worker_event_fd, &value, sizeof(value), 0);
-}
-
-static int connect_cb(int websock, struct http_request *req, void *user_data)
-{
-    int i;
-    k_mutex_lock(&bws_cli_mutex, K_FOREVER);
-    for (i = 0; i < BACNET_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
-        if (bws_cli_conn[i].buf == req->recv_buf) {
-            bws_cli_conn[i].websock = websock;
-            bws_cli_conn[i].state = BACNET_WEBSOCKET_STATE_CONNECTED;
-            LOG_INF("Connect %d successed", i);
-            break;
-        }
-    }
-
-    k_mutex_unlock(&bws_cli_mutex);
-    return i < BACNET_CLIENT_WEBSOCKETS_MAX_NUM ? 0 :
-        BACNET_WEBSOCKET_INVALID_HANDLE;
-}
-
-static BACNET_WEBSOCKET_RET bacnet_websocket_retcode(int ret)
-{
-    return ret >= 0 ? BACNET_WEBSOCKET_SUCCESS
-                     : BACNET_WEBSOCKET_INVALID_OPERATION;
+    return ret >= 0 ? BSC_WEBSOCKET_SUCCESS
+                     : BSC_WEBSOCKET_INVALID_OPERATION;
 }
 
 static int parse_uri(char *p, const char **prot, const char **ads, int *port,
@@ -315,26 +331,25 @@ static int parse_uri(char *p, const char **prot, const char **ads, int *port,
     return 0;
 }
 
-static BACNET_WEBSOCKET_RET bws_cli_init(
+static BSC_WEBSOCKET_RET bws_cli_init(
     uint8_t *ca_cert,
     size_t ca_cert_size,
     uint8_t *cert,
     size_t cert_size,
     uint8_t *key,
     size_t key_size,
-    BACNET_WEBSOCKET_HANDLE *out_handle)
+    BSC_WEBSOCKET_HANDLE *out_handle)
 {
-    BACNET_WEBSOCKET_HANDLE h;
-    BACNET_WEBSOCKET_RET retcode = BACNET_WEBSOCKET_SUCCESS;
+    BSC_WEBSOCKET_HANDLE h;
+    BSC_WEBSOCKET_RET retcode = BSC_WEBSOCKET_SUCCESS;
     int ret;
 
     LOG_INF("bws_cli_init >>>");
-    k_mutex_lock(&bws_cli_mutex, K_FOREVER);
 
     h = bws_cli_alloc_connection();
-    if (h == BACNET_WEBSOCKET_INVALID_HANDLE) {
+    if (h == BSC_WEBSOCKET_INVALID_HANDLE) {
         LOG_ERR("Cannot allocate connection context");
-        retcode = BACNET_WEBSOCKET_NO_RESOURCES;
+        retcode = BSC_WEBSOCKET_NO_RESOURCES;
         goto exit;
     }
 
@@ -342,7 +357,7 @@ static BACNET_WEBSOCKET_RET bws_cli_init(
         TLS_CREDENTIAL_CA_CERTIFICATE, ca_cert, ca_cert_size);
     if (ret < 0) {
         LOG_ERR("Failed to register public certificate: %d", ret);
-        retcode = BACNET_WEBSOCKET_BAD_PARAM;
+        retcode = BSC_WEBSOCKET_BAD_PARAM;
         goto exit;
     }
 
@@ -350,7 +365,7 @@ static BACNET_WEBSOCKET_RET bws_cli_init(
         TLS_CREDENTIAL_SERVER_CERTIFICATE, cert, cert_size);
     if (ret < 0) {
         LOG_ERR("Failed to register server certificate: %d", ret);
-        retcode = BACNET_WEBSOCKET_BAD_PARAM;
+        retcode = BSC_WEBSOCKET_BAD_PARAM;
         goto exit;
     }
 
@@ -358,26 +373,25 @@ static BACNET_WEBSOCKET_RET bws_cli_init(
                  TLS_CREDENTIAL_PRIVATE_KEY, key, key_size);
     if (ret < 0) {
         LOG_ERR("Failed to register key certificate: %d", ret);
-        retcode = BACNET_WEBSOCKET_BAD_PARAM;
+        retcode = BSC_WEBSOCKET_BAD_PARAM;
         goto exit;
     }
 
     *out_handle = h;
 
 exit:
-    if ((retcode != BACNET_WEBSOCKET_SUCCESS) &&
-        (h != BACNET_WEBSOCKET_INVALID_HANDLE))
+    if ((retcode != BSC_WEBSOCKET_SUCCESS) &&
+        (h != BSC_WEBSOCKET_INVALID_HANDLE))
     {
-        bws_cli_conn[h].state = BACNET_WEBSOCKET_STATE_IDLE;
+        bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_IDLE;
     }
-    k_mutex_unlock(&bws_cli_mutex);
     LOG_INF("bws_cli_init <<< %d", retcode);
 
     return retcode;
 }
 
-static BACNET_WEBSOCKET_RET bws_cli_connect(
-    BACNET_WEBSOCKET_PROTOCOL type,
+BSC_WEBSOCKET_RET bws_cli_connect(
+    BSC_WEBSOCKET_PROTOCOL proto,
     char *url,
     uint8_t *ca_cert,
     size_t ca_cert_size,
@@ -385,422 +399,374 @@ static BACNET_WEBSOCKET_RET bws_cli_connect(
     size_t cert_size,
     uint8_t *key,
     size_t key_size,
-    BACNET_WEBSOCKET_HANDLE *out_handle)
+    size_t timeout_s,
+    BSC_WEBSOCKET_CLI_DISPATCH dispatch_func,
+    void* dispatch_func_user_param,
+    BSC_WEBSOCKET_HANDLE *out_handle)
 {
-    int sock = -1;
-    int websock = -1;
-    int32_t timeout = 3 * MSEC_PER_SEC;
+    BSC_WEBSOCKET_HANDLE h;
+    BSC_WEBSOCKET_RET retcode;
+    BSC_WEBSOCKET_CONNECTION *ctx;
+    BSC_WEBSOCKET_CONNECTION_PARAM *param;
+
+    LOG_INF("bws_cli_connect() >>>");
+
+    retcode = bws_cli_init(ca_cert, ca_cert_size, cert, cert_size, key,
+        key_size, &h);
+    if (retcode != BSC_WEBSOCKET_SUCCESS) {
+        return retcode;
+    }
+
+    ctx = &bws_cli_conn[h];
+    ctx->connect_deadline = sys_clock_timeout_end_calc(Z_TIMEOUT_MS(timeout_s));
+
+    param = (BSC_WEBSOCKET_CONNECTION_PARAM*)ctx->buf;
+    param->proto = proto;
+    strncpy(param->url, url, BSC_WSURL_MAX_LEN);
+    (void)parse_uri(param->url, &param->prot, &param->addr, &param->port,
+        &param->path);
+    if (param->port == -1 || !param->prot || !param->addr || !param->path) {
+        ctx->state = BSC_WEBSOCKET_STATE_IDLE;
+        LOG_ERR("bws_cli_connect() <<< BSC_WEBSOCKET_BAD_PARAM");
+        return BSC_WEBSOCKET_BAD_PARAM;
+    }
+
+    ctx->dispatch = dispatch_func;
+    ctx->user_param = dispatch_func_user_param;
+    setup_socket(AF_INET, &ctx->sock, h);
+    if (ctx->sock < 0) {
+        ctx->state = BSC_WEBSOCKET_STATE_IDLE;
+        LOG_ERR("bws_cli_connect() <<< Cannot create socket");
+        return BSC_WEBSOCKET_NO_RESOURCES;
+    }
+
+    setblocking(ctx->sock, false);
+    emit_worker_event(WORKER_ID_CONNECT, h);
+
+    *out_handle = h;
+
+    LOG_INF("bws_cli_connect() <<<");
+    return BSC_WEBSOCKET_SUCCESS;
+}
+
+static void worker_zsock_connect(BSC_WEBSOCKET_HANDLE h)
+{
+    BSC_WEBSOCKET_CONNECTION *ctx = &bws_cli_conn[h];
+    BSC_WEBSOCKET_CONNECTION_PARAM *param = 
+        (BSC_WEBSOCKET_CONNECTION_PARAM*)ctx->buf;
     struct sockaddr_in addr_in;
-    BACNET_WEBSOCKET_HANDLE h;
-    struct websocket_request req = {0};
-    BACNET_WEBSOCKET_RET retcode = BACNET_WEBSOCKET_SUCCESS;
-    char tmp_url[BACNET_WSURL_MAX_LEN];
-    const char *prot = NULL, *addr = NULL, *path = NULL;
-    int port = -1;
     int ret;
 
+    LOG_INF("bws_cli_zsock_connect() >>> %d", h);
+
+    setup_addr(AF_INET, param->addr, param->port, (struct sockaddr *)&addr_in,
+        sizeof(addr_in));
+
+    ctx->state = BSC_WEBSOCKET_STATE_TCP_CONNECTING;
+    ret = zsock_connect(ctx->sock, (struct sockaddr *)&addr_in,
+        sizeof(addr_in));
+    if (ret < 0) {
+        LOG_ERR("Cannot connect to remote (%d)", -errno);
+        ret = -errno;
+        emit_worker_event(WORKER_ID_ERROR, h);
+    } else {
+        emit_worker_event(WORKER_ID_CONNECT, h);
+    }
+    LOG_INF("bws_cli_zsock_connect() <<<");
+}
+
+static int websocket_connect_cb(int websock, struct http_request *req,
+    void *user_data)
+{
+    BSC_WEBSOCKET_HANDLE h = (BSC_WEBSOCKET_HANDLE)user_data;
+
+    if ((h >= 0) && (h < BSC_CLIENT_WEBSOCKETS_MAX_NUM) && 
+        (bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_WEB_CONNECTING)) {
+            LOG_INF("Connect %d successed", h);
+            bws_cli_conn[h].websock = websock;
+            bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_CONNECTED;
+            setblocking(bws_cli_conn[h].sock, true);
+            emit_worker_event(WORKER_ID_CONNECT, h);
+    }
+
+    return h < BSC_CLIENT_WEBSOCKETS_MAX_NUM ? 0 :
+        BSC_WEBSOCKET_INVALID_HANDLE;
+}
+
+static void worker_websocket_connect(BSC_WEBSOCKET_HANDLE h)
+{
+    BSC_WEBSOCKET_CONNECTION *ctx = &bws_cli_conn[h];
+    BSC_WEBSOCKET_CONNECTION_PARAM *param = 
+        (BSC_WEBSOCKET_CONNECTION_PARAM*)ctx->buf;
+    struct websocket_request req = {0};
     char protocol[60];
     const char *extra_headers[] = {
         protocol,
         NULL
     };
+    int32_t timeout;
+    int ret;
 
-    LOG_INF("bws_cli_connect() >>>");
-
-    strncpy(tmp_url, url, BACNET_WSURL_MAX_LEN);
-    ret = parse_uri(tmp_url, &prot, &addr, &port, &path);
-    if (port == -1 || !prot || !addr || !path) {
-        LOG_ERR("bws_cli_connect() <<< BACNET_WEBSOCKET_BAD_PARAM");
-        return BACNET_WEBSOCKET_BAD_PARAM;
-    }
-
-    retcode = bws_cli_init(ca_cert, ca_cert_size, cert, cert_size, key,
-        key_size, &h);
-    if (retcode != BACNET_WEBSOCKET_SUCCESS) {
-        return retcode;
-    }
-
-    (void)connect_socket(AF_INET, addr, port,
-        &sock, (struct sockaddr *)&addr_in, sizeof(addr_in), h);
-    if (sock < 0) {
-        LOG_ERR("bws_cli_connect() <<< Cannot create HTTP connection");
-        return BACNET_WEBSOCKET_NO_RESOURCES;
-    }
-
-    bws_cli_conn[h].sock = sock;
+    LOG_INF("bws_cli_websocket_connect() >>> %d", h);
 
     snprintf(protocol, sizeof(protocol),"Sec-WebSocket-Protocol: %s\r\n",
-        type == BACNET_WEBSOCKET_HUB_PROTOCOL ?
-            BACNET_WEBSOCKET_HUB_PROTOCOL_STR :
-            BACNET_WEBSOCKET_DIRECT_PROTOCOL_STR);
+        param->proto == BSC_WEBSOCKET_HUB_PROTOCOL ?
+            BSC_WEBSOCKET_HUB_PROTOCOL_STR :
+            BSC_WEBSOCKET_DIRECT_PROTOCOL_STR);
     LOG_INF("Websocket protocol = %s", protocol);
 
-    req.host = addr;
-    req.url = path;
+    req.host = param->addr;
+    req.url = param->path;
     req.optional_headers = extra_headers;
-    req.cb = connect_cb;
-    req.tmp_buf = bws_cli_conn[h].buf;
-    req.tmp_buf_len = sizeof(bws_cli_conn[h].buf);
+    req.cb = websocket_connect_cb;
+    req.tmp_buf = ctx->buf;
+    req.tmp_buf_len = sizeof(ctx->buf);
 
-    websock = websocket_connect(sock, &req, timeout, "IPv4");
-    if (websock < 0) {
-        LOG_ERR("Cannot connect to %s:%d", addr, port);
-        zsock_close(sock);
-        return BACNET_WEBSOCKET_CLOSED;
+    ctx->state = BSC_WEBSOCKET_STATE_WEB_CONNECTING;
+    timeout = calc_timeout(ctx->connect_deadline, -1);
+    ret = websocket_connect(ctx->sock, &req, timeout, (void*)h);
+    LOG_INF("websocket_connect() return %d", ret);
+    if ((ret < 0) && (ret != -EAGAIN)) {
+        LOG_ERR("Cannot connect to %s:%d", param->addr, param->port);
+        emit_worker_event(WORKER_ID_ERROR, h);
+        return;
     }
 
-    worker_event(EVENT_ID_CHANGED_LIST);
-
-    *out_handle = h;
-
-    LOG_INF("bws_cli_connect() <<<");
-    return BACNET_WEBSOCKET_SUCCESS;
+    LOG_INF("bws_cli_websocket_connect() <<<");
 }
 
-static void bws_cli_disconnect_impl(BACNET_WEBSOCKET_CONNECTION *ctx)
+static void worker_websocket_connect_wait_data(BSC_WEBSOCKET_HANDLE h)
 {
-    BACNET_WEBSOCKET_TASK *task;
+    BSC_WEBSOCKET_CONNECTION *ctx = &bws_cli_conn[h];
+    BSC_WEBSOCKET_CONNECTION_PARAM *param = 
+        (BSC_WEBSOCKET_CONNECTION_PARAM*)ctx->buf;
+    int ret;
+    struct websocket_request req = {0};
 
-    while (!k_queue_is_empty(&ctx->recvs)) {
-        task = k_queue_get(&ctx->recvs, K_NO_WAIT);
-        if (task != NULL) {
-            task->retcode = BACNET_WEBSOCKET_CLOSED;
-            k_condvar_signal(&task->cond);
-        }
+    LOG_INF("worker_websocket_connect_wait_data() >>> %d", h);
+
+    // Fill mock HTTP request for responce processing
+    req.cb = websocket_connect_cb;
+    req.tmp_buf = ctx->buf;
+    req.tmp_buf_len = sizeof(ctx->buf);
+
+    ret = websocket_connect_wait_data(ctx->sock, &req, (void*)h);
+    if (ret < 0) {
+        LOG_ERR("Cannot connect to %s:%d (%d)", param->addr, param->port, ret);
+        emit_worker_event(WORKER_ID_ERROR, h);
     }
 
-    while (!k_queue_is_empty(&ctx->sends)) {
-        task = k_queue_get(&ctx->sends, K_NO_WAIT);
-        if (task != NULL) {
-            task->retcode = BACNET_WEBSOCKET_CLOSED;
-            k_condvar_signal(&task->cond);
-        }
-    }
-
-    websocket_disconnect(ctx->websock);
-    ctx->state = BACNET_WEBSOCKET_STATE_DISCONNECTED;
+    LOG_INF("worker_websocket_connect_wait_data() <<<");
 }
 
-static BACNET_WEBSOCKET_RET bws_cli_disconnect(BACNET_WEBSOCKET_HANDLE h)
+static void worker_disconnect(BSC_WEBSOCKET_CONNECTION *ctx)
 {
-    BACNET_WEBSOCKET_RET ret = BACNET_WEBSOCKET_SUCCESS;
-    uint8_t reason[2] = WEBSOCKET_CLOSE_CODE_1000;
-    BACNET_WEBSOCKET_CONNECTION *ctx;
-    bool need_send_close;
+    if (ctx->state == BSC_WEBSOCKET_STATE_CONNECTED) {
+        websocket_send_msg(ctx->websock, NULL, 0,
+            WEBSOCKET_OPCODE_CLOSE, false, true, SYS_FOREVER_MS);
+    }
+    if (ctx->websock >= 0)
+        websocket_disconnect(ctx->websock);
+    else
+        zsock_close(ctx->sock);
+    ctx->state = BSC_WEBSOCKET_STATE_DISCONNECTED;
+}
 
+void bws_cli_disconnect(BSC_WEBSOCKET_HANDLE h)
+{
     LOG_INF("bws_cli_disconnect() >>> h = %d", h);
-
-    if (h < 0 || h >= BACNET_CLIENT_WEBSOCKETS_MAX_NUM) {
-        LOG_ERR("bws_cli_disconnect() <<< ret = BACNET_WEBSOCKET_BAD_PARAM");
-        return BACNET_WEBSOCKET_BAD_PARAM;
-    }
-
-    k_mutex_lock(&bws_cli_mutex, K_FOREVER);
-
-    ctx = &bws_cli_conn[h];
-    if (ctx->state == BACNET_WEBSOCKET_STATE_DISCONNECTING)
-        ret = BACNET_WEBSOCKET_OPERATION_IN_PROGRESS;
-    if (ctx->state == BACNET_WEBSOCKET_STATE_IDLE ||
-        ctx->state == BACNET_WEBSOCKET_STATE_DISCONNECTED)
-        ret = BACNET_WEBSOCKET_CLOSED;
-    if (ret != BACNET_WEBSOCKET_SUCCESS)
-        goto exit;
-
-    // here the state is conected or connecting
-    need_send_close = ctx->state == BACNET_WEBSOCKET_STATE_CONNECTED;
-    ctx->state = BACNET_WEBSOCKET_STATE_DISCONNECTING;
-    if (need_send_close) {
-        websocket_send_msg(ctx->websock, reason, sizeof(reason),
-                           WEBSOCKET_OPCODE_CLOSE, true, true, SYS_FOREVER_MS);
-    }
-    bws_cli_disconnect_impl(ctx);
-    k_mutex_unlock(&bws_cli_mutex);
-
-    worker_event(EVENT_ID_CHANGED_LIST);
-
-exit:
-    LOG_INF("bws_cli_disconnect() <<< ret = %d", ret);
-    return ret;
+    emit_worker_event(WORKER_ID_DISCONNECT, h);
+    LOG_INF("bws_cli_disconnect() <<<");
 }
 
-void bws_cli_worker(void *p1, void *p2, void *p3)
+static void bws_cli_worker(void *p1, void *p2, void *p3)
 {
     int ret = 0;
-    int received, len, i;
+    int i;
     uint64_t remaining = ULLONG_MAX;
     uint32_t message_type;
-    BACNET_WEBSOCKET_CONNECTION *ctx;
-    BACNET_WEBSOCKET_TASK *task;
+    BSC_WEBSOCKET_CONNECTION *ctx;
     bool need_renumber_fds = false;
-    uint8_t value;
+    uint8_t event[2];
     int spair[2];
+    int timeout;
 
     ret = zsock_socketpair(AF_UNIX, SOCK_STREAM, 0, spair);
     if (ret == 0) {
         worker_event_fd = spair[0];
-        fds[0].fd = spair[1];
-        fds[0].events = ZSOCK_POLLIN;
-        fds[0].revents = 0;
-        fds_num = 1;
+        fds[EVENT_FDS_INDEX].fd = spair[1];
+        fds[EVENT_FDS_INDEX].events = ZSOCK_POLLIN;
+        fds[EVENT_FDS_INDEX].revents = 0;
     } else {
         LOG_ERR("socketpair failed: %d", errno);
         return;
     }
+    
+    timeout = renumber_fds();
 
-   while (1) {
-        LOG_INF("zsock_polling fds_num = %d", fds_num);
-        ret = zsock_poll(fds, fds_num, -1);
+    while (1) {
+        LOG_INF("zsock_polling timeout %d", timeout);
+        ret = zsock_poll(fds, BSC_CLIENT_WEBSOCKETS_MAX_NUM +1, timeout);
         LOG_INF("zsock_polled: %d", ret);
+
+        if ((ret == -1) || (ret == 0)) {
+            if (ret == -1)
+                LOG_ERR("zsock_poll error: %d", errno);
+            timeout = renumber_fds();
+            continue;
+        }
 
         need_renumber_fds = false;
 
-        if (ret == -1) {
-            LOG_ERR("zsock_poll error: %d", errno);
-            need_renumber_fds = true;
-        }
-
-        k_mutex_lock(&bws_cli_mutex, K_FOREVER);
-
-        // receive
-        for (i = 1; i < fds_num; i++) {
-            LOG_INF("fds %d revents %d", i, fds[i].revents);
+        // receive & connect
+        for (i = 0; i < BSC_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
             if (fds[i].revents & (ZSOCK_POLLHUP | ZSOCK_POLLERR)) {
                 need_renumber_fds = true;
             }
+
+            ctx = &bws_cli_conn[i];
+
             if (!(fds[i].revents & ZSOCK_POLLIN)) {
                 continue;
             }
-            ctx = find_context(fds[i].fd);
-            if (ctx == NULL) {
+
+            LOG_INF("connect %d revents %d", i, fds[i].revents);
+
+            if (ctx->state == BSC_WEBSOCKET_STATE_WEB_CONNECTING) {
+                worker_websocket_connect_wait_data(i);
                 need_renumber_fds = true;
                 continue;
             }
+
             fds[i].revents = 0;
-            received = 0;
             remaining = 1;
-            message_type = 0;
-            while ((remaining > 0) && (received < sizeof(ctx->buf))){
-                //remaining = 0;
-                ret = websocket_recv_msg(ctx->websock, ctx->buf + received,
-                    sizeof(ctx->buf) - received, &message_type, &remaining, 0);
-                LOG_DBG("websocket_recv_msg : remaining %lld, ret: %d",
-                    remaining, ret);
-                if (ret <= 0)
+            while (remaining > 0) {
+                ret = websocket_recv_msg(ctx->websock, ctx->buf,
+                    sizeof(ctx->buf), &message_type, &remaining, 0);
+                if (ret <= 0) {
+                    LOG_ERR("Error websocket received: %d", ret);
                     break;
-                received += ret;
-            }
+                }
 
-            if (ret < 0) {
-                LOG_ERR("Error websocket received: %d", ret);
-                continue;
-            }
+                LOG_INF("websocket_recv_msg ret %d, type %d, remaining %lld",
+                    ret, message_type, remaining);
 
-            LOG_DBG("Receive message type: %d, length: %d", message_type,
-                received);
+                if (message_type & WEBSOCKET_FLAG_PING) {
+                    ret = websocket_send_msg(ctx->websock, ctx->buf, ret,
+                        WEBSOCKET_OPCODE_PONG, false, true, SYS_FOREVER_MS);
+                    LOG_INF("Sent PONG, status %d", ret);
+                }
 
-            if (message_type & WEBSOCKET_FLAG_PING) {
-                ret = websocket_send_msg(ctx->websock, ctx->buf, received,
-                    WEBSOCKET_OPCODE_PONG, false, true, SYS_FOREVER_MS);
-                LOG_INF("Sent PONG, status %d", ret);
-            }
+                if (message_type & WEBSOCKET_FLAG_CLOSE) {
+                    LOG_DBG("Receive message Close");
+                    worker_disconnect(ctx);
+                    ctx->dispatch(event[1], BSC_WEBSOCKET_DISCONNECTED, NULL, 0,
+                        ctx->user_param);
+                    need_renumber_fds = true;
+                }
 
-            if (message_type & WEBSOCKET_FLAG_CLOSE) {
-                LOG_DBG("Receive message Close");
-                bws_cli_disconnect_impl(ctx);
-                need_renumber_fds = true;
-            }
-
-            if (message_type & (WEBSOCKET_FLAG_TEXT |
-                                WEBSOCKET_FLAG_BINARY)) {
-                LOG_DBG("Receive message Data");
-                if (!k_queue_is_empty(&ctx->recvs)) {
-                    task = k_queue_peek_head(&ctx->recvs);
-                    len = MIN(received, task->payload_size);
-                    memcpy(task->payload, ctx->buf, len);
-                    task->received = len;
-                    task->retcode = len < received ?
-                        BACNET_WEBSOCKET_BUFFER_TOO_SMALL :
-                        BACNET_WEBSOCKET_SUCCESS;
-                    LOG_DBG("Data len %d received %d retcode %d", len,
-                        received, task->retcode);
-                    k_condvar_signal(&task->cond);
+                if (message_type & (WEBSOCKET_FLAG_TEXT |
+                                    WEBSOCKET_FLAG_BINARY)) {
+                    LOG_DBG("Receive message Data, len %d", ret);
+                    ctx->dispatch(i, BSC_WEBSOCKET_RECEIVED, ctx->buf, ret,
+                        ctx->user_param);
                 }
             }
         }
 
-        // send
-        LOG_INF("fds 0 revents %d", fds[0].revents);
-        if (fds[0].revents & ZSOCK_POLLIN) {
-            fds[0].revents = 0;
-            value = 0;
-            zsock_recv(fds[0].fd, &value, sizeof(value), MSG_DONTWAIT);
-            LOG_INF("worker event happend, value %d", value);
+        // worker evets
+        if (fds[EVENT_FDS_INDEX].revents & ZSOCK_POLLIN) {
+            fds[EVENT_FDS_INDEX].revents = 0;
+            zsock_recv(fds[EVENT_FDS_INDEX].fd, event, sizeof(event),
+                ZSOCK_MSG_DONTWAIT);
+            LOG_INF("worker event happend, value %d idx %d", event[0], event[1]);
+            ctx = &bws_cli_conn[event[1]];
 
-            switch (value) {
-                case EVENT_ID_SEND:
-                    for (i = 0; i < BACNET_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
-                        ctx = &bws_cli_conn[i];
-                        if (ctx->state != BACNET_WEBSOCKET_STATE_CONNECTED) {
-                            continue;
-                        }
-
-                        while (!k_queue_is_empty(&ctx->sends)) {
-                            task = k_queue_get(&ctx->sends, K_NO_WAIT);
-                            if (task != NULL) {
-                                task->retcode = bacnet_websocket_retcode(
-                                    websocket_send_msg(ctx->websock, task->payload,
-                                        task->payload_size, WEBSOCKET_OPCODE_DATA_BINARY,
-                                        false, true, SYS_FOREVER_MS));
-                                k_condvar_signal(&task->cond);
-                            }
-                        }
+            switch (event[0]) {
+                case WORKER_ID_CONNECT:
+                    switch(ctx->state)
+                    {
+                        case BSC_WEBSOCKET_STATE_CONFIGURING:
+                            worker_zsock_connect(event[1]);
+                            break;
+                        case BSC_WEBSOCKET_STATE_TCP_CONNECTING:
+                            worker_websocket_connect(event[1]);
+                            break;
+                        case BSC_WEBSOCKET_STATE_CONNECTED:
+                            ctx->dispatch(event[1], BSC_WEBSOCKET_CONNECTED,
+                                NULL, 0, ctx->user_param);
+                            break;
+                        default:
+                            break;
                     }
-                    break;
-                case EVENT_ID_CHANGED_LIST:
                     need_renumber_fds = true;
+                    break;
+                case WORKER_ID_DISCONNECT:
+                    worker_disconnect(ctx);
+                    need_renumber_fds = true;
+                    ctx->dispatch(event[1], BSC_WEBSOCKET_DISCONNECTED, NULL, 0,
+                        ctx->user_param);
+                    break;
+                case WORKER_ID_SEND:
+                    ctx->dispatch(event[1], BSC_WEBSOCKET_SENDABLE, NULL, 0,
+                        ctx->user_param);
+                    break;
+                case WORKER_ID_ERROR:
+                    worker_disconnect(ctx);
+                    need_renumber_fds = true;
+                    ctx->dispatch(event[1], BSC_WEBSOCKET_DISCONNECTED, NULL, 0,
+                        ctx->user_param);
                     break;
             }
         }
 
         if (need_renumber_fds) {
-            renumber_fds();
+            timeout = renumber_fds();
         }
-
-        k_mutex_unlock(&bws_cli_mutex);
     }
 }
 
-static BACNET_WEBSOCKET_RET bws_cli_send(
-    BACNET_WEBSOCKET_HANDLE h, uint8_t *payload, size_t payload_size)
+void bws_cli_send(BSC_WEBSOCKET_HANDLE h)
 {
-    BACNET_WEBSOCKET_CONNECTION *ctx;
-    BACNET_WEBSOCKET_TASK e;
+    LOG_INF("bws_cli_send() >>> h =  %d", h);
+    emit_worker_event(WORKER_ID_SEND, h);
+    LOG_INF("bws_cli_send() >>>");
+}
 
-    LOG_INF("bws_cli_send() >>> h = %d, payload = %p, payload_size = %d",
+BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
+    uint8_t *payload, size_t payload_size)
+{
+    BSC_WEBSOCKET_CONNECTION *ctx;
+    BSC_WEBSOCKET_RET ret;
+
+    LOG_INF("bws_cli_dispatch_send() >>> h = %d, payload = %p, payload_size = %d",
         h, payload, payload_size);
 
-    if (h < 0 || h >= BACNET_CLIENT_WEBSOCKETS_MAX_NUM) {
-        LOG_INF("bws_cli_send() <<< ret = BACNET_WEBSOCKET_BAD_PARAM");
-        return BACNET_WEBSOCKET_BAD_PARAM;
+    if (h < 0 || h >= BSC_CLIENT_WEBSOCKETS_MAX_NUM) {
+        LOG_INF("bws_cli_dispatch_send() <<< ret = BSC_WEBSOCKET_BAD_PARAM");
+        return BSC_WEBSOCKET_BAD_PARAM;
     }
 
     if (!payload || !payload_size) {
-        LOG_INF("bws_cli_send() <<< ret = BACNET_WEBSOCKET_BAD_PARAM");
-        return BACNET_WEBSOCKET_BAD_PARAM;
+        LOG_INF("bws_cli_dispatch_send() <<< ret = BSC_WEBSOCKET_BAD_PARAM");
+        return BSC_WEBSOCKET_BAD_PARAM;
     }
 
-    k_mutex_lock(&bws_cli_mutex, K_FOREVER);
+    if (z_current_get() != worker_thread) {
+        LOG_ERR("bws_cli_dispatch_send() <<< ret = BSC_WEBSOCKET_INVALID_OPER");
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
 
     ctx = &bws_cli_conn[h];
-
-    if (ctx->state == BACNET_WEBSOCKET_STATE_IDLE ||
-        ctx->state == BACNET_WEBSOCKET_STATE_DISCONNECTED) {
-        k_mutex_unlock(&bws_cli_mutex);
-        LOG_INF("bws_cli_send() <<< ret = BACNET_WEBSOCKET_CLOSED");
-        return BACNET_WEBSOCKET_CLOSED;
+    if (ctx->state != BSC_WEBSOCKET_STATE_CONNECTED) {
+        LOG_ERR("bws_cli_dispatch_send() <<< ret = BSC_WEBSOCKET_NO_RESOURCES");
+        return BSC_WEBSOCKET_NO_RESOURCES;
     }
 
-    if (ctx->state == BACNET_WEBSOCKET_STATE_DISCONNECTING) {
-        k_mutex_unlock(&bws_cli_mutex);
-        LOG_INF("bws_cli_send() <<< ret = "
-                     "BACNET_WEBSOCKET_OPERATION_IN_PROGRESS");
-        return BACNET_WEBSOCKET_OPERATION_IN_PROGRESS;
-    }
+    ret = bsc_websocket_retcode(
+        websocket_send_msg(ctx->websock, payload, payload_size,
+            WEBSOCKET_OPCODE_DATA_BINARY, false, true, SYS_FOREVER_MS));
 
-    e.payload = payload;
-    e.payload_size = payload_size;
-    e.retcode = BACNET_WEBSOCKET_OPERATION_IN_PROGRESS;
-    k_condvar_init(&e.cond);
-    k_queue_append(&ctx->sends, &e);
-
-    worker_event(EVENT_ID_SEND);
-
-    while (e.retcode == BACNET_WEBSOCKET_OPERATION_IN_PROGRESS) {
-        k_condvar_wait(&e.cond, &bws_cli_mutex, K_FOREVER);
-    }
-
-    k_queue_remove(&ctx->sends, &e);
-    k_mutex_unlock(&bws_cli_mutex);
-
-    LOG_INF("bws_cli_send() <<< ret = %d", e.retcode);
-    return e.retcode;
+    LOG_INF("bws_cli_dispatch_send() <<< ret = %d", ret);
+    return ret;
 }
-
-static BACNET_WEBSOCKET_RET bws_cli_recv(BACNET_WEBSOCKET_HANDLE h,
-    uint8_t *buf,
-    size_t bufsize,
-    size_t *bytes_received,
-    int timeout)
-{
-    BACNET_WEBSOCKET_CONNECTION *ctx;
-    BACNET_WEBSOCKET_TASK e;
-    int ret = 0;
-
-    LOG_INF(
-        "bws_cli_recv() >>> h = %d, buf = %p, bufsize = %d, timeout = %d", h,
-        buf, bufsize, timeout);
-    if (h < 0 || h >= BACNET_CLIENT_WEBSOCKETS_MAX_NUM) {
-        LOG_INF("bws_cli_recv() <<< ret = BACNET_WEBSOCKET_BAD_PARAM");
-        return BACNET_WEBSOCKET_BAD_PARAM;
-    }
-
-    if (!buf || !bufsize || !bytes_received) {
-        LOG_INF("bws_cli_recv() <<< ret = BACNET_WEBSOCKET_BAD_PARAM");
-        return BACNET_WEBSOCKET_BAD_PARAM;
-    }
-
-    k_mutex_lock(&bws_cli_mutex, K_FOREVER);
-
-    ctx = &bws_cli_conn[h];
-
-    if (ctx->state == BACNET_WEBSOCKET_STATE_IDLE ||
-        ctx->state == BACNET_WEBSOCKET_STATE_DISCONNECTED) {
-        k_mutex_unlock(&bws_cli_mutex);
-        LOG_INF("bws_cli_recv() <<< ret = BACNET_WEBSOCKET_CLOSED");
-        return BACNET_WEBSOCKET_CLOSED;
-    }
-
-    if (ctx->state == BACNET_WEBSOCKET_STATE_DISCONNECTING) {
-        k_mutex_unlock(&bws_cli_mutex);
-        LOG_INF("bws_cli_recv() <<< ret = "
-                     "BACNET_WEBSOCKET_OPERATION_IN_PROGRESS");
-        return BACNET_WEBSOCKET_OPERATION_IN_PROGRESS;
-    }
-
-    e.payload = buf;
-    e.payload_size = bufsize;
-    e.received = 0;
-    e.retcode = BACNET_WEBSOCKET_OPERATION_IN_PROGRESS;
-    k_condvar_init(&e.cond);
-    k_queue_append(&ctx->recvs, &e);
-
-    while (e.retcode == BACNET_WEBSOCKET_OPERATION_IN_PROGRESS) {
-        ret = k_condvar_wait(&e.cond, &bws_cli_mutex, K_MSEC(timeout));
-    }
-    if (ret == ETIMEDOUT) {
-        e.retcode = BACNET_WEBSOCKET_TIMEDOUT;
-    }
-
-    k_queue_remove(&ctx->recvs, &e);
-    k_mutex_unlock(&bws_cli_mutex);
-
-    if (e.retcode == BACNET_WEBSOCKET_SUCCESS ||
-        e.retcode == BACNET_WEBSOCKET_BUFFER_TOO_SMALL) {
-        *bytes_received = e.payload_size;
-    }
-
-    LOG_INF("bws_cli_recv() <<< ret = %d, bytes_received = %d",
-        e.retcode, *bytes_received);
-    return e.retcode;
-}
-
-static BACNET_WEBSOCKET_CLIENT bws_cli = { bws_cli_connect, bws_cli_disconnect,
-    bws_cli_send, bws_cli_recv };
-
-BACNET_WEBSOCKET_CLIENT *bws_cli_get(void)
-{
-    return &bws_cli;
-}
-
-K_THREAD_DEFINE(worker_thread_id, STACKSIZE, bws_cli_worker, NULL, NULL, NULL,
-        -1, K_USER | K_INHERIT_PERMS, 0);

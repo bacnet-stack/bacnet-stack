@@ -1056,52 +1056,96 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define BACNET_WEBSOCKET_SERVER_ADDR "10.0.2.15"
 //#define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
 #define INFINITE_TIMEOUT 10000000
+#define DEFAULT_TIMEOUT 10
+#define DEFAULT_WAIT_TIMEOUT_MS 100
+
+#define DATA_SENT 1000
+
+typedef struct {
+    BSC_WEBSOCKET_EVENT ev;
+    BSC_WEBSOCKET_HANDLE h;
+    uint8_t buf[12*1024];
+    size_t buf_size;
+} ctx_t;
+
+static BSC_WEBSOCKET_EVENT wait_for_event(ctx_t* ctx, BSC_WEBSOCKET_EVENT ev)
+{
+    BSC_WEBSOCKET_EVENT e = -1;
+    while ((ctx->ev != ev) && (ctx->ev != BSC_WEBSOCKET_SERVER_STOPPED)){
+        usleep(DEFAULT_WAIT_TIMEOUT_MS*1000);
+        e = ctx->ev;
+    }
+    ctx->ev = -1;
+    return e;
+}
+
+static void srv_event(BSC_WEBSOCKET_PROTOCOL proto,
+                      BSC_WEBSOCKET_HANDLE h,
+                      BSC_WEBSOCKET_EVENT ev,
+                      uint8_t* buf,
+                      size_t bufsize,
+                      void* user_param)
+{
+    ctx_t* ctx = (ctx_t*) user_param;
+    BSC_WEBSOCKET_RET ret;
+
+    if(ev == BSC_WEBSOCKET_SERVER_STARTED) {
+        PRINTF("Websockets started\n");
+        ctx->ev = BSC_WEBSOCKET_SERVER_STARTED;
+    }
+    else if(ev == BSC_WEBSOCKET_SERVER_STOPPED) {
+        PRINTF("Websockets stopped\n");
+        ctx->ev = BSC_WEBSOCKET_SERVER_STOPPED;
+    }
+    else if(ev == BSC_WEBSOCKET_CONNECTED) {
+        PRINTF("Websockets connected\n");
+        ctx->ev = BSC_WEBSOCKET_CONNECTED;
+        ctx->h = h;
+    }
+    else if(ev == BSC_WEBSOCKET_SENDABLE) {
+        ret = bws_srv_dispatch_send(proto, h, ctx->buf, ctx->buf_size);
+        PRINTF("Websockets sent %ld byte (status %d)\n", ctx->buf_size, ret);
+        ctx->ev = DATA_SENT;
+    }
+    else if(ev == BSC_WEBSOCKET_RECEIVED) {
+        PRINTF("Websockets received %ld byte\n", bufsize);
+        memcpy(ctx->buf, buf, bufsize);
+        ctx->buf_size = bufsize;
+        ctx->ev = BSC_WEBSOCKET_RECEIVED;
+    }
+}
 
 int main(int argc, char *argv[])
 {
-    BACNET_WEBSOCKET_RET ret;
-    BACNET_WEBSOCKET_PROTOCOL protocol = BACNET_WEBSOCKET_DIRECT_PROTOCOL;
-    BACNET_WEBSOCKET_HANDLE h;
-    uint8_t buf[BACNET_SERVER_WEBSOCKET_RX_BUFFER_SIZE];
-    struct mstimer timer = { 0 };
-    size_t r;
+    BSC_WEBSOCKET_RET ret;
+    BSC_WEBSOCKET_EVENT e = -1;
+    ctx_t ctx;
 
-    
-    BACNET_WEBSOCKET_SERVER *srv = bws_srv_get();
+    memset(&ctx, 0, sizeof(ctx));
+    ctx.ev = -1;
+    ctx.h = BSC_WEBSOCKET_INVALID_HANDLE;
 
-    PRINTF("BACnet websockets server Demo\n"
-        "Server %s:%d\n",
-        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    ret = bws_srv_start(BSC_WEBSOCKET_HUB_PROTOCOL,
+                        BACNET_WEBSOCKET_SERVER_PORT, 
+                        ca_cert, sizeof(ca_cert),
+                        server_cert, sizeof(server_cert),
+                        server_key, sizeof(server_key),
+                        DEFAULT_TIMEOUT, srv_event, &ctx);
+    PRINTF("bws_srv_start() ret %d\n", ret);
 
-    memset(buf, 0x77, sizeof(buf));
-    ret = srv->bws_start(protocol, 40000, ca_cert, sizeof(ca_cert), server_cert,
-        sizeof(server_cert), server_key, sizeof(server_key));
-    PRINTF("Websockets start status %d\n", ret);
-
-    ret = srv->bws_accept(protocol, &h, INFINITE_TIMEOUT);
-    PRINTF("Websockets accept status %d\n", ret);
-
-    mstimer_set(&timer, 50);
+    wait_for_event(&ctx, BSC_WEBSOCKET_SERVER_STARTED);
 
     for (;;) {
-        if (mstimer_expired(&timer)) {
-            mstimer_reset(&timer);
-            ret = srv->bws_recv(protocol, h, buf, sizeof(buf), &r,
-                INFINITE_TIMEOUT);
-            PRINTF("Websockets received %d\n", ret);
-            if ((ret == BACNET_WEBSOCKET_SUCCESS) && (r > 0)) {
-                PRINTF("Websockets received and send %ld byte\n", r);
-                ret = srv->bws_send(protocol, h, buf, r);
-            }
+        PRINTF("wait client data...\n");
+        e = wait_for_event(&ctx, BSC_WEBSOCKET_RECEIVED);
+        if (e == BSC_WEBSOCKET_SERVER_STOPPED)
+            break;
 
-            if (ret == BACNET_WEBSOCKET_CLOSED) {
-                PRINTF("Websockets closed\n");
-                break;
-            }
-        }
+        printf("server sending data...\n");
+        bws_srv_send(BSC_WEBSOCKET_HUB_PROTOCOL, ctx.h);
     }
 
-    ret = srv->bws_stop(protocol);
+    ret = bws_srv_stop(BSC_WEBSOCKET_HUB_PROTOCOL);
     PRINTF("Websockets stop status %d\n", ret);
     return 0;
 }

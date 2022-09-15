@@ -1,0 +1,31 @@
+# Copyright (c) 2022 Legrand North America, LLC.
+# SPDX-License-Identifier: MIT
+
+menuconfig BSC_WEBSOCKET
+    bool "BSC_WEBSOCKET"
+    default y
+    select NET_SOCKETS
+    select HTTP_PARSER
+    select HTTP_PARSER_URL
+    select HTTP_CLIENT
+    select MBEDTLS
+    select BASE64
+    help 
+      This option enables BACnet websocket protocol
+
+if BSC_WEBSOCKET
+
+    config BSC_WEBSOCKET_APP_PRIORITY
+        int "App init priority"
+        default 0
+        help 
+          This sets the starting priority of the thread.
+
+    config BSC_WEBSOCKET_CLIENT
+        bool "This option enables BACnet websocket client"
+        default y
+        select HTTP_CLIENT
+        help 
+          This option enables BACnet websocket client
+
+endif # BACNETSTACK_BACNET_SERVER

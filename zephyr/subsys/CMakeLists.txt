@@ -3,3 +3,4 @@
 
 add_subdirectory_ifdef(CONFIG_BACNETSTACK_BACNET_SERVER server)
 add_subdirectory(object)
+add_subdirectory(net)
