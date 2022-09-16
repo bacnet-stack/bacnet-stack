@@ -2034,11 +2034,11 @@ int bacapp_snprintf_value(
                         }
                         break;
                     case PROP_OBJECT_TYPE:
-                        if (value->type.Enumerated < BACNET_OBJECT_TYPE_LAST) {
+                        if (value->type.Enumerated <= BACNET_OBJECT_TYPE_LAST) {
                             ret_val = snprintf(str, str_len, "%s",
                                 bactext_object_type_name(
                                     value->type.Enumerated));
-                        } else if (value->type.Enumerated <
+                        } else if (value->type.Enumerated <=
                             BACNET_OBJECT_TYPE_RESERVED_MAX) {
                             ret_val = snprintf(str, str_len, "reserved %lu",
                                 (unsigned long)value->type.Enumerated);

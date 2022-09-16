@@ -245,8 +245,9 @@ INDTEXT_DATA bacnet_object_type_names[] = { { OBJECT_ANALOG_INPUT,
 
 const char *bactext_object_type_name(unsigned index)
 {
-    return indtext_by_index_split_default(bacnet_object_type_names, index, 128,
-        ASHRAE_Reserved_String, Vendor_Proprietary_String);
+    return indtext_by_index_split_default(bacnet_object_type_names, index,
+        OBJECT_PROPRIETARY_MIN, ASHRAE_Reserved_String,
+        Vendor_Proprietary_String);
 }
 
 bool bactext_object_type_index(const char *search_name, unsigned *found_index)
