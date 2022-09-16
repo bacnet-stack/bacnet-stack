@@ -64,6 +64,18 @@ typedef enum {
 } BSC_SOCKET_EVENT;
 
 typedef enum {
+    BSC_CTX_INITIALIZED = 0,
+    BSC_CTX_DEINITIALIZED = 1
+} BSC_CTX_EVENT;
+
+typedef enum {
+  BSC_CTX_STATE_IDLE = 0,
+  BSC_CTX_STATE_INITIALIZING = 1,
+  BSC_CTX_STATE_INITIALIZED = 2,
+  BSC_CTX_STATE_DEINITIALIZING = 3
+} BSC_CTX_STATE;
+
+typedef enum {
     BSC_SOCK_STATE_IDLE = 0,
     BSC_SOCK_STATE_AWAITING_WEBSOCKET = 1,
     BSC_SOCK_STATE_AWAITING_REQUEST = 2,
@@ -139,14 +151,17 @@ struct BSC_SocketContextFuncs {
     BSC_SOCKET* (*find_connection_for_uuid)(BACNET_SC_UUID *uuid);
     void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
                          BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len);
+    void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
 };
 
 
 struct BSC_SocketContext {
+    BSC_CTX_STATE state;
     BSC_SOCKET *sock;
     size_t  sock_num;
     BSC_SOCKET_CTX_FUNCS* funcs;
     BSC_CONTEXT_CFG *cfg;
+    bool deinit_in_progress;
 };
 
 // max_local_bvlc_len - The maximum BVLC message size int bytes that can be
@@ -181,6 +196,28 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
 BACNET_STACK_EXPORT
 void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
 
+/**
+ * @brief  bsc_coonect() function starts connection operation for a 
+ *         specified BACNet socket. The function call be called only
+ *         for initiator context otherwise BSC_SC_INVALID_OPERATION
+ *         error is returned.
+ *
+ * @param ctx - socket context.
+ * @param c - BACNet socket descriptor .
+ * @param url - url to connect to. For example: wss://legrand.com:8080.
+ *
+ * @return error code from BSC_SC_RET enum.
+ *  The following error codes can be returned:
+ *    BSC_SC_BAD_PARAM - In a case if some input parameter is
+ *                          incorrect.
+ *    BSC_SC_INVALID_OPERATION - if socket is not in opened state,
+             or disconnect operation is in progress using
+             bsc_disconnect() or bsc_deinit_ctx().
+ *    BSC_SC_SUCCESS - operation has succeded.
+ *    BSC_SC_NO_RESOURCES - there are not resources (memory, etc.. )
+ *                          to send data
+ */
+
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_connect(
     BSC_SOCKET_CTX *ctx,
@@ -191,9 +228,10 @@ BACNET_STACK_EXPORT
 void bsc_disconnect(BSC_SOCKET *c);
 
 /**
- * @brief Blocking bsc_send() function transmits pdu to another BACNet socket.
- *        The function may be used only when the socket is in a connected
- *        state.
+ * @brief  bsc_send() function schedules transmitting of pdu to
+ *         another BACNet socket. The function may be used only
+ *         when the socket is in a connected state
+ *         otherwise BSC_SC_INVALID_OPERATION error is returned.w
  *
  * @param c - BACNet socket descriptor initialized by bsc_accept() or
  *            bsc_connect() calls.
@@ -204,13 +242,12 @@ void bsc_disconnect(BSC_SOCKET *c);
  *  The following error codes can be returned:
  *    BSC_SC_BAD_PARAM - In a case if some input parameter is
  *                          incorrect.
- *    BSC_SC_CLOSED - socket was already closed by
- *           remote peer or by bsc_disconnect() or bsc_deinit_ctx()
-             from other thread.
  *    BSC_SC_INVALID_OPERATION - if socket is not in opened state,
              or disconnect operation is in progress using
              bsc_disconnect() or bsc_deinit_ctx().
  *    BSC_SC_SUCCESS - operation has succeded.
+ *    BSC_SC_NO_RESOURCES - there are not resources (memory, etc.. )
+ *                          to send data
  */
 
 BACNET_STACK_EXPORT
