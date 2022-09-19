@@ -33,29 +33,19 @@ unsigned long bsc_seconds_left(
     return timeout_s * 1000 - delta;
 }
 
-BACNET_SC_RET bsc_map_websocket_retcode(BACNET_WEBSOCKET_RET ret)
+BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
 {
     switch(ret) {
-        case BACNET_WEBSOCKET_SUCCESS:
-             return BACNET_SC_SUCCESS;
-        case BACNET_WEBSOCKET_CLOSED:
-             return BACNET_SC_CLOSED;
-        case BACNET_WEBSOCKET_NO_RESOURCES:
-             return BACNET_SC_NO_RESOURCES;
-        case BACNET_WEBSOCKET_OPERATION_IN_PROGRESS:
-             return BACNET_SC_OPERATION_IN_PROGRESS;
-        case BACNET_WEBSOCKET_BAD_PARAM:
-             return BACNET_SC_BAD_PARAM;
-        case BACNET_WEBSOCKET_TIMEDOUT:
-             return BACNET_SC_TIMEDOUT;
-        case BACNET_WEBSOCKET_INVALID_OPERATION:
-             return BACNET_SC_INVALID_OPERATION;
-        case BACNET_WEBSOCKET_BUFFER_TOO_SMALL:
-             return BACNET_SC_BUFFER_TOO_SMALL;
-        case BACNET_WEBSOCKET_OPERATION_CANCELED:
-             return BACNET_SC_OPERATION_CANCELED;
+        case BSC_WEBSOCKET_SUCCESS:
+            return BSC_SC_SUCCESS;
+        case BSC_WEBSOCKET_NO_RESOURCES:
+            return BSC_SC_NO_RESOURCES;
+        case BSC_WEBSOCKET_BAD_PARAM:
+            return BSC_SC_BAD_PARAM;
+        case BSC_WEBSOCKET_INVALID_OPERATION:
+            return BSC_SC_INVALID_OPERATION;
         default:
-            return BACNET_SC_CLOSED;
+            return BSC_SC_INVALID_OPERATION;
     }
 }
 
@@ -95,46 +85,3 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
         }
     }
 }
-
-#if 0
-static BSC_CONNECTION *bsc_find_connection_for_vmac(
-    BACNET_SC_VMAC_ADDRESS *vmac)
-{
-    BSC_CONNECTION *ret = NULL;
-    BSC_CONNECTION *e = bsc_conn_list_head;
-
-    debug_printf("bsc_find_connection_for_vmac() >>> vmac = %s\n",
-        bsc_vmac_to_string(vmac));
-
-    while (e) {
-        if (!memcmp(&e->vmac, vmac, sizeof(*vmac))) {
-            ret = e;
-            break;
-        }
-        e = e->next;
-    }
-
-    debug_printf("bsc_find_connection_for_vmac() <<< ret = %p\n", ret);
-    return ret;
-}
-
-static BSC_CONNECTION *bsc_find_connection_for_uuid(BACNET_SC_UUID *uuid)
-{
-    BSC_CONNECTION *ret = NULL;
-    BSC_CONNECTION *e = bsc_conn_list_head;
-
-    debug_printf("bsc_find_connection_for_uuid() >>> uuid = %s\n",
-        bsc_uuid_to_string(uuid));
-
-    while (e) {
-        if (!memcmp(&e->uuid, uuid, sizeof(*uuid))) {
-            ret = e;
-            break;
-        }
-        e = e->next;
-    }
-
-    debug_printf("bsc_find_connection_for_uuid() <<< ret = %p\n", ret);
-    return ret;
-}
-#endif
