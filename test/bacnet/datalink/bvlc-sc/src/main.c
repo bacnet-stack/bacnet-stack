@@ -4016,7 +4016,7 @@ static void test_BAD_ENCODE_PARAMS(void)
                                              vendor_id1,
                                              proprietary_option_type1,
                                              proprietary_data1,
-                                             BVLC_SC_NPDU_MAX - 3);
+                                             BVLC_SC_NPDU_SIZE - 3);
   zassert_equal(optlen, 0, NULL);
   /* case 2 */
   optlen = bvlc_sc_encode_proprietary_option(optbuf,
