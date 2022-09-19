@@ -10,7 +10,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
-
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <errno.h>
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/datalink/bsc/bsc-runloop.h"
@@ -33,7 +37,7 @@ static pthread_mutex_t bsc_runloop_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 static pthread_cond_t bsc_cond;
 static pthread_t bsc_thread_id;
 
-static void bsc_runloop_worker(void *arg)
+static void* bsc_runloop_worker(void *arg)
 {
   BSC_RUNLOOP_CTX local[BSC_MAX_CONTEXTS_NUM];
   int i;
@@ -84,6 +88,7 @@ static void bsc_runloop_worker(void *arg)
     }
   }
   debug_printf("bsc_runloop_worker() <<<\n");
+  return NULL;
 }
 
 BSC_SC_RET bsc_runloop_start(void)
@@ -185,7 +190,7 @@ void bsc_runloop_stop(void)
     bsc_runloop_started = false;
     pthread_cond_signal(&bsc_cond);
     pthread_mutex_unlock(&bsc_runloop_mutex);
-    pthread_join(&bsc_thread_id, NULL);
+    pthread_join(bsc_thread_id, NULL);
     debug_printf("bsc_runloop_stop() <<<\n");
     return;
   }
