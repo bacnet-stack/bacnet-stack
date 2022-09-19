@@ -26,7 +26,7 @@
 BSC_SC_RET bsc_runloop_start(void);
 BSC_SC_RET bsc_runloop_reg(BSC_SOCKET_CTX *ctx,
 						   void (*runloop_func)(BSC_SOCKET_CTX *ctx));
-void bsc_runloop_schedule(BSC_SOCKET_CTX *ctx);
+void bsc_runloop_schedule(void);
 void bsc_runloop_unreg(BSC_SOCKET_CTX *ctx);
 void bsc_runloop_stop(void);
 

@@ -554,6 +554,7 @@ elseif(APPLE)
     ports/bsd/bip-init.c
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-mutex.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     ports/bsd/stdbool.h)

@@ -17,7 +17,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "bacnet/datalink/bsc/websocket.h"
-#include "bacnet/basic/sys/fifo.h"
 #include "bacnet/basic/sys/debug.h"
 
 #if (LWS_LIBRARY_VERSION_MAJOR >= 4) && (LWS_LIBRARY_VERSION_MINOR > 2)

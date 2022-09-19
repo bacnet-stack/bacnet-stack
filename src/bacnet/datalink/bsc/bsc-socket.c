@@ -241,7 +241,18 @@ static void bsc_process_socket_connected_state(
         } else {
             bws_cli_disconnect(c->wh);
         }
-    } else {
+    }
+    else if (c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
+      if(!c->dm.hdr.dest && !c->dm.hdr.origin) {
+        debug_printf("bsc_process_socket_connected_state() got unexpected "
+                     "bvlc result, message is dropped\n");
+      }
+      else {
+        c->ctx->funcs->socket_event(
+            c, BSC_SOCKET_RECEIVED, BSC_SC_SUCCESS, buf, buflen);
+      }
+    }
+    else {
         c->ctx->funcs->socket_event(
             c, BSC_SOCKET_RECEIVED, BSC_SC_SUCCESS, buf, buflen);
     }
@@ -659,7 +670,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_PROTOCOL proto,
                 c->rx_buf_size += sizeof(len);
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
-                bsc_runloop_schedule(c->ctx);
+                bsc_runloop_schedule();
             } else {
                 debug_printf("bsc_dispatch_srv_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
@@ -900,7 +911,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 c->rx_buf_size += sizeof(len);
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
-                bsc_runloop_schedule(c->ctx);
+                bsc_runloop_schedule();
             } else {
                 debug_printf("bsc_dispatch_cli_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
@@ -1116,4 +1127,28 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
 
     debug_printf("bsc_disconnect() <<< ret = %d\n", ret);
     return ret;
+}
+
+BACNET_STACK_EXPORT
+void bsc_get_remote_bvlc(BSC_SOCKET *c, uint16_t *p_val)
+{
+  *p_val = 0;
+  bsc_global_mutex_lock();
+  if(c->state == BSC_SOCK_STATE_CONNECTED ||
+     c->state == BSC_SOCK_STATE_DISCONNECTING) {
+     *p_val = c->max_bvlc_len;
+  }
+  bsc_global_mutex_unlock();
+}
+
+BACNET_STACK_EXPORT
+void bsc_get_remote_npdu(BSC_SOCKET *c, uint16_t *p_val)
+{
+  *p_val = 0;
+  bsc_global_mutex_lock();
+  if(c->state == BSC_SOCK_STATE_CONNECTED ||
+     c->state == BSC_SOCK_STATE_DISCONNECTING) {
+     *p_val = c->max_npdu_len;
+  }
+  bsc_global_mutex_unlock();
 }
