@@ -7,7 +7,6 @@ project(test_${basename}
 	VERSION 1.0.0
 	LANGUAGES C)
 
-
 string(REGEX REPLACE
     "/test/bacnet/[a-zA-Z_/-]*$"
     "/src"
@@ -34,12 +33,6 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
 	${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     # Support files and stubs (pathname alphabetical)
-	${SRC_DIR}/bacnet/bacdcode.c
-	${SRC_DIR}/bacnet/bacint.c
-	${SRC_DIR}/bacnet/bacreal.c
-	${SRC_DIR}/bacnet/bacstr.c
-	${SRC_DIR}/bacnet/basic/sys/bigend.c
-	${SRC_DIR}/bacnet/basic/sys/days.c
     # Test and test library files
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c

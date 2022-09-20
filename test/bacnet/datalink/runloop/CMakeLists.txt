@@ -44,7 +44,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
 
   add_executable(${PROJECT_NAME}
-    ${PORTS_DIR}/win32/bsc-runloop.c
+    ${PORTS_DIR}/linux/bsc-runloop.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
     ./src/main.c

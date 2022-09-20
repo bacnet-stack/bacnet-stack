@@ -33,9 +33,6 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
-	BSC_CONF_CLIENT_CONNECTIONS_NUM=5
-	BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM=4
-	BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM=4
 	)
 
 include_directories(
@@ -52,7 +49,14 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/linux/websocket-cli.c
     ${PORTS_DIR}/linux/websocket-srv.c
+    ${PORTS_DIR}/linux/bsc-runloop.c
+    ${PORTS_DIR}/linux/bsc-mutex.c
+    ${PORTS_DIR}/linux/mstimer-init.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
@@ -75,6 +79,14 @@ elseif(WIN32)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/win32/websocket-cli.c
     ${PORTS_DIR}/win32/websocket-srv.c
+    ${PORTS_DIR}/win32/bsc-runloop.c
+    ${PORTS_DIR}/win32/bsc-mutex.c
+    ${PORTS_DIR}/win32/mstimer-init.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
@@ -87,7 +99,14 @@ elseif(APPLE)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c
+    ${PORTS_DIR}/bsd/bsc-runloop.c
+    ${PORTS_DIR}/bsd/bsc-mutex.c
+    ${PORTS_DIR}/bsd/mstimer-init.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

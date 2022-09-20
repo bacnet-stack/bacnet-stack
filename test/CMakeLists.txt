@@ -124,6 +124,7 @@ list(APPEND testdirs
   bacnet/datalink/bvlc-sc
   bacnet/datalink/runloop
   bacnet/datalink/websockets
+  bacnet/datalink/bsc-socket
   )
 
 enable_testing()

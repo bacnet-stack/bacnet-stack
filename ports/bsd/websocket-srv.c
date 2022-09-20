@@ -297,17 +297,19 @@ static int bws_srv_websocket_event(BSC_WEBSOCKET_PROTOCOL proto,
                 if (bws_ctx[proto].conn[h].state ==
                     BSC_WEBSOCKET_STATE_CONNECTED) {
                     if (!bws_ctx[proto].conn[h].fragment_buffer) {
-                        bws_ctx[proto].conn[h].fragment_buffer = 
-                                malloc(len <= BSC_INITIAL_BUFFER_LEN ?
-                                       BSC_INITIAL_BUFFER_LEN : len );
+                        bws_ctx[proto].conn[h].fragment_buffer =
+                            malloc(len <= BSC_INITIAL_BUFFER_LEN
+                                    ? BSC_INITIAL_BUFFER_LEN
+                                    : len);
                         if (!bws_ctx[proto].conn[h].fragment_buffer) {
                             lws_close_reason(wsi,
                                 LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
                             pthread_mutex_unlock(bws_ctx[proto].mutex);
                             debug_printf("bws_srv_websocket_event() <<< ret = "
                                          "-1, allocation of %d bytes failed\n",
-                                         len <= BSC_INITIAL_BUFFER_LEN ?
-                                          BSC_INITIAL_BUFFER_LEN : len);
+                                len <= BSC_INITIAL_BUFFER_LEN
+                                    ? BSC_INITIAL_BUFFER_LEN
+                                    : len);
                             return -1;
                         }
                         bws_ctx[proto].conn[h].fragment_buffer_len = 0;
@@ -332,6 +334,10 @@ static int bws_srv_websocket_event(BSC_WEBSOCKET_PROTOCOL proto,
                         bws_ctx[proto].conn[h].fragment_buffer_size =
                             bws_ctx[proto].conn[h].fragment_buffer_len + len;
                     }
+                    debug_printf(
+                        "bws_srv_websocket_event() got next %d bytes for "
+                        "socket %d\n",
+                        len, h);
                     memcpy(&bws_ctx[proto].conn[h].fragment_buffer
                                 [bws_ctx[proto].conn[h].fragment_buffer_len],
                         in, len);
@@ -650,7 +656,7 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_PROTOCOL proto,
     uint8_t *tmp_buf;
     BSC_WEBSOCKET_RET ret;
 
-    debug_printf("bws_srv_dispatch_send() >>> proto = %d h = %d payload %d "
+    debug_printf("bws_srv_dispatch_send() >>> proto = %d h = %d payload %p "
                  "payload_size %d\n",
         proto, h, payload, payload_size);
 

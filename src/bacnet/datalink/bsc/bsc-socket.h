@@ -191,7 +191,9 @@ void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
                         BSC_CONTEXT_CFG* cfg,
-                        BSC_SOCKET_CTX_FUNCS* funcs);
+                        BSC_SOCKET_CTX_FUNCS* funcs,
+                        BSC_SOCKET* sockets,
+                        size_t sockets_num);
 
 BACNET_STACK_EXPORT
 void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
