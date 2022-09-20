@@ -236,6 +236,17 @@ void handler_read_property_multiple(uint8_t *service_request,
                     berror = true;
                     break;
                 }
+                
+                /* Test for invalid object before proceeding */
+                if (!Device_Valid_Object_Id(rpmdata.object_type, rpmdata.object_instance)) {
+                    rpmdata.error_class = ERROR_CLASS_OBJECT;
+                    rpmdata.error_code =
+                        ERROR_CODE_UNKNOWN_OBJECT;
+                    error = BACNET_STATUS_ERROR;
+                    berror = true;
+                    break; /* The berror flag ensures that both loops will */
+                           /* be broken! */
+                }
 
                 /* Test for case of indefinite Device object instance */
                 if ((rpmdata.object_type == OBJECT_DEVICE) &&
