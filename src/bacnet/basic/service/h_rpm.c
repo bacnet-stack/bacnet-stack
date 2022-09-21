@@ -236,17 +236,6 @@ void handler_read_property_multiple(uint8_t *service_request,
                     berror = true;
                     break;
                 }
-                
-                /* Test for invalid object before proceeding */
-                if (!Device_Valid_Object_Id(rpmdata.object_type, rpmdata.object_instance)) {
-                    rpmdata.error_class = ERROR_CLASS_OBJECT;
-                    rpmdata.error_code =
-                        ERROR_CODE_UNKNOWN_OBJECT;
-                    error = BACNET_STATUS_ERROR;
-                    berror = true;
-                    break; /* The berror flag ensures that both loops will */
-                           /* be broken! */
-                }
 
                 /* Test for case of indefinite Device object instance */
                 if ((rpmdata.object_type == OBJECT_DEVICE) &&
@@ -372,7 +361,27 @@ void handler_read_property_multiple(uint8_t *service_request,
                                    response on OPTIONAL when empty. */
                                 /* If no optional properties are supported then
                                    an empty 'List of Results' shall be returned
-                                   for the specified property.*/
+                                   for the specified property, except if the
+                                   object does not exist. */
+                                if (!Device_Valid_Object_Id(rpmdata.object_type,
+                                  rpmdata.object_instance)) {
+                                    len = RPM_Encode_Property(
+                                        &Handler_Transmit_Buffer[npdu_len],
+                                        (uint16_t)apdu_len, MAX_APDU, &rpmdata);
+                                    if (len > 0) {
+                                        apdu_len += len;
+                                    } else {
+#if PRINT_ENABLED
+                                        fprintf(stderr,
+                                            "RPM: Too full for property!\r\n");
+#endif
+                                        error = len;
+                                        /* The berror flag ensures that
+                                           both loops will be broken! */
+                                        berror = true;
+                                        break;
+                                    }
+                                }
                             } else {
                                 for (index = 0; index < property_count;
                                      index++) {
