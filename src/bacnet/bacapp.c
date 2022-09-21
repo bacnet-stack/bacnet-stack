@@ -2506,7 +2506,7 @@ static bool strtol_checked(const char *s, long *out)
 #endif
 
 #if defined(BACAPP_UNSIGNED) || defined(BACAPP_ENUMERATED)
-static bool strtoul_checked(const char *s, unsigned long *out)
+static bool strtoul_checked(const char *s, BACNET_UNSIGNED_INTEGER *out)
 {
     char *end;
     errno = 0;

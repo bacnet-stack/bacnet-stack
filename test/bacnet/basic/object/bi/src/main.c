@@ -24,10 +24,6 @@ static void testBinaryInput(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = 0;
-    uint32_t decoded_instance = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = {0};
     const int *required_property = NULL;

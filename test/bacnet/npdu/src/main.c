@@ -32,7 +32,6 @@ static void test_NPDU_Network(void)
         NETWORK_MESSAGE_NETWORK_NUMBER_IS;
     BACNET_MESSAGE_PRIORITY priority = MESSAGE_PRIORITY_NORMAL;
     BACNET_NPDU_DATA npdu_data = { 0 };
-    int i = 0; /* counter */
     int npdu_len = 0;
     bool network_layer_message = true;
     uint16_t vendor_id = 0; /* optional, if net message type is > 0x80 */

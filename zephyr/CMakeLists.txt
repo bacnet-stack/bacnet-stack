@@ -308,6 +308,10 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/wp.h
     ${BACNETSTACK_SRC}/bacnet/wpm.c
     ${BACNETSTACK_SRC}/bacnet/wpm.h
+    ${BACNETSTACK_SRC}/bacnet/weeklyschedule.c
+    ${BACNETSTACK_SRC}/bacnet/weeklyschedule.h
+    ${BACNETSTACK_SRC}/bacnet/dailyschedule.c
+    ${BACNETSTACK_SRC}/bacnet/dailyschedule.h
     )
 
 set(BACNETSTACK_BASIC_SRCS
