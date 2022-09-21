@@ -1066,6 +1066,9 @@ static BSC_SOCKET_EVENT srv_s_ev = -1;
 static BSC_SOCKET_EVENT cli_s_ev = -1;
 static BSC_CTX_EVENT srv_c_ev = -1;
 static BSC_CTX_EVENT cli_c_ev = -1;
+static uint8_t recv_buf[4096];
+static size_t recv_buf_len = 0;
+static BSC_SOCKET* srv_sock = NULL;
 
 static BSC_SOCKET* simple_find_connection_for_vmac(BACNET_SC_VMAC_ADDRESS *vmac)
 {
@@ -1083,6 +1086,10 @@ static void cli_simple_socket_event(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
   if(cli_s_ev == -1) {
     cli_s_ev = ev;
   }
+  if(ev == BSC_SOCKET_EVENT_RECEIVED) {
+    memcpy(recv_buf, pdu, pdu_len);
+    recv_buf_len = pdu_len;
+  }
 }
 
 static void srv_simple_socket_event(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
@@ -1090,6 +1097,11 @@ static void srv_simple_socket_event(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
 {
   if(srv_s_ev == -1) {
     srv_s_ev = ev;
+    srv_sock = c;
+  }
+  if(ev == BSC_SOCKET_EVENT_RECEIVED) {
+    memcpy(recv_buf, pdu, pdu_len);
+    recv_buf_len = pdu_len;
   }
 }
 
@@ -1162,6 +1174,9 @@ static void test_simple(void)
   BSC_SOCKET srv_socks[MAX_SERVER_SOCKETS];
   BSC_SOCKET cli_socks[MAX_CLIENT_SOCKETS];
   char url[128];
+  uint8_t buf[2048];
+  uint8_t npdu[1200];
+  size_t len;
 
   memset(&server_uuid, 0x1, sizeof(server_uuid));
   memset(&server_vmac, 0x2, sizeof(server_vmac));
@@ -1222,15 +1237,44 @@ static void test_simple(void)
   cli_s_ev = -1;
   ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
   zassert_equal(ret, BSC_SC_SUCCESS,0 );
-  zassert_equal(wait_socket_event(&cli_s_ev, BSC_SOCKET_CONNECTED), true, 0);
-  zassert_equal(wait_socket_event(&srv_s_ev, BSC_SOCKET_CONNECTED), true, 0);
+  zassert_equal(wait_socket_event(&cli_s_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
+  zassert_equal(wait_socket_event(&srv_s_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
   srv_c_ev = -1;
   cli_c_ev = -1;
   srv_s_ev = -1;
   cli_s_ev = -1;
   // test that heartbeat works
-  sleep(20);
+  sleep(20);  
   zassert_equal( srv_c_ev == -1 && cli_c_ev == -1 && srv_s_ev == -1 && cli_s_ev ==-1, true, 0);
+  memset(npdu, 0x55, sizeof(npdu));
+  len = bvlc_sc_encode_encapsulated_npdu(buf, sizeof(buf), 400, NULL, NULL, npdu, sizeof(npdu));
+  ret = bsc_send(&cli_socks[0], buf, len);
+  zassert_equal(ret, BSC_SC_SUCCESS,0 );
+  zassert_equal(wait_socket_event(&srv_s_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
+  zassert_equal(len == recv_buf_len, true, 0);
+  zassert_equal(!memcmp(buf, recv_buf, len), true, 0);
+  srv_c_ev = -1;
+  cli_c_ev = -1;
+  srv_s_ev = -1;
+  cli_s_ev = -1;
+  memset(npdu, 0x44, sizeof(npdu));
+  len = bvlc_sc_encode_encapsulated_npdu(buf, sizeof(buf), 500, NULL, NULL, npdu, sizeof(npdu));
+  ret = bsc_send(srv_sock, buf, len);
+  zassert_equal(ret, BSC_SC_SUCCESS,0 );
+  zassert_equal(wait_socket_event(&cli_s_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
+  zassert_equal(len == recv_buf_len, true, 0);
+  zassert_equal(!memcmp(buf, recv_buf, len), true, 0);
+  srv_c_ev = -1;
+  cli_c_ev = -1;
+  srv_s_ev = -1;
+  cli_s_ev = -1;
+  bsc_disconnect(&cli_socks[0]);
+  zassert_equal(wait_socket_event(&cli_s_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
+  bsc_deinit_ctx(&cli_ctx);
+  zassert_equal(wait_context_event(&cli_c_ev, BSC_CTX_DEINITIALIZED), true, 0);
+  bsc_deinit_ctx(&srv_ctx);
+  zassert_equal(ret, BSC_SC_SUCCESS,0 );
+  zassert_equal(wait_context_event(&srv_c_ev, BSC_CTX_DEINITIALIZED), true, 0);
   bsc_runloop_stop();
 }
 
