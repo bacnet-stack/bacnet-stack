@@ -81,7 +81,7 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
             // significant 4 bits (Bit 3 to Bit 0) in the first octet shall be
             // B'0010' (X'2'), and all other 44 bits are randomly selected to be
             // 0 or 1.
-            p->address[i] = p->address[i] & 0xF0 | 0x02;
+            p->address[i] = (p->address[i] & 0xF0 ) | 0x02;
         }
     }
 }

@@ -1116,7 +1116,7 @@ void bsc_disconnect(BSC_SOCKET *c)
     debug_printf("bsc_disconnect() >>> c = %p\n", c);
     bsc_global_mutex_lock();
 
-    if (c->ctx->state == BSC_CTX_INITIALIZED &&
+    if (c->ctx->state == BSC_CTX_STATE_INITIALIZED &&
         c->state == BSC_SOCK_STATE_CONNECTED) {
         c->message_id++;
         c->expected_disconnect_message_id = c->message_id;
@@ -1157,7 +1157,7 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
     } else {
         bsc_global_mutex_lock();
         if (c->ctx->state != BSC_CTX_STATE_INITIALIZED ||
-            c->state != BSC_SOCKET_CONNECTED) {
+            c->state != BSC_SOCK_STATE_CONNECTED) {
             ret = BSC_SC_INVALID_OPERATION;
         } else {
             if (sizeof(c->tx_buf) - sizeof(c->tx_buf_size) - sizeof(pdu_len) <
