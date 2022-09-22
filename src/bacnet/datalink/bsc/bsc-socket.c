@@ -23,7 +23,7 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/debug.h"
 
-static void bsc_runloop(BSC_SOCKET_CTX *ctx);
+static void bsc_runloop(void* ctx);
 
 void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
     BSC_CONTEXT_CFG *cfg,
@@ -369,8 +369,9 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
     debug_printf("bsc_process_socket_state() <<<\n");
 }
 
-static void bsc_runloop(BSC_SOCKET_CTX *ctx)
+static void bsc_runloop(void* p)
 {
+   BSC_SOCKET_CTX *ctx = (BSC_SOCKET_CTX*) p;
     // debug_printf("bsc_runloop() >>> ctx = %p, state = %d\n", ctx,
     // ctx->state);
     bsc_global_mutex_lock();
@@ -1023,11 +1024,11 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
 
         if (sc_ret == BSC_SC_SUCCESS) {
             ctx->state = BSC_CTX_STATE_INITIALIZING;
-            bsc_runloop_reg(ctx, bsc_runloop);
+            bsc_runloop_reg((void*)ctx, bsc_runloop);
         }
     } else {
         ctx->state = BSC_CTX_STATE_INITIALIZED;
-        bsc_runloop_reg(ctx, bsc_runloop);
+        bsc_runloop_reg((void*)ctx, bsc_runloop);
         ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
     }
 

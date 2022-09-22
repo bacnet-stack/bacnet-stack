@@ -15,19 +15,14 @@
 #define __BSC__RUNLOOP__INCLUDED__
 
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
-#include "bacnet/datalink/bsc/bsc-socket.h"
 
-#ifndef BSC_CONF_MAX_CONTEXTS_NUM
-#define BSC_MAX_CONTEXTS_NUM 10
-#else
-#define BSC_MAX_CONTEXTS_NUM BSC_CONF_MAX_CONTEXTS_NUM
-#endif
+#define BSC_MAX_CALLBACKS_NUM 10
 
 BSC_SC_RET bsc_runloop_start(void);
-BSC_SC_RET bsc_runloop_reg(BSC_SOCKET_CTX *ctx,
-						   void (*runloop_func)(BSC_SOCKET_CTX *ctx));
+BSC_SC_RET bsc_runloop_reg(void* ctx,
+						   void (*runloop_func)(void* ctx));
 void bsc_runloop_schedule(void);
-void bsc_runloop_unreg(BSC_SOCKET_CTX *ctx);
+void bsc_runloop_unreg(void* ctx);
 void bsc_runloop_stop(void);
 
 #endif

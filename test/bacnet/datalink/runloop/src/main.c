@@ -18,7 +18,7 @@
 
 static int runloop_counter = 0;
 
-void runloop_func(BSC_SOCKET_CTX *ctx)
+void runloop_func(void *ctx)
 {
     runloop_counter++;
 }
@@ -26,7 +26,7 @@ void runloop_func(BSC_SOCKET_CTX *ctx)
 static void test_simple(void)
 {
     BSC_SC_RET ret;
-    BSC_SOCKET_CTX ctx;
+    void* ctx = (void*) &ret;
     int old_counter;
     runloop_counter = 0;
     ret = bsc_runloop_start();

@@ -16,7 +16,6 @@
 #include <pthread.h>
 #include <errno.h>
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/datalink/bsc/bsc-runloop.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bsc-mutex.h"
@@ -24,11 +23,11 @@
 #define BSC_DEFAULT_RUNLOOP_TIMEOUT_MS (1 * 1000)
 
 typedef struct {
-    BSC_SOCKET_CTX *ctx;
-    void (*runloop_func)(BSC_SOCKET_CTX *ctx);
+    void *ctx;
+    void (*runloop_func)(void *ctx);
 } BSC_RUNLOOP_CTX;
 
-static BSC_RUNLOOP_CTX bsc_runloop_ctx[BSC_MAX_CONTEXTS_NUM];
+static BSC_RUNLOOP_CTX bsc_runloop_ctx[BSC_MAX_CALLBACKS_NUM];
 static bool bsc_runloop_started = false;
 static bool bsc_runloop_process = false;
 static bool bsc_runloop_ctx_changed = false;
@@ -38,7 +37,7 @@ static pthread_t bsc_thread_id;
 
 static void *bsc_runloop_worker(void *arg)
 {
-    BSC_RUNLOOP_CTX local[BSC_MAX_CONTEXTS_NUM];
+    BSC_RUNLOOP_CTX local[BSC_MAX_CALLBACKS_NUM];
     int i;
     struct timespec to;
 
@@ -80,7 +79,7 @@ static void *bsc_runloop_worker(void *arg)
             break;
         } else {
             pthread_mutex_unlock(&bsc_runloop_mutex);
-            for (i = 0; i < BSC_MAX_CONTEXTS_NUM; i++) {
+            for (i = 0; i < BSC_MAX_CALLBACKS_NUM; i++) {
                 if (local[i].ctx) {
                     local[i].runloop_func(local[i].ctx);
                 }
@@ -125,7 +124,7 @@ BSC_SC_RET bsc_runloop_start(void)
 }
 
 BSC_SC_RET bsc_runloop_reg(
-    BSC_SOCKET_CTX *ctx, void (*runloop_func)(BSC_SOCKET_CTX *ctx))
+    void *ctx, void (*runloop_func)(void *ctx))
 {
     int i;
     debug_printf(
@@ -134,7 +133,7 @@ BSC_SC_RET bsc_runloop_reg(
     pthread_mutex_lock(&bsc_runloop_mutex);
 
     if (bsc_runloop_started) {
-        for (i = 0; i < BSC_MAX_CONTEXTS_NUM; i++) {
+        for (i = 0; i < BSC_MAX_CALLBACKS_NUM; i++) {
             if (!bsc_runloop_ctx[i].ctx) {
                 bsc_runloop_ctx[i].ctx = ctx;
                 bsc_runloop_ctx[i].runloop_func = runloop_func;
@@ -167,12 +166,12 @@ void bsc_runloop_schedule(void)
     debug_printf("bsc_runloop_schedule() <<<\n");
 }
 
-void bsc_runloop_unreg(BSC_SOCKET_CTX *ctx)
+void bsc_runloop_unreg(void *ctx)
 {
     int i;
-    debug_printf("bsc_runloop_stop() >>>\n");
+    debug_printf("bsc_runloop_unreg() >>> ctx = %p\n", ctx);
     pthread_mutex_lock(&bsc_runloop_mutex);
-    for (i = 0; i < BSC_MAX_CONTEXTS_NUM; i++) {
+    for (i = 0; i < BSC_MAX_CALLBACKS_NUM; i++) {
         if (bsc_runloop_ctx[i].ctx == ctx) {
             bsc_runloop_ctx[i].ctx = NULL;
             bsc_runloop_ctx[i].runloop_func = NULL;
@@ -181,7 +180,7 @@ void bsc_runloop_unreg(BSC_SOCKET_CTX *ctx)
         }
     }
     pthread_mutex_unlock(&bsc_runloop_mutex);
-    debug_printf("bsc_runloop_stop() <<<\n");
+    debug_printf("bsc_runloop_unreg() <<<\n");
 }
 
 void bsc_runloop_stop(void)
