@@ -143,6 +143,8 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
                          "BSC_SC_DUPLICATED_VMAC\n");
             bsc_hub_connector.state = BSC_HUB_CONNECTOR_STATE_ERROR;
             bsc_hub_connector.error = BSC_SC_DUPLICATED_VMAC;
+            bsc_hub_connector.event_func(
+              BSC_HUBC_EVENT_DISCONNECTED, BSC_SC_DUPLICATED_VMAC, NULL, 0);
             bsc_hub_connector_stop();
         } else if (bsc_hub_connector.state ==
             BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
@@ -159,6 +161,8 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
                 BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY ||
             bsc_hub_connector.state ==
                 BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER) {
+            bsc_hub_connector.event_func(
+                BSC_HUBC_EVENT_DISCONNECTED, err, NULL, 0);
             hub_connector_connect_or_stop(BSC_HUB_CONN_PRIMARY);
         }
     } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
