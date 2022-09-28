@@ -33,13 +33,13 @@ extern "C" {
 struct http_request;
 
 /**
- * @brief Process a HTTP responce. Used if http_client_req() return 0 and with 
- * the errno was been EAGAIN. The function requires that the following fields
- * be filled in for req: http_cb, response, recv_buf, recv_buf_len values, as in
- * the previous call to http_client_req(). Value other fields does not matter.
- *
+ * @brief Handles an HTTP response. Used if http_client_req() returns 0 and the
+ * errno is equal EAGAIN. The function requires the following fields to be
+ * filled in for req values: http_cb, response, recv_buf, recv_buf_len, as in
+ * the previous http_client_req() call. The value of other fields does not
+ * matter.
  * @param sock Socket id of the connection.
- * @param req Mock of HTTP request information
+ * @param req Mock of HTTP request information.
  * @param user_data User specified data that is passed to the callback.
  *
  * @return <0 if error, >=0 amount of data sent to the server

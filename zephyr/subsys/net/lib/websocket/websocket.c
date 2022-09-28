@@ -419,8 +419,7 @@ int websocket_connect_wait_data(int sock, struct websocket_request *wreq,
 	struct http_request req = {0};
 	int ret, fd = 0;
 
-	if (sock < 0 || wreq == NULL /*|| wreq->host == NULL ||
-	    wreq->url == NULL*/) {
+	if (sock < 0 || wreq == NULL) {
 		return -EINVAL;
 	}
 

@@ -47,6 +47,25 @@ enum websocket_opcode  {
 	WEBSOCKET_OPCODE_PONG         = 0x0A,
 };
 
+enum websocket_close_status {
+    WEBSOCKET_CLOSE_STATUS_NOSTATUS                   =    0,
+    WEBSOCKET_CLOSE_STATUS_NORMAL                     = 1000,
+    WEBSOCKET_CLOSE_STATUS_GOINGAWAY                  = 1001,
+    WEBSOCKET_CLOSE_STATUS_PROTOCOL_ERR               = 1002,
+    WEBSOCKET_CLOSE_STATUS_UNACCEPTABLE_OPCODE        = 1003,
+    WEBSOCKET_CLOSE_STATUS_RESERVED                   = 1004,
+    WEBSOCKET_CLOSE_STATUS_NO_STATUS                  = 1005,
+    WEBSOCKET_CLOSE_STATUS_ABNORMAL_CLOSE             = 1006,
+    WEBSOCKET_CLOSE_STATUS_INVALID_PAYLOAD            = 1007,
+    WEBSOCKET_CLOSE_STATUS_POLICY_VIOLATION           = 1008,
+    WEBSOCKET_CLOSE_STATUS_MESSAGE_TOO_LARGE          = 1009,
+    WEBSOCKET_CLOSE_STATUS_EXTENSION_REQUIRED         = 1010,
+    WEBSOCKET_CLOSE_STATUS_UNEXPECTED_CONDITION       = 1011,
+    WEBSOCKET_CLOSE_STATUS_TLS_FAILURE                = 1015,
+    WEBSOCKET_CLOSE_STATUS_CLIENT_TRANSACTION_DONE    = 2000,
+    WEBSOCKET_CLOSE_STATUS_NOSTATUS_CONTEXT_DESTROY   = 9999,
+};
+
 /**
  * @typedef websocket_connect_cb_t
  * @brief Callback called after Websocket connection is established.
@@ -121,26 +140,26 @@ struct websocket_request {
  *        in milliseconds. Value SYS_FOREVER_MS means to wait forever.
  * @param user_data User specified data that is passed to the callback.
  *
- * @return Websocket id to be used when sending/receiving Websocket data.
+ * @return Websocket id to be used when sending/receiving Websocket data or
+ *         error code if is negative value.
  */
 int websocket_connect(int http_sock, struct websocket_request *req,
 		      int32_t timeout, void *user_data);
 
 /**
- * @brief Wait finish status/data if the socket was opened in asych mode. The callback is
- * called after connection is established. The returned value is a new socket
- * descriptor that can be used to send / receive data using the BSD socket API.
+ * @brief Wait a finish status/data if the socket was opened in asynch mode.
+ * The callback is called after connection is established. The returned value is
+ * a new socket descriptor that can be used to send / receive data using the BSD
+ * socket API.
  *
- * @param http_sock Socket id to the server. Note that this socket is used to do
- *        HTTP handshakes etc. The actual Websocket connectivity is done via the
- *        returned websocket id. Note that the http_sock must not be closed
- *        after this function returns as it is used to deliver the Websocket
- *        packets to the Websocket server.
+ * @param http_sock Socket id to the server. For additional information see
+ *        the websocket_connect().
  * @param req Websocket request. User should allocate and fill the request
  *        data.
  * @param user_data User specified data that is passed to the callback.
  *
- * @return Websocket id to be used when sending/receiving Websocket data.
+ * @return Websocket id to be used when sending/receiving Websocket data or
+ *         error code if is negative value.
  */
 int websocket_connect_wait_data(int sock, struct websocket_request *wreq,
               void *user_data);
