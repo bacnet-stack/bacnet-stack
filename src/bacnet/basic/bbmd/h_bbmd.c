@@ -107,7 +107,7 @@ void bvlc_debug_enable(void)
  */
 void bvlc_debug_disable(void)
 {
-    BVLC_Debug = true;
+    BVLC_Debug = false;
 }
 
 /**
