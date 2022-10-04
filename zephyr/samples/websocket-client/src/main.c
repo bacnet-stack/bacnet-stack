@@ -1061,7 +1061,7 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define BACNET_WEBSOCKET_SERVER_PORT 40000
 #define BACNET_WEBSOCKET_SERVER_ADDR "10.0.2.15"
 //#define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
-#define CONNECT_TIMEOUT 15000
+#define CONNECT_TIMEOUT 15
 
 #define BUFSIZE 1400
 uint8_t buf1[BUFSIZE];
