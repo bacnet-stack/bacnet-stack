@@ -85,3 +85,29 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
         }
     }
 }
+
+bool bsc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
+{
+    int i;
+    for(i=0; i< BVLC_SC_VMAC_SIZE; i++) {
+      if(vmac->address[i] != 0xFF ) {
+        return false;
+      }
+    }
+    return true;
+}
+
+bool bsc_is_unicast_message(BVLC_SC_DECODED_MESSAGE* dm) {
+    if(dm->hdr.dest == NULL || !bsc_is_vmac_broadcast(dm->hdr.dest)) {
+        if(dm->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST ||
+           dm->hdr.bvlc_function == BVLC_SC_DISCONNECT_REQUEST ||
+           dm->hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
+           dm->hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
+           dm->hdr.bvlc_function == BVLC_SC_ADVERTISIMENT_SOLICITATION ||
+           dm->hdr.bvlc_function == BVLC_SC_HEARTBEAT_REQUEST ||
+           dm->hdr.bvlc_function >  BVLC_SC_PROPRIETARY_MESSAGE) {
+           return true;
+        }
+    }
+    return false;
+}

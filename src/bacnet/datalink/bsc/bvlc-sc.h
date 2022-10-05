@@ -379,7 +379,8 @@ bool bvlc_sc_decode_message(uint8_t *buf,
     uint16_t buf_len,
     BVLC_SC_DECODED_MESSAGE *message,
     BACNET_ERROR_CODE *error,
-    BACNET_ERROR_CLASS *class);
+    BACNET_ERROR_CLASS *class,
+    const char **err_desc);
 
 #ifdef __cplusplus
 }

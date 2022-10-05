@@ -29,5 +29,6 @@ BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret);
 char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac);
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid);
 void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p);
-
+bool bsc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac);
+bool bsc_is_unicast_message(BVLC_SC_DECODED_MESSAGE* dm);
 #endif
