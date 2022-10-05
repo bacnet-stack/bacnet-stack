@@ -411,6 +411,8 @@ list(
       ${BACNETSTACK_PORT}/ai.c
       ${BACNETSTACK_PORT}/av.c
       ${BACNETSTACK_PORT}/event.c
+      ${BACNETSTACK_PORT}/websocket-cli.c
+      ${BACNETSTACK_PORT}/websocket-srv.c
   )
 
 
