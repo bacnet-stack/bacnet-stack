@@ -1,0 +1,7 @@
+common:
+  tags: bacnet
+tests:
+  bacnet.datalink.websockets.unit:
+    type: unit
+  bacnet.datalink.websockets:
+    tags: bacnet

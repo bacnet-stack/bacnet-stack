@@ -47,6 +47,7 @@ if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "Websockets test: building for linux")
+  message(STATUS "LIB_WEBSOCKETS_LIBRARIES= ${LIB_WEBSOCKETS_LIBRARIES}")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
 
   add_executable(${PROJECT_NAME}
