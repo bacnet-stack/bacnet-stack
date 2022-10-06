@@ -23,6 +23,11 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/debug.h"
 
+static const char *s_error_no_origin = "'Originating Virtual Address' field must be present";
+static const char *s_error_dest_presented = "'Destination Virtual Address' field must be absent";
+static const char *s_error_origin_presented = "'Originating Virtual Address' field must be absent";
+static const char *s_error_no_dest = "'Destination Virtual Address' field must be present";
+
 static void bsc_runloop(void* ctx);
 
 void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
@@ -110,20 +115,23 @@ static bool bsc_send_error_extended(BSC_SOCKET *c,
                              BACNET_SC_VMAC_ADDRESS* dest,
                              uint8_t bvlc_function,
                              uint8_t *error_header_marker,
-                             uint16_t *error_class,
-                             uint16_t *error_code,
+                             BACNET_ERROR_CLASS error_class,
+                             BACNET_ERROR_CODE error_code,
                              uint8_t *utf8_details_string)
 {
+    uint16_t eclass = (uint16_t) error_class;
+    uint16_t ecode = (uint16_t)  error_code;
     unsigned int len;
+
     debug_printf("bsc_send_error_extended() >>> bvlc_function = %d\n", bvlc_function);
     if(error_header_marker) {
         debug_printf("                              error_header_marker = %d\n", *error_header_marker);
     }
     if(error_class) {
-        debug_printf("                              error_class = %d\n", *error_class);
+        debug_printf("                              error_class = %d\n", error_class);
     }
     if(error_code) {
-        debug_printf("                              error_code = %d\n", *error_code);
+        debug_printf("                              error_code = %d\n", error_code);
     }
     if(utf8_details_string) {
         debug_printf("                              utf8_details_string = %s\n", utf8_details_string);
@@ -141,8 +149,8 @@ static bool bsc_send_error_extended(BSC_SOCKET *c,
             bvlc_function,
             1,
             error_header_marker,
-            error_class,
-            error_code,
+            &eclass,
+            &ecode,
             utf8_details_string);
     if (len) {
         memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
@@ -165,8 +173,8 @@ static bool bsc_send_protocol_error_extended(
                              BACNET_SC_VMAC_ADDRESS* origin,
                              BACNET_SC_VMAC_ADDRESS* dest,
                              uint8_t *error_header_marker,
-                             uint16_t *error_class,
-                             uint16_t *error_code,
+                             BACNET_ERROR_CLASS error_class,
+                             BACNET_ERROR_CODE error_code,
                              uint8_t *utf8_details_string)
 {
     unsigned int len;
@@ -187,36 +195,13 @@ static bool bsc_send_protocol_error_extended(
 static bool bsc_send_protocol_error(BSC_SOCKET *c,
                              BACNET_SC_VMAC_ADDRESS* origin,
                              BACNET_SC_VMAC_ADDRESS* dest,
-                             uint16_t *error_code,
+                             BACNET_ERROR_CLASS error_class,
+                             BACNET_ERROR_CODE error_code,
                              uint8_t *utf8_details_string)
 {
-    uint16_t error_class = ERROR_CLASS_COMMUNICATION;
-    return bsc_send_protocol_error_extended(c, origin, dest, NULL, &error_class,
+    return bsc_send_protocol_error_extended(c, origin, dest, NULL, error_class,
                                 error_code, utf8_details_string);
 }
-#if 0
-// TODO!!!!
-static bool bsc_decode_message(BSC_SOCKET *c,
-        uint8_t *buf,
-        uint16_t buf_len,
-        BACNET_ERROR_CODE *error,
-        BACNET_ERROR_CLASS *class)
-{
-   bool ret;
-   const char *err_desc = NULL;
-   ret = bvlc_sc_decode_message(buf, buf_len, &c->dm, error, class, &err_desc);
-   if(!ret) {
-    if(*error == ERROR_CODE_MESSAGE_INCOMPLETE ||
-       *error == ERROR_CODE_INCONSISTENT_PARAMETERS || 
-       *error == ERROR_CODE_BVLC_FUNCTION_UNKNOWN) {
-
-    }
-   // bsc_send_protocol_error(c, )
-    protocolViolationLogAndSend(message, message.originating, null, message.parseErrorCode, message.parseErrorReason); // will send NAK if allowed
-
-   }
-}
-#endif 
 
 static void bsc_process_socket_disconnecting(
     BSC_SOCKET *c, uint8_t *buf, uint16_t buflen)
@@ -374,10 +359,7 @@ static void bsc_process_socket_connected_state(
         c->ctx->funcs->socket_event(
             c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen);
     }
-    else {
-         // YY.3.1.5 Common Error Situations "If a BVLC message is
-         // received that is an unknown BVLC function..."
-    }
+
     debug_printf("bsc_process_socket_connected_state() <<<\n");
 }
 
@@ -403,11 +385,69 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
         c->rx_buf_size -= len + sizeof(len);
 
         if (!bvlc_sc_decode_message(p, len, &c->dm, &code, &class, &err_desc)) {
-            debug_printf("bsc_process_socket_state() decoding failed, message "
-                         "is dropped "
-                         "error code = %d, class = %d\n",
-                code, class);
+            // if code == ERROR_CODE_OTHER that means that received bvlc message
+            // has length less than 4 octets.
+            // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC '
+            // If a BVLC message is received that has fewer than four octets, a
+            // BVLC-Result NAK shall not be returned.
+            // The message shall be discarded and not be processed.
+            if(code != ERROR_CODE_OTHER) {
+                bsc_send_protocol_error(c, c->dm.hdr.origin,
+                            c->dm.hdr.dest, class, code, (uint8_t*) err_desc);
+            }
+            else {
+                debug_printf("bsc_process_socket_state() decoding failed, message "
+                             "is silently dropped cause it's length < 4 bytes\n");
+            }
         } else {
+            if(c->dm.hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
+               c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT ||
+               c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION_ACK ||
+               c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
+               c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT_SOLICITATION ||
+               c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
+               if(c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR && 
+                  c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
+                  // this is a case when socket is a hub connector receiving from hub
+                 if(c->dm.hdr.origin == NULL && c->dm.hdr.bvlc_function != BVLC_SC_RESULT) {
+                    class = ERROR_CLASS_COMMUNICATION;
+                    code = ERROR_CODE_HEADER_ENCODING_ERROR;
+
+                    bsc_send_protocol_error(c, NULL,
+                                NULL, class, code, (uint8_t*) s_error_no_origin);
+                    continue;
+                 }
+                 else if(c->dm.hdr.dest != NULL && !bsc_is_vmac_broadcast(c->dm.hdr.dest)) {
+                    class = ERROR_CLASS_COMMUNICATION;
+                    code = ERROR_CODE_HEADER_ENCODING_ERROR;
+
+                    bsc_send_protocol_error(c, NULL,
+                                NULL, class, code, (uint8_t*) s_error_dest_presented );
+                    continue;
+                 }
+               }
+               else if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR && 
+                        c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
+                 //  this is a case when socket is hub  function receiving from node
+                 if(c->dm.hdr.dest == NULL) {
+                    class = ERROR_CLASS_COMMUNICATION;
+                    code = ERROR_CODE_HEADER_ENCODING_ERROR;
+
+                    bsc_send_protocol_error(c, NULL,
+                                NULL, class, code, (uint8_t*) s_error_no_dest);
+                    continue;
+                 }
+                 else if(c->dm.hdr.origin != NULL) {
+                    class = ERROR_CLASS_COMMUNICATION;
+                    code = ERROR_CODE_HEADER_ENCODING_ERROR;
+
+                    bsc_send_protocol_error(c, NULL,
+                                NULL, class, code, (uint8_t*) s_error_origin_presented);
+                    continue;
+                 }
+               }
+            }
+
             // every valid message restarts hearbeat timeout
             if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
                 mstimer_set(
