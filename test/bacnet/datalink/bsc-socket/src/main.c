@@ -1081,7 +1081,8 @@ static BSC_SOCKET* simple_find_connection_for_uuid(BACNET_SC_UUID *uuid)
 }
 
 static void cli_simple_socket_event(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
-                     BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len)
+                     BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len,
+                     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
   if(cli_s_ev == -1) {
     cli_s_ev = ev;
@@ -1093,7 +1094,8 @@ static void cli_simple_socket_event(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
 }
 
 static void srv_simple_socket_event(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
-                     BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len)
+                     BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len,
+                     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
   if(srv_s_ev == -1) {
     srv_s_ev = ev;

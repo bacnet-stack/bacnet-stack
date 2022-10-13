@@ -382,6 +382,11 @@ bool bvlc_sc_decode_message(uint8_t *buf,
     BACNET_ERROR_CLASS *class,
     const char **err_desc);
 
+BACNET_STACK_EXPORT
+void bvlc_sc_remove_dest_set_orig(uint8_t *pdu,
+                                  int pdu_len,
+                                  BACNET_SC_VMAC_ADDRESS *orig);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

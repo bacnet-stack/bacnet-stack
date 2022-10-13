@@ -23,12 +23,16 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/debug.h"
 
-static const char *s_error_no_origin = "'Originating Virtual Address' field must be present";
-static const char *s_error_dest_presented = "'Destination Virtual Address' field must be absent";
-static const char *s_error_origin_presented = "'Originating Virtual Address' field must be absent";
-static const char *s_error_no_dest = "'Destination Virtual Address' field must be present";
+static const char *s_error_no_origin =
+    "'Originating Virtual Address' field must be present";
+static const char *s_error_dest_presented =
+    "'Destination Virtual Address' field must be absent";
+static const char *s_error_origin_presented =
+    "'Originating Virtual Address' field must be absent";
+static const char *s_error_no_dest =
+    "'Destination Virtual Address' field must be present";
 
-static void bsc_runloop(void* ctx);
+static void bsc_runloop(void *ctx);
 
 void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
     BSC_CONTEXT_CFG *cfg,
@@ -111,96 +115,85 @@ static void bsc_cli_process_error(BSC_SOCKET *c, BSC_SC_RET reason)
 }
 
 static bool bsc_send_error_extended(BSC_SOCKET *c,
-                             BACNET_SC_VMAC_ADDRESS* origin,
-                             BACNET_SC_VMAC_ADDRESS* dest,
-                             uint8_t bvlc_function,
-                             uint8_t *error_header_marker,
-                             BACNET_ERROR_CLASS error_class,
-                             BACNET_ERROR_CODE error_code,
-                             uint8_t *utf8_details_string)
+    BACNET_SC_VMAC_ADDRESS *origin,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t bvlc_function,
+    uint8_t *error_header_marker,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code,
+    uint8_t *utf8_details_string)
 {
-    uint16_t eclass = (uint16_t) error_class;
-    uint16_t ecode = (uint16_t)  error_code;
+    uint16_t eclass = (uint16_t)error_class;
+    uint16_t ecode = (uint16_t)error_code;
     unsigned int len;
 
-    debug_printf("bsc_send_error_extended() >>> bvlc_function = %d\n", bvlc_function);
-    if(error_header_marker) {
-        debug_printf("                              error_header_marker = %d\n", *error_header_marker);
+    debug_printf(
+        "bsc_send_error_extended() >>> bvlc_function = %d\n", bvlc_function);
+    if (error_header_marker) {
+        debug_printf("                              error_header_marker = %d\n",
+            *error_header_marker);
     }
-    if(error_class) {
-        debug_printf("                              error_class = %d\n", error_class);
+    if (error_class) {
+        debug_printf(
+            "                              error_class = %d\n", error_class);
     }
-    if(error_code) {
-        debug_printf("                              error_code = %d\n", error_code);
+    if (error_code) {
+        debug_printf(
+            "                              error_code = %d\n", error_code);
     }
-    if(utf8_details_string) {
-        debug_printf("                              utf8_details_string = %s\n", utf8_details_string);
+    if (utf8_details_string) {
+        debug_printf("                              utf8_details_string = %s\n",
+            utf8_details_string);
     }
 
     c->message_id++;
-    len = bvlc_sc_encode_result(
-            &c->tx_buf[c->tx_buf_size + sizeof(len)],
-            (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
+    len = bvlc_sc_encode_result(&c->tx_buf[c->tx_buf_size + sizeof(len)],
+        (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
             ? (sizeof(c->tx_buf) - c->tx_buf_size - sizeof(len))
             : 0,
-            c->message_id,
-            origin,
-            dest,
-            bvlc_function,
-            1,
-            error_header_marker,
-            &eclass,
-            &ecode,
-            utf8_details_string);
+        c->message_id, origin, dest, bvlc_function, 1, error_header_marker,
+        &eclass, &ecode, utf8_details_string);
     if (len) {
         memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
         c->tx_buf_size += sizeof(len) + len;
-        if(c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+        if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
             bws_cli_send(c->wh);
-        }
-        else {
+        } else {
             bws_srv_send(c->ctx->cfg->proto, c->wh);
         }
         debug_printf("bsc_send_error_extended() <<< ret = true\n");
         return true;
-    } 
+    }
     debug_printf("bsc_send_error_extended() <<< ret = false\n");
     return false;
 }
 
-static bool bsc_send_protocol_error_extended(
-                             BSC_SOCKET *c,
-                             BACNET_SC_VMAC_ADDRESS* origin,
-                             BACNET_SC_VMAC_ADDRESS* dest,
-                             uint8_t *error_header_marker,
-                             BACNET_ERROR_CLASS error_class,
-                             BACNET_ERROR_CODE error_code,
-                             uint8_t *utf8_details_string)
+static bool bsc_send_protocol_error_extended(BSC_SOCKET *c,
+    BACNET_SC_VMAC_ADDRESS *origin,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *error_header_marker,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code,
+    uint8_t *utf8_details_string)
 {
     unsigned int len;
 
-    if(bsc_is_unicast_message(&c->dm)) {
-        return bsc_send_error_extended(c,
-                             origin,
-                             dest,
-                             BVLC_SC_RESULT,
-                             error_header_marker,
-                             error_class,
-                             error_code,
-                             utf8_details_string);
-    } 
+    if (bsc_is_unicast_message(&c->dm)) {
+        return bsc_send_error_extended(c, origin, dest, BVLC_SC_RESULT,
+            error_header_marker, error_class, error_code, utf8_details_string);
+    }
     return false;
 }
 
 static bool bsc_send_protocol_error(BSC_SOCKET *c,
-                             BACNET_SC_VMAC_ADDRESS* origin,
-                             BACNET_SC_VMAC_ADDRESS* dest,
-                             BACNET_ERROR_CLASS error_class,
-                             BACNET_ERROR_CODE error_code,
-                             uint8_t *utf8_details_string)
+    BACNET_SC_VMAC_ADDRESS *origin,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    BACNET_ERROR_CLASS error_class,
+    BACNET_ERROR_CODE error_code,
+    uint8_t *utf8_details_string)
 {
-    return bsc_send_protocol_error_extended(c, origin, dest, NULL, error_class,
-                                error_code, utf8_details_string);
+    return bsc_send_protocol_error_extended(
+        c, origin, dest, NULL, error_class, error_code, utf8_details_string);
 }
 
 static void bsc_process_socket_disconnecting(
@@ -239,7 +232,7 @@ static void bsc_process_socket_disconnecting(
         }
     } else {
         c->ctx->funcs->socket_event(
-            c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen);
+            c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen, &c->dm);
     }
 
     debug_printf("bsc_process_socket_disconnecting() <<<\n");
@@ -342,22 +335,24 @@ static void bsc_process_socket_connected_state(
             debug_printf("bsc_process_socket_connected_state() got unexpected "
                          "bvlc result, message is dropped\n");
         } else {
-            debug_printf("bsc_process_socket_connected_state() emit received event "
-                         "buf = %p, size = %d\n", buf, buflen);
-            c->ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen);
+            debug_printf(
+                "bsc_process_socket_connected_state() emit received event "
+                "buf = %p, size = %d\n",
+                buf, buflen);
+            c->ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_RECEIVED,
+                BSC_SC_SUCCESS, buf, buflen, &c->dm);
         }
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
-               c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
-               c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION_ACK ||
-               c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT ||
-               c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT_SOLICITATION ||
-               c->dm.hdr.bvlc_function == BVLC_SC_PROPRIETARY_MESSAGE)
-    {
-       debug_printf("bsc_process_socket_connected_state() emit received event "
-                    "buf = %p, size = %d\n", buf, buflen);
+        c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
+        c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION_ACK ||
+        c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT ||
+        c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT_SOLICITATION ||
+        c->dm.hdr.bvlc_function == BVLC_SC_PROPRIETARY_MESSAGE) {
+        debug_printf("bsc_process_socket_connected_state() emit received event "
+                     "buf = %p, size = %d\n",
+            buf, buflen);
         c->ctx->funcs->socket_event(
-            c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen);
+            c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen, &c->dm);
     }
 
     debug_printf("bsc_process_socket_connected_state() <<<\n");
@@ -391,61 +386,62 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
             // If a BVLC message is received that has fewer than four octets, a
             // BVLC-Result NAK shall not be returned.
             // The message shall be discarded and not be processed.
-            if(code != ERROR_CODE_OTHER) {
-                bsc_send_protocol_error(c, c->dm.hdr.origin,
-                            c->dm.hdr.dest, class, code, (uint8_t*) err_desc);
-            }
-            else {
-                debug_printf("bsc_process_socket_state() decoding failed, message "
-                             "is silently dropped cause it's length < 4 bytes\n");
+            if (code != ERROR_CODE_OTHER) {
+                bsc_send_protocol_error(c, c->dm.hdr.origin, c->dm.hdr.dest,
+                    class, code, (uint8_t *)err_desc);
+            } else {
+                debug_printf(
+                    "bsc_process_socket_state() decoding failed, message "
+                    "is silently dropped cause it's length < 4 bytes\n");
             }
         } else {
-            if(c->dm.hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
-               c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT ||
-               c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION_ACK ||
-               c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
-               c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT_SOLICITATION ||
-               c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
-               if(c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR && 
-                  c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
-                  // this is a case when socket is a hub connector receiving from hub
-                 if(c->dm.hdr.origin == NULL && c->dm.hdr.bvlc_function != BVLC_SC_RESULT) {
-                    class = ERROR_CLASS_COMMUNICATION;
-                    code = ERROR_CODE_HEADER_ENCODING_ERROR;
+            if (c->dm.hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
+                c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT ||
+                c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION_ACK ||
+                c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
+                c->dm.hdr.bvlc_function == BVLC_SC_ADVERTISIMENT_SOLICITATION ||
+                c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
+                if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR &&
+                    c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
+                    // this is a case when socket is a hub connector receiving
+                    // from hub
+                    if (c->dm.hdr.origin == NULL &&
+                        c->dm.hdr.bvlc_function != BVLC_SC_RESULT) {
+                        class = ERROR_CLASS_COMMUNICATION;
+                        code = ERROR_CODE_HEADER_ENCODING_ERROR;
 
-                    bsc_send_protocol_error(c, NULL,
-                                NULL, class, code, (uint8_t*) s_error_no_origin);
-                    continue;
-                 }
-                 else if(c->dm.hdr.dest != NULL && !bsc_is_vmac_broadcast(c->dm.hdr.dest)) {
-                    class = ERROR_CLASS_COMMUNICATION;
-                    code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                        bsc_send_protocol_error(c, NULL, NULL, class, code,
+                            (uint8_t *)s_error_no_origin);
+                        continue;
+                    } else if (c->dm.hdr.dest != NULL &&
+                        !bsc_is_vmac_broadcast(c->dm.hdr.dest)) {
+                        class = ERROR_CLASS_COMMUNICATION;
+                        code = ERROR_CODE_HEADER_ENCODING_ERROR;
 
-                    bsc_send_protocol_error(c, NULL,
-                                NULL, class, code, (uint8_t*) s_error_dest_presented );
-                    continue;
-                 }
-               }
-               else if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR && 
-                        c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
-                 //  this is a case when socket is hub  function receiving from node
-                 if(c->dm.hdr.dest == NULL) {
-                    class = ERROR_CLASS_COMMUNICATION;
-                    code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                        bsc_send_protocol_error(c, NULL, NULL, class, code,
+                            (uint8_t *)s_error_dest_presented);
+                        continue;
+                    }
+                } else if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR &&
+                    c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
+                    //  this is a case when socket is hub  function receiving
+                    //  from node
+                    if (c->dm.hdr.dest == NULL) {
+                        class = ERROR_CLASS_COMMUNICATION;
+                        code = ERROR_CODE_HEADER_ENCODING_ERROR;
 
-                    bsc_send_protocol_error(c, NULL,
-                                NULL, class, code, (uint8_t*) s_error_no_dest);
-                    continue;
-                 }
-                 else if(c->dm.hdr.origin != NULL) {
-                    class = ERROR_CLASS_COMMUNICATION;
-                    code = ERROR_CODE_HEADER_ENCODING_ERROR;
+                        bsc_send_protocol_error(c, NULL, NULL, class, code,
+                            (uint8_t *)s_error_no_dest);
+                        continue;
+                    } else if (c->dm.hdr.origin != NULL) {
+                        class = ERROR_CLASS_COMMUNICATION;
+                        code = ERROR_CODE_HEADER_ENCODING_ERROR;
 
-                    bsc_send_protocol_error(c, NULL,
-                                NULL, class, code, (uint8_t*) s_error_origin_presented);
-                    continue;
-                 }
-               }
+                        bsc_send_protocol_error(c, NULL, NULL, class, code,
+                            (uint8_t *)s_error_origin_presented);
+                        continue;
+                    }
+                }
             }
 
             // every valid message restarts hearbeat timeout
@@ -532,9 +528,9 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
     debug_printf("bsc_process_socket_state() <<<\n");
 }
 
-static void bsc_runloop(void* p)
+static void bsc_runloop(void *p)
 {
-   BSC_SOCKET_CTX *ctx = (BSC_SOCKET_CTX*) p;
+    BSC_SOCKET_CTX *ctx = (BSC_SOCKET_CTX *)p;
     // debug_printf("bsc_runloop() >>> ctx = %p, state = %d\n", ctx,
     // ctx->state);
     bsc_global_mutex_lock();
@@ -565,7 +561,8 @@ static void bsc_process_srv_awaiting_request(
                  "bufsize = %d\n",
         c, buf, bufsize);
 
-    if (!bvlc_sc_decode_message(buf, bufsize, &c->dm, &code, &class, &err_desc)) {
+    if (!bvlc_sc_decode_message(
+            buf, bufsize, &c->dm, &code, &class, &err_desc)) {
         debug_printf(
             "bsc_process_srv_awaiting_request() decoding of received message "
             "failed, error code = %d, class = %d\n",
@@ -649,7 +646,7 @@ static void bsc_process_srv_awaiting_request(
                 &c->heartbeat, 2 * c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
             c->ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0);
+                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0, NULL);
             debug_printf("bsc_process_srv_awaiting_request() <<<\n");
             return;
         }
@@ -756,7 +753,7 @@ static void bsc_process_srv_awaiting_request(
                 &c->heartbeat, 2 * c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
             c->ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0);
+                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0, NULL);
             bws_srv_send(c->ctx->cfg->proto, c->wh);
         } else {
             debug_printf("bsc_process_srv_awaiting_request() sending of "
@@ -827,11 +824,11 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_PROTOCOL proto,
         c->state = BSC_SOCK_STATE_IDLE;
         c->wh = BSC_SOCKET_EVENT_DISCONNECTED;
         if (c->state == BSC_SOCK_STATE_ERROR) {
-            ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_DISCONNECTED, c->disconnect_reason, NULL, 0);
+            ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
+                c->disconnect_reason, NULL, 0, NULL);
         } else {
-            ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_DISCONNECTED, BSC_SC_PEER_DISCONNECTED, NULL, 0);
+            ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
+                BSC_SC_PEER_DISCONNECTED, NULL, 0, NULL);
         }
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         c = bsc_find_free_socket(ctx);
@@ -921,7 +918,8 @@ static void bsc_process_cli_awaiting_accept(
 
     debug_printf("bsc_process_cli_awaiting_accept() >>> c = %p\n", c);
 
-    if (!bvlc_sc_decode_message(buf, bufsize, &c->dm, &code, &class, &err_desc)) {
+    if (!bvlc_sc_decode_message(
+            buf, bufsize, &c->dm, &code, &class, &err_desc)) {
         debug_printf("bsc_process_cli_awaiting_accept() <<< decoding failed "
                      "code = %d, class = %d\n",
             code, class);
@@ -947,7 +945,7 @@ static void bsc_process_cli_awaiting_accept(
             mstimer_set(&c->heartbeat, c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
             c->ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0);
+                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0, NULL);
         }
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
         if (c->dm.payload.result.bvlc_function != BVLC_SC_CONNECT_REQUEST) {
@@ -1048,13 +1046,13 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         } else if (c->state == BSC_SOCK_STATE_ERROR) {
             c->state = BSC_SOCK_STATE_IDLE;
             c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
-            ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_DISCONNECTED, c->disconnect_reason, NULL, 0);
+            ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
+                c->disconnect_reason, NULL, 0, NULL);
         } else {
             c->state = BSC_SOCK_STATE_IDLE;
             c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
-            ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_DISCONNECTED, BSC_SC_PEER_DISCONNECTED, NULL, 0);
+            ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
+                BSC_SC_PEER_DISCONNECTED, NULL, 0, NULL);
         }
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         if (c->state == BSC_SOCK_STATE_AWAITING_WEBSOCKET) {
@@ -1189,11 +1187,11 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
 
         if (sc_ret == BSC_SC_SUCCESS) {
             ctx->state = BSC_CTX_STATE_INITIALIZING;
-            bsc_runloop_reg((void*)ctx, bsc_runloop);
+            bsc_runloop_reg((void *)ctx, bsc_runloop);
         }
     } else {
         ctx->state = BSC_CTX_STATE_INITIALIZED;
-        bsc_runloop_reg((void*)ctx, bsc_runloop);
+        bsc_runloop_reg((void *)ctx, bsc_runloop);
         ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
     }
 
@@ -1316,13 +1314,22 @@ void bsc_disconnect(BSC_SOCKET *c)
 }
 
 BACNET_STACK_EXPORT
-BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
+BSC_SC_RET bsc_send2(BSC_SOCKET *c,
+    uint8_t *part1,
+    uint16_t part1_len,
+    uint8_t *part2,
+    uint16_t part2_len)
 {
     BSC_SC_RET ret = BSC_SC_SUCCESS;
-    debug_printf(
-        "bsc_send() >>> c = %p, pdu = %p, pdu_len = %d\n", c, pdu, pdu_len);
+    size_t req_len;
+    uint16_t len;
 
-    if (!c || !pdu || !pdu_len) {
+    debug_printf("bsc_send2() >>> c = %p, part1 = %p, part1_len = %d, part2 = "
+                 "%p, part2_len = %d\n",
+        c, part1, part1_len, part2, part2_len);
+
+    if (!c || !part1 || !part1_len || (part2 && !part2_len) ||
+        (!part2 && part2_len)) {
         ret = BSC_SC_BAD_PARAM;
     } else {
         bsc_global_mutex_lock();
@@ -1330,24 +1337,45 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
             c->state != BSC_SOCK_STATE_CONNECTED) {
             ret = BSC_SC_INVALID_OPERATION;
         } else {
-            if (sizeof(c->tx_buf) - sizeof(c->tx_buf_size) - sizeof(pdu_len) <
-                pdu_len) {
-                ret = BSC_SC_NO_RESOURCES;
+            req_len = part2 ? part1_len + part2_len : part1_len;
+            if (req_len > USHRT_MAX) {
+                ret = BSC_SC_BAD_PARAM;
             } else {
-                memcpy(&c->tx_buf[c->tx_buf_size], &pdu_len, sizeof(pdu_len));
-                memcpy(
-                    &c->tx_buf[c->tx_buf_size + sizeof(pdu_len)], pdu, pdu_len);
-                c->tx_buf_size += pdu_len + sizeof(pdu_len);
-                if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
-                    bws_cli_send(c->wh);
+                if (sizeof(c->tx_buf) - c->tx_buf_size <
+                    req_len + sizeof(uint16_t)) {
+                    ret = BSC_SC_NO_RESOURCES;
                 } else {
-                    bws_srv_send(c->ctx->cfg->proto, c->wh);
+                    len = (uint16_t)req_len;
+                    memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
+                    c->tx_buf_size += sizeof(len);
+                    memcpy(&c->tx_buf[c->tx_buf_size], part1, part1_len);
+                    c->tx_buf_size += part1_len;
+                    if (part2) {
+                        memcpy(&c->tx_buf[c->tx_buf_size], part2, part2_len);
+                        c->tx_buf_size += part2_len;
+                    }
+                    if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+                        bws_cli_send(c->wh);
+                    } else {
+                        bws_srv_send(c->ctx->cfg->proto, c->wh);
+                    }
                 }
             }
         }
         bsc_global_mutex_unlock();
     }
 
+    debug_printf("bsc_send2() <<< ret = %d\n", ret);
+    return ret;
+}
+
+BACNET_STACK_EXPORT
+BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
+{
+    BSC_SC_RET ret;
+    debug_printf(
+        "bsc_send() >>> c = %p, pdu = %p, pdu_len = %d\n", c, pdu, pdu_len);
+    ret = bsc_send2(c, pdu, pdu_len, NULL, 0);
     debug_printf("bsc_send() <<< ret = %d\n", ret);
     return ret;
 }

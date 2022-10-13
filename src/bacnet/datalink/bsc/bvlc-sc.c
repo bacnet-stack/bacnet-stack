@@ -5,7 +5,7 @@
  * @date May 2022
  * @section LICENSE
  *
- * Copyright (C) 2022 Legrand North America, LLC 
+ * Copyright (C) 2022 Legrand North America, LLC
  * as an unpublished work.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -20,46 +20,89 @@ typedef enum BACNet_Option_Validation_Type {
 } BACNET_OPTION_VALIDATION_TYPE;
 
 static const char *s_message_is_incompleted = "header options is truncated";
-static const char *s_invalid_header_option_type = "header option type must be 'Secure Path' or 'Proprietary Header'";
-static const char *s_invalid_header_1 = "'Secure Path' header option can be added only to data options in bvlc message";
-static const char *s_invalid_header_2 = "'Secure Path' header option must not have header data";
-static const char *s_invalid_header_3 = "'Proprietary Header' option must have header data";
-static const char *s_result_incomplete = "BVLC-Result message has incomplete payload";
-static const char *s_result_incorrect_bvlc_function = "parameter 'Result For BVLC Function' is out of range";
-static const char *s_result_incorrect_result_code = "parameter 'Result Code' must be 0x00 (ACK) or 0x01(NAK)";
-static const char *s_result_inconsistent = "BVLC-Result message has data inconsistency in payload";
-static const char *s_result_unexpected_data = "BVLC-Result message is longer than expected";
-static const char *s_advertisiment_incomplete = "advertisiment message has incomplete payload";
-static const char *s_advertisiment_unexpected = "advertisiment message is longer than expected";
-static const char *s_advertisiment_param1_error = "parameter 'Hub Connection Status' in advertisiment message must be in range [0, 2]";
-static const char *s_advertisiment_param2_error = "parameter 'Accept Direct Connections'in advertisiment message must be in range [0, 1]";
-static const char *s_connect_request_incomplete = "connect-request message has incomplete payload";
-static const char *s_connect_request_unexpected = "connect-request message is longer than expected";
-static const char *s_connect_accept_incomplete = "connect-accept message has incomplete payload";
-static const char *s_connect_accept_unexpected = "connect-accept is longer than expected";
-static const char *s_proprietary_incomplete = "proprietary message has incomplete payload";
-static const char *s_hdr_incomplete1 = "message is incomplete, 'Originating Virtual Address' field is truncated";
-static const char *s_hdr_incomplete2 = "message is incomplete, 'Destination Virtual Address' field is truncated";
-static const char *s_unknown_bvlc_function = "unknown value of 'BVLC Function' field in message";
-static const char *s_dest_options_list_too_long = "message contains more than #BVLC_SC_HEADER_OPTION_MAX options in destion options list";
-static const char *s_data_options_list_too_long = "message contains more than #BVLC_SC_HEADER_OPTION_MAX options in data options list";
-static const char *s_result_unexpected_data_options = "BVLC-Result message must not have data options";
-static const char *s_result_payload_expected = "BVLC-Result message must have payload";
-static const char *s_encapsulated_npdu_payload_expected = "encapsulated-npdu message must have payload";
-static const char *s_address_resolution_data_options = "address-resolution message must not have data options";
-static const char *s_address_resolution_unexpected = "address-resolution message is longer than expected";
-static const char *s_address_resolution_ack_data_options = "address-resolutio-ack message must not have data options";
-static const char *s_advertisiment_data_options = "advertisiment message must not have data options";
-static const char *s_advertisiment_payload_expected = "advertisiment message must have payload";
-static const char *s_advertisiment_solicitation_data_options = "advertisiment solicitation message must not have data options";
-static const char *s_advertisiment_solicitation_payload_expected = "advertisiment solicitation message must have payload";
-static const char *s_origin_unexpected = "'Originating Virtual Address' field must be absent in message";
-static const char *s_dest_unexpected = "'Destination Virtual Address' field must be absent in message";
-static const char *s_data_option_unexpected = "message must not have data options";
+static const char *s_invalid_header_option_type =
+    "header option type must be 'Secure Path' or 'Proprietary Header'";
+static const char *s_invalid_header_1 =
+    "'Secure Path' header option can be added only to data options in bvlc "
+    "message";
+static const char *s_invalid_header_2 =
+    "'Secure Path' header option must not have header data";
+static const char *s_invalid_header_3 =
+    "'Proprietary Header' option must have header data";
+static const char *s_result_incomplete =
+    "BVLC-Result message has incomplete payload";
+static const char *s_result_incorrect_bvlc_function =
+    "parameter 'Result For BVLC Function' is out of range";
+static const char *s_result_incorrect_result_code =
+    "parameter 'Result Code' must be 0x00 (ACK) or 0x01(NAK)";
+static const char *s_result_inconsistent =
+    "BVLC-Result message has data inconsistency in payload";
+static const char *s_result_unexpected_data =
+    "BVLC-Result message is longer than expected";
+static const char *s_advertisiment_incomplete =
+    "advertisiment message has incomplete payload";
+static const char *s_advertisiment_unexpected =
+    "advertisiment message is longer than expected";
+static const char *s_advertisiment_param1_error =
+    "parameter 'Hub Connection Status' in advertisiment message must be in "
+    "range [0, 2]";
+static const char *s_advertisiment_param2_error =
+    "parameter 'Accept Direct Connections'in advertisiment message must be in "
+    "range [0, 1]";
+static const char *s_connect_request_incomplete =
+    "connect-request message has incomplete payload";
+static const char *s_connect_request_unexpected =
+    "connect-request message is longer than expected";
+static const char *s_connect_accept_incomplete =
+    "connect-accept message has incomplete payload";
+static const char *s_connect_accept_unexpected =
+    "connect-accept is longer than expected";
+static const char *s_proprietary_incomplete =
+    "proprietary message has incomplete payload";
+static const char *s_hdr_incomplete1 =
+    "message is incomplete, 'Originating Virtual Address' field is truncated";
+static const char *s_hdr_incomplete2 =
+    "message is incomplete, 'Destination Virtual Address' field is truncated";
+static const char *s_unknown_bvlc_function =
+    "unknown value of 'BVLC Function' field in message";
+static const char *s_dest_options_list_too_long =
+    "message contains more than #BVLC_SC_HEADER_OPTION_MAX options in destion "
+    "options list";
+static const char *s_data_options_list_too_long =
+    "message contains more than #BVLC_SC_HEADER_OPTION_MAX options in data "
+    "options list";
+static const char *s_result_unexpected_data_options =
+    "BVLC-Result message must not have data options";
+static const char *s_result_payload_expected =
+    "BVLC-Result message must have payload";
+static const char *s_encapsulated_npdu_payload_expected =
+    "encapsulated-npdu message must have payload";
+static const char *s_address_resolution_data_options =
+    "address-resolution message must not have data options";
+static const char *s_address_resolution_unexpected =
+    "address-resolution message is longer than expected";
+static const char *s_address_resolution_ack_data_options =
+    "address-resolutio-ack message must not have data options";
+static const char *s_advertisiment_data_options =
+    "advertisiment message must not have data options";
+static const char *s_advertisiment_payload_expected =
+    "advertisiment message must have payload";
+static const char *s_advertisiment_solicitation_data_options =
+    "advertisiment solicitation message must not have data options";
+static const char *s_advertisiment_solicitation_payload_expected =
+    "advertisiment solicitation message must have payload";
+static const char *s_origin_unexpected =
+    "'Originating Virtual Address' field must be absent in message";
+static const char *s_dest_unexpected =
+    "'Destination Virtual Address' field must be absent in message";
+static const char *s_data_option_unexpected =
+    "message must not have data options";
 static const char *s_message_too_long = "message is longer than expected";
 static const char *s_absent_payload = "payload is absent in the message";
-static const char *s_proprietary_data_options = "proprietary message must not have data options";
-static const char *s_proprietary_payload = "proprietary message must have payload";
+static const char *s_proprietary_data_options =
+    "proprietary message must not have data options";
+static const char *s_proprietary_payload =
+    "proprietary message must have payload";
 
 static bool bvlc_sc_validate_options_headers(
     BACNET_OPTION_VALIDATION_TYPE validation_type,
@@ -115,7 +158,7 @@ static bool bvlc_sc_validate_options_headers(
                    according bacnet stadard */
                 *error = ERROR_CODE_HEADER_ENCODING_ERROR;
                 *class = ERROR_CLASS_COMMUNICATION;
-                 *error_desc_string = s_invalid_header_2;
+                *error_desc_string = s_invalid_header_2;
                 return false;
             }
             options_len++;
@@ -178,7 +221,7 @@ static unsigned int bvlc_sc_add_option(bool to_data_option,
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     BACNET_OPTION_VALIDATION_TYPE vt;
-    const char* err_desc;
+    const char *err_desc;
 
     if (!in_pdu_len || !in_pdu || !sc_option_len || !pdu_size || !pdu ||
         !sc_option) {
@@ -217,7 +260,8 @@ static unsigned int bvlc_sc_add_option(bool to_data_option,
 
     /* ensure that user wants to add valid option */
     if (!bvlc_sc_validate_options_headers(BACNET_USER_OPTION_VALIDATION,
-            sc_option, sc_option_len, &options_len, NULL, &error, &class, &err_desc)) {
+            sc_option, sc_option_len, &options_len, NULL, &error, &class,
+            &err_desc)) {
         return 0;
     }
 
@@ -246,7 +290,8 @@ static unsigned int bvlc_sc_add_option(bool to_data_option,
                Validate them at first. */
             if (!bvlc_sc_validate_options_headers(
                     BACNET_PDU_DEST_OPTION_VALIDATION, &in_pdu[offs],
-                    in_pdu_len - offs, &options_len, NULL, &error, &class, &err_desc)) {
+                    in_pdu_len - offs, &options_len, NULL, &error, &class,
+                    &err_desc)) {
                 return 0;
             }
             offs += options_len;
@@ -261,7 +306,8 @@ static unsigned int bvlc_sc_add_option(bool to_data_option,
            Validate them at first. */
 
         if (!bvlc_sc_validate_options_headers(vt, &in_pdu[offs],
-                in_pdu_len - offs, &options_len, NULL, &error, &class, &err_desc)) {
+                in_pdu_len - offs, &options_len, NULL, &error, &class,
+                &err_desc)) {
             return 0;
         }
     }
@@ -777,8 +823,8 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
         // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC
         // If a BVLC message is received that is longer than expected,
         // a BVLC-Result NAK shall be returned if it was a unicast message,
-        // indicating an 'Error Class' of COMMUNICATON and 'Error Code' of UNEXPECTED_DATA.
-        // The message shall be discarded and not be processed. 
+        // indicating an 'Error Class' of COMMUNICATON and 'Error Code' of
+        // UNEXPECTED_DATA. The message shall be discarded and not be processed.
         *error = ERROR_CODE_UNEXPECTED_DATA;
         *class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_result_unexpected_data;
@@ -1181,8 +1227,7 @@ static bool bvlc_sc_decode_connect_request(BVLC_SC_DECODED_DATA *payload,
         *err_desc = s_connect_request_unexpected;
         return false;
     }
-    payload->connect_request.vmac =
-        (BACNET_SC_VMAC_ADDRESS *)packed_payload;
+    payload->connect_request.vmac = (BACNET_SC_VMAC_ADDRESS *)packed_payload;
     packed_payload += BVLC_SC_VMAC_SIZE;
     payload->connect_request.uuid = (BACNET_SC_UUID *)packed_payload;
     packed_payload += BVLC_SC_UUID_SIZE;
@@ -1289,8 +1334,7 @@ static bool bvlc_sc_decode_connect_accept(BVLC_SC_DECODED_DATA *payload,
         return false;
     }
 
-    payload->connect_accept.vmac =
-        (BACNET_SC_VMAC_ADDRESS *)packed_payload;
+    payload->connect_accept.vmac = (BACNET_SC_VMAC_ADDRESS *)packed_payload;
     packed_payload += BVLC_SC_VMAC_SIZE;
     payload->connect_accept.uuid = (BACNET_SC_UUID *)packed_payload;
     packed_payload += BVLC_SC_UUID_SIZE;
@@ -1700,7 +1744,8 @@ bool bvlc_sc_decode_message(uint8_t *buf,
     memset(message->dest_options, 0, sizeof(message->dest_options));
     memset(&message->payload, 0, sizeof(message->payload));
 
-    if (!bvlc_sc_decode_hdr(buf, buf_len, &message->hdr, error, class, err_desc)) {
+    if (!bvlc_sc_decode_hdr(
+            buf, buf_len, &message->hdr, error, class, err_desc)) {
         return false;
     }
 
@@ -1777,9 +1822,10 @@ bool bvlc_sc_decode_message(uint8_t *buf,
             if (message->hdr.payload || message->hdr.payload_len) {
                 // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC
                 // If a BVLC message is received that is longer than expected,
-                // a BVLC-Result NAK shall be returned if it was a unicast message,
-                // indicating an 'Error Class' of COMMUNICATON and 'Error Code' of UNEXPECTED_DATA.
-                // The message shall be discarded and not be processed. 
+                // a BVLC-Result NAK shall be returned if it was a unicast
+                // message, indicating an 'Error Class' of COMMUNICATON and
+                // 'Error Code' of UNEXPECTED_DATA. The message shall be
+                // discarded and not be processed.
 
                 *error = ERROR_CODE_UNEXPECTED_DATA;
                 *class = ERROR_CLASS_COMMUNICATION;
@@ -1946,4 +1992,19 @@ bool bvlc_sc_decode_message(uint8_t *buf,
         }
     }
     return true;
+}
+
+BACNET_STACK_EXPORT
+void bvlc_sc_remove_dest_set_orig(
+    uint8_t *pdu, int pdu_len, BACNET_SC_VMAC_ADDRESS *orig)
+{
+    int offs = 4;
+    if (pdu && pdu_len > 4) {
+        if (!(pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) &&
+            (pdu[1] & BVLC_SC_CONTROL_DEST_VADDR)) {
+            pdu[1] &= ~(BVLC_SC_CONTROL_DEST_VADDR);
+            pdu[1] |= BVLC_SC_CONTROL_ORIG_VADDR;
+            memcpy(&pdu[offs], orig, sizeof(*orig));
+        }
+    }
 }
