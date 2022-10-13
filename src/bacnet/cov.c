@@ -489,9 +489,7 @@ int cov_subscribe_decode_service_request(
                 data->cancellationRequest = false;
                 len += decode_tag_number_and_value(
                     &apdu[len], &tag_number, &len_value);
-                data->issueConfirmedNotifications =
-                    decode_context_boolean(&apdu[len]);
-                len += len_value;
+                data->issueConfirmedNotifications = len_value;
             } else {
                 data->cancellationRequest = true;
             }
@@ -654,9 +652,7 @@ int cov_subscribe_property_decode_service_request(
             data->cancellationRequest = false;
             len += decode_tag_number_and_value(
                 &apdu[len], &tag_number, &len_value);
-            data->issueConfirmedNotifications =
-                decode_context_boolean(&apdu[len]);
-            len++;
+            data->issueConfirmedNotifications = len_value;
         } else {
             data->cancellationRequest = true;
         }
