@@ -91,42 +91,6 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(BACNET_SC_UUID *uuid)
     return NULL;
 }
 
-#if 0
-    @Override public void incoming(SCConnection connection, SCMessage message) {
-        log.info(device,name,"-->incoming() " + message);
-        message.originating = connection.peerVMAC;
-        if (message.destination.equals(SCVMAC.BROADCAST)) {
-            broadcast(message,connection);
-        }
-        else {
-            unicast(message);
-        }
-    }
-
-    /////////////// Specific behavior to SCHubFunction /////////////////////
-
-    private void broadcast(SCMessage message, SCConnection except)  {
-        log.info(device,name,"broadcast()<-- " + message);
-        message.destination = SCVMAC.BROADCAST;
-        for (SCConnection connection : connections) {
-            if (connection == except) continue;
-            if (connection.isConnected()) connection.sendMessage(message);
-        }
-    }
-
-    private void unicast(SCMessage message) {
-        log.info(device,name,"unicast()<-- " + message);
-        SCConnection connection = findConnectionFor(message.destination);
-        if (connection == null) {
-            log.info(device,name,"DROPPING message (HF can't find connection for destination)" + message);
-        }
-        else {
-            message.destination = null;
-            connection.sendMessage(message);
-        }
-    }
-#endif
-
 static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BSC_SC_RET err,
