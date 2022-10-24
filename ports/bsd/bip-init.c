@@ -84,10 +84,21 @@ static void debug_print_ipv4(const char *str,
 /**
  * @brief Return the active BIP socket.
  * @return The active BIP socket, or -1 if uninitialized.
+ * @see bip_get_broadcast_socket
  */
 int bip_get_socket(void)
 {
     return BIP_Socket;
+}
+
+/**
+ * @brief Return the active BIP Broadcast socket.
+ * @return The active BIP Broadcast socket, or -1 if uninitialized.
+ * @see bip_get_socket
+ */
+int bip_get_broadcast_socket(void)
+{
+    return BIP_Broadcast_Socket;
 }
 
 /**

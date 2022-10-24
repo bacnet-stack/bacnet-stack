@@ -133,3 +133,8 @@ int bip_get_socket(void)
 {
     return ztest_get_return_value();
 }
+
+int bip_get_broadcast_socket(void)
+{
+    return ztest_get_return_value();
+}
