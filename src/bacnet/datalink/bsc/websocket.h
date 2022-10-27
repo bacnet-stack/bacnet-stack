@@ -31,6 +31,20 @@
 /** @} */
 
 /**
+ * Maximum number of server instances. Value 10 means that
+ *  10 hub servers and 10 direct servers can be started.
+ * @{
+ */
+
+#ifndef BSC_CONF_WEBSOCKET_SERVERS_NUM
+#define BSC_CONF_WEBSOCKET_SERVERS_NUM 1
+#endif
+
+/** @} */
+
+/** @} */
+
+/**
  * Maximum number of sockets supported for hub websocket server
  * @{
  */
@@ -50,12 +64,17 @@
 #ifndef BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #define BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM 4
 #else
+#if BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM <= 0
+#error "BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM must be > 0"
+#else
 #define BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #endif
+#endif
 
-#define BSC_WSURL_MAX_LEN 256
+#define BSC_WSURL_MAX_LEN BSC_CONF_WSURL_MAX_LEN
 
 typedef int BSC_WEBSOCKET_HANDLE;
+typedef void* BSC_WEBSOCKET_SRV_HANDLE;
 #define BSC_WEBSOCKET_INVALID_HANDLE (-1)
 
 // Websockets protocol defined in BACnet/SC \S AB.7.1.
@@ -92,7 +111,7 @@ typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
                               size_t bufsize,
                               void* dispatch_func_user_param);
 
-typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_PROTOCOL proto,
+typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_SRV_HANDLE sh,
                               BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
                               uint8_t* buf,
@@ -225,7 +244,9 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  *                        events from a websocket which is corresponded to
  *                        server specified by proto param.
  * @param dispatch_func_user_param - parameter which is passed into
-                          dispatch_func call.
+ *                        dispatch_func call.
+ * @pararm sh - pointer to receive websocket server handle
+ *
  * @return error code from BSC_WEBSOCKET_RET enum.
  *  The following error codes can be returned:
  *    BSC_WEBSOCKET_BAD_PARAM - In a case if some input parameter is
@@ -252,12 +273,15 @@ BSC_WEBSOCKET_RET bws_srv_start(
                         size_t key_size,
                         size_t timeout_s,
                         BSC_WEBSOCKET_SRV_DISPATCH dispatch_func,
-                        void* dispatch_func_user_param);
+                        void* dispatch_func_user_param,
+                        BSC_WEBSOCKET_SRV_HANDLE* sh);
 
 /**
  * @brief Asynchronous bws_srv_stop() function starts process of a shutdowns
  * of a websocket server specified by proto param. 
  * opened websocket connections are closed.
+ *
+ * @pararm sh - websocket server handle
  *
  * @return error code from BSC_WEBSOCKET_RET enum.
  *    The following error codes can be returned:
@@ -267,7 +291,7 @@ BSC_WEBSOCKET_RET bws_srv_start(
  *                server shutdown is already in progress.
  */
 
-BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_PROTOCOL proto);
+BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_SRV_HANDLE sh);
 
 /**
  * @brief Asynchronous bws_srv_disconnnect() function starts process of
@@ -275,13 +299,12 @@ BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_PROTOCOL proto);
  * by proto parameter. When the process completes, dispatch_func() with event
  * BSC_WEBSOCKET_DISCONNECTED is called.
  *
- * @param proto - type of BACNet websocket protocol defined in
- *                BSC_WEBSOCKET_PROTOCOL enum.
+ * @pararm sh - websocket server handle.
  * @param h - websocket handle.
  *
  */
 
-void bws_srv_disconnect(BSC_WEBSOCKET_PROTOCOL proto, BSC_WEBSOCKET_HANDLE h);
+void bws_srv_disconnect(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
 
 /**
  * @brief Asynchronous bws_srv_send() function signals to a websocket
@@ -292,13 +315,12 @@ void bws_srv_disconnect(BSC_WEBSOCKET_PROTOCOL proto, BSC_WEBSOCKET_HANDLE h);
  * event BSC_WEBSOCKET_SENDABLE and data can be sent from dispatch_func()
  * call using bws_srv_dispatch_send() call.
  *
- * @param proto - type of BACNet websocket protocol defined in
- *                BSC_WEBSOCKET_PROTOCOL enum.
+ * @pararm sh - websocket server handle.
  * @param h - websocket handle.
  *
  */
 
-void bws_srv_send(BSC_WEBSOCKET_PROTOCOL proto, BSC_WEBSOCKET_HANDLE h);
+void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
 
 /**
  * @brief bws_srv_dispatch_send() function sends data to a websocket server
@@ -306,8 +328,7 @@ void bws_srv_send(BSC_WEBSOCKET_PROTOCOL proto, BSC_WEBSOCKET_HANDLE h);
  *        In as case if data was not sent for some reasons thic could result
  *        dispatch_func() cal withe event  BSC_WEBSOCKET_DISCONNECTED
  *
- * @param proto - type of BACNet websocket protocol defined in
- *                BSC_WEBSOCKET_PROTOCOL enum.
+ * @pararm sh - websocket server handle.
  * @param h - websocket handle.
  * @param payload - pointer to a data to send.
  * @param payload_size - size in bytes of data to send.
@@ -325,7 +346,7 @@ void bws_srv_send(BSC_WEBSOCKET_PROTOCOL proto, BSC_WEBSOCKET_HANDLE h);
  *     BSC_WEBSOCKET_SUCCESS - data is sent successfuly.
  */
 
-BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_PROTOCOL proto,
+BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
                                         BSC_WEBSOCKET_HANDLE h,
                                         uint8_t *payload, size_t payload_size);
 #endif

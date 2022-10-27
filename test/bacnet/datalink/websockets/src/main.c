@@ -1060,6 +1060,7 @@ typedef struct
 {
   BSC_WEBSOCKET_EVENT ev;
   BSC_WEBSOCKET_HANDLE h;
+  BSC_WEBSOCKET_SRV_HANDLE sh;
   uint8_t in_buf[12*1024];
   size_t in_buf_size;
   uint8_t out_buf[12*1024];
@@ -1101,7 +1102,7 @@ static void cli_event(BSC_WEBSOCKET_HANDLE h,
   }
 }
 
-static void srv_event (BSC_WEBSOCKET_PROTOCOL proto,
+static void srv_event (BSC_WEBSOCKET_SRV_HANDLE sh,
                 BSC_WEBSOCKET_HANDLE h,
                 BSC_WEBSOCKET_EVENT ev,
                 uint8_t* buf,
@@ -1122,7 +1123,7 @@ static void srv_event (BSC_WEBSOCKET_PROTOCOL proto,
      ctx->h = h;
   }
   else if(ev == BSC_WEBSOCKET_SENDABLE) {
-    ret = bws_srv_dispatch_send( proto, h, ctx->out_buf, ctx->out_buf_size);
+    ret = bws_srv_dispatch_send( sh, h, ctx->out_buf, ctx->out_buf_size);
     zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
   }
   else if(ev == BSC_WEBSOCKET_RECEIVED) {
@@ -1155,7 +1156,7 @@ static void test_simple(void)
                         ca_cert, sizeof(ca_cert),
                         server_cert, sizeof(server_cert),
                         server_key, sizeof(server_key),
-                        DEFAULT_TIMEOUT, srv_event, &srv_ctx);
+                        DEFAULT_TIMEOUT, srv_event, &srv_ctx, &srv_ctx.sh);
 
     zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_SERVER_STARTED);
@@ -1180,7 +1181,7 @@ static void test_simple(void)
     printf("server sending data...\n");
     memset(srv_ctx.out_buf, 0x33, sizeof(srv_ctx.out_buf));
     srv_ctx.out_buf_size = sizeof(srv_ctx.out_buf);
-    bws_srv_send(BSC_WEBSOCKET_HUB_PROTOCOL, srv_ctx.h);
+    bws_srv_send(srv_ctx.sh, srv_ctx.h);
     wait_for_event(&cli_ctx, BSC_WEBSOCKET_RECEIVED);
     zassert_equal(cli_ctx.in_buf_size, srv_ctx.out_buf_size, NULL);
     ret = memcmp(cli_ctx.in_buf, srv_ctx.out_buf, cli_ctx.in_buf_size);
@@ -1189,7 +1190,7 @@ static void test_simple(void)
     bws_cli_disconnect(h);
     wait_for_event(&cli_ctx, BSC_WEBSOCKET_DISCONNECTED);
 
-    ret = bws_srv_stop(BSC_WEBSOCKET_HUB_PROTOCOL);
+    ret = bws_srv_stop(srv_ctx.sh);
     zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_SERVER_STOPPED);
 }
