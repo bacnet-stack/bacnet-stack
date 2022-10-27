@@ -1153,14 +1153,15 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
     BSC_CONTEXT_CFG *cfg,
     BSC_SOCKET_CTX_FUNCS *funcs,
     BSC_SOCKET *sockets,
-    size_t sockets_num)
+    size_t sockets_num,
+    void* user_arg)
 {
     BSC_WEBSOCKET_RET ret;
     BSC_SC_RET sc_ret = BSC_SC_SUCCESS;
     int i;
 
     debug_printf(
-        "bsc_init_сtx() >>> ctx = %p, cfg = %p, funcs = %p\n", ctx, cfg, funcs);
+        "bsc_init_сtx() >>> ctx = %p, cfg = %p, funcs = %p, user_arg = %p\n", ctx, cfg, funcs, user_arg);
 
     if (!ctx || !cfg || !funcs || !funcs->find_connection_for_vmac ||
         !funcs->find_connection_for_uuid || !funcs->socket_event ||
@@ -1170,7 +1171,6 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
     }
 
     bsc_global_mutex_lock();
-
     if (ctx->state != BSC_CTX_STATE_IDLE) {
         bsc_global_mutex_unlock();
         debug_printf("bsc_init_ctx() <<< ret = BSC_SC_INVALID_OPERATION\n");
@@ -1178,14 +1178,17 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
     }
 
     memset(ctx, 0, sizeof(*ctx));
+    ctx->user_arg = user_arg;
     ctx->cfg = cfg;
     ctx->funcs = funcs;
     ctx->sock = sockets;
     ctx->sock_num = sockets_num;
+
     for (i = 0; i < sockets_num; i++) {
         ctx->sock[i].state = BSC_SOCK_STATE_IDLE;
         ctx->sock[i].wh = BSC_WEBSOCKET_INVALID_HANDLE;
     }
+
     if (cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
         ret = bws_srv_start(cfg->proto, cfg->port, cfg->ca_cert_chain,
             cfg->ca_cert_chain_size, cfg->cert_chain, cfg->cert_chain_size,

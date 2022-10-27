@@ -1226,11 +1226,11 @@ static void test_simple(void)
   zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
   srv_c_ev = -1;
-  ret = bsc_init_сtx(&srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS);
+  ret = bsc_init_сtx(&srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
   zassert_equal(ret, BSC_SC_SUCCESS,0 );
   zassert_equal(wait_context_event(&srv_c_ev, BSC_CTX_INITIALIZED), true, 0);
   cli_c_ev = -1;
-  ret = bsc_init_сtx(&cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS);
+  ret = bsc_init_сtx(&cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
   zassert_equal(ret, BSC_SC_SUCCESS,0 );
   zassert_equal(wait_context_event(&cli_c_ev, BSC_CTX_INITIALIZED), true, 0);
   srv_c_ev = -1;

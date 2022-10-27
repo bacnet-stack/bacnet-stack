@@ -168,6 +168,7 @@ struct BSC_SocketContext {
     BSC_SOCKET_CTX_FUNCS* funcs;
     BSC_CONTEXT_CFG *cfg;
     bool deinit_in_progress;
+    void* user_arg;
 };
 
 // max_local_bvlc_len - The maximum BVLC message size int bytes that can be
@@ -199,7 +200,8 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
                         BSC_CONTEXT_CFG* cfg,
                         BSC_SOCKET_CTX_FUNCS* funcs,
                         BSC_SOCKET* sockets,
-                        size_t sockets_num);
+                        size_t sockets_num,
+                        void* user_arg);
 
 BACNET_STACK_EXPORT
 void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
