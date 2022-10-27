@@ -101,7 +101,7 @@ static void bsc_srv_process_error(BSC_SOCKET *c, BSC_SC_RET reason)
     debug_printf("bsc_srv_process_error) >>> c = %p, reason = %d\n", c, reason);
     c->state = BSC_SOCK_STATE_ERROR;
     c->disconnect_reason = reason;
-    bws_srv_disconnect(c->ctx->cfg->proto, c->wh);
+    bws_srv_disconnect(c->ctx->sh, c->wh);
     debug_printf("bsc_srv_process_error) <<<\n");
 }
 
@@ -159,7 +159,7 @@ static bool bsc_send_error_extended(BSC_SOCKET *c,
         if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
             bws_cli_send(c->wh);
         } else {
-            bws_srv_send(c->ctx->cfg->proto, c->wh);
+            bws_srv_send(c->ctx->sh, c->wh);
         }
         debug_printf("bsc_send_error_extended() <<< ret = true\n");
         return true;
@@ -178,7 +178,7 @@ static bool bsc_send_protocol_error_extended(BSC_SOCKET *c,
 {
     unsigned int len;
 
-    if (bsc_is_unicast_message(&c->dm)) {
+    if (bvlc_sc_is_unicast_message(&c->dm)) {
         return bsc_send_error_extended(c, origin, dest, BVLC_SC_RESULT,
             error_header_marker, error_class, error_code, utf8_details_string);
     }
@@ -216,7 +216,7 @@ static void bsc_process_socket_disconnecting(
         if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
             bws_cli_disconnect(c->wh);
         } else {
-            bws_srv_disconnect(c->ctx->cfg->proto, c->wh);
+            bws_srv_disconnect(c->ctx->sh, c->wh);
         }
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
         if (c->dm.payload.result.bvlc_function == BVLC_SC_DISCONNECT_REQUEST &&
@@ -227,7 +227,7 @@ static void bsc_process_socket_disconnecting(
             if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
                 bws_cli_disconnect(c->wh);
             } else {
-                bws_srv_disconnect(c->ctx->cfg->proto, c->wh);
+                bws_srv_disconnect(c->ctx->sh, c->wh);
             }
         }
     } else {
@@ -275,7 +275,7 @@ static void bsc_process_socket_connected_state(
             memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
             c->tx_buf_size += len + sizeof(len);
             if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-                bws_srv_send(c->ctx->cfg->proto, c->wh);
+                bws_srv_send(c->ctx->sh, c->wh);
             } else {
                 bws_cli_send(c->wh);
             }
@@ -302,7 +302,7 @@ static void bsc_process_socket_connected_state(
             c->disconnect_reason = BSC_SC_PEER_DISCONNECTED;
             c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
             if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-                bws_srv_send(c->ctx->cfg->proto, c->wh);
+                bws_srv_send(c->ctx->sh, c->wh);
             } else {
                 bws_cli_send(c->wh);
             }
@@ -312,7 +312,7 @@ static void bsc_process_socket_connected_state(
                 "on disconnect request, just disconnecting without ack\n");
             c->state = BSC_SOCK_STATE_DISCONNECTING;
             if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-                bws_srv_disconnect(c->ctx->cfg->proto, c->wh);
+                bws_srv_disconnect(c->ctx->sh, c->wh);
             } else {
                 bws_cli_disconnect(c->wh);
             }
@@ -326,7 +326,7 @@ static void bsc_process_socket_connected_state(
             c->dm.hdr.message_id);
         c->state = BSC_SOCK_STATE_DISCONNECTING;
         if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-            bws_srv_disconnect(c->ctx->cfg->proto, c->wh);
+            bws_srv_disconnect(c->ctx->sh, c->wh);
         } else {
             bws_cli_disconnect(c->wh);
         }
@@ -376,8 +376,11 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
     p = c->rx_buf;
     while (c->rx_buf_size) {
         memcpy(&len, p, sizeof(len));
-        p += sizeof(len);
-        c->rx_buf_size -= len + sizeof(len);
+        // We always reserve BSC_PRE bytes before BVLC message header
+        // to avoid copying of packet payload during manipulation with
+        // origin and dest addresses (add them to received PDU)
+        p += sizeof(len) + BSC_PRE;
+        c->rx_buf_size -= len + sizeof(len) + BSC_PRE;
 
         if (!bvlc_sc_decode_message(p, len, &c->dm, &code, &class, &err_desc)) {
             // if code == ERROR_CODE_OTHER that means that received bvlc message
@@ -414,7 +417,7 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
                             (uint8_t *)s_error_no_origin);
                         continue;
                     } else if (c->dm.hdr.dest != NULL &&
-                        !bsc_is_vmac_broadcast(c->dm.hdr.dest)) {
+                        !bvlc_sc_is_vmac_broadcast(c->dm.hdr.dest)) {
                         class = ERROR_CLASS_COMMUNICATION;
                         code = ERROR_CODE_HEADER_ENCODING_ERROR;
 
@@ -470,14 +473,14 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
     } else if (c->state == BSC_SOCK_STATE_AWAITING_REQUEST && expired) {
         c->state = BSC_SOCK_STATE_ERROR;
         c->disconnect_reason = BSC_SC_TIMEDOUT;
-        bws_srv_disconnect(c->ctx->cfg->proto, c->wh);
+        bws_srv_disconnect(c->ctx->sh, c->wh);
     } else if (c->state == BSC_SOCK_STATE_DISCONNECTING && expired) {
         c->state = BSC_SOCK_STATE_ERROR;
         c->disconnect_reason = BSC_SC_TIMEDOUT;
         if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
             bws_cli_disconnect(c->wh);
         } else {
-            bws_srv_disconnect(c->ctx->cfg->proto, c->wh);
+            bws_srv_disconnect(c->ctx->sh, c->wh);
         }
     } else if (c->state == BSC_SOCK_STATE_CONNECTED) {
         expired = mstimer_expired(&c->heartbeat);
@@ -521,7 +524,7 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
                 debug_printf("bsc_process_socket_state() zombie socket %p is "
                              "disconnecting...\n",
                     c);
-                bws_srv_disconnect(c->ctx->cfg->proto, c->wh);
+                bws_srv_disconnect(c->ctx->sh, c->wh);
             }
         }
     }
@@ -615,7 +618,7 @@ static void bsc_process_srv_awaiting_request(
                 c->tx_buf_size += len + sizeof(len);
             }
 
-            bws_srv_send(c->ctx->cfg->proto, c->wh);
+            bws_srv_send(c->ctx->sh, c->wh);
 
             existing->message_id++;
 
@@ -632,7 +635,7 @@ static void bsc_process_srv_awaiting_request(
                 memcpy(&existing->tx_buf[existing->tx_buf_size], &len,
                     sizeof(len));
                 existing->tx_buf_size += len + sizeof(len);
-                bws_srv_send(existing->ctx->cfg->proto, existing->wh);
+                bws_srv_send(existing->ctx->sh, existing->wh);
             } else {
                 debug_printf(
                     "bsc_process_srv_awaiting_request() sending of disconnect "
@@ -680,7 +683,7 @@ static void bsc_process_srv_awaiting_request(
                 c->tx_buf_size += len + sizeof(len);
                 c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
                 c->disconnect_reason = BSC_SC_DUPLICATED_VMAC;
-                bws_srv_send(c->ctx->cfg->proto, c->wh);
+                bws_srv_send(c->ctx->sh, c->wh);
             } else {
                 debug_printf(
                     "bsc_process_srv_awaiting_request() sending of nack result "
@@ -716,7 +719,7 @@ static void bsc_process_srv_awaiting_request(
                 c->tx_buf_size += len + sizeof(len);
                 c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
                 c->disconnect_reason = BSC_SC_DUPLICATED_VMAC;
-                bws_srv_send(c->ctx->cfg->proto, c->wh);
+                bws_srv_send(c->ctx->sh, c->wh);
             } else {
                 debug_printf(
                     "bsc_process_srv_awaiting_request() sending of nack result "
@@ -754,7 +757,7 @@ static void bsc_process_srv_awaiting_request(
             c->state = BSC_SOCK_STATE_CONNECTED;
             c->ctx->funcs->socket_event(
                 c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0, NULL);
-            bws_srv_send(c->ctx->cfg->proto, c->wh);
+            bws_srv_send(c->ctx->sh, c->wh);
         } else {
             debug_printf("bsc_process_srv_awaiting_request() sending of "
                          "connect accept failed, err = BSC_SC_NO_RESOURCES\n");
@@ -765,7 +768,7 @@ static void bsc_process_srv_awaiting_request(
     debug_printf("bsc_process_srv_awaiting_request() <<<\n");
 }
 
-static void bsc_dispatch_srv_func(BSC_WEBSOCKET_PROTOCOL proto,
+static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
     BSC_WEBSOCKET_EVENT ev,
     uint8_t *buf,
@@ -780,9 +783,9 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_PROTOCOL proto,
     uint16_t len;
     int i;
 
-    debug_printf("bsc_dispatch_srv_func() >>> proto = %d, h = %d, ev = %d, buf "
+    debug_printf("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, buf "
                  "= %p, bufsize = %d, ctx = %p\n",
-        proto, h, ev, buf, bufsize, ctx);
+        sh, h, ev, buf, bufsize, ctx);
 
     bsc_global_mutex_lock();
 
@@ -835,7 +838,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_PROTOCOL proto,
         if (!c) {
             debug_printf("bsc_dispatch_srv_func() no free socket, connection "
                          "is dropped\n");
-            bws_srv_disconnect(proto, h);
+            bws_srv_disconnect(c->ctx->sh, h);
         } else {
             c->wh = h;
             c->ctx = ctx;
@@ -860,11 +863,14 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_PROTOCOL proto,
                              "> BVLC_SC_NPDU_MAX_SIZE, socket %p, state %d, "
                              "data_size %d\n",
                     c, c->state, bufsize);
-            } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) >=
+            } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) - BSC_PRE >=
                 bufsize) {
                 len = (uint16_t)bufsize;
                 memcpy(&c->rx_buf[c->rx_buf_size], &len, sizeof(len));
-                c->rx_buf_size += sizeof(len);
+                // We always reserve BSC_PRE bytes before BVLC message header
+                // to avoid copying of packet payload during manipulation with
+                // origin and dest addresses (add them to received PDU)
+                c->rx_buf_size += sizeof(len) + BSC_PRE;
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
                 bsc_runloop_schedule();
@@ -884,7 +890,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_PROTOCOL proto,
 
         while (c->tx_buf_size > 0) {
             memcpy(&len, p, sizeof(len));
-            wret = bws_srv_dispatch_send(proto, c->wh, &p[sizeof(len)], len);
+            wret = bws_srv_dispatch_send(c->ctx->sh, c->wh, &p[sizeof(len)], len);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
                 debug_printf("bsc_dispatch_srv_func() send data failed, start "
                              "disconnect operation on socket %p\n",
@@ -1116,11 +1122,14 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                              "> BVLC_SC_NPDU_MAX_SIZE, socket %p, state %d, "
                              "data_size %d\n",
                     c, c->state, bufsize);
-            } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) >=
+            } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) - BSC_PRE >=
                 bufsize) {
                 len = (uint16_t)bufsize;
                 memcpy(&c->rx_buf[c->rx_buf_size], &len, sizeof(len));
-                c->rx_buf_size += sizeof(len);
+                // We always reserve BSC_PRE bytes before BVLC message header
+                // to avoid copying of packet payload during manipulation with
+                // origin and dest addresses (add them to received PDU)
+                c->rx_buf_size += sizeof(len) + BSC_PRE;
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
                 bsc_runloop_schedule();
@@ -1181,7 +1190,7 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
         ret = bws_srv_start(cfg->proto, cfg->port, cfg->ca_cert_chain,
             cfg->ca_cert_chain_size, cfg->cert_chain, cfg->cert_chain_size,
             cfg->priv_key, cfg->priv_key_size, cfg->connect_timeout_s,
-            bsc_dispatch_srv_func, ctx);
+            bsc_dispatch_srv_func, ctx, &ctx->sh);
 
         sc_ret = bsc_map_websocket_retcode(ret);
 
@@ -1229,7 +1238,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         }
     } else {
         ctx->state = BSC_CTX_STATE_DEINITIALIZING;
-        bws_srv_stop(ctx->cfg->proto);
+        bws_srv_stop(ctx->sh);
     }
 
     bsc_global_mutex_unlock();
@@ -1284,52 +1293,54 @@ void bsc_disconnect(BSC_SOCKET *c)
     debug_printf("bsc_disconnect() >>> c = %p\n", c);
     bsc_global_mutex_lock();
 
-    if (c->ctx->state == BSC_CTX_STATE_INITIALIZED &&
-        c->state == BSC_SOCK_STATE_CONNECTED) {
-        c->message_id++;
-        c->expected_disconnect_message_id = c->message_id;
-        c->state = BSC_SOCK_STATE_DISCONNECTING;
-        mstimer_set(&c->t, c->ctx->cfg->disconnect_timeout_s * 1000);
-        len = bvlc_sc_encode_disconnect_request(
-            &c->tx_buf[c->tx_buf_size + sizeof(len)],
-            (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
-                ? (sizeof(c->tx_buf) - c->tx_buf_size - sizeof(len))
-                : 0,
-            c->message_id);
-        if (!len) {
-            debug_printf("bsc_disconnect() disconnect request not sent, err = "
-                         "BSC_SC_NO_RESOURCES\n");
-            if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
-                bsc_cli_process_error(c, BSC_SC_NO_RESOURCES);
+    if (c->ctx->state == BSC_CTX_STATE_INITIALIZED) {
+        if(c->state == BSC_SOCK_STATE_CONNECTED) {
+            c->message_id++;
+            c->expected_disconnect_message_id = c->message_id;
+            c->state = BSC_SOCK_STATE_DISCONNECTING;
+            mstimer_set(&c->t, c->ctx->cfg->disconnect_timeout_s * 1000);
+            len = bvlc_sc_encode_disconnect_request(
+                &c->tx_buf[c->tx_buf_size + sizeof(len)],
+                (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
+                    ? (sizeof(c->tx_buf) - c->tx_buf_size - sizeof(len))
+                    : 0,
+                c->message_id);
+            if (!len) {
+                debug_printf("bsc_disconnect() disconnect request not sent, err = "
+                             "BSC_SC_NO_RESOURCES\n");
+                if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+                    bsc_cli_process_error(c, BSC_SC_NO_RESOURCES);
+                } else {
+                    bsc_srv_process_error(c, BSC_SC_NO_RESOURCES);
+                }
             } else {
-                bsc_srv_process_error(c, BSC_SC_NO_RESOURCES);
+                memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
+                c->tx_buf_size += len + sizeof(len);
             }
-        } else {
-            memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
-            c->tx_buf_size += len + sizeof(len);
+        }
+        else if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+          if(c->state != BSC_SOCK_STATE_IDLE) {
+             bws_cli_disconnect(c->wh);
+          }
+        }
+        else if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
+          if(c->state != BSC_SOCK_STATE_IDLE) {
+             bws_srv_disconnect(c->ctx->sh, c->wh);
+          }
         }
     }
     bsc_global_mutex_unlock();
-    debug_printf("bsc_connect() <<<\n");
+    debug_printf("bsc_disconnect() <<<\n");
 }
 
 BACNET_STACK_EXPORT
-BSC_SC_RET bsc_send2(BSC_SOCKET *c,
-    uint8_t *part1,
-    uint16_t part1_len,
-    uint8_t *part2,
-    uint16_t part2_len)
+BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
 {
     BSC_SC_RET ret = BSC_SC_SUCCESS;
-    size_t req_len;
-    uint16_t len;
+    debug_printf(
+        "bsc_send() >>> c = %p, pdu = %p, pdu_len = %d\n", c, pdu, pdu_len);
 
-    debug_printf("bsc_send2() >>> c = %p, part1 = %p, part1_len = %d, part2 = "
-                 "%p, part2_len = %d\n",
-        c, part1, part1_len, part2, part2_len);
-
-    if (!c || !part1 || !part1_len || (part2 && !part2_len) ||
-        (!part2 && part2_len)) {
+    if (!c || !pdu || !pdu_len) {
         ret = BSC_SC_BAD_PARAM;
     } else {
         bsc_global_mutex_lock();
@@ -1337,46 +1348,25 @@ BSC_SC_RET bsc_send2(BSC_SOCKET *c,
             c->state != BSC_SOCK_STATE_CONNECTED) {
             ret = BSC_SC_INVALID_OPERATION;
         } else {
-            req_len = part2 ? part1_len + part2_len : part1_len;
-            if (req_len > USHRT_MAX) {
-                ret = BSC_SC_BAD_PARAM;
+            if (sizeof(c->tx_buf) - sizeof(c->tx_buf_size) - sizeof(pdu_len) <
+                pdu_len) {
+                ret = BSC_SC_NO_RESOURCES;
             } else {
-                if (sizeof(c->tx_buf) - c->tx_buf_size <
-                    req_len + sizeof(uint16_t)) {
-                    ret = BSC_SC_NO_RESOURCES;
+                memcpy(&c->tx_buf[c->tx_buf_size], &pdu_len, sizeof(pdu_len));
+                memcpy(
+                    &c->tx_buf[c->tx_buf_size + sizeof(pdu_len)], pdu, pdu_len);
+                c->tx_buf_size += pdu_len + sizeof(pdu_len);
+                if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+                    bws_cli_send(c->wh);
                 } else {
-                    len = (uint16_t)req_len;
-                    memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
-                    c->tx_buf_size += sizeof(len);
-                    memcpy(&c->tx_buf[c->tx_buf_size], part1, part1_len);
-                    c->tx_buf_size += part1_len;
-                    if (part2) {
-                        memcpy(&c->tx_buf[c->tx_buf_size], part2, part2_len);
-                        c->tx_buf_size += part2_len;
-                    }
-                    if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
-                        bws_cli_send(c->wh);
-                    } else {
-                        bws_srv_send(c->ctx->cfg->proto, c->wh);
-                    }
+                    bws_srv_send(c->ctx->sh, c->wh);
                 }
             }
         }
         bsc_global_mutex_unlock();
     }
 
-    debug_printf("bsc_send2() <<< ret = %d\n", ret);
-    return ret;
-}
-
-BACNET_STACK_EXPORT
-BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
-{
-    BSC_SC_RET ret;
-    debug_printf(
-        "bsc_send() >>> c = %p, pdu = %p, pdu_len = %d\n", c, pdu, pdu_len);
-    ret = bsc_send2(c, pdu, pdu_len, NULL, 0);
-    debug_printf("bsc_send() <<< ret = %d\n", ret);
+    debug_printf("bsc_disconnect() <<< ret = %d\n", ret);
     return ret;
 }
 

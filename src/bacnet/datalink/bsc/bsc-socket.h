@@ -149,6 +149,10 @@ struct BSC_SocketContextFuncs {
 
     BSC_SOCKET* (*find_connection_for_vmac)(BACNET_SC_VMAC_ADDRESS *vmac);
     BSC_SOCKET* (*find_connection_for_uuid)(BACNET_SC_UUID *uuid);
+    // We always reserve BSC_PRE bytes before BVLC message header
+    // to avoid copying of packet payload during manipulation with
+    // origin and dest addresses (add them to received PDU)
+    // That's why pdu pointer has always reserved BSC_PRE bytes behind
     void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
                          BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len,
                          BVLC_SC_DECODED_MESSAGE *decoded_pdu);
@@ -158,6 +162,7 @@ struct BSC_SocketContextFuncs {
 
 struct BSC_SocketContext {
     BSC_CTX_STATE state;
+    BSC_WEBSOCKET_SRV_HANDLE sh;
     BSC_SOCKET *sock;
     size_t  sock_num;
     BSC_SOCKET_CTX_FUNCS* funcs;
@@ -255,34 +260,6 @@ void bsc_disconnect(BSC_SOCKET *c);
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len);
-
-/**
- * @brief  bsc_send2() do the same job as bsc_send() function.
- *         The difference is only in arguments
- *         (pdu can be represented as 2 parts in different buffers).
- *
- * @param c - BACNet socket descriptor initialized by bsc_accept() or
- *            bsc_connect() calls.
- * @param part1 - pointer to a first part of data to send.
- * @param part1_len - size in bytes first part.
- * @param part2 - pointer to a second part of data to send. Can be NULL.
- * @param part2_len - size in bytes of second part. Must be 0 if part2 is NULL.
- *
- * @return error code from BSC_SC_RET enum.
- *  The following error codes can be returned:
- *    BSC_SC_BAD_PARAM - In a case if some input parameter is
- *                          incorrect.
- *    BSC_SC_INVALID_OPERATION - if socket is not in opened state,
-             or disconnect operation is in progress using
-             bsc_disconnect() or bsc_deinit_ctx().
- *    BSC_SC_SUCCESS - operation has succeded.
- *    BSC_SC_NO_RESOURCES - there are not resources (memory, etc.. )
- *                          to send data
- */
-
-BACNET_STACK_EXPORT
-BSC_SC_RET bsc_send2(BSC_SOCKET *c, uint8_t* part1, uint16_t part1_len,
-                     uint8_t* part2, uint16_t part2_len);
 
 BACNET_STACK_EXPORT
 void bsc_get_remote_bvlc(BSC_SOCKET *c, uint16_t *p_val);
