@@ -147,8 +147,10 @@ struct BSC_ContextCFG
 
 struct BSC_SocketContextFuncs {
 
-    BSC_SOCKET* (*find_connection_for_vmac)(BACNET_SC_VMAC_ADDRESS *vmac);
-    BSC_SOCKET* (*find_connection_for_uuid)(BACNET_SC_UUID *uuid);
+    BSC_SOCKET* (*find_connection_for_vmac)(BACNET_SC_VMAC_ADDRESS *vmac,
+                                            void* user_arg);
+    BSC_SOCKET* (*find_connection_for_uuid)(BACNET_SC_UUID *uuid,
+                                            void* user_arg);
     // We always reserve BSC_PRE bytes before BVLC message header
     // to avoid copying of packet payload during manipulation with
     // origin and dest addresses (add them to received PDU)

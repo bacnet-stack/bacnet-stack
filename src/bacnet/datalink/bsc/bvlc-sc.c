@@ -954,7 +954,11 @@ unsigned int bvlc_sc_encode_address_resolution(uint8_t *pdu,
  * @param message_id- The message identifier
  * @param origin - Originating virtual address, can be NULL
  * @param dest  - Destination virtual address, can be NULL
- * @param web_socket_uris - UTF-8 string.
+ * @param web_socket_uris - UTF-8 string containing a list of
+ *                          WebSocket URIs as of RFC 3986, separated by a
+ *                          single space character (X'20'), where the source
+ *                          BACnet/SC node accepts direct connections.
+ *                          Can be an empty string using zero octets.
  * @param web_socket_uris_len- length of web_socket_uris without trailing zero.
  * @return number of bytes encoded, in a case of error returns 0.
  */
@@ -2007,4 +2011,130 @@ void bvlc_sc_remove_dest_set_orig(
             memcpy(&pdu[offs], orig, sizeof(*orig));
         }
     }
+}
+
+BACNET_STACK_EXPORT
+int bvlc_sc_set_orig(uint8_t** ppdu,
+                     int pdu_len,
+                     BACNET_SC_VMAC_ADDRESS *orig)
+{
+    uint8_t buf[BSC_PRE];
+    uint8_t *pdu = *ppdu;
+    int offs = 4;
+    if (pdu && pdu_len > 4) {
+        if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
+            memcpy(&pdu[offs], orig, sizeof(orig->address));
+            return pdu_len;
+        }
+        else {
+            memcpy(buf, pdu, 4);
+            buf[1] |= BVLC_SC_CONTROL_ORIG_VADDR;
+            memcpy(&buf[4], orig, sizeof(orig->address));
+            memcpy(pdu - BVLC_SC_VMAC_SIZE, buf, BVLC_SC_VMAC_SIZE + 4);
+            *ppdu = pdu - BVLC_SC_VMAC_SIZE;
+            return pdu_len + BVLC_SC_VMAC_SIZE;
+        }
+    }
+    else {
+        return pdu_len;
+    }
+}
+
+bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
+{
+    int i;
+    for(i=0; i< BVLC_SC_VMAC_SIZE; i++) {
+      if(vmac->address[i] != 0xFF ) {
+        return false;
+      }
+    }
+    return true;
+}
+
+bool bvlc_sc_is_unicast_message(BVLC_SC_DECODED_MESSAGE* dm) {
+    if(dm->hdr.dest == NULL || !bvlc_sc_is_vmac_broadcast(dm->hdr.dest)) {
+        if(dm->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST ||
+           dm->hdr.bvlc_function == BVLC_SC_DISCONNECT_REQUEST ||
+           dm->hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
+           dm->hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
+           dm->hdr.bvlc_function == BVLC_SC_ADVERTISIMENT_SOLICITATION ||
+           dm->hdr.bvlc_function == BVLC_SC_HEARTBEAT_REQUEST ||
+           dm->hdr.bvlc_function > BVLC_SC_PROPRIETARY_MESSAGE) {
+           return true;
+        }
+    }
+    return false;
+}
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
+                               int pdu_len)
+{
+  int offs = 4;
+
+  if(pdu_len >=4 ) {
+    if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
+      offs += BVLC_SC_VMAC_SIZE;
+    }
+    if (pdu[1] & BVLC_SC_CONTROL_DEST_VADDR && (offs + BVLC_SC_VMAC_SIZE) <= pdu_len) {
+      return bvlc_sc_is_vmac_broadcast((BACNET_SC_VMAC_ADDRESS*)&pdu[offs]);
+    }
+  }
+  return false;
+}
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
+                             int pdu_len)
+{
+  if(pdu_len >=4 ) {
+    if (pdu[1] & BVLC_SC_CONTROL_DEST_VADDR) {
+      return false;
+    }
+  }
+  return true;
+}
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
+                          int pdu_len,
+                          BACNET_SC_VMAC_ADDRESS *vmac)
+{
+  int offs = 4;
+
+  if(pdu_len >=4 ) {
+    if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
+      offs += BVLC_SC_VMAC_SIZE;
+    }
+    if (pdu[1] & BVLC_SC_CONTROL_DEST_VADDR && (offs + BVLC_SC_VMAC_SIZE) <= pdu_len) {
+       memcpy(&vmac->address[0], &pdu[offs], BVLC_SC_VMAC_SIZE);
+      return true;
+    }
+  }
+  return false;
+}
+
+BACNET_STACK_EXPORT
+int bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
+                                 int pdu_len)
+{
+  uint8_t* pdu = *ppdu;
+  int offs = 4;
+
+  if(pdu_len >=4 ) {
+    if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
+      offs += BVLC_SC_VMAC_SIZE;
+    }
+    if (pdu[1] & BVLC_SC_CONTROL_DEST_VADDR) {
+       offs += BVLC_SC_VMAC_SIZE;
+    }
+    if(pdu_len >= offs) {
+      pdu[1] &= ~(BVLC_SC_CONTROL_ORIG_VADDR);
+      pdu[1] &= ~(BVLC_SC_CONTROL_DEST_VADDR);
+      memmove(&pdu[offs-4], pdu, 4);
+      *ppdu = &pdu[offs-4];
+      return pdu_len - offs + 4;
+    }
+  }
+  return 0;
 }

@@ -577,7 +577,7 @@ static void bsc_process_srv_awaiting_request(
             c->dm.hdr.bvlc_function);
     } else {
         existing = c->ctx->funcs->find_connection_for_uuid(
-            c->dm.payload.connect_request.uuid);
+            c->dm.payload.connect_request.uuid, c->ctx->user_arg);
 
         if (existing) {
             // Regarding AB.6.2.3 BACnet/SC Connection Accepting Peer
@@ -655,7 +655,7 @@ static void bsc_process_srv_awaiting_request(
         }
 
         existing = c->ctx->funcs->find_connection_for_vmac(
-            c->dm.payload.connect_request.vmac);
+            c->dm.payload.connect_request.vmac, c->ctx->user_arg);
 
         if (existing) {
             debug_printf(

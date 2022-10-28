@@ -15,8 +15,13 @@
 #define __BSC__RUNLOOP__INCLUDED__
 
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
+#include "bacnet/datalink/bsc/bsc-conf.h"
 
-#define BSC_MAX_CALLBACKS_NUM 10
+#define BSC_MAX_CALLBACKS_NUM (10+BSC_CONF_HUB_CONNECTORS_NUM + 2*BSC_CONF_NODE_SWITCHES_NUM)
+
+typedef struct BSC_RunLoop BSC_RUNLOOP;
+BSC_RUNLOOP* bsc_runloop_init(void);
+void bsc_runloop_deinit(BSC_RUNLOOP* runloop);
 
 BSC_SC_RET bsc_runloop_start(void);
 BSC_SC_RET bsc_runloop_reg(void* ctx,

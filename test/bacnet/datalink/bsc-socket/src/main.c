@@ -1070,12 +1070,14 @@ static uint8_t recv_buf[4096];
 static size_t recv_buf_len = 0;
 static BSC_SOCKET* srv_sock = NULL;
 
-static BSC_SOCKET* simple_find_connection_for_vmac(BACNET_SC_VMAC_ADDRESS *vmac)
+static BSC_SOCKET* simple_find_connection_for_vmac(
+    BACNET_SC_VMAC_ADDRESS *vmac, void* user_arg)
 {
   return NULL;
 }
 
-static BSC_SOCKET* simple_find_connection_for_uuid(BACNET_SC_UUID *uuid)
+static BSC_SOCKET* simple_find_connection_for_uuid(
+    BACNET_SC_UUID *uuid, void* user_arg)
 {
   return NULL;
 }

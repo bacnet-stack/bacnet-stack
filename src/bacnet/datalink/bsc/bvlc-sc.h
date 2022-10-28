@@ -26,6 +26,7 @@
 #define BVLC_SC_NPDU_MAX_SIZE 61327 /* Table 6-1. NPDU Lengths of BACnet Data Link Layers */
 #define BVLC_SC_VMAC_SIZE 6
 #define BVLC_SC_UUID_SIZE 16
+#define BSC_PRE (2*BVLC_SC_VMAC_SIZE)
 
 #if !defined(USER_DEFINED_BVLC_SC_HEADER_OPTION_MAX)
 #define BVLC_SC_HEADER_OPTION_MAX                                       \
@@ -386,6 +387,36 @@ BACNET_STACK_EXPORT
 void bvlc_sc_remove_dest_set_orig(uint8_t *pdu,
                                   int pdu_len,
                                   BACNET_SC_VMAC_ADDRESS *orig);
+
+// it is assumed that *ppdu has BSC_PRE bytes behind
+
+BACNET_STACK_EXPORT
+int bvlc_sc_set_orig(uint8_t** ppdu,
+                     int pdu_len,
+                     BACNET_SC_VMAC_ADDRESS *orig);
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac);
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_is_unicast_message(BVLC_SC_DECODED_MESSAGE* dm);
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
+                               int pdu_len);
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
+                             int pdu_len);
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
+                          int pdu_len,
+                          BACNET_SC_VMAC_ADDRESS *vmac);
+
+BACNET_STACK_EXPORT
+int bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
+                                 int pdu_len);
 
 #ifdef __cplusplus
 }
