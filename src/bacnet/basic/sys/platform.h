@@ -6,7 +6,7 @@
   *
  * @section DESCRIPTION
  *
- * This libc and compiler abstaction layer assists with differences
+ * This libc and compiler abstraction layer assists with differences
  * between compiler and libc versions, capabilities, and standards.
  *
  * @section LICENSE
