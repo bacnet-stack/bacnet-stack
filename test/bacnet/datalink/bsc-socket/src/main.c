@@ -1224,7 +1224,7 @@ static void test_simple(void)
                    BACNET_SOCKET_TIMEOUT,
                    BACNET_SOCKET_HEARTBEAT_TIMEOUT,
                    BACNET_SOCKET_TIMEOUT);
-  ret = bsc_runloop_start();
+  ret = bsc_runloop_start(bsc_global_runloop());
   zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
   srv_c_ev = -1;
@@ -1279,7 +1279,7 @@ static void test_simple(void)
   bsc_deinit_ctx(&srv_ctx);
   zassert_equal(ret, BSC_SC_SUCCESS,0 );
   zassert_equal(wait_context_event(&srv_c_ev, BSC_CTX_DEINITIALIZED), true, 0);
-  bsc_runloop_stop();
+  bsc_runloop_stop(bsc_global_runloop());
 }
 
 void test_main(void)

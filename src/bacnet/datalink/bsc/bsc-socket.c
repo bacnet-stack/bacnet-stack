@@ -794,7 +794,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
             ctx->sock[i].state = BSC_SOCK_STATE_IDLE;
         }
         debug_printf("bsc_dispatch_srv_func() ctx %p is deinitialized\n", ctx);
-        bsc_runloop_unreg(ctx);
+        bsc_runloop_unreg(bsc_global_runloop(), ctx);
         ctx->state = BSC_CTX_STATE_IDLE;
         ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
         debug_printf("bsc_dispatch_srv_func() <<<\n");
@@ -873,7 +873,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
-                bsc_runloop_schedule();
+                bsc_runloop_schedule(bsc_global_runloop());
             } else {
                 debug_printf("bsc_dispatch_srv_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
@@ -1132,7 +1132,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
-                bsc_runloop_schedule();
+                bsc_runloop_schedule(bsc_global_runloop());
             } else {
                 debug_printf("bsc_dispatch_cli_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
@@ -1199,11 +1199,11 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
 
         if (sc_ret == BSC_SC_SUCCESS) {
             ctx->state = BSC_CTX_STATE_INITIALIZING;
-            bsc_runloop_reg((void *)ctx, bsc_runloop);
+            bsc_runloop_reg(bsc_global_runloop(), (void *)ctx, bsc_runloop);
         }
     } else {
         ctx->state = BSC_CTX_STATE_INITIALIZED;
-        bsc_runloop_reg((void *)ctx, bsc_runloop);
+        bsc_runloop_reg(bsc_global_runloop(), (void *)ctx, bsc_runloop);
         ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
     }
 
