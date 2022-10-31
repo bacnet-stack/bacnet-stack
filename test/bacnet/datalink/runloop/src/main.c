@@ -26,20 +26,35 @@ void runloop_func(void *ctx)
 static void test_simple(void)
 {
     BSC_SC_RET ret;
+    BSC_RUNLOOP *rl;
     void* ctx = (void*) &ret;
     int old_counter;
     runloop_counter = 0;
-    ret = bsc_runloop_start();
+    ret = bsc_runloop_start(bsc_global_runloop());
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
-    ret = bsc_runloop_reg(&ctx, runloop_func);
+    ret = bsc_runloop_reg(bsc_global_runloop(), &ctx, runloop_func);
     sleep(4);
     zassert_equal(runloop_counter >=3, true, NULL);
     old_counter = runloop_counter;
-    bsc_runloop_schedule();
+    bsc_runloop_schedule(bsc_global_runloop());
     usleep(100);
     zassert_equal(runloop_counter - old_counter, 1 ,0 );
-    bsc_runloop_unreg(&ctx);
-    bsc_runloop_stop();
+    bsc_runloop_unreg(bsc_global_runloop(),&ctx);
+    bsc_runloop_stop(bsc_global_runloop());
+    runloop_counter = 0;
+    rl = bsc_local_runloop_alloc();
+    ret = bsc_runloop_start(rl);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    ret = bsc_runloop_reg(rl, &ctx, runloop_func);
+    sleep(4);
+    zassert_equal(runloop_counter >=3, true, NULL);
+    old_counter = runloop_counter;
+    bsc_runloop_schedule(rl);
+    usleep(100);
+    zassert_equal(runloop_counter - old_counter, 1 ,0 );
+    bsc_runloop_unreg(rl,&ctx);
+    bsc_runloop_stop(rl);
+    bsc_local_runloop_free(rl);
 }
 
 void test_main(void)

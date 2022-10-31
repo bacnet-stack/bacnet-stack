@@ -26,6 +26,10 @@
 #define BSC_CONF_NODE_SWITCHES_NUM 1
 #endif
 
+#ifndef BSC_CONF_NODES_NUM
+#define BSC_CONF_NODES_NUM 1
+#endif
+
 // THIS should not be changed, most of BACNet/SC devices must have
 // hub connector, it uses 2 connections
 #ifndef BSC_CONF_HUB_CONNECTOR_CONNECTIONS_NUM
