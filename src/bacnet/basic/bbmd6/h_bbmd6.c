@@ -64,6 +64,8 @@ static uint8_t BVLC6_Function_Code = BVLC6_RESULT;
 
 /** if we are a foreign device, store the remote BBMD address/port here */
 static BACNET_IP6_ADDRESS Remote_BBMD;
+/** if we are a foreign device, store the Time-To-Live Seconds here */
+static uint16_t Remote_BBMD_TTL_Seconds;
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC6_Buffer[BIP6_MPDU_MAX];
@@ -1024,22 +1026,45 @@ int bvlc6_handler(BACNET_IP6_ADDRESS *addr,
  * @param bbmd_address - IPv4 address (long) of BBMD to register with,
  *                       in network byte order.
  * @param bbmd_port - Network port of BBMD, in network byte order
- * @param time_to_live_seconds - Lease time to use when registering.
+ * @param ttl_seconds - Lease time to use when registering.
  * @return Positive number (of bytes sent) on success,
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
 int bvlc6_register_with_bbmd(BACNET_IP6_ADDRESS *bbmd_addr,
-    uint32_t vmac_src,
-    uint16_t time_to_live_seconds)
+    uint16_t ttl_seconds)
 {
     uint8_t mtu[BIP6_MPDU_MAX] = { 0 };
     uint16_t mtu_len = 0;
+    uint32_t vmac_src = 0;
 
+    /* Store the BBMD address and port so that we won't broadcast locally. */
+    /* We are a foreign device! */
+    bvlc6_address_copy(&Remote_BBMD, bbmd_addr);
+    Remote_BBMD_TTL_Seconds = ttl_seconds;
+    vmac_src = Device_Object_Instance_Number();
     mtu_len = bvlc6_encode_register_foreign_device(
-        &mtu[0], sizeof(mtu), vmac_src, time_to_live_seconds);
+        &mtu[0], sizeof(mtu), vmac_src, ttl_seconds);
 
     return bip6_send_mpdu(bbmd_addr, &mtu[0], mtu_len);
+}
+
+/** Get the remote BBMD address that was used to Register as a foreign device
+ * @param bbmd_addr - IPv6 address of BBMD used to register
+ */
+void bvlc6_remote_bbmd_address(BACNET_IP6_ADDRESS *bbmd_addr)
+{
+    bvlc6_address_copy(bbmd_addr, &Remote_BBMD);
+}
+
+/**
+ * @brief Get the remote BBMD time-to-live seconds used to
+ *  Register Foreign Device
+ * @return Lease time in seconds to use when registering.
+ */
+uint16_t bvlc6_remote_bbmd_lifetime(void)
+{
+    return Remote_BBMD_TTL_Seconds;
 }
 
 /** Returns the last BVLL Result we received, either as the result of a BBMD
