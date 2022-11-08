@@ -40,7 +40,7 @@ struct BSC_RunLoop {
 
 static pthread_mutex_t bsc_mutex_global = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 static BSC_RUNLOOP bsc_runloop_global = { true, { 0 }, false, false, false,
-    &bsc_mutex_global, 0, 0 };
+    &bsc_mutex_global, { 0 }, 0 };
 static BSC_RUNLOOP bsc_runloop_local[BSC_RUNLOOP_LOCAL_NUM];
 static pthread_mutex_t bsc_mutex_local[BSC_RUNLOOP_LOCAL_NUM] = {
     PTHREAD_RECURSIVE_MUTEX_INITIALIZER

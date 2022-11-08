@@ -1,0 +1,3 @@
+1. Add iface parameter to bws_srv_start() function. Null means to bind to all available ifaces.
+2. Add to bvlc tests bvlc_sc_remove_dest_set_orig() and bvlc_sc_set_orig()
+3.

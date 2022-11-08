@@ -33,7 +33,9 @@ typedef enum {
 typedef void (*BSC_HUB_CONNECTOR_EVENT_FUNC)(BSC_HUB_CONNECTOR_EVENT ev,
                                              BSC_HUB_CONNECTOR_HANDLE h,
                                              void* user_arg,
-                                             uint8_t *pdu, uint16_t pdu_len);
+                                             uint8_t *pdu,
+                                             uint16_t pdu_len,
+                                             BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_hub_connector_start(
@@ -65,5 +67,11 @@ BSC_SC_RET bsc_hub_connector_send(
      BSC_HUB_CONNECTOR_HANDLE h,
      uint8_t *pdu,
      unsigned pdu_len);
+
+BACNET_STACK_EXPORT
+bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h);
+
+BACNET_STACK_EXPORT
+BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(BSC_HUB_CONNECTOR_HANDLE h);
 
 #endif

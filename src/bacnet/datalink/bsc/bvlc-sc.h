@@ -22,7 +22,12 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
+#ifndef BVLC_SC_NPDU_SIZE_CONF
 #define BVLC_SC_NPDU_SIZE 1440
+#else
+#define BVLC_SC_NPDU_SIZE BVLC_SC_NPDU_SIZE_CONF
+#endif
+
 #define BVLC_SC_NPDU_MAX_SIZE 61327 /* Table 6-1. NPDU Lengths of BACnet Data Link Layers */
 #define BVLC_SC_VMAC_SIZE 6
 #define BVLC_SC_UUID_SIZE 16

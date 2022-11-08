@@ -53,4 +53,10 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
 BACNET_STACK_EXPORT
 void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h);
 
+BACNET_STACK_EXPORT
+bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h);
+
+BACNET_STACK_EXPORT
+bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h);
+
 #endif

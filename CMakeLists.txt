@@ -94,6 +94,10 @@ pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
 find_package(OpenSSL)
 endif()
 
+add_compile_definitions(
+  BSC_CONF_WSURL_MAX_LEN=127
+    )
+
 add_library(${PROJECT_NAME}
     src/bacnet/abort.c
     src/bacnet/abort.h
@@ -152,6 +156,14 @@ add_library(${PROJECT_NAME}
     $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-util.c>
     $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-connector.h>
     $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-connector.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-function.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-hub-function.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node-switch.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node-switch.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-node.c>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-datalink.h>
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/datalink/bsc/bsc-datalink.c>
     src/bacnet/basic/binding/address.c
     src/bacnet/basic/binding/address.h
     src/bacnet/basic/npdu/h_npdu.c
@@ -516,6 +528,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
+    $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-mutex.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-event.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-srv.c>
     # ports/linux/rx_fsm.c
@@ -555,6 +569,7 @@ elseif(APPLE)
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-mutex.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     ports/bsd/stdbool.h)

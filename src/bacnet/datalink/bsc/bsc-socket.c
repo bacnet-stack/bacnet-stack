@@ -126,6 +126,7 @@ static bool bsc_send_error_extended(BSC_SOCKET *c,
     uint16_t eclass = (uint16_t)error_class;
     uint16_t ecode = (uint16_t)error_code;
     unsigned int len;
+    uint16_t message_id;
 
     debug_printf(
         "bsc_send_error_extended() >>> bvlc_function = %d\n", bvlc_function);
@@ -146,12 +147,12 @@ static bool bsc_send_error_extended(BSC_SOCKET *c,
             utf8_details_string);
     }
 
-    c->message_id++;
+    message_id = bsc_get_next_message_id();
     len = bvlc_sc_encode_result(&c->tx_buf[c->tx_buf_size + sizeof(len)],
         (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
             ? (sizeof(c->tx_buf) - c->tx_buf_size - sizeof(len))
             : 0,
-        c->message_id, origin, dest, bvlc_function, 1, error_header_marker,
+        message_id, origin, dest, bvlc_function, 1, error_header_marker,
         &eclass, &ecode, utf8_details_string);
     if (len) {
         memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
@@ -289,13 +290,13 @@ static void bsc_process_socket_connected_state(
         debug_printf("bsc_process_socket_connected_state() got disconnect "
                      "request with message_id %d\n",
             c->dm.hdr.message_id);
-        c->message_id++;
+        message_id = c->dm.hdr.message_id;
         len = bvlc_sc_encode_disconnect_ack(
             &c->tx_buf[c->tx_buf_size + sizeof(len)],
             (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
                 ? (sizeof(c->tx_buf) - c->tx_buf_size - sizeof(len))
                 : 0,
-            c->message_id);
+            message_id);
         if (len) {
             memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
             c->tx_buf_size += len + sizeof(len);
@@ -496,8 +497,7 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
                     "bsc_process_socket_state() going to send heartbeat "
                     "request on connection %p\n",
                     c);
-                c->message_id++;
-                c->expected_heartbeat_message_id = c->message_id;
+                c->expected_heartbeat_message_id = bsc_get_next_message_id();
                 debug_printf(
                     "bsc_process_socket_state() heartbeat message_id %04x\n",
                     c->expected_heartbeat_message_id);
@@ -507,7 +507,7 @@ static void bsc_process_socket_state(BSC_SOCKET *c)
                     (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
                         ? (sizeof(c->tx_buf) - c->tx_buf_size - sizeof(len))
                         : 0,
-                    c->message_id);
+                    c->expected_heartbeat_message_id);
 
                 if (len) {
                     memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
@@ -620,7 +620,8 @@ static void bsc_process_srv_awaiting_request(
 
             bws_srv_send(c->ctx->sh, c->wh);
 
-            existing->message_id++;
+            existing->expected_disconnect_message_id =
+                bsc_get_next_message_id();
 
             len = bvlc_sc_encode_disconnect_request(
                 &existing->tx_buf[existing->tx_buf_size + sizeof(len)],
@@ -629,7 +630,7 @@ static void bsc_process_srv_awaiting_request(
                     ? (sizeof(existing->tx_buf) - existing->tx_buf_size -
                           sizeof(len))
                     : 0,
-                existing->message_id);
+                existing->expected_disconnect_message_id);
 
             if (len) {
                 memcpy(&existing->tx_buf[existing->tx_buf_size], &len,
@@ -863,7 +864,8 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                              "> BVLC_SC_NPDU_MAX_SIZE, socket %p, state %d, "
                              "data_size %d\n",
                     c, c->state, bufsize);
-            } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) - BSC_PRE >=
+            } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) -
+                    BSC_PRE >=
                 bufsize) {
                 len = (uint16_t)bufsize;
                 memcpy(&c->rx_buf[c->rx_buf_size], &len, sizeof(len));
@@ -890,7 +892,8 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
 
         while (c->tx_buf_size > 0) {
             memcpy(&len, p, sizeof(len));
-            wret = bws_srv_dispatch_send(c->ctx->sh, c->wh, &p[sizeof(len)], len);
+            wret =
+                bws_srv_dispatch_send(c->ctx->sh, c->wh, &p[sizeof(len)], len);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
                 debug_printf("bsc_dispatch_srv_func() send data failed, start "
                              "disconnect operation on socket %p\n",
@@ -1067,8 +1070,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 c, h);
             c->state = BSC_SOCK_STATE_AWAITING_ACCEPT;
             mstimer_set(&c->t, c->ctx->cfg->connect_timeout_s * 1000);
-            c->message_id = (uint16_t)(rand() % USHRT_MAX);
-            c->expected_connect_accept_message_id = c->message_id;
+            c->expected_connect_accept_message_id = bsc_get_next_message_id();
             debug_printf("bsc_dispatch_cli_func() expected connect accept "
                          "message id = %04x\n",
                 c->expected_connect_accept_message_id);
@@ -1084,8 +1086,9 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
                     ? (sizeof(c->tx_buf) - c->tx_buf_size - sizeof(len))
                     : 0,
-                c->message_id, &ctx->cfg->local_vmac, &ctx->cfg->local_uuid,
-                ctx->cfg->max_bvlc_len, ctx->cfg->max_ndpu_len);
+                c->expected_connect_accept_message_id, &ctx->cfg->local_vmac,
+                &ctx->cfg->local_uuid, ctx->cfg->max_bvlc_len,
+                ctx->cfg->max_ndpu_len);
 
             if (!len) {
                 bsc_cli_process_error(c, BSC_SC_NO_RESOURCES);
@@ -1122,7 +1125,8 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                              "> BVLC_SC_NPDU_MAX_SIZE, socket %p, state %d, "
                              "data_size %d\n",
                     c, c->state, bufsize);
-            } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) - BSC_PRE >=
+            } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) -
+                    BSC_PRE >=
                 bufsize) {
                 len = (uint16_t)bufsize;
                 memcpy(&c->rx_buf[c->rx_buf_size], &len, sizeof(len));
@@ -1154,14 +1158,15 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
     BSC_SOCKET_CTX_FUNCS *funcs,
     BSC_SOCKET *sockets,
     size_t sockets_num,
-    void* user_arg)
+    void *user_arg)
 {
     BSC_WEBSOCKET_RET ret;
     BSC_SC_RET sc_ret = BSC_SC_SUCCESS;
     int i;
 
     debug_printf(
-        "bsc_init_сtx() >>> ctx = %p, cfg = %p, funcs = %p, user_arg = %p\n", ctx, cfg, funcs, user_arg);
+        "bsc_init_сtx() >>> ctx = %p, cfg = %p, funcs = %p, user_arg = %p\n",
+        ctx, cfg, funcs, user_arg);
 
     if (!ctx || !cfg || !funcs || !funcs->find_connection_for_vmac ||
         !funcs->find_connection_for_uuid || !funcs->socket_event ||
@@ -1297,9 +1302,8 @@ void bsc_disconnect(BSC_SOCKET *c)
     bsc_global_mutex_lock();
 
     if (c->ctx->state == BSC_CTX_STATE_INITIALIZED) {
-        if(c->state == BSC_SOCK_STATE_CONNECTED) {
-            c->message_id++;
-            c->expected_disconnect_message_id = c->message_id;
+        if (c->state == BSC_SOCK_STATE_CONNECTED) {
+            c->expected_disconnect_message_id = bsc_get_next_message_id();
             c->state = BSC_SOCK_STATE_DISCONNECTING;
             mstimer_set(&c->t, c->ctx->cfg->disconnect_timeout_s * 1000);
             len = bvlc_sc_encode_disconnect_request(
@@ -1307,10 +1311,11 @@ void bsc_disconnect(BSC_SOCKET *c)
                 (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
                     ? (sizeof(c->tx_buf) - c->tx_buf_size - sizeof(len))
                     : 0,
-                c->message_id);
+                c->expected_disconnect_message_id);
             if (!len) {
-                debug_printf("bsc_disconnect() disconnect request not sent, err = "
-                             "BSC_SC_NO_RESOURCES\n");
+                debug_printf(
+                    "bsc_disconnect() disconnect request not sent, err = "
+                    "BSC_SC_NO_RESOURCES\n");
                 if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
                     bsc_cli_process_error(c, BSC_SC_NO_RESOURCES);
                 } else {
@@ -1320,16 +1325,14 @@ void bsc_disconnect(BSC_SOCKET *c)
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
                 c->tx_buf_size += len + sizeof(len);
             }
-        }
-        else if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
-          if(c->state != BSC_SOCK_STATE_IDLE) {
-             bws_cli_disconnect(c->wh);
-          }
-        }
-        else if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-          if(c->state != BSC_SOCK_STATE_IDLE) {
-             bws_srv_disconnect(c->ctx->sh, c->wh);
-          }
+        } else if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+            if (c->state != BSC_SOCK_STATE_IDLE) {
+                bws_cli_disconnect(c->wh);
+            }
+        } else if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
+            if (c->state != BSC_SOCK_STATE_IDLE) {
+                bws_srv_disconnect(c->ctx->sh, c->wh);
+            }
         }
     }
     bsc_global_mutex_unlock();
@@ -1395,4 +1398,24 @@ void bsc_get_remote_npdu(BSC_SOCKET *c, uint16_t *p_val)
         *p_val = c->max_npdu_len;
     }
     bsc_global_mutex_unlock();
+}
+
+BACNET_STACK_EXPORT
+uint16_t bsc_get_next_message_id(void)
+{
+    static uint16_t message_id;
+    static bool initialized = false;
+    uint16_t ret;
+
+    bsc_global_mutex_lock();
+    if (!initialized) {
+        message_id = (uint16_t)(rand() % USHRT_MAX);
+        initialized = true;
+    } else {
+        message_id++;
+    }
+    ret = message_id;
+    debug_printf("next message id = %u(%04x)\n", ret, ret);
+    bsc_global_mutex_unlock();
+    return ret;
 }

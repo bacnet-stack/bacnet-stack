@@ -23,10 +23,10 @@
 #include "bacnet/bacenum.h"
 
 static BSC_SOCKET *hub_function_find_connection_for_vmac(
-    BACNET_SC_VMAC_ADDRESS *vmac, void* user_arg);
+    BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg);
 
 static BSC_SOCKET *hub_function_find_connection_for_uuid(
-    BACNET_SC_UUID *uuid, void* user_arg);
+    BACNET_SC_UUID *uuid, void *user_arg);
 
 static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
@@ -50,7 +50,7 @@ typedef struct BSC_Hub_Connector {
     BSC_SOCKET sock[BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM];
     BSC_HUB_FUNCTION_STATE state;
     BSC_HUB_EVENT_FUNC event_func;
-    void* user_arg;
+    void *user_arg;
     bool used;
 } BSC_HUB_FUNCTION;
 
@@ -62,35 +62,34 @@ static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
     hub_function_context_event
 };
 
-static BSC_HUB_FUNCTION* hub_function_alloc(void)
+static BSC_HUB_FUNCTION *hub_function_alloc(void)
 {
     int i;
-    for(i=0; i < BSC_CONF_HUB_FUNCTIONS_NUM; i++) {
-        if(!bsc_hub_function[i].used) {
-           bsc_hub_function[i].used = true;
-           return &bsc_hub_function[i];
+    for (i = 0; i < BSC_CONF_HUB_FUNCTIONS_NUM; i++) {
+        if (!bsc_hub_function[i].used) {
+            bsc_hub_function[i].used = true;
+            return &bsc_hub_function[i];
         }
     }
     return NULL;
 }
 
-static void hub_function_free(BSC_HUB_FUNCTION* p)
+static void hub_function_free(BSC_HUB_FUNCTION *p)
 {
-   p->used = false;
+    p->used = false;
 }
 
 static BSC_SOCKET *hub_function_find_connection_for_vmac(
-    BACNET_SC_VMAC_ADDRESS *vmac, void* user_arg)
+    BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg)
 {
     int i;
     BSC_HUB_FUNCTION *f;
 
     bsc_global_mutex_lock();
-    f = (BSC_HUB_FUNCTION *) user_arg;
+    f = (BSC_HUB_FUNCTION *)user_arg;
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
         if (f->sock[i].state == BSC_SOCK_STATE_CONNECTED &&
-            !memcmp(&vmac->address[0],
-                &f->sock[i].vmac.address[0],
+            !memcmp(&vmac->address[0], &f->sock[i].vmac.address[0],
                 sizeof(vmac->address))) {
             bsc_global_mutex_unlock();
             return &f->sock[i];
@@ -101,17 +100,17 @@ static BSC_SOCKET *hub_function_find_connection_for_vmac(
 }
 
 static BSC_SOCKET *hub_function_find_connection_for_uuid(
-    BACNET_SC_UUID *uuid, void* user_arg)
+    BACNET_SC_UUID *uuid, void *user_arg)
 {
     int i;
     BSC_HUB_FUNCTION *f;
 
     bsc_global_mutex_lock();
-    f = (BSC_HUB_FUNCTION *) user_arg;
+    f = (BSC_HUB_FUNCTION *)user_arg;
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
         if (f->sock[i].state == BSC_SOCK_STATE_CONNECTED &&
-            !memcmp(&uuid->uuid[0], &f->sock[i].uuid.uuid[0],
-                sizeof(uuid->uuid))) {
+            !memcmp(
+                &uuid->uuid[0], &f->sock[i].uuid.uuid[0], sizeof(uuid->uuid))) {
             bsc_global_mutex_unlock();
             return &f->sock[i];
         }
@@ -136,24 +135,20 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_HUB_FUNCTION *f;
 
     bsc_global_mutex_lock();
-    f = (BSC_HUB_FUNCTION *) c->ctx->user_arg;
+    f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         // double check that received message does not contain
         // originating virtual address and contains dest vaddr
         // although such kind of check is already in bsc-socket.c
         if (!decoded_pdu->hdr.origin && decoded_pdu->hdr.dest) {
             if (bvlc_sc_is_vmac_broadcast(decoded_pdu->hdr.dest)) {
-                for (i = 0;
-                     i < sizeof(f->sock) / sizeof(BSC_SOCKET);
-                     i++) {
+                for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
                     if (&f->sock[i] != c &&
-                         f->sock[i].state == BSC_SOCK_STATE_CONNECTED) {
-                        // change origin address if presented or add origin address into
-                        // pdu by extending of it's header
+                        f->sock[i].state == BSC_SOCK_STATE_CONNECTED) {
+                        // change origin address if presented or add origin
+                        // address into pdu by extending of it's header
                         pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
-                        ret = bsc_send(&f->sock[i],
-                                        *ppdu,
-                                        pdu_len);
+                        ret = bsc_send(&f->sock[i], *ppdu, pdu_len);
                         if (ret != BSC_SC_SUCCESS) {
                             debug_printf("sending of reconstructed pdu failed, "
                                          "err = %d\n",
@@ -163,7 +158,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                 }
             } else {
                 dst = hub_function_find_connection_for_vmac(
-                    decoded_pdu->hdr.dest, (void*) f);
+                    decoded_pdu->hdr.dest, (void *)f);
                 if (!dst) {
                     debug_printf("can not find socket, hub dropped pdu of size "
                                  "%d for dest vmac %s\n",
@@ -182,7 +177,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED &&
         err == BSC_SC_DUPLICATED_VMAC) {
         f->event_func(BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC,
-                     (BSC_HUB_FUNCTION_HANDLE) f, f->user_arg);
+            (BSC_HUB_FUNCTION_HANDLE)f, f->user_arg);
     }
     bsc_global_mutex_unlock();
 }
@@ -191,18 +186,16 @@ static void hub_function_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
     BSC_HUB_FUNCTION *f;
     bsc_global_mutex_lock();
-    f = (BSC_HUB_FUNCTION *) ctx->user_arg;
+    f = (BSC_HUB_FUNCTION *)ctx->user_arg;
     if (ev == BSC_CTX_INITIALIZED) {
         f->state = BSC_HUB_FUNCTION_STATE_STARTED;
-        f->event_func(BSC_HUBF_EVENT_STARTED,
-                (BSC_HUB_FUNCTION_HANDLE) f,
-                f->user_arg);
+        f->event_func(
+            BSC_HUBF_EVENT_STARTED, (BSC_HUB_FUNCTION_HANDLE)f, f->user_arg);
     } else if (ev == BSC_CTX_DEINITIALIZED) {
         f->state = BSC_HUB_FUNCTION_STATE_IDLE;
         hub_function_free(f);
-        f->event_func(BSC_HUBF_EVENT_STOPPED,
-                (BSC_HUB_FUNCTION_HANDLE) f,
-                f->user_arg);
+        f->event_func(
+            BSC_HUBF_EVENT_STOPPED, (BSC_HUB_FUNCTION_HANDLE)f, f->user_arg);
     }
     bsc_global_mutex_unlock();
 }
@@ -223,8 +216,8 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
     unsigned int heartbeat_timeout_s,
     unsigned int disconnect_timeout_s,
     BSC_HUB_EVENT_FUNC event_func,
-    void* user_arg,
-    BSC_HUB_FUNCTION_HANDLE* h)
+    void *user_arg,
+    BSC_HUB_FUNCTION_HANDLE *h)
 {
     BSC_SC_RET ret;
     BSC_HUB_FUNCTION *f;
@@ -259,15 +252,13 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
         max_local_bvlc_len, max_local_npdu_len, connect_timeout_s,
         heartbeat_timeout_s, disconnect_timeout_s);
 
-    ret = bsc_init_сtx(&f->ctx, &f->cfg,
-        &bsc_hub_function_ctx_funcs, f->sock,
+    ret = bsc_init_сtx(&f->ctx, &f->cfg, &bsc_hub_function_ctx_funcs, f->sock,
         sizeof(f->sock) / sizeof(BSC_SOCKET), f);
 
     if (ret == BSC_SC_SUCCESS) {
         f->state = BSC_HUB_FUNCTION_STATE_STARTING;
-        *h = (BSC_HUB_FUNCTION_HANDLE) f;
-    }
-    else {
+        *h = (BSC_HUB_FUNCTION_HANDLE)f;
+    } else {
         hub_function_free(f);
     }
     bsc_global_mutex_unlock();
@@ -278,8 +269,8 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
 BACNET_STACK_EXPORT
 void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
 {
-    BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *) h;
-    debug_printf("bsc_hub_function_stop() h = %p>>>\n", h);
+    BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
+    debug_printf("bsc_hub_function_stop() >>> h = %p\n", h);
     bsc_global_mutex_lock();
     if (f->state != BSC_HUB_FUNCTION_STATE_IDLE &&
         f->state != BSC_HUB_FUNCTION_STATE_STOPPING) {
@@ -288,4 +279,36 @@ void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
     }
     bsc_global_mutex_unlock();
     debug_printf("bsc_hub_functionn_stop() <<<\n");
+}
+
+BACNET_STACK_EXPORT
+bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h)
+{
+    BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
+    bool ret = false;
+
+    debug_printf("bsc_hub_function_stopped() >>> h = %p\n", h);
+    bsc_global_mutex_lock();
+    if (f->state == BSC_HUB_FUNCTION_STATE_IDLE) {
+        ret = true;
+    }
+    bsc_global_mutex_unlock();
+    debug_printf("bsc_hub_function_stopped() <<< ret = %d\n", ret);
+    return ret;
+}
+
+BACNET_STACK_EXPORT
+bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h)
+{
+    BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
+    bool ret = false;
+
+    debug_printf("bsc_hub_function_started() >>> h = %p\n", h);
+    bsc_global_mutex_lock();
+    if (f->state == BSC_HUB_FUNCTION_STATE_STARTED) {
+        ret = true;
+    }
+    bsc_global_mutex_unlock();
+    debug_printf("bsc_hub_function_started() <<< ret = %d\n", ret);
+    return ret;
 }

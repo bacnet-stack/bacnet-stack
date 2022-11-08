@@ -95,7 +95,6 @@ struct BSC_Socket {
     struct mstimer heartbeat;
     BACNET_SC_VMAC_ADDRESS vmac; // VMAC address of the requesting node.
     BACNET_SC_UUID uuid;
-    uint16_t message_id;
     
     // Regarding max_bvlc_len and max_npdu_len:
     // These are the datalink limits and are passed up the stack to let
@@ -270,5 +269,8 @@ void bsc_get_remote_bvlc(BSC_SOCKET *c, uint16_t *p_val);
 
 BACNET_STACK_EXPORT
 void bsc_get_remote_npdu(BSC_SOCKET *c, uint16_t *p_val);
+
+BACNET_STACK_EXPORT
+uint16_t bsc_get_next_message_id(void);
 
 #endif

@@ -32,7 +32,9 @@ typedef enum {
 typedef void (*BSC_NODE_SWITCH_EVENT_FUNC)(BSC_NODE_SWITCH_EVENT ev,
                                            BSC_NODE_SWITCH_HANDLE h,
                                            void* user_arg,
-                                           uint8_t *pdu, uint16_t pdu_len);
+                                           uint8_t *pdu,
+                                           uint16_t pdu_len,
+                                           BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_switch_start(
@@ -52,13 +54,18 @@ BSC_SC_RET bsc_node_switch_start(
    unsigned int disconnect_timeout_s,
    unsigned int reconnnect_timeout_s,
    unsigned int address_resolution_timeout_s,
-   unsigned int resolution_freshness_timeout_s,
    BSC_NODE_SWITCH_EVENT_FUNC event_func,
    void* user_arg,
    BSC_NODE_SWITCH_HANDLE* h);
 
 BACNET_STACK_EXPORT
 void bsc_node_switch_stop(BSC_NODE_SWITCH_HANDLE h);
+
+BACNET_STACK_EXPORT
+bool bsc_node_switch_stopped(BSC_NODE_SWITCH_HANDLE h);
+
+BACNET_STACK_EXPORT
+bool bsc_node_switch_started(BSC_NODE_SWITCH_HANDLE h);
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_switch_connect(

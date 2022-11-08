@@ -30,6 +30,10 @@
 #define BSC_CONF_NODES_NUM 1
 #endif
 
+#ifndef BVLC_SC_NPDU_SIZE_CONF
+#define BVLC_SC_NPDU_SIZE_CONF 1440
+#endif
+
 // THIS should not be changed, most of BACNet/SC devices must have
 // hub connector, it uses 2 connections
 #ifndef BSC_CONF_HUB_CONNECTOR_CONNECTIONS_NUM
