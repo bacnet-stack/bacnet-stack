@@ -14,25 +14,6 @@
 #include "bacnet/datalink/bsc/bsc-util.h"
 #include <stdlib.h>
 
-unsigned long bsc_seconds_left(
-    unsigned long timestamp_ms, unsigned long timeout_s)
-{
-    unsigned long cur = mstimer_now();
-    unsigned long delta;
-
-    if (cur > timestamp_ms) {
-        delta = cur - timestamp_ms;
-    } else {
-        delta = timestamp_ms - cur;
-    }
-
-    if (delta > timeout_s * 1000) {
-        return 0;
-    }
-
-    return timeout_s * 1000 - delta;
-}
-
 BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
 {
     switch(ret) {

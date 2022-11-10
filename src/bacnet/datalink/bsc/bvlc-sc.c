@@ -1998,6 +1998,17 @@ bool bvlc_sc_decode_message(uint8_t *buf,
     return true;
 }
 
+/**
+ * @brief Function removes destination address of BACNet/SC message
+ *                 and sets originating address instead of it.
+ *                 It does it job only if message has destination address
+ *                 and does not have origination address, otherwise pdu
+ *                 stays unchanged.
+ * @param pdu - BACNet/SC PDU.
+ * @param pdu_len - length of a buffer which holds BACNet/SC PDU.
+ * @param orig- origination vmac.
+ */
+
 BACNET_STACK_EXPORT
 void bvlc_sc_remove_dest_set_orig(
     uint8_t *pdu, int pdu_len, BACNET_SC_VMAC_ADDRESS *orig)
@@ -2012,6 +2023,17 @@ void bvlc_sc_remove_dest_set_orig(
         }
     }
 }
+
+/**
+ * @brief Function changes or adds originating address into BACNet/SC message.
+ *                 It is assumed that ppdu points to buffer with pdu that has
+ *                 BSC_PRE bytes behind.
+ * @param ppdu - pointer to buffer which holds BACNet/SC PDU.
+ * @param pdu_len - length of a buffer which holds BACNet/SC PDU.
+ * @param orig- origination vmac.
+ * @return new pdu length if function succeeded and ppdu points to beginnig of
+ *         chaged pdu, otherwise returns old pdu_len and ppdu is not channged.
+ */
 
 BACNET_STACK_EXPORT
 int bvlc_sc_set_orig(uint8_t** ppdu,
@@ -2040,6 +2062,13 @@ int bvlc_sc_set_orig(uint8_t** ppdu,
     }
 }
 
+/**
+ * @brief Function checks if vmac address is broadcast.
+ * @param vmac - pointer vmac address.
+ * @return true if vmac is broadcast. otherwise returns false.
+ */
+
+BACNET_STACK_EXPORT
 bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
@@ -2051,7 +2080,18 @@ bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
     return true;
 }
 
-bool bvlc_sc_is_unicast_message(BVLC_SC_DECODED_MESSAGE* dm) {
+/**
+ * @brief Function checks if it is needed to send BVLC result
+ *        respose message for given decoded BACNet/SC message.
+ *        In a case of errors, standard requires to send such kind
+ *        of responses for unicast messages of specific types.
+ * @param dm - pointer to decoded BACNet/SC message.
+ * @return true if vmac is broadcast, otherwise returns false.
+ */
+
+BACNET_STACK_EXPORT
+bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE* dm)
+{
     if(dm->hdr.dest == NULL || !bvlc_sc_is_vmac_broadcast(dm->hdr.dest)) {
         if(dm->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST ||
            dm->hdr.bvlc_function == BVLC_SC_DISCONNECT_REQUEST ||
@@ -2066,9 +2106,18 @@ bool bvlc_sc_is_unicast_message(BVLC_SC_DECODED_MESSAGE* dm) {
     return false;
 }
 
+/**
+ * @brief Function checks if destination address of input BACNet/SC
+ *        message is broadcast.
+ * @param  pdu- buffer with BACNet/SC message.
+ * @param  pdu_len- length of buffer of BACNet/SC message.
+ * @return true if destination address of input BACNet/SC
+ *         is broadcast, otherwise returns false.
+ */
+
 BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
-                               int pdu_len)
+                                    int pdu_len)
 {
   int offs = 4;
 
@@ -2083,6 +2132,15 @@ bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
   return false;
 }
 
+/**
+ * @brief Function checks if input BACNet/SC message has
+ *        destination address field.
+ * @param  pdu- buffer with BACNet/SC message.
+ * @param  pdu_len- length of buffer of BACNet/SC message.
+ * @return true if destination address is presented in
+ *         input BACNet/SC message, otherwise returns false.
+ */
+
 BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
                              int pdu_len)
@@ -2094,6 +2152,16 @@ bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
   }
   return true;
 }
+
+/**
+ * @brief Function puts destination address of
+ *        BACNet/SC message into vmac if message
+ *        contains it.
+ * @param  pdu- buffer with BACNet/SC message.
+ * @param  pdu_len- length of buffer of BACNet/SC message.
+ * @return true if destination address is presented and was
+ *         placed into vmac, otherwise returns false.
+ */
 
 BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
@@ -2114,6 +2182,17 @@ bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
   return false;
 }
 
+/**
+ * @brief Function removes originating and destination
+ *        address fields from input BACNet/SC message.
+ * @param  ppdu- pointer to buffer of  BACNet/SC message.
+ * @param  pdu_len- length of buffer of BACNet/SC message.
+ * @return new length of changed pdu if originating or destination
+ *         addresses were removed or old pdu length if
+ *         pdu was not changed. If pdu was changed, ppdu contains
+ *         updated pointer to buffer to modified BACNet/SC message.
+ */
+
 BACNET_STACK_EXPORT
 int bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
                                  int pdu_len)
@@ -2121,20 +2200,18 @@ int bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
   uint8_t* pdu = *ppdu;
   int offs = 4;
 
-  if(pdu_len >=4 ) {
+  if(pdu_len > 4) {
     if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
       offs += BVLC_SC_VMAC_SIZE;
     }
     if (pdu[1] & BVLC_SC_CONTROL_DEST_VADDR) {
        offs += BVLC_SC_VMAC_SIZE;
     }
-    if(pdu_len >= offs) {
-      pdu[1] &= ~(BVLC_SC_CONTROL_ORIG_VADDR);
-      pdu[1] &= ~(BVLC_SC_CONTROL_DEST_VADDR);
-      memmove(&pdu[offs-4], pdu, 4);
-      *ppdu = &pdu[offs-4];
-      return pdu_len - offs + 4;
-    }
+    pdu[1] &= ~(BVLC_SC_CONTROL_ORIG_VADDR);
+    pdu[1] &= ~(BVLC_SC_CONTROL_DEST_VADDR);
+    memmove(&pdu[offs-4], pdu, 4);
+    *ppdu = &pdu[offs-4];
+    return pdu_len - offs + 4;
   }
-  return 0;
+  return pdu_len;
 }

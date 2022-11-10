@@ -393,8 +393,6 @@ void bvlc_sc_remove_dest_set_orig(uint8_t *pdu,
                                   int pdu_len,
                                   BACNET_SC_VMAC_ADDRESS *orig);
 
-// it is assumed that *ppdu has BSC_PRE bytes behind
-
 BACNET_STACK_EXPORT
 int bvlc_sc_set_orig(uint8_t** ppdu,
                      int pdu_len,
@@ -404,7 +402,7 @@ BACNET_STACK_EXPORT
 bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac);
 
 BACNET_STACK_EXPORT
-bool bvlc_sc_is_unicast_message(BVLC_SC_DECODED_MESSAGE* dm);
+bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE* dm);
 
 BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,

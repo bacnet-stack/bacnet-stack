@@ -195,7 +195,7 @@ static void bsc_node_process_received(BSC_NODE *node,
             if (decoded_pdu->dest_options[i].must_understand) {
                 debug_printf("bsc_node_process_received() pdu with "
                              "'must-understand' is dropped\n");
-                if (bvlc_sc_is_unicast_message(decoded_pdu)) {
+                if (bvlc_sc_need_send_bvlc_result(decoded_pdu)) {
                     error_code = ERROR_CODE_HEADER_NOT_UNDERSTOOD;
                     error_class = ERROR_CLASS_COMMUNICATION;
                     bufsize = bvlc_sc_encode_result(buf, sizeof(buf),

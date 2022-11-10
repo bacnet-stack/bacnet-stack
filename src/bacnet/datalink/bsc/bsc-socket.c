@@ -179,7 +179,7 @@ static bool bsc_send_protocol_error_extended(BSC_SOCKET *c,
 {
     unsigned int len;
 
-    if (bvlc_sc_is_unicast_message(&c->dm)) {
+    if (bvlc_sc_need_send_bvlc_result(&c->dm)) {
         return bsc_send_error_extended(c, origin, dest, BVLC_SC_RESULT,
             error_header_marker, error_class, error_code, utf8_details_string);
     }
