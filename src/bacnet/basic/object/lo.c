@@ -82,7 +82,11 @@ static const int Lighting_Output_Properties_Required[] = {
     PROP_BLINK_WARN_ENABLE, PROP_EGRESS_TIME, PROP_EGRESS_ACTIVE,
     PROP_DEFAULT_FADE_TIME, PROP_DEFAULT_RAMP_RATE, PROP_DEFAULT_STEP_INCREMENT,
     PROP_PRIORITY_ARRAY, PROP_RELINQUISH_DEFAULT,
-    PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY, -1
+    PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY,
+#if (BACNET_PROTOCOL_REVISION >= 17)
+    PROP_CURRENT_COMMAND_PRIORITY,
+#endif
+    -1
 };
 static const int Lighting_Output_Properties_Optional[] = { -1 };
 
@@ -1060,6 +1064,16 @@ int Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Lighting_Output_Default_Priority(rpdata->object_instance);
             apdu_len = encode_application_unsigned(&apdu[0], unsigned_value);
             break;
+#if (BACNET_PROTOCOL_REVISION >= 17)
+        case PROP_CURRENT_COMMAND_PRIORITY:
+            i = Lighting_Output_Present_Value_Priority(rpdata->object_instance);
+            if ((i >= BACNET_MIN_PRIORITY) && (i <= BACNET_MAX_PRIORITY)) {
+                apdu_len = encode_application_unsigned(&apdu[0], i);
+            } else {
+                apdu_len = encode_application_null(&apdu[0]);
+            }
+            break;
+#endif
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1187,6 +1201,9 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_DEFAULT_STEP_INCREMENT:
         case PROP_PRIORITY_ARRAY:
         case PROP_RELINQUISH_DEFAULT:
+#if (BACNET_PROTOCOL_REVISION >= 17)
+        case PROP_CURRENT_COMMAND_PRIORITY:
+#endif
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
