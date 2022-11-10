@@ -45,6 +45,7 @@ BSC_SC_RET bsc_node_switch_start(
    uint8_t *key,
    size_t key_size,
    int port,
+   char* iface,
    BACNET_SC_UUID *local_uuid,
    BACNET_SC_VMAC_ADDRESS *local_vmac,
    uint16_t max_local_bvlc_len,

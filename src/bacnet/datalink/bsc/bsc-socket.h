@@ -122,6 +122,7 @@ struct BSC_ContextCFG
     BSC_SOCKET_CTX_TYPE type;
     BSC_WEBSOCKET_PROTOCOL proto;
     uint16_t port;
+    char* iface;
     uint8_t *ca_cert_chain;
     size_t ca_cert_chain_size;
     uint8_t *cert_chain;
@@ -182,6 +183,7 @@ void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
                       BSC_CONTEXT_CFG* cfg,
                       BSC_WEBSOCKET_PROTOCOL proto,
                       uint16_t port,
+                      char* iface,
                       uint8_t *ca_cert_chain,
                       size_t ca_cert_chain_size,
                       uint8_t *cert_chain,

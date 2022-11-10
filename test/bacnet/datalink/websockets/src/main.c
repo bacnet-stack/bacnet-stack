@@ -1141,7 +1141,7 @@ static void test_simple(void)
     test_ctx_t srv_ctx;
     BSC_WEBSOCKET_HANDLE h;
     char url[128];
-
+    char* iface = NULL;
     memset(&cli_ctx, 0, sizeof(cli_ctx));
     cli_ctx.ev = -1;
     cli_ctx.h = BSC_WEBSOCKET_INVALID_HANDLE;
@@ -1153,6 +1153,7 @@ static void test_simple(void)
 
    ret = bws_srv_start(BSC_WEBSOCKET_HUB_PROTOCOL,
                         BACNET_WEBSOCKET_SERVER_PORT, 
+                        iface,
                         ca_cert, sizeof(ca_cert),
                         server_cert, sizeof(server_cert),
                         server_key, sizeof(server_key),

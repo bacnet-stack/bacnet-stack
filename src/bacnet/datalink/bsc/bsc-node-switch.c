@@ -477,6 +477,7 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
     uint8_t *key,
     size_t key_size,
     int port,
+    char *iface,
     BACNET_SC_UUID *local_uuid,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     uint16_t max_local_bvlc_len,
@@ -531,16 +532,16 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
     }
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &ns->acceptor.cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, port, ca_cert_chain, ca_cert_chain_size,
-        cert_chain, cert_chain_size, key, key_size, local_uuid, local_vmac,
-        max_local_bvlc_len, max_local_npdu_len, connect_timeout_s,
-        heartbeat_timeout_s, disconnect_timeout_s);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, port, iface, ca_cert_chain,
+        ca_cert_chain_size, cert_chain, cert_chain_size, key, key_size,
+        local_uuid, local_vmac, max_local_bvlc_len, max_local_npdu_len,
+        connect_timeout_s, heartbeat_timeout_s, disconnect_timeout_s);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &ns->initiator.cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, 0, ca_cert_chain, ca_cert_chain_size,
-        cert_chain, cert_chain_size, key, key_size, local_uuid, local_vmac,
-        max_local_bvlc_len, max_local_npdu_len, connect_timeout_s,
-        heartbeat_timeout_s, disconnect_timeout_s);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, 0, NULL, ca_cert_chain,
+        ca_cert_chain_size, cert_chain, cert_chain_size, key, key_size,
+        local_uuid, local_vmac, max_local_bvlc_len, max_local_npdu_len,
+        connect_timeout_s, heartbeat_timeout_s, disconnect_timeout_s);
 
     ret = bsc_init_сtx(&ns->initiator.ctx, &ns->initiator.cfg,
         &bsc_node_switch_initiator_ctx_funcs, ns->initiator.sock,

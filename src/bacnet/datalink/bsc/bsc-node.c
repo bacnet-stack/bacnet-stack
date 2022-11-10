@@ -518,11 +518,12 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
         ret = bsc_hub_function_start(node->conf->ca_cert_chain,
             node->conf->ca_cert_chain_size, node->conf->cert_chain,
             node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
-            node->conf->hub_server_port, node->conf->local_uuid,
-            node->conf->local_vmac, node->conf->max_local_bvlc_len,
-            node->conf->max_local_npdu_len, node->conf->connect_timeout_s,
-            node->conf->heartbeat_timeout_s, node->conf->disconnect_timeout_s,
-            bsc_hub_function_event, node, &node->hub_function);
+            node->conf->hub_server_port, node->conf->iface,
+            node->conf->local_uuid, node->conf->local_vmac,
+            node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
+            node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
+            node->conf->disconnect_timeout_s, bsc_hub_function_event, node,
+            &node->hub_function);
         if (ret != BSC_SC_SUCCESS) {
             node->state = BSC_NODE_STATE_IDLE;
             bsc_hub_connector_stop(node->hub_connector);
@@ -536,11 +537,11 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
         ret = bsc_node_switch_start(node->conf->ca_cert_chain,
             node->conf->ca_cert_chain_size, node->conf->cert_chain,
             node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
-            node->conf->direct_server_port, node->conf->local_uuid,
-            node->conf->local_vmac, node->conf->max_local_bvlc_len,
-            node->conf->max_local_npdu_len, node->conf->connect_timeout_s,
-            node->conf->heartbeat_timeout_s, node->conf->disconnect_timeout_s,
-            node->conf->reconnnect_timeout_s,
+            node->conf->direct_server_port, node->conf->iface,
+            node->conf->local_uuid, node->conf->local_vmac,
+            node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
+            node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
+            node->conf->disconnect_timeout_s, node->conf->reconnnect_timeout_s,
             node->conf->address_resolution_timeout_s, bsc_node_switch_event,
             node, &node->node_switch);
         if (ret != BSC_SC_SUCCESS) {

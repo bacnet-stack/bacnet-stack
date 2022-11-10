@@ -230,7 +230,9 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  *
  * @param proto - type of BACNet websocket protocol defined in
  *                BSC_WEBSOCKET_PROTOCOL enum.
- * @param port- port number.
+ * @param port - port number.
+ * @param iface - name of interface to bind to. If the parameter is NULL
+ *                that means that websocket server binds to all interfaces.
  * @param ca_cert - pointer to certificate authority (CA) cert in PEM or DER
  * format.
  * @param ca_cert_size - size in bytes of CA cert.
@@ -265,6 +267,7 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
 BSC_WEBSOCKET_RET bws_srv_start(
                         BSC_WEBSOCKET_PROTOCOL proto,
                         int port,
+                        char* iface,
                         uint8_t *ca_cert,
                         size_t ca_cert_size,
                         uint8_t *cert,

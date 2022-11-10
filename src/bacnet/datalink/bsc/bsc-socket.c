@@ -38,6 +38,7 @@ void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
     BSC_CONTEXT_CFG *cfg,
     BSC_WEBSOCKET_PROTOCOL proto,
     uint16_t port,
+    char *iface,
     uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
     uint8_t *cert_chain,
@@ -57,6 +58,7 @@ void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
         cfg->proto = proto;
         cfg->port = port;
         cfg->type = type;
+        cfg->iface = iface;
         cfg->ca_cert_chain = ca_cert_chain;
         cfg->ca_cert_chain_size = ca_cert_chain_size;
         cfg->cert_chain = cert_chain;
@@ -1195,10 +1197,10 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
     }
 
     if (cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-        ret = bws_srv_start(cfg->proto, cfg->port, cfg->ca_cert_chain,
-            cfg->ca_cert_chain_size, cfg->cert_chain, cfg->cert_chain_size,
-            cfg->priv_key, cfg->priv_key_size, cfg->connect_timeout_s,
-            bsc_dispatch_srv_func, ctx, &ctx->sh);
+        ret = bws_srv_start(cfg->proto, cfg->port, cfg->iface,
+            cfg->ca_cert_chain, cfg->ca_cert_chain_size, cfg->cert_chain,
+            cfg->cert_chain_size, cfg->priv_key, cfg->priv_key_size,
+            cfg->connect_timeout_s, bsc_dispatch_srv_func, ctx, &ctx->sh);
 
         sc_ret = bsc_map_websocket_retcode(ret);
 

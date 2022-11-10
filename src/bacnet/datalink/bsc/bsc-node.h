@@ -61,9 +61,9 @@ typedef struct {
    char* failoverURL;
    uint16_t hub_server_port;
    uint16_t direct_server_port;
+   char* iface;
    bool node_switch_enabled;
    bool hub_function_enabled;
-   char* iface;
    char* direct_connection_accept_uris; // URIs joined ' 'space
    unsigned int direct_connection_accept_uris_len;
    BSC_NODE_EVENT_FUNC event_func;

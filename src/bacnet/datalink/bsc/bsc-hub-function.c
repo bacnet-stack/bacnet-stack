@@ -208,6 +208,7 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
     uint8_t *key,
     size_t key_size,
     int port,
+    char *iface,
     BACNET_SC_UUID *local_uuid,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     uint16_t max_local_bvlc_len,
@@ -247,10 +248,10 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
     f->user_arg = user_arg;
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &f->cfg,
-        BSC_WEBSOCKET_HUB_PROTOCOL, port, ca_cert_chain, ca_cert_chain_size,
-        cert_chain, cert_chain_size, key, key_size, local_uuid, local_vmac,
-        max_local_bvlc_len, max_local_npdu_len, connect_timeout_s,
-        heartbeat_timeout_s, disconnect_timeout_s);
+        BSC_WEBSOCKET_HUB_PROTOCOL, port, iface, ca_cert_chain,
+        ca_cert_chain_size, cert_chain, cert_chain_size, key, key_size,
+        local_uuid, local_vmac, max_local_bvlc_len, max_local_npdu_len,
+        connect_timeout_s, heartbeat_timeout_s, disconnect_timeout_s);
 
     ret = bsc_init_сtx(&f->ctx, &f->cfg, &bsc_hub_function_ctx_funcs, f->sock,
         sizeof(f->sock) / sizeof(BSC_SOCKET), f);

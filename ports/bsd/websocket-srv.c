@@ -485,6 +485,7 @@ static void *bws_srv_worker(void *arg)
 
 BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     int port,
+    char* iface,
     uint8_t *ca_cert,
     size_t ca_cert_size,
     uint8_t *cert,
@@ -558,6 +559,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
 #endif
 
     info.port = port;
+    info.iface = iface;
     info.protocols = protos;
     info.gid = -1;
     info.uid = -1;

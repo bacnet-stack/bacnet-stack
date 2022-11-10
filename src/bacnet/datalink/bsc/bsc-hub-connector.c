@@ -279,7 +279,7 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
     c->event_func = event_func;
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &c->cfg,
-        BSC_WEBSOCKET_HUB_PROTOCOL, 0, ca_cert_chain, ca_cert_chain_size,
+        BSC_WEBSOCKET_HUB_PROTOCOL, 0, NULL, ca_cert_chain, ca_cert_chain_size,
         cert_chain, cert_chain_size, key, key_size, local_uuid, local_vmac,
         max_local_bvlc_len, max_local_npdu_len, connect_timeout_s,
         heartbeat_timeout_s, disconnect_timeout_s);
