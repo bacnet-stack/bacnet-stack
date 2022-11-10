@@ -73,6 +73,8 @@ struct object_data {
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_List;
+/* common object type */
+static const BACNET_OBJECT_TYPE Object_Type = OBJECT_BINARY_OUTPUT;
 /* callback for present value writes */
 static binary_output_write_present_value_callback
     Binary_Output_Write_Present_Value_Callback;
@@ -563,7 +565,7 @@ bool Binary_Output_Name_Set(uint32_t object_instance, char *new_name)
         characterstring_init_ansi(&object_name, new_name);
         if (Device_Valid_Object_Name(
                 &object_name, &found_type, &found_instance)) {
-            if ((found_type == OBJECT_BINARY_OUTPUT) &&
+            if ((found_type == Object_Type) &&
                 (found_instance == object_instance)) {
                 /* writing same name to same object */
                 status = true;
@@ -987,6 +989,19 @@ int Binary_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
     apdu = rpdata->application_data;
     switch (rpdata->object_property) {
+        case PROP_OBJECT_IDENTIFIER:
+            apdu_len = encode_application_object_id(
+                &apdu[0], Object_Type, rpdata->object_instance);
+            break;
+        case PROP_OBJECT_NAME:
+            Binary_Output_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_OBJECT_TYPE:
+            apdu_len =
+                encode_application_enumerated(&apdu[0], Object_Type);
+            break;
         case PROP_PRESENT_VALUE:
             present_value =
                 Binary_Output_Present_Value(rpdata->object_instance);
