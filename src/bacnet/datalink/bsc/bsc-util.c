@@ -30,6 +30,16 @@ BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
     }
 }
 
+void bsc_copy_vmac(BACNET_SC_VMAC_ADDRESS *dst, BACNET_SC_VMAC_ADDRESS *src)
+{
+   memcpy(dst->address, src->address, sizeof(src->address));
+}
+
+void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src)
+{
+   memcpy(dst->uuid, src->uuid, sizeof(src->uuid));
+}
+
 char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     static char buf[128];

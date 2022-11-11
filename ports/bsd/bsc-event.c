@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "bacnet/datalink/bsc/bsc-mutex.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
@@ -92,4 +93,9 @@ void bsc_event_signal(BSC_EVENT *ev)
     ev->v = true;
     pthread_cond_broadcast(&ev->cond);
     pthread_mutex_unlock(&ev->mutex);
+}
+
+void bsc_wait(int seconds)
+{
+    sleep(seconds);
 }

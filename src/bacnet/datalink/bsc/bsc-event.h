@@ -21,6 +21,5 @@ BSC_EVENT* bsc_event_init(void);
 void bsc_event_deinit(BSC_EVENT *ev);
 void bsc_event_wait(BSC_EVENT *ev);
 void bsc_event_signal(BSC_EVENT *ev);
-void bsc_event_reset(BSC_EVENT *ev);
-
+void bsc_wait(int seconds);
 #endif

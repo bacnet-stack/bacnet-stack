@@ -702,7 +702,7 @@ unsigned int bvlc_sc_encode_result(uint8_t *pdu,
     }
 
     if (result_code) {
-        if (!error_header_marker || !error_class || !error_code) {
+        if (!error_class || !error_code) {
             /* According AB.2.4.1 BVLC-Result Format error_class
                and error_code must be presented */
             return 0;
@@ -735,7 +735,13 @@ unsigned int bvlc_sc_encode_result(uint8_t *pdu,
         return 0;
     }
 
-    pdu[offs++] = *error_header_marker;
+    if(error_header_marker) {
+       pdu[offs++] = *error_header_marker;
+    }
+    else {
+       pdu[offs++] = 0;
+    }
+
     memcpy(&pdu[offs], error_class, sizeof(*error_class));
     offs += sizeof(*error_class);
     memcpy(&pdu[offs], error_code, sizeof(*error_code));
