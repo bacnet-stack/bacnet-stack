@@ -532,7 +532,6 @@ static void bsc_runloop(void *p)
                 type = ctx->sock[i].ctx->cfg->type;
                 wh = ctx->sock[i].wh;
                 sh = ctx->sock[i].ctx->sh;
-                bsc_global_mutex_unlock();
                 if (need_disconnect) {
                     if (type == BSC_SOCKET_CTX_INITIATOR) {
                         bws_cli_disconnect(wh);
@@ -547,7 +546,6 @@ static void bsc_runloop(void *p)
                         bws_srv_send(sh, wh);
                     }
                 }
-                bsc_global_mutex_lock();
             }
         }
     }
