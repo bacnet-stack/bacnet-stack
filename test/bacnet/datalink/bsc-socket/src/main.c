@@ -1730,6 +1730,148 @@ static void test_duplicated_uuid_on_server(void)
     deinit_ctx_ev(&srv_ctx_ev);
 }
 
+static void test_bad_params(void)
+{
+    BSC_SC_RET ret;
+    BSC_SOCKET_CTX srv_ctx;
+    BSC_CONTEXT_CFG server_cfg;
+    BSC_SOCKET_CTX_FUNCS srv_funcs = { simple_find_connection_for_vmac,
+        simple_find_connection_for_uuid, srv_simple_socket_event,
+        srv_simple_context_event };
+    BACNET_SC_UUID server_uuid;
+    BACNET_SC_VMAC_ADDRESS server_vmac;
+    BSC_CONTEXT_CFG client_cfg;
+    BSC_SOCKET_CTX cli_ctx;
+    BACNET_SC_UUID client_uuid;
+    BACNET_SC_VMAC_ADDRESS client_vmac;
+    BSC_SOCKET_CTX_FUNCS cli_funcs = { simple_find_connection_for_vmac,
+        simple_find_connection_for_uuid, cli_simple_socket_event,
+        cli_simple_context_event };
+    char url[128];
+
+    memset(&srv_ctx, 0, sizeof(srv_ctx));
+    memset(&cli_ctx, 0, sizeof(cli_ctx));
+    memset(&server_uuid, 0x1, sizeof(server_uuid));
+    memset(&server_vmac, 0x2, sizeof(server_vmac));
+    memset(&client_uuid, 0x3, sizeof(server_uuid));
+    memset(&client_vmac, 0x4, sizeof(server_vmac));
+    sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+
+    init_sock_ev(&srv_ev);
+    init_ctx_ev(&srv_ctx_ev);
+    init_sock_ev(&cli_ev);
+    init_ctx_ev(&cli_ctx_ev);
+    ret = bsc_runloop_start(bsc_global_runloop());
+
+    // bad params bsc_init_сtx() test
+
+    bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
+        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
+        sizeof(server_key), &server_uuid, &server_vmac, MAX_BVLC_LEN,
+        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
+        BACNET_SOCKET_TIMEOUT);
+
+    ret = bsc_init_сtx(
+        NULL, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
+
+    ret = bsc_init_сtx(
+       &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+
+    ret = bsc_init_сtx(
+       &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
+    zassert_equal(ret, BSC_SC_INVALID_OPERATION, 0);
+    reset_ctx_ev(&srv_ctx_ev);
+    zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
+    bsc_deinit_ctx(&srv_ctx);
+    zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+
+    // dellocate already deallocated context
+    bsc_deinit_ctx(&srv_ctx);
+
+    // bsc_connect bad param test
+    ret =  bsc_connect(NULL, NULL, NULL);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
+    bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
+        NULL, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
+        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
+        BACNET_SOCKET_TIMEOUT);
+    reset_ctx_ev(&cli_ctx_ev);
+    ret = bsc_init_сtx(
+       &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
+    ret =  bsc_connect(&cli_ctx, &cli_socks[0], url);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
+    reset_ctx_ev(&cli_ctx_ev);
+    bsc_deinit_ctx(&cli_ctx);
+    zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+
+    // bsc_send bad params test
+    ret = bsc_send(NULL, NULL, 0);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
+    ret = bsc_send(&cli_socks[0], (uint8_t *)&client_uuid, sizeof(client_uuid));
+    zassert_equal(ret, BSC_SC_INVALID_OPERATION, 0);
+
+    ret = bsc_init_сtx(
+       &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    reset_ctx_ev(&srv_ctx_ev);
+    zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
+    bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
+        ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
+        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
+        BACNET_SOCKET_TIMEOUT);
+    reset_ctx_ev(&cli_ctx_ev);
+    ret = bsc_init_сtx(
+       &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
+    reset_sock_ev(&cli_ev);
+    reset_sock_ev(&srv_ev);
+    ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
+    zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
+    ret = bsc_send(&cli_socks[0], (uint8_t *)&client_uuid, BSC_CONF_TX_BUFFER_SIZE*2);
+    zassert_equal(ret, BSC_SC_NO_RESOURCES, 0);
+    reset_sock_ev(&cli_ev);
+    reset_sock_ev(&srv_ev);
+    bsc_deinit_ctx(&cli_ctx);
+    zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+    bsc_deinit_ctx(&srv_ctx);
+    zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+
+    // connect client to non existent server
+    reset_ctx_ev(&cli_ctx_ev);
+    ret = bsc_init_сtx(
+       &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
+    reset_sock_ev(&cli_ev);
+    ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    reset_sock_ev(&cli_ev);
+    zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
+    zassert_equal(cli_ev.err, BSC_SC_PEER_DISCONNECTED, NULL);
+    reset_sock_ev(&cli_ev);
+    bsc_deinit_ctx(&cli_ctx);
+    zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+    bsc_runloop_stop(bsc_global_runloop());
+
+    deinit_sock_ev(&srv_ev);
+    deinit_ctx_ev(&srv_ctx_ev);
+    deinit_sock_ev(&cli_ev);
+    deinit_ctx_ev(&cli_ctx_ev);
+}
+
 void test_main(void)
 {
     // Tests must not be run in parallel threads!
@@ -1742,8 +1884,11 @@ void test_main(void)
         socket_test_3, ztest_unit_test(test_duplicated_vmac_on_server2));
     ztest_test_suite(
         socket_test_4, ztest_unit_test(test_duplicated_uuid_on_server));
+    ztest_test_suite(
+        socket_test_5, ztest_unit_test(test_bad_params));
     ztest_run_test_suite(socket_test_1);
     ztest_run_test_suite(socket_test_2);
     ztest_run_test_suite(socket_test_3);
     ztest_run_test_suite(socket_test_4);
+    ztest_run_test_suite(socket_test_5);
 }
