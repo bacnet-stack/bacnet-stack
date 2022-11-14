@@ -88,6 +88,9 @@ static BSC_SOCKET *hub_function_find_connection_for_vmac(
     bsc_global_mutex_lock();
     f = (BSC_HUB_FUNCTION *)user_arg;
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
+        debug_printf("hubf = %p, sock %p, state = %d, vmac = %s\n", f,
+            &f->sock[i], f->sock[i].state,
+            bsc_vmac_to_string(&f->sock[i].vmac));
         if (f->sock[i].state == BSC_SOCK_STATE_CONNECTED &&
             !memcmp(&vmac->address[0], &f->sock[i].vmac.address[0],
                 sizeof(vmac->address))) {
@@ -108,6 +111,9 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
     bsc_global_mutex_lock();
     f = (BSC_HUB_FUNCTION *)user_arg;
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
+        debug_printf("hubf = %p, sock %p, state = %d, uuid = %s\n", f,
+            &f->sock[i], f->sock[i].state,
+            bsc_uuid_to_string(&f->sock[i].uuid));
         if (f->sock[i].state == BSC_SOCK_STATE_CONNECTED &&
             !memcmp(
                 &uuid->uuid[0], &f->sock[i].uuid.uuid[0], sizeof(uuid->uuid))) {
@@ -246,6 +252,7 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
     }
 
     f->user_arg = user_arg;
+    f->event_func = event_func;
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &f->cfg,
         BSC_WEBSOCKET_HUB_PROTOCOL, port, iface, ca_cert_chain,

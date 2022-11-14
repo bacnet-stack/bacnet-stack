@@ -1286,7 +1286,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         bws_cli_disconnect(wh);
     }
     if (need_stop) {
-        bws_srv_stop(ctx->sh);
+        bws_srv_stop(sh);
     }
 
     debug_printf("bsc_deinit_ctx() <<<\n");

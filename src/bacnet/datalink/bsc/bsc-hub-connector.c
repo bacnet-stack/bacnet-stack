@@ -95,9 +95,12 @@ static BSC_HUB_CONNECTOR *hub_connector_alloc(void)
     for (i = 0; i < BSC_CONF_HUB_CONNECTORS_NUM; i++) {
         if (!bsc_hub_connector[i].used) {
             bsc_hub_connector[i].used = true;
+            debug_printf(
+                "hub_connector_alloc() ret = %p\n", &bsc_hub_connector[i]);
             return &bsc_hub_connector[i];
         }
     }
+    debug_printf("hub_connector_alloc() ret = %p\n", &bsc_hub_connector[i]);
     return NULL;
 }
 
@@ -150,13 +153,12 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
     BSC_HUB_CONNECTOR *hc;
     uint8_t **ppdu = &pdu;
 
+    bsc_global_mutex_lock();
+    hc = (BSC_HUB_CONNECTOR *)c->ctx->user_arg;
     debug_printf("hub_connector_socket_event() >>> hub_connector = %p, socket "
                  "= %p, ev = %d, err = %d, "
                  "pdu = %p, pdu_len = %d\n",
         hc, c, ev, err, pdu, pdu_len);
-
-    bsc_global_mutex_lock();
-    hc = (BSC_HUB_CONNECTOR *)c->ctx->user_arg;
     if (ev == BSC_SOCKET_EVENT_CONNECTED) {
         if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
             hc->state = BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY;
@@ -283,7 +285,9 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
         cert_chain, cert_chain_size, key, key_size, local_uuid, local_vmac,
         max_local_bvlc_len, max_local_npdu_len, connect_timeout_s,
         heartbeat_timeout_s, disconnect_timeout_s);
-
+    debug_printf("bsc_hub_connector_start() uuid = %s, vmac = %s\n",
+        bsc_uuid_to_string(&c->cfg.local_uuid),
+        bsc_vmac_to_string(&c->cfg.local_vmac));
     ret = bsc_runloop_reg(bsc_global_runloop(), c, hub_connector_process_state);
 
     if (ret == BSC_SC_SUCCESS) {
@@ -291,6 +295,7 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
             c->sock, sizeof(c->sock) / sizeof(BSC_SOCKET), (void *)c);
 
         if (ret == BSC_SC_SUCCESS) {
+            *h = (BSC_HUB_CONNECTOR_HANDLE)c;
             ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_PRIMARY],
                 (char *)c->primary_url);
             if (ret == BSC_SC_SUCCESS) {
@@ -303,6 +308,7 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
                     bsc_runloop_unreg(bsc_global_runloop(), c);
                     bsc_deinit_ctx(&c->ctx);
                     hub_connector_free(c);
+                    *h = NULL;
                 }
             }
         }
@@ -383,9 +389,9 @@ BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
     BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
     bsc_global_mutex_lock();
-    if (c->state == BSC_HUBC_EVENT_CONNECTED_PRIMARY) {
+    if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY) {
         ret = BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED;
-    } else if (c->state == BSC_HUBC_EVENT_CONNECTED_FAILOVER) {
+    } else if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER) {
         ret = BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED;
     }
     bsc_global_mutex_unlock();
