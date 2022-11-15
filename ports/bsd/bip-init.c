@@ -466,7 +466,7 @@ bool bip_get_addr_by_name(const char *host_name, BACNET_IP_ADDRESS *addr)
 
 static void *get_addr_ptr(struct sockaddr *sockaddr_ptr)
 {
-    void *addr_ptr;
+    void *addr_ptr = NULL;
     if (sockaddr_ptr->sa_family == AF_INET) {
         addr_ptr = &((struct sockaddr_in *)sockaddr_ptr)->sin_addr;
     } else if (sockaddr_ptr->sa_family == AF_INET6) {
@@ -485,7 +485,7 @@ static void *get_addr_ptr(struct sockaddr *sockaddr_ptr)
  */
 static int get_local_address(char *ifname, struct in_addr *addr, char *request)
 {
-    char rv; /* return value */
+    char rv = '\0'; /* return value */
 
     struct ifaddrs *ifaddrs_ptr;
     int status;
@@ -497,7 +497,7 @@ static int get_local_address(char *ifname, struct in_addr *addr, char *request)
     while (ifaddrs_ptr) {
         if ((ifaddrs_ptr->ifa_addr->sa_family == AF_INET) &&
             (strcmp(ifaddrs_ptr->ifa_name, ifname) == 0)) {
-            void *addr_ptr;
+            void *addr_ptr = NULL;
             if (!ifaddrs_ptr->ifa_addr) {
                 return rv;
             }
@@ -682,7 +682,6 @@ bool bip_valid(void)
  */
 void bip_cleanup(void)
 {
-    int sock_fd = 0;
 
     if (BIP_Socket != -1) {
         close(BIP_Socket);
