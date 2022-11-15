@@ -2163,6 +2163,18 @@ int bacapp_snprintf_value(
                 slen = bacapp_snprintf_time(str, str_len, &value->type.Time);
                 ret_val += slen;
                 break;
+            case BACNET_APPLICATION_TAG_TIMESTAMP:
+                //ISO 8601 format
+                slen = snprintf(str, str_len, "%04u-%02u-%02uT%02u:%02u:%02u.%03u",
+                    (unsigned) value->type.Time_Stamp.value.dateTime.date.year,
+                    (unsigned) value->type.Time_Stamp.value.dateTime.date.month,
+                    (unsigned) value->type.Time_Stamp.value.dateTime.date.day,
+                    (unsigned) value->type.Time_Stamp.value.dateTime.time.hour,
+                    (unsigned) value->type.Time_Stamp.value.dateTime.time.min,
+                    (unsigned) value->type.Time_Stamp.value.dateTime.time.sec,
+                    (unsigned) value->type.Time_Stamp.value.dateTime.time.hundredths);
+                ret_val += slen;
+                break;
             case BACNET_APPLICATION_TAG_LIGHTING_COMMAND:
                 slen = snprintf(str, str_len, "(");
                 if (str) {
