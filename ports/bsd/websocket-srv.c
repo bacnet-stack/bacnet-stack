@@ -498,8 +498,8 @@ static void *bws_srv_worker(void *arg)
 
         for (i = 0; i < bws_srv_get_max_sockets(ctx->proto); i++) {
             DEBUG_PRINTF(
-                "bws_srv_worker() ctx %p proto %d socket %d state = %d\n", ctx,
-                ctx->proto, i, ctx->conn[i].state);
+                "bws_srv_worker() ctx %p proto %d socket %d(%p) state = %d\n",
+                ctx, ctx->proto, i, &ctx->conn[i], ctx->conn[i].state);
             if (ctx->conn[i].state == BSC_WEBSOCKET_STATE_CONNECTED) {
                 if (ctx->conn[i].want_send_data) {
                     DEBUG_PRINTF("bws_srv_worker() process request for sending "
