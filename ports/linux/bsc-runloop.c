@@ -10,6 +10,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
+
 #define _GNU_SOURCE
 #include <string.h>
 #include <stdio.h>
@@ -28,29 +29,69 @@ typedef struct {
     void (*runloop_func)(void *ctx);
 } BSC_RUNLOOP_CTX;
 
-static BSC_RUNLOOP_CTX bsc_runloop_ctx[BSC_MAX_CALLBACKS_NUM];
-static bool bsc_runloop_started = false;
-static bool bsc_runloop_process = false;
-static bool bsc_runloop_ctx_changed = false;
-static pthread_mutex_t bsc_runloop_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-static pthread_cond_t bsc_cond;
-static pthread_t bsc_thread_id;
+struct BSC_RunLoop {
+    bool used;
+    BSC_RUNLOOP_CTX runloop_ctx[BSC_RUNLOOP_CALLBACKS_NUM];
+    bool started;
+    bool process;
+    bool changed;
+    pthread_mutex_t *mutex;
+    pthread_cond_t cond;
+    pthread_t thread_id;
+};
+
+static pthread_mutex_t bsc_mutex_global = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static BSC_RUNLOOP bsc_runloop_global = { true, { 0 }, false, false, false,
+    &bsc_mutex_global, { 0 }, 0 };
+static BSC_RUNLOOP bsc_runloop_local[BSC_RUNLOOP_LOCAL_NUM];
+static pthread_mutex_t bsc_mutex_local[BSC_RUNLOOP_LOCAL_NUM] = {
+    PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+};
+
+BSC_RUNLOOP *bsc_global_runloop(void)
+{
+    return &bsc_runloop_global;
+}
+
+BSC_RUNLOOP *bsc_local_runloop_alloc(void)
+{
+    int i;
+    pthread_mutex_lock(bsc_global_runloop()->mutex);
+    for (i = 0; i < BSC_RUNLOOP_LOCAL_NUM; i++) {
+        if (!bsc_runloop_local[i].used) {
+            bsc_runloop_local[i].mutex = &bsc_mutex_local[i];
+            bsc_runloop_local[i].used = true;
+            pthread_mutex_unlock(bsc_global_runloop()->mutex);
+            return &bsc_runloop_local[i];
+        }
+    }
+    pthread_mutex_unlock(bsc_global_runloop()->mutex);
+    return NULL;
+}
+
+void bsc_local_runloop_free(BSC_RUNLOOP *runloop)
+{
+    pthread_mutex_lock(bsc_global_runloop()->mutex);
+    runloop->used = false;
+    pthread_mutex_unlock(bsc_global_runloop()->mutex);
+}
 
 static void *bsc_runloop_worker(void *arg)
 {
-    BSC_RUNLOOP_CTX local[BSC_MAX_CALLBACKS_NUM];
+    BSC_RUNLOOP *rl = (BSC_RUNLOOP *)arg;
+    BSC_RUNLOOP_CTX local[BSC_RUNLOOP_CALLBACKS_NUM];
     int i;
     struct timespec to;
 
     debug_printf("bsc_runloop_worker() >>>\n");
 
-    pthread_mutex_lock(&bsc_runloop_mutex);
-    memcpy(local, bsc_runloop_ctx, sizeof(local));
-    pthread_mutex_unlock(&bsc_runloop_mutex);
+    pthread_mutex_lock(rl->mutex);
+    memcpy(local, rl->runloop_ctx, sizeof(local));
+    pthread_mutex_unlock(rl->mutex);
 
     while (1) {
         // debug_printf("bsc_runloop_worker() waiting for next iteration\n");
-        pthread_mutex_lock(&bsc_runloop_mutex);
+        pthread_mutex_lock(rl->mutex);
         clock_gettime(CLOCK_REALTIME, &to);
         to.tv_sec = to.tv_sec + BSC_DEFAULT_RUNLOOP_TIMEOUT_MS / 1000;
         to.tv_nsec =
@@ -58,29 +99,29 @@ static void *bsc_runloop_worker(void *arg)
         to.tv_sec += to.tv_nsec / 1000000000;
         to.tv_nsec %= 1000000000;
 
-        while (!bsc_runloop_process) {
-            if (pthread_cond_timedwait(&bsc_cond, &bsc_runloop_mutex, &to) ==
+        while (!rl->process) {
+            if (pthread_cond_timedwait(&rl->cond, rl->mutex, &to) ==
                 ETIMEDOUT) {
                 break;
             }
         }
         // debug_printf("bsc_runloop_worker() processing started\n");
 
-        bsc_runloop_process = false;
+        rl->process = false;
 
-        if (bsc_runloop_ctx_changed) {
+        if (rl->changed) {
             debug_printf("bsc_runloop_worker() processing context changes\n");
-            bsc_runloop_ctx_changed = false;
-            memcpy(local, bsc_runloop_ctx, sizeof(local));
+            rl->changed = false;
+            memcpy(local, rl->runloop_ctx, sizeof(local));
         }
 
-        if (!bsc_runloop_started) {
+        if (!rl->started) {
             debug_printf("bsc_runloop_worker() runloop is stopped\n");
-            pthread_mutex_unlock(&bsc_runloop_mutex);
+            pthread_mutex_unlock(rl->mutex);
             break;
         } else {
-            pthread_mutex_unlock(&bsc_runloop_mutex);
-            for (i = 0; i < BSC_MAX_CALLBACKS_NUM; i++) {
+            pthread_mutex_unlock(rl->mutex);
+            for (i = 0; i < BSC_RUNLOOP_CALLBACKS_NUM; i++) {
                 if (local[i].ctx) {
                     local[i].runloop_func(local[i].ctx);
                 }
@@ -91,111 +132,141 @@ static void *bsc_runloop_worker(void *arg)
     return NULL;
 }
 
-BSC_SC_RET bsc_runloop_start(void)
+BSC_SC_RET bsc_runloop_start(BSC_RUNLOOP *runloop)
 {
     int ret;
 
-    debug_printf("bsc_runloop_start() >>>\n");
+    if (runloop == bsc_global_runloop()) {
+        debug_printf("bsc_runloop_start() >>> runloop global(%p)\n", runloop);
+    } else {
+        debug_printf("bsc_runloop_start() >>> runloop = %p\n", runloop);
+    }
 
-    pthread_mutex_lock(&bsc_runloop_mutex);
+    pthread_mutex_lock(runloop->mutex);
 
-    if (bsc_runloop_started) {
-        pthread_mutex_unlock(&bsc_runloop_mutex);
+    if (runloop->started) {
+        pthread_mutex_unlock(runloop->mutex);
         return BSC_SC_INVALID_OPERATION;
     }
 
-    if (pthread_cond_init(&bsc_cond, NULL) != 0) {
+    if (pthread_cond_init(&runloop->cond, NULL) != 0) {
         debug_printf("bsc_runloop_start() <<< ret = BSC_SC_NO_RESOURCES\n");
         return BSC_SC_NO_RESOURCES;
     }
 
-    ret = pthread_create(&bsc_thread_id, NULL, &bsc_runloop_worker, NULL);
+    ret =
+        pthread_create(&runloop->thread_id, NULL, &bsc_runloop_worker, runloop);
 
     if (ret != 0) {
-        pthread_cond_destroy(&bsc_cond);
+        pthread_cond_destroy(&runloop->cond);
         debug_printf("bsc_runloop_start() <<< ret = BSC_SC_NO_RESOURCES\n");
         return BSC_SC_NO_RESOURCES;
     }
 
-    memset(bsc_runloop_ctx, 0, sizeof(bsc_runloop_ctx));
-    bsc_runloop_started = true;
-    pthread_mutex_unlock(&bsc_runloop_mutex);
+    memset(runloop->runloop_ctx, 0, sizeof(runloop->runloop_ctx));
+    runloop->started = true;
+    pthread_mutex_unlock(runloop->mutex);
     debug_printf("bsc_runloop_start() >>> ret = BSC_SC_SUCCESS\n");
     return BSC_SC_SUCCESS;
 }
 
 BSC_SC_RET bsc_runloop_reg(
-    void *ctx, void (*runloop_func)(void *ctx))
+    BSC_RUNLOOP *runloop, void *ctx, void (*runloop_func)(void *ctx))
 {
     int i;
-    debug_printf(
-        "bsc_runloop_reg() >>> ctx = %p, func = %p\n", ctx, runloop_func);
 
-    pthread_mutex_lock(&bsc_runloop_mutex);
+    if (runloop == bsc_global_runloop()) {
+        debug_printf(
+            "bsc_runloop_reg() >>> runloop global (%p), ctx = %p, func = %p\n",
+            runloop, ctx, runloop_func);
+    } else {
+        debug_printf(
+            "bsc_runloop_reg() >>> runloop = %p, ctx = %p, func = %p\n",
+            runloop, ctx, runloop_func);
+    }
 
-    if (bsc_runloop_started) {
-        for (i = 0; i < BSC_MAX_CALLBACKS_NUM; i++) {
-            if (!bsc_runloop_ctx[i].ctx) {
-                bsc_runloop_ctx[i].ctx = ctx;
-                bsc_runloop_ctx[i].runloop_func = runloop_func;
-                bsc_runloop_ctx_changed = true;
-                pthread_mutex_unlock(&bsc_runloop_mutex);
+    pthread_mutex_lock(runloop->mutex);
+
+    if (runloop->started) {
+        for (i = 0; i < BSC_RUNLOOP_CALLBACKS_NUM; i++) {
+            if (!runloop->runloop_ctx[i].ctx) {
+                runloop->runloop_ctx[i].ctx = ctx;
+                runloop->runloop_ctx[i].runloop_func = runloop_func;
+                runloop->changed = true;
+                pthread_mutex_unlock(runloop->mutex);
                 debug_printf(
                     "bsc_runloop_schedule() <<< ret = BSC_SC_SUCCESS\n");
                 return BSC_SC_SUCCESS;
             }
         }
-        pthread_mutex_unlock(&bsc_runloop_mutex);
+        pthread_mutex_unlock(runloop->mutex);
         debug_printf("bsc_runloop_schedule() <<< ret = BSC_SC_NO_RESOURCES\n");
         return BSC_SC_NO_RESOURCES;
     }
 
-    pthread_mutex_unlock(&bsc_runloop_mutex);
+    pthread_mutex_unlock(runloop->mutex);
     debug_printf("bsc_runloop_schedule() <<< ret = BSC_SC_INVALID_OPERATION\n");
     return BSC_SC_INVALID_OPERATION;
 }
 
-void bsc_runloop_schedule(void)
+void bsc_runloop_schedule(BSC_RUNLOOP *runloop)
 {
-    debug_printf("bsc_runloop_schedule() >>>\n");
-    pthread_mutex_lock(&bsc_runloop_mutex);
-    if (bsc_runloop_started) {
-        bsc_runloop_process = 1;
-        pthread_cond_signal(&bsc_cond);
+    if (runloop == bsc_global_runloop()) {
+        debug_printf(
+            "bsc_runloop_schedule() >>> runloop global (%p)\n", runloop);
+    } else {
+        debug_printf("bsc_runloop_schedule() >>> runloop = %p\n", runloop);
     }
-    pthread_mutex_unlock(&bsc_runloop_mutex);
+
+    pthread_mutex_lock(runloop->mutex);
+    if (runloop->started) {
+        runloop->process = 1;
+        pthread_cond_signal(&runloop->cond);
+    }
+    pthread_mutex_unlock(runloop->mutex);
     debug_printf("bsc_runloop_schedule() <<<\n");
 }
 
-void bsc_runloop_unreg(void *ctx)
+void bsc_runloop_unreg(BSC_RUNLOOP *runloop, void *ctx)
 {
     int i;
-    debug_printf("bsc_runloop_unreg() >>> ctx = %p\n", ctx);
-    pthread_mutex_lock(&bsc_runloop_mutex);
-    for (i = 0; i < BSC_MAX_CALLBACKS_NUM; i++) {
-        if (bsc_runloop_ctx[i].ctx == ctx) {
-            bsc_runloop_ctx[i].ctx = NULL;
-            bsc_runloop_ctx[i].runloop_func = NULL;
-            bsc_runloop_ctx_changed = true;
+    if (runloop == bsc_global_runloop()) {
+        debug_printf("bsc_runloop_unreg() >>> runloop global (%p), ctx = %p\n",
+            runloop, ctx);
+    } else {
+        debug_printf(
+            "bsc_runloop_unreg() >>> runloop = %p, ctx = %p\n", runloop, ctx);
+    }
+
+    pthread_mutex_lock(runloop->mutex);
+    for (i = 0; i < BSC_RUNLOOP_CALLBACKS_NUM; i++) {
+        if (runloop->runloop_ctx[i].ctx == ctx) {
+            runloop->runloop_ctx[i].ctx = NULL;
+            runloop->runloop_ctx[i].runloop_func = NULL;
+            runloop->changed = true;
             break;
         }
     }
-    pthread_mutex_unlock(&bsc_runloop_mutex);
+    pthread_mutex_unlock(runloop->mutex);
     debug_printf("bsc_runloop_unreg() <<<\n");
 }
 
-void bsc_runloop_stop(void)
+void bsc_runloop_stop(BSC_RUNLOOP *runloop)
 {
-    debug_printf("bsc_runloop_stop() >>>\n");
-    pthread_mutex_lock(&bsc_runloop_mutex);
-    if (bsc_runloop_started) {
-        bsc_runloop_started = false;
-        pthread_cond_signal(&bsc_cond);
-        pthread_mutex_unlock(&bsc_runloop_mutex);
-        pthread_join(bsc_thread_id, NULL);
+    if (runloop == bsc_global_runloop()) {
+        debug_printf("bsc_runloop_stop() >>> runloop global (%p)\n", runloop);
+    } else {
+        debug_printf("bsc_runloop_stop() >>> runloop = %p\n", runloop);
+    }
+    pthread_mutex_lock(runloop->mutex);
+    if (runloop->started) {
+        runloop->started = false;
+        pthread_cond_signal(&runloop->cond);
+        pthread_mutex_unlock(runloop->mutex);
+        pthread_join(runloop->thread_id, NULL);
         debug_printf("bsc_runloop_stop() <<<\n");
         return;
     }
-    pthread_mutex_unlock(&bsc_runloop_mutex);
+    pthread_mutex_unlock(runloop->mutex);
     debug_printf("bsc_runloop_stop() <<<\n");
 }

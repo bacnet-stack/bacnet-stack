@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implementation of websocket client interface for MAC OS / BSD.
+ * @brief Implementation of websocket client interface.
  * @author Kirill Neznamov
  * @date May 2022
  * @section LICENSE
@@ -19,26 +19,16 @@
 #include <pthread.h>
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/debug.h"
-#if 0
-#if (LWS_LIBRARY_VERSION_MAJOR >= 4) && (LWS_LIBRARY_VERSION_MINOR > 2)
-#error \
-    "Unsupported version of libwebsockets. Check details here: bacnet_stack/ports/bsd/websocket-cli.c:26"
-/*
-  Current version of libwebsockets has an issue under macosx.
-  Websockets test shows leakage of file descriptors (pipes) inside
-  libwebsockets library. If you want to use that version of the
-  libwebsockets you must ensure that the issue is fixed.
 
-  You can check it in the following way:
+#define DEBUG_WEBSOCKET_CLIENT 0
 
-  1. Build websockets test in bacnet_stack/test/bacnet/datalink/websockets.
-  2. Run the test in background mode 'test_websocket &' and remember pid
-  3. Run 'lsof -p your_pid' and check that used file descriptors number
-    are not constatly growing"
-*/
-
+#if DEBUG_WEBSOCKET_CLIENT == 1
+#define DEBUG_PRINTF debug_printf
+#else
+#undef DEBUG_ENABLED
+#define DEBUG_PRINTF(...)
 #endif
-#endif
+
 #ifndef LWS_PROTOCOL_LIST_TERM
 #define LWS_PROTOCOL_LIST_TERM       \
     {                                \
@@ -152,61 +142,82 @@ static int bws_cli_websocket_event(struct lws *wsi,
 {
     BSC_WEBSOCKET_HANDLE h;
     int written;
+    BSC_WEBSOCKET_CLI_DISPATCH dispatch_func;
+    void *user_param;
 
-    debug_printf("bws_cli_websocket_event() >>> reason = %d\n", reason);
-    pthread_mutex_lock(&bws_cli_mutex);
-    h = bws_cli_find_connnection(wsi);
-
-    if (h == BSC_WEBSOCKET_INVALID_HANDLE) {
-        debug_printf("bws_cli_websocket_event() can not find websocket handle "
-                     "for wsi %p\n",
-            wsi);
-        pthread_mutex_unlock(&bws_cli_mutex);
-        debug_printf("bws_cli_websocket_event() <<< ret = 0\n");
-        return 0;
-    }
+    DEBUG_PRINTF("bws_cli_websocket_event() >>> reason = %d\n", reason);
 
     switch (reason) {
         case LWS_CALLBACK_CLIENT_ESTABLISHED: {
-            debug_printf("bws_cli_websocket_event() connection established\n");
+            pthread_mutex_lock(&bws_cli_mutex);
+            h = bws_cli_find_connnection(wsi);
+
+            if (h == BSC_WEBSOCKET_INVALID_HANDLE) {
+                DEBUG_PRINTF(
+                    "bws_cli_websocket_event() can not find websocket handle "
+                    "for wsi %p\n",
+                    wsi);
+                pthread_mutex_unlock(&bws_cli_mutex);
+                DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = 0\n");
+                return 0;
+            }
+
+            DEBUG_PRINTF("bws_cli_websocket_event() connection established\n");
             bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_CONNECTED;
-            bws_cli_conn[h].dispatch_func(h, BSC_WEBSOCKET_CONNECTED, NULL, 0,
-                bws_cli_conn[h].user_param);
+            dispatch_func = bws_cli_conn[h].dispatch_func;
+            user_param = bws_cli_conn[h].user_param;
+            pthread_mutex_unlock(&bws_cli_mutex);
+            dispatch_func(h, BSC_WEBSOCKET_CONNECTED, NULL, 0, user_param);
             break;
         }
         case LWS_CALLBACK_CLIENT_RECEIVE: {
-            debug_printf(
+            pthread_mutex_lock(&bws_cli_mutex);
+            h = bws_cli_find_connnection(wsi);
+
+            if (h == BSC_WEBSOCKET_INVALID_HANDLE) {
+                DEBUG_PRINTF(
+                    "bws_cli_websocket_event() can not find websocket handle "
+                    "for wsi %p\n",
+                    wsi);
+                pthread_mutex_unlock(&bws_cli_mutex);
+                DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = 0\n");
+                return 0;
+            }
+            DEBUG_PRINTF(
                 "bws_cli_websocket_event() received %d bytes of data\n", len);
             if (!lws_frame_is_binary(wsi)) {
                 // According AB.7.5.3 BACnet/SC BVLC Message Exchange,
                 // if a received data frame is not binary,
                 // the WebSocket connection shall be closed with a
                 // status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED.
-                debug_printf("bws_cli_websocket_event() got non-binary frame, "
+                DEBUG_PRINTF("bws_cli_websocket_event() got non-binary frame, "
                              "close connection for socket %d\n",
                     h);
                 lws_close_reason(
                     wsi, LWS_CLOSE_STATUS_UNACCEPTABLE_OPCODE, NULL, 0);
                 pthread_mutex_unlock(&bws_cli_mutex);
-                debug_printf("bws_cli_websocket_event() <<< ret = -1\n");
+                DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = -1\n");
                 return -1;
             }
-            if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
+            if (bws_cli_conn[h].state != BSC_WEBSOCKET_STATE_CONNECTED) {
+                pthread_mutex_unlock(&bws_cli_mutex);
+            } else {
                 if (!bws_cli_conn[h].fragment_buffer) {
-                    debug_printf("bws_cli_websocket_event() alloc %d bytes for "
+                    DEBUG_PRINTF("bws_cli_websocket_event() alloc %d bytes for "
                                  "socket %d\n",
                         len, h);
-                    bws_cli_conn[h].fragment_buffer =
-                        malloc(len <= BSC_INITIAL_BUFFER_LEN ?
-                               BSC_INITIAL_BUFFER_LEN : len);
+                    bws_cli_conn[h].fragment_buffer = malloc(
+                        len <= BSC_INITIAL_BUFFER_LEN ? BSC_INITIAL_BUFFER_LEN
+                                                      : len);
                     if (!bws_cli_conn[h].fragment_buffer) {
                         lws_close_reason(
                             wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
                         pthread_mutex_unlock(&bws_cli_mutex);
-                        debug_printf("bws_cli_websocket_event() <<< ret = -1, "
+                        DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = -1, "
                                      "allocation of %d bytes failed\n",
-                            len <= BSC_INITIAL_BUFFER_LEN ?
-                            BSC_INITIAL_BUFFER_LEN : len);
+                            len <= BSC_INITIAL_BUFFER_LEN
+                                ? BSC_INITIAL_BUFFER_LEN
+                                : len);
                         return -1;
                     }
                     bws_cli_conn[h].fragment_buffer_len = 0;
@@ -214,7 +225,7 @@ static int bws_cli_websocket_event(struct lws *wsi,
                 }
                 if (bws_cli_conn[h].fragment_buffer_len + len >
                     bws_cli_conn[h].fragment_buffer_size) {
-                    debug_printf("bws_cli_websocket_event() realloc %d bytes "
+                    DEBUG_PRINTF("bws_cli_websocket_event() realloc %d bytes "
                                  "for socket %d\n",
                         bws_cli_conn[h].fragment_buffer_len + len, h);
                     bws_cli_conn[h].fragment_buffer =
@@ -224,7 +235,7 @@ static int bws_cli_websocket_event(struct lws *wsi,
                         lws_close_reason(
                             wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
                         pthread_mutex_unlock(&bws_cli_mutex);
-                        debug_printf("bws_cli_websocket_event() <<< ret = -1, "
+                        DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = -1, "
                                      "re-allocation of %d bytes failed\n",
                             bws_cli_conn[h].fragment_buffer_len + len);
                         return -1;
@@ -232,7 +243,7 @@ static int bws_cli_websocket_event(struct lws *wsi,
                     bws_cli_conn[h].fragment_buffer_size =
                         bws_cli_conn[h].fragment_buffer_len + len;
                 }
-                debug_printf("bws_cli_websocket_event() got next %d bytes for "
+                DEBUG_PRINTF("bws_cli_websocket_event() got next %d bytes for "
                              "socket %d\n",
                     len, h);
                 memcpy(
@@ -242,47 +253,75 @@ static int bws_cli_websocket_event(struct lws *wsi,
                 bws_cli_conn[h].fragment_buffer_len += len;
 
                 if (lws_is_final_fragment(wsi)) {
-                    debug_printf(
+                    DEBUG_PRINTF(
                         "bws_cli_websocket_event() last fragment received\n");
-                    bws_cli_conn[h].dispatch_func(h, BSC_WEBSOCKET_RECEIVED,
+                    dispatch_func = bws_cli_conn[h].dispatch_func;
+                    user_param = bws_cli_conn[h].user_param;
+                    pthread_mutex_unlock(&bws_cli_mutex);
+                    dispatch_func(h, BSC_WEBSOCKET_RECEIVED,
                         bws_cli_conn[h].fragment_buffer,
-                        bws_cli_conn[h].fragment_buffer_len,
-                        bws_cli_conn[h].user_param);
+                        bws_cli_conn[h].fragment_buffer_len, user_param);
+                    pthread_mutex_lock(&bws_cli_mutex);
                     bws_cli_conn[h].fragment_buffer_len = 0;
+                    pthread_mutex_unlock(&bws_cli_mutex);
+                } else {
+                    pthread_mutex_unlock(&bws_cli_mutex);
                 }
             }
             break;
         }
         case LWS_CALLBACK_CLIENT_WRITEABLE: {
-            debug_printf("bws_cli_websocket_event() can write\n");
+            pthread_mutex_lock(&bws_cli_mutex);
+            h = bws_cli_find_connnection(wsi);
+
+            if (h == BSC_WEBSOCKET_INVALID_HANDLE) {
+                DEBUG_PRINTF(
+                    "bws_cli_websocket_event() can not find websocket handle "
+                    "for wsi %p\n",
+                    wsi);
+                pthread_mutex_unlock(&bws_cli_mutex);
+                DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = 0\n");
+                return 0;
+            }
+
+            DEBUG_PRINTF("bws_cli_websocket_event() can write\n");
             if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED &&
                 bws_cli_conn[h].want_send_data) {
                 bws_cli_conn[h].can_send_data = true;
-                bws_cli_conn[h].dispatch_func(h, BSC_WEBSOCKET_SENDABLE, NULL,
-                    0, bws_cli_conn[h].user_param);
+                dispatch_func = bws_cli_conn[h].dispatch_func;
+                user_param = bws_cli_conn[h].user_param;
+                pthread_mutex_unlock(&bws_cli_mutex);
+                dispatch_func(h, BSC_WEBSOCKET_SENDABLE, NULL, 0, user_param);
+                pthread_mutex_lock(&bws_cli_mutex);
                 bws_cli_conn[h].want_send_data = false;
                 bws_cli_conn[h].can_send_data = false;
+                pthread_mutex_unlock(&bws_cli_mutex);
                 // wakeup worker to process internal state
                 lws_cancel_service(bws_cli_conn[h].ctx);
             } else {
                 bws_cli_conn[h].want_send_data = false;
+                pthread_mutex_unlock(&bws_cli_mutex);
             }
             break;
         }
         case LWS_CALLBACK_CLIENT_CLOSED:
         case LWS_CALLBACK_CLOSED:
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR: {
-            bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_DISCONNECTING;
-            // wakeup worker to process pending event
-            lws_cancel_service(bws_cli_conn[h].ctx);
+            pthread_mutex_lock(&bws_cli_mutex);
+            h = bws_cli_find_connnection(wsi);
+            if (h != BSC_WEBSOCKET_INVALID_HANDLE) {
+                bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_DISCONNECTING;
+                // wakeup worker to process pending event
+                lws_cancel_service(bws_cli_conn[h].ctx);
+            }
+            pthread_mutex_unlock(&bws_cli_mutex);
             break;
         }
         default: {
             break;
         }
     }
-    pthread_mutex_unlock(&bws_cli_mutex);
-    debug_printf("bws_cli_websocket_event() <<< ret = 0\n");
+    DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = 0\n");
     return 0;
 }
 
@@ -290,28 +329,31 @@ static void *bws_cli_worker(void *arg)
 {
     BSC_WEBSOCKET_HANDLE h = *((int *)arg);
     BSC_WEBSOCKET_CONNECTION *conn = &bws_cli_conn[h];
+    BSC_WEBSOCKET_CLI_DISPATCH dispatch_func;
+    void *user_param;
 
     while (1) {
-        debug_printf("bws_cli_worker() lock mutex\n");
+        DEBUG_PRINTF("bws_cli_worker() lock mutex\n");
         pthread_mutex_lock(&bws_cli_mutex);
         if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
             if (bws_cli_conn[h].want_send_data) {
-                debug_printf(
+                DEBUG_PRINTF(
                     "bws_cli_worker() process request for sending data\n");
                 lws_callback_on_writable(conn->ws);
             }
         } else if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
-            debug_printf("bws_cli_worker() process disconnecting event\n");
+            DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
             lws_context_destroy(conn->ctx);
+            dispatch_func = bws_cli_conn[h].dispatch_func;
+            user_param = bws_cli_conn[h].user_param;
             bws_cli_free_connection(h);
-            bws_cli_conn[h].dispatch_func(h, BSC_WEBSOCKET_DISCONNECTED, NULL,
-                0, bws_cli_conn[h].user_param);
             pthread_mutex_unlock(&bws_cli_mutex);
+            dispatch_func(h, BSC_WEBSOCKET_DISCONNECTED, NULL, 0, user_param);
             break;
         }
-        debug_printf("bws_cli_worker() unlock mutex\n");
+        DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
         pthread_mutex_unlock(&bws_cli_mutex);
-        debug_printf("bws_cli_worker() going to block on lws_service() call\n");
+        DEBUG_PRINTF("bws_cli_worker() going to block on lws_service() call\n");
         lws_service(conn->ctx, 0);
     }
 
@@ -340,11 +382,11 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     BSC_WEBSOCKET_RET ret;
     pthread_t thread_id;
 
-    debug_printf("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
+    DEBUG_PRINTF("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
 
     if (!ca_cert || !ca_cert_size || !cert || !cert_size || !key || !key_size ||
         !url || !out_handle || !timeout_s || !dispatch_func) {
-        debug_printf("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
+        DEBUG_PRINTF("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;
     }
 
@@ -352,7 +394,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
 
     if (proto != BSC_WEBSOCKET_HUB_PROTOCOL &&
         proto != BSC_WEBSOCKET_DIRECT_PROTOCOL) {
-        debug_printf("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
+        DEBUG_PRINTF("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;
     }
 
@@ -373,13 +415,13 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
 
     if (port == -1 || !prot || !addr || !path) {
         pthread_mutex_unlock(&bws_cli_mutex);
-        debug_printf("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
+        DEBUG_PRINTF("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;
     }
 
     if (strcmp(prot, "wss") != 0) {
         pthread_mutex_unlock(&bws_cli_mutex);
-        debug_printf("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
+        DEBUG_PRINTF("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;
     }
 
@@ -387,7 +429,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
 
     if (h == BSC_WEBSOCKET_INVALID_HANDLE) {
         pthread_mutex_unlock(&bws_cli_mutex);
-        debug_printf(
+        DEBUG_PRINTF(
             "bws_cli_connect() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
@@ -418,7 +460,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     if (!bws_cli_conn[h].ctx) {
         bws_cli_free_connection(h);
         pthread_mutex_unlock(&bws_cli_mutex);
-        debug_printf(
+        DEBUG_PRINTF(
             "bws_cli_connect() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
@@ -429,7 +471,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
         bws_cli_free_connection(h);
         lws_context_destroy(bws_cli_conn[h].ctx);
         pthread_mutex_unlock(&bws_cli_mutex);
-        debug_printf(
+        DEBUG_PRINTF(
             "bws_cli_connect() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
@@ -457,13 +499,13 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     lws_client_connect_via_info(&cinfo);
     pthread_mutex_unlock(&bws_cli_mutex);
 
-    debug_printf("bws_cli_connect() <<< ret = %d\n", BSC_WEBSOCKET_SUCCESS);
+    DEBUG_PRINTF("bws_cli_connect() <<< ret = %d\n", BSC_WEBSOCKET_SUCCESS);
     return ret;
 }
 
 void bws_cli_disconnect(BSC_WEBSOCKET_HANDLE h)
 {
-    debug_printf("bws_cli_disconnect() >>> h = %d\n", h);
+    DEBUG_PRINTF("bws_cli_disconnect() >>> h = %d\n", h);
 
     if (h >= 0 && h < BSC_CLIENT_WEBSOCKETS_MAX_NUM) {
         pthread_mutex_lock(&bws_cli_mutex);
@@ -478,12 +520,12 @@ void bws_cli_disconnect(BSC_WEBSOCKET_HANDLE h)
         pthread_mutex_unlock(&bws_cli_mutex);
     }
 
-    debug_printf("bws_cli_disconnect() <<<\n");
+    DEBUG_PRINTF("bws_cli_disconnect() <<<\n");
 }
 
 void bws_cli_send(BSC_WEBSOCKET_HANDLE h)
 {
-    debug_printf("bws_cli_send() >>> h = %d\n", h);
+    DEBUG_PRINTF("bws_cli_send() >>> h = %d\n", h);
 
     if (h >= 0 && h < BSC_CLIENT_WEBSOCKETS_MAX_NUM) {
         pthread_mutex_lock(&bws_cli_mutex);
@@ -497,7 +539,7 @@ void bws_cli_send(BSC_WEBSOCKET_HANDLE h)
         pthread_mutex_unlock(&bws_cli_mutex);
     }
 
-    debug_printf("bws_cli_send() <<<\n");
+    DEBUG_PRINTF("bws_cli_send() <<<\n");
 }
 
 BSC_WEBSOCKET_RET bws_cli_dispatch_send(
@@ -507,12 +549,12 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
     uint8_t *tmp_buf;
     BSC_WEBSOCKET_RET ret;
 
-    debug_printf(
+    DEBUG_PRINTF(
         "bws_cli_dispatch_send() >>> h = %d, payload = %p, payload_size = %d\n",
         h, payload, payload_size);
 
     if (h < 0 || h >= BSC_CLIENT_WEBSOCKETS_MAX_NUM) {
-        debug_printf(
+        DEBUG_PRINTF(
             "bws_cli_dispatch_send() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;
     }
@@ -521,7 +563,7 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
 
     if ((bws_cli_conn[h].state != BSC_WEBSOCKET_STATE_CONNECTED) ||
         !bws_cli_conn[h].want_send_data || !bws_cli_conn[h].can_send_data) {
-        debug_printf(
+        DEBUG_PRINTF(
             "bws_cli_dispatch_send() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
         pthread_mutex_unlock(&bws_cli_mutex);
         return BSC_WEBSOCKET_INVALID_OPERATION;
@@ -536,7 +578,7 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
     tmp_buf = malloc(payload_size + LWS_PRE);
 
     if (!tmp_buf) {
-        debug_printf(
+        DEBUG_PRINTF(
             "bws_cli_dispatch_send() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         pthread_mutex_unlock(&bws_cli_mutex);
         return BSC_WEBSOCKET_NO_RESOURCES;
@@ -547,10 +589,10 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
     written = lws_write(
         bws_cli_conn[h].ws, &tmp_buf[LWS_PRE], payload_size, LWS_WRITE_BINARY);
 
-    debug_printf("bws_cli_dispatch_send() %d bytes is sent\n", written);
+    DEBUG_PRINTF("bws_cli_dispatch_send() %d bytes is sent\n", written);
 
     if (written < (int)payload_size) {
-        debug_printf(
+        DEBUG_PRINTF(
             "bws_cli_dispatch_send() websocket connection is broken(closed)\n");
         // tell worker to process change of connection state
         bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_DISCONNECTING;
@@ -562,6 +604,6 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
 
     pthread_mutex_unlock(&bws_cli_mutex);
     free(tmp_buf);
-    debug_printf("bws_cli_dispatch_send() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bws_cli_dispatch_send() <<< ret = %d\n", ret);
     return ret;
 }

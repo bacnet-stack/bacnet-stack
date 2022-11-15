@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implementation of websocket client interface for MAC OS / BSD.
+ * @brief Implementation of websocket client interface.
  * @author Kirill Neznamov
  * @date May 2022
  * @section LICENSE
