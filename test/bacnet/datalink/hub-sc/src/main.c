@@ -1208,6 +1208,13 @@ static void test_hub_simple(void)
     BSC_HUB_FUNCTION_HANDLE hubc_h2;
     char primary_url[128];
     char secondary_url[128];
+    uint8_t buf[256];
+    int len;
+    uint8_t npdu[128];
+    BVLC_SC_DECODED_MESSAGE message;
+    BACNET_ERROR_CODE error;
+    BACNET_ERROR_CLASS class;
+    const char * err_desc;
 
     memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
     memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
@@ -1215,6 +1222,7 @@ static void test_hub_simple(void)
     memset(&hubc_vmac, 0x4, sizeof(hubc_vmac));
     memset(&hubc_uuid2, 0x5, sizeof(hubc_uuid2));
     memset(&hubc_vmac2, 0x6, sizeof(hubc_vmac2));
+    memset(npdu, 0x11, sizeof(npdu));
 
     sprintf(primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
@@ -1272,13 +1280,24 @@ static void test_hub_simple(void)
         primary_url, secondary_url,
         BACNET_TIMEOUT, // reconnect timeout
         hub_connector_event, &hubc_uuid2, &hubc_h2);
-    printf("ret = %d\n", ret);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(
         bsc_hub_connector_status(hubc_h2), BVLC_SC_HUB_CONNECTION_ABSENT, 0);
     zassert_equal(
         wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h2), true,
         0);
+    len = bvlc_sc_encode_encapsulated_npdu(buf, sizeof(buf), 111,
+            NULL, &hubc_vmac, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_hub_connector_send(hubc_h2, buf, len);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    reset_hubc_ev(&hubc);
+    zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_RECEIVED, hubc_h), true, 0);
+    ret = bvlc_sc_decode_message(hubc.pdu, hubc.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
+    zassert_equal(ret, 0, NULL);
     reset_hubc_ev(&hubc);
     zassert_equal(bsc_hub_connector_stopped(hubc_h), false, 0);
     zassert_equal(bsc_hub_connector_status(hubc_h),

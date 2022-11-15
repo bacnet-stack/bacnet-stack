@@ -1214,14 +1214,11 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
     }
 
     if (cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-        bsc_global_mutex_unlock();
 
         ret = bws_srv_start(cfg->proto, cfg->port, cfg->iface,
             cfg->ca_cert_chain, cfg->ca_cert_chain_size, cfg->cert_chain,
             cfg->cert_chain_size, cfg->priv_key, cfg->priv_key_size,
             cfg->connect_timeout_s, bsc_dispatch_srv_func, ctx, &ctx->sh);
-
-        bsc_global_mutex_lock();
 
         sc_ret = bsc_map_websocket_retcode(ret);
 
@@ -1312,8 +1309,6 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
             c->tx_buf_size = 0;
             c->rx_buf_size = 0;
 
-            bsc_global_mutex_unlock();
-
             wret =
                 bws_cli_connect(ctx->cfg->proto, url, ctx->cfg->ca_cert_chain,
                     ctx->cfg->ca_cert_chain_size, ctx->cfg->cert_chain,
@@ -1321,14 +1316,10 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
                     ctx->cfg->priv_key_size, ctx->cfg->connect_timeout_s,
                     bsc_dispatch_cli_func, ctx, &c->wh);
 
-            bsc_global_mutex_lock();
-
             ret = bsc_map_websocket_retcode(wret);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
                 c->state = BSC_SOCK_STATE_IDLE;
             }
-
-            bsc_global_mutex_unlock();
         }
 
         bsc_global_mutex_unlock();

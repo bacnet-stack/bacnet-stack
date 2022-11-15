@@ -139,7 +139,7 @@ static void hub_connector_process_state(void *ctx)
             hub_connector_connect(c, BSC_HUB_CONN_PRIMARY);
         }
     }
-    bsc_global_mutex_lock();
+    bsc_global_mutex_unlock();
 }
 
 static void hub_connector_socket_event(BSC_SOCKET *c,
