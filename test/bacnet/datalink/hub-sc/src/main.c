@@ -1057,7 +1057,7 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define BACNET_WEBSOCKET_SERVER_PORT 40000
 #define BACNET_WEBSOCKET_SERVER_PORT2 40002
 #define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
-#define BACNET_TIMEOUT 5
+#define BACNET_TIMEOUT 3
 #define MAX_BVLC_LEN 1500
 #define MAX_NDPU_LEN 1500
 #define MAX_SERVER_SOCKETS BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
@@ -1194,7 +1194,7 @@ static void hub_function_event(
     signal_hubf_ev(&hubf, ev, h, user_arg);
 }
 
-static void test_hub_simple(void)
+static void test_hub_connector_url(bool primary)
 {
     BSC_SC_RET ret;
     BACNET_SC_UUID hubf_uuid;
@@ -1214,8 +1214,10 @@ static void test_hub_simple(void)
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    const char * err_desc;
+    const char *err_desc;
+    BACNET_SC_VMAC_ADDRESS broadcast_vmac;
 
+    memset(&broadcast_vmac, 0xff, sizeof(broadcast_vmac));
     memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
     memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
     memset(&hubc_uuid, 0x3, sizeof(hubc_uuid));
@@ -1224,10 +1226,17 @@ static void test_hub_simple(void)
     memset(&hubc_vmac2, 0x6, sizeof(hubc_vmac2));
     memset(npdu, 0x11, sizeof(npdu));
 
-    sprintf(primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT);
-    sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
-        BACNET_WEBSOCKET_SERVER_PORT2);
+    if (primary) {
+        sprintf(primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+            BACNET_WEBSOCKET_SERVER_PORT);
+        sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+            BACNET_WEBSOCKET_SERVER_PORT2);
+    } else {
+        sprintf(primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+            BACNET_WEBSOCKET_SERVER_PORT2);
+        sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+            BACNET_WEBSOCKET_SERVER_PORT);
+    }
 
     ret = bsc_runloop_start(bsc_global_runloop());
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
@@ -1263,12 +1272,24 @@ static void test_hub_simple(void)
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(
         bsc_hub_connector_status(hubc_h), BVLC_SC_HUB_CONNECTION_ABSENT, 0);
-    zassert_equal(
-        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true, 0);
+    if (primary) {
+        zassert_equal(
+            wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true,
+            0);
+    } else {
+        zassert_equal(
+            wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_FAILOVER, hubc_h),
+            true, 0);
+    }
     reset_hubc_ev(&hubc);
     zassert_equal(bsc_hub_connector_stopped(hubc_h), false, 0);
-    zassert_equal(bsc_hub_connector_status(hubc_h),
-        BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED, 0);
+    if (primary) {
+        zassert_equal(bsc_hub_connector_status(hubc_h),
+            BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED, 0);
+    } else {
+        zassert_equal(bsc_hub_connector_status(hubc_h),
+            BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED, 0);
+    }
 
     reset_hubc_ev(&hubc);
     ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,
@@ -1283,25 +1304,56 @@ static void test_hub_simple(void)
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(
         bsc_hub_connector_status(hubc_h2), BVLC_SC_HUB_CONNECTION_ABSENT, 0);
-    zassert_equal(
-        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h2), true,
-        0);
-    len = bvlc_sc_encode_encapsulated_npdu(buf, sizeof(buf), 111,
-            NULL, &hubc_vmac, npdu, sizeof(npdu));
+    if (primary) {
+        zassert_equal(
+            wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h2),
+            true, 0);
+    } else {
+        zassert_equal(
+            wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_FAILOVER, hubc_h2),
+            true, 0);
+    }
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 111, NULL, &hubc_vmac, npdu, sizeof(npdu));
     zassert_equal(len > 0, true, NULL);
+    reset_hubc_ev(&hubc);
     ret = bsc_hub_connector_send(hubc_h2, buf, len);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
-    reset_hubc_ev(&hubc);
-    zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_RECEIVED, hubc_h), true, 0);
-    ret = bvlc_sc_decode_message(hubc.pdu, hubc.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_RECEIVED, hubc_h), true, 0);
+    ret = bvlc_sc_decode_message(
+        hubc.pdu, hubc.pdu_len, &message, &error, &class, &err_desc);
     zassert_equal(ret, true, NULL);
-    zassert_equal(sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
+    zassert_equal(ret, 0, NULL);
+    // now send broadcast message
+    memset(npdu, 0x22, sizeof(npdu));
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 222, NULL, &broadcast_vmac, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    reset_hubc_ev(&hubc);
+    ret = bsc_hub_connector_send(hubc_h2, buf, len);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_RECEIVED, hubc_h), true, 0);
+    ret = bvlc_sc_decode_message(
+        hubc.pdu, hubc.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
     reset_hubc_ev(&hubc);
     zassert_equal(bsc_hub_connector_stopped(hubc_h), false, 0);
-    zassert_equal(bsc_hub_connector_status(hubc_h),
-        BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED, 0);
+    if (primary) {
+        zassert_equal(bsc_hub_connector_status(hubc_h),
+            BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED, 0);
+    } else {
+        zassert_equal(bsc_hub_connector_status(hubc_h),
+            BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED, 0);
+    }
     bsc_hub_connector_stop(hubc_h);
     zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
     reset_hubf_ev(&hubf);
@@ -1319,11 +1371,360 @@ static void test_hub_simple(void)
     bsc_runloop_stop(bsc_global_runloop());
 }
 
+static void test_hub_connector_bad_primary_url(void)
+{
+    BSC_SC_RET ret;
+    BACNET_SC_UUID hubf_uuid;
+    BACNET_SC_VMAC_ADDRESS hubf_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubf_h;
+    BACNET_SC_UUID hubc_uuid;
+    BACNET_SC_VMAC_ADDRESS hubc_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubc_h;
+    char primary_url[128];
+    char secondary_url[128];
+    uint8_t buf[256];
+
+    memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
+    memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
+    memset(&hubc_uuid, 0x3, sizeof(hubc_uuid));
+    memset(&hubc_vmac, 0x4, sizeof(hubc_vmac));
+
+    sprintf(primary_url, "wsssdsdfsdf://sdsdf%s:sdfsdf%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+
+    ret = bsc_runloop_start(bsc_global_runloop());
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    init_hubc_ev(&hubc);
+    init_hubf_ev(&hubf);
+
+    ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key),
+        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        hub_function_event,
+        &hubf, // user_arg
+        &hubf_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    reset_hubf_ev(&hubf);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
+    reset_hubc_ev(&hubc);
+    ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_FAILOVER, hubc_h), true,
+        0);
+
+    reset_hubc_ev(&hubc);
+    bsc_hub_connector_stop(hubc_h);
+    zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
+    reset_hubf_ev(&hubf);
+    bsc_hub_function_stop(hubf_h);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h), true, 0);
+    deinit_hubc_ev(&hubc);
+    deinit_hubf_ev(&hubf);
+    bsc_runloop_stop(bsc_global_runloop());
+}
+
+static void test_hub_bad_params(void)
+{
+    BSC_SC_RET ret;
+    BACNET_SC_UUID hubc_uuid;
+    BACNET_SC_VMAC_ADDRESS hubc_vmac;
+    BACNET_SC_UUID hubc_uuid2;
+    BACNET_SC_VMAC_ADDRESS hubc_vmac2;
+    BSC_HUB_FUNCTION_HANDLE hubc_h;
+    BSC_HUB_FUNCTION_HANDLE hubc_h2;
+    BSC_HUB_FUNCTION_HANDLE hubc_h3;
+    char primary_url[2 * BSC_WSURL_MAX_LEN];
+    char secondary_url[2 * BSC_WSURL_MAX_LEN];
+
+    memset(&hubc_uuid, 0x3, sizeof(hubc_uuid));
+    memset(&hubc_vmac, 0x4, sizeof(hubc_vmac));
+    memset(&hubc_uuid2, 0x5, sizeof(hubc_uuid));
+    memset(&hubc_vmac2, 0x6, sizeof(hubc_vmac));
+    sprintf(primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+    sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT2);
+
+    init_hubc_ev(&hubc);
+
+    ret = bsc_runloop_start(bsc_global_runloop());
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    ret = bsc_hub_connector_start(NULL, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
+
+    ret = bsc_hub_connector_start(NULL, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
+
+    memset(primary_url, 0x22, sizeof(primary_url));
+    primary_url[2 * BSC_WSURL_MAX_LEN - 1] = 0;
+    ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
+
+    sprintf(primary_url, "wsssdsdfsdf://sdsdf%s:sdfsdf%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    sprintf(secondary_url, "wss23413r234://sdfsdfsdf%s:r234%2d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
+    ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
+
+    sprintf(primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+
+    sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT2);
+
+    ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_vmac, &hubc_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+
+    ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_vmac2, &hubc_h2);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+
+    ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_h3, &hubc_h3);
+    zassert_equal(ret, BSC_SC_NO_RESOURCES, 0);
+
+    reset_hubc_ev(&hubc);
+    bsc_hub_connector_stop(hubc_h);
+    zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
+
+    reset_hubc_ev(&hubc);
+    bsc_hub_connector_stop(hubc_h2);
+    ret = bsc_hub_connector_send(
+        hubc_h, (uint8_t *)&hubc_uuid, sizeof(hubc_uuid));
+    zassert_equal(ret, BSC_SC_INVALID_OPERATION, 0);
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h2), true, 0);
+    bsc_runloop_stop(bsc_global_runloop());
+    deinit_hubc_ev(&hubc);
+}
+
+static void test_hub_connector_primary_url(void)
+{
+    test_hub_connector_url(true);
+}
+
+static void test_hub_connector_secondary_url(void)
+{
+    test_hub_connector_url(false);
+}
+
+static void test_hub_connector_reconnect(void)
+{
+    BSC_SC_RET ret;
+    BACNET_SC_UUID hubf_uuid;
+    BACNET_SC_VMAC_ADDRESS hubf_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubf_h;
+    BACNET_SC_UUID hubf_uuid2;
+    BACNET_SC_VMAC_ADDRESS hubf_vmac2;
+    BSC_HUB_FUNCTION_HANDLE hubf_h2;
+    BACNET_SC_UUID hubc_uuid;
+    BACNET_SC_VMAC_ADDRESS hubc_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubc_h;
+    char primary_url[128];
+    char secondary_url[128];
+    uint8_t buf[256];
+
+    memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
+    memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
+    memset(&hubf_uuid, 0x3, sizeof(hubf_uuid));
+    memset(&hubf_vmac, 0x4, sizeof(hubf_vmac));
+    memset(&hubc_uuid, 0x5, sizeof(hubc_uuid));
+    memset(&hubc_vmac, 0x6, sizeof(hubc_vmac));
+
+    sprintf(primary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT);
+    sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
+        BACNET_WEBSOCKET_SERVER_PORT2);
+
+    ret = bsc_runloop_start(bsc_global_runloop());
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    init_hubc_ev(&hubc);
+    init_hubf_ev(&hubf);
+
+    ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key),
+        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        hub_function_event,
+        &hubf, // user_arg
+        &hubf_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    reset_hubf_ev(&hubf);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
+
+    reset_hubf_ev(&hubf);
+    ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key),
+        BACNET_WEBSOCKET_SERVER_PORT2, NULL, &hubf_uuid2, &hubf_vmac2,
+        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        hub_function_event,
+        &hubf_vmac2, // user_arg
+        &hubf_h2);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    zassert_equal(
+        wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h2), true, 0);
+
+    reset_hubc_ev(&hubc);
+    ret = bsc_hub_connector_start(ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
+        &hubc_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true, 0);
+
+    reset_hubf_ev(&hubf);
+    reset_hubc_ev(&hubc);
+
+    bsc_hub_function_stop(hubf_h);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h), true, 0);
+
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_FAILOVER, hubc_h), true,
+        0);
+
+    reset_hubf_ev(&hubf);
+    reset_hubc_ev(&hubc);
+
+    bsc_hub_function_stop(hubf_h2);
+    zassert_equal(
+        wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h2), true, 0);
+
+    reset_hubf_ev(&hubf);
+    reset_hubc_ev(&hubc);
+
+    ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key),
+        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        hub_function_event,
+        &hubf, // user_arg
+        &hubf_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    reset_hubf_ev(&hubf);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
+
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true, 0);
+
+    bsc_hub_connector_stop(hubc_h);
+    zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
+    bsc_hub_function_stop(hubf_h);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h), true, 0);
+    deinit_hubc_ev(&hubc);
+    deinit_hubf_ev(&hubf);
+    bsc_runloop_stop(bsc_global_runloop());
+}
+
 void test_main(void)
 {
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
+    int i;
+    ztest_test_suite(
+        hub_test_1, ztest_unit_test(test_hub_connector_primary_url));
+    ztest_test_suite(
+        hub_test_2, ztest_unit_test(test_hub_connector_secondary_url));
+    ztest_test_suite(
+        hub_test_3, ztest_unit_test(test_hub_connector_bad_primary_url));
+    ztest_test_suite(hub_test_4, ztest_unit_test(test_hub_bad_params));
+    ztest_test_suite(hub_test_5, ztest_unit_test(test_hub_connector_reconnect));
 
-    ztest_test_suite(hub_test_1, ztest_unit_test(test_hub_simple));
-    ztest_run_test_suite(hub_test_1);
+    // for(i=0; i< 10; i++)
+    {
+        ztest_run_test_suite(hub_test_1);
+        ztest_run_test_suite(hub_test_2);
+        ztest_run_test_suite(hub_test_3);
+        ztest_run_test_suite(hub_test_4);
+        ztest_run_test_suite(hub_test_5);
+    }
 }

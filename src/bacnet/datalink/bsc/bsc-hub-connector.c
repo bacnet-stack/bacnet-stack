@@ -27,12 +27,6 @@ typedef enum {
     BSC_HUB_CONN_FAILOVER = 1
 } BSC_HUB_CONN_TYPE;
 
-static BSC_SOCKET *hub_connector_find_connection_for_vmac(
-    BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg);
-
-static BSC_SOCKET *hub_connector_find_connection_for_uuid(
-    BACNET_SC_UUID *uuid, void *user_arg);
-
 static void hub_connector_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BSC_SC_RET err,
@@ -71,23 +65,8 @@ typedef struct BSC_Hub_Connector {
 static BSC_HUB_CONNECTOR bsc_hub_connector[BSC_CONF_HUB_CONNECTORS_NUM] = { 0 };
 static bool bsc_runloop_registered;
 
-static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = {
-    hub_connector_find_connection_for_vmac,
-    hub_connector_find_connection_for_uuid, hub_connector_socket_event,
-    hub_connector_context_event
-};
-
-static BSC_SOCKET *hub_connector_find_connection_for_vmac(
-    BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg)
-{
-    return NULL;
-}
-
-static BSC_SOCKET *hub_connector_find_connection_for_uuid(
-    BACNET_SC_UUID *uuid, void *user_arg)
-{
-    return NULL;
-}
+static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = { NULL, NULL,
+    hub_connector_socket_event, hub_connector_context_event };
 
 static BSC_HUB_CONNECTOR *hub_connector_alloc(void)
 {
@@ -120,12 +99,13 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
     ret = bsc_connect(&p->ctx, &p->sock[type],
         (type == BSC_HUB_CONN_PRIMARY) ? (char *)p->primary_url
                                        : (char *)p->failover_url);
-
+#if DEBUG_ENABLED == 1
     if (ret != BSC_SC_SUCCESS) {
         debug_printf("hub_connector_connect() got error while "
                      "connecting to hub type %d, err = %d\n",
             type, ret);
     }
+#endif
 }
 
 static void hub_connector_process_state(void *ctx)
@@ -185,14 +165,9 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
             mstimer_set(&hc->t, hc->reconnect_timeout_s * 1000);
         } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY ||
             hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER) {
-            hc->event_func(
-                BSC_HUBC_EVENT_DISCONNECTED, hc, hc->user_arg, NULL, 0, NULL);
             hub_connector_connect(hc, BSC_HUB_CONN_PRIMARY);
         }
     } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
-        if (decoded_pdu->hdr.origin == NULL) {
-            pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
-        }
         hc->event_func(BSC_HUBC_EVENT_RECEIVED, hc, hc->user_arg, *ppdu,
             pdu_len, decoded_pdu);
     }
@@ -305,6 +280,7 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
                 ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_FAILOVER],
                     (char *)c->failover_url);
                 if (ret != BSC_SC_SUCCESS) {
+                    c->state = BSC_HUB_CONNECTOR_STATE_IDLE;
                     bsc_runloop_unreg(bsc_global_runloop(), c);
                     bsc_deinit_ctx(&c->ctx);
                     hub_connector_free(c);
@@ -354,6 +330,7 @@ BSC_SC_RET bsc_hub_connector_send(
         debug_printf("bsc_hub_connector_send() pdu is dropped\n");
         debug_printf(
             "bsc_hub_connector_send() <<< ret = BSC_SC_INVALID_OPERATION\n");
+        bsc_global_mutex_unlock();
         return BSC_SC_INVALID_OPERATION;
     }
     if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY) {

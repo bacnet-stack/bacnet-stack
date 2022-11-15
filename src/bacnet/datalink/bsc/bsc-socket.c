@@ -1050,11 +1050,14 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         debug_printf("bsc_dispatch_cli_func() <<< warning, can not find "
                      "connection object for websocket %d\n",
             h);
+        bsc_global_mutex_unlock();
+        return;
     }
 
     debug_printf("bsc_dispatch_cli_func() ev = %d, state = %d\n", ev, c->state);
 
     if (ev == BSC_WEBSOCKET_DISCONNECTED) {
+        debug_printf("bsc_dispatch_cli_func() ctx->state = %d%d\n", ctx->state);
         if (ctx->state == BSC_CTX_STATE_DEINITIALIZING) {
             c->state = BSC_SOCK_STATE_IDLE;
             for (i = 0; i < ctx->sock_num; i++) {
@@ -1183,11 +1186,18 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
         "bsc_init_сtx() >>> ctx = %p, cfg = %p, funcs = %p, user_arg = %p\n",
         ctx, cfg, funcs, user_arg);
 
-    if (!ctx || !cfg || !funcs || !funcs->find_connection_for_vmac ||
-        !funcs->find_connection_for_uuid || !funcs->socket_event ||
+    if (!ctx || !cfg || !funcs || !funcs->socket_event ||
         !funcs->context_event || !sockets || !sockets_num) {
         debug_printf("bsc_init_ctx() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
+    }
+
+    if (cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
+        if (!funcs->find_connection_for_vmac ||
+            !funcs->find_connection_for_uuid) {
+            debug_printf("bsc_init_ctx() <<< ret = BSC_SC_BAD_PARAM\n");
+            return BSC_SC_BAD_PARAM;
+        }
     }
 
     bsc_global_mutex_lock();
@@ -1214,7 +1224,6 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
     }
 
     if (cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-
         ret = bws_srv_start(cfg->proto, cfg->port, cfg->iface,
             cfg->ca_cert_chain, cfg->ca_cert_chain_size, cfg->cert_chain,
             cfg->cert_chain_size, cfg->priv_key, cfg->priv_key_size,
@@ -1242,10 +1251,6 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
 {
     int i;
     bool active_socket = false;
-    BSC_WEBSOCKET_HANDLE wh;
-    BSC_WEBSOCKET_SRV_HANDLE sh;
-    bool need_stop = false;
-    bool need_disconnect = false;
     debug_printf("bsc_deinit_ctx() >>> ctx = %p\n", ctx);
 
     bsc_global_mutex_lock();
@@ -1263,8 +1268,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         for (i = 0; i < ctx->sock_num; i++) {
             if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                 active_socket = true;
-                need_disconnect = true;
-                wh = ctx->sock[i].wh;
+                bws_cli_disconnect(ctx->sock[i].wh);
             }
         }
         if (!active_socket) {
@@ -1273,19 +1277,10 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         }
     } else {
         ctx->state = BSC_CTX_STATE_DEINITIALIZING;
-        sh = ctx->sh;
-        need_stop = true;
+        bws_srv_stop(ctx->sh);
     }
 
     bsc_global_mutex_unlock();
-
-    if (need_disconnect) {
-        bws_cli_disconnect(wh);
-    }
-    if (need_stop) {
-        bws_srv_stop(sh);
-    }
-
     debug_printf("bsc_deinit_ctx() <<<\n");
 }
 
@@ -1333,10 +1328,6 @@ BACNET_STACK_EXPORT
 void bsc_disconnect(BSC_SOCKET *c)
 {
     uint16_t len;
-    BSC_WEBSOCKET_HANDLE wh;
-    BSC_WEBSOCKET_SRV_HANDLE sh;
-    bool need_cli_disconnect = false;
-    bool need_srv_disconnect = false;
 
     debug_printf("bsc_disconnect() >>> c = %p\n", c);
 
@@ -1368,26 +1359,16 @@ void bsc_disconnect(BSC_SOCKET *c)
             }
         } else if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
             if (c->state != BSC_SOCK_STATE_IDLE) {
-                wh = c->wh;
-                need_cli_disconnect = true;
+                bws_cli_disconnect(c->wh);
             }
         } else if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
             if (c->state != BSC_SOCK_STATE_IDLE) {
-                sh = c->ctx->sh;
-                wh = c->wh;
-                need_srv_disconnect = true;
+                bws_srv_disconnect(c->ctx->sh, c->wh);
             }
         }
     }
 
     bsc_global_mutex_unlock();
-
-    if (need_cli_disconnect) {
-        bws_cli_disconnect(wh);
-    }
-    if (need_srv_disconnect) {
-        bws_srv_disconnect(sh, wh);
-    }
 
     debug_printf("bsc_disconnect() <<<\n");
 }
@@ -1396,10 +1377,6 @@ BACNET_STACK_EXPORT
 BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
 {
     BSC_SC_RET ret = BSC_SC_SUCCESS;
-    BSC_WEBSOCKET_HANDLE wh;
-    BSC_WEBSOCKET_SRV_HANDLE sh;
-    bool need_cli_send = false;
-    bool need_srv_send = false;
 
     debug_printf(
         "bsc_send() >>> c = %p, pdu = %p, pdu_len = %d\n", c, pdu, pdu_len);
@@ -1422,24 +1399,14 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
                     &c->tx_buf[c->tx_buf_size + sizeof(pdu_len)], pdu, pdu_len);
                 c->tx_buf_size += pdu_len + sizeof(pdu_len);
                 if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
-                    wh = c->wh;
-                    need_cli_send = true;
+                    bws_cli_send(c->wh);
                 } else {
-                    wh = c->wh;
-                    sh = c->ctx->sh;
-                    need_srv_send = true;
+                    bws_srv_send(c->ctx->sh, c->wh);
                 }
             }
         }
 
         bsc_global_mutex_unlock();
-
-        if (need_cli_send) {
-            bws_cli_send(wh);
-        }
-        if (need_srv_send) {
-            bws_srv_send(sh, wh);
-        }
     }
 
     debug_printf("bsc_disconnect() <<< ret = %d\n", ret);
