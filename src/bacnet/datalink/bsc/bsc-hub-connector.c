@@ -45,7 +45,8 @@ typedef enum {
     BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY = 3,
     BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER = 4,
     BSC_HUB_CONNECTOR_STATE_WAIT_FOR_RECONNECT = 5,
-    BSC_HUB_CONNECTOR_STATE_WAIT_FOR_CTX_DEINIT = 6
+    BSC_HUB_CONNECTOR_STATE_WAIT_FOR_CTX_DEINIT = 6,
+    BSC_HUB_CONNECTOR_STATE_DUPLICATED_VMAC = 7
 } BSC_HUB_CONNECTOR_STATE;
 
 typedef struct BSC_Hub_Connector {
@@ -139,6 +140,7 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
                  "= %p, ev = %d, err = %d, "
                  "pdu = %p, pdu_len = %d\n",
         hc, c, ev, err, pdu, pdu_len);
+    debug_printf("hub_connector_socket_event() state = %d\n", hc->state);
     if (ev == BSC_SOCKET_EVENT_CONNECTED) {
         if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
             hc->state = BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY;
@@ -153,10 +155,12 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
         if (err == BSC_SC_DUPLICATED_VMAC) {
             debug_printf("hub_connector_socket_event()"
                          "got BSC_SC_DUPLICATED_VMAC error\n");
+            hc->state = BSC_HUB_CONNECTOR_STATE_DUPLICATED_VMAC;
             hc->event_func(BSC_HUBC_EVENT_ERROR_DUPLICATED_VMAC, hc,
                 hc->user_arg, NULL, 0, NULL);
-        }
-        if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
+        } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
+            debug_printf("hub_connector_socket_event() try to connect to "
+                         "failover hub\n");
             hub_connector_connect(hc, BSC_HUB_CONN_FAILOVER);
         } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER) {
             debug_printf("hub_connector_socket_event() wait for %d seconds\n",
@@ -165,6 +169,8 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
             mstimer_set(&hc->t, hc->reconnect_timeout_s * 1000);
         } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY ||
             hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER) {
+            debug_printf(
+                "hub_connector_socket_event() try to connect to primary hub\n");
             hub_connector_connect(hc, BSC_HUB_CONN_PRIMARY);
         }
     } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {

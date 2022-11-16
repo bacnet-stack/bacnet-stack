@@ -609,6 +609,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     info.server_ssl_private_key_mem = key;
     info.server_ssl_private_key_mem_len = key_size;
     info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+    info.options |= LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;
     info.timeout_secs = timeout_s;
     info.connect_timeout_secs = timeout_s;
     info.user = ctx;

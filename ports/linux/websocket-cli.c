@@ -483,6 +483,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     info.client_ssl_key_mem = key;
     info.client_ssl_key_mem_len = key_size;
     info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+    info.options |= LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;
     info.timeout_secs = timeout_s;
     info.connect_timeout_secs = timeout_s;
     bws_cli_conn[h].ctx = lws_create_context(&info);

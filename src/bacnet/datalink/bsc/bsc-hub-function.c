@@ -114,10 +114,11 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
         debug_printf("hubf = %p, sock %p, state = %d, uuid = %s\n", f,
             &f->sock[i], f->sock[i].state,
             bsc_uuid_to_string(&f->sock[i].uuid));
-        if (f->sock[i].state == BSC_SOCK_STATE_CONNECTED &&
+        if (f->sock[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(
                 &uuid->uuid[0], &f->sock[i].uuid.uuid[0], sizeof(uuid->uuid))) {
             bsc_global_mutex_unlock();
+            debug_printf("found socket\n");
             return &f->sock[i];
         }
     }
@@ -155,11 +156,13 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                         // address into pdu by extending of it's header
                         pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
                         ret = bsc_send(&f->sock[i], *ppdu, pdu_len);
+#if DEBUG_ENABLED == 1
                         if (ret != BSC_SC_SUCCESS) {
                             debug_printf("sending of reconstructed pdu failed, "
                                          "err = %d\n",
                                 ret);
                         }
+#endif
                     }
                 }
             } else {
@@ -172,11 +175,13 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                 } else {
                     bvlc_sc_remove_dest_set_orig(pdu, pdu_len, &c->vmac);
                     ret = bsc_send(dst, pdu, pdu_len);
+#if DEBUG_ENABLED == 1
                     if (ret != BSC_SC_SUCCESS) {
                         debug_printf(
                             "sending of pdu of %d bytes failed, err = %d\n",
                             pdu_len, ret);
                     }
+#endif
                 }
             }
         }
