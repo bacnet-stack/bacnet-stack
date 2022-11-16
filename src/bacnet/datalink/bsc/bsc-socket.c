@@ -356,11 +356,17 @@ static void bsc_process_socket_state(
     p = c->rx_buf;
     while (c->rx_buf_size) {
         memcpy(&len, p, sizeof(len));
+        debug_printf("bsc_process_socket_state() pdu_len = %d\n", len);
         // We always reserve BSC_PRE bytes before BVLC message header
         // to avoid copying of packet payload during manipulation with
         // origin and dest addresses (add them to received PDU)
         p += sizeof(len) + BSC_PRE;
+        debug_printf("bsc_process_socket_state() pdu offset %ld in rx_buf\n",
+            p - c->rx_buf);
+
         c->rx_buf_size -= len + sizeof(len) + BSC_PRE;
+        debug_printf("bsc_process_socket_state() %d bytes are in rx buf\n",
+            c->rx_buf_size);
 
         if (!bvlc_sc_decode_message(p, len, &c->dm, &code, &class, &err_desc)) {
             // if code == ERROR_CODE_OTHER that means that received bvlc message
@@ -442,6 +448,7 @@ static void bsc_process_socket_state(
                 bsc_process_socket_disconnecting(c, p, len, need_disconnect);
             }
         }
+        p += len;
     }
 
     expired = mstimer_expired(&c->t);
@@ -708,6 +715,15 @@ static void bsc_process_srv_awaiting_request(
         bsc_copy_vmac(&c->vmac, c->dm.payload.connect_request.vmac);
         bsc_copy_uuid(&c->uuid, c->dm.payload.connect_request.uuid);
 
+        debug_printf("bsc_process_srv_awaiting_request() local vmac = %s, "
+                     "local uuid = %s\n",
+            bsc_vmac_to_string(&c->ctx->cfg->local_vmac),
+            bsc_uuid_to_string(&c->ctx->cfg->local_uuid));
+
+        debug_printf("bsc_process_srv_awaiting_request() remote vmac = %s, "
+                     "remote uuid = %s\n",
+            bsc_vmac_to_string(&c->vmac), bsc_uuid_to_string(&c->uuid));
+
         if (memcmp(&c->vmac.address, &c->ctx->cfg->local_vmac.address,
                 sizeof(c->ctx->cfg->local_vmac.address)) == 0 &&
             memcmp(&c->uuid.uuid, &c->ctx->cfg->local_uuid.uuid,
@@ -885,6 +901,9 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                 // to avoid copying of packet payload during manipulation with
                 // origin and dest addresses (add them to received PDU)
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
+                debug_printf(
+                    "bsc_dispatch_cli_func() pdu offset %zu in rx_buf\n",
+                    c->rx_buf_size);
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
                 bsc_runloop_schedule(bsc_global_runloop());
@@ -1121,11 +1140,14 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
 
         while (c->tx_buf_size > 0) {
             memcpy(&len, p, sizeof(len));
+            debug_printf(
+                "bsc_dispatch_cli_func() sending pdu of %d bytes\n", len);
             wret = bws_cli_dispatch_send(c->wh, &p[sizeof(len)], len);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
-                debug_printf("bsc_dispatch_cli_func() send data failed, start "
-                             "disconnect operation on socket %p\n",
-                    c);
+                debug_printf(
+                    "bsc_dispatch_cli_func() pdu send failed, err = %d, start "
+                    "disconnect operation on socket %p\n",
+                    wret, c);
                 bsc_cli_process_error(c, bsc_map_websocket_retcode(wret));
                 break;
             } else {
@@ -1152,8 +1174,13 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 // to avoid copying of packet payload during manipulation with
                 // origin and dest addresses (add them to received PDU)
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
+                debug_printf(
+                    "bsc_dispatch_cli_func() pdu offset %zu in rx_buf\n",
+                    c->rx_buf_size);
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
+                debug_printf("bsc_dispatch_cli_func() c->rx_buf_size = %zu\n",
+                    c->rx_buf_size);
                 bsc_runloop_schedule(bsc_global_runloop());
             } else {
                 debug_printf("bsc_dispatch_cli_func() no space in rx_buf, "
@@ -1409,7 +1436,7 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
         bsc_global_mutex_unlock();
     }
 
-    debug_printf("bsc_disconnect() <<< ret = %d\n", ret);
+    debug_printf("bsc_send() <<< ret = %d\n", ret);
     return ret;
 }
 

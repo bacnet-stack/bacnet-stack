@@ -29,6 +29,25 @@
 #define DEBUG_PRINTF(...)
 #endif
 
+#if (LWS_LIBRARY_VERSION_MAJOR >= 4) && (LWS_LIBRARY_VERSION_MINOR > 2)
+#error \
+    "Unsupported version of libwebsockets. Check details here: bacnet_stack/ports/bsd/websocket-cli.c:26"
+/*
+  Current version of libwebsockets has an issue under macosx.
+  Websockets test shows leakage of file descriptors (pipes) inside
+  libwebsockets library. If you want to use that version of the
+  libwebsockets you must ensure that the issue is fixed.
+
+  You can check it in the following way:
+
+  1. Build websockets test in bacnet_stack/test/bacnet/datalink/websockets.
+  2. Run the test in background mode 'test_websocket &' and remember pid
+  3. Run 'lsof -p your_pid' and check that used file descriptors number
+    are not constatly growing"
+*/
+
+#endif
+
 #ifndef LWS_PROTOCOL_LIST_TERM
 #define LWS_PROTOCOL_LIST_TERM       \
     {                                \
@@ -284,7 +303,10 @@ static int bws_cli_websocket_event(struct lws *wsi,
                 return 0;
             }
 
-            DEBUG_PRINTF("bws_cli_websocket_event() can write\n");
+            DEBUG_PRINTF("bws_cli_websocket_event() can write, state = %d\n",
+                bws_cli_conn[h].state);
+            DEBUG_PRINTF("bws_cli_websocket_event() ws = %d, cs = %d\n",
+                bws_cli_conn[h].want_send_data, bws_cli_conn[h].can_send_data);
             if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED &&
                 bws_cli_conn[h].want_send_data) {
                 bws_cli_conn[h].can_send_data = true;
@@ -295,11 +317,19 @@ static int bws_cli_websocket_event(struct lws *wsi,
                 pthread_mutex_lock(&bws_cli_mutex);
                 bws_cli_conn[h].want_send_data = false;
                 bws_cli_conn[h].can_send_data = false;
+                DEBUG_PRINTF(
+                    "bws_cli_websocket_event() was send , ws = %d, cs = %d\n",
+                    bws_cli_conn[h].want_send_data,
+                    bws_cli_conn[h].can_send_data);
                 pthread_mutex_unlock(&bws_cli_mutex);
                 // wakeup worker to process internal state
                 lws_cancel_service(bws_cli_conn[h].ctx);
             } else {
                 bws_cli_conn[h].want_send_data = false;
+                DEBUG_PRINTF(
+                    "bws_cli_websocket_event() no send, ws = %d, cs = %d\n",
+                    bws_cli_conn[h].want_send_data,
+                    bws_cli_conn[h].can_send_data);
                 pthread_mutex_unlock(&bws_cli_mutex);
             }
             break;
@@ -533,6 +563,7 @@ void bws_cli_send(BSC_WEBSOCKET_HANDLE h)
         if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
             // tell worker to process send request
             bws_cli_conn[h].want_send_data = true;
+            DEBUG_PRINTF("bws_cli_send() cs = 1\n");
             lws_cancel_service(bws_cli_conn[h].ctx);
         }
 
@@ -563,14 +594,14 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
 
     if ((bws_cli_conn[h].state != BSC_WEBSOCKET_STATE_CONNECTED) ||
         !bws_cli_conn[h].want_send_data || !bws_cli_conn[h].can_send_data) {
-        DEBUG_PRINTF(
-            "bws_cli_dispatch_send() <<< ret = BACNET_WEBSOCKET_BAD_PARAM\n");
+        DEBUG_PRINTF("bws_cli_dispatch_send() state = %d, ws = %d, cs = %d\n",
+            bws_cli_conn[h].state, bws_cli_conn[h].want_send_data,
+            bws_cli_conn[h].can_send_data);
+        DEBUG_PRINTF("bws_cli_dispatch_send() <<< ret = "
+                     "BSC_WEBSOCKET_INVALID_OPERATION\n");
         pthread_mutex_unlock(&bws_cli_mutex);
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
-
-    bws_cli_conn[h].want_send_data = false;
-    bws_cli_conn[h].can_send_data = false;
 
     // malloc() and copying is evil, but libwesockets wants some space before
     // actual payload.

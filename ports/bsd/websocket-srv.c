@@ -770,9 +770,6 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
-    ctx->conn[h].want_send_data = false;
-    ctx->conn[h].can_send_data = false;
-
     // malloc() and copying is evil, but libwesockets wants some space before
     // actual payload.
 
