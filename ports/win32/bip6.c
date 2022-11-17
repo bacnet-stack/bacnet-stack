@@ -113,7 +113,6 @@ void bip6_set_interface(char *ifname)
     int i, RetVal;
     struct addrinfo Hints, *AddrInfo, *AI;
     struct sockaddr_in6 *sin;
-    struct sockaddr_in6 server = {};
     struct in6_addr broadcast_address = {};
     struct ipv6_mreq join_request = {};
     SOCKET ServSock[FD_SETSIZE] = {};
@@ -224,12 +223,7 @@ void bip6_set_interface(char *ifname)
         // the application is a server that has a well-known port
         // that clients know about in advance.
         //
-        memset(&server, 0, sizeof(server));
-        server.sin6_family = AF_INET6;
-        server.sin6_port = htons(BIP6_Addr.port);
-        server.sin6_addr = in6addr_any;
-        if (bind(BIP6_Socket, (struct sockaddr *)&server, sizeof(server)) ==
-            SOCKET_ERROR) {
+        if (bind(BIP6_Socket, AI->ai_addr, AI->ai_addrlen) == SOCKET_ERROR) {
             fprintf(stderr, "BIP6: bind() failed with error %d: %s\n",
                 WSAGetLastError(), PrintError(WSAGetLastError()));
             closesocket(ServSock[i]);

@@ -422,7 +422,7 @@ bool bip6_init(char *ifname)
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
     }
-    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", htons(BIP6_Addr.port));
+    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
     if (BIP6_Broadcast_Addr.address[0] == 0) {
         bvlc6_address_set(&BIP6_Broadcast_Addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0,
             0, 0, 0, 0, BIP6_MULTICAST_GROUP_ID);
@@ -464,8 +464,23 @@ bool bip6_init(char *ifname)
 
     /* bind the socket to the local port number and IP address */
     server.sin6_family = AF_INET6;
+#if 0
+    uint16_t addr16[8];
+    bvlc6_address_get(&BIP6_Addr, &addr16[0], &addr16[1], &addr16[2],
+        &addr16[3], &addr16[4], &addr16[5], &addr16[6], &addr16[7]);
+    server.sin6_addr.s6_addr16[0] = htons(addr16[0]);
+    server.sin6_addr.s6_addr16[1] = htons(addr16[1]);
+    server.sin6_addr.s6_addr16[2] = htons(addr16[2]);
+    server.sin6_addr.s6_addr16[3] = htons(addr16[3]);
+    server.sin6_addr.s6_addr16[4] = htons(addr16[4]);
+    server.sin6_addr.s6_addr16[5] = htons(addr16[5]);
+    server.sin6_addr.s6_addr16[6] = htons(addr16[6]);
+    server.sin6_addr.s6_addr16[7] = htons(addr16[7]);
+#else
     server.sin6_addr = in6addr_any;
+#endif
     server.sin6_port = htons(BIP6_Addr.port);
+    debug_print_ipv6("Binding->", &server.sin6_addr);
     status = bind(BIP6_Socket, (const void *)&server, sizeof(server));
     if (status < 0) {
         perror("BIP: bind");
