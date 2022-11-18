@@ -40,6 +40,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/apdu.h"
+#include "bacnet/readrange.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/object/sc_netport.h"
@@ -47,6 +48,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+    BACNET_STACK_EXPORT
+    unsigned Network_Port_Object_Number();
 
     BACNET_STACK_EXPORT
     void Network_Port_Property_Lists(
@@ -64,6 +68,9 @@ extern "C" {
     bool Network_Port_Object_Name(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
+    BACNET_STACK_EXPORT
+    const char *Network_Port_Object_Name_char(
+        uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Network_Port_Name_Set(
         uint32_t object_instance,
@@ -349,6 +356,9 @@ extern "C" {
     bool Network_Port_IPv6_Zone_Index(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING *zone_index);
+    BACNET_STACK_EXPORT
+    const char *Network_Port_IPv6_Zone_Index_char(
+        uint32_t object_instance);
     BACNET_STACK_EXPORT
     bool Network_Port_IPv6_Gateway_Zone_Index_Set(
         uint32_t object_instance,

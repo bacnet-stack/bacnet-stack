@@ -32,11 +32,14 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/apdu.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/tsm/tsm.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
+#include "bacnet/basic/object/sc_netport.h"
+#include "bacnet/basic/object/bacfile.h"
 #endif
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
@@ -264,17 +267,112 @@ int dlenv_register_as_foreign_device(void)
 }
 
 #if (BACNET_PROTOCOL_REVISION >= 17)
+
+void dlenv_network_init(uint32_t instance,
+    uint8_t *ca_cert_chain,
+    size_t ca_cert_chain_size,
+    uint8_t *cert_chain,
+    size_t cert_chain_size,
+    uint8_t *key,
+    size_t key_size,
+    char* iface,
+    BACNET_SC_UUID *local_uuid,
+    BACNET_SC_VMAC_ADDRESS *local_vmac,
+    char *primaryURL,
+    char *failoverURL)
+{
+    unsigned netport_index = Network_Port_Instance_To_Index(instance);
+    unsigned file_index = SC_NETPORT_BACFILE_START_INDEX +
+        netport_index * SC_NETPORT_FILES_PER_CONNECT;
+    unsigned file_instance = file_index + 1;
+
+    bacfile_instance_memory_set(file_index + 0, file_instance + 0,
+        ca_cert_chain, ca_cert_chain_size);
+    Network_Port_Issuer_Certificate_File_Set(instance, 0, file_instance + 0);
+    bacfile_instance_memory_set(file_index + 1, file_instance + 1,
+        cert_chain, cert_chain_size);
+    Network_Port_Operational_Certificate_File_Set(instance, file_instance + 1);
+    bacfile_instance_memory_set(file_index + 2, file_instance + 2,
+        key, key_size);
+    Network_Port_Certificate_Key_File_Set(instance, file_instance + 2);
+
+#if BSC_CONF_HUB_CONNECTORS_NUM==1
+    Network_Port_SC_Direct_Connect_Binding_Set(instance, iface);
+#endif
+#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+    Network_Port_SC_Hub_Function_Binding_Set(instance, iface);
+#endif
+
+    Network_Port_SC_Local_UUID_Set(instance, (BACNET_UUID*)local_uuid);
+
+    Network_Port_MAC_Address_Set(instance, local_vmac->address,
+        sizeof(*local_vmac));
+
+    Network_Port_SC_Primary_Hub_URI_Set(instance, primaryURL);
+    Network_Port_SC_Failover_Hub_URI_Set(instance, failoverURL);
+}
+
+static void dlenv_network_port_common_init(uint32_t instance)
+{
+    int i;
+    
+    /* common NP data */
+    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
+    Network_Port_Out_Of_Service_Set(instance, false);
+    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
+    Network_Port_APDU_Length_Set(instance, MAX_APDU);
+    Network_Port_Network_Number_Set(instance, 0);
+
+    /* SC parameters */
+    Network_Port_Max_BVLC_Length_Accepted_Set(instance,
+        SC_NETPORT_BVLC_MAX);
+    Network_Port_Max_NPDU_Length_Accepted_Set(instance,
+        SC_NETPORT_NPDU_MAX);
+    Network_Port_SC_Connect_Wait_Timeout_Set(instance,
+        SC_NETPORT_CONNECT_TIMEOUT);
+    Network_Port_SC_Heartbeat_Timeout_Set(instance,
+        SC_NETPORT_HEARTBEAT_TIMEOUT);
+    Network_Port_SC_Disconnect_Wait_Timeout_Set(instance,
+        SC_NETPORT_DISCONNECT_TIMEOUT);
+    Network_Port_SC_Maximum_Reconnect_Time_Set(instance, 
+        SC_NETPORT_RECONNECT_TIME);
+
+#if BSC_CONF_HUB_CONNECTORS_NUM==1
+    Network_Port_SC_Direct_Server_Port_Set(instance,
+        SC_NETPORT_DIRECT_SERVER_PORT);
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance,
+        SC_NETPORT_DIRECT_CONNECT_INITIATLE);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,
+        SC_NETPORT_DIRECT_CONNECT_ACCERT);
+#endif
+#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+    Network_Port_SC_Hub_Server_Port_Set(instance,
+        SC_NETPORT_HUB_SERVER_PORT);
+    Network_Port_SC_Hub_Function_Enable_Set(instance,
+        SC_NETPORT_HUB_FUNCTION_ENABLE);
+#endif
+
+#if BSC_CONF_HUB_CONNECTORS_NUM==1
+    char *accertURLs[] = SC_NETPORT_DIRECT_CONNECT_ACCERT_URI;
+    for (i = 0; accertURLs[i] != NULL; i++) {
+        Network_Port_SC_Direct_Connect_Accept_URI_Set(instance, i, 
+            accertURLs[i]);
+    }
+#endif
+}
+
 #if defined(BACDL_BIP)
 /**
  * Datalink network port object settings
  */
-void dlenv_network_port_init(void)
+void dlenv_network_port_init(unsigned index, uint32_t instance)
 {
-    const uint32_t instance = 1;
+    //const uint32_t instance = 1;
     BACNET_IP_ADDRESS addr = { 0 };
     uint8_t addr0, addr1, addr2, addr3;
+    unsigned i;
 
-    Network_Port_Object_Instance_Number_Set(0, instance);
+    Network_Port_Object_Instance_Number_Set(index, instance);
     Network_Port_Name_Set(instance, "BACnet/IP Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BIP);
     bip_get_addr(&addr);
@@ -292,12 +390,9 @@ void dlenv_network_port_init(void)
     Network_Port_Remote_BBMD_BIP_Port_Set(instance, BBMD_Address.port);
     Network_Port_Remote_BBMD_BIP_Lifetime_Set(instance, BBMD_TTL_Seconds);
 #endif
-    /* common NP data */
-    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
-    Network_Port_Out_Of_Service_Set(instance, false);
-    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
-    Network_Port_APDU_Length_Set(instance, MAX_APDU);
-    Network_Port_Network_Number_Set(instance, 0);
+
+    dlenv_network_port_common_init(instance);
+
     /* last thing - clear pending changes - we don't want to set these
        since they are already set */
     Network_Port_Changes_Pending_Set(instance, false);
@@ -306,7 +401,7 @@ void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-void dlenv_network_port_init(void)
+void dlenv_network_port_init(unsigned index, uint32_t instance)
 {
     uint32_t instance = 1;
     uint8_t mac[1] = { 0 };
@@ -319,12 +414,9 @@ void dlenv_network_port_init(void)
     Network_Port_Link_Speed_Set(instance, dlmstp_baud_rate());
     mac[0] = dlmstp_mac_address();
     Network_Port_MAC_Address_Set(instance, &mac[0], 1);
-    /* common NP data */
-    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
-    Network_Port_Out_Of_Service_Set(instance, false);
-    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
-    Network_Port_APDU_Length_Set(instance, MAX_APDU);
-    Network_Port_Network_Number_Set(instance, 0);
+
+    dlenv_network_port_common_init(instance);
+
     /* last thing - clear pending changes - we don't want to set these
        since they are already set */
     Network_Port_Changes_Pending_Set(instance, false);
@@ -333,7 +425,7 @@ void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-void dlenv_network_port_init(void)
+void dlenv_network_port_init(unsigned index, uint32_t instance)
 {
     uint32_t instance = 1;
     uint8_t prefix = 0;
@@ -352,12 +444,10 @@ void dlenv_network_port_init(void)
     Network_Port_IPv6_Multicast_Address_Set(instance, &addr6.address[0]);
     Network_Port_IPv6_Subnet_Prefix_Set(instance, prefix);
 
-    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
     Network_Port_Link_Speed_Set(instance, 0.0);
-    Network_Port_Out_Of_Service_Set(instance, false);
-    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
-    Network_Port_APDU_Length_Set(instance, MAX_APDU);
-    Network_Port_Network_Number_Set(instance, 0);
+
+    dlenv_network_port_common_init(instance);
+
     /* last thing - clear pending changes - we don't want to set these
        since they are already set */
     Network_Port_Changes_Pending_Set(instance, false);
@@ -366,7 +456,7 @@ void dlenv_network_port_init(void)
 /**
  * Datalink network port object settings
  */
-void dlenv_network_port_init(void)
+void dlenv_network_port_init(unsigned index, uint32_t instance)
 {
     /* do nothing */
 }
@@ -452,6 +542,7 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 void dlenv_init(void)
 {
     char *pEnv = NULL;
+    unsigned i;
 
 #if defined(BACDL_ALL)
     pEnv = getenv("BACNET_DATALINK");
@@ -566,6 +657,7 @@ void dlenv_init(void)
         tsm_invokeID_set((uint8_t)strtol(pEnv, NULL, 0));
     }
 #endif
-    dlenv_network_port_init();
+    for (i = 0; i< Network_Port_Object_Number(); i++)
+        dlenv_network_port_init(i, i + 1);
     dlenv_register_as_foreign_device();
 }

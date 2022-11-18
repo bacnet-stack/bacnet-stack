@@ -1,0 +1,236 @@
+# SPDX-License-Identifier: MIT
+
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+get_filename_component(basename ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+
+project(test_${basename}
+  VERSION 1.0.0
+  LANGUAGES C)
+
+find_package(Threads)
+find_package(libwebsockets CONFIG REQUIRED)
+find_package(PkgConfig)
+pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
+find_package(OpenSSL)
+
+string(REGEX REPLACE
+    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/src"
+    SRC_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR})
+string(REGEX REPLACE
+    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/ports"
+    PORTS_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR})
+string(REGEX REPLACE
+    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/test"
+    TST_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR})
+set(ZTST_DIR "${TST_DIR}/ztest/src")
+
+add_compile_definitions(
+  BIG_ENDIAN=0
+  CONFIG_ZTEST=1
+  MAX_BACFILES=10
+  BACNET_NETWORK_PORTS_MAX=2
+  BACNET_SECURE_CONNECT
+  )
+
+include_directories(
+  ${SRC_DIR}
+  ${TST_DIR}/ztest/include
+  )
+
+if(ZEPHYR_BASE)
+  message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "Websockets test: building for linux")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
+
+  add_executable(${PROJECT_NAME}
+    ${PORTS_DIR}/linux/websocket-cli.c
+    ${PORTS_DIR}/linux/websocket-srv.c
+    ${PORTS_DIR}/linux/websocket-mutex.c
+    ${PORTS_DIR}/linux/bsc-runloop.c
+    ${PORTS_DIR}/linux/bsc-mutex.c
+    ${PORTS_DIR}/linux/bsc-event.c
+    ${PORTS_DIR}/linux/mstimer-init.c
+    ${PORTS_DIR}/linux/bip-init.c
+    ${SRC_DIR}/bacnet/datalink/dlenv.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-datalink.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
+    ${SRC_DIR}/bacnet/basic/bbmd/h_bbmd.c
+    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
+    ${SRC_DIR}/bacnet/basic/object/netport.c
+    ${SRC_DIR}/bacnet/basic/object/sc_netport.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/fifo.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/basic/tsm/tsm.c
+    ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacaddr.c
+    ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
+    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/dcc.c
+    ${SRC_DIR}/bacnet/indtext.c
+    ${SRC_DIR}/bacnet/hostnport.c
+    ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/npdu.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/timestamp.c
+    ${SRC_DIR}/bacnet/wp.c
+    # Test and test library files
+    ./src/main.c
+    ${ZTST_DIR}/ztest_mock.c
+    ${ZTST_DIR}/ztest.c
+    )
+  target_link_libraries(${PROJECT_NAME}
+                        ${LIB_WEBSOCKETS_LIBRARIES}
+  )
+elseif(WIN32)
+  message(STATUS "Websockets test: building for win32")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
+
+  target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
+
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    winmm
+    ws2_32>
+    iphlpapi>)
+
+  add_executable(${PROJECT_NAME}
+    ${PORTS_DIR}/win32/websocket-cli.c
+    ${PORTS_DIR}/win32/websocket-srv.c
+    ${PORTS_DIR}/win32/websocket-mutex.c
+    ${PORTS_DIR}/win32/bsc-runloop.c
+    ${PORTS_DIR}/win32/bsc-mutex.c
+    ${PORTS_DIR}/win32/bsc-event.c
+    ${PORTS_DIR}/win32/mstimer-init.c
+    ${PORTS_DIR}/win32/bip-init.c
+    ${SRC_DIR}/bacnet/datalink/dlenv.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-datalink.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
+    ${SRC_DIR}/bacnet/basic/bbmd/h_bbmd.c
+    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
+    ${SRC_DIR}/bacnet/basic/object/netport.c
+    ${SRC_DIR}/bacnet/basic/object/sc_netport.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/fifo.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/basic/tsm/tsm.c
+    ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacaddr.c
+    ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
+    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/dcc.c
+    ${SRC_DIR}/bacnet/indtext.c
+    ${SRC_DIR}/bacnet/hostnport.c
+    ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/npdu.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/timestamp.c
+    ${SRC_DIR}/bacnet/wp.c
+    # Test and test library files
+    ./src/main.c
+    ${ZTST_DIR}/ztest_mock.c
+    ${ZTST_DIR}/ztest.c
+    )
+
+elseif(APPLE)
+  message(STATUS "Websockets test: building for APPLE")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  add_executable(${PROJECT_NAME}
+    ${PORTS_DIR}/bsd/websocket-cli.c
+    ${PORTS_DIR}/bsd/websocket-srv.c
+    ${PORTS_DIR}/bsd/websocket-mutex.c
+    ${PORTS_DIR}/bsd/bsc-runloop.c
+    ${PORTS_DIR}/bsd/bsc-mutex.c
+    ${PORTS_DIR}/bsd/bsc-event.c
+    ${PORTS_DIR}/bsd/mstimer-init.c
+    ${PORTS_DIR}/bsd/bip-init.c
+    ${SRC_DIR}/bacnet/datalink/dlenv.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-datalink.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
+    ${SRC_DIR}/bacnet/basic/bbmd/h_bbmd.c
+    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
+    ${SRC_DIR}/bacnet/basic/object/netport.c
+    ${SRC_DIR}/bacnet/basic/object/sc_netport.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/fifo.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/basic/tsm/tsm.c
+    ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacaddr.c
+    ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
+    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/dcc.c
+    ${SRC_DIR}/bacnet/indtext.c
+    ${SRC_DIR}/bacnet/hostnport.c
+    ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/npdu.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/timestamp.c
+    ${SRC_DIR}/bacnet/wp.c
+    # Test and test library files
+    ./src/main.c
+    ${ZTST_DIR}/ztest_mock.c
+    ${ZTST_DIR}/ztest.c
+    )
+  target_link_libraries(${PROJECT_NAME}
+                        ${LIB_WEBSOCKETS_LIBRARIES}
+  )
+endif()
+

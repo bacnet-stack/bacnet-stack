@@ -69,4 +69,35 @@
 
 #endif
 
+/* Netport custom prperties */
+#define PROP_SC_CERTIFICATE_KEY_FILE       PROP_PROPRIETARY_RANGE_MIN
+#define PROP_SC_LOCAL_UUID                 (PROP_PROPRIETARY_RANGE_MIN + 1)
+#define PROP_SC_HUB_SERVER_PORT            (PROP_PROPRIETARY_RANGE_MIN + 2)
+#define PROP_SC_DIRECT_SERVER_PORT         (PROP_PROPRIETARY_RANGE_MIN + 3)
+
+/* Netport constants */
+#define SC_NETPORT_BVLC_MAX                     1500
+#define SC_NETPORT_NPDU_MAX                     1500
+#define SC_NETPORT_CONNECT_TIMEOUT              5
+#define SC_NETPORT_HEARTBEAT_TIMEOUT            5
+#define SC_NETPORT_DISCONNECT_TIMEOUT           5
+#define SC_NETPORT_RECONNECT_TIME               5
+#define SC_NETPORT_DIRECT_SERVER_PORT           40000
+#define SC_NETPORT_DIRECT_CONNECT_INITIATLE     true
+#define SC_NETPORT_DIRECT_CONNECT_ACCERT        true
+#define SC_NETPORT_HUB_SERVER_PORT              40001
+#define SC_NETPORT_HUB_FUNCTION_ENABLE          true
+#ifndef SC_NETPORT_BACFILE_START_INDEX
+#define SC_NETPORT_BACFILE_START_INDEX          0
+#endif
+#ifndef SC_NETPORT_FILES_PER_CONNECT
+#define SC_NETPORT_FILES_PER_CONNECT            3
+#endif
+
+#define SC_NETPORT_DIRECT_CONNECT_ACCERT_URI  { \
+    "SC_Direct_Connect_Accept_URI1",            \
+    "SC_Direct_Connect_Accept_URI2",            \
+    NULL                                        \
+}
+
 #endif

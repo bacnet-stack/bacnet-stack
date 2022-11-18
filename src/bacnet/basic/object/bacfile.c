@@ -44,19 +44,40 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/bacfile.h"
 
+#ifndef max
+#define max(a, b) (((a)(b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+
+typedef enum {
+    BACFILE_UNKNOWN = 0,
+    BACFILE_FILE = 1,
+    BACFILE_MEMORY = 2,
+} BACFILE_TYPES;
+
+typedef struct {
+    char *pointer;
+    BACNET_UNSIGNED_INTEGER length;
+} BACNET_MEMORY_FILE;
+
 typedef struct {
     uint32_t instance;
-    char *filename;
+    BACFILE_TYPES type;
+    union {
+        char *filename;
+        BACNET_MEMORY_FILE memory;
+    };
 } BACNET_FILE_LISTING;
 
 #ifndef FILE_RECORD_SIZE
 #define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
 #endif
 
-static BACNET_FILE_LISTING BACnet_File_Listing[] = {
-    { 0, "temp_0.txt" }, { 1, "temp_1.txt" }, { 2, "temp_2.txt" },
-    { 0, NULL } /* last file indication */
-};
+#ifndef MAX_BACFILES
+#define MAX_BACFILES 4
+#endif
+
+static BACNET_FILE_LISTING BACnet_File_Listing[MAX_BACFILES] = { 0 };
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int bacfile_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
@@ -86,19 +107,21 @@ void BACfile_Property_Lists(
 
 static char *bacfile_name(uint32_t instance)
 {
-    uint32_t index = 0;
-    char *filename = NULL;
+    static char filename[20];
+    unsigned index = bacfile_instance_to_index(instance);
+    if (index >= MAX_BACFILES)
+        return NULL;
 
-    /* linear search for file instance match */
-    while (BACnet_File_Listing[index].filename) {
-        if (BACnet_File_Listing[index].instance == instance) {
-            filename = BACnet_File_Listing[index].filename;
-            break;
-        }
-        index++;
+    switch (BACnet_File_Listing[index].type) {
+        case BACFILE_FILE:
+            return BACnet_File_Listing[index].filename;
+        case BACFILE_MEMORY:
+            snprintf(filename, sizeof(filename), "MEM %d", instance);
+            return filename;
+        default:
     }
 
-    return filename;
+    return NULL;
 }
 
 bool bacfile_object_name(
@@ -122,33 +145,34 @@ bool bacfile_valid_instance(uint32_t object_instance)
 
 uint32_t bacfile_count(void)
 {
-    uint32_t index = 0;
+    uint32_t count = 0;
+    int i;
 
-    /* linear search for file instance match */
-    while (BACnet_File_Listing[index].filename) {
-        index++;
-    }
+    for (i = 0; i < MAX_BACFILES; i++)
+        if (BACnet_File_Listing[i].type != BACFILE_UNKNOWN)
+            count++;
 
-    return index;
+    return count;
 }
 
 uint32_t bacfile_index_to_instance(unsigned find_index)
 {
-    uint32_t instance = BACNET_MAX_INSTANCE + 1;
-    uint32_t index = 0;
-
     /* bounds checking... */
-    while (BACnet_File_Listing[index].filename) {
-        if (index == find_index) {
-            instance = BACnet_File_Listing[index].instance;
-            break;
-        }
-        index++;
-    }
-
-    return instance;
+    return ((find_index < MAX_BACFILES) &&
+            (BACnet_File_Listing[find_index].type != BACFILE_UNKNOWN)) ?
+        BACnet_File_Listing[find_index].instance : 
+        BACNET_MAX_INSTANCE + 1;
 }
 
+unsigned bacfile_instance_to_index(uint32_t instance)
+{
+    int i;
+    for (i = 0; i < MAX_BACFILES; i++)
+        if (BACnet_File_Listing[i].instance == instance)
+            return i;
+    return MAX_BACFILES;
+}
+    
 static long fsize(FILE *pFile)
 {
     long size = 0;
@@ -165,21 +189,30 @@ static long fsize(FILE *pFile)
 
 BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
 {
-    char *pFilename = NULL;
     FILE *pFile = NULL;
     long file_position = 0;
     BACNET_UNSIGNED_INTEGER file_size = 0;
 
-    pFilename = bacfile_name(object_instance);
-    if (pFilename) {
-        pFile = fopen(pFilename, "rb");
-        if (pFile) {
-            file_position = fsize(pFile);
-            if (file_position >= 0) {
-                file_size = (BACNET_UNSIGNED_INTEGER)file_position;
+    unsigned index = bacfile_instance_to_index(object_instance);
+
+    if (index >= MAX_BACFILES)
+        return file_size;
+
+    switch (BACnet_File_Listing[index].type) {
+        case BACFILE_FILE:
+            pFile = fopen(BACnet_File_Listing[index].filename, "rb");
+            if (pFile) {
+                file_position = fsize(pFile);
+                if (file_position >= 0) {
+                    file_size = (BACNET_UNSIGNED_INTEGER)file_position;
+                }
+                fclose(pFile);
             }
-            fclose(pFile);
-        }
+            break;
+        case BACFILE_MEMORY:
+            file_size = BACnet_File_Listing[index].memory.length;
+            break;
+        default:
     }
 
     return file_size;
@@ -354,18 +387,106 @@ uint32_t bacfile_instance(char *filename)
 {
     uint32_t index = 0;
     uint32_t instance = BACNET_MAX_INSTANCE + 1;
+    char name[20];
+    char *pf;
 
     /* linear search for filename match */
-    while (BACnet_File_Listing[index].filename) {
-        if (strcmp(BACnet_File_Listing[index].filename, filename) == 0) {
+    for (index = 0; index < MAX_BACFILES; index++) {
+        switch (BACnet_File_Listing[index].type) {
+            case BACFILE_FILE:
+                pf = BACnet_File_Listing[index].filename;
+                break;
+            case BACFILE_MEMORY:
+                snprintf(name, sizeof(name), "MEM %d",
+                    BACnet_File_Listing[index].instance);
+                pf = name;
+                break;
+            default:
+                name[0] = 0;
+                pf = name;
+        }
+
+        if (strcmp(pf, filename) == 0) {
             instance = BACnet_File_Listing[index].instance;
             break;
         }
-        index++;
     }
 
     return instance;
 }
+
+bool bacfile_instance_set(unsigned index, uint32_t object_instance,
+    char *filename)
+{
+    if (index >= MAX_BACFILES)
+        return false;
+    BACnet_File_Listing[index].instance = object_instance;
+    BACnet_File_Listing[index].type = BACFILE_FILE;
+    BACnet_File_Listing[index].filename = filename;
+    return true;
+}
+
+bool bacfile_instance_memory_set(unsigned index, uint32_t object_instance,
+    void *pointer, BACNET_UNSIGNED_INTEGER length)
+{
+    if (index >= MAX_BACFILES)
+        return false;
+    BACnet_File_Listing[index].instance = object_instance;
+    BACnet_File_Listing[index].type = BACFILE_MEMORY;
+    BACnet_File_Listing[index].memory.pointer = pointer;
+    BACnet_File_Listing[index].memory.length = length;
+    return true;
+}
+
+BACNET_UNSIGNED_INTEGER bacfile_instance_context(uint32_t object_instance,
+    void *pointer, BACNET_UNSIGNED_INTEGER max_length)
+{
+    unsigned index = bacfile_instance_to_index(object_instance);
+    BACNET_UNSIGNED_INTEGER ret = 0;
+    FILE *pFile = NULL;
+
+    if (index >= MAX_BACFILES)
+        return ret;
+
+    switch (BACnet_File_Listing[index].type) {
+        case BACFILE_FILE:
+            pFile = fopen(BACnet_File_Listing[index].filename, "rb");
+            if (pFile) {
+                ret = fread(pointer, 1, max_length, pFile);
+                fclose(pFile);
+            }
+            break;
+        case BACFILE_MEMORY:
+            ret = min(max_length, BACnet_File_Listing[index].memory.length);
+            memcpy(pointer, BACnet_File_Listing[index].memory.pointer, ret);
+            break;
+        default:
+    }
+    return ret;
+}
+
+char *bacfile_instance_memory_context(uint32_t object_instance,
+    void *pointer, BACNET_UNSIGNED_INTEGER max_length)
+{
+    if ((pointer != NULL) && (max_length != 0)) {
+        bacfile_instance_context(object_instance, pointer, max_length);
+        return pointer;
+    }
+
+    unsigned index = bacfile_instance_to_index(object_instance);
+
+    if (index >= MAX_BACFILES)
+        return NULL;
+
+    switch (BACnet_File_Listing[index].type) {
+        case BACFILE_MEMORY:
+            return BACnet_File_Listing[index].memory.pointer;
+            break;
+        default:
+    }
+    return NULL;
+}
+
 
 #if MAX_TSM_TRANSACTIONS
 /* this is one way to match up the invoke ID with */
@@ -416,36 +537,51 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
 
 bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 {
-    char *pFilename = NULL;
-    bool found = false;
     FILE *pFile = NULL;
     size_t len = 0;
 
-    pFilename = bacfile_name(data->object_instance);
-    if (pFilename) {
-        found = true;
-        pFile = fopen(pFilename, "rb");
-        if (pFile) {
-            (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
-            len = fread(octetstring_value(&data->fileData[0]), 1,
-                data->type.stream.requestedOctetCount, pFile);
-            if (len < data->type.stream.requestedOctetCount) {
-                data->endOfFile = true;
-            } else {
-                data->endOfFile = false;
-            }
-            octetstring_truncate(&data->fileData[0], len);
-            fclose(pFile);
-        } else {
-            octetstring_truncate(&data->fileData[0], 0);
-            data->endOfFile = true;
-        }
-    } else {
+    unsigned index = bacfile_instance_to_index(data->object_instance);
+    if ((index >= MAX_BACFILES) ||
+        (BACnet_File_Listing[index].type == BACFILE_UNKNOWN)){
         octetstring_truncate(&data->fileData[0], 0);
         data->endOfFile = true;
+        return false;
     }
 
-    return found;
+    switch (BACnet_File_Listing[index].type) {
+        case BACFILE_FILE:
+            pFile = fopen(BACnet_File_Listing[index].filename, "rb");
+            if (pFile) {
+                (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
+                len = fread(octetstring_value(&data->fileData[0]), 1,
+                    data->type.stream.requestedOctetCount, pFile);
+                data->endOfFile = len < data->type.stream.requestedOctetCount;
+                octetstring_truncate(&data->fileData[0], len);
+                fclose(pFile);
+            } else {
+                octetstring_truncate(&data->fileData[0], 0);
+                data->endOfFile = true;
+            }
+            break;
+        case BACFILE_MEMORY:
+            if (BACnet_File_Listing[index].memory.length >= 
+                data->type.stream.fileStartPosition) {
+                len = min(data->type.stream.requestedOctetCount,
+                    BACnet_File_Listing[index].memory.length - 
+                    data->type.stream.fileStartPosition);
+            } else {
+                len  = 0;
+            }
+            memcpy(octetstring_value(&data->fileData[0]),
+                BACnet_File_Listing[index].memory.pointer +
+                data->type.stream.fileStartPosition, len);
+            octetstring_truncate(&data->fileData[0], len);
+            data->endOfFile = len < data->type.stream.requestedOctetCount;
+            break;
+        default:
+    }
+
+    return true;
 }
 
 bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
@@ -453,6 +589,12 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
     char *pFilename = NULL;
     bool found = false;
     FILE *pFile = NULL;
+
+    unsigned index = bacfile_instance_to_index(data->object_instance);
+    if ((index >= MAX_BACFILES) ||
+        (BACnet_File_Listing[index].type != BACFILE_FILE)){
+        return found;
+    }
 
     pFilename = bacfile_name(data->object_instance);
     if (pFilename) {
@@ -493,6 +635,12 @@ bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
     uint32_t i = 0;
     char dummy_data[FILE_RECORD_SIZE];
     char *pData = NULL;
+
+    unsigned index = bacfile_instance_to_index(data->object_instance);
+    if ((index >= MAX_BACFILES) ||
+        (BACnet_File_Listing[index].type != BACFILE_FILE)){
+        return found;
+    }
 
     pFilename = bacfile_name(data->object_instance);
     if (pFilename) {
@@ -541,6 +689,12 @@ bool bacfile_read_ack_stream_data(
     FILE *pFile = NULL;
     char *pFilename = NULL;
 
+    unsigned index = bacfile_instance_to_index(instance);
+    if ((index >= MAX_BACFILES) ||
+        (BACnet_File_Listing[index].type != BACFILE_FILE)){
+        return found;
+    }
+
     pFilename = bacfile_name(instance);
     if (pFilename) {
         found = true;
@@ -570,6 +724,12 @@ bool bacfile_read_ack_record_data(
     uint32_t i = 0;
     char dummy_data[MAX_OCTET_STRING_BYTES] = { 0 };
     char *pData = NULL;
+
+    unsigned index = bacfile_instance_to_index(instance);
+    if ((index >= MAX_BACFILES) ||
+        (BACnet_File_Listing[index].type != BACFILE_FILE)){
+        return found;
+    }
 
     pFilename = bacfile_name(instance);
     if (pFilename) {

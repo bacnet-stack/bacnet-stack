@@ -21,6 +21,7 @@
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/object/sc_netport.h"
 
 typedef struct BSC_Node BSC_NODE;
 
@@ -47,6 +48,7 @@ typedef struct {
 } BSC_ADDRESS_RESOLUTION;
 
 typedef struct {
+   uint32_t object_instance;
    uint8_t *ca_cert_chain;
    size_t ca_cert_chain_size;
    uint8_t *cert_chain;
@@ -54,7 +56,7 @@ typedef struct {
    uint8_t *key;
    size_t key_size;
    BACNET_SC_UUID *local_uuid;
-   BACNET_SC_VMAC_ADDRESS *local_vmac;
+   BACNET_SC_VMAC_ADDRESS local_vmac;
    uint16_t max_local_bvlc_len;
    uint16_t max_local_npdu_len;
    unsigned int connect_timeout_s;
@@ -71,7 +73,9 @@ typedef struct {
    bool direct_connect_accept_enable;
    bool direct_connect_initiate_enable;
    bool hub_function_enabled;
-   char* direct_connection_accept_uris; // URIs joined ' 'space
+    // URIs joined ' 'space
+   char direct_connection_accept_uris[BACNET_SC_DIRECT_ACCEPT_URI_MAX *
+                                      (BACNET_URI_LENGHT + 1)]; 
    unsigned int direct_connection_accept_uris_len;
    BSC_NODE_EVENT_FUNC event_func;
 } BSC_NODE_CONF;

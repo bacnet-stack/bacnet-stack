@@ -37,3 +37,6 @@ uint16_t bsc_receive(BACNET_ADDRESS *src,
     uint8_t *pdu,
     uint16_t max_pdu,
     unsigned timeout);
+
+BACNET_STACK_EXPORT
+void bsc_init_conf(uint32_t instance);

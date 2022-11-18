@@ -28,5 +28,6 @@ void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src);
 char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac);
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid);
 void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p);
+void bsc_generate_random_uuid(BACNET_SC_UUID *p);
 
 #endif

@@ -77,3 +77,12 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
     }
 }
 
+void bsc_generate_random_uuid(BACNET_SC_UUID *p)
+{
+    int i;
+
+    for (i = 0; i < BVLC_SC_UUID_SIZE; i++) {
+        p->uuid[i] = rand() % 255;
+    }
+}
+

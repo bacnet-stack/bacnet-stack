@@ -145,13 +145,25 @@ bool Network_Port_SC_Primary_Hub_URI(uint32_t object_instance,
     return status;
 }
 
+const char *Network_Port_SC_Primary_Hub_URI_char(uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (params && params->SC_Primary_Hub_URI[0]) {
+        return params->SC_Primary_Hub_URI;
+    }
+    return NULL;
+}
+
 bool Network_Port_SC_Primary_Hub_URI_Set(uint32_t object_instance, char *str)
 {
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    snprintf(params->SC_Primary_Hub_URI, sizeof(params->SC_Primary_Hub_URI),
-        "%s", str);
+    if (str)
+        snprintf(params->SC_Primary_Hub_URI, sizeof(params->SC_Primary_Hub_URI),
+            "%s", str);
+    else
+        params->SC_Primary_Hub_URI[0] = 0;
 
     return true;
 }
@@ -162,8 +174,11 @@ bool Network_Port_SC_Primary_Hub_URI_Dirty_Set(uint32_t object_instance,
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    snprintf(params->SC_Primary_Hub_URI_dirty,
-        sizeof(params->SC_Primary_Hub_URI_dirty), "%s", str);
+    if (str)
+        snprintf(params->SC_Primary_Hub_URI_dirty,
+            sizeof(params->SC_Primary_Hub_URI_dirty), "%s", str);
+    else
+        params->SC_Primary_Hub_URI_dirty[0] = 0;
     Network_Port_Changes_Pending_Set(object_instance, true);
 
     return true;
@@ -181,13 +196,26 @@ bool Network_Port_SC_Failover_Hub_URI(uint32_t object_instance,
     return status;
 }
 
+const char *Network_Port_SC_Failover_Hub_URI_char(uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (params && params->SC_Failover_Hub_URI[0]) {
+        return params->SC_Failover_Hub_URI;
+    }
+
+    return NULL;
+}
+
 bool Network_Port_SC_Failover_Hub_URI_Set(uint32_t object_instance, char *str)
 {
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    snprintf(params->SC_Failover_Hub_URI,
-        sizeof(params->SC_Failover_Hub_URI), "%s", str);
+    if (str)
+        snprintf(params->SC_Failover_Hub_URI,
+            sizeof(params->SC_Failover_Hub_URI), "%s", str);
+    else
+        params->SC_Failover_Hub_URI[0] = 0;
 
     return true;
 }
@@ -198,8 +226,11 @@ bool Network_Port_SC_Failover_Hub_URI_Dirty_Set(uint32_t object_instance,
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    snprintf(params->SC_Failover_Hub_URI_dirty,
-        sizeof(params->SC_Failover_Hub_URI_dirty), "%s", str);
+    if (str)
+        snprintf(params->SC_Failover_Hub_URI_dirty,
+            sizeof(params->SC_Failover_Hub_URI_dirty), "%s", str);
+    else
+        params->SC_Failover_Hub_URI_dirty[0] = 0;
     Network_Port_Changes_Pending_Set(object_instance, true);
 
     return true;
@@ -514,7 +545,7 @@ uint8_t Network_Port_Routing_Table_Count(uint32_t object_instance)
 
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 
-#ifdef BACNET_SECURE_CONNECT_HUB
+#if BSC_CONF_HUB_FUNCTIONS_NUM==1
 
 BACNET_SC_HUB_CONNECTION *Network_Port_SC_Primary_Hub_Connection_Status(
     uint32_t object_instance)
@@ -613,6 +644,16 @@ bool Network_Port_SC_Hub_Function_Accept_URI(uint32_t object_instance,
     return status;
 }
 
+const char *Network_Port_SC_Hub_Function_Accept_URI_char(
+    uint32_t object_instance, uint8_t index)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (params && (index < BACNET_SC_HUB_URI_MAX)) {
+        return params->SC_Hub_Function_Accept_URIs[index];
+    }
+    return NULL;
+}
+
 bool Network_Port_SC_Hub_Function_Accept_URI_Set(uint32_t object_instance,
     uint8_t index, char *str)
 {
@@ -636,14 +677,26 @@ bool Network_Port_SC_Hub_Function_Binding(uint32_t object_instance,
     return status;
 }
 
+const char *Network_Port_SC_Hub_Function_Binding_char(uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (params && params->SC_Hub_Function_Binding[0]) {
+        return params->SC_Hub_Function_Binding;
+    }
+    return NULL;
+}
+
 bool Network_Port_SC_Hub_Function_Binding_Set(uint32_t object_instance,
     char *str)
 {
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    snprintf(params->SC_Hub_Function_Binding,
-        sizeof(params->SC_Hub_Function_Binding), "%s", str);
+    if (str)
+        snprintf(params->SC_Hub_Function_Binding,
+            sizeof(params->SC_Hub_Function_Binding), "%s", str);
+    else
+        params->SC_Hub_Function_Binding[0] = 0;
 
     return true;
 }
@@ -654,12 +707,17 @@ bool Network_Port_SC_Hub_Function_Binding_Dirty_Set(uint32_t object_instance,
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    snprintf(params->SC_Hub_Function_Binding_dirty,
-        sizeof(params->SC_Hub_Function_Binding_dirty), "%s", str);
+    if (str)
+        snprintf(params->SC_Hub_Function_Binding_dirty,
+            sizeof(params->SC_Hub_Function_Binding_dirty), "%s", str);
+    else
+        params->SC_Hub_Function_Binding_dirty[0] = 0;
     Network_Port_Changes_Pending_Set(object_instance, true);
 
     return true;
 }
+
+#ifdef BACNET_SC_STATUS_SUPPORT
 
 BACNET_SC_HUB_FUNCTION_CONNECTION *
 Network_Port_SC_Hub_Function_Connection_Status(uint32_t object_instance)
@@ -695,10 +753,29 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Set(
         st->Error_Details[0] = 0;
     return true;
 }
+#endif
 
-#endif /* BACNET_SECURE_CONNECT_HUB */
+uint16_t Network_Port_SC_Hub_Server_Port(uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return 0;
+    return params->Hub_Server_Port;
+}
 
-#ifdef BACNET_SECURE_CONNECT_DIRECT
+bool Network_Port_SC_Hub_Server_Port_Set(uint32_t object_instance,
+    uint16_t value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+    params->Hub_Server_Port = value;
+    return true;
+}
+
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
+
+#if BSC_CONF_HUB_CONNECTORS_NUM==1
 
 bool Network_Port_SC_Direct_Connect_Initiate_Enable(uint32_t object_instance)
 {
@@ -769,6 +846,16 @@ bool Network_Port_SC_Direct_Connect_Accept_URI(uint32_t object_instance,
     return status;
 }
 
+const char *Network_Port_SC_Direct_Connect_Accept_URI_char(
+    uint32_t object_instance, uint8_t index)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (params && (index < BACNET_SC_DIRECT_ACCEPT_URI_MAX)) {
+        return params->SC_Direct_Connect_Accept_URIs[index];
+    }
+    return NULL;
+}
+
 bool Network_Port_SC_Direct_Connect_Accept_URI_Set(uint32_t object_instance,
     uint8_t index, char *str)
 {
@@ -792,14 +879,27 @@ bool Network_Port_SC_Direct_Connect_Binding(uint32_t object_instance,
     return status;
 }
 
+const char *Network_Port_SC_Direct_Connect_Binding_char(
+    uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (params && params->SC_Direct_Connect_Binding[0]) {
+        return params->SC_Direct_Connect_Binding;
+    }
+    return NULL;
+}
+
 bool Network_Port_SC_Direct_Connect_Binding_Set(uint32_t object_instance,
     char *str)
 {
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    snprintf(params->SC_Direct_Connect_Binding,
-        sizeof(params->SC_Direct_Connect_Binding), "%s", str);
+    if (str)
+        snprintf(params->SC_Direct_Connect_Binding,
+            sizeof(params->SC_Direct_Connect_Binding), "%s", str);
+    else
+        params->SC_Direct_Connect_Binding[0] = 0;
 
     return true;
 }
@@ -810,13 +910,17 @@ bool Network_Port_SC_Direct_Connect_Binding_Dirty_Set(uint32_t object_instance,
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    snprintf(params->SC_Direct_Connect_Binding_dirty,
-        sizeof(params->SC_Direct_Connect_Binding_dirty), "%s", str);
+    if (str)
+        snprintf(params->SC_Direct_Connect_Binding_dirty,
+            sizeof(params->SC_Direct_Connect_Binding_dirty), "%s", str);
+    else
+        params->SC_Direct_Connect_Binding_dirty[0] = 0;
     Network_Port_Changes_Pending_Set(object_instance, true);
 
     return true;
 }
 
+#ifdef BACNET_SC_STATUS_SUPPORT
 
 BACNET_SC_DIRECT_CONNECTION *
 Network_Port_SC_Direct_Connect_Connection_Status(
@@ -855,7 +959,29 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Set(
     return true;
 }
 
-#endif /* BACNET_SECURE_CONNECT_DIRECT */
+#endif
+
+uint16_t Network_Port_SC_Direct_Server_Port(uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return 0;
+    return params->Direct_Server_Port;
+}
+
+bool Network_Port_SC_Direct_Server_Port_Set(uint32_t object_instance,
+    uint16_t value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+    params->Direct_Server_Port = value;
+    return true;
+}
+
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+
+#ifdef BACNET_SC_STATUS_SUPPORT
 
 BACNET_SC_FAILED_CONNECTION_REQUEST *
 Network_Port_SC_Failed_Connection_Requests_Get(uint32_t object_instance,
@@ -927,7 +1053,45 @@ bool Network_Port_SC_Failed_Connection_Requests_Count(uint32_t object_instance)
     return Keylist_Count(params->SC_Failed_Connection_Requests);
 }
 
-#ifdef BACNET_SECURE_CONNECT_HUB
+#endif
+
+uint32_t Network_Port_Certificate_Key_File(uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return 0;
+    return params->Certificate_Key_File;
+}
+
+bool Network_Port_Certificate_Key_File_Set(uint32_t object_instance,
+    uint32_t value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+    params->Certificate_Key_File = value;
+    return true;
+}
+
+const BACNET_UUID *Network_Port_SC_Local_UUID(uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return NULL;
+    return &params->Local_UUID;
+}
+
+bool Network_Port_SC_Local_UUID_Set(uint32_t object_instance,
+    BACNET_UUID *value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+    memcpy(&params->Local_UUID, value, sizeof(*value));
+    return true;
+}
+
+#if BSC_CONF_HUB_FUNCTIONS_NUM==1
 
 /**
  * @brief Encode a SCHubConnection complex data type
@@ -1206,7 +1370,7 @@ int bacapp_decode_context_SCHubFunctionConnection(uint8_t *apdu,
     return len;
 }
 
-#endif /* BACNET_SECURE_CONNECT_HUB */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
 
 /**
  * @brief Encode a SCFailedConnectionRequest complex data type
@@ -1472,7 +1636,7 @@ int bacapp_decode_context_RouterEntry(uint8_t *apdu, uint8_t tag_number,
 
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 
-#ifdef BACNET_SECURE_CONNECT_DIRECT
+#if BSC_CONF_HUB_CONNECTORS_NUM==1
 
 /**
  * @brief Encode a SCDirectConnection complex data type
@@ -1650,7 +1814,7 @@ int bacapp_decode_context_SCDirectConnection(uint8_t *apdu, uint8_t tag_number,
     return len;
 }
 
-#endif /* BACNET_SECURE_CONNECT_DIRECT */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
 
 void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
 {
@@ -1658,7 +1822,7 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
     if (!params)
         return;
 
-#ifdef BACNET_SECURE_CONNECT_HUB
+#if BSC_CONF_HUB_FUNCTIONS_NUM==1
     memcpy(params->SC_Primary_Hub_URI, params->SC_Primary_Hub_URI_dirty,
         sizeof(params->SC_Primary_Hub_URI));
     memcpy(params->SC_Failover_Hub_URI, params->SC_Failover_Hub_URI_dirty,
@@ -1669,9 +1833,9 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
     memcpy(params->SC_Hub_Function_Binding,
         params->SC_Hub_Function_Binding_dirty,
         sizeof(params->SC_Hub_Function_Binding));
-#endif /* BACNET_SECURE_CONNECT_HUB */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
 
-#ifdef BACNET_SECURE_CONNECT_DIRECT
+#if BSC_CONF_HUB_CONNECTORS_NUM==1
     params->SC_Direct_Connect_Initiate_Enable =
         params->SC_Direct_Connect_Initiate_Enable_dirty;
     params->SC_Direct_Connect_Accept_Enable =
@@ -1680,7 +1844,7 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
     memcpy(params->SC_Direct_Connect_Binding,
         params->SC_Direct_Connect_Binding_dirty,
         sizeof(params->SC_Direct_Connect_Binding));
-#endif /* BACNET_SECURE_CONNECT_DIRECT */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
 }
 
 void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
@@ -1689,7 +1853,7 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     if (!params)
         return;
 
-#ifdef BACNET_SECURE_CONNECT_HUB
+#if BSC_CONF_HUB_FUNCTIONS_NUM==1
     memcpy(params->SC_Primary_Hub_URI_dirty, params->SC_Primary_Hub_URI,
         sizeof(params->SC_Primary_Hub_URI_dirty));
     memcpy(params->SC_Failover_Hub_URI_dirty, params->SC_Failover_Hub_URI,
@@ -1700,9 +1864,9 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     memcpy(params->SC_Hub_Function_Binding_dirty,
         params->SC_Hub_Function_Binding,
         sizeof(params->SC_Hub_Function_Binding_dirty));
-#endif /* BACNET_SECURE_CONNECT_HUB */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
 
-#ifdef BACNET_SECURE_CONNECT_DIRECT
+#if BSC_CONF_HUB_CONNECTORS_NUM==1
     params->SC_Direct_Connect_Initiate_Enable_dirty =
         params->SC_Direct_Connect_Initiate_Enable;
     params->SC_Direct_Connect_Accept_Enable_dirty =
@@ -1711,7 +1875,7 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     memcpy(params->SC_Direct_Connect_Binding_dirty,
         params->SC_Direct_Connect_Binding,
         sizeof(params->SC_Direct_Connect_Binding_dirty));
-#endif /* BACNET_SECURE_CONNECT_DIRECT */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
 }
 
 #endif /* BACNET_SECURE_CONNECT */
