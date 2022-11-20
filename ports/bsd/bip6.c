@@ -432,7 +432,7 @@ bool bip6_init(char *ifname)
     if (BIP6_Addr.port == 0) {
         bip6_set_port(0xBAC0U);
     }
-    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", htons(BIP6_Addr.port));
+    PRINTF("BIP6: IPv6 UDP port: 0x%04X\n", BIP6_Addr.port);
     if (BIP6_Broadcast_Addr.address[0] == 0) {
         bvlc6_address_set(&BIP6_Broadcast_Addr, BIP6_MULTICAST_SITE_LOCAL, 0, 0,
             0, 0, 0, 0, BIP6_MULTICAST_GROUP_ID);
@@ -476,6 +476,7 @@ bool bip6_init(char *ifname)
     server.sin6_family = AF_INET6;
     server.sin6_addr = in6addr_any;
     server.sin6_port = htons(BIP6_Addr.port);
+    debug_print_ipv6("Binding->", &server.sin6_addr);
     status = bind(BIP6_Socket, (const void *)&server, sizeof(server));
     if (status < 0) {
         perror("BIP: bind");
