@@ -38,7 +38,7 @@
 static struct timespec start;
 /* The timeGetTime function retrieves the system time, in milliseconds.
    The system time is the time elapsed since the OS was started. */
-unsigned long timeGetTime(void)
+static unsigned long timeGetTime(void)
 {
     struct timespec now;
     unsigned long ticks;
