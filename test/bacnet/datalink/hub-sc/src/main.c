@@ -1686,6 +1686,7 @@ static void test_hub_connector_reconnect(void)
 
     reset_hubf_ev(&hubf);
     reset_hubc_ev(&hubc);
+    bsc_wait(BACNET_TIMEOUT);
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
