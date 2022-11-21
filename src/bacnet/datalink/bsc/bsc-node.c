@@ -329,7 +329,7 @@ static void bsc_node_process_received(BSC_NODE *node,
             } else {
                 error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 error_class = ERROR_CLASS_COMMUNICATION;
-                bufsize = bvlc_sc_encode_result(buf, bufsize,
+                bufsize = bvlc_sc_encode_result(buf, sizeof(buf),
                     decoded_pdu->hdr.message_id, decoded_pdu->hdr.origin,
                     decoded_pdu->hdr.dest, decoded_pdu->hdr.bvlc_function, 1,
                     NULL, &error_class, &error_code,

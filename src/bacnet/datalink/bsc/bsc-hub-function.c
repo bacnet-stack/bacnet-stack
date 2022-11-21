@@ -149,7 +149,6 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     uint8_t *p = (uint8_t *)decoded_pdu;
     uint8_t **ppdu = &pdu;
     BSC_HUB_FUNCTION *f;
-
     bsc_global_mutex_lock();
     f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
@@ -165,6 +164,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                         // address into pdu by extending of it's header
                         pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
                         ret = bsc_send(&f->sock[i], *ppdu, pdu_len);
+                        (void) ret;
 #if DEBUG_ENABLED == 1
                         if (ret != BSC_SC_SUCCESS) {
                             DEBUG_PRINTF("sending of reconstructed pdu failed, "
@@ -184,6 +184,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                 } else {
                     bvlc_sc_remove_dest_set_orig(pdu, pdu_len, &c->vmac);
                     ret = bsc_send(dst, pdu, pdu_len);
+                    (void) ret;
 #if DEBUG_ENABLED == 1
                     if (ret != BSC_SC_SUCCESS) {
                         DEBUG_PRINTF(

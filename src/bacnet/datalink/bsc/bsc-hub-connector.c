@@ -108,6 +108,7 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
     ret = bsc_connect(&p->ctx, &p->sock[type],
         (type == BSC_HUB_CONN_PRIMARY) ? (char *)p->primary_url
                                        : (char *)p->failover_url);
+    (void) ret;
 #if DEBUG_ENABLED == 1
     if (ret != BSC_SC_SUCCESS) {
         DEBUG_PRINTF("hub_connector_connect() got error while "
