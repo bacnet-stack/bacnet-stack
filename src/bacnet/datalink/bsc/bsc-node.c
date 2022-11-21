@@ -24,6 +24,15 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
+#define DEBUG_BSC_NODE 0
+
+#if DEBUG_BSC_NODE == 1
+#define DEBUG_PRINTF debug_printf
+#else
+#undef DEBUG_ENABLED
+#define DEBUG_PRINTF(...)
+#endif
+
 #define ERROR_STR_OPTION_NOT_UNDERSTOOD \
     "'must understand' option not understood "
 
@@ -111,19 +120,35 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
 {
     bool stopped = true;
 
+    DEBUG_PRINTF("bsc_node_process_stop_event() >>> node = %p, state = %d\n",
+        node, node->state);
+
     if (node->conf->hub_function_enabled) {
-        if (!bsc_hub_function_stopped(node->hub_function)) {
+        if (node->hub_function &&
+            !bsc_hub_function_stopped(node->hub_function)) {
+            DEBUG_PRINTF("bsc_node_process_stop_event() hub_function %p is not "
+                         "stopped\n",
+                node->hub_function);
             stopped = false;
         }
     }
-    if (node->conf->node_switch_enabled) {
+    if (node->node_switch && node->conf->node_switch_enabled) {
         if (!bsc_node_switch_stopped(node->node_switch)) {
+            DEBUG_PRINTF(
+                "bsc_node_process_stop_event() node_switch %p is not stopped\n",
+                node->node_switch);
             stopped = false;
         }
     }
-    if (!bsc_hub_connector_stopped(node->hub_connector)) {
+    if (node->hub_connector &&
+        !bsc_hub_connector_stopped(node->hub_connector)) {
+        DEBUG_PRINTF(
+            "bsc_node_process_stop_event() hub_connector %p is not stopped\n",
+            node->hub_connector);
         stopped = false;
     }
+
+    DEBUG_PRINTF("bsc_node_process_stop_event() stopped = %d\n", stopped);
 
     if (node->state == BSC_NODE_STATE_STOPPING) {
         if (stopped) {
@@ -135,41 +160,52 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
             bsc_node_start_state(node, BSC_NODE_STATE_RESTARTING);
         }
     }
+    DEBUG_PRINTF("bsc_node_process_stop_event() <<<\n");
 }
 
 static void bsc_node_process_start_event(BSC_NODE *node)
 {
     bool started = true;
-    if (node->conf->hub_function_enabled) {
+
+    DEBUG_PRINTF("bsc_node_process_start_event() >>> node = %p, state = %d\n",
+        node, node->state);
+    if (node->hub_function && node->conf->hub_function_enabled) {
         if (!bsc_hub_function_started(node->hub_function)) {
             started = false;
         }
     }
-    if (node->conf->node_switch_enabled) {
+    if (node->node_switch && node->conf->node_switch_enabled) {
         if (!bsc_node_switch_started(node->node_switch)) {
             started = false;
         }
     }
+    DEBUG_PRINTF("bsc_node_process_start_event() started = %d\n", started);
     if (started) {
         if (node->state == BSC_NODE_STATE_STARTING) {
             node->state = BSC_NODE_STATE_STARTED;
             node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, 0);
         } else if (node->state == BSC_NODE_STATE_RESTARTING) {
             node->state = BSC_NODE_STATE_STARTED;
+            node->conf->event_func(node, BSC_NODE_EVENT_RESTARTED, NULL, 0);
         }
     }
+    DEBUG_PRINTF("bsc_node_process_start_event() <<<\n");
 }
 
 static void bsc_node_restart(BSC_NODE *node)
 {
+    DEBUG_PRINTF("bsc_node_restart() >>> node = %p hub_function %p "
+                 "hub_connector %p node_switch %p\n",
+        node, node->hub_function, node->hub_connector, node->node_switch);
     node->state = BSC_NODE_STATE_RESTARTING;
     bsc_hub_connector_stop(node->hub_connector);
-    if (node->conf->hub_function_enabled) {
+    if (node->hub_function && node->conf->hub_function_enabled) {
         bsc_hub_function_stop(node->hub_function);
     }
     if (node->conf->node_switch_enabled) {
         bsc_node_switch_stop(node->node_switch);
     }
+    DEBUG_PRINTF("bsc_node_restart() <<<\n");
 }
 
 static void bsc_node_process_received(BSC_NODE *node,
@@ -186,14 +222,14 @@ static void bsc_node_process_received(BSC_NODE *node,
     uint16_t error_code;
     BSC_ADDRESS_RESOLUTION *r;
 
-    debug_printf("bsc_node_process_received() >>> node = %p, pdu = %p, pdu_len "
+    DEBUG_PRINTF("bsc_node_process_received() >>> node = %p, pdu = %p, pdu_len "
                  "= %d, decoded_pdu = %p\n",
         node, pdu, pdu_len, decoded_pdu);
 
     if (decoded_pdu->hdr.dest_options_len) {
         for (i = 0; i < decoded_pdu->hdr.dest_options_len; i++) {
             if (decoded_pdu->dest_options[i].must_understand) {
-                debug_printf("bsc_node_process_received() pdu with "
+                DEBUG_PRINTF("bsc_node_process_received() pdu with "
                              "'must-understand' is dropped\n");
                 if (bvlc_sc_need_send_bvlc_result(decoded_pdu)) {
                     error_code = ERROR_CODE_HEADER_NOT_UNDERSTOOD;
@@ -207,13 +243,13 @@ static void bsc_node_process_received(BSC_NODE *node,
                     if (bufsize) {
                         ret = bsc_node_send(node, buf, bufsize);
                         if (ret != BSC_SC_SUCCESS) {
-                            debug_printf(
+                            DEBUG_PRINTF(
                                 "bsc_node_process_received() warning "
                                 "bvlc-result pdu is not sent, error %d\n",
                                 ret);
                         }
                     }
-                    debug_printf("bsc_node_process_received() <<<\n");
+                    DEBUG_PRINTF("bsc_node_process_received() <<<\n");
                     return;
                 }
             }
@@ -224,7 +260,7 @@ static void bsc_node_process_received(BSC_NODE *node,
         case BVLC_SC_RESULT: {
             if (decoded_pdu->payload.result.bvlc_function ==
                 BVLC_SC_ADDRESS_RESOLUTION) {
-                debug_printf("received a NAK for address resolution from %s\n",
+                DEBUG_PRINTF("received a NAK for address resolution from %s\n",
                     bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 r = node_get_address_resolution(node, decoded_pdu->hdr.origin);
                 if (r) {
@@ -237,13 +273,13 @@ static void bsc_node_process_received(BSC_NODE *node,
                         r->urls_num = 0;
                         mstimer_restart(&r->fresh_timer);
                     } else {
-                        debug_printf("can't allocate address resolutio for "
+                        DEBUG_PRINTF("can't allocate address resolutio for "
                                      "node with address %s\n",
                             bsc_vmac_to_string(decoded_pdu->hdr.origin));
                     }
                 }
             } else {
-                debug_printf("node %p get unexpected result pdu with bvlc "
+                DEBUG_PRINTF("node %p get unexpected result pdu with bvlc "
                              "function %d from node %s\n",
                     node, decoded_pdu->payload.result.bvlc_function,
                     bsc_vmac_to_string(decoded_pdu->hdr.origin));
@@ -266,7 +302,7 @@ static void bsc_node_process_received(BSC_NODE *node,
             if (bufsize) {
                 ret = bsc_node_send(node, buf, bufsize);
                 if (ret != BSC_SC_SUCCESS) {
-                    debug_printf(
+                    DEBUG_PRINTF(
                         "bsc_node_process_received() warning "
                         "advertisement pdu is not sent to node %s, error %d\n",
                         ret, bsc_vmac_to_string(decoded_pdu->hdr.origin));
@@ -284,7 +320,7 @@ static void bsc_node_process_received(BSC_NODE *node,
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
                     if (ret != BSC_SC_SUCCESS) {
-                        debug_printf(
+                        DEBUG_PRINTF(
                             "bsc_node_process_received() warning "
                             "address resolution ack is not sent, error %d\n",
                             ret);
@@ -301,7 +337,7 @@ static void bsc_node_process_received(BSC_NODE *node,
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
                     if (ret != BSC_SC_SUCCESS) {
-                        debug_printf("bsc_node_process_received() warning "
+                        DEBUG_PRINTF("bsc_node_process_received() warning "
                                      "bvlc-result pdu is not sent, error %d\n",
                             ret);
                     }
@@ -315,7 +351,7 @@ static void bsc_node_process_received(BSC_NODE *node,
                 r = node_alloc_address_resolution(
                     node, decoded_pdu->hdr.origin);
                 if (!r) {
-                    debug_printf("can't allocate address resolutio for node "
+                    DEBUG_PRINTF("can't allocate address resolutio for node "
                                  "with address %s\n",
                         bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 }
@@ -363,7 +399,7 @@ static void bsc_node_process_received(BSC_NODE *node,
             break;
         }
     }
-    debug_printf("bsc_node_process_received() <<<\n");
+    DEBUG_PRINTF("bsc_node_process_received() <<<\n");
 }
 
 static void bsc_hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
@@ -374,17 +410,21 @@ static void bsc_hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
-
     bsc_global_mutex_lock();
+    DEBUG_PRINTF("bsc_hub_connector_event() >>> ev = %d, h = %p, node = %p\n",
+        ev, h, user_arg);
     if (ev == BSC_HUBC_EVENT_STOPPED) {
+        node->hub_connector = NULL;
         bsc_node_process_stop_event(node);
     } else if (ev == BSC_HUBC_EVENT_ERROR_DUPLICATED_VMAC) {
-        if (node->state != BSC_NODE_STATE_STOPPING) {
+        if (node->state != BSC_NODE_STATE_STOPPING &&
+            node->state != BSC_NODE_STATE_RESTARTING) {
             bsc_node_restart(node);
         }
     } else if (ev == BSC_HUBC_EVENT_RECEIVED) {
         bsc_node_process_received(node, pdu, pdu_len, decoded_pdu);
     }
+    DEBUG_PRINTF("bsc_hub_connector_event() <<<\n");
     bsc_global_mutex_unlock();
 }
 
@@ -392,17 +432,21 @@ static void bsc_hub_function_event(
     BSC_HUB_FUNCTION_EVENT ev, BSC_HUB_FUNCTION_HANDLE h, void *user_arg)
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
-
     bsc_global_mutex_lock();
+    DEBUG_PRINTF("bsc_hub_function_event() >>> ev = %d, h = %p, node = %p\n",
+        ev, h, user_arg);
     if (ev == BSC_HUBF_EVENT_STARTED) {
         bsc_node_process_start_event(node);
     } else if (ev == BSC_HUBF_EVENT_STOPPED) {
+        node->hub_function = NULL;
         bsc_node_process_stop_event(node);
     } else if (ev == BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC) {
-        if (node->state != BSC_NODE_STATE_STOPPING) {
+        if (node->state != BSC_NODE_STATE_STOPPING &&
+            node->state != BSC_NODE_STATE_RESTARTING) {
             bsc_node_restart(node);
         }
     }
+    DEBUG_PRINTF("bsc_hub_function_event() <<<\n");
     bsc_global_mutex_unlock();
 }
 
@@ -416,27 +460,32 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
     BSC_NODE *node = (BSC_NODE *)user_arg;
 
     bsc_global_mutex_lock();
+    DEBUG_PRINTF("bsc_node_switch_event() >>> ev = %d, h = %p, node = %p\n", ev,
+        h, user_arg);
     if (ev == BSC_NODE_SWITCH_EVENT_STARTED) {
         bsc_node_process_start_event(node);
     } else if (ev == BSC_NODE_SWITCH_EVENT_STOPPED) {
+        node->node_switch = NULL;
         bsc_node_process_stop_event(node);
     } else if (ev == BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC) {
-        if (node->state != BSC_NODE_STATE_STOPPING) {
+        if (node->state != BSC_NODE_STATE_STOPPING &&
+            node->state != BSC_NODE_STATE_RESTARTING) {
             bsc_node_restart(node);
         }
     } else if (ev == BSC_NODE_SWITCH_EVENT_RECEIVED) {
         bsc_node_process_received(node, pdu, pdu_len, decoded_pdu);
     }
+    DEBUG_PRINTF(" bsc_node_switch_event() <<<\n");
     bsc_global_mutex_unlock();
 }
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
 {
-    debug_printf("bsc_node_init() >>> conf = %p, node = %p\n", conf, node);
+    DEBUG_PRINTF("bsc_node_init() >>> conf = %p, node = %p\n", conf, node);
 
     if (!conf || !node) {
-        debug_printf("bsc_node_init() <<< ret = BSC_SC_BAD_PARAM\n");
+        DEBUG_PRINTF("bsc_node_init() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
 
@@ -448,37 +497,37 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
         conf->address_resolution_timeout_s <= 0 ||
         conf->address_resolution_freshness_timeout_s <= 0 ||
         !conf->primaryURL || !conf->failoverURL || !conf->event_func) {
-        debug_printf("bsc_node_init() <<< ret = BSC_SC_BAD_PARAM\n");
+        DEBUG_PRINTF("bsc_node_init() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
     bsc_global_mutex_lock();
     *node = bsc_alloc_node();
 
     if (!(*node)) {
-        debug_printf("bsc_node_init() <<< ret =  BSC_SC_NO_RESOURCE\n");
+        DEBUG_PRINTF("bsc_node_init() <<< ret =  BSC_SC_NO_RESOURCE\n");
         bsc_global_mutex_unlock();
         return BSC_SC_NO_RESOURCES;
     }
 
     memcpy((*node)->conf, conf, sizeof(*conf));
     bsc_global_mutex_unlock();
-    debug_printf("bsc_node_init() <<< ret = BSC_SC_SUCCESS\n");
+    DEBUG_PRINTF("bsc_node_init() <<< ret = BSC_SC_SUCCESS\n");
     return BSC_SC_SUCCESS;
 }
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_deinit(BSC_NODE *node)
 {
-    debug_printf("bsc_node_deinit() >>> node = %p\n", node);
+    DEBUG_PRINTF("bsc_node_deinit() >>> node = %p\n", node);
     bsc_global_mutex_lock();
     if (node->state != BSC_NODE_STATE_IDLE) {
         bsc_global_mutex_unlock();
-        debug_printf("bsc_node_deinit() <<< ret = BSC_SC_INVALID_OPERATION\n");
+        DEBUG_PRINTF("bsc_node_deinit() <<< ret = BSC_SC_INVALID_OPERATION\n");
         return BSC_SC_INVALID_OPERATION;
     }
     bsc_free_node(node);
     bsc_global_mutex_unlock();
-    debug_printf("bsc_node_deinit() <<< ret = BSC_SC_SUCCESS\n");
+    DEBUG_PRINTF("bsc_node_deinit() <<< ret = BSC_SC_SUCCESS\n");
     return BSC_SC_SUCCESS;
 }
 
@@ -486,8 +535,12 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
 {
     BSC_SC_RET ret;
     bsc_global_mutex_lock();
+    DEBUG_PRINTF("bsc_node_start() >>> node = %p state = %d\n", node, state);
 
     node->state = state;
+    node->hub_connector = NULL;
+    node->hub_function = NULL;
+    node->node_switch = NULL;
 
     if (node->state != BSC_NODE_STATE_RESTARTING) {
         memset(node->resolution, 0,
@@ -510,7 +563,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     if (ret != BSC_SC_SUCCESS) {
         node->state = BSC_NODE_STATE_IDLE;
         bsc_global_mutex_unlock();
-        debug_printf("bsc_node_start() <<< ret = %d\n", ret);
+        DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
         return ret;
     }
 
@@ -528,7 +581,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             node->state = BSC_NODE_STATE_IDLE;
             bsc_hub_connector_stop(node->hub_connector);
             bsc_global_mutex_unlock();
-            debug_printf("bsc_node_start() <<< ret = %d\n", ret);
+            DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
             return ret;
         }
     }
@@ -549,11 +602,15 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             bsc_hub_connector_stop(node->hub_connector);
             bsc_hub_function_stop(node->hub_function);
             bsc_global_mutex_unlock();
-            debug_printf("bsc_node_start() <<< ret = %d\n", ret);
+            DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
             return ret;
         }
     }
+    DEBUG_PRINTF(
+        "bsc_node_start() hub_function %p hub_connector %p node_switch %p\n",
+        node->hub_function, node->hub_connector, node->node_switch);
     bsc_global_mutex_unlock();
+    DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
     return ret;
 }
 
@@ -562,10 +619,10 @@ BSC_SC_RET bsc_node_start(BSC_NODE *node)
 {
     BSC_SC_RET ret;
 
-    debug_printf("bsc_node_start() >>> node = %p\n", node);
+    DEBUG_PRINTF("bsc_node_start() >>> node = %p\n", node);
 
     if (!node) {
-        debug_printf("bsc_node_start() <<< ret = BSC_SC_BAD_PARAM\n");
+        DEBUG_PRINTF("bsc_node_start() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
 
@@ -573,40 +630,38 @@ BSC_SC_RET bsc_node_start(BSC_NODE *node)
 
     if (node->state != BSC_NODE_STATE_IDLE) {
         bsc_global_mutex_unlock();
-        debug_printf("bsc_node_start() <<< ret = BSC_SC_INVALID_OPERATION\n");
+        DEBUG_PRINTF("bsc_node_start() <<< ret = BSC_SC_INVALID_OPERATION\n");
         return BSC_SC_INVALID_OPERATION;
     }
     ret = bsc_node_start_state(node, BSC_NODE_STATE_STARTING);
     bsc_global_mutex_unlock();
-    debug_printf("bsc_node_start() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
     return ret;
 }
 
 BACNET_STACK_EXPORT
 void bsc_node_stop(BSC_NODE *node)
 {
-    debug_printf("bsc_node_stop() >>> node = %p\n", node);
+    DEBUG_PRINTF("bsc_node_stop() >>> node = %p\n", node);
 
-    if (!node) {
-        debug_printf("bsc_node_stop() <<<\n");
-        return;
+    if (node) {
+        bsc_global_mutex_lock();
+
+        if (node->state != BSC_NODE_STATE_IDLE) {
+            node->state = BSC_NODE_STATE_STOPPING;
+            bsc_hub_connector_stop(node->hub_connector);
+            if (node->conf->hub_function_enabled) {
+                bsc_hub_function_stop(node->hub_function);
+            }
+            if (node->conf->node_switch_enabled) {
+                bsc_node_switch_stop(node->node_switch);
+            }
+        }
+
+        bsc_global_mutex_unlock();
     }
 
-    bsc_global_mutex_lock();
-
-    if (node->state != BSC_NODE_STATE_IDLE) {
-        node->state = BSC_NODE_STATE_STOPPING;
-        bsc_hub_connector_stop(node->hub_connector);
-        if (node->conf->hub_function_enabled) {
-            bsc_hub_function_stop(node->hub_function);
-        }
-        if (node->conf->node_switch_enabled) {
-            bsc_node_switch_stop(node->node_switch);
-        }
-    }
-
-    bsc_global_mutex_unlock();
-    debug_printf("bsc_node_stop() <<<\n");
+    DEBUG_PRINTF("bsc_node_stop() <<<\n");
 }
 
 BACNET_STACK_EXPORT
@@ -616,12 +671,12 @@ BSC_SC_RET bsc_node_hub_connector_send(
     BSC_NODE *node = (BSC_NODE *)p_node;
     BSC_SC_RET ret;
 
-    debug_printf("bsc_node_hub_connector_send() >>> p_node = %p, pdu = %p, "
+    DEBUG_PRINTF("bsc_node_hub_connector_send() >>> p_node = %p, pdu = %p, "
                  "pdu_len = %d\n",
         p_node, pdu, pdu_len);
 
     if (!node) {
-        debug_printf(
+        DEBUG_PRINTF(
             "bsc_node_hub_connector_send() <<< ret =  BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
@@ -629,7 +684,7 @@ BSC_SC_RET bsc_node_hub_connector_send(
     bsc_global_mutex_lock();
 
     if (node->state != BSC_NODE_STATE_STARTED) {
-        debug_printf("bsc_node_hub_connector_send() <<< ret = "
+        DEBUG_PRINTF("bsc_node_hub_connector_send() <<< ret = "
                      "BSC_SC_INVALID_OPERATION\n");
         bsc_global_mutex_unlock();
         return BSC_SC_INVALID_OPERATION;
@@ -637,7 +692,7 @@ BSC_SC_RET bsc_node_hub_connector_send(
 
     ret = bsc_hub_connector_send(node->hub_connector, pdu, pdu_len);
     bsc_global_mutex_unlock();
-    debug_printf("bsc_node_hub_connector_send() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_node_hub_connector_send() <<< ret = %d\n", ret);
     return ret;
 }
 
@@ -647,19 +702,19 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
     BSC_NODE *node = (BSC_NODE *)p_node;
     BSC_SC_RET ret;
 
-    debug_printf("bsc_node_send() >>> p_node = %p, pdu = %p, "
+    DEBUG_PRINTF("bsc_node_send() >>> p_node = %p, pdu = %p, "
                  "pdu_len = %d\n",
         p_node, pdu, pdu_len);
 
     if (!node) {
-        debug_printf("bsc_node_send() <<< ret =  BSC_SC_BAD_PARAM\n");
+        DEBUG_PRINTF("bsc_node_send() <<< ret =  BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
 
     bsc_global_mutex_lock();
 
     if (node->state != BSC_NODE_STATE_STARTED) {
-        debug_printf("bsc_node_send() <<< ret = "
+        DEBUG_PRINTF("bsc_node_send() <<< ret = "
                      "BSC_SC_INVALID_OPERATION\n");
         bsc_global_mutex_unlock();
         return BSC_SC_INVALID_OPERATION;
@@ -672,7 +727,7 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
     }
 
     bsc_global_mutex_unlock();
-    debug_printf("bsc_node_send() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_node_send() <<< ret = %d\n", ret);
     return ret;
 }
 
@@ -711,12 +766,12 @@ BSC_SC_RET bsc_node_send_address_resolution(
     uint8_t pdu[32];
     unsigned pdu_len;
     BSC_SC_RET ret;
-    debug_printf(
+    DEBUG_PRINTF(
         "bsc_node_send_address_resolution() >>> node = %p, dest = %p\n", node,
         dest);
     pdu_len = bvlc_sc_encode_address_resolution(
         pdu, sizeof(pdu), bsc_get_next_message_id(), NULL, dest);
     ret = bsc_node_send(node, pdu, pdu_len);
-    debug_printf("bsc_node_send_address_resolution() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_node_send_address_resolution() <<< ret = %d\n", ret);
     return ret;
 }

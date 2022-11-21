@@ -22,6 +22,15 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
+#define DEBUG_BSC_HUB_FUNCTION 0
+
+#if DEBUG_BSC_HUB_FUNCTION == 1
+#define DEBUG_PRINTF debug_printf
+#else
+#undef DEBUG_ENABLED
+#define DEBUG_PRINTF(...)
+#endif
+
 static BSC_SOCKET *hub_function_find_connection_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg);
 
@@ -88,10 +97,10 @@ static BSC_SOCKET *hub_function_find_connection_for_vmac(
     bsc_global_mutex_lock();
     f = (BSC_HUB_FUNCTION *)user_arg;
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
-        debug_printf("hubf = %p, sock %p, state = %d, vmac = %s\n", f,
+        DEBUG_PRINTF("hubf = %p, sock %p, state = %d, vmac = %s\n", f,
             &f->sock[i], f->sock[i].state,
             bsc_vmac_to_string(&f->sock[i].vmac));
-        if (f->sock[i].state == BSC_SOCK_STATE_CONNECTED &&
+        if (f->sock[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(&vmac->address[0], &f->sock[i].vmac.address[0],
                 sizeof(vmac->address))) {
             bsc_global_mutex_unlock();
@@ -111,14 +120,14 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
     bsc_global_mutex_lock();
     f = (BSC_HUB_FUNCTION *)user_arg;
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
-        debug_printf("hubf = %p, sock %p, state = %d, uuid = %s\n", f,
+        DEBUG_PRINTF("hubf = %p, sock %p, state = %d, uuid = %s\n", f,
             &f->sock[i], f->sock[i].state,
             bsc_uuid_to_string(&f->sock[i].uuid));
         if (f->sock[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(
                 &uuid->uuid[0], &f->sock[i].uuid.uuid[0], sizeof(uuid->uuid))) {
             bsc_global_mutex_unlock();
-            debug_printf("found socket\n");
+            DEBUG_PRINTF("found socket\n");
             return &f->sock[i];
         }
     }
@@ -158,7 +167,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                         ret = bsc_send(&f->sock[i], *ppdu, pdu_len);
 #if DEBUG_ENABLED == 1
                         if (ret != BSC_SC_SUCCESS) {
-                            debug_printf("sending of reconstructed pdu failed, "
+                            DEBUG_PRINTF("sending of reconstructed pdu failed, "
                                          "err = %d\n",
                                 ret);
                         }
@@ -169,7 +178,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                 dst = hub_function_find_connection_for_vmac(
                     decoded_pdu->hdr.dest, (void *)f);
                 if (!dst) {
-                    debug_printf("can not find socket, hub dropped pdu of size "
+                    DEBUG_PRINTF("can not find socket, hub dropped pdu of size "
                                  "%d for dest vmac %s\n",
                         pdu_len, bsc_vmac_to_string(decoded_pdu->hdr.dest));
                 } else {
@@ -177,7 +186,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                     ret = bsc_send(dst, pdu, pdu_len);
 #if DEBUG_ENABLED == 1
                     if (ret != BSC_SC_SUCCESS) {
-                        debug_printf(
+                        DEBUG_PRINTF(
                             "sending of pdu of %d bytes failed, err = %d\n",
                             pdu_len, ret);
                     }
@@ -234,13 +243,13 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
     BSC_SC_RET ret;
     BSC_HUB_FUNCTION *f;
 
-    debug_printf("bsc_hub_function_start() >>>\n");
+    DEBUG_PRINTF("bsc_hub_function_start() >>>\n");
 
     if (!ca_cert_chain || !ca_cert_chain_size || !cert_chain ||
         !cert_chain_size || !key || !key_size || !local_uuid || !local_vmac ||
         !max_local_npdu_len || !max_local_bvlc_len || !connect_timeout_s ||
         !heartbeat_timeout_s || !disconnect_timeout_s || !event_func || !h) {
-        debug_printf("bsc_hub_function_start() <<< ret = BSC_SC_BAD_PARAM\n");
+        DEBUG_PRINTF("bsc_hub_function_start() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
 
@@ -251,7 +260,7 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
 
     if (!f) {
         bsc_global_mutex_unlock();
-        debug_printf(
+        DEBUG_PRINTF(
             "bsc_hub_function_start() <<< ret = BSC_SC_NO_RESOURCES\n");
         return BSC_SC_NO_RESOURCES;
     }
@@ -275,7 +284,7 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
         hub_function_free(f);
     }
     bsc_global_mutex_unlock();
-    debug_printf("bsc_hub_function_start() << ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_hub_function_start() << ret = %d\n", ret);
     return ret;
 }
 
@@ -283,15 +292,15 @@ BACNET_STACK_EXPORT
 void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
-    debug_printf("bsc_hub_function_stop() >>> h = %p\n", h);
+    DEBUG_PRINTF("bsc_hub_function_stop() >>> h = %p\n", h);
     bsc_global_mutex_lock();
-    if (f->state != BSC_HUB_FUNCTION_STATE_IDLE &&
+    if (f && f->state != BSC_HUB_FUNCTION_STATE_IDLE &&
         f->state != BSC_HUB_FUNCTION_STATE_STOPPING) {
         f->state = BSC_HUB_FUNCTION_STATE_STOPPING;
         bsc_deinit_ctx(&f->ctx);
     }
     bsc_global_mutex_unlock();
-    debug_printf("bsc_hub_functionn_stop() <<<\n");
+    DEBUG_PRINTF("bsc_hub_function_stop() <<<\n");
 }
 
 BACNET_STACK_EXPORT
@@ -300,13 +309,13 @@ bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h)
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
     bool ret = false;
 
-    debug_printf("bsc_hub_function_stopped() >>> h = %p\n", h);
+    DEBUG_PRINTF("bsc_hub_function_stopped() >>> h = %p\n", h);
     bsc_global_mutex_lock();
-    if (f->state == BSC_HUB_FUNCTION_STATE_IDLE) {
+    if (f && f->state == BSC_HUB_FUNCTION_STATE_IDLE) {
         ret = true;
     }
     bsc_global_mutex_unlock();
-    debug_printf("bsc_hub_function_stopped() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_hub_function_stopped() <<< ret = %d\n", ret);
     return ret;
 }
 
@@ -316,12 +325,12 @@ bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h)
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
     bool ret = false;
 
-    debug_printf("bsc_hub_function_started() >>> h = %p\n", h);
+    DEBUG_PRINTF("bsc_hub_function_started() >>> h = %p\n", h);
     bsc_global_mutex_lock();
-    if (f->state == BSC_HUB_FUNCTION_STATE_STARTED) {
+    if (f && f->state == BSC_HUB_FUNCTION_STATE_STARTED) {
         ret = true;
     }
     bsc_global_mutex_unlock();
-    debug_printf("bsc_hub_function_started() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_hub_function_started() <<< ret = %d\n", ret);
     return ret;
 }

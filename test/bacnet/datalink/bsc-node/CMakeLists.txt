@@ -39,6 +39,8 @@ add_compile_definitions(
   BSC_CONF_WEBSOCKET_SERVERS_NUM=4
   BSC_CONF_HUB_CONNECTORS_NUM=2
   BSC_CONF_HUB_FUNCTIONS_NUM=2
+  BSC_CONF_NODES_NUM=2
+  BSC_CONF_NODE_SWITCHES_NUM=2
   )
 
 include_directories(
@@ -65,6 +67,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     # Test and test library files
@@ -89,7 +93,6 @@ elseif(WIN32)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/win32/websocket-cli.c
     ${PORTS_DIR}/win32/websocket-srv.c
-    ${PORTS_DIR}/win32/websocket-mutex.c
     ${PORTS_DIR}/win32/bsc-runloop.c
     ${PORTS_DIR}/win32/bsc-mutex.c
     ${PORTS_DIR}/win32/bsc-event.c
@@ -99,6 +102,8 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     # Test and test library files
@@ -123,6 +128,8 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     # Test and test library files

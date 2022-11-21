@@ -126,6 +126,7 @@ list(APPEND testdirs
   bacnet/datalink/websockets
   bacnet/datalink/bsc-socket
   bacnet/datalink/hub-sc
+  bacnet/datalink/bsc-node
   )
 
 enable_testing()

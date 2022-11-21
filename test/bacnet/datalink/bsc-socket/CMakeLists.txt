@@ -53,6 +53,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/linux/websocket-cli.c
     ${PORTS_DIR}/linux/websocket-srv.c
+    ${PORTS_DIR}/linux/websocket-mutex.c
     ${PORTS_DIR}/linux/bsc-runloop.c
     ${PORTS_DIR}/linux/bsc-mutex.c
     ${PORTS_DIR}/linux/bsc-event.c
@@ -84,6 +85,7 @@ elseif(WIN32)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/win32/websocket-cli.c
     ${PORTS_DIR}/win32/websocket-srv.c
+    ${PORTS_DIR}/win32/websocket-mutex.c
     ${PORTS_DIR}/win32/bsc-runloop.c
     ${PORTS_DIR}/win32/bsc-mutex.c
     ${PORTS_DIR}/win32/bsc-event.c
@@ -105,6 +107,7 @@ elseif(APPLE)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c
+    ${PORTS_DIR}/bsd/websocket-mutex.c
     ${PORTS_DIR}/bsd/bsc-runloop.c
     ${PORTS_DIR}/bsd/bsc-mutex.c
     ${PORTS_DIR}/bsd/bsc-event.c

@@ -55,6 +55,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/linux/websocket-cli.c
     ${PORTS_DIR}/linux/websocket-srv.c
+    ${PORTS_DIR}/linux/websocket-mutex.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
     ./src/main.c
@@ -78,6 +79,7 @@ elseif(WIN32)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/win32/websocket-cli.c
     ${PORTS_DIR}/win32/websocket-srv.c
+    ${PORTS_DIR}/win32/websocket-mutex.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
@@ -90,6 +92,7 @@ elseif(APPLE)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c
+    ${PORTS_DIR}/bsd/websocket-mutex.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
     ./src/main.c

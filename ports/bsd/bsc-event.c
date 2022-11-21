@@ -19,6 +19,15 @@
 #include "bacnet/datalink/bsc/bsc-mutex.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
+#define DEBUG_BSC_EVENT 0
+
+#if DEBUG_BSC_EVENT == 1
+#define DEBUG_PRINTF printf
+#else
+#undef DEBUG_ENABLED
+#define DEBUG_PRINTF(...)
+#endif
+
 struct BSC_Event {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -76,22 +85,40 @@ void bsc_event_deinit(BSC_EVENT *ev)
 void bsc_event_wait(BSC_EVENT *ev)
 {
     pthread_mutex_lock(&ev->mutex);
+    DEBUG_PRINTF("bsc_event_wait() >>> ev = %p\n", ev);
+    DEBUG_PRINTF("bsc_event_wait() counter before %zu\n", ev->counter);
     ev->counter++;
+    DEBUG_PRINTF("bsc_event_wait() counter %zu\n", ev->counter);
     while (!ev->v) {
         pthread_cond_wait(&ev->cond, &ev->mutex);
     }
+    DEBUG_PRINTF("bsc_event_wait() ev = %p\n", ev);
+    DEBUG_PRINTF("bsc_event_wait() before counter %zu\n", ev->counter);
     ev->counter--;
+    DEBUG_PRINTF("bsc_event_wait() counter %zu\n", ev->counter);
     if (!ev->counter) {
         ev->v = false;
+        DEBUG_PRINTF("bsc_event_wait() reset ev\n");
     }
+    DEBUG_PRINTF("bsc_event_wait() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
 }
 
 void bsc_event_signal(BSC_EVENT *ev)
 {
+    DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
     pthread_mutex_lock(&ev->mutex);
     ev->v = true;
     pthread_cond_broadcast(&ev->cond);
+    pthread_mutex_unlock(&ev->mutex);
+    DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
+}
+
+void bsc_event_reset(BSC_EVENT *ev)
+{
+    pthread_mutex_lock(&ev->mutex);
+    ev->v = false;
+    ev->counter = 0;
     pthread_mutex_unlock(&ev->mutex);
 }
 
