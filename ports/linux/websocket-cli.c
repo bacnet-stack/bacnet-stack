@@ -19,6 +19,7 @@
 #include <pthread.h>
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/debug.h"
+#include "websocket-mutex.h"
 
 #define DEBUG_WEBSOCKET_CLIENT 0
 
@@ -138,6 +139,7 @@ static void bws_cli_free_connection(BSC_WEBSOCKET_HANDLE h)
             }
             bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_IDLE;
             bws_cli_conn[h].ws = NULL;
+            bws_cli_conn[h].ctx = NULL;
         }
     }
 }
@@ -164,7 +166,9 @@ static int bws_cli_websocket_event(struct lws *wsi,
     BSC_WEBSOCKET_CLI_DISPATCH dispatch_func;
     void *user_param;
 
-    DEBUG_PRINTF("bws_cli_websocket_event() >>> reason = %d\n", reason);
+    DEBUG_PRINTF(
+        "bws_cli_websocket_event() >>> reason = %d, user = %p, in = %p\n",
+        reason, user, in);
 
     switch (reason) {
         case LWS_CALLBACK_CLIENT_ESTABLISHED: {
@@ -341,10 +345,12 @@ static int bws_cli_websocket_event(struct lws *wsi,
             h = bws_cli_find_connnection(wsi);
             if (h != BSC_WEBSOCKET_INVALID_HANDLE) {
                 bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_DISCONNECTING;
+                pthread_mutex_unlock(&bws_cli_mutex);
                 // wakeup worker to process pending event
                 lws_cancel_service(bws_cli_conn[h].ctx);
+            } else {
+                pthread_mutex_unlock(&bws_cli_mutex);
             }
-            pthread_mutex_unlock(&bws_cli_mutex);
             break;
         }
         default: {
@@ -363,8 +369,9 @@ static void *bws_cli_worker(void *arg)
     void *user_param;
 
     while (1) {
-        DEBUG_PRINTF("bws_cli_worker() lock mutex\n");
+        DEBUG_PRINTF("bws_cli_worker() try mutex lock h = %d\n", h);
         pthread_mutex_lock(&bws_cli_mutex);
+        DEBUG_PRINTF("bws_cli_worker() mutex locked h = %d\n", h);
         if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
             if (bws_cli_conn[h].want_send_data) {
                 DEBUG_PRINTF(
@@ -373,13 +380,17 @@ static void *bws_cli_worker(void *arg)
             }
         } else if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
+            DEBUG_PRINTF("bws_cli_worker() destroy ctx %p\n", conn->ctx);
+            bsc_websocket_global_lock();
             lws_context_destroy(conn->ctx);
+            bsc_websocket_global_unlock();
             dispatch_func = bws_cli_conn[h].dispatch_func;
             user_param = bws_cli_conn[h].user_param;
             bws_cli_free_connection(h);
             pthread_mutex_unlock(&bws_cli_mutex);
+            DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
             dispatch_func(h, BSC_WEBSOCKET_DISCONNECTED, NULL, 0, user_param);
-            break;
+            return NULL;
         }
         DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
         pthread_mutex_unlock(&bws_cli_mutex);
@@ -486,7 +497,10 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     info.options |= LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;
     info.timeout_secs = timeout_s;
     info.connect_timeout_secs = timeout_s;
+    bsc_websocket_global_lock();
     bws_cli_conn[h].ctx = lws_create_context(&info);
+    bsc_websocket_global_unlock();
+    DEBUG_PRINTF("bws_cli_connect() created ctx %p\n", bws_cli_conn[h].ctx);
 
     if (!bws_cli_conn[h].ctx) {
         bws_cli_free_connection(h);
@@ -499,14 +513,16 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     ret = pthread_create(&thread_id, NULL, &bws_cli_worker, &h);
 
     if (ret != 0) {
-        bws_cli_free_connection(h);
+        bsc_websocket_global_lock();
         lws_context_destroy(bws_cli_conn[h].ctx);
+        bsc_websocket_global_unlock();
+        bws_cli_free_connection(h);
         pthread_mutex_unlock(&bws_cli_mutex);
         DEBUG_PRINTF(
             "bws_cli_connect() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
-
+    bws_cli_conn[h].ws = NULL;
     cinfo.context = bws_cli_conn[h].ctx;
     cinfo.address = addr;
     cinfo.origin = cinfo.address;
