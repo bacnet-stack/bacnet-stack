@@ -362,9 +362,11 @@ static void *bws_cli_worker(void *arg)
         } else if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
             DEBUG_PRINTF("bws_cli_worker() destroy ctx %p\n", conn->ctx);
+            pthread_mutex_unlock(&bws_cli_mutex);
             bsc_websocket_global_lock();
             lws_context_destroy(conn->ctx);
             bsc_websocket_global_unlock();
+            pthread_mutex_lock(&bws_cli_mutex);
             dispatch_func = bws_cli_conn[h].dispatch_func;
             user_param = bws_cli_conn[h].user_param;
             bws_cli_free_connection(h);
@@ -478,9 +480,11 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     info.options |= LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;
     info.timeout_secs = timeout_s;
     info.connect_timeout_secs = timeout_s;
+    pthread_mutex_unlock(&bws_cli_mutex);
     bsc_websocket_global_lock();
     bws_cli_conn[h].ctx = lws_create_context(&info);
     bsc_websocket_global_unlock();
+    pthread_mutex_lock(&bws_cli_mutex);
     DEBUG_PRINTF("bws_cli_connect() created ctx %p\n", bws_cli_conn[h].ctx);
 
     if (!bws_cli_conn[h].ctx) {
@@ -494,9 +498,11 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     ret = pthread_create(&thread_id, NULL, &bws_cli_worker, &h);
 
     if (ret != 0) {
+        pthread_mutex_unlock(&bws_cli_mutex);
         bsc_websocket_global_lock();
         lws_context_destroy(bws_cli_conn[h].ctx);
         bsc_websocket_global_unlock();
+        pthread_mutex_lock(&bws_cli_mutex);
         bws_cli_free_connection(h);
         pthread_mutex_unlock(&bws_cli_mutex);
         DEBUG_PRINTF(

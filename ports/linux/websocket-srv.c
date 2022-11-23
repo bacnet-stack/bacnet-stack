@@ -478,9 +478,11 @@ static void *bws_srv_worker(void *arg)
             DEBUG_PRINTF("bws_srv_worker() destroy wsctx %p, ctx = %p, "
                          "user_param = %p\n",
                 ctx->wsctx, ctx, ctx->user_param);
+            pthread_mutex_unlock(ctx->mutex);
             bsc_websocket_global_lock();
             lws_context_destroy(ctx->wsctx);
             bsc_websocket_global_unlock();
+            pthread_mutex_lock(ctx->mutex);
             ctx->wsctx = NULL;
             DEBUG_PRINTF("bws_srv_worker() set wsctx %p\n", ctx->wsctx);
             ctx->stop_worker = false;
@@ -620,9 +622,11 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     info.timeout_secs = timeout_s;
     info.connect_timeout_secs = timeout_s;
     info.user = ctx;
+    pthread_mutex_unlock(ctx->mutex);
     bsc_websocket_global_lock();
     ctx->wsctx = lws_create_context(&info);
     bsc_websocket_global_unlock();
+    pthread_mutex_lock(ctx->mutex);
 
     if (!ctx->wsctx) {
         pthread_mutex_unlock(ctx->mutex);
@@ -638,9 +642,11 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     ret = pthread_create(&thread_id, NULL, &bws_srv_worker, ctx);
 
     if (ret != 0) {
+        pthread_mutex_unlock(ctx->mutex);
         bsc_websocket_global_lock();
         lws_context_destroy(ctx->wsctx);
         bsc_websocket_global_unlock();
+        pthread_mutex_lock(ctx->mutex);
         ctx->wsctx = NULL;
         pthread_mutex_unlock(ctx->mutex);
         bws_free_server_ctx(ctx);
