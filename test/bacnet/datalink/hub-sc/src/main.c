@@ -1573,6 +1573,9 @@ static void test_hub_bad_params(void)
     ret = bsc_hub_connector_send(
         hubc_h, (uint8_t *)&hubc_uuid, sizeof(hubc_uuid));
     zassert_equal(ret, BSC_SC_INVALID_OPERATION, 0);
+    ret = bsc_hub_connector_send(
+        NULL, (uint8_t *)&hubc_uuid, sizeof(hubc_uuid));
+    zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
     zassert_equal(
         wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h2), true, 0);
     bsc_runloop_stop(bsc_global_runloop());
