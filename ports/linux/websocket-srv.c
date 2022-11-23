@@ -30,25 +30,6 @@
 #define DEBUG_PRINTF(...)
 #endif
 
-#if (LWS_LIBRARY_VERSION_MAJOR >= 4) && (LWS_LIBRARY_VERSION_MINOR > 2)
-#error \
-    "Unsupported version of libwebsockets. Check details here: bacnet_stack/ports/bsd/websocket-srv.c:27"
-/*
-  Current version of libwebsockets has an issue under macosx.
-  Websockets test shows leakage of file descriptors (pipes) inside
-  libwebsockets library. If you want to use that version of the
-  libwebsockets you must ensure that the issue is fixed.
-
-  You can check it in the following way:
-
-  1. Build websockets test in bacnet_stack/test/bacnet/datalink/websockets.
-  2. Run the test in background mode 'test_websocket &' and remember pid
-  3. Run 'lsof -p your_pid' and check that used file descriptors number
-    are not constatly growing"
-*/
-
-#endif
-
 #define BSC_INITIAL_BUFFER_LEN 512
 
 #ifndef LWS_PROTOCOL_LIST_TERM
