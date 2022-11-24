@@ -29,25 +29,6 @@
 #define DEBUG_PRINTF(...)
 #endif
 
-#if (LWS_LIBRARY_VERSION_MAJOR >= 4) && (LWS_LIBRARY_VERSION_MINOR > 2)
-#error \
-    "Unsupported version of libwebsockets. Check details here: bacnet_stack/ports/bsd/websocket-cli.c:26"
-/*
-  Current version of libwebsockets has an issue under macosx.
-  Websockets test shows leakage of file descriptors (pipes) inside
-  libwebsockets library. If you want to use that version of the
-  libwebsockets you must ensure that the issue is fixed.
-
-  You can check it in the following way:
-
-  1. Build websockets test in bacnet_stack/test/bacnet/datalink/websockets.
-  2. Run the test in background mode 'test_websocket &' and remember pid
-  3. Run 'lsof -p your_pid' and check that used file descriptors number
-    are not constatly growing"
-*/
-
-#endif
-
 #ifndef LWS_PROTOCOL_LIST_TERM
 #define LWS_PROTOCOL_LIST_TERM       \
     {                                \
@@ -380,9 +361,25 @@ static void *bws_cli_worker(void *arg)
         } else if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
             DEBUG_PRINTF("bws_cli_worker() destroy ctx %p\n", conn->ctx);
+            // TRICKY: This is ridiculus but lws_context_destroy()
+            //         does't seem to be
+            //         thread safe. More over, on different platforms the
+            //         function behaves in different ways. Call of
+            //         lws_context_destroy() leads to several calls of
+            //         bws_cli_websocket_event() callback (LWS_CALLBACK_CLOSED,
+            //         etc..). But under some OS (MacOSx) that callback is
+            //         called from context of the bws_cli_worker() thread and
+            //         under some other OS (linux) the callback is called from
+            //         internal libwebsockets lib thread. That's why
+            //         bws_cli_mutex must be unlocked before
+            //         lws_context_destroy() call. To ensure that nobody calls
+            //         lws_context_destroy() from some parallel thread it is
+            //         protected by global websocket mutex.
+            pthread_mutex_unlock(&bws_cli_mutex);
             bsc_websocket_global_lock();
             lws_context_destroy(conn->ctx);
             bsc_websocket_global_unlock();
+            pthread_mutex_lock(&bws_cli_mutex);
             dispatch_func = bws_cli_conn[h].dispatch_func;
             user_param = bws_cli_conn[h].user_param;
             bws_cli_free_connection(h);
@@ -496,9 +493,14 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     info.options |= LWS_SERVER_OPTION_FAIL_UPON_UNABLE_TO_BIND;
     info.timeout_secs = timeout_s;
     info.connect_timeout_secs = timeout_s;
+
+    // TRICKY: check comments related to lws_context_destroy() call
+
+    pthread_mutex_unlock(&bws_cli_mutex);
     bsc_websocket_global_lock();
     bws_cli_conn[h].ctx = lws_create_context(&info);
     bsc_websocket_global_unlock();
+    pthread_mutex_lock(&bws_cli_mutex);
     DEBUG_PRINTF("bws_cli_connect() created ctx %p\n", bws_cli_conn[h].ctx);
 
     if (!bws_cli_conn[h].ctx) {
@@ -512,9 +514,25 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     ret = pthread_create(&thread_id, NULL, &bws_cli_worker, &h);
 
     if (ret != 0) {
+        // TRICKY: This is ridiculus but lws_context_destroy()
+        //         does't seem to be
+        //         thread safe. More over, on different platforms the
+        //         function behaves in different ways. Call of
+        //         lws_context_destroy() leads to several calls of
+        //         bws_cli_websocket_event() callback (LWS_CALLBACK_CLOSED,
+        //         etc..). But under some OS (MacOSx) that callback is
+        //         called from context of the bws_cli_worker() thread and
+        //         under some other OS (linux) the callback is called from
+        //         internal libwebsockets lib thread. That's why
+        //         bws_cli_mutex must be unlocked before
+        //         lws_context_destroy() call. To ensure that nobody calls
+        //         lws_context_destroy() from some parallel thread it is
+        //         protected by global websocket mutex.
+        pthread_mutex_unlock(&bws_cli_mutex);
         bsc_websocket_global_lock();
         lws_context_destroy(bws_cli_conn[h].ctx);
         bsc_websocket_global_unlock();
+        pthread_mutex_lock(&bws_cli_mutex);
         bws_cli_free_connection(h);
         pthread_mutex_unlock(&bws_cli_mutex);
         DEBUG_PRINTF(
