@@ -51,7 +51,7 @@ static void bsc_node_event(
 
     if (ev == BSC_NODE_EVENT_STARTED || ev == BSC_NODE_EVENT_STOPPED) {
         bsc_event_signal(bsc_event);
-    } else {
+    } else if (ev == BSC_NODE_EVENT_RECEIVED_NPDU) {
         if (bsc_datalink_initialized) {
             if (FIFO_Available(&bsc_fifo, pdu_len + sizeof(pdu_len))) {
                 FIFO_Add(&bsc_fifo, (uint8_t *)&pdu_len, sizeof(pdu_len));

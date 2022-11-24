@@ -103,6 +103,8 @@ static BSC_ADDRESS_RESOLUTION *node_alloc_address_resolution(
     for (i = 0; i < BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM; i++) {
         if (!node->resolution[i].used) {
             node->resolution[i].used = true;
+            mstimer_set(&node->resolution[i].fresh_timer,
+                node->conf->address_resolution_freshness_timeout_s * 1000);
             memcpy(&node->resolution[i].vmac.address[0], &vmac->address[0],
                 BVLC_SC_VMAC_SIZE);
             return &node->resolution[i];
@@ -269,8 +271,8 @@ static void bsc_node_process_received(BSC_NODE *node,
                     error_code = ERROR_CODE_HEADER_NOT_UNDERSTOOD;
                     error_class = ERROR_CLASS_COMMUNICATION;
                     bufsize = bvlc_sc_encode_result(buf, sizeof(buf),
-                        decoded_pdu->hdr.message_id, decoded_pdu->hdr.origin,
-                        decoded_pdu->hdr.dest, decoded_pdu->hdr.bvlc_function,
+                        decoded_pdu->hdr.message_id, NULL,
+                        decoded_pdu->hdr.origin, decoded_pdu->hdr.bvlc_function,
                         1, &decoded_pdu->dest_options[i].packed_header_marker,
                         &error_class, &error_code,
                         (uint8_t *)ERROR_STR_OPTION_NOT_UNDERSTOOD);
@@ -313,10 +315,15 @@ static void bsc_node_process_received(BSC_NODE *node,
                     }
                 }
             } else {
-                DEBUG_PRINTF("node %p get unexpected result pdu with bvlc "
-                             "function %d from node %s\n",
+                DEBUG_PRINTF(
+                    "node %p get unexpected result pdu with bvlc "
+                    "function %d error_class %d error_code %dfrom node %s\n",
                     node, decoded_pdu->payload.result.bvlc_function,
+                    decoded_pdu->payload.result.error_class,
+                    decoded_pdu->payload.result.error_code,
                     bsc_vmac_to_string(decoded_pdu->hdr.origin));
+                node->conf->event_func(
+                    node, BSC_NODE_EVENT_RECEIVED_RESULT, pdu, pdu_len);
             }
             break;
         }
@@ -366,9 +373,9 @@ static void bsc_node_process_received(BSC_NODE *node,
                 error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 error_class = ERROR_CLASS_COMMUNICATION;
                 bufsize = bvlc_sc_encode_result(buf, sizeof(buf),
-                    decoded_pdu->hdr.message_id, decoded_pdu->hdr.origin,
-                    decoded_pdu->hdr.dest, decoded_pdu->hdr.bvlc_function, 1,
-                    NULL, &error_class, &error_code,
+                    decoded_pdu->hdr.message_id, NULL, decoded_pdu->hdr.origin,
+                    decoded_pdu->hdr.bvlc_function, 1, NULL, &error_class,
+                    &error_code,
                     (uint8_t *)ERROR_STR_DIRECT_CONNECTIONS_NOT_SUPPORTED);
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
@@ -388,11 +395,13 @@ static void bsc_node_process_received(BSC_NODE *node,
             if (!r) {
                 r = node_alloc_address_resolution(
                     node, decoded_pdu->hdr.origin);
+#if DEBUG_ENABLED == 1
                 if (!r) {
                     DEBUG_PRINTF("can't allocate address resolution for node "
                                  "with address %s\n",
                         bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 }
+#endif
             }
             if (r) {
                 bsc_node_parse_urls(r, decoded_pdu);
@@ -403,7 +412,8 @@ static void bsc_node_process_received(BSC_NODE *node,
             break;
         }
         case BVLC_SC_ENCAPSULATED_NPDU: {
-            node->conf->event_func(node, BSC_NODE_EVENT_RECEIVED, pdu, pdu_len);
+            node->conf->event_func(
+                node, BSC_NODE_EVENT_RECEIVED_NPDU, pdu, pdu_len);
             break;
         }
     }

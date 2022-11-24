@@ -1403,6 +1403,8 @@ static void test_node_send(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     const char *err_desc;
+    uint8_t optbuf[128];
+    int optlen;
 
     memset(npdu, 0x33, sizeof(npdu));
     memset(&node_uuid, 0x1, sizeof(node_uuid));
@@ -1507,13 +1509,15 @@ static void test_node_send(void)
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait until hub connectors connects
     bsc_wait(BACNET_TIMEOUT);
+
+    // send encapsulated npdu packet
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 111, NULL, &node_vmac2, npdu, sizeof(npdu));
     zassert_equal(len > 0, true, NULL);
     ret = bsc_node_send(node3, buf, len);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
-        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED, node2), true, 0);
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
         node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
     zassert_equal(ret, true, NULL);
@@ -1521,6 +1525,29 @@ static void test_node_send(void)
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
+
+    // send encapsulated npdu packet with proprietary option with must understand flag
+    optlen = bvlc_sc_encode_proprietary_option(optbuf, sizeof(optbuf), true,
+        0x222, 12, NULL, 0);
+    zassert_not_equal(optlen, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 111, NULL, &node_vmac2, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    len = bvlc_sc_add_option_to_destination_options(buf, sizeof(buf), buf, len,
+                                                    optbuf, optlen );
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node3, buf, len);
+    bsc_wait(BACNET_TIMEOUT);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_RESULT, node3), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(message.hdr.bvlc_function, BVLC_SC_RESULT, NULL);
+    zassert_equal(message.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(message.payload.result.error_code, ERROR_CODE_HEADER_NOT_UNDERSTOOD, NULL);
+
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
@@ -1719,7 +1746,7 @@ static void test_node_direct_connection(void)
     ret = bsc_node_send(node3, buf, len);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
-        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED, node2), true, 0);
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
         node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
     zassert_equal(ret, true, NULL);
@@ -1728,6 +1755,8 @@ static void test_node_direct_connection(void)
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
     bsc_wait(BACNET_TIMEOUT);
+    ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
