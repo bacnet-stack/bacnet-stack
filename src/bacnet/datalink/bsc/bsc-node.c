@@ -328,7 +328,8 @@ static void bsc_node_process_received(BSC_NODE *node,
             break;
         }
         case BVLC_SC_ADVERTISIMENT: {
-            // Ignore that messages for now
+            node->conf->event_func(
+                node, BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT, pdu, pdu_len);
             break;
         }
         case BVLC_SC_ADVERTISIMENT_SOLICITATION: {

@@ -1526,27 +1526,48 @@ static void test_node_send(void)
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
 
-    // send encapsulated npdu packet with proprietary option with must understand flag
-    optlen = bvlc_sc_encode_proprietary_option(optbuf, sizeof(optbuf), true,
-        0x222, 12, NULL, 0);
+    // send encapsulated npdu packet with proprietary option with must
+    // understand flag
+    optlen = bvlc_sc_encode_proprietary_option(
+        optbuf, sizeof(optbuf), true, 0x222, 12, NULL, 0);
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 111, NULL, &node_vmac2, npdu, sizeof(npdu));
     zassert_equal(len > 0, true, NULL);
-    len = bvlc_sc_add_option_to_destination_options(buf, sizeof(buf), buf, len,
-                                                    optbuf, optlen );
+    len = bvlc_sc_add_option_to_destination_options(
+        buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_equal(len > 0, true, NULL);
     ret = bsc_node_send(node3, buf, len);
     bsc_wait(BACNET_TIMEOUT);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
-        wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_RESULT, node3), true, 0);
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_RESULT, node3), true,
+        0);
     ret = bvlc_sc_decode_message(
         node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
     zassert_equal(ret, true, NULL);
     zassert_equal(message.hdr.bvlc_function, BVLC_SC_RESULT, NULL);
-    zassert_equal(message.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
-    zassert_equal(message.payload.result.error_code, ERROR_CODE_HEADER_NOT_UNDERSTOOD, NULL);
+    zassert_equal(
+        message.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(message.payload.result.error_code,
+        ERROR_CODE_HEADER_NOT_UNDERSTOOD, NULL);
+
+    // send advertisiment solicitation
+
+    len = bvlc_sc_encode_advertisiment_solicitation(
+        buf, sizeof(buf), 234, NULL, &node_vmac2);
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node3, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT, node3),
+        true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(message.hdr.bvlc_function, BVLC_SC_ADVERTISIMENT, NULL);
+    zassert_equal(message.payload.advertisiment.support,
+        BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_UNSUPPORTED, NULL);
 
     bsc_node_stop(node);
     zassert_equal(
