@@ -253,6 +253,7 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
         c, buf, buflen);
 
     if (c->dm.hdr.bvlc_function == BVLC_SC_HEARTBEAT_ACK) {
+#if DEBUG_ENABLED == 1
         if (c->dm.hdr.message_id != c->expected_heartbeat_message_id) {
             DEBUG_PRINTF(
                 "bsc_process_socket_connected_state() got heartbeat ack with "
@@ -264,6 +265,7 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
                 "socket %p\n",
                 c);
         }
+#endif
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_HEARTBEAT_REQUEST) {
         DEBUG_PRINTF("bsc_process_socket_connected_state() got heartbeat "
                      "request with message_id %d\n",
@@ -910,7 +912,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                 // origin and dest addresses (add them to received PDU)
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
                 DEBUG_PRINTF(
-                    "bsc_dispatch_cli_func() pdu offset %zu in rx_buf\n",
+                    "bsc_dispatch_srv_func() pdu offset %zu in rx_buf\n",
                     c->rx_buf_size);
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
@@ -1085,7 +1087,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     DEBUG_PRINTF("bsc_dispatch_cli_func() ev = %d, state = %d\n", ev, c->state);
 
     if (ev == BSC_WEBSOCKET_DISCONNECTED) {
-        DEBUG_PRINTF("bsc_dispatch_cli_func() ctx->state = %d%d\n", ctx->state);
+        DEBUG_PRINTF("bsc_dispatch_cli_func() ctx->state = %d\n", ctx->state);
         if (ctx->state == BSC_CTX_STATE_DEINITIALIZING) {
             c->state = BSC_SOCK_STATE_IDLE;
             for (i = 0; i < ctx->sock_num; i++) {
@@ -1393,6 +1395,11 @@ void bsc_disconnect(BSC_SOCKET *c)
             } else {
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
                 c->tx_buf_size += len + sizeof(len);
+                if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+                    bws_cli_send(c->wh);
+                } else {
+                    bws_srv_send(c->ctx->sh, c->wh);
+                }
             }
         } else if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
             if (c->state != BSC_SOCK_STATE_IDLE) {

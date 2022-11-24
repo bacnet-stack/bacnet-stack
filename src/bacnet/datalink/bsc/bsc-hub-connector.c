@@ -108,7 +108,7 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
     ret = bsc_connect(&p->ctx, &p->sock[type],
         (type == BSC_HUB_CONN_PRIMARY) ? (char *)p->primary_url
                                        : (char *)p->failover_url);
-    (void) ret;
+    (void)ret;
 #if DEBUG_ENABLED == 1
     if (ret != BSC_SC_SUCCESS) {
         DEBUG_PRINTF("hub_connector_connect() got error while "
@@ -338,11 +338,17 @@ BSC_SC_RET bsc_hub_connector_send(
         pdu, pdu_len);
 
     bsc_global_mutex_lock();
-
+    if (!c) {
+        DEBUG_PRINTF("bsc_hub_connector_send() <<< ret = BSC_SC_BAD_PARAM\n");
+        bsc_global_mutex_unlock();
+        return BSC_SC_BAD_PARAM;
+    }
     if (c->state == BSC_HUB_CONNECTOR_STATE_IDLE ||
         (c->state != BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY &&
             c->state != BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER)) {
-        DEBUG_PRINTF("bsc_hub_connector_send() pdu is dropped\n");
+        DEBUG_PRINTF("bsc_hub_connector_send() pdu is dropped, state of "
+                     "hub_connector %p is %d\n",
+            c, c->state);
         DEBUG_PRINTF(
             "bsc_hub_connector_send() <<< ret = BSC_SC_INVALID_OPERATION\n");
         bsc_global_mutex_unlock();

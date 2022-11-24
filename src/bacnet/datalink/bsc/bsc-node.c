@@ -208,13 +208,47 @@ static void bsc_node_restart(BSC_NODE *node)
     DEBUG_PRINTF("bsc_node_restart() <<<\n");
 }
 
+static void bsc_node_parse_urls(
+    BSC_ADDRESS_RESOLUTION *r, BVLC_SC_DECODED_MESSAGE *decoded_pdu)
+{
+    int i, j;
+    int start;
+    uint8_t *url = NULL;
+
+    url = decoded_pdu->payload.address_resolution_ack.utf8_websocket_uri_string;
+    r->urls_num = 0;
+    for (i = 0, j = 0, start = 0;
+         i < decoded_pdu->payload.address_resolution_ack
+                 .utf8_websocket_uri_string_len;
+         i++) {
+        if (url[i] == 0x20) {
+            if (i > BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK ||
+                (i - start) == 0) {
+                start = i + 1;
+                continue;
+            } else {
+                memcpy(&r->utf8_urls[j][0], &url[start], i - start);
+                r->utf8_urls[j][i] = 0;
+                j++;
+                start = i + 1;
+            }
+        }
+    }
+    if (i - start > 0 &&
+        i <= BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK) {
+        memcpy(&r->utf8_urls[j][0], &url[start], i - start);
+        r->utf8_urls[j][i] = 0;
+        j++;
+    }
+    r->urls_num = j;
+}
+
 static void bsc_node_process_received(BSC_NODE *node,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    int i, j;
-    int start;
+    int i;
     static uint8_t buf[BVLC_SC_NPDU_SIZE_CONF];
     uint16_t bufsize;
     BSC_SC_RET ret;
@@ -311,10 +345,12 @@ static void bsc_node_process_received(BSC_NODE *node,
             break;
         }
         case BVLC_SC_ADDRESS_RESOLUTION: {
+            DEBUG_PRINTF(
+                "bsc_node_process_received() got BVLC_SC_ADDRESS_RESOLUTION\n");
             if (node->conf->node_switch_enabled) {
                 bufsize = bvlc_sc_encode_address_resolution_ack(buf,
-                    sizeof(buf), decoded_pdu->hdr.message_id,
-                    decoded_pdu->hdr.origin, decoded_pdu->hdr.dest,
+                    sizeof(buf), decoded_pdu->hdr.message_id, NULL,
+                    decoded_pdu->hdr.origin,
                     (uint8_t *)node->conf->direct_connection_accept_uris,
                     node->conf->direct_connection_accept_uris_len);
                 if (bufsize) {
@@ -346,48 +382,20 @@ static void bsc_node_process_received(BSC_NODE *node,
             break;
         }
         case BVLC_SC_ADDRESS_RESOLUTION_ACK: {
+            DEBUG_PRINTF("bsc_node_process_received() got "
+                         "BVLC_SC_ADDRESS_RESOLUTION_ACK\n");
             r = node_get_address_resolution(node, decoded_pdu->hdr.origin);
             if (!r) {
                 r = node_alloc_address_resolution(
                     node, decoded_pdu->hdr.origin);
                 if (!r) {
-                    DEBUG_PRINTF("can't allocate address resolutio for node "
+                    DEBUG_PRINTF("can't allocate address resolution for node "
                                  "with address %s\n",
                         bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 }
             }
             if (r) {
-                r->urls_num = 0;
-                for (i = 0, j = 0, start = 0;
-                     i < decoded_pdu->payload.address_resolution_ack
-                             .utf8_websocket_uri_string_len;
-                     i++) {
-                    if (i == 0x20) {
-                        if (i > BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK ||
-                            (i - start) == 0) {
-                            start = i + 1;
-                            continue;
-                        } else {
-                            memcpy(&r->utf8_urls[j][0],
-                                &decoded_pdu->payload.address_resolution_ack
-                                     .utf8_websocket_uri_string[start],
-                                i - start);
-                            r->utf8_urls[j][i] = 0;
-                            j++;
-                            start = i + 1;
-                        }
-                    }
-                }
-                if (i - start > 0 &&
-                    i <= BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK) {
-                    memcpy(&r->utf8_urls[j][0],
-                        &decoded_pdu->payload.address_resolution_ack
-                             .utf8_websocket_uri_string[start],
-                        i - start);
-                    r->utf8_urls[j][i] = 0;
-                    j++;
-                }
-                r->urls_num = j;
+                bsc_node_parse_urls(r, decoded_pdu);
                 mstimer_restart(&r->fresh_timer);
                 bsc_node_switch_process_address_resolution(
                     node->node_switch, r);
@@ -606,6 +614,10 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             return ret;
         }
     }
+    if (!node->conf->hub_function_enabled && !node->conf->node_switch_enabled) {
+        node->state = BSC_NODE_STATE_STARTED;
+        node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, 0);
+    }
     DEBUG_PRINTF(
         "bsc_node_start() hub_function %p hub_connector %p node_switch %p\n",
         node->hub_function, node->hub_connector, node->node_switch);
@@ -647,7 +659,8 @@ void bsc_node_stop(BSC_NODE *node)
     if (node) {
         bsc_global_mutex_lock();
 
-        if (node->state != BSC_NODE_STATE_IDLE) {
+        if (node->state != BSC_NODE_STATE_IDLE &&
+            node->state != BSC_NODE_STATE_STOPPING) {
             node->state = BSC_NODE_STATE_STOPPING;
             bsc_hub_connector_stop(node->hub_connector);
             if (node->conf->hub_function_enabled) {
@@ -702,9 +715,9 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
     BSC_NODE *node = (BSC_NODE *)p_node;
     BSC_SC_RET ret;
 
-    DEBUG_PRINTF("bsc_node_send() >>> p_node = %p, pdu = %p, "
+    DEBUG_PRINTF("bsc_node_send() >>> p_node = %p(%s), pdu = %p, "
                  "pdu_len = %d\n",
-        p_node, pdu, pdu_len);
+        p_node, bsc_vmac_to_string(p_node->conf->local_vmac), pdu, pdu_len);
 
     if (!node) {
         DEBUG_PRINTF("bsc_node_send() <<< ret =  BSC_SC_BAD_PARAM\n");
@@ -773,5 +786,23 @@ BSC_SC_RET bsc_node_send_address_resolution(
         pdu, sizeof(pdu), bsc_get_next_message_id(), NULL, dest);
     ret = bsc_node_send(node, pdu, pdu_len);
     DEBUG_PRINTF("bsc_node_send_address_resolution() <<< ret = %d\n", ret);
+    return ret;
+}
+
+BACNET_STACK_EXPORT
+BSC_SC_RET bsc_node_connect_direct(
+    BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
+{
+    BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
+    DEBUG_PRINTF("bsc_node_connect_direct() >>> node = %p, dest = %p, urls = "
+                 "%p, urls_cnt = %d\n",
+        node, dest, urls, urls_cnt);
+    bsc_global_mutex_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        node->conf->node_switch_enabled) {
+        ret = bsc_node_switch_connect(node->node_switch, dest, urls, urls_cnt);
+    }
+    DEBUG_PRINTF("bsc_node_connect_direct() <<< ret = %d\n", ret);
+    bsc_global_mutex_unlock();
     return ret;
 }

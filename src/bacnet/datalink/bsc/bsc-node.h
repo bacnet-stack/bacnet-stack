@@ -105,6 +105,10 @@ BSC_SC_RET bsc_node_hub_connector_send(
      uint8_t *pdu,
      unsigned pdu_len);
 
-
+BACNET_STACK_EXPORT
+BSC_SC_RET bsc_node_connect_direct(
+    BSC_NODE *node,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    char** urls, size_t urls_cnt);
 
 #endif

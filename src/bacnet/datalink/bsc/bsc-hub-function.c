@@ -96,6 +96,8 @@ static BSC_SOCKET *hub_function_find_connection_for_vmac(
 
     bsc_global_mutex_lock();
     f = (BSC_HUB_FUNCTION *)user_arg;
+    DEBUG_PRINTF("hubf = %p local_vmac = %s\n", f,
+        bsc_vmac_to_string(&f->cfg.local_vmac));
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
         DEBUG_PRINTF("hubf = %p, sock %p, state = %d, vmac = %s\n", f,
             &f->sock[i], f->sock[i].state,
@@ -164,7 +166,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                         // address into pdu by extending of it's header
                         pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
                         ret = bsc_send(&f->sock[i], *ppdu, pdu_len);
-                        (void) ret;
+                        (void)ret;
 #if DEBUG_ENABLED == 1
                         if (ret != BSC_SC_SUCCESS) {
                             DEBUG_PRINTF("sending of reconstructed pdu failed, "
@@ -184,7 +186,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                 } else {
                     bvlc_sc_remove_dest_set_orig(pdu, pdu_len, &c->vmac);
                     ret = bsc_send(dst, pdu, pdu_len);
-                    (void) ret;
+                    (void)ret;
 #if DEBUG_ENABLED == 1
                     if (ret != BSC_SC_SUCCESS) {
                         DEBUG_PRINTF(
