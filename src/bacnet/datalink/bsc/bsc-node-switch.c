@@ -64,12 +64,6 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
 static void node_switch_acceptor_context_event(
     BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
 
-static BSC_SOCKET *node_switch_initiator_find_connection_for_vmac(
-    BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg);
-
-static BSC_SOCKET *node_switch_initiator_find_connection_for_uuid(
-    BACNET_SC_UUID *uuid, void *user_arg);
-
 static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BSC_SC_RET err,
@@ -125,8 +119,8 @@ static BSC_SOCKET_CTX_FUNCS bsc_node_switch_acceptor_ctx_funcs = {
 };
 
 static BSC_SOCKET_CTX_FUNCS bsc_node_switch_initiator_ctx_funcs = {
-    node_switch_initiator_find_connection_for_vmac,
-    node_switch_initiator_find_connection_for_uuid,
+    NULL,
+    NULL,
     node_switch_initiator_socket_event, node_switch_initiator_context_event
 };
 
@@ -264,18 +258,6 @@ static void node_switch_acceptor_context_event(
     }
     DEBUG_PRINTF("node_switch_acceptor_context_event() <<<\n");
     bsc_global_mutex_unlock();
-}
-
-static BSC_SOCKET *node_switch_initiator_find_connection_for_vmac(
-    BACNET_SC_VMAC_ADDRESS *vmac, void *user_arg)
-{
-    return NULL;
-}
-
-static BSC_SOCKET *node_switch_initiator_find_connection_for_uuid(
-    BACNET_SC_UUID *uuid, void *user_arg)
-{
-    return NULL;
 }
 
 static int node_switch_initiator_find_connection_index_for_vmac(

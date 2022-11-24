@@ -314,17 +314,16 @@ static void bsc_node_process_received(BSC_NODE *node,
                             bsc_vmac_to_string(decoded_pdu->hdr.origin));
                     }
                 }
-            } else {
-                DEBUG_PRINTF(
-                    "node %p get unexpected result pdu with bvlc "
-                    "function %d error_class %d error_code %dfrom node %s\n",
-                    node, decoded_pdu->payload.result.bvlc_function,
-                    decoded_pdu->payload.result.error_class,
-                    decoded_pdu->payload.result.error_code,
-                    bsc_vmac_to_string(decoded_pdu->hdr.origin));
-                node->conf->event_func(
-                    node, BSC_NODE_EVENT_RECEIVED_RESULT, pdu, pdu_len);
             }
+            DEBUG_PRINTF(
+                "node %p get pdu with bvlc "
+                "function %d error_class %d error_code %d from node %s\n",
+                node, decoded_pdu->payload.result.bvlc_function,
+                decoded_pdu->payload.result.error_class,
+                decoded_pdu->payload.result.error_code,
+                bsc_vmac_to_string(decoded_pdu->hdr.origin));
+            node->conf->event_func(
+                node, BSC_NODE_EVENT_RECEIVED_RESULT, pdu, pdu_len);
             break;
         }
         case BVLC_SC_ADVERTISIMENT: {
@@ -343,12 +342,14 @@ static void bsc_node_process_received(BSC_NODE *node,
                 node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len);
             if (bufsize) {
                 ret = bsc_node_send(node, buf, bufsize);
+#if DEBUG_ENABLED == 1
                 if (ret != BSC_SC_SUCCESS) {
                     DEBUG_PRINTF(
                         "bsc_node_process_received() warning "
                         "advertisement pdu is not sent to node %s, error %d\n",
                         ret, bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 }
+#endif
             }
             break;
         }
@@ -371,6 +372,9 @@ static void bsc_node_process_received(BSC_NODE *node,
                     }
                 }
             } else {
+                DEBUG_PRINTF("bsc_node_process_received() node switch is "
+                             "disabled, send error to node %s\n",
+                    bsc_vmac_to_string(decoded_pdu->hdr.origin));
                 error_code = ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
                 error_class = ERROR_CLASS_COMMUNICATION;
                 bufsize = bvlc_sc_encode_result(buf, sizeof(buf),

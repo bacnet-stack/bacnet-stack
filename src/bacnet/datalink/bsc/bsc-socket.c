@@ -826,6 +826,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, buf "
                  "= %p, bufsize = %d, ctx = %p\n",
         sh, h, ev, buf, bufsize, ctx);
+    bsc_runloop_schedule(bsc_global_runloop());
 
     if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
         for (i = 0; i < ctx->sock_num; i++) {
@@ -916,7 +917,6 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                     c->rx_buf_size);
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
-                bsc_runloop_schedule(bsc_global_runloop());
             } else {
                 DEBUG_PRINTF("bsc_dispatch_srv_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
@@ -953,7 +953,6 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                 bsc_srv_process_error(c, c->disconnect_reason);
             }
         }
-        bsc_runloop_schedule(bsc_global_runloop());
     }
 
     bsc_global_mutex_unlock();
@@ -1073,6 +1072,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                  "bufsize = %d, ctx = %p\n",
         h, ev, buf, bufsize, ctx);
     bsc_global_mutex_lock();
+    bsc_runloop_schedule(bsc_global_runloop());
 
     c = bsc_find_conn_by_websocket(ctx, h);
 
@@ -1166,7 +1166,6 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 p += len + sizeof(len);
             }
         }
-        bsc_runloop_schedule(bsc_global_runloop());
     } else if (ev == BSC_WEBSOCKET_RECEIVED) {
         if (c->state == BSC_SOCK_STATE_AWAITING_ACCEPT) {
             bsc_process_cli_awaiting_accept(c, buf, bufsize);
@@ -1193,7 +1192,6 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 c->rx_buf_size += bufsize;
                 DEBUG_PRINTF("bsc_dispatch_cli_func() c->rx_buf_size = %zu\n",
                     c->rx_buf_size);
-                bsc_runloop_schedule(bsc_global_runloop());
             } else {
                 DEBUG_PRINTF("bsc_dispatch_cli_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "

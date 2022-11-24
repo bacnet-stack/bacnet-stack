@@ -1589,6 +1589,7 @@ static void test_node_send(void)
     deinit_node_ev(&node_ev2);
     deinit_node_ev(&node_ev3);
 }
+
 static void test_node_direct_connection(void)
 {
     BACNET_SC_UUID node_uuid;
@@ -1775,16 +1776,217 @@ static void test_node_direct_connection(void)
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
-    bsc_wait(BACNET_TIMEOUT);
-    ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
-    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
     bsc_node_stop(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    bsc_node_stop(node3);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
+    ret = bsc_node_deinit(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_deinit(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_deinit(node3);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    bsc_runloop_stop(bsc_global_runloop());
+    deinit_node_ev(&node_ev);
+    deinit_node_ev(&node_ev2);
+    deinit_node_ev(&node_ev3);
+}
+
+static void test_node_direct_connection_unsupported(void)
+{
+    BACNET_SC_UUID node_uuid;
+    BACNET_SC_VMAC_ADDRESS node_vmac;
+    BACNET_SC_UUID node_uuid2;
+    BACNET_SC_VMAC_ADDRESS node_vmac2;
+    BACNET_SC_UUID node_uuid3;
+    BACNET_SC_VMAC_ADDRESS node_vmac3;
+    BSC_NODE_CONF conf;
+    BSC_NODE_CONF conf2;
+    BSC_NODE_CONF conf3;
+    BSC_SC_RET ret;
+    BSC_NODE *node;
+    BSC_NODE *node2;
+    BSC_NODE *node3;
+    char node_primary_url[128];
+    char node_secondary_url[128];
+    char node_primary_url2[128];
+    char node_secondary_url2[128];
+    char node_primary_url3[128];
+    char node_secondary_url3[128];
+    uint8_t buf[256];
+    int len;
+    uint8_t npdu[128];
+    BVLC_SC_DECODED_MESSAGE message;
+    BACNET_ERROR_CODE error;
+    BACNET_ERROR_CLASS class;
+    const char *err_desc;
+    char uris[256];
+    // test configuration
+    // node is a just a hub
+    // node2 has node switch disabed and connected to node using hub connector
+    // node3 has node switch disabed connected to node using hub connector and
+    // initiate
+    //       direct connection to node 2
+
+    memset(npdu, 0x33, sizeof(npdu));
+    memset(&node_uuid, 0x1, sizeof(node_uuid));
+    memset(&node_vmac, 0x2, sizeof(node_vmac));
+    memset(&node_uuid2, 0x3, sizeof(node_uuid2));
+    memset(&node_vmac2, 0x4, sizeof(node_vmac2));
+    memset(&node_uuid3, 0x5, sizeof(node_uuid2));
+    memset(&node_vmac3, 0x6, sizeof(node_vmac2));
+
+    sprintf(
+        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
+    sprintf(node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_HUB_PORT);
+    sprintf(node_secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
+    sprintf(node_primary_url3, "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_HUB_PORT);
+    sprintf(node_secondary_url3, "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
+
+    conf.ca_cert_chain = ca_cert;
+    conf.ca_cert_chain_size = sizeof(ca_cert);
+    conf.cert_chain = node_cert;
+    conf.cert_chain_size = sizeof(node_cert);
+    conf.key = node_key;
+    conf.key_size = sizeof(node_key);
+    conf.local_uuid = &node_uuid;
+    conf.local_vmac = &node_vmac;
+    conf.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf.max_local_npdu_len = MAX_NDPU_LEN;
+    conf.connect_timeout_s = BACNET_TIMEOUT;
+    conf.heartbeat_timeout_s = BACNET_INFINITE_TIMEOUT;
+    conf.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf.primaryURL = node_primary_url;
+    conf.failoverURL = node_secondary_url;
+    conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
+    conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
+    conf.iface = NULL;
+    conf.node_switch_enabled = false;
+    conf.hub_function_enabled = true;
+    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris_len = 0;
+    conf.event_func = node_event;
+
+    sprintf(uris, "wss://%s:%d wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_DIRECT_PORT2, BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_DIRECT_PORT2);
+    conf2.ca_cert_chain = ca_cert;
+    conf2.ca_cert_chain_size = sizeof(ca_cert);
+    conf2.cert_chain = node_cert;
+    conf2.cert_chain_size = sizeof(node_cert);
+    conf2.key = node_key;
+    conf2.key_size = sizeof(node_key);
+    conf2.local_uuid = &node_uuid2;
+    conf2.local_vmac = &node_vmac2;
+    conf2.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf2.max_local_npdu_len = MAX_NDPU_LEN;
+    conf2.connect_timeout_s = BACNET_TIMEOUT;
+    conf2.heartbeat_timeout_s = BACNET_INFINITE_TIMEOUT;
+    conf2.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf2.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf2.primaryURL = node_primary_url2;
+    conf2.failoverURL = node_secondary_url2;
+    conf2.hub_server_port = 0;
+    conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
+    conf2.iface = NULL;
+    conf2.node_switch_enabled = false;
+    conf2.hub_function_enabled = false;
+    conf2.direct_connection_accept_uris = uris;
+    conf2.direct_connection_accept_uris_len = strlen(uris);
+    conf2.event_func = node_event2;
+
+    conf3.ca_cert_chain = ca_cert;
+    conf3.ca_cert_chain_size = sizeof(ca_cert);
+    conf3.cert_chain = node_cert;
+    conf3.cert_chain_size = sizeof(node_cert);
+    conf3.key = node_key;
+    conf3.key_size = sizeof(node_key);
+    conf3.local_uuid = &node_uuid3;
+    conf3.local_vmac = &node_vmac3;
+    conf3.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf3.max_local_npdu_len = MAX_NDPU_LEN;
+    conf3.connect_timeout_s = BACNET_TIMEOUT;
+    conf3.heartbeat_timeout_s = BACNET_INFINITE_TIMEOUT;
+    conf3.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf3.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf3.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf3.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf3.primaryURL = node_primary_url3;
+    conf3.failoverURL = node_secondary_url3;
+    conf3.hub_server_port = 0;
+    conf3.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT3;
+    conf3.iface = NULL;
+    conf3.node_switch_enabled = true;
+    conf3.hub_function_enabled = false;
+    conf3.direct_connection_accept_uris = NULL;
+    conf3.direct_connection_accept_uris_len = 0;
+    conf3.event_func = node_event3;
+
+    init_node_ev(&node_ev);
+    init_node_ev(&node_ev2);
+    init_node_ev(&node_ev3);
+
+    ret = bsc_runloop_start(bsc_global_runloop());
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    ret = bsc_node_init(&conf, &node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_init(&conf3, &node3);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STARTED, node), true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    ret = bsc_node_start(node3);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
+    // wait while node3 and node2 connects to node
     bsc_wait(2 * BACNET_TIMEOUT);
+
+    ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_RESULT, node3), true,
+        0);
+    ret = bvlc_sc_decode_message(
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(message.hdr.bvlc_function, BVLC_SC_RESULT, NULL);
+    zassert_equal(
+        message.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(message.payload.result.error_code,
+        ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED, NULL);
+
+    bsc_node_stop(node);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    bsc_node_stop(node2);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
     bsc_node_stop(node3);
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
@@ -1808,8 +2010,11 @@ void test_main(void)
     ztest_test_suite(node_test_2, ztest_unit_test(test_node_duplicated_vmac));
     ztest_test_suite(node_test_3, ztest_unit_test(test_node_send));
     ztest_test_suite(node_test_4, ztest_unit_test(test_node_direct_connection));
+    ztest_test_suite(
+        node_test_5, ztest_unit_test(test_node_direct_connection_unsupported));
     ztest_run_test_suite(node_test_1);
     ztest_run_test_suite(node_test_2);
     ztest_run_test_suite(node_test_3);
     ztest_run_test_suite(node_test_4);
+    ztest_run_test_suite(node_test_5);
 }
