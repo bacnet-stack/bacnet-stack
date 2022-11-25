@@ -73,7 +73,6 @@ typedef struct BSC_Hub_Connector {
 } BSC_HUB_CONNECTOR;
 
 static BSC_HUB_CONNECTOR bsc_hub_connector[BSC_CONF_HUB_CONNECTORS_NUM] = { 0 };
-static bool bsc_runloop_registered;
 
 static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = { NULL, NULL,
     hub_connector_socket_event, hub_connector_context_event };

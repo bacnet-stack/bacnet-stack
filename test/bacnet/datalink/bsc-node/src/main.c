@@ -1077,6 +1077,7 @@ typedef struct {
     uint8_t pdu[MAX_BVLC_LEN];
     uint16_t pdu_len;
     BSC_EVENT *e;
+    BACNET_SC_VMAC_ADDRESS dest;
 } node_ev_t;
 
 static node_ev_t node_ev;
@@ -1119,6 +1120,7 @@ static void wait_specific_node_ev(
 static void signal_node_ev(node_ev_t *e,
     BSC_NODE_EVENT ev,
     BSC_NODE *node,
+    BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
     uint16_t pdu_len)
 {
@@ -1131,6 +1133,13 @@ static void signal_node_ev(node_ev_t *e,
         memcpy(e->pdu, pdu, pdu_len);
         e->pdu_len = pdu_len;
     }
+
+    if (dest) {
+        debug_printf("dest = %s\n", bsc_vmac_to_string(dest));
+        memcpy(&e->dest.address[0], &dest->address[0], sizeof(dest->address));
+        debug_printf("e->dest = %s\n", bsc_vmac_to_string(&e->dest));
+    }
+
     bsc_event_signal(e->e);
 }
 
@@ -1141,25 +1150,34 @@ static void reset_node_ev(node_ev_t *ev)
     ev->node = NULL;
 }
 
-static void node_event(
-    BSC_NODE *node, BSC_NODE_EVENT ev, uint8_t *pdu, uint16_t pdu_len)
+static void node_event(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    uint16_t pdu_len)
 {
     debug_printf("node_event() ev = %d event = %p\n", ev, node_ev.e);
-    signal_node_ev(&node_ev, ev, node, pdu, pdu_len);
+    signal_node_ev(&node_ev, ev, node, dest, pdu, pdu_len);
 }
 
-static void node_event2(
-    BSC_NODE *node, BSC_NODE_EVENT ev, uint8_t *pdu, uint16_t pdu_len)
+static void node_event2(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    uint16_t pdu_len)
 {
     debug_printf("node_event2() ev = %d event = %p\n", ev, node_ev2.e);
-    signal_node_ev(&node_ev2, ev, node, pdu, pdu_len);
+    signal_node_ev(&node_ev2, ev, node, dest, pdu, pdu_len);
 }
 
-static void node_event3(
-    BSC_NODE *node, BSC_NODE_EVENT ev, uint8_t *pdu, uint16_t pdu_len)
+static void node_event3(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    uint16_t pdu_len)
 {
     debug_printf("node_event3() ev = %d event = %p\n", ev, node_ev3.e);
-    signal_node_ev(&node_ev3, ev, node, pdu, pdu_len);
+    signal_node_ev(&node_ev3, ev, node, dest, pdu, pdu_len);
 }
 
 static void test_node_start_stop(void)
@@ -1619,6 +1637,9 @@ static void test_node_direct_connection(void)
     BACNET_ERROR_CLASS class;
     const char *err_desc;
     char uris[256];
+    char url1[256];
+    char url2[256];
+    char *urls[2] = { url1, url2 };
     // test configuration
     // node is a just a hub
     // node2 connected to node using hub connector is configured
@@ -1761,7 +1782,12 @@ static void test_node_direct_connection(void)
     bsc_wait(2 * BACNET_TIMEOUT);
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
-    bsc_wait(BACNET_TIMEOUT);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_CONNECTED, node3), true,
+        0);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
+    zassert_equal(ret, 0, NULL);
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 111, NULL, &node_vmac2, npdu, sizeof(npdu));
     zassert_equal(len > 0, true, NULL);
@@ -1785,6 +1811,95 @@ static void test_node_direct_connection(void)
     bsc_node_stop(node3);
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
+
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STARTED, node), true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    ret = bsc_node_start(node3);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
+    // wait while node3 and node2 connects to node
+    bsc_wait(2 * BACNET_TIMEOUT);
+    sprintf(url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(
+        url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT2);
+    ret = bsc_node_connect_direct(node3, &node_vmac2, urls, 2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_CONNECTED, node3), true,
+        0);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
+    zassert_equal(ret, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 111, NULL, &node_vmac2, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node3, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
+    zassert_equal(ret, 0, NULL);
+    bsc_node_stop(node);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    bsc_node_stop(node2);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    bsc_node_stop(node3);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
+    // direct disconnnect test
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STARTED, node), true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    ret = bsc_node_start(node3);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
+    // wait while node3 and node2 connects to node
+    bsc_wait(2 * BACNET_TIMEOUT);
+    ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_CONNECTED, node3), true,
+        0);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
+    zassert_equal(ret, 0, NULL);
+    bsc_node_disconnect_direct(node3, &node_vmac2);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
+        true, 0);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
+    zassert_equal(ret, 0, NULL);
+    bsc_node_stop(node);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    bsc_node_stop(node2);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    bsc_node_stop(node3);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
+
     ret = bsc_node_deinit(node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_deinit(node2);
@@ -1966,7 +2081,6 @@ static void test_node_direct_connection_unsupported(void)
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait while node3 and node2 connects to node
     bsc_wait(2 * BACNET_TIMEOUT);
-
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -1980,7 +2094,6 @@ static void test_node_direct_connection_unsupported(void)
         message.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
     zassert_equal(message.payload.result.error_code,
         ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED, NULL);
-
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);

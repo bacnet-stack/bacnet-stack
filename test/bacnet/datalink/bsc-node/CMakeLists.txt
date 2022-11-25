@@ -62,6 +62,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${PORTS_DIR}/linux/bsc-mutex.c
     ${PORTS_DIR}/linux/bsc-event.c
     ${PORTS_DIR}/linux/mstimer-init.c
+    ${PORTS_DIR}/linux/datetime-init.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
@@ -70,7 +71,15 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/basic/sys/bigend.c
+
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
@@ -97,6 +106,7 @@ elseif(WIN32)
     ${PORTS_DIR}/win32/bsc-mutex.c
     ${PORTS_DIR}/win32/bsc-event.c
     ${PORTS_DIR}/win32/mstimer-init.c
+    ${PORTS_DIR}/win32/datetime-init.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
@@ -106,6 +116,14 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/basic/sys/bigend.c
+
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
@@ -123,6 +141,7 @@ elseif(APPLE)
     ${PORTS_DIR}/bsd/bsc-mutex.c
     ${PORTS_DIR}/bsd/bsc-event.c
     ${PORTS_DIR}/bsd/mstimer-init.c
+    ${PORTS_DIR}/bsd/datetime-init.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
@@ -132,6 +151,13 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacint.c
+    ${SRC_DIR}/bacnet/bacreal.c
+    ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/basic/sys/bigend.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c

@@ -1098,6 +1098,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
             }
             if (all_socket_disconnected) {
                 ctx->state = BSC_CTX_STATE_IDLE;
+                bsc_runloop_unreg(bsc_global_runloop(), ctx);
                 ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
             }
         } else if (c->state == BSC_SOCK_STATE_ERROR) {
@@ -1310,6 +1311,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         }
         if (!active_socket) {
             ctx->state = BSC_CTX_STATE_IDLE;
+            bsc_runloop_unreg(bsc_global_runloop(), ctx);
             ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
         }
     } else {

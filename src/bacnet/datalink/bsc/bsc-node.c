@@ -155,7 +155,7 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
     if (node->state == BSC_NODE_STATE_STOPPING) {
         if (stopped) {
             node->state = BSC_NODE_STATE_IDLE;
-            node->conf->event_func(node, BSC_NODE_EVENT_STOPPED, NULL, 0);
+            node->conf->event_func(node, BSC_NODE_EVENT_STOPPED, NULL, NULL, 0);
         }
     } else if (node->state == BSC_NODE_STATE_RESTARTING) {
         if (stopped) {
@@ -185,10 +185,11 @@ static void bsc_node_process_start_event(BSC_NODE *node)
     if (started) {
         if (node->state == BSC_NODE_STATE_STARTING) {
             node->state = BSC_NODE_STATE_STARTED;
-            node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, 0);
+            node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, NULL, 0);
         } else if (node->state == BSC_NODE_STATE_RESTARTING) {
             node->state = BSC_NODE_STATE_STARTED;
-            node->conf->event_func(node, BSC_NODE_EVENT_RESTARTED, NULL, 0);
+            node->conf->event_func(
+                node, BSC_NODE_EVENT_RESTARTED, NULL, NULL, 0);
         }
     }
     DEBUG_PRINTF("bsc_node_process_start_event() <<<\n");
@@ -262,32 +263,31 @@ static void bsc_node_process_received(BSC_NODE *node,
                  "= %d, decoded_pdu = %p\n",
         node, pdu, pdu_len, decoded_pdu);
 
-    if (decoded_pdu->hdr.dest_options_len) {
-        for (i = 0; i < decoded_pdu->hdr.dest_options_len; i++) {
-            if (decoded_pdu->dest_options[i].must_understand) {
-                DEBUG_PRINTF("bsc_node_process_received() pdu with "
-                             "'must-understand' is dropped\n");
-                if (bvlc_sc_need_send_bvlc_result(decoded_pdu)) {
-                    error_code = ERROR_CODE_HEADER_NOT_UNDERSTOOD;
-                    error_class = ERROR_CLASS_COMMUNICATION;
-                    bufsize = bvlc_sc_encode_result(buf, sizeof(buf),
-                        decoded_pdu->hdr.message_id, NULL,
-                        decoded_pdu->hdr.origin, decoded_pdu->hdr.bvlc_function,
-                        1, &decoded_pdu->dest_options[i].packed_header_marker,
-                        &error_class, &error_code,
-                        (uint8_t *)ERROR_STR_OPTION_NOT_UNDERSTOOD);
-                    if (bufsize) {
-                        ret = bsc_node_send(node, buf, bufsize);
-                        if (ret != BSC_SC_SUCCESS) {
-                            DEBUG_PRINTF(
-                                "bsc_node_process_received() warning "
-                                "bvlc-result pdu is not sent, error %d\n",
-                                ret);
-                        }
+    for (i = 0; i < decoded_pdu->hdr.dest_options_len; i++) {
+        if (decoded_pdu->dest_options[i].must_understand) {
+            DEBUG_PRINTF("bsc_node_process_received() pdu with "
+                         "'must-understand' is dropped\n");
+            if (bvlc_sc_need_send_bvlc_result(decoded_pdu)) {
+                error_code = ERROR_CODE_HEADER_NOT_UNDERSTOOD;
+                error_class = ERROR_CLASS_COMMUNICATION;
+                bufsize = bvlc_sc_encode_result(buf, sizeof(buf),
+                    decoded_pdu->hdr.message_id, NULL, decoded_pdu->hdr.origin,
+                    decoded_pdu->hdr.bvlc_function, 1,
+                    &decoded_pdu->dest_options[i].packed_header_marker,
+                    &error_class, &error_code,
+                    (uint8_t *)ERROR_STR_OPTION_NOT_UNDERSTOOD);
+                if (bufsize) {
+                    ret = bsc_node_send(node, buf, bufsize);
+#if DEBUG_ENABLED == 1
+                    if (ret != BSC_SC_SUCCESS) {
+                        DEBUG_PRINTF("bsc_node_process_received() warning "
+                                     "bvlc-result pdu is not sent, error %d\n",
+                            ret);
                     }
-                    DEBUG_PRINTF("bsc_node_process_received() <<<\n");
-                    return;
+#endif
                 }
+                DEBUG_PRINTF("bsc_node_process_received() <<<\n");
+                return;
             }
         }
     }
@@ -323,12 +323,12 @@ static void bsc_node_process_received(BSC_NODE *node,
                 decoded_pdu->payload.result.error_code,
                 bsc_vmac_to_string(decoded_pdu->hdr.origin));
             node->conf->event_func(
-                node, BSC_NODE_EVENT_RECEIVED_RESULT, pdu, pdu_len);
+                node, BSC_NODE_EVENT_RECEIVED_RESULT, NULL, pdu, pdu_len);
             break;
         }
         case BVLC_SC_ADVERTISIMENT: {
-            node->conf->event_func(
-                node, BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT, pdu, pdu_len);
+            node->conf->event_func(node, BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT,
+                NULL, pdu, pdu_len);
             break;
         }
         case BVLC_SC_ADVERTISIMENT_SOLICITATION: {
@@ -364,12 +364,14 @@ static void bsc_node_process_received(BSC_NODE *node,
                     node->conf->direct_connection_accept_uris_len);
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
+#if DEBUG_ENABLED == 1
                     if (ret != BSC_SC_SUCCESS) {
                         DEBUG_PRINTF(
                             "bsc_node_process_received() warning "
                             "address resolution ack is not sent, error %d\n",
                             ret);
                     }
+#endif
                 }
             } else {
                 DEBUG_PRINTF("bsc_node_process_received() node switch is "
@@ -418,7 +420,7 @@ static void bsc_node_process_received(BSC_NODE *node,
         }
         case BVLC_SC_ENCAPSULATED_NPDU: {
             node->conf->event_func(
-                node, BSC_NODE_EVENT_RECEIVED_NPDU, pdu, pdu_len);
+                node, BSC_NODE_EVENT_RECEIVED_NPDU, NULL, pdu, pdu_len);
             break;
         }
     }
@@ -476,6 +478,7 @@ static void bsc_hub_function_event(
 static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
     BSC_NODE_SWITCH_HANDLE h,
     void *user_arg,
+    BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
@@ -497,6 +500,12 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
         }
     } else if (ev == BSC_NODE_SWITCH_EVENT_RECEIVED) {
         bsc_node_process_received(node, pdu, pdu_len, decoded_pdu);
+    } else if (ev == BSC_NODE_SWITCH_EVENT_CONNECTED) {
+        node->conf->event_func(
+            node, BSC_NODE_EVENT_DIRECT_CONNECTED, dest, NULL, 0);
+    } else if (ev == BSC_NODE_SWITCH_EVENT_DISCONNECTED) {
+        node->conf->event_func(
+            node, BSC_NODE_EVENT_DIRECT_DISCONNECTED, dest, NULL, 0);
     }
     DEBUG_PRINTF(" bsc_node_switch_event() <<<\n");
     bsc_global_mutex_unlock();
@@ -631,7 +640,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     }
     if (!node->conf->hub_function_enabled && !node->conf->node_switch_enabled) {
         node->state = BSC_NODE_STATE_STARTED;
-        node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, 0);
+        node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, NULL, 0);
     }
     DEBUG_PRINTF(
         "bsc_node_start() hub_function %p hub_connector %p node_switch %p\n",
@@ -817,7 +826,21 @@ BSC_SC_RET bsc_node_connect_direct(
         node->conf->node_switch_enabled) {
         ret = bsc_node_switch_connect(node->node_switch, dest, urls, urls_cnt);
     }
-    DEBUG_PRINTF("bsc_node_connect_direct() <<< ret = %d\n", ret);
     bsc_global_mutex_unlock();
+    DEBUG_PRINTF("bsc_node_connect_direct() <<< ret = %d\n", ret);
     return ret;
+}
+
+BACNET_STACK_EXPORT
+void bsc_node_disconnect_direct(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest)
+{
+    DEBUG_PRINTF(
+        "bsc_node_disconnect_direct() >>> node = %p, dest = %p\n", node, dest);
+    bsc_global_mutex_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        node->conf->node_switch_enabled) {
+        bsc_node_switch_disconnect(node->node_switch, dest);
+    }
+    bsc_global_mutex_unlock();
+    DEBUG_PRINTF("bsc_node_disconnect_direct() <<< \n");
 }

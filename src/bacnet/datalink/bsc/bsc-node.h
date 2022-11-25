@@ -30,10 +30,13 @@ typedef enum {
     BSC_NODE_EVENT_RESTARTED = 3,
     BSC_NODE_EVENT_RECEIVED_NPDU = 4,
     BSC_NODE_EVENT_RECEIVED_RESULT = 5,
-    BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT = 6
+    BSC_NODE_EVENT_RECEIVED_ADVERTISIMENT = 6,
+    BSC_NODE_EVENT_DIRECT_CONNECTED = 7,
+    BSC_NODE_EVENT_DIRECT_DISCONNECTED = 8
 } BSC_NODE_EVENT;
 
 typedef void (*BSC_NODE_EVENT_FUNC)(BSC_NODE* node, BSC_NODE_EVENT ev,
+                                    BACNET_SC_VMAC_ADDRESS *dest,
                                     uint8_t *pdu, uint16_t pdu_len);
 typedef struct {
     bool used;
@@ -112,5 +115,9 @@ BSC_SC_RET bsc_node_connect_direct(
     BSC_NODE *node,
     BACNET_SC_VMAC_ADDRESS *dest,
     char** urls, size_t urls_cnt);
+
+BACNET_STACK_EXPORT
+void bsc_node_disconnect_direct(
+    BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest);
 
 #endif

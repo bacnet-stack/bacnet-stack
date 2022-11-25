@@ -34,6 +34,10 @@
 #define DEBUG_ENABLED 0
 #endif
 
+#ifndef DEBUG_PRINTF_WITH_TIMESTAMP
+#define DEBUG_PRINTF_WITH_TIMESTAMP 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
