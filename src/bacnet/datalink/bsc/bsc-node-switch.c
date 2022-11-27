@@ -23,7 +23,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
-#define DEBUG_BSC_NODE_SWITCH 1
+#define DEBUG_BSC_NODE_SWITCH 0
 
 #if DEBUG_BSC_NODE_SWITCH == 1
 #define DEBUG_PRINTF debug_printf
@@ -174,6 +174,9 @@ static BSC_SOCKET *node_switch_acceptor_find_connection_for_vmac(
     bsc_global_mutex_lock();
     c = (BSC_NODE_SWITCH_CTX *)user_arg;
     for (i = 0; i < sizeof(c->acceptor.sock) / sizeof(BSC_SOCKET); i++) {
+        DEBUG_PRINTF("ns = %p, sock %p, state = %d, vmac = %s\n", c,
+            &c->acceptor.sock[i], c->acceptor.sock[i].state,
+            bsc_vmac_to_string(&c->acceptor.sock[i].vmac));
         if (c->acceptor.sock[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(&vmac->address[0], &c->acceptor.sock[i].vmac.address[0],
                 sizeof(vmac->address))) {
@@ -193,9 +196,13 @@ static BSC_SOCKET *node_switch_acceptor_find_connection_for_uuid(
     bsc_global_mutex_lock();
     c = (BSC_NODE_SWITCH_CTX *)user_arg;
     for (i = 0; i < sizeof(c->acceptor.sock) / sizeof(BSC_SOCKET); i++) {
+        DEBUG_PRINTF("ns = %p, sock %p, state = %d, uuid = %s\n", c,
+            &c->acceptor.sock[i], c->acceptor.sock[i].state,
+            bsc_uuid_to_string(&c->acceptor.sock[i].uuid));
         if (c->acceptor.sock[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(&uuid->uuid[0], &c->acceptor.sock[i].uuid.uuid[0],
                 sizeof(uuid->uuid))) {
+            DEBUG_PRINTF("found\n");
             bsc_global_mutex_unlock();
             return &c->acceptor.sock[i];
         }
@@ -264,7 +271,8 @@ static int node_switch_initiator_find_connection_index_for_vmac(
     int i;
 
     for (i = 0; i < sizeof(ctx->initiator.sock) / sizeof(BSC_SOCKET); i++) {
-        if (!memcmp(&ctx->initiator.dest_vmac[i].address[0], &vmac->address[0],
+        if (ctx->initiator.sock_state[i] != BSC_SOCK_STATE_IDLE &&
+            !memcmp(&ctx->initiator.dest_vmac[i].address[0], &vmac->address[0],
                 sizeof(vmac->address))) {
             return i;
         }
@@ -415,19 +423,25 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BSC_SC_RET ret;
     uint8_t **ppdu = &pdu;
     BSC_NODE_SWITCH_CTX *ns;
-
+    DEBUG_PRINTF(
+        "node_switch_initiator_socket_event() >>> c %p, ev = %d\n", c, ev);
     bsc_global_mutex_lock();
 
     ns = (BSC_NODE_SWITCH_CTX *)c->ctx->user_arg;
 
     if (ns->initiator.state != BSC_NODE_SWITCH_STATE_STARTED) {
         bsc_global_mutex_unlock();
+        DEBUG_PRINTF("node_switch_initiator_socket_event() <<<\n");
         return;
     }
 
     if (ev == BSC_SOCKET_EVENT_DISCONNECTED && err == BSC_SC_DUPLICATED_VMAC) {
         ns->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ns, ns->user_arg,
             NULL, NULL, 0, NULL);
+    } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
+        pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
+        ns->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ns, ns->user_arg, NULL,
+            *ppdu, pdu_len, decoded_pdu);
     }
 
     index = node_switch_initiator_get_index(ns, c);
@@ -454,10 +468,6 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
             if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
                 ns->initiator.urls[index].url_elem = 0;
                 connect_next_url(ns, index);
-            } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
-                pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
-                ns->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ns, ns->user_arg,
-                    NULL, *ppdu, pdu_len, decoded_pdu);
             }
         } else if (ns->initiator.sock_state[index] ==
             BSC_NODE_SWITCH_CONNECTION_STATE_LOCAL_DISCONNECT) {
@@ -467,14 +477,11 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
                 ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
                     ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
                     NULL);
-            } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
-                pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
-                ns->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ns, ns->user_arg,
-                    NULL, *ppdu, pdu_len, decoded_pdu);
             }
         }
     }
     bsc_global_mutex_unlock();
+    DEBUG_PRINTF("node_switch_initiator_socket_event() <<<\n");
 }
 
 static void node_switch_initiator_context_event(
@@ -588,6 +595,7 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
             ns->initiator.state = BSC_NODE_SWITCH_STATE_IDLE;
         }
     }
+
     if (ret != BSC_SC_SUCCESS) {
         bsc_runloop_unreg(bsc_global_runloop(), ns);
         node_switch_free(ns);
@@ -671,54 +679,64 @@ BSC_SC_RET bsc_node_switch_connect(BSC_NODE_SWITCH_HANDLE h,
     for (i = 0; i < urls_cnt; i++) {
         if (strlen(urls[i]) >
             BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK) {
+            DEBUG_PRINTF(
+                "bsc_node_switch_connect() <<< ret =  BSC_SC_BAD_PARAM\n");
             return BSC_SC_BAD_PARAM;
         }
     }
 
+    if (!dest && (!urls || !urls_cnt)) {
+        DEBUG_PRINTF("bsc_node_switch_connect() <<< ret =  BSC_SC_BAD_PARAM\n");
+        return BSC_SC_BAD_PARAM;
+    }
+
+    if (dest && (urls || urls_cnt)) {
+        DEBUG_PRINTF("bsc_node_switch_connect() <<< ret =  BSC_SC_BAD_PARAM\n");
+        return BSC_SC_BAD_PARAM;
+    }
+
     bsc_global_mutex_lock();
     ns = (BSC_NODE_SWITCH_CTX *)h;
-    if (dest) {
-        if (urls && urls_cnt) {
-            i = node_switch_initiator_alloc_sock(ns);
-            if (i == -1) {
-                ret = BSC_SC_NO_RESOURCES;
-            } else {
-                copy_urls2(ns, i, urls, urls_cnt);
+
+    if (urls && urls_cnt) {
+        i = node_switch_initiator_alloc_sock(ns);
+        if (i == -1) {
+            ret = BSC_SC_NO_RESOURCES;
+        } else {
+            copy_urls2(ns, i, urls, urls_cnt);
+            ns->initiator.sock_state[i] =
+                BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION;
+            ns->initiator.urls[i].url_elem = 0;
+            ret = bsc_connect(&ns->initiator.ctx, &ns->initiator.sock[i],
+                (char *)&ns->initiator.urls[i].utf8_urls[0][0]);
+            if (ret != BSC_SC_SUCCESS) {
                 ns->initiator.sock_state[i] =
-                    BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION;
-                ns->initiator.urls[i].url_elem = 0;
-                ret = bsc_connect(&ns->initiator.ctx, &ns->initiator.sock[i],
-                    (char *)&ns->initiator.urls[i].utf8_urls[0][0]);
-                if (ret != BSC_SC_SUCCESS) {
-                    ns->initiator.sock_state[i] =
-                        BSC_NODE_SWITCH_CONNECTION_STATE_IDLE;
-                }
+                    BSC_NODE_SWITCH_CONNECTION_STATE_IDLE;
             }
-        } else if (!urls && !urls_cnt) {
-            c = node_switch_acceptor_find_connection_for_vmac(dest, ns);
-            if (c) {
-                DEBUG_PRINTF(
-                    "bsc_node_switch_connect() connection to vmac %s is "
-                    "already established or in process of establishing\n",
-                    bsc_vmac_to_string(dest));
+        }
+    } else {
+        c = node_switch_acceptor_find_connection_for_vmac(dest, ns);
+        if (c) {
+            DEBUG_PRINTF("bsc_node_switch_connect() connection to vmac %s is "
+                         "active and in state %d. Just wait for event!\n",
+                c->state, bsc_vmac_to_string(dest));
+            ret = BSC_SC_SUCCESS;
+        } else {
+            i = node_switch_initiator_find_connection_index_for_vmac(dest, ns);
+            if (i != -1) {
                 ret = BSC_SC_SUCCESS;
             } else {
-                i = node_switch_initiator_find_connection_index_for_vmac(
-                    dest, ns);
-                if (i != -1) {
-                    ret = BSC_SC_SUCCESS;
+                i = node_switch_initiator_alloc_sock(ns);
+                if (i == -1) {
+                    ret = BSC_SC_NO_RESOURCES;
                 } else {
-                    i = node_switch_initiator_alloc_sock(ns);
-                    if (i == -1) {
-                        ret = BSC_SC_NO_RESOURCES;
-                    } else {
-                        node_switch_connect_or_delay(ns, dest, i);
-                        ret = BSC_SC_SUCCESS;
-                    }
+                    node_switch_connect_or_delay(ns, dest, i);
+                    ret = BSC_SC_SUCCESS;
                 }
             }
         }
     }
+
     bsc_global_mutex_unlock();
     DEBUG_PRINTF("bsc_node_switch_connect() <<< ret = %d\n", ret);
     return ret;

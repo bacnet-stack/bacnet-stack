@@ -775,7 +775,8 @@ BSC_ADDRESS_RESOLUTION *bsc_node_get_address_resolution(
     int i;
     BSC_NODE *node = (BSC_NODE *)p_node;
     bsc_global_mutex_lock();
-    if (node->state != BSC_NODE_STATE_STARTED || !vmac) {
+
+    if (!node || node->state != BSC_NODE_STATE_STARTED || !vmac) {
         bsc_global_mutex_unlock();
         return NULL;
     }

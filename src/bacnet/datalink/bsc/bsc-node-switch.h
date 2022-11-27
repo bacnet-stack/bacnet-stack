@@ -34,7 +34,7 @@ typedef enum {
     // For a connection initiated from a remote peer that
     // event won't be emitted.
 
-    BSC_NODE_SWITCH_EVENT_CONNECTED = 5
+    BSC_NODE_SWITCH_EVENT_CONNECTED = 5,
 
     // The BSC_NODE_SWITCH_EVENT_DISCONNECTED event is emitted
     // only if bsc_node_switch_disconnect() was called,

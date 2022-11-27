@@ -14,6 +14,7 @@
 #include <ztest.h>
 #include <bacnet/datalink/bsc/bsc-runloop.h>
 #include <bacnet/datalink/bsc/bsc-socket.h>
+#include <bacnet/datalink/bsc/bsc-node-switch.h>
 #include <bacnet/datalink/bsc/bsc-mutex.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <bacnet/datalink/bsc/bsc-util.h>
@@ -1176,7 +1177,8 @@ static void node_event3(BSC_NODE *node,
     uint8_t *pdu,
     uint16_t pdu_len)
 {
-    debug_printf("node_event3() ev = %d event = %p\n", ev, node_ev3.e);
+    debug_printf(
+        "node_event3() ev = %d event = %p node = %p\n", ev, node_ev3.e, node);
     signal_node_ev(&node_ev3, ev, node, dest, pdu, pdu_len);
 }
 
@@ -1829,7 +1831,7 @@ static void test_node_direct_connection(void)
     sprintf(url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
     sprintf(
         url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT2);
-    ret = bsc_node_connect_direct(node3, &node_vmac2, urls, 2);
+    ret = bsc_node_connect_direct(node3, NULL, urls, 2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_CONNECTED, node3), true,
@@ -1889,6 +1891,28 @@ static void test_node_direct_connection(void)
         true, 0);
     ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
         sizeof(node_ev3.dest.address));
+    zassert_equal(ret, 0, NULL);
+    ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_CONNECTED, node3), true,
+        0);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
+    zassert_equal(ret, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 111, NULL, &node_vmac2, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node3, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
     bsc_node_stop(node);
     zassert_equal(
@@ -2115,6 +2139,128 @@ static void test_node_direct_connection_unsupported(void)
     deinit_node_ev(&node_ev3);
 }
 
+static void test_node_bad_cases(void)
+{
+    BSC_SC_RET ret;
+    BSC_NODE *node;
+    BSC_NODE_CONF conf;
+    BACNET_SC_UUID node_uuid;
+    BACNET_SC_VMAC_ADDRESS node_vmac;
+    char node_primary_url[128];
+    char node_secondary_url[128];
+    char big_url[2 * BSC_WSURL_MAX_LEN];
+    BSC_ADDRESS_RESOLUTION *r;
+    char *url[1] = { node_primary_url };
+    char t[2 * BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK];
+    char *long_url[1] = { t };
+
+    memset(&node_uuid, 0x1, sizeof(node_uuid));
+    memset(&node_vmac, 0x2, sizeof(node_vmac));
+    memset(big_url, 0x22, sizeof(big_url) - 1);
+    memset(t, 0x22, sizeof(t) - 1);
+
+    sprintf(
+        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
+
+    conf.ca_cert_chain = ca_cert;
+    conf.ca_cert_chain_size = sizeof(ca_cert);
+    conf.cert_chain = node_cert;
+    conf.cert_chain_size = sizeof(node_cert);
+    conf.key = node_key;
+    conf.key_size = sizeof(node_key);
+    conf.local_uuid = &node_uuid;
+    conf.local_vmac = &node_vmac;
+    conf.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf.max_local_npdu_len = MAX_NDPU_LEN;
+    conf.connect_timeout_s = BACNET_TIMEOUT;
+    conf.heartbeat_timeout_s = BACNET_INFINITE_TIMEOUT;
+    conf.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf.primaryURL = big_url;
+    conf.failoverURL = node_secondary_url;
+    conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
+    conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
+    conf.iface = NULL;
+    conf.node_switch_enabled = true;
+    conf.hub_function_enabled = true;
+    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris_len = 0;
+    conf.event_func = node_event;
+
+    init_node_ev(&node_ev);
+    ret = bsc_runloop_start(bsc_global_runloop());
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    ret = bsc_node_init(&conf, &node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    r = bsc_node_get_address_resolution(NULL, &node_vmac);
+    zassert_equal(r == NULL, true, 0);
+    r = bsc_node_get_address_resolution(NULL, NULL);
+    zassert_equal(r == NULL, true, 0);
+    r = bsc_node_get_address_resolution(node, NULL);
+    zassert_equal(r == NULL, true, 0);
+    conf.cert_chain_size = 20;
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    conf.hub_function_enabled = false;
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    conf.hub_function_enabled = false;
+    ret = bsc_node_switch_start(NULL, 0, NULL, 0, NULL, 0, 0, NULL, NULL, NULL,
+        0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    bsc_node_deinit(node);
+
+    conf.ca_cert_chain = ca_cert;
+    conf.ca_cert_chain_size = sizeof(ca_cert);
+    conf.cert_chain = node_cert;
+    conf.cert_chain_size = sizeof(node_cert);
+    conf.key = node_key;
+    conf.key_size = sizeof(node_key);
+    conf.local_uuid = &node_uuid;
+    conf.local_vmac = &node_vmac;
+    conf.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf.max_local_npdu_len = MAX_NDPU_LEN;
+    conf.connect_timeout_s = BACNET_TIMEOUT;
+    conf.heartbeat_timeout_s = BACNET_INFINITE_TIMEOUT;
+    conf.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf.primaryURL = node_primary_url;
+    conf.failoverURL = node_secondary_url;
+    conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
+    conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
+    conf.iface = NULL;
+    conf.node_switch_enabled = true;
+    conf.hub_function_enabled = true;
+    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris_len = 0;
+    conf.event_func = node_event;
+    ret = bsc_node_init(&conf, &node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STARTED, node), true, 0);
+    ret = bsc_node_connect_direct(node, NULL, NULL, 0);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    ret = bsc_node_connect_direct(node, &node_vmac, url, 1);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    ret = bsc_node_connect_direct(node, &node_vmac, long_url, 1);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    bsc_node_stop(node);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    bsc_runloop_stop(bsc_global_runloop());
+    deinit_node_ev(&node_ev);
+}
+
 void test_main(void)
 {
     // Tests must not be run in parallel threads!
@@ -2125,9 +2271,11 @@ void test_main(void)
     ztest_test_suite(node_test_4, ztest_unit_test(test_node_direct_connection));
     ztest_test_suite(
         node_test_5, ztest_unit_test(test_node_direct_connection_unsupported));
+    ztest_test_suite(node_test_6, ztest_unit_test(test_node_bad_cases));
     ztest_run_test_suite(node_test_1);
     ztest_run_test_suite(node_test_2);
     ztest_run_test_suite(node_test_3);
     ztest_run_test_suite(node_test_4);
     ztest_run_test_suite(node_test_5);
+    ztest_run_test_suite(node_test_6);
 }

@@ -205,6 +205,14 @@ static bool bsc_prepare_protocol_error(BSC_SOCKET *c,
         c, origin, dest, NULL, error_class, error_code, utf8_details_string);
 }
 
+static void bsc_set_socket_idle(BSC_SOCKET *c)
+{
+    c->state = BSC_SOCK_STATE_IDLE;
+    c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
+    memset(&c->vmac, 0, sizeof(c->vmac));
+    memset(&c->uuid, 0, sizeof(c->uuid));
+}
+
 static void bsc_process_socket_disconnecting(
     BSC_SOCKET *c, uint8_t *buf, uint16_t buflen, bool *need_disconnect)
 {
@@ -863,13 +871,12 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     if (ev == BSC_WEBSOCKET_DISCONNECTED) {
-        c->wh = BSC_SOCKET_EVENT_DISCONNECTED;
         if (c->state == BSC_SOCK_STATE_ERROR) {
-            c->state = BSC_SOCK_STATE_IDLE;
+            bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
                 c->disconnect_reason, NULL, 0, NULL);
         } else {
-            c->state = BSC_SOCK_STATE_IDLE;
+            bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
                 BSC_SC_PEER_DISCONNECTED, NULL, 0, NULL);
         }
@@ -1089,7 +1096,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     if (ev == BSC_WEBSOCKET_DISCONNECTED) {
         DEBUG_PRINTF("bsc_dispatch_cli_func() ctx->state = %d\n", ctx->state);
         if (ctx->state == BSC_CTX_STATE_DEINITIALIZING) {
-            c->state = BSC_SOCK_STATE_IDLE;
+            bsc_set_socket_idle(c);
             for (i = 0; i < ctx->sock_num; i++) {
                 if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                     all_socket_disconnected = false;
@@ -1102,13 +1109,11 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
             }
         } else if (c->state == BSC_SOCK_STATE_ERROR) {
-            c->state = BSC_SOCK_STATE_IDLE;
-            c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
+            bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
                 c->disconnect_reason, NULL, 0, NULL);
         } else {
-            c->state = BSC_SOCK_STATE_IDLE;
-            c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
+            bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
                 BSC_SC_PEER_DISCONNECTED, NULL, 0, NULL);
         }
@@ -1352,7 +1357,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
 
             ret = bsc_map_websocket_retcode(wret);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
-                c->state = BSC_SOCK_STATE_IDLE;
+                bsc_set_socket_idle(c);
             }
         }
 
