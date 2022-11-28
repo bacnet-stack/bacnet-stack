@@ -386,11 +386,13 @@ static void bsc_node_process_received(BSC_NODE *node,
                     (uint8_t *)ERROR_STR_DIRECT_CONNECTIONS_NOT_SUPPORTED);
                 if (bufsize) {
                     ret = bsc_node_send(node, buf, bufsize);
+#if DEBUG_ENABLED == 1
                     if (ret != BSC_SC_SUCCESS) {
                         DEBUG_PRINTF("bsc_node_process_received() warning "
                                      "bvlc-result pdu is not sent, error %d\n",
                             ret);
                     }
+#endif
                 }
             }
             break;

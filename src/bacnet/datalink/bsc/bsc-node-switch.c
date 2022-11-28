@@ -235,8 +235,8 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
                 NULL, *ppdu, pdu_len, decoded_pdu);
         } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED &&
             err == BSC_SC_DUPLICATED_VMAC) {
-            ctx->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ctx, NULL,
-                ctx->user_arg, NULL, 0, NULL);
+            ctx->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ctx,
+                ctx->user_arg, NULL, NULL, 0, NULL);
         }
     }
     bsc_global_mutex_unlock();
@@ -466,6 +466,9 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
         } else if (ns->initiator.sock_state[index] ==
             BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
             if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+                ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
+                    ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
+                    NULL);
                 ns->initiator.urls[index].url_elem = 0;
                 connect_next_url(ns, index);
             }
@@ -488,6 +491,7 @@ static void node_switch_initiator_context_event(
     BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
     BSC_NODE_SWITCH_CTX *ns;
+    int i;
 
     bsc_global_mutex_lock();
     DEBUG_PRINTF("node_switch_initiator_context_event () >>> ctx = %p, ev = "
@@ -495,6 +499,15 @@ static void node_switch_initiator_context_event(
         ctx, ev, ctx->user_arg);
     ns = (BSC_NODE_SWITCH_CTX *)ctx->user_arg;
     if (ev == BSC_CTX_DEINITIALIZED) {
+        for (i = 0; i < sizeof(ns->initiator.sock) / sizeof(BSC_SOCKET); i++) {
+            if (ns->initiator.sock_state[i] ==
+                BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
+                ns->initiator.sock_state[i] =
+                    BSC_NODE_SWITCH_CONNECTION_STATE_IDLE;
+                ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
+                    ns->user_arg, &ns->initiator.dest_vmac[i], NULL, 0, NULL);
+            }
+        }
         ns->initiator.state = BSC_NODE_SWITCH_STATE_IDLE;
         ns->acceptor.state = BSC_NODE_SWITCH_STATE_IDLE;
         node_switch_free(ns);

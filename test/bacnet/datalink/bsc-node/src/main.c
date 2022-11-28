@@ -1167,7 +1167,8 @@ static void node_event2(BSC_NODE *node,
     uint8_t *pdu,
     uint16_t pdu_len)
 {
-    debug_printf("node_event2() ev = %d event = %p\n", ev, node_ev2.e);
+    debug_printf(
+        "node_event2() ev = %d event = %p node = %p\n", ev, node_ev2.e, node);
     signal_node_ev(&node_ev2, ev, node, dest, pdu, pdu_len);
 }
 
@@ -1291,6 +1292,9 @@ static void test_node_duplicated_vmac(void)
     char node_secondary_url[128];
     char node_primary_url2[128];
     char node_secondary_url2[128];
+    char url1[256];
+    char url2[256];
+    char *urls[2] = { url1, url2 };
 
     memset(&node_uuid, 0x1, sizeof(node_uuid));
     memset(&node_vmac, 0x2, sizeof(node_vmac));
@@ -1382,6 +1386,60 @@ static void test_node_duplicated_vmac(void)
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_RESTARTED, node2);
     reset_node_ev(&node_ev);
     reset_node_ev(&node_ev2);
+    bsc_node_stop(node);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    bsc_node_stop(node2);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    ret = bsc_node_deinit(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_deinit(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+
+    // node switch duplicated vmac
+    memset(&node_uuid, 0x1, sizeof(node_uuid));
+    memset(&node_vmac, 0x2, sizeof(node_vmac));
+    memset(&node_uuid2, 0x3, sizeof(node_uuid2));
+    memset(&node_vmac2, 0x2, sizeof(node_vmac2));
+
+    sprintf(
+        node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
+    sprintf(
+        url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT);
+    sprintf(
+        url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT);
+
+    conf.primaryURL = node_primary_url;
+    conf.failoverURL = node_secondary_url;
+    conf2.primaryURL = node_primary_url;
+    conf2.failoverURL = node_secondary_url;
+
+    ret = bsc_node_init(&conf, &node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STARTED, node), true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    ret = bsc_node_connect_direct(node2, NULL, urls, 2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_RESTARTED, node), true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RESTARTED, node2), true, 0);
+    ret = bsc_node_connect_direct(node2, NULL, urls, 2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_DIRECT_CONNECTED, node2), true,
+        0);
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
@@ -1804,13 +1862,49 @@ static void test_node_direct_connection(void)
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
+    bsc_node_stop(node2);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
+        true, 0);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
+    bsc_wait(2 * BACNET_TIMEOUT);
+    bsc_node_start(node2);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    bsc_wait(3 * BACNET_TIMEOUT);
+    zassert_equal(ret, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 112, NULL, &node_vmac2, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node3, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
+    zassert_equal(ret, 0, NULL);
+    reset_node_ev(&node_ev);
+    reset_node_ev(&node_ev2);
+    reset_node_ev(&node_ev3);
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
     bsc_node_stop(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
+        true, 0);
     bsc_node_stop(node3);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
 
@@ -1859,7 +1953,12 @@ static void test_node_direct_connection(void)
     bsc_node_stop(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
+        true, 0);
     bsc_node_stop(node3);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
     // direct disconnnect test
@@ -1917,13 +2016,16 @@ static void test_node_direct_connection(void)
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    bsc_node_stop(node3);
+    // sleep 1 second here because  bsc_node_stop() call leads to emition
+    // of 2 sequential events: the first is BSC_NODE_EVENT_DIRECT_DISCONNECTED
+    // the second is  BSC_NODE_EVENT_STOPPED.
+    bsc_wait(1);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
     bsc_node_stop(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
-    bsc_node_stop(node3);
-    zassert_equal(
-        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
-
     ret = bsc_node_deinit(node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_deinit(node2);
@@ -2257,6 +2359,8 @@ static void test_node_bad_cases(void)
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    ret = bsc_node_deinit(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     bsc_runloop_stop(bsc_global_runloop());
     deinit_node_ev(&node_ev);
 }
