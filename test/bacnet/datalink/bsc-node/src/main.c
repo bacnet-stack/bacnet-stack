@@ -1221,7 +1221,8 @@ static void test_node_start_stop(void)
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
     conf.iface = NULL;
-    conf.node_switch_enabled = true;
+    conf.direct_connect_accept_enable = true;
+    conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
@@ -1331,7 +1332,8 @@ static void test_node_duplicated_vmac(void)
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
     conf.iface = NULL;
-    conf.node_switch_enabled = true;
+    conf.direct_connect_accept_enable = true;
+    conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
@@ -1358,7 +1360,8 @@ static void test_node_duplicated_vmac(void)
     conf2.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT2;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
     conf2.iface = NULL;
-    conf2.node_switch_enabled = true;
+    conf2.direct_connect_accept_enable = true;
+    conf2.direct_connect_initiate_enable = true;
     conf2.hub_function_enabled = true;
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
@@ -1444,8 +1447,7 @@ static void test_node_duplicated_vmac(void)
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
     bsc_node_stop(node2);
-    zassert_equal(
-        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
     ret = bsc_node_deinit(node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_deinit(node2);
@@ -1522,7 +1524,8 @@ static void test_node_send(void)
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
     conf.iface = NULL;
-    conf.node_switch_enabled = true;
+    conf.direct_connect_accept_enable = true;
+    conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
@@ -1549,7 +1552,8 @@ static void test_node_send(void)
     conf2.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT2;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
     conf2.iface = NULL;
-    conf2.node_switch_enabled = false;
+    conf2.direct_connect_accept_enable = false;
+    conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
@@ -1749,7 +1753,8 @@ static void test_node_direct_connection(void)
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
     conf.iface = NULL;
-    conf.node_switch_enabled = false;
+    conf.direct_connect_accept_enable = false;
+    conf.direct_connect_initiate_enable = false;
     conf.hub_function_enabled = true;
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
@@ -1779,7 +1784,8 @@ static void test_node_direct_connection(void)
     conf2.hub_server_port = 0;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
     conf2.iface = NULL;
-    conf2.node_switch_enabled = true;
+    conf2.direct_connect_accept_enable = true;
+    conf2.direct_connect_initiate_enable = true;
     conf2.hub_function_enabled = false;
     conf2.direct_connection_accept_uris = uris;
     conf2.direct_connection_accept_uris_len = strlen(uris);
@@ -1806,7 +1812,8 @@ static void test_node_direct_connection(void)
     conf3.hub_server_port = 0;
     conf3.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT3;
     conf3.iface = NULL;
-    conf3.node_switch_enabled = true;
+    conf3.direct_connect_accept_enable = true;
+    conf3.direct_connect_initiate_enable = true;
     conf3.hub_function_enabled = false;
     conf3.direct_connection_accept_uris = NULL;
     conf3.direct_connection_accept_uris_len = 0;
@@ -2125,7 +2132,8 @@ static void test_node_direct_connection_unsupported(void)
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
     conf.iface = NULL;
-    conf.node_switch_enabled = false;
+    conf.direct_connect_accept_enable = false;
+    conf.direct_connect_initiate_enable = false;
     conf.hub_function_enabled = true;
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
@@ -2155,7 +2163,8 @@ static void test_node_direct_connection_unsupported(void)
     conf2.hub_server_port = 0;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
     conf2.iface = NULL;
-    conf2.node_switch_enabled = false;
+    conf2.direct_connect_accept_enable = false;
+    conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
     conf2.direct_connection_accept_uris = uris;
     conf2.direct_connection_accept_uris_len = strlen(uris);
@@ -2182,7 +2191,8 @@ static void test_node_direct_connection_unsupported(void)
     conf3.hub_server_port = 0;
     conf3.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT3;
     conf3.iface = NULL;
-    conf3.node_switch_enabled = true;
+    conf3.direct_connect_accept_enable = true;
+    conf3.direct_connect_initiate_enable = true;
     conf3.hub_function_enabled = false;
     conf3.direct_connection_accept_uris = NULL;
     conf3.direct_connection_accept_uris_len = 0;
@@ -2296,7 +2306,8 @@ static void test_node_bad_cases(void)
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
     conf.iface = NULL;
-    conf.node_switch_enabled = true;
+    conf.direct_connect_accept_enable = true;
+    conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
@@ -2323,7 +2334,7 @@ static void test_node_bad_cases(void)
     zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
     conf.hub_function_enabled = false;
     ret = bsc_node_switch_start(NULL, 0, NULL, 0, NULL, 0, 0, NULL, NULL, NULL,
-        0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL);
+        0, 0, 0, 0, 0, 0, 0, 0, false, false, NULL, NULL);
     zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
     bsc_node_deinit(node);
 
@@ -2348,7 +2359,8 @@ static void test_node_bad_cases(void)
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
     conf.iface = NULL;
-    conf.node_switch_enabled = true;
+    conf.direct_connect_accept_enable = true;
+    conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
@@ -2385,6 +2397,7 @@ void test_main(void)
     ztest_test_suite(
         node_test_5, ztest_unit_test(test_node_direct_connection_unsupported));
     ztest_test_suite(node_test_6, ztest_unit_test(test_node_bad_cases));
+
     ztest_run_test_suite(node_test_1);
     ztest_run_test_suite(node_test_2);
     ztest_run_test_suite(node_test_3);

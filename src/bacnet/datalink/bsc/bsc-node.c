@@ -81,6 +81,15 @@ static BSC_NODE *bsc_alloc_node(void)
     return NULL;
 }
 
+static bool node_switch_enabled(BSC_NODE_CONF *conf)
+{
+    if (conf->direct_connect_initiate_enable ||
+        conf->direct_connect_accept_enable) {
+        return true;
+    }
+    return false;
+}
+
 static BSC_ADDRESS_RESOLUTION *node_get_address_resolution(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
@@ -134,7 +143,7 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
             stopped = false;
         }
     }
-    if (node->node_switch && node->conf->node_switch_enabled) {
+    if (node->node_switch && node_switch_enabled(node->conf)) {
         if (!bsc_node_switch_stopped(node->node_switch)) {
             DEBUG_PRINTF(
                 "bsc_node_process_stop_event() node_switch %p is not stopped\n",
@@ -176,7 +185,7 @@ static void bsc_node_process_start_event(BSC_NODE *node)
             started = false;
         }
     }
-    if (node->node_switch && node->conf->node_switch_enabled) {
+    if (node->node_switch && node_switch_enabled(node->conf)) {
         if (!bsc_node_switch_started(node->node_switch)) {
             started = false;
         }
@@ -205,7 +214,7 @@ static void bsc_node_restart(BSC_NODE *node)
     if (node->hub_function && node->conf->hub_function_enabled) {
         bsc_hub_function_stop(node->hub_function);
     }
-    if (node->conf->node_switch_enabled) {
+    if (node_switch_enabled(node->conf)) {
         bsc_node_switch_stop(node->node_switch);
     }
     DEBUG_PRINTF("bsc_node_restart() <<<\n");
@@ -336,7 +345,7 @@ static void bsc_node_process_received(BSC_NODE *node,
             bufsize = bvlc_sc_encode_advertisiment(buf, sizeof(buf),
                 bsc_get_next_message_id(), NULL, decoded_pdu->hdr.origin,
                 bsc_hub_connector_status(node->hub_connector),
-                node->conf->node_switch_enabled
+                node_switch_enabled(node->conf)
                     ? BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED
                     : BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_UNSUPPORTED,
                 node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len);
@@ -356,7 +365,7 @@ static void bsc_node_process_received(BSC_NODE *node,
         case BVLC_SC_ADDRESS_RESOLUTION: {
             DEBUG_PRINTF(
                 "bsc_node_process_received() got BVLC_SC_ADDRESS_RESOLUTION\n");
-            if (node->conf->node_switch_enabled) {
+            if (node_switch_enabled(node->conf)) {
                 bufsize = bvlc_sc_encode_address_resolution_ack(buf,
                     sizeof(buf), decoded_pdu->hdr.message_id, NULL,
                     decoded_pdu->hdr.origin,
@@ -620,7 +629,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
         }
     }
 
-    if (node->conf->node_switch_enabled) {
+    if (node_switch_enabled(node->conf)) {
         ret = bsc_node_switch_start(node->conf->ca_cert_chain,
             node->conf->ca_cert_chain_size, node->conf->cert_chain,
             node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
@@ -629,7 +638,9 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
             node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
             node->conf->disconnect_timeout_s, node->conf->reconnnect_timeout_s,
-            node->conf->address_resolution_timeout_s, bsc_node_switch_event,
+            node->conf->address_resolution_timeout_s,
+            node->conf->direct_connect_accept_enable,
+            node->conf->direct_connect_initiate_enable, bsc_node_switch_event,
             node, &node->node_switch);
         if (ret != BSC_SC_SUCCESS) {
             node->state = BSC_NODE_STATE_IDLE;
@@ -640,7 +651,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             return ret;
         }
     }
-    if (!node->conf->hub_function_enabled && !node->conf->node_switch_enabled) {
+    if (!node->conf->hub_function_enabled && !node_switch_enabled(node->conf)) {
         node->state = BSC_NODE_STATE_STARTED;
         node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, NULL, 0);
     }
@@ -692,7 +703,7 @@ void bsc_node_stop(BSC_NODE *node)
             if (node->conf->hub_function_enabled) {
                 bsc_hub_function_stop(node->hub_function);
             }
-            if (node->conf->node_switch_enabled) {
+            if (node_switch_enabled(node->conf)) {
                 bsc_node_switch_stop(node->node_switch);
             }
         }
@@ -759,7 +770,7 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
         return BSC_SC_INVALID_OPERATION;
     }
 
-    if (node->conf->node_switch_enabled) {
+    if (node_switch_enabled(node->conf)) {
         ret = bsc_node_switch_send(node->node_switch, pdu, pdu_len);
     } else {
         ret = bsc_hub_connector_send(node->hub_connector, pdu, pdu_len);
@@ -826,7 +837,7 @@ BSC_SC_RET bsc_node_connect_direct(
         node, dest, urls, urls_cnt);
     bsc_global_mutex_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
-        node->conf->node_switch_enabled) {
+        node->conf->direct_connect_initiate_enable) {
         ret = bsc_node_switch_connect(node->node_switch, dest, urls, urls_cnt);
     }
     bsc_global_mutex_unlock();
@@ -841,7 +852,7 @@ void bsc_node_disconnect_direct(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest)
         "bsc_node_disconnect_direct() >>> node = %p, dest = %p\n", node, dest);
     bsc_global_mutex_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
-        node->conf->node_switch_enabled) {
+        node->conf->direct_connect_initiate_enable) {
         bsc_node_switch_disconnect(node->node_switch, dest);
     }
     bsc_global_mutex_unlock();

@@ -80,6 +80,8 @@ BSC_SC_RET bsc_node_switch_start(
    unsigned int disconnect_timeout_s,
    unsigned int reconnnect_timeout_s,
    unsigned int address_resolution_timeout_s,
+   bool direct_connect_accept_enable,
+   bool direct_connect_initiate_enable,
    BSC_NODE_SWITCH_EVENT_FUNC event_func,
    void* user_arg,
    BSC_NODE_SWITCH_HANDLE* h);

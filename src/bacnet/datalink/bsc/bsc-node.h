@@ -68,7 +68,8 @@ typedef struct {
    uint16_t hub_server_port;
    uint16_t direct_server_port;
    char* iface;
-   bool node_switch_enabled;
+   bool direct_connect_accept_enable;
+   bool direct_connect_initiate_enable;
    bool hub_function_enabled;
    char* direct_connection_accept_uris; // URIs joined ' 'space
    unsigned int direct_connection_accept_uris_len;
