@@ -728,24 +728,16 @@ BSC_SC_RET bsc_node_switch_connect(BSC_NODE_SWITCH_HANDLE h,
             }
         }
     } else {
-        c = node_switch_acceptor_find_connection_for_vmac(dest, ns);
-        if (c) {
-            DEBUG_PRINTF("bsc_node_switch_connect() connection to vmac %s is "
-                         "active and in state %d. Just wait for event!\n",
-                c->state, bsc_vmac_to_string(dest));
+        i = node_switch_initiator_find_connection_index_for_vmac(dest, ns);
+        if (i != -1) {
             ret = BSC_SC_SUCCESS;
         } else {
-            i = node_switch_initiator_find_connection_index_for_vmac(dest, ns);
-            if (i != -1) {
-                ret = BSC_SC_SUCCESS;
+            i = node_switch_initiator_alloc_sock(ns);
+            if (i == -1) {
+                ret = BSC_SC_NO_RESOURCES;
             } else {
-                i = node_switch_initiator_alloc_sock(ns);
-                if (i == -1) {
-                    ret = BSC_SC_NO_RESOURCES;
-                } else {
-                    node_switch_connect_or_delay(ns, dest, i);
-                    ret = BSC_SC_SUCCESS;
-                }
+                node_switch_connect_or_delay(ns, dest, i);
+                ret = BSC_SC_SUCCESS;
             }
         }
     }
@@ -842,7 +834,7 @@ BSC_SC_RET bsc_node_switch_send(
 {
     BSC_NODE_SWITCH_CTX *ns;
     BSC_SC_RET ret;
-    BSC_SOCKET *c;
+    BSC_SOCKET *c = NULL;
     BACNET_SC_VMAC_ADDRESS dest;
     uint8_t **ppdu = &pdu;
     int i;
@@ -856,17 +848,16 @@ BSC_SC_RET bsc_node_switch_send(
         ret = bsc_node_hub_connector_send(ns->user_arg, pdu, pdu_len);
     } else {
         if (bvlc_sc_pdu_get_dest(pdu, pdu_len, &dest)) {
-            c = node_switch_acceptor_find_connection_for_vmac(&dest, ns);
-            if (!c) {
-                i = node_switch_initiator_find_connection_index_for_vmac(
-                    &dest, ns);
-                if (i != -1 &&
-                    ns->initiator.sock_state[i] ==
-                        BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
-                    c = &ns->initiator.sock[i];
-                }
+            i = node_switch_initiator_find_connection_index_for_vmac(&dest, ns);
+            if (i != -1 &&
+                ns->initiator.sock_state[i] ==
+                    BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
+                c = &ns->initiator.sock[i];
             }
-            if (c) {
+            if (!c) {
+                c = node_switch_acceptor_find_connection_for_vmac(&dest, ns);
+            }
+            if (c && c->state == BSC_SOCK_STATE_CONNECTED) {
                 pdu_len = bvlc_sc_remove_orig_and_dest(ppdu, pdu_len);
                 if (pdu_len > 0) {
                     ret = bsc_send(c, *ppdu, pdu_len);

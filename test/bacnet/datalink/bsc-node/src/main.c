@@ -2013,16 +2013,25 @@ static void test_node_direct_connection(void)
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 333, NULL, &node_vmac3, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node2, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_NPDU, node3), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
+    zassert_equal(ret, 0, NULL);
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
     bsc_node_stop(node3);
-    // sleep 1 second here because  bsc_node_stop() call leads to emition
-    // of 2 sequential events: the first is BSC_NODE_EVENT_DIRECT_DISCONNECTED
-    // the second is  BSC_NODE_EVENT_STOPPED.
-    bsc_wait(1);
-    zassert_equal(
-        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
+    wait_specific_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3);
     bsc_node_stop(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
