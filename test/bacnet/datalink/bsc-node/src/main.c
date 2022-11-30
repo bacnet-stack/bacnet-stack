@@ -1620,7 +1620,6 @@ static void test_node_send(void)
         buf, sizeof(buf), buf, len, optbuf, optlen);
     zassert_equal(len > 0, true, NULL);
     ret = bsc_node_send(node3, buf, len);
-    bsc_wait(BACNET_TIMEOUT);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_RESULT, node3), true,
@@ -1633,6 +1632,27 @@ static void test_node_send(void)
         message.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
     zassert_equal(message.payload.result.error_code,
         ERROR_CODE_HEADER_NOT_UNDERSTOOD, NULL);
+
+    optlen = bvlc_sc_encode_proprietary_option(
+        optbuf, sizeof(optbuf), false, 0x222, 12, NULL, 0);
+    zassert_not_equal(optlen, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 222, NULL, &node_vmac2, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    len = bvlc_sc_add_option_to_destination_options(
+        buf, sizeof(buf), buf, len, optbuf, optlen);
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node3, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
+    zassert_equal(ret, 0, NULL);
 
     // send advertisiment solicitation
 
@@ -1704,6 +1724,10 @@ static void test_node_direct_connection(void)
     char url1[256];
     char url2[256];
     char *urls[2] = { url1, url2 };
+    BACNET_SC_VMAC_ADDRESS broadcast;
+    uint8_t optbuf[128];
+    int optlen;
+
     // test configuration
     // node is a just a hub
     // node2 connected to node using hub connector is configured
@@ -1718,6 +1742,7 @@ static void test_node_direct_connection(void)
     memset(&node_vmac2, 0x4, sizeof(node_vmac2));
     memset(&node_uuid3, 0x5, sizeof(node_uuid2));
     memset(&node_vmac3, 0x6, sizeof(node_vmac2));
+    memset(&broadcast.address[0], 0xff, sizeof(broadcast.address));
 
     sprintf(
         node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
@@ -1869,6 +1894,20 @@ static void test_node_direct_connection(void)
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 5555, NULL, &broadcast, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node3, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
+    zassert_equal(ret, 0, NULL);
     bsc_node_stop(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
@@ -1963,9 +2002,9 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
         true, 0);
-    bsc_node_stop(node3);
     ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
         sizeof(node_ev3.dest.address));
+    bsc_node_stop(node3);
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3), true, 0);
     // direct disconnnect test
@@ -2006,6 +2045,7 @@ static void test_node_direct_connection(void)
     ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
         sizeof(node_ev3.dest.address));
     zassert_equal(ret, 0, NULL);
+
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 111, NULL, &node_vmac2, npdu, sizeof(npdu));
     zassert_equal(len > 0, true, NULL);
@@ -2020,6 +2060,7 @@ static void test_node_direct_connection(void)
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
+
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 333, NULL, &node_vmac3, npdu, sizeof(npdu));
     zassert_equal(len > 0, true, NULL);
@@ -2034,6 +2075,40 @@ static void test_node_direct_connection(void)
         sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
     zassert_equal(ret, 0, NULL);
+
+    optlen = bvlc_sc_encode_proprietary_option(
+        optbuf, sizeof(optbuf), true, 0x222, 12, NULL, 0);
+    zassert_not_equal(optlen, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 33352, NULL, &broadcast, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    len = bvlc_sc_add_option_to_destination_options(
+        buf, sizeof(buf), buf, len, optbuf, optlen);
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node2, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    bsc_wait(1);
+    optlen = bvlc_sc_encode_proprietary_option(
+        optbuf, sizeof(optbuf), false, 0x222, 12, NULL, 0);
+    zassert_not_equal(optlen, 0, NULL);
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 3352, NULL, &broadcast, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    len = bvlc_sc_add_option_to_destination_options(
+        buf, sizeof(buf), buf, len, optbuf, optlen);
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node2, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_RECEIVED_NPDU, node3), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev3.pdu, node_ev3.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(
+        sizeof(npdu), message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, sizeof(npdu));
+    zassert_equal(ret, 0, NULL);
+
     bsc_node_stop(node);
     zassert_equal(
         wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
@@ -2042,6 +2117,47 @@ static void test_node_direct_connection(void)
     bsc_node_stop(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+
+    // bad case test (when one url in bsc_node_connect_direct() is incorrect)
+    sprintf(url1, "w3sdfsdfsdfss://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_DIRECT_PORT2);
+    sprintf(
+        url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT2);
+    ret = bsc_node_start(node);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev, BSC_NODE_EVENT_STARTED, node), true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    ret = bsc_node_start(node3);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
+    // wait while node3 and node2 connects to node
+    bsc_wait(2 * BACNET_TIMEOUT);
+    ret = bsc_node_connect_direct(node3, NULL, urls, 2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_CONNECTED, node3), true,
+        0);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
+    zassert_equal(ret, 0, NULL);
+    bsc_node_disconnect_direct(node3, &node_vmac2);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
+        true, 0);
+    ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
+        sizeof(node_ev3.dest.address));
+    zassert_equal(ret, 0, NULL);
+    bsc_node_stop(node);
+    wait_specific_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node);
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    bsc_node_stop(node3);
+    wait_specific_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3);
     ret = bsc_node_deinit(node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_deinit(node2);
@@ -2260,6 +2376,16 @@ static void test_node_direct_connection_unsupported(void)
     deinit_node_ev(&node_ev3);
 }
 
+static void node_switch_event(BSC_NODE_SWITCH_EVENT ev,
+    BSC_NODE_SWITCH_HANDLE h,
+    void *user_arg,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    uint16_t pdu_len,
+    BVLC_SC_DECODED_MESSAGE *decoded_pdu)
+{
+}
+
 static void test_node_bad_cases(void)
 {
     BSC_SC_RET ret;
@@ -2274,6 +2400,9 @@ static void test_node_bad_cases(void)
     char *url[1] = { node_primary_url };
     char t[2 * BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK];
     char *long_url[1] = { t };
+    BSC_NODE_SWITCH_HANDLE sh[4];
+    BSC_SC_RET res[4];
+    int i;
 
     memset(&node_uuid, 0x1, sizeof(node_uuid));
     memset(&node_vmac, 0x2, sizeof(node_vmac));
@@ -2338,6 +2467,55 @@ static void test_node_bad_cases(void)
     zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
     bsc_node_deinit(node);
 
+    ret = bsc_node_switch_start(NULL, 0, NULL, 0, NULL, 0, 0, NULL, NULL, NULL,
+        0, 0, 0, 0, 0, 0, 0, 0, false, false, NULL, NULL);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    ret = bsc_node_switch_start(ca_cert, sizeof(ca_cert), node_cert,
+        sizeof(node_cert), node_key, sizeof(node_key),
+        BACNET_NODE_LOCAL_DIRECT_PORT, NULL, &node_uuid, &node_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_TIMEOUT, BACNET_TIMEOUT,
+        BACNET_TIMEOUT, BACNET_TIMEOUT, BACNET_TIMEOUT, false, false,
+        node_switch_event, NULL, &sh[0]);
+
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    for (i = 0; i < sizeof(sh) / sizeof(sh[0]); i++) {
+        res[i] = bsc_node_switch_start(ca_cert, sizeof(ca_cert), node_cert,
+            sizeof(node_cert), node_key, sizeof(node_key),
+            BACNET_NODE_LOCAL_DIRECT_PORT + i, NULL, &node_uuid, &node_vmac,
+            MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_TIMEOUT, BACNET_TIMEOUT,
+            BACNET_TIMEOUT, BACNET_TIMEOUT, BACNET_TIMEOUT, false, true,
+            node_switch_event, NULL, &sh[i]);
+    }
+    zassert_equal(res[0] == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(res[1] == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(res[2] == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(res[3] == BSC_SC_NO_RESOURCES, true, 0);
+    ret = bsc_node_switch_started(sh[0]);
+    zassert_equal(ret == true, true, 0);
+    bsc_node_switch_stop(sh[0]);
+    bsc_node_switch_stop(sh[1]);
+    bsc_node_switch_stop(sh[2]);
+    ret = bsc_node_switch_started(sh[0]);
+    zassert_equal(ret == false, true, 0);
+    ret = bsc_node_switch_stopped(sh[0]);
+    zassert_equal(ret == true, true, 0);
+    ret = bsc_node_switch_start(NULL, sizeof(ca_cert), node_cert,
+        sizeof(node_cert), node_key, sizeof(node_key),
+        BACNET_NODE_LOCAL_DIRECT_PORT, NULL, &node_uuid, &node_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_TIMEOUT, BACNET_TIMEOUT,
+        BACNET_TIMEOUT, BACNET_TIMEOUT, BACNET_TIMEOUT, true, false,
+        node_switch_event, NULL, &sh[0]);
+    zassert_equal(ret == BSC_SC_BAD_PARAM, true, 0);
+    ret = bsc_node_switch_start(ca_cert, sizeof(ca_cert), node_cert,
+        sizeof(node_cert), node_key, sizeof(node_key),
+        BACNET_NODE_LOCAL_DIRECT_PORT + 1, NULL, &node_uuid, &node_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_TIMEOUT, BACNET_TIMEOUT,
+        BACNET_TIMEOUT, BACNET_TIMEOUT, BACNET_TIMEOUT, true, false,
+        node_switch_event, NULL, &sh[0]);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    bsc_node_switch_stop(sh[0]);
+    ret = bsc_node_switch_started(sh[0]);
+    zassert_equal(ret == false, true, 0);
     conf.ca_cert_chain = ca_cert;
     conf.ca_cert_chain_size = sizeof(ca_cert);
     conf.cert_chain = node_cert;
@@ -2397,11 +2575,14 @@ void test_main(void)
     ztest_test_suite(
         node_test_5, ztest_unit_test(test_node_direct_connection_unsupported));
     ztest_test_suite(node_test_6, ztest_unit_test(test_node_bad_cases));
-
+#if 0
+    ztest_run_test_suite(node_test_4);
+#else
     ztest_run_test_suite(node_test_1);
     ztest_run_test_suite(node_test_2);
     ztest_run_test_suite(node_test_3);
     ztest_run_test_suite(node_test_4);
     ztest_run_test_suite(node_test_5);
     ztest_run_test_suite(node_test_6);
+#endif
 }

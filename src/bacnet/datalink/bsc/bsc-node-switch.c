@@ -296,13 +296,8 @@ static int node_switch_initiator_find_connection_index_for_vmac(
 static int node_switch_initiator_get_index(
     BSC_NODE_SWITCH_CTX *ctx, BSC_SOCKET *c)
 {
-    int i;
-    for (i = 0; i < sizeof(ctx->initiator.sock) / sizeof(BSC_SOCKET); i++) {
-        if (&ctx->initiator.sock[i] == c) {
-            return i;
-        }
-    }
-    return -1;
+    return ((c - &ctx->initiator.sock[0]) >= 0) ? (c - &ctx->initiator.sock[0])
+                                                : -1;
 }
 
 static int node_switch_initiator_alloc_sock(BSC_NODE_SWITCH_CTX *ctx)
@@ -436,66 +431,67 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BSC_SC_RET ret;
     uint8_t **ppdu = &pdu;
     BSC_NODE_SWITCH_CTX *ns;
+
     DEBUG_PRINTF(
         "node_switch_initiator_socket_event() >>> c %p, ev = %d\n", c, ev);
+
     bsc_global_mutex_lock();
 
     ns = (BSC_NODE_SWITCH_CTX *)c->ctx->user_arg;
 
-    if (ns->initiator.state != BSC_NODE_SWITCH_STATE_STARTED) {
-        bsc_global_mutex_unlock();
-        DEBUG_PRINTF("node_switch_initiator_socket_event() <<<\n");
-        return;
-    }
+    if (ns->initiator.state == BSC_NODE_SWITCH_STATE_STARTED) {
+        if (ev == BSC_SOCKET_EVENT_DISCONNECTED &&
+            err == BSC_SC_DUPLICATED_VMAC) {
+            ns->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ns,
+                ns->user_arg, NULL, NULL, 0, NULL);
+        } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
+            pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
+            ns->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ns, ns->user_arg,
+                NULL, *ppdu, pdu_len, decoded_pdu);
+        }
 
-    if (ev == BSC_SOCKET_EVENT_DISCONNECTED && err == BSC_SC_DUPLICATED_VMAC) {
-        ns->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ns, ns->user_arg,
-            NULL, NULL, 0, NULL);
-    } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
-        pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
-        ns->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ns, ns->user_arg, NULL,
-            *ppdu, pdu_len, decoded_pdu);
-    }
+        index = node_switch_initiator_get_index(ns, c);
 
-    index = node_switch_initiator_get_index(ns, c);
-
-    if (index > -1) {
-        if (ns->initiator.sock_state[index] ==
-            BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION) {
-            if (ev == BSC_SOCKET_EVENT_CONNECTED) {
-                ns->initiator.sock_state[index] =
-                    BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED;
-                // if user provides url instead of dest in
-                // bsc_node_switch_connect() ns->initiator.dest_vmac[index] is
-                // unset. that's why we always set it from socket descriptor
-                memcpy(&ns->initiator.dest_vmac[index].address[0],
-                    &c->vmac.address[0], sizeof(c->vmac.address));
-                ns->event_func(BSC_NODE_SWITCH_EVENT_CONNECTED, ns,
-                    ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
-                    NULL);
-            } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
-                connect_next_url(ns, index);
-            }
-        } else if (ns->initiator.sock_state[index] ==
-            BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
-            if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
-                ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
-                    ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
-                    NULL);
-                ns->initiator.urls[index].url_elem = 0;
-                connect_next_url(ns, index);
-            }
-        } else if (ns->initiator.sock_state[index] ==
-            BSC_NODE_SWITCH_CONNECTION_STATE_LOCAL_DISCONNECT) {
-            if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
-                ns->initiator.sock_state[index] =
-                    BSC_NODE_SWITCH_CONNECTION_STATE_IDLE;
-                ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
-                    ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
-                    NULL);
+        if (index > -1) {
+            if (ns->initiator.sock_state[index] ==
+                BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION) {
+                if (ev == BSC_SOCKET_EVENT_CONNECTED) {
+                    ns->initiator.sock_state[index] =
+                        BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED;
+                    // if user provides url instead of dest in
+                    // bsc_node_switch_connect() ns->initiator.dest_vmac[index]
+                    // is unset. that's why we always set it from socket
+                    // descriptor
+                    memcpy(&ns->initiator.dest_vmac[index].address[0],
+                        &c->vmac.address[0], sizeof(c->vmac.address));
+                    ns->event_func(BSC_NODE_SWITCH_EVENT_CONNECTED, ns,
+                        ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
+                        NULL);
+                } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+                    connect_next_url(ns, index);
+                }
+            } else if (ns->initiator.sock_state[index] ==
+                BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
+                if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+                    ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
+                        ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
+                        NULL);
+                    ns->initiator.urls[index].url_elem = 0;
+                    connect_next_url(ns, index);
+                }
+            } else if (ns->initiator.sock_state[index] ==
+                BSC_NODE_SWITCH_CONNECTION_STATE_LOCAL_DISCONNECT) {
+                if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+                    ns->initiator.sock_state[index] =
+                        BSC_NODE_SWITCH_CONNECTION_STATE_IDLE;
+                    ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
+                        ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
+                        NULL);
+                }
             }
         }
     }
+
     bsc_global_mutex_unlock();
     DEBUG_PRINTF("node_switch_initiator_socket_event() <<<\n");
 }
@@ -548,7 +544,6 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
     unsigned int address_resolution_timeout_s,
     bool direct_connect_accept_enable,
     bool direct_connect_initiate_enable,
-
     BSC_NODE_SWITCH_EVENT_FUNC event_func,
     void *user_arg,
     BSC_NODE_SWITCH_HANDLE *h)
@@ -558,11 +553,7 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
 
     DEBUG_PRINTF("bsc_node_switch_start() >>>\n");
 
-    if (!ca_cert_chain || !ca_cert_chain_size || !cert_chain ||
-        !cert_chain_size || !key || !key_size || !local_uuid || !local_vmac ||
-        !max_local_npdu_len || !max_local_bvlc_len || !connect_timeout_s ||
-        !heartbeat_timeout_s || !disconnect_timeout_s || !event_func || !port ||
-        !h) {
+    if (!address_resolution_timeout_s || !event_func || !port || !h) {
         DEBUG_PRINTF("bsc_node_switch_start() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
@@ -757,12 +748,8 @@ BSC_SC_RET bsc_node_switch_connect(BSC_NODE_SWITCH_HANDLE h,
                 ns->initiator.sock_state[i] =
                     BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION;
                 ns->initiator.urls[i].url_elem = 0;
-                ret = bsc_connect(&ns->initiator.ctx, &ns->initiator.sock[i],
-                    (char *)&ns->initiator.urls[i].utf8_urls[0][0]);
-                if (ret != BSC_SC_SUCCESS) {
-                    ns->initiator.sock_state[i] =
-                        BSC_NODE_SWITCH_CONNECTION_STATE_IDLE;
-                }
+                connect_next_url(ns, 0);
+                ret = BSC_SC_SUCCESS;
             }
         } else {
             i = node_switch_initiator_find_connection_index_for_vmac(dest, ns);

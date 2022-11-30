@@ -105,10 +105,19 @@ static BSC_ADDRESS_RESOLUTION *node_get_address_resolution(
     return NULL;
 }
 
+static void node_free_address_resolution(BSC_ADDRESS_RESOLUTION *r)
+{
+    r->used = false;
+    r->urls_num = false;
+}
+
 static BSC_ADDRESS_RESOLUTION *node_alloc_address_resolution(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
+    unsigned long max = 0;
+    int max_index = 0;
+
     for (i = 0; i < BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM; i++) {
         if (!node->resolution[i].used) {
             node->resolution[i].used = true;
@@ -119,7 +128,18 @@ static BSC_ADDRESS_RESOLUTION *node_alloc_address_resolution(
             return &node->resolution[i];
         }
     }
-    return NULL;
+
+    // find and remove oldest resolution
+
+    for (i = 0; i < BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM; i++) {
+        if (mstimer_elapsed(&node->resolution[i].fresh_timer) > max) {
+            max = mstimer_elapsed(&node->resolution[i].fresh_timer);
+            max_index = i;
+        }
+    }
+
+    node->resolution[max_index].urls_num = 0;
+    return &node->resolution[max_index];
 }
 
 static void bsc_free_node(BSC_NODE *node)
@@ -272,7 +292,7 @@ static void bsc_node_process_received(BSC_NODE *node,
                  "= %d, decoded_pdu = %p\n",
         node, pdu, pdu_len, decoded_pdu);
 
-    for (i = 0; i < decoded_pdu->hdr.dest_options_len; i++) {
+    for (i = 0; i < decoded_pdu->hdr.dest_options_num; i++) {
         if (decoded_pdu->dest_options[i].must_understand) {
             DEBUG_PRINTF("bsc_node_process_received() pdu with "
                          "'must-understand' is dropped\n");
@@ -295,6 +315,9 @@ static void bsc_node_process_received(BSC_NODE *node,
                     }
 #endif
                 }
+                DEBUG_PRINTF("bsc_node_process_received() <<<\n");
+                return;
+            } else {
                 DEBUG_PRINTF("bsc_node_process_received() <<<\n");
                 return;
             }
@@ -801,6 +824,7 @@ BSC_ADDRESS_RESOLUTION *bsc_node_get_address_resolution(
                 bsc_global_mutex_unlock();
                 return &node->resolution[i];
             } else {
+                node_free_address_resolution(&node->resolution[i]);
                 bsc_global_mutex_unlock();
                 return NULL;
             }
