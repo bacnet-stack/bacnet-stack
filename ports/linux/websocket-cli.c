@@ -344,22 +344,22 @@ static int bws_cli_websocket_event(struct lws *wsi,
 
 static void *bws_cli_worker(void *arg)
 {
-    BSC_WEBSOCKET_HANDLE h = *((int *)arg);
-    BSC_WEBSOCKET_CONNECTION *conn = &bws_cli_conn[h];
+    BSC_WEBSOCKET_CONNECTION *conn = (BSC_WEBSOCKET_CONNECTION *)arg;
+    BSC_WEBSOCKET_HANDLE h = conn - &bws_cli_conn[0];
     BSC_WEBSOCKET_CLI_DISPATCH dispatch_func;
     void *user_param;
 
     while (1) {
-        DEBUG_PRINTF("bws_cli_worker() try mutex lock h = %d\n", h);
+        DEBUG_PRINTF("bws_cli_worker() try mutex h = %d\n", h);
         pthread_mutex_lock(&bws_cli_mutex);
         DEBUG_PRINTF("bws_cli_worker() mutex locked h = %d\n", h);
-        if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
-            if (bws_cli_conn[h].want_send_data) {
+        if (conn->state == BSC_WEBSOCKET_STATE_CONNECTED) {
+            if (conn->want_send_data) {
                 DEBUG_PRINTF(
                     "bws_cli_worker() process request for sending data\n");
                 lws_callback_on_writable(conn->ws);
             }
-        } else if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
+        } else if (conn->state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
             DEBUG_PRINTF("bws_cli_worker() destroy ctx %p\n", conn->ctx);
             // TRICKY: This is ridiculus but lws_context_destroy()
@@ -381,8 +381,8 @@ static void *bws_cli_worker(void *arg)
             lws_context_destroy(conn->ctx);
             bsc_websocket_global_unlock();
             pthread_mutex_lock(&bws_cli_mutex);
-            dispatch_func = bws_cli_conn[h].dispatch_func;
-            user_param = bws_cli_conn[h].user_param;
+            dispatch_func = conn->dispatch_func;
+            user_param = conn->user_param;
             bws_cli_free_connection(h);
             pthread_mutex_unlock(&bws_cli_mutex);
             DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
@@ -513,7 +513,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
 
-    ret = pthread_create(&thread_id, NULL, &bws_cli_worker, &h);
+    ret = pthread_create(&thread_id, NULL, &bws_cli_worker, &bws_cli_conn[h]);
 
     if (ret != 0) {
         // TRICKY: This is ridiculus but lws_context_destroy()
