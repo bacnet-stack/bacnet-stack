@@ -45,8 +45,7 @@ typedef enum {
     BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_RESOLUTION = 2,
     BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED = 3,
     BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING = 4,
-    BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING_RESOLUTION = 5,
-    BSC_NODE_SWITCH_CONNECTION_STATE_LOCAL_DISCONNECT = 6
+    BSC_NODE_SWITCH_CONNECTION_STATE_LOCAL_DISCONNECT = 5
 } BSC_NODE_SWITCH_CONNECTION_STATE;
 
 static BSC_SOCKET *node_switch_acceptor_find_connection_for_vmac(
@@ -342,40 +341,25 @@ static void node_switch_connect_or_delay(
     BSC_ADDRESS_RESOLUTION *r;
     BSC_SC_RET ret;
 
-    r = bsc_node_get_address_resolution(ns->user_arg, dest);
-
-    if (r && r->urls_num) {
-        copy_urls(ns, sock_index, r);
-        ns->initiator.sock_state[sock_index] =
-            BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION;
-        ns->initiator.urls[sock_index].url_elem = 0;
-        while (ns->initiator.urls[sock_index].url_elem < r->urls_num) {
-            ret =
-                bsc_connect(&ns->initiator.ctx, &ns->initiator.sock[sock_index],
-                    (char *)&ns->initiator.urls[sock_index]
-                        .utf8_urls[ns->initiator.urls[sock_index].url_elem][0]);
-            if (ret != BSC_SC_SUCCESS) {
-                ns->initiator.urls[sock_index].url_elem++;
-            } else {
-                break;
-            }
-        }
-        if (ns->initiator.urls[sock_index].url_elem >= r->urls_num) {
+    if (ns->initiator.urls[sock_index].urls_cnt > 0) {
+        connect_next_url(ns, sock_index);
+    } else if (dest) {
+        r = bsc_node_get_address_resolution(ns->user_arg, dest);
+        if (r && r->urls_num) {
+            copy_urls(ns, sock_index, r);
+            ns->initiator.urls[sock_index].url_elem = 0;
+            connect_next_url(ns, sock_index);
+        } else {
             ns->initiator.sock_state[sock_index] =
-                BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING_RESOLUTION;
-            mstimer_set(
-                &ns->initiator.t[sock_index], ns->reconnect_timeout_s * 1000);
+                BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_RESOLUTION;
+            ns->initiator.urls[sock_index].urls_cnt = 0;
+            memcpy(&ns->initiator.dest_vmac[sock_index].address[0],
+                &dest->address[0], BVLC_SC_VMAC_SIZE);
+            mstimer_set(&ns->initiator.t[sock_index],
+                ns->address_resolution_timeout_s * 1000);
+            bsc_node_send_address_resolution(
+                ns->user_arg, &ns->initiator.dest_vmac[sock_index]);
         }
-    } else {
-        ns->initiator.sock_state[sock_index] =
-            BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_RESOLUTION;
-        ns->initiator.urls[sock_index].urls_cnt = 0;
-        memcpy(&ns->initiator.dest_vmac[sock_index].address[0],
-            &dest->address[0], BVLC_SC_VMAC_SIZE);
-        mstimer_set(&ns->initiator.t[sock_index],
-            ns->address_resolution_timeout_s * 1000);
-        bsc_node_send_address_resolution(
-            ns->user_arg, &ns->initiator.dest_vmac[sock_index]);
     }
 }
 
@@ -403,15 +387,9 @@ static void node_switch_initiator_runloop(void *ctx)
             BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_RESOLUTION) {
             if (mstimer_expired(&ns->initiator.t[i])) {
                 ns->initiator.sock_state[i] =
-                    BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING_RESOLUTION;
+                    BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING;
                 mstimer_set(
                     &ns->initiator.t[i], ns->reconnect_timeout_s * 1000);
-            }
-        } else if (ns->initiator.sock_state[i] ==
-            BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING_RESOLUTION) {
-            if (mstimer_expired(&ns->initiator.t[i])) {
-                node_switch_connect_or_delay(
-                    ns, &ns->initiator.dest_vmac[i], i);
             }
         }
     }
@@ -745,10 +723,8 @@ BSC_SC_RET bsc_node_switch_connect(BSC_NODE_SWITCH_HANDLE h,
                 ret = BSC_SC_NO_RESOURCES;
             } else {
                 copy_urls2(ns, i, urls, urls_cnt);
-                ns->initiator.sock_state[i] =
-                    BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION;
                 ns->initiator.urls[i].url_elem = 0;
-                connect_next_url(ns, 0);
+                node_switch_connect_or_delay(ns, NULL, i);
                 ret = BSC_SC_SUCCESS;
             }
         } else {
@@ -760,6 +736,7 @@ BSC_SC_RET bsc_node_switch_connect(BSC_NODE_SWITCH_HANDLE h,
                 if (i == -1) {
                     ret = BSC_SC_NO_RESOURCES;
                 } else {
+                    ns->initiator.urls[i].urls_cnt = 0;
                     node_switch_connect_or_delay(ns, dest, i);
                     ret = BSC_SC_SUCCESS;
                 }
@@ -786,27 +763,12 @@ void bsc_node_switch_process_address_resolution(
     ns = (BSC_NODE_SWITCH_CTX *)h;
     if (r && r->urls_num) {
         i = node_switch_initiator_find_connection_index_for_vmac(&r->vmac, ns);
-        if (i != -1) {
-            if (ns->initiator.sock_state[i] ==
+        if (i != -1 &&
+            ns->initiator.sock_state[i] ==
                 BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_RESOLUTION) {
-                copy_urls(ns, i, r);
-                ns->initiator.urls[i].url_elem = 0;
-                ns->initiator.sock_state[i] =
-                    BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION;
-                ret = bsc_connect(&ns->initiator.ctx, &ns->initiator.sock[i],
-                    (char *)&ns->initiator.urls[i].utf8_urls[0][0]);
-                if (ret != BSC_SC_SUCCESS) {
-                    DEBUG_PRINTF("bsc_node_switch_process_address_resolution() "
-                                 "connection failed err = %d, enter to state "
-                                 "BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING_"
-                                 "RESOLUTION\n",
-                        ret);
-                    ns->initiator.sock_state[i] =
-                        BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING_RESOLUTION;
-                    mstimer_set(
-                        &ns->initiator.t[i], ns->reconnect_timeout_s * 1000);
-                }
-            }
+            copy_urls(ns, i, r);
+            ns->initiator.urls[i].url_elem = 0;
+            node_switch_connect_or_delay(ns, NULL, i);
         }
     }
 
