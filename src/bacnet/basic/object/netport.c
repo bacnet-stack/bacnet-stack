@@ -120,14 +120,24 @@ struct object_data {
         struct mstp_port MSTP;
     } Network;
 
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
     BACNET_SC_PARAMS Secure_Connect;
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
 };
+
+#ifdef BACDL_BSC
+/* SC Netport custom properties */
+#define PROP_SC_CERTIFICATE_KEY_FILE       PROP_PROPRIETARY_RANGE_MIN
+#define PROP_SC_LOCAL_UUID                 (PROP_PROPRIETARY_RANGE_MIN + 1)
+#define PROP_SC_HUB_SERVER_PORT            (PROP_PROPRIETARY_RANGE_MIN + 2)
+#define PROP_SC_DIRECT_SERVER_PORT         (PROP_PROPRIETARY_RANGE_MIN + 3)
+#endif /* BACDL_BSC */
+
 
 #ifndef BACNET_NETWORK_PORTS_MAX
 #define BACNET_NETWORK_PORTS_MAX 1
 #endif
+
 static struct object_data Object_List[BACNET_NETWORK_PORTS_MAX];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
@@ -152,7 +162,7 @@ static const int BIP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_BBMD_FOREIGN_DEVICE_TABLE, PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
 #endif
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
     PROP_MAX_BVLC_LENGTH_ACCEPTED, PROP_MAX_NPDU_LENGTH_ACCEPTED, PROP_SC_PRIMARY_HUB_URI,
     PROP_SC_FAILOVER_HUB_URI, PROP_SC_MINIMUM_RECONNECT_TIME,
     PROP_SC_MAXIMUM_RECONNECT_TIME, PROP_SC_CONNECT_WAIT_TIMEOUT,
@@ -163,19 +173,19 @@ static const int BIP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
   #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
     PROP_ROUTING_TABLE,
   #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
-  #if BSC_CONF_HUB_FUNCTIONS_NUM==1
+  #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     PROP_SC_PRIMARY_HUB_CONNECTION_STATUS,
     PROP_SC_FAILOVER_HUB_CONNECTION_STATUS, PROP_SC_HUB_FUNCTION_ENABLE,
     PROP_SC_HUB_FUNCTION_ACCEPT_URIS, PROP_SC_HUB_FUNCTION_BINDING,
     PROP_SC_HUB_FUNCTION_CONNECTION_STATUS,
-  #endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
-  #if BSC_CONF_HUB_CONNECTORS_NUM==1
+  #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+  #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE,
     PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE, PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
     PROP_SC_DIRECT_CONNECT_BINDING, PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
-  #endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+  #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
     PROP_SC_FAILED_CONNECTION_REQUESTS,
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
     -1 };
 
 static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
@@ -188,19 +198,19 @@ static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_IPV6_ZONE_INDEX, -1 };
 
 static const int Network_Port_Properties_Proprietary[] = {
-#if BACNET_SECURE_CONNECT
+#if BACDL_BSC
     PROP_SC_CERTIFICATE_KEY_FILE,
     PROP_SC_LOCAL_UUID,
-  #if BSC_CONF_HUB_FUNCTIONS_NUM==1
+  #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     PROP_SC_HUB_SERVER_PORT,
-  #endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
-  #if BSC_CONF_HUB_CONNECTORS_NUM==1
+  #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+  #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     PROP_SC_DIRECT_SERVER_PORT,
-  #endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
-#endif /* BACNET_SECURE_CONNECT */
+  #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
+#endif /* BACDL_BSC */
     -1 };
 
-unsigned Network_Port_Object_Number() {
+unsigned Network_Port_Object_Number(void) {
     return BACNET_NETWORK_PORTS_MAX;
 }
 
@@ -2247,7 +2257,7 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
     return status;
 }
 
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
 
 /**
  * For a given object instance-number, gets SC parameters structure
@@ -2269,7 +2279,7 @@ BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
     return param;
 }
 
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
 
 
 #define ENCODE_STRING_ARRAY(getter, encode, size, var)                      \
@@ -2545,7 +2555,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
         case PROP_MAX_BVLC_LENGTH_ACCEPTED:
             apdu_len = encode_application_unsigned(&apdu[0],
                 Network_Port_Max_BVLC_Length_Accepted(rpdata->object_instance));
@@ -2640,7 +2650,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 BACNET_ROUTER_ENTRY);
             break;
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
         case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
             apdu_len = bacapp_encode_SCHubConnection(&apdu[0],
                 Network_Port_SC_Primary_Hub_Connection_Status(
@@ -2677,8 +2687,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0],
                 Network_Port_SC_Hub_Server_Port(rpdata->object_instance));
             break;
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
         case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
             apdu_len = encode_application_boolean(&apdu[0],
                 Network_Port_SC_Direct_Connect_Initiate_Enable(
@@ -2711,7 +2721,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0],
                 Network_Port_SC_Direct_Server_Port(rpdata->object_instance));
             break;
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
 #ifdef BACNET_SC_STATUS_SUPPORT
             ENCODE_KEYLIST_ARRAY(Network_Port_SC_Failed_Connection_Requests_Get,
@@ -2720,7 +2730,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 BACNET_SC_FAILED_CONNECTION_REQUEST);
 #endif
             break;
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -2828,7 +2838,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
         case PROP_MAX_BVLC_LENGTH_ACCEPTED:
             DECODE_UNSIGNED(Network_Port_Max_BVLC_Length_Accepted_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
@@ -2869,7 +2879,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             break;
         /* SC optionals */ 
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
         case PROP_SC_PRIMARY_HUB_URI:
             status = write_property_empty_string_valid(wp_data, &value,
                 MAX_DEV_DESC_LEN);
@@ -2913,8 +2923,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             DECODE_UNSIGNED(Network_Port_SC_Hub_Server_Port_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
         case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
             status = write_property_type_valid(wp_data, &value,
                 BACNET_APPLICATION_TAG_BOOLEAN);
@@ -2948,7 +2958,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             DECODE_UNSIGNED(Network_Port_SC_Direct_Server_Port_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
         case PROP_OPERATIONAL_CERTIFICATE_FILE:
         case PROP_ISSUER_CERTIFICATE_FILES:
         case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:
@@ -2963,7 +2973,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
         default:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -3078,7 +3088,7 @@ void Network_Port_Init(void)
     /* do something interesting */
     for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
         memset(&Object_List[index], 0, sizeof(Object_List[index]));
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
         BACNET_SC_PARAMS *sc = &Object_List[index].Secure_Connect;
   #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
@@ -3086,20 +3096,20 @@ void Network_Port_Init(void)
   #ifdef BACNET_SC_STATUS_SUPPORT
         sc->SC_Failed_Connection_Requests = Keylist_Create();
   #endif
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
     }
 }
 
 void Network_Port_Pending_Params_Apply(uint32_t object_instance)
 {
-#if BACNET_SECURE_CONNECT
+#if BACDL_BSC
     Network_Port_SC_Pending_Params_Apply(object_instance);
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
 }
 
 void Network_Port_Pending_Params_Discard(uint32_t object_instance)
 {
-#if BACNET_SECURE_CONNECT
+#if BACDL_BSC
     Network_Port_SC_Pending_Params_Discard(object_instance);
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
 }

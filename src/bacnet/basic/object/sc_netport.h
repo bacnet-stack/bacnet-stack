@@ -53,7 +53,7 @@ extern "C" {
 */
 //#define BACNET_SC_STATUS_SUPPORT
 
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
 
     typedef struct BACnetUUID_T_{
         union {
@@ -82,7 +82,7 @@ extern "C" {
         uint16_t port;
     } BACNET_HOST_N_PORT_DATA;
 
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     typedef struct BACnetSCHubConnection_T {
         BACNET_SC_CONNECTION_STATE Connection_State; //index = 0
         BACNET_DATE_TIME Connect_Timestamp; //index = 1
@@ -102,7 +102,7 @@ extern "C" {
         BACNET_ERROR_CODE Error;
         char Error_Details[BACNET_ERROR_STRING_LENGHT];
     } BACNET_SC_HUB_FUNCTION_CONNECTION;
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
     typedef struct BACnetSCFailedConnectionRequest_T {
         BACNET_DATE_TIME Timestamp;
@@ -126,7 +126,7 @@ extern "C" {
     } BACNET_ROUTER_ENTRY;
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
     typedef struct BACnetSCDirectConnection_T {
         char URI[BACNET_URI_LENGHT];
         BACNET_SC_CONNECTION_STATE Connection_State;
@@ -138,7 +138,7 @@ extern "C" {
         BACNET_ERROR_CODE Error;
         char Error_Details[BACNET_ERROR_STRING_LENGHT];
     } BACNET_SC_DIRECT_CONNECTION;
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     typedef struct BACnetSCAttributes_T {
         BACNET_UNSIGNED_INTEGER Max_BVLC_Length_Accepted;
@@ -160,7 +160,7 @@ extern "C" {
 #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         OS_Keylist Routing_Table;
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
         BACNET_SC_HUB_CONNECTION SC_Primary_Hub_Connection_Status;
         BACNET_SC_HUB_CONNECTION SC_Failover_Hub_Connection_Status;
         bool SC_Hub_Function_Enable;
@@ -173,8 +173,8 @@ extern "C" {
         BACNET_SC_HUB_FUNCTION_CONNECTION SC_Hub_Function_Connection_Status;
 #endif
         uint16_t Hub_Server_Port;
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
         bool SC_Direct_Connect_Initiate_Enable;
         bool SC_Direct_Connect_Initiate_Enable_dirty;
         bool SC_Direct_Connect_Accept_Enable;
@@ -187,7 +187,7 @@ extern "C" {
         BACNET_SC_DIRECT_CONNECTION SC_Direct_Connect_Connection_Status;
 #endif
         uint16_t Direct_Server_Port;
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 #ifdef BACNET_SC_STATUS_SUPPORT
         OS_Keylist SC_Failed_Connection_Requests;
 #endif
@@ -350,7 +350,7 @@ extern "C" {
         uint32_t object_instance);
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     BACNET_STACK_EXPORT
     BACNET_SC_HUB_CONNECTION *Network_Port_SC_Primary_Hub_Connection_Status(
         uint32_t object_instance);
@@ -444,9 +444,9 @@ extern "C" {
     bool Network_Port_SC_Hub_Server_Port_Set(
         uint32_t object_instance,
         uint16_t value);
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Direct_Connect_Initiate_Enable(
         uint32_t object_instance);
@@ -530,7 +530,7 @@ extern "C" {
         uint32_t object_instance,
         uint16_t value);
 
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 #ifdef BACNET_SC_STATUS_SUPPORT
 
@@ -581,7 +581,7 @@ extern "C" {
     // Encode / decode
     //
 
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     BACNET_STACK_EXPORT
     int bacapp_encode_SCHubConnection(
         uint8_t *apdu,
@@ -619,7 +619,7 @@ extern "C" {
         uint8_t *apdu,
         uint8_t tag_number,
         BACNET_SC_HUB_FUNCTION_CONNECTION *value);
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
     BACNET_STACK_EXPORT
     int bacapp_encode_SCFailedConnectionRequest(
@@ -661,7 +661,7 @@ extern "C" {
         BACNET_ROUTER_ENTRY *value);
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
     BACNET_STACK_EXPORT
     int bacapp_encode_SCDirectConnection(
         uint8_t *apdu,
@@ -680,14 +680,14 @@ extern "C" {
         uint8_t *apdu,
         uint8_t tag_number,
         BACNET_SC_DIRECT_CONNECTION *value);
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     void Network_Port_SC_Pending_Params_Apply(
         uint32_t object_instance);
     void Network_Port_SC_Pending_Params_Discard(
         uint32_t object_instance);
 
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
 
 
 #ifdef __cplusplus

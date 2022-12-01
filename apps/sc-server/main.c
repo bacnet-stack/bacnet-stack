@@ -66,8 +66,8 @@
 /** @addtogroup SCServerDemo */
 /*@{*/
 
-#ifndef BACNET_SECURE_CONNECT
-#error "BACNET_SECURE_CONNECT must de defined"
+#ifndef BACDL_BSC
+#error "BACDL_BSC must de defined"
 #endif
 
 

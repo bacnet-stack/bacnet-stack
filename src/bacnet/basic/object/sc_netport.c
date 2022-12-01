@@ -48,7 +48,7 @@
 /* me */
 #include <bacnet/basic/object/netport.h>
 
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
 
 #define SC_MIN_RECONNECT_MIN    2
 #define SC_MIN_RECONNECT_MAX    300
@@ -545,7 +545,7 @@ uint8_t Network_Port_Routing_Table_Count(uint32_t object_instance)
 
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
 
 BACNET_SC_HUB_CONNECTION *Network_Port_SC_Primary_Hub_Connection_Status(
     uint32_t object_instance)
@@ -773,9 +773,9 @@ bool Network_Port_SC_Hub_Server_Port_Set(uint32_t object_instance,
     return true;
 }
 
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
 
 bool Network_Port_SC_Direct_Connect_Initiate_Enable(uint32_t object_instance)
 {
@@ -979,7 +979,7 @@ bool Network_Port_SC_Direct_Server_Port_Set(uint32_t object_instance,
     return true;
 }
 
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 #ifdef BACNET_SC_STATUS_SUPPORT
 
@@ -1091,7 +1091,7 @@ bool Network_Port_SC_Local_UUID_Set(uint32_t object_instance,
     return true;
 }
 
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
 
 /**
  * @brief Encode a SCHubConnection complex data type
@@ -1370,7 +1370,7 @@ int bacapp_decode_context_SCHubFunctionConnection(uint8_t *apdu,
     return len;
 }
 
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
 /**
  * @brief Encode a SCFailedConnectionRequest complex data type
@@ -1636,7 +1636,7 @@ int bacapp_decode_context_RouterEntry(uint8_t *apdu, uint8_t tag_number,
 
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
 
 /**
  * @brief Encode a SCDirectConnection complex data type
@@ -1814,7 +1814,7 @@ int bacapp_decode_context_SCDirectConnection(uint8_t *apdu, uint8_t tag_number,
     return len;
 }
 
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
 {
@@ -1822,7 +1822,7 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
     if (!params)
         return;
 
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     memcpy(params->SC_Primary_Hub_URI, params->SC_Primary_Hub_URI_dirty,
         sizeof(params->SC_Primary_Hub_URI));
     memcpy(params->SC_Failover_Hub_URI, params->SC_Failover_Hub_URI_dirty,
@@ -1833,9 +1833,9 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
     memcpy(params->SC_Hub_Function_Binding,
         params->SC_Hub_Function_Binding_dirty,
         sizeof(params->SC_Hub_Function_Binding));
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
     params->SC_Direct_Connect_Initiate_Enable =
         params->SC_Direct_Connect_Initiate_Enable_dirty;
     params->SC_Direct_Connect_Accept_Enable =
@@ -1844,7 +1844,7 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
     memcpy(params->SC_Direct_Connect_Binding,
         params->SC_Direct_Connect_Binding_dirty,
         sizeof(params->SC_Direct_Connect_Binding));
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 }
 
 void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
@@ -1853,7 +1853,7 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     if (!params)
         return;
 
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     memcpy(params->SC_Primary_Hub_URI_dirty, params->SC_Primary_Hub_URI,
         sizeof(params->SC_Primary_Hub_URI_dirty));
     memcpy(params->SC_Failover_Hub_URI_dirty, params->SC_Failover_Hub_URI,
@@ -1864,9 +1864,9 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     memcpy(params->SC_Hub_Function_Binding_dirty,
         params->SC_Hub_Function_Binding,
         sizeof(params->SC_Hub_Function_Binding_dirty));
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM==1 */
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
     params->SC_Direct_Connect_Initiate_Enable_dirty =
         params->SC_Direct_Connect_Initiate_Enable;
     params->SC_Direct_Connect_Accept_Enable_dirty =
@@ -1875,7 +1875,7 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     memcpy(params->SC_Direct_Connect_Binding_dirty,
         params->SC_Direct_Connect_Binding,
         sizeof(params->SC_Direct_Connect_Binding_dirty));
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM==1 */
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 }
 
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */

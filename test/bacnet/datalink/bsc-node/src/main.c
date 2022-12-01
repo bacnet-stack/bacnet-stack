@@ -1207,7 +1207,7 @@ static void test_node_start_stop(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    memcpy(&conf.local_vmac, &node_vmac, sizeof(conf.local_vmac));
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -1224,7 +1224,7 @@ static void test_node_start_stop(void)
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
-    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris[0] = 0;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
 
@@ -1318,7 +1318,7 @@ static void test_node_duplicated_vmac(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    memcpy(&conf.local_vmac, &node_vmac, sizeof(conf.local_vmac));
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -1335,7 +1335,7 @@ static void test_node_duplicated_vmac(void)
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
-    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris[0] = 0;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
 
@@ -1346,7 +1346,7 @@ static void test_node_duplicated_vmac(void)
     conf2.key = node_key;
     conf2.key_size = sizeof(node_key);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    memcpy(&conf2.local_vmac, &node_vmac2, sizeof(conf2.local_vmac));
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -1363,7 +1363,7 @@ static void test_node_duplicated_vmac(void)
     conf2.direct_connect_accept_enable = true;
     conf2.direct_connect_initiate_enable = true;
     conf2.hub_function_enabled = true;
-    conf2.direct_connection_accept_uris = NULL;
+    conf2.direct_connection_accept_uris[0] = 0;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
 
@@ -1510,7 +1510,7 @@ static void test_node_send(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    memcpy(&conf.local_vmac, &node_vmac, sizeof(conf.local_vmac));
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -1527,7 +1527,7 @@ static void test_node_send(void)
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
-    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris[0] = 0;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
 
@@ -1538,7 +1538,7 @@ static void test_node_send(void)
     conf2.key = node_key;
     conf2.key_size = sizeof(node_key);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    memcpy(&conf2.local_vmac, &node_vmac2, sizeof(conf2.local_vmac));
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -1555,13 +1555,13 @@ static void test_node_send(void)
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
-    conf2.direct_connection_accept_uris = NULL;
+    conf2.direct_connection_accept_uris[0] = 0;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
     conf3 = conf2;
     conf3.event_func = node_event3;
     conf3.local_uuid = &node_uuid3;
-    conf3.local_vmac = &node_vmac3;
+    memcpy(&conf3.local_vmac, &node_vmac3, sizeof(conf3.local_vmac));
 
     init_node_ev(&node_ev);
     init_node_ev(&node_ev2);
@@ -1764,7 +1764,7 @@ static void test_node_direct_connection(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    memcpy(&conf.local_vmac, &node_vmac, sizeof(conf.local_vmac));
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -1781,7 +1781,7 @@ static void test_node_direct_connection(void)
     conf.direct_connect_accept_enable = false;
     conf.direct_connect_initiate_enable = false;
     conf.hub_function_enabled = true;
-    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris[0] = 0;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
 
@@ -1795,7 +1795,7 @@ static void test_node_direct_connection(void)
     conf2.key = node_key;
     conf2.key_size = sizeof(node_key);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    memcpy(&conf2.local_vmac, &node_vmac2, sizeof(conf2.local_vmac));
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -1812,7 +1812,7 @@ static void test_node_direct_connection(void)
     conf2.direct_connect_accept_enable = true;
     conf2.direct_connect_initiate_enable = true;
     conf2.hub_function_enabled = false;
-    conf2.direct_connection_accept_uris = uris;
+    strcpy(conf2.direct_connection_accept_uris, uris);
     conf2.direct_connection_accept_uris_len = strlen(uris);
     conf2.event_func = node_event2;
 
@@ -1823,7 +1823,7 @@ static void test_node_direct_connection(void)
     conf3.key = node_key;
     conf3.key_size = sizeof(node_key);
     conf3.local_uuid = &node_uuid3;
-    conf3.local_vmac = &node_vmac3;
+    memcpy(&conf3.local_vmac, &node_vmac3, sizeof(conf3.local_vmac));
     conf3.max_local_bvlc_len = MAX_BVLC_LEN;
     conf3.max_local_npdu_len = MAX_NDPU_LEN;
     conf3.connect_timeout_s = BACNET_TIMEOUT;
@@ -1840,7 +1840,7 @@ static void test_node_direct_connection(void)
     conf3.direct_connect_accept_enable = true;
     conf3.direct_connect_initiate_enable = true;
     conf3.hub_function_enabled = false;
-    conf3.direct_connection_accept_uris = NULL;
+    conf3.direct_connection_accept_uris[0] = 0;
     conf3.direct_connection_accept_uris_len = 0;
     conf3.event_func = node_event3;
 
@@ -2420,7 +2420,7 @@ static void test_node_direct_connection_unsupported(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    memcpy(&conf.local_vmac, &node_vmac, sizeof(conf.local_vmac));
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -2437,7 +2437,7 @@ static void test_node_direct_connection_unsupported(void)
     conf.direct_connect_accept_enable = false;
     conf.direct_connect_initiate_enable = false;
     conf.hub_function_enabled = true;
-    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris[0] = 0;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
 
@@ -2451,7 +2451,7 @@ static void test_node_direct_connection_unsupported(void)
     conf2.key = node_key;
     conf2.key_size = sizeof(node_key);
     conf2.local_uuid = &node_uuid2;
-    conf2.local_vmac = &node_vmac2;
+    memcpy(&conf2.local_vmac, &node_vmac2, sizeof(conf2.local_vmac));
     conf2.max_local_bvlc_len = MAX_BVLC_LEN;
     conf2.max_local_npdu_len = MAX_NDPU_LEN;
     conf2.connect_timeout_s = BACNET_TIMEOUT;
@@ -2468,7 +2468,7 @@ static void test_node_direct_connection_unsupported(void)
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
-    conf2.direct_connection_accept_uris = uris;
+    strcpy(conf2.direct_connection_accept_uris, uris);
     conf2.direct_connection_accept_uris_len = strlen(uris);
     conf2.event_func = node_event2;
 
@@ -2479,7 +2479,7 @@ static void test_node_direct_connection_unsupported(void)
     conf3.key = node_key;
     conf3.key_size = sizeof(node_key);
     conf3.local_uuid = &node_uuid3;
-    conf3.local_vmac = &node_vmac3;
+    memcpy(&conf3.local_vmac, &node_vmac3, sizeof(conf3.local_vmac));
     conf3.max_local_bvlc_len = MAX_BVLC_LEN;
     conf3.max_local_npdu_len = MAX_NDPU_LEN;
     conf3.connect_timeout_s = BACNET_TIMEOUT;
@@ -2496,7 +2496,7 @@ static void test_node_direct_connection_unsupported(void)
     conf3.direct_connect_accept_enable = true;
     conf3.direct_connect_initiate_enable = true;
     conf3.hub_function_enabled = false;
-    conf3.direct_connection_accept_uris = NULL;
+    conf3.direct_connection_accept_uris[0] = 0;
     conf3.direct_connection_accept_uris_len = 0;
     conf3.event_func = node_event3;
 
@@ -2607,7 +2607,7 @@ static void test_node_bad_cases(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    memcpy(&conf.local_vmac, &node_vmac, sizeof(conf.local_vmac));
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -2624,7 +2624,7 @@ static void test_node_bad_cases(void)
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
-    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris[0] = 0;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
 
@@ -2709,7 +2709,7 @@ static void test_node_bad_cases(void)
     conf.key = node_key;
     conf.key_size = sizeof(node_key);
     conf.local_uuid = &node_uuid;
-    conf.local_vmac = &node_vmac;
+    memcpy(&conf.local_vmac, &node_vmac, sizeof(conf.local_vmac));
     conf.max_local_bvlc_len = MAX_BVLC_LEN;
     conf.max_local_npdu_len = MAX_NDPU_LEN;
     conf.connect_timeout_s = BACNET_TIMEOUT;
@@ -2726,7 +2726,7 @@ static void test_node_bad_cases(void)
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
-    conf.direct_connection_accept_uris = NULL;
+    conf.direct_connection_accept_uris[0] = 0;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
     ret = bsc_node_init(&conf, &node);

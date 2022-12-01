@@ -33,6 +33,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
   BIG_ENDIAN=0
   CONFIG_ZTEST=1
+  BACDL_BSC
   BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM=4
   BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM=4
   BSC_CONF_WSURL_MAX_LEN=127
@@ -41,6 +42,7 @@ add_compile_definitions(
   BSC_CONF_HUB_FUNCTIONS_NUM=3
   BSC_CONF_NODES_NUM=3
   BSC_CONF_NODE_SWITCHES_NUM=3
+  MAX_TSM_TRANSACTIONS=0
   )
 
 include_directories(
@@ -70,14 +72,33 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
-    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
+    ${SRC_DIR}/bacnet/basic/object/netport.c
+    ${SRC_DIR}/bacnet/basic/object/sc_netport.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/fifo.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
-    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/dcc.c
+    ${SRC_DIR}/bacnet/indtext.c
+    ${SRC_DIR}/bacnet/hostnport.c
+    ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/npdu.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/timestamp.c
+    ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
 
     # Test and test library files
@@ -114,14 +135,33 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
-    ${SRC_DIR}/bacnet/basic/sys/debug.c
-    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
+    ${SRC_DIR}/bacnet/basic/object/netport.c
+    ${SRC_DIR}/bacnet/basic/object/sc_netport.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
-    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/fifo.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
+    ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/dcc.c
+    ${SRC_DIR}/bacnet/indtext.c
+    ${SRC_DIR}/bacnet/hostnport.c
+    ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/npdu.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/timestamp.c
+    ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
 
     # Test and test library files
@@ -149,14 +189,33 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
-    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/object/bacfile.c
+    ${SRC_DIR}/bacnet/basic/object/netport.c
+    ${SRC_DIR}/bacnet/basic/object/sc_netport.c
     ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
-    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/fifo.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
+    ${SRC_DIR}/bacnet/arf.c
+    ${SRC_DIR}/bacnet/bacapp.c
+    ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
+    ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/bacreal.c
     ${SRC_DIR}/bacnet/bacstr.c
+    ${SRC_DIR}/bacnet/bactext.c
+    ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/dcc.c
+    ${SRC_DIR}/bacnet/indtext.c
+    ${SRC_DIR}/bacnet/hostnport.c
+    ${SRC_DIR}/bacnet/lighting.c
+    ${SRC_DIR}/bacnet/npdu.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/timestamp.c
+    ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     # Test and test library files
     ./src/main.c

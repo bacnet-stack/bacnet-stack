@@ -16,7 +16,6 @@
 
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
-#include "bacnet/datalink/bsc/bsc-conf.h"
 
 
 /**

@@ -68,87 +68,6 @@ static void bsc_node_event(
     bsc_global_mutex_unlock();
 }
 
-void bsc_init_conf(uint32_t instance)
-{
-    uint32_t file_instance;
-    static BACNET_SC_VMAC_ADDRESS vmac;
-    BACNET_OCTET_STRING mac_address;
-    BACNET_CHARACTER_STRING str;
-    uint32_t offset;
-    uint32_t i;
-
-    bsc_conf.object_instance = instance;
-
-    file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
-    bsc_conf.ca_cert_chain_size = bacfile_file_size(file_instance);
-    bsc_conf.ca_cert_chain = bacfile_instance_memory_context(file_instance,
-        NULL, 0);
-
-    file_instance = Network_Port_Operational_Certificate_File(instance);
-    bsc_conf.cert_chain_size = bacfile_file_size(file_instance);
-    bsc_conf.cert_chain = bacfile_instance_memory_context(file_instance,
-        NULL, 0);
-
-    file_instance = Network_Port_Certificate_Key_File(instance);
-    bsc_conf.key_size = bacfile_file_size(file_instance);
-    bsc_conf.key = bacfile_instance_memory_context(file_instance, NULL, 0);
-
-    bsc_conf.local_uuid = (BACNET_SC_UUID*)Network_Port_SC_Local_UUID(instance);
-
-    memset(&bsc_conf.local_vmac, 0, sizeof(bsc_conf.local_vmac));
-    if (Network_Port_MAC_Address(instance, &mac_address)) {
-        memcpy(bsc_conf.local_vmac.address, mac_address.value, mac_address.length);
-    }
-
-    bsc_conf.max_local_bvlc_len =
-        Network_Port_Max_BVLC_Length_Accepted(instance);
-    bsc_conf.max_local_npdu_len =
-        Network_Port_Max_NPDU_Length_Accepted(instance);
-    bsc_conf.connect_timeout_s = Network_Port_SC_Connect_Wait_Timeout(instance);
-    bsc_conf.heartbeat_timeout_s = Network_Port_SC_Heartbeat_Timeout(instance);
-    bsc_conf.disconnect_timeout_s =
-        Network_Port_SC_Disconnect_Wait_Timeout(instance);
-    bsc_conf.reconnnect_timeout_s =
-        Network_Port_SC_Maximum_Reconnect_Time(instance);
-    bsc_conf.address_resolution_timeout_s = bsc_conf.connect_timeout_s;
-    bsc_conf.address_resolution_freshness_timeout_s =
-        bsc_conf.connect_timeout_s;
-    bsc_conf.primaryURL = (char*)Network_Port_SC_Primary_Hub_URI_char(instance);
-    bsc_conf.failoverURL =
-        (char*)Network_Port_SC_Failover_Hub_URI_char(instance);
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
-    bsc_conf.direct_server_port = Network_Port_SC_Direct_Server_Port(instance);
-    bsc_conf.initiate_enabled =
-        Network_Port_SC_Direct_Connect_Initiate_Enable(instance);
-    bsc_conf.accept_enabled =
-        Network_Port_SC_Direct_Connect_Accept_Enable(instance);
-    bsc_conf.iface =
-        (char*)Network_Port_SC_Direct_Connect_Binding_char(instance);
-#endif
-#if BSC_CONF_HUB_FUNCTIONS_NUM==1
-    bsc_conf.hub_server_port = Network_Port_SC_Hub_Server_Port(instance);
-    bsc_conf.hub_function_enabled =
-        Network_Port_SC_Hub_Function_Enable(instance);
-    bsc_conf.iface = (char*)Network_Port_SC_Hub_Function_Binding_char(instance);
-#endif
-
-#if BSC_CONF_HUB_CONNECTORS_NUM==1
-    offset = 0;
-    for (i = 0; i < BACNET_SC_DIRECT_ACCEPT_URI_MAX; i++) {
-        if (Network_Port_SC_Direct_Connect_Accept_URI(instance, i, &str)){
-            if (offset != 0)
-                bsc_conf.direct_connection_accept_uris[offset++] = ' ';
-            memcpy(&bsc_conf.direct_connection_accept_uris[offset], str.value,
-                str.length);
-            offset += str.length;
-        }
-    }
-    bsc_conf.direct_connection_accept_uris[offset] = 0;
-    bsc_conf.direct_connection_accept_uris_len = offset;
-#endif
-    bsc_conf.event_func = bsc_node_event;
-}
-
 BACNET_STACK_EXPORT
 bool bsc_init(char *ifname)
 {
@@ -164,7 +83,7 @@ bool bsc_init(char *ifname)
         bsc_event = bsc_event_init();
         if (bsc_event) {
             FIFO_Init(&bsc_fifo, bsc_fifo_buf, sizeof(bsc_fifo_buf));
-            // TODO: implement integration with BACNET/SC properties
+            bsc_node_conf_fill_from_netport(&bsc_conf, &bsc_node_event);
 
             r = bsc_node_init(&bsc_conf, &bsc_node);
             if (r != BSC_SC_SUCCESS) {
@@ -302,10 +221,3 @@ uint16_t bsc_receive(
     debug_printf("bsc_receive() <<< ret = %d\n", pdu_len);
     return pdu_len;
 }
-
-#if CONFIG_ZTEST==1
-const BSC_NODE_CONF *bsc_conf_get(void)
-{
-    return &bsc_conf;
-}
-#endif

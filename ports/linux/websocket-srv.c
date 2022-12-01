@@ -190,12 +190,11 @@ static int bws_srv_get_max_sockets(BSC_WEBSOCKET_PROTOCOL proto)
 
 static BSC_WEBSOCKET_HANDLE bws_srv_alloc_connection(BSC_WEBSOCKET_CONTEXT *ctx)
 {
-    int ret;
     int i;
 
     DEBUG_PRINTF("bws_srv_alloc_connection() >>> ctx = %p\n", ctx);
 
-    for (int i = 0; i < bws_srv_get_max_sockets(ctx->proto); i++) {
+    for (i = 0; i < bws_srv_get_max_sockets(ctx->proto); i++) {
         if (ctx->conn[i].state == BSC_WEBSOCKET_STATE_IDLE) {
             memset(&ctx->conn[i], 0, sizeof(ctx->conn[i]));
             DEBUG_PRINTF("bws_srv_alloc_connection() <<< ret = %d\n", i);
@@ -249,7 +248,6 @@ static int bws_srv_websocket_event(struct lws *wsi,
     BSC_WEBSOCKET_HANDLE h;
     BSC_WEBSOCKET_CONTEXT *ctx =
         (BSC_WEBSOCKET_CONTEXT *)lws_context_user(lws_get_context(wsi));
-    int written;
     int ret = 0;
     BSC_WEBSOCKET_SRV_DISPATCH dispatch_func;
     void *user_param;

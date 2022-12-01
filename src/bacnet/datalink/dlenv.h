@@ -53,8 +53,7 @@ extern "C" {
 
     BACNET_STACK_EXPORT
     void dlenv_network_port_init(
-        unsigned index,
-        uint32_t instance);
+        void);
 
     BACNET_STACK_EXPORT
     void dlenv_maintenance_timer(
@@ -71,20 +70,6 @@ extern "C" {
     BACNET_STACK_EXPORT
     int dlenv_bbmd_result(
         void);
-
-    BACNET_STACK_EXPORT
-    void dlenv_network_init(uint32_t instance,
-        uint8_t *ca_cert_chain,
-        size_t ca_cert_chain_size,
-        uint8_t *cert_chain,
-        size_t cert_chain_size,
-        uint8_t *key,
-        size_t key_size,
-        char* iface,
-        BACNET_SC_UUID *local_uuid,
-        BACNET_SC_VMAC_ADDRESS *local_vmac,
-        char *primaryURL,
-        char *failoverURL);
 
 #ifdef __cplusplus
 }

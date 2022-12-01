@@ -48,7 +48,6 @@ typedef struct {
 } BSC_ADDRESS_RESOLUTION;
 
 typedef struct {
-   uint32_t object_instance;
    uint8_t *ca_cert_chain;
    size_t ca_cert_chain_size;
    uint8_t *cert_chain;

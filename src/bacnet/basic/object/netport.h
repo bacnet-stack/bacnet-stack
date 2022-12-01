@@ -50,7 +50,7 @@ extern "C" {
 #endif /* __cplusplus */
 
     BACNET_STACK_EXPORT
-    unsigned Network_Port_Object_Number();
+    unsigned Network_Port_Object_Number(void);
 
     BACNET_STACK_EXPORT
     void Network_Port_Property_Lists(
@@ -411,7 +411,7 @@ extern "C" {
         BACNET_READ_RANGE_DATA * pRequest,
         RR_PROP_INFO * pInfo);
 
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
     BACNET_STACK_EXPORT
     BACNET_SC_PARAMS *Network_Port_SC_Params(
         uint32_t object_instance);
