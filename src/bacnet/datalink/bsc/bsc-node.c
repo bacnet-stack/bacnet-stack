@@ -288,6 +288,7 @@ static void bsc_node_process_received(BSC_NODE *node,
     uint16_t error_code;
     BSC_ADDRESS_RESOLUTION *r;
 
+    (void) ret;
     DEBUG_PRINTF("bsc_node_process_received() >>> node = %p, pdu = %p, pdu_len "
                  "= %d, decoded_pdu = %p\n",
         node, pdu, pdu_len, decoded_pdu);

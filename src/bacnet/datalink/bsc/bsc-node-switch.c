@@ -822,7 +822,7 @@ BSC_SC_RET bsc_node_switch_send(
     BSC_NODE_SWITCH_HANDLE h, uint8_t *pdu, unsigned pdu_len)
 {
     BSC_NODE_SWITCH_CTX *ns;
-    BSC_SC_RET ret;
+    BSC_SC_RET ret = BSC_SC_SUCCESS;
     BSC_SOCKET *c = NULL;
     BACNET_SC_VMAC_ADDRESS dest;
     uint8_t **ppdu = &pdu;
@@ -858,5 +858,5 @@ BSC_SC_RET bsc_node_switch_send(
     }
     bsc_global_mutex_unlock();
     DEBUG_PRINTF("bsc_node_switch_send() <<< ret = %d\n", ret);
-    return BSC_SC_SUCCESS;
+    return ret;
 }

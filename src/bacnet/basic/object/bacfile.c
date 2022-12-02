@@ -119,6 +119,7 @@ static char *bacfile_name(uint32_t instance)
             snprintf(filename, sizeof(filename), "MEM %d", instance);
             return filename;
         default:
+            break;
     }
 
     return NULL;
@@ -213,6 +214,7 @@ BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
             file_size = BACnet_File_Listing[index].memory.length;
             break;
         default:
+            break;
     }
 
     return file_size;
@@ -461,6 +463,7 @@ BACNET_UNSIGNED_INTEGER bacfile_instance_context(uint32_t object_instance,
             memcpy(pointer, BACnet_File_Listing[index].memory.pointer, ret);
             break;
         default:
+            break;
     }
     return ret;
 }
@@ -483,6 +486,7 @@ char *bacfile_instance_memory_context(uint32_t object_instance,
             return BACnet_File_Listing[index].memory.pointer;
             break;
         default:
+            break;
     }
     return NULL;
 }
@@ -579,6 +583,7 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
             data->endOfFile = len < data->type.stream.requestedOctetCount;
             break;
         default:
+            break;
     }
 
     return true;
