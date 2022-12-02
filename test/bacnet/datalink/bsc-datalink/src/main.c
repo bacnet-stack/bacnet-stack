@@ -1078,11 +1078,8 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define SC_NETPORT_HUB_FUNCTION_ENABLE          true
 #define SC_NETPORT_BACFILE_START_INDEX          0
 
-#define SC_NETPORT_DIRECT_CONNECT_ACCERT_URI  { \
-    "SC_Direct_Connect_Accept_URI1",            \
-    "SC_Direct_Connect_Accept_URI2",            \
-    NULL                                        \
-}
+#define SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS   \
+    "SC_Direct_Connect_Accept_URI1 SC_Direct_Connect_Accept_URI2"
 
 static void bsc_node_event(
     BSC_NODE *node, BSC_NODE_EVENT ev, BACNET_SC_VMAC_ADDRESS *dest,
@@ -1109,7 +1106,6 @@ static void netport_object_init(uint32_t instance,
     unsigned netport_index = Network_Port_Instance_To_Index(instance);
     unsigned file_index = SC_NETPORT_BACFILE_START_INDEX;
     unsigned file_instance = file_index + 1;
-    int i;
 
     bacfile_instance_memory_set(file_index + 0, file_instance + 0,
         ca_cert_chain, ca_cert_chain_size);
@@ -1173,11 +1169,8 @@ static void netport_object_init(uint32_t instance,
 #endif
 
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
-    char *accertURLs[] = SC_NETPORT_DIRECT_CONNECT_ACCERT_URI;
-    for (i = 0; accertURLs[i] != NULL; i++) {
-        Network_Port_SC_Direct_Connect_Accept_URI_Set(instance, i, 
-            accertURLs[i]);
-    }
+    Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance,
+        SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS);
 #endif
 }
 
@@ -1188,7 +1181,6 @@ static void test_sc_parameters(void)
     char *iface = "fake iface";
     char primary_url[128];
     char secondary_url[128];
-    int i;
     BSC_NODE_CONF bsc_conf;
 
     memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
@@ -1217,7 +1209,7 @@ static void test_sc_parameters(void)
     zassert_equal(
         memcmp(bsc_conf.local_uuid, &hubf_uuid, sizeof(hubf_uuid)), 0, NULL);
     zassert_equal(
-        memcmp(&bsc_conf.local_vmac, &hubf_vmac, sizeof(hubf_vmac)), 0, NULL);
+        memcmp(bsc_conf.local_vmac, &hubf_vmac, sizeof(hubf_vmac)), 0, NULL);
     zassert_equal(bsc_conf.max_local_bvlc_len, SC_NETPORT_BVLC_MAX, NULL);
     zassert_equal(bsc_conf.max_local_npdu_len, SC_NETPORT_NPDU_MAX, NULL);
     zassert_equal(
@@ -1244,21 +1236,17 @@ static void test_sc_parameters(void)
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     zassert_equal(
         bsc_conf.direct_server_port, SC_NETPORT_DIRECT_SERVER_PORT, NULL);
-    zassert_equal(bsc_conf.initiate_enabled,
+    zassert_equal(bsc_conf.direct_connect_initiate_enable,
         SC_NETPORT_DIRECT_CONNECT_INITIATLE, NULL);
-    zassert_equal(
-        bsc_conf.accept_enabled, SC_NETPORT_DIRECT_CONNECT_ACCERT, NULL);
+    zassert_equal(bsc_conf.direct_connect_accept_enable,
+        SC_NETPORT_DIRECT_CONNECT_ACCERT, NULL);
 
-    char *accertURLs[] = SC_NETPORT_DIRECT_CONNECT_ACCERT_URI;
-    const char *p = bsc_conf.direct_connection_accept_uris;
-    for (i = 0; accertURLs[i] != NULL; i++) {
-        zassert_equal(memcmp(p, accertURLs[i], strlen(accertURLs[i])), 0, NULL);
-        p += strlen(accertURLs[i]) + 1;
-    }
-    if (p != bsc_conf.direct_connection_accept_uris)   // discard last spece
-        p--;
+    zassert_equal(memcmp(
+        bsc_conf.direct_connection_accept_uris,
+        SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS,
+        strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS)), 0, NULL);
     zassert_equal(bsc_conf.direct_connection_accept_uris_len,
-     p - bsc_conf.direct_connection_accept_uris, NULL);
+        strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS), NULL);
 #endif
 
     zassert_equal(strcmp(bsc_conf.iface, iface), 0, NULL);

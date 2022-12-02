@@ -95,11 +95,6 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
 {
     uint32_t instance;
     uint32_t file_instance;
-    BACNET_SC_VMAC_ADDRESS vmac;
-    BACNET_OCTET_STRING mac_address;
-    BACNET_CHARACTER_STRING str;
-    uint32_t offset;
-    uint32_t i;
 
     instance = Network_Port_Index_To_Instance(0);
 
@@ -122,12 +117,8 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
         (BACNET_SC_UUID*)Network_Port_SC_Local_UUID(instance);
 #endif
 
-    memset(&bsc_conf->local_vmac, 0, sizeof(bsc_conf->local_vmac));
-    if (Network_Port_MAC_Address(instance, &mac_address)) {
-        memcpy(bsc_conf->local_vmac.address, mac_address.value,
-            mac_address.length);
-    }
-
+    bsc_conf->local_vmac =
+        (BACNET_SC_VMAC_ADDRESS *)Network_Port_MAC_Address_pointer(instance);
     bsc_conf->max_local_bvlc_len =
         Network_Port_Max_BVLC_Length_Accepted(instance);
     bsc_conf->max_local_npdu_len =
@@ -150,9 +141,9 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
         (char*)Network_Port_SC_Failover_Hub_URI_char(instance);
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     bsc_conf->direct_server_port = Network_Port_SC_Direct_Server_Port(instance);
-    bsc_conf->initiate_enabled =
+    bsc_conf->direct_connect_initiate_enable =
         Network_Port_SC_Direct_Connect_Initiate_Enable(instance);
-    bsc_conf->accept_enabled =
+    bsc_conf->direct_connect_accept_enable =
         Network_Port_SC_Direct_Connect_Accept_Enable(instance);
     bsc_conf->iface =
         (char*)Network_Port_SC_Direct_Connect_Binding_char(instance);
@@ -166,18 +157,10 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
 #endif
 
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
-    offset = 0;
-    for (i = 0; i < BACNET_SC_DIRECT_ACCEPT_URI_MAX; i++) {
-        if (Network_Port_SC_Direct_Connect_Accept_URI(instance, i, &str)){
-            if (offset != 0)
-                bsc_conf->direct_connection_accept_uris[offset++] = ' ';
-            memcpy(&bsc_conf->direct_connection_accept_uris[offset], str.value,
-                str.length);
-            offset += str.length;
-        }
-    }
-    bsc_conf->direct_connection_accept_uris[offset] = 0;
-    bsc_conf->direct_connection_accept_uris_len = offset;
+    bsc_conf->direct_connection_accept_uris = 
+        Network_Port_SC_Direct_Connect_Accept_URIs_char(instance);
+    bsc_conf->direct_connection_accept_uris_len =
+        strlen(bsc_conf->direct_connection_accept_uris);
 #endif
 #endif /* BACDL_BSC */
     bsc_conf->event_func = event_func;

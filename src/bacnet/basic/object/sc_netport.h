@@ -179,8 +179,8 @@ extern "C" {
         bool SC_Direct_Connect_Initiate_Enable_dirty;
         bool SC_Direct_Connect_Accept_Enable;
         bool SC_Direct_Connect_Accept_Enable_dirty;
-        char SC_Direct_Connect_Accept_URIs[BACNET_SC_DIRECT_ACCEPT_URI_MAX]
-                                            [BACNET_URI_LENGHT];
+        char SC_Direct_Connect_Accept_URIs[
+            BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGHT + 1)];
         char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGHT];
         char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGHT];
 #ifdef BACNET_SC_STATUS_SUPPORT
@@ -219,7 +219,6 @@ extern "C" {
     bool Network_Port_SC_Primary_Hub_URI(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING *str);
-    BACNET_STACK_EXPORT
     const char *Network_Port_SC_Primary_Hub_URI_char(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
@@ -235,7 +234,6 @@ extern "C" {
     bool Network_Port_SC_Failover_Hub_URI(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING *str);
-    BACNET_STACK_EXPORT
     const char *Network_Port_SC_Failover_Hub_URI_char(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
@@ -392,7 +390,6 @@ extern "C" {
         uint32_t object_instance,
         uint8_t index,
         BACNET_CHARACTER_STRING *str);
-    BACNET_STACK_EXPORT
     const char *Network_Port_SC_Hub_Function_Accept_URI_char(
         uint32_t object_instance,
         uint8_t index);
@@ -406,7 +403,6 @@ extern "C" {
     bool Network_Port_SC_Hub_Function_Binding(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING *str);
-    BACNET_STACK_EXPORT
     const char *Network_Port_SC_Hub_Function_Binding_char(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
@@ -477,20 +473,20 @@ extern "C" {
         uint8_t index,
         BACNET_CHARACTER_STRING *str);
     BACNET_STACK_EXPORT
-    const char *Network_Port_SC_Direct_Connect_Accept_URI_char(
-        uint32_t object_instance,
-        uint8_t index);
-    BACNET_STACK_EXPORT
     bool Network_Port_SC_Direct_Connect_Accept_URI_Set(
         uint32_t object_instance,
         uint8_t index,
+        char *str);
+    char *Network_Port_SC_Direct_Connect_Accept_URIs_char(
+        uint32_t object_instance);
+    bool Network_Port_SC_Direct_Connect_Accept_URIs_Set(
+        uint32_t object_instance,
         char *str);
 
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Direct_Connect_Binding(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING *str);
-    BACNET_STACK_EXPORT
     const char *Network_Port_SC_Direct_Connect_Binding_char(
         uint32_t object_instance);
     BACNET_STACK_EXPORT

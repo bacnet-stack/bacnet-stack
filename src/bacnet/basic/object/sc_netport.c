@@ -834,37 +834,81 @@ bool Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(
     return true;
 }
 
+static int string_splite(char *str, char separator, int *indexes, int length)
+{
+    indexes[0] = 0;
+    indexes[1] = strlen(str);
+    return 1;
+}
+
+static bool string_subsstr(char *str, int pos, int len, char *substr)
+{
+    return true;
+}
+
 bool Network_Port_SC_Direct_Connect_Accept_URI(uint32_t object_instance,
     uint8_t index, BACNET_CHARACTER_STRING *str)
 {
     bool status = false;
+    int idx[BACNET_SC_DIRECT_ACCEPT_URI_MAX] = {0};
+    int len;
+
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (params && (index < BACNET_SC_DIRECT_ACCEPT_URI_MAX)) {
-        status = characterstring_init_ansi(str, 
-                params->SC_Direct_Connect_Accept_URIs[index]);
+        len = string_splite(params->SC_Direct_Connect_Accept_URIs, ' ', idx,
+            BACNET_SC_DIRECT_ACCEPT_URI_MAX);
+        if (index < len)
+            status = characterstring_init_ansi_safe(str, 
+                    params->SC_Direct_Connect_Accept_URIs + idx[index],
+                    idx[index + 1] - idx[index]);
+        else
+            status = characterstring_init_ansi(str, "");
+
     }
     return status;
-}
-
-const char *Network_Port_SC_Direct_Connect_Accept_URI_char(
-    uint32_t object_instance, uint8_t index)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (params && (index < BACNET_SC_DIRECT_ACCEPT_URI_MAX)) {
-        return params->SC_Direct_Connect_Accept_URIs[index];
-    }
-    return NULL;
 }
 
 bool Network_Port_SC_Direct_Connect_Accept_URI_Set(uint32_t object_instance,
     uint8_t index, char *str)
 {
+    int idx[BACNET_SC_DIRECT_ACCEPT_URI_MAX] = {0};
+    int len;
+
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params || (index >= BACNET_SC_DIRECT_ACCEPT_URI_MAX))
         return false;
-    snprintf(params->SC_Direct_Connect_Accept_URIs[index],
-        sizeof(params->SC_Direct_Connect_Accept_URIs[index]), "%s", str);
+
+    len = string_splite(params->SC_Direct_Connect_Accept_URIs, ' ', idx,
+        BACNET_SC_DIRECT_ACCEPT_URI_MAX);
+    string_subsstr(params->SC_Direct_Connect_Accept_URIs, idx[index],
+        idx[index + 1] - idx[index], str);
+
     return true;
+}
+
+char *Network_Port_SC_Direct_Connect_Accept_URIs_char(
+    uint32_t object_instance)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (params) {
+        return params->SC_Direct_Connect_Accept_URIs;
+    }
+    return NULL;
+}
+
+bool Network_Port_SC_Direct_Connect_Accept_URIs_Set(uint32_t object_instance,
+    char *str)
+{
+    bool status = false;
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (params) {
+        if (str)
+            snprintf(params->SC_Direct_Connect_Accept_URIs,
+                sizeof(params->SC_Direct_Connect_Accept_URIs), "%s", str);
+        else
+            params->SC_Direct_Connect_Accept_URIs[0] = 0;
+    }
+    return status;
 }
 
 bool Network_Port_SC_Direct_Connect_Binding(uint32_t object_instance,

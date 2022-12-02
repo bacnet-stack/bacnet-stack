@@ -55,6 +55,7 @@
 
 #define BIP_DNS_MAX 3
 struct bacnet_ipv4_port {
+    uint8_t MAC_Address[6];
     uint8_t IP_Address[4];
     uint8_t IP_Subnet_Prefix;
     uint8_t IP_Gateway[4];
@@ -665,7 +666,6 @@ bool Network_Port_MAC_Address(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
     uint8_t *mac = NULL;
-    uint8_t ip_mac[4 + 2] = { 0 };
     size_t mac_len = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
@@ -681,13 +681,8 @@ bool Network_Port_MAC_Address(
                 mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
             case PORT_TYPE_BIP:
-                memcpy(
-                    &ip_mac[0], &Object_List[index].Network.IPv4.IP_Address, 4);
-                /* convert port from host-byte-order to network-byte-order */
-                encode_unsigned16(&ip_mac[4],
-                    Object_List[index].Network.IPv4.Port);
-                mac = &ip_mac[0];
-                mac_len = sizeof(ip_mac);
+                mac = &Object_List[index].Network.IPv4.MAC_Address[0];
+                mac_len = sizeof(Object_List[index].Network.IPv4.MAC_Address);
                 break;
             case PORT_TYPE_BIP6:
                 mac = &Object_List[index].Network.IPv6.MAC_Address[0];
@@ -702,6 +697,34 @@ bool Network_Port_MAC_Address(
     }
 
     return status;
+}
+
+uint8_t *Network_Port_MAC_Address_pointer(uint32_t object_instance)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    uint8_t *mac = NULL;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        switch (Object_List[index].Network_Type) {
+            case PORT_TYPE_ETHERNET:
+                mac = &Object_List[index].Network.Ethernet.MAC_Address[0];
+                break;
+            case PORT_TYPE_MSTP:
+                mac = &Object_List[index].Network.MSTP.MAC_Address;
+                break;
+            case PORT_TYPE_BIP:
+                mac = &Object_List[index].Network.IPv4.MAC_Address[0];
+                break;
+            case PORT_TYPE_BIP6:
+                mac = &Object_List[index].Network.IPv6.MAC_Address[0];
+                break;
+            default:
+                break;
+        }
+    }
+
+    return mac;
 }
 
 /**
@@ -735,11 +758,8 @@ bool Network_Port_MAC_Address_Set(
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
             case PORT_TYPE_BIP:
-                memcpy(
-                   &Object_List[index].Network.IPv4.IP_Address, &mac_src[0], 4);
-                /* convert port from host-byte-order to network-byte-order */
-                decode_unsigned16(&mac_src[4],
-                    &Object_List[index].Network.IPv4.Port);
+                mac_dest = &Object_List[index].Network.IPv4.MAC_Address[0];
+                mac_size = sizeof(Object_List[index].Network.IPv4.MAC_Address);
                 break;
             case PORT_TYPE_BIP6:
                 mac_dest = &Object_List[index].Network.IPv6.MAC_Address[0];

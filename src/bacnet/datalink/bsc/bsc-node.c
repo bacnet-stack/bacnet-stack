@@ -548,8 +548,6 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
 {
-    BACNET_SC_VMAC_ADDRESS empty_vmac = { 0 };
-
     DEBUG_PRINTF("bsc_node_init() >>> conf = %p, node = %p\n", conf, node);
 
     if (!conf || !node) {
@@ -559,8 +557,7 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
 
     if (!conf->ca_cert_chain || !conf->ca_cert_chain_size ||
         !conf->cert_chain || !conf->cert_chain_size || !conf->key ||
-        !conf->key_size || !conf->local_uuid ||
-        !memcmp(&conf->local_vmac, &empty_vmac, sizeof(empty_vmac)) ||
+        !conf->key_size || !conf->local_uuid || !conf->local_vmac ||
         conf->connect_timeout_s <= 0 || conf->heartbeat_timeout_s <= 0 ||
         conf->disconnect_timeout_s <= 0 || conf->reconnnect_timeout_s <= 0 ||
         conf->address_resolution_timeout_s <= 0 ||
@@ -617,12 +614,12 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
                 BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
     } else {
         // TODO: integration with BACNET/SC properties
-        bsc_generate_random_vmac(&node->conf->local_vmac);
+        bsc_generate_random_vmac(node->conf->local_vmac);
     }
     ret = bsc_hub_connector_start(node->conf->ca_cert_chain,
         node->conf->ca_cert_chain_size, node->conf->cert_chain,
         node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
-        node->conf->local_uuid, &node->conf->local_vmac,
+        node->conf->local_uuid, node->conf->local_vmac,
         node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
         node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
         node->conf->disconnect_timeout_s, node->conf->primaryURL,
@@ -641,7 +638,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             node->conf->ca_cert_chain_size, node->conf->cert_chain,
             node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
             node->conf->hub_server_port, node->conf->iface,
-            node->conf->local_uuid, &node->conf->local_vmac,
+            node->conf->local_uuid, node->conf->local_vmac,
             node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
             node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
             node->conf->disconnect_timeout_s, bsc_hub_function_event, node,
@@ -660,7 +657,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             node->conf->ca_cert_chain_size, node->conf->cert_chain,
             node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
             node->conf->direct_server_port, node->conf->iface,
-            node->conf->local_uuid, &node->conf->local_vmac,
+            node->conf->local_uuid, node->conf->local_vmac,
             node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
             node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
             node->conf->disconnect_timeout_s, node->conf->reconnnect_timeout_s,
