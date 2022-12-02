@@ -1211,19 +1211,12 @@ static void netport_object_init(uint32_t instance,
 {
     Network_Port_Object_Instance_Number_Set(0, instance);
 
-    unsigned netport_index = Network_Port_Instance_To_Index(instance);
-    unsigned file_index = SC_NETPORT_BACFILE_START_INDEX;
-    unsigned file_instance = file_index + 1;
-
-    bacfile_instance_memory_set(
-        file_index + 0, file_instance + 0, ca_cert_chain, ca_cert_chain_size);
-    Network_Port_Issuer_Certificate_File_Set(instance, 0, file_instance + 0);
-    bacfile_instance_memory_set(
-        file_index + 1, file_instance + 1, cert_chain, cert_chain_size);
-    Network_Port_Operational_Certificate_File_Set(instance, file_instance + 1);
-    bacfile_instance_memory_set(
-        file_index + 2, file_instance + 2, key, key_size);
-    Network_Port_Certificate_Key_File_Set(instance, file_instance + 2);
+    Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
+        ca_cert_chain, ca_cert_chain_size, SC_NETPORT_BACFILE_START_INDEX);
+    Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
+        cert_chain, cert_chain_size, SC_NETPORT_BACFILE_START_INDEX + 1);
+    Network_Port_Certificate_Key_File_Set_From_Memory(instance,
+        key, key_size, SC_NETPORT_BACFILE_START_INDEX + 2);
 
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
     Network_Port_SC_Direct_Connect_Binding_Set(instance, iface);

@@ -27,6 +27,8 @@ add_compile_definitions(
 	BACNET_SECURE_CONNECT_ROUTING_TABLE=1
 	BSC_CONF_HUB_FUNCTIONS_NUM=1
 	BSC_CONF_HUB_CONNECTORS_NUM=1
+	BACNET_SC_DIRECT_ACCEPT_URI_MAX=6
+    MAX_TSM_TRANSACTIONS=0
 	)
 
 include_directories(
@@ -36,9 +38,11 @@ include_directories(
 
 add_executable(${PROJECT_NAME}
     # File(s) under test
+	${SRC_DIR}/bacnet/basic/object/bacfile.c
 	${SRC_DIR}/bacnet/basic/object/netport.c
 	${SRC_DIR}/bacnet/basic/object/sc_netport.c
     # Support files and stubs (pathname alphabetical)
+    ${SRC_DIR}/bacnet/arf.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
 	${SRC_DIR}/bacnet/bacdevobjpropref.c
@@ -63,3 +67,4 @@ add_executable(${PROJECT_NAME}
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
+ 

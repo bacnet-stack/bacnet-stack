@@ -46,6 +46,7 @@
 #include <bacnet/basic/object/device.h>
 #include <bacnet/timestamp.h>
 /* me */
+#include <bacnet/basic/object/bacfile.h>
 #include <bacnet/basic/object/netport.h>
 
 #ifdef BACDL_BSC
@@ -366,6 +367,19 @@ bool Network_Port_Operational_Certificate_File_Set(uint32_t object_instance,
     return true;
 }
 
+bool Network_Port_Operational_Certificate_File_Set_From_Memory(
+    uint32_t object_instance, uint8_t *cert, size_t cert_size,
+        uint32_t bacfile_index)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+    bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
+        cert, cert_size);
+    params->Operational_Certificate_File = bacfile_index + 1;
+    return true;
+}
+
 uint32_t Network_Port_Issuer_Certificate_File(uint32_t object_instance,
     uint8_t index)
 {
@@ -381,6 +395,19 @@ bool Network_Port_Issuer_Certificate_File_Set(uint32_t object_instance,
     if (!params || (index >= BACNET_ISSUER_CERT_FILE_MAX))
         return false;
     params->Issuer_Certificate_Files[index] = value;
+    return true;
+}
+
+bool Network_Port_Issuer_Certificate_File_Set_From_Memory(
+    uint32_t object_instance, uint8_t index, uint8_t *cert, size_t cert_size,
+    uint32_t bacfile_index)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params || (index >= BACNET_ISSUER_CERT_FILE_MAX))
+        return false;
+    bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
+        cert, cert_size);
+    params->Issuer_Certificate_Files[index] = bacfile_index + 1;
     return true;
 }
 
@@ -834,15 +861,54 @@ bool Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(
     return true;
 }
 
+// retrun number of urls,
+// indexes are fill first position of urls plus position of end string
 static int string_splite(char *str, char separator, int *indexes, int length)
 {
+    int i;
+    int k = 0;
     indexes[0] = 0;
-    indexes[1] = strlen(str);
-    return 1;
+    for (i = 0; str[i] != 0 && k < length; i++) {
+        if (str[i] == ' ') {
+            k++;
+            indexes[k] = i + 1;
+        }
+    }
+
+    if (k < length) {
+        k++;
+        indexes[k] = i + 1;
+    }
+
+    return k;
 }
 
-static bool string_subsstr(char *str, int pos, int len, char *substr)
+static bool string_subsstr(char *str, int length, int index, char *substr)
 {
+    int idx[BACNET_SC_DIRECT_ACCEPT_URI_MAX + 1] = {0};
+    int len;
+    char *head;
+    char *tail_old;
+    char *tail_new;
+
+    len = string_splite(str, ' ', idx, sizeof(idx));
+    if (index < len) {
+        head = str + idx[index];
+        tail_old = str + idx[index + 1] - 1;
+        tail_new = head + strlen(substr);
+        if (tail_new + strlen(tail_old) + 1 - str >= length) {
+            return false;
+        }
+
+        memmove(tail_new, tail_old, strlen(tail_old) + 1);
+        memcpy(head, substr, strlen(substr));
+    } else {
+        if (strlen(str) > 0) {
+            strncat(str, " ", length);
+        }
+        strncat(str, substr, length);
+    }
+
     return true;
 }
 
@@ -850,19 +916,20 @@ bool Network_Port_SC_Direct_Connect_Accept_URI(uint32_t object_instance,
     uint8_t index, BACNET_CHARACTER_STRING *str)
 {
     bool status = false;
-    int idx[BACNET_SC_DIRECT_ACCEPT_URI_MAX] = {0};
+    int idx[BACNET_SC_DIRECT_ACCEPT_URI_MAX + 1] = {0};
     int len;
 
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (params && (index < BACNET_SC_DIRECT_ACCEPT_URI_MAX)) {
         len = string_splite(params->SC_Direct_Connect_Accept_URIs, ' ', idx,
-            BACNET_SC_DIRECT_ACCEPT_URI_MAX);
-        if (index < len)
+            sizeof(idx));
+        if (index < len) {
             status = characterstring_init_ansi_safe(str, 
                     params->SC_Direct_Connect_Accept_URIs + idx[index],
-                    idx[index + 1] - idx[index]);
-        else
+                    idx[index + 1] - idx[index] - 1);
+        } else {
             status = characterstring_init_ansi(str, "");
+        }
 
     }
     return status;
@@ -871,17 +938,12 @@ bool Network_Port_SC_Direct_Connect_Accept_URI(uint32_t object_instance,
 bool Network_Port_SC_Direct_Connect_Accept_URI_Set(uint32_t object_instance,
     uint8_t index, char *str)
 {
-    int idx[BACNET_SC_DIRECT_ACCEPT_URI_MAX] = {0};
-    int len;
-
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params || (index >= BACNET_SC_DIRECT_ACCEPT_URI_MAX))
         return false;
 
-    len = string_splite(params->SC_Direct_Connect_Accept_URIs, ' ', idx,
-        BACNET_SC_DIRECT_ACCEPT_URI_MAX);
-    string_subsstr(params->SC_Direct_Connect_Accept_URIs, idx[index],
-        idx[index + 1] - idx[index], str);
+    string_subsstr(params->SC_Direct_Connect_Accept_URIs,
+        sizeof(params->SC_Direct_Connect_Accept_URIs), index, str);
 
     return true;
 }
@@ -1114,6 +1176,19 @@ bool Network_Port_Certificate_Key_File_Set(uint32_t object_instance,
     if (!params)
         return false;
     params->Certificate_Key_File = value;
+    return true;
+}
+
+bool Network_Port_Certificate_Key_File_Set_From_Memory(
+    uint32_t object_instance, uint8_t *cert, size_t cert_size,
+    uint32_t bacfile_index)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+    bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
+        cert, cert_size);
+    params->Certificate_Key_File = bacfile_index + 1;
     return true;
 }
 

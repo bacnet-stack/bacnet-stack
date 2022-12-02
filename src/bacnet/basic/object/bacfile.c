@@ -56,7 +56,7 @@ typedef enum {
 } BACFILE_TYPES;
 
 typedef struct {
-    char *pointer;
+    uint8_t *pointer;
     BACNET_UNSIGNED_INTEGER length;
 } BACNET_MEMORY_FILE;
 
@@ -429,7 +429,7 @@ bool bacfile_instance_set(unsigned index, uint32_t object_instance,
 }
 
 bool bacfile_instance_memory_set(unsigned index, uint32_t object_instance,
-    void *pointer, BACNET_UNSIGNED_INTEGER length)
+    uint8_t *pointer, BACNET_UNSIGNED_INTEGER length)
 {
     if (index >= MAX_BACFILES)
         return false;
@@ -441,7 +441,7 @@ bool bacfile_instance_memory_set(unsigned index, uint32_t object_instance,
 }
 
 BACNET_UNSIGNED_INTEGER bacfile_instance_context(uint32_t object_instance,
-    void *pointer, BACNET_UNSIGNED_INTEGER max_length)
+    uint8_t *pointer, BACNET_UNSIGNED_INTEGER max_length)
 {
     unsigned index = bacfile_instance_to_index(object_instance);
     BACNET_UNSIGNED_INTEGER ret = 0;
@@ -468,7 +468,7 @@ BACNET_UNSIGNED_INTEGER bacfile_instance_context(uint32_t object_instance,
     return ret;
 }
 
-char *bacfile_instance_memory_context(uint32_t object_instance,
+uint8_t *bacfile_instance_memory_context(uint32_t object_instance,
     void *pointer, BACNET_UNSIGNED_INTEGER max_length)
 {
     if ((pointer != NULL) && (max_length != 0)) {

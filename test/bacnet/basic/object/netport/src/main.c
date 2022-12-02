@@ -209,11 +209,108 @@ static void test_network_port_pending_param(void)
     return;
 }
 
+static void test_network_port_sc_direct_connect_accept_uri(void)
+{
+#if (BACDL_BSC) && (BSC_CONF_HUB_CONNECTORS_NUM!=0)
+    #define URL1        "SC_Direct_Connect_Accept_URI1"
+    #define URL2        "SC_Direct_Connect_Accept_URI2"
+    #define URL3        "SC_Direct_Connect_Accept_URI3"
+    #define URL_SMALL   "bla-bla-bla"
+    #define URL_BIG     "big-bla-big-bla-big-bla-big-bla-big-bla"
+    char urls0[] = URL1 " " URL2 " " URL3;
+    char urls1[] = URL1 " " URL_SMALL " " URL3;
+    char urls2[] = URL1 " " URL_BIG " " URL3;
+    char urls3[] = URL1 " " URL_BIG " " URL3 " " URL_SMALL;
+    char urls4[] = URL1 " " URL_BIG " " URL3 " " URL_SMALL " " URL_BIG;
+
+    unsigned count = 0;
+    uint32_t object_instance = 0;
+    bool status = false;
+    BACNET_CHARACTER_STRING str;
+
+    Network_Port_Init();
+    object_instance = 1234;
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    count = Network_Port_Count();
+    zassert_true(count > 0, NULL);
+
+    // init 
+    Network_Port_SC_Direct_Connect_Accept_URIs_Set(object_instance, urls0);
+    zassert_true(
+        strcmp(Network_Port_SC_Direct_Connect_Accept_URIs_char(object_instance),
+        urls0) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI(object_instance,
+        0, &str), NULL);
+    zassert_true(strcmp(characterstring_value(&str), URL1) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI(object_instance,
+        1, &str), NULL);
+    zassert_true(strcmp(characterstring_value(&str), URL2) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI(object_instance,
+        2, &str), NULL);
+    zassert_true(strcmp(characterstring_value(&str), URL3) == 0, NULL);
+
+    // change
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI_Set(object_instance,
+        1, URL_SMALL), NULL);
+    zassert_true(
+        strcmp(Network_Port_SC_Direct_Connect_Accept_URIs_char(object_instance),
+        urls1) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI_Set(object_instance,
+        1, URL_BIG), NULL);
+    zassert_true(
+        strcmp(Network_Port_SC_Direct_Connect_Accept_URIs_char(object_instance),
+        urls2) == 0, NULL);
+
+    // append
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI_Set(object_instance,
+        4, URL_SMALL), NULL);
+    zassert_true(
+        strcmp(Network_Port_SC_Direct_Connect_Accept_URIs_char(object_instance),
+        urls3) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI_Set(object_instance,
+        4, URL_BIG), NULL);
+    zassert_true(
+        strcmp(Network_Port_SC_Direct_Connect_Accept_URIs_char(object_instance),
+        urls4) == 0, NULL);
+
+    // check last
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI(object_instance,
+        0, &str), NULL);
+    zassert_true(strcmp(characterstring_value(&str), URL1) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI(object_instance,
+        1, &str), NULL);
+    zassert_true(strcmp(characterstring_value(&str), URL_BIG) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI(object_instance,
+        2, &str), NULL);
+    zassert_true(strcmp(characterstring_value(&str), URL3) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI(object_instance,
+        3, &str), NULL);
+    zassert_true(strcmp(characterstring_value(&str), URL_SMALL) == 0, NULL);
+
+    zassert_true(Network_Port_SC_Direct_Connect_Accept_URI(object_instance,
+        4, &str), NULL);
+    zassert_true(strcmp(characterstring_value(&str), URL_BIG) == 0, NULL);
+
+#endif /* BACDL_BSC && BSC_CONF_HUB_CONNECTORS_NUM!=0 */
+
+    return;
+}
+
 void test_main(void)
 {
     ztest_test_suite(netport_tests,
      ztest_unit_test(test_network_port),
-     ztest_unit_test(test_network_port_pending_param)
+     ztest_unit_test(test_network_port_pending_param),
+     ztest_unit_test(test_network_port_sc_direct_connect_accept_uri)
      );
 
     ztest_run_test_suite(netport_tests);
