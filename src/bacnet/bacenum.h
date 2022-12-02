@@ -2532,7 +2532,7 @@ typedef enum BACnetIPMode_T {
     BACNET_IP_MODE_BBMD = 2
 } BACNET_IP_MODE;
 
-#ifdef BACNET_SECURE_CONNECT
+#ifdef BACDL_BSC
 
 typedef enum BACnetSCHubConnectorState_T {
     BACNET_NO_HUB_CONNECTION = 0,
@@ -2547,6 +2547,6 @@ typedef enum BACnetSCnetSCConnectionState_T {
     BACNET_FAILED_TO_CONNECT = 3
 } BACNET_SC_CONNECTION_STATE;
 
-#endif /* BACNET_SECURE_CONNECT */
+#endif /* BACDL_BSC */
 
 #endif /* end of BACENUM_H */

@@ -33,16 +33,10 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
   BIG_ENDIAN=0
   CONFIG_ZTEST=1
-  BACDL_BSC
-  BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM=4
-  BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM=4
+  MAX_BACFILES=4
   BSC_CONF_WSURL_MAX_LEN=127
-  BSC_CONF_WEBSOCKET_SERVERS_NUM=4
-  BSC_CONF_HUB_CONNECTORS_NUM=3
-  BSC_CONF_HUB_FUNCTIONS_NUM=3
-  BSC_CONF_NODES_NUM=3
-  BSC_CONF_NODE_SWITCHES_NUM=3
   MAX_TSM_TRANSACTIONS=0
+  BACDL_BSC
   )
 
 include_directories(
@@ -57,21 +51,9 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
 
   add_executable(${PROJECT_NAME}
-    ${PORTS_DIR}/linux/websocket-cli.c
-    ${PORTS_DIR}/linux/websocket-srv.c
-    ${PORTS_DIR}/linux/websocket-mutex.c
-    ${PORTS_DIR}/linux/bsc-runloop.c
-    ${PORTS_DIR}/linux/bsc-mutex.c
-    ${PORTS_DIR}/linux/bsc-event.c
-    ${PORTS_DIR}/linux/mstimer-init.c
-    ${PORTS_DIR}/linux/datetime-init.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
     ${SRC_DIR}/bacnet/basic/object/sc_netport.c
@@ -79,7 +61,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
-    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     ${SRC_DIR}/bacnet/arf.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
@@ -99,8 +80,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
-    ${SRC_DIR}/bacnet/basic/sys/bigend.c
-
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
@@ -121,20 +100,9 @@ elseif(WIN32)
     iphlpapi>)
 
   add_executable(${PROJECT_NAME}
-    ${PORTS_DIR}/win32/websocket-cli.c
-    ${PORTS_DIR}/win32/websocket-srv.c
-    ${PORTS_DIR}/win32/bsc-runloop.c
-    ${PORTS_DIR}/win32/bsc-mutex.c
-    ${PORTS_DIR}/win32/bsc-event.c
-    ${PORTS_DIR}/win32/mstimer-init.c
-    ${PORTS_DIR}/win32/datetime-init.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
     ${SRC_DIR}/bacnet/basic/object/sc_netport.c
@@ -142,7 +110,6 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
     ${SRC_DIR}/bacnet/basic/sys/keylist.c
-    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     ${SRC_DIR}/bacnet/arf.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacaddr.c
@@ -162,8 +129,6 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
-    ${SRC_DIR}/bacnet/basic/sys/bigend.c
-
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
@@ -174,25 +139,12 @@ elseif(APPLE)
   message(STATUS "Websockets test: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_executable(${PROJECT_NAME}
-    ${PORTS_DIR}/bsd/websocket-cli.c
-    ${PORTS_DIR}/bsd/websocket-srv.c
-    ${PORTS_DIR}/bsd/websocket-mutex.c
-    ${PORTS_DIR}/bsd/bsc-runloop.c
-    ${PORTS_DIR}/bsd/bsc-mutex.c
-    ${PORTS_DIR}/bsd/bsc-event.c
-    ${PORTS_DIR}/bsd/mstimer-init.c
-    ${PORTS_DIR}/bsd/datetime-init.c
+    ${SRC_DIR}/bacnet/datalink/bvlc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
-    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
     ${SRC_DIR}/bacnet/basic/object/sc_netport.c
-    ${SRC_DIR}/bacnet/basic/sys/mstimer.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/basic/sys/fifo.c
@@ -216,7 +168,6 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
-    ${SRC_DIR}/bacnet/basic/sys/bigend.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
@@ -226,4 +177,3 @@ elseif(APPLE)
                         ${LIB_WEBSOCKETS_LIBRARIES}
   )
 endif()
-

@@ -21,6 +21,7 @@
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/object/sc_netport.h"
 
 typedef struct BSC_Node BSC_NODE;
 
@@ -71,7 +72,7 @@ typedef struct {
    bool direct_connect_accept_enable;
    bool direct_connect_initiate_enable;
    bool hub_function_enabled;
-   char* direct_connection_accept_uris; // URIs joined ' 'space
+   char *direct_connection_accept_uris;     // URIs joined ' 'space
    unsigned int direct_connection_accept_uris_len;
    BSC_NODE_EVENT_FUNC event_func;
 } BSC_NODE_CONF;

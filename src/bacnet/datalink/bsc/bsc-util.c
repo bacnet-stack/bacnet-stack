@@ -12,6 +12,10 @@
  */
 
 #include "bacnet/datalink/bsc/bsc-util.h"
+#include "bacnet/basic/object/bacfile.h"
+#include "bacnet/basic/object/netport.h"
+#include "bacnet/basic/object/sc_netport.h"
+#include "bacnet/basic/object/bacfile.h"
 #include <stdlib.h>
 
 BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
@@ -77,3 +81,87 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
     }
 }
 
+void bsc_generate_random_uuid(BACNET_SC_UUID *p)
+{
+    int i;
+
+    for (i = 0; i < BVLC_SC_UUID_SIZE; i++) {
+        p->uuid[i] = rand() % 255;
+    }
+}
+
+void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
+    BSC_NODE_EVENT_FUNC event_func)
+{
+    uint32_t instance;
+    uint32_t file_instance;
+
+    instance = Network_Port_Index_To_Instance(0);
+
+    file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
+    bsc_conf->ca_cert_chain_size = bacfile_file_size(file_instance);
+    bsc_conf->ca_cert_chain = bacfile_instance_memory_context(file_instance,
+        NULL, 0);
+
+    file_instance = Network_Port_Operational_Certificate_File(instance);
+    bsc_conf->cert_chain_size = bacfile_file_size(file_instance);
+    bsc_conf->cert_chain = bacfile_instance_memory_context(file_instance,
+        NULL, 0);
+
+    file_instance = Network_Port_Certificate_Key_File(instance);
+    bsc_conf->key_size = bacfile_file_size(file_instance);
+    bsc_conf->key = bacfile_instance_memory_context(file_instance, NULL, 0);
+
+#ifdef BACDL_BSC
+    bsc_conf->local_uuid =
+        (BACNET_SC_UUID*)Network_Port_SC_Local_UUID(instance);
+#endif
+
+    bsc_conf->local_vmac =
+        (BACNET_SC_VMAC_ADDRESS *)Network_Port_MAC_Address_pointer(instance);
+    bsc_conf->max_local_bvlc_len =
+        Network_Port_Max_BVLC_Length_Accepted(instance);
+    bsc_conf->max_local_npdu_len =
+        Network_Port_Max_NPDU_Length_Accepted(instance);
+
+#ifdef BACDL_BSC
+    bsc_conf->connect_timeout_s =
+        Network_Port_SC_Connect_Wait_Timeout(instance);
+    bsc_conf->heartbeat_timeout_s = Network_Port_SC_Heartbeat_Timeout(instance);
+    bsc_conf->disconnect_timeout_s =
+        Network_Port_SC_Disconnect_Wait_Timeout(instance);
+    bsc_conf->reconnnect_timeout_s =
+        Network_Port_SC_Maximum_Reconnect_Time(instance);
+    bsc_conf->address_resolution_timeout_s = bsc_conf->connect_timeout_s;
+    bsc_conf->address_resolution_freshness_timeout_s =
+        bsc_conf->connect_timeout_s;
+    bsc_conf->primaryURL =
+        (char*)Network_Port_SC_Primary_Hub_URI_char(instance);
+    bsc_conf->failoverURL =
+        (char*)Network_Port_SC_Failover_Hub_URI_char(instance);
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
+    bsc_conf->direct_server_port = Network_Port_SC_Direct_Server_Port(instance);
+    bsc_conf->direct_connect_initiate_enable =
+        Network_Port_SC_Direct_Connect_Initiate_Enable(instance);
+    bsc_conf->direct_connect_accept_enable =
+        Network_Port_SC_Direct_Connect_Accept_Enable(instance);
+    bsc_conf->iface =
+        (char*)Network_Port_SC_Direct_Connect_Binding_char(instance);
+#endif
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
+    bsc_conf->hub_server_port = Network_Port_SC_Hub_Server_Port(instance);
+    bsc_conf->hub_function_enabled =
+        Network_Port_SC_Hub_Function_Enable(instance);
+    bsc_conf->iface =
+        (char*)Network_Port_SC_Hub_Function_Binding_char(instance);
+#endif
+
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
+    bsc_conf->direct_connection_accept_uris = 
+        Network_Port_SC_Direct_Connect_Accept_URIs_char(instance);
+    bsc_conf->direct_connection_accept_uris_len =
+        strlen(bsc_conf->direct_connection_accept_uris);
+#endif
+#endif /* BACDL_BSC */
+    bsc_conf->event_func = event_func;
+}

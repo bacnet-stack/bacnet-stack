@@ -25,6 +25,9 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
+#include "bacnet/basic/object/netport.h"
+#include "bacnet/basic/object/sc_netport.h"
+#include "bacnet/basic/object/bacfile.h"
 
 #define BSC_NEXT_POWER_OF_TWO1(v) \
     ((((unsigned int)v) - 1) | ((((unsigned int)v) - 1) >> 1))
@@ -45,7 +48,8 @@ static BSC_EVENT *bsc_event = NULL;
 static bool bsc_datalink_initialized = false;
 
 static void bsc_node_event(
-    BSC_NODE *node, BSC_NODE_EVENT ev, uint8_t *pdu, uint16_t pdu_len)
+    BSC_NODE *node, BSC_NODE_EVENT ev, BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu, uint16_t pdu_len)
 {
     bsc_global_mutex_lock();
 
@@ -64,38 +68,6 @@ static void bsc_node_event(
     bsc_global_mutex_unlock();
 }
 
-static void bsc_init_conf(void)
-{
-#if 0
-   uint8_t *ca_cert_chain;
-   size_t ca_cert_chain_size;
-   uint8_t *cert_chain;
-   size_t cert_chain_size;
-   uint8_t *key;
-   size_t key_size;
-   BACNET_SC_UUID *local_uuid;
-   BACNET_SC_VMAC_ADDRESS *local_vmac;
-   uint16_t max_local_bvlc_len;
-   uint16_t max_local_npdu_len;
-   unsigned int connect_timeout_s;
-   unsigned int heartbeat_timeout_s;
-   unsigned int disconnect_timeout_s;
-   unsigned int reconnnect_timeout_s;
-   unsigned int address_resolution_timeout_s;
-   unsigned int address_resolution_freshness_timeout_s;
-   char* primaryURL;
-   char* failoverURL;
-   uint16_t hub_server_port;
-   uint16_t direct_server_port;
-   bool node_switch_enabled;
-   bool hub_function_enabled;
-   char* iface;
-   bsc_conf.direct_connection_accept_uri = NULL;
-   bsc_conf.direct_connection_accept_uri_num = 0;
-   bsc_conf.event_func = bsc_node_event;
-#endif
-}
-
 BACNET_STACK_EXPORT
 bool bsc_init(char *ifname)
 {
@@ -111,7 +83,7 @@ bool bsc_init(char *ifname)
         bsc_event = bsc_event_init();
         if (bsc_event) {
             FIFO_Init(&bsc_fifo, bsc_fifo_buf, sizeof(bsc_fifo_buf));
-            // TODO: implement integration with BACNET/SC properties
+            bsc_node_conf_fill_from_netport(&bsc_conf, &bsc_node_event);
 
             r = bsc_node_init(&bsc_conf, &bsc_node);
             if (r != BSC_SC_SUCCESS) {
