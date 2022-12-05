@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <errno.h>
 #include "bacnet/datalink/bsc/bsc-mutex.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
@@ -102,6 +103,43 @@ void bsc_event_wait(BSC_EVENT *ev)
     }
     DEBUG_PRINTF("bsc_event_wait() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
+}
+
+bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
+{
+    bool timedout = false;
+    struct timespec to;
+
+    clock_gettime(CLOCK_REALTIME, &to);
+    to.tv_sec = to.tv_sec + ms_timeout / 1000;
+    to.tv_nsec = to.tv_nsec + (ms_timeout % 1000) * 1000000;
+    to.tv_sec += to.tv_nsec / 1000000000;
+    to.tv_nsec %= 1000000000;
+
+    pthread_mutex_lock(&ev->mutex);
+    DEBUG_PRINTF("bsc_event_timedwait() >>> ev = %p\n", ev);
+    DEBUG_PRINTF("bsc_event_timedwait() counter before %zu\n", ev->counter);
+    ev->counter++;
+    DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
+
+    while (!ev->v) {
+        if (pthread_cond_timedwait(&ev->cond, &ev->mutex, &to) == ETIMEDOUT) {
+            timedout = true;
+            break;
+        }
+    }
+
+    DEBUG_PRINTF("bsc_event_timedwait() ev = %p\n", ev);
+    DEBUG_PRINTF("bsc_event_timedwait() before counter %zu\n", ev->counter);
+    ev->counter--;
+    DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
+    if (!timedout && !ev->counter) {
+        ev->v = false;
+        DEBUG_PRINTF("bsc_event_timedwait() reset ev\n");
+    }
+    DEBUG_PRINTF("bsc_event_timedwait() <<< ev = %p\n", ev);
+    pthread_mutex_unlock(&ev->mutex);
+    return !timedout;
 }
 
 void bsc_event_signal(BSC_EVENT *ev)
