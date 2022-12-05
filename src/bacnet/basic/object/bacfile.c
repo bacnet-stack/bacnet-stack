@@ -423,7 +423,7 @@ bool bacfile_instance_set(unsigned index, uint32_t object_instance,
     if (index >= MAX_BACFILES)
         return false;
     BACnet_File_Listing[index].instance = object_instance;
-    BACnet_File_Listing[index].type = BACFILE_FILE;
+    BACnet_File_Listing[index].type = filename ? BACFILE_FILE : BACFILE_UNKNOWN;
     BACnet_File_Listing[index].filename = filename;
     return true;
 }
@@ -434,7 +434,8 @@ bool bacfile_instance_memory_set(unsigned index, uint32_t object_instance,
     if (index >= MAX_BACFILES)
         return false;
     BACnet_File_Listing[index].instance = object_instance;
-    BACnet_File_Listing[index].type = BACFILE_MEMORY;
+    BACnet_File_Listing[index].type =
+        pointer ? BACFILE_MEMORY : BACFILE_UNKNOWN;
     BACnet_File_Listing[index].memory.pointer = pointer;
     BACnet_File_Listing[index].memory.length = length;
     return true;

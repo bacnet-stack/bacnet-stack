@@ -374,9 +374,18 @@ bool Network_Port_Operational_Certificate_File_Set_From_Memory(
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
-        cert, cert_size);
-    params->Operational_Certificate_File = bacfile_index + 1;
+    if (cert) {
+        bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
+            cert, cert_size);
+        params->Operational_Certificate_File = bacfile_index + 1;
+    } else {
+        if (params->Operational_Certificate_File != 0) {
+            bacfile_instance_memory_set(
+                bacfile_instance_to_index(params->Operational_Certificate_File),
+                0, NULL, 0);            
+        }
+        params->Operational_Certificate_File = 0;
+    }
     return true;
 }
 
@@ -405,9 +414,19 @@ bool Network_Port_Issuer_Certificate_File_Set_From_Memory(
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params || (index >= BACNET_ISSUER_CERT_FILE_MAX))
         return false;
-    bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
-        cert, cert_size);
-    params->Issuer_Certificate_Files[index] = bacfile_index + 1;
+    if (cert) {
+        bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
+            cert, cert_size);
+        params->Issuer_Certificate_Files[index] = bacfile_index + 1;
+    } else {
+        if (params->Issuer_Certificate_Files[index] != 0) {
+            bacfile_instance_memory_set(
+                bacfile_instance_to_index(
+                    params->Issuer_Certificate_Files[index]),
+                0, NULL, 0);
+        }
+        params->Issuer_Certificate_Files[index] = 0;
+    }
     return true;
 }
 
@@ -1186,9 +1205,18 @@ bool Network_Port_Certificate_Key_File_Set_From_Memory(
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
-    bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
-        cert, cert_size);
-    params->Certificate_Key_File = bacfile_index + 1;
+    if (cert) {
+        bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
+            cert, cert_size);
+        params->Certificate_Key_File = bacfile_index + 1;
+    } else {
+        if (params->Certificate_Key_File != 0) {
+            bacfile_instance_memory_set(
+                bacfile_instance_to_index(params->Certificate_Key_File),
+                0, NULL, 0);
+        }
+        params->Certificate_Key_File = 0;
+    }
     return true;
 }
 
