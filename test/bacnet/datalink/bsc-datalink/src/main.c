@@ -1491,9 +1491,7 @@ static void test_sc_datalink(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     memset(buf, 0, sizeof(buf));
     len = 0;
-    while (!len) {
-        len = bsc_receive(&from, buf, sizeof(buf), 0);
-    }
+    len = bsc_receive(&from, buf, sizeof(buf), BACNET_TIMEOUT * 1000);
     zassert_equal(len, sizeof(npdu), NULL);
     ret = memcmp(npdu, buf, len);
     zassert_equal(ret, 0, NULL);

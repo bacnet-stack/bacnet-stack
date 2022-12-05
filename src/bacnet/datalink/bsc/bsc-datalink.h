@@ -36,4 +36,4 @@ BACNET_STACK_EXPORT
 uint16_t bsc_receive(BACNET_ADDRESS *src,
     uint8_t *pdu,
     uint16_t max_pdu,
-    unsigned timeout);
+    unsigned timeout_ms);
