@@ -198,7 +198,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
 {
     (void)npdu_data;
     BSC_SC_RET ret;
-    BACNET_SC_VMAC_ADDRESS dest_vmac = { 0xFF };
+    BACNET_SC_VMAC_ADDRESS dest_vmac;
     int len = -1;
     static uint8_t buf[BVLC_SC_NPDU_SIZE_CONF];
 
@@ -211,7 +211,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
         if (dest->net == BACNET_BROADCAST_NETWORK || dest->mac_len == 0) {
             // broadcast message
             memset(&dest_vmac.address[0], 0xFF, BVLC_SC_VMAC_SIZE);
-        } else if (dest->mac_len == 6) {
+        } else if (dest->mac_len == BVLC_SC_VMAC_SIZE) {
             // unicast
             memcpy(&dest_vmac.address[0], &dest->mac[0], BVLC_SC_VMAC_SIZE);
         } else {
@@ -261,8 +261,11 @@ uint16_t bsc_receive(
     bsc_global_mutex_lock();
 
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
-        bsc_global_mutex_unlock();
-        bsc_event_timedwait(bsc_data_event, timeout_ms);
+        if(FIFO_Count(&bsc_fifo) <= sizeof(uint16_t)) {
+            bsc_global_mutex_unlock();
+            bsc_event_timedwait(bsc_data_event, timeout_ms);
+        }
+
         bsc_global_mutex_lock();
 
         if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED &&

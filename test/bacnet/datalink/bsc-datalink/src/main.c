@@ -1378,7 +1378,7 @@ static void test_sc_datalink(void)
     BSC_SC_RET ret;
     BSC_NODE *node2;
     BSC_NODE *node3;
-    uint8_t buf[256];
+    uint8_t buf[2*BVLC_SC_NPDU_SIZE_CONF];
     int len;
     int sent;
     uint8_t npdu[128];
@@ -1388,6 +1388,7 @@ static void test_sc_datalink(void)
     BACNET_ERROR_CLASS class;
     const char *err_desc;
     BACNET_ADDRESS dest;
+    uint8_t big_npdu[BVLC_SC_NPDU_SIZE_CONF + 100];
 
     memset(&uuid1, 0x1, sizeof(uuid1));
     memset(&vmac1, 0x2, sizeof(vmac1));
@@ -1508,6 +1509,41 @@ static void test_sc_datalink(void)
     zassert_equal(ret, true, NULL);
     zassert_equal(len, message.payload.encapsulated_npdu.npdu_len, NULL);
     ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, len);
+    zassert_equal(ret, 0, NULL);
+    // let's try broadcast
+    dest.mac_len = 0;
+    dest.net = BACNET_BROADCAST_NETWORK;
+    len = 105;
+    memset(npdu, 0x52, len);
+    dest.mac_len = BVLC_SC_VMAC_SIZE;
+    sent = bsc_send_pdu(&dest, NULL, npdu, len);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(len, message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, len);
+    zassert_equal(ret, 0, NULL);
+    // big packet test
+    memset(big_npdu, 0x88, sizeof(big_npdu));
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 12, NULL, &vmac1, big_npdu, sizeof(big_npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node2, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    memset(npdu, 0x11, sizeof(npdu));
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 13, NULL, &vmac1, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node2, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    len = bsc_receive(&from, buf, sizeof(buf), BACNET_TIMEOUT * 1000);
+    zassert_equal(len == 0, true, 0);
+    memset(buf, 0, sizeof(buf));
+    len = bsc_receive(&from, buf, sizeof(buf), BACNET_TIMEOUT * 1000);
+    zassert_equal(len == sizeof(npdu), true, 0);
+    ret = memcmp(npdu, buf, len);
     zassert_equal(ret, 0, NULL);
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
