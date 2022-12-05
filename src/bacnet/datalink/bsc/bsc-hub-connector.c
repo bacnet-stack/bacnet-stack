@@ -100,13 +100,17 @@ static void hub_connector_free(BSC_HUB_CONNECTOR *c)
 static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
 {
     BSC_SC_RET ret;
+    char *url = (type == BSC_HUB_CONN_PRIMARY) ? (char *)p->primary_url
+                                               : (char *)p->failover_url;
+
     p->state = (type == BSC_HUB_CONN_PRIMARY)
         ? BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY
         : BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER;
 
-    ret = bsc_connect(&p->ctx, &p->sock[type],
-        (type == BSC_HUB_CONN_PRIMARY) ? (char *)p->primary_url
-                                       : (char *)p->failover_url);
+    DEBUG_PRINTF(
+        "hub_connector_connect() hub = %p connecting to url %s\n", p, url);
+
+    ret = bsc_connect(&p->ctx, &p->sock[type], url);
     (void)ret;
 #if DEBUG_ENABLED == 1
     if (ret != BSC_SC_SUCCESS) {
@@ -151,10 +155,16 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
     DEBUG_PRINTF("hub_connector_socket_event() state = %d\n", hc->state);
     if (ev == BSC_SOCKET_EVENT_CONNECTED) {
         if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
+            DEBUG_PRINTF("hub_connector_socket_event() hub_connector = %p "
+                         "connected primary\n",
+                hc);
             hc->state = BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY;
             hc->event_func(BSC_HUBC_EVENT_CONNECTED_PRIMARY, hc, hc->user_arg,
                 NULL, 0, NULL);
         } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER) {
+            DEBUG_PRINTF("hub_connector_socket_event() hub_connector = %p "
+                         "connected failover\n",
+                hc);
             hc->state = BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER;
             hc->event_func(BSC_HUBC_EVENT_CONNECTED_FAILOVER, hc, hc->user_arg,
                 NULL, 0, NULL);
@@ -182,6 +192,9 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
             hub_connector_connect(hc, BSC_HUB_CONN_PRIMARY);
         }
     } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
+        DEBUG_PRINTF("hub_connector_socket_event() hub_connector = %p pdu of "
+                     "%d len is received\n",
+            hc, pdu_len);
         hc->event_func(BSC_HUBC_EVENT_RECEIVED, hc, hc->user_arg, *ppdu,
             pdu_len, decoded_pdu);
     }
@@ -285,12 +298,18 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
 
         if (ret == BSC_SC_SUCCESS) {
             *h = (BSC_HUB_CONNECTOR_HANDLE)c;
+            DEBUG_PRINTF(
+                "bsc_hub_connector_start() hub = %p connecting to url %s\n", c,
+                c->primary_url);
             ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_PRIMARY],
                 (char *)c->primary_url);
             if (ret == BSC_SC_SUCCESS) {
                 c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY;
             } else {
                 c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER;
+                DEBUG_PRINTF(
+                    "bsc_hub_connector_start() hub = %p connecting to url %s\n",
+                    c, c->primary_url);
                 ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_FAILOVER],
                     (char *)c->failover_url);
                 if (ret != BSC_SC_SUCCESS) {

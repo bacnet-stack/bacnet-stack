@@ -35,6 +35,14 @@ add_compile_definitions(
   CONFIG_ZTEST=1
   MAX_BACFILES=4
   BSC_CONF_WSURL_MAX_LEN=127
+  BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM=3
+  BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM=3
+  BSC_CONF_WSURL_MAX_LEN=127
+  BSC_CONF_WEBSOCKET_SERVERS_NUM=6
+  BSC_CONF_HUB_CONNECTORS_NUM=3
+  BSC_CONF_HUB_FUNCTIONS_NUM=3
+  BSC_CONF_NODES_NUM=3
+  BSC_CONF_NODE_SWITCHES_NUM=3
   MAX_TSM_TRANSACTIONS=0
   BACDL_BSC
   )
@@ -66,6 +74,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-datalink.c
     ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
@@ -128,6 +137,7 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-datalink.c
     ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c
@@ -181,6 +191,7 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-datalink.c
     ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
     ${SRC_DIR}/bacnet/basic/object/netport.c

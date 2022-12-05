@@ -19,7 +19,9 @@
 #include <bacnet/datalink/bsc/bsc-node.h>
 #include <bacnet/datalink/bsc/bsc-datalink.h>
 #include <bacnet/datalink/bsc/bsc-util.h>
- #include <unistd.h>
+#include <bacnet/datalink/bsc/bsc-mutex.h>
+#include <bacnet/datalink/bsc/bsc-event.h>
+#include <unistd.h>
 
 unsigned char ca_key[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47, 0x49,
     0x4e, 0x20, 0x52, 0x53, 0x41, 0x20, 0x50, 0x52, 0x49, 0x56, 0x41, 0x54,
@@ -1053,39 +1055,140 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
     0x2d, 0x2d, 0x2d, 0x45, 0x4e, 0x44, 0x20, 0x43, 0x45, 0x52, 0x54, 0x49,
     0x46, 0x49, 0x43, 0x41, 0x54, 0x45, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x0a };
 
-#define BACNET_WEBSOCKET_SERVER_PORT 40000
-#define BACNET_WEBSOCKET_SERVER_PORT2 40002
+#define BACNET_CLOSED_PORT 40000
+#define BACNET_HUB_PORT 50000
+#define BACNET_LOCALHOST "127.0.0.1"
+#define BACNET_WEBSOCKET_SERVER_PORT 50000
+#define BACNET_WEBSOCKET_SERVER_PORT2 50002
 #define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
-#define BACNET_TIMEOUT 3
+#define BACNET_TIMEOUT 5
 #define MAX_BVLC_LEN 1500
 #define MAX_NDPU_LEN 1500
 #define MAX_SERVER_SOCKETS BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #define MAX_CLIENT_SOCKETS BSC_CONF_CLIENT_CONNECTIONS_NUM
-#define HAB_INSTANCE        1
-#define CONNECTOR_INSTANCE  2
+#define SC_DATALINK_INSTANCE 1
 
 /* Netport constants */
-#define SC_NETPORT_BVLC_MAX                     1500
-#define SC_NETPORT_NPDU_MAX                     1500
-#define SC_NETPORT_CONNECT_TIMEOUT              5
-#define SC_NETPORT_HEARTBEAT_TIMEOUT            5
-#define SC_NETPORT_DISCONNECT_TIMEOUT           5
-#define SC_NETPORT_RECONNECT_TIME               5
-#define SC_NETPORT_DIRECT_SERVER_PORT           40000
-#define SC_NETPORT_DIRECT_CONNECT_INITIATLE     true
-#define SC_NETPORT_DIRECT_CONNECT_ACCERT        true
-#define SC_NETPORT_HUB_SERVER_PORT              40001
-#define SC_NETPORT_HUB_FUNCTION_ENABLE          true
-#define SC_NETPORT_BACFILE_START_INDEX          0
+#define SC_NETPORT_BVLC_MAX 1500
+#define SC_NETPORT_NPDU_MAX 1500
+#define SC_NETPORT_CONNECT_TIMEOUT BACNET_TIMEOUT
+#define SC_NETPORT_HEARTBEAT_TIMEOUT BACNET_TIMEOUT
+#define SC_NETPORT_DISCONNECT_TIMEOUT BACNET_TIMEOUT
+#define SC_NETPORT_RECONNECT_TIME BACNET_TIMEOUT
+#define SC_NETPORT_DIRECT_SERVER_PORT 40000
+#define SC_NETPORT_DIRECT_CONNECT_INITIAT true
+#define SC_NETPORT_DIRECT_CONNECT_ACCERT true
+#define SC_NETPORT_HUB_SERVER_PORT 40001
+#define SC_NETPORT_HUB_FUNCTION_ENABLE true
+#define SC_NETPORT_BACFILE_START_INDEX 0
 
-#define SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS   \
+#define SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS \
     "SC_Direct_Connect_Accept_URI1 SC_Direct_Connect_Accept_URI2"
 
-static void bsc_node_event(
-    BSC_NODE *node, BSC_NODE_EVENT ev, BACNET_SC_VMAC_ADDRESS *dest,
-    uint8_t *pdu, uint16_t pdu_len)
-{
+typedef struct {
+    BSC_NODE_EVENT ev;
+    BSC_NODE *node;
+    uint8_t pdu[MAX_BVLC_LEN];
+    uint16_t pdu_len;
+    BSC_EVENT *e;
+    BACNET_SC_VMAC_ADDRESS dest;
+} node_ev_t;
 
+static node_ev_t node_ev2;
+static node_ev_t node_ev3;
+
+static void init_node_ev(node_ev_t *ev)
+{
+    memset(ev, 0, sizeof(*ev));
+    ev->e = bsc_event_init();
+    zassert_not_equal(ev->e, NULL, 0);
+}
+
+static void deinit_node_ev(node_ev_t *ev)
+{
+    bsc_event_deinit(ev->e);
+}
+
+static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
+{
+    bsc_event_wait(ev->e);
+    if (ev->ev == wait_ev && ev->node == node) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static void wait_specific_node_ev(
+    node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
+{
+    while (1) {
+        bsc_event_wait(ev->e);
+        if (ev->ev == wait_ev && ev->node == node) {
+            break;
+        }
+    }
+}
+
+static void signal_node_ev(node_ev_t *e,
+    BSC_NODE_EVENT ev,
+    BSC_NODE *node,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    uint16_t pdu_len)
+{
+    e->ev = ev;
+    e->node = node;
+
+    zassert_equal(true, pdu_len <= MAX_BVLC_LEN, NULL);
+
+    if (pdu) {
+        memcpy(e->pdu, pdu, pdu_len);
+        e->pdu_len = pdu_len;
+    }
+
+    if (dest) {
+        debug_printf("dest = %s\n", bsc_vmac_to_string(dest));
+        memcpy(&e->dest.address[0], &dest->address[0], sizeof(dest->address));
+        debug_printf("e->dest = %s\n", bsc_vmac_to_string(&e->dest));
+    }
+
+    bsc_event_signal(e->e);
+}
+
+static void reset_node_ev(node_ev_t *ev)
+{
+    bsc_event_reset(ev->e);
+    ev->ev = -1;
+    ev->node = NULL;
+}
+
+static void node_event(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    uint16_t pdu_len)
+{
+}
+
+static void node_event2(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    uint16_t pdu_len)
+{
+    debug_printf("node_event2() ev = %d event = %p\n", ev, node_ev2.e);
+    signal_node_ev(&node_ev2, ev, node, dest, pdu, pdu_len);
+}
+
+static void node_event3(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    uint16_t pdu_len)
+{
+    debug_printf("node_event3() ev = %d event = %p\n", ev, node_ev3.e);
+    signal_node_ev(&node_ev3, ev, node, dest, pdu, pdu_len);
 }
 
 static void netport_object_init(uint32_t instance,
@@ -1095,11 +1198,16 @@ static void netport_object_init(uint32_t instance,
     size_t cert_chain_size,
     uint8_t *key,
     size_t key_size,
-    char* iface,
+    char *iface,
     BACNET_SC_UUID *local_uuid,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     char *primaryURL,
-    char *failoverURL)
+    char *failoverURL,
+    bool direct_connect_initiate_enable,
+    bool direct_connect_accept_enable,
+    bool hub_function_enabled,
+    int hub_port,
+    int direct_port)
 {
     Network_Port_Object_Instance_Number_Set(0, instance);
 
@@ -1107,27 +1215,27 @@ static void netport_object_init(uint32_t instance,
     unsigned file_index = SC_NETPORT_BACFILE_START_INDEX;
     unsigned file_instance = file_index + 1;
 
-    bacfile_instance_memory_set(file_index + 0, file_instance + 0,
-        ca_cert_chain, ca_cert_chain_size);
+    bacfile_instance_memory_set(
+        file_index + 0, file_instance + 0, ca_cert_chain, ca_cert_chain_size);
     Network_Port_Issuer_Certificate_File_Set(instance, 0, file_instance + 0);
-    bacfile_instance_memory_set(file_index + 1, file_instance + 1,
-        cert_chain, cert_chain_size);
+    bacfile_instance_memory_set(
+        file_index + 1, file_instance + 1, cert_chain, cert_chain_size);
     Network_Port_Operational_Certificate_File_Set(instance, file_instance + 1);
-    bacfile_instance_memory_set(file_index + 2, file_instance + 2,
-        key, key_size);
+    bacfile_instance_memory_set(
+        file_index + 2, file_instance + 2, key, key_size);
     Network_Port_Certificate_Key_File_Set(instance, file_instance + 2);
 
-#if BSC_CONF_HUB_CONNECTORS_NUM!=0
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
     Network_Port_SC_Direct_Connect_Binding_Set(instance, iface);
 #endif
-#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
     Network_Port_SC_Hub_Function_Binding_Set(instance, iface);
 #endif
 
-    Network_Port_SC_Local_UUID_Set(instance, (BACNET_UUID*)local_uuid);
+    Network_Port_SC_Local_UUID_Set(instance, (BACNET_UUID *)local_uuid);
 
-    Network_Port_MAC_Address_Set(instance, local_vmac->address,
-        sizeof(*local_vmac));
+    Network_Port_MAC_Address_Set(
+        instance, local_vmac->address, sizeof(*local_vmac));
 
     Network_Port_SC_Primary_Hub_URI_Set(instance, primaryURL);
     Network_Port_SC_Failover_Hub_URI_Set(instance, failoverURL);
@@ -1140,37 +1248,32 @@ static void netport_object_init(uint32_t instance,
     Network_Port_Network_Number_Set(instance, 0);
 
     /* SC parameters */
-    Network_Port_Max_BVLC_Length_Accepted_Set(instance,
-        SC_NETPORT_BVLC_MAX);
-    Network_Port_Max_NPDU_Length_Accepted_Set(instance,
-        SC_NETPORT_NPDU_MAX);
-    Network_Port_SC_Connect_Wait_Timeout_Set(instance,
-        SC_NETPORT_CONNECT_TIMEOUT);
-    Network_Port_SC_Heartbeat_Timeout_Set(instance,
-        SC_NETPORT_HEARTBEAT_TIMEOUT);
-    Network_Port_SC_Disconnect_Wait_Timeout_Set(instance,
-        SC_NETPORT_DISCONNECT_TIMEOUT);
-    Network_Port_SC_Maximum_Reconnect_Time_Set(instance, 
-        SC_NETPORT_RECONNECT_TIME);
+    Network_Port_Max_BVLC_Length_Accepted_Set(instance, SC_NETPORT_BVLC_MAX);
+    Network_Port_Max_NPDU_Length_Accepted_Set(instance, SC_NETPORT_NPDU_MAX);
+    Network_Port_SC_Connect_Wait_Timeout_Set(
+        instance, SC_NETPORT_CONNECT_TIMEOUT);
+    Network_Port_SC_Heartbeat_Timeout_Set(
+        instance, SC_NETPORT_HEARTBEAT_TIMEOUT);
+    Network_Port_SC_Disconnect_Wait_Timeout_Set(
+        instance, SC_NETPORT_DISCONNECT_TIMEOUT);
+    Network_Port_SC_Maximum_Reconnect_Time_Set(
+        instance, SC_NETPORT_RECONNECT_TIME);
 
-#if BSC_CONF_HUB_CONNECTORS_NUM!=0
-    Network_Port_SC_Direct_Server_Port_Set(instance,
-        SC_NETPORT_DIRECT_SERVER_PORT);
-    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance,
-        SC_NETPORT_DIRECT_CONNECT_INITIATLE);
-    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,
-        SC_NETPORT_DIRECT_CONNECT_ACCERT);
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
+    Network_Port_SC_Direct_Server_Port_Set(instance, direct_port);
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(
+        instance, direct_connect_initiate_enable);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(
+        instance, direct_connect_accept_enable);
 #endif
-#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
-    Network_Port_SC_Hub_Server_Port_Set(instance,
-        SC_NETPORT_HUB_SERVER_PORT);
-    Network_Port_SC_Hub_Function_Enable_Set(instance,
-        SC_NETPORT_HUB_FUNCTION_ENABLE);
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
+    Network_Port_SC_Hub_Server_Port_Set(instance, hub_port);
+    Network_Port_SC_Hub_Function_Enable_Set(instance, hub_function_enabled);
 #endif
 
-#if BSC_CONF_HUB_CONNECTORS_NUM!=0
-    Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance,
-        SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS);
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
+    Network_Port_SC_Direct_Connect_Accept_URIs_Set(
+        instance, SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS);
 #endif
 }
 
@@ -1183,6 +1286,7 @@ static void test_sc_parameters(void)
     char secondary_url[128];
     BSC_NODE_CONF bsc_conf;
 
+    memset(&bsc_conf, 0, sizeof(bsc_conf));
     memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
     memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
 
@@ -1192,12 +1296,15 @@ static void test_sc_parameters(void)
         BACNET_WEBSOCKET_SERVER_PORT2);
 
     // prepare
-    netport_object_init(HAB_INSTANCE, ca_cert, sizeof(ca_cert), server_cert,
-        sizeof(server_cert), server_key, sizeof(server_key), iface, 
-        &hubf_uuid, &hubf_vmac, primary_url, secondary_url);
+    netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
+        server_cert, sizeof(server_cert), server_key, sizeof(server_key), iface,
+        &hubf_uuid, &hubf_vmac, primary_url, secondary_url,
+        SC_NETPORT_DIRECT_CONNECT_INITIAT, SC_NETPORT_DIRECT_CONNECT_ACCERT,
+        SC_NETPORT_HUB_FUNCTION_ENABLE, SC_NETPORT_HUB_SERVER_PORT,
+        SC_NETPORT_DIRECT_SERVER_PORT);
 
     // fill
-    bsc_node_conf_fill_from_netport(&bsc_conf, &bsc_node_event);
+    bsc_node_conf_fill_from_netport(&bsc_conf, &node_event);
 
     // check
     zassert_equal(bsc_conf.ca_cert_chain, ca_cert, NULL);
@@ -1212,12 +1319,11 @@ static void test_sc_parameters(void)
         memcmp(bsc_conf.local_vmac, &hubf_vmac, sizeof(hubf_vmac)), 0, NULL);
     zassert_equal(bsc_conf.max_local_bvlc_len, SC_NETPORT_BVLC_MAX, NULL);
     zassert_equal(bsc_conf.max_local_npdu_len, SC_NETPORT_NPDU_MAX, NULL);
-    zassert_equal(
-        bsc_conf.connect_timeout_s, SC_NETPORT_CONNECT_TIMEOUT, NULL);
+    zassert_equal(bsc_conf.connect_timeout_s, SC_NETPORT_CONNECT_TIMEOUT, NULL);
     zassert_equal(
         bsc_conf.heartbeat_timeout_s, SC_NETPORT_HEARTBEAT_TIMEOUT, NULL);
-    zassert_equal(bsc_conf.disconnect_timeout_s,
-        SC_NETPORT_DISCONNECT_TIMEOUT, NULL);
+    zassert_equal(
+        bsc_conf.disconnect_timeout_s, SC_NETPORT_DISCONNECT_TIMEOUT, NULL);
     zassert_equal(
         bsc_conf.reconnnect_timeout_s, SC_NETPORT_RECONNECT_TIME, NULL);
     zassert_equal(bsc_conf.address_resolution_timeout_s,
@@ -1227,30 +1333,191 @@ static void test_sc_parameters(void)
     zassert_equal(strcmp(bsc_conf.primaryURL, primary_url), 0, NULL);
     zassert_equal(strcmp(bsc_conf.failoverURL, secondary_url), 0, NULL);
 
-#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
     zassert_equal(bsc_conf.hub_server_port, SC_NETPORT_HUB_SERVER_PORT, NULL);
-    zassert_equal(bsc_conf.hub_function_enabled,
-        SC_NETPORT_HUB_FUNCTION_ENABLE, NULL);
+    zassert_equal(
+        bsc_conf.hub_function_enabled, SC_NETPORT_HUB_FUNCTION_ENABLE, NULL);
 #endif
 
-#if BSC_CONF_HUB_CONNECTORS_NUM!=0
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
     zassert_equal(
         bsc_conf.direct_server_port, SC_NETPORT_DIRECT_SERVER_PORT, NULL);
     zassert_equal(bsc_conf.direct_connect_initiate_enable,
-        SC_NETPORT_DIRECT_CONNECT_INITIATLE, NULL);
+        SC_NETPORT_DIRECT_CONNECT_INITIAT, NULL);
     zassert_equal(bsc_conf.direct_connect_accept_enable,
         SC_NETPORT_DIRECT_CONNECT_ACCERT, NULL);
 
-    zassert_equal(memcmp(
-        bsc_conf.direct_connection_accept_uris,
-        SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS,
-        strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS)), 0, NULL);
+    zassert_equal(memcmp(bsc_conf.direct_connection_accept_uris,
+                      SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS,
+                      strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS)),
+        0, NULL);
     zassert_equal(bsc_conf.direct_connection_accept_uris_len,
         strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS), NULL);
 #endif
 
     zassert_equal(strcmp(bsc_conf.iface, iface), 0, NULL);
-    zassert_equal(bsc_conf.event_func, &bsc_node_event, NULL);
+    zassert_equal(bsc_conf.event_func, &node_event, NULL);
+}
+
+static void test_sc_datalink(void)
+{
+    BSC_NODE_CONF conf2;
+    BSC_NODE_CONF conf3;
+    BACNET_SC_UUID uuid1;
+    BACNET_SC_VMAC_ADDRESS vmac1;
+    BACNET_SC_UUID uuid2;
+    BACNET_SC_VMAC_ADDRESS vmac2;
+    BACNET_SC_UUID uuid3;
+    BACNET_SC_VMAC_ADDRESS vmac3;
+    char primary_url1[128];
+    char secondary_url1[128];
+    char primary_url2[128];
+    char secondary_url2[128];
+    char primary_url3[128];
+    char secondary_url3[128];
+    BSC_SC_RET ret;
+    BSC_NODE *node2;
+    BSC_NODE *node3;
+    uint8_t buf[256];
+    int len;
+    int sent;
+    uint8_t npdu[128];
+    BACNET_ADDRESS from;
+    BVLC_SC_DECODED_MESSAGE message;
+    BACNET_ERROR_CODE error;
+    BACNET_ERROR_CLASS class;
+    const char *err_desc;
+    BACNET_ADDRESS dest;
+
+    memset(&uuid1, 0x1, sizeof(uuid1));
+    memset(&vmac1, 0x2, sizeof(vmac1));
+    memset(&uuid2, 0x3, sizeof(uuid2));
+    memset(&vmac2, 0x4, sizeof(vmac2));
+    memset(&uuid3, 0x5, sizeof(uuid3));
+    memset(&vmac3, 0x6, sizeof(vmac3));
+
+    sprintf(primary_url3, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(
+        secondary_url3, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(primary_url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_HUB_PORT);
+    sprintf(secondary_url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_HUB_PORT);
+    sprintf(primary_url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_HUB_PORT);
+    sprintf(secondary_url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_HUB_PORT);
+
+    netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
+        server_cert, sizeof(server_cert), server_key, sizeof(server_key), NULL,
+        &uuid1, &vmac1, primary_url1, secondary_url1, false, false, false, 0,
+        0);
+
+    init_node_ev(&node_ev2);
+    init_node_ev(&node_ev3);
+    zassert_equal(bsc_init(NULL), true, NULL);
+
+    conf2.ca_cert_chain = ca_cert;
+    conf2.ca_cert_chain_size = sizeof(ca_cert);
+    conf2.cert_chain = client_cert;
+    conf2.cert_chain_size = sizeof(client_cert);
+    conf2.key = client_key;
+    conf2.key_size = sizeof(client_key);
+    conf2.local_uuid = &uuid2;
+    conf2.local_vmac = &vmac2;
+    conf2.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf2.max_local_npdu_len = MAX_NDPU_LEN;
+    conf2.connect_timeout_s = BACNET_TIMEOUT;
+    conf2.heartbeat_timeout_s = BACNET_TIMEOUT;
+    conf2.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf2.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf2.primaryURL = primary_url2;
+    conf2.failoverURL = secondary_url2;
+    conf2.hub_server_port = 0;
+    conf2.direct_server_port = 0;
+    conf2.iface = NULL;
+    conf2.direct_connect_accept_enable = false;
+    conf2.direct_connect_initiate_enable = false;
+    conf2.hub_function_enabled = false;
+    conf2.direct_connection_accept_uris = NULL;
+    conf2.direct_connection_accept_uris_len = 0;
+    conf2.event_func = node_event2;
+
+    conf3.ca_cert_chain = ca_cert;
+    conf3.ca_cert_chain_size = sizeof(ca_cert);
+    conf3.cert_chain = client_cert;
+    conf3.cert_chain_size = sizeof(client_cert);
+    conf3.key = client_key;
+    conf3.key_size = sizeof(client_key);
+    conf3.local_uuid = &uuid3;
+    conf3.local_vmac = &vmac3;
+    conf3.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf3.max_local_npdu_len = MAX_NDPU_LEN;
+    conf3.connect_timeout_s = BACNET_TIMEOUT;
+    conf3.heartbeat_timeout_s = BACNET_TIMEOUT;
+    conf3.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf3.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf3.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf3.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf3.primaryURL = primary_url3;
+    conf3.failoverURL = secondary_url3;
+    conf3.hub_server_port = BACNET_HUB_PORT;
+    conf3.direct_server_port = 0;
+    conf3.iface = NULL;
+    conf3.direct_connect_accept_enable = false;
+    conf3.direct_connect_initiate_enable = false;
+    conf3.hub_function_enabled = true;
+    conf3.direct_connection_accept_uris = NULL;
+    conf3.direct_connection_accept_uris_len = 0;
+    conf3.event_func = node_event3;
+
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_init(&conf3, &node3);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node3);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    bsc_wait(BACNET_TIMEOUT * 2);
+    // send encapsulated npdu packet
+    memset(npdu, 0x99, sizeof(npdu));
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), 111, NULL, &vmac1, npdu, sizeof(npdu));
+    zassert_equal(len > 0, true, NULL);
+    ret = bsc_node_send(node2, buf, len);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    memset(buf, 0, sizeof(buf));
+    len = 0;
+    while (!len) {
+        len = bsc_receive(&from, buf, sizeof(buf), 0);
+    }
+    zassert_equal(len, sizeof(npdu), NULL);
+    ret = memcmp(npdu, buf, len);
+    zassert_equal(ret, 0, NULL);
+    // send encapsulated npdu packet
+    len = 55;
+    memset(npdu, 0x22, len);
+    dest.mac_len = BVLC_SC_VMAC_SIZE;
+    memcpy(&dest.mac[0], &vmac2.address[0], BVLC_SC_VMAC_SIZE);
+    sent = bsc_send_pdu(&dest, NULL, npdu, len);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
+    ret = bvlc_sc_decode_message(
+        node_ev2.pdu, node_ev2.pdu_len, &message, &error, &class, &err_desc);
+    zassert_equal(ret, true, NULL);
+    zassert_equal(len, message.payload.encapsulated_npdu.npdu_len, NULL);
+    ret = memcmp(npdu, message.payload.encapsulated_npdu.npdu, len);
+    zassert_equal(ret, 0, NULL);
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    bsc_node_stop(node3);
+    wait_specific_node_ev(&node_ev3, BSC_NODE_EVENT_STOPPED, node3);
+    bsc_cleanup();
+    deinit_node_ev(&node_ev2);
+    deinit_node_ev(&node_ev3);
 }
 
 void test_main(void)
@@ -1258,6 +1525,8 @@ void test_main(void)
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
 
-    ztest_test_suite(test_sc_param, ztest_unit_test(test_sc_parameters));
-    ztest_run_test_suite(test_sc_param);
+    ztest_test_suite(test_datalink_1, ztest_unit_test(test_sc_parameters));
+    ztest_test_suite(test_datalink_2, ztest_unit_test(test_sc_datalink));
+    ztest_run_test_suite(test_datalink_1);
+    ztest_run_test_suite(test_datalink_2);
 }
