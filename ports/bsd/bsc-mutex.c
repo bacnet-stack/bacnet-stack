@@ -74,20 +74,37 @@ void bsc_mutex_unlock(BSC_MUTEX *mutex)
 
 static long bsc_lock_cnt = 0;
 
+static char *filename_without_full_path(char *file)
+{
+    int i;
+    for (i = strlen(file); i >= 0; i--) {
+        if (file[i] == '/' || file[i] == '\\') {
+            return &file[i + 1];
+        }
+    }
+    return file;
+}
+
 void bsc_global_mutex_lock_dbg(char *file, int line)
 {
-    printf("bsc_global_mutex_lock() call from %s:%d op=lock lock_cnt = %ld\n",
-        file, line, bsc_lock_cnt);
+    file = filename_without_full_path(file);
+    printf("bsc_global_mutex_lock() call from %s:%d op=try_lock lock_cnt = %ld "
+           "tid = %p\n",
+        file, line, bsc_lock_cnt, pthread_self());
     pthread_mutex_lock(&bsc_global_mutex);
+    printf("bsc_global_mutex_lock() call from %s:%d op=lock lock_cnt = %ld tid "
+           "= %p\n",
+        file, line, bsc_lock_cnt, pthread_self());
     bsc_lock_cnt++;
 }
 
 void bsc_global_mutex_unlock_dbg(char *file, int line)
 {
+    file = filename_without_full_path(file);
     bsc_lock_cnt--;
-    printf(
-        "bsc_global_mutex_unlock() call from %s:%d op=unlock lock_cnt = %ld\n",
-        file, line, bsc_lock_cnt);
+    printf("bsc_global_mutex_unlock() call from %s:%d op=unlock lock_cnt = %ld "
+           " tid = %p\n",
+        file, line, bsc_lock_cnt, pthread_self());
     pthread_mutex_unlock(&bsc_global_mutex);
 }
 #else

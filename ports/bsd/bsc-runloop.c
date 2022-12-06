@@ -271,6 +271,19 @@ void bsc_runloop_stop(BSC_RUNLOOP *runloop)
         pthread_cond_signal(&runloop->cond);
         pthread_mutex_unlock(runloop->mutex);
         pthread_join(runloop->thread_id, NULL);
+#if DEBUG_ENABLED == 1
+        // Ensure that on the moment of stop all callbacks are un-registered
+        {
+            int i;
+            for (i = 0; i < BSC_RUNLOOP_CALLBACKS_NUM; i++) {
+                if (runloop->runloop_ctx[i].ctx != NULL) {
+                    debug_printf(
+                        "bsc_runloop_stop() ctx %p is not un-registered\n",
+                        runloop->runloop_ctx[i].ctx);
+                }
+            }
+        }
+#endif
         DEBUG_PRINTF("bsc_runloop_stop() <<<\n");
         return;
     }
