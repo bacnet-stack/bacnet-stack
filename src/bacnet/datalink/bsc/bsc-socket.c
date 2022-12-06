@@ -1311,10 +1311,15 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         for (i = 0; i < ctx->sock_num; i++) {
             if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                 active_socket = true;
+                DEBUG_PRINTF(
+                    "bsc_deinit_ctx() disconnect socket %d(%p) with wh = %d\n",
+                    i, &ctx->sock[i], ctx->sock[i].wh);
                 bws_cli_disconnect(ctx->sock[i].wh);
             }
         }
         if (!active_socket) {
+            DEBUG_PRINTF(
+                "bsc_deinit_ctx() no active sockets, ctx de-initialized\n");
             ctx->state = BSC_CTX_STATE_IDLE;
             bsc_runloop_unreg(bsc_global_runloop(), ctx);
             ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);

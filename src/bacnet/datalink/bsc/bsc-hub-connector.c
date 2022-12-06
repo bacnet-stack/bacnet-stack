@@ -332,7 +332,14 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
     DEBUG_PRINTF("bsc_hub_connector_stop() >>> h = %p\n", h);
+
     bsc_global_mutex_lock();
+
+#if DEBUG_ENABLED == 1
+    if(c) {
+        DEBUG_PRINTF("bsc_hub_connector_stop() state = %d\n", c->state);
+    }
+#endif
 
     if (c && c->state != BSC_HUB_CONNECTOR_STATE_WAIT_FOR_CTX_DEINIT &&
         c->state != BSC_HUB_CONNECTOR_STATE_IDLE) {

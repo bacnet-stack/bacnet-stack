@@ -141,6 +141,7 @@ bool bsc_init(char *ifname)
         sizeof(bsc_fifo_buf));
     FIFO_Init(&bsc_fifo, bsc_fifo_buf, sizeof(bsc_fifo_buf));
     bsc_node_conf_fill_from_netport(&bsc_conf, &bsc_node_event);
+
     bsc_datalink_state = BSC_DATALINK_STATE_STARTING;
     r = bsc_node_init(&bsc_conf, &bsc_node);
     if (r == BSC_SC_SUCCESS) {
@@ -264,9 +265,8 @@ uint16_t bsc_receive(
         if(FIFO_Count(&bsc_fifo) <= sizeof(uint16_t)) {
             bsc_global_mutex_unlock();
             bsc_event_timedwait(bsc_data_event, timeout_ms);
+            bsc_global_mutex_lock();
         }
-
-        bsc_global_mutex_lock();
 
         if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED &&
             FIFO_Count(&bsc_fifo) > sizeof(uint16_t)) {
@@ -290,7 +290,7 @@ uint16_t bsc_receive(
                     if (dm.hdr.origin &&
                         max_pdu >= dm.payload.encapsulated_npdu.npdu_len) {
                         src->mac_len = BVLC_SC_VMAC_SIZE;
-                        memcpy(src->mac, dm.hdr.origin, BVLC_SC_VMAC_SIZE);
+                        memcpy(&src->mac[0], &dm.hdr.origin->address[0], BVLC_SC_VMAC_SIZE);
                         memcpy(pdu, dm.payload.encapsulated_npdu.npdu,
                             dm.payload.encapsulated_npdu.npdu_len);
                         pdu_len = dm.payload.encapsulated_npdu.npdu_len;

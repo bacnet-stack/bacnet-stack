@@ -71,15 +71,23 @@ void bsc_mutex_unlock(BSC_MUTEX *mutex)
 }
 
 #if BSC_MUTEX_DEBUG == 1
+
+static long bsc_lock_cnt = 0;
+
 void bsc_global_mutex_lock_dbg(char *file, int line)
 {
-    printf("bsc_global_mutex_lock() call from %s:%d\n", file, line);
+    printf("bsc_global_mutex_lock() call from %s:%d op=lock lock_cnt = %ld\n",
+        file, line, bsc_lock_cnt);
     pthread_mutex_lock(&bsc_global_mutex);
+    bsc_lock_cnt++;
 }
 
 void bsc_global_mutex_unlock_dbg(char *file, int line)
 {
-    printf("bsc_global_mutex_unlock() call from %s:%d\n", file, line);
+    bsc_lock_cnt--;
+    printf(
+        "bsc_global_mutex_unlock() call from %s:%d op=unlock lock_cnt = %ld\n",
+        file, line, bsc_lock_cnt);
     pthread_mutex_unlock(&bsc_global_mutex);
 }
 #else
