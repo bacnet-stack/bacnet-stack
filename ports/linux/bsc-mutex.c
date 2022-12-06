@@ -91,11 +91,11 @@ void bsc_global_mutex_lock_dbg(char *file, int line)
     file = filename_without_full_path(file);
     printf("bsc_global_mutex_lock() call from %s:%d op=try_lock lock_cnt = %ld "
            "tid = %p\n",
-        file, line, bsc_lock_cnt, pthread_self());
+        file, line, bsc_lock_cnt, (void*)pthread_self());
     pthread_mutex_lock(&bsc_global_mutex);
     printf("bsc_global_mutex_lock() call from %s:%d op=lock lock_cnt = %ld tid "
            "= %p\n",
-        file, line, bsc_lock_cnt, pthread_self());
+        file, line, bsc_lock_cnt, (void*)pthread_self());
     bsc_lock_cnt++;
 }
 
@@ -105,7 +105,7 @@ void bsc_global_mutex_unlock_dbg(char *file, int line)
     bsc_lock_cnt--;
     printf("bsc_global_mutex_unlock() call from %s:%d op=unlock lock_cnt = %ld "
            " tid = %p\n",
-        file, line, bsc_lock_cnt, pthread_self());
+        file, line, bsc_lock_cnt, (void*)pthread_self());
     pthread_mutex_unlock(&bsc_global_mutex);
 }
 #else
