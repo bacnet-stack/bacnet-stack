@@ -68,7 +68,9 @@ extern "C" {
     } BACNET_UUID;
 
     #define BACNET_SC_HUB_URI_MAX   2
+    #ifndef BACNET_SC_DIRECT_ACCEPT_URI_MAX
     #define BACNET_SC_DIRECT_ACCEPT_URI_MAX 2
+    #endif
 
     #define BACNET_ISSUER_CERT_FILE_MAX 2
     #define BACNET_ERROR_STRING_LENGHT  64
@@ -300,6 +302,12 @@ extern "C" {
     bool Network_Port_Operational_Certificate_File_Set(
         uint32_t object_instance,
         uint32_t value);
+    BACNET_STACK_EXPORT
+    bool Network_Port_Operational_Certificate_File_Set_From_Memory(
+        uint32_t object_instance,
+        uint8_t *cert,
+        size_t cert_size,
+        uint32_t bacfile_index);
 
     BACNET_STACK_EXPORT
     uint32_t Network_Port_Issuer_Certificate_File(
@@ -310,6 +318,13 @@ extern "C" {
         uint32_t object_instance,
         uint8_t index,
         uint32_t value);
+    BACNET_STACK_EXPORT
+    bool Network_Port_Issuer_Certificate_File_Set_From_Memory(
+        uint32_t object_instance,
+        uint8_t index,
+        uint8_t *cert,
+        size_t cert_size,
+        uint32_t bacfile_index);
 
     BACNET_STACK_EXPORT
     uint32_t Network_Port_Certificate_Signing_Request_File(
@@ -564,6 +579,12 @@ extern "C" {
     bool Network_Port_Certificate_Key_File_Set(
         uint32_t object_instance,
         uint32_t value);
+    BACNET_STACK_EXPORT
+    bool Network_Port_Certificate_Key_File_Set_From_Memory(
+        uint32_t object_instance,
+        uint8_t *cert,
+        size_t cert_size,
+        uint32_t bacfile_index);
 
     BACNET_STACK_EXPORT
     const BACNET_UUID *Network_Port_SC_Local_UUID(

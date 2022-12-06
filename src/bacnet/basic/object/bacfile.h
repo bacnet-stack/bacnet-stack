@@ -83,15 +83,15 @@ extern "C" {
     bool bacfile_instance_memory_set(
         unsigned index,
         uint32_t object_instance,
-        void *pointer,
+        uint8_t *pointer,
         BACNET_UNSIGNED_INTEGER length);
     BACNET_STACK_EXPORT
     BACNET_UNSIGNED_INTEGER bacfile_instance_context(
         uint32_t object_instance,
-        void *pointer,
+        uint8_t *pointer,
         BACNET_UNSIGNED_INTEGER max_length);
     BACNET_STACK_EXPORT
-    char *bacfile_instance_memory_context(
+    uint8_t *bacfile_instance_memory_context(
         uint32_t object_instance,
         void *pointer,
         BACNET_UNSIGNED_INTEGER max_length);

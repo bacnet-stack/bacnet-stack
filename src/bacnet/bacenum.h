@@ -547,6 +547,13 @@ typedef enum {
     /* procedures and constraints described in Clause 23.  */
     PROP_RESERVED_RANGE_MAX = 511,
     PROP_PROPRIETARY_RANGE_MIN = 512,
+#ifdef BACDL_BSC
+   /* SC Netport custom properties */
+    PROP_CUSTOM_SC_CERTIFICATE_KEY_FILE = 512,
+    PROP_CUSTOM_SC_LOCAL_UUID = 513,
+    PROP_CUSTOM_SC_HUB_SERVER_PORT = 514,
+    PROP_CUSTOM_SC_DIRECT_SERVER_PORT = 515,
+#endif /* BACDL_BSC */
     PROP_PROPRIETARY_RANGE_MAX = 4194303,
     PROP_RESERVED_RANGE_MIN2 = 4194304,
     /* enumerations 4194304-4194327 are defined in Addendum 2020cc */

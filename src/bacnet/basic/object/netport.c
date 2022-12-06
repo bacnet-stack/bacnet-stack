@@ -126,14 +126,6 @@ struct object_data {
 #endif /* BACDL_BSC */
 };
 
-#ifdef BACDL_BSC
-/* SC Netport custom properties */
-#define PROP_SC_CERTIFICATE_KEY_FILE       PROP_PROPRIETARY_RANGE_MIN
-#define PROP_SC_LOCAL_UUID                 (PROP_PROPRIETARY_RANGE_MIN + 1)
-#define PROP_SC_HUB_SERVER_PORT            (PROP_PROPRIETARY_RANGE_MIN + 2)
-#define PROP_SC_DIRECT_SERVER_PORT         (PROP_PROPRIETARY_RANGE_MIN + 3)
-#endif /* BACDL_BSC */
-
 
 #ifndef BACNET_NETWORK_PORTS_MAX
 #define BACNET_NETWORK_PORTS_MAX 1
@@ -164,12 +156,13 @@ static const int BIP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_FD_SUBSCRIPTION_LIFETIME,
 #endif
 #ifdef BACDL_BSC
-    PROP_MAX_BVLC_LENGTH_ACCEPTED, PROP_MAX_NPDU_LENGTH_ACCEPTED, PROP_SC_PRIMARY_HUB_URI,
-    PROP_SC_FAILOVER_HUB_URI, PROP_SC_MINIMUM_RECONNECT_TIME,
-    PROP_SC_MAXIMUM_RECONNECT_TIME, PROP_SC_CONNECT_WAIT_TIMEOUT,
-    PROP_SC_DISCONNECT_WAIT_TIMEOUT, PROP_SC_HEARTBEAT_TIMEOUT,
-    PROP_SC_HUB_CONNECTOR_STATE, PROP_OPERATIONAL_CERTIFICATE_FILE,
-    PROP_ISSUER_CERTIFICATE_FILES, PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
+    PROP_MAX_BVLC_LENGTH_ACCEPTED, PROP_MAX_NPDU_LENGTH_ACCEPTED,
+    PROP_SC_PRIMARY_HUB_URI, PROP_SC_FAILOVER_HUB_URI,
+    PROP_SC_MINIMUM_RECONNECT_TIME, PROP_SC_MAXIMUM_RECONNECT_TIME,
+    PROP_SC_CONNECT_WAIT_TIMEOUT, PROP_SC_DISCONNECT_WAIT_TIMEOUT,
+    PROP_SC_HEARTBEAT_TIMEOUT, PROP_SC_HUB_CONNECTOR_STATE,
+    PROP_OPERATIONAL_CERTIFICATE_FILE, PROP_ISSUER_CERTIFICATE_FILES,
+    PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
     /*SC optional*/ 
   #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
     PROP_ROUTING_TABLE,
@@ -200,13 +193,13 @@ static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
 
 static const int Network_Port_Properties_Proprietary[] = {
 #if BACDL_BSC
-    PROP_SC_CERTIFICATE_KEY_FILE,
-    PROP_SC_LOCAL_UUID,
+    PROP_CUSTOM_SC_CERTIFICATE_KEY_FILE,
+    PROP_CUSTOM_SC_LOCAL_UUID,
   #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
-    PROP_SC_HUB_SERVER_PORT,
+    PROP_CUSTOM_SC_HUB_SERVER_PORT,
   #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
   #if BSC_CONF_HUB_CONNECTORS_NUM!=0
-    PROP_SC_DIRECT_SERVER_PORT,
+    PROP_CUSTOM_SC_DIRECT_SERVER_PORT,
   #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 #endif /* BACDL_BSC */
     -1 };
@@ -2703,7 +2696,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
 #endif
             break;
-        case PROP_SC_HUB_SERVER_PORT:
+        case PROP_CUSTOM_SC_HUB_SERVER_PORT:
             apdu_len = encode_application_unsigned(&apdu[0],
                 Network_Port_SC_Hub_Server_Port(rpdata->object_instance));
             break;
@@ -2737,7 +2730,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
 #endif
             break;
-        case PROP_SC_DIRECT_SERVER_PORT:
+        case PROP_CUSTOM_SC_DIRECT_SERVER_PORT:
             apdu_len = encode_application_unsigned(&apdu[0],
                 Network_Port_SC_Direct_Server_Port(rpdata->object_instance));
             break;
@@ -2939,7 +2932,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     characterstring_value(&value.type.Character_String));
             }
             break;
-        case PROP_SC_HUB_SERVER_PORT:
+        case PROP_CUSTOM_SC_HUB_SERVER_PORT:
             DECODE_UNSIGNED(Network_Port_SC_Hub_Server_Port_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
@@ -2974,7 +2967,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     characterstring_value(&value.type.Character_String));
             }
             break;
-        case PROP_SC_DIRECT_SERVER_PORT:
+        case PROP_CUSTOM_SC_DIRECT_SERVER_PORT:
             DECODE_UNSIGNED(Network_Port_SC_Direct_Server_Port_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
@@ -2988,8 +2981,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
-        case PROP_SC_CERTIFICATE_KEY_FILE:
-        case PROP_SC_LOCAL_UUID:
+        case PROP_CUSTOM_SC_CERTIFICATE_KEY_FILE:
+        case PROP_CUSTOM_SC_LOCAL_UUID:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
