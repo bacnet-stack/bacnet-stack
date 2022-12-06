@@ -607,9 +607,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
 
-    pthread_mutex_lock(ctx->mutex);
     bsc_websocket_global_lock();
-
 #if DEBUG_ENABLED == 1
     lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG |
             LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY |
@@ -620,6 +618,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
 #endif
     bsc_websocket_global_unlock();
 
+    pthread_mutex_lock(ctx->mutex);
     info.port = port;
     info.iface = iface;
     info.protocols = protos;

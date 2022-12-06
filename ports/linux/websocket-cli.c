@@ -436,9 +436,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
 
     strncpy(tmp_url, url, BSC_WSURL_MAX_LEN);
 
-    pthread_mutex_lock(&bws_cli_mutex);
     bsc_websocket_global_lock();
-
 #if DEBUG_ENABLED == 1
     lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG |
             LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY |
@@ -449,6 +447,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
 #endif
     bsc_websocket_global_unlock();
 
+    pthread_mutex_lock(&bws_cli_mutex);
     ret = lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
 
     if (port == -1 || !prot || !addr || !path) {
