@@ -460,9 +460,12 @@ static void *bws_srv_worker(void *arg)
         ctx, ctx->proto, ctx->user_param);
 
     pthread_mutex_lock(ctx->mutex);
-    ctx->dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, 0,
-        BSC_WEBSOCKET_SERVER_STARTED, NULL, 0, ctx->user_param);
+    dispatch_func = ctx->dispatch_func;
+    user_param = ctx->user_param;
     pthread_mutex_unlock(ctx->mutex);
+
+    dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, 0,
+                   BSC_WEBSOCKET_SERVER_STARTED, NULL, 0, user_param);
 
     while (1) {
         DEBUG_PRINTF("bws_srv_worker() ctx %p proto %d blocked user_param %p\n",
