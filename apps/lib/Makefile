@@ -47,13 +47,31 @@ PORT_BIP6_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/basic/bbmd6/vmac.c \
 	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc6.c
 
+PORT_BSC_SRC = \
+	$(BACNET_PORT_DIR)/bip-init.c \
+	$(BACNET_PORT_DIR)/websocket-mutex.c \
+	$(BACNET_PORT_DIR)/bsc-runloop.c \
+	$(BACNET_PORT_DIR)/bsc-mutex.c \
+	$(BACNET_PORT_DIR)/bsc-event.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bvlc.c \
+	$(BACNET_SRC_DIR)/bacnet/basic/bbmd/h_bbmd.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-datalink.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-hub-connector.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-hub-function.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-node-switch.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-node.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-socket.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bsc-util.c \
+	$(BACNET_SRC_DIR)/bacnet/datalink/bsc/bvlc-sc.c
+
 PORT_ALL_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c \
 	$(PORT_ARCNET_SRC) \
 	$(PORT_MSTP_SRC) \
 	$(PORT_ETHERNET_SRC) \
 	$(PORT_BIP_SRC) \
-	$(PORT_BIP6_SRC)
+	$(PORT_BIP6_SRC) \
+	$(PORT_BSC_SRC)
 
 PORT_NONE_SRC = \
 	$(BACNET_SRC_DIR)/bacnet/datalink/datalink.c
@@ -76,6 +94,9 @@ endif
 ifeq (${BACDL_DEFINE},-DBACDL_NONE=1)
 BACNET_PORT_SRC = ${PORT_NONE_SRC}
 endif
+ifeq (${BACDL_DEFINE},-DBACDL_BSC=1)
+BACNET_PORT_SRC = ${PORT_BSC_SRC}
+endif
 ifeq (${BACDL_DEFINE},-DBACDL_ALL=1)
 BACNET_PORT_SRC = ${PORT_ALL_SRC}
 endif
@@ -96,6 +117,7 @@ BACNET_SRC ?= \
 BACNET_BASIC_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
+	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/object/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/h_npdu.c \

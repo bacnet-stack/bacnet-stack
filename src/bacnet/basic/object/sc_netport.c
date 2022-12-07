@@ -1238,6 +1238,24 @@ bool Network_Port_SC_Local_UUID_Set(uint32_t object_instance,
     return true;
 }
 
+bool Network_Port_Ifname_Set(uint32_t object_instance, char *value)
+{
+    bool ret = false;
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
+    ret = Network_Port_SC_Direct_Connect_Binding_Set(object_instance, value);
+#endif
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
+    ret |= Network_Port_SC_Hub_Function_Binding_Set(object_instance, value);
+#endif
+    return ret;
+}
+
+bool Network_Port_Ifname_Set_By_Index(uint32_t index, char *value)
+{
+    uint32_t instance = Network_Port_Index_To_Instance(index);
+    return Network_Port_Ifname_Set(instance, value);
+}
+
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
 
 /**

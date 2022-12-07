@@ -2315,6 +2315,7 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */
+    PORT_TYPE_BSC = 64,
     PORT_TYPE_MAX = 255
 } BACNET_PORT_TYPE;
 

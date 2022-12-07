@@ -99,6 +99,18 @@ void routed_get_my_address(
 #define datalink_get_my_address bip6_get_my_address
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
 
+#elif defined(BACDL_BSC)
+#include "bacnet/datalink/bsc/bsc-datalink.h"
+#define MAX_MPDU BVLC_SC_NPDU_SIZE_CONF
+
+#define datalink_init bsc_init
+#define datalink_send_pdu bsc_send_pdu
+#define datalink_receive bsc_receive
+#define datalink_cleanup bsc_cleanup
+#define datalink_get_broadcast_address bsc_get_broadcast_address
+#define datalink_get_my_address bsc_get_my_address
+#define datalink_maintenance_timer(s)
+
 #elif defined(BACDL_ALL) || defined(BACDL_NONE) || defined(BACDL_CUSTOM)
 #include "bacnet/npdu.h"
 

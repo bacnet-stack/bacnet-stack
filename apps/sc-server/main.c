@@ -58,6 +58,20 @@
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
+#if defined(BACDL_BSC)
+#include "bacnet/basic/object/netport.h"
+#include "bacnet/basic/object/sc_netport.h"
+#endif
+
+#if defined(BACDL_BSC)
+static uint8_t *Ca_Certificate = NULL;
+static uint8_t *Certificate = NULL;
+static uint8_t *Key = NULL;
+static char *PrimaryUrl = "127.0.0.1:9999";
+static char *FailoverUrl = "127.0.0.1:9999";
+
+#define SC_NETPORT_BACFILE_START_INDEX    0
+#endif
 
 /** @file server/main.c  Example server application using the BACnet Stack with Secure connect. */
 
@@ -153,7 +167,11 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s [device-instance [device-name]]\n", filename);
+#if defined(BACDL_BSC)
+    printf("Usage: %s [device-instance [--sc ca-cert cert key] [device-name]\n", filename);
+#else
+    printf("Usage: %s [device-instance [device-name]\n", filename);
+#endif
     printf("       [--version][--help]\n");
 }
 
@@ -172,7 +190,72 @@ static void print_help(const char *filename)
     printf("To simulate Device 123 named Fred, use following command:\n"
            "%s 123 Fred\n",
         filename);
+#if defined(BACDL_BSC)
+    printf("--sc  - Use the BACnet/SC direct connection.\n"
+           "ca-cert - filename of CA certificate\n"
+           "cert - filename of device certificate\n"
+           "key - filename of device certificate key\n");
+#endif
 }
+
+#if defined(BACDL_BSC)
+
+static uint32_t read_file(char *filename, uint8_t **buff)
+{
+    uint32_t size = 0;
+    FILE *pFile;
+
+    pFile = fopen(filename, "rb");
+    if (pFile) {
+        fseek(pFile, 0L, SEEK_END);
+        size = ftell(pFile);
+        fseek(pFile, 0, SEEK_SET);
+
+        *buff = (uint8_t *)malloc(size);
+        if (*buff != NULL) {
+            size = fread(*buff, size, 1, pFile);
+        }
+        fclose(pFile);
+    }
+    return *buff ? size : 0;
+}
+
+static bool init_bsc(char *filename_ca_cert, char *filename_cert,
+    char *filename_key)
+{
+    uint32_t instance;
+    uint32_t size;
+
+    instance = Network_Port_Index_To_Instance(0);
+
+    size = read_file(filename_ca_cert, &Ca_Certificate);
+    Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
+        Ca_Certificate, size, SC_NETPORT_BACFILE_START_INDEX);
+
+    size = read_file(filename_cert, &Certificate);
+    Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
+        Certificate, size, SC_NETPORT_BACFILE_START_INDEX + 1);
+
+    size = read_file(filename_key, &Key);
+    Network_Port_Certificate_Key_File_Set_From_Memory(instance,
+        Key, size, SC_NETPORT_BACFILE_START_INDEX + 2);
+
+    Network_Port_SC_Primary_Hub_URI_Set(instance, PrimaryUrl);
+    Network_Port_SC_Failover_Hub_URI_Set(instance, FailoverUrl);
+
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, false);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  true);
+    Network_Port_SC_Hub_Function_Enable_Set(instance, false);
+
+//    if (!bsc_direct_connection_established(NULL, &url, 1)) {
+//        printf("\rError initialize SC!\n");
+//        return false;
+//    }
+
+    return true;
+}
+
+#endif
 
 /** Main function of server demo.
  *
@@ -209,6 +292,13 @@ int main(int argc, char *argv[])
     int argi = 0;
     const char *filename = NULL;
 
+#if defined(BACDL_BSC)
+    bool use_sc = false;
+    char *filename_ca_cert = NULL;
+    char *filename_cert = NULL;
+    char *filename_key = NULL;
+#endif
+
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--help") == 0) {
@@ -225,6 +315,20 @@ int main(int argc, char *argv[])
                    "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
+#if defined(BACDL_BSC)
+        if (strcmp(argv[argi], "--sc-") == 0) {
+            use_sc = true;
+            if (++argi < argc) {
+                filename_ca_cert = argv[argi];
+            }
+            if (++argi < argc) {
+                filename_cert = argv[argi];
+            }
+            if (++argi < argc) {
+                filename_key = argv[argi];
+            }
+        }
+#endif
     }
 #if defined(BAC_UCI)
     ctx = ucix_init("bacnet_dev");
@@ -274,9 +378,16 @@ int main(int argc, char *argv[])
     BACNET_CHARACTER_STRING DeviceName;
     if (Device_Object_Name(Device_Object_Instance_Number(),&DeviceName)) {
         printf("BACnet Device Name: %s\n", DeviceName.value);
-}
+    }
 
     dlenv_init();
+#if defined(BACDL_BSC)
+    if (use_sc) {
+        if (!init_bsc(filename_ca_cert, filename_cert, filename_key)) {
+            goto exit;
+        }
+    }
+#endif
     atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
@@ -333,6 +444,13 @@ int main(int argc, char *argv[])
 
         /* blink LEDs, Turn on or off outputs, etc */
     }
+
+#if defined(BACDL_BSC)
+exit:
+    free(Ca_Certificate);
+    free(Certificate);
+    free(Key);
+#endif
 
     return 0;
 }

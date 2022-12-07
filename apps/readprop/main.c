@@ -55,6 +55,10 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/basic/object/netport.h"
+#if defined(BACDL_BSC)
+#include "bacnet/basic/object/sc_netport.h"
+#endif
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -69,6 +73,16 @@ static int32_t Target_Object_Index = BACNET_ARRAY_ALL;
 static uint8_t Request_Invoke_ID = 0;
 static BACNET_ADDRESS Target_Address;
 static bool Error_Detected = false;
+
+#if defined(BACDL_BSC)
+static uint8_t *Ca_Certificate = NULL;
+static uint8_t *Certificate = NULL;
+static uint8_t *Key = NULL;
+static char *PrimaryUrl = "127.0.0.1:9999";
+static char *FailoverUrl = "127.0.0.1:9999";
+
+#define SC_NETPORT_BACFILE_START_INDEX    0
+#endif
 
 static void MyErrorHandler(BACNET_ADDRESS *src,
     uint8_t invoke_id,
@@ -166,7 +180,11 @@ static void print_usage(char *filename)
     printf("Usage: %s device-instance object-type object-instance "
            "property [index]\n",
         filename);
+#if defined(BACDL_BSC)
+    printf("       [--dnet][--dadr][--mac][--sc-direct-url]\n");
+#else
     printf("       [--dnet][--dadr][--mac]\n");
+#endif
     printf("       [--version][--help]\n");
 }
 
@@ -191,6 +209,15 @@ static void print_help(char *filename)
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+#if defined(BACDL_BSC)
+           "\n"
+           "--sc-direct-url dest-url ca-cert cert key\n"
+           "Use the BACnet/SC direct connection.\n"
+           "dest-url - destination URL\n"
+           "ca-cert - filename of CA certificate\n"
+           "cert - filename of device certificate\n"
+           "key - filename of device certificate key\n"
+#endif
            "\n");
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
@@ -235,6 +262,65 @@ static void print_help(char *filename)
         filename, filename, filename, filename);
 }
 
+#if defined(BACDL_BSC)
+
+static uint32_t read_file(char *filename, uint8_t **buff)
+{
+    uint32_t size = 0;
+    FILE *pFile;
+
+    pFile = fopen(filename, "rb");
+    if (pFile) {
+        fseek(pFile, 0L, SEEK_END);
+        size = ftell(pFile);
+        fseek(pFile, 0, SEEK_SET);
+
+        *buff = (uint8_t *)malloc(size);
+        if (*buff != NULL) {
+            size = fread(*buff, size, 1, pFile);
+        }
+        fclose(pFile);
+    }
+    return *buff ? size : 0;
+}
+
+static bool init_bsc(char *url, char *filename_ca_cert, char *filename_cert,
+    char *filename_key)
+{
+    uint32_t instance;
+    uint32_t size;
+
+    instance = Network_Port_Index_To_Instance(0);
+
+    size = read_file(filename_ca_cert, &Ca_Certificate);
+    Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
+        Ca_Certificate, size, SC_NETPORT_BACFILE_START_INDEX);
+
+    size = read_file(filename_cert, &Certificate);
+    Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
+        Certificate, size, SC_NETPORT_BACFILE_START_INDEX + 1);
+
+    size = read_file(filename_key, &Key);
+    Network_Port_Certificate_Key_File_Set_From_Memory(instance,
+        Key, size, SC_NETPORT_BACFILE_START_INDEX + 2);
+
+    Network_Port_SC_Primary_Hub_URI_Set(instance, PrimaryUrl);
+    Network_Port_SC_Failover_Hub_URI_Set(instance, FailoverUrl);
+
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  false);
+    Network_Port_SC_Hub_Function_Enable_Set(instance, false);
+
+    if (!bsc_direct_connection_established(NULL, &url, 1)) {
+        printf("\rError initialize SC!\n");
+        return false;
+    }
+
+    return true;
+}
+
+#endif
+
 int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
@@ -254,6 +340,14 @@ int main(int argc, char *argv[])
     int argi = 0;
     unsigned int target_args = 0;
     char *filename = NULL;
+
+#if defined(BACDL_BSC)
+    bool use_sc = false;
+    char *url = NULL;
+    char *filename_ca_cert = NULL;
+    char *filename_cert = NULL;
+    char *filename_key = NULL;
+#endif
 
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
@@ -290,6 +384,22 @@ int main(int argc, char *argv[])
                     specific_address = true;
                 }
             }
+#if defined(BACDL_BSC)
+        } else if (strcmp(argv[argi], "--sc-direct-url") == 0) {
+            use_sc = true;
+            if (++argi < argc) {
+                url = argv[argi];
+            }
+            if (++argi < argc) {
+                filename_ca_cert = argv[argi];
+            }
+            if (++argi < argc) {
+                filename_cert = argv[argi];
+            }
+            if (++argi < argc) {
+                filename_key = argv[argi];
+            }
+#endif
         } else {
             if (target_args == 0) {
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
@@ -365,6 +475,15 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
+#if defined(BACDL_BSC)
+    if (use_sc) {
+        if (!init_bsc(url, filename_ca_cert, filename_cert, filename_key)) {
+            Error_Detected = true;
+            goto exit;
+        }
+    }
+#endif
+
 #ifdef __STDC_ISO_10646__
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.
@@ -441,6 +560,13 @@ int main(int argc, char *argv[])
         /* keep track of time for next check */
         last_seconds = current_seconds;
     }
+
+#if defined(BACDL_BSC)
+exit:
+    free(Ca_Certificate);
+    free(Certificate);
+    free(Key);
+#endif
 
     if (Error_Detected) {
         return 1;

@@ -36,6 +36,9 @@ endif
 ifeq (${BACDL},bip6)
 BACDL_DEFINE=-DBACDL_BIP6=1
 endif
+ifeq (${BACDL},bsc)
+BACDL_DEFINE=-DBACDL_BSC=1
+endif
 ifeq (${BACDL},none)
 BACDL_DEFINE=-DBACDL_NONE=1
 endif
@@ -76,7 +79,7 @@ endif
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-SYSTEM_LIB=-lc,-lgcc,-lrt,-lm
+SYSTEM_LIB=-lc,-lgcc,-lrt,-lm /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
 endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread

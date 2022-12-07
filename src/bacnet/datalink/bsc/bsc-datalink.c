@@ -15,6 +15,7 @@
 #include <bacnet/basic/sys/fifo.h>
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
+#include "bacnet/datalink/bsc/bsc-datalink.h"
 #include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
 #include "bacnet/datalink/bsc/bsc-mutex.h"
@@ -115,6 +116,8 @@ bool bsc_init(char *ifname)
     BSC_SC_RET r;
     bool ret = false;
     DEBUG_PRINTF("bsc_init() >>>\n");
+
+    Network_Port_Ifname_Set_By_Index(0, ifname);
 
     bsc_global_mutex_lock();
 

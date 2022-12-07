@@ -106,6 +106,15 @@
 #endif
 #endif
 
+#if defined(BACDL_BSC)
+#define SC_NETPORT_BVLC_MAX 1500
+#define SC_NETPORT_NPDU_MAX 1500
+#define SC_NETPORT_CONNECT_TIMEOUT 5
+#define SC_NETPORT_HEARTBEAT_TIMEOUT 2
+#define SC_NETPORT_DISCONNECT_TIMEOUT 2
+#define SC_NETPORT_RECONNECT_TIME 2
+#endif
+
 /* for confirmed messages, this is the number of transactions */
 /* that we hold in a queue waiting for timeout. */
 /* Configure to zero if you don't want any confirmed messages */

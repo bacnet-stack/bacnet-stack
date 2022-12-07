@@ -3103,6 +3103,7 @@ void Network_Port_Init(void)
         memset(&Object_List[index], 0, sizeof(Object_List[index]));
 #ifdef BACDL_BSC
         BACNET_SC_PARAMS *sc = &Object_List[index].Secure_Connect;
+        (void)sc;
   #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
   #endif

@@ -38,6 +38,10 @@
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
+#if defined(BACDL_BSC)
+#include "bacnet/datalink/bsc/bvlc-sc.h"
+#include "bacnet/datalink/bsc/bsc-util.h"
+#endif
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
 #if defined(BACDL_BIP)
@@ -364,6 +368,50 @@ void dlenv_network_port_init(void)
        since they are already set */
     Network_Port_Changes_Pending_Set(instance, false);
 }
+#elif defined(BACDL_BSC)
+/**
+ * Datalink network port object settings
+ */
+void dlenv_network_port_init(void)
+{
+    const uint32_t instance = 1;
+    BACNET_SC_UUID uuid;
+    BACNET_SC_VMAC_ADDRESS vmac;
+
+    Network_Port_Object_Instance_Number_Set(0, instance);
+
+    Network_Port_Name_Set(instance, "BACnet/BSC Port");
+    Network_Port_Type_Set(instance, PORT_TYPE_BSC);
+
+    bsc_generate_random_uuid(&uuid);
+    Network_Port_SC_Local_UUID_Set(instance, (BACNET_UUID *)&uuid);
+
+    bsc_generate_random_vmac(&vmac);
+    Network_Port_MAC_Address_Set(instance, vmac.address, sizeof(vmac));
+
+    /* common NP data */
+    Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
+    Network_Port_Out_Of_Service_Set(instance, false);
+    Network_Port_Quality_Set(instance, PORT_QUALITY_UNKNOWN);
+    Network_Port_APDU_Length_Set(instance, MAX_APDU);
+    Network_Port_Network_Number_Set(instance, 0);
+
+    /* SC parameters */
+    Network_Port_Max_BVLC_Length_Accepted_Set(instance, SC_NETPORT_BVLC_MAX);
+    Network_Port_Max_NPDU_Length_Accepted_Set(instance, SC_NETPORT_NPDU_MAX);
+    Network_Port_SC_Connect_Wait_Timeout_Set(
+        instance, SC_NETPORT_CONNECT_TIMEOUT);
+    Network_Port_SC_Heartbeat_Timeout_Set(
+        instance, SC_NETPORT_HEARTBEAT_TIMEOUT);
+    Network_Port_SC_Disconnect_Wait_Timeout_Set(
+        instance, SC_NETPORT_DISCONNECT_TIMEOUT);
+    Network_Port_SC_Maximum_Reconnect_Time_Set(
+        instance, SC_NETPORT_RECONNECT_TIME);
+
+    /* last thing - clear pending changes - we don't want to set these
+       since they are already set */
+    Network_Port_Changes_Pending_Set(instance, false);
+}
 #else
 /**
  * Datalink network port object settings
@@ -545,6 +593,8 @@ void dlenv_init(void)
     } else {
         dlmstp_set_mac_address(127);
     }
+#elif defined(BACDL_BSC)
+    // do nothing
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {

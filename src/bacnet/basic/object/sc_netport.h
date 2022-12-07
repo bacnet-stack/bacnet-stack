@@ -594,6 +594,16 @@ extern "C" {
         uint32_t object_instance,
         BACNET_UUID *value);
 
+    BACNET_STACK_EXPORT
+    bool Network_Port_Ifname_Set(
+        uint32_t object_instance,
+        char *value);
+    BACNET_STACK_EXPORT
+    bool Network_Port_Ifname_Set_By_Index(
+        uint32_t index,
+        char *value);
+
+
     //
     // Encode / decode
     //
