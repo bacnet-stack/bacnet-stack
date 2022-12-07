@@ -1,6 +1,8 @@
 /**
  * @file
- * @brief BACNet secure connect API.
+ * @brief BACNet secure connect socket API.
+ *        In general, user should not use that API directly,
+ *        BACNet/SC datalink API should be used.
  * @author Kirill Neznamov
  * @date July 2022
  * @section LICENSE

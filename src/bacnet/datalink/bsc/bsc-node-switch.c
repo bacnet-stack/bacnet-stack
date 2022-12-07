@@ -852,3 +852,59 @@ BSC_SC_RET bsc_node_switch_send(
     DEBUG_PRINTF("bsc_node_switch_send() <<< ret = %d\n", ret);
     return ret;
 }
+
+BACNET_STACK_EXPORT
+bool bsc_node_switch_connected(BSC_NODE_SWITCH_HANDLE h,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    char **urls,
+    size_t urls_cnt)
+{
+    BSC_NODE_SWITCH_CTX *ns;
+    bool ret = false;
+    int i, j, k;
+
+    if (!dest && (!urls || urls_cnt == 0)) {
+        return false;
+    }
+
+    bsc_global_mutex_lock();
+    ns = (BSC_NODE_SWITCH_CTX *)h;
+    if (ns->direct_connect_initiate_enable) {
+        if (dest) {
+            i = node_switch_initiator_find_connection_index_for_vmac(dest, ns);
+            if (i != -1) {
+                if (ns->initiator.sock_state[i] ==
+                    BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
+                    ret = true;
+                }
+            }
+        } else {
+            for (i = 0; i < urls_cnt; i++) {
+                for (j = 0; j < sizeof(ns->initiator.sock) / sizeof(BSC_SOCKET);
+                     j++) {
+                    if (ns->initiator.sock_state[j] ==
+                        BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
+                        if (ns->initiator.urls[j].urls_cnt > 0) {
+                            for (k = 0; k < ns->initiator.urls[j].urls_cnt;
+                                 k++) {
+                                if (strlen((char *)&ns->initiator.urls[j]
+                                               .utf8_urls[k][0]) ==
+                                    strlen(urls[i])) {
+                                    if (!memcmp((char *)&ns->initiator.urls[j]
+                                                    .utf8_urls[k][0],
+                                            urls[i], strlen(urls[i]))) {
+                                        ret = true;
+                                        bsc_global_mutex_unlock();
+                                        return ret;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    bsc_global_mutex_unlock();
+    return ret;
+}

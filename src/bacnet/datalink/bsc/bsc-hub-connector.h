@@ -1,6 +1,8 @@
 /**
  * @file
  * @brief BACNet secure connect hub connector API.
+ *        In general, user should not use that API directly,
+ *        BACNet/SC datalink API should be used.
  * @author Kirill Neznamov
  * @date July 2022
  * @section LICENSE

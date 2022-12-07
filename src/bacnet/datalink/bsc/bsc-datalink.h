@@ -115,3 +115,8 @@ void bsc_get_broadcast_address(BACNET_ADDRESS * addr);
 
 BACNET_STACK_EXPORT
 void bsc_get_my_address(BACNET_ADDRESS *my_address);
+
+BACNET_STACK_EXPORT
+bool bsc_direct_connection_established(
+    BACNET_SC_VMAC_ADDRESS *dest,
+    char** urls, size_t urls_cnt);

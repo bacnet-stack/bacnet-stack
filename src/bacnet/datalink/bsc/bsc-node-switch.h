@@ -1,6 +1,8 @@
 /**
  * @file
  * @brief BACNet secure connect node switch function API.
+ *        In general, user should not use that API directly,
+ *        BACNet/SC datalink API should be used.
  * @author Kirill Neznamov
  * @date October 2022
  * @section LICENSE
@@ -97,6 +99,12 @@ bool bsc_node_switch_started(BSC_NODE_SWITCH_HANDLE h);
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_switch_connect(
+    BSC_NODE_SWITCH_HANDLE h,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    char** urls, size_t urls_cnt);
+
+BACNET_STACK_EXPORT
+bool bsc_node_switch_connected(
     BSC_NODE_SWITCH_HANDLE h,
     BACNET_SC_VMAC_ADDRESS *dest,
     char** urls, size_t urls_cnt);

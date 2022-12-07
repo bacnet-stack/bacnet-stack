@@ -259,7 +259,7 @@ uint16_t bsc_receive(
     bsc_global_mutex_lock();
 
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
-        if(FIFO_Count(&bsc_fifo) <= sizeof(uint16_t)) {
+        if (FIFO_Count(&bsc_fifo) <= sizeof(uint16_t)) {
             bsc_global_mutex_unlock();
             bsc_event_timedwait(bsc_data_event, timeout_ms);
             bsc_global_mutex_lock();
@@ -287,7 +287,8 @@ uint16_t bsc_receive(
                     if (dm.hdr.origin &&
                         max_pdu >= dm.payload.encapsulated_npdu.npdu_len) {
                         src->mac_len = BVLC_SC_VMAC_SIZE;
-                        memcpy(&src->mac[0], &dm.hdr.origin->address[0], BVLC_SC_VMAC_SIZE);
+                        memcpy(&src->mac[0], &dm.hdr.origin->address[0],
+                            BVLC_SC_VMAC_SIZE);
                         memcpy(pdu, dm.payload.encapsulated_npdu.npdu,
                             dm.payload.encapsulated_npdu.npdu_len);
                         pdu_len = dm.payload.encapsulated_npdu.npdu_len;
@@ -311,9 +312,9 @@ uint16_t bsc_receive(
     return pdu_len;
 }
 
-void bsc_get_broadcast_address(BACNET_ADDRESS * dest)
+void bsc_get_broadcast_address(BACNET_ADDRESS *dest)
 {
-    if(dest) {
+    if (dest) {
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->mac_len = BVLC_SC_VMAC_SIZE;
         memset(&dest->mac[0], 0xFF, BVLC_SC_VMAC_SIZE);
@@ -322,15 +323,28 @@ void bsc_get_broadcast_address(BACNET_ADDRESS * dest)
 
 void bsc_get_my_address(BACNET_ADDRESS *my_address)
 {
-    if(my_address) {
-      memset(my_address, 0, sizeof(*my_address));
+    if (my_address) {
+        memset(my_address, 0, sizeof(*my_address));
     }
 
     bsc_global_mutex_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         my_address->mac_len = BVLC_SC_VMAC_SIZE;
-        memcpy(&my_address->mac[0],
-                &bsc_conf.local_vmac->address[0], BVLC_SC_VMAC_SIZE);
+        memcpy(&my_address->mac[0], &bsc_conf.local_vmac->address[0],
+            BVLC_SC_VMAC_SIZE);
     }
     bsc_global_mutex_unlock();
+}
+
+bool bsc_direct_connection_established(
+    BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
+{
+    bool ret = false;
+    bsc_global_mutex_lock();
+    if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
+        ret = bsc_node_direct_connection_established(
+            bsc_node, dest, urls, urls_cnt);
+    }
+    bsc_global_mutex_unlock();
+    return ret;
 }

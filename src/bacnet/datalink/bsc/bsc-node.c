@@ -288,7 +288,7 @@ static void bsc_node_process_received(BSC_NODE *node,
     uint16_t error_code;
     BSC_ADDRESS_RESOLUTION *r;
 
-    (void) ret;
+    (void)ret;
     DEBUG_PRINTF("bsc_node_process_received() >>> node = %p, pdu = %p, pdu_len "
                  "= %d, decoded_pdu = %p\n",
         node, pdu, pdu_len, decoded_pdu);
@@ -872,4 +872,19 @@ void bsc_node_disconnect_direct(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest)
     }
     bsc_global_mutex_unlock();
     DEBUG_PRINTF("bsc_node_disconnect_direct() <<< \n");
+}
+
+BACNET_STACK_EXPORT
+bool bsc_node_direct_connection_established(
+    BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
+{
+    bool ret = false;
+    bsc_global_mutex_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        node->conf->direct_connect_initiate_enable) {
+        ret =
+            bsc_node_switch_connected(node->node_switch, dest, urls, urls_cnt);
+    }
+    bsc_global_mutex_lock();
+    return ret;
 }
