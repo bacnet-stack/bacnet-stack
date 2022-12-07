@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet hub connector API.
+ * @brief BACNet/SC datalink public interface API.
  * @author Kirill Neznamov
  * @date October 2022
  * @section LICENSE
@@ -15,16 +15,57 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
-/* on Linux, ifname is eth0, ath0, arc0, and others.
-   on Windows, ifname is the dotted ip address of the interface
-   NULL means all interface.
+/**
+ * @brief Blocking thread-safe bsc_init() function
+ *        initializes BACNet/SC datalink in accordence with value of properties
+ *        from BACNet/SC Network Port Object (sc_netport.h). That means that
+ *        user must initialize and set corresponded properties required for
+ *        configuration of BACNet/SC datalink befor calling of that function.
+ *        According to "Addendum cc" to ANSI/ASHRAE Standard 135-2020
+ *        https://bacnet.org/wp-content/uploads/sites/4/2022/08/Add-135-2020cc.pdf
+ *        most important properties are:
+ *          SC_Primary_Hub_URI
+ *          SC_Failover_Hub_URI
+ *          SC_Maximum_Reconnect_Time
+ *          SC_Connect_Wait_Timeout
+ *          SC_Disconnect_Wait_Timeout
+ *          SC_Heartbeat_Timeout
+ *          Operational_Certificate_File
+ *          Issuer_Certificate_Files
+ *          SC_Hub_Function_Enable
+ *          SC_Hub_Function_Binding
+ *          SC_Direct_Connect_Initiate_Enable
+ *          SC_Direct_Connect_Binding
+ *          SC_Direct_Connect_Accept_Enable
+ * @param ifname - ignored and unused it was added for backward compatibility.
+ * @return true if datalink was initiated and started, otherwise returns false.
  */
 
 BACNET_STACK_EXPORT
 bool bsc_init(char *ifname);
 
+/**
+ * @brief Blocking thread-safe bsc_cleanup() function
+ *        de-initializes BACNet/SC datalink.
+ */
 BACNET_STACK_EXPORT
 void bsc_cleanup(void);
+
+/**
+ * @brief Blocking thread-safe bsc_send_pdu() function
+ *        sends pdu over BACNet/SC to node specified by
+ *        destination address param.
+*
+ * @param dest [in] BACNet/SC node's virtual MAC address as
+ *                  defined in Clause AB.1.5.2.
+ *                  Can be broadcast.
+ * @param npdu_data [in] BACNet/SC datalink does not use that
+ *                       parameter. Added for backward
+ *                       compatibility.
+ * @param pdu [in] protocol data unit to be sent.
+ * @param pdu_len [in] - number of bytes to send.
+ * @return Number of bytes sent on success, negative number on failure.
+ */
 
 BACNET_STACK_EXPORT
 int bsc_send_pdu(BACNET_ADDRESS *dest,
@@ -32,8 +73,45 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
     uint8_t *pdu,
     unsigned pdu_len);
 
+/**
+ * @brief Blocking thread-safe bsc_receive() function
+ *        receives NPDUs transfered over BACNet/SC
+ *        from a node specified by it's virtual MAC address as
+ *        defined in Clause AB.1.5.2.
+ *
+ * @param src [out] Source VMAC address
+ * @param pdu [out] A buffer to hold the PDU portion of the received packet,
+ *                  after the BVLC portion has been stripped off.
+ * @param max_pdu [in] Size of the pdu[] buffer.
+ * @param timeout [in] The number of milliseconds to wait for a packet.
+ * @return The number of octets (remaining) in the PDU, or zero on failure.
+ */
+
 BACNET_STACK_EXPORT
 uint16_t bsc_receive(BACNET_ADDRESS *src,
     uint8_t *pdu,
     uint16_t max_pdu,
     unsigned timeout_ms);
+
+/**
+ * @brief Function can be used to retrieve broadcast
+ *        VMAC address for BACNet/SC node.
+ *
+ * @param addr [out] Value of broadcast VMAC address.
+ */
+
+BACNET_STACK_EXPORT
+void bsc_get_broadcast_address(BACNET_ADDRESS * addr);
+
+/**
+ * @brief Function can be used to retrieve local
+ *        VMAC address of initialized BACNet/SC datalink.
+ *        If function called when datalink is not started,
+ *        my_address filled by empty vmac address
+ *        X'000000000000' as it defined in clause AB.1.5.2
+ *
+ * @param my_address [out] Value of local VMAC address.
+ */
+
+BACNET_STACK_EXPORT
+void bsc_get_my_address(BACNET_ADDRESS *my_address);

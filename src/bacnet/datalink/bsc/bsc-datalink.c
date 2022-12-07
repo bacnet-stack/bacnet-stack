@@ -163,7 +163,6 @@ bool bsc_init(char *ifname)
     return false;
 }
 
-BACNET_STACK_EXPORT
 void bsc_cleanup(void)
 {
     DEBUG_PRINTF("bsc_cleanup() >>>\n");
@@ -191,7 +190,6 @@ void bsc_cleanup(void)
     DEBUG_PRINTF("bsc_cleanup() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 int bsc_send_pdu(BACNET_ADDRESS *dest,
     BACNET_NPDU_DATA *npdu_data,
     uint8_t *pdu,
@@ -245,7 +243,6 @@ static void bsc_remove_packet(uint16_t packet_size)
     }
 }
 
-BACNET_STACK_EXPORT
 uint16_t bsc_receive(
     BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout_ms)
 {
@@ -312,4 +309,28 @@ uint16_t bsc_receive(
     bsc_global_mutex_unlock();
     DEBUG_PRINTF("bsc_receive() <<< ret = %d\n", pdu_len);
     return pdu_len;
+}
+
+void bsc_get_broadcast_address(BACNET_ADDRESS * dest)
+{
+    if(dest) {
+        dest->net = BACNET_BROADCAST_NETWORK;
+        dest->mac_len = BVLC_SC_VMAC_SIZE;
+        memset(&dest->mac[0], 0xFF, BVLC_SC_VMAC_SIZE);
+    }
+}
+
+void bsc_get_my_address(BACNET_ADDRESS *my_address)
+{
+    if(my_address) {
+      memset(my_address, 0, sizeof(*my_address));
+    }
+
+    bsc_global_mutex_lock();
+    if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
+        my_address->mac_len = BVLC_SC_VMAC_SIZE;
+        memcpy(&my_address->mac[0],
+                &bsc_conf.local_vmac->address[0], BVLC_SC_VMAC_SIZE);
+    }
+    bsc_global_mutex_unlock();
 }
