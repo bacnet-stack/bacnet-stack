@@ -10,6 +10,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
+
 #define _GNU_SOURCE
 #include <string.h>
 #include <stdio.h>
@@ -43,6 +44,7 @@ struct BSC_RunLoop {
     bool started;
     bool process;
     bool changed;
+    bool exit;
     pthread_mutex_t *mutex;
     pthread_cond_t cond;
     pthread_t thread_id;
@@ -50,7 +52,7 @@ struct BSC_RunLoop {
 
 static pthread_mutex_t bsc_mutex_global = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static BSC_RUNLOOP bsc_runloop_global = { true, { 0 }, false, false, false,
-    &bsc_mutex_global, { 0 }, 0 };
+    false, &bsc_mutex_global, { 0 }, 0 };
 static BSC_RUNLOOP bsc_runloop_local[BSC_RUNLOOP_LOCAL_NUM];
 static pthread_mutex_t bsc_mutex_local[BSC_RUNLOOP_LOCAL_NUM] = {
     PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
@@ -123,7 +125,8 @@ static void *bsc_runloop_worker(void *arg)
             memcpy(local, rl->runloop_ctx, sizeof(local));
         }
 
-        if (!rl->started) {
+        if (rl->exit) {
+            rl->exit = false;
             DEBUG_PRINTF("bsc_runloop_worker() runloop is stopped\n");
             pthread_mutex_unlock(rl->mutex);
             break;
@@ -154,10 +157,12 @@ BSC_SC_RET bsc_runloop_start(BSC_RUNLOOP *runloop)
 
     if (runloop->started) {
         pthread_mutex_unlock(runloop->mutex);
+        DEBUG_PRINTF("bsc_runloop_start() <<< ret = BSC_SC_INVALID_OPERATION\n");
         return BSC_SC_INVALID_OPERATION;
     }
 
     if (pthread_cond_init(&runloop->cond, NULL) != 0) {
+        pthread_mutex_unlock(runloop->mutex);
         DEBUG_PRINTF("bsc_runloop_start() <<< ret = BSC_SC_NO_RESOURCES\n");
         return BSC_SC_NO_RESOURCES;
     }
@@ -167,6 +172,7 @@ BSC_SC_RET bsc_runloop_start(BSC_RUNLOOP *runloop)
 
     if (ret != 0) {
         pthread_cond_destroy(&runloop->cond);
+        pthread_mutex_unlock(runloop->mutex);
         DEBUG_PRINTF("bsc_runloop_start() <<< ret = BSC_SC_NO_RESOURCES\n");
         return BSC_SC_NO_RESOURCES;
     }
@@ -266,12 +272,21 @@ void bsc_runloop_stop(BSC_RUNLOOP *runloop)
     } else {
         DEBUG_PRINTF("bsc_runloop_stop() >>> runloop = %p\n", runloop);
     }
+
     pthread_mutex_lock(runloop->mutex);
-    if (runloop->started) {
-        runloop->started = false;
+    if (!runloop->started) {
+        pthread_mutex_unlock(runloop->mutex);
+    }
+    else {
+        runloop->exit = true;
         pthread_cond_signal(&runloop->cond);
         pthread_mutex_unlock(runloop->mutex);
         pthread_join(runloop->thread_id, NULL);
+        pthread_mutex_lock(runloop->mutex);
+        runloop->started = false;
+        pthread_cond_destroy(&runloop->cond);
+        pthread_mutex_unlock(runloop->mutex);
+
 #if DEBUG_ENABLED == 1
         // Ensure that on the moment of stop all callbacks are un-registered
         {
@@ -285,9 +300,6 @@ void bsc_runloop_stop(BSC_RUNLOOP *runloop)
             }
         }
 #endif
-        DEBUG_PRINTF("bsc_runloop_stop() <<<\n");
-        return;
     }
-    pthread_mutex_unlock(runloop->mutex);
     DEBUG_PRINTF("bsc_runloop_stop() <<<\n");
 }
