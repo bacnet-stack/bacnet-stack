@@ -83,11 +83,6 @@ ifneq (${BACDL_DEFINE},)
 CFLAGS += ${BACDL_DEFINE}
 endif
 
-# TODO: uncomment condition for switch off by default
-#ifneq (${BACDL_BSC},)
-CFLAGS += -DBACDL_BSC
-#endif
-
 BACNET_PORT_SRC += \
 	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c \
 	$(BACNET_PORT_DIR)/mstimer-init.c \

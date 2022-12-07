@@ -233,7 +233,7 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/nc.h
     src/bacnet/basic/object/netport.c
     src/bacnet/basic/object/netport.h
-    src/bacnet/basic/object/sc_netport.c
+    $<$<BOOL:${BACDL_BSC}>:src/bacnet/basic/object/sc_netport.c>
     src/bacnet/basic/object/sc_netport.h
     src/bacnet/basic/object/objects.c
     src/bacnet/basic/object/objects.h
@@ -483,6 +483,7 @@ target_compile_definitions(
   PUBLIC
   BACNET_PROTOCOL_REVISION=${BACNET_PROTOCOL_REVISION}
   $<$<BOOL:${BACDL_BIP}>:BACDL_BIP>
+  $<$<BOOL:${BACDL_BSC}>:BACDL_BSC>
   $<$<BOOL:${BACDL_BIP6}>:BACDL_BIP6>
   $<$<BOOL:${BACDL_ARCNET}>:BACDL_ARCNET>
   $<$<BOOL:${BACDL_MSTP}>:BACDL_MSTP>
