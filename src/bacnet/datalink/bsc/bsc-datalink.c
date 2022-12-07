@@ -224,6 +224,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
             bsc_get_next_message_id(), NULL, &dest_vmac, pdu, pdu_len);
 
         ret = bsc_node_send(bsc_node, buf, len);
+        len = pdu_len;
 
         if (ret != BSC_SC_SUCCESS) {
             len = -1;

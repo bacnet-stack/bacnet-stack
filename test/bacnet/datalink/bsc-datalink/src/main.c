@@ -1495,6 +1495,7 @@ static void test_sc_datalink(void)
     dest.mac_len = BVLC_SC_VMAC_SIZE;
     memcpy(&dest.mac[0], &vmac2.address[0], BVLC_SC_VMAC_SIZE);
     sent = bsc_send_pdu(&dest, NULL, npdu, len);
+    zassert_equal(sent == len, true, NULL);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
@@ -1510,6 +1511,7 @@ static void test_sc_datalink(void)
     memset(npdu, 0x52, len);
     dest.mac_len = BVLC_SC_VMAC_SIZE;
     sent = bsc_send_pdu(&dest, NULL, npdu, len);
+    zassert_equal(sent == len, true, NULL);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
     ret = bvlc_sc_decode_message(
