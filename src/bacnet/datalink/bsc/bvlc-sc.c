@@ -2015,7 +2015,6 @@ bool bvlc_sc_decode_message(uint8_t *buf,
  * @param orig- origination vmac.
  */
 
-BACNET_STACK_EXPORT
 void bvlc_sc_remove_dest_set_orig(
     uint8_t *pdu, int pdu_len, BACNET_SC_VMAC_ADDRESS *orig)
 {
@@ -2041,7 +2040,6 @@ void bvlc_sc_remove_dest_set_orig(
  *         chaged pdu, otherwise returns old pdu_len and ppdu is not channged.
  */
 
-BACNET_STACK_EXPORT
 int bvlc_sc_set_orig(uint8_t** ppdu,
                      int pdu_len,
                      BACNET_SC_VMAC_ADDRESS *orig)
@@ -2074,7 +2072,6 @@ int bvlc_sc_set_orig(uint8_t** ppdu,
  * @return true if vmac is broadcast. otherwise returns false.
  */
 
-BACNET_STACK_EXPORT
 bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
@@ -2095,7 +2092,6 @@ bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
  * @return true if vmac is broadcast, otherwise returns false.
  */
 
-BACNET_STACK_EXPORT
 bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE* dm)
 {
     if(dm->hdr.dest == NULL || !bvlc_sc_is_vmac_broadcast(dm->hdr.dest)) {
@@ -2121,7 +2117,6 @@ bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE* dm)
  *         is broadcast, otherwise returns false.
  */
 
-BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
                                     int pdu_len)
 {
@@ -2147,7 +2142,6 @@ bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
  *         input BACNet/SC message, otherwise returns false.
  */
 
-BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
                              int pdu_len)
 {
@@ -2169,7 +2163,6 @@ bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
  *         placed into vmac, otherwise returns false.
  */
 
-BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
                           int pdu_len,
                           BACNET_SC_VMAC_ADDRESS *vmac)
@@ -2199,7 +2192,6 @@ bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
  *         updated pointer to buffer to modified BACNet/SC message.
  */
 
-BACNET_STACK_EXPORT
 int bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
                                  int pdu_len)
 {

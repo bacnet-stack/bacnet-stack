@@ -223,7 +223,6 @@ static void hub_function_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     bsc_global_mutex_unlock();
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
     uint8_t *cert_chain,
@@ -291,7 +290,6 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
     return ret;
 }
 
-BACNET_STACK_EXPORT
 void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
@@ -306,7 +304,6 @@ void bsc_hub_function_stop(BSC_HUB_FUNCTION_HANDLE h)
     DEBUG_PRINTF("bsc_hub_function_stop() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
@@ -322,7 +319,6 @@ bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;

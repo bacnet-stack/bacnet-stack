@@ -365,7 +365,6 @@ static void bsc_node_process_received(BSC_NODE *node,
             break;
         }
         case BVLC_SC_ADVERTISIMENT_SOLICITATION: {
-            BACNET_STACK_EXPORT
             bufsize = bvlc_sc_encode_advertisiment(buf, sizeof(buf),
                 bsc_get_next_message_id(), NULL, decoded_pdu->hdr.origin,
                 bsc_hub_connector_status(node->hub_connector),
@@ -546,7 +545,6 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
     bsc_global_mutex_unlock();
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
 {
     DEBUG_PRINTF("bsc_node_init() >>> conf = %p, node = %p\n", conf, node);
@@ -582,7 +580,6 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
     return BSC_SC_SUCCESS;
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_deinit(BSC_NODE *node)
 {
     DEBUG_PRINTF("bsc_node_deinit() >>> node = %p\n", node);
@@ -687,7 +684,6 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_start(BSC_NODE *node)
 {
     BSC_SC_RET ret;
@@ -712,7 +708,6 @@ BSC_SC_RET bsc_node_start(BSC_NODE *node)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 void bsc_node_stop(BSC_NODE *node)
 {
     DEBUG_PRINTF("bsc_node_stop() >>> node = %p\n", node);
@@ -738,7 +733,6 @@ void bsc_node_stop(BSC_NODE *node)
     DEBUG_PRINTF("bsc_node_stop() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_hub_connector_send(
     void *p_node, uint8_t *pdu, unsigned pdu_len)
 {
@@ -770,7 +764,6 @@ BSC_SC_RET bsc_node_hub_connector_send(
     return ret;
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
 {
     BSC_NODE *node = (BSC_NODE *)p_node;
@@ -805,7 +798,6 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 BSC_ADDRESS_RESOLUTION *bsc_node_get_address_resolution(
     void *p_node, BACNET_SC_VMAC_ADDRESS *vmac)
 {
@@ -852,7 +844,6 @@ BSC_SC_RET bsc_node_send_address_resolution(
     return ret;
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_connect_direct(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
@@ -870,7 +861,6 @@ BSC_SC_RET bsc_node_connect_direct(
     return ret;
 }
 
-BACNET_STACK_EXPORT
 void bsc_node_disconnect_direct(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest)
 {
     DEBUG_PRINTF(

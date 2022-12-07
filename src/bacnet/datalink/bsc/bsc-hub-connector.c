@@ -224,7 +224,6 @@ static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
     DEBUG_PRINTF("hub_connector_context_event() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
     uint8_t *cert_chain,
@@ -351,7 +350,6 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
     DEBUG_PRINTF("bsc_hub_connector_stop() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_hub_connector_send(
     BSC_HUB_CONNECTOR_HANDLE h, uint8_t *pdu, unsigned pdu_len)
 {
@@ -389,7 +387,6 @@ BSC_SC_RET bsc_hub_connector_send(
     return ret;
 }
 
-BACNET_STACK_EXPORT
 bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
@@ -405,7 +402,6 @@ bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(
     BSC_HUB_CONNECTOR_HANDLE h)
 {

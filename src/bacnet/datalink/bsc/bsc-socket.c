@@ -1289,7 +1289,6 @@ BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
     return sc_ret;
 }
 
-BACNET_STACK_EXPORT
 void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
 {
     int i;
@@ -1333,7 +1332,6 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
     DEBUG_PRINTF("bsc_deinit_ctx() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
 {
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
@@ -1373,7 +1371,6 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 void bsc_disconnect(BSC_SOCKET *c)
 {
     uint16_t len;
@@ -1427,7 +1424,6 @@ void bsc_disconnect(BSC_SOCKET *c)
     DEBUG_PRINTF("bsc_disconnect() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
 {
     BSC_SC_RET ret = BSC_SC_SUCCESS;
@@ -1467,7 +1463,6 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 uint16_t bsc_get_next_message_id(void)
 {
     static uint16_t message_id;

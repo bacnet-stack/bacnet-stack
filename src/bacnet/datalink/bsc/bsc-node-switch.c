@@ -502,7 +502,6 @@ static void node_switch_initiator_context_event(
     bsc_global_mutex_unlock();
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
     uint8_t *cert_chain,
@@ -613,7 +612,6 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
     return ret;
 }
 
-BACNET_STACK_EXPORT
 void bsc_node_switch_stop(BSC_NODE_SWITCH_HANDLE h)
 {
     BSC_NODE_SWITCH_CTX *ns;
@@ -638,7 +636,6 @@ void bsc_node_switch_stop(BSC_NODE_SWITCH_HANDLE h)
     DEBUG_PRINTF("bsc_node_switch_stop() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 bool bsc_node_switch_stopped(BSC_NODE_SWITCH_HANDLE h)
 {
     BSC_NODE_SWITCH_CTX *ns = (BSC_NODE_SWITCH_CTX *)h;
@@ -655,7 +652,6 @@ bool bsc_node_switch_stopped(BSC_NODE_SWITCH_HANDLE h)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 bool bsc_node_switch_started(BSC_NODE_SWITCH_HANDLE h)
 {
     BSC_NODE_SWITCH_CTX *ns = (BSC_NODE_SWITCH_CTX *)h;
@@ -679,7 +675,6 @@ bool bsc_node_switch_started(BSC_NODE_SWITCH_HANDLE h)
     return ret;
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_switch_connect(BSC_NODE_SWITCH_HANDLE h,
     BACNET_SC_VMAC_ADDRESS *dest,
     char **urls,
@@ -748,7 +743,6 @@ BSC_SC_RET bsc_node_switch_connect(BSC_NODE_SWITCH_HANDLE h,
     return ret;
 }
 
-BACNET_STACK_EXPORT
 void bsc_node_switch_process_address_resolution(
     BSC_NODE_SWITCH_HANDLE h, BSC_ADDRESS_RESOLUTION *r)
 {
@@ -776,7 +770,6 @@ void bsc_node_switch_process_address_resolution(
     DEBUG_PRINTF("bsc_node_switch_process_address_resolution() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 void bsc_node_switch_disconnect(
     BSC_NODE_SWITCH_HANDLE h, BACNET_SC_VMAC_ADDRESS *dest)
 {
@@ -817,7 +810,6 @@ void bsc_node_switch_disconnect(
     DEBUG_PRINTF("bsc_node_switch_disconnect() <<<\n");
 }
 
-BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_switch_send(
     BSC_NODE_SWITCH_HANDLE h, uint8_t *pdu, unsigned pdu_len)
 {
