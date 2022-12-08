@@ -116,11 +116,42 @@ void bsc_get_broadcast_address(BACNET_ADDRESS * addr);
 BACNET_STACK_EXPORT
 void bsc_get_my_address(BACNET_ADDRESS *my_address);
 
+/**
+ * @brief Function retrieves status of BACNet/SC connection
+ *        of local datalink to remote BACNet/SC hub.
+ *
+ * @return a value from BVLC_SC_HUB_CONNECTION_STATUS enum
+ *         defined in bvlc-sc.h
+ */
+
 BACNET_STACK_EXPORT
 BVLC_SC_HUB_CONNECTION_STATUS
 bsc_hub_connection_status(void);
+
+/**
+ * @brief Function checks if BACNet/SC direct connection is
+ *        established with remote BACNet/SC node.
+ *        User can check the status of connection using either
+ *        destination vmac or list of destination urls.
+ * @param dest BACNet/SC vmac of remote node to check direct
+ *        connection status.
+ * @param urls this array represents the possible URIs of a
+          remote node for acceptance of direct connections.
+          Can contain 1 elem.
+ * @return true if connection is established otherwise returns
+ *         false.
+ */
 
 BACNET_STACK_EXPORT
 bool bsc_direct_connection_established(
     BACNET_SC_VMAC_ADDRESS *dest,
     char** urls, size_t urls_cnt);
+
+BACNET_STACK_EXPORT
+BSC_SC_RET bsc_connect_direct(
+    BACNET_SC_VMAC_ADDRESS *dest,
+    char** urls, size_t urls_cnt);
+
+BACNET_STACK_EXPORT
+void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest);
+
