@@ -125,6 +125,10 @@ void bsc_node_disconnect_direct(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest);
 
 BACNET_STACK_EXPORT
+BVLC_SC_HUB_CONNECTION_STATUS
+bsc_node_hub_connector_status(BSC_NODE *node);
+
+BACNET_STACK_EXPORT
 bool bsc_node_direct_connection_established(
     BSC_NODE *node,
     BACNET_SC_VMAC_ADDRESS *dest,

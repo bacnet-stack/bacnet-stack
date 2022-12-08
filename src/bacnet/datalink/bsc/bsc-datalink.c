@@ -337,6 +337,17 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address)
     bsc_global_mutex_unlock();
 }
 
+BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(void)
+{
+    BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
+    bsc_global_mutex_lock();
+    if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
+        ret = bsc_node_hub_connector_status(bsc_node);
+    }
+    bsc_global_mutex_unlock();
+    return ret;
+}
+
 bool bsc_direct_connection_established(
     BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {

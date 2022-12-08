@@ -874,7 +874,6 @@ void bsc_node_disconnect_direct(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest)
     DEBUG_PRINTF("bsc_node_disconnect_direct() <<< \n");
 }
 
-BACNET_STACK_EXPORT
 bool bsc_node_direct_connection_established(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
@@ -885,6 +884,18 @@ bool bsc_node_direct_connection_established(
         ret =
             bsc_node_switch_connected(node->node_switch, dest, urls, urls_cnt);
     }
+    bsc_global_mutex_unlock();
+    return ret;
+}
+
+BVLC_SC_HUB_CONNECTION_STATUS
+bsc_node_hub_connector_status(BSC_NODE *node)
+{
+    BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
     bsc_global_mutex_lock();
+    if (node->state == BSC_NODE_STATE_STARTED) {
+        ret = bsc_hub_connector_status(node->hub_connector);
+    }
+    bsc_global_mutex_unlock();
     return ret;
 }

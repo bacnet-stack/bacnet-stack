@@ -117,6 +117,10 @@ BACNET_STACK_EXPORT
 void bsc_get_my_address(BACNET_ADDRESS *my_address);
 
 BACNET_STACK_EXPORT
+BVLC_SC_HUB_CONNECTION_STATUS
+bsc_hub_connector_status(void);
+
+BACNET_STACK_EXPORT
 bool bsc_direct_connection_established(
     BACNET_SC_VMAC_ADDRESS *dest,
     char** urls, size_t urls_cnt);

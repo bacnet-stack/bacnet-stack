@@ -155,7 +155,7 @@ struct BSC_SocketContextFuncs {
                                             void* user_arg);
     // We always reserve BSC_PRE bytes before BVLC message header
     // to avoid copying of packet payload during manipulation with
-    // origin and dest addresses (add them to received PDU)
+    // origin and dest addresses (e.g. adding them to received PDU)
     // That's why pdu pointer has always reserved BSC_PRE bytes behind
     void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
                          BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len,
