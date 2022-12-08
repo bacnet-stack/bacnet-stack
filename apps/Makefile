@@ -82,9 +82,9 @@ TARGET_EXT =
 SYSTEM_LIB=-lc,-lgcc,-lrt,-lm /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
 endif
 ifeq (${BACNET_PORT},bsd)
-PFLAGS = -pthread
+PFLAGS = -pthread 
 TARGET_EXT =
-SYSTEM_LIB=-lc,-lm
+SYSTEM_LIB=-lc,-lm /usr/local/lib/libwebsockets.a /usr/local/opt/openssl@3/lib/libcrypto.a /usr/local/opt/openssl@3/lib/libssl.a
 endif
 ifeq (${BACNET_PORT},win32)
 TARGET_EXT = .exe

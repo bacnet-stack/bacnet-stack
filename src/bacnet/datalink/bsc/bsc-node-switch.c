@@ -607,6 +607,10 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
         node_switch_free(ns);
     } else {
         *h = ns;
+        if (direct_connect_initiate_enable && !direct_connect_accept_enable) {
+            ns->event_func(BSC_NODE_SWITCH_EVENT_STARTED, ns, ns->user_arg,
+                NULL, NULL, 0, NULL);
+        }
     }
     bsc_global_mutex_unlock();
     DEBUG_PRINTF("bsc_node_switch_start() <<< ret = %d\n", ret);

@@ -367,12 +367,14 @@ bool bsc_direct_connection_established(
 BSC_SC_RET bsc_connect_direct(
     BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
-    BSC_SC_RET ret;
+    BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
+    DEBUG_PRINTF("bsc_connect_direct() >>> dest = %p, urls = %p, urls_cnt = %d\n", dest, urls, urls_cnt);
     bsc_global_mutex_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         ret = bsc_node_connect_direct(bsc_node, dest, urls, urls_cnt);
     }
     bsc_global_mutex_unlock();
+    DEBUG_PRINTF("bsc_connect_direct() ret = %d\n", ret);
     return ret;
 }
 

@@ -475,6 +475,7 @@ int main(int argc, char *argv[])
     dlenv_init();
 
 #if defined(BACDL_BSC)
+        bsc_connect_direct(NULL, &url, 1);
         while(!bsc_direct_connection_established(NULL, &url, 1)) {
         //printf("\rError initialize SC!\n");
         sleep(1);

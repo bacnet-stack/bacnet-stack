@@ -15,6 +15,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
+#include "bacnet/datalink/bsc/bsc-retcodes.h"
 
 /**
  * @brief Blocking thread-safe bsc_init() function
