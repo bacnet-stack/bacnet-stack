@@ -37,8 +37,8 @@ static void test_simple(void)
     zassert_equal(runloop_counter >=3, true, NULL);
     old_counter = runloop_counter;
     bsc_runloop_schedule(bsc_global_runloop());
-    usleep(100);
-    zassert_equal(runloop_counter - old_counter, 1 ,0 );
+    usleep(500);
+    zassert_equal(runloop_counter - old_counter >= 1, true ,0 );
     bsc_runloop_unreg(bsc_global_runloop(),&ctx);
     bsc_runloop_stop(bsc_global_runloop());
     runloop_counter = 0;
