@@ -530,7 +530,8 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
 
     DEBUG_PRINTF("bsc_node_switch_start() >>>\n");
 
-    if (!address_resolution_timeout_s || !event_func || !port || !h) {
+    if (!address_resolution_timeout_s || !event_func ||
+        (direct_connect_accept_enable && !port) || !h) {
         DEBUG_PRINTF("bsc_node_switch_start() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }

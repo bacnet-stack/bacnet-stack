@@ -594,9 +594,9 @@ void dlenv_init(void)
         dlmstp_set_mac_address(127);
     }
 #elif defined(BACDL_BSC)
-    // do nothing
+    dlenv_network_port_init();
 #endif
-    pEnv = getenv("BACNET_APDU_TIMEOUT");
+   pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {
         apdu_timeout_set((uint16_t)strtol(pEnv, NULL, 0));
     } else {
@@ -618,6 +618,8 @@ void dlenv_init(void)
         tsm_invokeID_set((uint8_t)strtol(pEnv, NULL, 0));
     }
 #endif
+#if !defined(BACDL_BSC)
     dlenv_network_port_init();
+#endif
     dlenv_register_as_foreign_device();
 }

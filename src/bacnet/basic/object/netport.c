@@ -55,7 +55,6 @@
 
 #define BIP_DNS_MAX 3
 struct bacnet_ipv4_port {
-    uint8_t MAC_Address[6];
     uint8_t IP_Address[4];
     uint8_t IP_Subnet_Prefix;
     uint8_t IP_Gateway[4];
@@ -102,6 +101,9 @@ struct mstp_port {
     uint8_t Max_Info_Frames;
 };
 
+struct bsc_port {
+    uint8_t MAC_Address[6];
+};
 
 struct object_data {
     uint32_t Instance_Number;
@@ -119,6 +121,7 @@ struct object_data {
         struct bacnet_ipv6_port IPv6;
         struct ethernet_port Ethernet;
         struct mstp_port MSTP;
+        struct bsc_port BSC;
     } Network;
 
 #ifdef BACDL_BSC
@@ -238,6 +241,7 @@ void Network_Port_Property_List(uint32_t object_instance,
                     *pOptional = MSTP_Port_Properties_Optional;
                     break;
                 case PORT_TYPE_BIP:
+                case PORT_TYPE_BSC:
                     *pOptional = BIP_Port_Properties_Optional;
                     break;
                 case PORT_TYPE_BIP6:
@@ -659,6 +663,7 @@ bool Network_Port_MAC_Address(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
     uint8_t *mac = NULL;
+    uint8_t ip_mac[4 + 2] = { 0 };
     size_t mac_len = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
@@ -674,12 +679,21 @@ bool Network_Port_MAC_Address(
                 mac_len = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
             case PORT_TYPE_BIP:
-                mac = &Object_List[index].Network.IPv4.MAC_Address[0];
-                mac_len = sizeof(Object_List[index].Network.IPv4.MAC_Address);
+                memcpy(
+                    &ip_mac[0], &Object_List[index].Network.IPv4.IP_Address, 4);
+                /* convert port from host-byte-order to network-byte-order */
+                encode_unsigned16(&ip_mac[4],
+                    Object_List[index].Network.IPv4.Port);
+                mac = &ip_mac[0];
+                mac_len = sizeof(ip_mac);
                 break;
             case PORT_TYPE_BIP6:
                 mac = &Object_List[index].Network.IPv6.MAC_Address[0];
                 mac_len = sizeof(Object_List[index].Network.IPv6.MAC_Address);
+                break;
+            case PORT_TYPE_BSC:
+                mac = &Object_List[index].Network.BSC.MAC_Address[0];
+                mac_len = sizeof(Object_List[index].Network.BSC.MAC_Address);
                 break;
             default:
                 break;
@@ -707,10 +721,12 @@ uint8_t *Network_Port_MAC_Address_pointer(uint32_t object_instance)
                 mac = &Object_List[index].Network.MSTP.MAC_Address;
                 break;
             case PORT_TYPE_BIP:
-                mac = &Object_List[index].Network.IPv4.MAC_Address[0];
                 break;
             case PORT_TYPE_BIP6:
                 mac = &Object_List[index].Network.IPv6.MAC_Address[0];
+                break;
+            case PORT_TYPE_BSC:
+                mac = &Object_List[index].Network.BSC.MAC_Address[0];
                 break;
             default:
                 break;
@@ -751,12 +767,15 @@ bool Network_Port_MAC_Address_Set(
                 mac_size = sizeof(Object_List[index].Network.MSTP.MAC_Address);
                 break;
             case PORT_TYPE_BIP:
-                mac_dest = &Object_List[index].Network.IPv4.MAC_Address[0];
-                mac_size = sizeof(Object_List[index].Network.IPv4.MAC_Address);
+                /* no need to set - created from IP address and UPD Port */
                 break;
             case PORT_TYPE_BIP6:
                 mac_dest = &Object_List[index].Network.IPv6.MAC_Address[0];
                 mac_size = sizeof(Object_List[index].Network.IPv6.MAC_Address);
+                break;
+            case PORT_TYPE_BSC:
+                mac_dest = &Object_List[index].Network.BSC.MAC_Address[0];
+                mac_size = sizeof(Object_List[index].Network.BSC.MAC_Address);
                 break;
             default:
                 break;

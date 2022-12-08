@@ -78,8 +78,8 @@ static bool Error_Detected = false;
 static uint8_t *Ca_Certificate = NULL;
 static uint8_t *Certificate = NULL;
 static uint8_t *Key = NULL;
-static char *PrimaryUrl = "127.0.0.1:9999";
-static char *FailoverUrl = "127.0.0.1:9999";
+static char *PrimaryUrl = "wss://127.0.0.1:9999";
+static char *FailoverUrl = "wss://127.0.0.1:9999";
 
 #define SC_NETPORT_BACFILE_START_INDEX    0
 #endif
@@ -277,20 +277,20 @@ static uint32_t read_file(char *filename, uint8_t **buff)
 
         *buff = (uint8_t *)malloc(size);
         if (*buff != NULL) {
-            size = fread(*buff, size, 1, pFile);
+            fread(*buff, size, 1, pFile);
         }
         fclose(pFile);
     }
     return *buff ? size : 0;
 }
 
-static bool init_bsc(char *url, char *filename_ca_cert, char *filename_cert,
+static void init_bsc(char *filename_ca_cert, char *filename_cert,
     char *filename_key)
 {
     uint32_t instance = 1;
     uint32_t size;
 
-    Network_Port_Index_To_Instance_Set(0, instance);
+    Network_Port_Object_Instance_Number_Set(0, instance);
 
     size = read_file(filename_ca_cert, &Ca_Certificate);
     Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
@@ -310,13 +310,6 @@ static bool init_bsc(char *url, char *filename_ca_cert, char *filename_cert,
     Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
     Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  false);
     Network_Port_SC_Hub_Function_Enable_Set(instance, false);
-
-    if (!bsc_direct_connection_established(NULL, &url, 1)) {
-        printf("\rError initialize SC!\n");
-        return false;
-    }
-
-    return true;
 }
 
 #endif
@@ -476,13 +469,19 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
 #if defined(BACDL_BSC)
     if (use_sc) {
-        if (!init_bsc(url, filename_ca_cert, filename_cert, filename_key)) {
-            Error_Detected = true;
-            goto exit;
-        }
+        init_bsc(filename_ca_cert, filename_cert, filename_key);
     }
 #endif
     dlenv_init();
+
+#if defined(BACDL_BSC)
+        while(!bsc_direct_connection_established(NULL, &url, 1)) {
+        //printf("\rError initialize SC!\n");
+        sleep(1);
+    }
+    printf("Initialize SC OK\n");
+#endif
+
 
 #ifdef __STDC_ISO_10646__
     /* Internationalized programs must call setlocale()

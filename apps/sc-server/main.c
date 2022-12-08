@@ -67,8 +67,8 @@
 static uint8_t *Ca_Certificate = NULL;
 static uint8_t *Certificate = NULL;
 static uint8_t *Key = NULL;
-static char *PrimaryUrl = "127.0.0.1:9999";
-static char *FailoverUrl = "127.0.0.1:9999";
+static char *PrimaryUrl = "wss://127.0.0.1:9999";
+static char *FailoverUrl = "wss://127.0.0.1:9999";
 
 #define SC_NETPORT_BACFILE_START_INDEX    0
 #endif
@@ -216,7 +216,7 @@ static uint32_t read_file(char *filename, uint8_t **buff)
 
         *buff = (uint8_t *)malloc(size);
         if (*buff != NULL) {
-            size = fread(*buff, size, 1, pFile);
+            fread(*buff, size, 1, pFile);
         }
         fclose(pFile);
     }
@@ -229,7 +229,7 @@ static bool init_bsc(char *filename_ca_cert, char *filename_cert,
     uint32_t instance = 1;
     uint32_t size;
 
-    Network_Port_Index_To_Instance_Set(0, instance);
+    Network_Port_Object_Instance_Number_Set(0, instance);
 
     size = read_file(filename_ca_cert, &Ca_Certificate);
     Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,

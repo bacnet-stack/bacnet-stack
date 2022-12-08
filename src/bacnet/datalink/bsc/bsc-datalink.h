@@ -126,8 +126,7 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address);
  */
 
 BACNET_STACK_EXPORT
-BVLC_SC_HUB_CONNECTION_STATUS
-bsc_hub_connection_status(void);
+BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connection_status(void);
 
 /**
  * @brief Function checks if BACNet/SC direct connection is
