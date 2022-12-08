@@ -213,7 +213,7 @@ static void print_help(char *filename)
            "\n"
            "--sc-direct-url dest-url ca-cert cert key\n"
            "Use the BACnet/SC direct connection.\n"
-           "dest-url - destination URL\n"
+           "dest-url - destination URL like wss://127.0.0.1:50000\n"
            "ca-cert - filename of CA certificate\n"
            "cert - filename of device certificate\n"
            "key - filename of device certificate key\n"
@@ -287,10 +287,10 @@ static uint32_t read_file(char *filename, uint8_t **buff)
 static bool init_bsc(char *url, char *filename_ca_cert, char *filename_cert,
     char *filename_key)
 {
-    uint32_t instance;
+    uint32_t instance = 1;
     uint32_t size;
 
-    instance = Network_Port_Index_To_Instance(0);
+    Network_Port_Index_To_Instance_Set(0, instance);
 
     size = read_file(filename_ca_cert, &Ca_Certificate);
     Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
@@ -474,7 +474,6 @@ int main(int argc, char *argv[])
     /* setup my info */
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
-    dlenv_init();
 #if defined(BACDL_BSC)
     if (use_sc) {
         if (!init_bsc(url, filename_ca_cert, filename_cert, filename_key)) {
@@ -483,6 +482,7 @@ int main(int argc, char *argv[])
         }
     }
 #endif
+    dlenv_init();
 
 #ifdef __STDC_ISO_10646__
     /* Internationalized programs must call setlocale()

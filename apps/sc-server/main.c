@@ -168,9 +168,9 @@ static void Init_Service_Handlers(void)
 static void print_usage(const char *filename)
 {
 #if defined(BACDL_BSC)
-    printf("Usage: %s [device-instance [--sc ca-cert cert key] [device-name]\n", filename);
+    printf("Usage: %s [--sc ca-cert cert key] [device-instance [device-name]]\n", filename);
 #else
-    printf("Usage: %s [device-instance [device-name]\n", filename);
+    printf("Usage: %s [device-instance [device-name]]\n", filename);
 #endif
     printf("       [--version][--help]\n");
 }
@@ -191,10 +191,13 @@ static void print_help(const char *filename)
            "%s 123 Fred\n",
         filename);
 #if defined(BACDL_BSC)
-    printf("--sc  - Use the BACnet/SC direct connection.\n"
+    printf("--sc Use the BACnet/SC direct connection.\n"
            "ca-cert - filename of CA certificate\n"
            "cert - filename of device certificate\n"
            "key - filename of device certificate key\n");
+    printf("To simulate Device 123 named Fred with BACnet/SC, use following command:\n"
+           "%s --sc ca_cert.pem cert.pem key.pem 123 Fred\n",
+        filename);
 #endif
 }
 
@@ -223,10 +226,10 @@ static uint32_t read_file(char *filename, uint8_t **buff)
 static bool init_bsc(char *filename_ca_cert, char *filename_cert,
     char *filename_key)
 {
-    uint32_t instance;
+    uint32_t instance = 1;
     uint32_t size;
 
-    instance = Network_Port_Index_To_Instance(0);
+    Network_Port_Index_To_Instance_Set(0, instance);
 
     size = read_file(filename_ca_cert, &Ca_Certificate);
     Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
@@ -246,6 +249,8 @@ static bool init_bsc(char *filename_ca_cert, char *filename_cert,
     Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, false);
     Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  true);
     Network_Port_SC_Hub_Function_Enable_Set(instance, false);
+
+    Network_Port_SC_Direct_Server_Port_Set(instance, 50000);
 
 //    if (!bsc_direct_connection_established(NULL, &url, 1)) {
 //        printf("\rError initialize SC!\n");
@@ -316,7 +321,7 @@ int main(int argc, char *argv[])
             return 0;
         }
 #if defined(BACDL_BSC)
-        if (strcmp(argv[argi], "--sc-") == 0) {
+        if (strcmp(argv[argi], "--sc") == 0) {
             use_sc = true;
             if (++argi < argc) {
                 filename_ca_cert = argv[argi];
@@ -327,8 +332,9 @@ int main(int argc, char *argv[])
             if (++argi < argc) {
                 filename_key = argv[argi];
             }
-        }
+        } else 
 #endif
+        break;
     }
 #if defined(BAC_UCI)
     ctx = ucix_init("bacnet_dev");
@@ -340,8 +346,9 @@ int main(int argc, char *argv[])
     } else {
 #endif /* defined(BAC_UCI) */
         /* allow the device ID to be set */
-        if (argc > 1) {
-            Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));
+        if (argi < argc) {
+            Device_Set_Object_Instance_Number(strtol(argv[argi], NULL, 0));
+            ++argi;
         }
 
 #if defined(BAC_UCI)
@@ -368,8 +375,9 @@ int main(int argc, char *argv[])
         Device_Object_Name_ANSI_Init(uciname);
     } else {
 #endif /* defined(BAC_UCI) */
-        if (argc > 2) {
-            Device_Object_Name_ANSI_Init(argv[2]);
+        if (argi < argc) {
+            Device_Object_Name_ANSI_Init(argv[argi]);
+            ++argi;
         }
 #if defined(BAC_UCI)
     }
@@ -380,7 +388,6 @@ int main(int argc, char *argv[])
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
 
-    dlenv_init();
 #if defined(BACDL_BSC)
     if (use_sc) {
         if (!init_bsc(filename_ca_cert, filename_cert, filename_key)) {
@@ -388,6 +395,7 @@ int main(int argc, char *argv[])
         }
     }
 #endif
+    dlenv_init();
     atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
