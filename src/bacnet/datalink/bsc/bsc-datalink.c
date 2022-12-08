@@ -337,7 +337,7 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address)
     bsc_global_mutex_unlock();
 }
 
-BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(void)
+BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connection_status(void)
 {
     BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
     bsc_global_mutex_lock();
