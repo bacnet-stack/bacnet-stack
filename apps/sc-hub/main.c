@@ -72,9 +72,6 @@ static char *FailoverUrl = "wss://127.0.0.1:9999";
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
-/** Buffer used for receiving */
-static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
-
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
@@ -243,20 +240,6 @@ static bool init_bsc(uint16_t port, char *filename_ca_cert, char *filename_cert,
  */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; /* address where message came from */
-    uint16_t pdu_len = 0;
-    unsigned timeout = 1; /* milliseconds */
-    time_t last_seconds = 0;
-    time_t current_seconds = 0;
-    uint32_t elapsed_seconds = 0;
-    uint32_t elapsed_milliseconds = 0;
-    uint32_t address_binding_tmr = 0;
-#if defined(INTRINSIC_REPORTING)
-    uint32_t recipient_scan_tmr = 0;
-#endif
-#if defined(BACNET_TIME_MASTER)
-    BACNET_DATE_TIME bdatetime;
-#endif
 #if defined(BAC_UCI)
     int uciId = 0;
     struct uci_context *ctx;
@@ -353,61 +336,16 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
     /* configure the timeout values */
-    last_seconds = time(NULL);
+    //last_seconds = time(NULL);
     /* broadcast an I-Am on startup */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
     /* loop forever */
     for (;;) {
         /* input */
         bsc_wait(1);
-#if 0
-        current_seconds = time(NULL);
-        /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-
-        /* process */
-        if (pdu_len) {
-            npdu_handler(&src, &Rx_Buf[0], pdu_len);
-        }
-        /* at least one second has passed */
-        elapsed_seconds = (uint32_t)(current_seconds - last_seconds);
-        if (elapsed_seconds) {
-            last_seconds = current_seconds;
-            dcc_timer_seconds(elapsed_seconds);
-            datalink_maintenance_timer(elapsed_seconds);
-            dlenv_maintenance_timer(elapsed_seconds);
-            Load_Control_State_Machine_Handler();
-            elapsed_milliseconds = elapsed_seconds * 1000;
-            handler_cov_timer_seconds(elapsed_seconds);
-            tsm_timer_milliseconds(elapsed_milliseconds);
-            trend_log_timer(elapsed_seconds);
-#if defined(INTRINSIC_REPORTING)
-            Device_local_reporting();
-#endif
-#if defined(BACNET_TIME_MASTER)
-            Device_getCurrentDateTime(&bdatetime);
-            handler_timesync_task(&bdatetime);
-#endif
-        }
-        handler_cov_task();
-        /* scan cache address */
-        address_binding_tmr += elapsed_seconds;
-        if (address_binding_tmr >= 60) {
-            address_cache_timer(address_binding_tmr);
-            address_binding_tmr = 0;
-        }
-#if defined(INTRINSIC_REPORTING)
-        /* try to find addresses of recipients */
-        recipient_scan_tmr += elapsed_seconds;
-        if (recipient_scan_tmr >= NC_RESCAN_RECIPIENTS_SECS) {
-            Notification_Class_find_recipient();
-            recipient_scan_tmr = 0;
-        }
-#endif
         /* output */
 
         /* blink LEDs, Turn on or off outputs, etc */
-#endif
     }
 
 exit:
