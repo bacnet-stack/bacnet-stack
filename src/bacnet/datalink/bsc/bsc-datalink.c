@@ -322,6 +322,9 @@ void bsc_get_broadcast_address(BACNET_ADDRESS *dest)
         dest->net = BACNET_BROADCAST_NETWORK;
         dest->mac_len = BVLC_SC_VMAC_SIZE;
         memset(&dest->mac[0], 0xFF, BVLC_SC_VMAC_SIZE);
+        /* no SADR */
+        dest->len = 0;
+        memset(dest->adr, 0, sizeof(dest->adr));
     }
 }
 
