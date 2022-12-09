@@ -22,7 +22,7 @@ jobs:
       - name: Build firmware
         working-directory: bacnet-stack
         run: |
-          west build -b custom_plank ../zephyr/samples/hello_world
+          west build -b mimxrt1064_evk ../zephyr/samples/hello_world
       - name: Twister Tests
         working-directory: bacnet-stack
         run: |
