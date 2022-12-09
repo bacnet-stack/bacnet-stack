@@ -47,6 +47,7 @@
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/datalink/bsc/bsc-datalink.h"
+#include "bacnet/datalink/bsc/bsc-event.h"
 
 static uint8_t *Ca_Certificate = NULL;
 static uint8_t *Certificate = NULL;
@@ -220,8 +221,8 @@ static bool init_bsc(uint16_t port, char *filename_ca_cert, char *filename_cert,
 
     Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, false);
     Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  true);
+    // TODO: get this param from command line
     Network_Port_SC_Direct_Server_Port_Set(instance, 9999);
-
     Network_Port_SC_Hub_Function_Enable_Set(instance, true);
     Network_Port_SC_Hub_Server_Port_Set(instance, port);
 
@@ -358,8 +359,9 @@ int main(int argc, char *argv[])
     /* loop forever */
     for (;;) {
         /* input */
+        bsc_wait(1);
+#if 0
         current_seconds = time(NULL);
-
         /* returns 0 bytes on timeout */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
@@ -405,6 +407,7 @@ int main(int argc, char *argv[])
         /* output */
 
         /* blink LEDs, Turn on or off outputs, etc */
+#endif
     }
 
 exit:

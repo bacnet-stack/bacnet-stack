@@ -59,6 +59,7 @@
 #if defined(BACDL_BSC)
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/datalink/bsc/bsc-datalink.h"
+#include "bacnet/datalink/bsc/bsc-event.h"
 #endif
 
 /* buffer used for receive */
@@ -479,13 +480,10 @@ int main(int argc, char *argv[])
     dlenv_init();
 
 #if defined(BACDL_BSC)
-    // TODO start connect to HUB ?
-#if 0
-    bsc_connect_direct(NULL, &url, 1);
-    while(!bsc_direct_connection_established(NULL, &url, 1)) {
-        sleep(1);
+    while(bsc_hub_connection_status()==BVLC_SC_HUB_CONNECTION_ABSENT) {
+        bsc_wait(1);
     }
-#endif
+    printf("Connection to BACNet/SC hub established\n");
 #endif
 
 #ifdef __STDC_ISO_10646__

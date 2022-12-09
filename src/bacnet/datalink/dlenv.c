@@ -377,16 +377,17 @@ void dlenv_network_port_init(void)
     const uint32_t instance = 1;
     BACNET_SC_UUID uuid;
     BACNET_SC_VMAC_ADDRESS vmac;
-
+    srand((int) &instance);
     Network_Port_Object_Instance_Number_Set(0, instance);
 
     Network_Port_Name_Set(instance, "BACnet/BSC Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BSC);
 
     bsc_generate_random_uuid(&uuid);
+    printf("BACNet/SC uuid: %s\n",bsc_uuid_to_string(&uuid));
     Network_Port_SC_Local_UUID_Set(instance, (BACNET_UUID *)&uuid);
-
     bsc_generate_random_vmac(&vmac);
+    printf("BACNet/SC vmac: %s\n",bsc_vmac_to_string(&vmac));
     Network_Port_MAC_Address_Set(instance, vmac.address, sizeof(vmac));
 
     /* common NP data */

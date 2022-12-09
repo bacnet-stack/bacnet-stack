@@ -59,9 +59,11 @@
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
 #include "bacnet/basic/object/netport.h"
+#if defined(BACDL_BSC)
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/datalink/bsc/bsc-datalink.h"
-
+#include "bacnet/datalink/bsc/bsc-event.h"
+#endif
 static uint8_t *Ca_Certificate = NULL;
 static uint8_t *Certificate = NULL;
 static uint8_t *Key = NULL;
@@ -362,17 +364,17 @@ int main(int argc, char *argv[])
     if (!init_bsc(hub_url, filename_ca_cert, filename_cert, filename_key)) {
         goto exit;
     }
-    dlenv_init();
 
-    // TODO start connect to HUB ?
-#if 0
-    bsc_connect_direct(NULL, &url, 1);
-    while(!bsc_direct_connection_established(NULL, &url, 1)) {
-        sleep(1);
+    dlenv_init();
+    atexit(datalink_cleanup);
+
+#if defined(BACDL_BSC)
+    while(bsc_hub_connection_status()==BVLC_SC_HUB_CONNECTION_ABSENT) {
+        bsc_wait(1);
     }
+    printf("Connection to BACNet/SC hub established\n");
 #endif
 
-    atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);
     /* broadcast an I-Am on startup */
@@ -387,6 +389,7 @@ int main(int argc, char *argv[])
 
         /* process */
         if (pdu_len) {
+            printf("received pdu of size %d\n\n", pdu_len );
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */
