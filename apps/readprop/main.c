@@ -483,7 +483,6 @@ int main(int argc, char *argv[])
     while(bsc_hub_connection_status()==BVLC_SC_HUB_CONNECTION_ABSENT) {
         bsc_wait(1);
     }
-    printf("Connection to BACNet/SC hub established\n");
 #endif
 
 #ifdef __STDC_ISO_10646__
