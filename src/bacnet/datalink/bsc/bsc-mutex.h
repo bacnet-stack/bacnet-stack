@@ -24,6 +24,7 @@ void bsc_mutex_lock(BSC_MUTEX* mutex);
 void bsc_mutex_unlock(BSC_MUTEX* mutex);
 void bsc_global_mutex_lock(void);
 void bsc_global_mutex_unlock(void);
+void* bsc_mutex_native(BSC_MUTEX *mutex);
 
 #if BSC_MUTEX_DEBUG == 1
 void bsc_global_mutex_lock_dbg(char* file, int line);

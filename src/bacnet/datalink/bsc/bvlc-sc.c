@@ -1684,7 +1684,6 @@ static bool bvlc_sc_decode_header_options(
     BVLC_SC_DECODED_HDR_OPTION *option_array, uint8_t *options_list)
 {
     uint8_t *next_option = options_list;
-    int ret;
     int i = 0;
 
     while (next_option) {

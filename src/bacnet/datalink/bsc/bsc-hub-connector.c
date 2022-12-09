@@ -45,8 +45,6 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
 
 static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
 
-static uint16_t hub_connector_get_next_message_id(void *user_arg);
-
 typedef enum {
     BSC_HUB_CONNECTOR_STATE_IDLE = 0,
     BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY = 1,
@@ -124,7 +122,6 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
 static void hub_connector_process_state(void *ctx)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)ctx;
-    int i;
 
     bsc_global_mutex_lock();
     if (c->state == BSC_HUB_CONNECTOR_STATE_WAIT_FOR_RECONNECT) {
@@ -142,7 +139,6 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    BSC_SC_RET ret;
     BSC_HUB_CONNECTOR *hc;
     uint8_t **ppdu = &pdu;
 

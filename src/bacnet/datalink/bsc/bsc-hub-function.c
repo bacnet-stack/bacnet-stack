@@ -144,11 +144,9 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    unsigned int len;
     BSC_SOCKET *dst;
     BSC_SC_RET ret;
     int i;
-    uint8_t *p = (uint8_t *)decoded_pdu;
     uint8_t **ppdu = &pdu;
     BSC_HUB_FUNCTION *f;
     bsc_global_mutex_lock();

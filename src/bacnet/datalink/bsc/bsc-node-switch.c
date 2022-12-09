@@ -220,7 +220,6 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     uint8_t **ppdu = &pdu;
-    uint16_t len;
     BSC_NODE_SWITCH_CTX *ctx;
 
     bsc_global_mutex_lock();
@@ -339,7 +338,6 @@ static void node_switch_connect_or_delay(
     BSC_NODE_SWITCH_CTX *ns, BACNET_SC_VMAC_ADDRESS *dest, int sock_index)
 {
     BSC_ADDRESS_RESOLUTION *r;
-    BSC_SC_RET ret;
 
     if (ns->initiator.urls[sock_index].urls_cnt > 0) {
         connect_next_url(ns, sock_index);
@@ -406,7 +404,6 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     int index;
-    BSC_SC_RET ret;
     uint8_t **ppdu = &pdu;
     BSC_NODE_SWITCH_CTX *ns;
 
@@ -687,8 +684,6 @@ BSC_SC_RET bsc_node_switch_connect(BSC_NODE_SWITCH_HANDLE h,
 {
     BSC_NODE_SWITCH_CTX *ns;
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
-    BSC_SOCKET *c;
-    BSC_ADDRESS_RESOLUTION *r;
     int i;
 
     DEBUG_PRINTF("bsc_node_switch_connect() >>> h = %p, dest = %p, urls = %p, "
@@ -753,12 +748,12 @@ void bsc_node_switch_process_address_resolution(
 {
     BSC_NODE_SWITCH_CTX *ns;
     int i;
-    BSC_SC_RET ret;
 
     DEBUG_PRINTF("bsc_node_switch_process_address_resolution() >>> h = %p, r = "
                  "%p (%s)\n",
         h, r, bsc_vmac_to_string(&r->vmac));
     bsc_global_mutex_lock();
+
     ns = (BSC_NODE_SWITCH_CTX *)h;
     if (r && r->urls_num) {
         i = node_switch_initiator_find_connection_index_for_vmac(&r->vmac, ns);

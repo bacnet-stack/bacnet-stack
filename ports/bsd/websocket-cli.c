@@ -96,10 +96,9 @@ static BSC_WEBSOCKET_CONNECTION bws_cli_conn[BSC_CLIENT_WEBSOCKETS_MAX_NUM] = {
 
 static BSC_WEBSOCKET_HANDLE bws_cli_alloc_connection(void)
 {
-    int ret;
     int i;
 
-    for (int i = 0; i < BSC_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
+    for (i = 0; i < BSC_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
         if (bws_cli_conn[i].state == BSC_WEBSOCKET_STATE_IDLE) {
             memset(&bws_cli_conn[i], 0, sizeof(bws_cli_conn[i]));
             return i;
@@ -142,7 +141,6 @@ static int bws_cli_websocket_event(struct lws *wsi,
     size_t len)
 {
     BSC_WEBSOCKET_HANDLE h;
-    int written;
     BSC_WEBSOCKET_CLI_DISPATCH dispatch_func;
     void *user_param;
 

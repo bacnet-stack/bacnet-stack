@@ -120,7 +120,7 @@ void bsc_global_mutex_unlock(void)
 }
 #endif
 
-void *bsc_mutex_native(BSC_MUTEX *mutex)
+void* bsc_mutex_native(BSC_MUTEX *mutex)
 {
     return (void *)&mutex->mutex;
 }
