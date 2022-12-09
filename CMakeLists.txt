@@ -531,6 +531,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-mutex.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-event.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-runloop.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-srv.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-mutex.c>
@@ -572,6 +573,7 @@ elseif(APPLE)
     ports/bsd/mstimer-init.c
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-mutex.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-runloop.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-mutex.c>
@@ -734,6 +736,12 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
+
+  add_executable(sc-server apps/sc-server/main.c)
+  target_link_libraries(sc-server PRIVATE ${PROJECT_NAME})
+
+  add_executable(sc-hub apps/sc-hub/main.c)
+  target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})
 endif()
 
 #

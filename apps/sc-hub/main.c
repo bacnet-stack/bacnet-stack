@@ -1,27 +1,15 @@
-/**************************************************************************
+/**
+ * @file
+ * @brief Samble BACNet/SC hub.
+ * @author Mikhail Antropov
+ * @date December 2022
+ * @section LICENSE
  *
- * Copyright (C) 2006 Steve Karg <skarg@users.sourceforge.net>
+ * Copyright (C) 2022 Legrand North America, LLC
+ * as an unpublished work.
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- *********************************************************************/
+ * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -52,9 +40,7 @@
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
@@ -65,10 +51,10 @@
 static uint8_t *Ca_Certificate = NULL;
 static uint8_t *Certificate = NULL;
 static uint8_t *Key = NULL;
+static char *PrimaryUrl = "wss://127.0.0.1:9999";
+static char *FailoverUrl = "wss://127.0.0.1:9999";
 
 #define SC_NETPORT_BACFILE_START_INDEX    0
-
-/** @file server/main.c  Example server application using the BACnet Stack with Secure connect. */
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the ServerDemo module.) */
@@ -81,7 +67,6 @@ static uint8_t *Key = NULL;
 #ifndef BACFILE
 #error "BACFILE must de defined"
 #endif
-
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
@@ -165,14 +150,14 @@ static void Init_Service_Handlers(void)
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s hub-url ca-cert cert key [device-instance [device-name]]\n", filename);
+    printf("Usage: %s port ca-cert cert key [device-instance [device-name]]\n", filename);
     printf("       [--version][--help]\n");
 }
 
 static void print_help(const char *filename)
 {
-    printf("Simulate a BACnet SC server device\n"
-           "hub-url: SC hub URL\n"
+    printf("Simulate a BACnet/SC HUB device\n"
+           "port: Local port\n"
            "ca-cert: Filename of CA certificate\n"
            "cert: Filename of device certificate\n"
            "key: Filename of device certificate key\n"
@@ -180,11 +165,11 @@ static void print_help(const char *filename)
            "trying simulate.\n"
            "device-name: The Device object-name is the text name for the device.\n"
            "\nExample:\n");
-    printf("To simulate Device 123 with connect to hub 127.0.0.1:50000, use following command:\n"
-           "%s wss://127.0.0.1:50000 ca_cert.pem cert.pem key.pem 123\n",
+    printf("To simulate Device 123 on port #50000, use following command:\n"
+           "%s 50000 ca_cert.pem cert.pem key.pem 123\n",
         filename);
-    printf("To simulate Device 123 named Fred with connect to hub 127.0.0.1:50000, use following command:\n"
-           "%s wss://127.0.0.1:50000 ca_cert.pem cert.pem key.pem 123 Fred\n",
+    printf("To simulate Device 123 named Fred on port #50000, use following command:\n"
+           "%s 50000 ca_cert.pem cert.pem key.pem 123 Fred\n",
         filename);
 }
 
@@ -210,7 +195,7 @@ static uint32_t read_file(char *filename, uint8_t **buff)
     return *buff ? size : 0;
 }
 
-static bool init_bsc(char *hub_url, char *filename_ca_cert, char *filename_cert,
+static bool init_bsc(uint16_t port, char *filename_ca_cert, char *filename_cert,
     char *filename_key)
 {
     uint32_t instance = 1;
@@ -230,15 +215,15 @@ static bool init_bsc(char *hub_url, char *filename_ca_cert, char *filename_cert,
     Network_Port_Certificate_Key_File_Set_From_Memory(instance,
         Key, size, SC_NETPORT_BACFILE_START_INDEX + 2);
 
-    Network_Port_SC_Primary_Hub_URI_Set(instance, hub_url);
-    Network_Port_SC_Failover_Hub_URI_Set(instance, hub_url);
+    Network_Port_SC_Primary_Hub_URI_Set(instance, PrimaryUrl);
+    Network_Port_SC_Failover_Hub_URI_Set(instance, FailoverUrl);
 
-    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
-    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  false);
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, false);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  true);
     Network_Port_SC_Direct_Server_Port_Set(instance, 9999);
-    //Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance, hub_url);
 
-    Network_Port_SC_Hub_Function_Enable_Set(instance, false);
+    Network_Port_SC_Hub_Function_Enable_Set(instance, true);
+    Network_Port_SC_Hub_Server_Port_Set(instance, port);
 
     return true;
 }
@@ -278,10 +263,10 @@ int main(int argc, char *argv[])
     int argi = 0;
     const char *filename = NULL;
 
+    uint16_t port = 0;
     char *filename_ca_cert = NULL;
     char *filename_cert = NULL;
     char *filename_key = NULL;
-    char *hub_url = NULL;
 
     filename = filename_remove_path(argv[0]);
     argi = 1;
@@ -299,7 +284,7 @@ int main(int argc, char *argv[])
                "FITNESS FOR A PARTICULAR PURPOSE.\n");
         return 0;
     }
-    hub_url = argv[argi];
+    port = strtol(argv[argi], NULL, 0);
     if (++argi < argc) {
         filename_ca_cert = argv[argi];
     }
@@ -309,6 +294,7 @@ int main(int argc, char *argv[])
     if (++argi < argc) {
         filename_key = argv[argi];
     }
+
 #if defined(BAC_UCI)
     ctx = ucix_init("bacnet_dev");
     if (!ctx)
@@ -328,7 +314,7 @@ int main(int argc, char *argv[])
     ucix_cleanup(ctx);
 #endif /* defined(BAC_UCI) */
 
-    printf("BACnet SC Server Demo\n"
+    printf("BACnet SC Hub Demo\n"
            "BACnet Stack Version %s\n"
            "BACnet Device ID: %u\n"
            "Max APDU: %d\n",
@@ -359,19 +345,11 @@ int main(int argc, char *argv[])
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
 
-    if (!init_bsc(hub_url, filename_ca_cert, filename_cert, filename_key)) {
+    if (!init_bsc(port, filename_ca_cert, filename_cert, filename_key)) {
         goto exit;
     }
+
     dlenv_init();
-
-    // TODO start connect to HUB ?
-#if 0
-    bsc_connect_direct(NULL, &url, 1);
-    while(!bsc_direct_connection_established(NULL, &url, 1)) {
-        sleep(1);
-    }
-#endif
-
     atexit(datalink_cleanup);
     /* configure the timeout values */
     last_seconds = time(NULL);

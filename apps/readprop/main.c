@@ -58,6 +58,7 @@
 #include "bacnet/basic/object/netport.h"
 #if defined(BACDL_BSC)
 #include "bacnet/basic/object/sc_netport.h"
+#include "bacnet/datalink/bsc/bsc-datalink.h"
 #endif
 
 /* buffer used for receive */
@@ -78,8 +79,6 @@ static bool Error_Detected = false;
 static uint8_t *Ca_Certificate = NULL;
 static uint8_t *Certificate = NULL;
 static uint8_t *Key = NULL;
-static char *PrimaryUrl = "wss://127.0.0.1:9999";
-static char *FailoverUrl = "wss://127.0.0.1:9999";
 
 #define SC_NETPORT_BACFILE_START_INDEX    0
 #endif
@@ -181,7 +180,7 @@ static void print_usage(char *filename)
            "property [index]\n",
         filename);
 #if defined(BACDL_BSC)
-    printf("       [--dnet][--dadr][--mac][--sc-direct-url]\n");
+    printf("       [--dnet][--dadr][--mac][--sc]\n");
 #else
     printf("       [--dnet][--dadr][--mac]\n");
 #endif
@@ -211,9 +210,9 @@ static void print_help(char *filename)
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
 #if defined(BACDL_BSC)
            "\n"
-           "--sc-direct-url dest-url ca-cert cert key\n"
-           "Use the BACnet/SC direct connection.\n"
-           "dest-url - destination URL like wss://127.0.0.1:50000\n"
+           "--sc hub-url dest-url ca-cert cert key\n"
+           "Use the BACnet/SC hub connection.\n"
+           "hub-url - destination URL like wss://127.0.0.1:50000\n"
            "ca-cert - filename of CA certificate\n"
            "cert - filename of device certificate\n"
            "key - filename of device certificate key\n"
@@ -277,14 +276,16 @@ static uint32_t read_file(char *filename, uint8_t **buff)
 
         *buff = (uint8_t *)malloc(size);
         if (*buff != NULL) {
-            fread(*buff, size, 1, pFile);
+            if (fread(*buff, size, 1, pFile) == 0) {
+                size = 0;
+            }
         }
         fclose(pFile);
     }
     return *buff ? size : 0;
 }
 
-static void init_bsc(char *filename_ca_cert, char *filename_cert,
+static void init_bsc(char *hub_url, char *filename_ca_cert, char *filename_cert,
     char *filename_key)
 {
     uint32_t instance = 1;
@@ -304,11 +305,14 @@ static void init_bsc(char *filename_ca_cert, char *filename_cert,
     Network_Port_Certificate_Key_File_Set_From_Memory(instance,
         Key, size, SC_NETPORT_BACFILE_START_INDEX + 2);
 
-    Network_Port_SC_Primary_Hub_URI_Set(instance, PrimaryUrl);
-    Network_Port_SC_Failover_Hub_URI_Set(instance, FailoverUrl);
+    Network_Port_SC_Primary_Hub_URI_Set(instance, hub_url);
+    Network_Port_SC_Failover_Hub_URI_Set(instance, hub_url);
 
     Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
     Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  false);
+    Network_Port_SC_Direct_Server_Port_Set(instance, 9999);
+    //Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance, hub_url);
+
     Network_Port_SC_Hub_Function_Enable_Set(instance, false);
 }
 
@@ -336,7 +340,7 @@ int main(int argc, char *argv[])
 
 #if defined(BACDL_BSC)
     bool use_sc = false;
-    char *url = NULL;
+    char *hub_url = NULL;
     char *filename_ca_cert = NULL;
     char *filename_cert = NULL;
     char *filename_key = NULL;
@@ -378,10 +382,10 @@ int main(int argc, char *argv[])
                 }
             }
 #if defined(BACDL_BSC)
-        } else if (strcmp(argv[argi], "--sc-direct-url") == 0) {
+        } else if (strcmp(argv[argi], "--sc") == 0) {
             use_sc = true;
             if (++argi < argc) {
-                url = argv[argi];
+                hub_url = argv[argi];
             }
             if (++argi < argc) {
                 filename_ca_cert = argv[argi];
@@ -469,20 +473,20 @@ int main(int argc, char *argv[])
     Init_Service_Handlers();
 #if defined(BACDL_BSC)
     if (use_sc) {
-        init_bsc(filename_ca_cert, filename_cert, filename_key);
+        init_bsc(hub_url, filename_ca_cert, filename_cert, filename_key);
     }
 #endif
     dlenv_init();
 
 #if defined(BACDL_BSC)
-        bsc_connect_direct(NULL, &url, 1);
-        while(!bsc_direct_connection_established(NULL, &url, 1)) {
-        //printf("\rError initialize SC!\n");
+    // TODO start connect to HUB ?
+#if 0
+    bsc_connect_direct(NULL, &url, 1);
+    while(!bsc_direct_connection_established(NULL, &url, 1)) {
         sleep(1);
     }
-    printf("Initialize SC OK\n");
 #endif
-
+#endif
 
 #ifdef __STDC_ISO_10646__
     /* Internationalized programs must call setlocale()
@@ -562,7 +566,6 @@ int main(int argc, char *argv[])
     }
 
 #if defined(BACDL_BSC)
-exit:
     free(Ca_Certificate);
     free(Certificate);
     free(Key);
