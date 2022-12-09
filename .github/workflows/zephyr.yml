@@ -26,7 +26,7 @@ jobs:
       - name: Twister Tests
         working-directory: bacnet-stack
         run: |
-          ../zephyr/scripts/twister -G --board-root ../zephyr/boards/ --testsuite-root ../zephyr/tests/misc/test_build
+          ../zephyr/scripts/twister -G --board-root ../zephyr/boards/ -T ../zephyr/tests/misc/test_build
       - name: Archive firmware
         uses: actions/upload-artifact@v2
         with:
