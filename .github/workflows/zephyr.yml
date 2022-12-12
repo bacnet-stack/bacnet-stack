@@ -19,17 +19,19 @@ jobs:
         run: |
           west init -l .
           west update
+          
       - name: Build firmware
         working-directory: bacnet-stack
         run: |
-          west build -b mimxrt1064_evk ../zephyr/samples/hello_world
+          ../zephyr/scripts/twister -T ../zephyr/samples/hello_bacnet_stack
+          
 #      - name: Twister Tests
 #        working-directory: bacnet-stack
 #        run: |
 #          ../zephyr/scripts/twister -T ../zephyr/tests/misc/test_build
+
       - name: Archive firmware
         uses: actions/upload-artifact@v2
         with:
           name: firmware
           path: bacnet-stack/build/zephyr/zephyr.*
-    
