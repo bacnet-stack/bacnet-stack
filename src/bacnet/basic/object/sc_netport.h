@@ -567,7 +567,7 @@ extern "C" {
     bool Network_Port_SC_Failed_Connection_Requests_Delete_All(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
-    bool Network_Port_SC_Failed_Connection_Requests_Count(
+    int Network_Port_SC_Failed_Connection_Requests_Count(
         uint32_t object_instance);
 
 #endif

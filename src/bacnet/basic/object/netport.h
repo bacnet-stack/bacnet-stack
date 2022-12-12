@@ -415,7 +415,6 @@ extern "C" {
         RR_PROP_INFO * pInfo);
 
 #ifdef BACDL_BSC
-    BACNET_STACK_EXPORT
     BACNET_SC_PARAMS *Network_Port_SC_Params(
         uint32_t object_instance);
 #endif
@@ -448,7 +447,17 @@ extern "C" {
     void Network_Port_Pending_Params_Discard(
         uint32_t object_instance);
 
+#if BACDL_BSC
+    void Network_Port_Lock(void);
+    void Network_Port_Unlock(void);
+#else
+    #define Network_Port_Lock()
+    #define Network_Port_Unlock()
+#endif
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 #endif
+
+

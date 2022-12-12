@@ -49,6 +49,13 @@
 /* me */
 #include "bacnet/basic/object/netport.h"
 
+#if BACDL_BSC
+#include "bacnet/datalink/bsc/bsc-mutex.h"
+
+struct BSC_Mutex *netport_mutex = NULL;
+#endif /* BACDL_BSC */
+
+
 #ifndef BBMD_ENABLED
 #define BBMD_ENABLED 1
 #endif
@@ -295,11 +302,13 @@ bool Network_Port_Object_Name(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         status = characterstring_init_ansi(
             object_name, Object_List[index].Object_Name);
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -332,10 +341,12 @@ bool Network_Port_Name_Set(uint32_t object_instance, char *new_name)
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Object_Name = new_name;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -350,13 +361,16 @@ bool Network_Port_Name_Set(uint32_t object_instance, char *new_name)
 bool Network_Port_Valid_Instance(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        return true;
+        status = true;
     }
+    Network_Port_Unlock();
 
-    return false;
+    return status;
 }
 
 /**
@@ -380,11 +394,15 @@ unsigned Network_Port_Count(void)
  */
 uint32_t Network_Port_Index_To_Instance(unsigned index)
 {
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        return Object_List[index].Instance_Number;
-    }
+    uint32_t instance = BACNET_MAX_INSTANCE;
 
-    return BACNET_MAX_INSTANCE;
+    Network_Port_Lock();
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        instance = Object_List[index].Instance_Number;
+    }
+    Network_Port_Unlock();
+
+    return instance;
 }
 
 /**
@@ -422,12 +440,14 @@ bool Network_Port_Object_Instance_Number_Set(
 {
     bool status = false; /* return value */
 
+    Network_Port_Lock();
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (object_instance <= BACNET_MAX_INSTANCE) {
             Object_List[index].Instance_Number = object_instance;
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -445,10 +465,12 @@ bool Network_Port_Out_Of_Service(uint32_t object_instance)
     bool oos_flag = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         oos_flag = Object_List[index].Out_Of_Service;
     }
+    Network_Port_Unlock();
 
     return oos_flag;
 }
@@ -466,11 +488,13 @@ bool Network_Port_Out_Of_Service_Set(uint32_t object_instance, bool value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Out_Of_Service = value;
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -487,10 +511,12 @@ BACNET_RELIABILITY Network_Port_Reliability(uint32_t object_instance)
     BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         reliability = Object_List[index].Reliability;
     }
+    Network_Port_Unlock();
 
     return reliability;
 }
@@ -509,11 +535,13 @@ bool Network_Port_Reliability_Set(
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Reliability = value;
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -530,10 +558,12 @@ uint8_t Network_Port_Type(uint32_t object_instance)
     uint8_t port_type = PORT_TYPE_NON_BACNET;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         port_type = Object_List[index].Network_Type;
     }
+    Network_Port_Unlock();
 
     return port_type;
 }
@@ -553,11 +583,13 @@ bool Network_Port_Type_Set(uint32_t object_instance, uint8_t value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Network_Type = value;
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -574,10 +606,12 @@ uint16_t Network_Port_Network_Number(uint32_t object_instance)
     uint16_t network_number = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         network_number = Object_List[index].Network_Number;
     }
+    Network_Port_Unlock();
 
     return network_number;
 }
@@ -595,11 +629,13 @@ bool Network_Port_Network_Number_Set(uint32_t object_instance, uint16_t value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Network_Number = value;
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -616,10 +652,12 @@ BACNET_PORT_QUALITY Network_Port_Quality(uint32_t object_instance)
     BACNET_PORT_QUALITY value = PORT_QUALITY_UNKNOWN;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         value = Object_List[index].Quality;
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -638,11 +676,13 @@ bool Network_Port_Quality_Set(
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Quality = value;
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -666,6 +706,7 @@ bool Network_Port_MAC_Address(
     uint8_t ip_mac[4 + 2] = { 0 };
     size_t mac_len = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         switch (Object_List[index].Network_Type) {
@@ -702,6 +743,7 @@ bool Network_Port_MAC_Address(
             status = octetstring_init(mac_address, mac, mac_len);
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -711,6 +753,7 @@ uint8_t *Network_Port_MAC_Address_pointer(uint32_t object_instance)
     unsigned index = 0; /* offset from instance lookup */
     uint8_t *mac = NULL;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         switch (Object_List[index].Network_Type) {
@@ -732,6 +775,7 @@ uint8_t *Network_Port_MAC_Address_pointer(uint32_t object_instance)
                 break;
         }
     }
+    Network_Port_Unlock();
 
     return mac;
 }
@@ -754,6 +798,7 @@ bool Network_Port_MAC_Address_Set(
     size_t mac_size = 0;
     uint8_t *mac_dest = NULL;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         switch (Object_List[index].Network_Type) {
@@ -785,6 +830,7 @@ bool Network_Port_MAC_Address_Set(
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -801,10 +847,12 @@ uint16_t Network_Port_APDU_Length(uint32_t object_instance)
     uint16_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         value = Object_List[index].APDU_Length;
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -822,11 +870,13 @@ bool Network_Port_APDU_Length_Set(uint32_t object_instance, uint16_t value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].APDU_Length = value;
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -845,10 +895,12 @@ float Network_Port_Link_Speed(uint32_t object_instance)
     float value = 0.0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         value = Object_List[index].Link_Speed;
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -866,11 +918,13 @@ bool Network_Port_Link_Speed_Set(uint32_t object_instance, float value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Link_Speed = value;
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -888,10 +942,12 @@ bool Network_Port_Changes_Pending(uint32_t object_instance)
     bool flag = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         flag = Object_List[index].Changes_Pending;
     }
+    Network_Port_Unlock();
 
     return flag;
 }
@@ -909,6 +965,7 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         Object_List[index].Changes_Pending = value;
@@ -917,6 +974,7 @@ bool Network_Port_Changes_Pending_Set(uint32_t object_instance, bool value)
         }
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -934,12 +992,14 @@ uint8_t Network_Port_MSTP_Max_Master(uint32_t object_instance)
     uint8_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
             value = Object_List[index].Network.MSTP.Max_Master;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -958,6 +1018,7 @@ bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance, uint8_t value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
@@ -970,6 +1031,7 @@ bool Network_Port_MSTP_Max_Master_Set(uint32_t object_instance, uint8_t value)
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -990,6 +1052,7 @@ bool Network_Port_IP_Address(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -997,6 +1060,7 @@ bool Network_Port_IP_Address(
                 ip_address, &Object_List[index].Network.IPv4.IP_Address[0], 4);
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1019,6 +1083,7 @@ bool Network_Port_IP_Address_Set(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1028,6 +1093,7 @@ bool Network_Port_IP_Address_Set(
             Object_List[index].Network.IPv4.IP_Address[3] = d;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1051,6 +1117,7 @@ bool Network_Port_IP_Subnet(
     uint32_t prefix = 0;
     uint8_t ip_mask[4] = { 0 };
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1063,6 +1130,7 @@ bool Network_Port_IP_Subnet(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1080,12 +1148,14 @@ uint8_t Network_Port_IP_Subnet_Prefix(uint32_t object_instance)
     uint8_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             value = Object_List[index].Network.IPv4.IP_Subnet_Prefix;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -1104,6 +1174,7 @@ bool Network_Port_IP_Subnet_Prefix_Set(uint32_t object_instance, uint8_t value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1116,6 +1187,7 @@ bool Network_Port_IP_Subnet_Prefix_Set(uint32_t object_instance, uint8_t value)
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1136,6 +1208,7 @@ bool Network_Port_IP_Gateway(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1143,6 +1216,7 @@ bool Network_Port_IP_Gateway(
                 ip_address, &Object_List[index].Network.IPv4.IP_Gateway[0], 4);
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1165,6 +1239,7 @@ bool Network_Port_IP_Gateway_Set(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1174,6 +1249,7 @@ bool Network_Port_IP_Gateway_Set(
             Object_List[index].Network.IPv4.IP_Gateway[3] = d;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1196,6 +1272,7 @@ bool Network_Port_IP_DNS_Server(uint32_t object_instance,
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1207,6 +1284,7 @@ bool Network_Port_IP_DNS_Server(uint32_t object_instance,
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1234,6 +1312,7 @@ bool Network_Port_IP_DNS_Server_Set(uint32_t object_instance,
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1245,6 +1324,7 @@ bool Network_Port_IP_DNS_Server_Set(uint32_t object_instance,
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1262,12 +1342,14 @@ uint16_t Network_Port_BIP_Port(uint32_t object_instance)
     uint16_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             value = Object_List[index].Network.IPv4.Port;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -1286,6 +1368,7 @@ bool Network_Port_BIP_Port_Set(uint32_t object_instance, uint16_t value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1296,6 +1379,7 @@ bool Network_Port_BIP_Port_Set(uint32_t object_instance, uint16_t value)
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1313,12 +1397,14 @@ BACNET_IP_MODE Network_Port_BIP_Mode(uint32_t object_instance)
     BACNET_IP_MODE value = BACNET_IP_MODE_NORMAL;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             value = Object_List[index].Network.IPv4.Mode;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -1337,6 +1423,7 @@ bool Network_Port_BIP_Mode_Set(uint32_t object_instance, BACNET_IP_MODE value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1347,6 +1434,7 @@ bool Network_Port_BIP_Mode_Set(uint32_t object_instance, BACNET_IP_MODE value)
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1365,11 +1453,13 @@ bool Network_Port_BBMD_Accept_FD_Registrations(uint32_t object_instance)
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         ipv4 = &Object_List[index].Network.IPv4;
         flag = ipv4->BBMD_Accept_FD_Registrations;
     }
+    Network_Port_Unlock();
 
     return flag;
 }
@@ -1390,6 +1480,7 @@ bool Network_Port_BBMD_Accept_FD_Registrations_Set(
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         ipv4 = &Object_List[index].Network.IPv4;
@@ -1399,6 +1490,7 @@ bool Network_Port_BBMD_Accept_FD_Registrations_Set(
         }
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1417,11 +1509,13 @@ void *Network_Port_BBMD_BD_Table(uint32_t object_instance)
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         ipv4 = &Object_List[index].Network.IPv4;
         bdt_head = ipv4->BBMD_BD_Table;
     }
+    Network_Port_Unlock();
 
     return bdt_head;
 }
@@ -1442,6 +1536,7 @@ bool Network_Port_BBMD_BD_Table_Set(uint32_t object_instance, void *bdt_head)
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         ipv4 = &Object_List[index].Network.IPv4;
@@ -1451,6 +1546,7 @@ bool Network_Port_BBMD_BD_Table_Set(uint32_t object_instance, void *bdt_head)
         }
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1469,11 +1565,13 @@ void *Network_Port_BBMD_FD_Table(uint32_t object_instance)
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         ipv4 = &Object_List[index].Network.IPv4;
         fdt_head = ipv4->BBMD_FD_Table;
     }
+    Network_Port_Unlock();
 
     return fdt_head;
 }
@@ -1493,6 +1591,7 @@ bool Network_Port_BBMD_FD_Table_Set(uint32_t object_instance, void *fdt_head)
     unsigned index = 0;
     struct bacnet_ipv4_port *ipv4 = NULL;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         ipv4 = &Object_List[index].Network.IPv4;
@@ -1502,6 +1601,7 @@ bool Network_Port_BBMD_FD_Table_Set(uint32_t object_instance, void *fdt_head)
         }
         status = true;
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1522,6 +1622,7 @@ static bool Network_Port_Remote_BBMD_IP_Address_And_Port(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     if (addr) {
         index = Network_Port_Instance_To_Index(object_instance);
         if (index < BACNET_NETWORK_PORTS_MAX) {
@@ -1536,6 +1637,7 @@ static bool Network_Port_Remote_BBMD_IP_Address_And_Port(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1560,6 +1662,7 @@ bool Network_Port_Remote_BBMD_IP_Address(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1577,6 +1680,7 @@ bool Network_Port_Remote_BBMD_IP_Address(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1599,6 +1703,7 @@ bool Network_Port_Remote_BBMD_IP_Address_Set(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1608,6 +1713,7 @@ bool Network_Port_Remote_BBMD_IP_Address_Set(
             Object_List[index].Network.IPv4.BBMD_IP_Address[3] = d;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1625,12 +1731,14 @@ uint16_t Network_Port_Remote_BBMD_BIP_Port(uint32_t object_instance)
     uint16_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             value = Object_List[index].Network.IPv4.BBMD_Port;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -1650,6 +1758,7 @@ bool Network_Port_Remote_BBMD_BIP_Port_Set(
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1660,6 +1769,7 @@ bool Network_Port_Remote_BBMD_BIP_Port_Set(
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1677,12 +1787,14 @@ uint16_t Network_Port_Remote_BBMD_BIP_Lifetime(uint32_t object_instance)
     uint16_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             value = Object_List[index].Network.IPv4.BBMD_Lifetime;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -1702,6 +1814,7 @@ bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
@@ -1712,6 +1825,7 @@ bool Network_Port_Remote_BBMD_BIP_Lifetime_Set(
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1729,12 +1843,14 @@ BACNET_IP_MODE Network_Port_BIP6_Mode(uint32_t object_instance)
     BACNET_IP_MODE value = BACNET_IP_MODE_NORMAL;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             value = Object_List[index].Network.IPv6.Mode;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -1753,6 +1869,7 @@ bool Network_Port_BIP6_Mode_Set(uint32_t object_instance, BACNET_IP_MODE value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -1763,6 +1880,7 @@ bool Network_Port_BIP6_Mode_Set(uint32_t object_instance, BACNET_IP_MODE value)
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1783,6 +1901,7 @@ bool Network_Port_IPv6_Address(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -1790,6 +1909,7 @@ bool Network_Port_IPv6_Address(
                 &Object_List[index].Network.IPv6.IP_Address[0], IPV6_ADDR_SIZE);
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1810,6 +1930,7 @@ bool Network_Port_IPv6_Address_Set(
     bool status = false;
     unsigned i = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
@@ -1819,6 +1940,7 @@ bool Network_Port_IPv6_Address_Set(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1836,12 +1958,14 @@ uint8_t Network_Port_IPv6_Subnet_Prefix(uint32_t object_instance)
     uint8_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             value = Object_List[index].Network.IPv6.IP_Subnet_Prefix;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -1861,6 +1985,7 @@ bool Network_Port_IPv6_Subnet_Prefix_Set(
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -1873,6 +1998,7 @@ bool Network_Port_IPv6_Subnet_Prefix_Set(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1893,6 +2019,7 @@ bool Network_Port_IPv6_Gateway(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -1900,6 +2027,7 @@ bool Network_Port_IPv6_Gateway(
                 &Object_List[index].Network.IPv6.IP_Gateway[0], IPV6_ADDR_SIZE);
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1920,6 +2048,7 @@ bool Network_Port_IPv6_Gateway_Set(
     bool status = false;
     unsigned i = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
@@ -1929,6 +2058,7 @@ bool Network_Port_IPv6_Gateway_Set(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1951,6 +2081,7 @@ bool Network_Port_IPv6_DNS_Server(uint32_t object_instance,
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -1962,6 +2093,7 @@ bool Network_Port_IPv6_DNS_Server(uint32_t object_instance,
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -1983,6 +2115,7 @@ bool Network_Port_IPv6_DNS_Server_Set(
     bool status = false;
     unsigned i = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
@@ -1993,6 +2126,7 @@ bool Network_Port_IPv6_DNS_Server_Set(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -2013,6 +2147,7 @@ bool Network_Port_IPv6_Multicast_Address(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -2021,6 +2156,7 @@ bool Network_Port_IPv6_Multicast_Address(
                 IPV6_ADDR_SIZE);
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -2041,6 +2177,7 @@ bool Network_Port_IPv6_Multicast_Address_Set(
     bool status = false;
     unsigned i = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
@@ -2051,6 +2188,7 @@ bool Network_Port_IPv6_Multicast_Address_Set(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -2071,6 +2209,7 @@ bool Network_Port_IPv6_DHCP_Server(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -2079,6 +2218,7 @@ bool Network_Port_IPv6_DHCP_Server(
                 IPV6_ADDR_SIZE);
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -2099,6 +2239,7 @@ bool Network_Port_IPv6_DHCP_Server_Set(
     bool status = false;
     unsigned i = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
@@ -2109,6 +2250,7 @@ bool Network_Port_IPv6_DHCP_Server_Set(
             }
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -2126,12 +2268,14 @@ uint16_t Network_Port_BIP6_Port(uint32_t object_instance)
     uint16_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             value = Object_List[index].Network.IPv6.Port;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -2150,6 +2294,7 @@ bool Network_Port_BIP6_Port_Set(uint32_t object_instance, uint16_t value)
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -2160,6 +2305,7 @@ bool Network_Port_BIP6_Port_Set(uint32_t object_instance, uint16_t value)
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -2180,6 +2326,7 @@ bool Network_Port_IPv6_Zone_Index(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
@@ -2187,6 +2334,7 @@ bool Network_Port_IPv6_Zone_Index(
                 zone_index, &Object_List[index].Network.IPv6.Zone_Index[0]);
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -2194,14 +2342,17 @@ bool Network_Port_IPv6_Zone_Index(
 const char *Network_Port_IPv6_Zone_Index_char(
     uint32_t object_instance)
 {
+    const char *p = NULL;
+    Network_Port_Lock();
     unsigned index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
-            return &Object_List[index].Network.IPv6.Zone_Index[0];
+            p = &Object_List[index].Network.IPv6.Zone_Index[0];
         }
     }
+    Network_Port_Unlock();
 
-    return NULL;
+    return p;
 }
 
 /**
@@ -2219,6 +2370,7 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
@@ -2228,6 +2380,7 @@ bool Network_Port_IPv6_Gateway_Zone_Index_Set(
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -2245,12 +2398,14 @@ uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance)
     uint8_t value = 0;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
             value = Object_List[index].Network.MSTP.Max_Info_Frames;
         }
     }
+    Network_Port_Unlock();
 
     return value;
 }
@@ -2270,6 +2425,7 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
     bool status = false;
     unsigned index = 0;
 
+    Network_Port_Lock();
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
@@ -2280,6 +2436,7 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
             status = true;
         }
     }
+    Network_Port_Unlock();
 
     return status;
 }
@@ -3105,13 +3262,33 @@ bool Network_Port_Read_Range(
     return status;
 }
 
+#if BACDL_BSC
+void Network_Port_Lock(void)
+{
+    if (netport_mutex != NULL)
+        bsc_mutex_lock(netport_mutex);
+}
+
+void Network_Port_Unlock(void)
+{
+    if (netport_mutex != NULL)
+        bsc_mutex_unlock(netport_mutex);
+}
+#endif
+
 /**
  * Initializes the Network Port object data
  */
 void Network_Port_Init(void)
 {
     unsigned index = 0;
+
+#if BACDL_BSC
+    netport_mutex = bsc_mutex_init();
+#endif /* BACDL_BSC */
+
     /* do something interesting */
+    Network_Port_Lock();
     for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
         memset(&Object_List[index], 0, sizeof(Object_List[index]));
 #ifdef BACDL_BSC
@@ -3125,6 +3302,7 @@ void Network_Port_Init(void)
   #endif
 #endif /* BACDL_BSC */
     }
+    Network_Port_Unlock();
 }
 
 void Network_Port_Pending_Params_Apply(uint32_t object_instance)
