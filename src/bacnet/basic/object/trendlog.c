@@ -40,6 +40,7 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/basic/object/trendlog.h"
+#include "bacnet/datetime.h"
 #if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h" /* object list dependency */
 #endif
@@ -138,6 +139,18 @@ unsigned Trend_Log_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
+/**
+ * @brief Get the current time from the Device object
+ * @return current time in epoch seconds
+ */
+static bacnet_time_t Trend_Log_Epoch_Seconds_Now(void)
+{
+    BACNET_DATE_TIME bdatetime;
+
+    Device_getCurrentDateTime(&bdatetime);
+    return datetime_seconds_since_epoch(&bdatetime);
+}
+
 /*
  * Things to do when starting up the stack for Trend Logs.
  * Should be called whenever we reset the device or power it up
@@ -147,8 +160,9 @@ void Trend_Log_Init(void)
     static bool initialized = false;
     int iLog;
     int iEntry;
-    struct tm TempTime = {0};
-    time_t tClock;
+    BACNET_DATE_TIME bdatetime = { 0 };
+    bacnet_time_t tClock;
+    uint8_t month;
 
     if (!initialized) {
         initialized = true;
@@ -171,14 +185,10 @@ void Trend_Log_Init(void)
             /* We will just fill the logs with some entries for testing
              * purposes.
              */
-            TempTime.tm_year = 109;
-            TempTime.tm_mon = iLog + 1; /* Different month for each log */
-            TempTime.tm_mday = 1;
-            TempTime.tm_hour = 0;
-            TempTime.tm_min = 0;
-            TempTime.tm_sec = 0;
-            tClock = mktime(&TempTime);
-
+            /* Different month for each log */
+            month = iLog + 1;
+            datetime_set_values(&bdatetime, 2009, month, 1, 0, 0, 0, 0);
+            tClock = datetime_seconds_since_epoch(&bdatetime);
             for (iEntry = 0; iEntry < TL_MAX_ENTRIES; iEntry++) {
                 Logs[iLog][iEntry].tTimeStamp = tClock;
                 Logs[iLog][iEntry].ucRecType = TL_TYPE_REAL;
@@ -190,7 +200,8 @@ void Trend_Log_Init(void)
                 } else {
                     Logs[iLog][iEntry].ucStatus = 0;
                 }
-                tClock += 900; /* advance 15 minutes */
+                /* advance 15 minutes, in seconds */
+                tClock += 900;
             }
 
             LogInfo[iLog].tLastDataTime = tClock - 900;
@@ -419,7 +430,7 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value;
     TL_LOG_INFO *CurrentLog;
-    BACNET_DATE start_date, stop_date; 
+    BACNET_DATE start_date, stop_date;
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE TempSource;
     bool bEffectiveEnable;
     int log_index;
@@ -447,8 +458,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_ENABLE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* Section 12.25.5 can't enable a full log with stop when full
                  * set */
@@ -489,8 +500,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_STOP_WHEN_FULL:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* Only trigger this on a change of state */
                 if (CurrentLog->bStopWhenFull != value.type.Boolean) {
@@ -521,8 +532,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_RECORD_COUNT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int == 0) {
                     /* Time to clear down the log */
@@ -538,8 +549,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* logic
              * triggered and polled options.
              */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated != LOGGING_TYPE_COV) {
                     CurrentLog->LoggingType =
@@ -568,8 +579,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_START_TIME:
             /* Copy the date part to safe place */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_DATE);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_DATE);
             if (!status) {
                 break;
             }
@@ -580,15 +591,15 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->application_data_len - len, &value);
 
             if (len) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_TIME);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_TIME);
                 if (!status) {
                     break;
                 }
                 /* First record the current enable state of the log */
                 bEffectiveEnable = TL_Is_Enabled(log_index);
-		/* Safe to copy the date now */
-                CurrentLog->StartTime.date = start_date; 
+                /* Safe to copy the date now */
+                CurrentLog->StartTime.date = start_date;
                 CurrentLog->StartTime.time = value.type.Time;
 
                 if (datetime_wildcard_present(&CurrentLog->StartTime)) {
@@ -619,8 +630,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_STOP_TIME:
             /* Copy the date part to safe place */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_DATE);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_DATE);
             if (!status) {
                 break;
             }
@@ -631,23 +642,21 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->application_data_len - len, &value);
 
             if (len) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_TIME);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_TIME);
                 if (!status) {
                     break;
                 }
                 /* First record the current enable state of the log */
                 bEffectiveEnable = TL_Is_Enabled(log_index);
-		/* Safe to copy the date now */
-                CurrentLog->StopTime.date = stop_date; 
+                /* Safe to copy the date now */
+                CurrentLog->StopTime.date = stop_date;
                 CurrentLog->StopTime.time = value.type.Time;
 
                 if (datetime_wildcard_present(&CurrentLog->StopTime)) {
                     /* Mark stop time as wild carded */
                     CurrentLog->ucTimeFlags |= TL_T_STOP_WILD;
-                    CurrentLog->tStopTime =
-                        0xFFFFFFFF; /* Fixme: how do we set this to max for
-                                       time_t ? */
+                    CurrentLog->tStopTime = datetime_seconds_since_epoch_max();
                 } else {
                     /* Clear wild card flag and set time in local format */
                     CurrentLog->ucTimeFlags &= ~TL_T_STOP_WILD;
@@ -674,15 +683,15 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             len = bacapp_decode_device_obj_property_ref(
                 wp_data->application_data, &TempSource);
             if ((len < 0) ||
-                (len > wp_data->application_data_len)) // Hmm, that didn't go
-                                                       // as planned...
+                (len > wp_data->application_data_len)) /* Hmm, that didn't go */
+            /* as planned... */
             {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_OTHER;
                 break;
             }
 
-            // We only support references to objects in ourself for now
+            /* We only support references to objects in ourself for now */
             if ((TempSource.deviceIdentifier.type == OBJECT_DEVICE) &&
                 (TempSource.deviceIdentifier.instance !=
                     Device_Object_Instance_Number())) {
@@ -711,8 +720,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 break;
             }
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if ((CurrentLog->LoggingType == LOGGING_TYPE_POLLED) &&
                     (value.type.Unsigned_Int == 0)) {
@@ -736,8 +745,8 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_ALIGN_INTERVALS:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CurrentLog->bAlignIntervals = value.type.Boolean;
             }
@@ -746,16 +755,16 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_INTERVAL_OFFSET:
             /* We only log to 1 sec accuracy so must divide by 100 before
              * passing it on */
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentLog->ulIntervalOffset = value.type.Unsigned_Int / 100;
             }
             break;
 
         case PROP_TRIGGER:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 /* We will not allow triggered operation if polling with
                  * aligning to the clock as that will produce non aligned
@@ -819,7 +828,7 @@ void TL_Insert_Status_Rec(int iLog, BACNET_LOG_STATUS eStatus, bool bState)
 
     CurrentLog = &LogInfo[iLog];
 
-    TempRec.tTimeStamp = time(NULL);
+    TempRec.tTimeStamp = Trend_Log_Epoch_Seconds_Now();
     TempRec.ucRecType = TL_TYPE_STATUS;
     TempRec.ucStatus = 0;
     TempRec.Datum.ucLogStatus = 0;
@@ -863,7 +872,7 @@ void TL_Insert_Status_Rec(int iLog, BACNET_LOG_STATUS eStatus, bool bState)
 bool TL_Is_Enabled(int iLog)
 {
     TL_LOG_INFO *CurrentLog;
-    time_t tNow;
+    bacnet_time_t tNow;
     bool bStatus;
 
     bStatus = true;
@@ -883,7 +892,7 @@ bool TL_Is_Enabled(int iLog)
         bStatus = false;
     } else if (CurrentLog->ucTimeFlags != (TL_T_START_WILD | TL_T_STOP_WILD)) {
         /* enabled and either 1 wild card or none */
-        tNow = time(NULL);
+        tNow = Trend_Log_Epoch_Seconds_Now();
 #if 0
         printf("\nFlags - %u, Current - %u, Start - %u, Stop - %u\n",
             (unsigned int) CurrentLog->ucTimeFlags, (unsigned int) Now,
@@ -921,59 +930,18 @@ bool TL_Is_Enabled(int iLog)
  * Convert a BACnet time into a local time in seconds since the local epoch  *
  *****************************************************************************/
 
-time_t TL_BAC_Time_To_Local(BACNET_DATE_TIME *SourceTime)
+bacnet_time_t TL_BAC_Time_To_Local(BACNET_DATE_TIME *bdatetime)
 {
-    struct tm LocalTime = {0};
-    int iTemp;
-
-    LocalTime.tm_year =
-        SourceTime->date.year - 1900; /* We store BACnet year in full format */
-    /* Some clients send a date of all 0s to indicate start of epoch
-     * even though this is not a valid date. Pick this up here and
-     * correct the day and month for the local time functions.
-     */
-    iTemp =
-        SourceTime->date.year + SourceTime->date.month + SourceTime->date.day;
-    if (iTemp == 1900) {
-        LocalTime.tm_mon = 0;
-        LocalTime.tm_mday = 1;
-    } else {
-        LocalTime.tm_mon = SourceTime->date.month - 1;
-        LocalTime.tm_mday = SourceTime->date.day;
-    }
-
-    LocalTime.tm_hour = SourceTime->time.hour;
-    LocalTime.tm_min = SourceTime->time.min;
-    LocalTime.tm_sec = SourceTime->time.sec;
-
-    return (mktime(&LocalTime));
+    return datetime_seconds_since_epoch(bdatetime);
 }
 
 /*****************************************************************************
  * Convert a local time in seconds since the local epoch into a BACnet time  *
  *****************************************************************************/
 
-void TL_Local_Time_To_BAC(BACNET_DATE_TIME *DestTime, time_t SourceTime)
+void TL_Local_Time_To_BAC(BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds)
 {
-    struct tm *TempTime;
-
-    TempTime = localtime(&SourceTime);
-
-    DestTime->date.year = (uint16_t)(TempTime->tm_year + 1900);
-    DestTime->date.month = (uint8_t)(TempTime->tm_mon + 1);
-    DestTime->date.day = (uint8_t)TempTime->tm_mday;
-    /* BACnet is 1 to 7 = Monday to Sunday
-     * Windows is days from Sunday 0 - 6 so we
-     * have to adjust */
-    if (TempTime->tm_wday == 0) {
-        DestTime->date.wday = 7;
-    } else {
-        DestTime->date.wday = (uint8_t)TempTime->tm_wday;
-    }
-    DestTime->time.hour = (uint8_t)TempTime->tm_hour;
-    DestTime->time.min = (uint8_t)TempTime->tm_min;
-    DestTime->time.sec = (uint8_t)TempTime->tm_sec;
-    DestTime->time.hundredths = 0;
+    datetime_since_epoch_seconds(bdatetime, seconds);
 }
 
 /****************************************************************************
@@ -1304,7 +1272,7 @@ int TL_encode_by_time(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     uint32_t uiLast = 0; /* Entry number we finished encoding on */
     uint32_t uiRemaining = 0; /* Amount of unused space in packet */
     uint32_t uiFirstSeq = 0; /* Sequence number for 1st record in log */
-    time_t tRefTime = 0; /* The time from the request in local format */
+    bacnet_time_t tRefTime = 0; /* The time from the request in local format */
 
     /* See how much space we have */
     uiRemaining = MAX_APDU - pRequest->Overhead;
@@ -1611,7 +1579,7 @@ static void TL_fetch_property(int iLog)
 
     /* Record the current time in the log entry and also in the info block
      * for the log so we can figure out when the next reading is due */
-    TempRec.tTimeStamp = time(NULL);
+    TempRec.tTimeStamp = Trend_Log_Epoch_Seconds_Now();
     CurrentLog->tLastDataTime = TempRec.tTimeStamp;
     TempRec.ucStatus = 0;
 
@@ -1722,11 +1690,11 @@ void trend_log_timer(uint16_t uSeconds)
 {
     TL_LOG_INFO *CurrentLog = NULL;
     int iCount = 0;
-    time_t tNow = 0;
+    bacnet_time_t tNow = 0;
 
     (void)uSeconds;
     /* use OS to get the current time */
-    tNow = time(NULL);
+    tNow = Trend_Log_Epoch_Seconds_Now();
     for (iCount = 0; iCount < MAX_TREND_LOGS; iCount++) {
         CurrentLog = &LogInfo[iCount];
         if (TL_Is_Enabled(iCount)) {

@@ -27,10 +27,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <time.h>       /* for time_t */
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/cov.h"
+#include "bacnet/datetime.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
@@ -62,7 +62,7 @@ extern "C" {
  */
 
     typedef struct tl_data_record {
-        time_t tTimeStamp;      /* When the event occurred */
+        bacnet_time_t tTimeStamp;      /* When the event occurred */
         uint8_t ucRecType;      /* What type of Event */
         uint8_t ucStatus;       /* Optional Status for read value in b0-b2, b7 = 1 if status is used */
         union {
@@ -88,9 +88,9 @@ extern "C" {
     typedef struct tl_log_info {
         bool bEnable;   /* Trend log is active when this is true */
         BACNET_DATE_TIME StartTime;     /* BACnet format start time */
-        time_t tStartTime;      /* Local time working copy of start time */
+        bacnet_time_t tStartTime;      /* Local time working copy of start time */
         BACNET_DATE_TIME StopTime;      /* BACnet format stop time */
-        time_t tStopTime;       /* Local time working copy of stop time */
+        bacnet_time_t tStopTime;       /* Local time working copy of stop time */
         uint8_t ucTimeFlags;    /* Shorthand info on times */
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE Source; /* Where the data comes from */
         uint32_t ulLogInterval; /* Time between entries in seconds */
@@ -102,7 +102,7 @@ extern "C" {
         uint32_t ulIntervalOffset;      /* Offset from start of period for taking reading in seconds */
         bool bTrigger;  /* Set to 1 to cause a reading to be taken */
         int iIndex;     /* Current insertion point */
-        time_t tLastDataTime;
+        bacnet_time_t tLastDataTime;
     } TL_LOG_INFO;
 
 /*
@@ -173,13 +173,13 @@ extern "C" {
         int iLog);
 
     BACNET_STACK_EXPORT
-    time_t TL_BAC_Time_To_Local(
+    bacnet_time_t TL_BAC_Time_To_Local(
         BACNET_DATE_TIME * SourceTime);
 
     BACNET_STACK_EXPORT
     void TL_Local_Time_To_BAC(
         BACNET_DATE_TIME * DestTime,
-        time_t SourceTime);
+        bacnet_time_t SourceTime);
 
     BACNET_STACK_EXPORT
     int TL_encode_entry(

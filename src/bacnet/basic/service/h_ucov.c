@@ -41,7 +41,7 @@
 /** @file h_ucov.c  Handles Unconfirmed COV Notifications. */
 #if PRINT_ENABLED
 #include <stdio.h>
-#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -57,8 +57,7 @@ static BACNET_COV_NOTIFICATION Unconfirmed_COV_Notification_Head;
  * @brief call the COV notification callbacks
  * @param cov_data - data decoded from the COV notification
  */
-static void handler_ucov_notification_callback(
-    BACNET_COV_DATA *cov_data)
+static void handler_ucov_notification_callback(BACNET_COV_DATA *cov_data)
 {
     BACNET_COV_NOTIFICATION *head;
 
@@ -75,8 +74,7 @@ static void handler_ucov_notification_callback(
  * @brief Add a Confirmed COV notification callback
  * @param cb - COV notification callback to be added
  */
-void handler_ucov_notification_add(
-    BACNET_COV_NOTIFICATION *cb)
+void handler_ucov_notification_add(BACNET_COV_NOTIFICATION *cb)
 {
     BACNET_COV_NOTIFICATION *head;
 
@@ -122,9 +120,8 @@ void handler_ucov_notification(
     cov_data.listOfValues = &property_value[0];
     PRINTF("UCOV: Received Notification!\n");
     /* decode the service request only */
-    len =
-        cov_notify_decode_service_request(
-            service_request, service_len, &cov_data);
+    len = cov_notify_decode_service_request(
+        service_request, service_len, &cov_data);
     if (len > 0) {
         handler_ucov_notification_callback(&cov_data);
         PRINTF("UCOV: PID=%u ", cov_data.subscriberProcessIdentifier);
@@ -141,8 +138,7 @@ void handler_ucov_notification(
                 PRINTF("%s ",
                     bactext_property_name(pProperty_value->propertyIdentifier));
             } else {
-                PRINTF("proprietary %u ",
-                    pProperty_value->propertyIdentifier);
+                PRINTF("proprietary %u ", pProperty_value->propertyIdentifier);
             }
             if (pProperty_value->propertyArrayIndex != BACNET_ARRAY_ALL) {
                 PRINTF("%u ", pProperty_value->propertyArrayIndex);

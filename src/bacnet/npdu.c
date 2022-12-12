@@ -537,9 +537,7 @@ int bacnet_npdu_decode(uint8_t *npdu,
  * @param pdu_len [in] The size of the received message in the pdu[] buffer.
  * @return true if the PDU is a confirmed APDU
  */
-bool npdu_confirmed_service(
-    uint8_t *pdu,
-    uint16_t pdu_len)
+bool npdu_confirmed_service(uint8_t *pdu, uint16_t pdu_len)
 {
     bool status = false;
     int apdu_offset = 0;

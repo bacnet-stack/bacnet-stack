@@ -62,7 +62,7 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
         return;
-}
+    }
 
     iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
     Response.cMyByte1 = (char)ulTemp;
@@ -72,7 +72,7 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_UNSIGNED_INT) {
         return;
-}
+    }
 
     iLen += decode_unsigned(&pData[iLen], len_value_type, &ulTemp);
     Response.cMyByte2 = (char)ulTemp;
@@ -82,7 +82,7 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_REAL) {
         return;
-}
+    }
 
     iLen += decode_real(&pData[iLen], &Response.fMyReal);
 
@@ -91,7 +91,7 @@ static void DecodeBlock(char cBlockNum, uint8_t *pData)
     iLen += tag_len;
     if (tag_number != BACNET_APPLICATION_TAG_CHARACTER_STRING) {
         return;
-}
+    }
 
     iLen += decode_character_string(&pData[iLen], len_value_type, &bsName);
     strncpy(

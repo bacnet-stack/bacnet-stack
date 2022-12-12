@@ -603,8 +603,8 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
             if (status) {
                 /* All the object names in a device must be unique */
                 if (Device_Valid_Object_Name(&value.type.Character_String,
@@ -626,8 +626,8 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_DESCRIPTION:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
             if (status) {
                 status = Multistate_Input_Description_Write(
                     wp_data->object_instance, &value.type.Character_String,
@@ -635,8 +635,8 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 status = Multistate_Input_Present_Value_Set(
                     wp_data->object_instance, value.type.Unsigned_Int);
@@ -647,8 +647,8 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Multistate_Input_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
@@ -675,8 +675,8 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     if (element_len) {
                         status = Multistate_Input_State_Text_Write(
                             wp_data->object_instance, array_index,
-                            &value.type.Character_String,
-                            &wp_data->error_class, &wp_data->error_code);
+                            &value.type.Character_String, &wp_data->error_class,
+                            &wp_data->error_code);
                     }
                     max_states--;
                     array_index++;
@@ -686,8 +686,7 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                             wp_data->application_data_len - len, &value);
                         if (element_len < 0) {
                             wp_data->error_class = ERROR_CLASS_PROPERTY;
-                            wp_data->error_code =
-                                ERROR_CODE_VALUE_OUT_OF_RANGE;
+                            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                             break;
                         }
                         len += element_len;

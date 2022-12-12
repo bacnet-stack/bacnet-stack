@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(

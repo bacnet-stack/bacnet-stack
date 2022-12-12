@@ -833,70 +833,57 @@ int Color_Temperature_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_enumerated(&apdu[0], rpdata->object_type);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len =
-                encode_application_unsigned(apdu,
-                    Color_Temperature_Present_Value(
-                    rpdata->object_instance));
+            apdu_len = encode_application_unsigned(
+                apdu, Color_Temperature_Present_Value(rpdata->object_instance));
             break;
         case PROP_MIN_PRES_VALUE:
-            apdu_len =
-                encode_application_unsigned(apdu,
-                Color_Temperature_Min_Pres_Value(
-                    rpdata->object_instance));
+            apdu_len = encode_application_unsigned(apdu,
+                Color_Temperature_Min_Pres_Value(rpdata->object_instance));
             break;
         case PROP_MAX_PRES_VALUE:
-            apdu_len =
-                encode_application_unsigned(apdu,
-                Color_Temperature_Max_Pres_Value(
-                    rpdata->object_instance));
+            apdu_len = encode_application_unsigned(apdu,
+                Color_Temperature_Max_Pres_Value(rpdata->object_instance));
             break;
         case PROP_TRACKING_VALUE:
-            apdu_len =
-                encode_application_unsigned(apdu,
-                Color_Temperature_Tracking_Value(
-                    rpdata->object_instance));
+            apdu_len = encode_application_unsigned(apdu,
+                Color_Temperature_Tracking_Value(rpdata->object_instance));
             break;
         case PROP_COLOR_COMMAND:
-            if (Color_Temperature_Command(rpdata->object_instance, &color_command)) {
+            if (Color_Temperature_Command(
+                    rpdata->object_instance, &color_command)) {
                 apdu_len = color_command_encode(apdu, &color_command);
             }
             break;
         case PROP_IN_PROGRESS:
-            apdu_len =
-                encode_application_enumerated(apdu,
-                Color_Temperature_In_Progress(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                apdu, Color_Temperature_In_Progress(rpdata->object_instance));
             break;
         case PROP_DEFAULT_COLOR_TEMPERATURE:
-            apdu_len =
-                encode_application_unsigned(apdu,
+            apdu_len = encode_application_unsigned(apdu,
                 Color_Temperature_Default_Color_Temperature(
                     rpdata->object_instance));
             break;
         case PROP_DEFAULT_FADE_TIME:
-            apdu_len =
-                encode_application_unsigned(apdu,
+            apdu_len = encode_application_unsigned(apdu,
                 Color_Temperature_Default_Fade_Time(rpdata->object_instance));
             break;
         case PROP_DEFAULT_RAMP_RATE:
-            apdu_len =
-                encode_application_unsigned(apdu,
+            apdu_len = encode_application_unsigned(apdu,
                 Color_Temperature_Default_Ramp_Rate(rpdata->object_instance));
             break;
         case PROP_DEFAULT_STEP_INCREMENT:
-            apdu_len =
-                encode_application_unsigned(apdu,
-                Color_Temperature_Default_Step_Increment(rpdata->object_instance));
+            apdu_len = encode_application_unsigned(apdu,
+                Color_Temperature_Default_Step_Increment(
+                    rpdata->object_instance));
             break;
         case PROP_TRANSITION:
-            apdu_len =
-                encode_application_enumerated(apdu,
-                Color_Temperature_Transition(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                apdu, Color_Temperature_Transition(rpdata->object_instance));
             break;
         case PROP_DESCRIPTION:
-            characterstring_init_ansi(
-                &char_string, Color_Temperature_Description(rpdata->object_instance));
-            apdu_len =
-                encode_application_character_string(apdu, &char_string);
+            characterstring_init_ansi(&char_string,
+                Color_Temperature_Description(rpdata->object_instance));
+            apdu_len = encode_application_character_string(apdu, &char_string);
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;

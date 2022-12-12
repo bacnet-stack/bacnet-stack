@@ -119,8 +119,8 @@ static void My_Router_Handler(BACNET_ADDRESS *src,
                     that are sent with a local unicast address. */
                 if (npdu_len >= 2) {
                     len += decode_unsigned16(npdu, &dnet);
-                    printf(": network number = %u. SNET=%u\n",
-                        (unsigned)dnet, (unsigned)src->net);
+                    printf(": network number = %u. SNET=%u\n", (unsigned)dnet,
+                        (unsigned)src->net);
                 } else {
                     printf(": network number = missing! SNET=%u\n", src->net);
                 }
@@ -251,7 +251,8 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
 
     if (argc < 3) {
-        printf("Usage: %s DNET status [MAC]\r\n", filename_remove_path(argv[0]));
+        printf(
+            "Usage: %s DNET status [MAC]\r\n", filename_remove_path(argv[0]));
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
@@ -307,8 +308,7 @@ int main(int argc, char *argv[])
     last_seconds = time(NULL);
     timeout_seconds = apdu_timeout() / 1000;
     /* send the request */
-    Send_Network_Number_Is(
-        &Target_Router_Address, Target_Network_Number,
+    Send_Network_Number_Is(&Target_Router_Address, Target_Network_Number,
         Target_Network_Number_Status);
     /* loop forever */
     for (;;) {
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* increment timer - exit if timed out */
         elapsed_seconds = current_seconds - last_seconds;
         if (elapsed_seconds) {

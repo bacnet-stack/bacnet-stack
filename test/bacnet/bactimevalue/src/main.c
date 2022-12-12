@@ -16,6 +16,7 @@
 #include <ztest.h>
 #include "bacnet/bactimevalue.h"
 #include "bacnet/datetime.h"
+#include "bacnet/bacapp.h"
 
 
 /**
@@ -35,26 +36,30 @@ static void test_BACnetTimeValue(BACNET_TIME_VALUE *value)
     bool status = false;
     uint8_t tag_number = 0;
 
-    len = bacapp_encode_time_value(apdu, value);
-    apdu_len = bacapp_decode_time_value(apdu, &test_value);
+    len = bacnet_time_value_encode(apdu, value);
+    apdu_len = bacnet_time_value_decode(apdu, len, &test_value);
     zassert_true(len > 0, NULL);
     zassert_true(apdu_len > 0, NULL);
     diff = datetime_compare_time(&test_value.Time, &value->Time);
     zassert_true(diff == 0, NULL);
-    status = bacapp_same_value(&test_value.Value,  &value->Value);
+    status = bacapp_same_value(
+        (BACNET_APPLICATION_DATA_VALUE *) &test_value.Value,
+        (BACNET_APPLICATION_DATA_VALUE *) &value->Value);
     zassert_true(status, NULL);
 
-    len = bacapp_encode_context_time_value(apdu, tag_number, value);
-    apdu_len = bacapp_decode_context_time_value(apdu, tag_number, &test_value);
+    len = bacnet_time_value_context_encode(apdu, tag_number, value);
+    apdu_len = bacnet_time_value_context_decode(apdu, len, tag_number, &test_value);
     zassert_true(len > 0, NULL);
     zassert_true(apdu_len > 0, NULL);
     diff = datetime_compare_time(&test_value.Time, &value->Time);
     zassert_true(diff == 0, NULL);
-    status = bacapp_same_value(&test_value.Value,  &value->Value);
+    status = bacapp_same_value(
+        (BACNET_APPLICATION_DATA_VALUE *) &test_value.Value,
+        (BACNET_APPLICATION_DATA_VALUE *) &value->Value);
     zassert_true(status, NULL);
     /* negative testing */
     tag_number++;
-    apdu_len = bacapp_decode_context_time_value(apdu, tag_number, &test_value);
+    apdu_len = bacnet_time_value_context_decode(apdu, len, tag_number, &test_value);
     zassert_true(apdu_len < 0, NULL);
 }
 

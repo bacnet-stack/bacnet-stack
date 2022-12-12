@@ -302,7 +302,7 @@ bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
 {
     unsigned a[6] = { 0 }, p = 0;
     uint16_t port = 0;
-    int c;
+    int c, i;
     bool status = false;
 
     if (!(mac && arg)) {
@@ -327,7 +327,7 @@ bool address_mac_from_ascii(BACNET_MAC_ADDRESS *mac, const char *arg)
             &a[4], &a[5]);
 
         if (c > 0) {
-            for (int i = 0; i < c; i++) {
+            for (i = 0; i < c; i++) {
                 mac->adr[i] = a[i];
             }
             mac->len = c;
@@ -484,7 +484,7 @@ void address_set_device_TTL(
                     pMatch->TimeToLive = TimeOut;
                 }
             } else {
-            	/* For unbound we can only set the time to live */
+                /* For unbound we can only set the time to live */
                 pMatch->TimeToLive = TimeOut;
             }
             break; /* Exit now if found at all - bound or unbound */
@@ -601,7 +601,7 @@ void address_add(uint32_t device_id, unsigned max_apdu, BACNET_ADDRESS *src)
                 /* Opportunistic entry so leave on short fuse */
                 pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
             } else {
-            	/* Renewing existing entry */
+                /* Renewing existing entry */
                 pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
             }
             /* Clear bind request flag just in case */
@@ -1036,7 +1036,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         pMatch++;
         /* Shall not happen as the count has been checked first. */
         if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        	/* Issue with the table. */
+            /* Issue with the table. */
             return (0);
         }
     }
@@ -1053,7 +1053,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         }
         /* Shall not happen as the count has been checked first. */
         if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-        	/* Issue with the table. */
+            /* Issue with the table. */
             return (0);
         }
     }
@@ -1104,7 +1104,7 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
             pMatch++;
             /* Can normally not happen. */
             if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-            	/* Issue with the table. */
+                /* Issue with the table. */
                 return (0);
             }
         }

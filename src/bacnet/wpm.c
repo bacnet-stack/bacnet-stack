@@ -485,8 +485,8 @@ int wpm_error_ack_decode_apdu(
     } else {
         return 0;
     }
-    len = bacerror_decode_error_class_and_code(apdu_offset, apdu_size,
-        &error_class, &error_code);
+    len = bacerror_decode_error_class_and_code(
+        apdu_offset, apdu_size, &error_class, &error_code);
     if (len > 0) {
         if (wp_data) {
             wp_data->error_class = error_class;

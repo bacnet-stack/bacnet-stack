@@ -153,8 +153,7 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_simple_ack_handler(
         SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, MyWritePropertySimpleAckHandler);
     /* handle any errors coming back */
-    apdu_set_error_handler(
-        SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, MyErrorHandler);
+    apdu_set_error_handler(SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, MyErrorHandler);
     apdu_set_abort_handler(MyAbortHandler);
     apdu_set_reject_handler(MyRejectHandler);
 }
@@ -203,23 +202,23 @@ static void print_help(char *filename)
         "The time-stamp of the alarm acknowledge.\n"
         "\n");
     printf("--mac A\n"
-        "Optional BACnet mac address."
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n"
-        "--dnet N\n"
-        "Optional BACnet network number N for directed requests.\n"
-        "Valid range is from 0 to 65535 where 0 is the local connection\n"
-        "and 65535 is network broadcast.\n"
-        "\n"
-        "--dadr A\n"
-        "Optional BACnet mac address on the destination BACnet network "
-        "number.\n"
-        "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
-        "or an IP string with optional port number like 10.1.2.3:47808\n"
-        "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-        "\n");
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n"
+           "--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n"
+           "\n"
+           "--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
+           "\n");
 }
 
 int main(int argc, char *argv[])
@@ -235,6 +234,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     bool found = false;
     long dnet = -1;
+    unsigned object_type = 0;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     BACNET_ADDRESS dest = { 0 };
@@ -289,12 +289,12 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 2) {
                 /* event-object-type */
-                if (bactext_object_type_strtol(argv[argi],
-                    &data.eventObjectIdentifier.type)) {
+                if (bactext_object_type_strtol(argv[argi], &object_type)) {
+                    data.eventObjectIdentifier.type = object_type;
                     target_args++;
                 } else {
-                    fprintf(stderr, "event-object-type=%s invalid\n",
-                        argv[argi]);
+                    fprintf(
+                        stderr, "event-object-type=%s invalid\n", argv[argi]);
                     return 1;
                 }
             } else if (target_args == 3) {
@@ -304,12 +304,11 @@ int main(int argc, char *argv[])
                 target_args++;
             } else if (target_args == 4) {
                 /* event-state-acked */
-                if (bactext_event_state_strtol(argv[argi],
-                    &data.eventStateAcked)) {
+                if (bactext_event_state_strtol(argv[argi], &object_type)) {
+                    data.eventStateAcked = object_type;
                     target_args++;
                 } else {
-                    fprintf(stderr, "event-state=%s invalid\n",
-                        argv[argi]);
+                    fprintf(stderr, "event-state=%s invalid\n", argv[argi]);
                     return 1;
                 }
             } else if (target_args == 5) {
@@ -395,7 +394,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(
@@ -403,12 +402,9 @@ int main(int argc, char *argv[])
         }
         if (found) {
             if (Request_Invoke_ID == 0) {
-                Request_Invoke_ID =
-                    Send_Alarm_Acknowledgement_Address(
-                        Handler_Transmit_Buffer,
-                        sizeof(Handler_Transmit_Buffer),
-                        &data,
-                        &Target_Address);
+                Request_Invoke_ID = Send_Alarm_Acknowledgement_Address(
+                    Handler_Transmit_Buffer, sizeof(Handler_Transmit_Buffer),
+                    &data, &Target_Address);
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 break;
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {

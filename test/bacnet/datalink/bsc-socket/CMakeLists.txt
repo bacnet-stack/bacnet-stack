@@ -82,6 +82,9 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/weeklyschedule.c
+    ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/dcc.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
@@ -139,6 +142,9 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/weeklyschedule.c
+    ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/dcc.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
@@ -186,6 +192,9 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/bacstr.c
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/datetime.c
+    ${SRC_DIR}/bacnet/bactimevalue.c
+    ${SRC_DIR}/bacnet/weeklyschedule.c
+    ${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/dcc.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c

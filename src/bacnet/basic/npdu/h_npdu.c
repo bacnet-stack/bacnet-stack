@@ -59,7 +59,7 @@ uint16_t npdu_network_number(void)
  */
 void npdu_network_number_set(uint16_t net)
 {
-    Local_Network_Number =  net;
+    Local_Network_Number = net;
 }
 
 /**
@@ -69,8 +69,8 @@ void npdu_network_number_set(uint16_t net)
  * @param status - 0=learned, 1=assigned
  * @return number of bytes sent
  */
-int npdu_send_network_number_is(BACNET_ADDRESS *dst,
-    uint16_t net, uint8_t status)
+int npdu_send_network_number_is(
+    BACNET_ADDRESS *dst, uint16_t net, uint8_t status)
 {
     uint16_t len = 0;
     int pdu_len = 0;
@@ -84,13 +84,11 @@ int npdu_send_network_number_is(BACNET_ADDRESS *dst,
         transmit a local broadcast Network-Number-Is message
         back to the source device. */
     datalink_get_my_address(&my_address);
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_NETWORK_NUMBER_IS,
+    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_NETWORK_NUMBER_IS,
         data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(&Handler_Transmit_Buffer[0], dst,
-        &my_address, &npdu_data);
-    len = encode_unsigned16(
-        &Handler_Transmit_Buffer[pdu_len], net);
+    pdu_len = npdu_encode_pdu(
+        &Handler_Transmit_Buffer[0], dst, &my_address, &npdu_data);
+    len = encode_unsigned16(&Handler_Transmit_Buffer[pdu_len], net);
     pdu_len += len;
     Handler_Transmit_Buffer[pdu_len] = status;
     pdu_len++;
@@ -120,17 +118,14 @@ int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
         datalink_get_broadcast_address(&daddr);
     }
     datalink_get_my_address(&saddr);
-    npdu_encode_npdu_network(&npdu_data,
-        NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
+    npdu_encode_npdu_network(&npdu_data, NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
         data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
     pdu_len = npdu_encode_pdu(
-        &Handler_Transmit_Buffer[0],
-        &daddr, &saddr, &npdu_data);
+        &Handler_Transmit_Buffer[0], &daddr, &saddr, &npdu_data);
 
     /* Now send the message */
     return datalink_send_pdu(
         dst, &npdu_data, &Handler_Transmit_Buffer[0], pdu_len);
-
 }
 
 /** @file h_npdu.c  Handles messages at the NPDU level of the BACnet stack. */
@@ -163,8 +158,8 @@ static void network_control_handler(BACNET_ADDRESS *src,
         case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
             if (src->net == 0) {
                 if (Local_Network_Number) {
-                    npdu_send_network_number_is(src, Local_Network_Number,
-                        Local_Network_Number_Status);
+                    npdu_send_network_number_is(
+                        src, Local_Network_Number, Local_Network_Number_Status);
                 } else {
                     /*  Upon receipt of a What-Is-Network-Number message,
                         a device that does not know the local network number
@@ -225,9 +220,7 @@ static void network_control_handler(BACNET_ADDRESS *src,
  *  @param pdu [in]  Buffer containing the NPDU and APDU of the received packet.
  *  @param pdu_len [in] The size of the received message in the pdu[] buffer.
  */
-void npdu_handler(BACNET_ADDRESS *src,
-    uint8_t *pdu,
-    uint16_t pdu_len)
+void npdu_handler(BACNET_ADDRESS *src, uint8_t *pdu, uint16_t pdu_len)
 {
     int apdu_offset = 0;
     BACNET_ADDRESS dest = { 0 };
@@ -243,8 +236,8 @@ void npdu_handler(BACNET_ADDRESS *src,
             bacnet_npdu_decode(&pdu[0], pdu_len, &dest, src, &npdu_data);
         if (npdu_data.network_layer_message) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK)) {
-                network_control_handler(src, &npdu_data,
-                    &pdu[apdu_offset], (uint16_t)(pdu_len - apdu_offset));
+                network_control_handler(src, &npdu_data, &pdu[apdu_offset],
+                    (uint16_t)(pdu_len - apdu_offset));
             } else {
                 debug_printf("NPDU: message for router. Discarded!\n");
             }

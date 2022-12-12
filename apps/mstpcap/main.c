@@ -538,9 +538,9 @@ static void filename_create(char *filename)
 
     if (filename) {
         datetime_local(&bdate, &btime, NULL, NULL);
-        sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap",
-            (int)bdate.year, (int)bdate.month, (int)bdate.day,
-            (int)btime.hour, (int)btime.min, (int)btime.sec);
+        sprintf(filename, "mstp_%04d%02d%02d%02d%02d%02d.cap", (int)bdate.year,
+            (int)bdate.month, (int)bdate.day, (int)btime.hour, (int)btime.min,
+            (int)btime.sec);
     }
 }
 

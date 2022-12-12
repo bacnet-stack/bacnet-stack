@@ -73,7 +73,8 @@ int main(int argc, char *argv[])
     BACNET_COV_DATA cov_data;
     BACNET_PROPERTY_VALUE value_list;
     uint8_t tag;
-    unsigned int uint;
+    unsigned object_type = 0;
+    unsigned object_property = 0;
 
     if (argc < 7) {
         /* note: priority 16 and 0 should produce the same end results... */
@@ -173,20 +174,20 @@ int main(int argc, char *argv[])
     /* decode the command line parameters */
     cov_data.subscriberProcessIdentifier = strtol(argv[1], NULL, 0);
     cov_data.initiatingDeviceIdentifier = strtol(argv[2], NULL, 0);
-    if (bactext_object_type_strtol(argv[3], &uint) == false) {
+    if (bactext_object_type_strtol(argv[3], &object_type) == false) {
         fprintf(stderr, "error: object-type=%s invalid\n", argv[3]);
         return 1;
     }
-    cov_data.monitoredObjectIdentifier.type = (uint16_t)uint;
+    cov_data.monitoredObjectIdentifier.type = (uint16_t)object_type;
     cov_data.monitoredObjectIdentifier.instance = strtol(argv[4], NULL, 0);
     cov_data.timeRemaining = strtol(argv[5], NULL, 0);
     cov_data.listOfValues = &value_list;
     value_list.next = NULL;
-    if (bactext_property_strtol(argv[6], &value_list.propertyIdentifier) ==
-        false) {
+    if (bactext_property_strtol(argv[6], &object_property) == false) {
         fprintf(stderr, "property=%s invalid\n", argv[6]);
         return 1;
     }
+    value_list.propertyIdentifier = object_property;
     tag = strtol(argv[7], NULL, 0);
     value_string = argv[8];
     /* optional priority */
@@ -194,13 +195,13 @@ int main(int argc, char *argv[])
         value_list.priority = strtol(argv[9], NULL, 0);
     } else {
         value_list.priority = BACNET_NO_PRIORITY;
-}
+    }
     /* optional index */
     if (argc > 10) {
         value_list.propertyArrayIndex = strtol(argv[10], NULL, 0);
     } else {
         value_list.propertyArrayIndex = BACNET_ARRAY_ALL;
-}
+    }
 
     if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
         fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",

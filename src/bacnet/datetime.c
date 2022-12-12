@@ -679,15 +679,14 @@ void datetime_add_minutes(BACNET_DATE_TIME *bdatetime, int32_t minutes)
     datetime_days_since_epoch_into_date(bdatetime_days, &bdatetime->date);
 }
 
-#ifdef UINT64_MAX
 /**
- * @brief Calculates the number of seconds since epoch
+ * @brief Calculates the number of seconds since epoch from datetime
  * @param bdatetime [in] the starting date and time
- * @return seconds since midnight
+ * @return seconds since epoch
  */
-uint64_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime)
+bacnet_time_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime)
 {
-    uint64_t seconds = 0;
+    bacnet_time_t seconds = 0;
     uint32_t days = 0;
 
     if (bdatetime) {
@@ -699,15 +698,14 @@ uint64_t datetime_seconds_since_epoch(BACNET_DATE_TIME *bdatetime)
 
     return seconds;
 }
-#endif
 
-#ifdef UINT64_MAX
 /**
- * @brief Calculates the number of seconds since epoch
- * @param bdatetime [in] the starting date and time
- * @return seconds since midnight
+ * @brief Calculates the datetime from number of seconds since epoch
+ * @param bdatetime [out] the starting date and time
+ * @param seconds since epoch
  */
-void datetime_since_epoch_seconds(BACNET_DATE_TIME *bdatetime, uint64_t seconds)
+void datetime_since_epoch_seconds(
+    BACNET_DATE_TIME *bdatetime, bacnet_time_t seconds)
 {
     uint32_t seconds_after_midnight = 0;
     uint32_t days = 0;
@@ -722,7 +720,20 @@ void datetime_since_epoch_seconds(BACNET_DATE_TIME *bdatetime, uint64_t seconds)
         datetime_days_since_epoch_into_date(days, &bdatetime->date);
     }
 }
+
+/**
+ * @brief Calculates the number of seconds since epoch
+ * @param bdatetime [in] the starting date and time
+ * @return maximum number of seconds since epoch
+ */
+bacnet_time_t datetime_seconds_since_epoch_max(void)
+{
+#ifdef UINT64_MAX
+    return UINT64_MAX;
+#else
+    return UINT32_MAX;
 #endif
+}
 
 /* Returns true if year is a wildcard */
 bool datetime_wildcard_year(BACNET_DATE *bdate)

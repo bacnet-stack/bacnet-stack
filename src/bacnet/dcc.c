@@ -284,8 +284,7 @@ int dcc_decode_service_request(uint8_t *apdu,
                         apdu_len_max - apdu_len, len_value_type, password);
                     if (len > 0) {
                         password_length = len_value_type - 1;
-                        if ((password_length >= 1) &&
-                            (password_length <= 20)) {
+                        if ((password_length >= 1) && (password_length <= 20)) {
                             apdu_len += len;
                         } else {
                             return BACNET_STATUS_REJECT;

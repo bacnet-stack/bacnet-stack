@@ -46,7 +46,7 @@
 /** @file h_wpm.c  Handles Write Property Multiple requests. */
 #if PRINT_ENABLED
 #include <stdio.h>
-#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -61,8 +61,8 @@
  * @return number of bytes decoded, or BACNET_STATUS_REJECT,
  *  or BACNET_STATUS_ERROR
  */
-static int write_property_multiple_decode(
-    uint8_t *apdu, uint16_t apdu_len,
+static int write_property_multiple_decode(uint8_t *apdu,
+    uint16_t apdu_len,
     BACNET_WRITE_PROPERTY_DATA *wp_data,
     write_property_function device_write_property)
 {
@@ -83,12 +83,12 @@ static int write_property_multiple_decode(
                       (3) an optional 'Property Array Index'
                       (4) a 'Property Value'
                       (5) an optional 'Priority' */
-                    len =  wpm_decode_object_property(&apdu[offset],
-                            apdu_len - offset, wp_data);
+                    len = wpm_decode_object_property(
+                        &apdu[offset], apdu_len - offset, wp_data);
                     if (len > 0) {
                         offset += len;
                         PRINTF("WPM: type=%lu instance=%lu property=%lu "
-                            "priority=%lu index=%ld\n",
+                               "priority=%lu index=%ld\n",
                             (unsigned long)wp_data->object_type,
                             (unsigned long)wp_data->object_instance,
                             (unsigned long)wp_data->object_property,
@@ -160,11 +160,11 @@ void handler_write_property_multiple(uint8_t *service_request,
         PRINTF("WPM: Segmented message.  Sending Abort!\n");
     } else {
         /* first time - detect malformed request before writing any data */
-        len = write_property_multiple_decode(service_request, service_len,
-            &wp_data, NULL);
+        len = write_property_multiple_decode(
+            service_request, service_len, &wp_data, NULL);
         if (len > 0) {
-            len = write_property_multiple_decode(service_request, service_len,
-                &wp_data, Device_Write_Property);
+            len = write_property_multiple_decode(
+                service_request, service_len, &wp_data, Device_Write_Property);
         }
     }
     /* encode the confirmed reply */

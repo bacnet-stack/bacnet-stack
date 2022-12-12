@@ -691,8 +691,7 @@ int encode_application_boolean(uint8_t *apdu, bool boolean_value)
     } else {
         len_value = 0;
     }
-    len =
-        encode_tag(apdu, BACNET_APPLICATION_TAG_BOOLEAN, false, len_value);
+    len = encode_tag(apdu, BACNET_APPLICATION_TAG_BOOLEAN, false, len_value);
 
     return len;
 }
@@ -1011,8 +1010,7 @@ int encode_context_bitstring(
  *
  * @return the number of apdu bytes consumed
  */
-int decode_object_id_safe(
-    uint8_t *apdu,
+int decode_object_id_safe(uint8_t *apdu,
     uint32_t len_value_type,
     BACNET_OBJECT_TYPE *object_type,
     uint32_t *instance)
@@ -1025,8 +1023,8 @@ int decode_object_id_safe(
         if (apdu) {
             /* value is meaningless if apdu was NULL */
             if (object_type) {
-                *object_type = (BACNET_OBJECT_TYPE)(
-                    ((value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
+                *object_type = (BACNET_OBJECT_TYPE)((
+                    (value >> BACNET_INSTANCE_BITS) & BACNET_MAX_OBJECT));
             }
             if (instance) {
                 *instance = (value & BACNET_MAX_INSTANCE);
@@ -1049,9 +1047,7 @@ int decode_object_id_safe(
  * @return the number of apdu bytes consumed
  */
 int decode_object_id(
-    uint8_t *apdu,
-    BACNET_OBJECT_TYPE *object_type,
-    uint32_t *instance)
+    uint8_t *apdu, BACNET_OBJECT_TYPE *object_type, uint32_t *instance)
 {
     const uint32_t len_value = 4;
 
@@ -1079,8 +1075,8 @@ int bacnet_object_id_decode(uint8_t *apdu,
 
     len = decode_object_id_safe(NULL, len_value_type, object_type, instance);
     if (len <= apdu_len_max) {
-        return decode_object_id_safe(apdu, len_value_type, object_type,
-            instance);
+        return decode_object_id_safe(
+            apdu, len_value_type, object_type, instance);
     }
 
     return 0;
@@ -1316,8 +1312,8 @@ int encode_application_octet_string(
     uint8_t *apdu_offset = NULL;
 
     if (octet_string) {
-        len = encode_tag(apdu, BACNET_APPLICATION_TAG_OCTET_STRING,
-            false, octetstring_length(octet_string));
+        len = encode_tag(apdu, BACNET_APPLICATION_TAG_OCTET_STRING, false,
+            octetstring_length(octet_string));
         if (apdu) {
             apdu_offset = &apdu[len];
         }
@@ -1505,8 +1501,8 @@ int encode_application_character_string(
     uint8_t *apdu_offset = NULL;
 
     len = encode_bacnet_character_string(NULL, char_string);
-    len = encode_tag(apdu, BACNET_APPLICATION_TAG_CHARACTER_STRING,
-        false, (uint32_t)len);
+    len = encode_tag(
+        apdu, BACNET_APPLICATION_TAG_CHARACTER_STRING, false, (uint32_t)len);
     if (apdu) {
         apdu_offset = &apdu[len];
     }
@@ -2980,8 +2976,7 @@ int encode_bacnet_address(uint8_t *apdu, BACNET_ADDRESS *destination)
 
     if (destination) {
         /* network number */
-        apdu_len +=
-            encode_application_unsigned(apdu, destination->net);
+        apdu_len += encode_application_unsigned(apdu, destination->net);
         /* encode mac address as an octet-string */
         if (destination->len != 0) {
             octetstring_init(&mac_addr, destination->adr, destination->len);

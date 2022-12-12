@@ -70,11 +70,10 @@ static bool Error_Detected = false;
 /* Used for verbose */
 static bool Verbose = false;
 
-static void MyWritePropertyMultipleErrorHandler(
-    BACNET_ADDRESS * src,
+static void MyWritePropertyMultipleErrorHandler(BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
-    uint8_t * service_request,
+    uint8_t *service_request,
     uint16_t service_len)
 {
     int len = 0;
@@ -120,7 +119,6 @@ static void MyRejectHandler(
         Error_Detected = true;
     }
 }
-
 
 static void MyWritePropertyMultipleSimpleAckHandler(
     BACNET_ADDRESS *src, uint8_t invoke_id)
@@ -277,6 +275,7 @@ int main(int argc, char *argv[])
     bool status = false;
     BACNET_APPLICATION_TAG property_tag;
     uint8_t context_tag = 0;
+    unsigned object_type = 0;
     unsigned property_id = 0;
     unsigned property_array_index = 0;
     int scan_count = 0;
@@ -318,12 +317,13 @@ int main(int argc, char *argv[])
     arg_sets = 0;
     while (wpm_object) {
         tag_value_arg = 2 + (arg_sets * 6);
-        if (bactext_object_type_strtol(
-                argv[tag_value_arg], &wpm_object->object_type) == false) {
+        if (bactext_object_type_strtol(argv[tag_value_arg], &object_type) ==
+            false) {
             fprintf(
                 stderr, "Error: object-type=%s invalid\n", argv[tag_value_arg]);
             return 1;
         }
+        wpm_object->object_type = object_type;
         tag_value_arg++;
         args_remaining--;
         if (Verbose) {
@@ -425,16 +425,30 @@ int main(int argc, char *argv[])
                 if (Verbose) {
                     printf("tag=%u value=%s\n", property_tag, value_string);
                 }
-                if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
+                if (property_tag < 0) {
+                    property_tag =
+                        bacapp_known_property_tag(wpm_object->object_type,
+                            wpm_property->propertyIdentifier);
+                } else if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
                     fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
                         property_tag, MAX_BACNET_APPLICATION_TAG);
                     return 1;
                 }
-                status = bacapp_parse_application_data(
-                    property_tag, value_string, &wpm_property->value);
-                if (!status) {
+                if (property_tag >= 0) {
+                    status = bacapp_parse_application_data(
+                        property_tag, value_string, &wpm_property->value);
+                    if (!status) {
+                        /* FIXME: show the expected entry format for the tag */
+                        fprintf(
+                            stderr, "Error: unable to parse the tag value\n");
+                        return 1;
+                    }
+                } else {
                     /* FIXME: show the expected entry format for the tag */
-                    fprintf(stderr, "Error: unable to parse the tag value\n");
+                    fprintf(stderr,
+                        "Error: unable to parse the known property"
+                        " \"%s\"\r\n",
+                        value_string);
                     return 1;
                 }
                 wpm_property->value.next = NULL;
@@ -482,7 +496,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(

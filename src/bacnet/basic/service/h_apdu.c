@@ -342,8 +342,7 @@ bool apdu_complex_error(uint8_t service_choice)
  * handling.
  */
 void apdu_set_error_handler(
-    BACNET_CONFIRMED_SERVICE service_choice,
-    error_function pFunction)
+    BACNET_CONFIRMED_SERVICE service_choice, error_function pFunction)
 {
     if ((service_choice < MAX_BACNET_CONFIRMED_SERVICE) &&
         (!apdu_complex_error(service_choice))) {
@@ -359,8 +358,7 @@ void apdu_set_error_handler(
  * handling.
  */
 void apdu_set_complex_error_handler(
-    BACNET_CONFIRMED_SERVICE service_choice,
-    complex_error_function pFunction)
+    BACNET_CONFIRMED_SERVICE service_choice, complex_error_function pFunction)
 {
     if (apdu_complex_error(service_choice)) {
         Error_Function[service_choice].complex = pFunction;
@@ -556,9 +554,9 @@ void apdu_handler(BACNET_ADDRESS *src,
         /* PDU Type */
         switch (apdu[0] & 0xF0) {
             case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:
-                len = apdu_decode_confirmed_service_request(
-                    &apdu[0], apdu_len, &service_data, &service_choice,
-                    &service_request, &service_request_len);
+                len = apdu_decode_confirmed_service_request(&apdu[0], apdu_len,
+                    &service_data, &service_choice, &service_request,
+                    &service_request_len);
                 if (len == 0) {
                     /* service data unable to be decoded - simply drop */
                     break;
@@ -672,8 +670,8 @@ void apdu_handler(BACNET_ADDRESS *src,
                         case SERVICE_CONFIRMED_VT_DATA:
                             /* Security Services */
                         case SERVICE_CONFIRMED_AUTHENTICATE:
-                            if (Confirmed_ACK_Function[service_choice].complex !=
-                                NULL) {
+                            if (Confirmed_ACK_Function[service_choice]
+                                    .complex != NULL) {
                                 Confirmed_ACK_Function[service_choice].complex(
                                     service_request, service_request_len, src,
                                     &service_ack_data);
@@ -697,16 +695,15 @@ void apdu_handler(BACNET_ADDRESS *src,
                     if (apdu_complex_error(service_choice)) {
                         if (Error_Function[service_choice].complex) {
                             Error_Function[service_choice].complex(src,
-                                invoke_id, service_choice,
-                                &apdu[3], apdu_len - 3);
+                                invoke_id, service_choice, &apdu[3],
+                                apdu_len - 3);
                         }
                     } else if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
-                        len = bacerror_decode_error_class_and_code(&apdu[3],
-                            apdu_len - 3, &error_class, &error_code);
+                        len = bacerror_decode_error_class_and_code(
+                            &apdu[3], apdu_len - 3, &error_class, &error_code);
                         if ((len != 0) &&
                             (Error_Function[service_choice].error)) {
-                            Error_Function[service_choice].error(src,
-                                invoke_id,
+                            Error_Function[service_choice].error(src, invoke_id,
                                 (BACNET_ERROR_CLASS)error_class,
                                 (BACNET_ERROR_CODE)error_code);
                         }

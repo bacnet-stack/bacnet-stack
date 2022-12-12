@@ -43,7 +43,7 @@
 
 #if PRINT_ENABLED
 #include <stdio.h>
-#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -300,8 +300,8 @@ bool Analog_Input_Encode_Value_List(
         }
         out_of_service = AI_Descr[index].Out_Of_Service;
         present_value = AI_Descr[index].Present_Value;
-        status = cov_value_list_encode_real(value_list, present_value,
-            in_alarm, fault, overridden, out_of_service);
+        status = cov_value_list_encode_real(value_list, present_value, in_alarm,
+            fault, overridden, out_of_service);
     }
 
     return status;
@@ -420,7 +420,7 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM,
                 Analog_Input_Event_State(rpdata->object_instance) !=
-                EVENT_STATE_NORMAL);
+                    EVENT_STATE_NORMAL);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
@@ -430,9 +430,8 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_EVENT_STATE:
-            apdu_len =
-                encode_application_enumerated(&apdu[0],
-                Analog_Input_Event_State(rpdata->object_instance));
+            apdu_len = encode_application_enumerated(
+                &apdu[0], Analog_Input_Event_State(rpdata->object_instance));
             break;
 
         case PROP_RELIABILITY:
@@ -633,8 +632,8 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch ((int)wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 if (CurrentAI->Out_Of_Service == true) {
                     Analog_Input_Present_Value_Set(
@@ -648,8 +647,8 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Analog_Input_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);
@@ -657,16 +656,16 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_UNITS:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 CurrentAI->Units = value.type.Enumerated;
             }
             break;
 
         case PROP_COV_INCREMENT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 if (value.type.Real >= 0.0) {
                     Analog_Input_COV_Increment_Set(
@@ -681,8 +680,8 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 #if defined(INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentAI->Time_Delay = value.type.Unsigned_Int;
                 CurrentAI->Remaining_Time_Delay = CurrentAI->Time_Delay;
@@ -690,40 +689,40 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_NOTIFICATION_CLASS:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentAI->Notification_Class = value.type.Unsigned_Int;
             }
             break;
 
         case PROP_HIGH_LIMIT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAI->High_Limit = value.type.Real;
             }
             break;
 
         case PROP_LOW_LIMIT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAI->Low_Limit = value.type.Real;
             }
             break;
 
         case PROP_DEADBAND:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAI->Deadband = value.type.Real;
             }
             break;
 
         case PROP_LIMIT_ENABLE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BIT_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BIT_STRING);
             if (status) {
                 if (value.type.Bit_String.bits_used == 2) {
                     CurrentAI->Limit_Enable = value.type.Bit_String.value[0];
@@ -736,8 +735,8 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_EVENT_ENABLE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BIT_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BIT_STRING);
             if (status) {
                 if (value.type.Bit_String.bits_used == 3) {
                     CurrentAI->Event_Enable = value.type.Bit_String.value[0];
@@ -750,8 +749,8 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_NOTIFY_TYPE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 switch ((BACNET_NOTIFY_TYPE)value.type.Enumerated) {
                     case NOTIFY_EVENT:
@@ -968,8 +967,7 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
                     break;
             } /* switch (ToState) */
             PRINTF("Analog-Input[%d]: Event_State goes from %s to %s.\n",
-                object_instance,
-                bactext_event_state_name(FromState),
+                object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
             /* Notify Type */
             event_data.notifyType = CurrentAI->Notify_Type;
@@ -1014,18 +1012,15 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
             switch (ToState) {
                 case EVENT_STATE_HIGH_LIMIT:
                 case EVENT_STATE_LOW_LIMIT:
-                    datetime_copy(
-                        &event_data.timeStamp.value.dateTime,
+                    datetime_copy(&event_data.timeStamp.value.dateTime,
                         &CurrentAI->Event_Time_Stamps[TRANSITION_TO_OFFNORMAL]);
                     break;
                 case EVENT_STATE_FAULT:
-                    datetime_copy(
-                        &event_data.timeStamp.value.dateTime,
+                    datetime_copy(&event_data.timeStamp.value.dateTime,
                         &CurrentAI->Event_Time_Stamps[TRANSITION_TO_FAULT]);
                     break;
                 case EVENT_STATE_NORMAL:
-                    datetime_copy(
-                        &event_data.timeStamp.value.dateTime,
+                    datetime_copy(&event_data.timeStamp.value.dateTime,
                         &CurrentAI->Event_Time_Stamps[TRANSITION_TO_NORMAL]);
                     break;
                 default:
@@ -1083,16 +1078,16 @@ void Analog_Input_Intrinsic_Reporting(uint32_t object_instance)
 
         /* add data from notification class */
         PRINTF("Analog-Input[%d]: Notification Class[%d]-%s "
-                "%u/%u/%u-%u:%u:%u.%u!\n",
-                object_instance, event_data.notificationClass,
-                bactext_event_type_name(event_data.eventType),
-                (unsigned)event_data.timeStamp.value.dateTime.date.year,
-                (unsigned)event_data.timeStamp.value.dateTime.date.month,
-                (unsigned)event_data.timeStamp.value.dateTime.date.day,
-                (unsigned)event_data.timeStamp.value.dateTime.time.hour,
-                (unsigned)event_data.timeStamp.value.dateTime.time.min,
-                (unsigned)event_data.timeStamp.value.dateTime.time.sec,
-                (unsigned)event_data.timeStamp.value.dateTime.time.hundredths);
+               "%u/%u/%u-%u:%u:%u.%u!\n",
+            object_instance, event_data.notificationClass,
+            bactext_event_type_name(event_data.eventType),
+            (unsigned)event_data.timeStamp.value.dateTime.date.year,
+            (unsigned)event_data.timeStamp.value.dateTime.date.month,
+            (unsigned)event_data.timeStamp.value.dateTime.date.day,
+            (unsigned)event_data.timeStamp.value.dateTime.time.hour,
+            (unsigned)event_data.timeStamp.value.dateTime.time.min,
+            (unsigned)event_data.timeStamp.value.dateTime.time.sec,
+            (unsigned)event_data.timeStamp.value.dateTime.time.hundredths);
         Notification_Class_common_reporting_function(&event_data);
 
         /* Ack required */

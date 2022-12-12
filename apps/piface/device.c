@@ -378,7 +378,7 @@ bool Device_Set_Object_Instance_Number(uint32_t object_id)
         Device_Inc_Database_Revision();
     } else {
         status = false;
-}
+    }
 
     return status;
 }
@@ -984,10 +984,12 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             /* Array element zero is the number of objects in the list */
             if (rpdata->array_index == 0) {
                 apdu_len = encode_application_unsigned(&apdu[0], count);
-            /* if no index was specified, then try to encode the entire list */
-            /* into one packet.  Note that more than likely you will have */
-            /* to return an error if the number of encoded objects exceeds */
-            /* your maximum APDU size. */
+                /* if no index was specified, then try to encode the entire list
+                 */
+                /* into one packet.  Note that more than likely you will have */
+                /* to return an error if the number of encoded objects exceeds
+                 */
+                /* your maximum APDU size. */
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 for (i = 1; i <= count; i++) {
                     found = Device_Object_List_Identifier(
@@ -1135,8 +1137,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_IDENTIFIER:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_OBJECT_ID);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_OBJECT_ID);
             if (status) {
                 if ((value.type.Object_Id.type == OBJECT_DEVICE) &&
                     (Device_Set_Object_Instance_Number(
@@ -1151,32 +1153,32 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_NUMBER_OF_APDU_RETRIES:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* FIXME: bounds check? */
                 apdu_retries_set((uint8_t)value.type.Unsigned_Int);
             }
             break;
         case PROP_APDU_TIMEOUT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* FIXME: bounds check? */
                 apdu_timeout_set((uint16_t)value.type.Unsigned_Int);
             }
             break;
         case PROP_VENDOR_IDENTIFIER:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* FIXME: bounds check? */
                 Device_Set_Vendor_Identifier((uint16_t)value.type.Unsigned_Int);
             }
             break;
         case PROP_SYSTEM_STATUS:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 temp = Device_Set_System_Status(
                     (BACNET_DEVICE_STATUS)value.type.Enumerated, false);
@@ -1193,8 +1195,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status = write_property_string_valid(wp_data, &value,
-                characterstring_capacity(&My_Object_Name));
+            status = write_property_string_valid(
+                wp_data, &value, characterstring_capacity(&My_Object_Name));
             if (status) {
                 /* All the object names in a device must be unique */
                 if (Device_Valid_Object_Name(&value.type.Character_String,
@@ -1214,8 +1216,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_LOCATION:
-            status = write_property_empty_string_valid(wp_data, &value,
-                MAX_DEV_LOC_LEN);
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_LOC_LEN);
             if (status) {
                 Device_Set_Location(
                     characterstring_value(&value.type.Character_String),
@@ -1224,8 +1226,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_DESCRIPTION:
-            status = write_property_empty_string_valid(wp_data, &value,
-                MAX_DEV_DESC_LEN);
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_DESC_LEN);
             if (status) {
                 Device_Set_Description(
                     characterstring_value(&value.type.Character_String),
@@ -1233,8 +1235,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MODEL_NAME:
-            status = write_property_empty_string_valid(wp_data, &value,
-                MAX_DEV_MOD_LEN);
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_MOD_LEN);
             if (status) {
                 Device_Set_Model_Name(
                     characterstring_value(&value.type.Character_String),
@@ -1244,8 +1246,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
         case PROP_MAX_INFO_FRAMES:
 #if defined(BACDL_MSTP)
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if (value.type.Unsigned_Int <= 255) {
                     dlmstp_set_max_info_frames(
@@ -1260,8 +1262,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #endif
         case PROP_MAX_MASTER:
 #if defined(BACDL_MSTP)
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 if ((value.type.Unsigned_Int > 0) &&
                     (value.type.Unsigned_Int <= 127)) {

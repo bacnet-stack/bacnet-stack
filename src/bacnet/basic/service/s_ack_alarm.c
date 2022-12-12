@@ -44,7 +44,7 @@
 /** @file s_ack_alarm.c  Send an Alarm Acknowledgment. */
 #if PRINT_ENABLED
 #include <stdio.h>
-#define PRINTF(...) fprintf(stderr,__VA_ARGS__)
+#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
@@ -58,8 +58,10 @@
  * @return invoke id of outgoing message, or 0 if communication is disabled,
  *         or no tsm slot is available.
  */
-uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu, uint16_t pdu_size,
-    BACNET_ALARM_ACK_DATA *data, BACNET_ADDRESS *dest)
+uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu,
+    uint16_t pdu_size,
+    BACNET_ALARM_ACK_DATA *data,
+    BACNET_ADDRESS *dest)
 {
     int len = 0;
     int pdu_len = 0;
@@ -91,10 +93,9 @@ uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu, uint16_t pdu_size,
            we have a way to check for that and update the
            max_apdu in the address binding table. */
         if ((uint16_t)pdu_len < pdu_size) {
-            tsm_set_confirmed_unsegmented_transaction(invoke_id, dest,
-                &npdu_data, pdu, (uint16_t)pdu_len);
-            bytes_sent =
-                datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
+            tsm_set_confirmed_unsegmented_transaction(
+                invoke_id, dest, &npdu_data, pdu, (uint16_t)pdu_len);
+            bytes_sent = datalink_send_pdu(dest, &npdu_data, pdu, pdu_len);
             if (bytes_sent <= 0) {
                 PRINTF("Failed to Send Alarm Ack Request (%s)!\n",
                     strerror(errno));
@@ -103,7 +104,7 @@ uint8_t Send_Alarm_Acknowledgement_Address(uint8_t *pdu, uint16_t pdu_size,
             tsm_free_invoke_id(invoke_id);
             invoke_id = 0;
             PRINTF("Failed to Send Alarm Ack Request "
-                "(exceeds destination maximum APDU)!\n");
+                   "(exceeds destination maximum APDU)!\n");
         }
     }
 
@@ -133,8 +134,7 @@ uint8_t Send_Alarm_Acknowledgement(
             max_apdu = sizeof(Handler_Transmit_Buffer);
         }
         invoke_id = Send_Alarm_Acknowledgement_Address(
-            Handler_Transmit_Buffer, max_apdu,
-            data, &dest);
+            Handler_Transmit_Buffer, max_apdu, data, &dest);
     }
 
     return invoke_id;

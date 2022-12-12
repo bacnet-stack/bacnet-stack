@@ -143,7 +143,6 @@ static void My_Read_Property_Multiple_Ack_Handler(uint8_t *service_request,
             while (rpm_data) {
                 rpm_ack_print_data(rpm_data);
                 rpm_data = rpm_data_free(rpm_data);
-
             }
         } else {
             fprintf(stderr, "RPM Ack Malformed! Freeing memory...\n");
@@ -214,9 +213,7 @@ static void cleanup(void)
 }
 
 static void target_address_add(
-    long dnet,
-    BACNET_MAC_ADDRESS *mac,
-    BACNET_MAC_ADDRESS *adr)
+    long dnet, BACNET_MAC_ADDRESS *mac, BACNET_MAC_ADDRESS *adr)
 {
     BACNET_ADDRESS dest = { 0 };
 
@@ -359,6 +356,7 @@ int main(int argc, char *argv[])
     int scan_count = 0;
     int argi = 0;
     long dnet = -1;
+    unsigned object_type = 0;
     BACNET_MAC_ADDRESS mac = { 0 };
     BACNET_MAC_ADDRESS adr = { 0 };
     bool specific_address = false;
@@ -415,22 +413,23 @@ int main(int argc, char *argv[])
             } else if (target_args >= 1) {
                 if (tag_value_arg == 0) {
                     if (rpm_object) {
-                        rpm_object->next = calloc(1,
-                            sizeof(BACNET_READ_ACCESS_DATA));
+                        rpm_object->next =
+                            calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
                         rpm_object = rpm_object->next;
                     } else {
-                        Read_Access_Data = calloc(1,
-                            sizeof(BACNET_READ_ACCESS_DATA));
+                        Read_Access_Data =
+                            calloc(1, sizeof(BACNET_READ_ACCESS_DATA));
                         rpm_object = Read_Access_Data;
                         atexit(cleanup);
                     }
-                    status = bactext_object_type_strtol(
-                        argv[argi], &rpm_object->object_type);
+                    status =
+                        bactext_object_type_strtol(argv[argi], &object_type);
                     if (status == false) {
                         fprintf(stderr, "Error: object-type=%s invalid\n",
                             argv[argi]);
                         return 1;
                     }
+                    rpm_object->object_type = object_type;
                     if (rpm_object->object_type >= MAX_BACNET_OBJECT_TYPE) {
                         fprintf(stderr,
                             "object-type=%u - it must be less than %u\n",
@@ -443,7 +442,8 @@ int main(int argc, char *argv[])
                     if (rpm_object->object_instance > BACNET_MAX_INSTANCE) {
                         fprintf(stderr,
                             "object-instance=%u - it must be less than %u\n",
-                            rpm_object->object_instance, BACNET_MAX_INSTANCE + 1);
+                            rpm_object->object_instance,
+                            BACNET_MAX_INSTANCE + 1);
                         return 1;
                     }
                     tag_value_arg++;
@@ -453,9 +453,8 @@ int main(int argc, char *argv[])
                     property_token = strtok(argv[argi], ",");
                     /* add all the properties and optional index to our list */
                     while (rpm_property) {
-                        scan_count = sscanf(
-                            property_token, "%u[%u]", &property_id,
-                            &property_array_index);
+                        scan_count = sscanf(property_token, "%u[%u]",
+                            &property_id, &property_array_index);
                         if (scan_count > 0) {
                             rpm_property->propertyIdentifier = property_id;
                             if (rpm_property->propertyIdentifier >
@@ -487,7 +486,6 @@ int main(int argc, char *argv[])
                     /* start over with the next arg set */
                     tag_value_arg = 0;
                 }
-
             }
         }
     }
@@ -536,7 +534,7 @@ int main(int argc, char *argv[])
         }
         if (Error_Detected) {
             break;
-}
+        }
         /* wait until the device is bound, or timeout and quit */
         if (!found) {
             found = address_bind_request(
@@ -580,6 +578,6 @@ int main(int argc, char *argv[])
 
     if (Error_Detected) {
         return 1;
-}
+    }
     return 0;
 }

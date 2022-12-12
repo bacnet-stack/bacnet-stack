@@ -220,7 +220,7 @@ static void MyAbortHandler(
                 (ERROR_CODE_ABORT_BUFFER_OVERFLOW - 1) + abort_reason;
         } else {
             Last_Error_Code = ERROR_CODE_ABORT_OTHER;
-}
+        }
     }
 }
 
@@ -242,7 +242,7 @@ static void MyRejectHandler(
                 (ERROR_CODE_REJECT_BUFFER_OVERFLOW - 1) + reject_reason;
         } else {
             Last_Error_Code = ERROR_CODE_REJECT_OTHER;
-}
+        }
     }
 }
 
@@ -269,7 +269,7 @@ static void MyReadPropertyAckHandler(uint8_t *service_request,
         } else {
             if (len < 0) { /* Eg, failed due to no segmentation */
                 Error_Detected = true;
-}
+            }
             free(rp_data);
         }
     }
@@ -428,7 +428,7 @@ static void CheckIsWritableProperty(BACNET_OBJECT_TYPE object_type,
      */
     if (bIsWritable) {
         fprintf(stdout, " Writable");
-}
+    }
 }
 
 static const char *protocol_services_supported_text(size_t bit_index)
@@ -506,7 +506,7 @@ static bool PrettyPrintPropertyValue(
                         }
                     } else { /* not supported */
                         fprintf(stream, ",");
-}
+                    }
                 }
                 fprintf(stream, "\n        ");
             }
@@ -527,7 +527,7 @@ static bool PrettyPrintPropertyValue(
         status = bacapp_print_value(stdout, object_value);
     } else {
         fprintf(stream, "? \n");
-}
+    }
 
     return status;
 }
@@ -586,7 +586,7 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                 }
                 if (object_type == OBJECT_DATETIME_VALUE) {
                     break; /* A special case - no braces for this pair */
-}
+                }
                 /* Else, fall through to normal processing. */
             default:
                 /* Normal array: open brace */
@@ -598,7 +598,7 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
 
     if (!Using_Walked_List) {
         Walked_List_Index = Walked_List_Length = 0; /* In case we need this. */
-}
+    }
     /* value(s) loop until there is no "next" ... */
     while (value != NULL) {
         object_value.object_property = rpm_property->propertyIdentifier;
@@ -620,12 +620,12 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         if (rpm_property->propertyIdentifier ==
                             PROP_OBJECT_LIST) {
                             Object_List_Length = value->type.Unsigned_Int;
-}
+                        }
                         break;
                     } else {
                         assert(Walked_List_Index ==
                             (uint32_t)rpm_property->propertyArrayIndex);
-}
+                    }
                 } else {
                     Walked_List_Index++;
                     /* If we got the whole Object List array in one RP call,
@@ -633,7 +633,7 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                      * through. */
                     if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
                         Object_List_Length = ++Object_List_Index;
-}
+                    }
                 }
                 if (Walked_List_Index == 1) {
                     /* If the array is empty (nothing for this first entry),
@@ -651,7 +651,7 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         fprintf(stdout, "{ \n        ");
                     } else {
                         fprintf(stdout, "\n        ");
-}
+                    }
                 }
 
                 if (rpm_property->propertyIdentifier == PROP_OBJECT_LIST) {
@@ -701,11 +701,11 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                  * braces */
                 if (isSequence) {
                     fprintf(stdout, "{");
-}
+                }
                 bacapp_print_value(stdout, &object_value);
                 if (isSequence) {
                     fprintf(stdout, "}");
-}
+                }
 
                 if ((Walked_List_Index < Walked_List_Length) ||
                     (value->next != NULL)) {
@@ -713,7 +713,7 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                     fprintf(stdout, ", ");
                     if (!(Walked_List_Index % 3)) {
                         fprintf(stdout, "\n        ");
-}
+                    }
                 } else {
                     fprintf(stdout, " } \n");
                 }
@@ -1091,10 +1091,10 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                     if (Target_Address.mac_len == 0) {
                         fprintf(
                             stderr, "Must provide a Target MAC before DNET \n");
-}
+                    }
                     if (++i < argc) {
                         Target_Address.net = (uint16_t)strtol(argv[i], NULL, 0);
-}
+                    }
                     /* Used strtol so dest.net can be either 0x1234 or 4660 */
                     break;
                 case 't':
@@ -1231,7 +1231,7 @@ static void PrintHeading(void)
         for (i = 0; i < len; i++) {
             if (bitstring_bit(&value->type.Bit_String, (uint8_t)i)) {
                 printf(" %s\n", protocol_services_supported_text(i));
-}
+            }
         }
     } else {
         printf("-- use \'Initiate\' or \'Execute\' or both for services.\n");
@@ -1279,7 +1279,7 @@ static void PrintHeading(void)
         for (i = 0; i < len; i++) {
             if (bitstring_bit(&value->type.Bit_String, (uint8_t)i)) {
                 printf(" %s\n", bactext_object_type_name(i));
-}
+            }
         }
     } else {
         printf("-- possible objects in this device\n");
@@ -1501,7 +1501,7 @@ int main(int argc, char *argv[])
                 /* Update by adding the MAC address */
                 if (max_apdu == 0) {
                     max_apdu = MAX_APDU; /* Whatever set for this datalink. */
-}
+                }
                 address_add_binding(
                     Target_Device_Object_Instance, max_apdu, &Target_Address);
             }
@@ -1598,7 +1598,7 @@ int main(int argc, char *argv[])
                         myState = GET_LIST_OF_ALL_RESPONSE;
                     } else {
                         myState = GET_ALL_RESPONSE;
-}
+                    }
                 }
                 break;
 
@@ -1631,7 +1631,7 @@ int main(int argc, char *argv[])
                     Request_Invoke_ID = 0;
                     if (myState == GET_HEADING_RESPONSE) {
                         myState = PRINT_HEADING;
-                    /* just press ahead without the data */
+                        /* just press ahead without the data */
                     } else if (Error_Detected) {
                         if (Last_Error_Code ==
                             ERROR_CODE_REJECT_UNRECOGNIZED_SERVICE) {
@@ -1655,7 +1655,7 @@ int main(int argc, char *argv[])
                         myState = GET_ALL_REQUEST; /* Let's try again */
                     } else {
                         myState = GET_PROPERTY_REQUEST;
-}
+                    }
                 } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
                     fprintf(stderr, "\rError: TSM Timeout!\n");
                     tsm_free_invoke_id(Request_Invoke_ID);
@@ -1663,21 +1663,21 @@ int main(int argc, char *argv[])
                     elapsed_seconds = 0;
                     if (myState == GET_HEADING_RESPONSE) {
                         myState = PRINT_HEADING;
-                    /* just press ahead without the data */
+                        /* just press ahead without the data */
                     } else {
                         myState = GET_ALL_REQUEST; /* Let's try again */
-}
+                    }
                 } else if (Error_Detected) {
                     /* Don't think we'll ever actually reach this point. */
                     elapsed_seconds = 0;
                     Request_Invoke_ID = 0;
                     if (myState == GET_HEADING_RESPONSE) {
                         myState = PRINT_HEADING;
-                    /* just press ahead without the data */
+                        /* just press ahead without the data */
                     } else {
                         myState = NEXT_OBJECT;
-}/* Give up and move on to the
-                                                  next. */
+                    } /* Give up and move on to the
+                                                                       next. */
                     Error_Count++;
                 }
                 break;
@@ -1696,7 +1696,7 @@ int main(int argc, char *argv[])
                     myState = NEXT_OBJECT; /* Move on to the next. */
                 } else {
                     myState = GET_PROPERTY_RESPONSE;
-}
+                }
                 break;
 
             case GET_PROPERTY_RESPONSE:
@@ -1813,7 +1813,7 @@ int main(int argc, char *argv[])
                         /* Don't re-list the Device Object among its objects */
                         if (myObject.type == OBJECT_DEVICE) {
                             continue;
-}
+                        }
                         /* Closing brace for the previous Object */
                         printf("  }, \n");
                         /* Opening brace for the new Object */

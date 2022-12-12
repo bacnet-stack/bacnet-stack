@@ -126,7 +126,7 @@ int dlmstp_send_pdu(BACNET_ADDRESS *dest, /* destination address */
             Transmit_Packet.pdu[i] = pdu[i];
         }
         bacnet_address_copy(&Transmit_Packet.address, dest);
-        bytes_sent = pdu_len + MAX_HEADER;
+        bytes_sent = pdu_len + DLMSTP_HEADER_MAX;
         Transmit_Packet.ready = true;
     }
 
@@ -282,7 +282,7 @@ uint16_t MSTP_Get_Send(
     } else {
         destination = MSTP_BROADCAST_ADDRESS;
     }
-    if ((MAX_HEADER + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
+    if ((DLMSTP_HEADER_MAX + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
         return 0;
     }
     /* convert the PDU into the MSTP Frame */
@@ -421,7 +421,7 @@ uint16_t MSTP_Get_Reply(
     } else {
         return 0;
     }
-    if ((MAX_HEADER + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
+    if ((DLMSTP_HEADER_MAX + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
         return 0;
     }
     /* is this the reply to the DER? */

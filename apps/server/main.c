@@ -267,9 +267,9 @@ int main(int argc, char *argv[])
     ucix_cleanup(ctx);
 #endif /* defined(BAC_UCI) */
     BACNET_CHARACTER_STRING DeviceName;
-    if (Device_Object_Name(Device_Object_Instance_Number(),&DeviceName)) {
+    if (Device_Object_Name(Device_Object_Instance_Number(), &DeviceName)) {
         printf("BACnet Device Name: %s\n", DeviceName.value);
-}
+    }
 
     dlenv_init();
     atexit(datalink_cleanup);

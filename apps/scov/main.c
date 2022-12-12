@@ -420,6 +420,6 @@ int main(int argc, char *argv[])
     }
     if (Error_Detected) {
         return 1;
-}
+    }
     return 0;
 }

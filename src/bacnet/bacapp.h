@@ -36,6 +36,7 @@
 #include "bacnet/bacdevobjpropref.h"
 #include "bacnet/hostnport.h"
 #include "bacnet/timestamp.h"
+#include "bacnet/weeklyschedule.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -86,6 +87,7 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_LIGHTING_COMMAND Lighting_Command;
         BACNET_COLOR_COMMAND Color_Command;
         BACNET_XY_COLOR XY_Color;
+        BACNET_WEEKLY_SCHEDULE Weekly_Schedule;
         BACNET_HOST_N_PORT Host_Address;
         BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
             Device_Object_Property_Reference;
@@ -217,6 +219,11 @@ extern "C" {
         BACNET_PROPERTY_ID property);
 
     BACNET_STACK_EXPORT
+    int bacapp_known_property_tag(
+        BACNET_OBJECT_TYPE object_type,
+        BACNET_PROPERTY_ID property);
+
+    BACNET_STACK_EXPORT
     bool bacapp_copy(
         BACNET_APPLICATION_DATA_VALUE * dest_value,
         BACNET_APPLICATION_DATA_VALUE * src_value);
@@ -260,7 +267,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool bacapp_parse_application_data(
         BACNET_APPLICATION_TAG tag_number,
-        const char *argv,
+        char *argv,
         BACNET_APPLICATION_DATA_VALUE * value);
     BACNET_STACK_EXPORT
     bool bacapp_print_value(

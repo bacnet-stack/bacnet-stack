@@ -263,8 +263,8 @@ int property_list_encode(BACNET_READ_PROPERTY_DATA *rpdata,
  * @return number of APDU bytes in the response, or
  * BACNET_STATUS_ERROR on error.
  */
-int property_list_common_encode(BACNET_READ_PROPERTY_DATA *rpdata,
-    uint32_t device_instance_number)
+int property_list_common_encode(
+    BACNET_READ_PROPERTY_DATA *rpdata, uint32_t device_instance_number)
 {
     int apdu_len = BACNET_STATUS_ERROR;
     uint8_t *apdu = NULL;

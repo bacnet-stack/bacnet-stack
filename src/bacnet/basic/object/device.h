@@ -512,7 +512,7 @@ extern "C" {
         void);
     BACNET_STACK_EXPORT
     int Routed_Device_Service_Approval(
-        BACNET_CONFIRMED_SERVICE service,
+        BACNET_SERVICES_SUPPORTED service,
         int service_argument,
         uint8_t * apdu_buff,
         uint8_t invoke_id);

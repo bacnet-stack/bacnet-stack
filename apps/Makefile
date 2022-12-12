@@ -96,10 +96,17 @@ endif
 BACNET_PORT_DIR =  $(realpath ../ports/$(BACNET_PORT))
 BACNET_SRC_DIR =  $(realpath ../src)
 
+# Compiler flag to set the C Standard level.
+# c89   - "ANSI" C
+# gnu89 - c89 plus GCC extensions
+# c99   - ISO C99 standard
+# gnu99 - c99 plus GCC extensions
+CSTANDARD = -std=gnu89
+
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNINGS ?= -Wall -Wmissing-prototypes
+WARNINGS ?= -Wall -Wmissing-prototypes -Wno-missing-braces
 # dead code removal
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
@@ -121,6 +128,7 @@ BACNET_DEFINES += -DBSC_CONF_WSURL_MAX_LEN=127
 # put all the flags together
 INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
 CFLAGS += $(WARNINGS) $(DEBUGGING) $(OPTIMIZATION) $(BACNET_DEFINES) $(INCLUDES)
+CFLAGS += $(CSTANDARD)
 ifneq (${BACNET_LIB},)
 LFLAGS += -Wl,$(BACNET_LIB)
 endif

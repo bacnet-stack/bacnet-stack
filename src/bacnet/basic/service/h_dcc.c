@@ -149,8 +149,7 @@ void handler_device_communication_control(uint8_t *service_request,
 #endif
         } else if (len == BACNET_STATUS_REJECT) {
             len = reject_encode_apdu(&Handler_Transmit_Buffer[pdu_len],
-                service_data->invoke_id,
-                REJECT_REASON_PARAMETER_OUT_OF_RANGE);
+                service_data->invoke_id, REJECT_REASON_PARAMETER_OUT_OF_RANGE);
 #if PRINT_ENABLED
             fprintf(stderr, "DCC: Sending Reject!\n");
 #endif
@@ -169,7 +168,7 @@ void handler_device_communication_control(uint8_t *service_request,
 #ifdef BAC_ROUTING
         /* Check to see if the current Device supports this service. */
         len = Routed_Device_Service_Approval(
-            SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL, (int)state,
+            SERVICE_SUPPORTED_DEVICE_COMMUNICATION_CONTROL, (int)state,
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
         if (len > 0)
             goto DCC_ABORT;

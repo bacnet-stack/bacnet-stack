@@ -268,8 +268,7 @@ static void CharacterString_Value_Out_Of_Service_Set(
  * @param object_instance - object-instance number of the object
  * @return the COV change flag status
  */
-bool CharacterString_Value_Change_Of_Value(
-    uint32_t object_instance)
+bool CharacterString_Value_Change_Of_Value(uint32_t object_instance)
 {
     bool changed = false;
     unsigned index = 0; /* offset from instance lookup */
@@ -286,8 +285,7 @@ bool CharacterString_Value_Change_Of_Value(
  * @brief Clear the COV change flag
  * @param object_instance - object-instance number of the object
  */
-void CharacterString_Value_Change_Of_Value_Clear(
-    uint32_t object_instance)
+void CharacterString_Value_Change_Of_Value_Clear(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
 
@@ -298,14 +296,14 @@ void CharacterString_Value_Change_Of_Value_Clear(
 }
 
 /**
- * @brief For a given object instance-number, loads the value_list with the COV data.
+ * @brief For a given object instance-number, loads the value_list with the COV
+ * data.
  * @param  object_instance - object-instance number of the object
  * @param  value_list - list of COV data
  * @return  true if the value list is encoded
  */
 bool CharacterString_Value_Encode_Value_List(
-    uint32_t object_instance,
-    BACNET_PROPERTY_VALUE * value_list)
+    uint32_t object_instance, BACNET_PROPERTY_VALUE *value_list)
 {
     bool status = false;
     const bool in_alarm = false;
@@ -589,8 +587,8 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
             if (status) {
                 status = CharacterString_Value_Present_Value_Set(
                     wp_data->object_instance, &value.type.Character_String);
@@ -601,8 +599,8 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CharacterString_Value_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);

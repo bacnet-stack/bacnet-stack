@@ -85,7 +85,7 @@ void *dl_mstp_thread(void *pArgs)
 
     if (port->params.mstp_params.stopbits == 2) {
         shared_port_data.RS485MOD |= CSTOPB;
-}
+    }
 
     mstp_port.UserData = (void *)&shared_port_data;
     dlmstp_set_baud_rate(&mstp_port, port->params.mstp_params.baudrate);
@@ -94,7 +94,7 @@ void *dl_mstp_thread(void *pArgs)
     dlmstp_set_max_master(&mstp_port, port->params.mstp_params.max_master);
     if (!dlmstp_init(&mstp_port, port->iface)) {
         printf("MSTP %s init failed. Stop.\n", port->iface);
-}
+    }
 
     port->port_id = create_msgbox();
     if (port->port_id == INVALID_MSGBOX_ID) {

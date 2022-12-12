@@ -394,10 +394,10 @@ bool Lighting_Output_Lighting_Command_Set(
 
     index = Lighting_Output_Instance_To_Index(object_instance);
     if (index < MAX_LIGHTING_OUTPUTS) {
-        // FIXME: check lighting command member values
+        /* FIXME: check lighting command member values */
         status = lighting_command_copy(
             &Lighting_Output[index].Lighting_Command, value);
-        // FIXME: set all the other values, and get the light levels moving
+        /* FIXME: set all the other values, and get the light levels moving */
     }
 
     return status;
@@ -1111,8 +1111,8 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
@@ -1131,8 +1131,8 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_NULL);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_NULL);
                 if (status) {
                     if (wp_data->priority == 6) {
                         /* Command priority 6 is reserved for use by Minimum
@@ -1154,8 +1154,8 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_LIGHTING_COMMAND:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_LIGHTING_COMMAND);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_LIGHTING_COMMAND);
             if (status) {
                 status = Lighting_Output_Lighting_Command_Set(
                     wp_data->object_instance, &value.type.Lighting_Command);
@@ -1166,8 +1166,8 @@ bool Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Lighting_Output_Out_Of_Service_Set(
                     wp_data->object_instance, value.type.Boolean);

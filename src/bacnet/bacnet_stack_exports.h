@@ -50,4 +50,4 @@
 #  endif
 #endif
 
-#endif  // BACNET_STACK_EXPORTS_H
+#endif  /* BACNET_STACK_EXPORTS_H */

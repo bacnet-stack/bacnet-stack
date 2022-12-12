@@ -56,8 +56,6 @@
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/datalink/bip6.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
-#undef MAX_HEADER
-#undef MAX_MPDU
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
@@ -102,8 +100,8 @@ static uint16_t BIP6_Net;
 static uint8_t BIP_Rx_Buffer[BIP_MPDU_MAX];
 static uint8_t BIP6_Rx_Buffer[BIP6_MPDU_MAX];
 /* buffer for transmitting from any port */
-#define MAX(a,b) (((a)>(b))?(a):(b))
-static uint8_t Tx_Buffer[MAX(BIP_MPDU_MAX,BIP6_MPDU_MAX)];
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+static uint8_t Tx_Buffer[MAX(BIP_MPDU_MAX, BIP6_MPDU_MAX)];
 /* main loop exit control */
 static bool Exit_Requested;
 
@@ -1151,16 +1149,16 @@ int main(int argc, char *argv[])
         /* input */
         current_seconds = time(NULL);
         /* returns 0 bytes on timeout */
-        pdu_len = bip_receive(&src, &BIP_Rx_Buffer[0],
-            sizeof(BIP_Rx_Buffer), 5);
+        pdu_len =
+            bip_receive(&src, &BIP_Rx_Buffer[0], sizeof(BIP_Rx_Buffer), 5);
         /* process */
         if (pdu_len) {
             debug_printf("BACnet/IP Received packet\n");
             my_routing_npdu_handler(BIP_Net, &src, &BIP_Rx_Buffer[0], pdu_len);
         }
         /* returns 0 bytes on timeout */
-        pdu_len = bip6_receive(&src, &BIP6_Rx_Buffer[0],
-            sizeof(BIP6_Rx_Buffer), 5);
+        pdu_len =
+            bip6_receive(&src, &BIP6_Rx_Buffer[0], sizeof(BIP6_Rx_Buffer), 5);
         /* process */
         if (pdu_len) {
             debug_printf("BACnet/IPv6 Received packet\n");

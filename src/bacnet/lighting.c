@@ -133,7 +133,7 @@ int lighting_command_decode(
     uint32_t len_value_type = 0;
     uint32_t enum_value = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
-    BACNET_LIGHTING_OPERATION operation= BACNET_LIGHTS_NONE;
+    BACNET_LIGHTING_OPERATION operation = BACNET_LIGHTS_NONE;
     float real_value = 0.0;
 
     /* check for value pointers */

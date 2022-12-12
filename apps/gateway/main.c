@@ -122,7 +122,7 @@ static void Initialize_Device_Addresses(void)
 {
     int i = 0; /* First entry is Gateway Device */
     uint32_t virtual_mac = 0;
-    BACNET_ADDRESS virtual_address = {0};
+    BACNET_ADDRESS virtual_address = { 0 };
     DEVICE_OBJECT_DATA *pDev = NULL;
     /* Setup info for the main gateway device first */
     pDev = Get_Routed_Device_Object(i);

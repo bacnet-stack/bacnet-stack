@@ -263,20 +263,18 @@ int event_notify_encode_service_request(
 
                         switch (data->notificationParams.commandFailure.tag) {
                             case COMMAND_FAILURE_BINARY_PV:
-                                len =
-                                    encode_application_enumerated(&apdu
-                                    [apdu_len],
-                                    data->notificationParams.commandFailure.
-                                    commandValue.binaryValue);
+                                len = encode_application_enumerated(
+                                    &apdu[apdu_len],
+                                    data->notificationParams.commandFailure
+                                        .commandValue.binaryValue);
                                 apdu_len += len;
                                 break;
 
                             case COMMAND_FAILURE_UNSIGNED:
                                 len =
-                                    encode_application_unsigned(&apdu
-                                    [apdu_len],
-                                    data->notificationParams.commandFailure.
-                                    commandValue.unsignedValue);
+                                    encode_application_unsigned(&apdu[apdu_len],
+                                        data->notificationParams.commandFailure
+                                            .commandValue.unsignedValue);
                                 apdu_len += len;
                                 break;
 
@@ -287,10 +285,9 @@ int event_notify_encode_service_request(
                         len = encode_closing_tag(&apdu[apdu_len], 0);
                         apdu_len += len;
 
-                        len =
-                            encode_context_bitstring(&apdu[apdu_len], 1,
-                            &data->notificationParams.commandFailure.
-                            statusFlags);
+                        len = encode_context_bitstring(&apdu[apdu_len], 1,
+                            &data->notificationParams.commandFailure
+                                 .statusFlags);
                         apdu_len += len;
 
                         len = encode_opening_tag(&apdu[apdu_len], 2);
@@ -298,20 +295,18 @@ int event_notify_encode_service_request(
 
                         switch (data->notificationParams.commandFailure.tag) {
                             case COMMAND_FAILURE_BINARY_PV:
-                                len =
-                                    encode_application_enumerated(&apdu
-                                    [apdu_len],
-                                    data->notificationParams.commandFailure.
-                                    feedbackValue.binaryValue);
+                                len = encode_application_enumerated(
+                                    &apdu[apdu_len],
+                                    data->notificationParams.commandFailure
+                                        .feedbackValue.binaryValue);
                                 apdu_len += len;
                                 break;
 
                             case COMMAND_FAILURE_UNSIGNED:
                                 len =
-                                    encode_application_unsigned(&apdu
-                                    [apdu_len],
-                                    data->notificationParams.commandFailure.
-                                    feedbackValue.unsignedValue);
+                                    encode_application_unsigned(&apdu[apdu_len],
+                                        data->notificationParams.commandFailure
+                                            .feedbackValue.unsignedValue);
                                 apdu_len += len;
                                 break;
 
@@ -454,43 +449,38 @@ int event_notify_encode_service_request(
                         len = encode_opening_tag(&apdu[apdu_len], 13);
                         apdu_len += len;
 
-                        len =
-                            encode_context_enumerated(&apdu[apdu_len], 0,
+                        len = encode_context_enumerated(&apdu[apdu_len], 0,
                             data->notificationParams.accessEvent.accessEvent);
                         apdu_len += len;
 
-                        len =
-                            encode_context_bitstring(&apdu[apdu_len], 1,
+                        len = encode_context_bitstring(&apdu[apdu_len], 1,
                             &data->notificationParams.accessEvent.statusFlags);
                         apdu_len += len;
 
-                        len =
-                            encode_context_unsigned(&apdu[apdu_len], 2,
-                            data->notificationParams.
-                            accessEvent.accessEventTag);
+                        len = encode_context_unsigned(&apdu[apdu_len], 2,
+                            data->notificationParams.accessEvent
+                                .accessEventTag);
                         apdu_len += len;
 
                         len =
                             bacapp_encode_context_timestamp(&apdu[apdu_len], 3,
-                            &data->notificationParams.
-                            accessEvent.accessEventTime);
+                                &data->notificationParams.accessEvent
+                                     .accessEventTime);
                         apdu_len += len;
 
-                        len =
-                            bacapp_encode_context_device_obj_ref(&apdu
-                            [apdu_len], 4,
-                            &data->notificationParams.
-                            accessEvent.accessCredential);
+                        len = bacapp_encode_context_device_obj_ref(
+                            &apdu[apdu_len], 4,
+                            &data->notificationParams.accessEvent
+                                 .accessCredential);
                         apdu_len += len;
 
-                        if (data->notificationParams.
-                            accessEvent.authenticationFactor.format_type <
+                        if (data->notificationParams.accessEvent
+                                .authenticationFactor.format_type <
                             AUTHENTICATION_FACTOR_MAX) {
-                            len =
-                                bacapp_encode_context_authentication_factor
-                                (&apdu[apdu_len], 5,
-                                &data->notificationParams.
-                                accessEvent.authenticationFactor);
+                            len = bacapp_encode_context_authentication_factor(
+                                &apdu[apdu_len], 5,
+                                &data->notificationParams.accessEvent
+                                     .authenticationFactor);
                             apdu_len += len;
                         }
 
@@ -774,31 +764,31 @@ int event_notify_decode_service_request(
                         }
                         len++;
 
-                        if (-1 == (section_length =
-                                decode_tag_number_and_value(&apdu[len],
-                                    &tag_number, &len_value))) {
+                        if (-1 ==
+                            (section_length = decode_tag_number_and_value(
+                                 &apdu[len], &tag_number, &len_value))) {
                             return -1;
                         }
                         len += section_length;
 
                         switch (tag_number) {
                             case BACNET_APPLICATION_TAG_ENUMERATED:
-                                if (-1 == (section_length =
-                                        decode_enumerated(&apdu[len],
-                                            len_value,
-                                            &data->
-                                            notificationParams.commandFailure.
-                                            commandValue.binaryValue))) {
+                                if (-1 ==
+                                    (section_length = decode_enumerated(
+                                         &apdu[len], len_value, &enum_value))) {
                                     return -1;
                                 }
+                                data->notificationParams.commandFailure
+                                    .commandValue.binaryValue = enum_value;
                                 break;
 
                             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                                if (-1 == (section_length =
-                                        decode_unsigned(&apdu[len], len_value,
-                                            &data->
-                                            notificationParams.commandFailure.
-                                            commandValue.unsignedValue))) {
+                                if (-1 ==
+                                    (section_length = decode_unsigned(
+                                         &apdu[len], len_value,
+                                         &data->notificationParams
+                                              .commandFailure.commandValue
+                                              .unsignedValue))) {
                                     return -1;
                                 }
                                 break;
@@ -813,10 +803,11 @@ int event_notify_decode_service_request(
                         }
                         len++;
 
-                        if (-1 == (section_length =
-                                decode_context_bitstring(&apdu[len], 1,
-                                    &data->notificationParams.commandFailure.
-                                    statusFlags))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_bitstring(&apdu[len], 1,
+                                        &data->notificationParams.commandFailure
+                                             .statusFlags))) {
                             return -1;
                         }
                         len += section_length;
@@ -826,31 +817,31 @@ int event_notify_decode_service_request(
                         }
                         len++;
 
-                        if (-1 == (section_length =
-                                decode_tag_number_and_value(&apdu[len],
-                                    &tag_number, &len_value))) {
+                        if (-1 ==
+                            (section_length = decode_tag_number_and_value(
+                                 &apdu[len], &tag_number, &len_value))) {
                             return -1;
                         }
                         len += section_length;
 
                         switch (tag_number) {
                             case BACNET_APPLICATION_TAG_ENUMERATED:
-                                if (-1 == (section_length =
-                                        decode_enumerated(&apdu[len],
-                                            len_value,
-                                            &data->
-                                            notificationParams.commandFailure.
-                                            feedbackValue.binaryValue))) {
+                                if (-1 ==
+                                    (section_length = decode_enumerated(
+                                         &apdu[len], len_value, &enum_value))) {
                                     return -1;
                                 }
+                                data->notificationParams.commandFailure
+                                    .feedbackValue.binaryValue = enum_value;
                                 break;
 
                             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                                if (-1 == (section_length =
-                                        decode_unsigned(&apdu[len], len_value,
-                                            &data->
-                                            notificationParams.commandFailure.
-                                            feedbackValue.unsignedValue))) {
+                                if (-1 ==
+                                    (section_length = decode_unsigned(
+                                         &apdu[len], len_value,
+                                         &data->notificationParams
+                                              .commandFailure.feedbackValue
+                                              .unsignedValue))) {
                                     return -1;
                                 }
                                 break;
@@ -1058,53 +1049,59 @@ int event_notify_decode_service_request(
                         break;
 
                     case EVENT_ACCESS_EVENT:
-                        if (-1 == (section_length =
-                                decode_context_enumerated(&apdu[len], 0,
-                                    &data->notificationParams.
-                                    accessEvent.accessEvent))) {
+                        if (-1 ==
+                            (section_length = decode_context_enumerated(
+                                 &apdu[len], 0, &enum_value))) {
+                            return -1;
+                        }
+                        data->notificationParams.accessEvent.accessEvent =
+                            enum_value;
+                        len += section_length;
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_bitstring(&apdu[len], 1,
+                                        &data->notificationParams.accessEvent
+                                             .statusFlags))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1 == (section_length =
-                                decode_context_bitstring(&apdu[len], 1,
-                                    &data->notificationParams.
-                                    accessEvent.statusFlags))) {
+                        if (-1 ==
+                            (section_length =
+                                    decode_context_unsigned(&apdu[len], 2,
+                                        &data->notificationParams.accessEvent
+                                             .accessEventTag))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1 == (section_length =
-                                decode_context_unsigned(&apdu[len], 2,
-                                    &data->notificationParams.
-                                    accessEvent.accessEventTag))) {
+                        if (-1 ==
+                            (section_length = bacapp_decode_context_timestamp(
+                                 &apdu[len], 3,
+                                 &data->notificationParams.accessEvent
+                                      .accessEventTime))) {
                             return -1;
                         }
                         len += section_length;
 
-                        if (-1 == (section_length =
-                                bacapp_decode_context_timestamp(&apdu[len], 3,
-                                    &data->notificationParams.
-                                    accessEvent.accessEventTime))) {
-                            return -1;
-                        }
-                        len += section_length;
-
-                        if (-1 == (section_length =
-                                bacapp_decode_context_device_obj_ref(&apdu
-                                    [len], 4,
-                                    &data->notificationParams.
-                                    accessEvent.accessCredential))) {
+                        if (-1 ==
+                            (section_length =
+                                    bacapp_decode_context_device_obj_ref(
+                                        &apdu[len], 4,
+                                        &data->notificationParams.accessEvent
+                                             .accessCredential))) {
                             return -1;
                         }
                         len += section_length;
 
                         if (!decode_is_closing_tag(&apdu[len])) {
-                            if (-1 == (section_length =
-                                    bacapp_decode_context_authentication_factor
-                                    (&apdu[len], 5,
-                                        &data->notificationParams.
-                                        accessEvent.authenticationFactor))) {
+                            if (-1 ==
+                                (section_length =
+                                        bacapp_decode_context_authentication_factor(
+                                            &apdu[len], 5,
+                                            &data->notificationParams
+                                                 .accessEvent
+                                                 .authenticationFactor))) {
                                 return -1;
                             }
                             len += section_length;

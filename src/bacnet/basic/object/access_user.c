@@ -250,8 +250,8 @@ bool Access_User_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     object_index = Access_User_Instance_To_Index(wp_data->object_instance);
     switch (wp_data->object_property) {
         case PROP_GLOBAL_IDENTIFIER:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 au_descr[object_index].global_identifier =
                     value.type.Unsigned_Int;
@@ -276,4 +276,3 @@ bool Access_User_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     return status;
 }
-

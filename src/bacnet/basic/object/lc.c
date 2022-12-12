@@ -880,7 +880,7 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         /* error while decoding - a smaller larger than we can handle */
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-	return false;
+        return false;
     }
 
     /* decode the some of the request */
@@ -909,7 +909,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data_len, &value,
                 PROP_REQUESTED_SHED_LEVEL);
             if (len == BACNET_STATUS_ERROR) {
-                PRINTF("Load_Control_Write_Property() failure detected point D\n");
+                PRINTF(
+                    "Load_Control_Write_Property() failure detected point D\n");
                 /* error! */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -935,7 +936,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     value.type.Real;
                 status = true;
             } else {
-                PRINTF("Load_Control_Write_Property() failure detected point E\n");
+                PRINTF(
+                    "Load_Control_Write_Property() failure detected point E\n");
                 /* error! */
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -946,10 +948,11 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_START_TIME:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_DATE);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_DATE);
             if (!status) {
-                PRINTF("Load_Control_Write_Property() failure detected point F\n");
+                PRINTF(
+                    "Load_Control_Write_Property() failure detected point F\n");
                 /* don't continue if we don't have a valid date */
                 break;
             }
@@ -959,8 +962,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 bacapp_decode_application_data(wp_data->application_data + len,
                     wp_data->application_data_len - len, &value);
             if (len) {
-                status = write_property_type_valid(wp_data, &value,
-                    BACNET_APPLICATION_TAG_TIME);
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_TIME);
                 if (status) {
                     /* Write time and date and set written flag */
                     Start_Time[object_index].date = start_date;
@@ -968,7 +971,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     Start_Time_Property_Written[object_index] = true;
                 }
             } else {
-                PRINTF("Load_Control_Write_Property() failure detected point G\n");
+                PRINTF(
+                    "Load_Control_Write_Property() failure detected point G\n");
                 status = false;
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -976,19 +980,20 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_SHED_DURATION:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 Shed_Duration[object_index] = value.type.Unsigned_Int;
                 Load_Control_Request_Written[object_index] = true;
             } else {
-                PRINTF("Load_Control_Write_Property() failure detected point H\n");
+                PRINTF(
+                    "Load_Control_Write_Property() failure detected point H\n");
             }
             break;
 
         case PROP_DUTY_WINDOW:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 Duty_Window[object_index] = value.type.Unsigned_Int;
                 Load_Control_Request_Written[object_index] = true;
@@ -996,8 +1001,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_SHED_LEVELS:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 /* re-write the size of the array? */
                 if (wp_data->array_index == 0) {
@@ -1020,8 +1025,8 @@ bool Load_Control_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_ENABLE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 Load_Control_Enable[object_index] = value.type.Boolean;
             }

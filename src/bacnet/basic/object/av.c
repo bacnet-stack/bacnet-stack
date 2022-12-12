@@ -382,8 +382,8 @@ bool Analog_Value_Encode_Value_List(
             bitstring_set_bit(&value_list->value.type.Bit_String,
                 STATUS_FLAG_IN_ALARM, false);
         } else {
-            bitstring_set_bit(&value_list->value.type.Bit_String,
-                STATUS_FLAG_IN_ALARM, true);
+            bitstring_set_bit(
+                &value_list->value.type.Bit_String, STATUS_FLAG_IN_ALARM, true);
         }
         bitstring_set_bit(
             &value_list->value.type.Bit_String, STATUS_FLAG_FAULT, false);
@@ -526,7 +526,7 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_init(&bit_string);
             bitstring_set_bit(&bit_string, STATUS_FLAG_IN_ALARM,
                 Analog_Value_Event_State(rpdata->object_instance) !=
-                EVENT_STATE_NORMAL);
+                    EVENT_STATE_NORMAL);
             bitstring_set_bit(&bit_string, STATUS_FLAG_FAULT, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(&bit_string, STATUS_FLAG_OUT_OF_SERVICE,
@@ -745,8 +745,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
@@ -772,24 +772,24 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
                 CurrentAV->Out_Of_Service = value.type.Boolean;
             }
             break;
 
         case PROP_UNITS:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 CurrentAV->Units = value.type.Enumerated;
             }
             break;
 
         case PROP_COV_INCREMENT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 if (value.type.Real >= 0.0) {
                     Analog_Value_COV_Increment_Set(
@@ -804,8 +804,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 #if defined(INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentAV->Time_Delay = value.type.Unsigned_Int;
                 CurrentAV->Remaining_Time_Delay = CurrentAV->Time_Delay;
@@ -813,40 +813,40 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_NOTIFICATION_CLASS:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
                 CurrentAV->Notification_Class = value.type.Unsigned_Int;
             }
             break;
 
         case PROP_HIGH_LIMIT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAV->High_Limit = value.type.Real;
             }
             break;
 
         case PROP_LOW_LIMIT:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAV->Low_Limit = value.type.Real;
             }
             break;
 
         case PROP_DEADBAND:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_REAL);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
             if (status) {
                 CurrentAV->Deadband = value.type.Real;
             }
             break;
 
         case PROP_LIMIT_ENABLE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BIT_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BIT_STRING);
             if (status) {
                 if (value.type.Bit_String.bits_used == 2) {
                     CurrentAV->Limit_Enable = value.type.Bit_String.value[0];
@@ -859,8 +859,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_EVENT_ENABLE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_BIT_STRING);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BIT_STRING);
             if (status) {
                 if (value.type.Bit_String.bits_used == 3) {
                     CurrentAV->Event_Enable = value.type.Bit_String.value[0];
@@ -873,8 +873,8 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 
         case PROP_NOTIFY_TYPE:
-            status = write_property_type_valid(wp_data, &value,
-                BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 switch ((BACNET_NOTIFY_TYPE)value.type.Enumerated) {
                     case NOTIFY_EVENT:
@@ -1097,8 +1097,7 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
 #if PRINT_ENABLED
             fprintf(stderr, "Event_State for (%s,%u) goes from %s to %s.\n",
                 bactext_object_type_name(OBJECT_ANALOG_VALUE),
-                (unsigned)object_instance,
-                bactext_event_state_name(FromState),
+                (unsigned)object_instance, bactext_event_state_name(FromState),
                 bactext_event_state_name(ToState));
 #endif /* PRINT_ENABLED */
 

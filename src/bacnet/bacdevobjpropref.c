@@ -153,17 +153,14 @@ int bacapp_decode_device_obj_property_ref(
     uint32_t enumValue = 0;
 
     /* object-identifier       [0] BACnetObjectIdentifier */
-    len =
-        decode_context_object_id(&apdu[apdu_len], 0,
-            &value->objectIdentifier.type,
-            &value->objectIdentifier.instance);
+    len = decode_context_object_id(&apdu[apdu_len], 0,
+        &value->objectIdentifier.type, &value->objectIdentifier.instance);
     if (len == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
     /* property-identifier     [1] BACnetPropertyIdentifier */
-    len =
-        decode_context_enumerated(&apdu[apdu_len], 1, &enumValue);
+    len = decode_context_enumerated(&apdu[apdu_len], 1, &enumValue);
     if (len == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;
     }
@@ -172,8 +169,7 @@ int bacapp_decode_device_obj_property_ref(
     /* property-array-index    [2] Unsigned OPTIONAL */
     if (decode_is_context_tag(&apdu[apdu_len], 2) &&
         !decode_is_closing_tag(&apdu[apdu_len])) {
-        len = decode_context_unsigned(
-                &apdu[apdu_len], 2, &value->arrayIndex);
+        len = decode_context_unsigned(&apdu[apdu_len], 2, &value->arrayIndex);
         if (len == BACNET_STATUS_ERROR) {
             return BACNET_STATUS_ERROR;
         }
@@ -210,8 +206,7 @@ int bacapp_decode_device_obj_property_ref(
  *
  * @return Bytes decoded or BACNET_STATUS_ERROR on failure.
  */
-int bacapp_decode_context_device_obj_property_ref(
-    uint8_t *apdu,
+int bacapp_decode_context_device_obj_property_ref(uint8_t *apdu,
     uint8_t tag_number,
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *value)
 {
@@ -255,9 +250,7 @@ int bacapp_decode_context_device_obj_property_ref(
  * @return Bytes encoded or 0 on failure.
  */
 int bacapp_encode_context_device_obj_ref(
-    uint8_t *apdu,
-    uint8_t tag_number,
-    BACNET_DEVICE_OBJECT_REFERENCE *value)
+    uint8_t *apdu, uint8_t tag_number, BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     int len;
     int apdu_len = 0;
@@ -291,8 +284,7 @@ int bacapp_encode_context_device_obj_ref(
  * @return Bytes encoded or 0 on failure.
  */
 int bacapp_encode_device_obj_ref(
-    uint8_t * apdu,
-    BACNET_DEVICE_OBJECT_REFERENCE * value)
+    uint8_t *apdu, BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     int len;
     int apdu_len = 0;
@@ -307,9 +299,8 @@ int bacapp_encode_device_obj_ref(
         apdu_len += len;
     }
     /* object-identifier [1] BACnetObjectIdentifier */
-    len =
-        encode_context_object_id(&apdu[apdu_len], 1,
-            value->objectIdentifier.type, value->objectIdentifier.instance);
+    len = encode_context_object_id(&apdu[apdu_len], 1,
+        value->objectIdentifier.type, value->objectIdentifier.instance);
     apdu_len += len;
 
     return apdu_len;
@@ -330,8 +321,7 @@ int bacapp_encode_device_obj_ref(
  * @return Bytes decoded or BACNET_STATUS_ERROR on failure.
  */
 int bacapp_decode_device_obj_ref(
-    uint8_t * apdu,
-    BACNET_DEVICE_OBJECT_REFERENCE * value)
+    uint8_t *apdu, BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     int len;
     int apdu_len = 0;
@@ -339,10 +329,8 @@ int bacapp_decode_device_obj_ref(
     /* device-identifier [0] BACnetObjectIdentifier OPTIONAL */
     if (decode_is_context_tag(&apdu[apdu_len], 0) &&
         !decode_is_closing_tag(&apdu[apdu_len])) {
-        len =
-            decode_context_object_id(&apdu[apdu_len], 0,
-                &value->deviceIdentifier.type,
-                &value->deviceIdentifier.instance);
+        len = decode_context_object_id(&apdu[apdu_len], 0,
+            &value->deviceIdentifier.type, &value->deviceIdentifier.instance);
         if (len == BACNET_STATUS_ERROR) {
             return BACNET_STATUS_ERROR;
         }
@@ -352,10 +340,8 @@ int bacapp_decode_device_obj_ref(
         value->deviceIdentifier.instance = BACNET_NO_DEV_ID;
     }
     /* object-identifier [1] BACnetObjectIdentifier */
-    len =
-        decode_context_object_id(&apdu[apdu_len], 1,
-            &value->objectIdentifier.type,
-            &value->objectIdentifier.instance);
+    len = decode_context_object_id(&apdu[apdu_len], 1,
+        &value->objectIdentifier.type, &value->objectIdentifier.instance);
     if (len == BACNET_STATUS_ERROR) {
         return BACNET_STATUS_ERROR;
     }
@@ -376,9 +362,7 @@ int bacapp_decode_device_obj_ref(
  * @return Bytes decoded or BACNET_STATUS_ERROR on failure.
  */
 int bacapp_decode_context_device_obj_ref(
-    uint8_t * apdu,
-    uint8_t tag_number,
-    BACNET_DEVICE_OBJECT_REFERENCE * value)
+    uint8_t *apdu, uint8_t tag_number, BACNET_DEVICE_OBJECT_REFERENCE *value)
 {
     int len = 0;
     int section_length;
@@ -402,7 +386,6 @@ int bacapp_decode_context_device_obj_ref(
     return len;
 }
 
-
 /**
  * @brief Encode a BACnetObjectPropertyReference
  *
@@ -418,8 +401,8 @@ int bacapp_decode_context_device_obj_ref(
  * @param reference - BACnetObjectPropertyReference
  * @return length of the APDU buffer
  */
-int bacapp_encode_obj_property_ref(uint8_t *apdu,
-    BACNET_OBJECT_PROPERTY_REFERENCE *reference)
+int bacapp_encode_obj_property_ref(
+    uint8_t *apdu, BACNET_OBJECT_PROPERTY_REFERENCE *reference)
 {
     int len = 0;
     uint8_t *apdu_offset = NULL;
@@ -540,16 +523,15 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
         if (reference) {
             reference->object_identifier.type = object_identifier.type;
             reference->object_identifier.instance = object_identifier.instance;
-            reference->property_identifier = 
+            reference->property_identifier =
                 (BACNET_PROPERTY_ID)property_identifier;
             reference->property_array_index = BACNET_ARRAY_ALL;
         }
         /* property-array-index [2] Unsigned OPTIONAL */
         if (apdu_len_max > apdu_len) {
             if (decode_is_context_tag(&apdu[apdu_len], 2)) {
-                len = bacnet_unsigned_context_decode(
-                    &apdu[apdu_len], apdu_len_max - apdu_len, 2,
-                    &unsigned_value);
+                len = bacnet_unsigned_context_decode(&apdu[apdu_len],
+                    apdu_len_max - apdu_len, 2, &unsigned_value);
                 if (len > 0) {
                     apdu_len += len;
                     if (unsigned_value > UINT32_MAX) {
@@ -580,11 +562,10 @@ int bacapp_decode_obj_property_ref(uint8_t *apdu,
  *
  * @return Bytes decoded or BACNET_STATUS_ERROR on failure.
  */
-int bacapp_decode_context_obj_property_ref(
-    uint8_t * apdu,
+int bacapp_decode_context_obj_property_ref(uint8_t *apdu,
     uint16_t apdu_len_max,
     uint8_t tag_number,
-    BACNET_OBJECT_PROPERTY_REFERENCE * value)
+    BACNET_OBJECT_PROPERTY_REFERENCE *value)
 {
     int len = 0;
     int apdu_len = 0;
@@ -597,8 +578,8 @@ int bacapp_decode_context_obj_property_ref(
     } else {
         return BACNET_STATUS_ERROR;
     }
-    len = bacapp_decode_obj_property_ref(&apdu[apdu_len],
-        apdu_len_max - apdu_len, value);
+    len = bacapp_decode_obj_property_ref(
+        &apdu[apdu_len], apdu_len_max - apdu_len, value);
     if (len == 0) {
         return BACNET_STATUS_ERROR;
     } else {
