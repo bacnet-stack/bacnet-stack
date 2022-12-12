@@ -28,7 +28,7 @@ jobs:
 #        run: |
 #          ../zephyr/scripts/twister -T ../zephyr/tests/misc/test_build
       - name: Archive firmware
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: firmware
           path: bacnet-stack/build/zephyr/zephyr.*
