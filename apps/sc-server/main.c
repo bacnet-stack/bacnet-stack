@@ -368,12 +368,10 @@ int main(int argc, char *argv[])
     dlenv_init();
     atexit(datalink_cleanup);
 
-#if defined(BACDL_BSC)
     while(bsc_hub_connection_status()==BVLC_SC_HUB_CONNECTION_ABSENT) {
         bsc_wait(1);
     }
     printf("Connection to BACNet/SC hub established\n");
-#endif
 
     /* configure the timeout values */
     last_seconds = time(NULL);
