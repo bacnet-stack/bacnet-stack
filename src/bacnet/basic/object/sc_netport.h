@@ -142,61 +142,6 @@ extern "C" {
     } BACNET_SC_DIRECT_CONNECTION;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
-    typedef struct BACnetSCAttributes_T {
-        BACNET_UNSIGNED_INTEGER Max_BVLC_Length_Accepted;
-        BACNET_UNSIGNED_INTEGER Max_NPDU_Length_Accepted;
-        char SC_Primary_Hub_URI[BACNET_URI_LENGHT];
-        char SC_Primary_Hub_URI_dirty[BACNET_URI_LENGHT];
-        char SC_Failover_Hub_URI[BACNET_URI_LENGHT];
-        char SC_Failover_Hub_URI_dirty[BACNET_URI_LENGHT];
-        BACNET_UNSIGNED_INTEGER SC_Minimum_Reconnect_Time;
-        BACNET_UNSIGNED_INTEGER SC_Maximum_Reconnect_Time;
-        BACNET_UNSIGNED_INTEGER SC_Connect_Wait_Timeout;
-        BACNET_UNSIGNED_INTEGER SC_Disconnect_Wait_Timeout;
-        BACNET_UNSIGNED_INTEGER SC_Heartbeat_Timeout;
-        BACNET_SC_HUB_CONNECTOR_STATE SC_Hub_Connector_State;
-        uint32_t Operational_Certificate_File;
-        uint32_t Issuer_Certificate_Files[BACNET_ISSUER_CERT_FILE_MAX];
-        uint32_t Certificate_Signing_Request_File;
-        /* Optional params */
-#ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
-        OS_Keylist Routing_Table;
-#endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
-#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
-        BACNET_SC_HUB_CONNECTION SC_Primary_Hub_Connection_Status;
-        BACNET_SC_HUB_CONNECTION SC_Failover_Hub_Connection_Status;
-        bool SC_Hub_Function_Enable;
-        bool SC_Hub_Function_Enable_dirty;
-        char SC_Hub_Function_Accept_URIs[BACNET_SC_HUB_URI_MAX]
-                                            [BACNET_URI_LENGHT];
-        char SC_Hub_Function_Binding[BACNET_BINDING_STRING_LENGHT];
-        char SC_Hub_Function_Binding_dirty[BACNET_BINDING_STRING_LENGHT];
-#ifdef BACNET_SC_STATUS_SUPPORT
-        BACNET_SC_HUB_FUNCTION_CONNECTION SC_Hub_Function_Connection_Status;
-#endif
-        uint16_t Hub_Server_Port;
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
-#if BSC_CONF_HUB_CONNECTORS_NUM!=0
-        bool SC_Direct_Connect_Initiate_Enable;
-        bool SC_Direct_Connect_Initiate_Enable_dirty;
-        bool SC_Direct_Connect_Accept_Enable;
-        bool SC_Direct_Connect_Accept_Enable_dirty;
-        char SC_Direct_Connect_Accept_URIs[
-            BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGHT + 1)];
-        char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGHT];
-        char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGHT];
-#ifdef BACNET_SC_STATUS_SUPPORT
-        BACNET_SC_DIRECT_CONNECTION SC_Direct_Connect_Connection_Status;
-#endif
-        uint16_t Direct_Server_Port;
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-#ifdef BACNET_SC_STATUS_SUPPORT
-        OS_Keylist SC_Failed_Connection_Requests;
-#endif
-        uint32_t Certificate_Key_File;
-        BACNET_UUID Local_UUID;
-    } BACNET_SC_PARAMS;
-
     //
     // getter / setter
     //

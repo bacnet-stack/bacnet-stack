@@ -47,7 +47,8 @@
 #include <bacnet/timestamp.h>
 /* me */
 #include <bacnet/basic/object/bacfile.h>
-#include <bacnet/basic/object/netport.h>
+#include <bacnet/basic/object/sc_netport.h>
+#include <bacnet/basic/object/netport_internal.h>
 
 #ifdef BACDL_BSC
 

@@ -48,6 +48,7 @@
 #include "bacnet/basic/object/device.h"
 /* me */
 #include "bacnet/basic/object/netport.h"
+#include <bacnet/basic/object/netport_internal.h>
 
 #if BACDL_BSC
 #include "bacnet/datalink/bsc/bsc-mutex.h"

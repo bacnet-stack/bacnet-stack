@@ -100,6 +100,7 @@ void routed_get_my_address(
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
 
 #elif defined(BACDL_BSC)
+#include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 #define MAX_MPDU BVLC_SC_NPDU_SIZE_CONF
 

@@ -43,7 +43,6 @@
 #include "bacnet/readrange.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
-#include "bacnet/basic/object/sc_netport.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -414,11 +413,6 @@ extern "C" {
         BACNET_READ_RANGE_DATA * pRequest,
         RR_PROP_INFO * pInfo);
 
-#ifdef BACDL_BSC
-    BACNET_SC_PARAMS *Network_Port_SC_Params(
-        uint32_t object_instance);
-#endif
-
     BACNET_STACK_EXPORT
     bool Network_Port_Create(
         uint32_t object_instance);
@@ -446,14 +440,6 @@ extern "C" {
         uint32_t object_instance);
     void Network_Port_Pending_Params_Discard(
         uint32_t object_instance);
-
-#if BACDL_BSC
-    void Network_Port_Lock(void);
-    void Network_Port_Unlock(void);
-#else
-    #define Network_Port_Lock()
-    #define Network_Port_Unlock()
-#endif
 
 #ifdef __cplusplus
 }

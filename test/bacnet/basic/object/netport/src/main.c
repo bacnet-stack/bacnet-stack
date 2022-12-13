@@ -11,6 +11,7 @@
 #include <ztest.h>
 #include <bacnet/readrange.h>
 #include <bacnet/basic/object/netport.h>
+#include <bacnet/basic/object/sc_netport.h>
 #include <bacnet/basic/object/bacfile.h>
 
 /**
