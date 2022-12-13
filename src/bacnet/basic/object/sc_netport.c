@@ -1068,7 +1068,7 @@ bool Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(
     return true;
 }
 
-// retrun number of urls,
+// return number of urls,
 // indexes are fill first position of urls plus position of end string
 static int string_splite(char *str, char separator, int *indexes, int length)
 {

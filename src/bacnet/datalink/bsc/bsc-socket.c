@@ -219,12 +219,12 @@ static void bsc_process_socket_disconnecting(
     if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
         if (c->dm.hdr.message_id != c->expected_disconnect_message_id) {
             DEBUG_PRINTF(
-                "bsc_process_socket_disconnecting() got disconect ack with "
+                "bsc_process_socket_disconnecting() got disconnect ack with "
                 "unexpected message id %d for socket %p\n",
                 c->dm.hdr.message_id, c);
         } else {
             DEBUG_PRINTF(
-                "bsc_process_socket_disconnecting() got disconect ack for "
+                "bsc_process_socket_disconnecting() got disconnect ack for "
                 "socket %p\n",
                 c);
         }

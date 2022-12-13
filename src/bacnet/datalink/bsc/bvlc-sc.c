@@ -345,7 +345,7 @@ static unsigned int bvlc_sc_add_option(bool to_data_option,
  * @param pdu_size - size of input pdu
  * @param sc_option - pointer to encoded header option
  * @param sc_option_len - length of encoded header option
- * @return returns lenght (>0) in bytes of a pdu with added option
+ * @return returns length (>0) in bytes of a pdu with added option
            or 0 in a case of error (validation of pdu or sc_option fails)
  */
 
@@ -371,7 +371,7 @@ unsigned int bvlc_sc_add_option_to_destination_options(uint8_t *out_pdu,
  * @param pdu_size - size of input pdu
  * @param sc_option - pointer to encoded header option
  * @param sc_option_len - length of encoded header option
- * @return returns lenght (>0) in bytes of a pdu with added option
+ * @return returns length (>0) in bytes of a pdu with added option
            or 0 in a case of error (validation of pdu or sc_option fails)
  */
 
@@ -441,7 +441,7 @@ unsigned int bvlc_sc_encode_proprietary_option(uint8_t *pdu,
     }
 
     /* reset More Options, Must Understand and Header Data flags
-       thay will be updated as a result of call bvlc_sc_add_sc_option() */
+       they will be updated as a result of call bvlc_sc_add_sc_option() */
 
     pdu[0] = BVLC_SC_OPTION_TYPE_PROPRIETARY;
 
@@ -497,7 +497,7 @@ unsigned int bvlc_sc_encode_secure_path_option(
  *        because sanity checks are omitted.That valided option list can
  *        be get by some bvlc_sc_encode_ function calls.
  *
- * @param in_option_list - buffer contaning list of header options.It must
+ * @param in_option_list - buffer containing list of header options.It must
                            point  to head list item to be decoded.
  * @param out_opt_type - pointer to store decoded option type, must not
                          be NULL
@@ -829,7 +829,7 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
         // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC
         // If a BVLC message is received that is longer than expected,
         // a BVLC-Result NAK shall be returned if it was a unicast message,
-        // indicating an 'Error Class' of COMMUNICATON and 'Error Code' of
+        // indicating an 'Error Class' of COMMUNICATION and 'Error Code' of
         // UNEXPECTED_DATA. The message shall be discarded and not be processed.
         *error = ERROR_CODE_UNEXPECTED_DATA;
         *class = ERROR_CLASS_COMMUNICATION;
@@ -1832,7 +1832,7 @@ bool bvlc_sc_decode_message(uint8_t *buf,
                 // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC
                 // If a BVLC message is received that is longer than expected,
                 // a BVLC-Result NAK shall be returned if it was a unicast
-                // message, indicating an 'Error Class' of COMMUNICATON and
+                // message, indicating an 'Error Class' of COMMUNICATION and
                 // 'Error Code' of UNEXPECTED_DATA. The message shall be
                 // discarded and not be processed.
 
@@ -2036,7 +2036,7 @@ void bvlc_sc_remove_dest_set_orig(
  * @param pdu_len - length of a buffer which holds BACNet/SC PDU.
  * @param orig- origination vmac.
  * @return new pdu length if function succeeded and ppdu points to beginnig of
- *         chaged pdu, otherwise returns old pdu_len and ppdu is not channged.
+ *         changed pdu, otherwise returns old pdu_len and ppdu is not channged.
  */
 
 int bvlc_sc_set_orig(uint8_t** ppdu,
@@ -2084,7 +2084,7 @@ bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac)
 
 /**
  * @brief Function checks if it is needed to send BVLC result
- *        respose message for given decoded BACNet/SC message.
+ *        response message for given decoded BACNet/SC message.
  *        In a case of errors, standard requires to send such kind
  *        of responses for unicast messages of specific types.
  * @param dm - pointer to decoded BACNet/SC message.

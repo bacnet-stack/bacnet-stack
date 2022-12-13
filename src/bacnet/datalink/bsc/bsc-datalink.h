@@ -22,7 +22,7 @@
  *        initializes BACNet/SC datalink in accordence with value of properties
  *        from BACNet/SC Network Port Object (sc_netport.h). That means that
  *        user must initialize and set corresponded properties required for
- *        configuration of BACNet/SC datalink befor calling of that function.
+ *        configuration of BACNet/SC datalink before calling of that function.
  *        According to "Addendum cc" to ANSI/ASHRAE Standard 135-2020
  *        https://bacnet.org/wp-content/uploads/sites/4/2022/08/Add-135-2020cc.pdf
  *        most important properties are:
@@ -77,7 +77,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
 
 /**
  * @brief Blocking thread-safe bsc_receive() function
- *        receives NPDUs transfered over BACNet/SC
+ *        receives NPDUs transferred over BACNet/SC
  *        from a node specified by it's virtual MAC address as
  *        defined in Clause AB.1.5.2.
  *

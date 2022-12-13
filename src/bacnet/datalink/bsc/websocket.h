@@ -121,7 +121,7 @@ typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_SRV_HANDLE sh,
 /**
  * @brief Asynchronous bws_cli_сonnect() function starts establishing
  * of a new connection to a websocket server specified by url parameter.
- * Result of completition of operation is call of dispatch_func() with
+ * Result of completion of operation is call of dispatch_func() with
  * BSC_WEBSOCKET_CONNECTED in a case if connection established successfully or
  * BSC_WEBSOCKET_DISCONNECTED if connection attempt failed.
  *
@@ -198,7 +198,7 @@ void bws_cli_send(BSC_WEBSOCKET_HANDLE h);
  * @brief bws_cli_dispatch_send() function sends data to a websocket server
  *        in a case if websocket handle is sendable (e.g. ready to send data).
  *        In as case if data was not sent for some reasons thic could result
- *        dispatch_func() cal withe event  BSC_WEBSOCKET_DISCONNECTED
+ *        dispatch_func() cal with event BSC_WEBSOCKET_DISCONNECTED
  * @param h - websocket handle.
  * @param payload - pointer to a data to send.
  * @param payload_size - size in bytes of data to send.
@@ -213,7 +213,7 @@ void bws_cli_send(BSC_WEBSOCKET_HANDLE h);
  *     BSC_WEBSOCKET_INVALID_OPERATION - if the function was called not from
  *         dispatch_func() callback context or websocket is not in connected
  *         state.
- *     BSC_WEBSOCKET_SUCCESS - data is sent successfuly.
+ *     BSC_WEBSOCKET_SUCCESS - data is sent successfully.
  */
 
 BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,

@@ -116,7 +116,7 @@ static char *bacfile_name(uint32_t instance)
         case BACFILE_FILE:
             return BACnet_File_Listing[index].filename;
         case BACFILE_MEMORY:
-            snprintf(filename, sizeof(filename), "MEM %d", instance);
+            snprintf(filename, sizeof(filename), "MEM %u", instance);
             return filename;
         default:
             break;
