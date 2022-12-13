@@ -274,7 +274,7 @@ BSC_SC_RET bsc_hub_function_start(uint8_t *ca_cert_chain,
         local_uuid, local_vmac, max_local_bvlc_len, max_local_npdu_len,
         connect_timeout_s, heartbeat_timeout_s, disconnect_timeout_s);
 
-    ret = bsc_init_сtx(&f->ctx, &f->cfg, &bsc_hub_function_ctx_funcs, f->sock,
+    ret = bsc_init_ctx(&f->ctx, &f->cfg, &bsc_hub_function_ctx_funcs, f->sock,
         sizeof(f->sock) / sizeof(BSC_SOCKET), f);
 
     if (ret == BSC_SC_SUCCESS) {

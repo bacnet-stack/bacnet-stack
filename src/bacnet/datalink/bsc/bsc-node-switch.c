@@ -573,7 +573,7 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
             ca_cert_chain_size, cert_chain, cert_chain_size, key, key_size,
             local_uuid, local_vmac, max_local_bvlc_len, max_local_npdu_len,
             connect_timeout_s, heartbeat_timeout_s, disconnect_timeout_s);
-        ret = bsc_init_сtx(&ns->initiator.ctx, &ns->initiator.cfg,
+        ret = bsc_init_ctx(&ns->initiator.ctx, &ns->initiator.cfg,
             &bsc_node_switch_initiator_ctx_funcs, ns->initiator.sock,
             sizeof(ns->initiator.sock) / sizeof(BSC_SOCKET), ns);
         if (ret == BSC_SC_SUCCESS) {
@@ -587,7 +587,7 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
             ca_cert_chain_size, cert_chain, cert_chain_size, key, key_size,
             local_uuid, local_vmac, max_local_bvlc_len, max_local_npdu_len,
             connect_timeout_s, heartbeat_timeout_s, disconnect_timeout_s);
-        ret = bsc_init_сtx(&ns->acceptor.ctx, &ns->acceptor.cfg,
+        ret = bsc_init_ctx(&ns->acceptor.ctx, &ns->acceptor.cfg,
             &bsc_node_switch_acceptor_ctx_funcs, ns->acceptor.sock,
             sizeof(ns->acceptor.sock) / sizeof(BSC_SOCKET), ns);
         if (ret == BSC_SC_SUCCESS) {

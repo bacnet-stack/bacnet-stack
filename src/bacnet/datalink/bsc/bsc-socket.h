@@ -201,7 +201,7 @@ void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
                       unsigned int disconnect_timeout_s);
 
 BACNET_STACK_EXPORT
-BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
+BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
                         BSC_CONTEXT_CFG* cfg,
                         BSC_SOCKET_CTX_FUNCS* funcs,
                         BSC_SOCKET* sockets,

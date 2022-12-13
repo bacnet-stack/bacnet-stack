@@ -1325,12 +1325,12 @@ static void test_simple(void)
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     reset_ctx_ev(&srv_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     reset_ctx_ev(&cli_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
@@ -1461,17 +1461,17 @@ static void test_duplicated_vmac_on_server(void)
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     reset_ctx_ev(&srv_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     reset_ctx_ev(&cli_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     reset_ctx_ev(&cli_ctx_ev2);
-    ret = bsc_init_сtx(&cli_ctx2, &client_cfg2, &cli_funcs2, cli_socks2,
+    ret = bsc_init_ctx(&cli_ctx2, &client_cfg2, &cli_funcs2, cli_socks2,
         MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_INITIALIZED), true, 0);
@@ -1576,12 +1576,12 @@ static void test_duplicated_vmac_on_server2(void)
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     reset_ctx_ev(&srv_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     reset_ctx_ev(&cli_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
@@ -1681,17 +1681,17 @@ static void test_duplicated_uuid_on_server(void)
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     reset_ctx_ev(&srv_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     reset_ctx_ev(&cli_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     reset_ctx_ev(&cli_ctx_ev2);
-    ret = bsc_init_сtx(&cli_ctx2, &client_cfg2, &cli_funcs2, cli_socks2,
+    ret = bsc_init_ctx(&cli_ctx2, &client_cfg2, &cli_funcs2, cli_socks2,
         MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_INITIALIZED), true, 0);
@@ -1764,7 +1764,7 @@ static void test_bad_params(void)
     init_ctx_ev(&cli_ctx_ev);
     ret = bsc_runloop_start(bsc_global_runloop());
 
-    // bad params bsc_init_сtx() test
+    // bad params bsc_init_ctx() test
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
@@ -1773,15 +1773,15 @@ static void test_bad_params(void)
         MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
         BACNET_SOCKET_TIMEOUT);
 
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
         NULL, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
 
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
        &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
 
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
        &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_INVALID_OPERATION, 0);
     reset_ctx_ev(&srv_ctx_ev);
@@ -1802,7 +1802,7 @@ static void test_bad_params(void)
         MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
         BACNET_SOCKET_TIMEOUT);
     reset_ctx_ev(&cli_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
        &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
@@ -1818,7 +1818,7 @@ static void test_bad_params(void)
     ret = bsc_send(&cli_socks[0], (uint8_t *)&client_uuid, sizeof(client_uuid));
     zassert_equal(ret, BSC_SC_INVALID_OPERATION, 0);
 
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
        &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     reset_ctx_ev(&srv_ctx_ev);
@@ -1830,7 +1830,7 @@ static void test_bad_params(void)
         MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
         BACNET_SOCKET_TIMEOUT);
     reset_ctx_ev(&cli_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
        &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
@@ -1851,7 +1851,7 @@ static void test_bad_params(void)
 
     // connect client to non existent server
     reset_ctx_ev(&cli_ctx_ev);
-    ret = bsc_init_сtx(
+    ret = bsc_init_ctx(
        &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);

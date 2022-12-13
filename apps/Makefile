@@ -321,8 +321,8 @@ router-mstp: $(BACNET_LIB_TARGET)
 writepropm: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
-.PHONY: sc-server
-sc-server: $(BACNET_LIB_TARGET)
+.PHONY: sc-node
+sc-node: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
 
 .PHONY: sc-hub

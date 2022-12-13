@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
 
         /* process */
         if (pdu_len) {
-            printf("received pdu of size %d\n\n", pdu_len );
+            //printf("received pdu of size %d\n\n", pdu_len );
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         /* at least one second has passed */

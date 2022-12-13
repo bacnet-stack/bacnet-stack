@@ -126,7 +126,9 @@ static void bws_cli_free_connection(BSC_WEBSOCKET_HANDLE h)
 
 static BSC_WEBSOCKET_HANDLE bws_cli_find_connnection(struct lws *ws)
 {
-    for (int i = 0; i < BSC_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
+    int i;
+
+    for (i = 0; i < BSC_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
         if (bws_cli_conn[i].ws == ws &&
             bws_cli_conn[i].state != BSC_WEBSOCKET_STATE_IDLE) {
             return i;

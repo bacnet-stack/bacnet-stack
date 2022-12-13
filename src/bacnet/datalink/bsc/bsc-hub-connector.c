@@ -288,7 +288,7 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
     ret = bsc_runloop_reg(bsc_global_runloop(), c, hub_connector_process_state);
 
     if (ret == BSC_SC_SUCCESS) {
-        ret = bsc_init_сtx(&c->ctx, &c->cfg, &bsc_hub_connector_ctx_funcs,
+        ret = bsc_init_ctx(&c->ctx, &c->cfg, &bsc_hub_connector_ctx_funcs,
             c->sock, sizeof(c->sock) / sizeof(BSC_SOCKET), (void *)c);
 
         if (ret == BSC_SC_SUCCESS) {

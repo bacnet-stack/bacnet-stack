@@ -185,8 +185,6 @@ static bool bsc_prepare_protocol_error_extended(BSC_SOCKET *c,
     BACNET_ERROR_CODE error_code,
     uint8_t *utf8_details_string)
 {
-    unsigned int len;
-
     if (bvlc_sc_need_send_bvlc_result(&c->dm)) {
         return bsc_prepare_error_extended(c, origin, dest, BVLC_SC_RESULT,
             error_header_marker, error_class, error_code, utf8_details_string);
@@ -541,12 +539,13 @@ static void bsc_runloop(void *p)
     BSC_WEBSOCKET_HANDLE wh;
     bool need_disconnect;
     bool need_send;
+    int i;
 
     // DEBUG_PRINTF("bsc_runloop() >>> ctx = %p, state = %d\n", ctx,
     // ctx->state);
     bsc_global_mutex_lock();
     if (ctx->state == BSC_CTX_STATE_INITIALIZED) {
-        for (int i = 0; i < ctx->sock_num; i++) {
+        for (i = 0; i < ctx->sock_num; i++) {
             if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                 need_disconnect = false;
                 need_send = false;
@@ -1071,9 +1070,6 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     uint8_t *p;
     int i;
     bool all_socket_disconnected = true;
-    BACNET_ERROR_CODE code;
-    BACNET_ERROR_CLASS class;
-    const char *err_desc = NULL;
 
     DEBUG_PRINTF("bsc_dispatch_cli_func() >>> h = %d, ev = %d, buf = %p, "
                  "bufsize = %d, ctx = %p\n",
@@ -1214,7 +1210,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     DEBUG_PRINTF("bsc_dispatch_cli_func() <<<\n");
 }
 
-BSC_SC_RET bsc_init_сtx(BSC_SOCKET_CTX *ctx,
+BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
     BSC_CONTEXT_CFG *cfg,
     BSC_SOCKET_CTX_FUNCS *funcs,
     BSC_SOCKET *sockets,
