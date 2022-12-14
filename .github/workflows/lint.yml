@@ -19,12 +19,11 @@ jobs:
         sudo apt-get install -qq clang-tools
         sudo apt-get install libssl-dev
         sudo git clone https://libwebsockets.org/repo/libwebsockets
-        pwd
-        cd libwebsockets
-        mkdir -p build
-        cd build
-        cmake ..
-        make
+        sudo cd libwebsockets
+        sudo mkdir -p build
+        sudo cd build
+        sudo cmake ..
+        sudo make
         sudo make install
     - name: Static Defect Analysis using scan-build
       run: |
