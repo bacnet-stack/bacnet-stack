@@ -19,8 +19,9 @@ jobs:
         sudo apt-get install -qq clang-tools
         sudo apt-get install libssl-dev
         sudo git clone https://libwebsockets.org/repo/libwebsockets
+        pwd
         cd libwebsockets
-        mkdir build
+        mkdir -p build
         cd build
         cmake ..
         make
