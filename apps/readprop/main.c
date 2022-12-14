@@ -82,7 +82,12 @@ static uint8_t *Certificate = NULL;
 static uint8_t *Key = NULL;
 
 #define SC_NETPORT_BACFILE_START_INDEX    0
+
+#if defined(MAX_BACFILES) && (MAX_BACFILES < SC_NETPORT_BACFILE_START_INDEX + 3)
+#error "BACFILE must save at least 3 files"
 #endif
+
+#endif /* BACDL_BSC */
 
 static void MyErrorHandler(BACNET_ADDRESS *src,
     uint8_t invoke_id,

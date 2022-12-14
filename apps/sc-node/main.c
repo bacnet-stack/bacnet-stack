@@ -52,9 +52,7 @@
 #if defined(INTRINSIC_REPORTING)
 #include "bacnet/basic/object/nc.h"
 #endif /* defined(INTRINSIC_REPORTING) */
-#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
@@ -80,10 +78,10 @@ static uint8_t *Key = NULL;
 #ifndef BACDL_BSC
 #error "BACDL_BSC must de defined"
 #endif
-#ifndef BACFILE
-#error "BACFILE must de defined"
-#endif
 
+#if defined(MAX_BACFILES) && (MAX_BACFILES < SC_NETPORT_BACFILE_START_INDEX + 3)
+#error "BACFILE must save at least 3 files"
+#endif
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;

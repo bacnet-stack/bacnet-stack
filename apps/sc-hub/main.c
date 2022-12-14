@@ -48,10 +48,11 @@ static char *FailoverUrl = "wss://127.0.0.1:9999";
 /*@{*/
 
 #ifndef BACDL_BSC
-#error "BACDL_BSC must de defined"
+#error "BACDL_BSC must be defined"
 #endif
-#ifndef BACFILE
-#error "BACFILE must de defined"
+
+#if defined(MAX_BACFILES) && (MAX_BACFILES < SC_NETPORT_BACFILE_START_INDEX + 3)
+#error "BACFILE must save at least 3 files"
 #endif
 
 /* current version of the BACnet stack */

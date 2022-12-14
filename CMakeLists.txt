@@ -649,7 +649,7 @@ if(BACNET_STACK_BUILD_APPS)
     target_link_libraries(bacpoll PRIVATE ${PROJECT_NAME})
   endif(BACNET_BUILD_BACPOLL_APP)
 
-  if(NOT BACDL_ETHERNET)
+  if(NOT BACDL_ETHERNET AND (NOT BACDL_BSC))
     add_executable(readbdt apps/readbdt/main.c)
     target_link_libraries(readbdt PRIVATE ${PROJECT_NAME})
 

@@ -47,6 +47,7 @@
 #include <bacnet/timestamp.h>
 /* me */
 #include <bacnet/basic/object/bacfile.h>
+#include <bacnet/basic/object/netport.h>
 #include <bacnet/basic/object/sc_netport.h>
 #include <bacnet/basic/object/netport_internal.h>
 
@@ -1110,10 +1111,15 @@ static bool string_subsstr(char *str, int length, int index, char *substr)
         memmove(tail_new, tail_old, strlen(tail_old) + 1);
         memcpy(head, substr, strlen(substr));
     } else {
-        if (strlen(str) > 0) {
-            strncat(str, " ", length);
+        head = str + strlen(str);
+        if (head != str) {
+            *head = ' ';
+            head++;
         }
-        strncat(str, substr, length);
+        if (head + strlen(substr) + 1 - str >= length) {
+            return false;
+        }
+        memcpy(head, substr, strlen(substr) + 1);
     }
 
     return true;
