@@ -112,7 +112,7 @@ typedef struct {
     void *user_arg;
 } BSC_NODE_SWITCH_CTX;
 
-static BSC_NODE_SWITCH_CTX bsc_node_switch[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
+static BSC_NODE_SWITCH_CTX bsc_node_switch[BSC_CONF_NODE_SWITCHES_NUM] = { false };
 
 static BSC_SOCKET_CTX_FUNCS bsc_node_switch_acceptor_ctx_funcs = {
     node_switch_acceptor_find_connection_for_vmac,
@@ -282,7 +282,7 @@ static int node_switch_initiator_find_connection_index_for_vmac(
     int i;
 
     for (i = 0; i < sizeof(ctx->initiator.sock) / sizeof(BSC_SOCKET); i++) {
-        if (ctx->initiator.sock_state[i] != BSC_SOCK_STATE_IDLE &&
+        if (ctx->initiator.sock_state[i] != BSC_NODE_SWITCH_CONNECTION_STATE_IDLE &&
             !memcmp(&ctx->initiator.dest_vmac[i].address[0], &vmac->address[0],
                 sizeof(vmac->address))) {
             return i;
@@ -355,7 +355,7 @@ static void node_switch_connect_or_delay(
                 &dest->address[0], BVLC_SC_VMAC_SIZE);
             mstimer_set(&ns->initiator.t[sock_index],
                 ns->address_resolution_timeout_s * 1000);
-            bsc_node_send_address_resolution(
+            (void) bsc_node_send_address_resolution(
                 ns->user_arg, &ns->initiator.dest_vmac[sock_index]);
         }
     }

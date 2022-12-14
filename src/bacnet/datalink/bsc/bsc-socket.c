@@ -1262,22 +1262,25 @@ BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
         ctx->sock[i].tx_buf_size = 0;
     }
 
-    if (cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
-        ret = bws_srv_start(cfg->proto, cfg->port, cfg->iface,
-            cfg->ca_cert_chain, cfg->ca_cert_chain_size, cfg->cert_chain,
-            cfg->cert_chain_size, cfg->priv_key, cfg->priv_key_size,
-            cfg->connect_timeout_s, bsc_dispatch_srv_func, ctx, &ctx->sh);
+    ctx->state = BSC_CTX_STATE_INITIALIZING;
+    sc_ret = bsc_runloop_reg(bsc_global_runloop(), (void *)ctx, bsc_runloop);
 
-        sc_ret = bsc_map_websocket_retcode(ret);
+    if(sc_ret == BSC_SC_SUCCESS) {
+        if (cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
+            ret = bws_srv_start(cfg->proto, cfg->port, cfg->iface,
+                cfg->ca_cert_chain, cfg->ca_cert_chain_size, cfg->cert_chain,
+                cfg->cert_chain_size, cfg->priv_key, cfg->priv_key_size,
+                cfg->connect_timeout_s, bsc_dispatch_srv_func, ctx, &ctx->sh);
 
-        if (sc_ret == BSC_SC_SUCCESS) {
-            ctx->state = BSC_CTX_STATE_INITIALIZING;
-            bsc_runloop_reg(bsc_global_runloop(), (void *)ctx, bsc_runloop);
+            sc_ret = bsc_map_websocket_retcode(ret);
+
+            if (sc_ret != BSC_SC_SUCCESS) {
+                bsc_runloop_unreg(bsc_global_runloop(), (void *)ctx);
+            }
+        } else {
+            ctx->state = BSC_CTX_STATE_INITIALIZED;
+            ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
         }
-    } else {
-        ctx->state = BSC_CTX_STATE_INITIALIZED;
-        bsc_runloop_reg(bsc_global_runloop(), (void *)ctx, bsc_runloop);
-        ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
     }
 
     bsc_global_mutex_unlock();

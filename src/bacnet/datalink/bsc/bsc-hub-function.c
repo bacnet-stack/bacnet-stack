@@ -54,16 +54,16 @@ typedef enum {
 } BSC_HUB_FUNCTION_STATE;
 
 typedef struct BSC_Hub_Connector {
+    bool used;
     BSC_SOCKET_CTX ctx;
     BSC_CONTEXT_CFG cfg;
     BSC_SOCKET sock[BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM];
     BSC_HUB_FUNCTION_STATE state;
     BSC_HUB_EVENT_FUNC event_func;
     void *user_arg;
-    bool used;
 } BSC_HUB_FUNCTION;
 
-static BSC_HUB_FUNCTION bsc_hub_function[BSC_CONF_HUB_FUNCTIONS_NUM] = { 0 };
+static BSC_HUB_FUNCTION bsc_hub_function[BSC_CONF_HUB_FUNCTIONS_NUM] = { false };
 
 static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
     hub_function_find_connection_for_vmac,

@@ -185,10 +185,11 @@ uint8_t FIFO_Peek(FIFO_BUFFER const *b)
 void FIFO_PeekBytes(FIFO_BUFFER const *b, uint8_t* buf, unsigned length)
 {
     unsigned index;
-    unsigned tail = b->tail;
+    unsigned tail;
     unsigned i;
 
     if (b) {
+        tail = b->tail;
         for(i = 0; i < length; i++) {
             index = tail % b->buffer_len;
             buf[i] = b->buffer[index];

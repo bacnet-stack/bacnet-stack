@@ -57,6 +57,7 @@ typedef enum {
 } BSC_HUB_CONNECTOR_STATE;
 
 typedef struct BSC_Hub_Connector {
+    bool used;
     BSC_SOCKET_CTX ctx;
     BSC_CONTEXT_CFG cfg;
     BSC_SOCKET sock[2];
@@ -67,10 +68,9 @@ typedef struct BSC_Hub_Connector {
     struct mstimer t;
     BSC_HUB_CONNECTOR_EVENT_FUNC event_func;
     void *user_arg;
-    bool used;
 } BSC_HUB_CONNECTOR;
 
-static BSC_HUB_CONNECTOR bsc_hub_connector[BSC_CONF_HUB_CONNECTORS_NUM] = { 0 };
+static BSC_HUB_CONNECTOR bsc_hub_connector[BSC_CONF_HUB_CONNECTORS_NUM] = { false };
 
 static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = { NULL, NULL,
     hub_connector_socket_event, hub_connector_context_event };

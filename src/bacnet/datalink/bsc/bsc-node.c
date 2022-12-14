@@ -57,7 +57,7 @@ struct BSC_Node {
     BSC_NODE_SWITCH_HANDLE node_switch;
 };
 
-static struct BSC_Node bsc_node[BSC_CONF_NODES_NUM] = { 0 };
+static struct BSC_Node bsc_node[BSC_CONF_NODES_NUM] = { false };
 
 static BSC_ADDRESS_RESOLUTION
     bsc_address_resolution[BSC_CONF_NODES_NUM]
@@ -188,7 +188,7 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
         }
     } else if (node->state == BSC_NODE_STATE_RESTARTING) {
         if (stopped) {
-            bsc_node_start_state(node, BSC_NODE_STATE_RESTARTING);
+            (void) bsc_node_start_state(node, BSC_NODE_STATE_RESTARTING);
         }
     }
     DEBUG_PRINTF("bsc_node_process_stop_event() <<<\n");

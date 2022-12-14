@@ -1246,7 +1246,6 @@ static bool bvlc_sc_decode_connect_request(BVLC_SC_DECODED_DATA *payload,
     packed_payload += sizeof(payload->connect_request.max_bvlc_len);
     memcpy(&payload->connect_request.max_npdu_len, packed_payload,
         sizeof(payload->connect_request.max_npdu_len));
-    packed_payload += sizeof(payload->connect_request.max_npdu_len);
     return true;
 }
 
@@ -1353,7 +1352,6 @@ static bool bvlc_sc_decode_connect_accept(BVLC_SC_DECODED_DATA *payload,
     packed_payload += sizeof(payload->connect_accept.max_bvlc_len);
     memcpy(&payload->connect_accept.max_npdu_len, packed_payload,
         sizeof(payload->connect_accept.max_npdu_len));
-    packed_payload += sizeof(payload->connect_accept.max_npdu_len);
     return true;
 }
 

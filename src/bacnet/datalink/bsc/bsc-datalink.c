@@ -185,7 +185,7 @@ void bsc_cleanup(void)
         bsc_event_wait(bsc_data_event);
         bsc_global_mutex_lock();
         bsc_deinit_resources(true);
-        bsc_node_deinit(bsc_node);
+        (void) bsc_node_deinit(bsc_node);
         bsc_node = NULL;
         bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
     }
@@ -243,7 +243,7 @@ static void bsc_remove_packet(uint16_t packet_size)
 {
     int i;
     for (i = 0; i < packet_size; i++) {
-        FIFO_Get(&bsc_fifo);
+        (void) FIFO_Get(&bsc_fifo);
     }
 }
 
