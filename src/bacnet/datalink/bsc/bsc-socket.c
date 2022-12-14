@@ -1324,7 +1324,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         }
     } else {
         ctx->state = BSC_CTX_STATE_DEINITIALIZING;
-        bws_srv_stop(ctx->sh);
+        (void) bws_srv_stop(ctx->sh);
     }
 
     bsc_global_mutex_unlock();

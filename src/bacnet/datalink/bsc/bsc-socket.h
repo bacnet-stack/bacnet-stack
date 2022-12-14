@@ -228,7 +228,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
  *    BSC_SC_INVALID_OPERATION - if socket is not in opened state,
              or disconnect operation is in progress using
              bsc_disconnect() or bsc_deinit_ctx().
- *    BSC_SC_SUCCESS - operation has succeded.
+ *    BSC_SC_SUCCESS - operation has succeeded.
  *    BSC_SC_NO_RESOURCES - there are not resources (memory, etc.. )
  *                          to send data
  */
@@ -260,7 +260,7 @@ void bsc_disconnect(BSC_SOCKET *c);
  *    BSC_SC_INVALID_OPERATION - if socket is not in opened state,
              or disconnect operation is in progress using
              bsc_disconnect() or bsc_deinit_ctx().
- *    BSC_SC_SUCCESS - operation has succeded.
+ *    BSC_SC_SUCCESS - operation has succeeded.
  *    BSC_SC_NO_RESOURCES - there are not resources (memory, etc.. )
  *                          to send data
  */

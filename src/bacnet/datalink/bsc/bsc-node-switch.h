@@ -41,7 +41,7 @@ typedef enum {
     BSC_NODE_SWITCH_EVENT_CONNECTED = 5,
 
     // The BSC_NODE_SWITCH_EVENT_DISCONNECTED event is emitted
-    // everytime remote peer disconnects only if
+    // every time remote peer disconnects only if
     // bsc_node_switch_connect() was called after start.
     // If user called bsc_node_switch_disconnect() or stopped
     // node switch, after last event indication next event indications

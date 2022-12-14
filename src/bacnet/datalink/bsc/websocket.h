@@ -261,7 +261,7 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  *             mutex, thread, condition variable etc .., failed.
  *    BSC_WEBSOCKET_SUCCESS - the start operation is in progress.
  *    BSC_WEBSOCKET_INVALID_OPERATION - operation is not started because
- *            server in a process of shutdown of server is alread started.
+ *            server in a process of shutdown of server is already started.
  */
 
 BSC_WEBSOCKET_RET bws_srv_start(
@@ -329,7 +329,7 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
  * @brief bws_srv_dispatch_send() function sends data to a websocket server
  *        in a case if websocket handle is sendable (e.g. ready to send data).
  *        In as case if data was not sent for some reasons thic could result
- *        dispatch_func() cal withe event  BSC_WEBSOCKET_DISCONNECTED
+ *        dispatch_func() call with event  BSC_WEBSOCKET_DISCONNECTED
  *
  * @pararm sh - websocket server handle.
  * @param h - websocket handle.
@@ -346,7 +346,7 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
  *     BSC_WEBSOCKET_INVALID_OPERATION - if the function was called not from
  *         dispatch_func() callback context or websocket is not in connected
  *         state or server in a process of a shutdown or server is not started.
- *     BSC_WEBSOCKET_SUCCESS - data is sent successfuly.
+ *     BSC_WEBSOCKET_SUCCESS - data is sent successfully.
  */
 
 BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
