@@ -85,5 +85,8 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq lcov
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Run Unit Test with Code Coverage
       run: make test
