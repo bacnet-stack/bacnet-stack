@@ -57,7 +57,7 @@ struct BSC_Node {
     BSC_NODE_SWITCH_HANDLE node_switch;
 };
 
-static struct BSC_Node bsc_node[BSC_CONF_NODES_NUM] = { false };
+static struct BSC_Node bsc_node[BSC_CONF_NODES_NUM] = { {false} };
 
 static BSC_ADDRESS_RESOLUTION
     bsc_address_resolution[BSC_CONF_NODES_NUM]
