@@ -21,6 +21,7 @@ jobs:
         git clone https://libwebsockets.org/repo/libwebsockets
         bash -c 'cd libwebsockets'
         bash -c 'mkdir build'
+        bash -c 'cd build'
         bash -c 'cmake ..'
         bash -c 'make'
         bash -c 'make install'
