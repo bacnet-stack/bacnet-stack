@@ -884,7 +884,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         if (!c) {
             DEBUG_PRINTF("bsc_dispatch_srv_func() no free socket, connection "
                          "is dropped\n");
-            bws_srv_disconnect(c->ctx->sh, h);
+            bws_srv_disconnect(ctx->sh, h);
         } else {
             c->wh = h;
             c->ctx = ctx;
