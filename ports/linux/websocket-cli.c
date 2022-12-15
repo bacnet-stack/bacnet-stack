@@ -450,7 +450,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     bsc_websocket_global_unlock();
 
     pthread_mutex_lock(&bws_cli_mutex);
-    ret = lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
+    (void) lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
 
     if (port == -1 || !prot || !addr || !path) {
         pthread_mutex_unlock(&bws_cli_mutex);
