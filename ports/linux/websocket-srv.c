@@ -64,11 +64,6 @@ typedef struct {
     int fragment_buffer_len;
 } BSC_WEBSOCKET_CONNECTION;
 
-static const lws_retry_bo_t retry = {
-    .secs_since_valid_ping = 3,
-    .secs_since_valid_hangup = 10,
-};
-
 static pthread_mutex_t bws_global_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 static pthread_mutex_t bws_srv_direct_mutex[BSC_CONF_WEBSOCKET_SERVERS_NUM] = {
