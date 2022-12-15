@@ -13,8 +13,7 @@ TARGET_BIN = ${TARGET}$(TARGET_EXT)
 # BACNET_SRC_DIR is defined in common apps Makefile
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
-	$(BACNET_OBJECT_DIR)/netport.c \
-	$(BACNET_OBJECT_DIR)/client/device-client.c
+	$(BACNET_OBJECT_DIR)/netport.c
 
 PORT_BIP6_SRC = \
 	$(BACNET_PORT_DIR)/bip6.c \
