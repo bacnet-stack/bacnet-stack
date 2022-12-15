@@ -224,7 +224,8 @@ static void bws_srv_free_connection(
 static BSC_WEBSOCKET_HANDLE bws_find_connnection(
     BSC_WEBSOCKET_CONTEXT *ctx, struct lws *ws)
 {
-    for (int i = 0; i < bws_srv_get_max_sockets(ctx->proto); i++) {
+    int i;
+    for (i = 0; i < bws_srv_get_max_sockets(ctx->proto); i++) {
         if (ctx->conn[i].ws == ws &&
             ctx->conn[i].state != BSC_WEBSOCKET_STATE_IDLE) {
             return i;
