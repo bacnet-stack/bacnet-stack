@@ -91,11 +91,11 @@ getevent:
 
 .PHONY: gateway
 gateway:
-	$(MAKE) -s -C apps $@
+	$(MAKE) BACNET_DEFINES="-DBAC_ROUTING -DBSC_CONF_WSURL_MAX_LEN=127" -s -C apps $@
 
 .PHONY: gateway-win32
 gateway-win32:
-	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
+	$(MAKE) BACNET_DEFINES="-DBAC_ROUTING -DBSC_CONF_WSURL_MAX_LEN=127" BACNET_PORT=win32 -s -C apps gateway -DBAC_ROUTING=1
 
 .PHONY: readbdt
 readbdt:
