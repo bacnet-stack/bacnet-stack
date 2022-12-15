@@ -41,6 +41,12 @@ bip6-win32:
 bip6:
 	$(MAKE) BACDL=bip6 -s -C apps all
 
+# note: requires additional libraries to be installed
+# see .github/workflows/gcc.yml
+.PHONY: bsc
+bsc:
+	$(MAKE) BACDL=bsc -s -C apps all
+
 .PHONY: ethernet
 ethernet:
 	$(MAKE) BACDL=ethernet -s -C apps all
