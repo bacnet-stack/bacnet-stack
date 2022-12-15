@@ -2476,14 +2476,14 @@ BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
         /* into one packet. */                                              \
         unsigned index;                                                     \
         for (index = 0; index < (size); index++) {                          \
-            (getter)(rpdata->object_instance, index, var);                  \
-            apdu_len += (encode)(&apdu[apdu_len], var);                     \
+            getter(rpdata->object_instance, index, var);                    \
+            apdu_len += encode(&apdu[apdu_len], var);                       \
         }                                                                   \
     } else if (rpdata->array_index <= (size)) {                             \
         /* index was specified; encode a single array element */            \
         unsigned index = rpdata->array_index - 1;                           \
-        (getter)(rpdata->object_instance, index, var);                      \
-        apdu_len = (encode)(&apdu[0], var);                                 \
+        getter(rpdata->object_instance, index, var);                        \
+        apdu_len = encode(&apdu[0], var);                                   \
     } else {                                                                \
         /* index was specified, but out of range */                         \
         rpdata->error_class = ERROR_CLASS_PROPERTY;                         \
