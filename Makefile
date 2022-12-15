@@ -17,6 +17,14 @@ bsd:
 win32:
 	$(MAKE) BACNET_PORT=win32 -s -C apps all
 
+.PHONY: mingw32
+mingw32:
+	i686-w64-mingw32-gcc --version
+	export CC=i686-w64-mingw32-gcc ; \
+	export LD=i686-w64-mingw32-ld ; \
+	$(MAKE) BACNET_PORT=win32 -s -C apps all ; \
+	unset CC ; unset LD
+
 .PHONY: mstpwin32
 mstpwin32:
 	$(MAKE) BACDL=mstp BACNET_PORT=win32 -s -C apps all

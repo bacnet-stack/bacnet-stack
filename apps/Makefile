@@ -79,12 +79,20 @@ endif
 ifeq (${BACNET_PORT},linux)
 PFLAGS = -pthread
 TARGET_EXT =
-SYSTEM_LIB=-lc,-lgcc,-lrt,-lm /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
+SYSTEM_LIB = -lc,-lgcc,-lrt,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsocket libssl libcrypto and lcap to build for BACnet/SC
+SYSTEM_LIB += /usr/local/lib/libwebsockets.a -lssl -lcrypto -lcap
+endif
 endif
 ifeq (${BACNET_PORT},bsd)
 PFLAGS = -pthread 
 TARGET_EXT =
-SYSTEM_LIB=-lc,-lm /usr/local/lib/libwebsockets.a /usr/local/opt/openssl@3/lib/libcrypto.a /usr/local/opt/openssl@3/lib/libssl.a
+SYSTEM_LIB=-lc,-lm
+ifeq (${BACDL},bsc)
+# note: install libwebsocket libcrypto and libssl to build for BACnet/SC
+SYSTEM_LIB += /usr/local/lib/libwebsockets.a /usr/local/opt/openssl@3/lib/libcrypto.a /usr/local/opt/openssl@3/lib/libssl.a
+endif
 endif
 ifeq (${BACNET_PORT},win32)
 TARGET_EXT = .exe
@@ -123,7 +131,9 @@ BACNET_DEFINES += -DINTRINSIC_REPORTING
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=24
+ifeq (${BACDL},bsc)
 BACNET_DEFINES += -DBSC_CONF_WSURL_MAX_LEN=127
+endif
 
 # put all the flags together
 INCLUDES = -I$(BACNET_SRC_DIR) -I$(BACNET_PORT_DIR)
