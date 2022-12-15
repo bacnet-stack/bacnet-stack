@@ -35,7 +35,7 @@ jobs:
         languages: ${{ matrix.language }}
 
     # Attempt to build any compiled languages  (C/C++, C#, or Java).
-    - run: 
+    - run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
