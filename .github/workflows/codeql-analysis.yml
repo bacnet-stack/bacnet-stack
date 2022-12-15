@@ -35,7 +35,15 @@ jobs:
         languages: ${{ matrix.language }}
 
     # Attempt to build any compiled languages  (C/C++, C#, or Java).
-    - run: make clean all
+    - run: 
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
+        make clean all
 
     # Analysis
     - name: Perform CodeQL Analysis
