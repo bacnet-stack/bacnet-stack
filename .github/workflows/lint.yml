@@ -18,7 +18,9 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq clang-tools
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Static Defect Analysis using scan-build
       run: |
         make clean
@@ -84,6 +86,8 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq lcov
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install -qq libwebsockets-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Run Unit Test with Code Coverage
       run: make test
