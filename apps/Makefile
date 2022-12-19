@@ -103,7 +103,15 @@ CSTANDARD = -std=gnu89
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNINGS ?= -Wall -Wmissing-prototypes -Wno-missing-braces
+WARNING_ALL := -Wall -Wextra -Wall -Wfloat-equal -Wconversion -Wparentheses
+WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
+WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
+WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long
+#WARNING_ALL += -Wredundant-decls
+#WARNING_ALL += -Werror
+WARNINGS ?= $(WARNING_ALL)
 # dead code removal
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
