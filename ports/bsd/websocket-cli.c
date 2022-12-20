@@ -145,6 +145,8 @@ static int bws_cli_websocket_event(struct lws *wsi,
     BSC_WEBSOCKET_CLI_DISPATCH dispatch_func;
     void *user_param;
 
+    (void) user;
+
     DEBUG_PRINTF(
         "bws_cli_websocket_event() >>> reason = %d, user = %p, in = %p\n",
         reason, user, in);

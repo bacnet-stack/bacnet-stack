@@ -342,7 +342,7 @@ static void bsc_node_process_received(BSC_NODE *node,
                         r->urls_num = 0;
                         mstimer_restart(&r->fresh_timer);
                     } else {
-                        DEBUG_PRINTF("can't allocate address resolutio for "
+                        DEBUG_PRINTF("can't allocate address resolution for "
                                      "node with address %s\n",
                             bsc_vmac_to_string(decoded_pdu->hdr.origin));
                     }

@@ -248,6 +248,8 @@ static int bws_srv_websocket_event(struct lws *wsi,
     void *user_param;
     bool stop_worker;
 
+    (void) user;
+
     DEBUG_PRINTF("bws_srv_websocket_event() >>> ctx = %p, user_param = %p, "
                  "proto = %d, wsi = %p, "
                  "reason = %d, in = %p, len = %d\n",
