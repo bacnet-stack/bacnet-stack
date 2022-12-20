@@ -117,8 +117,6 @@ bool bsc_init(char *ifname)
     bool ret = false;
     DEBUG_PRINTF("bsc_init() >>>\n");
 
-    Network_Port_Ifname_Set_By_Index(0, ifname);
-
     bsc_global_mutex_lock();
 
     if (bsc_datalink_state != BSC_DATALINK_STATE_IDLE) {
@@ -126,6 +124,8 @@ bool bsc_init(char *ifname)
         DEBUG_PRINTF("bsc_init() <<< ret = %d\n", ret);
         return ret;
     }
+
+    Network_Port_Ifname_Set_By_Index(0, ifname);
 
     bsc_event = bsc_event_init();
     bsc_data_event = bsc_event_init();

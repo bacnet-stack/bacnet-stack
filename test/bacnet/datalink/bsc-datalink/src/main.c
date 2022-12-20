@@ -21,6 +21,7 @@
 #include <bacnet/datalink/bsc/bsc-util.h>
 #include <bacnet/datalink/bsc/bsc-mutex.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
+#include <bacnet/bacdef.h>
 #include <unistd.h>
 
 unsigned char ca_key[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47, 0x49,
@@ -1362,6 +1363,8 @@ static void test_sc_datalink(void)
     char secondary_url2[128];
     char primary_url3[128];
     char secondary_url3[128];
+    char direct_url[128];
+    char* direct_urls[1] = {&direct_url[0]};
     BSC_SC_RET ret;
     BSC_NODE *node2;
     BSC_NODE *node3;
@@ -1376,6 +1379,8 @@ static void test_sc_datalink(void)
     const char *err_desc;
     BACNET_ADDRESS dest;
     uint8_t big_npdu[BVLC_SC_NPDU_SIZE_CONF + 100];
+    BACNET_ADDRESS test;
+    uint8_t broadcast[BVLC_SC_VMAC_SIZE];
 
     memset(&uuid1, 0x1, sizeof(uuid1));
     memset(&vmac1, 0x2, sizeof(vmac1));
@@ -1391,15 +1396,26 @@ static void test_sc_datalink(void)
     sprintf(secondary_url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_HUB_PORT);
     sprintf(primary_url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_HUB_PORT);
     sprintf(secondary_url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_HUB_PORT);
+    sprintf(direct_url, "wss://%s:%d", BACNET_LOCALHOST, SC_NETPORT_DIRECT_SERVER_PORT);
 
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key), NULL,
-        &uuid1, &vmac1, primary_url1, secondary_url1, false, false, false, 0,
+        &uuid1, &vmac1, primary_url1, secondary_url1, true, false, false, 0,
         0);
 
     init_node_ev(&node_ev2);
     init_node_ev(&node_ev3);
     zassert_equal(bsc_init(NULL), true, NULL);
+    zassert_equal(bsc_init(NULL), false, NULL);
+    memset(broadcast, 0xFF, sizeof(broadcast));
+    bsc_get_broadcast_address(&test);
+    zassert_equal(memcmp(&test.mac[0], broadcast, BVLC_SC_VMAC_SIZE), false, NULL);
+    zassert_equal(test.len == 0, true, NULL);
+    zassert_equal(test.mac_len == BVLC_SC_VMAC_SIZE, true, NULL);
+    bsc_get_my_address(&test);
+    zassert_equal(memcmp(&test.mac[0], &vmac1.address[0], BVLC_SC_VMAC_SIZE), false, NULL);
+    zassert_equal(bsc_hub_connection_status() == BVLC_SC_HUB_CONNECTION_ABSENT, true, NULL);
+    zassert_equal(bsc_direct_connection_established(&vmac3, NULL, 0) == false, true, NULL);
 
     conf2.ca_cert_chain = ca_cert;
     conf2.ca_cert_chain_size = sizeof(ca_cert);
@@ -1448,9 +1464,9 @@ static void test_sc_datalink(void)
     conf3.primaryURL = primary_url3;
     conf3.failoverURL = secondary_url3;
     conf3.hub_server_port = BACNET_HUB_PORT;
-    conf3.direct_server_port = 0;
+    conf3.direct_server_port = SC_NETPORT_DIRECT_SERVER_PORT;
     conf3.iface = NULL;
-    conf3.direct_connect_accept_enable = false;
+    conf3.direct_connect_accept_enable = true;
     conf3.direct_connect_initiate_enable = false;
     conf3.hub_function_enabled = true;
     conf3.direct_connection_accept_uris = NULL;
@@ -1534,6 +1550,14 @@ static void test_sc_datalink(void)
     zassert_equal(len == sizeof(npdu), true, 0);
     ret = memcmp(npdu, buf, len);
     zassert_equal(ret, 0, NULL);
+    ret = bsc_connect_direct(NULL, direct_urls, 1);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    bsc_wait(1);
+    zassert_equal(bsc_direct_connection_established(&vmac3, NULL, 0) == true, true, NULL);
+    zassert_equal(bsc_direct_connection_established(NULL, direct_urls, 1) == true, true, NULL);
+    bsc_disconnect_direct(&vmac3);
+    bsc_wait(1);
+    zassert_equal(bsc_direct_connection_established(&vmac3, NULL, 0) == false, true, NULL);
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
     bsc_node_stop(node3);
