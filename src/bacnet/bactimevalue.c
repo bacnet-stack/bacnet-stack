@@ -147,7 +147,7 @@ int bacnet_application_to_primitive_data_value(
     struct BACnet_Primitive_Data_Value *dest,
     const struct BACnet_Application_Data_Value *src)
 {
-    // make sure the value passed is valid
+    /* make sure the value passed is valid */
     if (!src || !dest || !is_data_value_schedule_compatible(src->tag)) {
         return BACNET_STATUS_ERROR;
     }
@@ -162,7 +162,7 @@ int bacnet_primitive_to_application_data_value(
     struct BACnet_Application_Data_Value *dest,
     const struct BACnet_Primitive_Data_Value *src)
 {
-    // make sure the value passed is valid
+    /* make sure the value passed is valid */
     if (!dest || !src) {
         return BACNET_STATUS_ERROR;
     }

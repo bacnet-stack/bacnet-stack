@@ -362,7 +362,7 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        // Print the written value (for debug)
+        /* Print the written value (for debug) */
 #if 0
         fprintf(stderr, "Writing: ");
         BACNET_OBJECT_PROPERTY_VALUE dummy_opv = {

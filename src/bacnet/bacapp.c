@@ -1168,9 +1168,9 @@ int bacapp_decode_known_property(uint8_t *apdu,
 {
     int len = 0;
 
-    // NOTE:
-    //   When adding impl for a new prop, also add its tag
-    //   to bacapp_known_property_tag()
+    /* NOTE: */
+    /*   When adding impl for a new prop, also add its tag */
+    /*   to bacapp_known_property_tag() */
 
     int tag = bacapp_known_property_tag(object_type, property);
     if (tag != -1) {
@@ -1690,7 +1690,7 @@ static int bacapp_snprintf_weeklyschedule(char *str,
         "Sun" };
     const int loopend = ((arrayIndex == BACNET_ARRAY_ALL) ? 7 : 1);
 
-    // Find what inner type it uses
+    /* Find what inner type it uses */
     int inner_tag = -1;
     for (wi = 0; wi < loopend; wi++) {
         BACNET_DAILY_SCHEDULE *ds = &ws->weeklySchedule[wi];
@@ -2164,7 +2164,7 @@ int bacapp_snprintf_value(
                 ret_val += slen;
                 break;
             case BACNET_APPLICATION_TAG_TIMESTAMP:
-                //ISO 8601 format
+                /*ISO 8601 format */
                 slen = snprintf(str, str_len, "%04u-%02u-%02uT%02u:%02u:%02u.%03u",
                     (unsigned) value->type.Time_Stamp.value.dateTime.date.year,
                     (unsigned) value->type.Time_Stamp.value.dateTime.date.month,
@@ -2402,13 +2402,13 @@ static bool parse_weeklyschedule(
 
     value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
 
-    // Parse the inner tag
+    /* Parse the inner tag */
     chunk = strtok(str, ";");
     chunk = ltrim(chunk, "(");
     if (false ==
         bacapp_parse_application_data(
             BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
-        // Try searching it by name
+        /* Try searching it by name */
         if (false == bactext_application_tag_index(chunk, &inner_tag)) {
             return false;
         }
@@ -2421,43 +2421,43 @@ static bool parse_weeklyschedule(
     while (chunk != NULL) {
         dsch = &value->type.Weekly_Schedule.weeklySchedule[daynum];
 
-        // Strip day name prefix, if present
+        /* Strip day name prefix, if present */
         char *colonpos = strchr(chunk, ':');
         char *sqpos = strchr(chunk, '[');
         if (colonpos && colonpos < sqpos) {
             chunk = colonpos + 1;
         }
 
-        // Extract the inner list of time-values
+        /* Extract the inner list of time-values */
         chunk = rtrim(ltrim(chunk, "([ "), " ])");
 
-        // The list can be empty
+        /* The list can be empty */
         if (chunk[0] != 0) {
-            // loop through the time value pairs
+            /* loop through the time value pairs */
             tvnum = 0;
             do {
-                // Find the comma delimiter, replace with NUL (like strtok)
+                /* Find the comma delimiter, replace with NUL (like strtok) */
                 comma = strchr(chunk, ',');
                 if (comma) {
                     *comma = 0;
                 }
-                // trim the time-value pair and find the delimiter space
+                /* trim the time-value pair and find the delimiter space */
                 chunk = trim(chunk, " ");
                 space = strchr(chunk, ' ');
                 if (!space) {
-                    // malformed time-value pair
+                    /* malformed time-value pair */
                     return false;
                 }
                 *space = 0;
 
-                // Extract time and value
+                /* Extract time and value */
                 t = chunk;
-                // value starts one byte after the space, and there can be
-                // multiple spaces
+                /* value starts one byte after the space, and there can be */
+                /* multiple spaces */
                 chunk = ltrim(space + 1, " ");
                 v = chunk;
 
-                // Parse time
+                /* Parse time */
                 if (false ==
                     bacapp_parse_application_data(
                         BACNET_APPLICATION_TAG_TIME, t, &dummy_value)) {
@@ -2465,7 +2465,7 @@ static bool parse_weeklyschedule(
                 }
                 dsch->Time_Values[tvnum].Time = dummy_value.type.Time;
 
-                // Parse value
+                /* Parse value */
                 if (false ==
                     bacapp_parse_application_data(inner_tag, v, &dummy_value)) {
                     return false;
@@ -2476,7 +2476,7 @@ static bool parse_weeklyschedule(
                     return false;
                 }
 
-                // Advance past the comma to the next chunk
+                /* Advance past the comma to the next chunk */
                 if (comma) {
                     chunk = comma + 1;
                 }
@@ -2486,7 +2486,7 @@ static bool parse_weeklyschedule(
 
         dsch->TV_Count = tvnum;
 
-        // Find the start of the next day
+        /* Find the start of the next day */
         chunk = strtok(NULL, ";");
         daynum++;
     }
@@ -2506,11 +2506,11 @@ static bool strtol_checked(const char *s, long *out)
     errno = 0;
     *out = strtol(s, &end, 0);
     if (end == s) {
-        // Conversion was not possible
+        /* Conversion was not possible */
         return false;
     }
     if (errno == ERANGE) {
-        // Number too large
+        /* Number too large */
         return false;
     }
     return true;
@@ -2524,11 +2524,11 @@ static bool strtoul_checked(const char *s, BACNET_UNSIGNED_INTEGER *out)
     errno = 0;
     *out = strtoul(s, &end, 0);
     if (end == s) {
-        // Conversion was not possible
+        /* Conversion was not possible */
         return false;
     }
     if (errno == ERANGE) {
-        // Number too large
+        /* Number too large */
         return false;
     }
     return true;
@@ -2542,11 +2542,11 @@ static bool strtod_checked(const char *s, double *out)
     errno = 0;
     *out = strtod(s, &end);
     if (end == s) {
-        // Conversion was not possible
+        /* Conversion was not possible */
         return false;
     }
     if (errno == ERANGE) {
-        // Number too large
+        /* Number too large */
         return false;
     }
     return true;
