@@ -50,6 +50,8 @@ void color_rgb_to_xy(uint8_t r,
     float *y_coordinate,
     uint8_t *brightness)
 {
+    float X, Y, Z;
+    float x, y;
     /*  Get the RGB values from your color object
         and convert them to be between 0 and 1.
         So the RGB color (255, 0, 100) becomes (1.0, 0.0, 0.39) */
@@ -76,13 +78,13 @@ void color_rgb_to_xy(uint8_t r,
 
     /*  Convert the RGB values to XYZ using the
         Wide RGB D65 conversion formula */
-    float X = red * 0.649926f + green * 0.103455f + blue * 0.197109f;
-    float Y = red * 0.234327f + green * 0.743075f + blue * 0.022598f;
-    float Z = red * 0.0000000f + green * 0.053077f + blue * 1.035763f;
+    X = red * 0.649926f + green * 0.103455f + blue * 0.197109f;
+    Y = red * 0.234327f + green * 0.743075f + blue * 0.022598f;
+    Z = red * 0.0000000f + green * 0.053077f + blue * 1.035763f;
 
     /* Calculate the xy values from the XYZ values */
-    float x = X / (X + Y + Z);
-    float y = Y / (X + Y + Z);
+    x = X / (X + Y + Z);
+    y = Y / (X + Y + Z);
 
     x = clamp(x, 0.0f, 1.0f);
     y = clamp(y, 0.0f, 1.0f);
@@ -122,20 +124,23 @@ void color_rgb_from_xy(uint8_t *red,
     float y_coordinate,
     uint8_t brightness)
 {
+    float r, g, b;
+    float x, y, z, X, Y, Z;
+
     /*  Calculate XYZ values */
-    float x = x_coordinate;
-    float y = y_coordinate;
-    float z = 1.0f - x - y;
-    float Y = (float)brightness;
+    x = x_coordinate;
+    y = y_coordinate;
+    z = 1.0f - x - y;
+    Y = (float)brightness;
     Y /= 255.0f;
-    float X = (Y / y) * x;
-    float Z = (Y / y) * z;
+    X = x * (Y / y);
+    Z = z * (Y / y);
 
     /*  Convert to RGB using Wide RGB D65 conversion
        (THIS IS A D50 conversion currently) */
-    float r = X * 1.4628067f - Y * 0.1840623f - Z * 0.2743606f;
-    float g = -X * 0.5217933f + Y * 1.4472381f + Z * 0.0677227f;
-    float b = X * 0.0349342f - Y * 0.0968930f + Z * 1.2884099f;
+    r = X * 1.4628067f - Y * 0.1840623f - Z * 0.2743606f;
+    g = -X * 0.5217933f + Y * 1.4472381f + Z * 0.0677227f;
+    b = X * 0.0349342f - Y * 0.0968930f + Z * 1.2884099f;
 
     /*  Apply reverse gamma correction */
     r = r <= 0.0031308f ? 12.92f * r

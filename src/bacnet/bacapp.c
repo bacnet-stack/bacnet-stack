@@ -38,6 +38,7 @@
 #include <stdlib.h> /* for strtol */
 #include <ctype.h> /* for isalnum */
 #include <errno.h>
+#include <math.h>
 #ifdef __STDC_ISO_10646__
 #include <wchar.h>
 #include <wctype.h>
@@ -2358,10 +2359,12 @@ static char *ltrim(char *str, const char *trimmedchars)
 
 static char *rtrim(char *str, const char *trimmedchars)
 {
+    char *end;
+
     if (str[0] == 0) {
         return str;
     }
-    char *end = str + strlen(str) - 1;
+    end = str + strlen(str) - 1;
     while (strchr(trimmedchars, *end)) {
         *end = 0;
         if (end == str)
@@ -2380,7 +2383,7 @@ static char *trim(char *str, const char *trimmedchars)
 static bool parse_weeklyschedule(
     char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
-    char *chunk, *comma, *space, *t, *v;
+    char *chunk, *comma, *space, *t, *v, *colonpos, *sqpos;
     int daynum = 0, tvnum = 0;
     unsigned int inner_tag;
     BACNET_APPLICATION_DATA_VALUE dummy_value = { 0 };
@@ -2422,8 +2425,8 @@ static bool parse_weeklyschedule(
         dsch = &value->type.Weekly_Schedule.weeklySchedule[daynum];
 
         /* Strip day name prefix, if present */
-        char *colonpos = strchr(chunk, ':');
-        char *sqpos = strchr(chunk, '[');
+        colonpos = strchr(chunk, ':');
+        sqpos = strchr(chunk, '[');
         if (colonpos && colonpos < sqpos) {
             chunk = colonpos + 1;
         }
@@ -2869,14 +2872,14 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
 #endif
 #if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
-                if (test_value->type.Real == value->type.Real) {
+                if (!islessgreater(test_value->type.Real, value->type.Real)) {
                     status = true;
                 }
                 break;
 #endif
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                if (test_value->type.Double == value->type.Double) {
+                if (!islessgreater(test_value->type.Double,value->type.Double)) {
                     status = true;
                 }
                 break;

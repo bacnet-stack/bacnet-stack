@@ -604,8 +604,8 @@ bool xy_color_same(BACNET_XY_COLOR *value1, BACNET_XY_COLOR *value2)
     bool status = false;
 
     if (value1 && value2) {
-        if ((value1->x_coordinate == value2->x_coordinate) &&
-            (value1->y_coordinate == value2->y_coordinate)) {
+        if (!islessgreater(value1->x_coordinate, value2->x_coordinate) &&
+            !islessgreater(value1->y_coordinate, value2->y_coordinate)) {
             status = true;
         }
     }
@@ -1096,9 +1096,9 @@ bool color_command_same(
                 status = true;
                 break;
             case BACNET_COLOR_OPERATION_FADE_TO_COLOR:
-                if ((value1->target.color.x_coordinate ==
+                if (!islessgreater(value1->target.color.x_coordinate,
                         value2->target.color.x_coordinate) &&
-                    (value1->target.color.y_coordinate ==
+                    !islessgreater(value1->target.color.y_coordinate,
                         value2->target.color.y_coordinate) &&
                     (value1->transit.fade_time == value2->transit.fade_time)) {
                     status = true;

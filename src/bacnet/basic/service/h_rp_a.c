@@ -38,15 +38,10 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/sys/debug.h"
 
-#if PRINT_ENABLED
-#include <stdio.h>
-#define PRINTF(...) fprintf(stdout, __VA_ARGS__)
-#define PRINTF_ERR(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define PRINTF(...)
-#define PRINTF_ERR(...)
-#endif
+#define PRINTF debug_aprintf
+#define PRINTF_ERR debug_perror
 
 /** @file h_rp_a.c  Handles Read Property Acknowledgments. */
 

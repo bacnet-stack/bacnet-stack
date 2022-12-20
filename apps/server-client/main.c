@@ -18,6 +18,7 @@
 #include "bacnet/bactext.h"
 #include "bacnet/version.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/client/bac-task.h"
 #include "bacnet/basic/client/bac-data.h"
@@ -26,9 +27,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* print with flush by default */
-#define PRINTF(...)               \
-    fprintf(stderr, __VA_ARGS__); \
-    fflush(stderr)
+#define PRINTF debug_aprintf
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
