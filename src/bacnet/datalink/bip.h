@@ -119,6 +119,9 @@ extern "C" {
     BACNET_STACK_EXPORT
     int bip_get_socket(void);
 
+    BACNET_STACK_EXPORT
+    int bip_get_broadcast_socket(void);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

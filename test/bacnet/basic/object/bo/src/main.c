@@ -23,16 +23,13 @@ static void testBinaryOutput(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     int len = 0, test_len = 0;
-    uint32_t len_value = 0;
-    uint8_t tag_number = 0;
-    BACNET_OBJECT_TYPE decoded_type = 0;
-    uint32_t decoded_instance = 0;
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = {0};
     const int *required_property = NULL;
     const uint32_t instance = 1;
 
     Binary_Output_Init();
+    Binary_Output_Create(1);
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_BINARY_OUTPUT;
@@ -43,13 +40,17 @@ static void testBinaryOutput(void)
     while ((*required_property) >= 0) {
         rpdata.object_property = *required_property;
         len = Binary_Output_Read_Property(&rpdata);
+        if (len < 0) {
+            printf("property %u: failed to read!\n",
+                (unsigned)rpdata.object_property);
+        }
         zassert_true(len >= 0, NULL);
         if (len >= 0) {
             test_len = bacapp_decode_known_property(rpdata.application_data,
                 len, &value, rpdata.object_type, rpdata.object_property);
             if (len != test_len) {
-                //printf("property '%s': failed to decode!\n",
-                //    bactext_property_name(rpdata.object_property));
+                printf("property %u: failed to decode!\n",
+                    (unsigned)rpdata.object_property);
             }
             if (rpdata.object_property == PROP_PRIORITY_ARRAY) {
                 /* FIXME: known fail to decode */

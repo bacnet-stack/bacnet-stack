@@ -44,14 +44,17 @@
 #endif
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
+/* timer used to renew Foreign Device Registration */
+#if defined(BACDL_BIP) || defined(BACDL_BIP6)
+static uint16_t BBMD_Timer_Seconds;
+static uint16_t BBMD_TTL_Seconds = 60000;
+#endif
+
 #if defined(BACDL_BIP)
 #ifndef BBMD_ENABLED
 #define BBMD_ENABLED 1
 #endif
-/* timer used to renew Foreign Device Registration */
-static uint16_t BBMD_Timer_Seconds;
 /* BBMD variables */
-static uint16_t BBMD_TTL_Seconds = 60000;
 static BACNET_IP_ADDRESS BBMD_Address;
 static bool BBMD_Address_Valid;
 static uint16_t BBMD_Result = 0;
@@ -124,6 +127,7 @@ int dlenv_bbmd_result(void)
 }
 #endif
 
+#if defined(BACDL_BIP) && BBMD_ENABLED
 /** Register as a Foreign Device with the designated BBMD.
  * @ingroup DataLink
  * The BBMD's address, port, and lease time must be provided by
@@ -138,10 +142,9 @@ int dlenv_bbmd_result(void)
  *         0 if no registration request is sent, or
  *         -1 if registration fails.
  */
-int dlenv_register_as_foreign_device(void)
+static int bbmd_register_as_foreign_device(void)
 {
     int retval = 0;
-#if defined(BACDL_BIP) && BBMD_ENABLED
     bool bdt_entry_valid = false;
     uint16_t bdt_entry_port = 0;
     char *pEnv = NULL;
@@ -191,7 +194,7 @@ int dlenv_register_as_foreign_device(void)
                 (unsigned)BBMD_Address.address[2],
                 (unsigned)BBMD_Address.address[3], (unsigned)BBMD_Address.port);
         }
-        BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
+        BBMD_Timer_Seconds = BBMD_TTL_Seconds;
     } else {
         for (entry_number = 1; entry_number <= 128; entry_number++) {
             bdt_entry_valid = false;
@@ -263,8 +266,93 @@ int dlenv_register_as_foreign_device(void)
         }
     }
     BBMD_Result = retval;
-#endif
+
     return retval;
+}
+#endif
+
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+/** Register as a Foreign Device with the designated BBMD.
+ * @ingroup DataLink
+ * The BBMD's address, port, and lease time must be provided by
+ * internal variables or Environment variables.
+ * If no address for the BBMD is provided, no BBMD registration will occur.
+ *
+ * The Environment Variables depend on define of BACDL_BIP:
+ *     - BACNET_BBMD6_PORT - 0..65534, defaults to 47808
+ *     - BACNET_BBMD6_TIMETOLIVE - 0..65535 seconds, defaults to 60000
+ *     - BACNET_BBMD6_ADDRESS - IPv6 address
+ * @return Positive number (of bytes sent) on success,
+ *         0 if no registration request is sent, or
+ *         -1 if registration fails.
+ */
+static int bbmd6_register_as_foreign_device(void)
+{
+    int retval = 0;
+    bool bdt_entry_valid = false;
+    uint16_t bdt_entry_port = 0;
+    char *pEnv = NULL;
+    unsigned a[4] = { 0 };
+    char bbmd_env[32] = "";
+    unsigned entry_number = 0;
+    long long_value = 0;
+    int c;
+    BACNET_IP6_ADDRESS bip6_addr = { 0 };
+    uint16_t bip6_port = 0xBAC0;
+
+    pEnv = getenv("BACNET_BBMD6_PORT");
+    if (pEnv) {
+        long_value = strtol(pEnv, NULL, 0);
+        if (long_value <= UINT16_MAX) {
+            bip6_port = (uint16_t)long_value;
+        }
+    }
+    pEnv = getenv("BACNET_BBMD6_TIMETOLIVE");
+    if (pEnv) {
+        long_value = strtol(pEnv, NULL, 0);
+        if (long_value <= 60000) {
+            BBMD_TTL_Seconds = (uint16_t)long_value;
+        }
+    }
+    pEnv = getenv("BACNET_BBMD6_ADDRESS");
+    if (bvlc6_address_from_ascii(pEnv, &bip6_addr)) {
+        if (BIP_DL_Debug) {
+            fprintf(stderr,
+                "Registering with BBMD6 at %s for %u seconds\n",
+                pEnv, (unsigned)bip6_port, (unsigned)BBMD_TTL_Seconds);
+        }
+        retval = bvlc6_register_with_bbmd(&bip6_addr, BBMD_TTL_Seconds);
+        if (retval < 0) {
+            fprintf(stderr, "FAILED to Register with BBMD6 at %s:%u\n",
+                pEnv, (unsigned)BBMD_Address.port);
+        }
+        BBMD_Timer_Seconds = BBMD_TTL_Seconds;
+    }
+    BBMD_Result = retval;
+
+    return retval;
+}
+#endif
+
+/** Register as a Foreign Device with the designated BBMD.
+ * @ingroup DataLink
+ * The BBMD's address, port, and lease time must be provided by
+ * internal variables or Environment variables.
+ * If no address for the BBMD is provided, no BBMD registration will occur.
+ *
+ * @return Positive number (of bytes sent) on success,
+ *         0 if no registration request is sent, or
+ *         -1 if registration fails.
+ */
+int dlenv_register_as_foreign_device(void)
+{
+#if defined(BACDL_BIP) && BBMD_ENABLED
+    return bbmd_register_as_foreign_device();
+#elif defined(BACDL_BIP) && BBMD_ENABLED
+    return bbmd6_register_as_foreign_device();
+#else
+    return 0;
+#endif
 }
 
 #if (BACNET_PROTOCOL_REVISION >= 17)
@@ -430,7 +518,7 @@ void dlenv_network_port_init(void)
  */
 void dlenv_maintenance_timer(uint16_t elapsed_seconds)
 {
-#if defined(BACDL_BIP)
+#if defined(BACDL_BIP) || defined(BACDL_BIP6)
     if (BBMD_Timer_Seconds) {
         if (BBMD_Timer_Seconds <= elapsed_seconds) {
             BBMD_Timer_Seconds = 0;

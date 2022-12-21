@@ -1,0 +1,35 @@
+name: Zephyr OS CMake
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: zephyrprojectrtos/ci:latest
+    env:
+      CMAKE_PREFIX_PATH: /opt/toolchains
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: bacnet-stack
+
+      - name: Initialize
+        working-directory: bacnet-stack
+        run: |
+          west init -l .
+          west update
+      - name: Build firmware
+        working-directory: bacnet-stack
+        run: |
+          west build -b mimxrt1064_evk ../zephyr/samples/hello_world
+#      - name: Twister Tests
+#        working-directory: bacnet-stack
+#        run: |
+#          ../zephyr/scripts/twister -T ../zephyr/tests/misc/test_build
+      - name: Archive firmware
+        uses: actions/upload-artifact@v3
+        with:
+          name: firmware
+          path: bacnet-stack/build/zephyr/zephyr.*
+    

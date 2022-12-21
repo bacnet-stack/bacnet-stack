@@ -1031,9 +1031,7 @@ static void test_bacapp_context_data(void)
     const uint8_t context_tag_number = 1;
     uint8_t apdu[480] = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    BACNET_APPLICATION_DATA_VALUE test_value = { 0 };
-    bool status = false;
-    int apdu_len, null_len, test_len;
+    int apdu_len, null_len;
     unsigned i = 0;
 
     for (i = 0; i < sizeof(tag_list)/sizeof(tag_list[0]); i++) {

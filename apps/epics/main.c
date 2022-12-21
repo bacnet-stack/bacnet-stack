@@ -678,7 +678,7 @@ static void PrintReadPropertyData(BACNET_OBJECT_TYPE object_type,
                         int iLast15idx =
                             value->type.Character_String.length - 15;
                         value->type.Character_String.value[15] = '-';
-                        memcpy(&value->type.Character_String.value[16],
+                        memmove(&value->type.Character_String.value[16],
                             &value->type.Character_String.value[iLast15idx],
                             15);
                         value->type.Character_String.value[31] = 0;

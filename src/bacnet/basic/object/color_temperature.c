@@ -691,7 +691,7 @@ bool Color_Temperature_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[16] = "COLOR-4194303";
+    char name_text[26] = "COLOR-TEMPERATURE-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -699,7 +699,8 @@ bool Color_Temperature_Object_Name(
             status =
                 characterstring_init_ansi(object_name, pObject->Object_Name);
         } else {
-            snprintf(name_text, sizeof(name_text), "COLOR-%u", object_instance);
+            snprintf(name_text, sizeof(name_text), "COLOR-TEMPERATURE-%u",
+                object_instance);
             status = characterstring_init_ansi(object_name, name_text);
         }
     }

@@ -11,7 +11,7 @@ all: test
 
 BUILD_DIR=build
 
-CTEST_OPTIONS := --quiet --output-on-failure --parallel 4
+CTEST_OPTIONS := --quiet --output-on-failure
 CTEST_OPTIONS += --output-junit test-results.xml
 
 .PHONY: test

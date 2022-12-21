@@ -1895,6 +1895,10 @@ void Device_Init(object_functions_t *object_table)
         }
         pObject++;
     }
+    /* create some dynamically created objects as examples */
+    Analog_Output_Create(1);
+    Binary_Output_Create(1);
+    Multistate_Output_Create(1);
 #if (BACNET_PROTOCOL_REVISION >= 24)
     Color_Create(1);
     Color_Temperature_Create(1);

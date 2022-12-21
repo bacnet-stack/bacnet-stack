@@ -1,4 +1,3 @@
-# SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.13.1)
 
@@ -48,6 +47,10 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/cov.c
     ${BACNET_SRC}/memcopy.c
     ${BACNET_SRC}/hostnport.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/bactimevalue.c
     )
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)

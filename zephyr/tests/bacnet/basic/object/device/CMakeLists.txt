@@ -92,6 +92,10 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/basic/sys/keylist.c
     ${BACNET_SRC}/basic/tsm/tsm.c
     ${BACNET_SRC}/datalink/bvlc.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/bactimevalue.c
     )
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)

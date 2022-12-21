@@ -76,9 +76,15 @@
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
 #ifdef BAC_ROUTING
+#ifdef __cplusplus
+extern "C" {
+#endif
 BACNET_STACK_EXPORT
 void routed_get_my_address(
     BACNET_ADDRESS * my_address);
+#ifdef __cplusplus
+}
+#endif
 #define datalink_get_my_address routed_get_my_address
 #else
 #define datalink_get_my_address bip_get_my_address

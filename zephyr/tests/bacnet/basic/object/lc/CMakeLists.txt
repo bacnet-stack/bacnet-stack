@@ -48,6 +48,10 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/wp.c
     ${BACNET_OBJECT_SRC}/ao.c
     ${BACNET_SRC}/hostnport.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/bactimevalue.c
     )
 
   add_definitions(-DUNIT_TESTING)
@@ -61,7 +65,7 @@ else()
   target_include_directories(app PRIVATE ${BACNET_INCLUDE})
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c
-    ${BACNET_TEST_PATH}/stubs.c
+#    ${BACNET_TEST_PATH}/stubs.c
  #   ${BACNET_BASE}/test/ztest/src/ztest.c
     )
 endif()

@@ -1485,7 +1485,7 @@ typedef enum BACnet_Confirmed_Service_Choice {
     /* Services added after 2016 */
     /* confirmed-audit-notification [32] see Alarm and Event Services */
     /* audit-log-query [33] see Object Access Services */
-    MAX_BACNET_CONFIRMED_SERVICE = 30
+    MAX_BACNET_CONFIRMED_SERVICE = 34
 } BACNET_CONFIRMED_SERVICE;
 
 /* BACnetUnconfirmedServiceChoice ::= ENUMERATED */
@@ -1522,6 +1522,7 @@ typedef enum BACnet_Services_Supported {
     /* Alarm and Event Services */
     SERVICE_SUPPORTED_ACKNOWLEDGE_ALARM = 0,
     SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION = 1,
+    SERVICE_SUPPORTED_CONFIRMED_COV_NOTIFICATION_MULTIPLE = 42,
     SERVICE_SUPPORTED_CONFIRMED_EVENT_NOTIFICATION = 2,
     SERVICE_SUPPORTED_GET_ALARM_SUMMARY = 3,
     SERVICE_SUPPORTED_GET_ENROLLMENT_SUMMARY = 4,

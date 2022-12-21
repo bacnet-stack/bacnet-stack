@@ -42,10 +42,7 @@
 #include "bacnet/basic/bbmd/h_bbmd.h"
 #include "bacport.h"
 
-/**
- * @file
- * @brief Initializes BACnet/IP interface (BSD/MAC OS X).
- */
+/** @file bsd/bip-init.c @brief Initializes BACnet/IP interface (BSD/MAC OS X). */
 
 /* unix sockets */
 static int BIP_Socket = -1;
@@ -63,6 +60,8 @@ static struct in_addr BIP_Address;
 static struct in_addr BIP_Broadcast_Addr;
 /* enable debugging */
 static bool BIP_Debug = false;
+/* interface name */
+static char BIP_Interface_Name[IF_NAMESIZE] = { 0 };
 
 /**
  * @brief Print the IPv4 address with debug info
@@ -84,10 +83,21 @@ static void debug_print_ipv4(const char *str,
 /**
  * @brief Return the active BIP socket.
  * @return The active BIP socket, or -1 if uninitialized.
+ * @see bip_get_broadcast_socket
  */
 int bip_get_socket(void)
 {
     return BIP_Socket;
+}
+
+/**
+ * @brief Return the active BIP Broadcast socket.
+ * @return The active BIP Broadcast socket, or -1 if uninitialized.
+ * @see bip_get_socket
+ */
+int bip_get_broadcast_socket(void)
+{
+    return BIP_Broadcast_Socket;
 }
 
 /**
@@ -455,13 +465,26 @@ bool bip_get_addr_by_name(const char *host_name, BACNET_IP_ADDRESS *addr)
 
 static void *get_addr_ptr(struct sockaddr *sockaddr_ptr)
 {
-    void *addr_ptr;
+    void *addr_ptr = NULL;
     if (sockaddr_ptr->sa_family == AF_INET) {
         addr_ptr = &((struct sockaddr_in *)sockaddr_ptr)->sin_addr;
     } else if (sockaddr_ptr->sa_family == AF_INET6) {
         addr_ptr = &((struct sockaddr_in6 *)sockaddr_ptr)->sin6_addr;
     }
     return addr_ptr;
+}
+
+/**
+ * @brief Get the default interface name using routing info
+ * @return interface name, or NULL if not found or none
+*/
+static char *ifname_default(void)
+{
+    if (BIP_Interface_Name[0] != 0) {
+        return BIP_Interface_Name;
+    }
+    strncpy(BIP_Interface_Name, "en0", sizeof(BIP_Interface_Name));
+    return BIP_Interface_Name;
 }
 
 /** Gets the local IP address and local broadcast address from the system,
@@ -474,7 +497,7 @@ static void *get_addr_ptr(struct sockaddr *sockaddr_ptr)
  */
 static int get_local_address(char *ifname, struct in_addr *addr, char *request)
 {
-    char rv; /* return value */
+    char rv = '\0'; /* return value */
 
     struct ifaddrs *ifaddrs_ptr;
     int status;
@@ -486,7 +509,7 @@ static int get_local_address(char *ifname, struct in_addr *addr, char *request)
     while (ifaddrs_ptr) {
         if ((ifaddrs_ptr->ifa_addr->sa_family == AF_INET) &&
             (strcmp(ifaddrs_ptr->ifa_name, ifname) == 0)) {
-            void *addr_ptr;
+            void *addr_ptr = NULL;
             if (!ifaddrs_ptr->ifa_addr) {
                 return rv;
             }
@@ -627,16 +650,21 @@ bool bip_init(char *ifname)
     int sock_fd = -1;
 
     if (ifname) {
+        strncpy(BIP_Interface_Name, ifname, sizeof(BIP_Interface_Name));
         bip_set_interface(ifname);
-        printf("interface %s", ifname);
     } else {
-        bip_set_interface("en0");
+        bip_set_interface(ifname_default());
+    }
+    if (BIP_Address.s_addr == 0) {
+        fprintf(stderr, "BIP: Failed to get an IP address from %s!\n",
+            BIP_Interface_Name);
+        fflush(stderr);
+        return false;
     }
 
     sin.sin_family = AF_INET;
     sin.sin_port = BIP_Port;
     memset(&(sin.sin_zero), '\0', sizeof(sin.sin_zero));
-
 
     sin.sin_addr.s_addr = BIP_Address.s_addr;
     sock_fd = createSocket(&sin);
@@ -671,8 +699,6 @@ bool bip_valid(void)
  */
 void bip_cleanup(void)
 {
-    int sock_fd = 0;
-
     if (BIP_Socket != -1) {
         close(BIP_Socket);
     }

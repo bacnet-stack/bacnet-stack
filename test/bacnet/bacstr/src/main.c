@@ -27,7 +27,6 @@ static void testBitString(void)
     BACNET_BIT_STRING bit_string2;
     BACNET_BIT_STRING bit_string3;
     bool status = false;
-    unsigned bits = 0;
 
     bitstring_init(&bit_string);
     /* verify initialization */

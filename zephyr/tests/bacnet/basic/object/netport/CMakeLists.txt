@@ -57,6 +57,10 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/datalink/bvlc.c
     ${BACNET_SRC}/basic/object/sc_netport.c
     ${BACNET_SRC}/hostnport.c
+    ${BACNET_SRC}/dailyschedule.c
+    ${BACNET_SRC}/weeklyschedule.c
+    ${BACNET_SRC}/basic/sys/bigend.c
+    ${BACNET_SRC}/bactimevalue.c
     )
 
   include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
