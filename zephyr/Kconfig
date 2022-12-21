@@ -47,9 +47,18 @@ config BACDL_BIP
 	  Enable BACnet BIP datalink
 
 config BACDL_BSC
+<<<<<<< HEAD
 	bool "BACnet BSC datalink"
 	help
 	  Enable BACnet BSC datalink
+=======
+	bool "BACnet Security Connect datalink"
+	select NET_CONTEXT_SNDTIMEO
+	select TLS_CREDENTIALS
+	select NETWORKING
+	help
+	  Enable Security Connect datalink
+>>>>>>> 73eb197a (Add bsc_event and bsc_mutex test)
 
 config BACDL_NONE
 	bool "BACnet without datalink"

@@ -1,0 +1,6 @@
+tests:
+  bacnet.basic.sys.bsc_mutex.unit:
+    tags: bacnet
+    type: unit
+  bacnet.basic.sys.mutex:
+    tags: bacnet

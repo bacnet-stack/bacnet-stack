@@ -85,73 +85,142 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/bactext.h
     ${BACNETSTACK_SRC}/bacnet/bactimevalue.c
     ${BACNETSTACK_SRC}/bacnet/bactimevalue.h
+    ${BACNETSTACK_SRC}/bacnet/dailyschedule.c
+    ${BACNETSTACK_SRC}/bacnet/dailyschedule.h
+    ${BACNETSTACK_SRC}/bacnet/weeklyschedule.c
+    ${BACNETSTACK_SRC}/bacnet/weeklyschedule.h
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/h_bbmd6.c>
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/h_bbmd6.h>
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/vmac.c>
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/vmac.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bvlc-sc.c>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bvlc-sc.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-socket.c>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-socket.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-util.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-util.c>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-hub-connector.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-hub-connector.c>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-hub-function.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-hub-function.c>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-node-switch.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-node-switch.c>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-node.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-node.c>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-datalink.h>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/datalink/bsc/bsc-datalink.c>
     ${BACNETSTACK_SRC}/bacnet/basic/binding/address.c
     ${BACNETSTACK_SRC}/bacnet/basic/binding/address.h
     ${BACNETSTACK_SRC}/bacnet/basic/npdu/h_npdu.c
     ${BACNETSTACK_SRC}/bacnet/basic/npdu/h_npdu.h
     ${BACNETSTACK_SRC}/bacnet/basic/npdu/h_routed_npdu.c
     ${BACNETSTACK_SRC}/bacnet/basic/npdu/h_routed_npdu.h
+    ${BACNETSTACK_SRC}/bacnet/basic/npdu/s_router.c
     ${BACNETSTACK_SRC}/bacnet/basic/npdu/s_router.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/access_credential.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_credential.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/access_door.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_door.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/access_point.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_point.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/access_rights.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_rights.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/access_user.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_user.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/acc.c
+    # ${BACNETSTACK_SRC}/bacnet/basic/object/ai.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/ai.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/ao.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/ao.h
+    # ${BACNETSTACK_SRC}/bacnet/basic/object/av.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/av.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bi.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bo.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/bv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/bv.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/channel.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/channel.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/color_object.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/color_object.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/color_temperature.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/color_temperature.h
+    # ${BACNETSTACK_SRC}/bacnet/basic/object/client/device-client.c
+    ${BACNETSTACK_SRC}/bacnet/basic/object/command.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/command.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/csv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/csv.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/device.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/device.h
+    $<$<BOOL:${CONFIG_BAC_ROUTING}>:${BACNETSTACK_SRC}/bacnet/basic/object/gateway/gw_device.c>
+    ${BACNETSTACK_SRC}/bacnet/basic/object/iv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/iv.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/lc.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/lc.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/lo.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/lo.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/lsp.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/lsp.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/ms-input.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/ms-input.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/mso.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/mso.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/msv.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/nc.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/nc.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/netport.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/netport.h
-    ${BACNETSTACK_SRC}/bacnet/basic/object/sc_netport.h
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/basic/object/sc_netport.c>
+    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/basic/object/sc_netport.h>
+    ${BACNETSTACK_SRC}/bacnet/basic/object/objects.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/objects.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/osv.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/piv.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.h
+    ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c
     ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_apdu.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_apdu.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf_a.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf_a.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_awf.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_awf.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_ccov.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_ccov.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_cov.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_cov.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_dcc.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_dcc.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_gas_a.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_gas_a.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_get_alarm_sum.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_get_alarm_sum.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_getevent_a.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_getevent_a.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_getevent.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_getevent.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_iam.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_iam.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_ihave.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_ihave.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_lso.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_lso.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_noserv.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_noserv.h
@@ -165,10 +234,15 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_rpm_a.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_rpm.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_rpm.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_rr_a.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_rr_a.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_rr.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_rr.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_ts.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_ts.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_ucov.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_ucov.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/h_upt.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_upt.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_whohas.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_whohas.h
@@ -178,38 +252,61 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_wp.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_wpm.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/h_wpm.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_abort.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_abort.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_ack_alarm.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_ack_alarm.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_arfs.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_arfs.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_awfs.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_awfs.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_cevent.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_cevent.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_cov.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_cov.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_dcc.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_dcc.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_error.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_error.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_get_alarm_sum.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_get_alarm_sum.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_get_event.c
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_getevent.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_get_event.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_getevent.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_iam.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_iam.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_ihave.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_ihave.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_lso.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_lso.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_rd.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_rd.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_readrange.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_readrange.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_rp.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_rp.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_rpm.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_rpm.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_ts.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_ts.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_uevent.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_uevent.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_upt.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_upt.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_whohas.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_whohas.h
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_whois.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_whois.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_wp.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_wp.h
+    ${BACNETSTACK_SRC}/bacnet/basic/service/s_wpm.c
     ${BACNETSTACK_SRC}/bacnet/basic/service/s_wpm.h
     ${BACNETSTACK_SRC}/bacnet/basic/services.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/bigend.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/bigend.h
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/color_rgb.c
+    ${BACNETSTACK_SRC}/bacnet/basic/sys/color_rgb.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/days.c
     ${BACNETSTACK_SRC}/bacnet/basic/sys/days.h
     ${BACNETSTACK_SRC}/bacnet/basic/sys/debug.c
@@ -247,11 +344,14 @@ set(BACNETSTACK_SRCS
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/datalink/bvlc.c>
     $<$<BOOL:${CONFIG_BACDL_MSTP}>:${BACNETSTACK_SRC}/bacnet/datalink/crc.h>
     $<$<BOOL:${CONFIG_BACDL_MSTP}>:${BACNETSTACK_SRC}/bacnet/datalink/crc.c>
+    $<$<BOOL:${CONFIG_BACDL_MSTP}>:${BACNETSTACK_SRC}/bacnet/datalink/cobs.c>
     ${BACNETSTACK_SRC}/bacnet/datalink/datalink.c
     ${BACNETSTACK_SRC}/bacnet/datalink/datalink.h
+    ${BACNETSTACK_SRC}/bacnet/datalink/dlenv.c
+    ${BACNETSTACK_SRC}/bacnet/datalink/dlenv.h
     ${BACNETSTACK_SRC}/bacnet/datalink/dlmstp.h
     ${BACNETSTACK_SRC}/bacnet/datalink/ethernet.h
-    $<$<BOOL:${CONFIG_BACDL_MSTP}>:${BACNETSTACK_SRC}/bacnet/datalink/mstp.h>
+    $<$<BOOL:${CONFIG_BACDL_MSTP}>:${BACNETSTACK_SRC}/bacnet/datalink/mstp.c>
     ${BACNETSTACK_SRC}/bacnet/datalink/mstpdef.h
     ${BACNETSTACK_SRC}/bacnet/datalink/mstp.h
     ${BACNETSTACK_SRC}/bacnet/datalink/mstptext.c
@@ -260,6 +360,7 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/datetime.h
     ${BACNETSTACK_SRC}/bacnet/dcc.c
     ${BACNETSTACK_SRC}/bacnet/dcc.h
+    # ${BACNETSTACK_SRC}/bacnet/event.c
     ${BACNETSTACK_SRC}/bacnet/event.h
     ${BACNETSTACK_SRC}/bacnet/get_alarm_sum.c
     ${BACNETSTACK_SRC}/bacnet/get_alarm_sum.h
@@ -310,90 +411,7 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/wp.h
     ${BACNETSTACK_SRC}/bacnet/wpm.c
     ${BACNETSTACK_SRC}/bacnet/wpm.h
-    ${BACNETSTACK_SRC}/bacnet/weeklyschedule.c
-    ${BACNETSTACK_SRC}/bacnet/weeklyschedule.h
-    ${BACNETSTACK_SRC}/bacnet/dailyschedule.c
-    ${BACNETSTACK_SRC}/bacnet/dailyschedule.h
     )
-
-set(BACNETSTACK_BASIC_SRCS
-    $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/h_bbmd6.c>
-    $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/vmac.c>
-    ${BACNETSTACK_SRC}/bacnet/basic/npdu/s_router.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_credential.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_door.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_point.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_rights.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_user.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/access_zone.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/acc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/ao.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bacfile.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bi.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bo.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/bv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/channel.c
-    #${BACNETSTACK_SRC}/bacnet/basic/object/client/device-client.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/command.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/color_object.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/color_temperature.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/credential_data_input.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/csv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/device.c
-    $<$<BOOL:${CONFIG_BAC_ROUTING}>:${BACNETSTACK_SRC}/bacnet/basic/object/gateway/gw_device.c>
-    ${BACNETSTACK_SRC}/bacnet/basic/object/iv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lo.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/lsp.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/ms-input.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/mso.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/msv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/nc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/netport.c
-    $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_SRC}/bacnet/basic/object/sc_netport.c>
-    ${BACNETSTACK_SRC}/bacnet/basic/object/objects.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/osv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/piv.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/schedule.c
-    ${BACNETSTACK_SRC}/bacnet/basic/object/trendlog.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_alarm_ack.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf_a.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_arf.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_awf.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_ccov.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_gas_a.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_get_alarm_sum.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_getevent_a.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_getevent.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_lso.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_rr_a.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_rr.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_ts.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_ucov.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/h_upt.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_abort.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_ack_alarm.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_arfs.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_awfs.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_cevent.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_cov.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_dcc.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_error.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_get_alarm_sum.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_get_event.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_getevent.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_lso.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_rd.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_readrange.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_rp.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_rpm.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_ts.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_uevent.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_upt.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_wp.c
-    ${BACNETSTACK_SRC}/bacnet/basic/service/s_wpm.c
-    )
-
 #
 # add ports
 #
@@ -405,17 +423,18 @@ set(BACNETSTACK_PORT ${CMAKE_CURRENT_LIST_DIR}/../ports/zephyr)
 
 list(
   APPEND BACNETSTACK_SRCS
-      ${BACNETSTACK_BASIC_SRCS}
       ${BACNETSTACK_PORT}/datetime-init.c
       $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_PORT}/bip-init.c>
       $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_PORT}/bip6-init.c>
-      $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_PORT}/datalink/bvlc.c>
       $<$<BOOL:${CONFIG_BACDL_ETHERNET}>:${BACNETSTACK_PORT}/ethernet.c>
       ${BACNETSTACK_PORT}/main.c
       ${BACNETSTACK_PORT}/mstimer-init.c
       ${BACNETSTACK_PORT}/ai.c
       ${BACNETSTACK_PORT}/av.c
       ${BACNETSTACK_PORT}/event.c
+      $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/bsc-mutex.c>
+      $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/bsc-event.c>
+      $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/bsc-runloop.c>
       $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-cli.c>
       $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-srv.c>
   )
@@ -443,6 +462,7 @@ zephyr_library_compile_definitions(
   $<$<BOOL:${CONFIG_BACAPP_PRINT_ENABLED}>:BACAPP_PRINT_ENABLED=1>
   $<$<BOOL:${CONFIG_BACAPP_SNPRINTF_ENABLED}>:BACAPP_SNPRINTF_ENABLED=1>
   $<$<BOOL:${CONFIG_BACNET_ADDRESS_CACHE_FILE}>:BACNET_ADDRESS_CACHE_FILE=1>
+  BSC_CONF_WSURL_MAX_LEN=127
   )
 
 zephyr_library_sources(
@@ -471,5 +491,5 @@ target_compile_definitions(
   $<$<BOOL:${CONFIG_BACNET_ADDRESS_CACHE_FILE}>:BACNET_ADDRESS_CACHE_FILE=1>
   BACNET_STACK_STATIC_DEFINE
   PRINT_ENABLED=1
+  BSC_CONF_WSURL_MAX_LEN=127
   )
-

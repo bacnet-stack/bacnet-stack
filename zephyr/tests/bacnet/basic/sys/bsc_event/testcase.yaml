@@ -1,0 +1,6 @@
+tests:
+  bacnet.basic.sys.bsc_event.unit:
+    tags: bacnet
+    type: unit
+  bacnet.basic.sys.event:
+    tags: bacnet

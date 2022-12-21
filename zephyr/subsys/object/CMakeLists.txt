@@ -46,6 +46,7 @@ if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
     )
 
   zephyr_sources_ifdef(CONFIG_BACDL_BIP netport.c)
+  zephyr_sources_ifdef(CONFIG_BACDL_BSC netport.c)
 
   zephyr_linker_sources(DATA_SECTIONS objects.ld)
 
