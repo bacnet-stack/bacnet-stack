@@ -39,16 +39,9 @@
 #include "bacnet/basic/object/ao.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 
-#ifndef LOAD_CONTROL_DEBUG
-#define LOAD_CONTROL_DEBUG 0
-#endif
-#if LOAD_CONTROL_DEBUG
-#include <sys/PRINTF.h>
-#define PRINTF(...) printk(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+#define PRINTF debug_printf
 
 /* number of demo objects */
 #ifndef MAX_LOAD_CONTROLS
@@ -67,7 +60,7 @@ typedef enum BACnetShedLevelType {
 
 #define DEFAULT_VALUE_PERCENT 100
 #define DEFAULT_VALUE_LEVEL 0
-#define DEFAULT_VALUE_AMOUNT 0
+#define DEFAULT_VALUE_AMOUNT 0.0
 
 /* The shed levels for the LEVEL choice of BACnetShedLevel
    that have meaning for this particular Load Control object. */
@@ -423,7 +416,7 @@ void Load_Control_State_Machine(int object_index)
                         }
                         break;
                     case BACNET_SHED_TYPE_AMOUNT:
-                        if (Requested_Shed_Level[object_index].value.amount ==
+                        if (Requested_Shed_Level[object_index].value.amount <=
                             DEFAULT_VALUE_AMOUNT) {
                             Load_Control_State[object_index] = SHED_INACTIVE;
                         }
@@ -431,7 +424,7 @@ void Load_Control_State_Machine(int object_index)
                     case BACNET_SHED_TYPE_LEVEL:
                     default:
                         if (Requested_Shed_Level[object_index].value.level ==
-                            DEFAULT_VALUE_LEVEL) {
+                                DEFAULT_VALUE_LEVEL) {
                             Load_Control_State[object_index] = SHED_INACTIVE;
                         }
                         break;

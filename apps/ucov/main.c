@@ -66,6 +66,72 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s pid device-id object-type object-instance "
+        "time property tag value [priority] [index]\n", filename);
+    printf("\n");
+    printf("pid:\n"
+        "Process Identifier for this broadcast.\n");
+    printf("\n");
+    printf("device-id:\n"
+        "The Initiating BACnet Device Object Instance number.\n");
+    printf("\n");
+    printf("object-type:\n"
+        "The object type is object that you are reading. It\n"
+        "can be defined either as the object-type name string\n"
+        "as defined in the BACnet specification, or as the\n"
+        "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+        "in bacenum.h. For example if you were reading Analog\n"
+        "Output 2, the object-type would be analog-output or 1.\n");
+    printf("\n");
+    printf("object-instance:\n"
+        "The monitored object instance number.\n");
+    printf("\n");
+    printf("time:\n"
+        "The subscription time remaining is conveyed in seconds.\n");
+    printf("\n");
+    printf("property:\n"
+        "The property of the object that you are reading. It\n"
+        "can be defined either as the property name string as\n"
+        "defined in the BACnet specification, or as an integer\n"
+        "value of the enumeration BACNET_PROPERTY_ID in\n"
+        "bacenum.h. For example, if you were reading the Present\n"
+        "Value property, use present-value or 85 as the property.\n");
+    printf("\n");
+    printf("tag:\n"
+        "Tag is the integer value of the enumeration BACNET_APPLICATION_TAG \n"
+        "in bacenum.h.  It is the data type of the value that you are\n"
+        "monitoring.  For example, if you were monitoring a REAL value,\n"
+        "you would use a tag of 4.\n");
+    printf("\n");
+    printf("value:\n"
+        "The value is an ASCII representation of some type of data that you\n"
+        "are monitoring.  It is encoded using the tag information provided.\n"
+        "For example, if you were writing a REAL value of 100.0,\n"
+        "you would use 100.0 as the value.\n");
+    printf("\n");
+    printf("[priority]:\n"
+        "This optional parameter is used for reporting the priority of the\n"
+        "value. If no priority is given, none is sent, and the BACnet \n"
+        "standard requires that the value is reported at the lowest \n"
+        "priority (16) if the object property supports priorities.\n");
+    printf("\n");
+    printf("[index]\n"
+        "This optional integer parameter is the index number of an array.\n"
+        "If the property is an array, individual elements can be reported.\n");
+    printf("\n");
+    printf("Example:\n"
+        "If you want generate an unconfirmed COV,\n"
+        "you could send one of the following command:\n"
+        "%s 1 2 analog-value 4 5 prevent-value 4 100.0\n"
+        "%s 1 2 3 4 5 85 4 100.0\n"
+        "where 1=pid, 2=device-id, 3=AV, 4=object-id, 5=time,\n"
+        "85=Present-Value, 4=REAL, 100.0=value\n",
+        filename, filename);
+
+}
+
 int main(int argc, char *argv[])
 {
     char *value_string = NULL;
@@ -77,98 +143,7 @@ int main(int argc, char *argv[])
     unsigned object_property = 0;
 
     if (argc < 7) {
-        /* note: priority 16 and 0 should produce the same end results... */
-        printf(
-            "Usage: %s pid device-id object-type object-instance "
-            "time property tag value [priority] [index]\r\n"
-            "\r\n"
-            "pid:\r\n"
-            "Process Identifier for this broadcast.\r\n"
-            "\r\n"
-            "device-id:\r\n"
-            "The Initiating BACnet Device Object Instance number.\r\n"
-            "\r\n"
-            "object-type:\r\n"
-            "The object type is object that you are reading. It\r\n"
-            "can be defined either as the object-type name string\r\n"
-            "as defined in the BACnet specification, or as the\r\n"
-            "integer value of the enumeration BACNET_OBJECT_TYPE\r\n"
-            "in bacenum.h. For example if you were reading Analog\r\n"
-            "Output 2, the object-type would be analog-output or 1.\r\n"
-            "\r\n"
-            "object-instance:\r\n"
-            "The monitored object instance number.\r\n"
-            "\r\n"
-            "time:\r\n"
-            "The subscription time remaining is conveyed in seconds.\r\n"
-            "\r\n"
-            "property:\r\n"
-            "The property of the object that you are reading. It\r\n"
-            "can be defined either as the property name string as\r\n"
-            "defined in the BACnet specification, or as an integer\r\n"
-            "value of the enumeration BACNET_PROPERTY_ID in\\rn"
-            "bacenum.h. For example, if you were reading the Present\r\n"
-            "Value property, use present-value or 85 as the property.\r\n"
-            "\r\n"
-            "tag:\r\n"
-            "Tag is the integer value of the enumeration "
-            "BACNET_APPLICATION_TAG \r\n"
-            "in bacenum.h.  It is the data type of the value that you are\r\n"
-            "monitoring.  For example, if you were monitoring a REAL value, "
-            "you would \r\n"
-            "use a tag of 4."
-            "\r\n"
-            "value:\r\n"
-            "The value is an ASCII representation of some type of data that "
-            "you\r\n"
-            "are monitoring.  It is encoded using the tag information "
-            "provided.  For\r\n"
-            "example, if you were writing a REAL value of 100.0, you would use "
-            "\r\n"
-            "100.0 as the value.\r\n"
-            "\r\n"
-            "[priority]:\r\n"
-            "This optional parameter is used for reporting the priority of "
-            "the\r\n"
-            "value. If no priority is given, none is sent, and the BACnet \r\n"
-            "standard requires that the value is reported at the lowest \r\n"
-            "priority (16) if the object property supports priorities.\r\n"
-            "\r\n"
-            "[index]\r\n"
-            "This optional integer parameter is the index number of an "
-            "array.\r\n"
-            "If the property is an array, individual elements can be "
-            "reported.\r\n"
-            "\r\n"
-            "Here is a brief overview of BACnet property and tags:\r\n"
-            "Certain properties are expected to be written with certain \r\n"
-            "application tags, so you probably need to know which ones to "
-            "use\r\n"
-            "with each property of each object.  It is almost safe to say "
-            "that\r\n"
-            "given a property and an object and a table, the tag could be "
-            "looked\r\n"
-            "up automatically.  There may be a few exceptions to this, such "
-            "as\r\n"
-            "the Any property type in the schedule object and the Present "
-            "Value\r\n"
-            "accepting REAL, BOOLEAN, NULL, etc.  Perhaps it would be simpler "
-            "for\r\n"
-            "the demo to use this kind of table - but I also wanted to be "
-            "able\r\n"
-            "to do negative testing by passing the wrong tag and have the "
-            "server\r\n"
-            "return a reject message.\r\n"
-            "\r\n"
-            "Example:\r\n"
-            "If you want generate an unconfirmed COV,\r\n"
-            "you could send one of the following command:\r\n"
-            "%s 1 2 analog-value 4 5 prevent-value 4 100.0\r\n"
-            "%s 1 2 3 4 5 85 4 100.0\r\n"
-            "where 1=pid, 2=device-id, 3=AV, 4=object-id, 5=time,\r\n"
-            "85=Present-Value, 4=REAL, 100.0=value\r\n",
-            filename_remove_path(argv[0]), filename_remove_path(argv[0]),
-            filename_remove_path(argv[0]));
+        print_usage(filename_remove_path(argv[0]));
         return 0;
     }
     /* decode the command line parameters */
@@ -204,29 +179,29 @@ int main(int argc, char *argv[])
     }
 
     if (cov_data.initiatingDeviceIdentifier >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             cov_data.initiatingDeviceIdentifier, BACNET_MAX_INSTANCE);
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.type >= MAX_BACNET_OBJECT_TYPE) {
-        fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+        fprintf(stderr, "object-type=%u - it must be less than %u\n",
             cov_data.monitoredObjectIdentifier.type, MAX_BACNET_OBJECT_TYPE);
         return 1;
     }
     if (cov_data.monitoredObjectIdentifier.instance > BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "object-instance=%u - it must be less than %u\n",
             cov_data.monitoredObjectIdentifier.instance,
             BACNET_MAX_INSTANCE + 1);
         return 1;
     }
     if (cov_data.listOfValues->propertyIdentifier > MAX_BACNET_PROPERTY_ID) {
-        fprintf(stderr, "property-identifier=%u - it must be less than %u\r\n",
+        fprintf(stderr, "property-identifier=%u - it must be less than %u\n",
             cov_data.listOfValues->propertyIdentifier,
             MAX_BACNET_PROPERTY_ID + 1);
         return 1;
     }
     if (tag >= MAX_BACNET_APPLICATION_TAG) {
-        fprintf(stderr, "tag=%u - it must be less than %u\r\n", tag,
+        fprintf(stderr, "tag=%u - it must be less than %u\n", tag,
             MAX_BACNET_APPLICATION_TAG);
         return 1;
     }
@@ -234,7 +209,7 @@ int main(int argc, char *argv[])
         tag, value_string, &cov_data.listOfValues->value);
     if (!status) {
         /* FIXME: show the expected entry format for the tag */
-        fprintf(stderr, "unable to parse the tag value\r\n");
+        fprintf(stderr, "unable to parse the tag value\n");
         return 1;
     }
     /* setup my info */
