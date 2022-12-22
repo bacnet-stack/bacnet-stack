@@ -51,14 +51,34 @@ struct BSC_RunLoop {
 static pthread_mutex_t bsc_mutex_global = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 static BSC_RUNLOOP bsc_runloop_global = { true, { 0 }, false, false, false,
     false, &bsc_mutex_global, { 0 }, 0 };
-static BSC_RUNLOOP bsc_runloop_local[BSC_RUNLOOP_LOCAL_NUM];
-static pthread_mutex_t bsc_mutex_local[BSC_RUNLOOP_LOCAL_NUM] = {
-    PTHREAD_RECURSIVE_MUTEX_INITIALIZER
-};
+static BSC_RUNLOOP bsc_runloop_local[BSC_RUNLOOP_LOCAL_NUM] = { 0 };
+static pthread_mutex_t bsc_mutex_local[BSC_RUNLOOP_LOCAL_NUM];
 
 BSC_RUNLOOP *bsc_global_runloop(void)
 {
     return &bsc_runloop_global;
+}
+
+static bool bsc_runloop_mutex_init(pthread_mutex_t* mutex)
+{
+    pthread_mutexattr_t attr;
+
+    if (pthread_mutexattr_init(&attr) != 0) {
+        return false;
+    }
+
+    if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE) != 0) {
+        pthread_mutexattr_destroy(&attr);
+        return false;
+    }
+
+    if (pthread_mutex_init(mutex, &attr) != 0) {
+        pthread_mutexattr_destroy(&attr);
+        return false;
+    }
+
+    pthread_mutexattr_destroy(&attr);
+    return true;
 }
 
 BSC_RUNLOOP *bsc_local_runloop_alloc(void)
@@ -68,6 +88,10 @@ BSC_RUNLOOP *bsc_local_runloop_alloc(void)
     for (i = 0; i < BSC_RUNLOOP_LOCAL_NUM; i++) {
         if (!bsc_runloop_local[i].used) {
             bsc_runloop_local[i].mutex = &bsc_mutex_local[i];
+            if(!bsc_runloop_mutex_init(bsc_runloop_local[i].mutex)) {
+                pthread_mutex_unlock(bsc_global_runloop()->mutex);
+                return NULL;
+            }
             bsc_runloop_local[i].used = true;
             pthread_mutex_unlock(bsc_global_runloop()->mutex);
             return &bsc_runloop_local[i];
@@ -81,6 +105,7 @@ void bsc_local_runloop_free(BSC_RUNLOOP *runloop)
 {
     pthread_mutex_lock(bsc_global_runloop()->mutex);
     runloop->used = false;
+    pthread_mutex_destroy(runloop->mutex);
     pthread_mutex_unlock(bsc_global_runloop()->mutex);
 }
 
