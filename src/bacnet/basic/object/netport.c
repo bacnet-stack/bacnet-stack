@@ -740,9 +740,7 @@ bool Network_Port_MAC_Address(
             default:
                 break;
         }
-        if (mac) {
-            status = octetstring_init(mac_address, mac, mac_len);
-        }
+        status = octetstring_init(mac_address, mac, mac_len);
     }
     Network_Port_Unlock();
 
