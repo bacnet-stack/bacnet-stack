@@ -94,11 +94,18 @@ BACNET_PORT_DIR =  $(realpath ../ports/$(BACNET_PORT))
 BACNET_SRC_DIR =  $(realpath ../src)
 
 # Compiler flag to set the C Standard level.
-# c89   - "ANSI" C
-# gnu89 - c89 plus GCC extensions
+# c89   - "ANSI" C - ISO C90
+# gnu89 - c89 plus GNU extensions
+# c90   - "ANSI" C - ISO C90
+# gnu90 - C90 with GNU extensions
 # c99   - ISO C99 standard
-# gnu99 - c99 plus GCC extensions
-CSTANDARD = -std=gnu89
+# gnu99 - C99 plus GNU extensions
+# c11   - C11
+# gnu11 - C11 plus GNU extensions
+# c17   - C11 with corrections
+# note: default is compiled as ANSI C for widest compiler compatibilty
+# note: code that requires newer language features must use __STDC_VERSION__
+CSTANDARD ?= -std=gnu89
 
 #build for release (default) or debug
 OPTIMIZATION ?= -Os

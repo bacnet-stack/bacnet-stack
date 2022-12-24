@@ -39,7 +39,7 @@
 #include <ctype.h> /* for isalnum */
 #include <errno.h>
 #include <math.h>
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
 #include <wchar.h>
 #include <wctype.h>
 #endif
@@ -1838,7 +1838,7 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_OCTET_STRING) || defined(BACAPP_TYPES_EXTRA)
     uint8_t *octet_str;
 #endif
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
     /* Wide character (decoded from multi-byte character). */
     wchar_t wc;
     /* Wide character length in bytes. */
@@ -1918,7 +1918,7 @@ int bacapp_snprintf_value(
                     }
                 }
                 ret_val += slen;
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
                 if (characterstring_encoding(&value->type.Character_String) ==
                     CHARACTER_UTF8) {
                     while (len > 0) {
