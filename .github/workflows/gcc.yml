@@ -17,11 +17,23 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
-    - name: Build Demo Apps
+    - name: Build Demo Apps GNU89
       run: |
         gcc --version
         make clean
-        make all
+        make CSTANDARD="-std=gnu89" all
+    - name: Build Demo Apps GNU99
+      run: |
+        make clean
+        make CSTANDARD="-std=gnu99" all
+    - name: Build Demo Apps GNU11
+      run: |
+        make clean
+        make CSTANDARD="-std=gnu11" all
+    - name: Build Demo Apps GNU17
+      run: |
+        make clean
+        make CSTANDARD="-std=gnu17" all
 
   bip-no-bbmd-apps:
     runs-on: ubuntu-latest
