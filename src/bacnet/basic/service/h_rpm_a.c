@@ -37,16 +37,11 @@
 /* some demo stuff needed */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 
-#if PRINT_ENABLED
-#include <stdio.h>
-#define PRINTF(...) fprintf(stdout, __VA_ARGS__)
-#define PRINTF_ERR(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define PRINTF(...)
-#define PRINTF_ERR(...)
-#endif
+#define PRINTF debug_aprintf
+#define PERROR debug_perror
 
 /** @file h_rpm_a.c  Handles Read Property Multiple Acknowledgments. */
 
@@ -130,7 +125,7 @@ int rpm_ack_decode_service_request(
                     /* If len == 0 then it's an empty structure, which is OK. */
                     if (len < 0) {
                         /* problem decoding */
-                        PRINTF_ERR("RPM Ack: unable to decode! %s:%s\n",
+                        PERROR("RPM Ack: unable to decode! %s:%s\n",
                             bactext_object_type_name(rpm_object->object_type),
                             bactext_property_name(
                                 rpm_property->propertyIdentifier));
@@ -151,7 +146,7 @@ int rpm_ack_decode_service_request(
                             calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
                         old_value->next = value;
                     } else {
-                        PRINTF_ERR("RPM Ack: decoded %s:%s len=%d\n",
+                        PERROR("RPM Ack: decoded %s:%s len=%d\n",
                             bactext_object_type_name(rpm_object->object_type),
                             bactext_property_name(
                                 rpm_property->propertyIdentifier),
@@ -362,7 +357,7 @@ void handler_read_property_multiple_ack(uint8_t *service_request,
                 rpm_data = rpm_data_free(rpm_data);
             }
         } else {
-            PRINTF_ERR("RPM Ack Malformed! Freeing memory...\n");
+            PERROR("RPM Ack Malformed! Freeing memory...\n");
             while (rpm_data) {
                 rpm_data = rpm_data_free(rpm_data);
             }

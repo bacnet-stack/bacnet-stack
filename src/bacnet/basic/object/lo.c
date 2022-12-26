@@ -1228,7 +1228,12 @@ static void Lighting_Output_Ramp_Handler(struct lighting_output_object *pLight,
     BACNET_LIGHTING_COMMAND *pCommand,
     uint16_t milliseconds)
 {
-    if (pLight && pCommand) { }
+    if (pLight && pCommand) {
+        /* FIXME: add ramp functionality */ 
+        (void)pLight;
+        (void)pCommand;
+        (void)milliseconds;
+    }
 }
 
 /**
@@ -1243,7 +1248,12 @@ static void Lighting_Output_Fade_Handler(struct lighting_output_object *pLight,
     BACNET_LIGHTING_COMMAND *pCommand,
     uint16_t milliseconds)
 {
-    if (pLight && pCommand) { }
+    if (pLight && pCommand) { 
+        /* FIXME: add fade functionality */ 
+        (void)pLight;
+        (void)pCommand;
+        (void)milliseconds;        
+    }
 }
 
 /**

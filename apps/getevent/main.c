@@ -125,6 +125,8 @@ static void My_Get_Event_Ack_Handler(uint8_t *service_request,
     int len = 0;
     int i;
     BACNET_GET_EVENT_INFORMATION_DATA data[MAX_OBJ_IDS_IN_GE_ACK];
+
+    (void)src;
     for (i = 0; i < MAX_OBJ_IDS_IN_GE_ACK - 1; i++) {
         data[i].next = &data[i + 1];
     }
@@ -197,10 +199,10 @@ int main(int argc, char *argv[])
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
+    bool found = false;
+
     LastReceivedObjectIdentifier.instance = 0;
     LastReceivedObjectIdentifier.type = 0;
-
-    bool found = false;
     if (argc <= 1) {
         printf("Usage: %s device-instance\r\n", filename_remove_path(argv[0]));
         return 0;

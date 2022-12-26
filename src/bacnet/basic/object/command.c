@@ -820,4 +820,5 @@ bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 void Command_Intrinsic_Reporting(uint32_t object_instance)
 {
+    (void)object_instance;
 }

@@ -140,6 +140,7 @@ bool Multistate_Input_Valid_Instance(uint32_t object_instance)
 
 static uint32_t Multistate_Input_Max_States(uint32_t instance)
 {
+    (void)instance;
     return MULTISTATE_NUMBER_OF_STATES;
 }
 

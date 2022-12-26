@@ -186,73 +186,79 @@ static void print_usage(char *filename)
 
 static void print_help(char *filename)
 {
-    printf(
-        "Write one or more properties to one or more objects\n"
-        "in a BACnet device.\n"
-        "device-instance:\n"
+    printf("Write one or more properties to one or more objects\n"
+        "in a BACnet device.\n");
+    printf("\n");
+    printf("device-instance:\n"
         "BACnet Device Object Instance number that you are\n"
         "trying to communicate to.  This number will be used\n"
         "to try and bind with the device using Who-Is and\n"
         "I-Am services.  For example, if you were writing\n"
-        "Device Object 123, the device-instance would be 123.\n"
-        "\nobject-type:\n"
+        "Device Object 123, the device-instance would be 123.\n");
+    printf("\n");
+    printf("object-type:\n"
         "The object type is object that you are reading. It\n"
         "can be defined either as the object-type name string\n"
         "as defined in the BACnet specification, or as the\n"
         "integer value of the enumeration BACNET_OBJECT_TYPE\n"
         "in bacenum.h. For example if you were reading Analog\n"
-        "Output 2, the object-type would be analog-output or 1.\n"
-        "\nobject-instance:\n"
+        "Output 2, the object-type would be analog-output or 1.\n");
+    printf("\n");
+    printf("object-instance:\n"
         "This is the object instance number of the object that\n"
         "you are writing.  For example, if you were writing\n"
-        "Analog Output 2, the object-instance would be 2.\n"
-        "\nproperty:\n"
+        "Analog Output 2, the object-instance would be 2.\n");
+    printf("\n");
+    printf("property:\n"
         "The property is an integer value of the enumeration\n"
         "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
         "you are writing.  For example, if you were writing the\n"
-        "Present Value property, use 85 as the property.\n"
-        "priority:\n"
+        "Present Value property, use 85 as the property.\n");
+    printf("\n");
+    printf("priority:\n"
         "This parameter is used for setting the priority of the\n"
         "write. If Priority 0 is given, no priority is sent.  The BACnet \n"
         "standard states that the value is written at the lowest \n"
         "priority (16) if the object property supports priorities\n"
-        "when no priority is sent.\n"
-        "\n"
-        "index\n"
+        "when no priority is sent.\n");
+    printf("\n");
+    printf("index:\n"
         "This integer parameter is the index number of an array.\n"
         "If the property is an array, individual elements can be written\n"
-        "to if supported.  If this parameter is -1, the index is ignored.\n"
-        "\n"
-        "tag:\n"
+        "to if supported.  If this parameter is -1, the index is ignored.\n");
+    printf("\n");
+    printf("tag:\n"
         "Tag is the integer value of the enumeration BACNET_APPLICATION_TAG \n"
         "in bacenum.h.  It is the data type of the value that you are\n"
         "writing.  For example, if you were writing a REAL value, you would \n"
         "use a tag of 4.\n"
         "Context tags are created using two tags in a row.  The context tag\n"
-        "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged REAL.\n"
-        "\n"
-        "value:\n"
+        "is preceded by a C.  Ctag tag. C2 4 creates a context 2 tagged REAL.\n");
+    printf("\n");
+    printf("value:\n"
         "The value is an ASCII representation of some type of data that you\n"
         "are writing.  It is encoded using the tag information provided.  For\n"
         "example, if you were writing a REAL value of 100.0, you would use \n"
-        "100.0 as the value.\n"
-        "\n"
-        "Here is a brief overview of BACnet property and tags:\n"
+        "100.0 as the value.\n");
+    printf("\n");
+    printf("Here is a brief overview of BACnet property and tags:\n"
         "Certain properties are expected to be written with certain \n"
         "application tags, so you probably need to know which ones to use\n"
         "with each property of each object.  It is almost safe to say that\n"
         "given a property and an object and a table, the tag could be looked\n"
         "up automatically.  There may be a few exceptions to this, such as\n"
         "the Any property type in the schedule object and the Present Value\n"
-        "accepting REAL, BOOLEAN, NULL, etc.  Perhaps it would be simpler for\n"
-        "the demo to use this kind of table - but I also wanted to be able\n"
-        "to do negative testing by passing the wrong tag and have the server\n"
-        "return a reject message.\n\n");
+        "accepting REAL, BOOLEAN, NULL, etc.\n");
+    printf("Perhaps it would be simpler for the demo to use this\n"
+        "kind of table - but this tool can also be used for negative\n"
+        "testing by passing the wrong tag to validate that the server\n"
+        "returns an error, reject, or abort message.\n");
+    printf("\n");
     printf("Example:\n"
-           "If you want send a value of 100 to the Present-Value in\n"
-           "Analog Output 44 and 45 of Device 123 at priority 16,\n"
-           "send the following command:\n"
-           "%s 123 1 44 85 16 4 100 1 45 85 16 4 100\n",
+        "If you want write a value of 100 to the Present-Value in\n"
+        "Analog Output 44 and 45 of Device 123 at priority 16,\n"
+        "send the following command:\n"
+        "%s 123 1 44 85 16 4 100 1 45 85 16 4 100\n",
         filename);
 }
 

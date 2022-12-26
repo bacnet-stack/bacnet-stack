@@ -5,7 +5,10 @@
 
 #include "bacnet/basic/sys/bigend.h"
 
-#ifndef BACNET_BIG_ENDIAN
+#ifdef BACNET_BIG_ENDIAN
+/* workaround: warning: ISO C forbids an empty translation unit [-Wpedantic] */
+typedef int make_iso_compilers_happy;
+#else
 /* Big-Endian systems save the most significant byte first.  */
 /* Sun and Motorola processors, IBM-370s and PDP-10s are big-endian. */
 /* "Network Byte Order" is also know as "Big-Endian Byte Order" */

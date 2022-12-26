@@ -229,22 +229,23 @@ static void print_usage(char *filename)
 static void print_help(char *filename)
 {
     printf(
-        "Read a file from a BACnet device and save it locally.\n"
-        "device-instance:\n"
+        "Read a file from a BACnet device and save it locally.\n");
+    printf("\n");
+    printf("device-instance:\n"
         "BACnet Device Object Instance number that you are trying to\n"
         "communicate to.  This number will be used to try and bind with\n"
         "the device using Who-Is and I-Am services.  For example, if you were\n"
-        "reading from Device Object 123, the device-instance would be 123.\n"
-        "\n"
-        "file-instance:\n"
+        "reading from Device Object 123, the device-instance would be 123.\n");
+    printf("\n");
+    printf("file-instance:\n"
         "This is the file object instance number that you are reading from.\n"
         "For example, if you were reading from File 2, \n"
-        "the file-instance would be 2.\n"
-        "\n"
-        "local-name:\n"
-        "The name of the file that will be stored locally.\n"
-        "\n"
-        "Example:\n"
+        "the file-instance would be 2.\n");
+    printf("\n");
+    printf("local-name:\n"
+        "The name of the file that will be stored locally.\n");
+    printf("\n");
+    printf("Example:\n"
         "If you want read File 2 from Device 123 and save it to temp.txt,\n"
         "use the following command:\n"
         "%s 123 2 temp.txt\n",

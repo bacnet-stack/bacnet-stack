@@ -140,6 +140,7 @@ bool OctetString_Value_Present_Value_Set(
     unsigned index = 0;
     bool status = false;
 
+    (void)priority;
     index = OctetString_Value_Instance_To_Index(object_instance);
     if (index < MAX_OCTETSTRING_VALUES) {
         octetstring_copy(&OSV_Descr[index].Present_Value, value);
@@ -354,4 +355,5 @@ bool OctetString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 
 void OctetString_Value_Intrinsic_Reporting(uint32_t object_instance)
 {
+    (void)object_instance;
 }

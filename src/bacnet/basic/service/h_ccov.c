@@ -39,14 +39,10 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
+#include "bacnet/basic/sys/debug.h"
 
 /** @file h_ccov.c  Handles Confirmed COV Notifications. */
-#if PRINT_ENABLED
-#include <stdio.h>
-#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+#define PRINTF debug_perror
 
 /* max number of COV properties decoded in a COV notification */
 #ifndef MAX_COV_PROPERTIES

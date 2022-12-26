@@ -38,7 +38,8 @@
 #include <stdlib.h> /* for strtol */
 #include <ctype.h> /* for isalnum */
 #include <errno.h>
-#ifdef __STDC_ISO_10646__
+#include <math.h>
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
 #include <wchar.h>
 #include <wctype.h>
 #endif
@@ -1168,9 +1169,9 @@ int bacapp_decode_known_property(uint8_t *apdu,
 {
     int len = 0;
 
-    // NOTE:
-    //   When adding impl for a new prop, also add its tag
-    //   to bacapp_known_property_tag()
+    /* NOTE: */
+    /*   When adding impl for a new prop, also add its tag */
+    /*   to bacapp_known_property_tag() */
 
     int tag = bacapp_known_property_tag(object_type, property);
     if (tag != -1) {
@@ -1690,7 +1691,7 @@ static int bacapp_snprintf_weeklyschedule(char *str,
         "Sun" };
     const int loopend = ((arrayIndex == BACNET_ARRAY_ALL) ? 7 : 1);
 
-    // Find what inner type it uses
+    /* Find what inner type it uses */
     int inner_tag = -1;
     for (wi = 0; wi < loopend; wi++) {
         BACNET_DAILY_SCHEDULE *ds = &ws->weeklySchedule[wi];
@@ -1837,7 +1838,7 @@ int bacapp_snprintf_value(
 #if defined(BACAPP_OCTET_STRING) || defined(BACAPP_TYPES_EXTRA)
     uint8_t *octet_str;
 #endif
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
     /* Wide character (decoded from multi-byte character). */
     wchar_t wc;
     /* Wide character length in bytes. */
@@ -1917,7 +1918,7 @@ int bacapp_snprintf_value(
                     }
                 }
                 ret_val += slen;
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
                 if (characterstring_encoding(&value->type.Character_String) ==
                     CHARACTER_UTF8) {
                     while (len > 0) {
@@ -2164,7 +2165,7 @@ int bacapp_snprintf_value(
                 ret_val += slen;
                 break;
             case BACNET_APPLICATION_TAG_TIMESTAMP:
-                //ISO 8601 format
+                /*ISO 8601 format */
                 slen = snprintf(str, str_len, "%04u-%02u-%02uT%02u:%02u:%02u.%03u",
                     (unsigned) value->type.Time_Stamp.value.dateTime.date.year,
                     (unsigned) value->type.Time_Stamp.value.dateTime.date.month,
@@ -2358,10 +2359,12 @@ static char *ltrim(char *str, const char *trimmedchars)
 
 static char *rtrim(char *str, const char *trimmedchars)
 {
+    char *end;
+
     if (str[0] == 0) {
         return str;
     }
-    char *end = str + strlen(str) - 1;
+    end = str + strlen(str) - 1;
     while (strchr(trimmedchars, *end)) {
         *end = 0;
         if (end == str)
@@ -2380,7 +2383,7 @@ static char *trim(char *str, const char *trimmedchars)
 static bool parse_weeklyschedule(
     char *str, BACNET_APPLICATION_DATA_VALUE *value)
 {
-    char *chunk, *comma, *space, *t, *v;
+    char *chunk, *comma, *space, *t, *v, *colonpos, *sqpos;
     int daynum = 0, tvnum = 0;
     unsigned int inner_tag;
     BACNET_APPLICATION_DATA_VALUE dummy_value = { 0 };
@@ -2402,13 +2405,13 @@ static bool parse_weeklyschedule(
 
     value->tag = BACNET_APPLICATION_TAG_WEEKLY_SCHEDULE;
 
-    // Parse the inner tag
+    /* Parse the inner tag */
     chunk = strtok(str, ";");
     chunk = ltrim(chunk, "(");
     if (false ==
         bacapp_parse_application_data(
             BACNET_APPLICATION_TAG_UNSIGNED_INT, chunk, &dummy_value)) {
-        // Try searching it by name
+        /* Try searching it by name */
         if (false == bactext_application_tag_index(chunk, &inner_tag)) {
             return false;
         }
@@ -2421,43 +2424,43 @@ static bool parse_weeklyschedule(
     while (chunk != NULL) {
         dsch = &value->type.Weekly_Schedule.weeklySchedule[daynum];
 
-        // Strip day name prefix, if present
-        char *colonpos = strchr(chunk, ':');
-        char *sqpos = strchr(chunk, '[');
+        /* Strip day name prefix, if present */
+        colonpos = strchr(chunk, ':');
+        sqpos = strchr(chunk, '[');
         if (colonpos && colonpos < sqpos) {
             chunk = colonpos + 1;
         }
 
-        // Extract the inner list of time-values
+        /* Extract the inner list of time-values */
         chunk = rtrim(ltrim(chunk, "([ "), " ])");
 
-        // The list can be empty
+        /* The list can be empty */
         if (chunk[0] != 0) {
-            // loop through the time value pairs
+            /* loop through the time value pairs */
             tvnum = 0;
             do {
-                // Find the comma delimiter, replace with NUL (like strtok)
+                /* Find the comma delimiter, replace with NUL (like strtok) */
                 comma = strchr(chunk, ',');
                 if (comma) {
                     *comma = 0;
                 }
-                // trim the time-value pair and find the delimiter space
+                /* trim the time-value pair and find the delimiter space */
                 chunk = trim(chunk, " ");
                 space = strchr(chunk, ' ');
                 if (!space) {
-                    // malformed time-value pair
+                    /* malformed time-value pair */
                     return false;
                 }
                 *space = 0;
 
-                // Extract time and value
+                /* Extract time and value */
                 t = chunk;
-                // value starts one byte after the space, and there can be
-                // multiple spaces
+                /* value starts one byte after the space, and there can be */
+                /* multiple spaces */
                 chunk = ltrim(space + 1, " ");
                 v = chunk;
 
-                // Parse time
+                /* Parse time */
                 if (false ==
                     bacapp_parse_application_data(
                         BACNET_APPLICATION_TAG_TIME, t, &dummy_value)) {
@@ -2465,7 +2468,7 @@ static bool parse_weeklyschedule(
                 }
                 dsch->Time_Values[tvnum].Time = dummy_value.type.Time;
 
-                // Parse value
+                /* Parse value */
                 if (false ==
                     bacapp_parse_application_data(inner_tag, v, &dummy_value)) {
                     return false;
@@ -2476,7 +2479,7 @@ static bool parse_weeklyschedule(
                     return false;
                 }
 
-                // Advance past the comma to the next chunk
+                /* Advance past the comma to the next chunk */
                 if (comma) {
                     chunk = comma + 1;
                 }
@@ -2486,7 +2489,7 @@ static bool parse_weeklyschedule(
 
         dsch->TV_Count = tvnum;
 
-        // Find the start of the next day
+        /* Find the start of the next day */
         chunk = strtok(NULL, ";");
         daynum++;
     }
@@ -2506,11 +2509,11 @@ static bool strtol_checked(const char *s, long *out)
     errno = 0;
     *out = strtol(s, &end, 0);
     if (end == s) {
-        // Conversion was not possible
+        /* Conversion was not possible */
         return false;
     }
     if (errno == ERANGE) {
-        // Number too large
+        /* Number too large */
         return false;
     }
     return true;
@@ -2524,11 +2527,11 @@ static bool strtoul_checked(const char *s, BACNET_UNSIGNED_INTEGER *out)
     errno = 0;
     *out = strtoul(s, &end, 0);
     if (end == s) {
-        // Conversion was not possible
+        /* Conversion was not possible */
         return false;
     }
     if (errno == ERANGE) {
-        // Number too large
+        /* Number too large */
         return false;
     }
     return true;
@@ -2542,11 +2545,11 @@ static bool strtod_checked(const char *s, double *out)
     errno = 0;
     *out = strtod(s, &end);
     if (end == s) {
-        // Conversion was not possible
+        /* Conversion was not possible */
         return false;
     }
     if (errno == ERANGE) {
-        // Number too large
+        /* Number too large */
         return false;
     }
     return true;
@@ -2869,14 +2872,14 @@ bool bacapp_same_value(BACNET_APPLICATION_DATA_VALUE *value,
 #endif
 #if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
-                if (test_value->type.Real == value->type.Real) {
+                if (!islessgreater(test_value->type.Real, value->type.Real)) {
                     status = true;
                 }
                 break;
 #endif
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
-                if (test_value->type.Double == value->type.Double) {
+                if (!islessgreater(test_value->type.Double,value->type.Double)) {
                     status = true;
                 }
                 break;

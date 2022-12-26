@@ -236,12 +236,14 @@ bool Analog_Value_Present_Value_Set(
     unsigned index = 0;
     bool status = false;
 
+    (void)priority;
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         Analog_Value_COV_Detect(index, value);
         AV_Descr[index].Present_Value = value;
         status = true;
     }
+
     return status;
 }
 
@@ -1135,6 +1137,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
                 case EVENT_STATE_NORMAL:
                     CurrentAV->Event_Time_Stamps[TRANSITION_TO_NORMAL] =
                         event_data.timeStamp.value.dateTime;
+                    break;
+                default:
                     break;
             }
         }

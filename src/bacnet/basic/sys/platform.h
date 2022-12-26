@@ -18,6 +18,12 @@
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 
+#include <math.h>
+
+#ifndef islessgreater
+#define islessgreater(x, y) ((x) < (y) || (x) > (y))
+#endif
+
 /* marking some code as 'deprecated' */
 # if defined(_MSC_VER)
 #   define BACNET_STACK_DEPRECATED(message) __declspec(deprecated(message))
@@ -30,5 +36,11 @@
 # if defined(WIN32) || defined(WIN64)
 #  define strcasecmp _stricmp
 # endif
+
+#if defined(__GNUC__)
+#define BACNET_STACK_FALLTHROUGH() __attribute__ ((fallthrough))
+#else 
+#define BACNET_STACK_FALLTHROUGH() /* fall through */
+#endif
 
 #endif
