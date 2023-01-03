@@ -39,8 +39,11 @@
 #include "bacnet/basic/object/netport.h"
 #endif
 #if defined(BACDL_BSC)
+#include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
+#include "bacnet/datalink/bsc/bsc-datalink.h"
+#include "bacnet/datalink/bsc/bsc-event.h"
 #endif
 
 /** @file dlenv.c  Initialize the DataLink configuration. */
@@ -454,14 +457,76 @@ void dlenv_network_port_init(void)
     Network_Port_Changes_Pending_Set(instance, false);
 }
 #elif defined(BACDL_BSC)
+static uint8_t *Ca_Certificate = NULL;
+static uint8_t *Certificate = NULL;
+static uint8_t *Key = NULL;
+
+#define SC_NETPORT_BACFILE_START_INDEX    0
+
+#if defined(MAX_BACFILES) && (MAX_BACFILES < SC_NETPORT_BACFILE_START_INDEX + 3)
+#error "MAX_BACFILES must be at least 3 files"
+#endif
+
 /**
- * Datalink network port object settings
+ * @brief Datalink network port object properties read from a file
  */
-void dlenv_network_port_init(void)
+static uint32_t dlenv_read_file(char *filename, uint8_t **buff)
+{
+    uint32_t size = 0;
+    FILE *pFile;
+
+    pFile = fopen(filename, "rb");
+    if (pFile) {
+        fseek(pFile, 0L, SEEK_END);
+        size = ftell(pFile);
+        fseek(pFile, 0, SEEK_SET);
+
+        *buff = (uint8_t *)malloc(size);
+        if (*buff != NULL) {
+            if (fread(*buff, size, 1, pFile) == 0) {
+                size = 0;
+            }
+        }
+        fclose(pFile);
+    }
+    return *buff ? size : 0;
+}
+
+static void bacnet_secure_connect_cleanup(void)
+{
+    if (Ca_Certificate) {
+        free(Ca_Certificate);
+    }
+    if (Certificate) {
+        free(Certificate);
+    }
+    if (Key) {
+        free(Key);
+    }
+}
+
+/**
+ * @brief Datalink network port object settings
+ * @param hub_url
+ * @param filename_ca_cert
+ * @param filename_cert
+ * @param filename_key
+ */
+static void bacnet_secure_connect_network_port_init(
+    char *hub_url,
+    char *filename_ca_cert,
+    char *filename_cert,
+    char *filename_key)
 {
     const uint32_t instance = 1;
     BACNET_SC_UUID uuid;
     BACNET_SC_VMAC_ADDRESS vmac;
+    bool use_sc = false;
+    char *hub_url = NULL;
+    char *filename_ca_cert = NULL;
+    char *filename_cert = NULL;
+    char *filename_key = NULL;
+
     srand((int) &instance);
     Network_Port_Object_Instance_Number_Set(0, instance);
 
@@ -492,9 +557,42 @@ void dlenv_network_port_init(void)
     Network_Port_SC_Maximum_Reconnect_Time_Set(
         instance, SC_NETPORT_RECONNECT_TIME);
 
+    size = dlenv_read_file(filename_ca_cert, &Ca_Certificate);
+    Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
+        Ca_Certificate, size, SC_NETPORT_BACFILE_START_INDEX);
+
+    size = dlenv_read_file(filename_cert, &Certificate);
+    Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
+        Certificate, size, SC_NETPORT_BACFILE_START_INDEX + 1);
+
+    size = dlenv_read_file(filename_key, &Key);
+    Network_Port_Certificate_Key_File_Set_From_Memory(instance,
+        Key, size, SC_NETPORT_BACFILE_START_INDEX + 2);
+
+    Network_Port_SC_Primary_Hub_URI_Set(instance, hub_url);
+    Network_Port_SC_Failover_Hub_URI_Set(instance, hub_url);
+
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  false);
+    Network_Port_SC_Direct_Server_Port_Set(instance, 9999);
+    Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance, hub_url);
+    Network_Port_SC_Hub_Function_Enable_Set(instance, false);
+
+    atexit(bacnet_secure_connect_cleanup);
+
     /* last thing - clear pending changes - we don't want to set these
        since they are already set */
     Network_Port_Changes_Pending_Set(instance, false);
+}
+
+/**
+ * Datalink network port object settings for BACnet/SC
+ */
+void dlenv_network_port_init(void)
+{
+    while(bsc_hub_connection_status() == BVLC_SC_HUB_CONNECTION_ABSENT) {
+        bsc_wait(1);
+    }
 }
 #else
 /**
@@ -582,6 +680,11 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *   - BACNET_BIP6_PORT - UDP/IP port number (0..65534) used for BACnet/IPv6
  *     communications.  Default is 47808 (0xBAC0).
  *   - BACNET_BIP6_BROADCAST - FF05::BAC0 or FF02::BAC0 or ...
+ * - BACDL_SC: (BACnet Secure Connect)
+ *   - BACNET_SC_PRIMARY_HUB_URI
+ *   - BACNET_SC_ISSUER_CERTIFICATE_FILE
+ *   - BACNET_SC_OPERATIONAL_CERTIFICATE_FILE
+ *   - BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE
  */
 void dlenv_init(void)
 {
@@ -678,9 +781,19 @@ void dlenv_init(void)
         dlmstp_set_mac_address(127);
     }
 #elif defined(BACDL_BSC)
-    dlenv_network_port_init();
+    char *hub_url;
+    char *filename_ca_cert;
+    char *filename_cert;
+    char *filename_key;
+
+    hub_url = getenv("BACNET_SC_PRIMARY_HUB_URI");
+    filename_ca_cert = getenv("BACNET_SC_ISSUER_CERTIFICATE_FILE");
+    filename_cert = getenv("BACNET_SC_OPERATIONAL_CERTIFICATE_FILE");
+    filename_key = getenv("BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE");
+    bacnet_secure_connect_network_port_init(hub_url, filename_ca_cert,
+        filename_cert, filename_key);
 #endif
-   pEnv = getenv("BACNET_APDU_TIMEOUT");
+    pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {
         apdu_timeout_set((uint16_t)strtol(pEnv, NULL, 0));
     } else {
@@ -702,8 +815,6 @@ void dlenv_init(void)
         tsm_invokeID_set((uint8_t)strtol(pEnv, NULL, 0));
     }
 #endif
-#if !defined(BACDL_BSC)
     dlenv_network_port_init();
-#endif
     dlenv_register_as_foreign_device();
 }
