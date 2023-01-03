@@ -35,8 +35,7 @@ jobs:
         languages: ${{ matrix.language }}
 
     # Attempt to build any compiled languages  (C/C++, C#, or Java).
-    - run: |
-        make clean all
+    - run: make clean all
 
     # Analysis
     - name: Perform CodeQL Analysis
