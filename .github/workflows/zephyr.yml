@@ -23,12 +23,12 @@ jobs:
       - name: Build firmware
         working-directory: bacnet-stack
         run: |
-          ../zephyr/scripts/twister -T zephyr/samples/hello_bacnet_stack
+          ../zephyr/scripts/twister -T zephyr/samples
           
-#      - name: Twister Tests
-#        working-directory: bacnet-stack
-#        run: |
-#          ../zephyr/scripts/twister -T ../zephyr/tests/misc/test_build
+      - name: Twister Tests
+        working-directory: bacnet-stack
+        run: |
+          ../zephyr/scripts/twister -T zephyr/tests
 
       - name: Archive firmware
         uses: actions/upload-artifact@v2
