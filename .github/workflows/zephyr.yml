@@ -23,7 +23,7 @@ jobs:
       - name: Build firmware
         working-directory: bacnet-stack
         run: |
-          ../zephyr/scripts/twister -T ../zephyr/samples/hello_bacnet_stack
+          ../zephyr/scripts/twister -T zephyr/samples/hello_bacnet_stack
           
 #      - name: Twister Tests
 #        working-directory: bacnet-stack
