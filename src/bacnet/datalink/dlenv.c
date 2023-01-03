@@ -522,10 +522,6 @@ static void bacnet_secure_connect_network_port_init(
     BACNET_SC_UUID uuid;
     BACNET_SC_VMAC_ADDRESS vmac;
     bool use_sc = false;
-    char *hub_url = NULL;
-    char *filename_ca_cert = NULL;
-    char *filename_cert = NULL;
-    char *filename_key = NULL;
 
     srand((int) &instance);
     Network_Port_Object_Instance_Number_Set(0, instance);
