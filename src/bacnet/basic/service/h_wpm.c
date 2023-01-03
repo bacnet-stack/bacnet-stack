@@ -41,15 +41,11 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/datalink.h"
 
 /** @file h_wpm.c  Handles Write Property Multiple requests. */
-#if PRINT_ENABLED
-#include <stdio.h>
-#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+#define PRINTF debug_perror
 
 /** Decoding for an object property.
  *

@@ -43,17 +43,13 @@
 #include "bacnet/basic/object/device.h"
 #include "bacnet/event.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/object/nc.h"
 #include "bacnet/datalink/datalink.h"
 
-#if PRINT_ENABLED
-#include <stdio.h>
-#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+#define PRINTF debug_perror
 
 #ifndef MAX_NOTIFICATION_CLASSES
 #define MAX_NOTIFICATION_CLASSES 2
@@ -747,8 +743,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                      * &src); */
                 }
             }
-
             status = true;
+            break;
 
         case PROP_OBJECT_NAME:
             wp_data->error_class = ERROR_CLASS_PROPERTY;

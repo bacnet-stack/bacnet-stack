@@ -80,7 +80,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\r\n",
+        printf("BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -93,7 +93,7 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\r\n",
+        printf("BACnet Abort: %s\n",
             bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
@@ -104,7 +104,7 @@ static void MyRejectHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\r\n",
+        printf("BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -129,7 +129,7 @@ static void MyWritePropertySimpleAckHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("SubscribeCOV Acknowledged!\r\n");
+        printf("SubscribeCOV Acknowledged!\n");
         Simple_Ack_Detected = true;
     }
 }
@@ -175,6 +175,57 @@ static void cleanup(void)
     }
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s device-id object-type object-instance "
+            "process-id <[un]confirmed lifetime|cancel>\n",
+        filename);
+}
+
+static void print_help(char *filename)
+{
+    printf("\n");
+    printf("device-id:\n"
+        "The subscriber BACnet Device Object Instance number.\n");
+    printf("\n");
+    printf("object-type:\n"
+        "The object type is object that you are reading. It\n"
+        "can be defined either as the object-type name string\n"
+        "as defined in the BACnet specification, or as the\n"
+        "integer value of the enumeration BACNET_OBJECT_TYPE\n"
+        "in bacenum.h. For example if you were reading Analog\n"
+        "Output 2, the object-type would be analog-output or 1.\n");
+    printf("\n");
+    printf("object-instance:\n"
+        "The monitored object instance number.\n");
+    printf("\n");
+    printf("process-id:\n"
+        "Process Identifier for this COV subscription.\n");
+    printf("\n");
+    printf("confirmed:\n"
+        "Optional flag to subscribe using Confirmed notifications.\n"
+        "Use the word \'confirmed\' or \'unconfirmed\'.\n");
+    printf("\n");
+    printf("lifetime:\n"
+        "Optional subscription lifetime is conveyed in seconds.\n");
+    printf("\n");
+    printf("cancel:\n"
+        "Use the word \'cancel\' instead of confirm and lifetime.\n"
+        "This shall indicate a cancellation request.\n");
+    printf("\n");
+    printf("Examples:\n");
+    printf("If you want subscribe to Device 123 Analog Input 9 object\n"
+        "using confirmed COV notifications for 5 minutes,\n"
+        "you could send the following command:\n"
+        "%s 123 0 9 1 confirmed 600\n", filename);
+    printf("To send the same COV subscription request for unconfirmed\n"
+        "notifications, send the following command:\n"
+        "%s 123 0 9 1 unconfirmed 600\n", filename);
+    printf("To cancel the same COV subscription request,\n"
+        "send the following command:\n"
+        "%s 123 0 9 1 cancel\n", filename);
+}
+
 int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
@@ -204,61 +255,19 @@ int main(int argc, char *argv[])
     }
     if (print_usage_terse) {
         filename = filename_remove_path(argv[0]);
-        printf("Usage: %s device-id object-type object-instance "
-               "process-id <[un]confirmed lifetime|cancel>\r\n",
-            filename);
+        print_usage(filename);
         if (!print_usage_verbose) {
             return 0;
         }
     }
     if (print_usage_verbose) {
-        printf("\r\n"
-               "device-id:\r\n"
-               "The subscriber BACnet Device Object Instance number.\r\n"
-               "\r\n"
-               "object-type:\r\n"
-               "The object type is object that you are reading. It\r\n"
-               "can be defined either as the object-type name string\r\n"
-               "as defined in the BACnet specification, or as the\r\n"
-               "integer value of the enumeration BACNET_OBJECT_TYPE\r\n"
-               "in bacenum.h. For example if you were reading Analog\r\n"
-               "Output 2, the object-type would be analog-output or 1.\r\n"
-               "\r\n"
-               "object-instance:\r\n"
-               "The monitored object instance number.\r\n"
-               "\r\n"
-               "process-id:\r\n"
-               "Process Identifier for this COV subscription.\r\n"
-               "\r\n"
-               "confirmed:\r\n"
-               "Optional flag to subscribe using Confirmed notifications.\r\n"
-               "Use the word \'confirmed\' or \'unconfirmed\'.\r\n"
-               "\r\n"
-               "lifetime:\r\n"
-               "Optional subscription lifetime is conveyed in seconds.\r\n"
-               "\r\n"
-               "cancel:\r\n"
-               "Use the word \'cancel\' instead of confirm and lifetime.\r\n"
-               "This shall indicate a cancellation request.\r\n"
-               "\r\n"
-               "Example:\r\n"
-               "If you want subscribe to Device 123 Analog Input 9 object\r\n"
-               "using confirmed COV notifications for 5 minutes,\r\n"
-               "you could send the following command:\r\n"
-               "%s 123 0 9 1 confirmed 600\r\n"
-               "To send the same COV subscription request for unconfirmed\r\n"
-               "notifications, send the following command:\r\n"
-               "%s 123 0 9 1 unconfirmed 600\r\n"
-               "To cancel the same COV subscription request,\r\n"
-               "send the following command:\r\n"
-               "%s 123 0 9 1 cancel\r\n",
-            filename, filename, filename);
+        print_help(filename);
         return 0;
     }
     /* decode the command line parameters */
     Target_Device_Object_Instance = strtol(argv[1], NULL, 0);
     if (Target_Device_Object_Instance >= BACNET_MAX_INSTANCE) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -274,7 +283,7 @@ int main(int argc, char *argv[])
         cov_data->monitoredObjectIdentifier.type = (uint16_t)uint;
         if (cov_data->monitoredObjectIdentifier.type >=
             MAX_BACNET_OBJECT_TYPE) {
-            fprintf(stderr, "object-type=%u - it must be less than %u\r\n",
+            fprintf(stderr, "object-type=%u - it must be less than %u\n",
                 cov_data->monitoredObjectIdentifier.type,
                 MAX_BACNET_OBJECT_TYPE);
             return 1;
@@ -284,7 +293,7 @@ int main(int argc, char *argv[])
             strtol(argv[argi], NULL, 0);
         if (cov_data->monitoredObjectIdentifier.instance >
             BACNET_MAX_INSTANCE) {
-            fprintf(stderr, "object-instance=%u - it must be less than %u\r\n",
+            fprintf(stderr, "object-instance=%u - it must be less than %u\n",
                 cov_data->monitoredObjectIdentifier.instance,
                 BACNET_MAX_INSTANCE + 1);
             return 1;
@@ -302,7 +311,7 @@ int main(int argc, char *argv[])
             } else if (strcmp(argv[argi], "unconfirmed") == 0) {
                 cov_data->issueConfirmedNotifications = false;
             } else {
-                fprintf(stderr, "unknown option: %s\r\n", argv[argi]);
+                fprintf(stderr, "unknown option: %s\n", argv[argi]);
                 return 1;
             }
             argi++;
@@ -379,7 +388,7 @@ int main(int argc, char *argv[])
                     timeout_seconds = cov_data->lifetime;
                 }
                 printf("Sent SubscribeCOV request. "
-                       " Waiting up to %u seconds....\r\n",
+                       " Waiting up to %u seconds....\n",
                     (unsigned)(timeout_seconds - elapsed_seconds));
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 if (cov_data->next) {
@@ -391,7 +400,7 @@ int main(int argc, char *argv[])
                     }
                 }
             } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
-                fprintf(stderr, "\rError: TSM Timeout!\r\n");
+                fprintf(stderr, "\rError: TSM Timeout!\n");
                 tsm_free_invoke_id(Request_Invoke_ID);
                 Error_Detected = true;
                 break;
@@ -400,7 +409,7 @@ int main(int argc, char *argv[])
             /* exit if timed out */
             if (elapsed_seconds > timeout_seconds) {
                 Error_Detected = true;
-                printf("\rError: APDU Timeout!\r\n");
+                printf("\rError: APDU Timeout!\n");
                 break;
             }
         }

@@ -72,6 +72,8 @@ void get_event_ack_handler(uint8_t *service_request,
        multiple get event data in APDU */
     BACNET_GET_EVENT_INFORMATION_DATA get_event_data[MAX_NUMBER_OF_EVENTS];
 
+    (void)src;
+    (void)service_data;
     for (i = 1; i < MAX_NUMBER_OF_EVENTS; i++) {
         /* Create linked list */
         get_event_data[i - 1].next = &get_event_data[i];

@@ -3175,6 +3175,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
  */
 int Network_Port_Read_Range_BDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
+    (void)apdu;
+    (void)pRequest;
     return 0;
 }
 
@@ -3188,6 +3190,8 @@ int Network_Port_Read_Range_BDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  */
 int Network_Port_Read_Range_FDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 {
+    (void)apdu;
+    (void)pRequest;
     return 0;
 }
 

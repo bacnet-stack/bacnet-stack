@@ -158,8 +158,16 @@ CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin
 # place uninitialized global variables in the data section of the object file.
 CFLAGS += -fno-common
-# enable all relevant warnings
-CFLAGS += -Wall
+# enable all relevant warnings that find bugs
+WARNING_ALL := -Wall -Wextra -Wall -Wfloat-equal -Wconversion -Wparentheses
+WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
+WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
+WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long
+#WARNING_ALL += -Wredundant-decls
+#WARNING_ALL += -Werror
+CFLAGS += $(WARNING_ALL)
 # don't warn about missing braces since GCC is over-achiever for this
 CFLAGS += -Wno-missing-braces
 # don't warn about missing prototypes since STM32 library doesn't have some

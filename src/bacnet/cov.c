@@ -65,6 +65,7 @@ static int notify_encode_apdu(
     BACNET_PROPERTY_VALUE *value = NULL; /* value in list */
     BACNET_APPLICATION_DATA_VALUE *app_data = NULL;
 
+    (void)max_apdu_len;
     if (apdu) {
         /* tag 0 - subscriberProcessIdentifier */
         len = encode_context_unsigned(
@@ -405,6 +406,7 @@ int cov_subscribe_encode_apdu(uint8_t *apdu,
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
+    (void)max_apdu_len;
     if (apdu && data) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
@@ -554,6 +556,7 @@ int cov_subscribe_property_encode_apdu(uint8_t *apdu,
     int len = 0; /* length of each encoding */
     int apdu_len = 0; /* total length of the apdu, return value */
 
+    (void)max_apdu_len;
     if (apdu && data) {
         apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
         apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);

@@ -900,6 +900,8 @@ bool utf8_isvalid(const char *str, size_t length)
                     return false;
                 }
                 break;
+            default:
+                break;
         }
 
         /* Check for valid bytes after the 2nd, if any; all must start 10 */

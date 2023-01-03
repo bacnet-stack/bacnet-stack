@@ -657,6 +657,7 @@ int Channel_Value_Encode(
 {
     int apdu_len = BACNET_STATUS_ERROR;
 
+    (void)apdu_max;
     if (!apdu || !value) {
         return BACNET_STATUS_ERROR;
     }
@@ -907,7 +908,7 @@ int Channel_Coerce_Data_Encode(uint8_t *apdu,
 #if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
                 if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                    if (value->type.Real != 0.0F) {
+                    if (islessgreater(value->type.Real, 0.0F)) {
                         boolean_value = true;
                     }
                     apdu_len =
@@ -954,7 +955,7 @@ int Channel_Coerce_Data_Encode(uint8_t *apdu,
 #if defined(BACAPP_DOUBLE)
             case BACNET_APPLICATION_TAG_DOUBLE:
                 if (tag == BACNET_APPLICATION_TAG_BOOLEAN) {
-                    if (value->type.Double != 0.0) {
+                    if (islessgreater(value->type.Double, 0.0)) {
                         boolean_value = true;
                     }
                     apdu_len =

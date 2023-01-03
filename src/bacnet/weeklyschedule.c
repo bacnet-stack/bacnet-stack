@@ -155,24 +155,27 @@ int bacnet_weeklyschedule_context_decode(uint8_t *apdu,
 bool bacnet_weeklyschedule_same(
     BACNET_WEEKLY_SCHEDULE *value1, BACNET_WEEKLY_SCHEDULE *value2)
 {
+    BACNET_APPLICATION_DATA_VALUE adv1, adv2;
+    BACNET_DAILY_SCHEDULE *ds1, *ds2;
+    BACNET_TIME_VALUE *tv1, *tv2;
     int wi, ti;
+
     for (wi = 0; wi < 7; wi++) {
-        BACNET_DAILY_SCHEDULE *ds1 = &value1->weeklySchedule[wi];
-        BACNET_DAILY_SCHEDULE *ds2 = &value2->weeklySchedule[wi];
+        ds1 = &value1->weeklySchedule[wi];
+        ds2 = &value2->weeklySchedule[wi];
         if (ds1->TV_Count != ds2->TV_Count) {
             return false;
         }
         for (ti = 0; ti < ds1->TV_Count; ti++) {
-            BACNET_TIME_VALUE *tv1 = &ds1->Time_Values[ti];
-            BACNET_TIME_VALUE *tv2 = &ds2->Time_Values[ti];
+            tv1 = &ds1->Time_Values[ti];
+            tv2 = &ds2->Time_Values[ti];
             if (0 != datetime_compare_time(&tv1->Time, &tv2->Time)) {
                 return false;
             }
 
-            // TODO the conversion can be avoided by adding a "primitive"
-            // variant of bacapp_same_value(),
-            //  at the cost of some code duplication
-            BACNET_APPLICATION_DATA_VALUE adv1, adv2;
+            /* TODO the conversion can be avoided by adding a "primitive"
+               variant of bacapp_same_value(),
+              at the cost of some code duplication */
             bacnet_primitive_to_application_data_value(&adv1, &tv1->Value);
             bacnet_primitive_to_application_data_value(&adv2, &tv2->Value);
 

@@ -46,6 +46,19 @@ extern "C" {
     void debug_printf(
         const char *format,
         ...);
+    BACNET_STACK_EXPORT
+    int debug_aprintf(
+        const char *format,
+        ...);
+    BACNET_STACK_EXPORT
+    int debug_fprintf(
+        FILE *stream,
+        const char *format,
+        ...);
+    BACNET_STACK_EXPORT
+    void debug_perror(
+        const char *format,
+        ...);
 #if DEBUG_ENABLED
     /* Nothing more here */
 #else

@@ -84,7 +84,7 @@ static void MyErrorHandler(BACNET_ADDRESS *src,
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Error: %s: %s\r\n",
+        printf("BACnet Error: %s: %s\n",
             bactext_error_class_name((int)error_class),
             bactext_error_code_name((int)error_code));
         Error_Detected = true;
@@ -97,7 +97,7 @@ static void MyAbortHandler(
     (void)server;
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Abort: %s\r\n",
+        printf("BACnet Abort: %s\n",
             bactext_abort_reason_name((int)abort_reason));
         Error_Detected = true;
     }
@@ -108,7 +108,7 @@ static void MyRejectHandler(
 {
     if (address_match(&Target_Address, src) &&
         (invoke_id == Request_Invoke_ID)) {
-        printf("BACnet Reject: %s\r\n",
+        printf("BACnet Reject: %s\n",
             bactext_reject_reason_name((int)reject_reason));
         Error_Detected = true;
     }
@@ -137,6 +137,57 @@ static void Init_Service_Handlers(void)
     apdu_set_reject_handler(MyRejectHandler);
 }
 
+static void print_usage(char *filename)
+{
+    printf("Usage: %s <device-instance|broadcast|dnet=> vendor-id"
+        " service-number tag value [tag value...]\n",
+        filename);
+}
+
+static void print_help(char *filename)
+{
+    printf("device-instance:\n"
+        "BACnet Device Object Instance number that you are\n"
+        "trying to communicate to.  This number will be used\n"
+        "to try and bind with the device using Who-Is and\n"
+        "I-Am services.  For example, if you were transferring to\n"
+        "Device Object 123, the device-instance would be 123.\n"
+        "For Global Broadcast, use the word 'broadcast'.\n"
+        "For Local Broadcast to a particular DNET n, use 'dnet=n'.\n");
+    printf("\n");
+    printf("vendor_id:\n"
+        "the unique vendor identification code for the type of\n"
+        "vendor proprietary service to be performed.\n");
+    printf("\n");
+    printf("service-number (Unsigned32):\n"
+        "the desired proprietary service to be performed.\n");
+    printf("\n");
+    printf("tag:\n"
+        "Tag is the integer value of the enumeration \n"
+        "BACNET_APPLICATION_TAG in bacenum.h.\n"
+        "It is the data type of the value that you are sending.\n"
+        "For example, if you were transfering a REAL value, you would\n"
+        "use a tag of 4.\n"
+        "Context tags are created using two tags in a row.\n"
+        "The context tag is preceded by a C.  Ctag tag.\n"
+        "C2 4 creates a context 2 tagged REAL.\n");
+    printf("\n");
+    printf("value:\n"
+        "The value is an ASCII representation of some type of data\n"
+        "that you are transfering.\n"
+        "It is encoded using the tag information provided.\n"
+        "For example, if you were transferring a REAL value of 100.0,\n"
+        "you would use 100.0 as the value.\n"
+        "If you were transferring an object identifier for Device 123,\n"
+        "you would use 8:123 as the value.\n");
+    printf("\n");
+    printf("Example:\n"
+        "If you want to transfer a REAL value of 1.1 to service 23 of \n"
+        "vendor 260 in Device 99, you could send the following command:\n"
+        "%s 99 260 23 4 1.1\n",
+        filename);
+}
+
 int main(int argc, char *argv[])
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
@@ -161,56 +212,9 @@ int main(int argc, char *argv[])
 
     if (argc < 6) {
         filename = filename_remove_path(argv[0]);
-        printf("Usage: %s <device-instance|broadcast|dnet=> vendor-id"
-               " service-number tag value [tag value...]\r\n",
-            filename);
+        print_usage(filename);
         if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-            printf(
-                "device-instance:\r\n"
-                "BACnet Device Object Instance number that you are\r\n"
-                "trying to communicate to.  This number will be used\r\n"
-                "to try and bind with the device using Who-Is and\r\n"
-                "I-Am services.  For example, if you were transferring to\r\n"
-                "Device Object 123, the device-instance would be 123.\r\n"
-                "For Global Broadcast, use the word 'broadcast'.\r\n"
-                "For Local Broadcast to a particular DNET n, use 'dnet=n'.\r\n"
-                "\r\n"
-                "vendor_id:\r\n"
-                "the unique vendor identification code for the type of\r\n"
-                "vendor proprietary service to be performed.\r\n"
-                "\r\n"
-                "service-number (Unsigned32):\r\n"
-                "the desired proprietary service to be performed.\r\n"
-                "\r\n"
-                "tag:\r\n"
-                "Tag is the integer value of the enumeration \r\n"
-                "BACNET_APPLICATION_TAG in bacenum.h.\r\n"
-                "It is the data type of the value that you are sending.\r\n"
-                "For example, if you were transfering a REAL value, you would "
-                "\r\n"
-                "use a tag of 4.\r\n"
-                "Context tags are created using two tags in a row.\r\n"
-                "The context tag is preceded by a C.  Ctag tag.\r\n"
-                "C2 4 creates a context 2 tagged REAL.\r\n"
-                "\r\n"
-                "value:\r\n"
-                "The value is an ASCII representation of some type of data\r\n"
-                "that you are transfering.\r\n"
-                "It is encoded using the tag information provided.\r\n"
-                "For example, if you were transferring a REAL value of "
-                "100.0,\r\n"
-                "you would use 100.0 as the value.\r\n"
-                "If you were transferring an object identifier for Device "
-                "123,\r\n"
-                "you would use 8:123 as the value.\r\n"
-                "\r\n"
-                "Example:\r\n"
-                "If you want to transfer a REAL value of 1.1 to service 23 of "
-                "\r\n"
-                "vendor 260 in Device 99, you could send the following "
-                "command:\r\n"
-                "%s 99 260 23 4 1.1\r\n",
-                filename);
+            print_help(filename);
         }
         return 0;
     }
@@ -228,7 +232,7 @@ int main(int argc, char *argv[])
     Target_Service_Number = strtol(argv[3], NULL, 0);
     if ((!Target_Broadcast) &&
         (Target_Device_Object_Instance > BACNET_MAX_INSTANCE)) {
-        fprintf(stderr, "device-instance=%u - it must be less than %u\r\n",
+        fprintf(stderr, "device-instance=%u - it must be less than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
@@ -248,15 +252,15 @@ int main(int argc, char *argv[])
         property_tag = strtol(argv[tag_value_arg], NULL, 0);
         args_remaining--;
         if (args_remaining <= 0) {
-            fprintf(stderr, "Error: not enough tag-value pairs\r\n");
+            fprintf(stderr, "Error: not enough tag-value pairs\n");
             return 1;
         }
         value_string = argv[tag_value_arg + 1];
         args_remaining--;
-        /* printf("tag[%d]=%u value[%d]=%s\r\n",
+        /* printf("tag[%d]=%u value[%d]=%s\n",
            i, property_tag, i, value_string); */
         if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
-            fprintf(stderr, "Error: tag=%u - it must be less than %u\r\n",
+            fprintf(stderr, "Error: tag=%u - it must be less than %u\n",
                 property_tag, MAX_BACNET_APPLICATION_TAG);
             return 1;
         }
@@ -264,7 +268,7 @@ int main(int argc, char *argv[])
             property_tag, value_string, &Target_Object_Property_Value[i]);
         if (!status) {
             /* FIXME: show the expected entry format for the tag */
-            fprintf(stderr, "Error: unable to parse the tag value\r\n");
+            fprintf(stderr, "Error: unable to parse the tag value\n");
             return 1;
         }
         Target_Object_Property_Value[i].next = NULL;
@@ -277,7 +281,7 @@ int main(int argc, char *argv[])
         }
     }
     if (args_remaining > 0) {
-        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\r\n",
+        fprintf(stderr, "Error: Exceeded %d tag-value pairs.\n",
             MAX_PROPERTY_VALUES);
         return 1;
     }
@@ -334,15 +338,15 @@ int main(int argc, char *argv[])
                 Send_UnconfirmedPrivateTransfer(&Target_Address, &private_data);
                 printf("Sent PrivateTransfer.");
                 if (timeout_seconds) {
-                    printf(" Waiting %u seconds.\r\n",
+                    printf(" Waiting %u seconds.\n",
                         (unsigned)(timeout_seconds - elapsed_seconds));
                 } else {
-                    printf("\r\n");
+                    printf("\n");
                 }
                 sent_message = true;
             } else {
                 if (elapsed_seconds > timeout_seconds) {
-                    printf("\rError: APDU Timeout!\r\n");
+                    printf("\rError: APDU Timeout!\n");
                     Error_Detected = true;
                     break;
                 }

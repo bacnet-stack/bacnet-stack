@@ -117,11 +117,11 @@ static struct timespec start;
 static int timespec_subtract(
     struct timespec *result, const struct timespec *l, const struct timespec *r)
 {
-#define NS_PER_S 1000000000 // nano-seconds per second
+#define NS_PER_S 1000000000 /* nano-seconds per second */
     struct timespec right = *r;
     int secs;
 
-    // Perform the carry for the later subtraction by updating y.
+    /* Perform the carry for the later subtraction by updating y. */
     if (l->tv_nsec < right.tv_nsec) {
         secs = (right.tv_nsec - l->tv_nsec) / NS_PER_S + 1;
         right.tv_nsec -= NS_PER_S * secs;
@@ -133,7 +133,7 @@ static int timespec_subtract(
         right.tv_sec -= secs;
     }
 
-    // Compute the time remaining. tv_nsec is certainly positive.
+    /* Compute the time remaining. tv_nsec is certainly positive. */
     result->tv_sec = l->tv_sec - right.tv_sec;
     result->tv_nsec = l->tv_nsec - right.tv_nsec;
 
