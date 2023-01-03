@@ -71,7 +71,7 @@ BACNET_PORT ?= linux
 
 # build in uci integration - use UCI=1 when invoking make
 ifeq (${UCI},1)
-BACNET_DEFINES +=4 -DBAC_UCI
+BACNET_DEFINES += -DBAC_UCI
 UCI_LIB_DIR ?= /usr/local/lib
 BACNET_LIB += -L$(UCI_LIB_DIR) -luci
 endif
