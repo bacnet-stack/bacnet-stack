@@ -2546,7 +2546,7 @@ typedef enum BACnetIPMode_T {
 typedef enum BACnetSCHubConnectorState_T {
     BACNET_NO_HUB_CONNECTION = 0,
     BACNET_CONNECTED_TO_PRIMARY = 1,
-    BACNET_CONNECTED_TO_FAILOVER = 2,
+    BACNET_CONNECTED_TO_FAILOVER = 2
 } BACNET_SC_HUB_CONNECTOR_STATE;
 
 typedef enum BACnetSCnetSCConnectionState_T {

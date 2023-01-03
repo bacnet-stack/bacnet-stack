@@ -211,10 +211,10 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
 
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         if (dest->net == BACNET_BROADCAST_NETWORK || dest->mac_len == 0) {
-            // broadcast message
+            /* broadcast message */
             memset(&dest_vmac.address[0], 0xFF, BVLC_SC_VMAC_SIZE);
         } else if (dest->mac_len == BVLC_SC_VMAC_SIZE) {
-            // unicast
+            /* unicast */
             memcpy(&dest_vmac.address[0], &dest->mac[0], BVLC_SC_VMAC_SIZE);
         } else {
             bsc_global_mutex_unlock();

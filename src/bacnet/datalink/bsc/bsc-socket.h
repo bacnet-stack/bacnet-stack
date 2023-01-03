@@ -95,26 +95,26 @@ struct BSC_Socket {
     BSC_SC_RET disconnect_reason;
     struct mstimer t;
     struct mstimer heartbeat;
-    BACNET_SC_VMAC_ADDRESS vmac; // VMAC address of the requesting node.
+    BACNET_SC_VMAC_ADDRESS vmac; /* VMAC address of the requesting node. */
     BACNET_SC_UUID uuid;
     
-    // Regarding max_bvlc_len and max_npdu_len:
-    // These are the datalink limits and are passed up the stack to let
-    // the application layer know one of the several numbers that go into computing
-    // how big an NPDU/APDU can be.
+    /* Regarding max_bvlc_len and max_npdu_len: */
+    /* These are the datalink limits and are passed up the stack to let */
+    /* the application layer know one of the several numbers that go into computing */
+    /* how big an NPDU/APDU can be. */
 
-    uint16_t max_bvlc_len; // remote peer max bvlc len
-    uint16_t max_npdu_len; // remote peer max npdu len
+    uint16_t max_bvlc_len; /* remote peer max bvlc len */
+    uint16_t max_npdu_len; /* remote peer max npdu len */
 
     uint16_t expected_connect_accept_message_id;
     uint16_t expected_disconnect_message_id;
     uint16_t expected_heartbeat_message_id;
 
     BVLC_SC_DECODED_MESSAGE dm;
-    // 2 bytes is packet len
+    /* 2 bytes is packet len */
     uint8_t rx_buf[BSC_RX_BUFFER_SIZE + 2]; 
     size_t rx_buf_size;
-    // 2 bytes is packet len
+    /* 2 bytes is packet len */
     uint8_t tx_buf[BSC_TX_BUFFER_SIZE + 2]; 
     size_t tx_buf_size;
 };
@@ -133,17 +133,17 @@ struct BSC_ContextCFG
     size_t priv_key_size;
     BACNET_SC_VMAC_ADDRESS local_vmac;
     BACNET_SC_UUID local_uuid;
-    uint16_t max_bvlc_len; // local peer max bvlc len
-    uint16_t max_ndpu_len; // local peer max npdu len
+    uint16_t max_bvlc_len; /* local peer max bvlc len */
+    uint16_t max_ndpu_len; /* local peer max npdu len */
 
-    // According AB.6.2 BACnet/SC Connection Establishment and Termination
-    // recommended default value for establishing of connection 10 seconds
+    /* According AB.6.2 BACnet/SC Connection Establishment and Termination */
+    /* recommended default value for establishing of connection 10 seconds */
     unsigned long connect_timeout_s;
     unsigned long disconnect_timeout_s;
 
-    // According 12.56.Y10 SC_Heartbeat_Timeout
-    // (http://www.bacnet.org/Addenda/Add-135-2020cc.pdf) the recommended default
-    // value is 300 seconds.
+    /* According 12.56.Y10 SC_Heartbeat_Timeout */
+    /* (http://www.bacnet.org/Addenda/Add-135-2020cc.pdf) the recommended default */
+    /* value is 300 seconds. */
     unsigned long heartbeat_timeout_s;
 };
 
@@ -153,10 +153,10 @@ struct BSC_SocketContextFuncs {
                                             void* user_arg);
     BSC_SOCKET* (*find_connection_for_uuid)(BACNET_SC_UUID *uuid,
                                             void* user_arg);
-    // We always reserve BSC_PRE bytes before BVLC message header
-    // to avoid copying of packet payload during manipulation with
-    // origin and dest addresses (e.g. adding them to received PDU)
-    // That's why pdu pointer has always reserved BSC_PRE bytes behind
+    /* We always reserve BSC_PRE bytes before BVLC message header */
+    /* to avoid copying of packet payload during manipulation with */
+    /* origin and dest addresses (e.g. adding them to received PDU) */
+    /* That's why pdu pointer has always reserved BSC_PRE bytes behind */
     void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
                          BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len,
                          BVLC_SC_DECODED_MESSAGE *decoded_pdu);
@@ -175,10 +175,10 @@ struct BSC_SocketContext {
     void* user_arg;
 };
 
-// max_local_bvlc_len - The maximum BVLC message size int bytes that can be
-//                      received and processed by BSC/SC datalink.
-// max_local_ndpu_len - The maximum NPDU message size in bytes hat can be
-//                      handled by BSC/SC datalink.
+/* max_local_bvlc_len - The maximum BVLC message size int bytes that can be */
+/*                      received and processed by BSC/SC datalink. */
+/* max_local_ndpu_len - The maximum NPDU message size in bytes hat can be */
+/*                      handled by BSC/SC datalink. */
 
 BACNET_STACK_EXPORT
 void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,

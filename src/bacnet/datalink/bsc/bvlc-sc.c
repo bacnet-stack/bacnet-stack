@@ -826,11 +826,11 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
             }
         }
     } else if (packed_payload_len > 2) {
-        // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC
-        // If a BVLC message is received that is longer than expected,
-        // a BVLC-Result NAK shall be returned if it was a unicast message,
-        // indicating an 'Error Class' of COMMUNICATION and 'Error Code' of
-        // UNEXPECTED_DATA. The message shall be discarded and not be processed.
+        /* According EA-001-4 'Clarifying BVLC-Result in BACnet/SC */
+        /* If a BVLC message is received that is longer than expected, */
+        /* a BVLC-Result NAK shall be returned if it was a unicast message, */
+        /* indicating an 'Error Class' of COMMUNICATION and 'Error Code' of */
+        /* UNEXPECTED_DATA. The message shall be discarded and not be processed. */
         *error = ERROR_CODE_UNEXPECTED_DATA;
         *class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_result_unexpected_data;
@@ -1593,10 +1593,10 @@ static bool bvlc_sc_decode_hdr(uint8_t *message,
     memset(hdr, 0, sizeof(*hdr));
 
     if (message_len < 4) {
-        // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC '
-        // If a BVLC message is received that has fewer than four octets, a
-        // BVLC-Result NAK shall not be returned.
-        // The message shall be discarded and not be processed.
+        /* According EA-001-4 'Clarifying BVLC-Result in BACnet/SC ' */
+        /* If a BVLC message is received that has fewer than four octets, a */
+        /* BVLC-Result NAK shall not be returned. */
+        /* The message shall be discarded and not be processed. */
         *error = ERROR_CODE_OTHER;
         *class = ERROR_CLASS_COMMUNICATION;
         *err_desc = NULL;
@@ -1630,10 +1630,10 @@ static bool bvlc_sc_decode_hdr(uint8_t *message,
         }
     }
 
-    // in order to handle correctly item AB.3.1.5 Common Error Situations,
-    // in a case a BVLC message is received with unknown BVLC function,
-    // upper layer logic must understand if the message is unicast or not.
-    // That's why that error handling is put after filling of address fields.
+    /* in order to handle correctly item AB.3.1.5 Common Error Situations, */
+    /* in a case a BVLC message is received with unknown BVLC function, */
+    /* upper layer logic must understand if the message is unicast or not. */
+    /* That's why that error handling is put after filling of address fields. */
 
     if (message[0] > BVLC_SC_PROPRIETARY_MESSAGE) {
         *error = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
@@ -1669,7 +1669,7 @@ static bool bvlc_sc_decode_hdr(uint8_t *message,
     }
 
     if (message_len - offs <= 0) {
-        // no payload
+        /* no payload */
         return true;
     }
 
@@ -1827,12 +1827,12 @@ bool bvlc_sc_decode_message(uint8_t *buf,
             }
 
             if (message->hdr.payload || message->hdr.payload_len) {
-                // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC
-                // If a BVLC message is received that is longer than expected,
-                // a BVLC-Result NAK shall be returned if it was a unicast
-                // message, indicating an 'Error Class' of COMMUNICATION and
-                // 'Error Code' of UNEXPECTED_DATA. The message shall be
-                // discarded and not be processed.
+                /* According EA-001-4 'Clarifying BVLC-Result in BACnet/SC */
+                /* If a BVLC message is received that is longer than expected, */
+                /* a BVLC-Result NAK shall be returned if it was a unicast */
+                /* message, indicating an 'Error Class' of COMMUNICATION and */
+                /* 'Error Code' of UNEXPECTED_DATA. The message shall be */
+                /* discarded and not be processed. */
 
                 *error = ERROR_CODE_UNEXPECTED_DATA;
                 *class = ERROR_CLASS_COMMUNICATION;

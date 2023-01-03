@@ -52,21 +52,21 @@
 typedef enum {
     BACFILE_UNKNOWN = 0,
     BACFILE_FILE = 1,
-    BACFILE_MEMORY = 2,
+    BACFILE_MEMORY = 2
 } BACFILE_TYPES;
 
-typedef struct {
+typedef struct BACnet_Memory_File_Struct {
     uint8_t *pointer;
     BACNET_UNSIGNED_INTEGER length;
 } BACNET_MEMORY_FILE;
 
-typedef struct {
+typedef struct BACnet_File_Listing_Struct {
     uint32_t instance;
     BACFILE_TYPES type;
     union {
         char *filename;
         BACNET_MEMORY_FILE memory;
-    };
+    } data;
 } BACNET_FILE_LISTING;
 
 #ifndef FILE_RECORD_SIZE
@@ -114,7 +114,7 @@ static char *bacfile_name(uint32_t instance)
 
     switch (BACnet_File_Listing[index].type) {
         case BACFILE_FILE:
-            return BACnet_File_Listing[index].filename;
+            return BACnet_File_Listing[index].data.filename;
         case BACFILE_MEMORY:
             snprintf(filename, sizeof(filename), "MEM %u", instance);
             return filename;
@@ -161,7 +161,7 @@ uint32_t bacfile_index_to_instance(unsigned find_index)
     /* bounds checking... */
     return ((find_index < MAX_BACFILES) &&
             (BACnet_File_Listing[find_index].type != BACFILE_UNKNOWN)) ?
-        BACnet_File_Listing[find_index].instance : 
+        BACnet_File_Listing[find_index].instance :
         BACNET_MAX_INSTANCE + 1;
 }
 
@@ -173,7 +173,7 @@ unsigned bacfile_instance_to_index(uint32_t instance)
             return i;
     return MAX_BACFILES;
 }
-    
+
 static long fsize(FILE *pFile)
 {
     long size = 0;
@@ -201,7 +201,7 @@ BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
 
     switch (BACnet_File_Listing[index].type) {
         case BACFILE_FILE:
-            pFile = fopen(BACnet_File_Listing[index].filename, "rb");
+            pFile = fopen(BACnet_File_Listing[index].data.filename, "rb");
             if (pFile) {
                 file_position = fsize(pFile);
                 if (file_position >= 0) {
@@ -211,7 +211,7 @@ BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
             }
             break;
         case BACFILE_MEMORY:
-            file_size = BACnet_File_Listing[index].memory.length;
+            file_size = BACnet_File_Listing[index].data.memory.length;
             break;
         default:
             break;
@@ -396,7 +396,7 @@ uint32_t bacfile_instance(char *filename)
     for (index = 0; index < MAX_BACFILES; index++) {
         switch (BACnet_File_Listing[index].type) {
             case BACFILE_FILE:
-                pf = BACnet_File_Listing[index].filename;
+                pf = BACnet_File_Listing[index].data.filename;
                 break;
             case BACFILE_MEMORY:
                 snprintf(name, sizeof(name), "MEM %d",
@@ -424,7 +424,7 @@ bool bacfile_instance_set(unsigned index, uint32_t object_instance,
         return false;
     BACnet_File_Listing[index].instance = object_instance;
     BACnet_File_Listing[index].type = filename ? BACFILE_FILE : BACFILE_UNKNOWN;
-    BACnet_File_Listing[index].filename = filename;
+    BACnet_File_Listing[index].data.filename = filename;
     return true;
 }
 
@@ -436,8 +436,8 @@ bool bacfile_instance_memory_set(unsigned index, uint32_t object_instance,
     BACnet_File_Listing[index].instance = object_instance;
     BACnet_File_Listing[index].type =
         pointer ? BACFILE_MEMORY : BACFILE_UNKNOWN;
-    BACnet_File_Listing[index].memory.pointer = pointer;
-    BACnet_File_Listing[index].memory.length = length;
+    BACnet_File_Listing[index].data.memory.pointer = pointer;
+    BACnet_File_Listing[index].data.memory.length = length;
     return true;
 }
 
@@ -453,15 +453,17 @@ BACNET_UNSIGNED_INTEGER bacfile_instance_context(uint32_t object_instance,
 
     switch (BACnet_File_Listing[index].type) {
         case BACFILE_FILE:
-            pFile = fopen(BACnet_File_Listing[index].filename, "rb");
+            pFile = fopen(BACnet_File_Listing[index].data.filename, "rb");
             if (pFile) {
                 ret = fread(pointer, 1, max_length, pFile);
                 fclose(pFile);
             }
             break;
         case BACFILE_MEMORY:
-            ret = min(max_length, BACnet_File_Listing[index].memory.length);
-            memcpy(pointer, BACnet_File_Listing[index].memory.pointer, ret);
+            ret = min(max_length,
+                BACnet_File_Listing[index].data.memory.length);
+            memcpy(pointer,
+                BACnet_File_Listing[index].data.memory.pointer, ret);
             break;
         default:
             break;
@@ -484,7 +486,7 @@ uint8_t *bacfile_instance_memory_context(uint32_t object_instance,
 
     switch (BACnet_File_Listing[index].type) {
         case BACFILE_MEMORY:
-            return BACnet_File_Listing[index].memory.pointer;
+            return BACnet_File_Listing[index].data.memory.pointer;
             break;
         default:
             break;
@@ -555,7 +557,7 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 
     switch (BACnet_File_Listing[index].type) {
         case BACFILE_FILE:
-            pFile = fopen(BACnet_File_Listing[index].filename, "rb");
+            pFile = fopen(BACnet_File_Listing[index].data.filename, "rb");
             if (pFile) {
                 (void)fseek(pFile, data->type.stream.fileStartPosition, SEEK_SET);
                 len = fread(octetstring_value(&data->fileData[0]), 1,
@@ -569,10 +571,10 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
             }
             break;
         case BACFILE_MEMORY:
-            if (BACnet_File_Listing[index].memory.length >= 
+            if (BACnet_File_Listing[index].data.memory.length >=
                 data->type.stream.fileStartPosition) {
                 len = min(data->type.stream.requestedOctetCount,
-                    BACnet_File_Listing[index].memory.length - 
+                    BACnet_File_Listing[index].data.memory.length -
                     data->type.stream.fileStartPosition);
             } else {
                 len  = 0;

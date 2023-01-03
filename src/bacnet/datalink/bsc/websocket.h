@@ -77,14 +77,14 @@ typedef int BSC_WEBSOCKET_HANDLE;
 typedef void* BSC_WEBSOCKET_SRV_HANDLE;
 #define BSC_WEBSOCKET_INVALID_HANDLE (-1)
 
-// Websockets protocol defined in BACnet/SC \S AB.7.1.
+/* Websockets protocol defined in BACnet/SC \S AB.7.1. */
 #define BSC_WEBSOCKET_HUB_PROTOCOL_STR "hub.bsc.bacnet.org"
 #define BSC_WEBSOCKET_DIRECT_PROTOCOL_STR "dc.bsc.bacnet.org"
 
 typedef enum {
     BSC_WEBSOCKET_HUB_PROTOCOL = 0,
     BSC_WEBSOCKET_DIRECT_PROTOCOL = 1,
-    BSC_WEBSOCKET_PROTOCOLS_AMOUNT = 2   // must be always last
+    BSC_WEBSOCKET_PROTOCOLS_AMOUNT = 2   /* must be always last */
 } BSC_WEBSOCKET_PROTOCOL;
 
 typedef enum {

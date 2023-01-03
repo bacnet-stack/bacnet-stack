@@ -30,30 +30,30 @@ typedef enum {
     BSC_NODE_SWITCH_EVENT_RECEIVED = 3,
     BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC = 4,
 
-    // BSC_NODE_SWITCH_EVENT_CONNECTED event is emitted every
-    // time remote peer connects only if bsc_node_switch_connect()
-    // was called after start for corresponded mac or url/urls.
-    // Events indication are stopped only
-    // if node switch was stopped or bsc_node_switch_disconnect()
-    // was called. For a connection initiated from a remote peer that
-    // event won't be ever emitted.
+    /* BSC_NODE_SWITCH_EVENT_CONNECTED event is emitted every */
+    /* time remote peer connects only if bsc_node_switch_connect() */
+    /* was called after start for corresponded mac or url/urls. */
+    /* Events indication are stopped only */
+    /* if node switch was stopped or bsc_node_switch_disconnect() */
+    /* was called. For a connection initiated from a remote peer that */
+    /* event won't be ever emitted. */
 
     BSC_NODE_SWITCH_EVENT_CONNECTED = 5,
 
-    // The BSC_NODE_SWITCH_EVENT_DISCONNECTED event is emitted
-    // every time remote peer disconnects only if
-    // bsc_node_switch_connect() was called after start.
-    // If user called bsc_node_switch_disconnect() or stopped
-    // node switch, after last event indication next event indications
-    // are stopped for corresponded peer with corresponded vmac.
+    /* The BSC_NODE_SWITCH_EVENT_DISCONNECTED event is emitted */
+    /* every time remote peer disconnects only if */
+    /* bsc_node_switch_connect() was called after start. */
+    /* If user called bsc_node_switch_disconnect() or stopped */
+    /* node switch, after last event indication next event indications */
+    /* are stopped for corresponded peer with corresponded vmac. */
     BSC_NODE_SWITCH_EVENT_DISCONNECTED = 6
 
 } BSC_NODE_SWITCH_EVENT;
 
-// dest parameter is actual only for
-// BSC_NODE_SWITCH_EVENT_CONNECTED and BSC_NODE_SWITCH_EVENT_DISCONNECTED
-// events. It is the parameter which was specified in
-// bsc_node_switch_connect() or bsc_node_switch_disconnect() calls.
+/* dest parameter is actual only for */
+/* BSC_NODE_SWITCH_EVENT_CONNECTED and BSC_NODE_SWITCH_EVENT_DISCONNECTED */
+/* events. It is the parameter which was specified in */
+/* bsc_node_switch_connect() or bsc_node_switch_disconnect() calls. */
 
 typedef void (*BSC_NODE_SWITCH_EVENT_FUNC)(BSC_NODE_SWITCH_EVENT ev,
                                            BSC_NODE_SWITCH_HANDLE h,

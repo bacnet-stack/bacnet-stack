@@ -329,9 +329,9 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
             *need_disconnect = true;
         }
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
-        // This is unexpected! We assume that the remote peer is confused and
-        // thought we sent a Disconnect-Request so we'll close the socket
-        // and hope that remote peer clears itself up.
+        /* This is unexpected! We assume that the remote peer is confused and */
+        /* thought we sent a Disconnect-Request so we'll close the socket */
+        /* and hope that remote peer clears itself up. */
         DEBUG_PRINTF("bsc_process_socket_connected_state() got unexpected "
                      "disconnect ack with message_id %d\n",
             c->dm.hdr.message_id);
@@ -379,9 +379,9 @@ static void bsc_process_socket_state(
     while (c->rx_buf_size) {
         memcpy(&len, p, sizeof(len));
         DEBUG_PRINTF("bsc_process_socket_state() pdu_len = %d\n", len);
-        // We always reserve BSC_PRE bytes before BVLC message header
-        // to avoid copying of packet payload during manipulation with
-        // origin and dest addresses (add them to received PDU)
+        /* We always reserve BSC_PRE bytes before BVLC message header */
+        /* to avoid copying of packet payload during manipulation with */
+        /* origin and dest addresses (add them to received PDU) */
         p += sizeof(len) + BSC_PRE;
         DEBUG_PRINTF("bsc_process_socket_state() pdu offset %ld in rx_buf\n",
             p - c->rx_buf);
@@ -391,12 +391,12 @@ static void bsc_process_socket_state(
             c->rx_buf_size);
 
         if (!bvlc_sc_decode_message(p, len, &c->dm, &code, &class, &err_desc)) {
-            // if code == ERROR_CODE_OTHER that means that received bvlc message
-            // has length less than 4 octets.
-            // According EA-001-4 'Clarifying BVLC-Result in BACnet/SC '
-            // If a BVLC message is received that has fewer than four octets, a
-            // BVLC-Result NAK shall not be returned.
-            // The message shall be discarded and not be processed.
+            /* if code == ERROR_CODE_OTHER that means that received bvlc message */
+            /* has length less than 4 octets. */
+            /* According EA-001-4 'Clarifying BVLC-Result in BACnet/SC ' */
+            /* If a BVLC message is received that has fewer than four octets, a */
+            /* BVLC-Result NAK shall not be returned. */
+            /* The message shall be discarded and not be processed. */
             if (code != ERROR_CODE_OTHER) {
                 *need_send = bsc_prepare_protocol_error(c, c->dm.hdr.origin,
                     c->dm.hdr.dest, class, code, (uint8_t *)err_desc);
@@ -416,8 +416,8 @@ static void bsc_process_socket_state(
                 c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
                 if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR &&
                     c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
-                    // this is a case when socket is a hub connector receiving
-                    // from hub
+                    /* this is a case when socket is a hub connector receiving */
+                    /* from hub */
                     if (c->dm.hdr.origin == NULL &&
                         c->dm.hdr.bvlc_function != BVLC_SC_RESULT) {
                         class = ERROR_CLASS_COMMUNICATION;
@@ -438,8 +438,8 @@ static void bsc_process_socket_state(
                     }
                 } else if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR &&
                     c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
-                    //  this is a case when socket is hub  function receiving
-                    //  from node
+                    /*  this is a case when socket is hub  function receiving */
+                    /*  from node */
                     if (c->dm.hdr.dest == NULL) {
                         class = ERROR_CLASS_COMMUNICATION;
                         code = ERROR_CODE_HEADER_ENCODING_ERROR;
@@ -457,7 +457,7 @@ static void bsc_process_socket_state(
                 }
             }
 
-            // every valid message restarts hearbeat timeout
+            /* every valid message restarts hearbeat timeout */
             if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
                 mstimer_set(
                     &c->heartbeat, 2 * c->ctx->cfg->heartbeat_timeout_s * 1000);
@@ -548,8 +548,8 @@ static void bsc_runloop(void *p)
     bool need_send;
     size_t i;
 
-    // DEBUG_PRINTF("bsc_runloop() >>> ctx = %p, state = %d\n", ctx,
-    // ctx->state);
+    /* DEBUG_PRINTF("bsc_runloop() >>> ctx = %p, state = %d\n", ctx, */
+    /* ctx->state); */
     bsc_global_mutex_lock();
     if (ctx->state == BSC_CTX_STATE_INITIALIZED) {
         for (i = 0; i < ctx->sock_num; i++) {
@@ -582,7 +582,7 @@ static void bsc_runloop(void *p)
         }
     }
     bsc_global_mutex_unlock();
-    // DEBUG_PRINTF("bsc_runloop() <<<\n");
+    /* DEBUG_PRINTF("bsc_runloop() <<<\n"); */
 }
 
 static void bsc_process_srv_awaiting_request(
@@ -617,13 +617,13 @@ static void bsc_process_srv_awaiting_request(
             c->dm.payload.connect_request.uuid, c->ctx->user_arg);
 
         if (existing) {
-            // Regarding AB.6.2.3 BACnet/SC Connection Accepting Peer
-            // State Machine: On receipt of a Connect-Request message
-            // from the initiating peer whose 'Device UUID' is equal to the
-            // initiating peer device UUID of an existing connection,
-            // then return a Connect-Accept message, disconnect and
-            // close the existing connection to the connection peer node
-            // with matching Device UUID, and enter the CONNECTED state.
+            /* Regarding AB.6.2.3 BACnet/SC Connection Accepting Peer */
+            /* State Machine: On receipt of a Connect-Request message */
+            /* from the initiating peer whose 'Device UUID' is equal to the */
+            /* initiating peer device UUID of an existing connection, */
+            /* then return a Connect-Accept message, disconnect and */
+            /* close the existing connection to the connection peer node */
+            /* with matching Device UUID, and enter the CONNECTED state. */
             DEBUG_PRINTF(
                 "bsc_process_srv_awaiting_request() accepting connection from "
                 "known uuid %s\n and vmac %s\n",
@@ -921,9 +921,9 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                 bufsize) {
                 len = (uint16_t)bufsize;
                 memcpy(&c->rx_buf[c->rx_buf_size], &len, sizeof(len));
-                // We always reserve BSC_PRE bytes before BVLC message header
-                // to avoid copying of packet payload during manipulation with
-                // origin and dest addresses (add them to received PDU)
+                /* We always reserve BSC_PRE bytes before BVLC message header */
+                /* to avoid copying of packet payload during manipulation with */
+                /* origin and dest addresses (add them to received PDU) */
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
                 DEBUG_PRINTF(
                     "bsc_dispatch_srv_func() pdu offset %zu in rx_buf\n",
@@ -1022,13 +1022,13 @@ static void bsc_process_cli_awaiting_accept(
                 c->dm.hdr.message_id);
         } else if (c->dm.payload.result.error_code ==
             ERROR_CODE_NODE_DUPLICATE_VMAC) {
-            // According AB.6.2.2 BACnet/SC Connection Initiating
-            // Peer State Machine: on receipt of a BVLC-Result NAK
-            // message with an 'Error Code' of NODE_DUPLICATE_VMAC,
-            // the initiating peer's node shall choose a new
-            // Random-48 VMAC, close the WebSocket connection, and
-            // enter the IDLE state.
-            // Signal upper layer about that error
+            /* According AB.6.2.2 BACnet/SC Connection Initiating */
+            /* Peer State Machine: on receipt of a BVLC-Result NAK */
+            /* message with an 'Error Code' of NODE_DUPLICATE_VMAC, */
+            /* the initiating peer's node shall choose a new */
+            /* Random-48 VMAC, close the WebSocket connection, and */
+            /* enter the IDLE state. */
+            /* Signal upper layer about that error */
             bsc_cli_process_error(c, BSC_SC_DUPLICATED_VMAC);
         } else {
             DEBUG_PRINTF("bsc_process_cli_awaiting_accept() got unexpected "
@@ -1037,20 +1037,20 @@ static void bsc_process_cli_awaiting_accept(
                 c->dm.payload.result.error_code);
         }
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_REQUEST) {
-        // AB.6.2.2 BACnet/SC Connection Initiating Peer State
-        // Machine does not say anything about situation when
-        // disconnect request is received from remote peer after
-        // connect request. Handle this situation as an error, log
-        // it and close connection.
+        /* AB.6.2.2 BACnet/SC Connection Initiating Peer State */
+        /* Machine does not say anything about situation when */
+        /* disconnect request is received from remote peer after */
+        /* connect request. Handle this situation as an error, log */
+        /* it and close connection. */
         DEBUG_PRINTF("bsc_process_cli_awaiting_accept() got unexpected "
                      "disconnect request\n");
         bsc_cli_process_error(c, BSC_SC_PEER_DISCONNECTED);
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
-        // AB.6.2.2 BACnet/SC Connection Initiating Peer State
-        // Machine does not say anything about situation when
-        // disconnect ack is received from remote peer after connect
-        // request. Handle this situation as an error, log it and
-        // close connection.
+        /* AB.6.2.2 BACnet/SC Connection Initiating Peer State */
+        /* Machine does not say anything about situation when */
+        /* disconnect ack is received from remote peer after connect */
+        /* request. Handle this situation as an error, log it and */
+        /* close connection. */
         DEBUG_PRINTF(
             "bsc_process_cli_awaiting_accept() got unexpected disconnect ack "
             "request\n");
@@ -1190,9 +1190,9 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 bufsize) {
                 len = (uint16_t)bufsize;
                 memcpy(&c->rx_buf[c->rx_buf_size], &len, sizeof(len));
-                // We always reserve BSC_PRE bytes before BVLC message header
-                // to avoid copying of packet payload during manipulation with
-                // origin and dest addresses (add them to received PDU)
+                /* We always reserve BSC_PRE bytes before BVLC message header */
+                /* to avoid copying of packet payload during manipulation with */
+                /* origin and dest addresses (add them to received PDU) */
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
                 DEBUG_PRINTF(
                     "bsc_dispatch_cli_func() pdu offset %zu in rx_buf\n",

@@ -34,8 +34,8 @@
 #define BVLC_SC_NPDU_SIZE_CONF 1440
 #endif
 
-// THIS should not be changed, most of BACNet/SC devices must have
-// hub connector, it uses 2 connections
+/* THIS should not be changed, most of BACNet/SC devices must have */
+/* hub connector, it uses 2 connections */
 #ifndef BSC_CONF_HUB_CONNECTOR_CONNECTIONS_NUM
 #define BSC_CONF_HUB_CONNECTOR_CONNECTIONS_NUM (BSC_CONF_HUB_CONNECTORS_NUM*2)
 #endif
@@ -48,7 +48,7 @@
 #define BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM (BSC_CONF_NODE_SWITCHES_NUM*10)
 #endif
 
-// Total amount of client(initiator) webosocket connections
+/* Total amount of client(initiator) webosocket connections */
 #define BSC_CONF_CLIENT_CONNECTIONS_NUM (BSC_CONF_HUB_CONNECTOR_CONNECTIONS_NUM + BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM)
 #define BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM (BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM)
 #define BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM  (BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM)

@@ -71,11 +71,11 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
     for (i = 0; i < BVLC_SC_VMAC_SIZE; i++) {
         p->address[i] = rand() % 255;
         if (i == 0) {
-            // According H.7.3 EUI-48 and Random-48 VMAC Address:
-            // The Random-48 VMAC is a 6-octet VMAC address in which the least
-            // significant 4 bits (Bit 3 to Bit 0) in the first octet shall be
-            // B'0010' (X'2'), and all other 44 bits are randomly selected to be
-            // 0 or 1.
+            /* According H.7.3 EUI-48 and Random-48 VMAC Address: */
+            /* The Random-48 VMAC is a 6-octet VMAC address in which the least */
+            /* significant 4 bits (Bit 3 to Bit 0) in the first octet shall be */
+            /* B'0010' (X'2'), and all other 44 bits are randomly selected to be */
+            /* 0 or 1. */
             p->address[i] = (p->address[i] & 0xF0 ) | 0x02;
         }
     }

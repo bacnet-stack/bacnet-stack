@@ -46,12 +46,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* Support 
+/* Support
    - SC_Hub_Function_Connection_Status
    - SC_Direct_Connect_Connection_Status
    - SC_FailedConnectionRequests
 */
-//#define BACNET_SC_STATUS_SUPPORT
+/*
+    #define BACNET_SC_STATUS_SUPPORT
+*/
 
 #ifdef BACDL_BSC
 
@@ -77,7 +79,7 @@ extern "C" {
     #define BACNET_URI_LENGHT  64
     #define BACNET_PEER_VMAC_LENGHT  6
     #define BACNET_BINDING_STRING_LENGHT  80
-  
+
     typedef struct BACnetHostNPort_data_T {
         uint8_t type;
         char host[BACNET_URI_LENGHT];
@@ -86,12 +88,12 @@ extern "C" {
 
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     typedef struct BACnetSCHubConnection_T {
-        BACNET_SC_CONNECTION_STATE Connection_State; //index = 0
-        BACNET_DATE_TIME Connect_Timestamp; //index = 1
-        BACNET_DATE_TIME Disconnect_Timestamp; //index = 2
-        // optionals
-        BACNET_ERROR_CODE Error; // index = 3
-        char Error_Details[BACNET_ERROR_STRING_LENGHT]; // index = 4
+        BACNET_SC_CONNECTION_STATE Connection_State; /*index = 0 */
+        BACNET_DATE_TIME Connect_Timestamp; /*index = 1 */
+        BACNET_DATE_TIME Disconnect_Timestamp; /*index = 2 */
+        /* optionals */
+        BACNET_ERROR_CODE Error; /* index = 3 */
+        char Error_Details[BACNET_ERROR_STRING_LENGHT]; /* index = 4 */
     } BACNET_SC_HUB_CONNECTION;
 
     typedef struct BACnetSCHubFunctionConnection_T {
@@ -142,9 +144,9 @@ extern "C" {
     } BACNET_SC_DIRECT_CONNECTION;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
-    //
-    // getter / setter
-    //
+    /* */
+    /* getter / setter */
+    /* */
 
     BACNET_STACK_EXPORT
     BACNET_UNSIGNED_INTEGER Network_Port_Max_BVLC_Length_Accepted(
@@ -332,7 +334,7 @@ extern "C" {
         BACNET_DATE_TIME *disconnect_ts,
         BACNET_ERROR_CODE error,
         char *error_details);
- 
+
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Hub_Function_Enable(
         uint32_t object_instance);
@@ -549,9 +551,9 @@ extern "C" {
         char *value);
 
 
-    //
-    // Encode / decode
-    //
+    /* */
+    /* Encode / decode */
+    /* */
 
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     BACNET_STACK_EXPORT

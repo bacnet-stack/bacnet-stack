@@ -74,7 +74,7 @@ typedef struct {
    bool direct_connect_accept_enable;
    bool direct_connect_initiate_enable;
    bool hub_function_enabled;
-   char *direct_connection_accept_uris;     // URIs joined ' 'space
+   char *direct_connection_accept_uris;     /* URIs joined ' 'space */
    unsigned int direct_connection_accept_uris_len;
    BSC_NODE_EVENT_FUNC event_func;
 } BSC_NODE_CONF;

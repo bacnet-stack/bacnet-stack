@@ -152,16 +152,16 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     bsc_global_mutex_lock();
     f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
-        // double check that received message does not contain
-        // originating virtual address and contains dest vaddr
-        // although such kind of check is already in bsc-socket.c
+        /* double check that received message does not contain */
+        /* originating virtual address and contains dest vaddr */
+        /* although such kind of check is already in bsc-socket.c */
         if (!decoded_pdu->hdr.origin && decoded_pdu->hdr.dest) {
             if (bvlc_sc_is_vmac_broadcast(decoded_pdu->hdr.dest)) {
                 for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
                     if (&f->sock[i] != c &&
                         f->sock[i].state == BSC_SOCK_STATE_CONNECTED) {
-                        // change origin address if presented or add origin
-                        // address into pdu by extending of it's header
+                        /* change origin address if presented or add origin */
+                        /* address into pdu by extending of it's header */
                         pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
                         ret = bsc_send(&f->sock[i], *ppdu, pdu_len);
                         (void)ret;

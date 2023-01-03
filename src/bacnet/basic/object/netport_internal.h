@@ -42,7 +42,7 @@
 #include <bacnet/hostnport.h>
 #include <bacnet/datalink/bsc/bsc-conf.h>
 #include "bacnet/basic/object/sc_netport.h"
-//#include "bacnet/basic/object/netport.h"
+/*#include "bacnet/basic/object/netport.h" */
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,7 +53,7 @@ extern "C" {
    - SC_Direct_Connect_Connection_Status
    - SC_FailedConnectionRequests
 */
-//#define BACNET_SC_STATUS_SUPPORT
+/*#define BACNET_SC_STATUS_SUPPORT */
 
 #ifdef BACDL_BSC
 

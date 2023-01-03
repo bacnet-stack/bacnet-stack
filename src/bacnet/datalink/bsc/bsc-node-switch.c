@@ -225,8 +225,8 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
     bsc_global_mutex_lock();
     ctx = (BSC_NODE_SWITCH_CTX *)c->ctx->user_arg;
 
-    // Node switch does not take care about incoming connection status,
-    // so just route PDUs to upper layer
+    /* Node switch does not take care about incoming connection status, */
+    /* so just route PDUs to upper layer */
 
     if (ctx->acceptor.state == BSC_NODE_SWITCH_STATE_STARTED) {
         if (ev == BSC_SOCKET_EVENT_RECEIVED) {
@@ -366,12 +366,12 @@ static void node_switch_initiator_runloop(void *ctx)
     int i;
     BSC_NODE_SWITCH_CTX *ns = (BSC_NODE_SWITCH_CTX *)ctx;
 
-    // DEBUG_PRINTF("node_switch_initiator_runloop() >>> ctx = %p\n", ctx);
+    /* DEBUG_PRINTF("node_switch_initiator_runloop() >>> ctx = %p\n", ctx); */
     bsc_global_mutex_lock();
 
     for (i = 0; i < sizeof(ns->initiator.sock) / sizeof(BSC_SOCKET); i++) {
-        // DEBUG_PRINTF("node_switch_initiator_runloop() socket %d state %d\n",
-        // i, ns->initiator.sock_state[i]);
+        /* DEBUG_PRINTF("node_switch_initiator_runloop() socket %d state %d\n", */
+        /* i, ns->initiator.sock_state[i]); */
         if (ns->initiator.sock_state[i] ==
             BSC_NODE_SWITCH_CONNECTION_STATE_DELAYING) {
             if (mstimer_expired(&ns->initiator.t[i])) {
@@ -393,7 +393,7 @@ static void node_switch_initiator_runloop(void *ctx)
     }
 
     bsc_global_mutex_unlock();
-    // DEBUG_PRINTF("node_switch_initiator_runloop() <<< ctx = %p\n", ctx);
+    /* DEBUG_PRINTF("node_switch_initiator_runloop() <<< ctx = %p\n", ctx); */
 }
 
 static void node_switch_initiator_socket_event(BSC_SOCKET *c,
@@ -433,10 +433,10 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
                 if (ev == BSC_SOCKET_EVENT_CONNECTED) {
                     ns->initiator.sock_state[index] =
                         BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED;
-                    // if user provides url instead of dest in
-                    // bsc_node_switch_connect() ns->initiator.dest_vmac[index]
-                    // is unset. that's why we always set it from socket
-                    // descriptor
+                    /* if user provides url instead of dest in */
+                    /* bsc_node_switch_connect() ns->initiator.dest_vmac[index] */
+                    /* is unset. that's why we always set it from socket */
+                    /* descriptor */
                     memcpy(&ns->initiator.dest_vmac[index].address[0],
                         &c->vmac.address[0], sizeof(c->vmac.address));
                     ns->event_func(BSC_NODE_SWITCH_EVENT_CONNECTED, ns,

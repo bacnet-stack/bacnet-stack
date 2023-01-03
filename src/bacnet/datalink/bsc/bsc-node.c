@@ -129,7 +129,7 @@ static BSC_ADDRESS_RESOLUTION *node_alloc_address_resolution(
         }
     }
 
-    // find and remove oldest resolution
+    /* find and remove oldest resolution */
 
     for (i = 0; i < BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM; i++) {
         if (mstimer_elapsed(&node->resolution[i].fresh_timer) > max) {
@@ -611,7 +611,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             sizeof(BSC_ADDRESS_RESOLUTION) *
                 BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
     } else {
-        // TODO: integration with BACNET/SC properties
+        /* TODO: integration with BACNET/SC properties */
         bsc_generate_random_vmac(node->conf->local_vmac);
     }
     ret = bsc_hub_connector_start(node->conf->ca_cert_chain,
