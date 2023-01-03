@@ -24,11 +24,13 @@ jobs:
         working-directory: bacnet-stack
         run: |
           ../zephyr/scripts/twister -T zephyr/samples
+            --platform mimxrt1064_evk
           
       - name: Twister Tests
         working-directory: bacnet-stack
         run: |
           ../zephyr/scripts/twister -T zephyr/tests
+            --platform mimxrt1064_evk
 
       - name: Archive firmware
         uses: actions/upload-artifact@v2
