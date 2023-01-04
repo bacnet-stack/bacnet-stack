@@ -1885,6 +1885,7 @@ void Device_Init(object_functions_t *object_table)
 #endif
 #if defined(BACFILE)
     bacfile_create(1);
+    bacfile_pathname_set(1, "temp_1.txt");
 #endif
 }
 
