@@ -40,6 +40,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacint.h"
+#include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
 #include "bacnet/arf.h"
 #include "bacnet/awf.h"
@@ -60,6 +61,10 @@ extern "C" {
         uint32_t object_instance,
         BACNET_CHARACTER_STRING * object_name);
     BACNET_STACK_EXPORT
+    bool bacfile_object_name_set(
+        uint32_t object_instance,
+        char *new_name);
+    BACNET_STACK_EXPORT
     bool bacfile_valid_instance(
         uint32_t object_instance);
     BACNET_STACK_EXPORT
@@ -71,9 +76,46 @@ extern "C" {
     BACNET_STACK_EXPORT
     unsigned bacfile_instance_to_index(
         uint32_t instance);
+
     BACNET_STACK_EXPORT
-    uint32_t bacfile_instance(
-        char *filename);
+    const char * bacfile_file_type(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void bacfile_file_type_set(
+        uint32_t object_instance,
+        const char *mime_type);
+
+    BACNET_STACK_EXPORT
+    bool bacfile_archive(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
+    bool bacfile_archive_set(
+        uint32_t instance, bool status);
+
+    BACNET_STACK_EXPORT
+    bool bacfile_read_only(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
+    bool bacfile_read_only_set(
+        uint32_t object_instance,
+        bool read_only);
+
+    BACNET_STACK_EXPORT
+    bool bacfile_file_access_stream(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool bacfile_file_access_stream_set(
+        uint32_t object_instance,
+        bool access);
+
+    BACNET_STACK_EXPORT
+    BACNET_UNSIGNED_INTEGER bacfile_file_size(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
+    bool bacfile_file_size_set(
+        uint32_t object_instance,
+        BACNET_UNSIGNED_INTEGER file_size);
+
     /* this is one way to match up the invoke ID with */
     /* the file ID from the AtomicReadFile request. */
     /* Another way would be to store the */
@@ -105,13 +147,6 @@ extern "C" {
     bool bacfile_write_record_data(
         BACNET_ATOMIC_WRITE_FILE_DATA * data);
 
-    BACNET_STACK_EXPORT
-    void bacfile_init(
-        void);
-    BACNET_STACK_EXPORT
-    BACNET_UNSIGNED_INTEGER bacfile_file_size(
-        uint32_t instance);
-
     /* handling for read property service */
     BACNET_STACK_EXPORT
     int bacfile_read_property(
@@ -121,6 +156,37 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool bacfile_write_property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    BACNET_STACK_EXPORT
+    const char *bacfile_pathname(
+        uint32_t instance);
+    BACNET_STACK_EXPORT
+    void bacfile_pathname_set(
+        uint32_t instance,
+        const char *pathname);
+    BACNET_STACK_EXPORT
+    uint32_t bacfile_pathname_instance(
+        const char *pathname);
+
+    BACNET_STACK_EXPORT
+    uint32_t bacfile_read(
+        uint32_t object_instance,
+        uint8_t *buffer,
+        uint32_t buffer_size);
+
+    BACNET_STACK_EXPORT
+    bool bacfile_create(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    bool bacfile_delete(
+        uint32_t object_instance);
+    BACNET_STACK_EXPORT
+    void bacfile_cleanup(
+        void);
+    BACNET_STACK_EXPORT
+    void bacfile_init(
+        void);
+
 
 #ifdef __cplusplus
 }

@@ -1883,6 +1883,10 @@ void Device_Init(object_functions_t *object_table)
     Color_Create(1);
     Color_Temperature_Create(1);
 #endif
+#if defined(BACFILE)
+    bacfile_create(1);
+    bacfile_pathname_set(1, "temp_1.txt");
+#endif
 }
 
 bool DeviceGetRRInfo(BACNET_READ_RANGE_DATA *pRequest, /* Info on the request */
