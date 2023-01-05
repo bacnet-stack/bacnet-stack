@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief mock APDU handler functions
+ * @brief mock BACnet service handler functions
  * @author Steve Karg
  * @date January 2023
  *
@@ -8,6 +8,23 @@
  */
 #include <ztest.h>
 #include <bacnet/basic/service/h_apdu.h>
+#include <bacnet/basic/tsm/tsm.h>
+
+bool tsm_get_transaction_pdu(
+    uint8_t invokeID,
+    BACNET_ADDRESS * dest,
+    BACNET_NPDU_DATA * ndpu_data,
+    uint8_t * apdu,
+    uint16_t * apdu_len)
+{
+    (void)invokeID;
+    (void)dest;
+    (void)ndpu_data;
+    (void)apdu;
+    (void)apdu_len;
+
+    return false;
+}
 
 uint16_t apdu_decode_confirmed_service_request(
     uint8_t *apdu,

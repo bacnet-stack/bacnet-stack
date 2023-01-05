@@ -373,6 +373,7 @@ static void test_network_port_sc_certificates(void)
     count = Network_Port_Count();
     zassert_true(count > 0, NULL);
 
+    bacfile_init();
     // CA certificate
     status = bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
     zassert_true(status, NULL);

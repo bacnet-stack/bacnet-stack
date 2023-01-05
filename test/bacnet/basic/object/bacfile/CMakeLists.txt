@@ -60,9 +60,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/dailyschedule.c
     # Test and test library files
 	./src/main.c
-    ${TST_DIR}/bacnet/basic/object/mock/apdu_mock.c
+    ${TST_DIR}/bacnet/basic/service/mock/services_mock.c
     ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
-    ${TST_DIR}/bacnet/basic/object/mock/tsm_mock.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)

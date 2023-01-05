@@ -1071,5 +1071,7 @@ void bacfile_cleanup(void)
  */
 void bacfile_init(void)
 {
-    Object_List = Keylist_Create();
+    if (!Object_List) {
+        Object_List = Keylist_Create();
+    }
 }
