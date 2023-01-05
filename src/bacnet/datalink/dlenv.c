@@ -39,6 +39,7 @@
 #include "bacnet/basic/object/netport.h"
 #endif
 #if defined(BACDL_BSC)
+#include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
@@ -457,73 +458,32 @@ void dlenv_network_port_init(void)
     Network_Port_Changes_Pending_Set(instance, false);
 }
 #elif defined(BACDL_BSC)
-static uint8_t *Ca_Certificate = NULL;
-static uint8_t *Certificate = NULL;
-static uint8_t *Key = NULL;
-
-#define SC_NETPORT_BACFILE_START_INDEX    0
-
-#if defined(MAX_BACFILES) && (MAX_BACFILES < SC_NETPORT_BACFILE_START_INDEX + 3)
-#error "MAX_BACFILES must be at least 3 files"
-#endif
-
-/**
- * @brief Datalink network port object properties read from a file
- */
-static uint32_t dlenv_read_file(char *filename, uint8_t **buff)
-{
-    uint32_t size = 0;
-    FILE *pFile;
-
-    pFile = fopen(filename, "rb");
-    if (pFile) {
-        fseek(pFile, 0L, SEEK_END);
-        size = ftell(pFile);
-        fseek(pFile, 0, SEEK_SET);
-
-        *buff = (uint8_t *)malloc(size);
-        if (*buff != NULL) {
-            if (fread(*buff, size, 1, pFile) == 0) {
-                size = 0;
-            }
-        }
-        fclose(pFile);
-    }
-    return *buff ? size : 0;
-}
-
-static void bacnet_secure_connect_cleanup(void)
-{
-    if (Ca_Certificate) {
-        free(Ca_Certificate);
-    }
-    if (Certificate) {
-        free(Certificate);
-    }
-    if (Key) {
-        free(Key);
-    }
-}
-
 /**
  * @brief Datalink network port object settings
- * @param hub_url
- * @param filename_ca_cert
+ * @param primary_hub_uri
+ * @param failover_hub_uri
+ * @param filename_ca_1_cert
+ * @param filename_ca_2_cert
  * @param filename_cert
  * @param filename_key
  */
 static void bacnet_secure_connect_network_port_init(
-    char *hub_url,
-    char *filename_ca_cert,
+    char *primary_hub_uri,
+    char *failover_hub_uri,
+    char *filename_ca_1_cert,
+    char *filename_ca_2_cert,
     char *filename_cert,
-    char *filename_key)
+    char *filename_key,
+    char *direct_connect_port)
 {
     const uint32_t instance = 1;
-    BACNET_SC_UUID uuid;
-    BACNET_SC_VMAC_ADDRESS vmac;
-    bool use_sc = false;
+    BACNET_SC_UUID uuid = { 0 };
+    BACNET_SC_VMAC_ADDRESS vmac = { 0 };
+    long port_number = 9999;
+    long seed;
 
-    srand((int) &instance);
+    seed = (long)&instance;
+    srand((int)seed);
     Network_Port_Object_Instance_Number_Set(0, instance);
 
     Network_Port_Name_Set(instance, "BACnet/BSC Port");
@@ -553,28 +513,53 @@ static void bacnet_secure_connect_network_port_init(
     Network_Port_SC_Maximum_Reconnect_Time_Set(
         instance, SC_NETPORT_RECONNECT_TIME);
 
-    size = dlenv_read_file(filename_ca_cert, &Ca_Certificate);
-    Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
-        Ca_Certificate, size, SC_NETPORT_BACFILE_START_INDEX);
+    bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
+    bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
+        filename_ca_1_cert);
+    Network_Port_Issuer_Certificate_File_Set(instance, 0,
+        BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
 
-    size = dlenv_read_file(filename_cert, &Certificate);
-    Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
-        Certificate, size, SC_NETPORT_BACFILE_START_INDEX + 1);
+    bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
+    bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE,
+        filename_ca_2_cert);
+    Network_Port_Issuer_Certificate_File_Set(instance, 1,
+        BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
 
-    size = dlenv_read_file(filename_key, &Key);
-    Network_Port_Certificate_Key_File_Set_From_Memory(instance,
-        Key, size, SC_NETPORT_BACFILE_START_INDEX + 2);
+    bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
+    bacfile_pathname_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
+        filename_cert);
+    Network_Port_Operational_Certificate_File_Set(instance,
+        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
 
-    Network_Port_SC_Primary_Hub_URI_Set(instance, hub_url);
-    Network_Port_SC_Failover_Hub_URI_Set(instance, hub_url);
+    bacfile_create(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
+    bacfile_pathname_set(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
+        filename_key);
+    Network_Port_Certificate_Key_File_Set(instance,
+        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
-    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
-    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  false);
-    Network_Port_SC_Direct_Server_Port_Set(instance, 9999);
-    Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance, hub_url);
-    Network_Port_SC_Hub_Function_Enable_Set(instance, false);
+    Network_Port_SC_Primary_Hub_URI_Set(instance, primary_hub_uri);
+    Network_Port_SC_Failover_Hub_URI_Set(instance, failover_hub_uri);
 
-    atexit(bacnet_secure_connect_cleanup);
+    if (direct_connect_port) {
+        /* FIXME: direct connect */
+        port_number = strtol(direct_connect_port, NULL, 0);
+        if ((port_number > 0) && (port_number < UINT16_MAX)) {
+            Network_Port_SC_Direct_Server_Port_Set(instance, port_number);
+            Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  true);
+        }
+    } else {
+        Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
+        Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  false);
+        Network_Port_SC_Direct_Server_Port_Set(instance, 9999);
+        Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance,
+            primary_hub_uri);
+    }
+
+    if (primary_hub_uri) {
+        Network_Port_SC_Hub_Function_Enable_Set(instance, false);
+    } else {
+        /* FIXME: I'm a HUB! */
+    }
 
     /* last thing - clear pending changes - we don't want to set these
        since they are already set */
@@ -624,6 +609,8 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
             BBMD_Timer_Seconds = (uint16_t)BBMD_TTL_Seconds;
         }
     }
+#else
+    (void)elapsed_seconds;
 #endif
 }
 
@@ -678,9 +665,12 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *   - BACNET_BIP6_BROADCAST - FF05::BAC0 or FF02::BAC0 or ...
  * - BACDL_SC: (BACnet Secure Connect)
  *   - BACNET_SC_PRIMARY_HUB_URI
- *   - BACNET_SC_ISSUER_CERTIFICATE_FILE
+ *   - BACNET_SC_FAILOVER_HUB_URI
+ *   - BACNET_SC_ISSUER_1_CERTIFICATE_FILE
+ *   - BACNET_SC_ISSUER_2_CERTIFICATE_FILE
  *   - BACNET_SC_OPERATIONAL_CERTIFICATE_FILE
  *   - BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE
+ *   - BACNET_SC_DIRECT_CONNECT_PORT - TCP/IP port number (0..65534)
  */
 void dlenv_init(void)
 {
@@ -777,17 +767,24 @@ void dlenv_init(void)
         dlmstp_set_mac_address(127);
     }
 #elif defined(BACDL_BSC)
-    char *hub_url;
-    char *filename_ca_cert;
+    char *primary_hub_uri;
+    char *failover_hub_uri;
+    char *filename_ca_1_cert;
+    char *filename_ca_2_cert;
     char *filename_cert;
     char *filename_key;
+    char *direct_connect_port;
 
-    hub_url = getenv("BACNET_SC_PRIMARY_HUB_URI");
-    filename_ca_cert = getenv("BACNET_SC_ISSUER_CERTIFICATE_FILE");
+    primary_hub_uri = getenv("BACNET_SC_PRIMARY_HUB_URI");
+    failover_hub_uri = getenv("BACNET_SC_FAILOVER_HUB_URI");
+    filename_ca_1_cert = getenv("BACNET_SC_ISSUER_1_CERTIFICATE_FILE");
+    filename_ca_2_cert = getenv("BACNET_SC_ISSUER_2_CERTIFICATE_FILE");
     filename_cert = getenv("BACNET_SC_OPERATIONAL_CERTIFICATE_FILE");
     filename_key = getenv("BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE");
-    bacnet_secure_connect_network_port_init(hub_url, filename_ca_cert,
-        filename_cert, filename_key);
+    direct_connect_port = getenv("BACNET_SC_DIRECT_CONNECT_PORT");
+    bacnet_secure_connect_network_port_init(primary_hub_uri, failover_hub_uri,
+        filename_ca_1_cert, filename_ca_2_cert, filename_cert, filename_key,
+        direct_connect_port);
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {

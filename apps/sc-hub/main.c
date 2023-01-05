@@ -34,9 +34,6 @@
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-static uint8_t *Ca_Certificate = NULL;
-static uint8_t *Certificate = NULL;
-static uint8_t *Key = NULL;
 static char *PrimaryUrl = "wss://127.0.0.1:9999";
 static char *FailoverUrl = "wss://127.0.0.1:9999";
 
@@ -70,55 +67,37 @@ static void Init_Service_Handlers(void)
     /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
-    /* handle the reply (request) coming back */
-    //apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, my_i_am_handler);
+    /* we need to handle who-is to support dynamic device binding */
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
+    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
 }
 
 static void print_usage(const char *filename)
 {
-    printf("Usage: %s port ca-cert cert key [device-instance [device-name]]\n", filename);
+    printf("Usage: %s port ca-cert cert key [device-instance [device-name]]\n",
+        filename);
     printf("       [--version][--help]\n");
 }
 
 static void print_help(const char *filename)
 {
     printf("Simulate a BACnet/SC HUB device\n"
-           "port: Local port\n"
-           "ca-cert: Filename of CA certificate\n"
-           "cert: Filename of device certificate\n"
-           "key: Filename of device certificate key\n"
-           "device-instance: BACnet Device Object Instance number that you are\n"
-           "trying simulate.\n"
-           "device-name: The Device object-name is the text name for the device.\n"
-           "\nExample:\n");
-    printf("To simulate Device 123 on port #50000, use following command:\n"
-           "%s 50000 ca_cert.pem cert.pem key.pem 123\n",
+       "port: Local port\n"
+       "ca-cert: Filename of CA certificate\n"
+       "cert: Filename of device certificate\n"
+       "key: Filename of device certificate key\n"
+       "device-instance: BACnet Device Object Instance number that you are\n"
+       "trying simulate.\n"
+       "device-name: The Device name in ASCII for this device.\n");
+    printf("\n");
+    printf("Example:\n");
+        "To simulate Device 123 on port #50000, use following command:\n"
+        "%s 50000 ca_cert.pem cert.pem key.pem 123\n",
         filename);
-    printf("To simulate Device 123 named Fred on port #50000, use following command:\n"
-           "%s 50000 ca_cert.pem cert.pem key.pem 123 Fred\n",
+    printf("To simulate Device 123 named Fred on port #50000,\n"
+        "use following command:\n"
+        "%s 50000 ca_cert.pem cert.pem key.pem 123 Fred\n",
         filename);
-}
-
-static uint32_t read_file(char *filename, uint8_t **buff)
-{
-    uint32_t size = 0;
-    FILE *pFile;
-
-    pFile = fopen(filename, "rb");
-    if (pFile) {
-        fseek(pFile, 0L, SEEK_END);
-        size = ftell(pFile);
-        fseek(pFile, 0, SEEK_SET);
-
-        *buff = (uint8_t *)malloc(size);
-        if (*buff != NULL) {
-            if (fread(*buff, size, 1, pFile) == 0) {
-                size = 0;
-            }
-        }
-        fclose(pFile);
-    }
-    return *buff ? size : 0;
 }
 
 static bool init_bsc(uint16_t port, char *filename_ca_cert, char *filename_cert,
@@ -129,25 +108,30 @@ static bool init_bsc(uint16_t port, char *filename_ca_cert, char *filename_cert,
 
     Network_Port_Object_Instance_Number_Set(0, instance);
 
-    size = read_file(filename_ca_cert, &Ca_Certificate);
-    Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
-        Ca_Certificate, size, SC_NETPORT_BACFILE_START_INDEX);
+    bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
+    bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
+        filename_ca_cert);
+    Network_Port_Issuer_Certificate_File_Set(instance, 0,
+        BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
 
-    size = read_file(filename_cert, &Certificate);
-    Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
-        Certificate, size, SC_NETPORT_BACFILE_START_INDEX + 1);
+    bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
+    bacfile_pathname_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
+        filename_cert);
+    Network_Port_Operational_Certificate_File_Set(instance,
+        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
 
-    size = read_file(filename_key, &Key);
-    Network_Port_Certificate_Key_File_Set_From_Memory(instance,
-        Key, size, SC_NETPORT_BACFILE_START_INDEX + 2);
+    bacfile_create(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
+    bacfile_pathname_set(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
+        filename_key);
+    Network_Port_Certificate_Key_File_Set(instance,
+        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
     Network_Port_SC_Primary_Hub_URI_Set(instance, PrimaryUrl);
     Network_Port_SC_Failover_Hub_URI_Set(instance, FailoverUrl);
 
     Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, false);
     Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  true);
-    // TODO: get this param from command line
-    Network_Port_SC_Direct_Server_Port_Set(instance, 9999);
+    Network_Port_SC_Direct_Server_Port_Set(instance, port);
     Network_Port_SC_Hub_Function_Enable_Set(instance, true);
     Network_Port_SC_Hub_Server_Port_Set(instance, port);
 
@@ -256,29 +240,16 @@ int main(int argc, char *argv[])
     if (Device_Object_Name(Device_Object_Instance_Number(),&DeviceName)) {
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }
-
     if (!init_bsc(port, filename_ca_cert, filename_cert, filename_key)) {
-        goto exit;
+        return 1;
     }
-
     dlenv_init();
     atexit(datalink_cleanup);
-
-    /* broadcast an I-Am on startup */
-    //Send_I_Am(&Handler_Transmit_Buffer[0]);
     /* loop forever */
     for (;;) {
         /* input */
         bsc_wait(1);
-        /* output */
-
-        /* blink LEDs, Turn on or off outputs, etc */
     }
-
-exit:
-    free(Ca_Certificate);
-    free(Certificate);
-    free(Key);
 
     return 0;
 }

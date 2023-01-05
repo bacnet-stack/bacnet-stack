@@ -73,7 +73,8 @@ static void bsc_node_event(BSC_NODE *node,
 {
     DEBUG_PRINTF("bsc_node_event() >>> ev = %d\n", ev);
     bsc_global_mutex_lock();
-
+    (void)node;
+    (void)dest;
     if (ev == BSC_NODE_EVENT_STARTED || ev == BSC_NODE_EVENT_STOPPED) {
         if (bsc_datalink_state != BSC_DATALINK_STATE_IDLE) {
             bsc_event_signal(bsc_event);
@@ -189,6 +190,7 @@ void bsc_cleanup(void)
         bsc_node = NULL;
         bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
     }
+    bsc_node_conf_cleanup(&bsc_conf);
     bsc_global_mutex_unlock();
     DEBUG_PRINTF("bsc_cleanup() <<<\n");
 }

@@ -66,7 +66,7 @@
 static void host_n_port_to_data(BACNET_HOST_N_PORT *peer,
     BACNET_HOST_N_PORT_DATA *peer_data)
 {
-    peer_data->type = (peer->host_ip_address ? 1 : 0) + 
+    peer_data->type = (peer->host_ip_address ? 1 : 0) +
                       (peer->host_name ? 2 : 0);
     switch (peer_data->type) {
         case 1:
@@ -90,7 +90,7 @@ static void host_n_port_from_data(BACNET_HOST_N_PORT_DATA *peer_data,
     peer->host_name = peer_data->type & 0x02;
     switch (peer_data->type) {
         case 1:
-             octetstring_init(&peer->host.ip_address, 
+             octetstring_init(&peer->host.ip_address,
                 (uint8_t*)peer_data->host, 6);
             break;
         case 2:
@@ -450,30 +450,6 @@ bool Network_Port_Operational_Certificate_File_Set(uint32_t object_instance,
     return true;
 }
 
-bool Network_Port_Operational_Certificate_File_Set_From_Memory(
-    uint32_t object_instance, uint8_t *cert, size_t cert_size,
-        uint32_t bacfile_index)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return false;
-    Network_Port_Lock();
-    if (cert) {
-        bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
-            cert, cert_size);
-        params->Operational_Certificate_File = bacfile_index + 1;
-    } else {
-        if (params->Operational_Certificate_File != 0) {
-            bacfile_instance_memory_set(
-                bacfile_instance_to_index(params->Operational_Certificate_File),
-                0, NULL, 0);            
-        }
-        params->Operational_Certificate_File = 0;
-    }
-    Network_Port_Unlock();
-    return true;
-}
-
 uint32_t Network_Port_Issuer_Certificate_File(uint32_t object_instance,
     uint8_t index)
 {
@@ -494,31 +470,6 @@ bool Network_Port_Issuer_Certificate_File_Set(uint32_t object_instance,
         return false;
     Network_Port_Lock();
     params->Issuer_Certificate_Files[index] = value;
-    Network_Port_Unlock();
-    return true;
-}
-
-bool Network_Port_Issuer_Certificate_File_Set_From_Memory(
-    uint32_t object_instance, uint8_t index, uint8_t *cert, size_t cert_size,
-    uint32_t bacfile_index)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params || (index >= BACNET_ISSUER_CERT_FILE_MAX))
-        return false;
-    Network_Port_Lock();
-    if (cert) {
-        bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
-            cert, cert_size);
-        params->Issuer_Certificate_Files[index] = bacfile_index + 1;
-    } else {
-        if (params->Issuer_Certificate_Files[index] != 0) {
-            bacfile_instance_memory_set(
-                bacfile_instance_to_index(
-                    params->Issuer_Certificate_Files[index]),
-                0, NULL, 0);
-        }
-        params->Issuer_Certificate_Files[index] = 0;
-    }
     Network_Port_Unlock();
     return true;
 }
@@ -677,7 +628,7 @@ bool Network_Port_Routing_Table_Delete(uint32_t object_instance,
     if (!params)
         return false;
     Network_Port_Lock();
-    BACNET_ROUTER_ENTRY *entry = 
+    BACNET_ROUTER_ENTRY *entry =
         Keylist_Data_Delete(params->Routing_Table, network_number);
     free(entry);
     Network_Port_Unlock();
@@ -740,7 +691,7 @@ bool Network_Port_SC_Primary_Hub_Connection_Status_Set(
     st->Disconnect_Timestamp = *disconnect_ts;
     st->Error = error;
     if (error_details)
-        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGHT);
+        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
     else
         st->Error_Details[0] = 0;
     Network_Port_Unlock();
@@ -775,7 +726,7 @@ bool Network_Port_SC_Failover_Hub_Connection_Status_Set(
     st->Disconnect_Timestamp = *disconnect_ts;
     st->Error = error;
     if (error_details)
-        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGHT);
+        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
     else
         st->Error_Details[0] = 0;
     Network_Port_Unlock();
@@ -827,7 +778,7 @@ bool Network_Port_SC_Hub_Function_Accept_URI(uint32_t object_instance,
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     Network_Port_Lock();
     if (params && (index < BACNET_SC_HUB_URI_MAX)) {
-        status = characterstring_init_ansi(str, 
+        status = characterstring_init_ansi(str,
                         params->SC_Hub_Function_Accept_URIs[index]);
     }
     Network_Port_Unlock();
@@ -867,7 +818,7 @@ bool Network_Port_SC_Hub_Function_Binding(uint32_t object_instance,
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     Network_Port_Lock();
     if (params) {
-        status = characterstring_init_ansi(str, 
+        status = characterstring_init_ansi(str,
                 params->SC_Hub_Function_Binding);
     }
     Network_Port_Unlock();
@@ -954,11 +905,11 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Set(
     st->Disconnect_Timestamp = *disconnect_ts;
     host_n_port_to_data(peer_address, &st->Peer_Address);
     memcpy(st->Peer_VMAC, peer_VMAC, sizeof(st->Peer_VMAC));
-    memcpy(st->Peer_UUID.uuid.uuid128, peer_UUID, 
+    memcpy(st->Peer_UUID.uuid.uuid128, peer_UUID,
         sizeof(st->Peer_UUID.uuid.uuid128));
     st->Error = error;
     if (error_details)
-        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGHT);
+        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
     else
         st->Error_Details[0] = 0;
     Network_Port_Unlock();
@@ -1077,7 +1028,7 @@ static int string_splite(char *str, char separator, int *indexes, int length)
     int k = 0;
     indexes[0] = 0;
     for (i = 0; str[i] != 0 && k < length; i++) {
-        if (str[i] == ' ') {
+        if (str[i] == separator) {
             k++;
             indexes[k] = i + 1;
         }
@@ -1138,7 +1089,7 @@ bool Network_Port_SC_Direct_Connect_Accept_URI(uint32_t object_instance,
         len = string_splite(params->SC_Direct_Connect_Accept_URIs, ' ', idx,
             sizeof(idx));
         if (index < len) {
-            status = characterstring_init_ansi_safe(str, 
+            status = characterstring_init_ansi_safe(str,
                     params->SC_Direct_Connect_Accept_URIs + idx[index],
                     idx[index + 1] - idx[index] - 1);
         } else {
@@ -1203,7 +1154,7 @@ bool Network_Port_SC_Direct_Connect_Binding(uint32_t object_instance,
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     Network_Port_Lock();
     if (params) {
-        status = characterstring_init_ansi(str, 
+        status = characterstring_init_ansi(str,
                 params->SC_Direct_Connect_Binding);
     }
     Network_Port_Unlock();
@@ -1293,11 +1244,11 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Set(
     st->Disconnect_Timestamp = *disconnect_ts;
     host_n_port_to_data(peer_address, &st->Peer_Address);
     memcpy(st->Peer_VMAC, peer_VMAC, sizeof(st->Peer_VMAC));
-    memcpy(st->Peer_UUID.uuid.uuid128, peer_UUID, 
+    memcpy(st->Peer_UUID.uuid.uuid128, peer_UUID,
         sizeof(st->Peer_UUID.uuid.uuid128));
     st->Error = error;
     if (error_details)
-        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGHT);
+        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
     else
         st->Error_Details[0] = 0;
     Network_Port_Unlock();
@@ -1365,11 +1316,11 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
     entry->Timestamp = *ts;
     host_n_port_to_data(peer_address, &entry->Peer_Address);
     memcpy(entry->Peer_VMAC, peer_VMAC, sizeof(entry->Peer_VMAC));
-    memcpy(entry->Peer_UUID.uuid.uuid128, peer_UUID, 
+    memcpy(entry->Peer_UUID.uuid.uuid128, peer_UUID,
         sizeof(entry->Peer_UUID.uuid.uuid128));
     entry->Error = error;
     if (error_details)
-        strncpy(entry->Error_Details, error_details, BACNET_ERROR_STRING_LENGHT);
+        strncpy(entry->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
     else
         entry->Error_Details[0] = 0;
 
@@ -1442,30 +1393,6 @@ bool Network_Port_Certificate_Key_File_Set(uint32_t object_instance,
         return false;
     Network_Port_Lock();
     params->Certificate_Key_File = value;
-    Network_Port_Unlock();
-    return true;
-}
-
-bool Network_Port_Certificate_Key_File_Set_From_Memory(
-    uint32_t object_instance, uint8_t *cert, size_t cert_size,
-    uint32_t bacfile_index)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return false;
-    Network_Port_Lock();
-    if (cert) {
-        bacfile_instance_memory_set(bacfile_index, bacfile_index + 1,
-            cert, cert_size);
-        params->Certificate_Key_File = bacfile_index + 1;
-    } else {
-        if (params->Certificate_Key_File != 0) {
-            bacfile_instance_memory_set(
-                bacfile_instance_to_index(params->Certificate_Key_File),
-                0, NULL, 0);
-        }
-        params->Certificate_Key_File = 0;
-    }
     Network_Port_Unlock();
     return true;
 }

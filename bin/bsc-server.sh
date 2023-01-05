@@ -1,0 +1,15 @@
+#!/bin/bash
+echo "Example of parameters for BACnet/SC server"
+BACNET_SC_PRIMARY_HUB_URI="wss://127.0.0.1:9999"
+export BACNET_SC_PRIMARY_HUB_URI
+BACNET_SC_FAILOVER_HUB_URI="wss://127.0.0.1:9999"
+export BACNET_SC_FAILOVER_HUB_URI
+BACNET_SC_ISSUER_1_CERTIFICATE_FILE="certs/ca_cert.pem"
+export BACNET_SC_ISSUER_1_CERTIFICATE_FILE
+BACNET_SC_OPERATIONAL_CERTIFICATE_FILE="certs/server_cert.pem"
+export BACNET_SC_OPERATIONAL_CERTIFICATE_FILE
+BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE="certs/server_key.pem"
+export BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE
+echo "Launching new shell using the BACnet/SC server environment..."
+/bin/bash
+

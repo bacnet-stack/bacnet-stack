@@ -275,7 +275,7 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     count = Network_Port_Count();
     zassert_true(count > 0, NULL);
 
-    // init 
+    // init
     Network_Port_SC_Direct_Connect_Accept_URIs_Set(object_instance, urls0);
     zassert_true(
         strcmp(Network_Port_SC_Direct_Connect_Accept_URIs_char(object_instance),
@@ -360,6 +360,9 @@ static void test_network_port_sc_certificates(void)
     uint8_t ca_cert[] = "CA certificate";
     uint8_t cert_chain[] = "certificate chain";
     uint8_t key[] = "key";
+    char *filename_ca_cert = "ca_cert.pem";
+    char *filename_cert = "cert.pem";
+    char *filename_key = "key.pem";
     char *str;
 
     mutex_error = 0;
@@ -371,66 +374,41 @@ static void test_network_port_sc_certificates(void)
     zassert_true(count > 0, NULL);
 
     // CA certificate
-    // init 
-    zassert_true(
-        Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
-            ca_cert, sizeof(ca_cert), BACFILE_START), NULL);
-    // check netport
+    status = bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
+    zassert_true(status, NULL);
+    bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
+        filename_ca_cert);
+    status = Network_Port_Issuer_Certificate_File_Set(instance, 0,
+        BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
+    zassert_true(status, NULL);
     file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
-    zassert_true(file_instance != 0, NULL);
-    // check bacfile
-    zassert_true(bacfile_instance_memory_context(file_instance, NULL, 0) == 
-        ca_cert, NULL);
-    zassert_true(bacfile_file_size(file_instance) == sizeof(ca_cert), NULL);
+    zassert_equal(file_instance, BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE, NULL);
 
-    // certificate chain
-    // init 
-    zassert_true(
-        Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
-            cert_chain, sizeof(cert_chain), BACFILE_START + 1), NULL);
-    // check netport
-    file_instance = Network_Port_Operational_Certificate_File(instance);
-    zassert_true(file_instance != 0, NULL);
-    // check bacfile
-    zassert_true(bacfile_instance_memory_context(file_instance, NULL, 0) == 
-        cert_chain, NULL);
-    zassert_true(bacfile_file_size(file_instance) == sizeof(cert_chain), NULL);
+    status = bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
+    zassert_true(status, NULL);
+    bacfile_pathname_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
+        filename_cert);
+    status = Network_Port_Operational_Certificate_File_Set(instance,
+        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
+    zassert_true(status, NULL);
+    file_instance = Network_Port_Operational_Certificate_File(instance, 0);
+    zassert_equal(file_instance, BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
+        NULL);
 
-    // key
-    // init 
-    zassert_true(Network_Port_Certificate_Key_File_Set_From_Memory(instance,
-        key, sizeof(key), BACFILE_START + 2), NULL);
-    // check netport
+    status = bacfile_create(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
+    zassert_true(status, NULL);
+    bacfile_pathname_set(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
+        filename_key);
+    status = Network_Port_Certificate_Key_File_Set(instance,
+        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
+    zassert_true(status, NULL);
     file_instance = Network_Port_Certificate_Key_File(instance);
-    zassert_true(file_instance != 0, NULL);
-    // check bacfile
-    zassert_true(bacfile_instance_memory_context(file_instance, NULL, 0) == 
-        key, NULL);
-    zassert_true(bacfile_file_size(file_instance) == sizeof(key), NULL);
+    zassert_equal(file_instance, BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
+        NULL);
 
     // reset
-    zassert_true(Network_Port_Issuer_Certificate_File_Set_From_Memory(instance,
-        0, NULL, 0, 0), NULL);
-    zassert_true(Network_Port_Issuer_Certificate_File(instance, 0) == 0, NULL);
-    zassert_true(Network_Port_Operational_Certificate_File_Set_From_Memory(
-        instance, NULL, 0, 0), NULL);
-    zassert_true(Network_Port_Operational_Certificate_File(instance) == 0,
-        NULL);
-    zassert_true(Network_Port_Certificate_Key_File_Set_From_Memory(instance,
-        NULL, 0, 0), NULL);
-    zassert_true(Network_Port_Certificate_Key_File(instance) == 0, NULL);
 
-    // check bacfils after reset
-    file_instance = BACFILE_START + 1;
-    zassert_is_null(
-        bacfile_instance_memory_context(file_instance, NULL, 0), NULL);
-    zassert_true(bacfile_file_size(file_instance) == 0, NULL);
-    zassert_is_null(
-        bacfile_instance_memory_context(file_instance + 1, NULL, 0), NULL);
-    zassert_true(bacfile_file_size(file_instance + 1) == 0, NULL);
-    zassert_is_null(
-        bacfile_instance_memory_context(file_instance + 2, NULL, 0), NULL);
-    zassert_true(bacfile_file_size(file_instance + 2) == 0, NULL);
+    // check bacfile after reset
 
     zassert_true(my_mutex.count == 0, NULL);
 

@@ -48,7 +48,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* Support 
+/* Support
    - SC_Hub_Function_Connection_Status
    - SC_Direct_Connect_Connection_Status
    - SC_FailedConnectionRequests
@@ -60,10 +60,10 @@ extern "C" {
     typedef struct BACnetSCAttributes_T {
         BACNET_UNSIGNED_INTEGER Max_BVLC_Length_Accepted;
         BACNET_UNSIGNED_INTEGER Max_NPDU_Length_Accepted;
-        char SC_Primary_Hub_URI[BACNET_URI_LENGHT];
-        char SC_Primary_Hub_URI_dirty[BACNET_URI_LENGHT];
-        char SC_Failover_Hub_URI[BACNET_URI_LENGHT];
-        char SC_Failover_Hub_URI_dirty[BACNET_URI_LENGHT];
+        char SC_Primary_Hub_URI[BACNET_URI_LENGTH];
+        char SC_Primary_Hub_URI_dirty[BACNET_URI_LENGTH];
+        char SC_Failover_Hub_URI[BACNET_URI_LENGTH];
+        char SC_Failover_Hub_URI_dirty[BACNET_URI_LENGTH];
         BACNET_UNSIGNED_INTEGER SC_Minimum_Reconnect_Time;
         BACNET_UNSIGNED_INTEGER SC_Maximum_Reconnect_Time;
         BACNET_UNSIGNED_INTEGER SC_Connect_Wait_Timeout;
@@ -83,9 +83,9 @@ extern "C" {
         bool SC_Hub_Function_Enable;
         bool SC_Hub_Function_Enable_dirty;
         char SC_Hub_Function_Accept_URIs[BACNET_SC_HUB_URI_MAX]
-                                            [BACNET_URI_LENGHT];
-        char SC_Hub_Function_Binding[BACNET_BINDING_STRING_LENGHT];
-        char SC_Hub_Function_Binding_dirty[BACNET_BINDING_STRING_LENGHT];
+                                            [BACNET_URI_LENGTH];
+        char SC_Hub_Function_Binding[BACNET_BINDING_STRING_LENGTH];
+        char SC_Hub_Function_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
 #ifdef BACNET_SC_STATUS_SUPPORT
         BACNET_SC_HUB_FUNCTION_CONNECTION SC_Hub_Function_Connection_Status;
 #endif
@@ -97,9 +97,9 @@ extern "C" {
         bool SC_Direct_Connect_Accept_Enable;
         bool SC_Direct_Connect_Accept_Enable_dirty;
         char SC_Direct_Connect_Accept_URIs[
-            BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGHT + 1)];
-        char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGHT];
-        char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGHT];
+            BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGTH + 1)];
+        char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGTH];
+        char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
 #ifdef BACNET_SC_STATUS_SUPPORT
         BACNET_SC_DIRECT_CONNECTION SC_Direct_Connect_Connection_Status;
 #endif

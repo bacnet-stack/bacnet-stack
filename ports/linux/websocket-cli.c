@@ -339,6 +339,8 @@ static int bws_cli_websocket_event(struct lws *wsi,
         }
     }
     DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = 0\n");
+    (void)user;
+
     return 0;
 }
 

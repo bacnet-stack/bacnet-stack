@@ -1,11 +1,11 @@
 /**
- * @file 
+ * @file
  * @brief module for common function for BACnet/SC implementation
  * @author Kirill Neznamov
  * @date Jule 2022
  * @section LICENSE
  *
- * Copyright (C) 2022 Legrand North America, LLC 
+ * Copyright (C) 2022 Legrand North America, LLC
  * as an unpublished work.
  *
  * SPDX-License-Identifier: MIT
@@ -32,5 +32,6 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p);
 void bsc_generate_random_uuid(BACNET_SC_UUID *p);
 void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     BSC_NODE_EVENT_FUNC event_func);
+void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf);
 
 #endif

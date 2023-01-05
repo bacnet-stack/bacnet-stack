@@ -42,6 +42,24 @@
 #include <bacnet/hostnport.h>
 #include <bacnet/datalink/bsc/bsc-conf.h>
 
+/* BACnet file instance numbers */
+#ifndef BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE
+#define BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE \
+    BSC_CONF_ISSUER_CERTIFICATE_FILE_1_INSTANCE
+#endif
+#ifndef BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE
+#define BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE \
+    BSC_CONF_ISSUER_CERTIFICATE_FILE_2_INSTANCE
+#endif
+#ifndef BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE
+#define BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE \
+    BSC_CONF_OPERATIONAL_CERTIFICATE_FILE_INSTANCE
+#endif
+#ifndef BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE
+#define BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE \
+    BSC_CONF_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -75,14 +93,14 @@ extern "C" {
     #endif
 
     #define BACNET_ISSUER_CERT_FILE_MAX 2
-    #define BACNET_ERROR_STRING_LENGHT  64
-    #define BACNET_URI_LENGHT  64
-    #define BACNET_PEER_VMAC_LENGHT  6
-    #define BACNET_BINDING_STRING_LENGHT  80
+    #define BACNET_ERROR_STRING_LENGTH  64
+    #define BACNET_URI_LENGTH  64
+    #define BACNET_PEER_VMAC_LENGTH  6
+    #define BACNET_BINDING_STRING_LENGTH  80
 
     typedef struct BACnetHostNPort_data_T {
         uint8_t type;
-        char host[BACNET_URI_LENGHT];
+        char host[BACNET_URI_LENGTH];
         uint16_t port;
     } BACNET_HOST_N_PORT_DATA;
 
@@ -93,7 +111,7 @@ extern "C" {
         BACNET_DATE_TIME Disconnect_Timestamp; /*index = 2 */
         /* optionals */
         BACNET_ERROR_CODE Error; /* index = 3 */
-        char Error_Details[BACNET_ERROR_STRING_LENGHT]; /* index = 4 */
+        char Error_Details[BACNET_ERROR_STRING_LENGTH]; /* index = 4 */
     } BACNET_SC_HUB_CONNECTION;
 
     typedef struct BACnetSCHubFunctionConnection_T {
@@ -101,20 +119,20 @@ extern "C" {
         BACNET_DATE_TIME Connect_Timestamp;
         BACNET_DATE_TIME Disconnect_Timestamp;
         BACNET_HOST_N_PORT_DATA Peer_Address;
-        uint8_t Peer_VMAC[BACNET_PEER_VMAC_LENGHT];
+        uint8_t Peer_VMAC[BACNET_PEER_VMAC_LENGTH];
         BACNET_UUID Peer_UUID;
         BACNET_ERROR_CODE Error;
-        char Error_Details[BACNET_ERROR_STRING_LENGHT];
+        char Error_Details[BACNET_ERROR_STRING_LENGTH];
     } BACNET_SC_HUB_FUNCTION_CONNECTION;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
     typedef struct BACnetSCFailedConnectionRequest_T {
         BACNET_DATE_TIME Timestamp;
         BACNET_HOST_N_PORT_DATA Peer_Address;
-        uint8_t Peer_VMAC[BACNET_PEER_VMAC_LENGHT];
+        uint8_t Peer_VMAC[BACNET_PEER_VMAC_LENGTH];
         BACNET_UUID Peer_UUID;
         BACNET_ERROR_CODE Error;
-        char Error_Details[BACNET_ERROR_STRING_LENGHT];
+        char Error_Details[BACNET_ERROR_STRING_LENGTH];
     } BACNET_SC_FAILED_CONNECTION_REQUEST;
 
 #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
@@ -132,15 +150,15 @@ extern "C" {
 
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     typedef struct BACnetSCDirectConnection_T {
-        char URI[BACNET_URI_LENGHT];
+        char URI[BACNET_URI_LENGTH];
         BACNET_SC_CONNECTION_STATE Connection_State;
         BACNET_DATE_TIME Connect_Timestamp;
         BACNET_DATE_TIME Disconnect_Timestamp;
         BACNET_HOST_N_PORT_DATA Peer_Address;
-        uint8_t Peer_VMAC[BACNET_PEER_VMAC_LENGHT];
+        uint8_t Peer_VMAC[BACNET_PEER_VMAC_LENGTH];
         BACNET_UUID Peer_UUID;
         BACNET_ERROR_CODE Error;
-        char Error_Details[BACNET_ERROR_STRING_LENGHT];
+        char Error_Details[BACNET_ERROR_STRING_LENGTH];
     } BACNET_SC_DIRECT_CONNECTION;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
@@ -249,12 +267,6 @@ extern "C" {
     bool Network_Port_Operational_Certificate_File_Set(
         uint32_t object_instance,
         uint32_t value);
-    BACNET_STACK_EXPORT
-    bool Network_Port_Operational_Certificate_File_Set_From_Memory(
-        uint32_t object_instance,
-        uint8_t *cert,
-        size_t cert_size,
-        uint32_t bacfile_index);
 
     BACNET_STACK_EXPORT
     uint32_t Network_Port_Issuer_Certificate_File(
@@ -265,13 +277,6 @@ extern "C" {
         uint32_t object_instance,
         uint8_t index,
         uint32_t value);
-    BACNET_STACK_EXPORT
-    bool Network_Port_Issuer_Certificate_File_Set_From_Memory(
-        uint32_t object_instance,
-        uint8_t index,
-        uint8_t *cert,
-        size_t cert_size,
-        uint32_t bacfile_index);
 
     BACNET_STACK_EXPORT
     uint32_t Network_Port_Certificate_Signing_Request_File(
@@ -526,12 +531,6 @@ extern "C" {
     bool Network_Port_Certificate_Key_File_Set(
         uint32_t object_instance,
         uint32_t value);
-    BACNET_STACK_EXPORT
-    bool Network_Port_Certificate_Key_File_Set_From_Memory(
-        uint32_t object_instance,
-        uint8_t *cert,
-        size_t cert_size,
-        uint32_t bacfile_index);
 
     BACNET_STACK_EXPORT
     const BACNET_UUID *Network_Port_SC_Local_UUID(

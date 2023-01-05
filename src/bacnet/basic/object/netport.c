@@ -174,7 +174,7 @@ static const int BIP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_SC_HEARTBEAT_TIMEOUT, PROP_SC_HUB_CONNECTOR_STATE,
     PROP_OPERATIONAL_CERTIFICATE_FILE, PROP_ISSUER_CERTIFICATE_FILES,
     PROP_CERTIFICATE_SIGNING_REQUEST_FILE,
-    /*SC optional*/ 
+    /*SC optional*/
   #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
     PROP_ROUTING_TABLE,
   #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
@@ -2793,7 +2793,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_ISSUER_CERTIFICATE_FILES:
             if (rpdata->array_index == 0) {
                 /* Array element zero is the number of objects in the list */
-                apdu_len = encode_application_unsigned(&apdu[0], 
+                apdu_len = encode_application_unsigned(&apdu[0],
                     BACNET_ISSUER_CERT_FILE_MAX);
             } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
                 /* if no index was specified, then try to encode the entire list
@@ -2824,7 +2824,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Network_Port_Certificate_Signing_Request_File(
                     rpdata->object_instance));
             break;
-        /* SC optionals */ 
+        /* SC optionals */
 #if BACNET_SECURE_CONNECT_ROUTING_TABLE
         case PROP_ROUTING_TABLE:
             ENCODE_KEYLIST_ARRAY(Network_Port_Routing_Table_Get,
@@ -2907,7 +2907,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
 #ifdef BACNET_SC_STATUS_SUPPORT
             ENCODE_KEYLIST_ARRAY(Network_Port_SC_Failed_Connection_Requests_Get,
-                bacapp_encode_SCFailedConnectionRequest, 
+                bacapp_encode_SCFailedConnectionRequest,
                 Network_Port_SC_Failed_Connection_Requests_Count,
                 BACNET_SC_FAILED_CONNECTION_REQUEST);
 #endif
@@ -3060,7 +3060,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (!status)
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             break;
-        /* SC optionals */ 
+        /* SC optionals */
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
         case PROP_SC_PRIMARY_HUB_URI:
             status = write_property_empty_string_valid(wp_data, &value,
@@ -3090,7 +3090,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
             DECODE_ARRAY_STRING(Network_Port_SC_Hub_Function_Accept_URI_Set,
-                BACNET_SC_HUB_URI_MAX, BACNET_URI_LENGHT); 
+                BACNET_SC_HUB_URI_MAX, BACNET_URI_LENGTH);
             break;
         case PROP_SC_HUB_FUNCTION_BINDING:
             status = write_property_empty_string_valid(wp_data, &value,
@@ -3125,7 +3125,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
             DECODE_ARRAY_STRING(Network_Port_SC_Direct_Connect_Accept_URI_Set,
-                BACNET_SC_DIRECT_ACCEPT_URI_MAX, BACNET_URI_LENGHT); 
+                BACNET_SC_DIRECT_ACCEPT_URI_MAX, BACNET_URI_LENGTH);
             break;
         case PROP_SC_DIRECT_CONNECT_BINDING:
             status = write_property_empty_string_valid(wp_data, &value,
@@ -3184,7 +3184,7 @@ int Network_Port_Read_Range_BDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
  * ReadRange service handler for the BACnet/IP FDT.
  *
  * @param  apdu - place to encode the data
- * @param  apdu - BACNET_READ_RANGE_DATA data
+ * @param  pRequest - BACNET_READ_RANGE_DATA data
  *
  * @return number of bytes encoded
  */
@@ -3195,6 +3195,14 @@ int Network_Port_Read_Range_FDT(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     return 0;
 }
 
+/**
+ * ReadRange service handler
+ *
+ * @param  apdu - place to encode the data
+ * @param  pInfo - RR_PROP_INFO data
+ *
+ * @return number of bytes encoded
+ */
 bool Network_Port_Read_Range(
     BACNET_READ_RANGE_DATA *pRequest, RR_PROP_INFO *pInfo)
 {
@@ -3233,6 +3241,7 @@ bool Network_Port_Read_Range(
 #if defined(BACDL_BIP) && BBMD_ENABLED
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
 #endif
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_SERVICES;
             pRequest->error_code = ERROR_CODE_PROPERTY_IS_NOT_A_LIST;
             break;
@@ -3242,6 +3251,7 @@ bool Network_Port_Read_Range(
             pInfo->Handler = Network_Port_Read_Range_BDT;
             status = true;
 #else
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
 #endif
@@ -3252,11 +3262,13 @@ bool Network_Port_Read_Range(
             pInfo->Handler = Network_Port_Read_Range_FDT;
             status = true;
 #else
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
 #endif
             break;
         default:
+            (void)pInfo;
             pRequest->error_class = ERROR_CLASS_PROPERTY;
             pRequest->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             break;

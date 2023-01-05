@@ -5,7 +5,7 @@
  * @date Jule 2022
  * @section LICENSE
  *
- * Copyright (C) 2022 Legrand North America, LLC 
+ * Copyright (C) 2022 Legrand North America, LLC
  * as an unpublished work.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -95,22 +95,27 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
 {
     uint32_t instance;
     uint32_t file_instance;
+    uint32_t file_length;
 
     instance = Network_Port_Index_To_Instance(0);
 
     file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
     bsc_conf->ca_cert_chain_size = bacfile_file_size(file_instance);
-    bsc_conf->ca_cert_chain = bacfile_instance_memory_context(file_instance,
-        NULL, 0);
+    bsc_conf->ca_cert_chain = calloc(1, bsc_conf->ca_cert_chain_size);
+    file_length = bacfile_read(file_instance,
+        bsc_conf->ca_cert_chain, bsc_conf->ca_cert_chain_size);
 
     file_instance = Network_Port_Operational_Certificate_File(instance);
     bsc_conf->cert_chain_size = bacfile_file_size(file_instance);
-    bsc_conf->cert_chain = bacfile_instance_memory_context(file_instance,
-        NULL, 0);
+    bsc_conf->cert_chain = calloc(1, bsc_conf->cert_chain_size);
+    file_length = bacfile_read(file_instance,
+        bsc_conf->cert_chain, bsc_conf->cert_chain_size);
 
     file_instance = Network_Port_Certificate_Key_File(instance);
     bsc_conf->key_size = bacfile_file_size(file_instance);
-    bsc_conf->key = bacfile_instance_memory_context(file_instance, NULL, 0);
+    bsc_conf->key = calloc(1, bsc_conf->key_size);
+    file_length = bacfile_read(file_instance,
+        bsc_conf->key, bsc_conf->key_size);
 
 #ifdef BACDL_BSC
     bsc_conf->local_uuid =
@@ -157,7 +162,7 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
 #endif
 
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
-    bsc_conf->direct_connection_accept_uris = 
+    bsc_conf->direct_connection_accept_uris =
         Network_Port_SC_Direct_Connect_Accept_URIs_char(instance);
     bsc_conf->direct_connection_accept_uris_len =
         strlen(bsc_conf->direct_connection_accept_uris);
@@ -165,3 +170,20 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
 #endif /* BACDL_BSC */
     bsc_conf->event_func = event_func;
 }
+
+void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf)
+{
+    bsc_conf->ca_cert_chain_size = 0;
+    if (bsc_conf->ca_cert_chain) {
+        free(bsc_conf->ca_cert_chain);
+    }
+    bsc_conf->cert_chain_size = 0;
+    if (bsc_conf->cert_chain) {
+        free(bsc_conf->cert_chain);
+    }
+    bsc_conf->key_size = 0;
+    if (bsc_conf->key) {
+        free(bsc_conf->key);
+    }
+}
+
