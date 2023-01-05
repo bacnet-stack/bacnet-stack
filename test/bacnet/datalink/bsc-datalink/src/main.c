@@ -1204,14 +1204,35 @@ static void netport_object_init(uint32_t instance,
     int hub_port,
     int direct_port)
 {
+    const char *filename_ca_cert = "ca_cert.pem";
+    const char *filename_cert = "cert.pem";
+    const char *filename_key = "key.pem";
+
     Network_Port_Object_Instance_Number_Set(0, instance);
 
-    Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
-        ca_cert_chain, ca_cert_chain_size, SC_NETPORT_BACFILE_START_INDEX);
-    Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
-        cert_chain, cert_chain_size, SC_NETPORT_BACFILE_START_INDEX + 1);
-    Network_Port_Certificate_Key_File_Set_From_Memory(instance,
-        key, key_size, SC_NETPORT_BACFILE_START_INDEX + 2);
+    bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
+    bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
+        filename_ca_cert);
+    bacfile_write(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
+        ca_cert_chain, ca_cert_chain_size);
+    Network_Port_Issuer_Certificate_File_Set(instance, 0,
+        BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
+
+    bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
+    bacfile_pathname_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
+        filename_cert);
+    bacfile_write(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
+        cert_chain, cert_chain_size);
+    Network_Port_Operational_Certificate_File_Set(instance,
+        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
+
+    bacfile_create(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
+    bacfile_pathname_set(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
+        filename_key);
+    bacfile_write(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
+        key, key_size);
+    Network_Port_Certificate_Key_File_Set(instance,
+        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
     Network_Port_SC_Direct_Connect_Binding_Set(instance, iface);

@@ -391,7 +391,7 @@ static void test_network_port_sc_certificates(void)
     status = Network_Port_Operational_Certificate_File_Set(instance,
         BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
     zassert_true(status, NULL);
-    file_instance = Network_Port_Operational_Certificate_File(instance, 0);
+    file_instance = Network_Port_Operational_Certificate_File(instance);
     zassert_equal(file_instance, BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
         NULL);
 

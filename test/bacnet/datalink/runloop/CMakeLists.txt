@@ -51,9 +51,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
-  target_link_libraries(${PROJECT_NAME}
-                        ${LIB_WEBSOCKETS_LIBRARIES}
-  )
+  target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads ${LIB_WEBSOCKETS_LIBRARIES} )
 elseif(WIN32)
   message(STATUS "Websockets test: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)

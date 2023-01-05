@@ -66,8 +66,8 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
     # Test and test library files
+    ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
- 
