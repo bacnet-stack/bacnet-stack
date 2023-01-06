@@ -2,5 +2,7 @@ tests:
   bacnet.datalink.mock.unit:
     tags: bacnet
     type: unit
+    extra_args: EXTRA_CFLAGS='-Wno-error=array-compare'  # for zephyr_v3.0.0 net_if.c
   bacnet.datalink.mock:
     tags: bacnet
+    extra_args: EXTRA_CFLAGS='-Wno-error=array-compare'  # for zephyr_v3.0.0 net_if.c

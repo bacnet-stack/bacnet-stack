@@ -35,6 +35,8 @@
 
 # if defined(WIN32) || defined(WIN64)
 #  define strcasecmp _stricmp
+#elif defined(__ZEPHYR__)
+#  include <strings.h>
 # endif
 
 #if defined(__GNUC__)

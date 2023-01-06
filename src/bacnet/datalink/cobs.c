@@ -96,9 +96,10 @@ size_t cobs_encode(uint8_t *buffer,
     size_t read_index = 0;
     size_t write_index = 1;
     uint8_t code = 1;
-    uint8_t data, last_code;
+    uint8_t data = 0;
+    uint8_t last_code = 0;
 
-    if (buffer_size < 1) {
+    if ((buffer_size < 1) || (length < 1)) {
         /* error - buffer too small */
         return 0;
     }
