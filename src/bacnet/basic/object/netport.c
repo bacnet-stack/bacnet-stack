@@ -2342,8 +2342,9 @@ const char *Network_Port_IPv6_Zone_Index_char(
     uint32_t object_instance)
 {
     const char *p = NULL;
+    unsigned index = 0;
     Network_Port_Lock();
-    unsigned index = Network_Port_Instance_To_Index(object_instance);
+    index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
             p = &Object_List[index].Network.IPv6.Zone_Index[0];
@@ -3324,6 +3325,8 @@ void Network_Port_Pending_Params_Apply(uint32_t object_instance)
 {
 #if BACDL_BSC
     Network_Port_SC_Pending_Params_Apply(object_instance);
+#else
+    (void)object_instance;
 #endif /* BACDL_BSC */
 }
 
@@ -3331,5 +3334,7 @@ void Network_Port_Pending_Params_Discard(uint32_t object_instance)
 {
 #if BACDL_BSC
     Network_Port_SC_Pending_Params_Discard(object_instance);
+#else
+    (void)object_instance;
 #endif /* BACDL_BSC */
 }

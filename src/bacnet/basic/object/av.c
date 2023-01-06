@@ -309,6 +309,8 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
     if (index < MAX_ANALOG_VALUES) {
         state = AV_Descr[index].Event_State;
     }
+#else
+    (void)object_instance;
 #endif
 
     return state;
@@ -1226,6 +1228,8 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
             }
         }
     }
+#else
+    (void)object_instance;
 #endif /* defined(INTRINSIC_REPORTING) */
 }
 

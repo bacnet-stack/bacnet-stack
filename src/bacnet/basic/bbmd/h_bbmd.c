@@ -123,6 +123,9 @@ static void debug_print_bip(const char *str, const BACNET_IP_ADDRESS *addr)
             (unsigned)addr->address[1], (unsigned)addr->address[2],
             (unsigned)addr->address[3], (unsigned)addr->port);
     }
+#else
+    (void)str;
+    (void)addr;
 #endif
 }
 
@@ -137,6 +140,9 @@ static void debug_print_unsigned(const char *str, const unsigned int value)
     if (BVLC_Debug) {
         printf("BVLC: %s %u\n", str, value);
     }
+#else
+    (void)str;
+    (void)value;
 #endif
 }
 
@@ -152,6 +158,10 @@ static void debug_print_npdu(
     if (BVLC_Debug) {
         printf("BVLC: %s NPDU=MTU[%u] len=%u\n", str, offset, length);
     }
+#else
+    (void)str;
+    (void)offset;
+    (void)length;
 #endif
 }
 
@@ -165,6 +175,8 @@ static void debug_print_string(const char *str)
     if (BVLC_Debug) {
         printf("BVLC: %s\n", str);
     }
+#else
+    (void)str;
 #endif
 }
 
@@ -512,6 +524,10 @@ static void bbmd_read_bdt_ack_handler(
             break;
         }
     }
+#else
+    (void)addr;
+    (void)npdu;
+    (void)npdu_length;
 #endif
 }
 
@@ -554,6 +570,10 @@ static void bbmd_read_fdt_ack_handler(
             break;
         }
     }
+#else
+    (void)addr;
+    (void)npdu;
+    (void)npdu_length;
 #endif
 }
 #endif
