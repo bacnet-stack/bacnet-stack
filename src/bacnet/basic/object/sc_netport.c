@@ -600,13 +600,14 @@ bool Network_Port_Routing_Table_Add(uint32_t object_instance,
     uint8_t performance_index)
 {
     bool st = false;
+    uint8_t network_type;
+    BACNET_ROUTER_ENTRY *entry;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
 
-    uint8_t network_type = Network_Port_Type(object_instance);
-
-    BACNET_ROUTER_ENTRY *entry = calloc(1, sizeof(BACNET_ROUTER_ENTRY));
+    network_type = Network_Port_Type(object_instance);
+    entry = calloc(1, sizeof(BACNET_ROUTER_ENTRY));
     if (!entry)
         return false;
     Network_Port_Lock();
@@ -622,12 +623,12 @@ bool Network_Port_Routing_Table_Add(uint32_t object_instance,
 bool Network_Port_Routing_Table_Delete(uint32_t object_instance,
     uint16_t network_number)
 {
+    BACNET_ROUTER_ENTRY *entry;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
     Network_Port_Lock();
-    BACNET_ROUTER_ENTRY *entry =
-        Keylist_Data_Delete(params->Routing_Table, network_number);
+    entry = Keylist_Data_Delete(params->Routing_Table, network_number);
     free(entry);
     Network_Port_Unlock();
     return true;

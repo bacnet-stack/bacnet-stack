@@ -90,7 +90,7 @@ static void print_help(const char *filename)
        "trying simulate.\n"
        "device-name: The Device name in ASCII for this device.\n");
     printf("\n");
-    printf("Example:\n");
+    printf("Example:\n"
         "To simulate Device 123 on port #50000, use following command:\n"
         "%s 50000 ca_cert.pem cert.pem key.pem 123\n",
         filename);
@@ -104,7 +104,6 @@ static bool init_bsc(uint16_t port, char *filename_ca_cert, char *filename_cert,
     char *filename_key)
 {
     uint32_t instance = 1;
-    uint32_t size;
 
     Network_Port_Object_Instance_Number_Set(0, instance);
 
@@ -163,6 +162,7 @@ int main(int argc, char *argv[])
     char *filename_ca_cert = NULL;
     char *filename_cert = NULL;
     char *filename_key = NULL;
+    BACNET_CHARACTER_STRING DeviceName;
 
     filename = filename_remove_path(argv[0]);
     argi = 1;
@@ -236,7 +236,6 @@ int main(int argc, char *argv[])
     }
     ucix_cleanup(ctx);
 #endif /* defined(BAC_UCI) */
-    BACNET_CHARACTER_STRING DeviceName;
     if (Device_Object_Name(Device_Object_Instance_Number(),&DeviceName)) {
         printf("BACnet Device Name: %s\n", DeviceName.value);
     }

@@ -138,6 +138,10 @@ netnumis:
 server:
 	$(MAKE) -s -C apps $@
 
+.PHONY: sc-hub
+sc-hub:
+	$(MAKE) BACDL=bsc -s -C apps $@
+
 .PHONY: mstpcap
 mstpcap:
 	$(MAKE) -s -C apps $@
@@ -306,6 +310,7 @@ clean: ports-clean
 	$(MAKE) -s -C apps/router-ipv6 clean
 	$(MAKE) -s -C apps/router-mstp clean
 	$(MAKE) -s -C apps/gateway clean
+	$(MAKE) -s -C apps/sc-hub clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
 	rm -rf ./build

@@ -63,6 +63,25 @@ jobs:
         make clean
         make gateway
 
+  bacnet-sc-hub:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Create BACnet/SC Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
+    - name: Build BACnet/SC Hub Demo
+      run: |
+        gcc --version
+        make clean
+        make sc-hub
+
   router:
     runs-on: ubuntu-latest
     steps:
@@ -118,7 +137,7 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
-    - name: Build BACnet/IPv6 Demos
+    - name: Build BACnet/IPv6 Demo Apps
       run: |
         gcc --version
         make clean
@@ -157,7 +176,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Create Build Environment
+    - name: Create BACnet/SC Build Environment
       run: |
         sudo apt-get update -qq
         sudo apt-get install -qq libconfig-dev
@@ -166,7 +185,7 @@ jobs:
         git clone https://libwebsockets.org/repo/libwebsockets
         bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
-    - name: Build BACnet Secure Connect
+    - name: Build BACnet Secure Connect Demo Apps
       run: |
         gcc --version
         make clean
@@ -227,9 +246,10 @@ jobs:
         sudo apt-get update -qq
         sudo apt-get install -qq build-essential
         sudo apt-get install -qq mingw-w64
-    - name: Build Win32 Demos
+    - name: Build Win32 Demo Apps
       run: |
         export CC=i686-w64-mingw32-gcc
         export LD=i686-w64-mingw32-ld
         i686-w64-mingw32-gcc --version
         make win32
+

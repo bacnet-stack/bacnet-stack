@@ -318,6 +318,11 @@ bool Device_Set_Object_Name(BACNET_CHARACTER_STRING *object_name)
     return status;
 }
 
+bool Device_Object_Name_ANSI_Init(const char *value)
+{
+    return characterstring_init_ansi(&My_Object_Name, value);
+}
+
 BACNET_DEVICE_STATUS Device_System_Status(void)
 {
     return System_Status;
