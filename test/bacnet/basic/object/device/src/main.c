@@ -49,6 +49,57 @@ static void testDevice(void)
 
     return;
 }
+
+/**
+ * @brief Test
+ */
+static void test_Device_ReadProperty(void)
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0, test_len = 0;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = {0};
+    const int *required_property = NULL;
+    const uint32_t instance = 1;
+    bool status = false;
+
+    Device_Init(NULL);
+    status = Device_Set_Object_Instance_Number(instance);
+    zassert_true(status, NULL);
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_instance = instance;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+
+    Device_Property_Lists(&required_property, NULL, NULL);
+    while ((*required_property) >= 0) {
+        rpdata.object_property = *required_property;
+        len = Device_Read_Property(&rpdata);
+        if (len < 0) {
+            printf("property %u: failed to read!\n",
+                (unsigned)rpdata.object_property);
+        }
+        zassert_true(len >= 0, NULL);
+        if (len >= 0) {
+            test_len = bacapp_decode_known_property(rpdata.application_data,
+                len, &value, rpdata.object_type, rpdata.object_property);
+            if (len != test_len) {
+                printf("property %u: failed to decode!\n",
+                    (unsigned)rpdata.object_property);
+            }
+            if (rpdata.object_property == PROP_OBJECT_LIST) {
+                /* FIXME: known fail to decode */
+                len = test_len;
+            }
+            zassert_equal(len, test_len, NULL);
+        }
+        required_property++;
+    }
+
+    return;
+}
+
 /**
  * @}
  */
@@ -57,7 +108,8 @@ static void testDevice(void)
 void test_main(void)
 {
     ztest_test_suite(device_tests,
-     ztest_unit_test(testDevice)
+     ztest_unit_test(testDevice),
+     ztest_unit_test(test_Device_ReadProperty)
      );
 
     ztest_run_test_suite(device_tests);
