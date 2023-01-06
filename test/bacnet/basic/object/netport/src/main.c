@@ -19,7 +19,7 @@
  * @{
  */
 
-#if BACDL_BSC
+#ifdef BACDL_BSC
 #include "bacnet/datalink/bsc/bsc-mutex.h"
 
 struct BSC_Mutex {
@@ -132,7 +132,7 @@ static void test_network_port(void)
 
 static void test_network_port_pending_param(void)
 {
-#if BACDL_BSC
+#ifdef BACDL_BSC
     /* for decode value data */
     unsigned count = 0;
     uint32_t object_instance = 0;
@@ -250,7 +250,7 @@ static void test_network_port_pending_param(void)
 
 static void test_network_port_sc_direct_connect_accept_uri(void)
 {
-#if (BACDL_BSC) && (BSC_CONF_HUB_CONNECTORS_NUM!=0)
+#if defined(BACDL_BSC) && (BSC_CONF_HUB_CONNECTORS_NUM!=0)
     #define URL1        "SC_Direct_Connect_Accept_URI1"
     #define URL2        "SC_Direct_Connect_Accept_URI2"
     #define URL3        "SC_Direct_Connect_Accept_URI3"
@@ -352,7 +352,7 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
 
 static void test_network_port_sc_certificates(void)
 {
-#if BACDL_BSC
+#ifdef BACDL_BSC
     unsigned count = 0;
     uint32_t instance = 0;
     uint32_t file_instance = 0;

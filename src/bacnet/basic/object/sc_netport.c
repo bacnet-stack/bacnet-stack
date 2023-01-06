@@ -51,8 +51,6 @@
 #include <bacnet/basic/object/sc_netport.h>
 #include <bacnet/basic/object/netport_internal.h>
 
-#ifdef BACDL_BSC
-
 #define SC_MIN_RECONNECT_MIN    2
 #define SC_MIN_RECONNECT_MAX    300
 
@@ -680,12 +678,13 @@ bool Network_Port_SC_Primary_Hub_Connection_Status_Set(
     BACNET_DATE_TIME *connect_ts, BACNET_DATE_TIME *disconnect_ts,
     BACNET_ERROR_CODE error, char *error_details)
 {
+    BACNET_SC_HUB_CONNECTION *st;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
 
     Network_Port_Lock();
-    BACNET_SC_HUB_CONNECTION *st = &params->SC_Primary_Hub_Connection_Status;
+    st = &params->SC_Primary_Hub_Connection_Status;
     st->Connection_State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
@@ -715,12 +714,13 @@ bool Network_Port_SC_Failover_Hub_Connection_Status_Set(
     BACNET_DATE_TIME *connect_ts, BACNET_DATE_TIME *disconnect_ts,
     BACNET_ERROR_CODE error, char *error_details)
 {
+    BACNET_SC_HUB_CONNECTION *st;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
 
     Network_Port_Lock();
-    BACNET_SC_HUB_CONNECTION *st = &params->SC_Failover_Hub_Connection_Status;
+    st = &params->SC_Failover_Hub_Connection_Status;
     st->Connection_State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
@@ -2235,5 +2235,3 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
     Network_Port_Unlock();
 }
-
-#endif /* BACDL_BSC */

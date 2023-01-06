@@ -122,7 +122,7 @@ extern "C" {
 
 #endif /* BACDL_BSC */
 
-#if BACDL_BSC
+#ifdef BACDL_BSC
     void Network_Port_Lock(void);
     void Network_Port_Unlock(void);
 #else

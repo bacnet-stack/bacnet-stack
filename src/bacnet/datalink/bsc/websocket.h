@@ -16,6 +16,7 @@
 
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
+#include "bacnet/datalink/bsc/bsc-conf.h"
 
 
 /**
@@ -104,7 +105,7 @@ typedef enum {
 } BSC_WEBSOCKET_EVENT;
 
 /** @} */
- 
+
 typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
                               uint8_t* buf,
@@ -223,7 +224,7 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(BSC_WEBSOCKET_HANDLE h,
  * @brief Asynchronous bws_srv_start() function triggers process of
  * starting of a websocket server on a specified port for specified
  * BACNet websocket protocol. At present time peer can have only 2
- * instances of server: onerelates to BSC_WEBSOCKET_HUB_PROTOCOL and 
+ * instances of server: onerelates to BSC_WEBSOCKET_HUB_PROTOCOL and
  * the other to BSC_WEBSOCKET_HUB_PROTOCOL. When process completes,
  * dispatch_func() is called with BSC_WEBSOCKET_SERVER_STARTED
  * event.
@@ -281,7 +282,7 @@ BSC_WEBSOCKET_RET bws_srv_start(
 
 /**
  * @brief Asynchronous bws_srv_stop() function starts process of a shutdowns
- * of a websocket server specified by proto param. 
+ * of a websocket server specified by proto param.
  * opened websocket connections are closed.
  *
  * @pararm sh - websocket server handle

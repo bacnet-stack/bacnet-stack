@@ -50,7 +50,7 @@
 #include "bacnet/basic/object/netport.h"
 #include <bacnet/basic/object/netport_internal.h>
 
-#if BACDL_BSC
+#ifdef BACDL_BSC
 #include "bacnet/datalink/bsc/bsc-mutex.h"
 
 struct BSC_Mutex *netport_mutex = NULL;
@@ -203,7 +203,7 @@ static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_IPV6_ZONE_INDEX, -1 };
 
 static const int Network_Port_Properties_Proprietary[] = {
-#if BACDL_BSC
+#ifdef BACDL_BSC
     PROP_CUSTOM_SC_CERTIFICATE_KEY_FILE,
     PROP_CUSTOM_SC_LOCAL_UUID,
   #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
@@ -3278,7 +3278,7 @@ bool Network_Port_Read_Range(
     return status;
 }
 
-#if BACDL_BSC
+#ifdef BACDL_BSC
 void Network_Port_Lock(void)
 {
     if (netport_mutex != NULL)
@@ -3299,7 +3299,8 @@ void Network_Port_Init(void)
 {
     unsigned index = 0;
 
-#if BACDL_BSC
+#ifdef BACDL_BSC
+    BACNET_SC_PARAMS *sc;
     netport_mutex = bsc_mutex_init();
 #endif /* BACDL_BSC */
 
@@ -3308,14 +3309,14 @@ void Network_Port_Init(void)
     for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
         memset(&Object_List[index], 0, sizeof(Object_List[index]));
 #ifdef BACDL_BSC
-        BACNET_SC_PARAMS *sc = &Object_List[index].Secure_Connect;
-        (void)sc;
+        sc = &Object_List[index].Secure_Connect;
   #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
   #endif
   #ifdef BACNET_SC_STATUS_SUPPORT
         sc->SC_Failed_Connection_Requests = Keylist_Create();
   #endif
+        (void)sc;
 #endif /* BACDL_BSC */
     }
     Network_Port_Unlock();
@@ -3323,7 +3324,7 @@ void Network_Port_Init(void)
 
 void Network_Port_Pending_Params_Apply(uint32_t object_instance)
 {
-#if BACDL_BSC
+#ifdef BACDL_BSC
     Network_Port_SC_Pending_Params_Apply(object_instance);
 #else
     (void)object_instance;
@@ -3332,7 +3333,7 @@ void Network_Port_Pending_Params_Apply(uint32_t object_instance)
 
 void Network_Port_Pending_Params_Discard(uint32_t object_instance)
 {
-#if BACDL_BSC
+#ifdef BACDL_BSC
     Network_Port_SC_Pending_Params_Discard(object_instance);
 #else
     (void)object_instance;
