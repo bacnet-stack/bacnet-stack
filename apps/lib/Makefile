@@ -117,7 +117,6 @@ BACNET_SRC ?= \
 BACNET_BASIC_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/binding/*.c) \
-	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/object/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/service/*.c) \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/basic/sys/*.c) \
 	$(BACNET_SRC_DIR)/bacnet/basic/npdu/h_npdu.c \

@@ -20,10 +20,13 @@ win32:
 .PHONY: mingw32
 mingw32:
 	i686-w64-mingw32-gcc --version
+	ORIGINAL_CC=$(CC) ; \
+	ORIGINAL_LD=$(LD) ; \
 	export CC=i686-w64-mingw32-gcc ; \
 	export LD=i686-w64-mingw32-ld ; \
 	$(MAKE) BACNET_PORT=win32 -s -C apps all ; \
-	unset CC ; unset LD
+	export CC=$(ORIGINAL_CC) ; \
+	export LD=$(ORIGINAL_LD)
 
 .PHONY: mstpwin32
 mstpwin32:
@@ -105,11 +108,11 @@ getevent:
 
 .PHONY: gateway
 gateway:
-	$(MAKE) BACNET_DEFINES="-DBAC_ROUTING -DBSC_CONF_WSURL_MAX_LEN=127" -s -C apps $@
+	$(MAKE) -s -C apps $@
 
 .PHONY: gateway-win32
 gateway-win32:
-	$(MAKE) BACNET_DEFINES="-DBAC_ROUTING -DBSC_CONF_WSURL_MAX_LEN=127" BACNET_PORT=win32 -s -C apps gateway -DBAC_ROUTING=1
+	$(MAKE) BACNET_PORT=win32 -s -C apps gateway
 
 .PHONY: readbdt
 readbdt:
