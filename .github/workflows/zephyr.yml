@@ -26,7 +26,7 @@ jobs:
       - name: Twister Tests
         working-directory: bacnet-stack
         run: |
-          ../zephyr/scripts/twister --build-only -p mimxrt1064_evk -T zephyr/tests
+          ../zephyr/scripts/twister -p unit_testing -T zephyr/tests
       - name: Archive firmware
         uses: actions/upload-artifact@v3
         with:
