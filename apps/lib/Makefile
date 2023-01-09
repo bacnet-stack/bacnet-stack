@@ -86,7 +86,7 @@ endif
 BACNET_PORT_SRC += \
 	$(BACNET_SRC_DIR)/bacnet/datalink/dlenv.c \
 	$(BACNET_PORT_DIR)/mstimer-init.c \
-	$(BACNET_PORT_DIR)/datetime-init.c \
+	$(BACNET_PORT_DIR)/datetime-init.c
 
 BACNET_SRC ?= \
 	$(wildcard $(BACNET_SRC_DIR)/bacnet/*.c) \

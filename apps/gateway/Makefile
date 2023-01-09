@@ -2,9 +2,13 @@
 
 # Executable file name
 TARGET = bacgateway
-# BACnet objects that are used with this app
+
+SRC := main.c
+
+BACNET_SRC_DIR ?= $(realpath ../../src)
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
-SRC = main.c \
+
+BACNET_OBJECT_SRC := \
 	$(BACNET_OBJECT_DIR)/gateway/gw_device.c \
 	$(BACNET_OBJECT_DIR)/acc.c \
 	$(BACNET_OBJECT_DIR)/ai.c \
@@ -53,9 +57,9 @@ BACNET_BASIC_SRC = \
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
-SRCS = $(SRC) $(BACNET_SRC) $(BACNET_BASIC_SRC) $(BACNET_PORT_SRC)
+SRCS := $(SRC) $(BACNET_OBJECT_SRC) $(BACNET_BASIC_SRC)
 
-OBJS += ${SRCS:.c=.o}
+OBJS := $(SRCS:.c=.o)
 
 CFLAGS += -DBAC_ROUTING
 

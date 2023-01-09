@@ -616,6 +616,8 @@ int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
     uint8_t invoke_id)
 {
     int len = 0;
+
+    (void)service_argument;
     switch (service) {
         case SERVICE_SUPPORTED_REINITIALIZE_DEVICE:
             /* If not the gateway device, we don't support RD */
@@ -643,5 +645,6 @@ int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
             /* Everything else is a pass, at this time. */
             break;
     }
+
     return len;
 }
