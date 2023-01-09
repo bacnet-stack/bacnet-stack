@@ -1305,6 +1305,7 @@ static void test_sc_parameters(void)
         BACNET_WEBSOCKET_SERVER_PORT2);
 
     // prepare
+    bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key), iface,
         &hubf_uuid, &hubf_vmac, primary_url, secondary_url,
@@ -1316,16 +1317,15 @@ static void test_sc_parameters(void)
     bsc_node_conf_fill_from_netport(&bsc_conf, &node_event);
 
     // check
-    zassert_equal(bsc_conf.ca_cert_chain, ca_cert, NULL);
     zassert_equal(bsc_conf.ca_cert_chain_size, sizeof(ca_cert), NULL);
-    zassert_equal(bsc_conf.cert_chain, server_cert, NULL);
+    zassert_mem_equal(bsc_conf.ca_cert_chain, ca_cert, sizeof(ca_cert), NULL);
     zassert_equal(bsc_conf.cert_chain_size, sizeof(server_cert), NULL);
-    zassert_equal(bsc_conf.key, server_key, NULL);
+    zassert_mem_equal(
+        bsc_conf.cert_chain, server_cert, sizeof(server_cert), NULL);
     zassert_equal(bsc_conf.key_size, sizeof(server_key), NULL);
-    zassert_equal(
-        memcmp(bsc_conf.local_uuid, &hubf_uuid, sizeof(hubf_uuid)), 0, NULL);
-    zassert_equal(
-        memcmp(bsc_conf.local_vmac, &hubf_vmac, sizeof(hubf_vmac)), 0, NULL);
+    zassert_mem_equal(bsc_conf.key, server_key, sizeof(server_key), NULL);
+    zassert_mem_equal(bsc_conf.local_uuid, &hubf_uuid, sizeof(hubf_uuid), NULL);
+    zassert_mem_equal(bsc_conf.local_vmac, &hubf_vmac, sizeof(hubf_vmac), NULL);
     zassert_equal(bsc_conf.max_local_bvlc_len, SC_NETPORT_BVLC_MAX, NULL);
     zassert_equal(bsc_conf.max_local_npdu_len, SC_NETPORT_NPDU_MAX, NULL);
     zassert_equal(bsc_conf.connect_timeout_s, SC_NETPORT_CONNECT_TIMEOUT, NULL);
@@ -1356,10 +1356,9 @@ static void test_sc_parameters(void)
     zassert_equal(bsc_conf.direct_connect_accept_enable,
         SC_NETPORT_DIRECT_CONNECT_ACCERT, NULL);
 
-    zassert_equal(memcmp(bsc_conf.direct_connection_accept_uris,
+    zassert_mem_equal(bsc_conf.direct_connection_accept_uris,
                       SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS,
-                      strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS)),
-        0, NULL);
+                      strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS), NULL);
     zassert_equal(bsc_conf.direct_connection_accept_uris_len,
         strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS), NULL);
 #endif
@@ -1419,6 +1418,7 @@ static void test_sc_datalink(void)
     sprintf(secondary_url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_HUB_PORT);
     sprintf(direct_url, "wss://%s:%d", BACNET_LOCALHOST, SC_NETPORT_DIRECT_SERVER_PORT);
 
+    bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key), NULL,
         &uuid1, &vmac1, primary_url1, secondary_url1, true, false, false, 0,
