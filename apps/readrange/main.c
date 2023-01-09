@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h> /* for time */
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
 #include <locale.h>
 #endif
 #include "bacnet/bacdef.h"
@@ -146,40 +146,48 @@ static void print_usage(char *filename)
 static void print_help(char *filename)
 {
     printf("Read a range of properties from an array or list property\n"
-           "in an object in a BACnet device and print the values.\n"
-           "device-instance:\n"
-           "BACnet Device Object Instance number that you are\n"
-           "trying to communicate to.  This number will be used\n"
-           "to try and bind with the device using Who-Is and\n"
-           "I-Am services.  For example, if you were reading\n"
-           "Device Object 123, the device-instance would be 123.\n"
-           "\nobject-type:\n"
-           "The object type is the integer value of the enumeration\n"
-           "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
-           "that you are reading.  For example if you were\n"
-           "reading Trend Log 2, the object-type would be 20.\n"
-           "\nobject-instance:\n"
-           "This is the object instance number of the object that\n"
-           "you are reading.  For example, if you were reading\n"
-           "Trend Log 2, the object-instance would be 2.\n"
-           "\nproperty:\n"
-           "The property is an integer value of the enumeration\n"
-           "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
-           "you are reading.  For example, if you were reading the\n"
-           "Log_Buffer property, use 131 as the property.\n"
-           "\nrange-type:\n"
-           "1=By Position\n"
-           "2=By Sequence\n"
-           "3=By Time\n"
-           "4=All\n"
-           "\nindex or date/time:\n"
-           "This integer parameter is the starting index, or date & time.\n"
-           "\ncount:\n"
-           "This integer parameter is the number of elements to read.\n"
-           "\nExample:\n"
-           "If you want read the Log_Buffer of Trend Log 2\n"
-           "in Device 123, from starting position 1 and read 10 entries,\n"
-           "you could send the following commands:\n");
+        "in an object in a BACnet device and print the values.\n");
+    printf("\n");
+    printf("device-instance:\n"
+        "BACnet Device Object Instance number that you are\n"
+        "trying to communicate to.  This number will be used\n"
+        "to try and bind with the device using Who-Is and\n"
+        "I-Am services.  For example, if you were reading\n"
+        "Device Object 123, the device-instance would be 123.\n");
+    printf("\n");
+    printf("object-type:\n"
+        "The object type is the integer value of the enumeration\n"
+        "BACNET_OBJECT_TYPE in bacenum.h.  It is the object\n"
+        "that you are reading.  For example if you were\n"
+        "reading Trend Log 2, the object-type would be 20.\n");
+    printf("\n");
+    printf("object-instance:\n"
+        "This is the object instance number of the object that\n"
+        "you are reading.  For example, if you were reading\n"
+        "Trend Log 2, the object-instance would be 2.\n");
+    printf("\n");
+    printf("property:\n"
+        "The property is an integer value of the enumeration\n"
+        "BACNET_PROPERTY_ID in bacenum.h.  It is the property\n"
+        "you are reading.  For example, if you were reading the\n"
+        "Log_Buffer property, use 131 as the property.\n");
+    printf("\n");
+    printf("range-type:\n"
+        "1=By Position\n"
+        "2=By Sequence\n"
+        "3=By Time\n"
+        "4=All\n");
+    printf("\n");
+    printf("index or date/time:\n"
+        "This integer parameter is the starting index, or date & time.\n");
+    printf("\n");
+    printf("count:\n"
+        "This integer parameter is the number of elements to read.\n");
+    printf("\n");
+    printf("Example:\n"
+        "If you want read the Log_Buffer of Trend Log 2\n"
+        "in Device 123, from starting position 1 and read 10 entries,\n"
+        "you could send the following commands:\n");
     printf("%s 123 trend-log 2 log-buffer 1 1 10\n", filename);
     printf("%s 123 trend-log 2 log-buffer 2 1 10\n", filename);
     printf("%s 123 trend-log 2 log-buffer 3 1/1/2014 00:00:01 10\n", filename);
@@ -326,7 +334,7 @@ int main(int argc, char *argv[])
     address_init();
     Init_Service_Handlers();
     dlenv_init();
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.
      * This can be done by calling setlocale() as follows.

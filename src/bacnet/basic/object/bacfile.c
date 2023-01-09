@@ -33,6 +33,7 @@
 #include "bacnet/bacapp.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/bacdcode.h"
+#include "bacnet/datetime.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/basic/tsm/tsm.h"
@@ -43,21 +44,24 @@
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/object/bacfile.h"
-
-typedef struct {
-    uint32_t instance;
-    char *filename;
-} BACNET_FILE_LISTING;
+#include "bacnet/basic/sys/keylist.h"
 
 #ifndef FILE_RECORD_SIZE
 #define FILE_RECORD_SIZE MAX_OCTET_STRING_BYTES
 #endif
-
-static BACNET_FILE_LISTING BACnet_File_Listing[] = {
-    { 0, "temp_0.txt" }, { 1, "temp_1.txt" }, { 2, "temp_2.txt" },
-    { 0, NULL } /* last file indication */
+struct object_data {
+    char *Object_Name;
+    char *Pathname;
+    BACNET_DATE_TIME Modification_Date;
+    char *File_Type;
+    bool File_Access_Stream:1;
+    bool Read_Only : 1;
+    bool Archive : 1;
 };
-
+/* Key List for storing the object data sorted by instance number  */
+static OS_Keylist Object_List;
+/* common object type */
+static const BACNET_OBJECT_TYPE Object_Type = OBJECT_FILE;
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int bacfile_Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME, PROP_OBJECT_TYPE, PROP_FILE_TYPE, PROP_FILE_SIZE,
@@ -68,6 +72,16 @@ static const int bacfile_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
 static const int bacfile_Properties_Proprietary[] = { -1 };
 
+/**
+ * @brief Returns the list of required, optional, and proprietary properties.
+ * Used by ReadPropertyMultiple service.
+ * @param pRequired - pointer to list of int terminated by -1, of
+ * BACnet required properties for this object.
+ * @param pOptional - pointer to list of int terminated by -1, of
+ * BACnet optional properties for this object.
+ * @param pProprietary - pointer to list of int terminated by -1, of
+ * BACnet proprietary properties for this object.
+ */
 void BACfile_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
@@ -84,71 +98,183 @@ void BACfile_Property_Lists(
     return;
 }
 
-static char *bacfile_name(uint32_t instance)
+/**
+ * @brief For a given object instance-number, returns the pathname
+ * @param  object_instance - object-instance number of the object
+ * @return  internal file system path and name, or NULL if not set
+ */
+const char *bacfile_pathname(uint32_t object_instance)
 {
-    uint32_t index = 0;
-    char *filename = NULL;
+    struct object_data *pObject;
+    const char *pathname = NULL;
 
-    /* linear search for file instance match */
-    while (BACnet_File_Listing[index].filename) {
-        if (BACnet_File_Listing[index].instance == instance) {
-            filename = BACnet_File_Listing[index].filename;
-            break;
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pathname = pObject->Pathname;
+    }
+
+    return pathname;
+}
+
+/**
+ * @brief For a given object instance-number, sets the pathname
+ * @param  object_instance - object-instance number of the object
+ * @param  pathname - internal file system path and name
+ */
+void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->Pathname) {
+            free(pObject->Pathname);
         }
+        pObject->Pathname = strdup(pathname);
+    }
+}
+
+/**
+ * @brief For a given pathname, gets the object instance-number
+ * @param pathname - internal file system path and name
+ * @return object-instance number of the object,
+ *  or #BACNET_MAX_INSTANCE if not found
+ */
+uint32_t bacfile_pathname_instance(
+        const char *pathname)
+{
+    struct object_data *pObject;
+    int count = 0;
+    int index = 0;
+
+    count = Keylist_Count(Object_List);
+    while (count) {
+        pObject = Keylist_Data_Index(Object_List, index);
+        if (strcmp(pathname, pObject->Pathname) == 0) {
+            return Keylist_Key(Object_List, index);
+        }
+        count--;
         index++;
     }
 
-    return filename;
+    return BACNET_MAX_INSTANCE;
 }
 
+/**
+ * For a given object instance-number, loads the object-name into
+ * a characterstring. Note that the object name must be unique
+ * within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  object_name - holds the object-name retrieved
+ *
+ * @return  true if object-name was retrieved
+ */
 bool bacfile_object_name(
-    uint32_t instance, BACNET_CHARACTER_STRING *object_name)
+    uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    char *filename = NULL;
+    struct object_data *pObject;
+    char name_text[32];
 
-    filename = bacfile_name(instance);
-    if (filename) {
-        status = characterstring_init_ansi(object_name, filename);
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->Object_Name) {
+            status = characterstring_init_ansi(object_name,
+                pObject->Object_Name);
+        } else {
+            snprintf(name_text, sizeof(name_text), "FILE %u",
+                object_instance);
+            status = characterstring_init_ansi(object_name, name_text);
+        }
     }
 
     return status;
 }
 
+/**
+ * For a given object instance-number, sets the object-name
+ * Note that the object name must be unique within this device.
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  new_name - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+bool bacfile_object_name_set(uint32_t object_instance, char *new_name)
+{
+    bool status = false; /* return value */
+    BACNET_CHARACTER_STRING object_name;
+    BACNET_OBJECT_TYPE found_type = 0;
+    uint32_t found_instance = 0;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject && new_name) {
+        /* All the object names in a device must be unique */
+        characterstring_init_ansi(&object_name, new_name);
+        if (Device_Valid_Object_Name(
+                &object_name, &found_type, &found_instance)) {
+            if ((found_type == Object_Type) &&
+                (found_instance == object_instance)) {
+                /* writing same name to same object */
+                status = true;
+            } else {
+                /* duplicate name! */
+                status = false;
+            }
+        } else {
+            status = true;
+            pObject->Object_Name = new_name;
+            Device_Inc_Database_Revision();
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Determines if a given object instance is valid
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the instance is valid, and false if not
+ */
 bool bacfile_valid_instance(uint32_t object_instance)
 {
-    return bacfile_name(object_instance) ? true : false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        return true;
+    }
+
+    return false;
 }
 
+/**
+ * @brief Determines the number of objects
+ * @return  Number of objects
+ */
 uint32_t bacfile_count(void)
 {
-    uint32_t index = 0;
-
-    /* linear search for file instance match */
-    while (BACnet_File_Listing[index].filename) {
-        index++;
-    }
-
-    return index;
+    return Keylist_Count(Object_List);
 }
 
+/**
+ * @brief Determines the object instance-number for a given 0..N index
+ * of objects where N is the object count
+ * @param  find_index - 0..N value
+ * @return  object instance-number for the given index
+ */
 uint32_t bacfile_index_to_instance(unsigned find_index)
 {
-    uint32_t instance = BACNET_MAX_INSTANCE + 1;
-    uint32_t index = 0;
-
-    /* bounds checking... */
-    while (BACnet_File_Listing[index].filename) {
-        if (index == find_index) {
-            instance = BACnet_File_Listing[index].instance;
-            break;
-        }
-        index++;
-    }
-
-    return instance;
+    return Keylist_Key(Object_List, find_index);
 }
 
+/**
+ * @brief Determines the file size for a given file
+ * @param  pFile - file handle
+ * @return  file size in bytes, or 0 if not found
+ */
 static long fsize(FILE *pFile)
 {
     long size = 0;
@@ -163,14 +289,50 @@ static long fsize(FILE *pFile)
     return (size);
 }
 
+/**
+ * @brief Read the entire file into a buffer
+ * @param  object_instance - object-instance number of the object
+ * @param  buffer - pointer to buffer pointer where heap data will be stored
+ * @param  buffer_size - in bytes
+ * @return  file size in bytes
+ */
+uint32_t bacfile_read(uint32_t object_instance, uint8_t *buffer,
+    uint32_t buffer_size)
+{
+    const char *pFilename = NULL;
+    FILE *pFile = NULL;
+    long file_size = 0;
+
+    pFilename = bacfile_pathname(object_instance);
+    if (pFilename) {
+        pFile = fopen(pFilename, "rb");
+        if (pFile) {
+            file_size = fsize(pFile);
+            if (buffer && (buffer_size >= file_size)) {
+                if (fread(buffer, file_size, 1, pFile) == 0) {
+                    file_size = 0;
+                }
+            }
+            fclose(pFile);
+        }
+    }
+
+    return (uint32_t)file_size;
+}
+
+/**
+ * @brief Determines the file size for a given file
+ * @param  pFile - file handle
+ * @return  file size in bytes, or 0 if not found
+ */
 BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
 {
-    char *pFilename = NULL;
+    const char *pFilename = NULL;
     FILE *pFile = NULL;
     long file_position = 0;
     BACNET_UNSIGNED_INTEGER file_size = 0;
 
-    pFilename = bacfile_name(object_instance);
+    pFilename = bacfile_pathname(object_instance);
     if (pFilename) {
         pFile = fopen(pFilename, "rb");
         if (pFile) {
@@ -185,14 +347,238 @@ BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
     return file_size;
 }
 
-/* return the number of bytes used, or -1 on error */
+/**
+ * @brief Sets the file size property value
+ * @param object_instance - object-instance number of the object
+ * @param file_size - value of the file size property
+ * @return true if file size is writable
+ */
+bool bacfile_file_size_set(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER file_size)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->File_Access_Stream) {
+            (void)file_size;
+            /* FIXME: add clever POSIX file stuff here */
+        }
+    }
+
+    return status;
+}
+
+
+/**
+ * @brief Determines the file size property value
+ * @param object_instance - object-instance number of the object
+ * @return value of the file size property
+ */
+const char * bacfile_file_type(
+    uint32_t object_instance)
+{
+    struct object_data *pObject;
+    const char * mime_type = "application/octet-stream";
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->File_Type) {
+            mime_type = pObject->File_Type;
+        }
+    }
+
+    return mime_type;
+}
+
+/**
+ * @brief Sets the file type (MIME) property value
+ * @param object_instance - object-instance number of the object
+ * @param mime_type - value of the file type property
+ */
+void bacfile_file_type_set(
+    uint32_t object_instance,
+    const char *mime_type)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        if (pObject->File_Type) {
+            if (strcmp(pObject->File_Type, mime_type) != 0) {
+                free(pObject->File_Type);
+                pObject->File_Type = strdup(mime_type);
+            }
+        } else {
+            pObject->File_Type = strdup(mime_type);
+        }
+    }
+}
+
+/**
+ * @brief For a given object instance-number, return the flag
+ * @note 12.13.8 Archive
+ *  This property, of type BOOLEAN, indicates whether the File
+ *  object has been saved for historical or backup purposes. This
+ *  property shall be logical TRUE only if no changes have been
+ *  made to the file data by internal processes or through File
+ *  Access Services since the last time the object was archived.
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the property is true
+ */
+bool bacfile_archive(
+    uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = pObject->Archive;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, return the flag
+ * @note 12.13.8 Archive
+ *  This property, of type BOOLEAN, indicates whether the File
+ *  object has been saved for historical or backup purposes. This
+ *  property shall be logical TRUE only if no changes have been
+ *  made to the file data by internal processes or through File
+ *  Access Services since the last time the object was archived.
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the property is true
+ */
+bool bacfile_archive_set(
+    uint32_t object_instance, bool archive)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Archive = archive;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, return the flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the property is true
+ */
+bool bacfile_read_only(
+    uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = pObject->Read_Only;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Sets the file archive property value
+ * @param object_instance - object-instance number of the object
+ * @param archive - value of the file archive property
+ * @return true if the file exists and read-only is writeable
+ */
+bool bacfile_read_only_set(
+    uint32_t object_instance,
+    bool read_only)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Read_Only = read_only;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, return the flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the property is true
+ */
+void bacfile_modification_date(
+    uint32_t object_instance, BACNET_DATE_TIME *bdatetime)
+{
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        datetime_copy(bdatetime, &pObject->Modification_Date);
+    }
+}
+
+/**
+ * @brief For a given object instance-number, return the flag
+ * @param  object_instance - object-instance number of the object
+ * @return  true if the property is true
+ */
+bool bacfile_file_access_stream(
+    uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = pObject->File_Access_Stream;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Sets the file access property value
+ * @param object_instance - object-instance number of the object
+ * @param access - value of the property
+ * @return true if the file exists and property is writeable
+ */
+bool bacfile_file_access_stream_set(
+    uint32_t object_instance,
+    bool access)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->File_Access_Stream = access;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief ReadProperty handler for this object.  For the given ReadProperty
+ * data, the application_data is loaded or the error flags are set.
+ * @param  rpdata - BACNET_READ_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @return number of APDU bytes in the response, or
+ * BACNET_STATUS_ERROR on error.
+ */
 int bacfile_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
-    char text_string[32] = { "" };
     BACNET_CHARACTER_STRING char_string;
-    BACNET_DATE bdate;
-    BACNET_TIME btime;
+    BACNET_DATE_TIME bdatetime;
     uint8_t *apdu = NULL;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
@@ -206,23 +592,23 @@ int bacfile_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_FILE, rpdata->object_instance);
             break;
         case PROP_OBJECT_NAME:
-            sprintf(text_string, "FILE %lu",
-                (unsigned long)rpdata->object_instance);
-            characterstring_init_ansi(&char_string, text_string);
+            bacfile_object_name(rpdata->object_instance, &char_string);
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_OBJECT_TYPE:
-            apdu_len = encode_application_enumerated(&apdu[0], OBJECT_FILE);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], Object_Type);
             break;
         case PROP_DESCRIPTION:
             characterstring_init_ansi(
-                &char_string, bacfile_name(rpdata->object_instance));
+                &char_string, bacfile_pathname(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FILE_TYPE:
-            characterstring_init_ansi(&char_string, "TEXT");
+            characterstring_init_ansi(&char_string,
+                bacfile_file_type(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -231,49 +617,43 @@ int bacfile_read_property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], bacfile_file_size(rpdata->object_instance));
             break;
         case PROP_MODIFICATION_DATE:
-            /* FIXME: get the actual value instead of April Fool's Day */
-            bdate.year = 2006; /* AD */
-            bdate.month = 4; /* 1=Jan */
-            bdate.day = 1; /* 1..31 */
-            bdate.wday = 6; /* 1=Monday */
-            apdu_len = encode_application_date(&apdu[0], &bdate);
-            /* FIXME: get the actual value */
-            btime.hour = 7;
-            btime.min = 0;
-            btime.sec = 3;
-            btime.hundredths = 1;
-            apdu_len += encode_application_time(&apdu[apdu_len], &btime);
+            bacfile_modification_date(rpdata->object_instance, &bdatetime);
+            apdu_len = bacapp_encode_datetime(apdu, &bdatetime);
             break;
         case PROP_ARCHIVE:
-            /* 12.13.8 Archive
-               This property, of type BOOLEAN, indicates whether the File
-               object has been saved for historical or backup purposes. This
-               property shall be logical TRUE only if no changes have been
-               made to the file data by internal processes or through File
-               Access Services since the last time the object was archived.
-             */
-            /* FIXME: get the actual value: note it may be inverse... */
-            apdu_len = encode_application_boolean(&apdu[0], true);
+            apdu_len = encode_application_boolean(&apdu[0],
+                bacfile_archive(rpdata->object_instance));
             break;
         case PROP_READ_ONLY:
-            /* FIXME: get the actual value */
-            apdu_len = encode_application_boolean(&apdu[0], true);
+            apdu_len = encode_application_boolean(&apdu[0],
+                bacfile_read_only(rpdata->object_instance));
             break;
         case PROP_FILE_ACCESS_METHOD:
-            apdu_len = encode_application_enumerated(
-                &apdu[0], FILE_RECORD_AND_STREAM_ACCESS);
+            if (bacfile_file_access_stream(rpdata->object_instance)) {
+                apdu_len = encode_application_enumerated(
+                    &apdu[0], FILE_STREAM_ACCESS);
+            } else {
+                apdu_len = encode_application_enumerated(
+                    &apdu[0], FILE_RECORD_ACCESS);
+            }
             break;
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
-            apdu_len = -1;
+            apdu_len = BACNET_STATUS_ERROR;
             break;
     }
 
     return apdu_len;
 }
 
-/* returns true if successful */
+/**
+ * @brief WriteProperty handler for this object.  For the given WriteProperty
+ * data, the application_data is loaded or the error flags are set.
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @return false if an error is loaded, true if no errors
+ */
 bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -303,20 +683,11 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_ARCHIVE:
-            /* 12.13.8 Archive
-               This property, of type BOOLEAN, indicates whether the File
-               object has been saved for historical or backup purposes. This
-               property shall be logical TRUE only if no changes have been
-               made to the file data by internal processes or through File
-               Access Services since the last time the object was archived. */
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                if (value.type.Boolean) {
-                    /* FIXME: do something to wp_data->object_instance */
-                } else {
-                    /* FIXME: do something to wp_data->object_instance */
-                }
+                status = bacfile_archive_set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_FILE_SIZE:
@@ -326,8 +697,13 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                /* FIXME: do something with value.type.Unsigned
-                   to wp_data->object_instance */
+                status =
+                    bacfile_file_size_set(wp_data->object_instance,
+                    value.type.Unsigned_Int);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                }
             }
             break;
         case PROP_OBJECT_IDENTIFIER:
@@ -348,23 +724,6 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
-}
-
-uint32_t bacfile_instance(char *filename)
-{
-    uint32_t index = 0;
-    uint32_t instance = BACNET_MAX_INSTANCE + 1;
-
-    /* linear search for filename match */
-    while (BACnet_File_Listing[index].filename) {
-        if (strcmp(BACnet_File_Listing[index].filename, filename) == 0) {
-            instance = BACnet_File_Listing[index].instance;
-            break;
-        }
-        index++;
-    }
-
-    return instance;
 }
 
 #if MAX_TSM_TRANSACTIONS
@@ -416,12 +775,12 @@ uint32_t bacfile_instance_from_tsm(uint8_t invokeID)
 
 bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 {
-    char *pFilename = NULL;
+    const char *pFilename = NULL;
     bool found = false;
     FILE *pFile = NULL;
     size_t len = 0;
 
-    pFilename = bacfile_name(data->object_instance);
+    pFilename = bacfile_pathname(data->object_instance);
     if (pFilename) {
         found = true;
         pFile = fopen(pFilename, "rb");
@@ -450,11 +809,11 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
 
 bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
-    char *pFilename = NULL;
+    const char *pFilename = NULL;
     bool found = false;
     FILE *pFile = NULL;
 
-    pFilename = bacfile_name(data->object_instance);
+    pFilename = bacfile_pathname(data->object_instance);
     if (pFilename) {
         found = true;
         if (data->type.stream.fileStartPosition == 0) {
@@ -487,14 +846,14 @@ bool bacfile_write_stream_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 
 bool bacfile_write_record_data(BACNET_ATOMIC_WRITE_FILE_DATA *data)
 {
-    char *pFilename = NULL;
+    const char *pFilename = NULL;
     bool found = false;
     FILE *pFile = NULL;
     uint32_t i = 0;
     char dummy_data[FILE_RECORD_SIZE];
     char *pData = NULL;
 
-    pFilename = bacfile_name(data->object_instance);
+    pFilename = bacfile_pathname(data->object_instance);
     if (pFilename) {
         found = true;
         if (data->type.record.fileStartRecord == 0) {
@@ -539,9 +898,9 @@ bool bacfile_read_ack_stream_data(
 {
     bool found = false;
     FILE *pFile = NULL;
-    char *pFilename = NULL;
+    const char *pFilename = NULL;
 
-    pFilename = bacfile_name(instance);
+    pFilename = bacfile_pathname(instance);
     if (pFilename) {
         found = true;
         pFile = fopen(pFilename, "rb+");
@@ -566,12 +925,12 @@ bool bacfile_read_ack_record_data(
 {
     bool found = false;
     FILE *pFile = NULL;
-    char *pFilename = NULL;
+    const char *pFilename = NULL;
     uint32_t i = 0;
     char dummy_data[MAX_OCTET_STRING_BYTES] = { 0 };
     char *pData = NULL;
 
-    pFilename = bacfile_name(instance);
+    pFilename = bacfile_pathname(instance);
     if (pFilename) {
         found = true;
         pFile = fopen(pFilename, "rb+");
@@ -602,6 +961,86 @@ bool bacfile_read_ack_record_data(
     return found;
 }
 
+
+/**
+ * @brief Creates an object
+ * @param object_instance - object-instance number of the object
+ * @return true if the object-instance was created
+ */
+bool bacfile_create(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject = NULL;
+    int index = 0;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (!pObject) {
+        pObject = calloc(1, sizeof(struct object_data));
+        if (pObject) {
+            pObject->Object_Name = NULL;
+            pObject->Pathname = NULL;
+            /* April Fool's Day */
+            datetime_set_values(&pObject->Modification_Date,
+                2006, 4, 1, 7, 0, 3, 1);
+            pObject->Read_Only = false;
+            pObject->Archive = false;
+            pObject->File_Access_Stream = true;
+            /* add to list */
+            index = Keylist_Data_Add(Object_List, object_instance, pObject);
+            if (index >= 0) {
+                status = true;
+                Device_Inc_Database_Revision();
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Deletes an object
+ * @param object_instance - object-instance number of the object
+ * @return true if the object-instance was deleted
+ */
+bool bacfile_delete(uint32_t object_instance)
+{
+    bool status = false;
+    struct object_data *pObject = NULL;
+
+    pObject = Keylist_Data_Delete(Object_List, object_instance);
+    if (pObject) {
+        free(pObject);
+        status = true;
+        Device_Inc_Database_Revision();
+    }
+
+    return status;
+}
+
+/**
+ * @brief Deletes all the objects and their data
+ */
+void bacfile_cleanup(void)
+{
+    struct object_data *pObject;
+
+    if (Object_List) {
+        do {
+            pObject = Keylist_Data_Pop(Object_List);
+            if (pObject) {
+                free(pObject);
+                Device_Inc_Database_Revision();
+            }
+        } while (pObject);
+        Keylist_Delete(Object_List);
+        Object_List = NULL;
+    }
+}
+
+/**
+ * @brief Initializes the object data
+ */
 void bacfile_init(void)
 {
+    Object_List = Keylist_Create();
 }

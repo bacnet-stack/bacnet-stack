@@ -1498,6 +1498,9 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
         case TL_TYPE_ANY:
             /* Should never happen as we don't support this at the moment */
             break;
+        
+        default:
+            break;
     }
 
     iLen += encode_closing_tag(&apdu[iLen], 1);

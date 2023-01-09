@@ -33,7 +33,7 @@ jobs:
             -p mimxrt1064_evk
 
       - name: Archive firmware
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: firmware
           path: bacnet-stack/build/zephyr/zephyr.*

@@ -94,16 +94,31 @@ BACNET_PORT_DIR =  $(realpath ../ports/$(BACNET_PORT))
 BACNET_SRC_DIR =  $(realpath ../src)
 
 # Compiler flag to set the C Standard level.
-# c89   - "ANSI" C
-# gnu89 - c89 plus GCC extensions
+# c89   - "ANSI" C - ISO C90
+# gnu89 - c89 plus GNU extensions
+# c90   - "ANSI" C - ISO C90
+# gnu90 - C90 with GNU extensions
 # c99   - ISO C99 standard
-# gnu99 - c99 plus GCC extensions
-CSTANDARD = -std=gnu89
+# gnu99 - C99 plus GNU extensions
+# c11   - C11
+# gnu11 - C11 plus GNU extensions
+# c17   - C11 with corrections
+# note: default is compiled as ANSI C for widest compiler compatibilty
+# note: code that requires newer language features must use __STDC_VERSION__
+CSTANDARD ?= -std=gnu89
 
 #build for release (default) or debug
 OPTIMIZATION ?= -Os
 DEBUGGING ?=
-WARNINGS ?= -Wall -Wmissing-prototypes -Wno-missing-braces
+WARNING_ALL := -Wall -Wextra -Wall -Wfloat-equal -Wconversion -Wparentheses
+WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
+WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
+WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
+WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
+WARNING_ALL += -Wno-long-long
+#WARNING_ALL += -Wredundant-decls
+#WARNING_ALL += -Werror
+WARNINGS ?= $(WARNING_ALL)
 # dead code removal
 ifeq (${BUILD},debug)
 OPTIMIZATION = -O0
@@ -169,151 +184,151 @@ TARGETS = all clean
 $(TARGETS): %: $(patsubst %, %.%, $(SUBDIRS))
 
 $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
-	$(MAKE) -b -C $(subst ., , $@)
+	$(MAKE) -C $(subst ., , $@)
 
 .PHONY: lib
 lib: lib/Makefile Makefile $(BACNET_LIB_TARGET)
 
 $(BACNET_LIB_TARGET):
-	$(MAKE) -b -C lib
+	$(MAKE) -B -C lib
 
 .PHONY: gateway
 gateway: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C gateway
+	$(MAKE) -B -C $@
 
 .PHONY: abort
 abort: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: ack-alarm
 ack-alarm: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: dcc
 dcc: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: epics
 epics: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: error
 error: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: event
 event: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: getevent
 getevent: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: iam
 iam: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: iamrouter
 iamrouter: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: initrouter
 initrouter: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: whatisnetnum
 whatisnetnum: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: netnumis
 netnumis: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: mstpcap
 mstpcap:
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: mstpcrc
 mstpcrc:
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: ptransfer
 ptransfer: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: readprop
 readprop: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: readpropm
 readpropm: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: readbdt
 readbdt: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: readfdt
 readfdt: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: readfile
 readfile: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: readrange
 readrange: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: reinit
 reinit: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: scov
 scov: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: server
 server: $(BACNET_LIB_TARGET)
-	$(MAKE) -s -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: server-client
 server-client: $(BACNET_LIB_TARGET)
-	$(MAKE) -s -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: timesync
 timesync: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: uevent
 uevent: $(BACNET_LIB_TARGET)
-	$(MAKE) -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: whois
 whois: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: writebdt
 writebdt: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: writefile
 writefile: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: router
 router: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: router-ipv6
 router-ipv6: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: router-mstp
 router-mstp: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: writepropm
 writepropm: $(BACNET_LIB_TARGET)
-	$(MAKE) -b -C $@
+	$(MAKE) -B -C $@
 

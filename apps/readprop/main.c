@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h> /* for time */
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
 #include <locale.h>
 #endif
 
@@ -178,13 +178,15 @@ static void print_help(char *filename)
            "Optional BACnet mac address."
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-           "\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf(
            "--dnet N\n"
            "Optional BACnet network number N for directed requests.\n"
            "Valid range is from 0 to 65535 where 0 is the local connection\n"
-           "and 65535 is network broadcast.\n"
-           "\n"
+           "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf(
            "--dadr A\n"
            "Optional BACnet mac address on the destination BACnet network "
            "number.\n"
@@ -197,42 +199,54 @@ static void print_help(char *filename)
            "trying to communicate to.  This number will be used\n"
            "to try and bind with the device using Who-Is and\n"
            "I-Am services.  For example, if you were reading\n"
-           "Device Object 123, the device-instance would be 123.\n"
-           "\nobject-type:\n"
+           "Device Object 123, the device-instance would be 123.\n");
+    printf("\n");
+    printf(
+           "object-type:\n"
            "The object type is object that you are reading. It\n"
            "can be defined either as the object-type name string\n"
            "as defined in the BACnet specification, or as the\n"
            "integer value of the enumeration BACNET_OBJECT_TYPE\n"
            "in bacenum.h. For example if you were reading Analog\n"
-           "Output 2, the object-type would be analog-output or 1.\n"
-           "\nobject-instance:\n"
+           "Output 2, the object-type would be analog-output or 1.\n");
+    printf("\n");
+    printf(
+           "object-instance:\n"
            "This is the object instance number of the object that\n"
            "you are reading.  For example, if you were reading\n"
-           "Analog Output 2, the object-instance would be 2.\n"
-           "\nproperty:\n"
+           "Analog Output 2, the object-instance would be 2.\n");
+    printf("\n");
+    printf(
+           "property:\n"
            "The property of the object that you are reading. It\n"
            "can be defined either as the property name string as\n"
            "defined in the BACnet specification, or as an integer\n"
            "value of the enumeration BACNET_PROPERTY_ID in\n"
            "bacenum.h. For example, if you were reading the Present\n"
-           "Value property, use present-value or 85 as the property.\n"
-           "\nindex:\n"
+           "Value property, use present-value or 85 as the property.\n");
+    printf("\n");
+    printf(
+           "index:\n"
            "This integer parameter is the index number of an array.\n"
            "If the property is an array, individual elements can\n"
            "be read.  If this parameter is missing and the property\n"
-           "is an array, the entire array will be read.\n"
-           "\nExample:\n"
+           "is an array, the entire array will be read.\n");
+    printf("\n");
+    printf(
+           "Example:\n"
            "If you want read the Present-Value of Analog Output 101\n"
            "in Device 123, you could send either of the following\n"
            "commands:\n"
            "%s 123 analog-output 101 present-value\n"
-           "%s 123 1 101 85\n"
+           "%s 123 1 101 85\n",
+        filename, filename);
+    printf(
            "If you want read the Priority-Array of Analog Output 101\n"
            "in Device 123, you could send either of the following\n"
            "commands:\n"
            "%s 123 analog-output 101 priority-array\n"
            "%s 123 1 101 87\n",
-        filename, filename, filename, filename);
+        filename, filename);
 }
 
 int main(int argc, char *argv[])
@@ -369,7 +383,7 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-#ifdef __STDC_ISO_10646__
+#if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.
      * This can be done by calling setlocale() as follows.

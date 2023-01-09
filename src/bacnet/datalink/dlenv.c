@@ -215,9 +215,6 @@ static int bbmd_register_as_foreign_device(void)
                 pEnv = getenv(bbmd_env);
                 if (pEnv) {
                     bdt_entry_port = strtol(pEnv, NULL, 0);
-                    if (bdt_entry_port > 0xFFFF) {
-                        bdt_entry_port = 0xBAC0;
-                    }
                     if (entry_number == 1) {
                         if (BIP_DL_Debug) {
                             fprintf(stderr, "BBMD 1 port overridden %s=%s!\n",

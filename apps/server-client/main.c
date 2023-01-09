@@ -18,6 +18,7 @@
 #include "bacnet/bactext.h"
 #include "bacnet/version.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/client/bac-task.h"
 #include "bacnet/basic/client/bac-data.h"
@@ -26,9 +27,7 @@
 #include "bacnet/datalink/dlenv.h"
 
 /* print with flush by default */
-#define PRINTF(...)               \
-    fprintf(stderr, __VA_ARGS__); \
-    fflush(stderr)
+#define PRINTF debug_aprintf
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
@@ -49,20 +48,22 @@ static void print_help(const char *filename)
            "trying to communicate to.  This number will be used\n"
            "to try and bind with the device using Who-Is and\n"
            "I-Am services.  For example, if you were reading\n"
-           "Device Object 123, the device-instance would be 123.\n"
-           "\nobject-type:\n"
+           "Device Object 123, the device-instance would be 123.\n");
+    PRINTF("\n");
+    PRINTF("object-type:\n"
            "The object type is object that you are reading. It\n"
            "can be defined either as the object-type name string\n"
            "as defined in the BACnet specification, or as the\n"
            "integer value of the enumeration BACNET_OBJECT_TYPE\n"
            "in bacenum.h. For example if you were reading Analog\n"
-           "Output 2, the object-type would be analog-output or 1.\n"
-           "\nobject-instance:\n"
+           "Output 2, the object-type would be analog-output or 1.\n");
+    PRINTF("\n");
+    PRINTF("object-instance:\n"
            "This is the object instance number of the object that\n"
            "you are reading.  For example, if you were reading\n"
            "Analog Output 2, the object-instance would be 2.\n");
-    PRINTF("\n"
-           "Example:\n"
+    PRINTF("\n");
+    PRINTF("Example:\n"
            "If you want read the Present-Value of Analog Output 101\n"
            "in Device 123, you could send either of the following\n"
            "commands:\n"

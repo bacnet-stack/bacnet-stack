@@ -39,14 +39,10 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/object/ai.h"
 
-#if PRINT_ENABLED
-#include <stdio.h>
-#define PRINTF(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
+#define PRINTF debug_perror
 
 #ifndef MAX_ANALOG_INPUTS
 #define MAX_ANALOG_INPUTS 4

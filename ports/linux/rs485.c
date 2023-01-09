@@ -632,7 +632,8 @@ void RS485_Print_Ports(void)
     bool valid_port = false;
     struct serial_struct serinfo;
 
-    // Scan through /sys/class/tty - it contains all tty-devices in the system
+    /* Scan through /sys/class/tty - 
+       it contains all tty-devices in the system */
     n = scandir(sysdir, &namelist, NULL, NULL);
     if (n < 0) {
         perror("RS485: scandir");
@@ -642,7 +643,7 @@ void RS485_Print_Ports(void)
                 strcmp(namelist[n]->d_name, ".")) {
                 snprintf(device_dir, sizeof(device_dir), "%s%s/device", sysdir,
                     namelist[n]->d_name);
-                // Stat the devicedir and handle it if it is a symlink
+                /* Stat the devicedir and handle it if it is a symlink */
                 if (lstat(device_dir, &st) == 0 && S_ISLNK(st.st_mode)) {
                     memset(buffer, 0, sizeof(buffer));
                     snprintf(device_dir, sizeof(device_dir),
@@ -651,16 +652,16 @@ void RS485_Print_Ports(void)
                         valid_port = false;
                         driver_name = basename(buffer);
                         if (strcmp(driver_name, "serial8250") == 0) {
-                            // serial8250-devices must be probed
+                            /* serial8250-devices must be probed */
                             snprintf(device_dir, sizeof(device_dir), "/dev/%s",
                                 namelist[n]->d_name);
                             fd = open(
                                 device_dir, O_RDWR | O_NONBLOCK | O_NOCTTY);
                             if (fd >= 0) {
-                                // Get serial_info
+                                /* Get serial_info */
                                 if (ioctl(fd, TIOCGSERIAL, &serinfo) == 0) {
-                                    // If device type is not PORT_UNKNOWN
-                                    // we accept the port
+                                    /* If device type is not PORT_UNKNOWN */
+                                    /* we accept the port */
                                     if (serinfo.type != PORT_UNKNOWN) {
                                         valid_port = true;
                                     }
@@ -671,7 +672,7 @@ void RS485_Print_Ports(void)
                             valid_port = true;
                         }
                         if (valid_port) {
-                            // print full absolute file path
+                            /* print full absolute file path */
                             printf("interface {value=/dev/%s}"
                                    "{display=MS/TP Capture on /dev/%s}\n",
                                 namelist[n]->d_name, namelist[n]->d_name);
