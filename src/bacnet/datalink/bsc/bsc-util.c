@@ -117,6 +117,7 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     file_length = bacfile_read(file_instance,
         bsc_conf->key, bsc_conf->key_size);
     (void)file_length;
+
 #ifdef BACDL_BSC
     bsc_conf->local_uuid =
         (BACNET_SC_UUID*)Network_Port_SC_Local_UUID(instance);
