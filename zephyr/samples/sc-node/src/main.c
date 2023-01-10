@@ -25,7 +25,7 @@ LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
-/* include the device object */
+#include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/lc.h"
 #include "bacnet/basic/object/trendlog.h"
@@ -46,12 +46,6 @@ LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 #define DEVICE_INSTANCE 123
 #define DEVICE_NAME "Fred"
  
-#define SC_NETPORT_BACFILE_START_INDEX    0
-
-#if defined(MAX_BACFILES) && (MAX_BACFILES < SC_NETPORT_BACFILE_START_INDEX + 3)
-#error "BACFILE must save at least 3 files"
-#endif
-
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
@@ -132,20 +126,37 @@ static void Init_Service_Handlers(void)
 #endif
 }
 
+static void bacfile_set(uint32_t instance, const char *pathname,
+        uint8_t *buffer, uint32_t buffer_size)
+{
+    bacfile_create(instance);
+    bacfile_pathname_set(instance, pathname);
+    bacfile_write(instance, buffer, buffer_size);
+}
+
 static void init_bsc(void)
 {
     uint32_t instance = 1;
+    const char *filename_ca_cert = "ca_cert.pem";
+    const char *filename_cert = "cert.pem";
+    const char *filename_key = "key.pem";
 
     Network_Port_Object_Instance_Number_Set(0, instance);
 
-    Network_Port_Issuer_Certificate_File_Set_From_Memory(instance, 0,
-        Ca_Certificate, sizeof(Ca_Certificate), SC_NETPORT_BACFILE_START_INDEX);
+    bacfile_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
+        filename_ca_cert, Ca_Certificate, sizeof(Ca_Certificate));
+    Network_Port_Issuer_Certificate_File_Set(instance, 0,
+        BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
 
-    Network_Port_Operational_Certificate_File_Set_From_Memory(instance,
-        Certificate, sizeof(Certificate), SC_NETPORT_BACFILE_START_INDEX + 1);
+    bacfile_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
+        filename_cert, Certificate, sizeof(Certificate));
+    Network_Port_Operational_Certificate_File_Set(instance,
+        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
 
-    Network_Port_Certificate_Key_File_Set_From_Memory(instance,
-        Key, sizeof(Key), SC_NETPORT_BACFILE_START_INDEX + 2);
+    bacfile_set(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
+        filename_key, Key, sizeof(Key));
+    Network_Port_Certificate_Key_File_Set(instance,
+        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
     Network_Port_SC_Primary_Hub_URI_Set(instance, SERVER_URL);
     Network_Port_SC_Failover_Hub_URI_Set(instance, SERVER_URL);

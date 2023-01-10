@@ -15,6 +15,11 @@ string(REGEX REPLACE
     ${CMAKE_CURRENT_SOURCE_DIR})
 string(REGEX REPLACE
     "/test/bacnet/[a-zA-Z_/-]*$"
+    "/ports"
+    PORTS_DIR
+    ${CMAKE_CURRENT_SOURCE_DIR})
+string(REGEX REPLACE
+    "/test/bacnet/[a-zA-Z_/-]*$"
     "/test"
     TST_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
@@ -36,13 +41,13 @@ include_directories(
 	${TST_DIR}/ztest/include
 	)
 
-add_executable(${PROJECT_NAME}
+set(SOURCES
     # File(s) under test
 	${SRC_DIR}/bacnet/basic/object/bacfile.c
 	${SRC_DIR}/bacnet/basic/object/netport.c
 	${SRC_DIR}/bacnet/basic/object/sc_netport.c
     # Support files and stubs (pathname alphabetical)
-    ${SRC_DIR}/bacnet/arf.c
+	${SRC_DIR}/bacnet/arf.c
 	${SRC_DIR}/bacnet/bacapp.c
 	${SRC_DIR}/bacnet/bacdcode.c
 	${SRC_DIR}/bacnet/bacdevobjpropref.c
@@ -66,8 +71,18 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
     # Test and test library files
-    ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
 	)
+
+if(ZEPHYR_BASE)
+  message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  add_executable(${PROJECT_NAME} ${PORTS_DIR}/linux/bsc-mutex.c ${SOURCES})
+elseif(WIN32)
+  add_executable(${PROJECT_NAME} ${PORTS_DIR}/win32/bsc-mutex.c ${SOURCES})
+elseif(APPLE)
+  add_executable(${PROJECT_NAME} ${PORTS_DIR}/bsd/bsc-mutex.c ${SOURCES})
+endif()

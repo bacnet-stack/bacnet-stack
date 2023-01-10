@@ -16,7 +16,7 @@
 #include <bacnet/datalink/bsc/bsc-runloop.h>
 #include <unistd.h>
 
-#if __ZEPHYR__
+#ifdef ZEPHYR_SLEEP
 #define sleep(sec) k_msleep(1000 * (sec))
 #define usleep k_usleep
 #endif

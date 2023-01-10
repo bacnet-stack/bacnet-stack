@@ -22,7 +22,7 @@
 #ifdef BACDL_BSC
 #include "bacnet/datalink/bsc/bsc-mutex.h"
 
-#ifndef __ZEPHYR__
+#ifdef BSC_MUTEX_EMULATE
 struct BSC_Mutex {
     int count;
 };
@@ -51,7 +51,7 @@ void bsc_mutex_unlock(BSC_MUTEX* mutex)
     else
         mutex_error++;
 }
-#endif /* __ZEPHYR__ */
+#endif /* BSC_MUTEX_EMULATE */
 #endif /* BACDL_BSC */
 
 /**
@@ -144,7 +144,7 @@ static void test_network_port_pending_param(void)
     BACNET_CHARACTER_STRING str;
 #endif
 
-#ifndef __ZEPHYR__
+#ifdef BSC_MUTEX_EMULATE
     mutex_error = 0;
 #endif
     Network_Port_Init();
@@ -249,7 +249,7 @@ static void test_network_port_pending_param(void)
         NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
-#ifndef __ZEPHYR__
+#ifdef BSC_MUTEX_EMULATE
     zassert_true(my_mutex.count == 0, NULL);
     zassert_true(mutex_error == 0, NULL);
 #endif
@@ -277,7 +277,7 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     bool status = false;
     BACNET_CHARACTER_STRING str = {0};
 
-#ifndef __ZEPHYR__
+#ifdef BSC_MUTEX_EMULATE
     mutex_error = 0;
 #endif
     Network_Port_Init();
@@ -356,7 +356,7 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     zassert_true(strncmp(characterstring_value(&str), URL_BIG,
         characterstring_length(&str)) == 0, NULL);
 
-#ifndef __ZEPHYR__
+#ifdef BSC_MUTEX_EMULATE
     zassert_true(my_mutex.count == 0, NULL);
     zassert_true(mutex_error == 0, NULL);
 #endif
@@ -379,7 +379,7 @@ static void test_network_port_sc_certificates(void)
     char *filename_cert = "cert.pem";
     char *filename_key = "key.pem";
 
-#ifndef __ZEPHYR__
+#ifdef BSC_MUTEX_EMULATE
     mutex_error = 0;
 #endif
     Network_Port_Init();
@@ -427,7 +427,7 @@ static void test_network_port_sc_certificates(void)
 
     // check bacfile after reset
 
-#ifndef __ZEPHYR__
+#ifdef BSC_MUTEX_EMULATE
     zassert_true(my_mutex.count == 0, NULL);
 #endif
 
