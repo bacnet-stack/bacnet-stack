@@ -353,4 +353,21 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
 BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
                                         BSC_WEBSOCKET_HANDLE h,
                                         uint8_t *payload, size_t payload_size);
+
+/**
+ * @brief bws_dispatch_lock() function acquires internal websocket
+ *        global mutex. As a result dispatch_func() callback for all
+ *        websocket server and client instances won't be called until user
+ *        calls bws_dispatch_unlock().
+ */
+
+void bws_dispatch_lock(void);
+
+/**
+ * @brief bws_dispatch_unlock() function releases internal websocket
+ *        global mutex.
+ */
+
+void bws_dispatch_unlock(void);
+
 #endif

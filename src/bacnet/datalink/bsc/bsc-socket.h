@@ -42,6 +42,8 @@
 #define BSC_TX_BUFFER_SIZE BSC_CONF_TX_BUFFER_SIZE
 #endif
 
+#define BSC_SOCKET_CTX_NUM (BSC_CONF_NODES_NUM*(BSC_CONF_HUB_CONNECTORS_NUM + BSC_CONF_NODE_SWITCHES_NUM + BSC_CONF_HUB_FUNCTIONS_NUM))
+
 struct BSC_Socket;
 typedef struct BSC_Socket BSC_SOCKET;
 
@@ -270,5 +272,8 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len);
 
 BACNET_STACK_EXPORT
 uint16_t bsc_get_next_message_id(void);
+
+BACNET_STACK_EXPORT
+void bsc_maintenance_timer(uint16_t seconds);
 
 #endif

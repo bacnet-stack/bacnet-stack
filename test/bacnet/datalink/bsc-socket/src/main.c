@@ -12,9 +12,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <ztest.h>
-#include <bacnet/datalink/bsc/bsc-runloop.h>
+#include <time.h>
 #include <bacnet/datalink/bsc/bsc-socket.h>
-#include <bacnet/datalink/bsc/bsc-mutex.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <bacnet/datalink/bsc/bsc-util.h>
 #include <bacnet/datalink/bsc/bsc-retcodes.h>
@@ -1055,7 +1054,7 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define BACNET_WEBSOCKET_SERVER_PORT 40000
 #define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
 #define BACNET_SOCKET_TIMEOUT 5
-#define BACNET_SOCKET_HEARTBEAT_TIMEOUT 1
+#define BACNET_SOCKET_HEARTBEAT_TIMEOUT 3
 #define MAX_BVLC_LEN 1500
 #define MAX_NDPU_LEN 1500
 #define MAX_SERVER_SOCKETS BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
@@ -1111,9 +1110,35 @@ static void deinit_ctx_ev(ctx_ev_t *ev)
     bsc_event_deinit(ev->ev);
 }
 
+static void call_maintenance_timer(void)
+{
+    static time_t last_seconds = -1;
+    time_t current_seconds = time(NULL);
+
+    if(last_seconds == -1) {
+        last_seconds = time(NULL);
+    }
+
+    if (current_seconds - last_seconds > 0) {
+       bsc_maintenance_timer(current_seconds - last_seconds);
+       last_seconds = time(NULL);
+    }
+}
+
+static void wait_sec(int seconds)
+{
+  while(seconds >= 0) {
+     bsc_wait(1);
+     call_maintenance_timer();
+     seconds--;
+  }
+}
+
 static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
 {
-    bsc_event_wait(ev->ev);
+    while(!bsc_event_timedwait(ev->ev, 100)) {
+        call_maintenance_timer();
+    }
     if (ev->ev_code == wait_ev) {
         return true;
     } else {
@@ -1141,7 +1166,10 @@ static void signal_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT s_ev, BSC_SC_RET err)
 
 static bool wait_ctx_ev(ctx_ev_t *ev, BSC_CTX_EVENT wait_ev)
 {
-    bsc_event_wait(ev->ev);
+    while(!bsc_event_timedwait(ev->ev, 100)) {
+        call_maintenance_timer();
+    }
+
     if (ev->ev_code == wait_ev) {
         return true;
     } else {
@@ -1172,16 +1200,13 @@ static BSC_SOCKET *srv_find_connection_for_uuid(
 {
     int i;
 
-    bsc_global_mutex_lock();
     for (i = 0; i < sizeof(srv_socks) / sizeof(BSC_SOCKET); i++) {
         if (srv_socks[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(&uuid->uuid[0], &srv_socks[i].uuid.uuid[0],
                 sizeof(uuid->uuid))) {
-            bsc_global_mutex_unlock();
             return &srv_socks[i];
         }
     }
-    bsc_global_mutex_unlock();
     return NULL;
 }
 
@@ -1190,7 +1215,6 @@ static BSC_SOCKET *srv_find_connection_for_vmac(
 {
     int i;
 
-    bsc_global_mutex_lock();
     debug_printf(
         "srv_find_connection_for_uuid() vmac = %s\n", bsc_vmac_to_string(vmac));
     for (i = 0; i < sizeof(srv_socks) / sizeof(BSC_SOCKET); i++) {
@@ -1199,13 +1223,11 @@ static BSC_SOCKET *srv_find_connection_for_vmac(
         if (srv_socks[i].state != BSC_SOCK_STATE_IDLE &&
             !memcmp(&vmac->address[0], &srv_socks[i].vmac.address[0],
                 sizeof(vmac->address))) {
-            bsc_global_mutex_unlock();
             debug_printf(
                 "srv_find_connection_for_uuid() ret = %p\n", &srv_socks[i]);
             return &srv_socks[i];
         }
     }
-    bsc_global_mutex_unlock();
     debug_printf("srv_find_connection_for_uuid() ret = NULL\n");
     return NULL;
 }
@@ -1324,8 +1346,6 @@ static void test_simple(void)
         sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
         MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
         BACNET_SOCKET_TIMEOUT);
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
@@ -1347,9 +1367,9 @@ static void test_simple(void)
     reset_sock_ev(&srv_ev);
 
     // test that heartbeat works
-    // ensure that there were no any events for that 20 seconds
+    // ensure that there were no any events for that 10 seconds
     // (connection was not dropped)
-    bsc_wait(20);
+    wait_sec(10);
     zassert_equal(cli_ev.err == -1 && cli_ev.ev_code == -1 &&
             srv_ev.err == -1 && srv_ev.ev_code == -1,
         true, 0);
@@ -1383,7 +1403,6 @@ static void test_simple(void)
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    bsc_runloop_stop(bsc_global_runloop());
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&srv_ev);
     deinit_ctx_ev(&cli_ctx_ev);
@@ -1460,8 +1479,6 @@ static void test_duplicated_vmac_on_server(void)
         sizeof(client_key), &client_uuid2, &client_vmac2, MAX_BVLC_LEN,
         MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
         BACNET_SOCKET_TIMEOUT);
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
@@ -1505,7 +1522,6 @@ static void test_duplicated_vmac_on_server(void)
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    bsc_runloop_stop(bsc_global_runloop());
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&cli_ev2);
     deinit_sock_ev(&srv_ev);
@@ -1574,9 +1590,6 @@ static void test_duplicated_vmac_on_server2(void)
         MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
         BACNET_SOCKET_TIMEOUT);
 
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
-
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
@@ -1603,7 +1616,6 @@ static void test_duplicated_vmac_on_server2(void)
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    bsc_runloop_stop(bsc_global_runloop());
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&srv_ev);
     deinit_ctx_ev(&cli_ctx_ev);
@@ -1681,8 +1693,6 @@ static void test_duplicated_uuid_on_server(void)
         sizeof(client_key), &client_uuid2, &client_vmac2, MAX_BVLC_LEN,
         MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
         BACNET_SOCKET_TIMEOUT);
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
@@ -1725,7 +1735,6 @@ static void test_duplicated_uuid_on_server(void)
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    bsc_runloop_stop(bsc_global_runloop());
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&cli_ev2);
     deinit_sock_ev(&srv_ev);
@@ -1766,7 +1775,6 @@ static void test_bad_params(void)
     init_ctx_ev(&srv_ctx_ev);
     init_sock_ev(&cli_ev);
     init_ctx_ev(&cli_ctx_ev);
-    ret = bsc_runloop_start(bsc_global_runloop());
 
     // bad params bsc_init_ctx() test
 
@@ -1870,7 +1878,6 @@ static void test_bad_params(void)
     reset_sock_ev(&cli_ev);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    bsc_runloop_stop(bsc_global_runloop());
 
     deinit_sock_ev(&srv_ev);
     deinit_ctx_ev(&srv_ctx_ev);
@@ -1933,8 +1940,6 @@ static void test_error_case1(void)
         sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
         MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
         BACNET_SOCKET_TIMEOUT);
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
@@ -2020,7 +2025,6 @@ static void test_error_case1(void)
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    bsc_runloop_stop(bsc_global_runloop());
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&srv_ev);
     deinit_ctx_ev(&cli_ctx_ev);
@@ -2029,9 +2033,9 @@ static void test_error_case1(void)
 
 void test_main(void)
 {
+    BSC_SC_RET ret;
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
-
     ztest_test_suite(socket_test_1, ztest_unit_test(test_simple));
     ztest_test_suite(
         socket_test_2, ztest_unit_test(test_duplicated_vmac_on_server));

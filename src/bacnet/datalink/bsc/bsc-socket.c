@@ -18,8 +18,6 @@
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
-#include "bacnet/datalink/bsc/bsc-mutex.h"
-#include "bacnet/datalink/bsc/bsc-runloop.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/debug.h"
 
@@ -41,7 +39,30 @@ static const char *s_error_origin_presented =
 static const char *s_error_no_dest =
     "'Destination Virtual Address' field must be present";
 
-static void bsc_runloop(void *ctx);
+static BSC_SOCKET_CTX *bsc_socket_ctx[BSC_SOCKET_CTX_NUM] = { 0 };
+
+static bool bsc_ctx_add(BSC_SOCKET_CTX *ctx)
+{
+    int i;
+    for (i = 0; i < BSC_SOCKET_CTX_NUM; i++) {
+        if (bsc_socket_ctx[i] == NULL) {
+            bsc_socket_ctx[i] = ctx;
+            return true;
+        }
+    }
+    return false;
+}
+
+static void bsc_ctx_remove(BSC_SOCKET_CTX *ctx)
+{
+    int i;
+    for (i = 0; i < BSC_SOCKET_CTX_NUM; i++) {
+        if (bsc_socket_ctx[i] == ctx) {
+            bsc_socket_ctx[i] = NULL;
+            break;
+        }
+    }
+}
 
 void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
     BSC_CONTEXT_CFG *cfg,
@@ -391,10 +412,12 @@ static void bsc_process_socket_state(
             c->rx_buf_size);
 
         if (!bvlc_sc_decode_message(p, len, &c->dm, &code, &class, &err_desc)) {
-            /* if code == ERROR_CODE_OTHER that means that received bvlc message */
+            /* if code == ERROR_CODE_OTHER that means that received bvlc message
+             */
             /* has length less than 4 octets. */
             /* According EA-001-4 'Clarifying BVLC-Result in BACnet/SC ' */
-            /* If a BVLC message is received that has fewer than four octets, a */
+            /* If a BVLC message is received that has fewer than four octets, a
+             */
             /* BVLC-Result NAK shall not be returned. */
             /* The message shall be discarded and not be processed. */
             if (code != ERROR_CODE_OTHER) {
@@ -416,7 +439,8 @@ static void bsc_process_socket_state(
                 c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
                 if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR &&
                     c->ctx->cfg->proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
-                    /* this is a case when socket is a hub connector receiving */
+                    /* this is a case when socket is a hub connector receiving
+                     */
                     /* from hub */
                     if (c->dm.hdr.origin == NULL &&
                         c->dm.hdr.bvlc_function != BVLC_SC_RESULT) {
@@ -538,9 +562,8 @@ static void bsc_process_socket_state(
     DEBUG_PRINTF("bsc_process_socket_state() <<<\n");
 }
 
-static void bsc_runloop(void *p)
+static void bsc_runloop(BSC_SOCKET_CTX *ctx)
 {
-    BSC_SOCKET_CTX *ctx = (BSC_SOCKET_CTX *)p;
     BSC_SOCKET_CTX_TYPE type;
     BSC_WEBSOCKET_SRV_HANDLE sh;
     BSC_WEBSOCKET_HANDLE wh;
@@ -550,7 +573,6 @@ static void bsc_runloop(void *p)
 
     /* DEBUG_PRINTF("bsc_runloop() >>> ctx = %p, state = %d\n", ctx, */
     /* ctx->state); */
-    bsc_global_mutex_lock();
     if (ctx->state == BSC_CTX_STATE_INITIALIZED) {
         for (i = 0; i < ctx->sock_num; i++) {
             if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
@@ -581,8 +603,23 @@ static void bsc_runloop(void *p)
             }
         }
     }
-    bsc_global_mutex_unlock();
     /* DEBUG_PRINTF("bsc_runloop() <<<\n"); */
+}
+
+void bsc_maintenance_timer(uint16_t seconds)
+{
+    int i;
+    (void)seconds;
+
+    bws_dispatch_lock();
+
+    for (i = 0; i < BSC_SOCKET_CTX_NUM; i++) {
+        if (bsc_socket_ctx[i] != NULL) {
+            bsc_runloop(bsc_socket_ctx[i]);
+        }
+    }
+
+    bws_dispatch_unlock();
 }
 
 static void bsc_process_srv_awaiting_request(
@@ -836,29 +873,30 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     uint16_t len;
     size_t i;
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, buf "
                  "= %p, bufsize = %d, ctx = %p\n",
         sh, h, ev, buf, bufsize, ctx);
-    bsc_runloop_schedule(bsc_global_runloop());
 
     if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
         for (i = 0; i < ctx->sock_num; i++) {
             ctx->sock[i].state = BSC_SOCK_STATE_IDLE;
         }
         DEBUG_PRINTF("bsc_dispatch_srv_func() ctx %p is deinitialized\n", ctx);
-        bsc_runloop_unreg(bsc_global_runloop(), ctx);
+        bsc_ctx_remove(ctx);
         ctx->state = BSC_CTX_STATE_IDLE;
         ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
+        bsc_maintenance_timer(0);
         DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return;
     } else if (ev == BSC_WEBSOCKET_SERVER_STARTED) {
         ctx->state = BSC_CTX_STATE_INITIALIZED;
         DEBUG_PRINTF("bsc_dispatch_srv_func() ctx %p is initialized\n", ctx);
         ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
+        bsc_maintenance_timer(0);
         DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return;
     }
 
@@ -869,7 +907,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                          "descriptor for websocket %d\n",
                 h);
             DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
-            bsc_global_mutex_unlock();
+            bws_dispatch_unlock();
             return;
         }
         DEBUG_PRINTF(
@@ -922,7 +960,8 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                 len = (uint16_t)bufsize;
                 memcpy(&c->rx_buf[c->rx_buf_size], &len, sizeof(len));
                 /* We always reserve BSC_PRE bytes before BVLC message header */
-                /* to avoid copying of packet payload during manipulation with */
+                /* to avoid copying of packet payload during manipulation with
+                 */
                 /* origin and dest addresses (add them to received PDU) */
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
                 DEBUG_PRINTF(
@@ -968,7 +1007,8 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         }
     }
 
-    bsc_global_mutex_unlock();
+    bsc_maintenance_timer(0);
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
 }
 
@@ -1081,8 +1121,8 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     DEBUG_PRINTF("bsc_dispatch_cli_func() >>> h = %d, ev = %d, buf = %p, "
                  "bufsize = %d, ctx = %p\n",
         h, ev, buf, bufsize, ctx);
-    bsc_global_mutex_lock();
-    bsc_runloop_schedule(bsc_global_runloop());
+
+    bws_dispatch_lock();
 
     c = bsc_find_conn_by_websocket(ctx, h);
 
@@ -1090,7 +1130,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         DEBUG_PRINTF("bsc_dispatch_cli_func() <<< warning, can not find "
                      "connection object for websocket %d\n",
             h);
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return;
     }
 
@@ -1108,7 +1148,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
             }
             if (all_socket_disconnected) {
                 ctx->state = BSC_CTX_STATE_IDLE;
-                bsc_runloop_unreg(bsc_global_runloop(), ctx);
+                bsc_ctx_remove(ctx);
                 ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
             }
         } else if (c->state == BSC_SOCK_STATE_ERROR) {
@@ -1191,7 +1231,8 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 len = (uint16_t)bufsize;
                 memcpy(&c->rx_buf[c->rx_buf_size], &len, sizeof(len));
                 /* We always reserve BSC_PRE bytes before BVLC message header */
-                /* to avoid copying of packet payload during manipulation with */
+                /* to avoid copying of packet payload during manipulation with
+                 */
                 /* origin and dest addresses (add them to received PDU) */
                 c->rx_buf_size += sizeof(len) + BSC_PRE;
                 DEBUG_PRINTF(
@@ -1213,7 +1254,9 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 c, c->state, bufsize);
         }
     }
-    bsc_global_mutex_unlock();
+
+    bsc_maintenance_timer(0);
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_dispatch_cli_func() <<<\n");
 }
 
@@ -1246,9 +1289,9 @@ BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
         }
     }
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (ctx->state != BSC_CTX_STATE_IDLE) {
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         DEBUG_PRINTF("bsc_init_ctx() <<< ret = BSC_SC_INVALID_OPERATION\n");
         return BSC_SC_INVALID_OPERATION;
     }
@@ -1270,9 +1313,9 @@ BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
     }
 
     ctx->state = BSC_CTX_STATE_INITIALIZING;
-    sc_ret = bsc_runloop_reg(bsc_global_runloop(), (void *)ctx, bsc_runloop);
-
-    if (sc_ret == BSC_SC_SUCCESS) {
+    if (!bsc_ctx_add(ctx)) {
+        sc_ret = BSC_SC_NO_RESOURCES;
+    } else {
         if (cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
             ret = bws_srv_start(cfg->proto, cfg->port, cfg->iface,
                 cfg->ca_cert_chain, cfg->ca_cert_chain_size, cfg->cert_chain,
@@ -1282,7 +1325,7 @@ BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
             sc_ret = bsc_map_websocket_retcode(ret);
 
             if (sc_ret != BSC_SC_SUCCESS) {
-                bsc_runloop_unreg(bsc_global_runloop(), (void *)ctx);
+                bsc_ctx_remove(ctx);
             }
         } else {
             ctx->state = BSC_CTX_STATE_INITIALIZED;
@@ -1290,7 +1333,7 @@ BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
         }
     }
 
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_init_ctx() <<< ret = %d \n", sc_ret);
     return sc_ret;
 }
@@ -1301,12 +1344,12 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
     bool active_socket = false;
     DEBUG_PRINTF("bsc_deinit_ctx() >>> ctx = %p\n", ctx);
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (!ctx || ctx->state == BSC_CTX_STATE_IDLE ||
         ctx->state == BSC_CTX_STATE_DEINITIALIZING) {
         DEBUG_PRINTF("bsc_deinit_ctx() no action required\n");
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         DEBUG_PRINTF("bsc_deinit_ctx() <<<\n");
         return;
     }
@@ -1326,7 +1369,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
             DEBUG_PRINTF(
                 "bsc_deinit_ctx() no active sockets, ctx de-initialized\n");
             ctx->state = BSC_CTX_STATE_IDLE;
-            bsc_runloop_unreg(bsc_global_runloop(), ctx);
+            bsc_ctx_remove(ctx);
             ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
         }
     } else {
@@ -1334,7 +1377,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         (void)bws_srv_stop(ctx->sh);
     }
 
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_deinit_ctx() <<<\n");
 }
 
@@ -1348,7 +1391,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
     if (!ctx || !c || !url) {
         ret = BSC_SC_BAD_PARAM;
     } else {
-        bsc_global_mutex_lock();
+        bws_dispatch_lock();
 
         if (ctx->state == BSC_CTX_STATE_INITIALIZED &&
             ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
@@ -1370,7 +1413,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
             }
         }
 
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
     }
 
     DEBUG_PRINTF("bsc_connect() <<< ret = %d\n", ret);
@@ -1383,7 +1426,7 @@ void bsc_disconnect(BSC_SOCKET *c)
 
     DEBUG_PRINTF("bsc_disconnect() >>> c = %p\n", c);
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (c->ctx->state == BSC_CTX_STATE_INITIALIZED) {
         if (c->state == BSC_SOCK_STATE_CONNECTED) {
@@ -1425,7 +1468,7 @@ void bsc_disconnect(BSC_SOCKET *c)
         }
     }
 
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
 
     DEBUG_PRINTF("bsc_disconnect() <<<\n");
 }
@@ -1440,7 +1483,7 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
     if (!c || !pdu || !pdu_len) {
         ret = BSC_SC_BAD_PARAM;
     } else {
-        bsc_global_mutex_lock();
+        bws_dispatch_lock();
 
         if (c->ctx->state != BSC_CTX_STATE_INITIALIZED ||
             c->state != BSC_SOCK_STATE_CONNECTED) {
@@ -1462,7 +1505,7 @@ BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
             }
         }
 
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
     }
 
     DEBUG_PRINTF("bsc_send() <<< ret = %d\n", ret);
@@ -1475,7 +1518,7 @@ uint16_t bsc_get_next_message_id(void)
     static bool initialized = false;
     uint16_t ret;
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (!initialized) {
         message_id = (uint16_t)(rand() % USHRT_MAX);
         initialized = true;
@@ -1484,6 +1527,6 @@ uint16_t bsc_get_next_message_id(void)
     }
     ret = message_id;
     DEBUG_PRINTF("next message id = %u(%04x)\n", ret, ret);
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     return ret;
 }
