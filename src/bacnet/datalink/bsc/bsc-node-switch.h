@@ -123,4 +123,7 @@ BSC_SC_RET bsc_node_switch_send(
      uint8_t *pdu,
      unsigned pdu_len);
 
+BACNET_STACK_EXPORT
+void bsc_node_switch_maintenance_timer(uint16_t seconds);
+
 #endif

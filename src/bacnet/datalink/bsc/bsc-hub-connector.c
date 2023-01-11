@@ -117,10 +117,8 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
 #endif
 }
 
-static void hub_connector_process_state(void *ctx)
+static void hub_connector_process_state(BSC_HUB_CONNECTOR *c)
 {
-    BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)ctx;
-
     if (c->state == BSC_HUB_CONNECTOR_STATE_WAIT_FOR_RECONNECT) {
         if (mstimer_expired(&c->t)) {
             hub_connector_connect(c, BSC_HUB_CONN_PRIMARY);
@@ -131,6 +129,7 @@ static void hub_connector_process_state(void *ctx)
 void bsc_hub_connector_maintenance_timer(uint16_t seconds)
 {
     int i;
+   (void) seconds;
 
     bws_dispatch_lock();
     for (i = 0; i < BSC_CONF_HUB_CONNECTORS_NUM; i++) {
