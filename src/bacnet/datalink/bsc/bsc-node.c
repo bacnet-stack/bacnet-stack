@@ -904,7 +904,7 @@ void bsc_node_maintenance_timer(uint16_t seconds)
 {
     (void)seconds;
 
-    bsc_maintenance_timer(seconds);
+    bsc_socket_maintenance_timer(seconds);
     bsc_hub_connector_maintenance_timer(seconds);
     bsc_node_switch_maintenance_timer(seconds);
 }

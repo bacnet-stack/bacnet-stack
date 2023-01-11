@@ -18,9 +18,7 @@
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 #include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
-#include "bacnet/datalink/bsc/bsc-mutex.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
-#include "bacnet/datalink/bsc/bsc-runloop.h"
 #include "bacnet/datalink/bsc/bsc-hub-function.h"
 #include "bacnet/datalink/bsc/bsc-node.h"
 #include "bacnet/bacdef.h"
@@ -72,7 +70,7 @@ static void bsc_node_event(BSC_NODE *node,
     uint16_t pdu_len)
 {
     DEBUG_PRINTF("bsc_node_event() >>> ev = %d\n", ev);
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     (void)node;
     (void)dest;
     if (ev == BSC_NODE_EVENT_STARTED || ev == BSC_NODE_EVENT_STOPPED) {
@@ -93,15 +91,12 @@ static void bsc_node_event(BSC_NODE *node,
 #endif
         }
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_event() <<<\n");
 }
 
-static void bsc_deinit_resources(bool runloop)
+static void bsc_deinit_resources(void)
 {
-    if (runloop) {
-        bsc_runloop_stop(bsc_global_runloop());
-    }
     if (bsc_event) {
         bsc_event_deinit(bsc_event);
         bsc_event = NULL;
@@ -118,10 +113,10 @@ bool bsc_init(char *ifname)
     bool ret = false;
     DEBUG_PRINTF("bsc_init() >>>\n");
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (bsc_datalink_state != BSC_DATALINK_STATE_IDLE) {
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         DEBUG_PRINTF("bsc_init() <<< ret = %d\n", ret);
         return ret;
     }
@@ -130,12 +125,10 @@ bool bsc_init(char *ifname)
 
     bsc_event = bsc_event_init();
     bsc_data_event = bsc_event_init();
-    r = bsc_runloop_start(bsc_global_runloop());
-    ret = (r == BSC_SC_SUCCESS) ? true : false;
 
-    if (!ret || !bsc_event || !bsc_data_event) {
-        bsc_deinit_resources(ret);
-        bsc_global_mutex_unlock();
+    if (!bsc_event || !bsc_data_event) {
+        bsc_deinit_resources();
+        bws_dispatch_unlock();
         DEBUG_PRINTF("bsc_init() <<< ret = %d\n", false);
         return false;
     }
@@ -151,18 +144,18 @@ bool bsc_init(char *ifname)
     if (r == BSC_SC_SUCCESS) {
         r = bsc_node_start(bsc_node);
         if (r == BSC_SC_SUCCESS) {
-            bsc_global_mutex_unlock();
+            bws_dispatch_unlock();
             bsc_event_wait(bsc_event);
-            bsc_global_mutex_lock();
+            bws_dispatch_lock();
             bsc_datalink_state = BSC_DATALINK_STATE_STARTED;
-            bsc_global_mutex_unlock();
+            bws_dispatch_unlock();
             DEBUG_PRINTF("bsc_init() <<< ret = %d\n", true);
             return true;
         }
     }
-    bsc_deinit_resources(true);
+    bsc_deinit_resources();
     bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_init() <<< ret = %d\n", false);
     return false;
 }
@@ -170,28 +163,28 @@ bool bsc_init(char *ifname)
 void bsc_cleanup(void)
 {
     DEBUG_PRINTF("bsc_cleanup() >>>\n");
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (bsc_datalink_state != BSC_DATALINK_STATE_IDLE &&
         bsc_datalink_state != BSC_DATALINK_STATE_STOPPING) {
         if (bsc_datalink_state == BSC_DATALINK_STATE_STARTING) {
-            bsc_global_mutex_unlock();
+            bws_dispatch_unlock();
             bsc_event_wait(bsc_event);
-            bsc_global_mutex_lock();
+            bws_dispatch_lock();
         }
         bsc_datalink_state = BSC_DATALINK_STATE_STOPPING;
         bsc_event_signal(bsc_data_event);
         bsc_node_stop(bsc_node);
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         bsc_event_wait(bsc_event);
         bsc_event_wait(bsc_data_event);
-        bsc_global_mutex_lock();
-        bsc_deinit_resources(true);
+        bws_dispatch_lock();
+        bsc_deinit_resources();
         (void) bsc_node_deinit(bsc_node);
         bsc_node = NULL;
         bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
     }
     bsc_node_conf_cleanup(&bsc_conf);
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_cleanup() <<<\n");
 }
 
@@ -209,7 +202,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
     /* this datalink doesn't need to know the npdu data */
     (void)npdu_data;
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         if (dest->net == BACNET_BROADCAST_NETWORK || dest->mac_len == 0) {
@@ -219,7 +212,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
             /* unicast */
             memcpy(&dest_vmac.address[0], &dest->mac[0], BVLC_SC_VMAC_SIZE);
         } else {
-            bsc_global_mutex_unlock();
+            bws_dispatch_unlock();
             DEBUG_PRINTF(
                 "bsc_send_pdu() <<< ret = -1, incorrect dest mac address\n");
             return len;
@@ -236,7 +229,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
         }
     }
 
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_send_pdu() <<< ret = %d\n", len);
     return len;
 }
@@ -262,13 +255,13 @@ uint16_t bsc_receive(
 
     DEBUG_PRINTF("bsc_receive() >>>\n");
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         if (FIFO_Count(&bsc_fifo) <= sizeof(uint16_t)) {
-            bsc_global_mutex_unlock();
+            bws_dispatch_unlock();
             bsc_event_timedwait(bsc_data_event, timeout_ms);
-            bsc_global_mutex_lock();
+            bws_dispatch_lock();
         }
 
         if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED &&
@@ -313,7 +306,7 @@ uint16_t bsc_receive(
         }
     }
 
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_receive() <<< ret = %d\n", pdu_len);
     return pdu_len;
 }
@@ -336,23 +329,23 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address)
         memset(my_address, 0, sizeof(*my_address));
     }
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         my_address->mac_len = BVLC_SC_VMAC_SIZE;
         memcpy(&my_address->mac[0], &bsc_conf.local_vmac->address[0],
             BVLC_SC_VMAC_SIZE);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
 }
 
 BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connection_status(void)
 {
     BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         ret = bsc_node_hub_connector_status(bsc_node);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     return ret;
 }
 
@@ -360,12 +353,12 @@ bool bsc_direct_connection_established(
     BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
     bool ret = false;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         ret = bsc_node_direct_connection_established(
             bsc_node, dest, urls, urls_cnt);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     return ret;
 }
 
@@ -374,20 +367,25 @@ BSC_SC_RET bsc_connect_direct(
 {
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
     DEBUG_PRINTF("bsc_connect_direct() >>> dest = %p, urls = %p, urls_cnt = %d\n", dest, urls, urls_cnt);
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         ret = bsc_node_connect_direct(bsc_node, dest, urls, urls_cnt);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_connect_direct() ret = %d\n", ret);
     return ret;
 }
 
 void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest)
 {
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         bsc_node_disconnect_direct(bsc_node, dest);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
+}
+
+void bsc_maintenance_timer(uint16_t seconds)
+{
+    bsc_node_maintenance_timer(seconds);
 }

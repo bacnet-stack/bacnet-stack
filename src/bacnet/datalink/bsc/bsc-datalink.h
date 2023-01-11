@@ -156,3 +156,5 @@ BSC_SC_RET bsc_connect_direct(
 BACNET_STACK_EXPORT
 void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest);
 
+BACNET_STACK_EXPORT
+void bsc_maintenance_timer(uint16_t seconds);

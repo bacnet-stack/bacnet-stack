@@ -1089,7 +1089,7 @@ static void call_maintenance_timer(void)
     }
 
     if (current_seconds - last_seconds > 0) {
-       bsc_maintenance_timer(current_seconds - last_seconds);
+       bsc_socket_maintenance_timer(current_seconds - last_seconds);
        bsc_hub_connector_maintenance_timer(current_seconds - last_seconds);
        last_seconds = time(NULL);
     }

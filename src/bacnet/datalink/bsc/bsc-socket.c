@@ -606,7 +606,7 @@ static void bsc_runloop(BSC_SOCKET_CTX *ctx)
     /* DEBUG_PRINTF("bsc_runloop() <<<\n"); */
 }
 
-void bsc_maintenance_timer(uint16_t seconds)
+void bsc_socket_maintenance_timer(uint16_t seconds)
 {
     int i;
     (void)seconds;
@@ -886,7 +886,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         bsc_ctx_remove(ctx);
         ctx->state = BSC_CTX_STATE_IDLE;
         ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
-        bsc_maintenance_timer(0);
+        bsc_socket_maintenance_timer(0);
         DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
         bws_dispatch_unlock();
         return;
@@ -894,7 +894,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         ctx->state = BSC_CTX_STATE_INITIALIZED;
         DEBUG_PRINTF("bsc_dispatch_srv_func() ctx %p is initialized\n", ctx);
         ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
-        bsc_maintenance_timer(0);
+        bsc_socket_maintenance_timer(0);
         DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
         bws_dispatch_unlock();
         return;
@@ -1007,7 +1007,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         }
     }
 
-    bsc_maintenance_timer(0);
+    bsc_socket_maintenance_timer(0);
     bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
 }
@@ -1255,7 +1255,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         }
     }
 
-    bsc_maintenance_timer(0);
+    bsc_socket_maintenance_timer(0);
     bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_dispatch_cli_func() <<<\n");
 }

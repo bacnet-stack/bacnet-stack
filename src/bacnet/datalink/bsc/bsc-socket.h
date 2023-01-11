@@ -274,6 +274,6 @@ BACNET_STACK_EXPORT
 uint16_t bsc_get_next_message_id(void);
 
 BACNET_STACK_EXPORT
-void bsc_maintenance_timer(uint16_t seconds);
+void bsc_socket_maintenance_timer(uint16_t seconds);
 
 #endif
