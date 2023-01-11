@@ -75,4 +75,7 @@ bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h);
 BACNET_STACK_EXPORT
 BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(BSC_HUB_CONNECTOR_HANDLE h);
 
+BACNET_STACK_EXPORT
+void bsc_hub_connector_maintenance_timer(uint16_t seconds);
+
 #endif
