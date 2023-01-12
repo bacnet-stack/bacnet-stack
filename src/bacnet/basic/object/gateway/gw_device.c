@@ -645,5 +645,6 @@ int Routed_Device_Service_Approval(BACNET_SERVICES_SUPPORTED service,
             /* Everything else is a pass, at this time. */
             break;
     }
+
     return len;
 }

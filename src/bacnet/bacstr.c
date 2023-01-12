@@ -1012,7 +1012,7 @@ bool octetstring_init_ascii_hex(
             status = true;
         } else {
             while (ascii_hex[index] != 0) {
-                if (!isalnum(ascii_hex[index])) {
+                if (!isalnum((int)ascii_hex[index])) {
                     /* skip non-numeric or alpha */
                     index++;
                     continue;

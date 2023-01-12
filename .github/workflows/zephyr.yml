@@ -19,17 +19,19 @@ jobs:
         run: |
           west init -l .
           west update
-      - name: Build firmware
+          
+      - name: Twister Tests unit_testing
         working-directory: bacnet-stack
         run: |
-          west build -b mimxrt1064_evk ../zephyr/samples/hello_world
-#      - name: Twister Tests
-#        working-directory: bacnet-stack
-#        run: |
-#          ../zephyr/scripts/twister -T ../zephyr/tests/misc/test_build
+          rm -rf twister-out.unit_testing &&
+          ../zephyr/scripts/twister -O twister-out.unit_testing -p unit_testing -T zephyr/tests &&
+          for file in CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
+            do 
+              find twister-out.unit_testing -name $file -exec rm -rf {} \; || true 
+            done
+
       - name: Archive firmware
         uses: actions/upload-artifact@v3
         with:
           name: firmware
-          path: bacnet-stack/build/zephyr/zephyr.*
-    
+          path: bacnet-stack/twister-out.unit_testing
