@@ -12,9 +12,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <ztest.h>
-#include <bacnet/datalink/bsc/bsc-runloop.h>
+#include <time.h>
 #include <bacnet/datalink/bsc/bsc-socket.h>
-#include <bacnet/datalink/bsc/bsc-mutex.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <bacnet/datalink/bsc/bsc-util.h>
 #include <bacnet/datalink/bsc/bsc-retcodes.h>
@@ -1080,6 +1079,31 @@ typedef struct {
     BSC_EVENT *e;
 } hubf_ev_t;
 
+static void call_maintenance_timer(void)
+{
+    static time_t last_seconds = -1;
+    time_t current_seconds = time(NULL);
+
+    if(last_seconds == -1) {
+        last_seconds = time(NULL);
+    }
+
+    if (current_seconds - last_seconds > 0) {
+       bsc_socket_maintenance_timer(current_seconds - last_seconds);
+       bsc_hub_connector_maintenance_timer(current_seconds - last_seconds);
+       last_seconds = time(NULL);
+    }
+}
+
+static void wait_sec(int seconds)
+{
+  while(seconds >= 0) {
+     bsc_wait(1);
+     call_maintenance_timer();
+     seconds--;
+  }
+}
+
 static hubc_ev_t hubc;
 static hubf_ev_t hubf;
 
@@ -1099,7 +1123,9 @@ static bool wait_hubc_ev(hubc_ev_t *ev,
     BSC_HUB_CONNECTOR_EVENT wait_ev,
     BSC_HUB_CONNECTOR_HANDLE wait_h)
 {
-    bsc_event_wait(ev->e);
+    while(!bsc_event_timedwait(ev->e, 100)) {
+        call_maintenance_timer();
+    }
     if (ev->ev == wait_ev && ev->h == wait_h) {
         return true;
     } else {
@@ -1150,7 +1176,10 @@ static bool wait_hubf_ev(hubf_ev_t *ev,
     BSC_HUB_FUNCTION_EVENT wait_ev,
     BSC_HUB_FUNCTION_HANDLE wait_h)
 {
-    bsc_event_wait(ev->e);
+    while(!bsc_event_timedwait(ev->e, 100)) {
+        call_maintenance_timer();
+    }
+
     if (ev->ev == wait_ev && ev->h == wait_h) {
         return true;
     } else {
@@ -1241,9 +1270,6 @@ static void test_hub_connector_url(bool primary)
         sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
             BACNET_WEBSOCKET_SERVER_PORT);
     }
-
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
@@ -1378,7 +1404,6 @@ static void test_hub_connector_url(bool primary)
     zassert_equal(bsc_hub_connector_stopped(hubc_h), true, 0);
     deinit_hubc_ev(&hubc);
     deinit_hubf_ev(&hubf);
-    bsc_runloop_stop(bsc_global_runloop());
 }
 
 static void test_hub_connector_bad_primary_url(void)
@@ -1403,9 +1428,6 @@ static void test_hub_connector_bad_primary_url(void)
         BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
     sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
-
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
@@ -1447,7 +1469,6 @@ static void test_hub_connector_bad_primary_url(void)
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h), true, 0);
     deinit_hubc_ev(&hubc);
     deinit_hubf_ev(&hubf);
-    bsc_runloop_stop(bsc_global_runloop());
 }
 
 static void test_hub_bad_params(void)
@@ -1473,9 +1494,6 @@ static void test_hub_bad_params(void)
         BACNET_WEBSOCKET_SERVER_PORT2);
 
     init_hubc_ev(&hubc);
-
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     ret = bsc_hub_connector_start(NULL, sizeof(ca_cert), client_cert,
         sizeof(client_cert), client_key, sizeof(client_key), &hubc_uuid,
@@ -1580,7 +1598,6 @@ static void test_hub_bad_params(void)
     zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
     zassert_equal(
         wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h2), true, 0);
-    bsc_runloop_stop(bsc_global_runloop());
     deinit_hubc_ev(&hubc);
 }
 
@@ -1621,9 +1638,6 @@ static void test_hub_connector_reconnect(void)
         BACNET_WEBSOCKET_SERVER_PORT);
     sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT2);
-
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
@@ -1691,7 +1705,7 @@ static void test_hub_connector_reconnect(void)
 
     reset_hubf_ev(&hubf);
     reset_hubc_ev(&hubc);
-    bsc_wait(BACNET_TIMEOUT);
+    wait_sec(BACNET_TIMEOUT);
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
@@ -1716,7 +1730,6 @@ static void test_hub_connector_reconnect(void)
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h), true, 0);
     deinit_hubc_ev(&hubc);
     deinit_hubf_ev(&hubf);
-    bsc_runloop_stop(bsc_global_runloop());
 }
 
 static void test_hub_connector_duplicated_vmac(void)
@@ -1740,9 +1753,6 @@ static void test_hub_connector_duplicated_vmac(void)
         BACNET_WEBSOCKET_SERVER_PORT);
     sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT2);
-
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
@@ -1790,7 +1800,6 @@ static void test_hub_connector_duplicated_vmac(void)
     zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
     deinit_hubc_ev(&hubc);
     deinit_hubf_ev(&hubf);
-    bsc_runloop_stop(bsc_global_runloop());
 }
 
 static void test_hub_function_bad_params(void)
@@ -1813,9 +1822,6 @@ static void test_hub_function_bad_params(void)
     memset(&hubf_vmac2, 0x4, sizeof(hubf_vmac2));
     memset(&hubf_uuid3, 0x5, sizeof(hubf_uuid3));
     memset(&hubf_vmac3, 0x6, sizeof(hubf_vmac3));
-
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     init_hubf_ev(&hubf);
 
@@ -1892,7 +1898,6 @@ static void test_hub_function_bad_params(void)
     bsc_hub_function_stop(hubf_h2);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h2), true, 0);
     deinit_hubf_ev(&hubf);
-    bsc_runloop_stop(bsc_global_runloop());
 }
 
 void test_hub_function_duplicated_uuid(void)
@@ -1926,9 +1931,6 @@ void test_hub_function_duplicated_uuid(void)
         BACNET_WEBSOCKET_SERVER_PORT);
     sprintf(secondary_url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT2);
-
-    ret = bsc_runloop_start(bsc_global_runloop());
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
@@ -2004,7 +2006,6 @@ void test_hub_function_duplicated_uuid(void)
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h2), true, 0);
     deinit_hubc_ev(&hubc);
     deinit_hubf_ev(&hubf);
-    bsc_runloop_stop(bsc_global_runloop());
 }
 
 void test_main(void)
@@ -2023,7 +2024,7 @@ void test_main(void)
     ztest_test_suite(hub_test_6, ztest_unit_test(test_hub_connector_duplicated_vmac));
     ztest_test_suite(hub_test_7, ztest_unit_test(test_hub_function_bad_params));
     ztest_test_suite(hub_test_8, ztest_unit_test(test_hub_function_duplicated_uuid));
-#if 1
+
     ztest_run_test_suite(hub_test_1);
     ztest_run_test_suite(hub_test_2);
     ztest_run_test_suite(hub_test_3);
@@ -2032,8 +2033,4 @@ void test_main(void)
     ztest_run_test_suite(hub_test_6);
     ztest_run_test_suite(hub_test_7);
     ztest_run_test_suite(hub_test_8);
-#endif
-    //ztest_run_test_suite(hub_test_5);
-    //ztest_run_test_suite(hub_test_6);
-
 }

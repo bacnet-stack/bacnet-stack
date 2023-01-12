@@ -15,8 +15,6 @@
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
-#include "bacnet/datalink/bsc/bsc-mutex.h"
-#include "bacnet/datalink/bsc/bsc-runloop.h"
 #include "bacnet/datalink/bsc/bsc-hub-connector.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
@@ -119,17 +117,27 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
 #endif
 }
 
-static void hub_connector_process_state(void *ctx)
+static void hub_connector_process_state(BSC_HUB_CONNECTOR *c)
 {
-    BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)ctx;
-
-    bsc_global_mutex_lock();
     if (c->state == BSC_HUB_CONNECTOR_STATE_WAIT_FOR_RECONNECT) {
         if (mstimer_expired(&c->t)) {
             hub_connector_connect(c, BSC_HUB_CONN_PRIMARY);
         }
     }
-    bsc_global_mutex_unlock();
+}
+
+void bsc_hub_connector_maintenance_timer(uint16_t seconds)
+{
+    int i;
+   (void) seconds;
+
+    bws_dispatch_lock();
+    for (i = 0; i < BSC_CONF_HUB_CONNECTORS_NUM; i++) {
+        if (bsc_hub_connector[i].used) {
+            hub_connector_process_state(&bsc_hub_connector[i]);
+        }
+    }
+    bws_dispatch_unlock();
 }
 
 static void hub_connector_socket_event(BSC_SOCKET *c,
@@ -142,7 +150,7 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
     BSC_HUB_CONNECTOR *hc;
     uint8_t **ppdu = &pdu;
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     hc = (BSC_HUB_CONNECTOR *)c->ctx->user_arg;
     DEBUG_PRINTF("hub_connector_socket_event() >>> hub_connector = %p, socket "
                  "= %p, ev = %d, err = %d, "
@@ -194,7 +202,7 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
         hc->event_func(BSC_HUBC_EVENT_RECEIVED, hc, hc->user_arg, *ppdu,
             pdu_len, decoded_pdu);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("hub_connector_socket_event() <<<\n");
 }
 
@@ -206,7 +214,7 @@ static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
         "hub_connector_context_event() >>> ctx = %p, ev = %d\n", ctx, ev);
 
     if (ev == BSC_CTX_DEINITIALIZED) {
-        bsc_global_mutex_lock();
+        bws_dispatch_lock();
         c = (BSC_HUB_CONNECTOR *)ctx->user_arg;
         if (c->state != BSC_HUB_CONNECTOR_STATE_IDLE) {
             c->state = BSC_HUB_CONNECTOR_STATE_IDLE;
@@ -214,7 +222,7 @@ static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
             c->event_func(
                 BSC_HUBC_EVENT_STOPPED, c, c->user_arg, NULL, 0, NULL);
         }
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
     }
 
     DEBUG_PRINTF("hub_connector_context_event() <<<\n");
@@ -260,10 +268,10 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
         return BSC_SC_BAD_PARAM;
     }
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     c = hub_connector_alloc();
     if (!c) {
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         DEBUG_PRINTF(
             "bsc_hub_connector_start() <<< ret = BSC_SC_NO_RESOURCES\n");
         return BSC_SC_NO_RESOURCES;
@@ -282,43 +290,40 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
         cert_chain, cert_chain_size, key, key_size, local_uuid, local_vmac,
         max_local_bvlc_len, max_local_npdu_len, connect_timeout_s,
         heartbeat_timeout_s, disconnect_timeout_s);
+
     DEBUG_PRINTF("bsc_hub_connector_start() uuid = %s, vmac = %s\n",
         bsc_uuid_to_string(&c->cfg.local_uuid),
         bsc_vmac_to_string(&c->cfg.local_vmac));
-    ret = bsc_runloop_reg(bsc_global_runloop(), c, hub_connector_process_state);
+
+    ret = bsc_init_ctx(&c->ctx, &c->cfg, &bsc_hub_connector_ctx_funcs, c->sock,
+        sizeof(c->sock) / sizeof(BSC_SOCKET), (void *)c);
 
     if (ret == BSC_SC_SUCCESS) {
-        ret = bsc_init_ctx(&c->ctx, &c->cfg, &bsc_hub_connector_ctx_funcs,
-            c->sock, sizeof(c->sock) / sizeof(BSC_SOCKET), (void *)c);
-
+        *h = (BSC_HUB_CONNECTOR_HANDLE)c;
+        DEBUG_PRINTF(
+            "bsc_hub_connector_start() hub = %p connecting to url %s\n", c,
+            c->primary_url);
+        ret = bsc_connect(
+            &c->ctx, &c->sock[BSC_HUB_CONN_PRIMARY], (char *)c->primary_url);
         if (ret == BSC_SC_SUCCESS) {
-            *h = (BSC_HUB_CONNECTOR_HANDLE)c;
+            c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY;
+        } else {
+            c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER;
             DEBUG_PRINTF(
                 "bsc_hub_connector_start() hub = %p connecting to url %s\n", c,
                 c->primary_url);
-            ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_PRIMARY],
-                (char *)c->primary_url);
-            if (ret == BSC_SC_SUCCESS) {
-                c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY;
-            } else {
-                c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER;
-                DEBUG_PRINTF(
-                    "bsc_hub_connector_start() hub = %p connecting to url %s\n",
-                    c, c->primary_url);
-                ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_FAILOVER],
-                    (char *)c->failover_url);
-                if (ret != BSC_SC_SUCCESS) {
-                    c->state = BSC_HUB_CONNECTOR_STATE_IDLE;
-                    bsc_runloop_unreg(bsc_global_runloop(), c);
-                    bsc_deinit_ctx(&c->ctx);
-                    hub_connector_free(c);
-                    *h = NULL;
-                }
+            ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_FAILOVER],
+                (char *)c->failover_url);
+            if (ret != BSC_SC_SUCCESS) {
+                c->state = BSC_HUB_CONNECTOR_STATE_IDLE;
+                bsc_deinit_ctx(&c->ctx);
+                hub_connector_free(c);
+                *h = NULL;
             }
         }
     }
 
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_hub_connector_start() <<< ret = %d\n", ret);
     return ret;
 }
@@ -328,10 +333,10 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
     DEBUG_PRINTF("bsc_hub_connector_stop() >>> h = %p\n", h);
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
 #if DEBUG_ENABLED == 1
-    if(c) {
+    if (c) {
         DEBUG_PRINTF("bsc_hub_connector_stop() state = %d\n", c->state);
     }
 #endif
@@ -339,10 +344,9 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
     if (c && c->state != BSC_HUB_CONNECTOR_STATE_WAIT_FOR_CTX_DEINIT &&
         c->state != BSC_HUB_CONNECTOR_STATE_IDLE) {
         c->state = BSC_HUB_CONNECTOR_STATE_WAIT_FOR_CTX_DEINIT;
-        bsc_runloop_unreg(bsc_global_runloop(), c);
         bsc_deinit_ctx(&c->ctx);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_hub_connector_stop() <<<\n");
 }
 
@@ -356,10 +360,10 @@ BSC_SC_RET bsc_hub_connector_send(
         "bsc_hub_connector_send() >>> h = %p,  pdu = %p, pdu_len = %d\n", h,
         pdu, pdu_len);
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (!c) {
         DEBUG_PRINTF("bsc_hub_connector_send() <<< ret = BSC_SC_BAD_PARAM\n");
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return BSC_SC_BAD_PARAM;
     }
     if (c->state == BSC_HUB_CONNECTOR_STATE_IDLE ||
@@ -370,7 +374,7 @@ BSC_SC_RET bsc_hub_connector_send(
             c, c->state);
         DEBUG_PRINTF(
             "bsc_hub_connector_send() <<< ret = BSC_SC_INVALID_OPERATION\n");
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return BSC_SC_INVALID_OPERATION;
     }
     if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY) {
@@ -378,7 +382,7 @@ BSC_SC_RET bsc_hub_connector_send(
     } else {
         ret = bsc_send(&c->sock[BSC_HUB_CONN_FAILOVER], pdu, pdu_len);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_hub_connector_send() <<< ret = %d\n", ret);
     return ret;
 }
@@ -389,11 +393,11 @@ bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h)
     bool ret = false;
 
     DEBUG_PRINTF("bsc_hub_connector_stopped() >>> h = %p\n", h);
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (c && c->state == BSC_HUB_CONNECTOR_STATE_IDLE) {
         ret = true;
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_hub_connector_stopped() <<< ret = %d\n", ret);
     return ret;
 }
@@ -403,7 +407,7 @@ BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
     BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (c) {
         if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY) {
             ret = BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED;
@@ -411,6 +415,6 @@ BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(
             ret = BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED;
         }
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     return ret;
 }

@@ -134,4 +134,7 @@ bool bsc_node_direct_connection_established(
     BACNET_SC_VMAC_ADDRESS *dest,
     char** urls, size_t urls_cnt);
 
+BACNET_STACK_EXPORT
+void bsc_node_maintenance_timer(uint16_t seconds);
+
 #endif

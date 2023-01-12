@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 #include <ztest.h>
 #include <bacnet/basic/object/bacfile.h>
 #include <bacnet/basic/object/netport.h>
@@ -1089,6 +1090,30 @@ typedef struct {
     BACNET_SC_VMAC_ADDRESS dest;
 } node_ev_t;
 
+static void call_maintenance_timer(void)
+{
+    static time_t last_seconds = -1;
+    time_t current_seconds = time(NULL);
+
+    if(last_seconds == -1) {
+        last_seconds = time(NULL);
+    }
+
+    if (current_seconds - last_seconds > 0) {
+       bsc_maintenance_timer(current_seconds - last_seconds);
+       last_seconds = time(NULL);
+    }
+}
+
+static void wait_sec(int seconds)
+{
+  while(seconds >= 0) {
+     bsc_wait(1);
+     call_maintenance_timer();
+     seconds--;
+  }
+}
+
 static node_ev_t node_ev2;
 static node_ev_t node_ev3;
 
@@ -1106,7 +1131,9 @@ static void deinit_node_ev(node_ev_t *ev)
 
 static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
-    bsc_event_wait(ev->e);
+    while(!bsc_event_timedwait(ev->e, 100)) {
+        call_maintenance_timer();
+    }
     if (ev->ev == wait_ev && ev->node == node) {
         return true;
     } else {
@@ -1118,7 +1145,9 @@ static void wait_specific_node_ev(
     node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
     while (1) {
-        bsc_event_wait(ev->e);
+        while(!bsc_event_timedwait(ev->e, 100)) {
+            call_maintenance_timer();
+        }
         if (ev->ev == wait_ev && ev->node == node) {
             break;
         }
@@ -1506,7 +1535,7 @@ static void test_sc_datalink(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
-    bsc_wait(BACNET_TIMEOUT * 2);
+    wait_sec(BACNET_TIMEOUT * 2);
     // send encapsulated npdu packet
     memset(npdu, 0x99, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
@@ -1573,11 +1602,11 @@ static void test_sc_datalink(void)
     zassert_equal(ret, 0, NULL);
     ret = bsc_connect_direct(NULL, direct_urls, 1);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
-    bsc_wait(1);
+    wait_sec(1);
     zassert_equal(bsc_direct_connection_established(&vmac3, NULL, 0) == true, true, NULL);
     zassert_equal(bsc_direct_connection_established(NULL, direct_urls, 1) == true, true, NULL);
     bsc_disconnect_direct(&vmac3);
-    bsc_wait(1);
+    wait_sec(1);
     zassert_equal(bsc_direct_connection_established(&vmac3, NULL, 0) == false, true, NULL);
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);

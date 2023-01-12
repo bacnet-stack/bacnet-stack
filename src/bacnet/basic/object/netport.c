@@ -51,9 +51,7 @@
 #include <bacnet/basic/object/netport_internal.h>
 
 #ifdef BACDL_BSC
-#include "bacnet/datalink/bsc/bsc-mutex.h"
-
-struct BSC_Mutex *netport_mutex = NULL;
+#include "bacnet/datalink/bsc/websocket.h"
 #endif /* BACDL_BSC */
 
 
@@ -3281,14 +3279,12 @@ bool Network_Port_Read_Range(
 #ifdef BACDL_BSC
 void Network_Port_Lock(void)
 {
-    if (netport_mutex != NULL)
-        bsc_mutex_lock(netport_mutex);
+    bws_dispatch_lock();
 }
 
 void Network_Port_Unlock(void)
 {
-    if (netport_mutex != NULL)
-        bsc_mutex_unlock(netport_mutex);
+    bws_dispatch_unlock();
 }
 #endif
 
@@ -3301,7 +3297,6 @@ void Network_Port_Init(void)
 
 #ifdef BACDL_BSC
     BACNET_SC_PARAMS *sc;
-    netport_mutex = bsc_mutex_init();
 #endif /* BACDL_BSC */
 
     /* do something interesting */

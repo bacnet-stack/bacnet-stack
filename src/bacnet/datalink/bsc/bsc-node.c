@@ -12,10 +12,8 @@
  */
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-node.h"
-#include "bacnet/datalink/bsc/bsc-mutex.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
-#include "bacnet/datalink/bsc/bsc-runloop.h"
 #include "bacnet/datalink/bsc/bsc-hub-function.h"
 #include "bacnet/datalink/bsc/bsc-hub-connector.h"
 #include "bacnet/datalink/bsc/bsc-node-switch.h"
@@ -188,7 +186,7 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
         }
     } else if (node->state == BSC_NODE_STATE_RESTARTING) {
         if (stopped) {
-            (void) bsc_node_start_state(node, BSC_NODE_STATE_RESTARTING);
+            (void)bsc_node_start_state(node, BSC_NODE_STATE_RESTARTING);
         }
     }
     DEBUG_PRINTF("bsc_node_process_stop_event() <<<\n");
@@ -469,7 +467,7 @@ static void bsc_hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     DEBUG_PRINTF("bsc_hub_connector_event() >>> ev = %d, h = %p, node = %p\n",
         ev, h, user_arg);
     if (ev == BSC_HUBC_EVENT_STOPPED) {
@@ -484,14 +482,14 @@ static void bsc_hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
         bsc_node_process_received(node, pdu, pdu_len, decoded_pdu);
     }
     DEBUG_PRINTF("bsc_hub_connector_event() <<<\n");
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
 }
 
 static void bsc_hub_function_event(
     BSC_HUB_FUNCTION_EVENT ev, BSC_HUB_FUNCTION_HANDLE h, void *user_arg)
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     DEBUG_PRINTF("bsc_hub_function_event() >>> ev = %d, h = %p, node = %p\n",
         ev, h, user_arg);
     if (ev == BSC_HUBF_EVENT_STARTED) {
@@ -506,7 +504,7 @@ static void bsc_hub_function_event(
         }
     }
     DEBUG_PRINTF("bsc_hub_function_event() <<<\n");
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
 }
 
 static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
@@ -519,7 +517,7 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     DEBUG_PRINTF("bsc_node_switch_event() >>> ev = %d, h = %p, node = %p\n", ev,
         h, user_arg);
     if (ev == BSC_NODE_SWITCH_EVENT_STARTED) {
@@ -541,8 +539,8 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
         node->conf->event_func(
             node, BSC_NODE_EVENT_DIRECT_DISCONNECTED, dest, NULL, 0);
     }
-    DEBUG_PRINTF(" bsc_node_switch_event() <<<\n");
-    bsc_global_mutex_unlock();
+    DEBUG_PRINTF("bsc_node_switch_event() <<<\n");
+    bws_dispatch_unlock();
 }
 
 BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
@@ -565,17 +563,17 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
         DEBUG_PRINTF("bsc_node_init() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     *node = bsc_alloc_node();
 
     if (!(*node)) {
         DEBUG_PRINTF("bsc_node_init() <<< ret =  BSC_SC_NO_RESOURCE\n");
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return BSC_SC_NO_RESOURCES;
     }
 
     memcpy((*node)->conf, conf, sizeof(*conf));
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_init() <<< ret = BSC_SC_SUCCESS\n");
     return BSC_SC_SUCCESS;
 }
@@ -583,14 +581,14 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
 BSC_SC_RET bsc_node_deinit(BSC_NODE *node)
 {
     DEBUG_PRINTF("bsc_node_deinit() >>> node = %p\n", node);
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (node->state != BSC_NODE_STATE_IDLE) {
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         DEBUG_PRINTF("bsc_node_deinit() <<< ret = BSC_SC_INVALID_OPERATION\n");
         return BSC_SC_INVALID_OPERATION;
     }
     bsc_free_node(node);
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_deinit() <<< ret = BSC_SC_SUCCESS\n");
     return BSC_SC_SUCCESS;
 }
@@ -598,7 +596,7 @@ BSC_SC_RET bsc_node_deinit(BSC_NODE *node)
 static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
 {
     BSC_SC_RET ret;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     DEBUG_PRINTF("bsc_node_start() >>> node = %p state = %d\n", node, state);
 
     node->state = state;
@@ -626,7 +624,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
 
     if (ret != BSC_SC_SUCCESS) {
         node->state = BSC_NODE_STATE_IDLE;
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
         return ret;
     }
@@ -644,7 +642,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
         if (ret != BSC_SC_SUCCESS) {
             node->state = BSC_NODE_STATE_IDLE;
             bsc_hub_connector_stop(node->hub_connector);
-            bsc_global_mutex_unlock();
+            bws_dispatch_unlock();
             DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
             return ret;
         }
@@ -667,7 +665,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             node->state = BSC_NODE_STATE_IDLE;
             bsc_hub_connector_stop(node->hub_connector);
             bsc_hub_function_stop(node->hub_function);
-            bsc_global_mutex_unlock();
+            bws_dispatch_unlock();
             DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
             return ret;
         }
@@ -679,7 +677,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     DEBUG_PRINTF(
         "bsc_node_start() hub_function %p hub_connector %p node_switch %p\n",
         node->hub_function, node->hub_connector, node->node_switch);
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
     return ret;
 }
@@ -695,15 +693,15 @@ BSC_SC_RET bsc_node_start(BSC_NODE *node)
         return BSC_SC_BAD_PARAM;
     }
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (node->state != BSC_NODE_STATE_IDLE) {
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         DEBUG_PRINTF("bsc_node_start() <<< ret = BSC_SC_INVALID_OPERATION\n");
         return BSC_SC_INVALID_OPERATION;
     }
     ret = bsc_node_start_state(node, BSC_NODE_STATE_STARTING);
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
     return ret;
 }
@@ -713,7 +711,7 @@ void bsc_node_stop(BSC_NODE *node)
     DEBUG_PRINTF("bsc_node_stop() >>> node = %p\n", node);
 
     if (node) {
-        bsc_global_mutex_lock();
+        bws_dispatch_lock();
 
         if (node->state != BSC_NODE_STATE_IDLE &&
             node->state != BSC_NODE_STATE_STOPPING) {
@@ -727,7 +725,7 @@ void bsc_node_stop(BSC_NODE *node)
             }
         }
 
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
     }
 
     DEBUG_PRINTF("bsc_node_stop() <<<\n");
@@ -749,17 +747,17 @@ BSC_SC_RET bsc_node_hub_connector_send(
         return BSC_SC_BAD_PARAM;
     }
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (node->state != BSC_NODE_STATE_STARTED) {
         DEBUG_PRINTF("bsc_node_hub_connector_send() <<< ret = "
                      "BSC_SC_INVALID_OPERATION\n");
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return BSC_SC_INVALID_OPERATION;
     }
 
     ret = bsc_hub_connector_send(node->hub_connector, pdu, pdu_len);
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_hub_connector_send() <<< ret = %d\n", ret);
     return ret;
 }
@@ -771,19 +769,20 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
 
     DEBUG_PRINTF("bsc_node_send() >>> p_node = %p(%s), pdu = %p, "
                  "pdu_len = %d\n",
-        p_node, bsc_vmac_to_string(p_node->conf->local_vmac), pdu, pdu_len);
+        p_node, p_node ? bsc_vmac_to_string(p_node->conf->local_vmac) : NULL,
+        pdu, pdu_len);
 
     if (!node) {
         DEBUG_PRINTF("bsc_node_send() <<< ret =  BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
 
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (node->state != BSC_NODE_STATE_STARTED) {
         DEBUG_PRINTF("bsc_node_send() <<< ret = "
                      "BSC_SC_INVALID_OPERATION\n");
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return BSC_SC_INVALID_OPERATION;
     }
 
@@ -793,7 +792,7 @@ BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
         ret = bsc_hub_connector_send(node->hub_connector, pdu, pdu_len);
     }
 
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_send() <<< ret = %d\n", ret);
     return ret;
 }
@@ -803,10 +802,10 @@ BSC_ADDRESS_RESOLUTION *bsc_node_get_address_resolution(
 {
     int i;
     BSC_NODE *node = (BSC_NODE *)p_node;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
 
     if (!node || node->state != BSC_NODE_STATE_STARTED || !vmac) {
-        bsc_global_mutex_unlock();
+        bws_dispatch_unlock();
         return NULL;
     }
     for (i = 0; i < BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM; i++) {
@@ -814,16 +813,16 @@ BSC_ADDRESS_RESOLUTION *bsc_node_get_address_resolution(
             !memcmp(&vmac->address[0], &node->resolution[i].vmac.address[0],
                 BVLC_SC_VMAC_SIZE)) {
             if (!mstimer_expired(&node->resolution[i].fresh_timer)) {
-                bsc_global_mutex_unlock();
+                bws_dispatch_unlock();
                 return &node->resolution[i];
             } else {
                 node_free_address_resolution(&node->resolution[i]);
-                bsc_global_mutex_unlock();
+                bws_dispatch_unlock();
                 return NULL;
             }
         }
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     return NULL;
 }
 
@@ -851,12 +850,12 @@ BSC_SC_RET bsc_node_connect_direct(
     DEBUG_PRINTF("bsc_node_connect_direct() >>> node = %p, dest = %p, urls = "
                  "%p, urls_cnt = %d\n",
         node, dest, urls, urls_cnt);
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
         node->conf->direct_connect_initiate_enable) {
         ret = bsc_node_switch_connect(node->node_switch, dest, urls, urls_cnt);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_connect_direct() <<< ret = %d\n", ret);
     return ret;
 }
@@ -865,12 +864,12 @@ void bsc_node_disconnect_direct(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest)
 {
     DEBUG_PRINTF(
         "bsc_node_disconnect_direct() >>> node = %p, dest = %p\n", node, dest);
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
         node->conf->direct_connect_initiate_enable) {
         bsc_node_switch_disconnect(node->node_switch, dest);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_node_disconnect_direct() <<< \n");
 }
 
@@ -878,13 +877,13 @@ bool bsc_node_direct_connection_established(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
     bool ret = false;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
         node->conf->direct_connect_initiate_enable) {
         ret =
             bsc_node_switch_connected(node->node_switch, dest, urls, urls_cnt);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     return ret;
 }
 
@@ -892,10 +891,20 @@ BVLC_SC_HUB_CONNECTION_STATUS
 bsc_node_hub_connector_status(BSC_NODE *node)
 {
     BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
-    bsc_global_mutex_lock();
+    bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED) {
         ret = bsc_hub_connector_status(node->hub_connector);
     }
-    bsc_global_mutex_unlock();
+    bws_dispatch_unlock();
     return ret;
+}
+
+BACNET_STACK_EXPORT
+void bsc_node_maintenance_timer(uint16_t seconds)
+{
+    (void)seconds;
+
+    bsc_socket_maintenance_timer(seconds);
+    bsc_hub_connector_maintenance_timer(seconds);
+    bsc_node_switch_maintenance_timer(seconds);
 }
