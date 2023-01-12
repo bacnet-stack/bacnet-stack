@@ -519,11 +519,13 @@ static void bacnet_secure_connect_network_port_init(
     Network_Port_Issuer_Certificate_File_Set(instance, 0,
         BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
 
-    bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
-    bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE,
-        filename_ca_2_cert);
-    Network_Port_Issuer_Certificate_File_Set(instance, 1,
-        BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
+    if(filename_ca_2_cert) {
+        bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
+        bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE,
+            filename_ca_2_cert);
+        Network_Port_Issuer_Certificate_File_Set(instance, 1,
+            BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
+    }
 
     bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
     bacfile_pathname_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,

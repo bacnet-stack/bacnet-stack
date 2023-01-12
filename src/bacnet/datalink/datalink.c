@@ -311,6 +311,7 @@ void datalink_maintenance_timer(uint16_t seconds)
         case DATALINK_MSTP:
             break;
         case DATALINK_BSC:
+            bsc_maintenance_timer(seconds);
             break;
         default:
             break;

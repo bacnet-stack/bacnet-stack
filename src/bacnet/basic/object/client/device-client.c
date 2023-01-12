@@ -47,6 +47,9 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/proplist.h"
+#if defined(BACFILE)
+#include "bacnet/basic/object/bacfile.h"
+#endif /* defined(BACFILE) */
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
@@ -122,6 +125,13 @@ static object_functions_t Object_Table[] = {
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
         Network_Port_Object_Name, Network_Port_Read_Property,
         Network_Port_Write_Property, Network_Port_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+#endif
+#if defined(BACFILE)
+    { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
+        bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
+        bacfile_write_property, BACfile_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif

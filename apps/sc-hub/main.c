@@ -248,6 +248,7 @@ int main(int argc, char *argv[])
     for (;;) {
         /* input */
         bsc_wait(1);
+        datalink_maintenance_timer(1);
     }
 
     return 0;
