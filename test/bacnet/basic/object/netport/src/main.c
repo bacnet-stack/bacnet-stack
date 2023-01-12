@@ -19,38 +19,6 @@
  * @{
  */
 
-#ifdef BACDL_BSC
-#include "bacnet/datalink/bsc/bsc-mutex.h"
-
-struct BSC_Mutex {
-    int count;
-};
-
-static BSC_MUTEX my_mutex;
-static int mutex_error;
-
-BSC_MUTEX* bsc_mutex_init(void)
-{
-    my_mutex.count = 0;
-    return &my_mutex;
-}
-
-void bsc_mutex_lock(BSC_MUTEX* mutex)
-{
-    if (mutex == &my_mutex)
-        my_mutex.count++;
-    else
-        mutex_error++;
-}
-
-void bsc_mutex_unlock(BSC_MUTEX* mutex)
-{
-    if (mutex == &my_mutex)
-        my_mutex.count--;
-    else
-        mutex_error++;
-}
-#endif
 
 /**
  * @brief Test
@@ -142,7 +110,6 @@ static void test_network_port_pending_param(void)
     BACNET_CHARACTER_STRING str;
 #endif
 
-    mutex_error = 0;
     Network_Port_Init();
     object_instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, object_instance);
@@ -240,10 +207,6 @@ static void test_network_port_pending_param(void)
     zassert_true(strcmp(characterstring_value(&str),
         "SC_Direct_Connect_Binding_test2") == 0, NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-
-    zassert_true(my_mutex.count == 0, NULL);
-    zassert_true(mutex_error == 0, NULL);
-
 #endif /* BACDL_BSC */
     return;
 }
@@ -267,7 +230,6 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     bool status = false;
     BACNET_CHARACTER_STRING str;
 
-    mutex_error = 0;
     Network_Port_Init();
     object_instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, object_instance);
@@ -340,9 +302,6 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
         4, &str), NULL);
     zassert_true(strcmp(characterstring_value(&str), URL_BIG) == 0, NULL);
 
-    zassert_true(my_mutex.count == 0, NULL);
-    zassert_true(mutex_error == 0, NULL);
-
 #endif /* BACDL_BSC && BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     return;
@@ -365,7 +324,6 @@ static void test_network_port_sc_certificates(void)
     char *filename_key = "key.pem";
     char *str;
 
-    mutex_error = 0;
     Network_Port_Init();
     instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, instance);
@@ -410,8 +368,6 @@ static void test_network_port_sc_certificates(void)
     // reset
 
     // check bacfile after reset
-
-    zassert_true(my_mutex.count == 0, NULL);
 
 #endif /* BACDL_BSC */
 

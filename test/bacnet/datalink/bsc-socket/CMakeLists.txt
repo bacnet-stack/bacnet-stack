@@ -56,7 +56,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${PORTS_DIR}/linux/websocket-cli.c
     ${PORTS_DIR}/linux/websocket-srv.c
     ${PORTS_DIR}/linux/websocket-mutex.c
-    ${PORTS_DIR}/linux/bsc-mutex.c
     ${PORTS_DIR}/linux/bsc-event.c
     ${PORTS_DIR}/linux/mstimer-init.c
     ${PORTS_DIR}/linux/datetime-init.c
@@ -117,7 +116,6 @@ elseif(WIN32)
     ${PORTS_DIR}/win32/websocket-cli.c
     ${PORTS_DIR}/win32/websocket-srv.c
     ${PORTS_DIR}/win32/websocket-mutex.c
-    ${PORTS_DIR}/win32/bsc-mutex.c
     ${PORTS_DIR}/win32/bsc-event.c
     ${PORTS_DIR}/win32/mstimer-init.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
@@ -167,7 +165,6 @@ elseif(APPLE)
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c
     ${PORTS_DIR}/bsd/websocket-mutex.c
-    ${PORTS_DIR}/bsd/bsc-mutex.c
     ${PORTS_DIR}/bsd/bsc-event.c
     ${PORTS_DIR}/bsd/mstimer-init.c
     ${PORTS_DIR}/bsd/datetime-init.c
