@@ -85,10 +85,7 @@ static struct lws_protocols bws_cli_hub_protocol[] = {
     LWS_PROTOCOL_LIST_TERM
 };
 
-static const lws_retry_bo_t retry = {
-    .secs_since_valid_ping = 3,
-    .secs_since_valid_hangup = 10,
-};
+static lws_retry_bo_t bws_retry;
 
 static BSC_WEBSOCKET_CONNECTION bws_cli_conn[BSC_CLIENT_WEBSOCKETS_MAX_NUM] = {
     0
@@ -550,7 +547,9 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     cinfo.path = path;
     cinfo.pwsi = &bws_cli_conn[h].ws;
     cinfo.alpn = "h2;http/1.1";
-    cinfo.retry_and_idle_policy = &retry;
+    bws_retry.secs_since_valid_ping = 3;
+    bws_retry.secs_since_valid_hangup = 10;
+    cinfo.retry_and_idle_policy = &bws_retry;
     cinfo.ssl_connection = LCCSCF_USE_SSL |
         LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK | LCCSCF_ALLOW_SELFSIGNED;
 
