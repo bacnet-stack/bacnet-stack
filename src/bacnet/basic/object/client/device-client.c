@@ -47,9 +47,9 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/proplist.h"
-#if defined(BACFILE)
+#if defined(BACDL_BSC)
 #include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
+#endif
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
@@ -128,7 +128,7 @@ static object_functions_t Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif
-#if defined(BACFILE)
+#if defined(BACDL_BSC)
     { OBJECT_FILE, bacfile_init, bacfile_count, bacfile_index_to_instance,
         bacfile_valid_instance, bacfile_object_name, bacfile_read_property,
         bacfile_write_property, BACfile_Property_Lists,
