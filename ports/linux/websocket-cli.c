@@ -127,7 +127,6 @@ static void bws_cli_free_connection(BSC_WEBSOCKET_HANDLE h)
 static BSC_WEBSOCKET_HANDLE bws_cli_find_connnection(struct lws *ws)
 {
     int i;
-
     for (i = 0; i < BSC_CLIENT_WEBSOCKETS_MAX_NUM; i++) {
         if (bws_cli_conn[i].ws == ws &&
             bws_cli_conn[i].state != BSC_WEBSOCKET_STATE_IDLE) {
@@ -146,6 +145,8 @@ static int bws_cli_websocket_event(struct lws *wsi,
     BSC_WEBSOCKET_HANDLE h;
     BSC_WEBSOCKET_CLI_DISPATCH dispatch_func;
     void *user_param;
+
+    (void) user;
 
     DEBUG_PRINTF(
         "bws_cli_websocket_event() >>> reason = %d, user = %p, in = %p\n",
@@ -339,8 +340,6 @@ static int bws_cli_websocket_event(struct lws *wsi,
         }
     }
     DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = 0\n");
-    (void)user;
-
     return 0;
 }
 
@@ -505,7 +504,6 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     bws_cli_conn[h].ctx = lws_create_context(&info);
     bsc_websocket_global_unlock();
     pthread_mutex_lock(&bws_cli_mutex);
-
     DEBUG_PRINTF("bws_cli_connect() created ctx %p\n", bws_cli_conn[h].ctx);
 
     if (!bws_cli_conn[h].ctx) {
