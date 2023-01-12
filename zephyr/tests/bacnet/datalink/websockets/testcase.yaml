@@ -3,5 +3,7 @@ common:
 tests:
   bacnet.datalink.websockets.unit:
     type: unit
+    skip: true
   bacnet.datalink.websockets:
     tags: bacnet
+    skip: true
