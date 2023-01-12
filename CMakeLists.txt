@@ -69,7 +69,7 @@ option(
 option(
   BACDL_BSC
   "compile with secure-connect support"
-  OFF)
+  ON)
 
 set(BACNET_PROTOCOL_REVISION 19)
 
@@ -534,9 +534,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.c>
     $<$<BOOL:${BACDL_MSTP}>:ports/linux/dlmstp_linux.h>
-    $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-mutex.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-event.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-runloop.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-srv.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-mutex.c>
@@ -578,9 +576,7 @@ elseif(APPLE)
     ports/bsd/bip-init.c
     ports/bsd/datetime-init.c
     ports/bsd/mstimer-init.c
-    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-mutex.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-runloop.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-mutex.c>
@@ -744,8 +740,8 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(writepropm apps/writepropm/main.c)
   target_link_libraries(writepropm PRIVATE ${PROJECT_NAME})
 if(BACDL_BSC)
-  add_executable(sc-node apps/sc-node/main.c)
-  target_link_libraries(sc-node PRIVATE ${PROJECT_NAME})
+  #add_executable(sc-node apps/sc-node/main.c)
+  #target_link_libraries(sc-node PRIVATE ${PROJECT_NAME})
 
   add_executable(sc-hub apps/sc-hub/main.c)
   target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})
