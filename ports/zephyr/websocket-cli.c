@@ -168,6 +168,7 @@ static int setup_socket(uint16_t family, int *sock, BSC_WEBSOCKET_HANDLE h,
     const char *family_str = family == AF_INET ? "IPv4" : "IPv6";
     int ret = 0;
     struct timeval timeout = {0};
+    (void)h;
 
     if (IS_ENABLED(CONFIG_NET_SOCKETS_SOCKOPT_TLS)) {
         sec_tag_t sec_tag_list[] = { CA_CERTIFICATE_TAG +
@@ -402,7 +403,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     void *dispatch_func_user_param,
     BSC_WEBSOCKET_HANDLE *out_handle)
 {
-    BSC_WEBSOCKET_HANDLE h;
+    BSC_WEBSOCKET_HANDLE h = 0;
     BSC_WEBSOCKET_RET ret;
     BSC_WEBSOCKET_CONNECTION *ctx;
     BSC_WEBSOCKET_CONNECTION_PARAM *param;

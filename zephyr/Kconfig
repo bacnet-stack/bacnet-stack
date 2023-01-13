@@ -46,6 +46,11 @@ config BACDL_BIP
 	help
 	  Enable BACnet BIP datalink
 
+config BACDL_BSC
+	bool "BACnet BSC datalink"
+	help
+	  Enable BACnet BSC datalink
+
 config BACDL_NONE
 	bool "BACnet without datalink"
 	help

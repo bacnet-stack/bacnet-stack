@@ -26,6 +26,7 @@ LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 BSC_WEBSOCKET_RET bws_srv_start(
                         BSC_WEBSOCKET_PROTOCOL proto,
                         int port,
+                        char* iface,
                         uint8_t *ca_cert,
                         size_t ca_cert_size,
                         uint8_t *cert,
@@ -34,34 +35,35 @@ BSC_WEBSOCKET_RET bws_srv_start(
                         size_t key_size,
                         size_t timeout_s,
                         BSC_WEBSOCKET_SRV_DISPATCH dispatch_func,
-                        void* dispatch_func_user_param)
+                        void* dispatch_func_user_param,
+                        BSC_WEBSOCKET_SRV_HANDLE* sh)
 {
     LOG_INF("bws_srv_start() >>> proto = %d port = %d", proto, port);
     return BSC_WEBSOCKET_NO_RESOURCES;
 }
 
-BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_PROTOCOL proto)
+BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_SRV_HANDLE sh)
 {
-    LOG_INF("bws_srv_stop() >>> proto = %d", proto);
+    LOG_INF("bws_srv_stop() >>> handle = %p", sh);
     return BSC_WEBSOCKET_NO_RESOURCES;
 }
 
-void bws_srv_disconnect(BSC_WEBSOCKET_PROTOCOL proto, BSC_WEBSOCKET_HANDLE h)
+void bws_srv_disconnect(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
 {
-    LOG_INF("bws_srv_disconnect() >>> proto = %d h = %d", proto, h);
+    LOG_INF("bws_srv_disconnect() >>> handle = %p h = %d", sh, h);
 }
 
-void bws_srv_send(BSC_WEBSOCKET_PROTOCOL proto, BSC_WEBSOCKET_HANDLE h)
+void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
 {
-    LOG_INF("bws_srv_send() >>> proto = %d h = %d", proto, h);
+    LOG_INF("bws_srv_send() >>> handle = %p h = %d", sh, h);
 }
 
-BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_PROTOCOL proto,
+BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
                                         BSC_WEBSOCKET_HANDLE h,
                                         uint8_t *payload, size_t payload_size)
 {
     LOG_INF(
-        "bws_srv_dispatch_send() >>> proto %d,  h = %d, payload = %p, size = %d",
-        proto, h, payload, payload_size);
+        "bws_srv_dispatch_send() >>> sh %p, h = %d, payload = %p, size = %d",
+        sh, h, payload, payload_size);
     return BSC_WEBSOCKET_NO_RESOURCES;
 }
