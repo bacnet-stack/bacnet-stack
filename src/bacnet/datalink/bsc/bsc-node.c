@@ -559,7 +559,7 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
         conf->disconnect_timeout_s <= 0 || conf->reconnnect_timeout_s <= 0 ||
         conf->address_resolution_timeout_s <= 0 ||
         conf->address_resolution_freshness_timeout_s <= 0 ||
-        !conf->primaryURL || !conf->failoverURL || !conf->event_func) {
+        !conf->event_func) {
         DEBUG_PRINTF("bsc_node_init() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
@@ -595,7 +595,7 @@ BSC_SC_RET bsc_node_deinit(BSC_NODE *node)
 
 static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
 {
-    BSC_SC_RET ret;
+    BSC_SC_RET ret = BSC_SC_BAD_PARAM;
     bws_dispatch_lock();
     DEBUG_PRINTF("bsc_node_start() >>> node = %p state = %d\n", node, state);
 
@@ -612,21 +612,24 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
         /* TODO: integration with BACNET/SC properties */
         bsc_generate_random_vmac(node->conf->local_vmac);
     }
-    ret = bsc_hub_connector_start(node->conf->ca_cert_chain,
-        node->conf->ca_cert_chain_size, node->conf->cert_chain,
-        node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
-        node->conf->local_uuid, node->conf->local_vmac,
-        node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
-        node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
-        node->conf->disconnect_timeout_s, node->conf->primaryURL,
-        node->conf->failoverURL, node->conf->reconnnect_timeout_s,
-        bsc_hub_connector_event, node, &node->hub_connector);
 
-    if (ret != BSC_SC_SUCCESS) {
-        node->state = BSC_NODE_STATE_IDLE;
-        bws_dispatch_unlock();
-        DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
-        return ret;
+    if (node->conf->primaryURL) {
+        ret = bsc_hub_connector_start(node->conf->ca_cert_chain,
+            node->conf->ca_cert_chain_size, node->conf->cert_chain,
+            node->conf->cert_chain_size, node->conf->key, node->conf->key_size,
+            node->conf->local_uuid, node->conf->local_vmac,
+            node->conf->max_local_bvlc_len, node->conf->max_local_npdu_len,
+            node->conf->connect_timeout_s, node->conf->heartbeat_timeout_s,
+            node->conf->disconnect_timeout_s, node->conf->primaryURL,
+            node->conf->failoverURL, node->conf->reconnnect_timeout_s,
+            bsc_hub_connector_event, node, &node->hub_connector);
+
+        if (ret != BSC_SC_SUCCESS) {
+            node->state = BSC_NODE_STATE_IDLE;
+            bws_dispatch_unlock();
+            DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
+            return ret;
+        }
     }
 
     if (node->conf->hub_function_enabled) {
@@ -671,8 +674,12 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
         }
     }
     if (!node->conf->hub_function_enabled && !node_switch_enabled(node->conf)) {
-        node->state = BSC_NODE_STATE_STARTED;
-        node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, NULL, 0);
+        if (!node->conf->primaryURL) {
+            node->state = BSC_NODE_STATE_IDLE;
+        } else {
+            node->state = BSC_NODE_STATE_STARTED;
+            node->conf->event_func(node, BSC_NODE_EVENT_STARTED, NULL, NULL, 0);
+        }
     }
     DEBUG_PRINTF(
         "bsc_node_start() hub_function %p hub_connector %p node_switch %p\n",

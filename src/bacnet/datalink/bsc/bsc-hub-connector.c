@@ -106,6 +106,12 @@ static void hub_connector_connect(BSC_HUB_CONNECTOR *p, BSC_HUB_CONN_TYPE type)
     DEBUG_PRINTF(
         "hub_connector_connect() hub = %p connecting to url %s\n", p, url);
 
+    if (url[0] == 0) {
+        mstimer_set(&p->t, p->reconnect_timeout_s * 1000);
+        p->state = BSC_HUB_CONNECTOR_STATE_WAIT_FOR_RECONNECT;
+        return;
+    }
+
     ret = bsc_connect(&p->ctx, &p->sock[type], url);
     (void)ret;
 #if DEBUG_ENABLED == 1
@@ -129,7 +135,7 @@ static void hub_connector_process_state(BSC_HUB_CONNECTOR *c)
 void bsc_hub_connector_maintenance_timer(uint16_t seconds)
 {
     int i;
-   (void) seconds;
+    (void)seconds;
 
     bws_dispatch_lock();
     for (i = 0; i < BSC_CONF_HUB_CONNECTORS_NUM; i++) {
@@ -257,13 +263,13 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
         !cert_chain_size || !key || !key_size || !local_uuid || !local_vmac ||
         !max_local_npdu_len || !max_local_bvlc_len || !connect_timeout_s ||
         !heartbeat_timeout_s || !disconnect_timeout_s || !primaryURL ||
-        !failoverURL || !reconnect_timeout_s || !event_func || !h) {
+        !reconnect_timeout_s || !event_func || !h) {
         DEBUG_PRINTF("bsc_hub_connector_start() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
 
     if (strlen(primaryURL) > BSC_WSURL_MAX_LEN ||
-        strlen(failoverURL) > BSC_WSURL_MAX_LEN) {
+        (failoverURL && (strlen(failoverURL) > BSC_WSURL_MAX_LEN))) {
         DEBUG_PRINTF("bsc_hub_connector_start() <<< ret = BSC_SC_BAD_PARAM\n");
         return BSC_SC_BAD_PARAM;
     }
@@ -282,7 +288,11 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
     c->failover_url[0] = 0;
     c->user_arg = user_arg;
     strcpy((char *)c->primary_url, primaryURL);
-    strcpy((char *)c->failover_url, failoverURL);
+
+    if (failoverURL) {
+        strcpy((char *)c->failover_url, failoverURL);
+    }
+
     c->event_func = event_func;
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &c->cfg,
@@ -308,17 +318,25 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
         if (ret == BSC_SC_SUCCESS) {
             c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY;
         } else {
-            c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER;
-            DEBUG_PRINTF(
-                "bsc_hub_connector_start() hub = %p connecting to url %s\n", c,
-                c->primary_url);
-            ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_FAILOVER],
-                (char *)c->failover_url);
-            if (ret != BSC_SC_SUCCESS) {
+            if (c->failover_url[0] == 0) {
                 c->state = BSC_HUB_CONNECTOR_STATE_IDLE;
                 bsc_deinit_ctx(&c->ctx);
                 hub_connector_free(c);
                 *h = NULL;
+            }
+            else {
+                c->state = BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER;
+                DEBUG_PRINTF(
+                    "bsc_hub_connector_start() hub = %p connecting to url %s\n",
+                    c, c->primary_url);
+                ret = bsc_connect(&c->ctx, &c->sock[BSC_HUB_CONN_FAILOVER],
+                    (char *)c->failover_url);
+                if (ret != BSC_SC_SUCCESS) {
+                    c->state = BSC_HUB_CONNECTOR_STATE_IDLE;
+                    bsc_deinit_ctx(&c->ctx);
+                    hub_connector_free(c);
+                    *h = NULL;
+                }
             }
         }
     }
