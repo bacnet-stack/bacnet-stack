@@ -17,7 +17,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <errno.h>
-#include "bacnet/datalink/bsc/bsc-mutex.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
 #define DEBUG_BSC_EVENT 0
