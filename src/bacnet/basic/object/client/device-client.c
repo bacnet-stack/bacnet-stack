@@ -41,7 +41,9 @@
 #include "bacnet/config.h" /* the custom stuff */
 #include "bacnet/datetime.h"
 #include "bacnet/apdu.h"
+#include "bacnet/wp.h" /* WriteProperty handling */
 #include "bacnet/rp.h" /* ReadProperty handling */
+#include "bacnet/dcc.h" /* DeviceCommunicationControl handling */
 #include "bacnet/version.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/datalink.h"
@@ -50,9 +52,15 @@
 #if defined(BACDL_BSC)
 #include "bacnet/basic/object/bacfile.h"
 #endif
+#include "bacnet/basic/object/ao.h"
+#include "bacnet/basic/object/lc.h"
 #if (BACNET_PROTOCOL_REVISION >= 17)
 #include "bacnet/basic/object/netport.h"
 #endif
+#include "bacnet/basic/object/trendlog.h"
+#if defined(INTRINSIC_REPORTING)
+#include "bacnet/basic/object/nc.h"
+#endif /* defined(INTRINSIC_REPORTING) */
 /* include the device object */
 #include "bacnet/basic/object/device.h" /* me */
 
@@ -135,6 +143,33 @@ static object_functions_t Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif
+    { OBJECT_ANALOG_OUTPUT, Analog_Output_Init, Analog_Output_Count,
+        Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance,
+        Analog_Output_Object_Name, Analog_Output_Read_Property,
+        Analog_Output_Write_Property, Analog_Output_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+    { OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
+        Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
+        Load_Control_Object_Name, Load_Control_Read_Property,
+        Load_Control_Write_Property, Load_Control_Property_Lists,
+        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+#if defined(INTRINSIC_REPORTING)
+    { OBJECT_NOTIFICATION_CLASS, Notification_Class_Init,
+        Notification_Class_Count, Notification_Class_Index_To_Instance,
+        Notification_Class_Valid_Instance, Notification_Class_Object_Name,
+        Notification_Class_Read_Property, Notification_Class_Write_Property,
+        Notification_Class_Property_Lists, NULL /* ReadRangeInfo */,
+        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+        NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+#endif
+    { OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count,
+        Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance,
+        Trend_Log_Object_Name, Trend_Log_Read_Property,
+        Trend_Log_Write_Property, Trend_Log_Property_Lists, TrendLogGetRRInfo,
+        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
+        NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,
@@ -168,6 +203,25 @@ static struct object_functions *Device_Objects_Find_Functions(
     }
 
     return (NULL);
+}
+
+/** Try to find a rr_info_function helper function for the requested object
+ * type.
+ * @ingroup ObjIntf
+ *
+ * @param object_type [in] The type of BACnet Object the handler wants to
+ * access.
+ * @return Pointer to the object helper function that implements the
+ *         ReadRangeInfo function, Object_RR_Info, for this type of Object on
+ *         success, else a NULL pointer if the type of Object isn't supported
+ *         or doesn't have a ReadRangeInfo function.
+ */
+rr_info_function Device_Objects_RR_Info(BACNET_OBJECT_TYPE object_type)
+{
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    return (pObject != NULL ? pObject->Object_RR_Info : NULL);
 }
 
 /** For a given object type, returns the special property list.
@@ -253,6 +307,90 @@ void Device_Property_Lists(
     }
 
     return;
+}
+
+static BACNET_REINITIALIZED_STATE Reinitialize_State = BACNET_REINIT_IDLE;
+static const char *Reinit_Password = "filister";
+
+/** Commands a Device re-initialization, to a given state.
+ * The request's password must match for the operation to succeed.
+ * This implementation provides a framework, but doesn't
+ * actually *DO* anything.
+ * @note You could use a mix of states and passwords to multiple outcomes.
+ * @note You probably want to restart *after* the simple ack has been sent
+ *       from the return handler, so just set a local flag here.
+ * @ingroup ObjIntf
+ *
+ * @param rd_data [in,out] The information from the RD request.
+ *                         On failure, the error class and code will be set.
+ * @return True if succeeds (password is correct), else False.
+ */
+bool Device_Reinitialize(BACNET_REINITIALIZE_DEVICE_DATA *rd_data)
+{
+    bool status = false;
+    int i;
+
+    /* Note: you could use a mix of state and password to multiple things */
+    if (characterstring_ansi_same(&rd_data->password, Reinit_Password)) {
+        switch (rd_data->state) {
+            case BACNET_REINIT_COLDSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_WARMSTART:
+                dcc_set_status_duration(COMMUNICATION_ENABLE, 0);
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Pending_Params_Apply(
+                        Network_Port_Index_To_Instance(i));
+                }
+                /* note: you probably want to restart *after* the
+                   simple ack has been sent from the return handler
+                   so just set a flag from here */
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            case BACNET_REINIT_STARTBACKUP:
+            case BACNET_REINIT_ENDBACKUP:
+            case BACNET_REINIT_STARTRESTORE:
+            case BACNET_REINIT_ENDRESTORE:
+            case BACNET_REINIT_ABORTRESTORE:
+                if (dcc_communication_disabled()) {
+                    rd_data->error_class = ERROR_CLASS_SERVICES;
+                    rd_data->error_code = ERROR_CODE_COMMUNICATION_DISABLED;
+                } else {
+                    rd_data->error_class = ERROR_CLASS_SERVICES;
+                    rd_data->error_code =
+                        ERROR_CODE_OPTIONAL_FUNCTIONALITY_NOT_SUPPORTED;
+                }
+                break;
+            case BACNET_REINIT_ACTIVATE_CHANGES:
+                for (i = 0; i < Network_Port_Count(); i++) {
+                    Network_Port_Pending_Params_Apply(
+                        Network_Port_Index_To_Instance(i));
+                }
+                Reinitialize_State = rd_data->state;
+                status = true;
+                break;
+            default:
+                rd_data->error_class = ERROR_CLASS_SERVICES;
+                rd_data->error_code = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
+                break;
+        }
+    } else {
+        rd_data->error_class = ERROR_CLASS_SECURITY;
+        rd_data->error_code = ERROR_CODE_PASSWORD_FAILURE;
+    }
+
+    return status;
+}
+
+BACNET_REINITIALIZED_STATE Device_Reinitialized_State(void)
+{
+    return Reinitialize_State;
 }
 
 unsigned Device_Count(void)
@@ -1054,6 +1192,174 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     }
 
     return apdu_len;
+}
+
+/** Looks up the requested Object and Property, and set the new Value in it,
+ *  if allowed.
+ * If the Object or Property can't be found, sets the error class and code.
+ * @ingroup ObjIntf
+ *
+ * @param wp_data [in,out] Structure with the desired Object and Property info
+ *              and new Value on entry, and APDU message on return.
+ * @return True on success, else False if there is an error.
+ */
+bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    bool status = false; /* Ever the pessamist! */
+    struct object_functions *pObject = NULL;
+
+    /* initialize the default return values */
+    wp_data->error_class = ERROR_CLASS_OBJECT;
+    wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    pObject = Device_Objects_Find_Functions(wp_data->object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(wp_data->object_instance)) {
+            if (pObject->Object_Write_Property) {
+#if (BACNET_PROTOCOL_REVISION >= 14)
+                if (wp_data->object_property == PROP_PROPERTY_LIST) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                } else
+#endif
+                {
+                    status = pObject->Object_Write_Property(wp_data);
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_OBJECT;
+            wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return (status);
+}
+
+/** Looks up the requested Object, and fills the Property Value list.
+ * If the Object or Property can't be found, returns false.
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @param [in] The object instance number to be looked up.
+ * @param [out] The value list
+ * @return True if the object instance supports this feature and value changed.
+ */
+bool Device_Encode_Value_List(BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    BACNET_PROPERTY_VALUE *value_list)
+{
+    bool status = false; /* Ever the pessamist! */
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_Value_List) {
+                status =
+                    pObject->Object_Value_List(object_instance, value_list);
+            }
+        }
+    }
+
+    return (status);
+}
+
+/** Checks the COV flag in the requested Object
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @param [in] The object instance to be looked up.
+ * @return True if the COV flag is set
+ */
+bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+{
+    bool status = false; /* Ever the pessamist! */
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_COV) {
+                status = pObject->Object_COV(object_instance);
+            }
+        }
+    }
+
+    return (status);
+}
+
+/** Clears the COV flag in the requested Object
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @param [in] The object instance to be looked up.
+ */
+void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
+{
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Valid_Instance &&
+            pObject->Object_Valid_Instance(object_instance)) {
+            if (pObject->Object_COV_Clear) {
+                pObject->Object_COV_Clear(object_instance);
+            }
+        }
+    }
+}
+
+#if defined(INTRINSIC_REPORTING)
+void Device_local_reporting(void)
+{
+    struct object_functions *pObject = NULL;
+    uint32_t objects_count = 0;
+    uint32_t object_instance = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t idx = 0;
+
+    objects_count = Device_Object_List_Count();
+
+    /* loop for all objects */
+    for (idx = 1; idx <= objects_count; idx++) {
+        Device_Object_List_Identifier(idx, &object_type, &object_instance);
+
+        pObject = Device_Objects_Find_Functions(object_type);
+        if (pObject != NULL) {
+            if (pObject->Object_Valid_Instance &&
+                pObject->Object_Valid_Instance(object_instance)) {
+                if (pObject->Object_Intrinsic_Reporting) {
+                    pObject->Object_Intrinsic_Reporting(object_instance);
+                }
+            }
+        }
+    }
+}
+#endif
+
+/** Looks up the requested Object to see if the functionality is supported.
+ * @ingroup ObjHelpers
+ * @param [in] The object type to be looked up.
+ * @return True if the object instance supports this feature.
+ */
+bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
+{
+    bool status = false; /* Ever the pessamist! */
+    struct object_functions *pObject = NULL;
+
+    pObject = Device_Objects_Find_Functions(object_type);
+    if (pObject != NULL) {
+        if (pObject->Object_Value_List) {
+            status = true;
+        }
+    }
+
+    return (status);
 }
 
 /** Initialize the Device Object.

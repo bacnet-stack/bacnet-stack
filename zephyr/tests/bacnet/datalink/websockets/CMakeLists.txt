@@ -31,6 +31,7 @@ if(BOARD STREQUAL unit_testing)
   file(RELATIVE_PATH BACNET_INCLUDE $ENV{ZEPHYR_BASE} ${BACNET_BASE}/src)
   list(APPEND INCLUDE ${BACNET_INCLUDE})
   list(APPEND SOURCES
+    ${BACNET_BASE}/ports/zephyr/websocket-mutex.c
     ${BACNET_BASE}/ports/zephyr/websocket-cli.c
     ${BACNET_BASE}/ports/zephyr/websocket-srv.c
     ${BACNET_TEST_PATH}/src/main.c

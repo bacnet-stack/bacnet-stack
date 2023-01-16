@@ -61,7 +61,7 @@ static void *child_func(void* arg)
     }
     usleep(1000 * TIMEOUT_CHILD);
     bsc_event_signal(event);
-  
+
     return NULL;
 }
 
@@ -100,7 +100,7 @@ static void test_bsc_event(void)
     clock_gettime(CLOCK_REALTIME, &t1);
     bsc_wait(TIMEOUT_SLEEP);
     clock_gettime(CLOCK_REALTIME, &t2);
-    timediff = (t2.tv_sec * MSEC_PER_SEC + t2.tv_nsec / USEC_PER_MSEC) - 
+    timediff = (t2.tv_sec * MSEC_PER_SEC + t2.tv_nsec / USEC_PER_MSEC) -
                (t1.tv_sec * MSEC_PER_SEC + t1.tv_nsec / USEC_PER_MSEC);
     zassert_true((WAITTIME_MIN < timediff) && (timediff < WAITTIME_MAX), NULL);
 

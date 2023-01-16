@@ -346,3 +346,7 @@ writepropm: $(BACNET_LIB_TARGET)
 .PHONY: sc-hub
 sc-hub: $(BACNET_LIB_TARGET)
 	$(MAKE) -b -C $@
+
+.PHONY: sc-node
+sc-node: $(BACNET_LIB_TARGET)
+	$(MAKE) -b -C $@

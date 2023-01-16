@@ -25,7 +25,6 @@ add_compile_definitions(
 	BSC_CONF_HUB_FUNCTIONS_NUM=1
 	BSC_CONF_HUB_CONNECTORS_NUM=1
 	BACNET_SC_DIRECT_ACCEPT_URI_MAX=6
-#	BSC_MUTEX_EMULATE=1
 )
 
 if(BOARD STREQUAL unit_testing)
@@ -39,7 +38,6 @@ if(BOARD STREQUAL unit_testing)
 
   add_compile_definitions(
     BACDL_BSC
-    BSC_MUTEX_EMULATE=1
     MAX_TSM_TRANSACTIONS=0
   )
 

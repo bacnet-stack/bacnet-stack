@@ -11,6 +11,9 @@
 
 #include <zephyr.h>
 #include <logging/log.h>
+#include <fs/fs.h>
+//#include <fs/littlefs.h>
+//#include <storage/flash_map.h>
 
 LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 
@@ -37,15 +40,40 @@ LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
+/* mounting info */
+#include <ff.h>
+
+#define MNTP  "/NAND:"
+static FATFS fat_fs;
+static struct fs_mount_t mnt = {
+    .type = FS_FATFS,
+    .mnt_point = MNTP,
+    .flags = 0,
+    .fs_data = &fat_fs,
+};
+
+#if 0
+#define MNTP  "/lfs"
+FS_LITTLEFS_DECLARE_DEFAULT_CONFIG(storage);
+static struct fs_mount_t mnt = {
+    .type = FS_LITTLEFS,
+    .fs_data = &storage,
+    .storage_dev = (void *)FLASH_AREA_ID(storage),
+    .mnt_point = MNTP,
+};
+#endif
+
 #include "ca_cert_pem.h"        // uint8_t Ca_Certificate[]
 #include "node_cert_pem.h"      // uint8_t Certificate[]
 #include "node_priv_key_der.h"  // uint8_t Key[]
 
-
 #define SERVER_URL "wss://127.0.0.1:50000"
 #define DEVICE_INSTANCE 123
 #define DEVICE_NAME "Fred"
- 
+#define FILENAME_CA_CERT    MNTP"/ca_cert.pem"
+#define FILENAME_CERT       MNTP"/node_cert.pem"
+#define FILENAME_KEY        MNTP"/node_priv.key.pem"
+
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
@@ -125,49 +153,75 @@ static void Init_Service_Handlers(void)
     handler_timesync_init();
 #endif
 }
-
+/*
 static void bacfile_set(uint32_t instance, const char *pathname,
         uint8_t *buffer, uint32_t buffer_size)
 {
     bacfile_create(instance);
     bacfile_pathname_set(instance, pathname);
-    bacfile_write(instance, buffer, buffer_size);
+    LOG_INF("bacfile_set %s = %s", pathname, bacfile_pathname(instance));
+    uint32_t len = bacfile_write(instance, buffer, buffer_size);
+    LOG_INF("bacfile_set len %d", len);
 }
-
-static void init_bsc(void)
+*/
+static bool file_save(const char *name, uint8_t *buffer, uint32_t buffer_size)
 {
-    uint32_t instance = 1;
-    const char *filename_ca_cert = "ca_cert.pem";
-    const char *filename_cert = "cert.pem";
-    const char *filename_key = "key.pem";
+    struct fs_file_t file;
+    ssize_t brw;
+    int status;
 
-    Network_Port_Object_Instance_Number_Set(0, instance);
+    status = fs_open(&file, name, FS_O_CREATE | FS_O_WRITE);
+    if (status < 0) {
+        LOG_INF("Failed opening file: %s, flag %d, errno=%d", name, FS_O_CREATE | FS_O_WRITE, status);
+        return false;
+    }
 
-    bacfile_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
-        filename_ca_cert, Ca_Certificate, sizeof(Ca_Certificate));
-    Network_Port_Issuer_Certificate_File_Set(instance, 0,
-        BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
-
-    bacfile_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
-        filename_cert, Certificate, sizeof(Certificate));
-    Network_Port_Operational_Certificate_File_Set(instance,
-        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
-
-    bacfile_set(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
-        filename_key, Key, sizeof(Key));
-    Network_Port_Certificate_Key_File_Set(instance,
-        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
-
-    Network_Port_SC_Primary_Hub_URI_Set(instance, SERVER_URL);
-    Network_Port_SC_Failover_Hub_URI_Set(instance, SERVER_URL);
-
-    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
-    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,  false);
-    Network_Port_SC_Direct_Server_Port_Set(instance, 9999);
-    //Network_Port_SC_Direct_Connect_Accept_URIs_Set(instance, hub_url);
-
-    Network_Port_SC_Hub_Function_Enable_Set(instance, false);
+    brw = fs_write(&file, buffer, buffer_size);
+    if (brw < 0) {
+        LOG_INF("Failed writing to file: %s [%d]\n", name, (int)brw);
+        fs_close(&file);
+        return false;
+    }
+    fs_close(&file);
+    return true;
 }
+
+static bool init_bsc(void)
+{
+    int rc;
+/*    unsigned int id = (uintptr_t)mnt.storage_dev;
+    const struct flash_area *pfa;
+
+    rc = flash_area_open(id, &pfa);
+    if (rc < 0) {
+        LOG_INF("FAIL: unable to find flash area %u: %d", id, rc);
+        return false;
+    }
+    rc = flash_area_erase(pfa, 0, pfa->fa_size);
+    LOG_INF("Erase %d\n", rc);
+    flash_area_close(pfa);
+*/
+    rc = fs_mount(&mnt);
+    if (rc != 0) {
+        LOG_INF("Error mounting fs [%d]", rc);
+        return false;
+    }
+
+    if (!file_save(FILENAME_CA_CERT, Ca_Certificate, sizeof(Ca_Certificate)) ||
+        !file_save(FILENAME_CERT, Certificate, sizeof(Certificate)) ||
+        !file_save(FILENAME_KEY, Key, sizeof(Key))) {
+        return false;
+    }
+
+    setenv("BACNET_SC_PRIMARY_HUB_URI", SERVER_URL, 1);
+    setenv("BACNET_SC_FAILOVER_HUB_URI", SERVER_URL, 1);
+    setenv("BACNET_SC_ISSUER_1_CERTIFICATE_FILE", FILENAME_CA_CERT, 1);
+    setenv("BACNET_SC_OPERATIONAL_CERTIFICATE_FILE", FILENAME_CERT, 1);
+    setenv("BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE", FILENAME_KEY, 1);
+
+    return true;
+}
+
 void main(void)
 {
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
@@ -200,7 +254,8 @@ void main(void)
 
     Device_Object_Name_ANSI_Init(DEVICE_NAME);
     LOG_INF("BACnet Device Name: %s\n", DEVICE_NAME);
-    
+
+    bacfile_init();
     init_bsc();
     dlenv_init();
     atexit(datalink_cleanup);

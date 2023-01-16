@@ -30,7 +30,7 @@ BSC_MUTEX *bsc_mutex_init(void)
         return NULL;
     }
 
-    ret->mutex = CreateMutex( 
+    ret->mutex = CreateMutex(
         NULL,              // default security attributes
         FALSE,             // initially not owned
         NULL);             // unnamed mutex

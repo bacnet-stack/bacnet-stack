@@ -67,7 +67,6 @@ void test_main(void)
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
 
-
     ztest_test_suite(runloop_test_1, ztest_unit_test(test_simple));
     ztest_run_test_suite(runloop_test_1);
 }

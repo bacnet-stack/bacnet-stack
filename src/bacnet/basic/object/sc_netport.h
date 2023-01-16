@@ -400,13 +400,6 @@ extern "C" {
         char *error_details);
 #endif
 
-    BACNET_STACK_EXPORT
-    uint16_t Network_Port_SC_Hub_Server_Port(
-        uint32_t object_instance);
-    BACNET_STACK_EXPORT
-    bool Network_Port_SC_Hub_Server_Port_Set(
-        uint32_t object_instance,
-        uint16_t value);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
@@ -485,14 +478,6 @@ extern "C" {
         char *error_details);
 #endif
 
-    BACNET_STACK_EXPORT
-    uint16_t Network_Port_SC_Direct_Server_Port(
-        uint32_t object_instance);
-    BACNET_STACK_EXPORT
-    bool Network_Port_SC_Direct_Server_Port_Set(
-        uint32_t object_instance,
-        uint16_t value);
-
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 #ifdef BACNET_SC_STATUS_SUPPORT
@@ -539,16 +524,6 @@ extern "C" {
     bool Network_Port_SC_Local_UUID_Set(
         uint32_t object_instance,
         BACNET_UUID *value);
-
-    BACNET_STACK_EXPORT
-    bool Network_Port_Ifname_Set(
-        uint32_t object_instance,
-        char *value);
-    BACNET_STACK_EXPORT
-    bool Network_Port_Ifname_Set_By_Index(
-        uint32_t index,
-        char *value);
-
 
     /* */
     /* Encode / decode */

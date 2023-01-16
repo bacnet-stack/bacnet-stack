@@ -12,7 +12,6 @@
  */
 #include <zephyr.h>
 #include <stdlib.h>
-#include "bacnet/datalink/bsc/bsc-mutex.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
 #define DEBUG_BSC_EVENT 0

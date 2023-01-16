@@ -90,6 +90,82 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p)
     }
 }
 
+#ifdef BACDL_BSC
+static void sc_binding_get(uint32_t instance, bool hub, uint16_t *port,
+    char **ifname)
+{
+    const char splite = ':';
+    const char *str = NULL;
+    char *p = NULL;
+
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
+    if (hub)
+        str = Network_Port_SC_Hub_Function_Binding_char(instance);
+#endif
+
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
+    if (!hub)
+        str = Network_Port_SC_Direct_Connect_Binding_char(instance);
+#endif
+
+    if (str != NULL) {
+        *port = (uint16_t)strtol(str, &p, 0);
+        if (*p == splite)
+            p++;
+        *ifname = *p != 0 ? p : NULL;
+    } else {
+        *port = 0;
+        *ifname = NULL;
+    }
+}
+
+static void sc_binding_set(uint32_t instance, bool hub, uint16_t port,
+    char *ifname)
+{
+    char str[BACNET_BINDING_STRING_LENGTH];
+
+    snprintf(str, sizeof(str), "%d:%s", port, ifname ? ifname : "");
+
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
+    if (hub)
+        Network_Port_SC_Hub_Function_Binding_Set(instance, str);
+#endif
+
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
+    if (!hub)
+        Network_Port_SC_Direct_Connect_Binding_Set(instance, str);
+#endif
+}
+#endif
+
+void bsc_node_ifname_set_to_netport(uint32_t index, char *ifname, bool hub)
+{
+#ifdef BACDL_BSC
+    uint32_t instance;
+    uint16_t port;
+    char *tmp;
+
+    instance = Network_Port_Index_To_Instance(index);
+
+    sc_binding_get(instance, hub, &port, &tmp);
+    sc_binding_set(instance, hub, port, ifname);
+#endif
+}
+
+void bsc_node_port_set_to_netport(uint32_t index, uint16_t port, bool hub)
+{
+#ifdef BACDL_BSC
+    uint32_t instance;
+    uint16_t tmp;
+    char *iface;
+
+    instance = Network_Port_Index_To_Instance(index);
+
+    sc_binding_get(instance, hub, &tmp, &iface);
+    sc_binding_set(instance, hub, port, iface);
+#endif
+}
+
 void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     BSC_NODE_EVENT_FUNC event_func)
 {
@@ -146,20 +222,18 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     bsc_conf->failoverURL =
         (char*)Network_Port_SC_Failover_Hub_URI_char(instance);
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
-    bsc_conf->direct_server_port = Network_Port_SC_Direct_Server_Port(instance);
     bsc_conf->direct_connect_initiate_enable =
         Network_Port_SC_Direct_Connect_Initiate_Enable(instance);
     bsc_conf->direct_connect_accept_enable =
         Network_Port_SC_Direct_Connect_Accept_Enable(instance);
-    bsc_conf->direct_iface =
-        (char*)Network_Port_SC_Direct_Connect_Binding_char(instance);
+    sc_binding_get(instance, false, &bsc_conf->direct_server_port,
+        &bsc_conf->direct_iface);
 #endif
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
-    bsc_conf->hub_server_port = Network_Port_SC_Hub_Server_Port(instance);
+    sc_binding_get(instance, true, &bsc_conf->hub_server_port,
+        &bsc_conf->hub_iface);
     bsc_conf->hub_function_enabled =
         Network_Port_SC_Hub_Function_Enable(instance);
-    bsc_conf->hub_iface =
-        (char*)Network_Port_SC_Hub_Function_Binding_char(instance);
 #endif
 
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0

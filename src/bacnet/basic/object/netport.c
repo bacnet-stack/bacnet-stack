@@ -197,12 +197,6 @@ static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
 static const int Network_Port_Properties_Proprietary[] = {
 #ifdef BACDL_BSC
     PROP_CUSTOM_SC_CERTIFICATE_KEY_FILE, PROP_CUSTOM_SC_LOCAL_UUID,
-#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
-    PROP_CUSTOM_SC_HUB_SERVER_PORT,
-#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
-#if BSC_CONF_HUB_CONNECTORS_NUM != 0
-    PROP_CUSTOM_SC_DIRECT_SERVER_PORT,
-#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 #endif /* BACDL_BSC */
     -1
 };
@@ -2711,10 +2705,6 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
 #endif
             break;
-        case PROP_CUSTOM_SC_HUB_SERVER_PORT:
-            apdu_len = encode_application_unsigned(&apdu[0],
-                Network_Port_SC_Hub_Server_Port(rpdata->object_instance));
-            break;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
         case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
@@ -2744,10 +2734,6 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Network_Port_SC_Direct_Connect_Connection_Status(
                     rpdata->object_instance));
 #endif
-            break;
-        case PROP_CUSTOM_SC_DIRECT_SERVER_PORT:
-            apdu_len = encode_application_unsigned(&apdu[0],
-                Network_Port_SC_Direct_Server_Port(rpdata->object_instance));
             break;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
@@ -2946,10 +2932,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     characterstring_value(&value.type.Character_String));
             }
             break;
-        case PROP_CUSTOM_SC_HUB_SERVER_PORT:
-            DECODE_UNSIGNED(Network_Port_SC_Hub_Server_Port_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
-            break;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
         case PROP_SC_DIRECT_CONNECT_INITIATE_ENABLE:
@@ -2981,10 +2963,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance,
                     characterstring_value(&value.type.Character_String));
             }
-            break;
-        case PROP_CUSTOM_SC_DIRECT_SERVER_PORT:
-            DECODE_UNSIGNED(Network_Port_SC_Direct_Server_Port_Set,
-                BACNET_UNSIGNED_INTEGER_MAX);
             break;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
         case PROP_OPERATIONAL_CERTIFICATE_FILE:

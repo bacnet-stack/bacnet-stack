@@ -110,7 +110,6 @@ list(APPEND testdirs
   bacnet/basic/object/schedule
   # basic/sys
   bacnet/basic/sys/bsc_event
-  bacnet/basic/sys/bsc_mutex
   bacnet/basic/sys/color_rgb
   bacnet/basic/sys/days
   bacnet/basic/sys/fifo
@@ -130,7 +129,7 @@ list(APPEND testdirs
   #bacnet/datalink/bsc-socket
   #bacnet/datalink/hub-sc
   #bacnet/datalink/bsc-node
-  #bacnet/datalink/bsc-datalink
+  bacnet/datalink/bsc-datalink
   )
 
 enable_testing()

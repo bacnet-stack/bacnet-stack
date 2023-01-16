@@ -19,41 +19,6 @@
  * @{
  */
 
-#ifdef BACDL_BSC
-#include "bacnet/datalink/bsc/bsc-mutex.h"
-
-#ifdef BSC_MUTEX_EMULATE
-struct BSC_Mutex {
-    int count;
-};
-
-static BSC_MUTEX my_mutex;
-static int mutex_error;
-
-BSC_MUTEX* bsc_mutex_init(void)
-{
-    my_mutex.count = 0;
-    return &my_mutex;
-}
-
-void bsc_mutex_lock(BSC_MUTEX* mutex)
-{
-    if (mutex == &my_mutex)
-        my_mutex.count++;
-    else
-        mutex_error++;
-}
-
-void bsc_mutex_unlock(BSC_MUTEX* mutex)
-{
-    if (mutex == &my_mutex)
-        my_mutex.count--;
-    else
-        mutex_error++;
-}
-#endif /* BSC_MUTEX_EMULATE */
-#endif /* BACDL_BSC */
-
 /**
  * @brief Test
  */
@@ -144,9 +109,6 @@ static void test_network_port_pending_param(void)
     BACNET_CHARACTER_STRING str;
 #endif
 
-#ifdef BSC_MUTEX_EMULATE
-    mutex_error = 0;
-#endif
     Network_Port_Init();
     object_instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, object_instance);
@@ -249,11 +211,6 @@ static void test_network_port_pending_param(void)
         NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
-#ifdef BSC_MUTEX_EMULATE
-    zassert_true(my_mutex.count == 0, NULL);
-    zassert_true(mutex_error == 0, NULL);
-#endif
-
 #endif /* BACDL_BSC */
     return;
 }
@@ -277,9 +234,6 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     bool status = false;
     BACNET_CHARACTER_STRING str = {0};
 
-#ifdef BSC_MUTEX_EMULATE
-    mutex_error = 0;
-#endif
     Network_Port_Init();
     object_instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, object_instance);
@@ -356,11 +310,6 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     zassert_true(strncmp(characterstring_value(&str), URL_BIG,
         characterstring_length(&str)) == 0, NULL);
 
-#ifdef BSC_MUTEX_EMULATE
-    zassert_true(my_mutex.count == 0, NULL);
-    zassert_true(mutex_error == 0, NULL);
-#endif
-
 #endif /* BACDL_BSC && BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     return;
@@ -379,9 +328,6 @@ static void test_network_port_sc_certificates(void)
     char *filename_cert = "cert.pem";
     char *filename_key = "key.pem";
 
-#ifdef BSC_MUTEX_EMULATE
-    mutex_error = 0;
-#endif
     Network_Port_Init();
     instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, instance);
@@ -426,10 +372,6 @@ static void test_network_port_sc_certificates(void)
     // reset
 
     // check bacfile after reset
-
-#ifdef BSC_MUTEX_EMULATE
-    zassert_true(my_mutex.count == 0, NULL);
-#endif
 
 #endif /* BACDL_BSC */
 

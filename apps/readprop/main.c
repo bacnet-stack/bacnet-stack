@@ -55,6 +55,9 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/dlenv.h"
+#if defined(BACDL_BSC)
+#include "bacnet/datalink/bsc/bsc-event.h"
+#endif
 
 /* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
@@ -166,7 +169,11 @@ static void print_usage(char *filename)
     printf("Usage: %s device-instance object-type object-instance "
            "property [index]\n",
         filename);
+#if defined(BACDL_BSC)
+    printf("       [--dnet][--dadr][--mac][--sc]\n");
+#else
     printf("       [--dnet][--dadr][--mac]\n");
+#endif
     printf("       [--version][--help]\n");
 }
 
@@ -192,8 +199,14 @@ static void print_help(char *filename)
            "number.\n"
            "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
            "or an IP string with optional port number like 10.1.2.3:47808\n"
-           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n"
-           "\n");
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+#if defined(BACDL_BSC)
+    printf("--sc\n"
+           "Use the BACnet/SC hub connection.\n"
+           "All connect parameters are passing over environment variables\n");
+    printf("\n");
+#endif
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
            "trying to communicate to.  This number will be used\n"
@@ -271,6 +284,10 @@ int main(int argc, char *argv[])
     unsigned int target_args = 0;
     char *filename = NULL;
 
+#if defined(BACDL_BSC)
+    bool use_sc = false;
+#endif
+
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--help") == 0) {
@@ -306,6 +323,11 @@ int main(int argc, char *argv[])
                     specific_address = true;
                 }
             }
+#if defined(BACDL_BSC)
+        } else if (strcmp(argv[argi], "--sc") == 0) {
+            use_sc = true;
+            (void)use_sc;
+#endif
         } else {
             if (target_args == 0) {
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
@@ -383,6 +405,11 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
+#if defined(BACDL_BSC)
+    while(bsc_hub_connection_status()==BVLC_SC_HUB_CONNECTION_ABSENT) {
+        bsc_wait(1);
+    }
+#endif
 #if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.

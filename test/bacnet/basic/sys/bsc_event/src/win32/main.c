@@ -34,7 +34,7 @@ static TEST_STAGE test_stage = STAGE_NONE;
 #define WAITTIME_MAX    (TIMEOUT_SLEEP * 1000 + 20)
 
 DWORD WINAPI child_func( LPVOID lpParam )
-{ 
+{
     BSC_EVENT *event = (BSC_EVENT *)lpParam;
     zassert_not_null(event, NULL);
 
@@ -78,7 +78,7 @@ static void test_bsc_event(void)
     zassert_not_null(event, NULL);
 
     // run child and wait when child running
-    thread = CreateThread( 
+    thread = CreateThread(
                      NULL,       // default security attributes
                      0,          // default stack size
                      (LPTHREAD_START_ROUTINE) child_func,

@@ -917,30 +917,6 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Set(
 }
 #endif
 
-uint16_t Network_Port_SC_Hub_Server_Port(uint32_t object_instance)
-{
-    uint16_t port = 0;
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return 0;
-
-    port = params->Hub_Server_Port;
-
-    return port;
-}
-
-bool Network_Port_SC_Hub_Server_Port_Set(
-    uint32_t object_instance, uint16_t value)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return false;
-
-    params->Hub_Server_Port = value;
-
-    return true;
-}
-
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
@@ -1253,30 +1229,6 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Set(
 
 #endif
 
-uint16_t Network_Port_SC_Direct_Server_Port(uint32_t object_instance)
-{
-    uint16_t port = 0;
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return 0;
-
-    port = params->Direct_Server_Port;
-
-    return port;
-}
-
-bool Network_Port_SC_Direct_Server_Port_Set(
-    uint32_t object_instance, uint16_t value)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return false;
-
-    params->Direct_Server_Port = value;
-
-    return true;
-}
-
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 #ifdef BACNET_SC_STATUS_SUPPORT
@@ -1419,30 +1371,6 @@ bool Network_Port_SC_Local_UUID_Set(
     memcpy(&params->Local_UUID, value, sizeof(*value));
 
     return true;
-}
-
-bool Network_Port_Ifname_Set(uint32_t object_instance, char *value)
-{
-    bool ret = false;
-
-#if BSC_CONF_HUB_CONNECTORS_NUM != 0
-    ret = Network_Port_SC_Direct_Connect_Binding_Set(object_instance, value);
-#endif
-#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
-    ret |= Network_Port_SC_Hub_Function_Binding_Set(object_instance, value);
-#endif
-
-    return ret;
-}
-
-bool Network_Port_Ifname_Set_By_Index(uint32_t index, char *value)
-{
-    bool st = false;
-    uint32_t instance = Network_Port_Index_To_Instance(index);
-
-    st = Network_Port_Ifname_Set(instance, value);
-
-    return st;
 }
 
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0

@@ -22,6 +22,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *********************************************************************/
+
+#if __ZEPHYR__
+#include <libc_extensions.h>
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>

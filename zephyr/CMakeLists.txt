@@ -352,6 +352,7 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/datalink/dlmstp.h
     ${BACNETSTACK_SRC}/bacnet/datalink/ethernet.h
     $<$<BOOL:${CONFIG_BACDL_MSTP}>:${BACNETSTACK_SRC}/bacnet/datalink/mstp.c>
+    $<$<BOOL:${CONFIG_BACDL_MSTP}>:${BACNETSTACK_SRC}/bacnet/datalink/mstp.h>
     ${BACNETSTACK_SRC}/bacnet/datalink/mstpdef.h
     ${BACNETSTACK_SRC}/bacnet/datalink/mstp.h
     ${BACNETSTACK_SRC}/bacnet/datalink/mstptext.c
@@ -432,11 +433,11 @@ list(
       ${BACNETSTACK_PORT}/ai.c
       ${BACNETSTACK_PORT}/av.c
       ${BACNETSTACK_PORT}/event.c
-      $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/bsc-mutex.c>
       $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/bsc-event.c>
-      $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/bsc-runloop.c>
+      $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-mutex.c>
       $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-cli.c>
       $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-srv.c>
+      ${BACNETSTACK_PORT}/libc_extensions.c
   )
 
 

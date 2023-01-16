@@ -46,7 +46,7 @@ BSC_EVENT *bsc_event_init(void)
         return NULL;
     }
 
-    ret->mutex = CreateMutex( 
+    ret->mutex = CreateMutex(
         NULL,              // default security attributes
         FALSE,             // initially not owned
         NULL);             // unnamed mutex
@@ -56,12 +56,12 @@ BSC_EVENT *bsc_event_init(void)
         return NULL;
     }
 
-    ret->event = CreateEvent( 
+    ret->event = CreateEvent(
         NULL,               // default security attributes
         TRUE,               // manual-reset event
         FALSE,              // initial state is nonsignaled
         NULL                // unnamed event
-        ); 
+        );
     if (ret->event == NULL) {
         printf("CreateEvent error: %d\n", GetLastError());
         CloseHandle(ret->mutex);
