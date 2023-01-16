@@ -228,7 +228,7 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     unsigned count = 0;
     uint32_t object_instance = 0;
     bool status = false;
-    BACNET_CHARACTER_STRING str;
+    BACNET_CHARACTER_STRING str = {0};
 
     Network_Port_Init();
     object_instance = 1234;
@@ -316,13 +316,9 @@ static void test_network_port_sc_certificates(void)
     uint32_t instance = 0;
     uint32_t file_instance = 0;
     bool status = false;
-    uint8_t ca_cert[] = "CA certificate";
-    uint8_t cert_chain[] = "certificate chain";
-    uint8_t key[] = "key";
     char *filename_ca_cert = "ca_cert.pem";
     char *filename_cert = "cert.pem";
     char *filename_key = "key.pem";
-    char *str;
 
     Network_Port_Init();
     instance = 1234;
