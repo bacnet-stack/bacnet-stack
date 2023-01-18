@@ -54,10 +54,11 @@ if(BOARD STREQUAL unit_testing)
     -DNET_UDP=1 -DNET_DHCPV4=1)
   add_definitions(-DNET_MGMT=1 -DNET_MGMT_EVENT=1)
 
-  include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
+  set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
+  find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 else()
-  include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
+  find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 
   target_include_directories(app PRIVATE ${BACNET_INCLUDE})

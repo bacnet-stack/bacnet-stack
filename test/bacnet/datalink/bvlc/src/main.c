@@ -9,7 +9,7 @@
  */
 
 #include <stdlib.h>  /* For calloc() */
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/datalink/bvlc.h>
 

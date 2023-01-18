@@ -26,9 +26,9 @@
 #ifndef NET_H
 #define NET_H
 
-#include <net/net_ip.h>
-#include <net/socket.h>
-#include <zephyr.h>
+#include <zephyr/net/net_ip.h>
+#include <zephyr/net/socket.h>
+#include <zephyr/kernel.h>
 #include <bacnet/basic/object/device.h>
 
 static inline char *inet_ntoa(struct in_addr in) {

@@ -8,7 +8,7 @@
  * @brief test BACnet service GetAlarmSummary encode and decode
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/get_alarm_sum.h>
 
 /**

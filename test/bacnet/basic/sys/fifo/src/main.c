@@ -9,7 +9,7 @@
  */
 
 #include <limits.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/basic/sys/fifo.h>
 
 /**

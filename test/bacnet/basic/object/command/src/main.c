@@ -8,7 +8,7 @@
  * @brief test BACnet command object APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/basic/object/command.h>
 
 /**

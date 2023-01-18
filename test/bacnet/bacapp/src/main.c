@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/bacapp.h>
 #include <bacnet/bactext.h>

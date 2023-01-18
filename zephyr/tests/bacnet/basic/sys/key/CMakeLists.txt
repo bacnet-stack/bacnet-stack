@@ -26,10 +26,10 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_TEST_PATH}/src/main.c
     )
 
-  include($ENV{ZEPHYR_BASE}/subsys/testsuite/unittest.cmake)
+  find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 else()
-  include($ENV{ZEPHYR_BASE}/cmake/app/boilerplate.cmake NO_POLICY_SCOPE)
+  find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 
   target_include_directories(app PRIVATE ${BACNET_BASE}/src)

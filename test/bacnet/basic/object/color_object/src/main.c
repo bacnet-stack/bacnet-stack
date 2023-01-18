@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/color_object.h>
 

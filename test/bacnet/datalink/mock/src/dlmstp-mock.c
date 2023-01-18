@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "bacnet/datalink/dlmstp.h"
