@@ -5,7 +5,7 @@
  */
 
 #ifndef ZTEST_UNITTEST
-  #include <zephyr.h>
+  #include <zephyr/kernel.h>
 #else
   #include "stdlib.h"
   #define k_malloc(a) malloc(a)

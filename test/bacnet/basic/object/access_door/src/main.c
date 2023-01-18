@@ -8,7 +8,7 @@
  * @brief test BACnet access_door object APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/basic/object/access_door.h>
 
 /**

@@ -8,7 +8,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/basic/sys/color_rgb.h>
 
 /**

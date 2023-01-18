@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/basic/tsm/tsm.h>
 
 bool tsm_get_transaction_pdu(

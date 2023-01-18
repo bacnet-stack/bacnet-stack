@@ -24,7 +24,7 @@
 #ifndef BITS_H
 #define BITS_H
 
-#include <sys/util.h>  /* defines BIT(n) */
+#include <zephyr/sys/util.h>  /* defines BIT(n) */
 
 /********************************************************************
 * Bit Masks

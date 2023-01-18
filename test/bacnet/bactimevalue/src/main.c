@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include "bacnet/bactimevalue.h"
 #include "bacnet/datetime.h"
 #include "bacnet/bacapp.h"

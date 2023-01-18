@@ -58,15 +58,15 @@ typedef struct esf z_arch_esf_t;
 #endif
 #endif /* KERNEL */
 
-#include <sys/printk.h>
+#include <zephyr/sys/printk.h>
 #define PRINT printk
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
-#include <ztest_assert.h>
-#include <ztest_mock.h>
-#include <ztest_test.h>
-#include <tc_util.h>
+#include <zephyr/ztest_assert.h>
+#include <zephyr/ztest_mock.h>
+#include <zephyr/ztest_test.h>
+#include <zephyr/tc_util.h>
 
 #ifdef __cplusplus
 extern "C" {
