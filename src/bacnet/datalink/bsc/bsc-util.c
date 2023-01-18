@@ -151,14 +151,14 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
         Network_Port_SC_Direct_Connect_Initiate_Enable(instance);
     bsc_conf->direct_connect_accept_enable =
         Network_Port_SC_Direct_Connect_Accept_Enable(instance);
-    bsc_conf->iface =
+    bsc_conf->direct_iface =
         (char*)Network_Port_SC_Direct_Connect_Binding_char(instance);
 #endif
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     bsc_conf->hub_server_port = Network_Port_SC_Hub_Server_Port(instance);
     bsc_conf->hub_function_enabled =
         Network_Port_SC_Hub_Function_Enable(instance);
-    bsc_conf->iface =
+    bsc_conf->hub_iface =
         (char*)Network_Port_SC_Hub_Function_Binding_char(instance);
 #endif
 

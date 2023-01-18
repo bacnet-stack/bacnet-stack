@@ -70,7 +70,8 @@ typedef struct {
    char* failoverURL;
    uint16_t hub_server_port;
    uint16_t direct_server_port;
-   char* iface;
+   char* hub_iface;
+   char* direct_iface;
    bool direct_connect_accept_enable;
    bool direct_connect_initiate_enable;
    bool hub_function_enabled;

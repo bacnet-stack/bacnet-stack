@@ -20,7 +20,6 @@
 #include <bacnet/datalink/bsc/bsc-node.h>
 #include <bacnet/datalink/bsc/bsc-datalink.h>
 #include <bacnet/datalink/bsc/bsc-util.h>
-#include <bacnet/datalink/bsc/bsc-mutex.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <bacnet/bacdef.h>
 #include <unistd.h>
@@ -1222,7 +1221,8 @@ static void netport_object_init(uint32_t instance,
     size_t cert_chain_size,
     uint8_t *key,
     size_t key_size,
-    char *iface,
+    char *hub_iface,
+    char *direct_iface,
     BACNET_SC_UUID *local_uuid,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     char *primaryURL,
@@ -1264,10 +1264,10 @@ static void netport_object_init(uint32_t instance,
         BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
-    Network_Port_SC_Direct_Connect_Binding_Set(instance, iface);
+    Network_Port_SC_Direct_Connect_Binding_Set(instance, direct_iface);
 #endif
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
-    Network_Port_SC_Hub_Function_Binding_Set(instance, iface);
+    Network_Port_SC_Hub_Function_Binding_Set(instance, hub_iface);
 #endif
 
     Network_Port_SC_Local_UUID_Set(instance, (BACNET_UUID *)local_uuid);
@@ -1337,6 +1337,7 @@ static void test_sc_parameters(void)
     bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key), iface,
+        iface,
         &hubf_uuid, &hubf_vmac, primary_url, secondary_url,
         SC_NETPORT_DIRECT_CONNECT_INITIAT, SC_NETPORT_DIRECT_CONNECT_ACCERT,
         SC_NETPORT_HUB_FUNCTION_ENABLE, SC_NETPORT_HUB_SERVER_PORT,
@@ -1392,7 +1393,8 @@ static void test_sc_parameters(void)
         strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS), NULL);
 #endif
 
-    zassert_equal(strcmp(bsc_conf.iface, iface), 0, NULL);
+    zassert_equal(strcmp(bsc_conf.hub_iface, iface), 0, NULL);
+    zassert_equal(strcmp(bsc_conf.direct_iface, iface), 0, NULL);
     zassert_equal(bsc_conf.event_func, &node_event, NULL);
 }
 
@@ -1450,6 +1452,7 @@ static void test_sc_datalink(void)
     bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key), NULL,
+        NULL,
         &uuid1, &vmac1, primary_url1, secondary_url1, true, false, false, 0,
         0);
 
@@ -1487,7 +1490,8 @@ static void test_sc_datalink(void)
     conf2.failoverURL = secondary_url2;
     conf2.hub_server_port = 0;
     conf2.direct_server_port = 0;
-    conf2.iface = NULL;
+    conf2.direct_iface = NULL;
+    conf2.hub_iface = NULL;
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
@@ -1515,7 +1519,8 @@ static void test_sc_datalink(void)
     conf3.failoverURL = secondary_url3;
     conf3.hub_server_port = BACNET_HUB_PORT;
     conf3.direct_server_port = SC_NETPORT_DIRECT_SERVER_PORT;
-    conf3.iface = NULL;
+    conf3.direct_iface = NULL;
+    conf3.hub_iface = NULL;
     conf3.direct_connect_accept_enable = true;
     conf3.direct_connect_initiate_enable = false;
     conf3.hub_function_enabled = true;
