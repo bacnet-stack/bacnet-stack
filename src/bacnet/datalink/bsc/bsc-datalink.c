@@ -121,10 +121,6 @@ bool bsc_init(char *ifname)
         return ret;
     }
 
-    // TODO ifname for HUB or Direct ?
-    bsc_node_ifname_set_to_netport(0, ifname, true);
-    bsc_node_ifname_set_to_netport(0, ifname, false);
-
     bsc_event = bsc_event_init();
     bsc_data_event = bsc_event_init();
 

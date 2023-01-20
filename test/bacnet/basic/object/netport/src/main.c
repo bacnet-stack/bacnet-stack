@@ -108,6 +108,14 @@ static void test_network_port_pending_param(void)
     bool val;
     BACNET_CHARACTER_STRING str;
 #endif
+    #define PRIMARY_HUB_URL1 "SC_Primary_Hub_URI_test"
+    #define PRIMARY_HUB_URL2 "SC_Primary_Hub_URI_test2"
+    #define FAILOVER_HUB_URL1 "SC_Failover_Hub_URI_test"
+    #define FAILOVER_HUB_URL2 "SC_Failover_Hub_URI_test2"
+    #define HUB_BINDING1 "SC_Hub_Function_Binding_test:12345"
+    #define HUB_BINDING2 "SC_Hub_Function_Binding_test2:11111"
+    #define DIRECT_BINDING1 "SC_Direct_Connect_Binding_test:54321"
+    #define DIRECT_BINDING2 "SC_Direct_Connect_Binding_test2:22222"
 
     Network_Port_Init();
     object_instance = 1234;
@@ -120,32 +128,27 @@ static void test_network_port_pending_param(void)
 
     // write properties
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
-    Network_Port_SC_Primary_Hub_URI_Set(object_instance,
-        "SC_Primary_Hub_URI_test");
-    Network_Port_SC_Failover_Hub_URI_Set(object_instance,
-        "SC_Failover_Hub_URI_test");
+    Network_Port_SC_Primary_Hub_URI_Set(object_instance, PRIMARY_HUB_URL1);
+    Network_Port_SC_Failover_Hub_URI_Set(object_instance, FAILOVER_HUB_URL1);
     Network_Port_SC_Hub_Function_Enable_Set(object_instance, false);
-    Network_Port_SC_Hub_Function_Binding_Set(object_instance,
-        "SC_Hub_Function_Binding_test");
+    Network_Port_SC_Hub_Function_Binding_Set(object_instance, HUB_BINDING1);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
-    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(object_instance,
-        false);
-    Network_Port_SC_Direct_Connect_Accept_Enable_Set(object_instance,
-        false);
+    Network_Port_SC_Direct_Connect_Initiate_Enable_Set(object_instance, false);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(object_instance, false);
     Network_Port_SC_Direct_Connect_Binding_Set(object_instance,
-        "SC_Direct_Connect_Binding_test");
+        DIRECT_BINDING1);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     // write dirty properties
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     Network_Port_SC_Primary_Hub_URI_Dirty_Set(object_instance,
-        "SC_Primary_Hub_URI_test2");
+        PRIMARY_HUB_URL2);
     Network_Port_SC_Failover_Hub_URI_Dirty_Set(object_instance,
-        "SC_Failover_Hub_URI_test2");
+        FAILOVER_HUB_URL2);
     Network_Port_SC_Hub_Function_Enable_Dirty_Set(object_instance, true);
     Network_Port_SC_Hub_Function_Binding_Dirty_Set(object_instance,
-        "SC_Hub_Function_Binding_test2");
+        HUB_BINDING2);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     Network_Port_SC_Direct_Connect_Initiate_Enable_Dirty_Set(object_instance,
@@ -153,22 +156,22 @@ static void test_network_port_pending_param(void)
     Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(object_instance,
         true);
     Network_Port_SC_Direct_Connect_Binding_Dirty_Set(object_instance,
-        "SC_Direct_Connect_Binding_test2");
+        DIRECT_BINDING2);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     // check old value
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     Network_Port_SC_Primary_Hub_URI(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
-        "SC_Primary_Hub_URI_test",characterstring_length(&str)) == 0, NULL);
+        PRIMARY_HUB_URL1, characterstring_length(&str)) == 0, NULL);
     Network_Port_SC_Failover_Hub_URI(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
-        "SC_Failover_Hub_URI_test", characterstring_length(&str)) == 0, NULL);
+        FAILOVER_HUB_URL1, characterstring_length(&str)) == 0, NULL);
     val = Network_Port_SC_Hub_Function_Enable(object_instance);
     zassert_true(val == false, NULL);
     Network_Port_SC_Hub_Function_Binding(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
-        "SC_Hub_Function_Binding_test", characterstring_length(&str)) == 0,
+        HUB_BINDING1, characterstring_length(&str)) == 0,
         NULL);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
@@ -178,7 +181,7 @@ static void test_network_port_pending_param(void)
     zassert_true(val == false, NULL);
     Network_Port_SC_Direct_Connect_Binding(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
-        "SC_Direct_Connect_Binding_test", characterstring_length(&str)) == 0,
+        DIRECT_BINDING1, characterstring_length(&str)) == 0,
         NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
@@ -189,16 +192,15 @@ static void test_network_port_pending_param(void)
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     Network_Port_SC_Primary_Hub_URI(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
-        "SC_Primary_Hub_URI_test2", characterstring_length(&str)) == 0, NULL);
+        PRIMARY_HUB_URL2, characterstring_length(&str)) == 0, NULL);
     Network_Port_SC_Failover_Hub_URI(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
-        "SC_Failover_Hub_URI_test2", characterstring_length(&str)) == 0, NULL);
+        FAILOVER_HUB_URL2, characterstring_length(&str)) == 0, NULL);
     val = Network_Port_SC_Hub_Function_Enable(object_instance);
     zassert_true(val == true, NULL);
     Network_Port_SC_Hub_Function_Binding(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
-        "SC_Hub_Function_Binding_test2", characterstring_length(&str)) == 0,
-        NULL);
+        HUB_BINDING2, characterstring_length(&str)) == 0, NULL);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     val = Network_Port_SC_Direct_Connect_Initiate_Enable(object_instance);
@@ -207,8 +209,7 @@ static void test_network_port_pending_param(void)
     zassert_true(val == true, NULL);
     Network_Port_SC_Direct_Connect_Binding(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
-        "SC_Direct_Connect_Binding_test2", characterstring_length(&str)) == 0,
-        NULL);
+        DIRECT_BINDING2, characterstring_length(&str)) == 0, NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 #endif /* BACDL_BSC */

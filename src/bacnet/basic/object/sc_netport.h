@@ -98,6 +98,8 @@ extern "C" {
     #define BACNET_PEER_VMAC_LENGTH  6
     #define BACNET_BINDING_STRING_LENGTH  80
 
+    #define BACNET_SC_BINDING_SEPARATOR    ':'
+
     typedef struct BACnetHostNPort_data_T {
         uint8_t type;
         char host[BACNET_URI_LENGTH];
@@ -191,11 +193,11 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Primary_Hub_URI_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Primary_Hub_URI_Dirty_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
 
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Failover_Hub_URI(
@@ -206,11 +208,11 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Failover_Hub_URI_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Failover_Hub_URI_Dirty_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
 
     BACNET_STACK_EXPORT
     BACNET_UNSIGNED_INTEGER Network_Port_SC_Minimum_Reconnect_Time(
@@ -326,7 +328,7 @@ extern "C" {
         BACNET_DATE_TIME *connect_ts,
         BACNET_DATE_TIME *disconnect_ts,
         BACNET_ERROR_CODE error,
-        char *error_details);
+        const char *error_details);
 
     BACNET_STACK_EXPORT
     BACNET_SC_HUB_CONNECTION *Network_Port_SC_Failover_Hub_Connection_Status(
@@ -338,7 +340,7 @@ extern "C" {
         BACNET_DATE_TIME *connect_ts,
         BACNET_DATE_TIME *disconnect_ts,
         BACNET_ERROR_CODE error,
-        char *error_details);
+        const char *error_details);
 
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Hub_Function_Enable(
@@ -364,22 +366,38 @@ extern "C" {
     bool Network_Port_SC_Hub_Function_Accept_URI_Set(
         uint32_t object_instance,
         uint8_t index,
-        char *str);
+        const char *str);
 
+    /*
+        Internal representation of the SC_Hub_Function_Binding value is a
+        struct {
+            uint16 port;
+            char interface_name[BACNET_BINDING_STRING_LENGTH - sizeof(uint16)];
+        }
+        External representation is string e.q "interface_name:port_number".
+
+        The Network_Port_SC_Hub_Function_Binding() and
+        the Network_Port_SC_Hub_Function_Binding_Set() do transform from/to.
+
+        The Network_Port_SC_Hub_Function_Binding_Dirty sets value like
+        external representation.
+    */
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Hub_Function_Binding(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING *str);
-    const char *Network_Port_SC_Hub_Function_Binding_char(
-        uint32_t object_instance);
+    void Network_Port_SC_Hub_Function_Binding_get(
+        uint32_t object_instance,
+        uint16_t *port,
+        char **ifname);
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Hub_Function_Binding_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Hub_Function_Binding_Dirty_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
 
 #ifdef BACNET_SC_STATUS_SUPPORT
 
@@ -397,7 +415,7 @@ extern "C" {
         uint8_t *peer_VMAC,
         uint8_t *peer_UUID,
         BACNET_ERROR_CODE error,
-        char *error_details);
+        const char *error_details);
 #endif
 
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
@@ -436,27 +454,43 @@ extern "C" {
     bool Network_Port_SC_Direct_Connect_Accept_URI_Set(
         uint32_t object_instance,
         uint8_t index,
-        char *str);
+        const char *str);
     char *Network_Port_SC_Direct_Connect_Accept_URIs_char(
         uint32_t object_instance);
     bool Network_Port_SC_Direct_Connect_Accept_URIs_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
 
+    /*
+        Internal representation of the SC_Direct_Connect_Binding value is a
+        struct {
+            uint16 port;
+            char interface_name[BACNET_BINDING_STRING_LENGTH - sizeof(uint16)];
+        }
+        External representation is string e.q "interface_name:port_number".
+
+        The Network_Port_SC_Direct_Connect_Binding() and
+        the Network_Port_SC_Direct_Connect_Binding_Set() do transform from/to.
+
+        The Network_Port_SC_Direct_Connect_Binding_Dirty sets value like
+        external representation.
+    */
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Direct_Connect_Binding(
         uint32_t object_instance,
         BACNET_CHARACTER_STRING *str);
-    const char *Network_Port_SC_Direct_Connect_Binding_char(
-        uint32_t object_instance);
+    void Network_Port_SC_Direct_Connect_Binding_get(
+        uint32_t object_instance,
+        uint16_t *port,
+        char **ifname);
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Direct_Connect_Binding_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Direct_Connect_Binding_Dirty_Set(
         uint32_t object_instance,
-        char *str);
+        const char *str);
 
 #ifdef BACNET_SC_STATUS_SUPPORT
 
@@ -467,7 +501,7 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Direct_Connect_Connection_Status_Set(
         uint32_t object_instance,
-        char *uri,
+        const char *uri,
         BACNET_SC_CONNECTION_STATE state,
         BACNET_DATE_TIME *connect_ts,
         BACNET_DATE_TIME *disconnect_ts,
@@ -475,7 +509,7 @@ extern "C" {
         uint8_t *peer_VMAC,
         uint8_t *peer_UUID,
         BACNET_ERROR_CODE error,
-        char *error_details);
+        const char *error_details);
 #endif
 
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
@@ -495,7 +529,7 @@ extern "C" {
         uint8_t *peer_VMAC,
         uint8_t *peer_UUID,
         BACNET_ERROR_CODE error,
-        char *error_details);
+        const char *error_details);
     BACNET_STACK_EXPORT
     bool Network_Port_SC_Failed_Connection_Requests_Delete_By_Index(
         uint32_t object_instance,

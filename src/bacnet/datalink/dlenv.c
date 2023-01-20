@@ -478,8 +478,8 @@ static void bacnet_secure_connect_network_port_init(
     char *filename_ca_2_cert,
     char *filename_cert,
     char *filename_key,
-    char *direct_connect_port,
-    char *hub_function_port,
+    char *direct_binding,
+    char *hub_binding,
     char *direct_connect_initiate,
     char *direct_connect_accept_urls)
 {
@@ -488,7 +488,6 @@ static void bacnet_secure_connect_network_port_init(
     BACNET_SC_VMAC_ADDRESS vmac = { 0 };
     long seed;
     char c;
-    uint16_t port;
 
     seed = (long)&instance;
     srand((int)seed);
@@ -550,13 +549,9 @@ static void bacnet_secure_connect_network_port_init(
     Network_Port_SC_Primary_Hub_URI_Set(instance, primary_hub_uri);
     Network_Port_SC_Failover_Hub_URI_Set(instance, failover_hub_uri);
 
-    if (direct_connect_port) {
-        port = strtoul(direct_connect_port, NULL, 10);
-        Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance, true);
-        bsc_node_port_set_to_netport(0, port, false);
-    } else {
-        Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance, false);
-    }
+    Network_Port_SC_Direct_Connect_Binding_Set(instance, direct_binding);
+    Network_Port_SC_Direct_Connect_Accept_Enable_Set(instance,
+        direct_binding != NULL);
 
     c = direct_connect_initiate ? direct_connect_initiate[0] : '0';
     if ((c != '0') && (c != 'n') && (c != 'n')) {
@@ -569,13 +564,8 @@ static void bacnet_secure_connect_network_port_init(
         direct_connect_accept_urls);
 
     /* HUB parameters */
-    if (hub_function_port == NULL) {
-        Network_Port_SC_Hub_Function_Enable_Set(instance, false);
-    } else {
-        port = strtoul(hub_function_port, NULL, 10);
-        Network_Port_SC_Hub_Function_Enable_Set(instance, true);
-        bsc_node_port_set_to_netport(0, port, true);
-    }
+    Network_Port_SC_Hub_Function_Binding_Set(instance, hub_binding);
+    Network_Port_SC_Hub_Function_Enable_Set(instance, hub_binding != NULL);
 
     /* last thing - clear pending changes - we don't want to set these
        since they are already set */
@@ -685,8 +675,18 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *   - BACNET_SC_ISSUER_1_CERTIFICATE_FILE
  *   - BACNET_SC_ISSUER_2_CERTIFICATE_FILE
  *   - BACNET_SC_OPERATIONAL_CERTIFICATE_FILE
- *   - BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE
- *   - BACNET_SC_DIRECT_CONNECT_PORT - TCP/IP port number (0..65534)
+ *   - BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE
+ *   - BACNET_SC_DIRECT_CONNECT_BINDING - pair: interface name (optional) and
+ *       TCP/IP port number (0..65534), like "50000" (port only) or
+ *       "eth0:50000"(both)
+ *   - BACNET_SC_HUB_FUNCTION_BINDING - pair: interface name (optional) and
+ *       TCP/IP port number (0..65534), like "50000" (port only) or
+ *       "eth0:50000"(both)
+ *   - BACNET_SC_DIRECT_CONNECT_INITIATE - if true equal "1", "y", "Y",
+ *       otherwise false
+ *   - BACNET_SC_DIRECT_CONNECT_ACCEPT_URLS - list of direct connect accept URLs
+ *       separated by a space character, e.g.
+ *       "wss://192.0.0.1:40000 wss://192.0.0.2:6666"
  */
 void dlenv_init(void)
 {
@@ -789,8 +789,8 @@ void dlenv_init(void)
     char *filename_ca_2_cert;
     char *filename_cert;
     char *filename_key;
-    char *direct_connect_port;
-    char *hub_function_port;
+    char *direct_binding;
+    char *hub_binding;
     char *direct_connect_initiate;
     char *direct_connect_accept_urls;
 
@@ -799,14 +799,14 @@ void dlenv_init(void)
     filename_ca_1_cert = getenv("BACNET_SC_ISSUER_1_CERTIFICATE_FILE");
     filename_ca_2_cert = getenv("BACNET_SC_ISSUER_2_CERTIFICATE_FILE");
     filename_cert = getenv("BACNET_SC_OPERATIONAL_CERTIFICATE_FILE");
-    filename_key = getenv("BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE");
-    direct_connect_port = getenv("BACNET_SC_DIRECT_CONNECT_BINDING");
-    hub_function_port = getenv("BACNET_SC_HUB_FUNCTION_BINDING");
+    filename_key = getenv("BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE");
+    direct_binding = getenv("BACNET_SC_DIRECT_CONNECT_BINDING");
+    hub_binding = getenv("BACNET_SC_HUB_FUNCTION_BINDING");
     direct_connect_initiate = getenv("BACNET_SC_DIRECT_CONNECT_INITIATE");
     direct_connect_accept_urls = getenv("BACNET_SC_DIRECT_CONNECT_ACCEPT_URLS");
     bacnet_secure_connect_network_port_init(primary_hub_uri, failover_hub_uri,
         filename_ca_1_cert, filename_ca_2_cert, filename_cert, filename_key,
-        direct_connect_port, hub_function_port, direct_connect_initiate,
+        direct_binding, hub_binding, direct_connect_initiate,
         direct_connect_accept_urls);
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");

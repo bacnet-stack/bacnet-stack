@@ -73,21 +73,18 @@ static void print_help(const char *filename)
         "device-instance: BACnet Device Object Instance number that you are\n"
         "trying simulate.\n"
         "device-name: The Device name in ASCII for this device.\n"
-        "\n"
-        "Other parameters are passing over environment variables:\n"
-        "BACNET_SC_DIRECT_CONNECT_PORT: Local port\n"
-        "BACNET_SC_ISSUER_1_CERTIFICATE_FILE: Filename of CA certificate\n"
-        "BACNET_SC_OPERATIONAL_CERTIFICATE_FILE: Filename of device certificate\n"
-        "BACNET_SC_CERTIFICATE_SIGNING_REQUEST_FILE: Filename of device certificate key\n");
-    printf("\n");
-    printf("Example:\n"
-        "To simulate Device 123:\n"
-        "%s  123\n",
-        filename);
-    printf("To simulate Device 123 named Fred,\n"
-        "use following command:\n"
-        "%s 123 Fred\n",
-        filename);
+        "\n");
+    printf("Other parameters are passing over environment variables:\n"
+        "- BACNET_SC_ISSUER_1_CERTIFICATE_FILE: Filename of CA certificate\n"
+        "- BACNET_SC_OPERATIONAL_CERTIFICATE_FILE: Filename of device certificate\n"
+        "- BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE: Filename of device certificate key\n"
+        "- BACNET_SC_HUB_FUNCTION_BINDING: Local port or pair \"interface name:port number\"\n"
+        "For additional information see file bin/bsc-server.sh\n");
+    printf("\nExample:\n"
+        "To simulate Device 111, use following command:\n"
+        "%s 111\n", filename);
+    printf("To simulate Device 111 named NoFred, use following command:\n"
+        "%s 111 NoFred\n", filename);
 }
 
 /** Main function of server demo.

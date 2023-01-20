@@ -1070,10 +1070,13 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define SC_DATALINK_INSTANCE 1
 
 /* Netport constants */
+#define SC_NETPORT_DIRECT_SERVER_IFNAME "eth0"
 #define SC_NETPORT_DIRECT_SERVER_PORT 40000
+#define SC_NETPORT_DIRECT_SERVER_BINDING "eth0:40000"
 #define SC_NETPORT_DIRECT_CONNECT_INITIAT true
 #define SC_NETPORT_DIRECT_CONNECT_ACCERT true
 #define SC_NETPORT_HUB_SERVER_PORT 40001
+#define SC_NETPORT_HUB_SERVER_BINDING "40001"
 #define SC_NETPORT_HUB_FUNCTION_ENABLE true
 #define SC_NETPORT_BACFILE_START_INDEX 0
 
@@ -1221,17 +1224,15 @@ static void netport_object_init(uint32_t instance,
     size_t cert_chain_size,
     uint8_t *key,
     size_t key_size,
-    char *hub_iface,
-    char *direct_iface,
+    char *hub_binding,
+    char *direct_binding,
     BACNET_SC_UUID *local_uuid,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     char *primaryURL,
     char *failoverURL,
     bool direct_connect_initiate_enable,
     bool direct_connect_accept_enable,
-    bool hub_function_enabled,
-    int hub_port,
-    int direct_port)
+    bool hub_function_enabled)
 {
     const char *filename_ca_cert = "ca_cert.pem";
     const char *filename_cert = "cert.pem";
@@ -1264,13 +1265,6 @@ static void netport_object_init(uint32_t instance,
     Network_Port_Certificate_Key_File_Set(instance,
         BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
-#if BSC_CONF_HUB_CONNECTORS_NUM != 0
-    bsc_node_ifname_set_to_netport(0, direct_iface, false);
-#endif
-#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
-    bsc_node_ifname_set_to_netport(0, hub_iface, true);
-#endif
-
     Network_Port_SC_Local_UUID_Set(instance, (BACNET_UUID *)local_uuid);
 
     Network_Port_MAC_Address_Set(
@@ -1299,14 +1293,14 @@ static void netport_object_init(uint32_t instance,
         instance, SC_NETPORT_RECONNECT_TIME);
 
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
-    bsc_node_port_set_to_netport(0, direct_port, false);
+    Network_Port_SC_Direct_Connect_Binding_Set(instance, direct_binding);
     Network_Port_SC_Direct_Connect_Initiate_Enable_Set(
         instance, direct_connect_initiate_enable);
     Network_Port_SC_Direct_Connect_Accept_Enable_Set(
         instance, direct_connect_accept_enable);
 #endif
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
-    bsc_node_port_set_to_netport(0, hub_port, true);
+    Network_Port_SC_Hub_Function_Binding_Set(instance, hub_binding);
     Network_Port_SC_Hub_Function_Enable_Set(instance, hub_function_enabled);
 #endif
 
@@ -1320,8 +1314,6 @@ static void test_sc_parameters(void)
 {
     BACNET_SC_UUID hubf_uuid;
     BACNET_SC_VMAC_ADDRESS hubf_vmac;
-    char *hub_iface = "fake hub iface";
-    char *direct_iface = "fake direct iface";
     char primary_url[128];
     char secondary_url[128];
     BSC_NODE_CONF bsc_conf;
@@ -1339,11 +1331,10 @@ static void test_sc_parameters(void)
     bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key),
-        hub_iface, direct_iface,
+        SC_NETPORT_HUB_SERVER_BINDING, SC_NETPORT_DIRECT_SERVER_BINDING,
         &hubf_uuid, &hubf_vmac, primary_url, secondary_url,
         SC_NETPORT_DIRECT_CONNECT_INITIAT, SC_NETPORT_DIRECT_CONNECT_ACCERT,
-        SC_NETPORT_HUB_FUNCTION_ENABLE, SC_NETPORT_HUB_SERVER_PORT,
-        SC_NETPORT_DIRECT_SERVER_PORT);
+        SC_NETPORT_HUB_FUNCTION_ENABLE);
 
     // fill
     bsc_node_conf_fill_from_netport(&bsc_conf, &node_event);
@@ -1378,11 +1369,15 @@ static void test_sc_parameters(void)
     zassert_equal(bsc_conf.hub_server_port, SC_NETPORT_HUB_SERVER_PORT, NULL);
     zassert_equal(
         bsc_conf.hub_function_enabled, SC_NETPORT_HUB_FUNCTION_ENABLE, NULL);
+    zassert_is_null(bsc_conf.hub_iface, NULL);
 #endif
 
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
     zassert_equal(
         bsc_conf.direct_server_port, SC_NETPORT_DIRECT_SERVER_PORT, NULL);
+    zassert_equal(
+        strcmp(bsc_conf.direct_iface, SC_NETPORT_DIRECT_SERVER_IFNAME), 0,
+            NULL);
     zassert_equal(bsc_conf.direct_connect_initiate_enable,
         SC_NETPORT_DIRECT_CONNECT_INITIAT, NULL);
     zassert_equal(bsc_conf.direct_connect_accept_enable,
@@ -1395,8 +1390,6 @@ static void test_sc_parameters(void)
         strlen(SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS), NULL);
 #endif
 
-    zassert_equal(strcmp(bsc_conf.hub_iface, hub_iface), 0, NULL);
-    zassert_equal(strcmp(bsc_conf.direct_iface, direct_iface), 0, NULL);
     zassert_equal(bsc_conf.event_func, &node_event, NULL);
 }
 
@@ -1454,9 +1447,7 @@ static void test_sc_datalink(void)
     bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key), NULL,
-        NULL,
-        &uuid1, &vmac1, primary_url1, secondary_url1, true, false, false, 0,
-        0);
+        NULL, &uuid1, &vmac1, primary_url1, secondary_url1, true, false, false);
 
     init_node_ev(&node_ev2);
     init_node_ev(&node_ev3);

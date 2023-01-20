@@ -33,7 +33,5 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p);
 void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     BSC_NODE_EVENT_FUNC event_func);
 void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf);
-void bsc_node_ifname_set_to_netport(uint32_t index, char *ifname, bool hub);
-void bsc_node_port_set_to_netport(uint32_t index, uint16_t port, bool hub);
 
 #endif
