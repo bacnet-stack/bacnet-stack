@@ -112,12 +112,12 @@ int main(int argc, char *argv[])
 
     filename = filename_remove_path(argv[0]);
     argi = 0;
-    if ((argc >= 2) && (strcmp(argv[argi], "--help") == 0)) {
+    if ((argc >= 2) && (strcmp(argv[1], "--help") == 0)) {
         print_usage(filename);
         print_help(filename);
         return 0;
     }
-    if ((argc >= 2) && (strcmp(argv[argi], "--version") == 0)) {
+    if ((argc >= 2) && (strcmp(argv[1], "--version") == 0)) {
         printf("%s %s\n", filename, BACNET_VERSION_TEXT);
         printf("Copyright (C) 2022 by Steve Karg and others.\n"
                "This is free software; see the source for copying "
