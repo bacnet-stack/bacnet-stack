@@ -7,7 +7,7 @@
 
 /*typedef int _Bool; */
 #ifndef bool
-#define bool _Bool
+#define bool int
 #endif
 #ifndef true
 #define true 1
