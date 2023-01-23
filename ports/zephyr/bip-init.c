@@ -34,13 +34,13 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <device.h>
-#include <init.h>
-#include <kernel.h>
-#include <sys/printk.h>
-#include <net/net_ip.h>
-#include <net/socket.h>
-#include <net/socket_select.h>
+#include <zephyr/device.h>
+#include <zephyr/init.h>
+#include <zephyr/kernel.h>
+#include <zephyr/sys/printk.h>
+#include <zephyr/net/net_ip.h>
+#include <zephyr/net/socket.h>
+#include <zephyr/net/socket_select.h>
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/datalink/bip.h"
@@ -48,8 +48,8 @@
 #include "bacnet/basic/bbmd/h_bbmd.h"
 
 /* Logging module registration is already done in ports/zephyr/main.c */
-#include <logging/log.h>
-#include <logging/log_ctrl.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
 
 LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 

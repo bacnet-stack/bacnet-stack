@@ -38,7 +38,7 @@ manifest:
   projects:
     - name: zephyr
       path: zephyr
-      revision: v3.0.0
+      revision: v3.2.0
       remote: zephyrproject-rtos
       west-commands: scripts/west-commands.yml
       import: true

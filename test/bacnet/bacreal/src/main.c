@@ -8,7 +8,7 @@
  * @brief test BACnet real value encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacreal.h>
 #include <bacnet/bacdef.h>
 

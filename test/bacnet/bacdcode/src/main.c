@@ -9,7 +9,7 @@
  */
 
 #include <ctype.h>  /* For isprint */
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
 
 /**

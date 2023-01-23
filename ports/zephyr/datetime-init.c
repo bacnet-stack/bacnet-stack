@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #if CONFIG_NATIVE_APPLICATION
 #include <sys/time.h>
+#elif defined(__ZEPHYR__)
+#include <zephyr/posix/sys/time.h>
 #else
 #include <posix/sys/time.h>
 #endif

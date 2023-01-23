@@ -8,7 +8,7 @@
  * @brief test BACnet COBS encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <stdlib.h>
 #include <bacnet/datalink/cobs.h>
 #include <bacnet/bytes.h>

@@ -8,7 +8,7 @@
  * @brief test BACnet load control object
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/bacstr.h>
 #include <bacnet/basic/object/ao.h>

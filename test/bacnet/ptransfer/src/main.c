@@ -8,7 +8,7 @@
  * @brief test BACnet integer encode/decode APIs
  */
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/bacapp.h>
 #include <bacnet/bacenum.h>
 #include <bacnet/ptransfer.h>

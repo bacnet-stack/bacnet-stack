@@ -13,7 +13,7 @@
 #ifndef ZEPHYR_TESTSUITE_ZTEST_ASSERT_H_
 #define ZEPHYR_TESTSUITE_ZTEST_ASSERT_H_
 
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
