@@ -6,7 +6,11 @@ TARGET = bacerror
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/client/device-client.c \
-	$(BACNET_OBJECT_DIR)/netport.c
+	$(BACNET_OBJECT_DIR)/netport.c \
+	$(BACNET_OBJECT_DIR)/trendlog.c \
+	$(BACNET_OBJECT_DIR)/ao.c \
+	$(BACNET_OBJECT_DIR)/lc.c \
+	$(BACNET_OBJECT_DIR)/nc.c
 
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
