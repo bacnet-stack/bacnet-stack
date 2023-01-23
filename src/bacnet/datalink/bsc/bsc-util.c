@@ -105,7 +105,7 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     file_length = bacfile_read(file_instance,
         bsc_conf->ca_cert_chain, bsc_conf->ca_cert_chain_size);
     if (file_length == 0) {
-        fprintf(stderr, "Cannor read %s file\n",
+        fprintf(stderr, "Can't read %s file\n",
             bacfile_pathname(file_instance));
         return;
     }
@@ -116,7 +116,7 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     file_length = bacfile_read(file_instance,
         bsc_conf->cert_chain, bsc_conf->cert_chain_size);
     if (file_length == 0) {
-        fprintf(stderr, "Cannor read %s file\n",
+        fprintf(stderr, "Can't read %s file\n",
             bacfile_pathname(file_instance));
         return;
     }
@@ -127,7 +127,7 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     file_length = bacfile_read(file_instance,
         bsc_conf->key, bsc_conf->key_size);
     if (file_length == 0) {
-        fprintf(stderr, "Cannor read %s file\n",
+        fprintf(stderr, "Can't read %s file\n",
             bacfile_pathname(file_instance));
         return;
     }
