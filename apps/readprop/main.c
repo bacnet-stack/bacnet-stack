@@ -169,11 +169,7 @@ static void print_usage(char *filename)
     printf("Usage: %s device-instance object-type object-instance "
            "property [index]\n",
         filename);
-#if defined(BACDL_BSC)
-    printf("       [--dnet][--dadr][--mac][--sc]\n");
-#else
     printf("       [--dnet][--dadr][--mac]\n");
-#endif
     printf("       [--version][--help]\n");
 }
 
@@ -201,12 +197,6 @@ static void print_help(char *filename)
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
-#if defined(BACDL_BSC)
-    printf("--sc\n"
-           "Use the BACnet/SC hub connection.\n"
-           "All connect parameters are passing over environment variables\n");
-    printf("\n");
-#endif
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
            "trying to communicate to.  This number will be used\n"
@@ -284,10 +274,6 @@ int main(int argc, char *argv[])
     unsigned int target_args = 0;
     char *filename = NULL;
 
-#if defined(BACDL_BSC)
-    bool use_sc = false;
-#endif
-
     filename = filename_remove_path(argv[0]);
     for (argi = 1; argi < argc; argi++) {
         if (strcmp(argv[argi], "--help") == 0) {
@@ -323,11 +309,6 @@ int main(int argc, char *argv[])
                     specific_address = true;
                 }
             }
-#if defined(BACDL_BSC)
-        } else if (strcmp(argv[argi], "--sc") == 0) {
-            use_sc = true;
-            (void)use_sc;
-#endif
         } else {
             if (target_args == 0) {
                 Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
@@ -441,6 +422,7 @@ int main(int argc, char *argv[])
         if (current_seconds != last_seconds) {
             tsm_timer_milliseconds(
                 (uint16_t)((current_seconds - last_seconds) * 1000));
+            datalink_maintenance_timer(1);
         }
         if (Error_Detected) {
             break;

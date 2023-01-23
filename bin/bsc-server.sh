@@ -19,13 +19,13 @@ export BACNET_SC_ISSUER_1_CERTIFICATE_FILE
 BACNET_SC_OPERATIONAL_CERTIFICATE_FILE="certs/server_cert.pem"
 export BACNET_SC_OPERATIONAL_CERTIFICATE_FILE
 
-BACNET_BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE="certs/server_key.pem"
+BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE="certs/server_key.pem"
 export BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE
 
 # Need if the device is HUB.
-# Possible values: or port number, like "5000" or pair interface name and
+# Possible values: or port number, like "9999" or pair interface name and
 # port number, like "eth0:50000"
-BACNET_SC_HUB_FUNCTION_BINDING="5000"
+BACNET_SC_HUB_FUNCTION_BINDING="50000"
 export BACNET_SC_HUB_FUNCTION_BINDING
 
 # Need if the device allows the direct connect.
