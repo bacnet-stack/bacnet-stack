@@ -520,6 +520,10 @@ static void bacnet_secure_connect_network_port_init(
     Network_Port_SC_Maximum_Reconnect_Time_Set(
         instance, SC_NETPORT_RECONNECT_TIME);
 
+    if(filename_ca_1_cert == NULL) {
+        fprintf(stderr, "BACNET_SC_ISSUER_1_CERTIFICATE_FILE must be set\n");
+        return;
+    }
     bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
     bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
         filename_ca_1_cert);
@@ -534,17 +538,35 @@ static void bacnet_secure_connect_network_port_init(
             BSC_ISSUER_CERTIFICATE_FILE_2_INSTANCE);
     }
 
+    if(filename_cert == NULL) {
+        fprintf(stderr, "BACNET_SC_OPERATIONAL_CERTIFICATE_FILE must be set\n");
+        return;
+    }
     bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
     bacfile_pathname_set(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE,
         filename_cert);
     Network_Port_Operational_Certificate_File_Set(instance,
         BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
 
+    if(filename_key == NULL) {
+        fprintf(stderr,
+            "BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE must be set\n");
+        return;
+    }
     bacfile_create(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
     bacfile_pathname_set(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE,
         filename_key);
     Network_Port_Certificate_Key_File_Set(instance,
         BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
+
+    if ((primary_hub_uri == NULL) && (failover_hub_uri == NULL) &&
+        (direct_binding == NULL) && (hub_binding == NULL)) {
+        fprintf(stderr, "At least must be set:\n"
+            "BACNET_SC_HUB_FUNCTION_BINDING for HUB or\n"
+            "BACNET_SC_PRIMARY_HUB_URI and BACNET_SC_FAILOVER_HUB_URI for node or\n"
+            "BACNET_SC_DIRECT_CONNECT_BINDING for direct connect.\n");
+        return;
+    }
 
     Network_Port_SC_Primary_Hub_URI_Set(instance, primary_hub_uri);
     Network_Port_SC_Failover_Hub_URI_Set(instance, failover_hub_uri);

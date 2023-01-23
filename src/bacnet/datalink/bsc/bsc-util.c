@@ -104,19 +104,33 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     bsc_conf->ca_cert_chain = calloc(1, bsc_conf->ca_cert_chain_size);
     file_length = bacfile_read(file_instance,
         bsc_conf->ca_cert_chain, bsc_conf->ca_cert_chain_size);
+    if (file_length == 0) {
+        fprintf(stderr, "Cannor read %s file\n",
+            bacfile_pathname(file_instance));
+        return;
+    }
 
     file_instance = Network_Port_Operational_Certificate_File(instance);
     bsc_conf->cert_chain_size = bacfile_file_size(file_instance);
     bsc_conf->cert_chain = calloc(1, bsc_conf->cert_chain_size);
     file_length = bacfile_read(file_instance,
         bsc_conf->cert_chain, bsc_conf->cert_chain_size);
+    if (file_length == 0) {
+        fprintf(stderr, "Cannor read %s file\n",
+            bacfile_pathname(file_instance));
+        return;
+    }
 
     file_instance = Network_Port_Certificate_Key_File(instance);
     bsc_conf->key_size = bacfile_file_size(file_instance);
     bsc_conf->key = calloc(1, bsc_conf->key_size);
     file_length = bacfile_read(file_instance,
         bsc_conf->key, bsc_conf->key_size);
-    (void)file_length;
+    if (file_length == 0) {
+        fprintf(stderr, "Cannor read %s file\n",
+            bacfile_pathname(file_instance));
+        return;
+    }
 
 #ifdef BACDL_BSC
     bsc_conf->local_uuid =
