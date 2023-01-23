@@ -12,7 +12,7 @@
  */
 
 #include <stdlib.h> /* For calloc() */
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/datalink/bsc/bvlc-sc.h>
 
 static bool verify_bsc_bvll_header(BVLC_SC_DECODED_HDR *hdr,

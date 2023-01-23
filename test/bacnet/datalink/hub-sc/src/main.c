@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <time.h>
 #include <bacnet/datalink/bsc/bsc-socket.h>
 #include <bacnet/datalink/bsc/bsc-event.h>

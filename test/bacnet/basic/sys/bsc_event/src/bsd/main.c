@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <time.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <unistd.h>
 

@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/basic/object/bacfile.h>
 #include <bacnet/basic/object/netport.h>
 #include <bacnet/datalink/bsc/bvlc-sc.h>

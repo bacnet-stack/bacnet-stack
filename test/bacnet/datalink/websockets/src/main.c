@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <ztest.h>
+#include <zephyr/ztest.h>
 #include <bacnet/datalink/bsc/websocket.h>
 #include <unistd.h>
 
