@@ -386,11 +386,6 @@ int main(int argc, char *argv[])
     Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     Init_Service_Handlers();
     dlenv_init();
-#if defined(BACDL_BSC)
-    while(bsc_hub_connection_status()==BVLC_SC_HUB_CONNECTION_ABSENT) {
-        bsc_wait(1);
-    }
-#endif
 #if (__STDC_VERSION__ >= 199901L) && defined (__STDC_ISO_10646__)
     /* Internationalized programs must call setlocale()
      * to initiate a specific language operation.
