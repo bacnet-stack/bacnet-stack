@@ -49,7 +49,7 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/proplist.h"
-#if defined(BACDL_BSC)
+#if defined(BACFILE)
 #include "bacnet/basic/object/bacfile.h"
 #endif
 #include "bacnet/basic/object/ao.h"
@@ -143,33 +143,6 @@ static object_functions_t Object_Table[] = {
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
 #endif
-    { OBJECT_ANALOG_OUTPUT, Analog_Output_Init, Analog_Output_Count,
-        Analog_Output_Index_To_Instance, Analog_Output_Valid_Instance,
-        Analog_Output_Object_Name, Analog_Output_Read_Property,
-        Analog_Output_Write_Property, Analog_Output_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
-    { OBJECT_LOAD_CONTROL, Load_Control_Init, Load_Control_Count,
-        Load_Control_Index_To_Instance, Load_Control_Valid_Instance,
-        Load_Control_Object_Name, Load_Control_Read_Property,
-        Load_Control_Write_Property, Load_Control_Property_Lists,
-        NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
-#if defined(INTRINSIC_REPORTING)
-    { OBJECT_NOTIFICATION_CLASS, Notification_Class_Init,
-        Notification_Class_Count, Notification_Class_Index_To_Instance,
-        Notification_Class_Valid_Instance, Notification_Class_Object_Name,
-        Notification_Class_Read_Property, Notification_Class_Write_Property,
-        Notification_Class_Property_Lists, NULL /* ReadRangeInfo */,
-        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
-        NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
-#endif
-    { OBJECT_TRENDLOG, Trend_Log_Init, Trend_Log_Count,
-        Trend_Log_Index_To_Instance, Trend_Log_Valid_Instance,
-        Trend_Log_Object_Name, Trend_Log_Read_Property,
-        Trend_Log_Write_Property, Trend_Log_Property_Lists, TrendLogGetRRInfo,
-        NULL /* Iterator */, NULL /* Value_Lists */, NULL /* COV */,
-        NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
         NULL /* Object_Name */, NULL /* Read_Property */,

@@ -195,9 +195,6 @@ static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_IPV6_ZONE_INDEX, -1 };
 
 static const int Network_Port_Properties_Proprietary[] = {
-#ifdef BACDL_BSC
-    PROP_CUSTOM_SC_CERTIFICATE_KEY_FILE, PROP_CUSTOM_SC_LOCAL_UUID,
-#endif /* BACDL_BSC */
     -1
 };
 
@@ -2974,8 +2971,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
-        case PROP_CUSTOM_SC_CERTIFICATE_KEY_FILE:
-        case PROP_CUSTOM_SC_LOCAL_UUID:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
             wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;

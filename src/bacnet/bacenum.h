@@ -547,11 +547,6 @@ typedef enum {
     /* procedures and constraints described in Clause 23.  */
     PROP_RESERVED_RANGE_MAX = 511,
     PROP_PROPRIETARY_RANGE_MIN = 512,
-#ifdef BACDL_BSC
-   /* SC Netport custom properties */
-    PROP_CUSTOM_SC_CERTIFICATE_KEY_FILE = 512,
-    PROP_CUSTOM_SC_LOCAL_UUID = 513,
-#endif /* BACDL_BSC */
     PROP_PROPRIETARY_RANGE_MAX = 4194303,
     PROP_RESERVED_RANGE_MIN2 = 4194304,
     /* enumerations 4194304-4194327 are defined in Addendum 2020cc */
@@ -2539,8 +2534,6 @@ typedef enum BACnetIPMode_T {
     BACNET_IP_MODE_BBMD = 2
 } BACNET_IP_MODE;
 
-#ifdef BACDL_BSC
-
 typedef enum BACnetSCHubConnectorState_T {
     BACNET_NO_HUB_CONNECTION = 0,
     BACNET_CONNECTED_TO_PRIMARY = 1,
@@ -2553,7 +2546,5 @@ typedef enum BACnetSCnetSCConnectionState_T {
     BACNET_DISCONNECTED_WITH_ERRORS = 2,
     BACNET_FAILED_TO_CONNECT = 3
 } BACNET_SC_CONNECTION_STATE;
-
-#endif /* BACDL_BSC */
 
 #endif /* end of BACENUM_H */

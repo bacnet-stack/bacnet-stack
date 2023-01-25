@@ -27,9 +27,6 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifdef BACDL_BSC
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -2235,5 +2232,3 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
         sizeof(params->SC_Direct_Connect_Binding_dirty), "%s:%d", ifname, port);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 }
-
-#endif /* BACDL_BSC */
