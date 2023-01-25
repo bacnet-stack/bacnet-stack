@@ -417,6 +417,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     struct lws_client_connect_info cinfo = { 0 };
     BSC_WEBSOCKET_RET ret;
     pthread_t thread_id;
+    int lws_result;
 
     DEBUG_PRINTF("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
 
@@ -448,9 +449,9 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     bsc_websocket_global_unlock();
 
     pthread_mutex_lock(&bws_cli_mutex);
-    (void) lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
 
-    if (port == -1 || !prot || !addr || !path) {
+    lws_result = lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
+    if (lws_result != 0 || port == -1 || !prot || !addr || !path) {
         pthread_mutex_unlock(&bws_cli_mutex);
         DEBUG_PRINTF("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;

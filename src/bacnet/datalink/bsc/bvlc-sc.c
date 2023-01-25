@@ -1997,6 +1997,11 @@ bool bvlc_sc_decode_message(uint8_t *buf,
             }
             break;
         }
+        default:
+            *error = ERROR_CODE_BVLC_FUNCTION_UNKNOWN;
+            *class = ERROR_CLASS_COMMUNICATION;
+            *err_desc = s_unknown_bvlc_function;
+            return false;
     }
     return true;
 }

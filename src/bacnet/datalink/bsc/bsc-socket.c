@@ -873,6 +873,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     uint16_t len;
     size_t i;
 
+    (void)sh;
     bws_dispatch_lock();
     DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, buf "
                  "= %p, bufsize = %d, ctx = %p\n",

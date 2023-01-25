@@ -455,6 +455,8 @@ static void bsc_node_process_received(BSC_NODE *node,
                 node, BSC_NODE_EVENT_RECEIVED_NPDU, NULL, pdu, pdu_len);
             break;
         }
+        default:
+            break;
     }
     DEBUG_PRINTF("bsc_node_process_received() <<<\n");
 }
@@ -467,6 +469,8 @@ static void bsc_hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
+
+    (void)h;
     bws_dispatch_lock();
     DEBUG_PRINTF("bsc_hub_connector_event() >>> ev = %d, h = %p, node = %p\n",
         ev, h, user_arg);
@@ -489,6 +493,8 @@ static void bsc_hub_function_event(
     BSC_HUB_FUNCTION_EVENT ev, BSC_HUB_FUNCTION_HANDLE h, void *user_arg)
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
+
+    (void)h;
     bws_dispatch_lock();
     DEBUG_PRINTF("bsc_hub_function_event() >>> ev = %d, h = %p, node = %p\n",
         ev, h, user_arg);
@@ -517,6 +523,7 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
 
+    (void)h;
     bws_dispatch_lock();
     DEBUG_PRINTF("bsc_node_switch_event() >>> ev = %d, h = %p, node = %p\n", ev,
         h, user_arg);

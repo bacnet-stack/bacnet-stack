@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet secure connect hub function API.
+ * @brief BACnet secure connect hub function API.
  * @author Kirill Neznamov
  * @date October 2022
  * @section LICENSE
@@ -112,6 +112,8 @@ bool bsc_init(char *ifname)
     BSC_SC_RET r;
     bool ret = false;
     DEBUG_PRINTF("bsc_init() >>>\n");
+
+    (void)ifname;
 
     bws_dispatch_lock();
 
