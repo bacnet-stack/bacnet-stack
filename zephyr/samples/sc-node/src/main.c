@@ -258,12 +258,8 @@ void main(void)
     bacfile_init();
     init_bsc();
     dlenv_init();
-    atexit(datalink_cleanup);
-
-    while(bsc_hub_connection_status()==BVLC_SC_HUB_CONNECTION_ABSENT) {
-        bsc_wait(1);
-    }
     LOG_INF("Connection to BACNet/SC hub established\n");
+    atexit(datalink_cleanup);
 
     /* configure the timeout values */
     last_msec = k_uptime_get();

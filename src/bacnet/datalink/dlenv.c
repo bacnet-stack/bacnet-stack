@@ -599,8 +599,14 @@ static void bacnet_secure_connect_network_port_init(
  */
 void dlenv_network_port_init(void)
 {
-    while(bsc_hub_connection_status() == BVLC_SC_HUB_CONNECTION_ABSENT) {
-        bsc_wait(1);
+    /* if a user has configured BACnet/SC port with primary hub URI,     */
+    /* wait for a establishin of a connection to BACnet/SC hub at first  */
+    /* to reduce possibility of packet losses.                           */
+    if(Network_Port_SC_Primary_Hub_URI_char(1)) {
+        while(bsc_hub_connection_status() == BVLC_SC_HUB_CONNECTION_ABSENT) {
+            bsc_wait(1);
+            bsc_maintenance_timer(1);
+        }
     }
 }
 #else
