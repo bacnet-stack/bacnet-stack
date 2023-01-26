@@ -2308,11 +2308,21 @@ typedef enum {
     PORT_TYPE_NON_BACNET = 8,
     PORT_TYPE_BIP6 = 9,
     PORT_TYPE_SERIAL = 10,
+    /*  For BACnet/SC network port implementations with
+        a Protocol_Revision 24 and higher, BACnet/SC network ports shall be
+        represented by a Network Port object at the BACNET_APPLICATION
+        protocol level with network type of SECURE_CONNECT. */
     PORT_TYPE_BSC = 11,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */
     PORT_TYPE_PROPRIETARY_MIN = 64,
+    /*  For BACnet/SC network port implementations with
+        a protocol revision Protocol_Revision 17 and higher through 23,
+        BACnet/SC network ports shall be represented by a Network Port
+        object at the BACNET_APPLICATION protocol level with
+        a proprietary network type value. */
+    PORT_TYPE_BSC_INTERIM = 64,
     PORT_TYPE_PROPRIETARY_MAX = 255,
     PORT_TYPE_MAX = PORT_TYPE_PROPRIETARY_MAX
 } BACNET_PORT_TYPE;
