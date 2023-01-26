@@ -104,6 +104,7 @@ struct mstp_port {
 
 struct bsc_port {
     uint8_t MAC_Address[6];
+    BACNET_SC_PARAMS Parameters;
 };
 
 struct object_data {
@@ -124,10 +125,6 @@ struct object_data {
         struct mstp_port MSTP;
         struct bsc_port BSC;
     } Network;
-
-#ifdef BACDL_BSC
-    BACNET_SC_PARAMS Secure_Connect;
-#endif /* BACDL_BSC */
 };
 
 #ifndef BACNET_NETWORK_PORTS_MAX
@@ -158,7 +155,21 @@ static const int BIP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_BBMD_FOREIGN_DEVICE_TABLE, PROP_FD_BBMD_ADDRESS,
     PROP_FD_SUBSCRIPTION_LIFETIME,
 #endif
-#ifdef BACDL_BSC
+    -1 };
+
+static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH, PROP_MAC_ADDRESS,
+    PROP_BACNET_IPV6_MODE, PROP_IPV6_ADDRESS, PROP_IPV6_PREFIX_LENGTH,
+    PROP_BACNET_IPV6_UDP_PORT, PROP_IPV6_DEFAULT_GATEWAY,
+    PROP_BACNET_IPV6_MULTICAST_ADDRESS, PROP_IPV6_DNS_SERVER,
+    PROP_IPV6_AUTO_ADDRESSING_ENABLE, PROP_IPV6_DHCP_LEASE_TIME,
+    PROP_IPV6_DHCP_LEASE_TIME_REMAINING, PROP_IPV6_DHCP_SERVER,
+    PROP_IPV6_ZONE_INDEX, -1 };
+
+static const int BSC_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
+    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH, PROP_MAC_ADDRESS,
+    PROP_BACNET_IP_MODE, PROP_IP_ADDRESS, PROP_BACNET_IP_UDP_PORT,
+    PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY, PROP_IP_DNS_SERVER,
     PROP_MAX_BVLC_LENGTH_ACCEPTED, PROP_MAX_NPDU_LENGTH_ACCEPTED,
     PROP_SC_PRIMARY_HUB_URI, PROP_SC_FAILOVER_HUB_URI,
     PROP_SC_MINIMUM_RECONNECT_TIME, PROP_SC_MAXIMUM_RECONNECT_TIME,
@@ -182,17 +193,7 @@ static const int BIP_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_SC_DIRECT_CONNECT_BINDING, PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
     PROP_SC_FAILED_CONNECTION_REQUESTS,
-#endif /* BACDL_BSC */
     -1 };
-
-static const int BIP6_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
-    PROP_NETWORK_NUMBER_QUALITY, PROP_APDU_LENGTH, PROP_MAC_ADDRESS,
-    PROP_BACNET_IPV6_MODE, PROP_IPV6_ADDRESS, PROP_IPV6_PREFIX_LENGTH,
-    PROP_BACNET_IPV6_UDP_PORT, PROP_IPV6_DEFAULT_GATEWAY,
-    PROP_BACNET_IPV6_MULTICAST_ADDRESS, PROP_IPV6_DNS_SERVER,
-    PROP_IPV6_AUTO_ADDRESSING_ENABLE, PROP_IPV6_DHCP_LEASE_TIME,
-    PROP_IPV6_DHCP_LEASE_TIME_REMAINING, PROP_IPV6_DHCP_SERVER,
-    PROP_IPV6_ZONE_INDEX, -1 };
 
 static const int Network_Port_Properties_Proprietary[] = {
     -1
@@ -233,8 +234,10 @@ void Network_Port_Property_List(uint32_t object_instance,
                     *pOptional = MSTP_Port_Properties_Optional;
                     break;
                 case PORT_TYPE_BIP:
-                case PORT_TYPE_BSC:
                     *pOptional = BIP_Port_Properties_Optional;
+                    break;
+                case PORT_TYPE_BSC:
+                    *pOptional = BSC_Port_Properties_Optional;
                     break;
                 case PORT_TYPE_BIP6:
                     *pOptional = BIP6_Port_Properties_Optional;
@@ -2278,8 +2281,6 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
     return status;
 }
 
-#ifdef BACDL_BSC
-
 /**
  * For a given object instance-number, gets SC parameters structure
  *
@@ -2294,13 +2295,13 @@ BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        param = &Object_List[index].Secure_Connect;
+        if (Object_List[index].Network_Type == PORT_TYPE_BSC) {
+            param = &Object_List[index].Network.BSC.Parameters;
+        }
     }
 
     return param;
 }
-
-#endif /* BACDL_BSC */
 
 #define ENCODE_STRING_ARRAY(getter, encode, size, var)                      \
     if (rpdata->array_index == 0) {                                         \
@@ -3112,14 +3113,16 @@ void Network_Port_Init(void)
     for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
         memset(&Object_List[index], 0, sizeof(Object_List[index]));
 #ifdef BACDL_BSC
-        sc = &Object_List[index].Secure_Connect;
+        if (Object_List[index].Network_Type == PORT_TYPE_BSC) {
+            sc = &Object_List[index].Network.BSC.Parameters;
 #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
-        sc->Routing_Table = Keylist_Create();
+            sc->Routing_Table = Keylist_Create();
 #endif
 #ifdef BACNET_SC_STATUS_SUPPORT
-        sc->SC_Failed_Connection_Requests = Keylist_Create();
+            sc->SC_Failed_Connection_Requests = Keylist_Create();
 #endif
-        (void)sc;
+            (void)sc;
+        }
 #endif /* BACDL_BSC */
     }
 }

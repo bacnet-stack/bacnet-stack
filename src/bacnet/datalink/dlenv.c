@@ -492,7 +492,6 @@ static void bacnet_secure_connect_network_port_init(
     seed = (long)&instance;
     srand((int)seed);
     Network_Port_Object_Instance_Number_Set(0, instance);
-
     Network_Port_Name_Set(instance, "BACnet/BSC Port");
     Network_Port_Type_Set(instance, PORT_TYPE_BSC);
 

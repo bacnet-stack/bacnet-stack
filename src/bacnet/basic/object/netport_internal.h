@@ -55,8 +55,6 @@ extern "C" {
 */
 /*#define BACNET_SC_STATUS_SUPPORT */
 
-#ifdef BACDL_BSC
-
     typedef struct BACnetSCAttributes_T {
         BACNET_UNSIGNED_INTEGER Max_BVLC_Length_Accepted;
         BACNET_UNSIGNED_INTEGER Max_NPDU_Length_Accepted;
@@ -119,8 +117,6 @@ extern "C" {
         uint32_t object_instance);
     void Network_Port_SC_Pending_Params_Discard(
         uint32_t object_instance);
-
-#endif /* BACDL_BSC */
 
 #ifdef __cplusplus
 }
