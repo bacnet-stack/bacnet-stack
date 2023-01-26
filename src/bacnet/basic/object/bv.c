@@ -39,7 +39,7 @@
 #include "bacnet/basic/services.h"
 
 #ifndef MAX_BINARY_VALUES
-#define MAX_BINARY_VALUES 10
+#define MAX_BINARY_VALUES 5
 #endif
 
 /* When all the priorities are level null, the present value returns */

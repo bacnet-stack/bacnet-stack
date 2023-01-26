@@ -42,7 +42,7 @@
 #include "bacnet/basic/object/av.h"
 
 #ifndef MAX_ANALOG_VALUES
-#define MAX_ANALOG_VALUES 4
+#define MAX_ANALOG_VALUES 5
 #endif
 
 static ANALOG_VALUE_DESCR AV_Descr[MAX_ANALOG_VALUES];

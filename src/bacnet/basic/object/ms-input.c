@@ -41,7 +41,7 @@
 
 /* number of demo objects */
 #ifndef MAX_MULTISTATE_INPUTS
-#define MAX_MULTISTATE_INPUTS 4
+#define MAX_MULTISTATE_INPUTS 5
 #endif
 
 /* how many states? 1 to 254 states - 0 is not allowed. */

@@ -45,7 +45,7 @@
 #define PRINTF debug_perror
 
 #ifndef MAX_ANALOG_INPUTS
-#define MAX_ANALOG_INPUTS 4
+#define MAX_ANALOG_INPUTS 5
 #endif
 
 static ANALOG_INPUT_DESCR AI_Descr[MAX_ANALOG_INPUTS];
