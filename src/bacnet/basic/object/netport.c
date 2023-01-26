@@ -3113,16 +3113,15 @@ void Network_Port_Init(void)
     for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
         memset(&Object_List[index], 0, sizeof(Object_List[index]));
 #ifdef BACDL_BSC
-        if (Object_List[index].Network_Type == PORT_TYPE_BSC) {
-            sc = &Object_List[index].Network.BSC.Parameters;
+        Object_List[index].Network_Type = PORT_TYPE_BSC;
+        sc = &Object_List[index].Network.BSC.Parameters;
 #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
-            sc->Routing_Table = Keylist_Create();
+        sc->Routing_Table = Keylist_Create();
 #endif
 #ifdef BACNET_SC_STATUS_SUPPORT
-            sc->SC_Failed_Connection_Requests = Keylist_Create();
+        sc->SC_Failed_Connection_Requests = Keylist_Create();
 #endif
-            (void)sc;
-        }
+        (void)sc;
 #endif /* BACDL_BSC */
     }
 }

@@ -2313,7 +2313,8 @@ typedef enum {
        Enumerated values 64-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */
     PORT_TYPE_PROPRIETARY_MIN = 64,
-    PORT_TYPE_PROPRIETARY_MAX = 255
+    PORT_TYPE_PROPRIETARY_MAX = 255,
+    PORT_TYPE_MAX = PORT_TYPE_PROPRIETARY_MAX
 } BACNET_PORT_TYPE;
 
 /* BACnetNetworkNumberQuality ::= ENUMERATED */

@@ -40,7 +40,7 @@ static void test_network_port(void)
     uint8_t port_type[] = { PORT_TYPE_ETHERNET, PORT_TYPE_ARCNET,
         PORT_TYPE_MSTP, PORT_TYPE_PTP, PORT_TYPE_LONTALK, PORT_TYPE_BIP,
         PORT_TYPE_ZIGBEE, PORT_TYPE_VIRTUAL, PORT_TYPE_NON_BACNET,
-        PORT_TYPE_BIP6, PORT_TYPE_MAX };
+        PORT_TYPE_BIP6, PORT_TYPE_SERIAL, PORT_TYPE_BSC, PORT_TYPE_MAX };
 
     while (port_type[port] != PORT_TYPE_MAX) {
         Network_Port_Init();
@@ -121,7 +121,7 @@ static void test_network_port_pending_param(void)
     object_instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, object_instance);
     zassert_true(status, NULL);
-    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BSC);
     zassert_true(status, NULL);
     count = Network_Port_Count();
     zassert_true(count > 0, NULL);
