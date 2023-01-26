@@ -137,7 +137,16 @@ bool bsc_init(char *ifname)
                  "of size %d\n",
         sizeof(bsc_fifo_buf));
     FIFO_Init(&bsc_fifo, bsc_fifo_buf, sizeof(bsc_fifo_buf));
-    bsc_node_conf_fill_from_netport(&bsc_conf, &bsc_node_event);
+
+    ret = bsc_node_conf_fill_from_netport(&bsc_conf, &bsc_node_event);
+
+    if (!ret) {
+        bsc_deinit_resources();
+        bws_dispatch_unlock();
+        DEBUG_PRINTF("bsc_init() <<< configuration of BACNET/SC datalink "
+                     "failed, ret = false\n");
+        return ret;
+    }
 
     bsc_datalink_state = BSC_DATALINK_STATE_STARTING;
     r = bsc_node_init(&bsc_conf, &bsc_node);
@@ -154,6 +163,7 @@ bool bsc_init(char *ifname)
         }
     }
     bsc_deinit_resources();
+    bsc_node_conf_cleanup(&bsc_conf);
     bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
     bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_init() <<< ret = %d\n", false);
@@ -179,11 +189,11 @@ void bsc_cleanup(void)
         bsc_event_wait(bsc_data_event);
         bws_dispatch_lock();
         bsc_deinit_resources();
-        (void) bsc_node_deinit(bsc_node);
+        (void)bsc_node_deinit(bsc_node);
+        bsc_node_conf_cleanup(&bsc_conf);
         bsc_node = NULL;
         bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
     }
-    bsc_node_conf_cleanup(&bsc_conf);
     bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_cleanup() <<<\n");
 }
@@ -238,7 +248,7 @@ static void bsc_remove_packet(uint16_t packet_size)
 {
     int i;
     for (i = 0; i < packet_size; i++) {
-        (void) FIFO_Get(&bsc_fifo);
+        (void)FIFO_Get(&bsc_fifo);
     }
 }
 
@@ -366,7 +376,9 @@ BSC_SC_RET bsc_connect_direct(
     BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
-    DEBUG_PRINTF("bsc_connect_direct() >>> dest = %p, urls = %p, urls_cnt = %d\n", dest, urls, urls_cnt);
+    DEBUG_PRINTF(
+        "bsc_connect_direct() >>> dest = %p, urls = %p, urls_cnt = %d\n", dest,
+        urls, urls_cnt);
     bws_dispatch_lock();
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         ret = bsc_node_connect_direct(bsc_node, dest, urls, urls_cnt);
