@@ -1239,7 +1239,9 @@ static void netport_object_init(uint32_t instance,
     const char *filename_key = "key.pem";
     char str[10];
 
+    Network_Port_Init();
     Network_Port_Object_Instance_Number_Set(0, instance);
+    Network_Port_Type_Set(instance, PORT_TYPE_BSC);
 
     bacfile_create(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
     bacfile_pathname_set(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE,
