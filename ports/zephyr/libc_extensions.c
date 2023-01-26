@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <logging/log.h>
-LOG_MODULE_REGISTER(lib_extensions, LOG_LEVEL_DBG);
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(lib_extensions, CONFIG_BACNETSTACK_LOG_LEVEL);
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include "libc_extensions.h"
 #include <string.h>
 #include <stdio.h>

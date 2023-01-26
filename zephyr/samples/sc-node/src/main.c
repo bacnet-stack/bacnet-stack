@@ -9,11 +9,12 @@
  * @brief Example server application using the BACnet Stack with Secure connect.
  */
 
-#include <zephyr.h>
-#include <logging/log.h>
-#include <fs/fs.h>
-//#include <fs/littlefs.h>
-//#include <storage/flash_map.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/device.h>
+#include <zephyr/fs/fs.h>
+#include <zephyr/fs/littlefs.h>
+#include <zephyr/storage/flash_map.h>
 
 LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 
@@ -40,34 +41,22 @@ LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-/* mounting info */
-#include <ff.h>
-
-#define MNTP  "/NAND:"
-static FATFS fat_fs;
-static struct fs_mount_t mnt = {
-    .type = FS_FATFS,
-    .mnt_point = MNTP,
-    .flags = 0,
-    .fs_data = &fat_fs,
-};
-
-#if 0
 #define MNTP  "/lfs"
 FS_LITTLEFS_DECLARE_DEFAULT_CONFIG(storage);
 static struct fs_mount_t mnt = {
     .type = FS_LITTLEFS,
     .fs_data = &storage,
-    .storage_dev = (void *)FLASH_AREA_ID(storage),
+    .storage_dev = (void *)FIXED_PARTITION_ID(storage_partition),
     .mnt_point = MNTP,
 };
-#endif
 
 #include "ca_cert_pem.h"        // uint8_t Ca_Certificate[]
 #include "node_cert_pem.h"      // uint8_t Certificate[]
 #include "node_priv_key_der.h"  // uint8_t Key[]
 
-#define SERVER_URL "wss://127.0.0.1:50000"
+//#define SERVER_URL "wss://127.0.0.1:50000"
+#define SERVER_URL "wss://192.0.2.2:50000"
+
 #define DEVICE_INSTANCE 123
 #define DEVICE_NAME "Fred"
 #define FILENAME_CA_CERT    MNTP"/ca_cert.pem"
@@ -153,54 +142,86 @@ static void Init_Service_Handlers(void)
     handler_timesync_init();
 #endif
 }
-/*
-static void bacfile_set(uint32_t instance, const char *pathname,
-        uint8_t *buffer, uint32_t buffer_size)
+
+static int littlefs_flash_erase(unsigned int id)
 {
-    bacfile_create(instance);
-    bacfile_pathname_set(instance, pathname);
-    LOG_INF("bacfile_set %s = %s", pathname, bacfile_pathname(instance));
-    uint32_t len = bacfile_write(instance, buffer, buffer_size);
-    LOG_INF("bacfile_set len %d", len);
+    const struct flash_area *pfa;
+    int rc;
+
+    rc = flash_area_open(id, &pfa);
+    if (rc < 0) {
+        LOG_ERR("FAIL: unable to find flash area %u: %d\n",
+            id, rc);
+        return rc;
+    }
+
+    LOG_INF("Area %u at 0x%x on %s for %u bytes\n",
+           id, (unsigned int)pfa->fa_off, pfa->fa_dev->name,
+           (unsigned int)pfa->fa_size);
+
+    /* Optional wipe flash contents */
+    if (IS_ENABLED(CONFIG_APP_WIPE_STORAGE)) {
+        rc = flash_area_erase(pfa, 0, pfa->fa_size);
+        LOG_ERR("Erasing flash area ... %d", rc);
+    }
+
+    flash_area_close(pfa);
+    return rc;
 }
-*/
+
+static int test_statvfs(char *str)
+{
+    struct fs_statvfs stat;
+    int res;
+
+    /* Verify fs_statvfs() */
+    res = fs_statvfs(MNTP, &stat);
+    if (res) {
+        LOG_INF("Error getting volume stats [%d]", res);
+        return res;
+    }
+
+    LOG_INF("%s", str);
+    LOG_INF("Optimal transfer block size   = %lu", stat.f_bsize);
+    LOG_INF("Allocation unit size          = %lu", stat.f_frsize);
+    LOG_INF("Volume size in f_frsize units = %lu", stat.f_blocks);
+    LOG_INF("Free space in f_frsize units  = %lu", stat.f_bfree);
+
+    return 0;
+}
+
 static bool file_save(const char *name, uint8_t *buffer, uint32_t buffer_size)
 {
-    struct fs_file_t file;
+    struct fs_file_t file = {0};
     ssize_t brw;
     int status;
 
     status = fs_open(&file, name, FS_O_CREATE | FS_O_WRITE);
     if (status < 0) {
         LOG_INF("Failed opening file: %s, flag %d, errno=%d", name, FS_O_CREATE | FS_O_WRITE, status);
+        test_statvfs("error open");
         return false;
     }
 
     brw = fs_write(&file, buffer, buffer_size);
     if (brw < 0) {
-        LOG_INF("Failed writing to file: %s [%d]\n", name, (int)brw);
-        fs_close(&file);
-        return false;
+        LOG_INF("Failed writing to file: %s [%d]", name, (int)brw);
+        test_statvfs("error write");
     }
+
     fs_close(&file);
-    return true;
+    return brw >= 0;
 }
 
 static bool init_bsc(void)
 {
     int rc;
-/*    unsigned int id = (uintptr_t)mnt.storage_dev;
-    const struct flash_area *pfa;
 
-    rc = flash_area_open(id, &pfa);
+    rc = littlefs_flash_erase((uintptr_t)mnt.storage_dev);
     if (rc < 0) {
-        LOG_INF("FAIL: unable to find flash area %u: %d", id, rc);
-        return false;
+        return rc;
     }
-    rc = flash_area_erase(pfa, 0, pfa->fa_size);
-    LOG_INF("Erase %d\n", rc);
-    flash_area_close(pfa);
-*/
+
     rc = fs_mount(&mnt);
     if (rc != 0) {
         LOG_INF("Error mounting fs [%d]", rc);

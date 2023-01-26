@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <fs/fs.h>
+#include <zephyr/fs/fs.h>
 
 #ifdef FILE
 #undef FILE
@@ -26,6 +26,9 @@
 #define fgets(ptr, size, f)             libc_ext_fgets(ptr, size, f)
 #define ftell(f)                        fs_tell(f)
 #define fseek(f, offset, whence)        fs_seek(f, offset, whence)
+#ifdef feof
+#undef feof
+#endif
 #define feof(f)                         libc_ext_feof(f)
 
 FILE *libc_ext_fopen(const char *filename, const char *mode);

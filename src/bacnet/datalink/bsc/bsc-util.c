@@ -90,6 +90,12 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p)
     }
 }
 
+/*
+ * bsc_node_conf_fill_from_netport fills data from the netport object
+ * Note: the function adds null-terminated byte to each credentional file
+ * (certificate, certificate key).
+ * The MbedTLS PEM parser requires data to be null-terminated.
+*/
 bool bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     BSC_NODE_EVENT_FUNC event_func)
 {
@@ -100,20 +106,22 @@ bool bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     instance = Network_Port_Index_To_Instance(0);
 
     file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
-    bsc_conf->ca_cert_chain_size = bacfile_file_size(file_instance);
+    bsc_conf->ca_cert_chain_size = bacfile_file_size(file_instance) + 1;
     bsc_conf->ca_cert_chain = calloc(1, bsc_conf->ca_cert_chain_size);
     file_length = bacfile_read(file_instance,
         bsc_conf->ca_cert_chain, bsc_conf->ca_cert_chain_size);
+    bsc_conf->ca_cert_chain[bsc_conf->ca_cert_chain_size - 1] = 0;
     if (file_length == 0) {
         bsc_conf->ca_cert_chain_size = 0;
         return false;
     }
 
     file_instance = Network_Port_Operational_Certificate_File(instance);
-    bsc_conf->cert_chain_size = bacfile_file_size(file_instance);
+    bsc_conf->cert_chain_size = bacfile_file_size(file_instance) + 1;
     bsc_conf->cert_chain = calloc(1, bsc_conf->cert_chain_size);
     file_length = bacfile_read(file_instance,
         bsc_conf->cert_chain, bsc_conf->cert_chain_size);
+    bsc_conf->cert_chain[bsc_conf->cert_chain_size - 1] = 0;
     if (file_length == 0) {
         free(bsc_conf->ca_cert_chain);
         bsc_conf->ca_cert_chain = NULL;
@@ -123,10 +131,11 @@ bool bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     }
 
     file_instance = Network_Port_Certificate_Key_File(instance);
-    bsc_conf->key_size = bacfile_file_size(file_instance);
+    bsc_conf->key_size = bacfile_file_size(file_instance) + 1;
     bsc_conf->key = calloc(1, bsc_conf->key_size);
     file_length = bacfile_read(file_instance,
         bsc_conf->key, bsc_conf->key_size);
+    bsc_conf->key[bsc_conf->key_size - 1] = 0;
     if (file_length == 0) {
         free(bsc_conf->ca_cert_chain);
         free(bsc_conf->cert_chain);
