@@ -116,7 +116,6 @@ list(APPEND testdirs
   bacnet/basic/sys/keylist
   bacnet/basic/sys/ringbuf
   bacnet/basic/sys/sbuf
-  bacnet/basic/sys/bsc_event
   )
 
 # bacnet/datalink/*
@@ -131,6 +130,30 @@ list(APPEND testdirs
   #bacnet/datalink/bsc-node
   bacnet/datalink/bsc-datalink
   )
+
+# ports tests
+if(ZEPHYR_BASE)
+  message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "Added ports specific tests for linux")
+
+  list(APPEND testdirs
+  ports/linux/bsc_event
+  )
+
+elseif(WIN32)
+  message(STATUS "Added ports specific tests for win32")
+
+  list(APPEND testdirs
+  ports/win32/bsc_event
+  )
+
+elseif(APPLE)
+  message(STATUS "Added ports specific tests for APPLE")
+  list(APPEND testdirs
+  ports/bsd/bsc_event
+  )
+endif()
 
 enable_testing()
 foreach(testdir IN ITEMS ${testdirs})
