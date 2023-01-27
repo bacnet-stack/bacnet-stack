@@ -10,6 +10,8 @@ project(test_${basename}
 find_package(Threads)
 find_package(PkgConfig)
 
+set(CMAKE_C_FLAGS -pthread)
+
 string(REGEX REPLACE
     "/test/ports/[a-zA-Z_/-]*$"
     "/src"
