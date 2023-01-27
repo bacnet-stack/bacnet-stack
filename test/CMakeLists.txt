@@ -116,6 +116,7 @@ list(APPEND testdirs
   bacnet/basic/sys/keylist
   bacnet/basic/sys/ringbuf
   bacnet/basic/sys/sbuf
+  bacnet/basic/sys/bsc_event
   )
 
 # bacnet/datalink/*

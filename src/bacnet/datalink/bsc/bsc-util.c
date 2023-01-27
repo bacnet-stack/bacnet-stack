@@ -90,7 +90,7 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p)
     }
 }
 
-void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
+bool bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     BSC_NODE_EVENT_FUNC event_func)
 {
     uint32_t instance;
@@ -105,9 +105,8 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     file_length = bacfile_read(file_instance,
         bsc_conf->ca_cert_chain, bsc_conf->ca_cert_chain_size);
     if (file_length == 0) {
-        fprintf(stderr, "Can't read %s file\n",
-            bacfile_pathname(file_instance));
-        return;
+        bsc_conf->ca_cert_chain_size = 0;
+        return false;
     }
 
     file_instance = Network_Port_Operational_Certificate_File(instance);
@@ -116,9 +115,11 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     file_length = bacfile_read(file_instance,
         bsc_conf->cert_chain, bsc_conf->cert_chain_size);
     if (file_length == 0) {
-        fprintf(stderr, "Can't read %s file\n",
-            bacfile_pathname(file_instance));
-        return;
+        free(bsc_conf->ca_cert_chain);
+        bsc_conf->ca_cert_chain = NULL;
+        bsc_conf->ca_cert_chain_size = 0;
+        bsc_conf->cert_chain_size = 0;
+        return false;
     }
 
     file_instance = Network_Port_Certificate_Key_File(instance);
@@ -127,15 +128,18 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     file_length = bacfile_read(file_instance,
         bsc_conf->key, bsc_conf->key_size);
     if (file_length == 0) {
-        fprintf(stderr, "Can't read %s file\n",
-            bacfile_pathname(file_instance));
-        return;
+        free(bsc_conf->ca_cert_chain);
+        free(bsc_conf->cert_chain);
+        bsc_conf->ca_cert_chain = NULL;
+        bsc_conf->cert_chain = NULL;
+        bsc_conf->ca_cert_chain_size = 0;
+        bsc_conf->cert_chain_size = 0;
+        bsc_conf->key_size = 0;
+        return false;
     }
 
-#ifdef BACDL_BSC
     bsc_conf->local_uuid =
         (BACNET_SC_UUID*)Network_Port_SC_Local_UUID(instance);
-#endif
 
     bsc_conf->local_vmac =
         (BACNET_SC_VMAC_ADDRESS *)Network_Port_MAC_Address_pointer(instance);
@@ -143,8 +147,6 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
         Network_Port_Max_BVLC_Length_Accepted(instance);
     bsc_conf->max_local_npdu_len =
         Network_Port_Max_NPDU_Length_Accepted(instance);
-
-#ifdef BACDL_BSC
     bsc_conf->connect_timeout_s =
         Network_Port_SC_Connect_Wait_Timeout(instance);
     bsc_conf->heartbeat_timeout_s = Network_Port_SC_Heartbeat_Timeout(instance);
@@ -180,8 +182,8 @@ void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     bsc_conf->direct_connection_accept_uris_len =
         strlen(bsc_conf->direct_connection_accept_uris);
 #endif
-#endif /* BACDL_BSC */
     bsc_conf->event_func = event_func;
+    return true;
 }
 
 void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf)

@@ -21,6 +21,7 @@
 #include "bacnet/datalink/bsc/bsc-node.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
+#include <stdbool.h>
 
 BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret);
 
@@ -30,7 +31,7 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac);
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid);
 void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p);
 void bsc_generate_random_uuid(BACNET_SC_UUID *p);
-void bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
+bool bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     BSC_NODE_EVENT_FUNC event_func);
 void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf);
 
