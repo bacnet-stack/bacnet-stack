@@ -57,16 +57,23 @@ extern "C" {
 
     typedef struct BACnetSCAttributes_T {
         BACNET_UNSIGNED_INTEGER Max_BVLC_Length_Accepted;
+        BACNET_UNSIGNED_INTEGER Max_BVLC_Length_Accepted_dirty;
         BACNET_UNSIGNED_INTEGER Max_NPDU_Length_Accepted;
+        BACNET_UNSIGNED_INTEGER Max_NPDU_Length_Accepted_dirty;
         char SC_Primary_Hub_URI[BACNET_URI_LENGTH];
         char SC_Primary_Hub_URI_dirty[BACNET_URI_LENGTH];
         char SC_Failover_Hub_URI[BACNET_URI_LENGTH];
         char SC_Failover_Hub_URI_dirty[BACNET_URI_LENGTH];
         BACNET_UNSIGNED_INTEGER SC_Minimum_Reconnect_Time;
+        BACNET_UNSIGNED_INTEGER SC_Minimum_Reconnect_Time_dirty;
         BACNET_UNSIGNED_INTEGER SC_Maximum_Reconnect_Time;
+        BACNET_UNSIGNED_INTEGER SC_Maximum_Reconnect_Time_dirty;
         BACNET_UNSIGNED_INTEGER SC_Connect_Wait_Timeout;
+        BACNET_UNSIGNED_INTEGER SC_Connect_Wait_Timeout_dirty;
         BACNET_UNSIGNED_INTEGER SC_Disconnect_Wait_Timeout;
+        BACNET_UNSIGNED_INTEGER SC_Disconnect_Wait_Timeout_dirty;
         BACNET_UNSIGNED_INTEGER SC_Heartbeat_Timeout;
+        BACNET_UNSIGNED_INTEGER SC_Heartbeat_Timeout_dirty;
         BACNET_SC_HUB_CONNECTOR_STATE SC_Hub_Connector_State;
         uint32_t Operational_Certificate_File;
         uint32_t Issuer_Certificate_Files[BACNET_ISSUER_CERT_FILE_MAX];
@@ -80,8 +87,10 @@ extern "C" {
         BACNET_SC_HUB_CONNECTION SC_Failover_Hub_Connection_Status;
         bool SC_Hub_Function_Enable;
         bool SC_Hub_Function_Enable_dirty;
-        char SC_Hub_Function_Accept_URIs[BACNET_SC_HUB_URI_MAX]
-                                            [BACNET_URI_LENGTH];
+        char SC_Hub_Function_Accept_URIs[
+            BACNET_SC_HUB_URI_MAX * (BACNET_URI_LENGTH + 1)];
+        char SC_Hub_Function_Accept_URIs_dirty[
+            BACNET_SC_HUB_URI_MAX * (BACNET_URI_LENGTH + 1)];
         char SC_Hub_Function_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Hub_Function_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
 #ifdef BACNET_SC_STATUS_SUPPORT
@@ -95,6 +104,8 @@ extern "C" {
         bool SC_Direct_Connect_Accept_Enable;
         bool SC_Direct_Connect_Accept_Enable_dirty;
         char SC_Direct_Connect_Accept_URIs[
+            BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGTH + 1)];
+        char SC_Direct_Connect_Accept_URIs_dirty[
             BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGTH + 1)];
         char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
