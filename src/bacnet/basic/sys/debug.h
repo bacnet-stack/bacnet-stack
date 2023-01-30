@@ -59,6 +59,10 @@ extern "C" {
     void debug_perror(
         const char *format,
         ...);
+    BACNET_STACK_EXPORT
+    void debug_printf_disabled(
+        const char *format,
+        ...);
 #if DEBUG_ENABLED
     /* Nothing more here */
 #else

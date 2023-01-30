@@ -138,3 +138,9 @@ void debug_perror(const char *format, ...)
     (void)format;
 }
 #endif
+
+void debug_printf_disabled(const char *format, ...)
+{
+    (void)format;
+}
+

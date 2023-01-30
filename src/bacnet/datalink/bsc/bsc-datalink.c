@@ -28,13 +28,12 @@
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/basic/object/bacfile.h"
 
-#define DEBUG_BSC_DATALINK 0
-
+#define PRINTF debug_perror
+#define DEBUG_BSC_DATALINK 1
 #if DEBUG_BSC_DATALINK == 1
 #define DEBUG_PRINTF debug_printf
 #else
-#undef DEBUG_ENABLED
-#define DEBUG_PRINTF(...)
+#define DEBUG_PRINTF debug_printf_disabled
 #endif
 
 #define BSC_NEXT_POWER_OF_TWO1(v) \
@@ -86,7 +85,7 @@ static void bsc_node_event(BSC_NODE *node,
             }
 #if DEBUG_ENABLED == 1
             else {
-                DEBUG_PRINTF("pdu of size %d\n is dropped\n", pdu_len);
+                PRINTF("pdu of size %d\n is dropped\n", pdu_len);
             }
 #endif
         }
@@ -119,7 +118,7 @@ bool bsc_init(char *ifname)
 
     if (bsc_datalink_state != BSC_DATALINK_STATE_IDLE) {
         bws_dispatch_unlock();
-        DEBUG_PRINTF("bsc_init() <<< ret = %d\n", ret);
+        PRINTF("bsc_init() <<< ret = %d\n", ret);
         return ret;
     }
 
@@ -129,7 +128,7 @@ bool bsc_init(char *ifname)
     if (!bsc_event || !bsc_data_event) {
         bsc_deinit_resources();
         bws_dispatch_unlock();
-        DEBUG_PRINTF("bsc_init() <<< ret = %d\n", false);
+        PRINTF("bsc_init() <<< ret = %d\n", false);
         return false;
     }
 
@@ -143,7 +142,7 @@ bool bsc_init(char *ifname)
     if (!ret) {
         bsc_deinit_resources();
         bws_dispatch_unlock();
-        DEBUG_PRINTF("bsc_init() <<< configuration of BACNET/SC datalink "
+        PRINTF("bsc_init() <<< configuration of BACNET/SC datalink "
                      "failed, ret = false\n");
         return ret;
     }
@@ -166,7 +165,7 @@ bool bsc_init(char *ifname)
     bsc_node_conf_cleanup(&bsc_conf);
     bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_init() <<< ret = %d\n", false);
+    PRINTF("bsc_init() <<< ret = %d\n", false);
     return false;
 }
 
@@ -203,7 +202,6 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
     uint8_t *pdu,
     unsigned pdu_len)
 {
-    (void)npdu_data;
     BSC_SC_RET ret;
     BACNET_SC_VMAC_ADDRESS dest_vmac;
     int len = -1;
@@ -223,7 +221,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
             memcpy(&dest_vmac.address[0], &dest->mac[0], BVLC_SC_VMAC_SIZE);
         } else {
             bws_dispatch_unlock();
-            DEBUG_PRINTF(
+            PRINTF(
                 "bsc_send_pdu() <<< ret = -1, incorrect dest mac address\n");
             return len;
         }
@@ -280,15 +278,13 @@ uint16_t bsc_receive(
             FIFO_Pull(&bsc_fifo, (uint8_t *)&npdu_len, sizeof(npdu_len));
 
             if (sizeof(buf) < npdu_len) {
-                DEBUG_PRINTF(
-                    "bsc_receive() pdu of size %d is dropped\n", pdu_len);
+                PRINTF("bsc_receive() pdu of size %d is dropped\n", pdu_len);
                 bsc_remove_packet(npdu_len);
             } else {
                 FIFO_Pull(&bsc_fifo, buf, npdu_len);
                 if (!bvlc_sc_decode_message(
                         buf, npdu_len, &dm, &error, &class, &err_desc)) {
-                    DEBUG_PRINTF(
-                        "bsc_receive() pdu of size %d is dropped because "
+                    PRINTF("bsc_receive() pdu of size %d is dropped because "
                         "of err = %d, class %d, desc = %s\n",
                         npdu_len, error, class, err_desc);
                     bsc_remove_packet(npdu_len);
@@ -304,9 +300,9 @@ uint16_t bsc_receive(
                     }
 #if DEBUG_ENABLED == 1
                     else {
-                        DEBUG_PRINTF("bsc_receive() pdu of size %d is dropped "
-                                     "because origin addr is absent or output "
-                                     "buf of size %d is to small\n",
+                        PRINTF("bsc_receive() pdu of size %d is dropped "
+                            "because origin addr is absent or output "
+                            "buf of size %d is to small\n",
                             npdu_len, max_pdu);
                     }
 #endif

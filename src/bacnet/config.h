@@ -97,6 +97,8 @@
 #else
 #define MAX_APDU 1476
 #endif
+#elif defined(BACDL_BSC)
+#define MAX_APDU 1476
 #else
 #if defined(BACNET_SECURITY)
 #define MAX_APDU 412
@@ -107,12 +109,24 @@
 #endif
 
 #if defined(BACDL_BSC)
+#ifndef SC_NETPORT_BVLC_MAX
 #define SC_NETPORT_BVLC_MAX 1500
+#endif
+#ifndef SC_NETPORT_NPDU_MAX
 #define SC_NETPORT_NPDU_MAX 1500
+#endif
+#ifndef SC_NETPORT_CONNECT_TIMEOUT
 #define SC_NETPORT_CONNECT_TIMEOUT 5
+#endif
+#ifndef SC_NETPORT_HEARTBEAT_TIMEOUT
 #define SC_NETPORT_HEARTBEAT_TIMEOUT 3
+#endif
+#ifndef SC_NETPORT_DISCONNECT_TIMEOUT
 #define SC_NETPORT_DISCONNECT_TIMEOUT 5
+#endif
+#ifndef SC_NETPORT_RECONNECT_TIME
 #define SC_NETPORT_RECONNECT_TIME 2
+#endif
 #endif
 
 /* for confirmed messages, this is the number of transactions */
