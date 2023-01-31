@@ -575,7 +575,7 @@ static void bacnet_secure_connect_network_port_init(
         direct_binding != NULL);
 
     c = direct_connect_initiate ? direct_connect_initiate[0] : '0';
-    if ((c != '0') && (c != 'n') && (c != 'n')) {
+    if ((c != '0') && (c != 'n') && (c != 'N')) {
         Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, true);
     } else {
         Network_Port_SC_Direct_Connect_Initiate_Enable_Set(instance, false);

@@ -444,6 +444,7 @@ list(
 
 
 add_subdirectory(subsys)
+add_subdirectory(modules)
 
 
 #

@@ -18,8 +18,8 @@ set(gen_dir ${ZEPHYR_BINARY_DIR}/include/generated/)
 
 foreach(inc_file
 	ca_cert.pem
-	client_cert.pem
-	client_key.der
+	server_cert.pem
+	server_key.pem
     )
   generate_inc_file_for_target(
     app
@@ -27,4 +27,3 @@ foreach(inc_file
     ${gen_dir}/${inc_file}.inc
     )
 endforeach()
-
