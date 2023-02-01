@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <errno.h>
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
 #define DEBUG_BSC_EVENT 0
@@ -25,7 +26,7 @@
 #define DEBUG_PRINTF printf
 #else
 #undef DEBUG_ENABLED
-#define DEBUG_PRINTF(...)
+#define DEBUG_PRINTF debug_printf_disabled
 #endif
 
 struct BSC_Event {

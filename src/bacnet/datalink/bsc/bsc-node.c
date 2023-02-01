@@ -28,7 +28,7 @@
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED
-#define DEBUG_PRINTF(...)
+#define DEBUG_PRINTF debug_printf_disabled
 #endif
 
 #define ERROR_STR_OPTION_NOT_UNDERSTOOD \
