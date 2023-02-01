@@ -6,7 +6,8 @@ TARGET = bacschub
 BACNET_OBJECT_DIR = $(BACNET_SRC_DIR)/bacnet/basic/object
 SRC = main.c \
 	$(BACNET_OBJECT_DIR)/client/device-client.c \
-	$(BACNET_OBJECT_DIR)/netport.c
+	$(BACNET_OBJECT_DIR)/netport.c \
+	$(BACNET_OBJECT_DIR)/sc_netport.c
 
 CFLAGS += -DBACNET_SECURE_CONNECT_ROUTING_TABLE=1
 CFLAGS += -DBSC_CONF_HUB_FUNCTIONS_NUM=1
@@ -43,4 +44,3 @@ clean:
 
 .PHONY: include
 include: .depend
-

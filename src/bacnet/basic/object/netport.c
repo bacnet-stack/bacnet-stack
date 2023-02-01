@@ -192,12 +192,9 @@ static const int BSC_Port_Properties_Optional[] = { PROP_NETWORK_NUMBER,
     PROP_SC_DIRECT_CONNECT_ACCEPT_ENABLE, PROP_SC_DIRECT_CONNECT_ACCEPT_URIS,
     PROP_SC_DIRECT_CONNECT_BINDING, PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS,
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-    PROP_SC_FAILED_CONNECTION_REQUESTS,
-    -1 };
+    PROP_SC_FAILED_CONNECTION_REQUESTS, -1 };
 
-static const int Network_Port_Properties_Proprietary[] = {
-    -1
-};
+static const int Network_Port_Properties_Proprietary[] = { -1 };
 
 unsigned Network_Port_Object_Number(void)
 {
@@ -2687,9 +2684,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             /* SC optionals */
 #if BACNET_SECURE_CONNECT_ROUTING_TABLE
         case PROP_ROUTING_TABLE:
-            ENCODE_KEYLIST(Network_Port_Routing_Table_Get,
-                bacapp_encode_RouterEntry, Network_Port_Routing_Table_Count,
-                BACNET_ROUTER_ENTRY);
+            apdu_len = Network_Port_Routing_Table_Encode(
+                rpdata->object_instance, apdu, apdu_size);
             break;
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
@@ -3127,16 +3123,16 @@ void Network_Port_Init(void)
 #ifdef BACDL_BSC
         Object_List[index].Network_Type = PORT_TYPE_BSC;
         sc = &Object_List[index].Network.BSC.Parameters;
-    #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
+#ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
-    #endif
+#endif
         sc->SC_Failed_Connection_Requests_Count = 0;
-    #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
+#if BSC_CONF_HUB_FUNCTIONS_NUM != 0
         sc->SC_Hub_Function_Connection_Status_Count = 0;
-  #endif
-  #if BSC_CONF_HUB_CONNECTORS_NUM!=0
+#endif
+#if BSC_CONF_HUB_CONNECTORS_NUM != 0
         sc->SC_Direct_Connect_Connection_Status_Count = 0;
-  #endif
+#endif
         (void)sc;
 #endif /* BACDL_BSC */
     }
