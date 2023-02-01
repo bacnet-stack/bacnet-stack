@@ -29,7 +29,9 @@
 #include "bacnet/basic/object/bacfile.h"
 
 #define PRINTF debug_perror
-#define DEBUG_BSC_DATALINK 1
+#ifndef DEBUG_BSC_DATALINK
+#define DEBUG_BSC_DATALINK 0
+#endif
 #if DEBUG_BSC_DATALINK == 1
 #define DEBUG_PRINTF debug_printf
 #else

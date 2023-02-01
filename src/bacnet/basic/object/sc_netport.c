@@ -773,6 +773,39 @@ uint8_t Network_Port_Routing_Table_Count(uint32_t object_instance)
     return count;
 }
 
+/**
+ * @brief Handle a request to encode all the the routing table entries
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ *
+ * @return How many bytes were encoded in the buffer, or
+ *   BACNET_STATUS_ABORT if the response would not fit within the buffer.
+ */
+int Network_Port_Routing_Table_Encode(
+    uint32_t object_instance, uint8_t *apdu, int max_apdu)
+{
+    BACNET_ROUTER_ENTRY *entry = NULL;
+    int apdu_len = 0;
+    unsigned index = 0;
+    unsigned size = 0;
+
+    size = Network_Port_Routing_Table_Count(object_instance);
+    for (index = 0; index < size; index++) {
+        entry = Network_Port_Routing_Table_Get(object_instance, index);
+        apdu_len += bacapp_encode_RouterEntry(NULL, entry);
+    }
+    if (apdu_len > max_apdu) {
+        return BACNET_STATUS_ABORT;
+    }
+    apdu_len = 0;
+    for (index = 0; index < size; index++) {
+        entry = Network_Port_Routing_Table_Get(object_instance, index);
+        apdu_len += bacapp_encode_RouterEntry(&apdu[apdu_len], entry);
+    }
+
+    return apdu_len;
+}
+
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
@@ -1088,8 +1121,8 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Add(
         ARRAY_SIZE(params->SC_Hub_Function_Connection_Status))
         return false;
 
-    st = &params->SC_Hub_Function_Connection_Status[
-        params->SC_Hub_Function_Connection_Status_Count];
+    st = &params->SC_Hub_Function_Connection_Status
+              [params->SC_Hub_Function_Connection_Status_Count];
     params->SC_Hub_Function_Connection_Status_Count += 1;
 
     st->State = state;
@@ -1478,14 +1511,13 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
         ARRAY_SIZE(params->SC_Direct_Connect_Connection_Status))
         return false;
 
-    st = &params->SC_Direct_Connect_Connection_Status[
-        params->SC_Direct_Connect_Connection_Status_Count];
+    st = &params->SC_Direct_Connect_Connection_Status
+              [params->SC_Direct_Connect_Connection_Status_Count];
     params->SC_Direct_Connect_Connection_Status_Count += 1;
 
-    if(uri) {
+    if (uri) {
         bsc_copy_str(st->URI, uri, sizeof(st->URI));
-    }
-    else {
+    } else {
         st->URI[0] = 0;
     }
     st->State = state;
@@ -1561,12 +1593,11 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
         ARRAY_SIZE(params->SC_Failed_Connection_Requests))
         return false;
 
-    entry = &params->SC_Failed_Connection_Requests[
-            params->SC_Failed_Connection_Requests_Count];
+    entry = &params->SC_Failed_Connection_Requests
+                 [params->SC_Failed_Connection_Requests_Count];
     params->SC_Failed_Connection_Requests_Count += 1;
 
     entry->Timestamp = *ts;
-    // host_n_port_to_data(peer_address, &entry->Peer_Address);
     memcpy(&entry->Peer_Address, peer_address, sizeof(entry->Peer_Address));
     memcpy(entry->Peer_VMAC, peer_VMAC, sizeof(entry->Peer_VMAC));
     memcpy(entry->Peer_UUID.uuid.uuid128, peer_UUID,
@@ -1694,7 +1725,8 @@ int bacapp_encode_SCHubConnection(
     return apdu_len;
 }
 
-int bacapp_decode_SCHubConnection(uint8_t *apdu, uint16_t max_apdu_len,
+int bacapp_decode_SCHubConnection(uint8_t *apdu,
+    uint16_t max_apdu_len,
     BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
@@ -1839,7 +1871,8 @@ int bacapp_encode_SCHubFunctionConnection(
     return apdu_len;
 }
 
-int bacapp_decode_SCHubFunctionConnection(uint8_t *apdu, uint16_t max_apdu_len,
+int bacapp_decode_SCHubFunctionConnection(uint8_t *apdu,
+    uint16_t max_apdu_len,
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
@@ -1931,8 +1964,8 @@ int bacapp_decode_context_SCHubFunctionConnection(uint8_t *apdu,
 
     if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
         len++;
-        section_len = bacapp_decode_SCHubFunctionConnection(&apdu[len],
-            apdu_len_max, value);
+        section_len = bacapp_decode_SCHubFunctionConnection(
+            &apdu[len], apdu_len_max, value);
         if (section_len > 0) {
             len += section_len;
             if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
@@ -1971,41 +2004,52 @@ int bacapp_encode_SCFailedConnectionRequest(
     BACNET_OCTET_STRING octet;
     BACNET_HOST_N_PORT hp;
 
-    if (apdu && value) {
-        apdu_len +=
-            bacapp_encode_context_datetime(&apdu[0], 0, &value->Timestamp);
+    if (value) {
+        apdu_len += bacapp_encode_context_datetime(apdu, 0, &value->Timestamp);
+        if (apdu) {
+            apdu += apdu_len;
+        }
         host_n_port_from_data(&value->Peer_Address, &hp);
-        apdu_len += host_n_port_context_encode(&apdu[apdu_len], 1, &hp);
-
+        apdu_len += host_n_port_context_encode(apdu, 1, &hp);
+        if (apdu) {
+            apdu += apdu_len;
+        }
         if (octetstring_init(
                 &octet, value->Peer_VMAC, sizeof(value->Peer_VMAC))) {
-            apdu_len += encode_context_octet_string(&apdu[apdu_len], 2, &octet);
+            apdu_len += encode_context_octet_string(apdu, 2, &octet);
         } else {
             return -1;
         }
-
+        if (apdu) {
+            apdu += apdu_len;
+        }
         if (octetstring_init(&octet, value->Peer_UUID.uuid.uuid128,
                 sizeof(value->Peer_UUID.uuid.uuid128))) {
-            apdu_len += encode_context_octet_string(&apdu[apdu_len], 3, &octet);
+            apdu_len += encode_context_octet_string(apdu, 3, &octet);
         } else {
             return -1;
         }
-
+        if (apdu) {
+            apdu += apdu_len;
+        }
         if (value->Error != ERROR_CODE_OTHER) {
-            apdu_len +=
-                encode_context_enumerated(&apdu[apdu_len], 4, value->Error);
+            apdu_len += encode_context_enumerated(apdu, 4, value->Error);
+            if (apdu) {
+                apdu += apdu_len;
+            }
 
             if (characterstring_init_ansi(&str, value->Error_Details)) {
-                apdu_len +=
-                    encode_context_character_string(&apdu[apdu_len], 5, &str);
+                apdu_len += encode_context_character_string(apdu, 5, &str);
             }
         }
     }
+
     return apdu_len;
 }
 
 int bacapp_decode_SCFailedConnectionRequest(uint8_t *apdu,
-    uint16_t max_apdu_len, BACNET_SC_FAILED_CONNECTION_REQUEST *value)
+    uint16_t max_apdu_len,
+    BACNET_SC_FAILED_CONNECTION_REQUEST *value)
 {
     int apdu_len = 0;
     int len;
@@ -2056,21 +2100,30 @@ int bacapp_decode_SCFailedConnectionRequest(uint8_t *apdu,
     return (apdu_len <= max_apdu_len) ? apdu_len : -1;
 }
 
+/**
+ * @brief Encode a context tagged SCFailedConnectionRequest complex data type
+ * @param apdu - the APDU buffer, or NULL for length
+ * @param address - IP address and port number
+ * @return length of the encoded APDU buffer
+ */
 int bacapp_encode_context_SCFailedConnectionRequest(uint8_t *apdu,
     uint8_t tag_number,
     BACNET_SC_FAILED_CONNECTION_REQUEST *value)
 {
-    int len = 0; /* length of each encoding */
     int apdu_len = 0;
 
-    if (value && apdu) {
-        len = encode_opening_tag(&apdu[apdu_len], tag_number);
-        apdu_len += len;
-        len = bacapp_encode_SCFailedConnectionRequest(&apdu[apdu_len], value);
-        apdu_len += len;
-        len = encode_closing_tag(&apdu[apdu_len], tag_number);
-        apdu_len += len;
+    if (value) {
+        apdu_len = encode_opening_tag(apdu, tag_number);
+        if (apdu) {
+            apdu += apdu_len;
+        }
+        apdu_len += bacapp_encode_SCFailedConnectionRequest(apdu, value);
+        if (apdu) {
+            apdu += apdu_len;
+        }
+        apdu_len += encode_closing_tag(apdu, tag_number);
     }
+
     return apdu_len;
 }
 
@@ -2084,8 +2137,8 @@ int bacapp_decode_context_SCFailedConnectionRequest(uint8_t *apdu,
 
     if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
         len++;
-        section_len = bacapp_decode_SCFailedConnectionRequest(&apdu[len],
-            apdu_len_max, value);
+        section_len = bacapp_decode_SCFailedConnectionRequest(
+            &apdu[len], apdu_len_max, value);
         if (section_len > 0) {
             len += section_len;
             if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
@@ -2124,26 +2177,31 @@ int bacapp_encode_RouterEntry(uint8_t *apdu, BACNET_ROUTER_ENTRY *value)
     BACNET_OCTET_STRING octet;
     BACNET_UNSIGNED_INTEGER v;
 
-    if (apdu && value) {
+    if (value) {
         v = value->Network_Number;
-        apdu_len += encode_context_unsigned(&apdu[0], 0, v);
-
+        apdu_len += encode_context_unsigned(apdu, 0, v);
+        if (apdu) {
+            apdu += apdu_len;
+        }
         if (octetstring_init(
                 &octet, value->Mac_Address, sizeof(value->Mac_Address))) {
-            apdu_len += encode_context_octet_string(&apdu[apdu_len], 1, &octet);
+            apdu_len += encode_context_octet_string(apdu, 1, &octet);
         } else {
             return -1;
         }
-
-        apdu_len +=
-            encode_context_enumerated(&apdu[apdu_len], 2, value->Status);
-
+        if (apdu) {
+            apdu += apdu_len;
+        }
+        apdu_len += encode_context_enumerated(apdu, 2, value->Status);
+        if (apdu) {
+            apdu += apdu_len;
+        }
         if (value->Performance_Index != 0) {
             v = value->Performance_Index;
-            apdu_len +=
-                encode_context_unsigned(&apdu[apdu_len], 3, v);
+            apdu_len += encode_context_unsigned(apdu, 3, v);
         }
     }
+
     return apdu_len;
 }
 
@@ -2295,7 +2353,8 @@ int bacapp_encode_SCDirectConnection(
     return apdu_len;
 }
 
-int bacapp_decode_SCDirectConnection(uint8_t *apdu, uint16_t max_apdu_len,
+int bacapp_decode_SCDirectConnection(uint8_t *apdu,
+    uint16_t max_apdu_len,
     BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
@@ -2394,8 +2453,8 @@ int bacapp_decode_context_SCDirectConnection(uint8_t *apdu,
 
     if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
         len++;
-        section_len = bacapp_decode_SCDirectConnection(&apdu[len], apdu_len_max,
-            value);
+        section_len =
+            bacapp_decode_SCDirectConnection(&apdu[len], apdu_len_max, value);
         if (section_len > 0) {
             len += section_len;
             if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
@@ -2539,18 +2598,24 @@ static int bacapp_snprintf_uuid(char *str, size_t str_len, BACNET_UUID *uuid)
     uint8_t *p = guid->clock_seq_and_node;
     return snprintf(str, str_len,
         "%8.8x-%4.4x-%4.4x-%2.2x%2.2x-%2.2x%2.2x%2.2x%2.2x%2.2x%2.2x, ",
-        guid->time_low, guid->time_mid, guid->time_hi_and_version,
-        p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
+        guid->time_low, guid->time_mid, guid->time_hi_and_version, p[0], p[1],
+        p[2], p[3], p[4], p[5], p[6], p[7]);
 }
 
-#define SNPRINTF_AND_MOVE(...)                      \
-    slen = snprintf(str, str_len, __VA_ARGS__);     \
-    if (str) { str += slen; str_len -= slen; }      \
+#define SNPRINTF_AND_MOVE(...)                  \
+    slen = snprintf(str, str_len, __VA_ARGS__); \
+    if (str) {                                  \
+        str += slen;                            \
+        str_len -= slen;                        \
+    }                                           \
     ret_val += slen;
 
-#define BACAPP_SNPRINTF_AND_MOVE(function, param)   \
-    slen = (function)(str, str_len, (param));       \
-    if (str) { str += slen; str_len -= slen; }      \
+#define BACAPP_SNPRINTF_AND_MOVE(function, param) \
+    slen = (function)(str, str_len, (param));     \
+    if (str) {                                    \
+        str += slen;                              \
+        str_len -= slen;                          \
+    }                                             \
     ret_val += slen;
 
 int Network_Port_SC_snprintf_value(
@@ -2558,7 +2623,6 @@ int Network_Port_SC_snprintf_value(
 {
     BACNET_APPLICATION_DATA_VALUE *value = object_value->value;
     BACNET_PROPERTY_ID property = object_value->object_property;
-    //BACNET_OBJECT_TYPE object_type = object_value->object_type;
     BACNET_ARRAY_INDEX array_index = object_value->array_index;
     BACNET_APPLICATION_DATA_VALUE result;
 
@@ -2566,7 +2630,7 @@ int Network_Port_SC_snprintf_value(
     int len = 0;
     int slen;
 
-    switch(property) {
+    switch (property) {
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
             if (array_index == 0) {
                 len = bacapp_decode_generic_property(
@@ -2582,14 +2646,14 @@ int Network_Port_SC_snprintf_value(
                         value->type.Custom_Value.len - len, &req);
                     if (rc > 0) {
                         SNPRINTF_AND_MOVE("{");
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
-                            &req.Timestamp);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_host_n_port,
-                            &req.Peer_Address);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_vmac,
-                            req.Peer_VMAC);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_uuid,
-                            &req.Peer_UUID);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_timestamp, &req.Timestamp);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_host_n_port, &req.Peer_Address);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_vmac, req.Peer_VMAC);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_uuid, &req.Peer_UUID);
                         SNPRINTF_AND_MOVE("%d", req.Error);
                         if (req.Error_Details[0]) {
                             SNPRINTF_AND_MOVE(", \"%s\"", req.Error_Details);
@@ -2622,12 +2686,12 @@ int Network_Port_SC_snprintf_value(
                             &status.Connect_Timestamp);
                         BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
                             &status.Disconnect_Timestamp);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_host_n_port,
-                            &status.Peer_Address);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_vmac,
-                            status.Peer_VMAC);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_uuid,
-                            &status.Peer_UUID);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_host_n_port, &status.Peer_Address);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_vmac, status.Peer_VMAC);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_uuid, &status.Peer_UUID);
                         SNPRINTF_AND_MOVE("%d", status.Error);
                         if (status.Error_Details[0]) {
                             SNPRINTF_AND_MOVE(", \"%s\"", status.Error_Details);
@@ -2661,12 +2725,12 @@ int Network_Port_SC_snprintf_value(
                             &status.Connect_Timestamp);
                         BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
                             &status.Disconnect_Timestamp);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_host_n_port,
-                            &status.Peer_Address);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_vmac,
-                            status.Peer_VMAC);
-                        BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_uuid,
-                            &status.Peer_UUID);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_host_n_port, &status.Peer_Address);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_vmac, status.Peer_VMAC);
+                        BACAPP_SNPRINTF_AND_MOVE(
+                            bacapp_snprintf_uuid, &status.Peer_UUID);
                         SNPRINTF_AND_MOVE("%d", status.Error);
                         if (status.Error_Details[0]) {
                             SNPRINTF_AND_MOVE(", \"%s\"", status.Error_Details);
@@ -2680,32 +2744,29 @@ int Network_Port_SC_snprintf_value(
             }
             break;
 
-            case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
-            case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
-            {
-                BACNET_SC_HUB_CONNECTION_STATUS status;
-                int rc = bacapp_decode_SCHubConnection(
-                    value->type.Custom_Value.data,
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS: {
+            BACNET_SC_HUB_CONNECTION_STATUS status;
+            int rc =
+                bacapp_decode_SCHubConnection(value->type.Custom_Value.data,
                     value->type.Custom_Value.len, &status);
-                if (rc > 0) {
-                    SNPRINTF_AND_MOVE("{%d, ", status.State);
-                    BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
-                        &status.Connect_Timestamp);
-                    BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
-                        &status.Disconnect_Timestamp);
-                    SNPRINTF_AND_MOVE("%d", status.Error);
-                    if (status.Error_Details[0]) {
-                        SNPRINTF_AND_MOVE(", \"%s\"", status.Error_Details);
-                    }
-                    SNPRINTF_AND_MOVE("}");
-                    len += rc;
+            if (rc > 0) {
+                SNPRINTF_AND_MOVE("{%d, ", status.State);
+                BACAPP_SNPRINTF_AND_MOVE(
+                    bacapp_snprintf_timestamp, &status.Connect_Timestamp);
+                BACAPP_SNPRINTF_AND_MOVE(
+                    bacapp_snprintf_timestamp, &status.Disconnect_Timestamp);
+                SNPRINTF_AND_MOVE("%d", status.Error);
+                if (status.Error_Details[0]) {
+                    SNPRINTF_AND_MOVE(", \"%s\"", status.Error_Details);
                 }
+                SNPRINTF_AND_MOVE("}");
+                len += rc;
             }
-            break;
+        } break;
 
         default:
-            ret_val =
-                snprintf(str, str_len, "UnknownType(tag=%d)", value->tag);
+            ret_val = snprintf(str, str_len, "UnknownType(tag=%d)", value->tag);
             break;
     }
     return ret_val;
