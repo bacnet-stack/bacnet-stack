@@ -33,6 +33,10 @@ add_custom_command(TARGET lcov
 #
 
 list(APPEND testdirs
+  unit/bacnet/bits
+  )
+
+list(APPEND testdirs
   bacnet/abort
   bacnet/alarm_ack
   bacnet/arf
