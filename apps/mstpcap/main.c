@@ -591,6 +591,7 @@ static void write_received_packet(
     uint32_t ts_usec = 0; /* timestamp microseconds */
     uint32_t incl_len = 0; /* number of octets of packet saved in file */
     uint32_t orig_len = 0; /* actual length of packet */
+    uint32_t data_crc_len = 2;
     uint8_t header[MSTP_HEADER_MAX] = { 0 }; /* MS/TP header */
     struct timeval tv;
     size_t max_data = 0;
@@ -608,7 +609,13 @@ static void write_received_packet(
         if (mstp_port->ReceivedInvalidFrame) {
             if (mstp_port->Index) {
                 max_data = min(mstp_port->InputBufferSize, mstp_port->Index);
-                incl_len = orig_len = header_len + max_data + 2 /* checksum*/;
+                if ((mstp_port->DataLength > 0) &&
+                    (mstp_port->Index == (mstp_port->DataLength + 1))) {
+                    /* case where index is not incremented for CRC2,
+                        so only 1 for checksum */
+                    data_crc_len = 1;
+                }
+                incl_len = orig_len = header_len + max_data + data_crc_len;
             } else {
                 /* header only */
                 incl_len = orig_len = header_len;
@@ -617,7 +624,7 @@ static void write_received_packet(
             if (mstp_port->DataLength) {
                 max_data =
                     min(mstp_port->InputBufferSize, mstp_port->DataLength);
-                incl_len = orig_len = header_len + max_data + 2 /* checksum*/;
+                incl_len = orig_len = header_len + max_data + data_crc_len;
             } else {
                 /* header only - or at least some bytes of the header */
                 incl_len = orig_len = header_len;
