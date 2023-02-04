@@ -78,6 +78,9 @@ bool bacnet_address_same(BACNET_ADDRESS *dest, BACNET_ADDRESS *src)
     if (!dest || !src) {
         return false;
     }
+    if (dest == src) {
+        return true;
+    }
     if (dest->mac_len != src->mac_len) {
         return false;
     }
