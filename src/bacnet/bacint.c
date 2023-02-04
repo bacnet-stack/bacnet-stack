@@ -424,7 +424,7 @@ int encode_signed32(uint8_t *apdu, int32_t value)
 
 int decode_signed32(uint8_t *apdu, int32_t *value)
 {
-    if (value) {
+    if (apdu && value) {
         *value = ((int32_t)((((int32_t)apdu[0]) << 24) & 0xff000000));
         *value |= ((int32_t)((((int32_t)apdu[1]) << 16) & 0x00ff0000));
         *value |= ((int32_t)((((int32_t)apdu[2]) << 8) & 0x0000ff00));
@@ -448,7 +448,7 @@ int bacnet_signed_length(int32_t value)
         len = 1;
     } else if ((value >= -32768) && (value < 32768)) {
         len = 2;
-    } else if ((value > -8388608) && (value < 8388608)) {
+    } else if ((value >= -8388608) && (value < 8388608)) {
         len = 3;
     } else {
         len = 4;

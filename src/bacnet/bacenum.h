@@ -1308,8 +1308,8 @@ typedef enum BACnetObjectType {
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
     MAX_BACNET_OBJECT_TYPE = 1024,
-    /* special usage for this library */
-    OBJECT_NONE = UINT16_MAX
+    /* special usage for this library 16-bit max */
+    OBJECT_NONE = 65535
 } BACNET_OBJECT_TYPE;
 
 typedef enum {
@@ -2316,15 +2316,17 @@ typedef enum {
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */
-    PORT_TYPE_PROPRIETARY_MIN = 64,
+    PORT_TYPE_RESERVED_FIRST = 12,
+    PORT_TYPE_RESERVED_LAST = 63,
+    PORT_TYPE_PROPRIETARY_FIRST = 64,
     /*  For BACnet/SC network port implementations with
         a protocol revision Protocol_Revision 17 and higher through 23,
         BACnet/SC network ports shall be represented by a Network Port
         object at the BACNET_APPLICATION protocol level with
         a proprietary network type value. */
     PORT_TYPE_BSC_INTERIM = 64,
-    PORT_TYPE_PROPRIETARY_MAX = 255,
-    PORT_TYPE_MAX = PORT_TYPE_PROPRIETARY_MAX
+    PORT_TYPE_PROPRIETARY_LAST = 255,
+    PORT_TYPE_MAX = 255
 } BACNET_PORT_TYPE;
 
 /* BACnetNetworkNumberQuality ::= ENUMERATED */
@@ -2348,7 +2350,7 @@ typedef enum {
     PORT_COMMAND_GENERATE_CSR_FILE = 8,
     PORT_COMMAND_VALIDATE_CHANGES = 9,
     PORT_COMMAND_RESERVED_FIRST = 10,
-    PORT_COMMAND_RESERVED_FIRST_LAST = 127,
+    PORT_COMMAND_RESERVED_LAST = 127,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
        Enumerated values 128-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */

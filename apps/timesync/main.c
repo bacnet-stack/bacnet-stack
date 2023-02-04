@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include "bacnet/basic/binding/address.h"
+#include "bacnet/bacaddr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/config.h"
 #include "bacnet/bacdef.h"
@@ -185,7 +186,7 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--mac") == 0) {
             if (++argi < argc) {
-                if (address_mac_from_ascii(&mac, argv[argi])) {
+                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
                     global_broadcast = false;
                 }
             }
@@ -200,7 +201,7 @@ int main(int argc, char *argv[])
         }
         if (strcmp(argv[argi], "--dadr") == 0) {
             if (++argi < argc) {
-                if (address_mac_from_ascii(&adr, argv[argi])) {
+                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
                     global_broadcast = false;
                 }
             }

@@ -1,0 +1,3 @@
+tests:
+  bacnet.bits.unit:
+    type: unit
