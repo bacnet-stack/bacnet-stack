@@ -1308,8 +1308,8 @@ typedef enum BACnetObjectType {
        compilers will allocate adequate sized datatype for enum
        which is used to store decoding */
     MAX_BACNET_OBJECT_TYPE = 1024,
-    /* special usage for this library */
-    OBJECT_NONE = UINT16_MAX
+    /* special usage for this library 16-bit max */
+    OBJECT_NONE = 65535
 } BACNET_OBJECT_TYPE;
 
 typedef enum {
@@ -2304,11 +2304,24 @@ typedef enum {
     PORT_TYPE_BIP = 5,
     PORT_TYPE_ZIGBEE = 6,
     PORT_TYPE_VIRTUAL = 7,
+    /* note: (8), removed in version 1 revision 18 */
     PORT_TYPE_NON_BACNET = 8,
     PORT_TYPE_BIP6 = 9,
+    PORT_TYPE_SERIAL = 10,
+    PORT_TYPE_BSC = 11,
     /* Enumerated values 0-63 are reserved for definition by ASHRAE.
        Enumerated values 64-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */
+    PORT_TYPE_RESERVED_FIRST = 12,
+    PORT_TYPE_RESERVED_LAST = 63,
+    PORT_TYPE_PROPRIETARY_FIRST = 64,
+    /*  For BACnet/SC network port implementations with
+        a protocol revision Protocol_Revision 17 and higher through 23,
+        BACnet/SC network ports shall be represented by a Network Port
+        object at the BACNET_APPLICATION protocol level with
+        a proprietary network type value. */
+    PORT_TYPE_BSC_INTERIM = 64,
+    PORT_TYPE_PROPRIETARY_LAST = 255,
     PORT_TYPE_MAX = 255
 } BACNET_PORT_TYPE;
 
@@ -2329,10 +2342,17 @@ typedef enum {
     PORT_COMMAND_RENEW_DHCP = 4,
     PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
     PORT_COMMAND_DISCONNECT = 6,
-    PORT_COMMAND_RESTART_PORT = 7
+    PORT_COMMAND_RESTART_PORT = 7,
+    PORT_COMMAND_GENERATE_CSR_FILE = 8,
+    PORT_COMMAND_VALIDATE_CHANGES = 9,
+    PORT_COMMAND_RESERVED_FIRST = 10,
+    PORT_COMMAND_RESERVED_LAST = 127,
     /* Enumerated values 0-127 are reserved for definition by ASHRAE.
        Enumerated values 128-255 may be used by others subject to the
        procedures and constraints described in Clause 23. */
+    PORT_COMMAND_PROPRIETARY_FIRST = 128,
+    PORT_COMMAND_PROPRIETARY_LAST = 255,
+    PORT_COMMAND_MAX = 255
 } BACNET_PORT_COMMAND;
 
 typedef enum {
@@ -2469,56 +2489,6 @@ typedef enum {
     AUTHENTICATION_FACTOR_USER_PASSWORD = 24,
     AUTHENTICATION_FACTOR_MAX = 25
 } BACNET_AUTHENTICATION_FACTOR_TYPE;
-
-typedef enum {
-    NETWORK_TYPE_ETHERNET = 0,
-    NETWORK_TYPE_ARCNET = 1,
-    NETWORK_TYPE_MSTP = 2,
-    NETWORK_TYPE_PTP = 3,
-    NETWORK_TYPE_LONTALK = 4,
-    NETWORK_TYPE_BACNET_IPV4 = 5,
-    NETWORK_TYPE_ZIGBEE = 6,
-    NETWORK_TYPE_VIRTUAL = 7,
-    /* (8), removed in version 1 revision 18 */
-    NETWORK_TYPE_BACNET_IPV6 = 9,
-    NETWORK_TYPE_SERIAL = 10,
-    /* Enumerated values 0-63 are reserved for definition by ASHRAE.
-       Enumerated values 64-255 may be used by others subject to the
-       procedures and constraints described in Clause 23. */
-    /* do the max range inside of enum so that
-       compilers will allocate adequate sized datatype for enum
-       which is used to store decoding */
-    NETWORK_TYPE_PROPRIETARY_MIN = 64,
-    NETWORK_TYPE_PROPRIETARY_MAX = 255
-} BACNET_NETWORK_TYPE;
-
-/* Network Number Quality, Addendum 135-2012az */
-typedef enum {
-    NETWORK_NUMBER_QUALITIY_UNKNOWN = 0,
-    NETWORK_NUMBER_QUALITIY_LEARNED = 1,
-    NETWORK_NUMBER_QUALITIY_LEARNED_CONFIGURED = 2,
-    NETWORK_NUMBER_QUALITIY_CONFIGURED = 3
-} BACNET_NETWORK_NUMBER_QUALITY;
-
-typedef enum BACnetNetworkPortCommand_T {
-    NETWORK_PORT_COMMAND_IDLE = 0,
-    NETWORK_PORT_COMMAND_DISCARD_CHANGES = 1,
-    NETWORK_PORT_COMMAND_RENEW_FD_REGISTRATION = 2,
-    NETWORK_PORT_COMMAND_RESTART_SLAVE_DISCOVERY = 3,
-    NETWORK_PORT_COMMAND_RENEW_DHCP = 4,
-    NETWORK_PORT_COMMAND_RESTART_AUTONEGOTIATION = 5,
-    NETWORK_PORT_COMMAND_DISCONNECT = 6,
-    NETWORK_PORT_COMMAND_RESTART_PORT = 7,
-    /* Enumerated values 0-127 are reserved for definition
-       by ASHRAE. Enumerated values 128-255 may be used
-       by others subject to the procedures and constraints
-       described in Clause 23. */
-    /* do the max range inside of enum so that
-       compilers will allocate adequate sized datatype for enum
-       which is used to store decoding */
-    NETWORK_PORT_COMMAND_PROPRIETARY_MIN = 128,
-    NETWORK_PORT_COMMAND_PROPRIETARY_MAX = 255
-} BACNET_NETWORK_PORT_COMMAND;
 
 typedef enum BACnetProtocolLevel_T {
     BACNET_PROTOCOL_LEVEL_PHYSICAL = 0,
