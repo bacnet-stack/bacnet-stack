@@ -41,6 +41,7 @@ list(APPEND testdirs
   bacnet/alarm_ack
   bacnet/arf
   bacnet/awf
+  bacnet/bacaddr
   bacnet/bacapp
   bacnet/bacdcode
   bacnet/bacdevobjpropref
