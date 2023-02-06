@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include <stdlib.h>
 #include "bacnet/datalink/bsc/bsc-event.h"
 

@@ -11,17 +11,17 @@
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include "bacnet/datalink/bsc/websocket.h"
 
-#include <logging/log.h>
-#include <logging/log_ctrl.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
 
-LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
+LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
 BSC_WEBSOCKET_RET bws_srv_start(
                         BSC_WEBSOCKET_PROTOCOL proto,

@@ -8,7 +8,7 @@
  * @brief test of bsc-event interface
  */
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include <ztest.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 
