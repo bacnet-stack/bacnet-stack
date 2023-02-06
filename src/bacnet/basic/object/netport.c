@@ -2872,43 +2872,32 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 #ifdef BACDL_BSC
         case PROP_MAX_BVLC_LENGTH_ACCEPTED:
-            DECODE_UNSIGNED(Network_Port_Max_BVLC_Length_Accepted_Set,
+            DECODE_UNSIGNED(Network_Port_Max_BVLC_Length_Accepted_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_MAX_NPDU_LENGTH_ACCEPTED:
-            DECODE_UNSIGNED(Network_Port_Max_NPDU_Length_Accepted_Set,
+            DECODE_UNSIGNED(Network_Port_Max_NPDU_Length_Accepted_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_MINIMUM_RECONNECT_TIME:
-            DECODE_UNSIGNED(Network_Port_SC_Minimum_Reconnect_Time_Set,
+            DECODE_UNSIGNED(Network_Port_SC_Minimum_Reconnect_Time_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_MAXIMUM_RECONNECT_TIME:
-            DECODE_UNSIGNED(Network_Port_SC_Maximum_Reconnect_Time_Set,
+            DECODE_UNSIGNED(Network_Port_SC_Maximum_Reconnect_Time_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_CONNECT_WAIT_TIMEOUT:
-            DECODE_UNSIGNED(Network_Port_SC_Connect_Wait_Timeout_Set,
+            DECODE_UNSIGNED(Network_Port_SC_Connect_Wait_Timeout_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_DISCONNECT_WAIT_TIMEOUT:
-            DECODE_UNSIGNED(Network_Port_SC_Disconnect_Wait_Timeout_Set,
+            DECODE_UNSIGNED(Network_Port_SC_Disconnect_Wait_Timeout_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
             break;
         case PROP_SC_HEARTBEAT_TIMEOUT:
-            DECODE_UNSIGNED(Network_Port_SC_Heartbeat_Timeout_Set,
+            DECODE_UNSIGNED(Network_Port_SC_Heartbeat_Timeout_Dirty_Set,
                 BACNET_UNSIGNED_INTEGER_MAX);
-            break;
-        case PROP_SC_HUB_CONNECTOR_STATE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
-            if (status) {
-                status = Network_Port_SC_Hub_Connector_State_Set(
-                    wp_data->object_instance,
-                    (BACNET_SC_HUB_CONNECTOR_STATE)value.type.Enumerated);
-            }
-            if (!status)
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             break;
             /* SC optionals */
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
@@ -2939,7 +2928,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
-            DECODE_ARRAY_STRING(Network_Port_SC_Hub_Function_Accept_URI_Set,
+            DECODE_ARRAY_STRING(
+                Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set,
                 BACNET_SC_HUB_URI_MAX, BACNET_URI_LENGTH);
             break;
         case PROP_SC_HUB_FUNCTION_BINDING:
@@ -2971,7 +2961,8 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
-            DECODE_ARRAY_STRING(Network_Port_SC_Direct_Connect_Accept_URI_Set,
+            DECODE_ARRAY_STRING(
+                Network_Port_SC_Direct_Connect_Accept_URI_Dirty_Set,
                 BACNET_SC_DIRECT_ACCEPT_URI_MAX, BACNET_URI_LENGTH);
             break;
         case PROP_SC_DIRECT_CONNECT_BINDING:
@@ -2984,6 +2975,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
+        case PROP_SC_HUB_CONNECTOR_STATE:
         case PROP_OPERATIONAL_CERTIFICATE_FILE:
         case PROP_ISSUER_CERTIFICATE_FILES:
         case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:

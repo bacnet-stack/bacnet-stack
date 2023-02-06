@@ -116,6 +116,10 @@ static void test_network_port_pending_param(void)
     #define HUB_BINDING2 "SC_Hub_Function_Binding_test2:11111"
     #define DIRECT_BINDING1 "SC_Direct_Connect_Binding_test:54321"
     #define DIRECT_BINDING2 "SC_Direct_Connect_Binding_test2:22222"
+    #define DIRECT_BINDING1 "SC_Direct_Connect_Binding_test:54321"
+    #define DIRECT_BINDING2 "SC_Direct_Connect_Binding_test2:22222"
+    #define URL1 "SC_Direct_Connect_Accept_URI1"
+    #define URL2 "SC_Direct_Connect_Accept_URI2"
 
     Network_Port_Init();
     object_instance = 1234;
@@ -126,21 +130,39 @@ static void test_network_port_pending_param(void)
     count = Network_Port_Count();
     zassert_true(count > 0, NULL);
 
+    Network_Port_Max_BVLC_Length_Accepted_Set(object_instance, 1200);
+    Network_Port_Max_NPDU_Length_Accepted_Set(object_instance, 1100);
+    Network_Port_SC_Minimum_Reconnect_Time_Set(object_instance, 2);
+    Network_Port_SC_Maximum_Reconnect_Time_Set(object_instance, 5);
+    Network_Port_SC_Connect_Wait_Timeout_Set(object_instance, 40);
+    Network_Port_SC_Disconnect_Wait_Timeout_Set(object_instance, 10);
+    Network_Port_SC_Heartbeat_Timeout_Set(object_instance, 3);
+
     // write properties
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     Network_Port_SC_Primary_Hub_URI_Set(object_instance, PRIMARY_HUB_URL1);
     Network_Port_SC_Failover_Hub_URI_Set(object_instance, FAILOVER_HUB_URL1);
     Network_Port_SC_Hub_Function_Enable_Set(object_instance, false);
     Network_Port_SC_Hub_Function_Binding_Set(object_instance, HUB_BINDING1);
+    Network_Port_SC_Hub_Function_Accept_URI_Set(object_instance, 0, URL1);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     Network_Port_SC_Direct_Connect_Initiate_Enable_Set(object_instance, false);
     Network_Port_SC_Direct_Connect_Accept_Enable_Set(object_instance, false);
     Network_Port_SC_Direct_Connect_Binding_Set(object_instance,
         DIRECT_BINDING1);
+    Network_Port_SC_Direct_Connect_Accept_URI_Set(object_instance, 0, URL1);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     // write dirty properties
+    Network_Port_Max_BVLC_Length_Accepted_Dirty_Set(object_instance, 1250);
+    Network_Port_Max_NPDU_Length_Accepted_Dirty_Set(object_instance, 1150);
+    Network_Port_SC_Minimum_Reconnect_Time_Dirty_Set(object_instance, 3);
+    Network_Port_SC_Maximum_Reconnect_Time_Dirty_Set(object_instance, 4);
+    Network_Port_SC_Connect_Wait_Timeout_Dirty_Set(object_instance, 50);
+    Network_Port_SC_Disconnect_Wait_Timeout_Dirty_Set(object_instance, 15);
+    Network_Port_SC_Heartbeat_Timeout_Dirty_Set(object_instance, 6);
+
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     Network_Port_SC_Primary_Hub_URI_Dirty_Set(object_instance,
         PRIMARY_HUB_URL2);
@@ -149,6 +171,7 @@ static void test_network_port_pending_param(void)
     Network_Port_SC_Hub_Function_Enable_Dirty_Set(object_instance, true);
     Network_Port_SC_Hub_Function_Binding_Dirty_Set(object_instance,
         HUB_BINDING2);
+    Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set(object_instance, 0, URL2);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     Network_Port_SC_Direct_Connect_Initiate_Enable_Dirty_Set(object_instance,
@@ -157,9 +180,25 @@ static void test_network_port_pending_param(void)
         true);
     Network_Port_SC_Direct_Connect_Binding_Dirty_Set(object_instance,
         DIRECT_BINDING2);
+    Network_Port_SC_Direct_Connect_Accept_URI_Dirty_Set(object_instance, 0,
+        URL2);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     // check old value
+    zassert_true(Network_Port_Max_BVLC_Length_Accepted(object_instance) == 1200,
+        NULL);
+    zassert_true(Network_Port_Max_NPDU_Length_Accepted(object_instance) == 1100,
+        NULL);
+    zassert_true(Network_Port_SC_Minimum_Reconnect_Time(object_instance) == 2,
+        NULL);
+    zassert_true(Network_Port_SC_Maximum_Reconnect_Time(object_instance) == 5,
+        NULL);
+    zassert_true(Network_Port_SC_Connect_Wait_Timeout(object_instance) == 40,
+        NULL);
+    zassert_true(Network_Port_SC_Disconnect_Wait_Timeout(object_instance) == 10,
+        NULL);
+    zassert_true(Network_Port_SC_Heartbeat_Timeout(object_instance) == 3, NULL);
+
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     Network_Port_SC_Primary_Hub_URI(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
@@ -173,6 +212,9 @@ static void test_network_port_pending_param(void)
     zassert_true(strncmp(characterstring_value(&str),
         HUB_BINDING1, characterstring_length(&str)) == 0,
         NULL);
+    Network_Port_SC_Hub_Function_Accept_URI(object_instance, 0, &str);
+    zassert_true(strncmp(characterstring_value(&str), URL1,
+        characterstring_length(&str)) == 0, NULL);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     val = Network_Port_SC_Direct_Connect_Initiate_Enable(object_instance);
@@ -183,12 +225,29 @@ static void test_network_port_pending_param(void)
     zassert_true(strncmp(characterstring_value(&str),
         DIRECT_BINDING1, characterstring_length(&str)) == 0,
         NULL);
+    Network_Port_SC_Direct_Connect_Accept_URI(object_instance, 0, &str);
+    zassert_true(strncmp(characterstring_value(&str), URL1,
+        characterstring_length(&str)) == 0, NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     // apply
     Network_Port_Pending_Params_Apply(object_instance);
 
     // check new value
+    zassert_true(Network_Port_Max_BVLC_Length_Accepted(object_instance) == 1250,
+        NULL);
+    zassert_true(Network_Port_Max_NPDU_Length_Accepted(object_instance) == 1150,
+        NULL);
+    zassert_true(Network_Port_SC_Minimum_Reconnect_Time(object_instance) == 3,
+        NULL);
+    zassert_true(Network_Port_SC_Maximum_Reconnect_Time(object_instance) == 4,
+        NULL);
+    zassert_true(Network_Port_SC_Connect_Wait_Timeout(object_instance) == 50,
+        NULL);
+    zassert_true(Network_Port_SC_Disconnect_Wait_Timeout(object_instance) == 15,
+        NULL);
+    zassert_true(Network_Port_SC_Heartbeat_Timeout(object_instance) == 6, NULL);
+
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
     Network_Port_SC_Primary_Hub_URI(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
@@ -201,6 +260,9 @@ static void test_network_port_pending_param(void)
     Network_Port_SC_Hub_Function_Binding(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
         HUB_BINDING2, characterstring_length(&str)) == 0, NULL);
+    Network_Port_SC_Hub_Function_Accept_URI(object_instance, 0, &str);
+    zassert_true(strncmp(characterstring_value(&str), URL2,
+        characterstring_length(&str)) == 0, NULL);
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
     val = Network_Port_SC_Direct_Connect_Initiate_Enable(object_instance);
@@ -210,6 +272,9 @@ static void test_network_port_pending_param(void)
     Network_Port_SC_Direct_Connect_Binding(object_instance, &str);
     zassert_true(strncmp(characterstring_value(&str),
         DIRECT_BINDING2, characterstring_length(&str)) == 0, NULL);
+    Network_Port_SC_Direct_Connect_Accept_URI(object_instance, 0, &str);
+    zassert_true(strncmp(characterstring_value(&str), URL2,
+        characterstring_length(&str)) == 0, NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 #endif /* BACDL_BSC */

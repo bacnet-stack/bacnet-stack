@@ -167,12 +167,18 @@ BACNET_STACK_EXPORT
 bool Network_Port_Max_BVLC_Length_Accepted_Set(
     uint32_t object_instance,
     BACNET_UNSIGNED_INTEGER value);
+bool Network_Port_Max_BVLC_Length_Accepted_Dirty_Set(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
 BACNET_UNSIGNED_INTEGER Network_Port_Max_NPDU_Length_Accepted(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Max_NPDU_Length_Accepted_Set(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value);
+bool Network_Port_Max_NPDU_Length_Accepted_Dirty_Set(
     uint32_t object_instance,
     BACNET_UNSIGNED_INTEGER value);
 
@@ -186,7 +192,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Primary_Hub_URI_Set(
     uint32_t object_instance,
     const char *str);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Primary_Hub_URI_Dirty_Set(
     uint32_t object_instance,
     const char *str);
@@ -201,7 +206,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Failover_Hub_URI_Set(
     uint32_t object_instance,
     const char *str);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Failover_Hub_URI_Dirty_Set(
     uint32_t object_instance,
     const char *str);
@@ -213,12 +217,18 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Minimum_Reconnect_Time_Set(
     uint32_t object_instance,
     BACNET_UNSIGNED_INTEGER value);
+bool Network_Port_SC_Minimum_Reconnect_Time_Dirty_Set(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
 BACNET_UNSIGNED_INTEGER Network_Port_SC_Maximum_Reconnect_Time(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Maximum_Reconnect_Time_Set(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value);
+bool Network_Port_SC_Maximum_Reconnect_Time_Dirty_Set(
     uint32_t object_instance,
     BACNET_UNSIGNED_INTEGER value);
 
@@ -229,6 +239,9 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Connect_Wait_Timeout_Set(
     uint32_t object_instance,
     BACNET_UNSIGNED_INTEGER value);
+bool Network_Port_SC_Connect_Wait_Timeout_Dirty_Set(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
 BACNET_UNSIGNED_INTEGER Network_Port_SC_Disconnect_Wait_Timeout(
@@ -237,12 +250,18 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Disconnect_Wait_Timeout_Set(
     uint32_t object_instance,
     BACNET_UNSIGNED_INTEGER value);
+bool Network_Port_SC_Disconnect_Wait_Timeout_Dirty_Set(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value);
 
 BACNET_STACK_EXPORT
 BACNET_UNSIGNED_INTEGER Network_Port_SC_Heartbeat_Timeout(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Heartbeat_Timeout_Set(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value);
+bool Network_Port_SC_Heartbeat_Timeout_Dirty_Set(
     uint32_t object_instance,
     BACNET_UNSIGNED_INTEGER value);
 
@@ -338,7 +357,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Hub_Function_Enable_Set(
     uint32_t object_instance,
     bool value);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Hub_Function_Enable_Dirty_Set(
     uint32_t object_instance,
     bool value);
@@ -348,13 +366,19 @@ bool Network_Port_SC_Hub_Function_Accept_URI(
     uint32_t object_instance,
     uint8_t index,
     BACNET_CHARACTER_STRING *str);
-const char *Network_Port_SC_Hub_Function_Accept_URI_char(
-    uint32_t object_instance,
-    uint8_t index);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Hub_Function_Accept_URI_Set(
     uint32_t object_instance,
     uint8_t index,
+    const char *str);
+bool Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set(
+    uint32_t object_instance,
+    uint8_t index,
+    const char *str);
+const char *Network_Port_SC_Hub_Function_Accept_URIs_char(
+    uint32_t object_instance);
+bool Network_Port_SC_Hub_Function_Accept_URIs_Set(
+    uint32_t object_instance,
     const char *str);
 
 /*
@@ -383,7 +407,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Hub_Function_Binding_Set(
     uint32_t object_instance,
     const char *str);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Hub_Function_Binding_Dirty_Set(
     uint32_t object_instance,
     const char *str);
@@ -411,7 +434,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Initiate_Enable_Set(
     uint32_t object_instance,
     bool value);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Initiate_Enable_Dirty_Set(
     uint32_t object_instance,
     bool value);
@@ -423,7 +445,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Accept_Enable_Set(
     uint32_t object_instance,
     bool value);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(
     uint32_t object_instance,
     bool value);
@@ -435,6 +456,10 @@ bool Network_Port_SC_Direct_Connect_Accept_URI(
     BACNET_CHARACTER_STRING *str);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Accept_URI_Set(
+    uint32_t object_instance,
+    uint8_t index,
+    const char *str);
+bool Network_Port_SC_Direct_Connect_Accept_URI_Dirty_Set(
     uint32_t object_instance,
     uint8_t index,
     const char *str);
@@ -470,7 +495,6 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Binding_Set(
     uint32_t object_instance,
     const char *str);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Binding_Dirty_Set(
     uint32_t object_instance,
     const char *str);
