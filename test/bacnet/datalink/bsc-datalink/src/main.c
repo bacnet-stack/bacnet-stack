@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <zephyr/ztest.h>
+#include <bacnet/bacenum.h>
 #include <bacnet/basic/object/bacfile.h>
 #include <bacnet/basic/object/netport.h>
 #include <bacnet/datalink/bsc/bvlc-sc.h>
@@ -1462,7 +1463,6 @@ static void test_sc_datalink(void)
     zassert_equal(test.mac_len == BVLC_SC_VMAC_SIZE, true, NULL);
     bsc_get_my_address(&test);
     zassert_equal(memcmp(&test.mac[0], &vmac1.address[0], BVLC_SC_VMAC_SIZE), false, NULL);
-    zassert_equal(bsc_hub_connection_status() == BVLC_SC_HUB_CONNECTION_ABSENT, true, NULL);
     zassert_equal(bsc_direct_connection_established(&vmac3, NULL, 0) == false, true, NULL);
 
     conf2.ca_cert_chain = ca_cert;

@@ -344,17 +344,6 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address)
     bws_dispatch_unlock();
 }
 
-BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connection_status(void)
-{
-    BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
-    bws_dispatch_lock();
-    if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
-        ret = bsc_node_hub_connector_status(bsc_node);
-    }
-    bws_dispatch_unlock();
-    return ret;
-}
-
 bool bsc_direct_connection_established(
     BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt)
 {
@@ -393,7 +382,27 @@ void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest)
     bws_dispatch_unlock();
 }
 
+static void bsc_update_hub_connector_state(void)
+{
+    BACNET_SC_HUB_CONNECTOR_STATE state;
+    uint32_t instance;
+
+    instance = Network_Port_Index_To_Instance(0);
+    state = bsc_node_hub_connector_state(bsc_node);
+    Network_Port_SC_Hub_Connector_State_Set(instance, state);
+}
+
+static void bsc_update_netport_properties(void)
+{
+    if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
+         bsc_update_hub_connector_state();
+    }
+}
+
 void bsc_maintenance_timer(uint16_t seconds)
 {
+    bws_dispatch_lock();
     bsc_node_maintenance_timer(seconds);
+    bsc_update_netport_properties();
+    bws_dispatch_unlock();
 }

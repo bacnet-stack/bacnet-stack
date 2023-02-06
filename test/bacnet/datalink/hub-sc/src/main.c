@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <zephyr/ztest.h>
 #include <time.h>
+#include <bacnet/bacenum.h>
 #include <bacnet/datalink/bsc/bsc-socket.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <bacnet/datalink/bsc/bsc-util.h>
@@ -1301,7 +1302,7 @@ static void test_hub_connector_url(bool primary)
         hub_connector_event, &hubc_uuid, &hubc_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(
-        bsc_hub_connector_status(hubc_h), BVLC_SC_HUB_CONNECTION_ABSENT, 0);
+        bsc_hub_connector_state(hubc_h), BACNET_NO_HUB_CONNECTION, 0);
     if (primary) {
         zassert_equal(
             wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true,
@@ -1314,11 +1315,11 @@ static void test_hub_connector_url(bool primary)
     reset_hubc_ev(&hubc);
     zassert_equal(bsc_hub_connector_stopped(hubc_h), false, 0);
     if (primary) {
-        zassert_equal(bsc_hub_connector_status(hubc_h),
-            BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED, 0);
+        zassert_equal(bsc_hub_connector_state(hubc_h),
+            BACNET_CONNECTED_TO_PRIMARY, 0);
     } else {
-        zassert_equal(bsc_hub_connector_status(hubc_h),
-            BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED, 0);
+        zassert_equal(bsc_hub_connector_state(hubc_h),
+            BACNET_CONNECTED_TO_FAILOVER, 0);
     }
 
     reset_hubc_ev(&hubc);
@@ -1333,7 +1334,7 @@ static void test_hub_connector_url(bool primary)
         hub_connector_event, &hubc_uuid2, &hubc_h2);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(
-        bsc_hub_connector_status(hubc_h2), BVLC_SC_HUB_CONNECTION_ABSENT, 0);
+        bsc_hub_connector_state(hubc_h2), BACNET_NO_HUB_CONNECTION, 0);
     if (primary) {
         zassert_equal(
             wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h2),
@@ -1384,11 +1385,11 @@ static void test_hub_connector_url(bool primary)
     reset_hubc_ev(&hubc);
     zassert_equal(bsc_hub_connector_stopped(hubc_h), false, 0);
     if (primary) {
-        zassert_equal(bsc_hub_connector_status(hubc_h),
-            BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED, 0);
+        zassert_equal(bsc_hub_connector_state(hubc_h),
+            BACNET_CONNECTED_TO_PRIMARY, 0);
     } else {
-        zassert_equal(bsc_hub_connector_status(hubc_h),
-            BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED, 0);
+        zassert_equal(bsc_hub_connector_state(hubc_h),
+            BACNET_CONNECTED_TO_FAILOVER, 0);
     }
     bsc_hub_connector_stop(hubc_h);
     zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);

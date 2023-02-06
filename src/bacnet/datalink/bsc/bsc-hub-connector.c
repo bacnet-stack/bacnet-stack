@@ -420,17 +420,17 @@ bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h)
     return ret;
 }
 
-BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connector_status(
+BACNET_SC_HUB_CONNECTOR_STATE bsc_hub_connector_state(
     BSC_HUB_CONNECTOR_HANDLE h)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
-    BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
+    BACNET_SC_HUB_CONNECTOR_STATE ret = BACNET_NO_HUB_CONNECTION;
     bws_dispatch_lock();
     if (c) {
         if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_PRIMARY) {
-            ret = BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED;
+            ret = BACNET_CONNECTED_TO_PRIMARY;
         } else if (c->state == BSC_HUB_CONNECTOR_STATE_CONNECTED_FAILOVER) {
-            ret = BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED;
+            ret = BACNET_CONNECTED_TO_FAILOVER;
         }
     }
     bws_dispatch_unlock();

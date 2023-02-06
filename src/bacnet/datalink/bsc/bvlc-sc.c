@@ -1043,7 +1043,7 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
-    BVLC_SC_HUB_CONNECTION_STATUS hub_status,
+    BACNET_SC_HUB_CONNECTOR_STATE hub_status,
     BVLC_SC_DIRECT_CONNECTION_SUPPORT support,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_size)
@@ -1084,7 +1084,7 @@ static bool bvlc_sc_decode_advertisiment(BVLC_SC_DECODED_DATA *payload,
         *err_desc = s_advertisiment_unexpected;
         return false;
     }
-    if (packed_payload[0] > BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED) {
+    if (packed_payload[0] >  BACNET_CONNECTED_TO_FAILOVER) {
         *error = ERROR_CODE_PARAMETER_OUT_OF_RANGE;
         *class = ERROR_CLASS_COMMUNICATION;
         *err_desc = s_advertisiment_param1_error;

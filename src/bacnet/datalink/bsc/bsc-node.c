@@ -365,7 +365,7 @@ static void bsc_node_process_received(BSC_NODE *node,
         case BVLC_SC_ADVERTISIMENT_SOLICITATION: {
             bufsize = bvlc_sc_encode_advertisiment(buf, sizeof(buf),
                 bsc_get_next_message_id(), NULL, decoded_pdu->hdr.origin,
-                bsc_hub_connector_status(node->hub_connector),
+                bsc_hub_connector_state(node->hub_connector),
                 node_switch_enabled(node->conf)
                     ? BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED
                     : BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_UNSUPPORTED,
@@ -901,13 +901,13 @@ bool bsc_node_direct_connection_established(
     return ret;
 }
 
-BVLC_SC_HUB_CONNECTION_STATUS
-bsc_node_hub_connector_status(BSC_NODE *node)
+BACNET_SC_HUB_CONNECTOR_STATE
+bsc_node_hub_connector_state(BSC_NODE *node)
 {
-    BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
+    BACNET_SC_HUB_CONNECTOR_STATE ret = BACNET_NO_HUB_CONNECTION;
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED) {
-        ret = bsc_hub_connector_status(node->hub_connector);
+        ret = bsc_hub_connector_state(node->hub_connector);
     }
     bws_dispatch_unlock();
     return ret;

@@ -119,17 +119,6 @@ BACNET_STACK_EXPORT
 void bsc_get_my_address(BACNET_ADDRESS *my_address);
 
 /**
- * @brief Function retrieves status of BACNet/SC connection
- *        of local datalink to remote BACNet/SC hub.
- *
- * @return a value from BVLC_SC_HUB_CONNECTION_STATUS enum
- *         defined in bvlc-sc.h
- */
-
-BACNET_STACK_EXPORT
-BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connection_status(void);
-
-/**
  * @brief Function checks if BACNet/SC direct connection is
  *        established with remote BACNet/SC node.
  *        User can check the status of connection using either
