@@ -59,6 +59,11 @@
 #define SC_WAIT_CONNECT_MIN 5
 #define SC_WAIT_CONNECT_MAX 300
 
+static int string_splite(
+    const char *str, char separator, int *indexes, int length);
+static bool string_subsstr(
+    char *str, int length, int index, const char *substr);
+
 static void host_n_port_to_data(
     BACNET_HOST_N_PORT *peer, BACNET_HOST_N_PORT_DATA *peer_data)
 {
@@ -146,6 +151,18 @@ bool Network_Port_Max_BVLC_Length_Accepted_Set(
     return true;
 }
 
+bool Network_Port_Max_BVLC_Length_Accepted_Dirty_Set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+
+    params->Max_BVLC_Length_Accepted_dirty = value;
+
+    return true;
+}
+
 BACNET_UNSIGNED_INTEGER Network_Port_Max_NPDU_Length_Accepted(
     uint32_t object_instance)
 {
@@ -166,6 +183,18 @@ bool Network_Port_Max_NPDU_Length_Accepted_Set(
         return false;
 
     params->Max_NPDU_Length_Accepted = value;
+
+    return true;
+}
+
+bool Network_Port_Max_NPDU_Length_Accepted_Dirty_Set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+
+    params->Max_NPDU_Length_Accepted_dirty = value;
 
     return true;
 }
@@ -315,6 +344,21 @@ bool Network_Port_SC_Minimum_Reconnect_Time_Set(
     return true;
 }
 
+bool Network_Port_SC_Minimum_Reconnect_Time_Dirty_Set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+
+    if ((value < SC_MIN_RECONNECT_MIN) || (value > SC_MIN_RECONNECT_MAX))
+        return false;
+
+    params->SC_Minimum_Reconnect_Time_dirty = value;
+
+    return true;
+}
+
 BACNET_UNSIGNED_INTEGER Network_Port_SC_Maximum_Reconnect_Time(
     uint32_t object_instance)
 {
@@ -338,6 +382,21 @@ bool Network_Port_SC_Maximum_Reconnect_Time_Set(
         return false;
 
     params->SC_Maximum_Reconnect_Time = value;
+
+    return true;
+}
+
+bool Network_Port_SC_Maximum_Reconnect_Time_Dirty_Set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+
+    if ((value < SC_MAX_RECONNECT_MIN) || (value > SC_MAX_RECONNECT_MAX))
+        return false;
+
+    params->SC_Maximum_Reconnect_Time_dirty = value;
 
     return true;
 }
@@ -369,6 +428,21 @@ bool Network_Port_SC_Connect_Wait_Timeout_Set(
     return true;
 }
 
+bool Network_Port_SC_Connect_Wait_Timeout_Dirty_Set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+
+    if ((value < SC_WAIT_CONNECT_MIN) || (value > SC_WAIT_CONNECT_MAX))
+        return false;
+
+    params->SC_Connect_Wait_Timeout_dirty = value;
+
+    return true;
+}
+
 BACNET_UNSIGNED_INTEGER Network_Port_SC_Disconnect_Wait_Timeout(
     uint32_t object_instance)
 {
@@ -393,6 +467,18 @@ bool Network_Port_SC_Disconnect_Wait_Timeout_Set(
     return true;
 }
 
+bool Network_Port_SC_Disconnect_Wait_Timeout_Dirty_Set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+
+    params->SC_Disconnect_Wait_Timeout_dirty = value;
+
+    return true;
+}
+
 BACNET_UNSIGNED_INTEGER Network_Port_SC_Heartbeat_Timeout(
     uint32_t object_instance)
 {
@@ -413,6 +499,18 @@ bool Network_Port_SC_Heartbeat_Timeout_Set(
         return false;
 
     params->SC_Heartbeat_Timeout = value;
+
+    return true;
+}
+
+bool Network_Port_SC_Heartbeat_Timeout_Dirty_Set(
+    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params)
+        return false;
+
+    params->SC_Heartbeat_Timeout_dirty = value;
 
     return true;
 }
@@ -797,40 +895,80 @@ bool Network_Port_SC_Hub_Function_Accept_URI(
     uint32_t object_instance, uint8_t index, BACNET_CHARACTER_STRING *str)
 {
     bool status = false;
+    int idx[BACNET_SC_DIRECT_ACCEPT_URI_MAX + 1] = { 0 };
+    int len;
+
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
 
-    if (params && (index < BACNET_SC_HUB_URI_MAX)) {
-        status = characterstring_init_ansi(
-            str, params->SC_Hub_Function_Accept_URIs[index]);
+    if (params && (index < BACNET_SC_DIRECT_ACCEPT_URI_MAX)) {
+        len = string_splite(
+            params->SC_Hub_Function_Accept_URIs, ' ', idx, sizeof(idx));
+        if (index < len) {
+            status = characterstring_init_ansi_safe(str,
+                params->SC_Hub_Function_Accept_URIs + idx[index],
+                idx[index + 1] - idx[index] - 1);
+        } else {
+            status = characterstring_init_ansi(str, "");
+        }
     }
 
     return status;
-}
-
-const char *Network_Port_SC_Hub_Function_Accept_URI_char(
-    uint32_t object_instance, uint8_t index)
-{
-    const char *p = NULL;
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-
-    if (params && (index < BACNET_SC_HUB_URI_MAX)) {
-        p = params->SC_Hub_Function_Accept_URIs[index];
-    }
-
-    return p;
 }
 
 bool Network_Port_SC_Hub_Function_Accept_URI_Set(
     uint32_t object_instance, uint8_t index, const char *str)
 {
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params || (index >= BACNET_SC_HUB_URI_MAX))
+    if (!params || (index >= BACNET_SC_DIRECT_ACCEPT_URI_MAX))
         return false;
 
-    snprintf(params->SC_Hub_Function_Accept_URIs[index],
-        sizeof(params->SC_Hub_Function_Accept_URIs[index]), "%s", str);
+    string_subsstr(params->SC_Hub_Function_Accept_URIs,
+        sizeof(params->SC_Hub_Function_Accept_URIs), index, str);
 
     return true;
+}
+
+bool Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set(
+    uint32_t object_instance, uint8_t index, const char *str)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params || (index >= BACNET_SC_DIRECT_ACCEPT_URI_MAX))
+        return false;
+
+    string_subsstr(params->SC_Hub_Function_Accept_URIs_dirty,
+        sizeof(params->SC_Hub_Function_Accept_URIs_dirty), index, str);
+
+    return true;
+}
+
+const char *Network_Port_SC_Hub_Function_Accept_URIs_char(
+    uint32_t object_instance)
+{
+    char *p = NULL;
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+
+    if (params) {
+        p = params->SC_Hub_Function_Accept_URIs;
+    }
+
+    return p;
+}
+
+bool Network_Port_SC_Hub_Function_Accept_URIs_Set(
+    uint32_t object_instance, const char *str)
+{
+    bool status = false;
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+
+    if (params) {
+        if (str)
+            snprintf(params->SC_Hub_Function_Accept_URIs,
+                sizeof(params->SC_Hub_Function_Accept_URIs), "%s", str);
+        else
+            params->SC_Hub_Function_Accept_URIs[0] = 0;
+    }
+
+    return status;
 }
 
 bool Network_Port_SC_Hub_Function_Binding(
@@ -1135,6 +1273,19 @@ bool Network_Port_SC_Direct_Connect_Accept_URI_Set(
     return true;
 }
 
+bool Network_Port_SC_Direct_Connect_Accept_URI_Dirty_Set(
+    uint32_t object_instance, uint8_t index, const char *str)
+{
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+    if (!params || (index >= BACNET_SC_DIRECT_ACCEPT_URI_MAX))
+        return false;
+
+    string_subsstr(params->SC_Direct_Connect_Accept_URIs_dirty,
+        sizeof(params->SC_Direct_Connect_Accept_URIs_dirty), index, str);
+
+    return true;
+}
+
 char *Network_Port_SC_Direct_Connect_Accept_URIs_char(uint32_t object_instance)
 {
     char *p = NULL;
@@ -1159,6 +1310,23 @@ bool Network_Port_SC_Direct_Connect_Accept_URIs_Set(
                 sizeof(params->SC_Direct_Connect_Accept_URIs), "%s", str);
         else
             params->SC_Direct_Connect_Accept_URIs[0] = 0;
+    }
+
+    return status;
+}
+
+bool Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set(
+    uint32_t object_instance, const char *str)
+{
+    bool status = false;
+    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
+
+    if (params) {
+        if (str)
+            snprintf(params->SC_Direct_Connect_Accept_URIs_dirty,
+                sizeof(params->SC_Direct_Connect_Accept_URIs_dirty), "%s", str);
+        else
+            params->SC_Direct_Connect_Accept_URIs_dirty[0] = 0;
     }
 
     return status;
@@ -2173,6 +2341,15 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
     if (!params)
         return;
 
+    params->Max_BVLC_Length_Accepted = params->Max_BVLC_Length_Accepted_dirty;
+    params->Max_NPDU_Length_Accepted = params->Max_NPDU_Length_Accepted_dirty;
+    params->SC_Minimum_Reconnect_Time = params->SC_Minimum_Reconnect_Time_dirty;
+    params->SC_Maximum_Reconnect_Time = params->SC_Maximum_Reconnect_Time_dirty;
+    params->SC_Connect_Wait_Timeout = params->SC_Connect_Wait_Timeout_dirty;
+    params->SC_Disconnect_Wait_Timeout =
+        params->SC_Disconnect_Wait_Timeout_dirty;
+    params->SC_Heartbeat_Timeout = params->SC_Heartbeat_Timeout_dirty;
+
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
     memcpy(params->SC_Primary_Hub_URI, params->SC_Primary_Hub_URI_dirty,
         sizeof(params->SC_Primary_Hub_URI));
@@ -2180,6 +2357,10 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
         sizeof(params->SC_Failover_Hub_URI));
 
     params->SC_Hub_Function_Enable = params->SC_Hub_Function_Enable_dirty;
+
+    memcpy(params->SC_Hub_Function_Accept_URIs,
+        params->SC_Hub_Function_Accept_URIs_dirty,
+        sizeof(params->SC_Hub_Function_Accept_URIs));
 
     Network_Port_SC_Hub_Function_Binding_Set(object_instance,
         params->SC_Hub_Function_Binding_dirty);
@@ -2190,6 +2371,10 @@ void Network_Port_SC_Pending_Params_Apply(uint32_t object_instance)
         params->SC_Direct_Connect_Initiate_Enable_dirty;
     params->SC_Direct_Connect_Accept_Enable =
         params->SC_Direct_Connect_Accept_Enable_dirty;
+
+    memcpy(params->SC_Direct_Connect_Accept_URIs,
+        params->SC_Direct_Connect_Accept_URIs_dirty,
+        sizeof(params->SC_Direct_Connect_Accept_URIs));
 
     Network_Port_SC_Direct_Connect_Binding_Set(object_instance,
         params->SC_Direct_Connect_Binding_dirty);
@@ -2208,6 +2393,15 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
     (void)port;
     (void)ifname;
 
+    params->Max_BVLC_Length_Accepted_dirty = params->Max_BVLC_Length_Accepted;
+    params->Max_NPDU_Length_Accepted_dirty = params->Max_NPDU_Length_Accepted;
+    params->SC_Minimum_Reconnect_Time_dirty = params->SC_Minimum_Reconnect_Time;
+    params->SC_Maximum_Reconnect_Time_dirty = params->SC_Maximum_Reconnect_Time;
+    params->SC_Connect_Wait_Timeout_dirty = params->SC_Connect_Wait_Timeout;
+    params->SC_Disconnect_Wait_Timeout_dirty =
+        params->SC_Disconnect_Wait_Timeout;
+    params->SC_Heartbeat_Timeout_dirty = params->SC_Heartbeat_Timeout;
+
 #if BSC_CONF_HUB_FUNCTIONS_NUM != 0
     memcpy(params->SC_Primary_Hub_URI_dirty, params->SC_Primary_Hub_URI,
         sizeof(params->SC_Primary_Hub_URI_dirty));
@@ -2215,6 +2409,10 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
         sizeof(params->SC_Failover_Hub_URI_dirty));
 
     params->SC_Hub_Function_Enable_dirty = params->SC_Hub_Function_Enable;
+
+    memcpy(params->SC_Hub_Function_Accept_URIs_dirty,
+        params->SC_Hub_Function_Accept_URIs,
+        sizeof(params->SC_Hub_Function_Accept_URIs));
 
     Network_Port_SC_Hub_Function_Binding_get(object_instance, &port, &ifname);
     snprintf(params->SC_Hub_Function_Binding_dirty,
@@ -2226,6 +2424,10 @@ void Network_Port_SC_Pending_Params_Discard(uint32_t object_instance)
         params->SC_Direct_Connect_Initiate_Enable;
     params->SC_Direct_Connect_Accept_Enable_dirty =
         params->SC_Direct_Connect_Accept_Enable;
+
+    memcpy(params->SC_Direct_Connect_Accept_URIs_dirty,
+        params->SC_Direct_Connect_Accept_URIs,
+        sizeof(params->SC_Direct_Connect_Accept_URIs));
 
     Network_Port_SC_Direct_Connect_Binding_get(object_instance, &port, &ifname);
     snprintf(params->SC_Direct_Connect_Binding_dirty,

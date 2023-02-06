@@ -90,51 +90,73 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p)
     }
 }
 
+/*
+ * bsc_node_load_cert_bacfile loads one credentional file from bacfile object
+ * Note: the function adds null-terminated byte to loaded file
+ * (certificate, certificate key).
+ * The MbedTLS PEM parser requires data to be null-terminated.
+*/
+#ifdef CONFIG_MBEDTLS
+#define ZERO_BYTE 1
+#else
+#define ZERO_BYTE 0
+#endif
+
+static bool bsc_node_load_cert_bacfile(uint32_t file_instance, uint8_t **pbuf,
+    size_t *psize)
+{
+    uint32_t file_length;
+
+    *psize = bacfile_file_size(file_instance) + ZERO_BYTE;
+    if (*psize == 0)
+        return false;
+
+    *pbuf = calloc(1, *psize);
+    if (*pbuf == NULL)
+        return false;
+
+    file_length = bacfile_read(file_instance, *pbuf, *psize - ZERO_BYTE);
+#ifdef CONFIG_MBEDTLS
+    pbuf[*psize - 1] = 0;
+#endif
+    if (file_length == 0) {
+        fprintf(stderr, "Can't read %s file\n",
+            bacfile_pathname(file_instance));
+        return false;
+    }
+    return true;
+}
+
 bool bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     BSC_NODE_EVENT_FUNC event_func)
 {
     uint32_t instance;
     uint32_t file_instance;
-    uint32_t file_length;
 
     instance = Network_Port_Index_To_Instance(0);
+    bsc_conf->ca_cert_chain = NULL;
+    bsc_conf->cert_chain = NULL;
+    bsc_conf->key = NULL;
 
     file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
-    bsc_conf->ca_cert_chain_size = bacfile_file_size(file_instance);
-    bsc_conf->ca_cert_chain = calloc(1, bsc_conf->ca_cert_chain_size);
-    file_length = bacfile_read(file_instance,
-        bsc_conf->ca_cert_chain, bsc_conf->ca_cert_chain_size);
-    if (file_length == 0) {
-        bsc_conf->ca_cert_chain_size = 0;
+    if (!bsc_node_load_cert_bacfile(file_instance, &bsc_conf->ca_cert_chain,
+            &bsc_conf->ca_cert_chain_size)) {
+        bsc_node_conf_cleanup(bsc_conf);
         return false;
     }
 
     file_instance = Network_Port_Operational_Certificate_File(instance);
-    bsc_conf->cert_chain_size = bacfile_file_size(file_instance);
-    bsc_conf->cert_chain = calloc(1, bsc_conf->cert_chain_size);
-    file_length = bacfile_read(file_instance,
-        bsc_conf->cert_chain, bsc_conf->cert_chain_size);
-    if (file_length == 0) {
-        free(bsc_conf->ca_cert_chain);
-        bsc_conf->ca_cert_chain = NULL;
-        bsc_conf->ca_cert_chain_size = 0;
-        bsc_conf->cert_chain_size = 0;
+    if (!bsc_node_load_cert_bacfile(file_instance, &bsc_conf->cert_chain,
+            &bsc_conf->cert_chain_size)) {
+        bsc_node_conf_cleanup(bsc_conf);
         return false;
     }
 
     file_instance = Network_Port_Certificate_Key_File(instance);
-    bsc_conf->key_size = bacfile_file_size(file_instance);
-    bsc_conf->key = calloc(1, bsc_conf->key_size);
-    file_length = bacfile_read(file_instance,
-        bsc_conf->key, bsc_conf->key_size);
-    if (file_length == 0) {
-        free(bsc_conf->ca_cert_chain);
-        free(bsc_conf->cert_chain);
-        bsc_conf->ca_cert_chain = NULL;
-        bsc_conf->cert_chain = NULL;
-        bsc_conf->ca_cert_chain_size = 0;
-        bsc_conf->cert_chain_size = 0;
-        bsc_conf->key_size = 0;
+    bsc_conf->key_size = bacfile_file_size(file_instance) + 1;
+    if (!bsc_node_load_cert_bacfile(file_instance, &bsc_conf->key,
+            &bsc_conf->key_size)) {
+        bsc_node_conf_cleanup(bsc_conf);
         return false;
     }
 

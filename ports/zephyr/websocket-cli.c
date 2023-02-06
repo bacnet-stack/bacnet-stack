@@ -11,27 +11,23 @@
  * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
+#include <zephyr/kernel/thread.h>
+#include <zephyr/net/net_ip.h>
+#include <zephyr/net/socket.h>
+#include <zephyr/net/tls_credentials.h>
+#include <zephyr/sys_clock.h>
+#include <zephyr/net/websocket.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include <device.h>
-#include <init.h>
-#include <kernel.h>
-#include <kernel/thread.h>
-#include <fcntl.h>
-#include <net/net_ip.h>
-#include <net/socket.h>
-#include <net/tls_credentials.h>
-#include <sys_clock.h>
-#include <net/websocket.h>
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/debug.h"
-#include <logging/log.h>
-#include <logging/log_ctrl.h>
 
-LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
+LOG_MODULE_DECLARE(bacnet, CONFIG_BACNETSTACK_LOG_LEVEL);
 
 enum websocket_close_status {
     WEBSOCKET_CLOSE_STATUS_NOSTATUS                   =    0,
