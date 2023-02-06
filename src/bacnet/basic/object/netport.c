@@ -536,7 +536,7 @@ uint8_t Network_Port_Type(uint32_t object_instance)
             BACnet/SC network ports shall be represented by a Network Port
             object at the BACNET_APPLICATION protocol level with
             a proprietary network type value. */
-        if (port_type = PORT_TYPE_BSC) {
+        if (port_type == PORT_TYPE_BSC) {
             port_type = PORT_TYPE_BSC_INTERIM;
         }
 #endif
