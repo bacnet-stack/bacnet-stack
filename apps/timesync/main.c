@@ -119,6 +119,9 @@ static void print_help(char *filename)
     printf("--time hours:minutes:seconds.hundredths\n"
         "Time formatted 23:59:59.99 or 23:59:59 or 23:59\n");
     printf("\n");
+    printf("--utc\n"
+        "Send BACnet UTCTimeSynchronization request.\n");
+    printf("\n");
     printf("--mac A\n"
         "BACnet mac address."
         "Valid ranges are from 0 to 255\n"
@@ -156,8 +159,14 @@ int main(int argc, char *argv[])
     const unsigned timeout = 100; /* milliseconds */
     BACNET_DATE bdate;
     BACNET_TIME btime;
+    BACNET_DATE_TIME utc_time;
+    BACNET_DATE_TIME local_time;
     bool override_date = false;
     bool override_time = false;
+    bool use_utc = false;
+    int16_t utc_offset_minutes = 0;
+    int8_t dst_adjust_minutes = 0;
+    bool dst_active = 0;
     struct mstimer apdu_timer;
     long dnet = -1;
     BACNET_MAC_ADDRESS mac = { 0 };
@@ -220,6 +229,9 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        if (strcmp(argv[argi], "--utc") == 0) {
+            use_utc = true;
+        }
     }
     if (global_broadcast) {
         datalink_get_broadcast_address(&dest);
@@ -261,8 +273,19 @@ int main(int argc, char *argv[])
     mstimer_init();
     /* send the request */
     datetime_local(override_date ? NULL : &bdate, override_time ? NULL : &btime,
-        NULL, NULL);
-    Send_TimeSync_Remote(&dest, &bdate, &btime);
+        &utc_offset_minutes, &dst_active);
+    if (use_utc) {
+        /* convert to UTC */
+        if (dst_active) {
+            dst_adjust_minutes = -60;
+        }
+        datetime_set(&local_time, &bdate, &btime);
+        datetime_local_to_utc(&utc_time, &local_time, utc_offset_minutes,
+            dst_adjust_minutes);
+        Send_TimeSyncUTC_Remote(&dest, &utc_time.date, &utc_time.time);
+    } else {
+        Send_TimeSync_Remote(&dest, &bdate, &btime);
+    }
     mstimer_set(&apdu_timer, apdu_timeout());
     /* loop forever - not necessary for time sync, but we can watch */
     for (;;) {
