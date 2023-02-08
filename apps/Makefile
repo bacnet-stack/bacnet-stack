@@ -63,6 +63,20 @@ BACNET_DEFINES += -DWEAK_FUNC=
 BACNET_DEFINES += $(MAKE_DEFINE)
 
 # Choose a BACnet Ports Directory for the example applications target OS
+ifeq (${BACNET_PORT},)
+	ifeq ($(OS),Windows_NT)
+		BACNET_PORT = win32
+	else
+		UNAME_S := $(shell uname -s)
+		ifeq ($(UNAME_S),Linux)
+			BACNET_PORT = linux
+		endif
+		ifeq ($(UNAME_S),Darwin)
+			BACNET_PORT = bsd
+		endif
+	endif
+endif
+
 # linux, win32, bsd
 BACNET_PORT ?= linux
 
