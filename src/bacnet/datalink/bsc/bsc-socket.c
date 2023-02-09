@@ -64,6 +64,14 @@ static void bsc_ctx_remove(BSC_SOCKET_CTX *ctx)
     }
 }
 
+static void bsc_reset_socket(BSC_SOCKET *c)
+{
+    memset(&c->vmac, 0, sizeof(c->vmac));
+    memset(&c->uuid, 0, sizeof(c->uuid));
+    c->tx_buf_size = 0;
+    c->rx_buf_size = 0;
+}
+
 void bsc_init_ctx_cfg(BSC_SOCKET_CTX_TYPE type,
     BSC_CONTEXT_CFG *cfg,
     BSC_WEBSOCKET_PROTOCOL proto,
@@ -123,6 +131,7 @@ static BSC_SOCKET *bsc_find_free_socket(BSC_SOCKET_CTX *ctx)
     size_t i;
     for (i = 0; i < ctx->sock_num; i++) {
         if (ctx->sock[i].state == BSC_SOCK_STATE_IDLE) {
+            bsc_reset_socket(&ctx->sock[i]);
             return &ctx->sock[i];
         }
     }
@@ -239,8 +248,7 @@ static void bsc_set_socket_idle(BSC_SOCKET *c)
 {
     c->state = BSC_SOCK_STATE_IDLE;
     c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
-    memset(&c->vmac, 0, sizeof(c->vmac));
-    memset(&c->uuid, 0, sizeof(c->uuid));
+    bsc_reset_socket(c);
 }
 
 static void bsc_process_socket_disconnecting(
@@ -932,10 +940,9 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                          "is dropped\n");
             bws_srv_disconnect(ctx->sh, h);
         } else {
+            bsc_reset_socket(c);
             c->wh = h;
             c->ctx = ctx;
-            c->tx_buf_size = 0;
-            c->rx_buf_size = 0;
             c->state = BSC_SOCK_STATE_AWAITING_REQUEST;
             mstimer_set(&c->t, c->ctx->cfg->connect_timeout_s * 1000);
         }
@@ -1305,12 +1312,7 @@ BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
     ctx->sock_num = sockets_num;
 
     for (i = 0; i < sockets_num; i++) {
-        ctx->sock[i].state = BSC_SOCK_STATE_IDLE;
-        ctx->sock[i].wh = BSC_WEBSOCKET_INVALID_HANDLE;
-        memset(&ctx->sock[i].vmac, 0, sizeof(ctx->sock[i].vmac));
-        memset(&ctx->sock[i].uuid, 0, sizeof(ctx->sock[i].uuid));
-        ctx->sock[i].rx_buf_size = 0;
-        ctx->sock[i].tx_buf_size = 0;
+        bsc_set_socket_idle(&ctx->sock[i]);
     }
 
     ctx->state = BSC_CTX_STATE_INITIALIZING;
