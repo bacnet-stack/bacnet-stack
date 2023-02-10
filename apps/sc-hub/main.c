@@ -22,6 +22,7 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/datalink.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
@@ -44,21 +45,41 @@
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
 
+/** Buffer used for receiving */
+static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
+
 /** Initialize the handlers we will utilize.
  * @see Device_Init, apdu_set_unconfirmed_handler, apdu_set_confirmed_handler
  */
 static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
-   /* set the handler for all the services we don't implement
-       It is required to send the proper reject message... */
-    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
-    /* we must implement read property - it's required! */
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+
     /* we need to handle who-is to support dynamic device binding */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_HAS, handler_who_has);
+    /* set the handler for all the services we don't implement */
+    /* It is required to send the proper reject message... */
+    apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
+    /* Set the handlers for any confirmed services that we support. */
+    /* We must implement read property - it's required! */
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
+    apdu_set_unconfirmed_handler(
+        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
+#if defined(BACNET_TIME_MASTER)
+    handler_timesync_init();
+#endif
 }
 
 static void print_usage(const char *filename)
@@ -105,10 +126,18 @@ int main(int argc, char *argv[])
     int uciId = 0;
     struct uci_context *ctx;
 #endif
+#if defined(BACNET_TIME_MASTER)
+    BACNET_DATE_TIME bdatetime = { 0 };
+#endif
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     int argi = 0;
     const char *filename = NULL;
 
     BACNET_CHARACTER_STRING DeviceName;
+    uint16_t pdu_len = 0;
+    unsigned delay_milliseconds = 1;
+    unsigned elapsed_seconds = 0;
+    struct mstimer datalink_timer = { 0 };
 
     filename = filename_remove_path(argv[0]);
     argi = 0;
@@ -177,11 +206,25 @@ int main(int argc, char *argv[])
     }
     dlenv_init();
     atexit(datalink_cleanup);
+    mstimer_set(&datalink_timer, 1000);
     /* loop forever */
     for (;;) {
         /* input */
-        bsc_wait(1);
-        datalink_maintenance_timer(1);
+        pdu_len =
+            datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, delay_milliseconds);
+        /* process */
+        if (pdu_len) {
+            npdu_handler(&src, &Rx_Buf[0], pdu_len);
+        }
+        if (mstimer_expired(&datalink_timer)) {
+            elapsed_seconds = mstimer_interval(&datalink_timer) / 1000;
+            mstimer_reset(&datalink_timer);
+            datalink_maintenance_timer(elapsed_seconds);
+#if defined(BACNET_TIME_MASTER)
+            Device_getCurrentDateTime(&bdatetime);
+            handler_timesync_task(&bdatetime);
+#endif
+        }
     }
 
     return 0;
