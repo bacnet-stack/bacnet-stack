@@ -15,8 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-
 #include "bacnet/config.h"
 #include "bacnet/apdu.h"
 #include "bacnet/iam.h"
@@ -24,24 +22,16 @@
 #include "bacnet/basic/services.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/datalink.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
-#if defined(INTRINSIC_REPORTING)
-#include "bacnet/basic/object/nc.h"
-#endif /* defined(INTRINSIC_REPORTING) */
-#if defined(BACFILE)
-#include "bacnet/basic/object/bacfile.h"
-#endif /* defined(BACFILE) */
 #if defined(BAC_UCI)
 #include "bacnet/basic/ucix/ucix.h"
 #endif /* defined(BAC_UCI) */
 #include "bacnet/datalink/bsc/bsc-datalink.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
-#include "bacnet/basic/tsm/tsm.h"
-#include "bacnet/basic/object/trendlog.h"
-#include "bacnet/dcc.h"
-#include "bacnet/basic/object/lc.h"
+
 
 /* (Doxygen note: The next two lines pull all the following Javadoc
  *  into the ServerDemo module.) */
@@ -82,41 +72,16 @@ static void Init_Service_Handlers(void)
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
     apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_READ_RANGE, handler_read_range);
-#if defined(BACFILE)
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_ATOMIC_WRITE_FILE, handler_atomic_write_file);
-#endif
-    apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_SUBSCRIBE_COV, handler_cov_subscribe);
-    apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_COV_NOTIFICATION, handler_ucov_notification);
-    /* handle communication so we can shutup when asked */
-    apdu_set_confirmed_handler(SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
-        handler_device_communication_control);
-    /* handle the data coming back from private requests */
-    apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
-        handler_unconfirmed_private_transfer);
-#if defined(INTRINSIC_REPORTING)
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_ACKNOWLEDGE_ALARM, handler_alarm_ack);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_GET_EVENT_INFORMATION, handler_get_event_information);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_GET_ALARM_SUMMARY, handler_get_alarm_summary);
-#endif /* defined(INTRINSIC_REPORTING) */
 #if defined(BACNET_TIME_MASTER)
     handler_timesync_init();
 #endif
 }
+
 static void print_usage(const char *filename)
 {
     printf("Usage: %s [device-instance [device-name]]\n", filename);
@@ -157,29 +122,22 @@ static void print_help(const char *filename)
  */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; /* address where message came from */
-    uint16_t pdu_len = 0;
-    unsigned timeout = 1; /* milliseconds */
-    time_t last_seconds = 0;
-    time_t current_seconds = 0;
-    uint32_t elapsed_seconds = 0;
-    uint32_t elapsed_milliseconds = 0;
-    uint32_t address_binding_tmr = 0;
-
 #if defined(BAC_UCI)
     int uciId = 0;
     struct uci_context *ctx;
 #endif
+#if defined(BACNET_TIME_MASTER)
+    BACNET_DATE_TIME bdatetime = { 0 };
+#endif
+    BACNET_ADDRESS src = { 0 }; /* address where message came from */
     int argi = 0;
     const char *filename = NULL;
 
     BACNET_CHARACTER_STRING DeviceName;
-#if defined(INTRINSIC_REPORTING)
-    uint32_t recipient_scan_tmr = 0;
-#endif
-#if defined(BACNET_TIME_MASTER)
-    BACNET_DATE_TIME bdatetime;
-#endif
+    uint16_t pdu_len = 0;
+    unsigned delay_milliseconds = 1;
+    unsigned elapsed_seconds = 0;
+    struct mstimer datalink_timer = { 0 };
 
     filename = filename_remove_path(argv[0]);
     argi = 0;
@@ -248,61 +206,26 @@ int main(int argc, char *argv[])
     }
     dlenv_init();
     atexit(datalink_cleanup);
-    /* broadcast an I-Am on startup */
-    Send_I_Am(&Handler_Transmit_Buffer[0]);
-
+    mstimer_set(&datalink_timer, 1000);
     /* loop forever */
     for (;;) {
         /* input */
-        current_seconds = time(NULL);
-
-        /* returns 0 bytes on timeout */
-        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-
+        pdu_len =
+            datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, delay_milliseconds);
         /* process */
         if (pdu_len) {
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-        /* at least one second has passed */
-        elapsed_seconds = (uint32_t)(current_seconds - last_seconds);
-        if (elapsed_seconds) {
-            last_seconds = current_seconds;
-            dcc_timer_seconds(elapsed_seconds);
+        if (mstimer_expired(&datalink_timer)) {
+            elapsed_seconds = mstimer_interval(&datalink_timer) / 1000;
+            mstimer_reset(&datalink_timer);
             datalink_maintenance_timer(elapsed_seconds);
-            dlenv_maintenance_timer(elapsed_seconds);
-            Load_Control_State_Machine_Handler();
-            elapsed_milliseconds = elapsed_seconds * 1000;
-            handler_cov_timer_seconds(elapsed_seconds);
-            tsm_timer_milliseconds(elapsed_milliseconds);
-            trend_log_timer(elapsed_seconds);
-#if defined(INTRINSIC_REPORTING)
-            Device_local_reporting();
-#endif
 #if defined(BACNET_TIME_MASTER)
             Device_getCurrentDateTime(&bdatetime);
             handler_timesync_task(&bdatetime);
 #endif
         }
-        handler_cov_task();
-        /* scan cache address */
-        address_binding_tmr += elapsed_seconds;
-        if (address_binding_tmr >= 60) {
-            address_cache_timer(address_binding_tmr);
-            address_binding_tmr = 0;
-        }
-#if defined(INTRINSIC_REPORTING)
-        /* try to find addresses of recipients */
-        recipient_scan_tmr += elapsed_seconds;
-        if (recipient_scan_tmr >= NC_RESCAN_RECIPIENTS_SECS) {
-            Notification_Class_find_recipient();
-            recipient_scan_tmr = 0;
-        }
-#endif
-        /* output */
-
-        /* blink LEDs, Turn on or off outputs, etc */
     }
-
 
     return 0;
 }
