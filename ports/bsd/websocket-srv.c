@@ -150,13 +150,19 @@ static BSC_WEBSOCKET_CONTEXT *bws_alloc_server_ctx(BSC_WEBSOCKET_PROTOCOL proto)
     return NULL;
 }
 
-static void bws_copy_err_desc(BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h, char *err_desc)
+static void bws_copy_err_desc(
+    BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h, char *err_desc)
 {
-    strncpy(&ctx->conn[h].err_desc[0], err_desc,
-        sizeof(ctx->conn[h].err_desc));
+    int len = strlen(err_desc) >= sizeof(ctx->conn[h].err_desc)
+        ? sizeof(ctx->conn[h].err_desc) - 1
+        : strlen(err_desc);
+
+    memcpy(&ctx->conn[h].err_desc[0], err_desc, len);
+    ctx->conn[h].err_desc[len] = 0;
 }
 
-static void bws_fill_err_desc(BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h, uint16_t err_code)
+static void bws_fill_err_desc(
+    BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h, uint16_t err_code)
 {
     switch (err_code) {
         case LWS_CLOSE_STATUS_NORMAL: {
@@ -168,8 +174,8 @@ static void bws_fill_err_desc(BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h
             break;
         }
         case LWS_CLOSE_STATUS_PROTOCOL_ERR: {
-            bws_copy_err_desc(
-                ctx, h, "ws: connection was terminated due to a protocol error");
+            bws_copy_err_desc(ctx, h,
+                "ws: connection was terminated due to a protocol error");
             break;
         }
         case LWS_CLOSE_STATUS_UNACCEPTABLE_OPCODE: {
@@ -413,8 +419,8 @@ static int bws_srv_websocket_event(struct lws *wsi,
                 if (!stop_worker) {
                     dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
                         BSC_WEBSOCKET_DISCONNECTED,
-                        (err_desc[0] != 0) ? err_desc : NULL,
-                        NULL, 0, user_param);
+                        (err_desc[0] != 0) ? err_desc : NULL, NULL, 0,
+                        user_param);
                 }
             }
             break;
@@ -510,8 +516,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         user_param = ctx->user_param;
                         pthread_mutex_unlock(ctx->mutex);
                         dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
-                            BSC_WEBSOCKET_RECEIVED,
-                            NULL,
+                            BSC_WEBSOCKET_RECEIVED, NULL,
                             ctx->conn[h].fragment_buffer,
                             ctx->conn[h].fragment_buffer_len, user_param);
                         pthread_mutex_lock(ctx->mutex);
@@ -633,8 +638,8 @@ static void *bws_srv_worker(void *arg)
             DEBUG_PRINTF(
                 "bws_srv_worker() ctx %p user_param = %p\n", ctx, user_param);
             pthread_mutex_unlock(ctx->mutex);
-            dispatch_func(
-                ctx, 0, BSC_WEBSOCKET_SERVER_STOPPED, NULL, NULL, 0, user_param);
+            dispatch_func(ctx, 0, BSC_WEBSOCKET_SERVER_STOPPED, NULL, NULL, 0,
+                user_param);
             bws_free_server_ctx(ctx);
             DEBUG_PRINTF(
                 "bws_srv_worker() ctx %p proto %d stopped\n", ctx, ctx->proto);

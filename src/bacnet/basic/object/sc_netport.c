@@ -49,6 +49,7 @@
 #include <bacnet/basic/object/netport.h>
 #include <bacnet/basic/object/sc_netport.h>
 #include <bacnet/basic/object/netport_internal.h>
+#include <bacnet/datalink/bsc/bsc-util.h>
 
 #define SC_MIN_RECONNECT_MIN 2
 #define SC_MIN_RECONNECT_MAX 300
@@ -809,7 +810,8 @@ bool Network_Port_SC_Primary_Hub_Connection_Status_Set(uint32_t object_instance,
     st->Disconnect_Timestamp = *disconnect_ts;
     st->Error = error;
     if (error_details)
-        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
+        bsc_copy_str(
+            st->Error_Details, error_details, sizeof(st->Error_Details));
     else
         st->Error_Details[0] = 0;
 
@@ -847,7 +849,8 @@ bool Network_Port_SC_Failover_Hub_Connection_Status_Set(
     st->Disconnect_Timestamp = *disconnect_ts;
     st->Error = error;
     if (error_details)
-        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
+        bsc_copy_str(
+            st->Error_Details, error_details, sizeof(st->Error_Details));
     else
         st->Error_Details[0] = 0;
 
@@ -1017,11 +1020,12 @@ bool Network_Port_SC_Hub_Function_Binding_Set(
         return false;
 
     if (str && str[0]) {
-        strncpy(tmp, str, sizeof(tmp));
+        bsc_copy_str(tmp, str, sizeof(tmp));
         sc_binding_parse(tmp, &port, &ifname);
         *(uint16_t *)params->SC_Hub_Function_Binding = port;
         if (ifname) {
-            strncpy(params->SC_Hub_Function_Binding + sizeof(uint16_t), ifname,
+            bsc_copy_str(params->SC_Hub_Function_Binding + sizeof(uint16_t),
+                ifname,
                 sizeof(params->SC_Hub_Function_Binding) - sizeof(uint16_t));
         } else {
             *(params->SC_Hub_Function_Binding + sizeof(uint16_t)) = 0;
@@ -1093,7 +1097,8 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Set(
         sizeof(st->Peer_UUID.uuid.uuid128));
     st->Error = error;
     if (error_details)
-        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
+        bsc_copy_str(
+            st->Error_Details, error_details, sizeof(st->Error_Details));
     else
         st->Error_Details[0] = 0;
 
@@ -1377,11 +1382,11 @@ bool Network_Port_SC_Direct_Connect_Binding_Set(
         return false;
 
     if (str && str[0]) {
-        strncpy(tmp, str, sizeof(tmp));
+        bsc_copy_str(tmp, str, sizeof(tmp));
         sc_binding_parse(tmp, &port, &ifname);
         *(uint16_t *)params->SC_Direct_Connect_Binding = port;
         if (ifname) {
-            strncpy(params->SC_Direct_Connect_Binding + sizeof(uint16_t),
+            bsc_copy_str(params->SC_Direct_Connect_Binding + sizeof(uint16_t),
                 ifname,
                 sizeof(params->SC_Direct_Connect_Binding) - sizeof(uint16_t));
         } else {
@@ -1446,7 +1451,7 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Set(
         return status;
 
     st = &params->SC_Direct_Connect_Connection_Status;
-    strncpy(st->URI, uri, sizeof(st->URI));
+    bsc_copy_str(st->URI, uri, sizeof(st->URI));
     st->Connection_State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
@@ -1456,7 +1461,8 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Set(
         sizeof(st->Peer_UUID.uuid.uuid128));
     st->Error = error;
     if (error_details)
-        strncpy(st->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
+        bsc_copy_str(
+            st->Error_Details, error_details, sizeof(st->Error_Details));
     else
         st->Error_Details[0] = 0;
 
@@ -1508,8 +1514,8 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
         sizeof(entry->Peer_UUID.uuid.uuid128));
     entry->Error = error;
     if (error_details)
-        strncpy(
-            entry->Error_Details, error_details, BACNET_ERROR_STRING_LENGTH);
+        bsc_copy_str(
+            entry->Error_Details, error_details, sizeof(entry->Error_Details));
     else
         entry->Error_Details[0] = 0;
 

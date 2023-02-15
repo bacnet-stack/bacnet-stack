@@ -134,9 +134,7 @@ static void hub_conector_update_status(BACNET_SC_HUB_CONNECTION_STATUS *s,
     s->Error = err;
     s->Error_Details[0] = 0;
     if (err != ERROR_CODE_OTHER) {
-        len = strnlen(err_desc, sizeof(s->Error_Details) - 1);
-        memcpy(&s->Error_Details[0], err_desc, len);
-        s->Error_Details[len] = 0;
+        bsc_copy_str(&s->Error_Details[0], err_desc, sizeof(s->Error_Details));
     }
 }
 
