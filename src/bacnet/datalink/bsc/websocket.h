@@ -72,6 +72,12 @@
 #endif
 #endif
 
+#ifndef BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN
+#define BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN 128
+#else
+#define BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN
+#endif
+
 #define BSC_WSURL_MAX_LEN BSC_CONF_WSURL_MAX_LEN
 
 typedef int BSC_WEBSOCKET_HANDLE;
@@ -108,6 +114,7 @@ typedef enum {
 
 typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
+                              char* ws_lib_err_desc,
                               uint8_t* buf,
                               size_t bufsize,
                               void* dispatch_func_user_param);
@@ -115,6 +122,7 @@ typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
 typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_SRV_HANDLE sh,
                               BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
+                              char* ws_lib_err_desc,
                               uint8_t* buf,
                               size_t bufsize,
                               void* dispatch_func_user_param);

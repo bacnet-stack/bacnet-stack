@@ -38,7 +38,8 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
 
 static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+    BSC_DISCONNECT_REASON reason,
+    const char* reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu);
@@ -138,7 +139,8 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
 
 static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+    BSC_DISCONNECT_REASON reason,
+    const char* reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
@@ -195,7 +197,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
             }
         }
     } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED &&
-        err == BSC_SC_DUPLICATED_VMAC) {
+        reason == BSC_DR_DUPLICATED_VMAC) {
         f->event_func(BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC,
             (BSC_HUB_FUNCTION_HANDLE)f, f->user_arg);
     }

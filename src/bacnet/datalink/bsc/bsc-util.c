@@ -28,7 +28,6 @@ BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
         case BSC_WEBSOCKET_BAD_PARAM:
             return BSC_SC_BAD_PARAM;
         case BSC_WEBSOCKET_INVALID_OPERATION:
-            return BSC_SC_INVALID_OPERATION;
         default:
             return BSC_SC_INVALID_OPERATION;
     }

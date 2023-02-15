@@ -73,7 +73,12 @@ BACNET_STACK_EXPORT
 bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h);
 
 BACNET_STACK_EXPORT
-BACNET_SC_HUB_CONNECTOR_STATE bsc_hub_connector_state(BSC_HUB_CONNECTOR_HANDLE h);
+BACNET_SC_HUB_CONNECTOR_STATE
+bsc_hub_connector_state(BSC_HUB_CONNECTOR_HANDLE h);
+
+BACNET_STACK_EXPORT
+BACNET_SC_HUB_CONNECTION_STATUS*
+bsc_hub_connector_status(BSC_HUB_CONNECTOR_HANDLE h, bool primary);
 
 BACNET_STACK_EXPORT
 void bsc_hub_connector_maintenance_timer(uint16_t seconds);

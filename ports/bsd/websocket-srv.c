@@ -61,6 +61,7 @@ typedef struct {
     uint8_t *fragment_buffer;
     size_t fragment_buffer_size;
     int fragment_buffer_len;
+    char err_desc[BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN];
 } BSC_WEBSOCKET_CONNECTION;
 
 static pthread_mutex_t bws_global_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
@@ -147,6 +148,93 @@ static BSC_WEBSOCKET_CONTEXT *bws_alloc_server_ctx(BSC_WEBSOCKET_PROTOCOL proto)
     DEBUG_PRINTF("bws_alloc_server_ctx() <<< ret = %p\n", &ctx[i]);
     pthread_mutex_unlock(&bws_global_mutex);
     return NULL;
+}
+
+static void bws_copy_err_desc(BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h, char *err_desc)
+{
+    strncpy(&ctx->conn[h].err_desc[0], err_desc,
+        sizeof(ctx->conn[h].err_desc));
+}
+
+static void bws_fill_err_desc(BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h, uint16_t err_code)
+{
+    switch (err_code) {
+        case LWS_CLOSE_STATUS_NORMAL: {
+            /* indicates a normal closure, no err desc */
+            break;
+        }
+        case LWS_CLOSE_STATUS_GOINGAWAY: {
+            bws_copy_err_desc(ctx, h, "ws: an endpoint has gone away");
+            break;
+        }
+        case LWS_CLOSE_STATUS_PROTOCOL_ERR: {
+            bws_copy_err_desc(
+                ctx, h, "ws: connection was terminated due to a protocol error");
+            break;
+        }
+        case LWS_CLOSE_STATUS_UNACCEPTABLE_OPCODE: {
+            bws_copy_err_desc(ctx, h,
+                "ws: connection was terminated because endpoint received a "
+                "type of data it cannot accept");
+            break;
+        }
+        case LWS_CLOSE_STATUS_ABNORMAL_CLOSE: {
+            bws_copy_err_desc(ctx, h,
+                "ws: a remote peer application has indicated that the "
+                "connection was closed abnormally");
+            break;
+        }
+        case LWS_CLOSE_STATUS_NO_STATUS: {
+            bws_copy_err_desc(ctx, h,
+                "ws: a remote peer application has indicated no status code "
+                "was actually present");
+            break;
+        }
+        case LWS_CLOSE_STATUS_INVALID_PAYLOAD: {
+            bws_copy_err_desc(ctx, h,
+                "ws: connection was terminated because it has received not "
+                "consistent data with the type of the message");
+            break;
+        }
+        case LWS_CLOSE_STATUS_POLICY_VIOLATION: {
+            bws_copy_err_desc(ctx, h,
+                "ws: connection was terminated because it has received a "
+                "message that violates its policy");
+            break;
+        }
+        case LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE: {
+            bws_copy_err_desc(ctx, h,
+                "ws: connection was terminated because it has received a "
+                "message that is too big for it to process");
+            break;
+        }
+        case LWS_CLOSE_STATUS_EXTENSION_REQUIRED: {
+            bws_copy_err_desc(ctx, h,
+                "ws: connection was terminated because it has expected the "
+                "server to negotiate one or more extension");
+            break;
+        }
+        case LWS_CLOSE_STATUS_UNEXPECTED_CONDITION: {
+            bws_copy_err_desc(ctx, h,
+                "ws: connection was terminated because it encountered an "
+                "unexpected condition that prevented it from fulfilling the "
+                "request");
+            break;
+        }
+        case LWS_CLOSE_STATUS_TLS_FAILURE: {
+            bws_copy_err_desc(ctx, h,
+                "ws: connection was terminated due to a failure to perform a "
+                "TLS handshake");
+            break;
+        }
+        case LWS_CLOSE_STATUS_RESERVED:
+        default: {
+            bws_copy_err_desc(ctx, h,
+                "ws: an endpoint has terminated the websocket connection due "
+                "unknown reason");
+            break;
+        }
+    }
 }
 
 static void bws_free_server_ctx(BSC_WEBSOCKET_CONTEXT *ctx)
@@ -269,6 +357,8 @@ static int bws_srv_websocket_event(struct lws *wsi,
     BSC_WEBSOCKET_SRV_DISPATCH dispatch_func;
     void *user_param;
     bool stop_worker;
+    uint8_t err_code[2];
+    char err_desc[BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN];
 
     (void)user;
 
@@ -298,7 +388,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
             user_param = ctx->user_param;
             pthread_mutex_unlock(ctx->mutex);
             dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
-                BSC_WEBSOCKET_CONNECTED, NULL, 0, user_param);
+                BSC_WEBSOCKET_CONNECTED, NULL, NULL, 0, user_param);
             // wakeup worker to process pending event
             lws_cancel_service(ctx->wsctx);
             break;
@@ -317,13 +407,27 @@ static int bws_srv_websocket_event(struct lws *wsi,
                 dispatch_func = ctx->dispatch_func;
                 user_param = ctx->user_param;
                 stop_worker = ctx->stop_worker;
+                memcpy(err_desc, ctx->conn[h].err_desc, sizeof(err_desc));
                 bws_srv_free_connection(ctx, h);
                 pthread_mutex_unlock(ctx->mutex);
                 if (!stop_worker) {
                     dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
-                        BSC_WEBSOCKET_DISCONNECTED, NULL, 0, user_param);
+                        BSC_WEBSOCKET_DISCONNECTED,
+                        (err_desc[0] != 0) ? err_desc : NULL,
+                        NULL, 0, user_param);
                 }
             }
+            break;
+        }
+        case LWS_CALLBACK_WS_PEER_INITIATED_CLOSE: {
+            pthread_mutex_lock(ctx->mutex);
+            h = bws_find_connnection(ctx, wsi);
+            if (h != BSC_WEBSOCKET_INVALID_HANDLE && len >= 2) {
+                err_code[0] = ((uint8_t *)in)[1];
+                err_code[1] = ((uint8_t *)in)[0];
+                bws_fill_err_desc(ctx, h, *((uint16_t *)&err_code));
+            }
+            pthread_mutex_unlock(ctx->mutex);
             break;
         }
         case LWS_CALLBACK_RECEIVE: {
@@ -407,6 +511,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         pthread_mutex_unlock(ctx->mutex);
                         dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
                             BSC_WEBSOCKET_RECEIVED,
+                            NULL,
                             ctx->conn[h].fragment_buffer,
                             ctx->conn[h].fragment_buffer_len, user_param);
                         pthread_mutex_lock(ctx->mutex);
@@ -445,7 +550,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
                     pthread_mutex_unlock(ctx->mutex);
                     if (!stop_worker) {
                         dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
-                            BSC_WEBSOCKET_SENDABLE, NULL, 0, user_param);
+                            BSC_WEBSOCKET_SENDABLE, NULL, NULL, 0, user_param);
                     }
                     pthread_mutex_lock(ctx->mutex);
                     ctx->conn[h].want_send_data = false;
@@ -484,7 +589,7 @@ static void *bws_srv_worker(void *arg)
     pthread_mutex_unlock(ctx->mutex);
 
     dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, 0,
-        BSC_WEBSOCKET_SERVER_STARTED, NULL, 0, user_param);
+        BSC_WEBSOCKET_SERVER_STARTED, NULL, NULL, 0, user_param);
 
     while (1) {
         DEBUG_PRINTF("bws_srv_worker() ctx %p proto %d blocked user_param %p\n",
@@ -529,7 +634,7 @@ static void *bws_srv_worker(void *arg)
                 "bws_srv_worker() ctx %p user_param = %p\n", ctx, user_param);
             pthread_mutex_unlock(ctx->mutex);
             dispatch_func(
-                ctx, 0, BSC_WEBSOCKET_SERVER_STOPPED, NULL, 0, user_param);
+                ctx, 0, BSC_WEBSOCKET_SERVER_STOPPED, NULL, NULL, 0, user_param);
             bws_free_server_ctx(ctx);
             DEBUG_PRINTF(
                 "bws_srv_worker() ctx %p proto %d stopped\n", ctx, ctx->proto);

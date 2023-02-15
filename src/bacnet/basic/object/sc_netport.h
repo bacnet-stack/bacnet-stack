@@ -41,6 +41,7 @@
 #include <bacnet/datetime.h>
 #include <bacnet/hostnport.h>
 #include <bacnet/datalink/bsc/bsc-conf.h>
+#include <bacnet/datalink/bsc/bvlc-sc.h>
 
 /* BACnet file instance numbers */
 #ifndef BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE
@@ -90,10 +91,10 @@ typedef struct BACnetUUID_T_{
 #define BACNET_SC_DIRECT_ACCEPT_URI_MAX 2
 #endif
 
-#define BACNET_ISSUER_CERT_FILE_MAX 2
-#define BACNET_ERROR_STRING_LENGTH  64
-#define BACNET_URI_LENGTH  64
-#define BACNET_PEER_VMAC_LENGTH  6
+#define BACNET_ISSUER_CERT_FILE_MAX   2
+#define BACNET_ERROR_STRING_LENGTH    BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN
+#define BACNET_URI_LENGTH             BSC_CONF_WSURL_MAX_LEN
+#define BACNET_PEER_VMAC_LENGTH       BVLC_SC_VMAC_SIZE
 #define BACNET_BINDING_STRING_LENGTH  80
 
 #define BACNET_SC_BINDING_SEPARATOR    ':'
@@ -104,14 +105,14 @@ typedef struct BACnetHostNPort_data_T {
     uint16_t port;
 } BACNET_HOST_N_PORT_DATA;
 
-typedef struct BACnetSCHubConnection_T {
+typedef struct BACnetSCHubConnectionStatus_T {
     BACNET_SC_CONNECTION_STATE Connection_State; /*index = 0 */
     BACNET_DATE_TIME Connect_Timestamp; /*index = 1 */
     BACNET_DATE_TIME Disconnect_Timestamp; /*index = 2 */
     /* optionals */
     BACNET_ERROR_CODE Error; /* index = 3 */
     char Error_Details[BACNET_ERROR_STRING_LENGTH]; /* index = 4 */
-} BACNET_SC_HUB_CONNECTION;
+} BACNET_SC_HUB_CONNECTION_STATUS;
 
 typedef struct BACnetSCHubFunctionConnection_T {
     BACNET_SC_CONNECTION_STATE State;
@@ -327,7 +328,7 @@ uint8_t Network_Port_Routing_Table_Count(
     uint32_t object_instance);
 
 BACNET_STACK_EXPORT
-BACNET_SC_HUB_CONNECTION *Network_Port_SC_Primary_Hub_Connection_Status(
+BACNET_SC_HUB_CONNECTION_STATUS *Network_Port_SC_Primary_Hub_Connection_Status(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Primary_Hub_Connection_Status_Set(
@@ -339,7 +340,7 @@ bool Network_Port_SC_Primary_Hub_Connection_Status_Set(
     const char *error_details);
 
 BACNET_STACK_EXPORT
-BACNET_SC_HUB_CONNECTION *Network_Port_SC_Failover_Hub_Connection_Status(
+BACNET_SC_HUB_CONNECTION_STATUS *Network_Port_SC_Failover_Hub_Connection_Status(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Failover_Hub_Connection_Status_Set(
@@ -564,21 +565,21 @@ bool Network_Port_SC_Local_UUID_Set(
 BACNET_STACK_EXPORT
 int bacapp_encode_SCHubConnection(
     uint8_t *apdu,
-    BACNET_SC_HUB_CONNECTION *value);
+    BACNET_SC_HUB_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_SCHubConnection(
     uint8_t *apdu,
-    BACNET_SC_HUB_CONNECTION *value);
+    BACNET_SC_HUB_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_SCHubConnection(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_HUB_CONNECTION *value);
+    BACNET_SC_HUB_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_context_SCHubConnection(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_HUB_CONNECTION *value);
+    BACNET_SC_HUB_CONNECTION_STATUS *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_SCHubFunctionConnection(

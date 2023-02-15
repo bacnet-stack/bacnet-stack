@@ -54,7 +54,8 @@ static BSC_SOCKET *node_switch_acceptor_find_connection_for_uuid(
 
 static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+    BSC_DISCONNECT_REASON reason,
+    const char* reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu);
@@ -64,7 +65,8 @@ static void node_switch_acceptor_context_event(
 
 static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+     BSC_DISCONNECT_REASON reason,
+     const char* reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu);
@@ -212,7 +214,8 @@ static BSC_SOCKET *node_switch_acceptor_find_connection_for_uuid(
 
 static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+                         BSC_DISCONNECT_REASON reason,
+                         const char* reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
@@ -232,7 +235,7 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
             ctx->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ctx, ctx->user_arg,
                 NULL, *ppdu, pdu_len, decoded_pdu);
         } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED &&
-            err == BSC_SC_DUPLICATED_VMAC) {
+            reason == BSC_DR_DUPLICATED_VMAC) {
             ctx->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ctx,
                 ctx->user_arg, NULL, NULL, 0, NULL);
         }
@@ -409,7 +412,8 @@ void bsc_node_switch_maintenance_timer(uint16_t seconds)
 
 static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+    BSC_DISCONNECT_REASON reason,
+    const char* reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
@@ -427,7 +431,7 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
 
     if (ns->initiator.state == BSC_NODE_SWITCH_STATE_STARTED) {
         if (ev == BSC_SOCKET_EVENT_DISCONNECTED &&
-            err == BSC_SC_DUPLICATED_VMAC) {
+            reason == BSC_DR_DUPLICATED_VMAC) {
             ns->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ns,
                 ns->user_arg, NULL, NULL, 0, NULL);
         } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {

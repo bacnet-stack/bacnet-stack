@@ -90,11 +90,44 @@ typedef enum {
     BSC_SOCK_STATE_ERROR_FLUSH_TX = 7
 } BSC_SOCKET_STATE;
 
+typedef enum {
+    /* Undefined reason code means that no disconnect happens.
+       That error code is set in socket event callback for all
+       events types other than BSC_SOCKET_EVENT_DISCONNECTED */
+    BSC_DR_REASON_UNDEFINED = 0,
+    /* Remote peer has successfully disconnected according
+       state machine steps defined in BACnet/SC standard */
+    BSC_DR_REMOTE_PEER_DISCONNECT = 1,
+    /* BACNet/SC connection is disconnected because local peer
+       does not have enough resources to support normal operation
+      (RAM, mutex, no space in tx buffer, etc...) */
+    BSC_DR_NO_RESOURCES = 2,
+    /* BACNet/SC connection is disconnected because webosocket library
+       reports that remote peer closed websocket connection. */
+    BSC_DR_WS_DISCONNECT = 3,
+    /* BACNet/SC connection is disconnected because webosocket library
+       reports an error (reason_desc in socket evet callback
+       contains error description) */
+    BSC_DR_WS_ERROR = 4,
+    /* BACNet/SC connection is disconnected because of critical
+       error: both local and remote peers has same VMAC. */
+    BSC_DR_DUPLICATED_VMAC = 5,
+    /* BACNet/SC connection is disconnected because heartbeat
+       timeout is elapsed. */
+    BSC_DR_HEARTBEAT_TIMEOUT_ELAPSED = 6,
+    /* BACNet/SC connection is forcely disconnected because of elapsing
+       of timeout for BACNET/SC connect operation. */
+    BSC_DR_CONNECT_TIMEOUT_ELAPSED = 7,
+    /* BACNet/SC connection is forcely disconnected because of elapsing
+       of timeout for BACNET/SC disconnect operation. */
+    BSC_DR_DISCONNECT_TIMEOUT_ELAPSED = 8
+} BSC_DISCONNECT_REASON;
+
 struct BSC_Socket {
     BSC_SOCKET_CTX *ctx;
     BSC_WEBSOCKET_HANDLE wh;
     BSC_SOCKET_STATE state;
-    BSC_SC_RET disconnect_reason;
+    BSC_DISCONNECT_REASON reason;
     struct mstimer t;
     struct mstimer heartbeat;
     BACNET_SC_VMAC_ADDRESS vmac; /* VMAC address of the requesting node. */
@@ -160,7 +193,9 @@ struct BSC_SocketContextFuncs {
     /* origin and dest addresses (e.g. adding them to received PDU) */
     /* That's why pdu pointer has always reserved BSC_PRE bytes behind */
     void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
-                         BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len,
+                         BSC_DISCONNECT_REASON reason,
+                         const char* reason_desc,
+                         uint8_t *pdu, uint16_t pdu_len,
                          BVLC_SC_DECODED_MESSAGE *decoded_pdu);
     void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
 };

@@ -83,8 +83,8 @@ extern "C" {
         OS_Keylist Routing_Table;
 #endif /* BACNET_SECURE_CONNECT_ROUTING_TABLE */
 #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
-        BACNET_SC_HUB_CONNECTION SC_Primary_Hub_Connection_Status;
-        BACNET_SC_HUB_CONNECTION SC_Failover_Hub_Connection_Status;
+        BACNET_SC_HUB_CONNECTION_STATUS SC_Primary_Hub_Connection_Status;
+        BACNET_SC_HUB_CONNECTION_STATUS SC_Failover_Hub_Connection_Status;
         bool SC_Hub_Function_Enable;
         bool SC_Hub_Function_Enable_dirty;
         char SC_Hub_Function_Accept_URIs[
