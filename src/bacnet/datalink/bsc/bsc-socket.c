@@ -1,3 +1,4 @@
+
 /**
  * @file
  * @brief BACNet secure connect API.
@@ -38,57 +39,8 @@ static const char *s_error_origin_presented =
     "'Originating Virtual Address' field must be absent";
 static const char *s_error_no_dest =
     "'Destination Virtual Address' field must be present";
-static const char *s_remote_peer_disconnect =
-    "BACNet/SC connection was successfully closed ";
-static const char *s_no_resources =
-    "BACNet/SC connection was terminated due lack of resources";
-static const char *s_remote_peer_ws_disconnect =
-    "websocket connection was closed";
-static const char *s_duplicated_vmac =
-    "BACNet/SC connection was terminated because both local and remote peer "
-    "have same VMAC";
-static const char *s_hearbeat_timeout =
-    "BACNet/SC connection was terminated because heartbeat timeout is elapsed";
-static const char *s_connect_timeout =
-    "BACNet/SC connection process was terminated because connect timeout is "
-    "elapsed";
-static const char *s_disconnect_timeout =
-    "BACNet/SC disconnection process was terminated because disconnect timeout "
-    "is elapsed";
 
 static BSC_SOCKET_CTX *bsc_socket_ctx[BSC_SOCKET_CTX_NUM] = { 0 };
-
-static const char *bsc_disconnect_reason_to_str(BSC_DISCONNECT_REASON reason)
-{
-    switch (reason) {
-        case BSC_DR_REMOTE_PEER_DISCONNECT: {
-            return s_remote_peer_disconnect;
-        }
-        case BSC_DR_NO_RESOURCES: {
-            return s_no_resources;
-        }
-        case BSC_DR_WS_DISCONNECT: {
-            return s_remote_peer_ws_disconnect;
-        }
-        case BSC_DR_DUPLICATED_VMAC: {
-            return s_duplicated_vmac;
-        }
-        case BSC_DR_HEARTBEAT_TIMEOUT_ELAPSED: {
-            return s_hearbeat_timeout;
-        }
-        case BSC_DR_CONNECT_TIMEOUT_ELAPSED: {
-            return s_connect_timeout;
-        }
-        case BSC_DR_DISCONNECT_TIMEOUT_ELAPSED: {
-            return s_disconnect_timeout;
-        }
-        case BSC_DR_WS_ERROR:
-        case BSC_DR_REASON_UNDEFINED:
-        default: {
-            return NULL;
-        }
-    }
-}
 
 static bool bsc_ctx_add(BSC_SOCKET_CTX *ctx)
 {
@@ -178,7 +130,7 @@ static BSC_SOCKET *bsc_find_free_socket(BSC_SOCKET_CTX *ctx)
     return NULL;
 }
 
-static void bsc_srv_process_error(BSC_SOCKET *c, BSC_DISCONNECT_REASON reason)
+static void bsc_srv_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
 {
     DEBUG_PRINTF(
         "bsc_srv_process_error() >>> c = %p, reason = %d\n", c, reason);
@@ -188,7 +140,7 @@ static void bsc_srv_process_error(BSC_SOCKET *c, BSC_DISCONNECT_REASON reason)
     DEBUG_PRINTF("bsc_srv_process_error() <<<\n");
 }
 
-static void bsc_cli_process_error(BSC_SOCKET *c, BSC_DISCONNECT_REASON reason)
+static void bsc_cli_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
 {
     DEBUG_PRINTF("bsc_cli_process_error) >>> c = %p, reason = %d\n", c, reason);
     c->state = BSC_SOCK_STATE_ERROR;
@@ -319,8 +271,8 @@ static void bsc_process_socket_disconnecting(
             *need_disconnect = true;
         }
     } else {
-        c->ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_RECEIVED,
-            BSC_DR_REASON_UNDEFINED, NULL, buf, buflen, &c->dm);
+        c->ctx->funcs->socket_event(
+            c, BSC_SOCKET_EVENT_RECEIVED, 0, NULL, buf, buflen, &c->dm);
     }
 
     DEBUG_PRINTF("bsc_process_socket_disconnecting() <<<\n");
@@ -388,7 +340,7 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
         if (len) {
             memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
             c->tx_buf_size += len + sizeof(len);
-            c->reason = BSC_DR_REMOTE_PEER_DISCONNECT;
+            c->reason = ERROR_CODE_SUCCESS;
             c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
             *need_send = true;
         } else {
@@ -411,8 +363,8 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
         DEBUG_PRINTF("bsc_process_socket_connected_state() emit received event "
                      "buf = %p, size = %d\n",
             buf, buflen);
-        c->ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_RECEIVED,
-            BSC_DR_REASON_UNDEFINED, NULL, buf, buflen, &c->dm);
+        c->ctx->funcs->socket_event(
+            c, BSC_SOCKET_EVENT_RECEIVED, 0, NULL, buf, buflen, &c->dm);
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
         c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
         c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION_ACK ||
@@ -422,8 +374,8 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
         DEBUG_PRINTF("bsc_process_socket_connected_state() emit received event "
                      "buf = %p, size = %d\n",
             buf, buflen);
-        c->ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_RECEIVED,
-            BSC_DR_REASON_UNDEFINED, NULL, buf, buflen, &c->dm);
+        c->ctx->funcs->socket_event(
+            c, BSC_SOCKET_EVENT_RECEIVED, 0, NULL, buf, buflen, &c->dm);
     }
 
     DEBUG_PRINTF("bsc_process_socket_connected_state() <<<\n");
@@ -553,15 +505,15 @@ static void bsc_process_socket_state(
 
     if (c->state == BSC_SOCK_STATE_AWAITING_ACCEPT && expired) {
         c->state = BSC_SOCK_STATE_ERROR;
-        c->reason = BSC_DR_CONNECT_TIMEOUT_ELAPSED;
+        c->reason = ERROR_CODE_TIMEOUT;
         *need_disconnect = true;
     } else if (c->state == BSC_SOCK_STATE_AWAITING_REQUEST && expired) {
         c->state = BSC_SOCK_STATE_ERROR;
-        c->reason = BSC_DR_CONNECT_TIMEOUT_ELAPSED;
+        c->reason = ERROR_CODE_TIMEOUT;
         *need_disconnect = true;
     } else if (c->state == BSC_SOCK_STATE_DISCONNECTING && expired) {
         c->state = BSC_SOCK_STATE_ERROR;
-        c->reason = BSC_DR_DISCONNECT_TIMEOUT_ELAPSED;
+        c->reason = ERROR_CODE_TIMEOUT;
         *need_disconnect = true;
     } else if (c->state == BSC_SOCK_STATE_CONNECTED) {
         expired = mstimer_expired(&c->heartbeat);
@@ -605,7 +557,7 @@ static void bsc_process_socket_state(
                              "disconnecting...\n",
                     c);
                 c->state = BSC_SOCK_STATE_ERROR;
-                c->reason = BSC_DR_HEARTBEAT_TIMEOUT_ELAPSED;
+                c->reason = ERROR_CODE_TIMEOUT;
                 *need_disconnect = true;
             }
         }
@@ -735,7 +687,7 @@ static void bsc_process_srv_awaiting_request(
                 c->ctx->cfg->max_bvlc_len, c->ctx->cfg->max_ndpu_len);
 
             if (!len) {
-                bsc_srv_process_error(c, BSC_DR_NO_RESOURCES);
+                bsc_srv_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
                 DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
                 return;
             } else {
@@ -779,8 +731,8 @@ static void bsc_process_srv_awaiting_request(
             mstimer_set(
                 &c->heartbeat, 2 * c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
-            c->ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_CONNECTED,
-                BSC_DR_REASON_UNDEFINED, NULL, NULL, 0, NULL);
+            c->ctx->funcs->socket_event(
+                c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
             DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
             return;
         }
@@ -813,13 +765,13 @@ static void bsc_process_srv_awaiting_request(
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
                 c->tx_buf_size += len + sizeof(len);
                 c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
-                c->reason = BSC_DR_DUPLICATED_VMAC;
+                c->reason = ERROR_CODE_NODE_DUPLICATE_VMAC;
                 bws_srv_send(c->ctx->sh, c->wh);
             } else {
                 DEBUG_PRINTF(
                     "bsc_process_srv_awaiting_request() sending of nack result "
                     "message failed, err = BSC_SC_NO_RESOURCES\n");
-                bsc_srv_process_error(c, BSC_DR_DUPLICATED_VMAC);
+                bsc_srv_process_error(c, ERROR_CODE_NODE_DUPLICATE_VMAC);
             }
             DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
             return;
@@ -861,13 +813,13 @@ static void bsc_process_srv_awaiting_request(
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
                 c->tx_buf_size += len + sizeof(len);
                 c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
-                c->reason = BSC_DR_DUPLICATED_VMAC;
+                c->reason = ERROR_CODE_NODE_DUPLICATE_VMAC;
                 bws_srv_send(c->ctx->sh, c->wh);
             } else {
                 DEBUG_PRINTF(
                     "bsc_process_srv_awaiting_request() sending of nack result "
                     "message failed, err =  BSC_SC_NO_RESOURCES\n");
-                bsc_srv_process_error(c, BSC_DR_DUPLICATED_VMAC);
+                bsc_srv_process_error(c, ERROR_CODE_NODE_DUPLICATE_VMAC);
             }
             DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
             return;
@@ -896,13 +848,13 @@ static void bsc_process_srv_awaiting_request(
             mstimer_set(
                 &c->heartbeat, 2 * c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
-            c->ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_CONNECTED,
-                BSC_DR_REASON_UNDEFINED, NULL, NULL, 0, NULL);
+            c->ctx->funcs->socket_event(
+                c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
             bws_srv_send(c->ctx->sh, c->wh);
         } else {
             DEBUG_PRINTF("bsc_process_srv_awaiting_request() sending of "
                          "connect accept failed, err = BSC_SC_NO_RESOURCES\n");
-            bsc_srv_process_error(c, BSC_DR_NO_RESOURCES);
+            bsc_srv_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
         }
     }
 
@@ -912,7 +864,8 @@ static void bsc_process_srv_awaiting_request(
 static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
     BSC_WEBSOCKET_EVENT ev,
-    char *ws_lib_err_desc,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
     uint8_t *buf,
     size_t bufsize,
     void *dispatch_func_user_param)
@@ -928,9 +881,9 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     (void)sh;
     bws_dispatch_lock();
     DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
-                 "err_desc = %p, buf "
+                 "reason = %d, desc = %p, buf "
                  "= %p, bufsize = %d, ctx = %p\n",
-        sh, h, ev, ws_lib_err_desc, bufsize, ctx);
+        sh, h, ev, ws_reason, ws_reason_desc, bufsize, ctx);
 
     if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
         for (i = 0; i < ctx->sock_num; i++) {
@@ -972,13 +925,11 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         if (c->state == BSC_SOCK_STATE_ERROR) {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
-                c->reason, bsc_disconnect_reason_to_str(c->reason), NULL, 0,
-                NULL);
+                c->reason, NULL, NULL, 0, NULL);
         } else {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
-                ws_lib_err_desc ? BSC_DR_WS_ERROR : BSC_DR_WS_DISCONNECT,
-                ws_lib_err_desc, NULL, 0, NULL);
+                ws_reason, ws_reason_desc, NULL, 0, NULL);
         }
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         c = bsc_find_free_socket(ctx);
@@ -1049,7 +1000,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                     c);
                 bsc_srv_process_error(c,
                     c->state != BSC_SOCK_STATE_ERROR_FLUSH_TX
-                        ? BSC_DR_NO_RESOURCES
+                        ? ERROR_CODE_ABORT_OUT_OF_RESOURCES
                         : c->reason);
                 failed = true;
                 break;
@@ -1104,8 +1055,8 @@ static void bsc_process_cli_awaiting_accept(
             c->max_npdu_len = c->dm.payload.connect_accept.max_npdu_len;
             mstimer_set(&c->heartbeat, c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
-            c->ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_CONNECTED,
-                BSC_DR_REASON_UNDEFINED, NULL, NULL, 0, NULL);
+            c->ctx->funcs->socket_event(
+                c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
         }
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
         if (c->dm.payload.result.bvlc_function != BVLC_SC_CONNECT_REQUEST) {
@@ -1128,7 +1079,7 @@ static void bsc_process_cli_awaiting_accept(
             /* Random-48 VMAC, close the WebSocket connection, and */
             /* enter the IDLE state. */
             /* Signal upper layer about that error */
-            bsc_cli_process_error(c, BSC_DR_DUPLICATED_VMAC);
+            bsc_cli_process_error(c, ERROR_CODE_NODE_DUPLICATE_VMAC);
         } else {
             DEBUG_PRINTF("bsc_process_cli_awaiting_accept() got unexpected "
                          "BVLC_RESULT error code "
@@ -1143,7 +1094,7 @@ static void bsc_process_cli_awaiting_accept(
         /* it and close connection. */
         DEBUG_PRINTF("bsc_process_cli_awaiting_accept() got unexpected "
                      "disconnect request\n");
-        bsc_cli_process_error(c, BSC_DR_REMOTE_PEER_DISCONNECT);
+        bsc_cli_process_error(c, ERROR_CODE_OTHER);
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
         /* AB.6.2.2 BACnet/SC Connection Initiating Peer State */
         /* Machine does not say anything about situation when */
@@ -1153,7 +1104,7 @@ static void bsc_process_cli_awaiting_accept(
         DEBUG_PRINTF(
             "bsc_process_cli_awaiting_accept() got unexpected disconnect ack "
             "request\n");
-        bsc_cli_process_error(c, BSC_DR_REMOTE_PEER_DISCONNECT);
+        bsc_cli_process_error(c, ERROR_CODE_OTHER);
     } else {
         DEBUG_PRINTF("bsc_process_cli_awaiting_accept() unexpected message "
                      "with bvlc function "
@@ -1165,7 +1116,8 @@ static void bsc_process_cli_awaiting_accept(
 
 static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     BSC_WEBSOCKET_EVENT ev,
-    char *ws_lib_err_desc,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
     uint8_t *buf,
     size_t bufsize,
     void *dispatch_func_user_param)
@@ -1179,10 +1131,10 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     bool all_socket_disconnected = true;
     bool failed = false;
 
-    DEBUG_PRINTF(
-        "bsc_dispatch_cli_func() >>> h = %d, ev = %d, err_desc = %p, buf = %p, "
-        "bufsize = %d, ctx = %p\n",
-        h, ev, ws_lib_err_desc, buf, bufsize, ctx);
+    DEBUG_PRINTF("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
+                 "reason_desc = %p, buf = %p, "
+                 "bufsize = %d, ctx = %p\n",
+        h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     bws_dispatch_lock();
 
@@ -1216,13 +1168,11 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         } else if (c->state == BSC_SOCK_STATE_ERROR) {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
-                c->reason, bsc_disconnect_reason_to_str(c->reason), NULL, 0,
-                NULL);
+                c->reason, NULL, NULL, 0, NULL);
         } else {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
-                ws_lib_err_desc ? BSC_DR_WS_ERROR : BSC_DR_WS_DISCONNECT,
-                ws_lib_err_desc, NULL, 0, NULL);
+                ws_reason, ws_reason_desc, NULL, 0, NULL);
         }
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         if (c->state == BSC_SOCK_STATE_AWAITING_WEBSOCKET) {
@@ -1252,7 +1202,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 ctx->cfg->max_ndpu_len);
 
             if (!len) {
-                bsc_cli_process_error(c, BSC_DR_NO_RESOURCES);
+                bsc_cli_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
             } else {
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
                 c->tx_buf_size += len + sizeof(len);
@@ -1274,7 +1224,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                     wret, c);
                 bsc_cli_process_error(c,
                     c->state != BSC_SOCK_STATE_ERROR_FLUSH_TX
-                        ? BSC_DR_NO_RESOURCES
+                        ? ERROR_CODE_ABORT_OUT_OF_RESOURCES
                         : c->reason);
                 failed = true;
                 break;
@@ -1517,9 +1467,9 @@ void bsc_disconnect(BSC_SOCKET *c)
                     "bsc_disconnect() disconnect request not sent, err = "
                     "BSC_SC_NO_RESOURCES\n");
                 if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
-                    bsc_cli_process_error(c, BSC_DR_NO_RESOURCES);
+                    bsc_cli_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
                 } else {
-                    bsc_srv_process_error(c, BSC_DR_NO_RESOURCES);
+                    bsc_srv_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
                 }
             } else {
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));

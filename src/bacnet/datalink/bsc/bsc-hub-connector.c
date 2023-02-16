@@ -38,7 +38,7 @@ typedef enum {
 
 static void hub_connector_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_DISCONNECT_REASON reason,
+    BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
@@ -194,7 +194,7 @@ void bsc_hub_connector_maintenance_timer(uint16_t seconds)
 
 static void hub_connector_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_DISCONNECT_REASON reason,
+    BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
@@ -231,18 +231,16 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
                 NULL, 0, NULL);
         }
     } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
-        if (reason == BSC_DR_DUPLICATED_VMAC) {
+        if (reason == ERROR_CODE_NODE_DUPLICATE_VMAC) {
             DEBUG_PRINTF("hub_connector_socket_event() "
-                         "got BSC_DR_DUPLICATED_VMAC error\n");
+                         "got ERROR_CODE_NODE_DUPLICATE_VMAC error\n");
             if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
                 hub_conector_update_status(&hc->primary_status,
-                    BACNET_FAILED_TO_CONNECT, ERROR_CODE_NODE_DUPLICATE_VMAC,
-                    bactext_error_code_name(ERROR_CODE_NODE_DUPLICATE_VMAC));
+                    BACNET_FAILED_TO_CONNECT, reason, reason_desc);
             } else if (hc->state ==
                 BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER) {
                 hub_conector_update_status(&hc->failover_status,
-                    BACNET_FAILED_TO_CONNECT, ERROR_CODE_NODE_DUPLICATE_VMAC,
-                    bactext_error_code_name(ERROR_CODE_NODE_DUPLICATE_VMAC));
+                    BACNET_FAILED_TO_CONNECT, reason, reason_desc);
             }
             hc->state = BSC_HUB_CONNECTOR_STATE_DUPLICATED_VMAC;
             hc->event_func(BSC_HUBC_EVENT_ERROR_DUPLICATED_VMAC, hc,
@@ -251,7 +249,7 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
             DEBUG_PRINTF("hub_connector_socket_event() try to connect to "
                          "failover hub\n");
             hub_conector_update_status(&hc->primary_status,
-                BACNET_FAILED_TO_CONNECT, ERROR_CODE_OTHER, NULL);
+                BACNET_FAILED_TO_CONNECT, ERROR_CODE_OTHER, reason_desc);
             hub_connector_connect(hc, BSC_HUB_CONN_FAILOVER);
         } else if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_FAILOVER) {
             DEBUG_PRINTF("hub_connector_socket_event() wait for %d seconds\n",

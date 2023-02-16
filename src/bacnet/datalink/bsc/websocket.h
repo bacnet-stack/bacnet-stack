@@ -110,11 +110,15 @@ typedef enum {
     BSC_WEBSOCKET_SERVER_STOPPED = 5
 } BSC_WEBSOCKET_EVENT;
 
-/** @} */
+/* 
+   values of ws_reason and ws_reason_desc parameters are actual
+   only for BSC_WEBSOCKET_DISCONNECTED event.
+*/
 
 typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
-                              char* ws_lib_err_desc,
+                              BACNET_ERROR_CODE ws_reason,
+                              char* ws_reason_desc,
                               uint8_t* buf,
                               size_t bufsize,
                               void* dispatch_func_user_param);
@@ -122,7 +126,8 @@ typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
 typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_SRV_HANDLE sh,
                               BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
-                              char* ws_lib_err_desc,
+                              BACNET_ERROR_CODE ws_reason,
+                              char* ws_reason_desc,
                               uint8_t* buf,
                               size_t bufsize,
                               void* dispatch_func_user_param);
