@@ -1077,6 +1077,8 @@ static void wait_for_event(test_ctx_t* ctx, BSC_WEBSOCKET_EVENT ev)
 
 static void cli_event(BSC_WEBSOCKET_HANDLE h,
                BSC_WEBSOCKET_EVENT ev,
+               BACNET_ERROR_CODE ws_reason,
+               char* ws_reason_desc,
                uint8_t* buf,
                size_t bufsize,
                void* user_param)
@@ -1105,6 +1107,8 @@ static void cli_event(BSC_WEBSOCKET_HANDLE h,
 static void srv_event (BSC_WEBSOCKET_SRV_HANDLE sh,
                 BSC_WEBSOCKET_HANDLE h,
                 BSC_WEBSOCKET_EVENT ev,
+                BACNET_ERROR_CODE ws_reason,
+                char* ws_reason_desc,
                 uint8_t* buf,
                 size_t bufsize,
                 void* user_param)
@@ -1142,6 +1146,10 @@ static void test_simple(void)
     BSC_WEBSOCKET_HANDLE h;
     char url[128];
     char* iface = NULL;
+    char ip_addr[128];
+    uint16_t port;
+    bool res;
+
     memset(&cli_ctx, 0, sizeof(cli_ctx));
     cli_ctx.ev = -1;
     cli_ctx.h = BSC_WEBSOCKET_INVALID_HANDLE;
@@ -1169,7 +1177,11 @@ static void test_simple(void)
 
     zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
     wait_for_event(&cli_ctx, BSC_WEBSOCKET_CONNECTED);
-
+    res = bws_srv_get_peer_ip_addr(srv_ctx.sh, srv_ctx.h,
+                                   (uint8_t*)ip_addr, sizeof(ip_addr),
+                                   &port);
+    zassert_equal(res, true, NULL);
+    printf("client %s:%d connected.\n", ip_addr, port);
     printf("client sending data...\n");
     memset(cli_ctx.out_buf, 0x56, sizeof(cli_ctx.out_buf));
     cli_ctx.out_buf_size = sizeof(cli_ctx.out_buf);
