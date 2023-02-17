@@ -1784,8 +1784,8 @@ int bacapp_encode_SCHubFunctionConnection(
         } else {
             return -1;
         }
-
-        if (value->Error != ERROR_CODE_OTHER) {
+        if (value->Error == BACNET_DISCONNECTED_WITH_ERRORS ||
+            value->Error == BACNET_FAILED_TO_CONNECT) {
             apdu_len += encode_context_enumerated(&apdu[0], 6, value->Error);
 
             if (characterstring_init_ansi(&str, value->Error_Details)) {
