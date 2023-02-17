@@ -75,10 +75,14 @@ static BACNET_IP_ADDRESS BVLC_Global_Address;
 static bool BVLC_NAT_Handling = false;
 /** if we are a foreign device, store the remote BBMD address/port here */
 static BACNET_IP_ADDRESS Remote_BBMD;
-#if BBMD_ENABLED
+
+#if BBMD_ENABLED || BBMD_CLIENT_ENABLED
 /* local buffer & length for sending */
 static uint8_t BVLC_Buffer[BIP_MPDU_MAX];
 static uint16_t BVLC_Buffer_Len;
+#endif
+
+#if BBMD_ENABLED
 /* Broadcast Distribution Table */
 #ifndef MAX_BBMD_ENTRIES
 #define MAX_BBMD_ENTRIES 128

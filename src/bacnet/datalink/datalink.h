@@ -30,8 +30,12 @@
 
 #if defined(BACDL_ETHERNET)
 #include "bacnet/datalink/ethernet.h"
-#define MAX_MPDU ETHERNET_MPDU_MAX
 
+#if !defined(MAX_MPDU)
+#define MAX_MPDU ETHERNET_MPDU_MAX
+#endif
+
+#if !defined(BACDL_ALL)
 #define datalink_init ethernet_init
 #define datalink_send_pdu ethernet_send_pdu
 #define datalink_receive ethernet_receive
@@ -39,11 +43,17 @@
 #define datalink_get_broadcast_address ethernet_get_broadcast_address
 #define datalink_get_my_address ethernet_get_my_address
 #define datalink_maintenance_timer(s)
+#endif
 
-#elif defined(BACDL_ARCNET)
+#endif
+
+#if defined(BACDL_ARCNET)
 #include "bacnet/datalink/arcnet.h"
+#if !defined(MAX_MPDU)
 #define MAX_MPDU ARCNET_MPDU_MAX
+#endif
 
+#if !defined(BACDL_ALL)
 #define datalink_init arcnet_init
 #define datalink_send_pdu arcnet_send_pdu
 #define datalink_receive arcnet_receive
@@ -51,11 +61,18 @@
 #define datalink_get_broadcast_address arcnet_get_broadcast_address
 #define datalink_get_my_address arcnet_get_my_address
 #define datalink_maintenance_timer(s)
+#endif
 
-#elif defined(BACDL_MSTP)
+#endif
+
+#if defined(BACDL_MSTP)
 #include "bacnet/datalink/dlmstp.h"
-#define MAX_MPDU DLMSTP_MPDU_MAX
 
+#if !defined(MAX_MPDU)
+#define MAX_MPDU DLMSTP_MPDU_MAX
+#endif
+
+#if !defined(BACDL_ALL)
 #define datalink_init dlmstp_init
 #define datalink_send_pdu dlmstp_send_pdu
 #define datalink_receive dlmstp_receive
@@ -63,34 +80,52 @@
 #define datalink_get_broadcast_address dlmstp_get_broadcast_address
 #define datalink_get_my_address dlmstp_get_my_address
 #define datalink_maintenance_timer(s)
+#endif
 
-#elif defined(BACDL_BIP)
+#endif
+
+#if defined(BACDL_BIP)
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/bvlc.h"
 #include "bacnet/basic/bbmd/h_bbmd.h"
-#define MAX_MPDU BIP_MPDU_MAX
 
+#if !defined(MAX_MPDU)
+#define MAX_MPDU BIP_MPDU_MAX
+#endif
+
+#if !defined(BACDL_ALL)
 #define datalink_init bip_init
 #define datalink_send_pdu bip_send_pdu
 #define datalink_receive bip_receive
 #define datalink_cleanup bip_cleanup
 #define datalink_get_broadcast_address bip_get_broadcast_address
+#endif
+
+#endif
+
 #ifdef BAC_ROUTING
 BACNET_STACK_EXPORT
 void routed_get_my_address(
     BACNET_ADDRESS * my_address);
 #define datalink_get_my_address routed_get_my_address
 #else
-#define datalink_get_my_address bip_get_my_address
+#if !defined(BACDL_ALL)
+#  define datalink_get_my_address bip_get_my_address
+#  define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
 #endif
-#define datalink_maintenance_timer(s) bvlc_maintenance_timer(s)
+#endif
 
-#elif defined(BACDL_BIP6)
+
+#if defined(BACDL_BIP6)
 #include "bacnet/datalink/bip6.h"
 #include "bacnet/datalink/bvlc6.h"
 #include "bacnet/basic/bbmd6/h_bbmd6.h"
-#define MAX_MPDU BIP6_MPDU_MAX
 
+#if !defined(MAX_MPDU)
+#define MAX_MPDU BIP6_MPDU_MAX
+#endif
+
+#if !defined(BACDL_ALL)
 #define datalink_init bip6_init
 #define datalink_send_pdu bip6_send_pdu
 #define datalink_receive bip6_receive
@@ -98,11 +133,18 @@ void routed_get_my_address(
 #define datalink_get_broadcast_address bip6_get_broadcast_address
 #define datalink_get_my_address bip6_get_my_address
 #define datalink_maintenance_timer(s) bvlc6_maintenance_timer(s)
+#endif
+#endif
 
-#elif defined(BACDL_ALL) || defined(BACDL_NONE)
+#if defined(BACDL_ALL) || defined(BACDL_NONE)
 #include "bacnet/npdu.h"
 
 #define MAX_HEADER (8)
+
+#if defined(MAX_MPDU)
+#undef MAX_MPDU
+#endif
+
 #define MAX_MPDU (MAX_HEADER+MAX_PDU)
 
 #ifdef __cplusplus
