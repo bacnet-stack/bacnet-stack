@@ -1550,9 +1550,23 @@ INDTEXT_DATA bacnet_reliability_names[] = { { RELIABILITY_NO_FAULT_DETECTED,
     { RELIABILITY_PROCESS_ERROR, "process-error" },
     { RELIABILITY_MULTI_STATE_FAULT, "mult-state-fault" },
     { RELIABILITY_CONFIGURATION_ERROR, "configuration-error" },
-    { RELIABILITY_MEMBER_FAULT, "member-fault" },
     { RELIABILITY_COMMUNICATION_FAILURE, "communication-failure" },
-    { RELIABILITY_TRIPPED, "tripped" }, { 0, NULL } };
+    { RELIABILITY_MEMBER_FAULT, "member-fault" },
+    { RELIABILITY_MONITORED_OBJECT_FAULT, "monitored-object-fault" },
+    { RELIABILITY_TRIPPED, "tripped" },
+    { RELIABILITY_LAMP_FAILURE, "lamp-failure" },
+    { RELIABILITY_ACTIVATION_FAILURE, "activation-failure" },
+    { RELIABILITY_RENEW_DHCP_FAILURE, "renew-dhcp-failure" },
+    { RELIABILITY_RENEW_FD_REGISTRATION_FAILURE,
+        "renew-fd-registration-failure" },
+    { RELIABILITY_RESTART_AUTO_NEGOTIATION_FAILURE,
+        "restart-auto-negotiation-failure" },
+    { RELIABILITY_RESTART_FAILURE, "restart-failure" },
+    { RELIABILITY_PROPRIETARY_COMMAND_FAILURE, "proprietary-command-failure" },
+    { RELIABILITY_FAULTS_LISTED, "faults-listed" },
+    { RELIABILITY_REFERENCED_OBJECT_FAULT, "referenced-object-fault" },
+    { RELIABILITY_MULTI_STATE_OUT_OF_RANGE, "multi-state-out-of-range" },
+    { 0, NULL } };
 
 const char *bactext_reliability_name(unsigned index)
 {
