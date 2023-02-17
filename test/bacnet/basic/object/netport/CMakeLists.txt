@@ -70,6 +70,7 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c

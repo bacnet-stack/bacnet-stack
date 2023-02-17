@@ -68,6 +68,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/weeklyschedule.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/datalink/bsc/bsc-util.c
     )
 
   set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")

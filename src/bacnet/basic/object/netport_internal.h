@@ -94,7 +94,7 @@ extern "C" {
         char SC_Hub_Function_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Hub_Function_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
 #ifdef BACNET_SC_STATUS_SUPPORT
-        BACNET_SC_HUB_FUNCTION_CONNECTION SC_Hub_Function_Connection_Status;
+        OS_Keylist SC_Hub_Function_Connection_Status;
 #endif
         uint16_t Hub_Server_Port;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
@@ -110,7 +110,7 @@ extern "C" {
         char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
 #ifdef BACNET_SC_STATUS_SUPPORT
-        BACNET_SC_DIRECT_CONNECTION SC_Direct_Connect_Connection_Status;
+        OS_Keylist SC_Direct_Connect_Connection_Status;
 #endif
         uint16_t Direct_Server_Port;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */

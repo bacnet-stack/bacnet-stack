@@ -99,6 +99,12 @@ typedef struct BACnetUUID_T_{
 
 #define BACNET_SC_BINDING_SEPARATOR    ':'
 
+enum BACNET_HOST_N_PORT_TYPE
+{
+    BACNET_HOST_N_PORT_IP = 1,
+    BACNET_HOST_N_PORT_HOST = 2    
+};
+
 typedef struct BACnetHostNPort_data_T {
     uint8_t type;
     char host[BACNET_URI_LENGTH];
@@ -414,10 +420,11 @@ bool Network_Port_SC_Hub_Function_Binding_Dirty_Set(
 
 BACNET_STACK_EXPORT
 BACNET_SC_HUB_FUNCTION_CONNECTION *
-Network_Port_SC_Hub_Function_Connection_Status(
-    uint32_t object_instance);
+Network_Port_SC_Hub_Function_Connection_Status_Get(
+    uint32_t object_instance,
+    uint8_t index);
 BACNET_STACK_EXPORT
-bool Network_Port_SC_Hub_Function_Connection_Status_Set(
+bool Network_Port_SC_Hub_Function_Connection_Status_Add(
     uint32_t object_instance,
     BACNET_SC_CONNECTION_STATE state,
     BACNET_DATE_TIME *connect_ts,
@@ -427,6 +434,16 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Set(
     uint8_t *peer_UUID,
     BACNET_ERROR_CODE error,
     const char *error_details);
+BACNET_STACK_EXPORT
+bool Network_Port_SC_Hub_Function_Connection_Status_Delete_By_Index(
+    uint32_t object_instance,
+    uint8_t index);
+BACNET_STACK_EXPORT
+bool Network_Port_SC_Hub_Function_Connection_Status_Delete_All(
+    uint32_t object_instance);
+BACNET_STACK_EXPORT
+int Network_Port_SC_Hub_Function_Connection_Status_Count(
+    uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Initiate_Enable(
@@ -502,20 +519,31 @@ bool Network_Port_SC_Direct_Connect_Binding_Dirty_Set(
 
 BACNET_STACK_EXPORT
 BACNET_SC_DIRECT_CONNECTION *
-Network_Port_SC_Direct_Connect_Connection_Status(
-    uint32_t object_instance);
+Network_Port_SC_Direct_Connect_Connection_Status_Get(
+    uint32_t object_instance,
+    uint8_t index);
 BACNET_STACK_EXPORT
-bool Network_Port_SC_Direct_Connect_Connection_Status_Set(
+bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     uint32_t object_instance,
     const char *uri,
     BACNET_SC_CONNECTION_STATE state,
     BACNET_DATE_TIME *connect_ts,
     BACNET_DATE_TIME *disconnect_ts,
-    BACNET_HOST_N_PORT *peer_address,
+    BACNET_HOST_N_PORT_DATA *peer_address,
     uint8_t *peer_VMAC,
     uint8_t *peer_UUID,
     BACNET_ERROR_CODE error,
     const char *error_details);
+BACNET_STACK_EXPORT
+bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_By_Index(
+    uint32_t object_instance,
+    uint8_t index);
+BACNET_STACK_EXPORT
+bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_All(
+    uint32_t object_instance);
+BACNET_STACK_EXPORT
+int Network_Port_SC_Direct_Connect_Connection_Status_Count(
+    uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 BACNET_SC_FAILED_CONNECTION_REQUEST *
@@ -526,7 +554,7 @@ BACNET_STACK_EXPORT
 bool Network_Port_SC_Failed_Connection_Requests_Add(
     uint32_t object_instance,
     BACNET_DATE_TIME *ts,
-    BACNET_HOST_N_PORT *peer_address,
+    BACNET_HOST_N_PORT_DATA *peer_address,
     uint8_t *peer_VMAC,
     uint8_t *peer_UUID,
     BACNET_ERROR_CODE error,
