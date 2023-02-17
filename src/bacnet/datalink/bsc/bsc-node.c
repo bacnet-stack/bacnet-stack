@@ -913,7 +913,18 @@ bsc_node_hub_connector_state(BSC_NODE *node)
     return ret;
 }
 
-BACNET_STACK_EXPORT
+BACNET_SC_HUB_CONNECTION_STATUS *bsc_node_hub_connector_status(
+    BSC_NODE *node, bool primary)
+{
+    BACNET_SC_HUB_CONNECTION_STATUS *ret = NULL;
+    bws_dispatch_lock();
+    if (node->state == BSC_NODE_STATE_STARTED) {
+        ret = bsc_hub_connector_status(node->hub_connector, primary);
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
 void bsc_node_maintenance_timer(uint16_t seconds)
 {
     (void)seconds;

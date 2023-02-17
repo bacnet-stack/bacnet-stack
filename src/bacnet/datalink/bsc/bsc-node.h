@@ -130,6 +130,10 @@ BACNET_SC_HUB_CONNECTOR_STATE
 bsc_node_hub_connector_state(BSC_NODE *node);
 
 BACNET_STACK_EXPORT
+BACNET_SC_HUB_CONNECTION_STATUS*
+bsc_node_hub_connector_status(BSC_NODE *node, bool primary);
+
+BACNET_STACK_EXPORT
 bool bsc_node_direct_connection_established(
     BSC_NODE *node,
     BACNET_SC_VMAC_ADDRESS *dest,

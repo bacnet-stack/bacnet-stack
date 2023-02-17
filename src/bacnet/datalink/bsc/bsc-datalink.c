@@ -143,7 +143,7 @@ bool bsc_init(char *ifname)
         bsc_deinit_resources();
         bws_dispatch_unlock();
         PRINTF("bsc_init() <<< configuration of BACNET/SC datalink "
-                     "failed, ret = false\n");
+               "failed, ret = false\n");
         return ret;
     }
 
@@ -221,8 +221,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
             memcpy(&dest_vmac.address[0], &dest->mac[0], BVLC_SC_VMAC_SIZE);
         } else {
             bws_dispatch_unlock();
-            PRINTF(
-                "bsc_send_pdu() <<< ret = -1, incorrect dest mac address\n");
+            PRINTF("bsc_send_pdu() <<< ret = -1, incorrect dest mac address\n");
             return len;
         }
 
@@ -285,7 +284,7 @@ uint16_t bsc_receive(
                 if (!bvlc_sc_decode_message(
                         buf, npdu_len, &dm, &error, &class, &err_desc)) {
                     PRINTF("bsc_receive() pdu of size %d is dropped because "
-                        "of err = %d, class %d, desc = %s\n",
+                           "of err = %d, class %d, desc = %s\n",
                         npdu_len, error, class, err_desc);
                     bsc_remove_packet(npdu_len);
                 } else {
@@ -301,8 +300,8 @@ uint16_t bsc_receive(
 #if DEBUG_ENABLED == 1
                     else {
                         PRINTF("bsc_receive() pdu of size %d is dropped "
-                            "because origin addr is absent or output "
-                            "buf of size %d is to small\n",
+                               "because origin addr is absent or output "
+                               "buf of size %d is to small\n",
                             npdu_len, max_pdu);
                     }
 #endif
@@ -392,10 +391,33 @@ static void bsc_update_hub_connector_state(void)
     Network_Port_SC_Hub_Connector_State_Set(instance, state);
 }
 
+static void bsc_update_hub_connector_status(void)
+{
+    BACNET_SC_HUB_CONNECTION_STATUS *status;
+    uint32_t instance;
+
+    instance = Network_Port_Index_To_Instance(0);
+    status = bsc_node_hub_connector_status(bsc_node, true);
+    if (status) {
+        Network_Port_SC_Primary_Hub_Connection_Status_Set(instance,
+            status->Connection_State, &status->Connect_Timestamp,
+            &status->Disconnect_Timestamp, status->Error,
+            status->Error_Details[0] ? status->Error_Details : NULL);
+    }
+    status = bsc_node_hub_connector_status(bsc_node, false);
+    if (status) {
+        Network_Port_SC_Failover_Hub_Connection_Status_Set(instance,
+            status->Connection_State, &status->Connect_Timestamp,
+            &status->Disconnect_Timestamp, status->Error,
+            status->Error_Details[0] ? status->Error_Details : NULL);
+    }
+}
+
 static void bsc_update_netport_properties(void)
 {
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
-         bsc_update_hub_connector_state();
+        bsc_update_hub_connector_state();
+        bsc_update_hub_connector_status();
     }
 }
 
