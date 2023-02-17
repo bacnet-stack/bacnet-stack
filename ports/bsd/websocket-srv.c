@@ -19,6 +19,7 @@
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/debug.h"
 #include "websocket-mutex.h"
+#include <arpa/inet.h>
 
 #define DEBUG_WEBSOCKET_SERVER 0
 
@@ -948,4 +949,44 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     pthread_mutex_unlock(ctx->mutex);
     DEBUG_PRINTF("bws_srv_dispatch_send() <<< ret = %d\n", ret);
     return ret;
+}
+
+bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    uint8_t *ip_str,
+    size_t ip_str_len,
+    uint16_t *port)
+{
+    BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
+    int fd;
+    struct sockaddr_storage addr;
+    socklen_t len;
+    const char *ret;
+
+    if (!ctx || h < 0 || !ip_str || !ip_str_len || !port ||
+        h >= bws_srv_get_max_sockets(ctx->proto)) {
+        return false;
+    }
+
+    pthread_mutex_lock(ctx->mutex);
+    len = sizeof(addr);
+    fd = lws_get_socket_fd(ctx->conn[h].ws);
+    getpeername(fd, (struct sockaddr *)&addr, &len);
+    if (addr.ss_family == AF_INET) {
+        struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+        *port = ntohs(s->sin_port);
+        ret = inet_ntop(AF_INET, &s->sin_addr, (char *)ip_str, ip_str_len);
+    } else { // AF_INET6
+        struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+        *port = ntohs(s->sin6_port);
+        ret = inet_ntop(AF_INET6, &s->sin6_addr, (char *)ip_str, ip_str_len);
+    }
+
+    pthread_mutex_unlock(ctx->mutex);
+
+    if (ret) {
+        return true;
+    }
+
+    return false;
 }

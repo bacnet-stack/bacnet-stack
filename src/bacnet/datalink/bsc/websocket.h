@@ -383,4 +383,24 @@ void bws_dispatch_lock(void);
 
 void bws_dispatch_unlock(void);
 
+/**
+ * @brief bws_srv_get_peer_ip_addr() gets ipv4 or ipv6 address as ANSI string
+ *        and port of remote peer.
+ *
+ * @pararm sh - websocket server handle.
+ * @param h - websocket handle.
+ * @param ip_str - buffer to store null terminated string of ip address.
+ * @param ip_str_len - size of ip_str buffer
+ * @param  port- pointer to store port of a remote node.
+ * 
+ * @return true if function succeeded otherwise returns false
+ *         if peer's address information can't be retrieved from
+ *         underlying websocket library.
+ */
+
+bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
+                              BSC_WEBSOCKET_HANDLE h,
+                              uint8_t* ip_str,
+                              size_t ip_str_len,
+                              uint16_t* port);
 #endif
