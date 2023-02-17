@@ -60,7 +60,9 @@
 #define SC_WAIT_CONNECT_MIN 5
 #define SC_WAIT_CONNECT_MAX 300
 
+#ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#endif
 
 static int string_splite(
     const char *str, char separator, int *indexes, int length);
@@ -954,6 +956,34 @@ bool Network_Port_SC_Hub_Function_Accept_URI_Set(
     return true;
 }
 
+/**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to n for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for invalid array index
+ */
+int Network_Port_SC_Hub_Function_Accept_URI_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    BACNET_CHARACTER_STRING uri = { 0 };
+
+    if (index >= BACNET_SC_DIRECT_ACCEPT_URI_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        if (Network_Port_SC_Hub_Function_Accept_URI(
+                object_instance, index, &uri)) {
+            apdu_len = encode_application_character_string(apdu, &uri);
+        }
+    }
+
+    return apdu_len;
+}
+
 bool Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set(
     uint32_t object_instance, uint8_t index, const char *str)
 {
@@ -1157,6 +1187,44 @@ int Network_Port_SC_Hub_Function_Connection_Status_Count(
     return params->SC_Hub_Function_Connection_Status_Count;
 }
 
+/**
+ * @brief Handle a request to encode all the the entries
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ *
+ * @return How many bytes were encoded in the buffer, or
+ *   BACNET_STATUS_ABORT if the response would not fit within the buffer.
+ */
+int Network_Port_SC_Hub_Function_Connection_Status_Encode(
+    uint32_t object_instance, uint8_t *apdu, int max_apdu)
+{
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *entry = NULL;
+    int apdu_len = 0;
+    unsigned index = 0;
+    unsigned size = 0;
+
+    size =
+        Network_Port_SC_Hub_Function_Connection_Status_Count(object_instance);
+    for (index = 0; index < size; index++) {
+        entry = Network_Port_SC_Hub_Function_Connection_Status_Get(
+            object_instance, index);
+        apdu_len += bacapp_encode_SCHubFunctionConnection(NULL, entry);
+    }
+    if (apdu_len > max_apdu) {
+        return BACNET_STATUS_ABORT;
+    }
+    apdu_len = 0;
+    for (index = 0; index < size; index++) {
+        entry = Network_Port_SC_Hub_Function_Connection_Status_Get(
+            object_instance, index);
+        apdu_len +=
+            bacapp_encode_SCHubFunctionConnection(&apdu[apdu_len], entry);
+    }
+
+    return apdu_len;
+}
+
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
@@ -1326,6 +1394,34 @@ bool Network_Port_SC_Direct_Connect_Accept_URI_Set(
         sizeof(params->SC_Direct_Connect_Accept_URIs), index, str);
 
     return true;
+}
+
+/**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to n for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for ERROR_CODE_INVALID_ARRAY_INDEX
+ */
+int Network_Port_SC_Direct_Connect_Accept_URI_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    BACNET_CHARACTER_STRING uri = { 0 };
+
+    if (index >= BACNET_SC_DIRECT_ACCEPT_URI_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        if (Network_Port_SC_Direct_Connect_Accept_URI(
+                object_instance, index, &uri)) {
+            apdu_len = encode_application_character_string(apdu, &uri);
+        }
+    }
+
+    return apdu_len;
 }
 
 bool Network_Port_SC_Direct_Connect_Accept_URI_Dirty_Set(
@@ -1553,6 +1649,42 @@ int Network_Port_SC_Direct_Connect_Connection_Status_Count(
     return params->SC_Direct_Connect_Connection_Status_Count;
 }
 
+/**
+ * @brief Handle a request to encode all the the entries
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ *
+ * @return How many bytes were encoded in the buffer, or
+ *   BACNET_STATUS_ABORT if the response would not fit within the buffer.
+ */
+int Network_Port_SC_Direct_Connect_Connection_Status_Encode(
+    uint32_t object_instance, uint8_t *apdu, int max_apdu)
+{
+    BACNET_SC_DIRECT_CONNECTION_STATUS *entry = NULL;
+    int apdu_len = 0;
+    unsigned index = 0;
+    unsigned size = 0;
+
+    size =
+        Network_Port_SC_Direct_Connect_Connection_Status_Count(object_instance);
+    for (index = 0; index < size; index++) {
+        entry = Network_Port_SC_Direct_Connect_Connection_Status_Get(
+            object_instance, index);
+        apdu_len += bacapp_encode_SCDirectConnection(NULL, entry);
+    }
+    if (apdu_len > max_apdu) {
+        return BACNET_STATUS_ABORT;
+    }
+    apdu_len = 0;
+    for (index = 0; index < size; index++) {
+        entry = Network_Port_SC_Direct_Connect_Connection_Status_Get(
+            object_instance, index);
+        apdu_len += bacapp_encode_SCDirectConnection(&apdu[apdu_len], entry);
+    }
+
+    return apdu_len;
+}
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 BACNET_SC_FAILED_CONNECTION_REQUEST *
@@ -1624,6 +1756,42 @@ int Network_Port_SC_Failed_Connection_Requests_Count(uint32_t object_instance)
         return 0;
 
     return params->SC_Failed_Connection_Requests_Count;
+}
+
+/**
+ * @brief Handle a request to encode all the the entries
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [out] Buffer in which the APDU contents are built.
+ * @param max_apdu [in] Max length of the APDU buffer.
+ * @return How many bytes were encoded in the buffer, or
+ *   BACNET_STATUS_ABORT if the response would not fit within the buffer.
+ */
+int Network_Port_SC_Failed_Connection_Requests_Encode(
+    uint32_t object_instance, uint8_t *apdu, int max_apdu)
+{
+    BACNET_SC_FAILED_CONNECTION_REQUEST *entry = NULL;
+    int apdu_len = 0;
+    unsigned index = 0;
+    unsigned size = 0;
+
+    size = Network_Port_SC_Failed_Connection_Requests_Count(object_instance);
+    for (index = 0; index < size; index++) {
+        entry = Network_Port_SC_Failed_Connection_Requests_Get(
+            object_instance, index);
+        apdu_len += bacapp_encode_SCFailedConnectionRequest(NULL, entry);
+    }
+    if (apdu_len > max_apdu) {
+        return BACNET_STATUS_ABORT;
+    }
+    apdu_len = 0;
+    for (index = 0; index < size; index++) {
+        entry = Network_Port_SC_Failed_Connection_Requests_Get(
+            object_instance, index);
+        apdu_len +=
+            bacapp_encode_SCFailedConnectionRequest(&apdu[apdu_len], entry);
+    }
+
+    return apdu_len;
 }
 
 uint32_t Network_Port_Certificate_Key_File(uint32_t object_instance)

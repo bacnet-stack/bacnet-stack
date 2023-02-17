@@ -43,6 +43,6 @@ manifest:
       west-commands: scripts/west-commands.yml
       import: true
     - name: mongoose
-      revision: 4c83f4e2de7842c4786c3c5d8fbec8e9bd8d4260
+      revision: 7.9
       path: modules/lib/mongoose
       url: https://github.com/cesanta/mongoose.git

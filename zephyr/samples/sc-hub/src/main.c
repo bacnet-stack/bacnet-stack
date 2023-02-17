@@ -167,7 +167,7 @@ static bool init_bsc(void)
 
     rc = littlefs_flash_erase((uintptr_t)mnt.storage_dev);
     if (rc < 0) {
-        return rc;
+        return false;
     }
 
     rc = fs_mount(&mnt);

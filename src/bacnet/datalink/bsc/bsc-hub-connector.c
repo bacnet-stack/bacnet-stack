@@ -111,6 +111,7 @@ static BSC_HUB_CONNECTOR *hub_connector_alloc(void)
 
 static void hub_connector_free(BSC_HUB_CONNECTOR *c)
 {
+    DEBUG_PRINTF("hub_connector_free() c = %p\n", c);
     c->used = false;
 }
 

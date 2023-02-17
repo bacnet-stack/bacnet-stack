@@ -82,6 +82,7 @@ void bsc_generate_random_vmac(BACNET_SC_VMAC_ADDRESS *p)
             p->address[i] = (p->address[i] & 0xF0) | 0x02;
         }
     }
+    debug_dump_buffer("bsc_generate_random_vmac", p->address, BVLC_SC_VMAC_SIZE);
 }
 
 void bsc_generate_random_uuid(BACNET_SC_UUID *p)
@@ -91,6 +92,7 @@ void bsc_generate_random_uuid(BACNET_SC_UUID *p)
     for (i = 0; i < BVLC_SC_UUID_SIZE; i++) {
         p->uuid[i] = rand() % 255;
     }
+    debug_dump_buffer("bsc_generate_random_uuid", p->uuid, BVLC_SC_UUID_SIZE);
 }
 
 /*
@@ -109,23 +111,27 @@ static bool bsc_node_load_cert_bacfile(
     uint32_t file_instance, uint8_t **pbuf, size_t *psize)
 {
     uint32_t file_length;
+    uint8_t *buf;
 
     *psize = bacfile_file_size(file_instance) + ZERO_BYTE;
     if (*psize == 0)
         return false;
 
-    *pbuf = calloc(1, *psize);
-    if (*pbuf == NULL)
+    buf = calloc(1, *psize);
+    if (buf == NULL)
         return false;
 
-    file_length = bacfile_read(file_instance, *pbuf, (uint32_t) (*psize - ZERO_BYTE));
+    file_length = 
+        bacfile_read(file_instance, buf, (uint32_t) (*psize - ZERO_BYTE));
 #ifdef CONFIG_MBEDTLS
-    pbuf[*psize - 1] = 0;
+    buf[*psize - 1] = 0;
 #endif
     if (file_length == 0) {
         PRINTF_ERR("Can't read %s file\n", bacfile_pathname(file_instance));
+        free(buf);
         return false;
     }
+    *pbuf = buf;
     return true;
 }
 

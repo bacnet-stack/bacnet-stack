@@ -253,6 +253,10 @@ bool Network_Port_SC_Hub_Function_Accept_URI(
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Hub_Function_Accept_URI_Set(
     uint32_t object_instance, uint8_t index, const char *str);
+BACNET_STACK_EXPORT
+int Network_Port_SC_Hub_Function_Accept_URI_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+
 bool Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set(
     uint32_t object_instance, uint8_t index, const char *str);
 const char *Network_Port_SC_Hub_Function_Accept_URIs_char(
@@ -332,6 +336,10 @@ bool Network_Port_SC_Direct_Connect_Accept_URI(
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Accept_URI_Set(
     uint32_t object_instance, uint8_t index, const char *str);
+BACNET_STACK_EXPORT
+int Network_Port_SC_Direct_Connect_Accept_URI_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu);
+
 bool Network_Port_SC_Direct_Connect_Accept_URI_Dirty_Set(
     uint32_t object_instance, uint8_t index, const char *str);
 char *Network_Port_SC_Direct_Connect_Accept_URIs_char(uint32_t object_instance);
@@ -385,6 +393,9 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_All(
 BACNET_STACK_EXPORT
 int Network_Port_SC_Direct_Connect_Connection_Status_Count(
     uint32_t object_instance);
+BACNET_STACK_EXPORT
+int Network_Port_SC_Direct_Connect_Connection_Status_Encode(
+    uint32_t object_instance, uint8_t *apdu, int max_apdu);
 
 BACNET_STACK_EXPORT
 BACNET_SC_FAILED_CONNECTION_REQUEST *

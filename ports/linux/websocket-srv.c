@@ -28,7 +28,7 @@
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED
-#define DEBUG_PRINTF debug_printf_disabled
+#define DEBUG_PRINTF(...)
 #endif
 
 #define BSC_RX_BUFFER_LEN BSC_WEBSOCKET_RX_BUFFER_LEN
@@ -424,10 +424,11 @@ static int bws_srv_websocket_event(struct lws *wsi,
                              "data for websocket %d\n",
                     ctx, ctx->proto, len, h);
                 if (!lws_frame_is_binary(wsi)) {
-                    /*  According AB.7.5.3 BACnet/SC BVLC Message Exchange,
-                        if a received data frame is not binary,
-                        the WebSocket connection shall be closed with a
-                        status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED. */
+                    /* According AB.7.5.3 BACnet/SC BVLC Message Exchange,
+                       if a received data frame is not binary,
+                       the WebSocket connection shall be closed with a
+                       status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED.
+                    */
                     DEBUG_PRINTF(
                         "bws_srv_websocket_event() ctx %p proto %d got "
                         "non-binary frame, "
@@ -590,21 +591,21 @@ static void *bws_srv_worker(void *arg)
             DEBUG_PRINTF("bws_srv_worker() destroy wsctx %p, ctx = %p, "
                          "user_param = %p\n",
                 ctx->wsctx, ctx, ctx->user_param);
-            /*  TRICKY:
-                This is ridiculus but lws_context_destroy()
-                doesn't seem to be thread safe.
-                More over, on different platforms the
-                function behaves in different ways. Call of
-                lws_context_destroy() leads to several calls of
-                bws_srv_websocket_event() callback (LWS_CALLBACK_CLOSED,
-                etc..). But under some OS (MacOSx) that callback is
-                called from context of the bws_cli_worker() thread and
-                under some other OS (linux) the callback is called from
-                internal libwebsockets lib thread. That's why
-                bws_cli_mutex must be unlocked before
-                lws_context_destroy() call. To ensure that nobody calls
-                lws_context_destroy() from some parallel thread it is
-                protected by global websocket mutex. */
+            /* TRICKY: This is ridiculus but lws_context_destroy()
+                       does't seem to be
+                       thread safe. More over, on different platforms the
+                       function behaves in different ways. Call of
+                       lws_context_destroy() leads to several calls of
+                       bws_srv_websocket_event() callback (LWS_CALLBACK_CLOSED,
+                       etc..). But under some OS (MacOSx) that callback is
+                       called from context of the bws_cli_worker() thread and
+                       under some other OS (linux) the callback is called from
+                       internal libwebsockets lib thread. That's why
+                       bws_cli_mutex must be unlocked before
+                       lws_context_destroy() call. To ensure that nobody calls
+                       lws_context_destroy() from some parallel thread it is
+                       protected by global websocket mutex.
+            */
             pthread_mutex_unlock(ctx->mutex);
             bsc_websocket_global_lock();
             lws_context_destroy(ctx->wsctx);
@@ -742,11 +743,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     pthread_mutex_lock(ctx->mutex);
     info.port = port;
     info.iface = iface;
-    if (proto == BSC_WEBSOCKET_HUB_PROTOCOL) {
-        info.protocols = bws_hub_protocol;
-    } else {
-        info.protocols = bws_direct_protocol;
-    }
+    info.protocols = protos;
     info.gid = -1;
     info.uid = -1;
     info.server_ssl_cert_mem = cert;

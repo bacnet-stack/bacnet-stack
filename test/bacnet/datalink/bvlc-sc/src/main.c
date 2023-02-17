@@ -329,7 +329,7 @@ static void test_3_options_different_buffer_data(uint8_t *pdu,
         sizeof(proprietary_data2));
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_add_option_to_data_options(
-        buf1, sizeof(buf), buf, len, optbuf, optlen);
+        buf1, sizeof(buf1), buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
     ret =
         bvlc_sc_decode_message(buf1, len, &message, &error, &class, &err_desc);
@@ -2079,7 +2079,7 @@ static void test_BVLC_RESULT(void)
     optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
     zassert_not_equal(optlen, 0, NULL);
     len = bvlc_sc_add_option_to_data_options(
-        buf, sizeof(buf), buf, len, optbuf, optlen);
+        buf, buf_len, buf, len, optbuf, optlen);
     zassert_not_equal(len, 0, NULL);
     ret = bvlc_sc_decode_message(buf, len, &message, &error, &class, &err_desc);
     zassert_equal(ret, false, NULL);
@@ -3741,7 +3741,6 @@ static void test_BAD_ENCODE_PARAMS(void)
     BACNET_SC_UUID local_uuid;
     uint8_t data[34];
     uint8_t proprietary_function = 0xea;
-    const char *err_desc = NULL;
 
     memset(data, 0x66, sizeof(data));
     memset(&local_uuid, 0x22, sizeof(local_uuid));
@@ -3878,11 +3877,6 @@ static void test_BAD_DECODE_PARAMS(void)
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
     bool ret;
-    uint8_t error_header_marker = 0xcc;
-    uint16_t error_class = 0xaa;
-    uint16_t error_code = 0xdd;
-    char *error_details_string = "something bad has happend";
-    uint8_t proprietary_function = 0xea;
     const char *err_desc = NULL;
 
     memset(buf, 0, sizeof(buf));
@@ -3918,7 +3912,7 @@ static void test_BROADCAST(void)
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     const char *err_desc = NULL;
-    BACNET_SC_UUID uuid = { 0x34 };
+    BACNET_SC_UUID uuid = {{ 0x34 }};
 
     memset(&dest.address, 0xFF, sizeof(dest.address));
     memset(&orig.address, 0x12, sizeof(orig.address));
