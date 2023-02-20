@@ -925,6 +925,19 @@ BACNET_SC_HUB_CONNECTION_STATUS *bsc_node_hub_connector_status(
     return ret;
 }
 
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_hub_function_status(
+    BSC_NODE *node, size_t *cnt)
+{
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *ret = NULL;
+    bws_dispatch_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        node->conf->hub_function_enabled) {
+        ret = bsc_hub_function_status(node->hub_function, cnt);
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
 void bsc_node_maintenance_timer(uint16_t seconds)
 {
     (void)seconds;

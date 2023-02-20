@@ -68,20 +68,19 @@ static bool string_subsstr(
 static void host_n_port_to_data(
     BACNET_HOST_N_PORT *peer, BACNET_HOST_N_PORT_DATA *peer_data)
 {
-    peer_data->type =
-        (peer->host_ip_address ? BACNET_HOST_N_PORT_IP : 0) +
+    peer_data->type = (peer->host_ip_address ? BACNET_HOST_N_PORT_IP : 0) +
         (peer->host_name ? BACNET_HOST_N_PORT_HOST : 0);
 
     if (peer->host_ip_address) {
         octetstring_copy_value(
-                (uint8_t *)peer_data->host, 6, &peer->host.ip_address);
+            (uint8_t *)peer_data->host, 6, &peer->host.ip_address);
     } else if (peer->host_name) {
         characterstring_ansi_copy(
-                peer_data->host, sizeof(peer_data->host), &peer->host.name);
+            peer_data->host, sizeof(peer_data->host), &peer->host.name);
     } else {
         peer_data->host[0] = 0;
     }
-    
+
     peer_data->port = peer->port;
 }
 
@@ -1065,7 +1064,7 @@ Network_Port_SC_Hub_Function_Connection_Status_Get(
         return NULL;
 
     connection = &params->SC_Hub_Function_Connection_Status;
-        Keylist_Data_Index(params->SC_Hub_Function_Connection_Status, index);
+    Keylist_Data_Index(params->SC_Hub_Function_Connection_Status, index);
 
     return connection;
 }
@@ -1094,7 +1093,7 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Add(
     st->State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
-    host_n_port_to_data(peer_address, &st->Peer_Address);
+    st->Peer_Address = *peer_address;
     memcpy(st->Peer_VMAC, peer_VMAC, sizeof(st->Peer_VMAC));
     memcpy(st->Peer_UUID.uuid.uuid128, peer_UUID,
         sizeof(st->Peer_UUID.uuid.uuid128));
@@ -1510,7 +1509,7 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     st->Connection_State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
-    //host_n_port_to_data(peer_address, &st->Peer_Address);
+    // host_n_port_to_data(peer_address, &st->Peer_Address);
     memcpy(st->Peer_Address, peer_address, sizeof(st->Peer_Address));
     memcpy(st->Peer_VMAC, peer_VMAC, sizeof(st->Peer_VMAC));
     memcpy(st->Peer_UUID.uuid.uuid128, peer_UUID,
@@ -1523,8 +1522,7 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
         st->Error_Details[0] = 0;
 
     status = Keylist_Data_Add(params->SC_Direct_Connect_Connection_Status,
-        Keylist_Next_Empty_Key(params->SC_Failed_Connection_Requests, 0),
-        st);
+        Keylist_Next_Empty_Key(params->SC_Failed_Connection_Requests, 0), st);
 
     return st;
 }
@@ -1608,7 +1606,7 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
         return false;
 
     entry->Timestamp = *ts;
-    //host_n_port_to_data(peer_address, &entry->Peer_Address);
+    // host_n_port_to_data(peer_address, &entry->Peer_Address);
     memcpy(entry->Peer_Address, peer_address, sizeof(entry->Peer_Address));
     memcpy(entry->Peer_VMAC, peer_VMAC, sizeof(entry->Peer_VMAC));
     memcpy(entry->Peer_UUID.uuid.uuid128, peer_UUID,
@@ -1856,7 +1854,7 @@ int bacapp_decode_context_SCHubConnection(
  * @return length of the encoded APDU buffer
  */
 int bacapp_encode_SCHubFunctionConnection(
-    uint8_t *apdu, BACNET_SC_HUB_FUNCTION_CONNECTION *value)
+    uint8_t *apdu, BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
     BACNET_CHARACTER_STRING str;
@@ -1899,7 +1897,7 @@ int bacapp_encode_SCHubFunctionConnection(
 }
 
 int bacapp_decode_SCHubFunctionConnection(
-    uint8_t *apdu, BACNET_SC_HUB_FUNCTION_CONNECTION *value)
+    uint8_t *apdu, BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
     int len;
@@ -1958,8 +1956,9 @@ int bacapp_decode_SCHubFunctionConnection(
     return len;
 }
 
-int bacapp_encode_context_SCHubFunctionConnection(
-    uint8_t *apdu, uint8_t tag_number, BACNET_SC_HUB_FUNCTION_CONNECTION *value)
+int bacapp_encode_context_SCHubFunctionConnection(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
@@ -1975,8 +1974,9 @@ int bacapp_encode_context_SCHubFunctionConnection(
     return apdu_len;
 }
 
-int bacapp_decode_context_SCHubFunctionConnection(
-    uint8_t *apdu, uint8_t tag_number, BACNET_SC_HUB_FUNCTION_CONNECTION *value)
+int bacapp_decode_context_SCHubFunctionConnection(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value)
 {
     int len = 0;
     int section_len;
@@ -2286,7 +2286,7 @@ int bacapp_decode_context_RouterEntry(
  * @return length of the encoded APDU buffer
  */
 int bacapp_encode_SCDirectConnection(
-    uint8_t *apdu, BACNET_SC_DIRECT_CONNECTION *value)
+    uint8_t *apdu, BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
     BACNET_CHARACTER_STRING str;
@@ -2336,7 +2336,7 @@ int bacapp_encode_SCDirectConnection(
 }
 
 int bacapp_decode_SCDirectConnection(
-    uint8_t *apdu, BACNET_SC_DIRECT_CONNECTION *value)
+    uint8_t *apdu, BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
     int len;
@@ -2402,8 +2402,9 @@ int bacapp_decode_SCDirectConnection(
     return len;
 }
 
-int bacapp_encode_context_SCDirectConnection(
-    uint8_t *apdu, uint8_t tag_number, BACNET_SC_DIRECT_CONNECTION *value)
+int bacapp_encode_context_SCDirectConnection(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
     int len = 0; /* length of each encoding */
     int apdu_len = 0;
@@ -2419,8 +2420,9 @@ int bacapp_encode_context_SCDirectConnection(
     return apdu_len;
 }
 
-int bacapp_decode_context_SCDirectConnection(
-    uint8_t *apdu, uint8_t tag_number, BACNET_SC_DIRECT_CONNECTION *value)
+int bacapp_decode_context_SCDirectConnection(uint8_t *apdu,
+    uint8_t tag_number,
+    BACNET_SC_DIRECT_CONNECTION_STATUS *value)
 {
     int len = 0;
     int section_len;

@@ -61,6 +61,8 @@ typedef struct BSC_Hub_Connector {
     BSC_HUB_FUNCTION_STATE state;
     BSC_HUB_EVENT_FUNC event_func;
     void *user_arg;
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS
+        status[BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM];
 } BSC_HUB_FUNCTION;
 
 static BSC_HUB_FUNCTION bsc_hub_function[BSC_CONF_HUB_FUNCTIONS_NUM] = { 0 };
@@ -73,10 +75,12 @@ static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
 
 static BSC_HUB_FUNCTION *hub_function_alloc(void)
 {
-    int i;
+    int i, j;
     for (i = 0; i < BSC_CONF_HUB_FUNCTIONS_NUM; i++) {
         if (!bsc_hub_function[i].used) {
             bsc_hub_function[i].used = true;
+            memset(bsc_hub_function[i].status, 0,
+                sizeof(bsc_hub_function[i].status));
             return &bsc_hub_function[i];
         }
     }
@@ -137,11 +141,101 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
     return NULL;
 }
 
+static BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
+hub_function_find_status_for_vmac(
+    BSC_HUB_FUNCTION *f, BACNET_SC_VMAC_ADDRESS *vmac)
+{
+    int i;
+    int non_connected_index = -1;
+    BACNET_DATE_TIME timestamp;
+
+    for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (!memcmp(&f->status[i].Peer_VMAC[0], &vmac->address[0],
+                BVLC_SC_VMAC_SIZE)) {
+            return &f->status[i];
+        }
+        if (f->status[i].State != BACNET_CONNECTED) {
+            if (non_connected_index < 0 &&
+                datetime_time_is_valid(
+                    &f->status[i].Disconnect_Timestamp.time) &&
+                datetime_date_is_valid(
+                    &f->status[i].Disconnect_Timestamp.date)) {
+                non_connected_index = i;
+                memcpy(&timestamp, &f->status[i].Disconnect_Timestamp,
+                    sizeof(timestamp));
+            } else {
+                if (datetime_time_is_valid(
+                        &f->status[i].Disconnect_Timestamp.time) &&
+                    datetime_date_is_valid(
+                        &f->status[i].Disconnect_Timestamp.date)) {
+                    if (datetime_compare(&f->status[i].Disconnect_Timestamp,
+                            &timestamp) < 0) {
+                        non_connected_index = i;
+                        memcpy(&timestamp, &f->status[i].Disconnect_Timestamp,
+                            sizeof(timestamp));
+                    }
+                }
+            }
+        }
+    }
+
+    return non_connected_index < 0 ? NULL : &f->status[non_connected_index];
+}
+
+static void hub_function_set_timestamp(BACNET_DATE_TIME *timestamp)
+{
+    int16_t utc_offset_minutes;
+    bool dst_active;
+    datetime_local(
+        &timestamp->date, &timestamp->time, &utc_offset_minutes, &dst_active);
+}
+
+static void hub_function_update_status(BSC_HUB_FUNCTION *f,
+    BSC_SOCKET *c,
+    BSC_SOCKET_EVENT ev,
+    BACNET_ERROR_CODE reason,
+    const char *reason_desc)
+{
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s;
+    BACNET_SC_CONNECTION_STATE st = BACNET_DISCONNECTED_WITH_ERRORS;
+
+    s = hub_function_find_status_for_vmac(f, &c->vmac);
+
+    if (s) {
+        memcpy(s->Peer_VMAC, &c->vmac.address[0], BVLC_SC_VMAC_SIZE);
+        memcpy(
+            &s->Peer_UUID.uuid.uuid128[0], &c->uuid.uuid[0], BVLC_SC_UUID_SIZE);
+        if (!bsc_socket_get_peer_addr(c, &s->Peer_Address)) {
+            memset(&s->Peer_Address, 0, sizeof(s->Peer_Address));
+        }
+        if (reason_desc) {
+            bsc_copy_str(
+                s->Error_Details, reason_desc, sizeof(s->Error_Details));
+        } else {
+            s->Error_Details[0] = 0;
+        }
+        if (ev == BSC_SOCKET_EVENT_CONNECTED) {
+            s->State = BACNET_CONNECTED;
+            hub_function_set_timestamp(&s->Connect_Timestamp);
+            memset(&s->Disconnect_Timestamp, 0xFF,
+                sizeof(s->Disconnect_Timestamp));
+        } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+            s->Error = reason;
+            hub_function_set_timestamp(&s->Disconnect_Timestamp);
+            if (reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
+                reason == ERROR_CODE_SUCCESS) {
+                s->State = BACNET_NOT_CONNECTED;
+            } else {
+                s->State = BACNET_DISCONNECTED_WITH_ERRORS;
+            }
+        }
+    }
+}
+
 static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
-
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
@@ -151,6 +245,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     int i;
     uint8_t **ppdu = &pdu;
     BSC_HUB_FUNCTION *f;
+
     bws_dispatch_lock();
     f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
@@ -197,10 +292,14 @@ static void hub_function_socket_event(BSC_SOCKET *c,
                 }
             }
         }
-    } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED &&
-        reason == ERROR_CODE_NODE_DUPLICATE_VMAC) {
-        f->event_func(BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC,
-            (BSC_HUB_FUNCTION_HANDLE)f, f->user_arg);
+    } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+        hub_function_update_status(f, c, ev, reason, reason_desc);
+        if (reason == ERROR_CODE_NODE_DUPLICATE_VMAC) {
+            f->event_func(BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC,
+                (BSC_HUB_FUNCTION_HANDLE)f, f->user_arg);
+        }
+    } else if (ev == BSC_SOCKET_EVENT_CONNECTED) {
+        hub_function_update_status(f, c, ev, reason, reason_desc);
     }
     bws_dispatch_unlock();
 }
@@ -331,5 +430,20 @@ bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h)
     }
     bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_hub_function_started() <<< ret = %d\n", ret);
+    return ret;
+}
+
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS*
+bsc_hub_function_status(BSC_HUB_FUNCTION_HANDLE h, size_t* cnt)
+{
+    BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS* ret = NULL;
+
+    bws_dispatch_lock();
+    if (f && f->state == BSC_HUB_FUNCTION_STATE_STARTED) {
+        ret = f->status;
+        *cnt = BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM;
+    }
+    bws_dispatch_unlock();
     return ret;
 }

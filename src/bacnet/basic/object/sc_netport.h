@@ -120,7 +120,7 @@ typedef struct BACnetSCHubConnectionStatus_T {
     char Error_Details[BACNET_ERROR_STRING_LENGTH]; /* index = 4 */
 } BACNET_SC_HUB_CONNECTION_STATUS;
 
-typedef struct BACnetSCHubFunctionConnection_T {
+typedef struct BACnetSCHubFunctionConnectionStatus_T {
     BACNET_SC_CONNECTION_STATE State;
     BACNET_DATE_TIME Connect_Timestamp;
     BACNET_DATE_TIME Disconnect_Timestamp;
@@ -129,7 +129,7 @@ typedef struct BACnetSCHubFunctionConnection_T {
     BACNET_UUID Peer_UUID;
     BACNET_ERROR_CODE Error;
     char Error_Details[BACNET_ERROR_STRING_LENGTH];
-} BACNET_SC_HUB_FUNCTION_CONNECTION;
+} BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS;
 
 typedef struct BACnetSCFailedConnectionRequest_T {
     BACNET_DATE_TIME Timestamp;
@@ -151,7 +151,7 @@ typedef struct BACnetRouterEntry_T {
     uint8_t Performance_Index;
 } BACNET_ROUTER_ENTRY;
 
-typedef struct BACnetSCDirectConnection_T {
+typedef struct BACnetSCDirectConnectionStatus_T {
     char URI[BACNET_URI_LENGTH];
     BACNET_SC_CONNECTION_STATE Connection_State;
     BACNET_DATE_TIME Connect_Timestamp;
@@ -161,7 +161,7 @@ typedef struct BACnetSCDirectConnection_T {
     BACNET_UUID Peer_UUID;
     BACNET_ERROR_CODE Error;
     char Error_Details[BACNET_ERROR_STRING_LENGTH];
-} BACNET_SC_DIRECT_CONNECTION;
+} BACNET_SC_DIRECT_CONNECTION_STATUS;
 
 /* */
 /* getter / setter */
@@ -419,7 +419,7 @@ bool Network_Port_SC_Hub_Function_Binding_Dirty_Set(
     const char *str);
 
 BACNET_STACK_EXPORT
-BACNET_SC_HUB_FUNCTION_CONNECTION *
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
 Network_Port_SC_Hub_Function_Connection_Status_Get(
     uint32_t object_instance,
     uint8_t index);
@@ -429,7 +429,7 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Add(
     BACNET_SC_CONNECTION_STATE state,
     BACNET_DATE_TIME *connect_ts,
     BACNET_DATE_TIME *disconnect_ts,
-    BACNET_HOST_N_PORT *peer_address,
+    BACNET_HOST_N_PORT_DATA *peer_address,
     uint8_t *peer_VMAC,
     uint8_t *peer_UUID,
     BACNET_ERROR_CODE error,
@@ -518,7 +518,7 @@ bool Network_Port_SC_Direct_Connect_Binding_Dirty_Set(
     const char *str);
 
 BACNET_STACK_EXPORT
-BACNET_SC_DIRECT_CONNECTION *
+BACNET_SC_DIRECT_CONNECTION_STATUS *
 Network_Port_SC_Direct_Connect_Connection_Status_Get(
     uint32_t object_instance,
     uint8_t index);
@@ -612,21 +612,21 @@ int bacapp_decode_context_SCHubConnection(
 BACNET_STACK_EXPORT
 int bacapp_encode_SCHubFunctionConnection(
     uint8_t *apdu,
-    BACNET_SC_HUB_FUNCTION_CONNECTION *value);
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_SCHubFunctionConnection(
     uint8_t *apdu,
-    BACNET_SC_HUB_FUNCTION_CONNECTION *value);
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_SCHubFunctionConnection(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_HUB_FUNCTION_CONNECTION *value);
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_context_SCHubFunctionConnection(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_HUB_FUNCTION_CONNECTION *value);
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
 
 BACNET_STACK_EXPORT
 int bacapp_encode_SCFailedConnectionRequest(
@@ -669,21 +669,21 @@ int bacapp_decode_context_RouterEntry(
 BACNET_STACK_EXPORT
 int bacapp_encode_SCDirectConnection(
     uint8_t *apdu,
-    BACNET_SC_DIRECT_CONNECTION *value);
+    BACNET_SC_DIRECT_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_SCDirectConnection(
     uint8_t *apdu,
-    BACNET_SC_DIRECT_CONNECTION *value);
+    BACNET_SC_DIRECT_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_SCDirectConnection(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_DIRECT_CONNECTION *value);
+    BACNET_SC_DIRECT_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_decode_context_SCDirectConnection(
     uint8_t *apdu,
     uint8_t tag_number,
-    BACNET_SC_DIRECT_CONNECTION *value);
+    BACNET_SC_DIRECT_CONNECTION_STATUS *value);
 
 void Network_Port_SC_Pending_Params_Apply(
     uint32_t object_instance);

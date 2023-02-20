@@ -29,6 +29,7 @@
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/object/sc_netport.h"
 
 #ifndef BSC_CONF_RX_BUFFER_SIZE
 #define BSC_RX_BUFFER_SIZE 4096
@@ -277,5 +278,21 @@ uint16_t bsc_get_next_message_id(void);
 
 BACNET_STACK_EXPORT
 void bsc_socket_maintenance_timer(uint16_t seconds);
+
+/**
+ * @brief  bsc_socket_get_peer_addr() function gets information
+ *         about remote peer address only for socket with acceptor cotext.
+ *
+ * @param c - BACNet socket descriptor initialized by bsc_accept() call.
+ * @param data - pointer to a struct holding address information.
+ * @param pdu_len - size in bytes of data to send.
+ *
+ * @return false if socket is not acceptor or bad parameter was passed or
+ *               if getting of address information failed.
+ *         true  if function succeeds.
+ */
+
+BACNET_STACK_EXPORT
+bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data);
 
 #endif

@@ -142,4 +142,8 @@ bool bsc_node_direct_connection_established(
 BACNET_STACK_EXPORT
 void bsc_node_maintenance_timer(uint16_t seconds);
 
+BACNET_STACK_EXPORT
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS*
+bsc_node_hub_function_status(BSC_NODE *node, size_t* cnt);
+
 #endif

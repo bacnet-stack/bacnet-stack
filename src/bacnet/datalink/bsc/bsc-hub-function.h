@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
+#include "bacnet/basic/object/sc_netport.h"
 
 typedef void* BSC_HUB_FUNCTION_HANDLE;
 
@@ -61,5 +62,9 @@ bool bsc_hub_function_stopped(BSC_HUB_FUNCTION_HANDLE h);
 
 BACNET_STACK_EXPORT
 bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h);
+
+BACNET_STACK_EXPORT
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS*
+bsc_hub_function_status(BSC_HUB_FUNCTION_HANDLE h, size_t* cnt);
 
 #endif
