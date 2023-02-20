@@ -961,7 +961,7 @@ bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
     int fd;
     struct sockaddr_storage addr;
     socklen_t len;
-    const char *ret;
+    const char *ret = NULL;
 
     if (!ctx || h < 0 || !ip_str || !ip_str_len || !port ||
         h >= bws_srv_get_max_sockets(ctx->proto)) {
@@ -969,17 +969,24 @@ bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     pthread_mutex_lock(ctx->mutex);
-    len = sizeof(addr);
-    fd = lws_get_socket_fd(ctx->conn[h].ws);
-    getpeername(fd, (struct sockaddr *)&addr, &len);
-    if (addr.ss_family == AF_INET) {
-        struct sockaddr_in *s = (struct sockaddr_in *)&addr;
-        *port = ntohs(s->sin_port);
-        ret = inet_ntop(AF_INET, &s->sin_addr, (char *)ip_str, ip_str_len);
-    } else { // AF_INET6
-        struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
-        *port = ntohs(s->sin6_port);
-        ret = inet_ntop(AF_INET6, &s->sin6_addr, (char *)ip_str, ip_str_len);
+
+    if (ctx->conn[h].ws != NULL) {
+        len = sizeof(addr);
+        fd = lws_get_socket_fd(ctx->conn[h].ws);
+        if (fd != -1) {
+            getpeername(fd, (struct sockaddr *)&addr, &len);
+            if (addr.ss_family == AF_INET) {
+                struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+                *port = ntohs(s->sin_port);
+                ret = inet_ntop(
+                    AF_INET, &s->sin_addr, (char *)ip_str, ip_str_len);
+            } else { // AF_INET6
+                struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+                *port = ntohs(s->sin6_port);
+                ret = inet_ntop(
+                    AF_INET6, &s->sin6_addr, (char *)ip_str, ip_str_len);
+            }
+        }
     }
 
     pthread_mutex_unlock(ctx->mutex);
