@@ -21,6 +21,7 @@
 #include "bacnet/datalink/bsc/bsc-node.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
+#include "bacnet/datetime.h"
 #include <stdbool.h>
 
 BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret);
@@ -35,4 +36,6 @@ bool bsc_node_conf_fill_from_netport(BSC_NODE_CONF *bsc_conf,
     BSC_NODE_EVENT_FUNC event_func);
 void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf);
 void bsc_copy_str(char *dst, const char *src, int dst_len);
+void bsc_set_timestamp(BACNET_DATE_TIME *timestamp);
+
 #endif

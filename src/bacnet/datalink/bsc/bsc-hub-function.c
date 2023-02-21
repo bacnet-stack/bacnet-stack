@@ -62,7 +62,7 @@ typedef struct BSC_Hub_Connector {
     BSC_HUB_EVENT_FUNC event_func;
     void *user_arg;
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS
-        status[BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM];
+    status[BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM];
 } BSC_HUB_FUNCTION;
 
 static BSC_HUB_FUNCTION bsc_hub_function[BSC_CONF_HUB_FUNCTIONS_NUM] = { 0 };
@@ -182,14 +182,6 @@ hub_function_find_status_for_vmac(
     return non_connected_index < 0 ? NULL : &f->status[non_connected_index];
 }
 
-static void hub_function_set_timestamp(BACNET_DATE_TIME *timestamp)
-{
-    int16_t utc_offset_minutes;
-    bool dst_active;
-    datetime_local(
-        &timestamp->date, &timestamp->time, &utc_offset_minutes, &dst_active);
-}
-
 static void hub_function_update_status(BSC_HUB_FUNCTION *f,
     BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
@@ -216,12 +208,12 @@ static void hub_function_update_status(BSC_HUB_FUNCTION *f,
         }
         if (ev == BSC_SOCKET_EVENT_CONNECTED) {
             s->State = BACNET_CONNECTED;
-            hub_function_set_timestamp(&s->Connect_Timestamp);
+            bsc_set_timestamp(&s->Connect_Timestamp);
             memset(&s->Disconnect_Timestamp, 0xFF,
                 sizeof(s->Disconnect_Timestamp));
         } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
             s->Error = reason;
-            hub_function_set_timestamp(&s->Disconnect_Timestamp);
+            bsc_set_timestamp(&s->Disconnect_Timestamp);
             if (reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
                 reason == ERROR_CODE_SUCCESS) {
                 s->State = BACNET_NOT_CONNECTED;
@@ -433,11 +425,11 @@ bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h)
     return ret;
 }
 
-BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS*
-bsc_hub_function_status(BSC_HUB_FUNCTION_HANDLE h, size_t* cnt)
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_hub_function_status(
+    BSC_HUB_FUNCTION_HANDLE h, size_t *cnt)
 {
     BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS* ret = NULL;
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *ret = NULL;
 
     bws_dispatch_lock();
     if (f && f->state == BSC_HUB_FUNCTION_STATE_STARTED) {

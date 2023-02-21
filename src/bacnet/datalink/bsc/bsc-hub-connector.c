@@ -110,26 +110,18 @@ static void hub_connector_free(BSC_HUB_CONNECTOR *c)
     c->used = false;
 }
 
-static void hub_connector_set_timestamp(BACNET_DATE_TIME *timestamp)
-{
-    int16_t utc_offset_minutes;
-    bool dst_active;
-    datetime_local(
-        &timestamp->date, &timestamp->time, &utc_offset_minutes, &dst_active);
-}
-
 static void hub_conector_update_status(BACNET_SC_HUB_CONNECTION_STATUS *s,
     BACNET_SC_CONNECTION_STATE state,
     BACNET_ERROR_CODE err,
     const char *err_desc)
 {
     int len;
-    s->Connection_State = state;
+    s->State = state;
     if (state == BACNET_NOT_CONNECTED ||
         state == BACNET_DISCONNECTED_WITH_ERRORS) {
-        hub_connector_set_timestamp(&s->Disconnect_Timestamp);
+        bsc_set_timestamp(&s->Disconnect_Timestamp);
     } else if (state == BACNET_CONNECTED || state == BACNET_FAILED_TO_CONNECT) {
-        hub_connector_set_timestamp(&s->Connect_Timestamp);
+        bsc_set_timestamp(&s->Connect_Timestamp);
     }
     s->Error = err;
     s->Error_Details[0] = 0;

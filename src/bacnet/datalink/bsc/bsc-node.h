@@ -146,4 +146,12 @@ BACNET_STACK_EXPORT
 BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS*
 bsc_node_hub_function_status(BSC_NODE *node, size_t* cnt);
 
+BACNET_STACK_EXPORT
+BACNET_SC_DIRECT_CONNECTION_STATUS*
+bsc_node_direct_connection_acceptor_status(BSC_NODE *node, size_t* cnt);
+
+BACNET_STACK_EXPORT
+BACNET_SC_DIRECT_CONNECTION_STATUS*
+bsc_node_direct_connection_initiator_status(BSC_NODE *node, size_t* cnt);
+
 #endif

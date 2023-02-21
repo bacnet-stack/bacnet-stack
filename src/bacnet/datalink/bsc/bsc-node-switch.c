@@ -79,6 +79,8 @@ typedef struct BSC_Node_Switch_Acceptor {
     BSC_CONTEXT_CFG cfg;
     BSC_SOCKET sock[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_STATE state;
+    BACNET_SC_DIRECT_CONNECTION_STATUS
+        status[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
 } BSC_NODE_SWITCH_ACCEPTOR;
 
 typedef struct {
@@ -98,6 +100,8 @@ typedef struct BSC_Node_Switch_Initiator {
     struct mstimer t[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_URLS urls[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_STATE state;
+    BACNET_SC_DIRECT_CONNECTION_STATUS
+        status[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
 } BSC_NODE_SWITCH_INITIATOR;
 
 typedef struct {
@@ -142,6 +146,98 @@ static BSC_NODE_SWITCH_CTX *node_switch_alloc(void)
 static void node_switch_free(BSC_NODE_SWITCH_CTX *ctx)
 {
     ctx->used = false;
+}
+
+static BACNET_SC_DIRECT_CONNECTION_STATUS *node_switch_find_status_for_vmac(
+    BACNET_SC_DIRECT_CONNECTION_STATUS *s,
+    size_t s_len,
+    BACNET_SC_VMAC_ADDRESS *vmac)
+{
+    int i;
+    int non_connected_index = -1;
+    BACNET_DATE_TIME timestamp;
+
+    for (i = 0; i < s_len; i++) {
+        if (!memcmp(&s[i].Peer_VMAC[0], &vmac->address[0], BVLC_SC_VMAC_SIZE)) {
+            return &s[i];
+        }
+        if (s[i].State != BACNET_CONNECTED) {
+            if (non_connected_index < 0 &&
+                datetime_time_is_valid(&s[i].Disconnect_Timestamp.time) &&
+                datetime_date_is_valid(&s[i].Disconnect_Timestamp.date)) {
+                non_connected_index = i;
+                memcpy(
+                    &timestamp, &s[i].Disconnect_Timestamp, sizeof(timestamp));
+            } else {
+                if (datetime_time_is_valid(&s[i].Disconnect_Timestamp.time) &&
+                    datetime_date_is_valid(&s[i].Disconnect_Timestamp.date)) {
+                    if (datetime_compare(
+                            &s[i].Disconnect_Timestamp, &timestamp) < 0) {
+                        non_connected_index = i;
+                        memcpy(&timestamp, &s[i].Disconnect_Timestamp,
+                            sizeof(timestamp));
+                    }
+                }
+            }
+        }
+    }
+
+    return non_connected_index < 0 ? NULL : &s[non_connected_index];
+}
+
+static void node_switch_update_status(BSC_NODE_SWITCH_CTX *ctx,
+    bool initiator,
+    bool failed_to_connect,
+    const char *URI,
+    BSC_SOCKET *c,
+    BSC_SOCKET_EVENT ev,
+    BACNET_ERROR_CODE reason,
+    const char *reason_desc)
+{
+    BACNET_SC_DIRECT_CONNECTION_STATUS *s;
+    BACNET_SC_CONNECTION_STATE st = BACNET_DISCONNECTED_WITH_ERRORS;
+
+    s = node_switch_find_status_for_vmac(
+        initiator ? ctx->initiator.status : ctx->acceptor.status,
+        BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM, &c->vmac);
+
+    if (s) {
+        if (!initiator) {
+            s->URI[0] = 0;
+        } else if (URI) {
+            bsc_copy_str(s->URI, URI, sizeof(s->URI));
+        }
+        memcpy(s->Peer_VMAC, &c->vmac.address[0], BVLC_SC_VMAC_SIZE);
+        memcpy(
+            &s->Peer_UUID.uuid.uuid128[0], &c->uuid.uuid[0], BVLC_SC_UUID_SIZE);
+        if (!bsc_socket_get_peer_addr(c, &s->Peer_Address)) {
+            memset(&s->Peer_Address, 0, sizeof(s->Peer_Address));
+        }
+        if (reason_desc) {
+            bsc_copy_str(
+                s->Error_Details, reason_desc, sizeof(s->Error_Details));
+        } else {
+            s->Error_Details[0] = 0;
+        }
+        if (ev == BSC_SOCKET_EVENT_CONNECTED) {
+            s->State = BACNET_CONNECTED;
+            bsc_set_timestamp(&s->Connect_Timestamp);
+            memset(&s->Disconnect_Timestamp, 0xFF,
+                sizeof(s->Disconnect_Timestamp));
+        } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+            s->Error = reason;
+            bsc_set_timestamp(&s->Disconnect_Timestamp);
+            if (reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
+                reason == ERROR_CODE_SUCCESS) {
+                s->State = BACNET_NOT_CONNECTED;
+            } else {
+                s->State = BACNET_DISCONNECTED_WITH_ERRORS;
+            }
+            if (failed_to_connect) {
+                s->State = BACNET_FAILED_TO_CONNECT;
+            }
+        }
+    }
 }
 
 static void copy_urls(
@@ -234,10 +330,16 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
             pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
             ctx->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ctx, ctx->user_arg,
                 NULL, *ppdu, pdu_len, decoded_pdu);
-        } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED &&
-            reason == ERROR_CODE_NODE_DUPLICATE_VMAC) {
-            ctx->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ctx,
-                ctx->user_arg, NULL, NULL, 0, NULL);
+        } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+            node_switch_update_status(
+                ctx, false, false, NULL, c, ev, reason, reason_desc);
+            if (reason == ERROR_CODE_NODE_DUPLICATE_VMAC) {
+                ctx->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ctx,
+                    ctx->user_arg, NULL, NULL, 0, NULL);
+            }
+        } else if (ev == BSC_SOCKET_EVENT_CONNECTED) {
+            node_switch_update_status(
+                ctx, false, false, NULL, c, ev, reason, reason_desc);
         }
     }
     bws_dispatch_unlock();
@@ -421,6 +523,7 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     int index;
     uint8_t **ppdu = &pdu;
     BSC_NODE_SWITCH_CTX *ns;
+    int elem;
 
     DEBUG_PRINTF(
         "node_switch_initiator_socket_event() >>> c %p, ev = %d\n", c, ev);
@@ -443,6 +546,10 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
         index = node_switch_initiator_get_index(ns, c);
 
         if (index > -1) {
+            elem = ns->initiator.urls[index].url_elem - 1;
+            if (elem < 0 || elem >= ns->initiator.urls[index].urls_cnt) {
+                elem = -1;
+            }
             if (ns->initiator.sock_state[index] ==
                 BSC_NODE_SWITCH_CONNECTION_STATE_WAIT_CONNECTION) {
                 if (ev == BSC_SOCKET_EVENT_CONNECTED) {
@@ -455,15 +562,30 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
                     /* descriptor */
                     memcpy(&ns->initiator.dest_vmac[index].address[0],
                         &c->vmac.address[0], sizeof(c->vmac.address));
+                    node_switch_update_status(ns, true, false,
+                        elem == -1 ? NULL
+                                   : (const char *)&ns->initiator.urls[index]
+                                         .utf8_urls[elem][0],
+                        c, ev, reason, reason_desc);
                     ns->event_func(BSC_NODE_SWITCH_EVENT_CONNECTED, ns,
                         ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
                         NULL);
                 } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+                    node_switch_update_status(ns, true, true,
+                        elem == -1 ? NULL
+                                   : (const char *)&ns->initiator.urls[index]
+                                         .utf8_urls[elem][0],
+                        c, ev, reason, reason_desc);
                     connect_next_url(ns, index);
                 }
             } else if (ns->initiator.sock_state[index] ==
                 BSC_NODE_SWITCH_CONNECTION_STATE_CONNECTED) {
                 if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+                    node_switch_update_status(ns, true, false,
+                        elem == -1 ? NULL
+                                   : (const char *)&ns->initiator.urls[index]
+                                         .utf8_urls[elem][0],
+                        c, ev, reason, reason_desc);
                     ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
                         ns->user_arg, &ns->initiator.dest_vmac[index], NULL, 0,
                         NULL);
@@ -473,6 +595,11 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
             } else if (ns->initiator.sock_state[index] ==
                 BSC_NODE_SWITCH_CONNECTION_STATE_LOCAL_DISCONNECT) {
                 if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+                    node_switch_update_status(ns, true, false,
+                        elem == -1 ? NULL
+                                   : (const char *)&ns->initiator.urls[index]
+                                         .utf8_urls[elem][0],
+                        c, ev, ERROR_CODE_SUCCESS, NULL);
                     ns->initiator.sock_state[index] =
                         BSC_NODE_SWITCH_CONNECTION_STATE_IDLE;
                     ns->event_func(BSC_NODE_SWITCH_EVENT_DISCONNECTED, ns,
@@ -572,6 +699,8 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
     ns->direct_connect_accept_enable = direct_connect_accept_enable;
     ns->initiator.state = BSC_NODE_SWITCH_STATE_IDLE;
     ns->acceptor.state = BSC_NODE_SWITCH_STATE_IDLE;
+    memset(ns->initiator.status, 0, sizeof(ns->initiator.status));
+    memset(ns->acceptor.status, 0, sizeof(ns->initiator.status));
 
     if (direct_connect_initiate_enable) {
         bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &ns->initiator.cfg,
@@ -908,6 +1037,38 @@ bool bsc_node_switch_connected(BSC_NODE_SWITCH_HANDLE h,
                 }
             }
         }
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
+BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_switch_acceptor_status(
+    BSC_NODE_SWITCH_HANDLE h, size_t *cnt)
+{
+    BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
+    BSC_NODE_SWITCH_CTX *ns;
+    bws_dispatch_lock();
+    ns = (BSC_NODE_SWITCH_CTX *)h;
+    if (ns->direct_connect_accept_enable &&
+        ns->acceptor.state == BSC_NODE_SWITCH_STATE_STARTED) {
+        ret = ns->acceptor.status;
+        *cnt = BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM;
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
+BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_switch_initiator_status(
+    BSC_NODE_SWITCH_HANDLE h, size_t *cnt)
+{
+    BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
+    BSC_NODE_SWITCH_CTX *ns;
+    bws_dispatch_lock();
+    ns = (BSC_NODE_SWITCH_CTX *)h;
+    if (ns->direct_connect_initiate_enable &&
+        ns->initiator.state == BSC_NODE_SWITCH_STATE_STARTED) {
+        ret = ns->initiator.status;
+        *cnt = BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM;
     }
     bws_dispatch_unlock();
     return ret;

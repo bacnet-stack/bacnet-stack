@@ -800,7 +800,7 @@ bool Network_Port_SC_Primary_Hub_Connection_Status_Set(uint32_t object_instance,
         return false;
 
     st = &params->SC_Primary_Hub_Connection_Status;
-    st->Connection_State = state;
+    st->State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
     st->Error = error;
@@ -839,7 +839,7 @@ bool Network_Port_SC_Failover_Hub_Connection_Status_Set(
         return false;
 
     st = &params->SC_Failover_Hub_Connection_Status;
-    st->Connection_State = state;
+    st->State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
     st->Error = error;
@@ -1738,15 +1738,14 @@ int bacapp_encode_SCHubConnection(
     BACNET_CHARACTER_STRING str;
 
     if (apdu && value) {
-        apdu_len +=
-            encode_context_enumerated(&apdu[0], 0, value->Connection_State);
+        apdu_len += encode_context_enumerated(&apdu[0], 0, value->State);
         apdu_len += bacapp_encode_context_datetime(
             &apdu[apdu_len], 1, &value->Connect_Timestamp);
         apdu_len += bacapp_encode_context_datetime(
             &apdu[apdu_len], 2, &value->Disconnect_Timestamp);
 
-        if (value->Connection_State == BACNET_DISCONNECTED_WITH_ERRORS ||
-            value->Connection_State == BACNET_FAILED_TO_CONNECT) {
+        if (value->State == BACNET_DISCONNECTED_WITH_ERRORS ||
+            value->State == BACNET_FAILED_TO_CONNECT) {
             apdu_len += encode_context_enumerated(&apdu[0], 3, value->Error);
 
             if (characterstring_init_ansi(&str, value->Error_Details)) {
@@ -1765,8 +1764,8 @@ int bacapp_decode_SCHubConnection(
     int len;
     BACNET_CHARACTER_STRING str;
 
-    if ((len = decode_context_enumerated(
-             &apdu[apdu_len], 0, &value->Connection_State)) == -1) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 0, &value->State)) ==
+        -1) {
         return -1;
     }
     apdu_len += len;
@@ -2300,8 +2299,7 @@ int bacapp_encode_SCDirectConnection(
             return -1;
         }
 
-        apdu_len += encode_context_enumerated(
-            &apdu[apdu_len], 1, value->Connection_State);
+        apdu_len += encode_context_enumerated(&apdu[apdu_len], 1, value->State);
         apdu_len += bacapp_encode_context_datetime(
             &apdu[apdu_len], 2, &value->Connect_Timestamp);
         apdu_len += bacapp_encode_context_datetime(
@@ -2323,7 +2321,8 @@ int bacapp_encode_SCDirectConnection(
             return -1;
         }
 
-        if (value->Error != ERROR_CODE_OTHER) {
+        if (value->State == BACNET_DISCONNECTED_WITH_ERRORS ||
+            value->State == BACNET_FAILED_TO_CONNECT) {
             apdu_len += encode_context_enumerated(&apdu[0], 7, value->Error);
 
             if (characterstring_init_ansi(&str, value->Error_Details)) {
@@ -2351,8 +2350,8 @@ int bacapp_decode_SCDirectConnection(
     snprintf(value->URI, sizeof(value->URI), "%s", characterstring_value(&str));
     apdu_len += len;
 
-    if ((len = decode_context_enumerated(
-             &apdu[apdu_len], 1, &value->Connection_State)) == -1) {
+    if ((len = decode_context_enumerated(&apdu[apdu_len], 1, &value->State)) ==
+        -1) {
         return -1;
     }
     apdu_len += len;

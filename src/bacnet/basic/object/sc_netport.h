@@ -112,7 +112,7 @@ typedef struct BACnetHostNPort_data_T {
 } BACNET_HOST_N_PORT_DATA;
 
 typedef struct BACnetSCHubConnectionStatus_T {
-    BACNET_SC_CONNECTION_STATE Connection_State; /*index = 0 */
+    BACNET_SC_CONNECTION_STATE State; /*index = 0 */
     BACNET_DATE_TIME Connect_Timestamp; /*index = 1 */
     BACNET_DATE_TIME Disconnect_Timestamp; /*index = 2 */
     /* optionals */
@@ -153,7 +153,7 @@ typedef struct BACnetRouterEntry_T {
 
 typedef struct BACnetSCDirectConnectionStatus_T {
     char URI[BACNET_URI_LENGTH];
-    BACNET_SC_CONNECTION_STATE Connection_State;
+    BACNET_SC_CONNECTION_STATE State;
     BACNET_DATE_TIME Connect_Timestamp;
     BACNET_DATE_TIME Disconnect_Timestamp;
     BACNET_HOST_N_PORT_DATA Peer_Address;

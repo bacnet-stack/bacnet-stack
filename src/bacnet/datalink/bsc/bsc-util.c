@@ -232,3 +232,11 @@ void bsc_copy_str(char *dst, const char *src, int dst_len)
         dst[len] = 0;
     }
 }
+
+void bsc_set_timestamp(BACNET_DATE_TIME *timestamp)
+{
+    int16_t utc_offset_minutes;
+    bool dst_active;
+    datetime_local(
+        &timestamp->date, &timestamp->time, &utc_offset_minutes, &dst_active);
+}

@@ -400,14 +400,14 @@ static void bsc_update_hub_connector_status(void)
     status = bsc_node_hub_connector_status(bsc_node, true);
     if (status) {
         Network_Port_SC_Primary_Hub_Connection_Status_Set(instance,
-            status->Connection_State, &status->Connect_Timestamp,
+            status->State, &status->Connect_Timestamp,
             &status->Disconnect_Timestamp, status->Error,
             status->Error_Details[0] ? status->Error_Details : NULL);
     }
     status = bsc_node_hub_connector_status(bsc_node, false);
     if (status) {
         Network_Port_SC_Failover_Hub_Connection_Status_Set(instance,
-            status->Connection_State, &status->Connect_Timestamp,
+            status->State, &status->Connect_Timestamp,
             &status->Disconnect_Timestamp, status->Error,
             status->Error_Details[0] ? status->Error_Details : NULL);
     }
@@ -437,12 +437,54 @@ static void bsc_update_hub_function_status(void)
     }
 }
 
+static void bsc_add_direct_status_to_netport(
+    BACNET_SC_DIRECT_CONNECTION_STATUS *s, size_t cnt)
+{
+    int i;
+    uint32_t instance = Network_Port_Index_To_Instance(0);
+    BACNET_SC_VMAC_ADDRESS uninitialized = { 0 };
+
+    for (i = 0; i < cnt; i++) {
+        if (memcmp(&uninitialized.address[0], &s[i].Peer_VMAC[0],
+                BVLC_SC_VMAC_SIZE) != 0) {
+            Network_Port_SC_Direct_Connect_Connection_Status_Add(instance,
+                s[i].URI[0] == 0 ? NULL : s[i].URI, s[i].State,
+                &s[i].Connect_Timestamp, &s[i].Disconnect_Timestamp,
+                &s[i].Peer_Address, s[i].Peer_VMAC, s[i].Peer_UUID.uuid.uuid128,
+                s[i].Error,
+                s[i].Error_Details[0] == 0 ? NULL : s[i].Error_Details);
+        }
+    }
+}
+
+static void bsc_update_direct_connection_status(void)
+{
+    BACNET_SC_DIRECT_CONNECTION_STATUS *s1;
+    BACNET_SC_DIRECT_CONNECTION_STATUS *s2;
+    size_t cnt1;
+    size_t cnt2;
+    uint32_t instance = Network_Port_Index_To_Instance(0);
+
+    s1 = bsc_node_direct_connection_initiator_status(bsc_node, &cnt1);
+    s2 = bsc_node_direct_connection_acceptor_status(bsc_node, &cnt2);
+    if (s1 || s2) {
+        Network_Port_SC_Direct_Connect_Connection_Status_Delete_All(instance);
+        if (s1 && cnt1) {
+            bsc_add_direct_status_to_netport(s1, cnt1);
+        }
+        if (s2 && cnt2) {
+            bsc_add_direct_status_to_netport(s2, cnt2);
+        }
+    }
+}
+
 static void bsc_update_netport_properties(void)
 {
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
         bsc_update_hub_connector_state();
         bsc_update_hub_connector_status();
         bsc_update_hub_function_status();
+        bsc_update_direct_connection_status();
     }
 }
 
