@@ -9,6 +9,8 @@ project(
 # options
 #
 # <INSERT_CMAKE_INSTALL_PREFIX_HERE>
+
+add_compile_options(-DMAX_ANALOG_VALUES=32 -DMAX_ANALOG_INPUTS=128)
 option(
   BACNET_STACK_BUILD_APPS
   "build apps"
