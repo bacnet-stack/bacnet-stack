@@ -166,6 +166,11 @@ struct BSC_SocketContextFuncs {
                          uint8_t *pdu, uint16_t pdu_len,
                          BVLC_SC_DECODED_MESSAGE *decoded_pdu);
     void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
+    void (*failed_request)(BSC_SOCKET_CTX *ctx, BSC_SOCKET*c,
+                           BACNET_SC_VMAC_ADDRESS *vmac,
+                           BACNET_SC_UUID *uuid,
+                           BACNET_ERROR_CODE error,
+                           const char* error_desc);
 };
 
 

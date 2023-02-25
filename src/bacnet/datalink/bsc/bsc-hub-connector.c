@@ -76,7 +76,7 @@ typedef struct BSC_Hub_Connector {
 static BSC_HUB_CONNECTOR bsc_hub_connector[BSC_CONF_HUB_CONNECTORS_NUM] = { 0 };
 
 static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = { NULL, NULL,
-    hub_connector_socket_event, hub_connector_context_event };
+    hub_connector_socket_event, hub_connector_context_event, NULL };
 
 static void hub_connector_reset_status(BACNET_SC_HUB_CONNECTION_STATUS *s)
 {

@@ -18,6 +18,7 @@
 #include "bacnet/datalink/bsc/bsc-hub-connector.h"
 #include "bacnet/datalink/bsc/bsc-node-switch.h"
 #include "bacnet/datalink/bsc/bsc-socket.h"
+#include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
@@ -53,6 +54,8 @@ struct BSC_Node {
     BSC_HUB_CONNECTOR_HANDLE hub_connector;
     BSC_HUB_FUNCTION_HANDLE hub_function;
     BSC_NODE_SWITCH_HANDLE node_switch;
+    BACNET_SC_FAILED_CONNECTION_REQUEST
+    failed[BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM];
 };
 
 static struct BSC_Node bsc_node[BSC_CONF_NODES_NUM] = { 0 };
@@ -70,9 +73,13 @@ static BSC_NODE *bsc_alloc_node(void)
 
     for (i = 0; i < BSC_CONF_NODES_NUM; i++) {
         if (bsc_node[i].used == false) {
+            memset(&bsc_node[i], 0, sizeof(bsc_node[i]));
             bsc_node[i].used = true;
             bsc_node[i].conf = &bsc_conf[i];
             bsc_node[i].resolution = &bsc_address_resolution[i][0];
+            memset(bsc_node[i].resolution, 0,
+                sizeof(BSC_ADDRESS_RESOLUTION) *
+                    BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
             return &bsc_node[i];
         }
     }
@@ -971,4 +978,77 @@ void bsc_node_maintenance_timer(uint16_t seconds)
     bsc_socket_maintenance_timer(seconds);
     bsc_hub_connector_maintenance_timer(seconds);
     bsc_node_switch_maintenance_timer(seconds);
+}
+
+static void bsc_node_add_failed_request_info(
+    BACNET_SC_FAILED_CONNECTION_REQUEST *r,
+    BACNET_HOST_N_PORT_DATA *peer,
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE error,
+    const char *error_desc)
+{
+    bsc_set_timestamp(&r->Timestamp);
+    memcpy(&r->Peer_Address, peer, sizeof(*peer));
+    memcpy(r->Peer_VMAC, &vmac->address[0], BVLC_SC_VMAC_SIZE);
+    memcpy(&r->Peer_UUID.uuid.uuid128[0], &uuid->uuid[0], BVLC_SC_UUID_SIZE);
+    r->Error = error;
+    if (!error_desc) {
+        r->Error_Details[0] = 0;
+    } else {
+        bsc_copy_str(r->Error_Details, error_desc, sizeof(r->Error_Details));
+    }
+}
+
+void bsc_node_store_failed_request_info(BSC_NODE *node,
+    BACNET_HOST_N_PORT_DATA *peer,
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE error,
+    const char *error_desc)
+{
+    size_t i, j = 0;
+    ;
+    bool found = false;
+    BACNET_DATE_TIME t;
+
+    bws_dispatch_lock();
+
+    for (i = 0; i < BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (node->failed[i].Peer_Address.host[0] == 0) {
+            found = true;
+            break;
+        }
+    }
+    if (found) {
+        bsc_node_add_failed_request_info(
+            &node->failed[i], peer, vmac, uuid, error, error_desc);
+    } else {
+        bsc_set_timestamp(&t);
+        for (i = 0; i < BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM; i++) {
+            if (datetime_compare(&node->failed[i].Timestamp, &t) < 0) {
+                j = i;
+                memcpy(&t, &node->failed[i].Timestamp, sizeof(t));
+            }
+        }
+        bsc_node_add_failed_request_info(
+            &node->failed[j], peer, vmac, uuid, error, error_desc);
+    }
+
+    bws_dispatch_unlock();
+}
+
+BACNET_SC_FAILED_CONNECTION_REQUEST *bsc_node_failed_requests_status(
+    BSC_NODE *node, size_t *cnt)
+{
+    BACNET_SC_FAILED_CONNECTION_REQUEST *ret = NULL;
+    bws_dispatch_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        (node->conf->direct_connect_accept_enable ||
+            node->conf->hub_function_enabled)) {
+        ret = node->failed;
+        *cnt = BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM;
+    }
+    bws_dispatch_unlock();
+    return ret;
 }

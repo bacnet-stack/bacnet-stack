@@ -478,6 +478,27 @@ static void bsc_update_direct_connection_status(void)
     }
 }
 
+static void bsc_update_failed_requests(void)
+{
+    BACNET_SC_FAILED_CONNECTION_REQUEST *r;
+    size_t cnt;
+    int i;
+
+    uint32_t instance = Network_Port_Index_To_Instance(0);
+    r = bsc_node_failed_requests_status(bsc_node, &cnt);
+    if (r) {
+        Network_Port_SC_Failed_Connection_Requests_Delete_All(instance);
+        for (i = 0; i < cnt; i++) {
+            if (r[i].Peer_Address.host[0] != 0) {
+                Network_Port_SC_Failed_Connection_Requests_Add(instance,
+                    &r[i].Timestamp, &r[i].Peer_Address, r[i].Peer_VMAC,
+                    r[i].Peer_UUID.uuid.uuid128, r[i].Error,
+                    &r[i].Error_Details[0] != 0 ? r[i].Error_Details : NULL);
+            }
+        }
+    }
+}
+
 static void bsc_update_netport_properties(void)
 {
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
@@ -485,6 +506,7 @@ static void bsc_update_netport_properties(void)
         bsc_update_hub_connector_status();
         bsc_update_hub_function_status();
         bsc_update_direct_connection_status();
+        bsc_update_failed_requests();
     }
 }
 

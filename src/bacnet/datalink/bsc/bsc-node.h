@@ -154,4 +154,16 @@ BACNET_STACK_EXPORT
 BACNET_SC_DIRECT_CONNECTION_STATUS*
 bsc_node_direct_connection_initiator_status(BSC_NODE *node, size_t* cnt);
 
+BACNET_STACK_EXPORT
+void bsc_node_store_failed_request_info(BSC_NODE *node,
+                                        BACNET_HOST_N_PORT_DATA* peer,
+                                        BACNET_SC_VMAC_ADDRESS *vmac,
+                                        BACNET_SC_UUID *uuid,
+                                        BACNET_ERROR_CODE error,
+                                        const char* error_desc);
+
+BACNET_STACK_EXPORT
+BACNET_SC_FAILED_CONNECTION_REQUEST*
+bsc_node_failed_requests_status(BSC_NODE *node, size_t* cnt);
+
 #endif

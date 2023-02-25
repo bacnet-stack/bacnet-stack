@@ -36,6 +36,13 @@ static BSC_SOCKET *hub_function_find_connection_for_vmac(
 static BSC_SOCKET *hub_function_find_connection_for_uuid(
     BACNET_SC_UUID *uuid, void *user_arg);
 
+static void hub_function_failed_request(BSC_SOCKET_CTX *ctx,
+    BSC_SOCKET *c,
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE error,
+    const char *error_desc);
+
 static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BACNET_ERROR_CODE reason,
@@ -70,7 +77,7 @@ static BSC_HUB_FUNCTION bsc_hub_function[BSC_CONF_HUB_FUNCTIONS_NUM] = { 0 };
 static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
     hub_function_find_connection_for_vmac,
     hub_function_find_connection_for_uuid, hub_function_socket_event,
-    hub_function_context_event
+    hub_function_context_event, hub_function_failed_request
 };
 
 static BSC_HUB_FUNCTION *hub_function_alloc(void)
@@ -222,6 +229,27 @@ static void hub_function_update_status(BSC_HUB_FUNCTION *f,
             }
         }
     }
+}
+
+static void hub_function_failed_request(BSC_SOCKET_CTX *ctx,
+    BSC_SOCKET *c,
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE error,
+    const char *error_desc)
+{
+    BSC_HUB_FUNCTION *f;
+    BACNET_HOST_N_PORT_DATA peer;
+
+    bws_dispatch_lock();
+    f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;
+    if (f->user_arg) {
+        if (bsc_socket_get_peer_addr(c, &peer)) {
+            bsc_node_store_failed_request_info(
+                (BSC_NODE *)f->user_arg, &peer, vmac, uuid, error, error_desc);
+        }
+    }
+    bws_dispatch_unlock();
 }
 
 static void hub_function_socket_event(BSC_SOCKET *c,

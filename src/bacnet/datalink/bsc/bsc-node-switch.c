@@ -52,6 +52,13 @@ static BSC_SOCKET *node_switch_acceptor_find_connection_for_vmac(
 static BSC_SOCKET *node_switch_acceptor_find_connection_for_uuid(
     BACNET_SC_UUID *uuid, void *user_arg);
 
+static void node_switch_acceptor_failed_request(BSC_SOCKET_CTX *ctx,
+    BSC_SOCKET *c,
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE error,
+    const char *error_desc);
+
 static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
     BACNET_ERROR_CODE reason,
@@ -80,7 +87,9 @@ typedef struct BSC_Node_Switch_Acceptor {
     BSC_SOCKET sock[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_STATE state;
     BACNET_SC_DIRECT_CONNECTION_STATUS
-        status[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
+    status[BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+    BACNET_SC_FAILED_CONNECTION_REQUEST
+        failed_status[BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM];
 } BSC_NODE_SWITCH_ACCEPTOR;
 
 typedef struct {
@@ -101,7 +110,7 @@ typedef struct BSC_Node_Switch_Initiator {
     BSC_NODE_SWITCH_URLS urls[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_STATE state;
     BACNET_SC_DIRECT_CONNECTION_STATUS
-        status[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
+    status[BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
 } BSC_NODE_SWITCH_INITIATOR;
 
 typedef struct {
@@ -121,11 +130,13 @@ static BSC_NODE_SWITCH_CTX bsc_node_switch[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
 static BSC_SOCKET_CTX_FUNCS bsc_node_switch_acceptor_ctx_funcs = {
     node_switch_acceptor_find_connection_for_vmac,
     node_switch_acceptor_find_connection_for_uuid,
-    node_switch_acceptor_socket_event, node_switch_acceptor_context_event
+    node_switch_acceptor_socket_event, node_switch_acceptor_context_event,
+    node_switch_acceptor_failed_request
 };
 
 static BSC_SOCKET_CTX_FUNCS bsc_node_switch_initiator_ctx_funcs = { NULL, NULL,
-    node_switch_initiator_socket_event, node_switch_initiator_context_event };
+    node_switch_initiator_socket_event, node_switch_initiator_context_event,
+    NULL };
 
 static BSC_NODE_SWITCH_CTX *node_switch_alloc(void)
 {
@@ -199,7 +210,7 @@ static void node_switch_update_status(BSC_NODE_SWITCH_CTX *ctx,
 
     s = node_switch_find_status_for_vmac(
         initiator ? ctx->initiator.status : ctx->acceptor.status,
-        BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM, &c->vmac);
+        BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM, &c->vmac);
 
     if (s) {
         if (!initiator) {
@@ -306,6 +317,27 @@ static BSC_SOCKET *node_switch_acceptor_find_connection_for_uuid(
     }
     bws_dispatch_unlock();
     return NULL;
+}
+
+static void node_switch_acceptor_failed_request(BSC_SOCKET_CTX *ctx,
+    BSC_SOCKET *c,
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE error,
+    const char *error_desc)
+{
+    BSC_NODE_SWITCH_CTX *ns;
+    BACNET_HOST_N_PORT_DATA peer;
+
+    bws_dispatch_lock();
+    ns = (BSC_NODE_SWITCH_CTX *)c->ctx->user_arg;
+    if (ns->user_arg) {
+        if (bsc_socket_get_peer_addr(c, &peer)) {
+            bsc_node_store_failed_request_info(
+                (BSC_NODE *)ns->user_arg, &peer, vmac, uuid, error, error_desc);
+        }
+    }
+    bws_dispatch_unlock();
 }
 
 static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
@@ -1052,7 +1084,7 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_switch_acceptor_status(
     if (ns->direct_connect_accept_enable &&
         ns->acceptor.state == BSC_NODE_SWITCH_STATE_STARTED) {
         ret = ns->acceptor.status;
-        *cnt = BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM;
+        *cnt = BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM;
     }
     bws_dispatch_unlock();
     return ret;
@@ -1068,7 +1100,7 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_switch_initiator_status(
     if (ns->direct_connect_initiate_enable &&
         ns->initiator.state == BSC_NODE_SWITCH_STATE_STARTED) {
         ret = ns->initiator.status;
-        *cnt = BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM;
+        *cnt = BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM;
     }
     bws_dispatch_unlock();
     return ret;
