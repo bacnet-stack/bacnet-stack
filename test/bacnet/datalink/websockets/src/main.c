@@ -1181,8 +1181,8 @@ static void test_simple(void)
                                    (uint8_t*)ip_addr, sizeof(ip_addr),
                                    &port);
     zassert_equal(res, true, NULL);
-    printf("client %s:%d connected.\n", ip_addr, port);
-    printf("client sending data...\n");
+    /*printf("client %s:%d connected.\n", ip_addr, port);*/
+    /*printf("client sending data...\n");*/
     memset(cli_ctx.out_buf, 0x56, sizeof(cli_ctx.out_buf));
     cli_ctx.out_buf_size = sizeof(cli_ctx.out_buf);
     bws_cli_send(h);
@@ -1191,7 +1191,7 @@ static void test_simple(void)
     ret = memcmp(srv_ctx.in_buf, cli_ctx.out_buf, srv_ctx.in_buf_size);
     zassert_equal(ret, 0, NULL);
 
-    printf("server sending data...\n");
+    /*printf("server sending data...\n");*/
     memset(srv_ctx.out_buf, 0x33, sizeof(srv_ctx.out_buf));
     srv_ctx.out_buf_size = sizeof(srv_ctx.out_buf);
     bws_srv_send(srv_ctx.sh, srv_ctx.h);

@@ -1063,7 +1063,7 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 typedef struct {
     BSC_SOCKET_EVENT ev_code;
     BSC_EVENT *ev;
-    BSC_SC_RET err;
+    BACNET_ERROR_CODE err;
 } sock_ev_t;
 
 typedef struct {
@@ -1115,28 +1115,28 @@ static void call_maintenance_timer(void)
     static time_t last_seconds = -1;
     time_t current_seconds = time(NULL);
 
-    if(last_seconds == -1) {
+    if (last_seconds == -1) {
         last_seconds = time(NULL);
     }
 
     if (current_seconds - last_seconds > 0) {
-       bsc_socket_maintenance_timer(current_seconds - last_seconds);
-       last_seconds = time(NULL);
+        bsc_socket_maintenance_timer(current_seconds - last_seconds);
+        last_seconds = time(NULL);
     }
 }
 
 static void wait_sec(int seconds)
 {
-  while(seconds >= 0) {
-     bsc_wait(1);
-     call_maintenance_timer();
-     seconds--;
-  }
+    while (seconds >= 0) {
+        bsc_wait(1);
+        call_maintenance_timer();
+        seconds--;
+    }
 }
 
 static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
 {
-    while(!bsc_event_timedwait(ev->ev, 100)) {
+    while (!bsc_event_timedwait(ev->ev, 100)) {
         call_maintenance_timer();
     }
     if (ev->ev_code == wait_ev) {
@@ -1157,7 +1157,8 @@ static void reset_ctx_ev(ctx_ev_t *ev)
     ev->ev_code = -1;
 }
 
-static void signal_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT s_ev, BSC_SC_RET err)
+static void signal_sock_ev(
+    sock_ev_t *ev, BSC_SOCKET_EVENT s_ev, BACNET_ERROR_CODE err)
 {
     ev->ev_code = s_ev;
     ev->err = err;
@@ -1166,7 +1167,7 @@ static void signal_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT s_ev, BSC_SC_RET err)
 
 static bool wait_ctx_ev(ctx_ev_t *ev, BSC_CTX_EVENT wait_ev)
 {
-    while(!bsc_event_timedwait(ev->ev, 100)) {
+    while (!bsc_event_timedwait(ev->ev, 100)) {
         call_maintenance_timer();
     }
 
@@ -1234,50 +1235,53 @@ static BSC_SOCKET *srv_find_connection_for_vmac(
 
 static void cli_simple_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+    BACNET_ERROR_CODE reason,
+    const char *reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("cli ev = %d, err = %d\n", ev, err);
+    debug_printf("cli ev = %d, reason = %d\n", ev, reason);
 
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
         recv_buf_len = pdu_len;
     }
-    signal_sock_ev(&cli_ev, ev, err);
+    signal_sock_ev(&cli_ev, ev, reason);
 }
 
 static void cli_simple_socket_event2(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+    BACNET_ERROR_CODE reason,
+    const char *reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("cli2 ev = %d, err = %d\n", ev, err);
+    debug_printf("cli2 ev = %d, reason = %d\n", ev, reason);
 
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
         recv_buf_len = pdu_len;
     }
-    signal_sock_ev(&cli_ev2, ev, err);
+    signal_sock_ev(&cli_ev2, ev, reason);
 }
 
 static void srv_simple_socket_event(BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BSC_SC_RET err,
+    BACNET_ERROR_CODE reason,
+    const char *reason_desc,
     uint8_t *pdu,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("srv ev = %d, err = %d\n", ev, err);
+    debug_printf("srv ev = %d, reason = %d\n", ev, reason);
     srv_sock = c;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
         recv_buf_len = pdu_len;
     }
-    signal_sock_ev(&srv_ev, ev, err);
+    signal_sock_ev(&srv_ev, ev, reason);
 }
 
 static void cli_simple_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
@@ -1511,8 +1515,8 @@ static void test_duplicated_vmac_on_server(void)
         wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
     zassert_equal(
         wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
-    zassert_equal(srv_ev.err, BSC_SC_DUPLICATED_VMAC, NULL);
-    zassert_equal(cli_ev2.err, BSC_SC_DUPLICATED_VMAC, NULL);
+    zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
+    zassert_equal(cli_ev2.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     reset_ctx_ev(&cli_ctx_ev);
     reset_ctx_ev(&cli_ctx_ev2);
     reset_ctx_ev(&srv_ctx_ev);
@@ -1608,8 +1612,8 @@ static void test_duplicated_vmac_on_server2(void)
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
     zassert_equal(
         wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
-    zassert_equal(srv_ev.err, BSC_SC_DUPLICATED_VMAC, NULL);
-    zassert_equal(cli_ev.err, BSC_SC_DUPLICATED_VMAC, NULL);
+    zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
+    zassert_equal(cli_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     reset_ctx_ev(&cli_ctx_ev);
     reset_ctx_ev(&srv_ctx_ev);
     bsc_deinit_ctx(&cli_ctx);
@@ -1725,7 +1729,7 @@ static void test_duplicated_uuid_on_server(void)
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    zassert_equal(cli_ev.err, BSC_SC_PEER_DISCONNECTED, NULL);
+    zassert_equal(cli_ev.err, ERROR_CODE_SUCCESS, NULL);
     reset_ctx_ev(&cli_ctx_ev);
     reset_ctx_ev(&cli_ctx_ev2);
     reset_ctx_ev(&srv_ctx_ev);
@@ -1874,7 +1878,7 @@ static void test_bad_params(void)
     reset_sock_ev(&cli_ev);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
-    zassert_equal(cli_ev.err, BSC_SC_PEER_DISCONNECTED, NULL);
+    zassert_equal(cli_ev.err, ERROR_CODE_WEBSOCKET_ERROR, NULL);
     reset_sock_ev(&cli_ev);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
