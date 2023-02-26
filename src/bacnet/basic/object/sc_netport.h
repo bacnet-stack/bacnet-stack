@@ -70,9 +70,6 @@ extern "C" {
    - SC_Direct_Connect_Connection_Status
    - SC_FailedConnectionRequests
 */
-/*
-    #define BACNET_SC_STATUS_SUPPORT
-*/
 
 typedef struct BACnetUUID_T_{
     union {

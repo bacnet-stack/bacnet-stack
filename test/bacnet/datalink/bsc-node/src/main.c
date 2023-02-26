@@ -1998,7 +1998,6 @@ static void test_node_direct_connection(void)
     bsc_node_stop(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
-    printf("!!!\n");
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
         true, 0);

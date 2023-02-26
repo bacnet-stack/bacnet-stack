@@ -1051,20 +1051,18 @@ bool Network_Port_SC_Hub_Function_Binding_Dirty_Set(
     return true;
 }
 
-#ifdef BACNET_SC_STATUS_SUPPORT
-
-BACNET_SC_HUB_FUNCTION_CONNECTION *
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
 Network_Port_SC_Hub_Function_Connection_Status_Get(
     uint32_t object_instance, uint8_t index)
 {
-    BACNET_SC_HUB_FUNCTION_CONNECTION *connection = NULL;
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *connection = NULL;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
 
     if (!params)
         return NULL;
 
-    connection = &params->SC_Hub_Function_Connection_Status;
-    Keylist_Data_Index(params->SC_Hub_Function_Connection_Status, index);
+    connection =
+        Keylist_Data_Index(params->SC_Hub_Function_Connection_Status, index);
 
     return connection;
 }
@@ -1085,8 +1083,8 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Add(
     if (!params)
         return false;
 
-    BACNET_SC_HUB_FUNCTION_CONNECTION *st =
-        calloc(1, sizeof(BACNET_SC_HUB_FUNCTION_CONNECTION));
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *st =
+        calloc(1, sizeof(BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS));
     if (!st)
         return false;
 
@@ -1118,8 +1116,9 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Delete_By_Index(
     if (!params)
         return false;
 
-    BACNET_SC_HUB_FUNCTION_CONNECTION *entry = Keylist_Data_Delete_By_Index(
-        params->SC_Hub_Function_Connection_Status, index);
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *entry =
+        Keylist_Data_Delete_By_Index(
+            params->SC_Hub_Function_Connection_Status, index);
     free(entry);
 
     return true;
@@ -1150,8 +1149,6 @@ int Network_Port_SC_Hub_Function_Connection_Status_Count(
 
     return count;
 }
-
-#endif
 
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 
@@ -1465,13 +1462,11 @@ bool Network_Port_SC_Direct_Connect_Binding_Dirty_Set(
     return true;
 }
 
-#ifdef BACNET_SC_STATUS_SUPPORT
-
-BACNET_SC_DIRECT_CONNECTION *
+BACNET_SC_DIRECT_CONNECTION_STATUS *
 Network_Port_SC_Direct_Connect_Connection_Status_Get(
     uint32_t object_instance, uint8_t index)
 {
-    BACNET_SC_DIRECT_CONNECTION *connection = NULL;
+    BACNET_SC_DIRECT_CONNECTION_STATUS *connection = NULL;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
 
     if (!params)
@@ -1500,17 +1495,17 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     if (!params)
         return false;
 
-    BACNET_SC_DIRECT_CONNECTION *st =
-        calloc(1, sizeof(BACNET_SC_DIRECT_CONNECTION));
+    BACNET_SC_DIRECT_CONNECTION_STATUS *st =
+        calloc(1, sizeof(BACNET_SC_DIRECT_CONNECTION_STATUS));
     if (!st)
         return false;
 
     bsc_copy_str(st->URI, uri, sizeof(st->URI));
-    st->Connection_State = state;
+    st->State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
     // host_n_port_to_data(peer_address, &st->Peer_Address);
-    memcpy(st->Peer_Address, peer_address, sizeof(st->Peer_Address));
+    memcpy(&st->Peer_Address, peer_address, sizeof(st->Peer_Address));
     memcpy(st->Peer_VMAC, peer_VMAC, sizeof(st->Peer_VMAC));
     memcpy(st->Peer_UUID.uuid.uuid128, peer_UUID,
         sizeof(st->Peer_UUID.uuid.uuid128));
@@ -1534,7 +1529,7 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_By_Index(
     if (!params)
         return false;
 
-    BACNET_SC_DIRECT_CONNECTION *entry = Keylist_Data_Delete_By_Index(
+    BACNET_SC_DIRECT_CONNECTION_STATUS *entry = Keylist_Data_Delete_By_Index(
         params->SC_Direct_Connect_Connection_Status, index);
     free(entry);
 
@@ -1567,11 +1562,7 @@ int Network_Port_SC_Direct_Connect_Connection_Status_Count(
     return count;
 }
 
-#endif
-
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-
-#ifdef BACNET_SC_STATUS_SUPPORT
 
 BACNET_SC_FAILED_CONNECTION_REQUEST *
 Network_Port_SC_Failed_Connection_Requests_Get(
@@ -1607,7 +1598,7 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
 
     entry->Timestamp = *ts;
     // host_n_port_to_data(peer_address, &entry->Peer_Address);
-    memcpy(entry->Peer_Address, peer_address, sizeof(entry->Peer_Address));
+    memcpy(&entry->Peer_Address, peer_address, sizeof(entry->Peer_Address));
     memcpy(entry->Peer_VMAC, peer_VMAC, sizeof(entry->Peer_VMAC));
     memcpy(entry->Peer_UUID.uuid.uuid128, peer_UUID,
         sizeof(entry->Peer_UUID.uuid.uuid128));
@@ -1663,8 +1654,6 @@ int Network_Port_SC_Failed_Connection_Requests_Count(uint32_t object_instance)
 
     return count;
 }
-
-#endif
 
 uint32_t Network_Port_Certificate_Key_File(uint32_t object_instance)
 {

@@ -35,7 +35,8 @@ add_compile_definitions(
   CONFIG_ZTEST=1
   BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM=4
   BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM=4
-  BSC_CONF_WSURL_MAX_LEN=127
+  BSC_CONF_WSURL_MAX_LEN=128
+  BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN=128
   BSC_CONF_WEBSOCKET_SERVERS_NUM=4
   BSC_CONF_HUB_CONNECTORS_NUM=2
   BSC_CONF_HUB_FUNCTIONS_NUM=2
@@ -64,6 +65,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
@@ -126,6 +129,8 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c
@@ -178,6 +183,8 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     ${SRC_DIR}/bacnet/datalink/bsc/bvlc-sc.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-socket.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node.c
+    ${SRC_DIR}/bacnet/datalink/bsc/bsc-node-switch.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-connector.c
     ${SRC_DIR}/bacnet/datalink/bsc/bsc-hub-function.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c

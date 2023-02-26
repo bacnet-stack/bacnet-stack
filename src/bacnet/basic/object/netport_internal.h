@@ -53,7 +53,6 @@ extern "C" {
    - SC_Direct_Connect_Connection_Status
    - SC_FailedConnectionRequests
 */
-/*#define BACNET_SC_STATUS_SUPPORT */
 
     typedef struct BACnetSCAttributes_T {
         BACNET_UNSIGNED_INTEGER Max_BVLC_Length_Accepted;
@@ -93,9 +92,7 @@ extern "C" {
             BACNET_SC_HUB_URI_MAX * (BACNET_URI_LENGTH + 1)];
         char SC_Hub_Function_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Hub_Function_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
-#ifdef BACNET_SC_STATUS_SUPPORT
         OS_Keylist SC_Hub_Function_Connection_Status;
-#endif
         uint16_t Hub_Server_Port;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
@@ -109,14 +106,10 @@ extern "C" {
             BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGTH + 1)];
         char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
-#ifdef BACNET_SC_STATUS_SUPPORT
         OS_Keylist SC_Direct_Connect_Connection_Status;
-#endif
         uint16_t Direct_Server_Port;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-#ifdef BACNET_SC_STATUS_SUPPORT
         OS_Keylist SC_Failed_Connection_Requests;
-#endif
         uint32_t Certificate_Key_File;
         BACNET_UUID Local_UUID;
     } BACNET_SC_PARAMS;

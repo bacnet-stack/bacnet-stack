@@ -2718,13 +2718,11 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
-#ifdef BACNET_SC_STATUS_SUPPORT
             ENCODE_KEYLIST_ARRAY(
                 Network_Port_SC_Hub_Function_Connection_Status_Get,
                 bacapp_encode_SCHubFunctionConnection,
                 Network_Port_SC_Hub_Function_Connection_Status_Count,
-                BACNET_SC_HUB_FUNCTION_CONNECTION);
-#endif
+                BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS);
             break;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
@@ -2750,22 +2748,18 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
-#ifdef BACNET_SC_STATUS_SUPPORT
             ENCODE_KEYLIST_ARRAY(
                 Network_Port_SC_Direct_Connect_Connection_Status_Get,
                 bacapp_encode_SCDirectConnection,
                 Network_Port_SC_Direct_Connect_Connection_Status_Count,
-                BACNET_SC_DIRECT_CONNECTION);
-#endif
+                BACNET_SC_DIRECT_CONNECTION_STATUS);
             break;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
-#ifdef BACNET_SC_STATUS_SUPPORT
             ENCODE_KEYLIST_ARRAY(Network_Port_SC_Failed_Connection_Requests_Get,
                 bacapp_encode_SCFailedConnectionRequest,
                 Network_Port_SC_Failed_Connection_Requests_Count,
                 BACNET_SC_FAILED_CONNECTION_REQUEST);
-#endif
             break;
 #endif /* BACDL_BSC */
         default:
@@ -3135,11 +3129,9 @@ void Network_Port_Init(void)
   #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
   #endif
-  #ifdef BACNET_SC_STATUS_SUPPORT
         sc->SC_Failed_Connection_Requests = Keylist_Create();
     #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
         sc->SC_Hub_Function_Connection_Status = Keylist_Create();
-  #endif
     #if BSC_CONF_HUB_CONNECTORS_NUM!=0
         sc->SC_Direct_Connect_Connection_Status = Keylist_Create();
     #endif

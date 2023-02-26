@@ -1283,7 +1283,7 @@ static void test_hub_connector_url(bool primary)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     reset_hubf_ev(&hubf);
@@ -1441,7 +1441,7 @@ static void test_hub_connector_bad_primary_url(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     reset_hubf_ev(&hubf);
@@ -1667,7 +1667,7 @@ static void test_hub_connector_reconnect(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     reset_hubf_ev(&hubf);
@@ -1682,7 +1682,7 @@ static void test_hub_connector_reconnect(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf_vmac2, // user_arg
+        NULL,
         &hubf_h2);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(
@@ -1732,7 +1732,7 @@ static void test_hub_connector_reconnect(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     reset_hubf_ev(&hubf);
@@ -1755,7 +1755,7 @@ static void test_hub_connector_reconnect(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     reset_hubf_ev(&hubf);
@@ -1790,7 +1790,7 @@ static void test_hub_connector_reconnect(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     reset_hubf_ev(&hubf);
@@ -1844,7 +1844,7 @@ static void test_hub_connector_duplicated_vmac(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     reset_hubf_ev(&hubf);
@@ -1912,25 +1912,10 @@ static void test_hub_function_bad_params(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_BAD_PARAM, NULL);
-#if 0
-    // Libwebsocket behaves in different way, so that case does not work 
-    // under linux OS.
-    ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
-        sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, "fake iface", &hubf_uuid, &hubf_vmac,
-        MAX_BVLC_LEN, MAX_NDPU_LEN,
-        BACNET_TIMEOUT, // connect timeout
-        BACNET_TIMEOUT, // heartbeat timeout
-        BACNET_TIMEOUT, // disconnect timeout
-        hub_function_event,
-        &hubf, // user_arg
-        &hubf_h);
-    printf("ret = %d\n", ret);
-    zassert_equal(ret, BSC_SC_NO_RESOURCES, NULL);
-#endif
+
     reset_hubf_ev(&hubf);
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
@@ -1940,7 +1925,7 @@ static void test_hub_function_bad_params(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf_vmac, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
@@ -1954,7 +1939,7 @@ static void test_hub_function_bad_params(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf_vmac2, // user_arg
+        NULL,
         &hubf_h2);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h2), true, 0);
@@ -1967,7 +1952,7 @@ static void test_hub_function_bad_params(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf_vmac3, // user_arg
+        NULL,
         &hubf_h3);
     zassert_equal(ret, BSC_SC_NO_RESOURCES, NULL);
     reset_hubf_ev(&hubf);
@@ -2022,7 +2007,7 @@ void test_hub_function_duplicated_uuid(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     reset_hubf_ev(&hubf);
@@ -2036,7 +2021,7 @@ void test_hub_function_duplicated_uuid(void)
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
         hub_function_event,
-        &hubf, // user_arg
+        NULL,
         &hubf_h2);
 
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
