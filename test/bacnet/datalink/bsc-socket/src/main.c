@@ -1310,11 +1310,11 @@ static void test_simple(void)
     BSC_SC_RET ret;
     BSC_SOCKET_CTX_FUNCS srv_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, srv_simple_socket_event,
-        srv_simple_context_event };
+        srv_simple_context_event, NULL };
 
     BSC_SOCKET_CTX_FUNCS cli_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event,
-        cli_simple_context_event };
+        cli_simple_context_event, NULL };
 
     BSC_SOCKET_CTX srv_ctx;
     BSC_SOCKET_CTX cli_ctx;
@@ -1427,14 +1427,14 @@ static void test_duplicated_vmac_on_server(void)
     BSC_SC_RET ret;
     BSC_SOCKET_CTX_FUNCS srv_funcs = { srv_find_connection_for_vmac,
         simple_find_connection_for_uuid, srv_simple_socket_event,
-        srv_simple_context_event };
+        srv_simple_context_event, NULL };
 
     BSC_SOCKET_CTX_FUNCS cli_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event,
-        cli_simple_context_event };
+        cli_simple_context_event, NULL};
     BSC_SOCKET_CTX_FUNCS cli_funcs2 = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event2,
-        cli_simple_context_event2 };
+        cli_simple_context_event2, NULL};
     BSC_SOCKET_CTX srv_ctx;
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
@@ -1548,14 +1548,14 @@ static void test_duplicated_vmac_on_server2(void)
     BSC_SC_RET ret;
     BSC_SOCKET_CTX_FUNCS srv_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, srv_simple_socket_event,
-        srv_simple_context_event };
+        srv_simple_context_event, NULL};
 
     BSC_SOCKET_CTX_FUNCS cli_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event,
-        cli_simple_context_event };
+        cli_simple_context_event, NULL};
     BSC_SOCKET_CTX_FUNCS cli_funcs2 = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event2,
-        cli_simple_context_event2 };
+        cli_simple_context_event2, NULL};
     BSC_SOCKET_CTX srv_ctx;
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
@@ -1640,14 +1640,14 @@ static void test_duplicated_uuid_on_server(void)
     BSC_SC_RET ret;
     BSC_SOCKET_CTX_FUNCS srv_funcs = { simple_find_connection_for_vmac,
         srv_find_connection_for_uuid, srv_simple_socket_event,
-        srv_simple_context_event };
+        srv_simple_context_event, NULL};
 
     BSC_SOCKET_CTX_FUNCS cli_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event,
-        cli_simple_context_event };
+        cli_simple_context_event, NULL};
     BSC_SOCKET_CTX_FUNCS cli_funcs2 = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event2,
-        cli_simple_context_event2 };
+        cli_simple_context_event2, NULL};
 
     BSC_SOCKET_CTX srv_ctx;
     BSC_SOCKET_CTX cli_ctx;
@@ -1754,7 +1754,7 @@ static void test_bad_params(void)
     BSC_CONTEXT_CFG server_cfg;
     BSC_SOCKET_CTX_FUNCS srv_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, srv_simple_socket_event,
-        srv_simple_context_event };
+        srv_simple_context_event, NULL };
     BACNET_SC_UUID server_uuid;
     BACNET_SC_VMAC_ADDRESS server_vmac;
     BSC_CONTEXT_CFG client_cfg;
@@ -1763,7 +1763,7 @@ static void test_bad_params(void)
     BACNET_SC_VMAC_ADDRESS client_vmac;
     BSC_SOCKET_CTX_FUNCS cli_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event,
-        cli_simple_context_event };
+        cli_simple_context_event, NULL};
     char url[128];
 
     memset(&srv_ctx, 0, sizeof(srv_ctx));
@@ -1900,11 +1900,11 @@ static void test_error_case1(void)
     BSC_SC_RET ret;
     BSC_SOCKET_CTX_FUNCS srv_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, srv_simple_socket_event,
-        srv_simple_context_event };
+        srv_simple_context_event, NULL};
 
     BSC_SOCKET_CTX_FUNCS cli_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, cli_simple_socket_event,
-        cli_simple_context_event };
+        cli_simple_context_event, NULL};
 
     BSC_SOCKET_CTX srv_ctx;
     BSC_SOCKET_CTX cli_ctx;

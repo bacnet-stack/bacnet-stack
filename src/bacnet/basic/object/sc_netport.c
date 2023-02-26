@@ -1490,7 +1490,7 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     BACNET_ERROR_CODE error,
     const char *error_details)
 {
-    bool status = false;
+    bool status;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;

@@ -41,7 +41,14 @@ include_directories(
 	${TST_DIR}/ztest/include
 	)
 
-add_executable(${PROJECT_NAME}
+if(ZEPHYR_BASE)
+  message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  message(STATUS "Websockets test: building for linux")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
+
+  add_executable(${PROJECT_NAME}
+    ${PORTS_DIR}/linux/datetime-init.c
     # File(s) under test
 	${SRC_DIR}/bacnet/basic/object/bacfile.c
 	${SRC_DIR}/bacnet/basic/object/netport.c
@@ -70,10 +77,101 @@ add_executable(${PROJECT_NAME}
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
+    ${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c
 	${ZTST_DIR}/ztest_mock.c
 	${ZTST_DIR}/ztest.c
-	)
+    )
+elseif(WIN32)
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
+
+  target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
+
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    winmm
+    ws2_32>
+    iphlpapi>)
+
+  add_executable(${PROJECT_NAME}
+    ${PORTS_DIR}/win32/datetime-init.c
+    # File(s) under test
+	${SRC_DIR}/bacnet/basic/object/bacfile.c
+	${SRC_DIR}/bacnet/basic/object/netport.c
+	${SRC_DIR}/bacnet/basic/object/sc_netport.c
+    # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/arf.c
+	${SRC_DIR}/bacnet/bacapp.c
+	${SRC_DIR}/bacnet/bacdcode.c
+	${SRC_DIR}/bacnet/bacdevobjpropref.c
+	${SRC_DIR}/bacnet/bacerror.c
+	${SRC_DIR}/bacnet/bacint.c
+	${SRC_DIR}/bacnet/bacreal.c
+	${SRC_DIR}/bacnet/bacstr.c
+	${SRC_DIR}/bacnet/bactext.c
+	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/datalink/bvlc.c
+	${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/basic/sys/days.c
+	${SRC_DIR}/bacnet/basic/sys/keylist.c
+	${SRC_DIR}/bacnet/indtext.c
+	${SRC_DIR}/bacnet/hostnport.c
+	${SRC_DIR}/bacnet/lighting.c
+	${SRC_DIR}/bacnet/proplist.c
+	${SRC_DIR}/bacnet/timestamp.c
+	${SRC_DIR}/bacnet/wp.c
+	${SRC_DIR}/bacnet/weeklyschedule.c
+	${SRC_DIR}/bacnet/bactimevalue.c
+	${SRC_DIR}/bacnet/dailyschedule.c
+    ${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    # Test and test library files
+	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+	./src/main.c
+	${ZTST_DIR}/ztest_mock.c
+	${ZTST_DIR}/ztest.c
+    )
+
+elseif(APPLE)
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  add_executable(${PROJECT_NAME}
+    ${PORTS_DIR}/bsd/datetime-init.c
+     # File(s) under test
+	${SRC_DIR}/bacnet/basic/object/bacfile.c
+	${SRC_DIR}/bacnet/basic/object/netport.c
+	${SRC_DIR}/bacnet/basic/object/sc_netport.c
+    # Support files and stubs (pathname alphabetical)
+	${SRC_DIR}/bacnet/arf.c
+	${SRC_DIR}/bacnet/bacapp.c
+	${SRC_DIR}/bacnet/bacdcode.c
+	${SRC_DIR}/bacnet/bacdevobjpropref.c
+	${SRC_DIR}/bacnet/bacerror.c
+	${SRC_DIR}/bacnet/bacint.c
+	${SRC_DIR}/bacnet/bacreal.c
+	${SRC_DIR}/bacnet/bacstr.c
+	${SRC_DIR}/bacnet/bactext.c
+	${SRC_DIR}/bacnet/basic/sys/bigend.c
+	${SRC_DIR}/bacnet/datalink/bvlc.c
+	${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/basic/sys/days.c
+	${SRC_DIR}/bacnet/basic/sys/keylist.c
+	${SRC_DIR}/bacnet/indtext.c
+	${SRC_DIR}/bacnet/hostnport.c
+	${SRC_DIR}/bacnet/lighting.c
+	${SRC_DIR}/bacnet/proplist.c
+	${SRC_DIR}/bacnet/timestamp.c
+	${SRC_DIR}/bacnet/wp.c
+	${SRC_DIR}/bacnet/weeklyschedule.c
+	${SRC_DIR}/bacnet/bactimevalue.c
+	${SRC_DIR}/bacnet/dailyschedule.c
+    ${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+    # Test and test library files
+	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
+	./src/main.c
+	${ZTST_DIR}/ztest_mock.c
+	${ZTST_DIR}/ztest.c
+    )
+endif()
