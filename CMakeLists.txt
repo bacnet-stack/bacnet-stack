@@ -69,7 +69,7 @@ option(
 option(
   BACDL_BSC
   "compile with secure-connect support"
-  OFF)
+  ON)
 
 set(BACNET_PROTOCOL_REVISION 19)
 
