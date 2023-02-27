@@ -1519,7 +1519,7 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     status = Keylist_Data_Add(params->SC_Direct_Connect_Connection_Status,
         Keylist_Next_Empty_Key(params->SC_Failed_Connection_Requests, 0), st);
 
-    return st;
+    return status;
 }
 
 bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_By_Index(
