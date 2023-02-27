@@ -1499,8 +1499,12 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
         calloc(1, sizeof(BACNET_SC_DIRECT_CONNECTION_STATUS));
     if (!st)
         return false;
-
-    bsc_copy_str(st->URI, uri, sizeof(st->URI));
+    if(uri) {
+        bsc_copy_str(st->URI, uri, sizeof(st->URI));
+    }
+    else {
+        st->URI[0] = 0;
+    }
     st->State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;

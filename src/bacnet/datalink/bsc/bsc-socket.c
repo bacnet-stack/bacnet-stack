@@ -236,12 +236,16 @@ static bool bsc_prepare_protocol_error(BSC_SOCKET *c,
         c, origin, dest, NULL, error_class, error_code, utf8_details_string);
 }
 
+static void bsc_clear_vmac_and_uuid(BSC_SOCKET *c)
+{
+    memset(&c->vmac, 0, sizeof(c->vmac));
+    memset(&c->uuid, 0, sizeof(c->uuid));
+}
+
 static void bsc_set_socket_idle(BSC_SOCKET *c)
 {
     c->state = BSC_SOCK_STATE_IDLE;
     c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
-    memset(&c->vmac, 0, sizeof(c->vmac));
-    memset(&c->uuid, 0, sizeof(c->uuid));
 }
 
 static void bsc_process_socket_disconnecting(
@@ -944,10 +948,12 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
                 c->reason, NULL, NULL, 0, NULL);
+            bsc_clear_vmac_and_uuid(c);
         } else {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
                 ws_reason, ws_reason_desc, NULL, 0, NULL);
+            bsc_clear_vmac_and_uuid(c);
         }
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         c = bsc_find_free_socket(ctx);
@@ -1172,6 +1178,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         DEBUG_PRINTF("bsc_dispatch_cli_func() ctx->state = %d\n", ctx->state);
         if (ctx->state == BSC_CTX_STATE_DEINITIALIZING) {
             bsc_set_socket_idle(c);
+            bsc_clear_vmac_and_uuid(c);
             for (i = 0; i < ctx->sock_num; i++) {
                 if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                     all_socket_disconnected = false;
@@ -1187,10 +1194,12 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
                 c->reason, NULL, NULL, 0, NULL);
+            bsc_clear_vmac_and_uuid(c);
         } else {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
                 ws_reason, ws_reason_desc, NULL, 0, NULL);
+            bsc_clear_vmac_and_uuid(c);
         }
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         if (c->state == BSC_SOCK_STATE_AWAITING_WEBSOCKET) {
@@ -1451,6 +1460,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
             ret = bsc_map_websocket_retcode(wret);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
                 bsc_set_socket_idle(c);
+                bsc_clear_vmac_and_uuid(c);
             }
         }
 

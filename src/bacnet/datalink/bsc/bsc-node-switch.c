@@ -171,15 +171,14 @@ static BACNET_SC_DIRECT_CONNECTION_STATUS *node_switch_find_status_for_vmac(
             return &s[i];
         }
         if (s[i].State != BACNET_CONNECTED) {
-            if (non_connected_index < 0 &&
-                datetime_time_is_valid(&s[i].Disconnect_Timestamp.time) &&
-                datetime_date_is_valid(&s[i].Disconnect_Timestamp.date)) {
+            if (non_connected_index < 0) {
                 non_connected_index = i;
                 memcpy(
                     &timestamp, &s[i].Disconnect_Timestamp, sizeof(timestamp));
             } else {
-                if (datetime_time_is_valid(&s[i].Disconnect_Timestamp.time) &&
-                    datetime_date_is_valid(&s[i].Disconnect_Timestamp.date)) {
+                if (datetime_is_valid(&s[i].Disconnect_Timestamp.date,
+                        &s[i].Disconnect_Timestamp.time) &&
+                    datetime_is_valid(&timestamp.date, &timestamp.time)) {
                     if (datetime_compare(
                             &s[i].Disconnect_Timestamp, &timestamp) < 0) {
                         non_connected_index = i;
@@ -418,6 +417,21 @@ static int node_switch_initiator_find_connection_index_for_vmac(
         if (ctx->initiator.sock_state[i] !=
                 BSC_NODE_SWITCH_CONNECTION_STATE_IDLE &&
             !memcmp(&ctx->initiator.dest_vmac[i].address[0], &vmac->address[0],
+                sizeof(vmac->address))) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+static int node_switch_acceptor_find_connection_index_for_vmac(
+    BACNET_SC_VMAC_ADDRESS *vmac, BSC_NODE_SWITCH_CTX *ctx)
+{
+    int i;
+
+    for (i = 0; i < sizeof(ctx->acceptor.sock) / sizeof(BSC_SOCKET); i++) {
+        if (ctx->acceptor.sock[i].state == BSC_SOCK_STATE_CONNECTED &&
+            !memcmp(&ctx->acceptor.sock[i].vmac.address[0], &vmac->address[0],
                 sizeof(vmac->address))) {
             return i;
         }
@@ -1065,6 +1079,14 @@ bool bsc_node_switch_connected(BSC_NODE_SWITCH_HANDLE h,
                         }
                     }
                 }
+            }
+        }
+    }
+    if (ns->direct_connect_accept_enable) {
+        if (dest) {
+            i = node_switch_acceptor_find_connection_index_for_vmac(dest, ns);
+            if (i != -1) {
+                ret = true;
             }
         }
     }

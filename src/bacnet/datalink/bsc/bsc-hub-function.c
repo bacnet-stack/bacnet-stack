@@ -162,19 +162,14 @@ hub_function_find_status_for_vmac(
             return &f->status[i];
         }
         if (f->status[i].State != BACNET_CONNECTED) {
-            if (non_connected_index < 0 &&
-                datetime_time_is_valid(
-                    &f->status[i].Disconnect_Timestamp.time) &&
-                datetime_date_is_valid(
-                    &f->status[i].Disconnect_Timestamp.date)) {
+            if (non_connected_index < 0) {
                 non_connected_index = i;
                 memcpy(&timestamp, &f->status[i].Disconnect_Timestamp,
                     sizeof(timestamp));
             } else {
-                if (datetime_time_is_valid(
+                if (datetime_is_valid(&f->status[i].Disconnect_Timestamp.date,
                         &f->status[i].Disconnect_Timestamp.time) &&
-                    datetime_date_is_valid(
-                        &f->status[i].Disconnect_Timestamp.date)) {
+                    datetime_is_valid(&timestamp.date, &timestamp.time)) {
                     if (datetime_compare(&f->status[i].Disconnect_Timestamp,
                             &timestamp) < 0) {
                         non_connected_index = i;

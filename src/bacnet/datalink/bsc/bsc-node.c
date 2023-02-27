@@ -900,7 +900,8 @@ bool bsc_node_direct_connection_established(
     bool ret = false;
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
-        node->conf->direct_connect_initiate_enable) {
+        (node->conf->direct_connect_initiate_enable ||
+            node->conf->direct_connect_accept_enable)) {
         ret =
             bsc_node_switch_connected(node->node_switch, dest, urls, urls_cnt);
     }
