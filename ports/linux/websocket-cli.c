@@ -138,7 +138,7 @@ static BSC_WEBSOCKET_HANDLE bws_cli_find_connnection(struct lws *ws)
 static void bws_set_err_desc(BSC_WEBSOCKET_HANDLE h, char *err_desc)
 {
     int len;
-    if (bws_cli_conn[h].err_code == 0) {
+    if (bws_cli_conn[h].err_code == ERROR_CODE_SUCCESS) {
         len = strlen(err_desc) >= sizeof(bws_cli_conn[h].err_desc)
             ? sizeof(bws_cli_conn[h].err_desc) - 1
             : strlen(err_desc);
@@ -479,14 +479,14 @@ static void *bws_cli_worker(void *arg)
             dispatch_func = conn->dispatch_func;
             user_param = conn->user_param;
             err_code = conn->err_code;
-            if (err_code) {
+            if (err_code != ERROR_CODE_SUCCESS) {
                 memcpy(err_desc, conn->err_desc, sizeof(err_desc));
             }
             bws_cli_free_connection(h);
             pthread_mutex_unlock(&bws_cli_mutex);
             DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
             dispatch_func(h, BSC_WEBSOCKET_DISCONNECTED, err_code,
-                err_code ? err_desc : NULL, NULL, 0, user_param);
+                err_code != ERROR_CODE_SUCCESS ? err_desc : NULL, NULL, 0, user_param);
             return NULL;
         }
         DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
@@ -667,6 +667,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     }
 
     bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_CONNECTING;
+    bws_cli_conn[h].err_code = ERROR_CODE_SUCCESS;
     *out_handle = h;
     lws_client_connect_via_info(&cinfo);
     pthread_mutex_unlock(&bws_cli_mutex);

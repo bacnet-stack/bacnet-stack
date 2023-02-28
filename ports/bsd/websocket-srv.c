@@ -353,6 +353,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
                 ctx, ctx->proto, h);
             ctx->conn[h].ws = wsi;
             ctx->conn[h].state = BSC_WEBSOCKET_STATE_CONNECTED;
+            ctx->conn[h].err_code = ERROR_CODE_SUCCESS;
             dispatch_func = ctx->dispatch_func;
             user_param = ctx->user_param;
             pthread_mutex_unlock(ctx->mutex);
