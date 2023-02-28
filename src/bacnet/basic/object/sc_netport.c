@@ -60,6 +60,8 @@
 #define SC_WAIT_CONNECT_MIN 5
 #define SC_WAIT_CONNECT_MAX 300
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
 static int string_splite(
     const char *str, char separator, int *indexes, int length);
 static bool string_subsstr(
@@ -1055,16 +1057,15 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
 Network_Port_SC_Hub_Function_Connection_Status_Get(
     uint32_t object_instance, uint8_t index)
 {
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *connection = NULL;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
 
     if (!params)
         return NULL;
 
-    connection =
-        Keylist_Data_Index(params->SC_Hub_Function_Connection_Status, index);
+    if (index >= params->SC_Hub_Function_Connection_Status_Count)
+        return NULL;
 
-    return connection;
+    return &params->SC_Hub_Function_Connection_Status[index];
 }
 
 bool Network_Port_SC_Hub_Function_Connection_Status_Add(
@@ -1078,15 +1079,18 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Add(
     BACNET_ERROR_CODE error,
     const char *error_details)
 {
-    bool status = false;
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *st;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
 
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *st =
-        calloc(1, sizeof(BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS));
-    if (!st)
+    if (params->SC_Hub_Function_Connection_Status_Count + 1 >
+        ARRAY_SIZE(params->SC_Hub_Function_Connection_Status))
         return false;
+
+    st = &params->SC_Hub_Function_Connection_Status[
+        params->SC_Hub_Function_Connection_Status_Count];
+    params->SC_Hub_Function_Connection_Status_Count += 1;
 
     st->State = state;
     st->Connect_Timestamp = *connect_ts;
@@ -1102,25 +1106,6 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Add(
     else
         st->Error_Details[0] = 0;
 
-    status = Keylist_Data_Add(params->SC_Hub_Function_Connection_Status,
-        Keylist_Next_Empty_Key(params->SC_Hub_Function_Connection_Status, 0),
-        st);
-
-    return status;
-}
-
-bool Network_Port_SC_Hub_Function_Connection_Status_Delete_By_Index(
-    uint32_t object_instance, uint8_t index)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return false;
-
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *entry =
-        Keylist_Data_Delete_By_Index(
-            params->SC_Hub_Function_Connection_Status, index);
-    free(entry);
-
     return true;
 }
 
@@ -1131,8 +1116,7 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Delete_All(
     if (!params)
         return false;
 
-    Keylist_Delete(params->SC_Hub_Function_Connection_Status);
-    params->SC_Hub_Function_Connection_Status = Keylist_Create();
+    params->SC_Hub_Function_Connection_Status_Count = 0;
 
     return true;
 }
@@ -1140,14 +1124,11 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Delete_All(
 int Network_Port_SC_Hub_Function_Connection_Status_Count(
     uint32_t object_instance)
 {
-    int count = 0;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return 0;
 
-    count = Keylist_Count(params->SC_Hub_Function_Connection_Status);
-
-    return count;
+    return params->SC_Hub_Function_Connection_Status_Count;
 }
 
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
@@ -1466,16 +1447,14 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *
 Network_Port_SC_Direct_Connect_Connection_Status_Get(
     uint32_t object_instance, uint8_t index)
 {
-    BACNET_SC_DIRECT_CONNECTION_STATUS *connection = NULL;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-
     if (!params)
         return NULL;
 
-    connection =
-        Keylist_Data_Index(params->SC_Direct_Connect_Connection_Status, index);
+    if (index >= params->SC_Direct_Connect_Connection_Status_Count)
+        return NULL;
 
-    return connection;
+    return &params->SC_Direct_Connect_Connection_Status[index];
 }
 
 bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
@@ -1490,15 +1469,19 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     BACNET_ERROR_CODE error,
     const char *error_details)
 {
-    bool status;
+    BACNET_SC_DIRECT_CONNECTION_STATUS *st;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
 
-    BACNET_SC_DIRECT_CONNECTION_STATUS *st =
-        calloc(1, sizeof(BACNET_SC_DIRECT_CONNECTION_STATUS));
-    if (!st)
+    if (params->SC_Direct_Connect_Connection_Status_Count + 1 >
+        ARRAY_SIZE(params->SC_Direct_Connect_Connection_Status))
         return false;
+
+    st = &params->SC_Direct_Connect_Connection_Status[
+        params->SC_Direct_Connect_Connection_Status_Count];
+    params->SC_Direct_Connect_Connection_Status_Count += 1;
+
     if(uri) {
         bsc_copy_str(st->URI, uri, sizeof(st->URI));
     }
@@ -1520,23 +1503,6 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     else
         st->Error_Details[0] = 0;
 
-    status = Keylist_Data_Add(params->SC_Direct_Connect_Connection_Status,
-        Keylist_Next_Empty_Key(params->SC_Failed_Connection_Requests, 0), st);
-
-    return status;
-}
-
-bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_By_Index(
-    uint32_t object_instance, uint8_t index)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return false;
-
-    BACNET_SC_DIRECT_CONNECTION_STATUS *entry = Keylist_Data_Delete_By_Index(
-        params->SC_Direct_Connect_Connection_Status, index);
-    free(entry);
-
     return true;
 }
 
@@ -1547,8 +1513,7 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_All(
     if (!params)
         return false;
 
-    Keylist_Delete(params->SC_Direct_Connect_Connection_Status);
-    params->SC_Direct_Connect_Connection_Status = Keylist_Create();
+    params->SC_Direct_Connect_Connection_Status_Count = 0;
 
     return true;
 }
@@ -1556,14 +1521,11 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_All(
 int Network_Port_SC_Direct_Connect_Connection_Status_Count(
     uint32_t object_instance)
 {
-    int count = 0;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return 0;
 
-    count = Keylist_Count(params->SC_Direct_Connect_Connection_Status);
-
-    return count;
+    return params->SC_Direct_Connect_Connection_Status_Count;
 }
 
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
@@ -1572,14 +1534,14 @@ BACNET_SC_FAILED_CONNECTION_REQUEST *
 Network_Port_SC_Failed_Connection_Requests_Get(
     uint32_t object_instance, uint8_t index)
 {
-    BACNET_SC_FAILED_CONNECTION_REQUEST *req = NULL;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return NULL;
 
-    req = Keylist_Data_Index(params->SC_Failed_Connection_Requests, index);
+    if (index >= params->SC_Failed_Connection_Requests_Count)
+        return NULL;
 
-    return req;
+    return &params->SC_Failed_Connection_Requests[index];
 }
 
 bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
@@ -1590,15 +1552,18 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
     BACNET_ERROR_CODE error,
     const char *error_details)
 {
-    bool st = false;
+    BACNET_SC_FAILED_CONNECTION_REQUEST *entry;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return false;
 
-    BACNET_SC_FAILED_CONNECTION_REQUEST *entry =
-        calloc(1, sizeof(BACNET_SC_FAILED_CONNECTION_REQUEST));
-    if (!entry)
+    if (params->SC_Failed_Connection_Requests_Count + 1 >
+        ARRAY_SIZE(params->SC_Failed_Connection_Requests))
         return false;
+
+    entry = &params->SC_Failed_Connection_Requests[
+            params->SC_Failed_Connection_Requests_Count];
+    params->SC_Failed_Connection_Requests_Count += 1;
 
     entry->Timestamp = *ts;
     // host_n_port_to_data(peer_address, &entry->Peer_Address);
@@ -1613,24 +1578,6 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(uint32_t object_instance,
     else
         entry->Error_Details[0] = 0;
 
-    st = Keylist_Data_Add(params->SC_Failed_Connection_Requests,
-        Keylist_Next_Empty_Key(params->SC_Failed_Connection_Requests, 0),
-        entry);
-
-    return st;
-}
-
-bool Network_Port_SC_Failed_Connection_Requests_Delete_By_Index(
-    uint32_t object_instance, uint8_t index)
-{
-    BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
-    if (!params)
-        return false;
-
-    BACNET_SC_FAILED_CONNECTION_REQUEST *entry = Keylist_Data_Delete_By_Index(
-        params->SC_Failed_Connection_Requests, index);
-    free(entry);
-
     return true;
 }
 
@@ -1641,22 +1588,18 @@ bool Network_Port_SC_Failed_Connection_Requests_Delete_All(
     if (!params)
         return false;
 
-    Keylist_Delete(params->SC_Failed_Connection_Requests);
-    params->SC_Failed_Connection_Requests = Keylist_Create();
+    params->SC_Failed_Connection_Requests_Count = 0;
 
     return true;
 }
 
 int Network_Port_SC_Failed_Connection_Requests_Count(uint32_t object_instance)
 {
-    int count = 0;
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
     if (!params)
         return 0;
 
-    count = Keylist_Count(params->SC_Failed_Connection_Requests);
-
-    return count;
+    return params->SC_Failed_Connection_Requests_Count;
 }
 
 uint32_t Network_Port_Certificate_Key_File(uint32_t object_instance)

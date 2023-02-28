@@ -3129,11 +3129,11 @@ void Network_Port_Init(void)
   #ifdef BACNET_SECURE_CONNECT_ROUTING_TABLE
         sc->Routing_Table = Keylist_Create();
   #endif
-        sc->SC_Failed_Connection_Requests = Keylist_Create();
+        sc->SC_Failed_Connection_Requests_Count = 0;
     #if BSC_CONF_HUB_FUNCTIONS_NUM!=0
-        sc->SC_Hub_Function_Connection_Status = Keylist_Create();
+        sc->SC_Hub_Function_Connection_Status_Count = 0;
     #if BSC_CONF_HUB_CONNECTORS_NUM!=0
-        sc->SC_Direct_Connect_Connection_Status = Keylist_Create();
+        sc->SC_Direct_Connect_Connection_Status_Count = 0;
     #endif
   #endif
         (void)sc;
