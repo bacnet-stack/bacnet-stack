@@ -432,10 +432,6 @@ bool Network_Port_SC_Hub_Function_Connection_Status_Add(
     BACNET_ERROR_CODE error,
     const char *error_details);
 BACNET_STACK_EXPORT
-bool Network_Port_SC_Hub_Function_Connection_Status_Delete_By_Index(
-    uint32_t object_instance,
-    uint8_t index);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Hub_Function_Connection_Status_Delete_All(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -532,10 +528,6 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     BACNET_ERROR_CODE error,
     const char *error_details);
 BACNET_STACK_EXPORT
-bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_By_Index(
-    uint32_t object_instance,
-    uint8_t index);
-BACNET_STACK_EXPORT
 bool Network_Port_SC_Direct_Connect_Connection_Status_Delete_All(
     uint32_t object_instance);
 BACNET_STACK_EXPORT
@@ -556,10 +548,6 @@ bool Network_Port_SC_Failed_Connection_Requests_Add(
     uint8_t *peer_UUID,
     BACNET_ERROR_CODE error,
     const char *error_details);
-BACNET_STACK_EXPORT
-bool Network_Port_SC_Failed_Connection_Requests_Delete_By_Index(
-    uint32_t object_instance,
-    uint8_t index);
 BACNET_STACK_EXPORT
 bool Network_Port_SC_Failed_Connection_Requests_Delete_All(
     uint32_t object_instance);

@@ -92,7 +92,10 @@ extern "C" {
             BACNET_SC_HUB_URI_MAX * (BACNET_URI_LENGTH + 1)];
         char SC_Hub_Function_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Hub_Function_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
-        OS_Keylist SC_Hub_Function_Connection_Status;
+        BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS
+            SC_Hub_Function_Connection_Status[
+                BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM];
+        uint8_t SC_Hub_Function_Connection_Status_Count;
         uint16_t Hub_Server_Port;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
@@ -106,10 +109,14 @@ extern "C" {
             BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGTH + 1)];
         char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
-        OS_Keylist SC_Direct_Connect_Connection_Status;
+        BACNET_SC_DIRECT_CONNECTION_STATUS SC_Direct_Connect_Connection_Status[
+            2 * BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+        uint8_t SC_Direct_Connect_Connection_Status_Count;
         uint16_t Direct_Server_Port;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
-        OS_Keylist SC_Failed_Connection_Requests;
+        BACNET_SC_FAILED_CONNECTION_REQUEST SC_Failed_Connection_Requests[
+            BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM];
+        uint8_t SC_Failed_Connection_Requests_Count;
         uint32_t Certificate_Key_File;
         BACNET_UUID Local_UUID;
     } BACNET_SC_PARAMS;
