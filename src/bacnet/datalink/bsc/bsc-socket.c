@@ -905,7 +905,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
                  "reason = %d, desc = %p, buf "
                  "= %p, bufsize = %d, ctx = %p\n",
-        sh, h, ev, ws_reason, ws_reason_desc, bufsize, ctx);
+        sh, h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
         for (i = 0; i < ctx->sock_num; i++) {
@@ -1591,8 +1591,7 @@ bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data)
     }
 
     bws_dispatch_lock();
-    if (c->state == BSC_SOCK_STATE_CONNECTED &&
-        c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
+    if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
         data->type = BACNET_HOST_N_PORT_IP;
         ret = bws_srv_get_peer_ip_addr(c->ctx->sh, c->wh, (uint8_t *)data->host,
             sizeof(data->host), &data->port);

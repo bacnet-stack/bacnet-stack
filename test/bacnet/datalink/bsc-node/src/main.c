@@ -1081,28 +1081,28 @@ typedef struct {
     BACNET_SC_VMAC_ADDRESS dest;
 } node_ev_t;
 
-static void call_maintenance_timer(void)
+static void call_maintenance_timer(bool reset, int time_passed_ms)
 {
-    static time_t last_seconds = -1;
-    time_t current_seconds = time(NULL);
-
-    if(last_seconds == -1) {
-        last_seconds = time(NULL);
+    static int total_ms;
+    if (reset) {
+        total_ms = 0;
     }
 
-    if (current_seconds - last_seconds > 0) {
-       bsc_node_maintenance_timer(current_seconds - last_seconds);
-       last_seconds = time(NULL);
+    total_ms += time_passed_ms;
+
+    if (total_ms >= 1000) {
+        bsc_node_maintenance_timer(1);
+        total_ms = 0;
     }
 }
 
 static void wait_sec(int seconds)
 {
-  while(seconds >= 0) {
-     bsc_wait(1);
-     call_maintenance_timer();
-     seconds--;
-  }
+    while (seconds >= 0) {
+        bsc_wait(1);
+        bsc_node_maintenance_timer(1);
+        seconds--;
+    }
 }
 
 static node_ev_t node_ev;
@@ -1123,8 +1123,9 @@ static void deinit_node_ev(node_ev_t *ev)
 
 static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
-    while(!bsc_event_timedwait(ev->e, 100)) {
-        call_maintenance_timer();
+    call_maintenance_timer(1, 0);
+    while (!bsc_event_timedwait(ev->e, 100)) {
+        call_maintenance_timer(0, 100);
     }
     if (ev->ev == wait_ev && ev->node == node) {
         return true;
@@ -1136,9 +1137,10 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 static void wait_specific_node_ev(
     node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
+    call_maintenance_timer(1, 0);
     while (1) {
-        while(!bsc_event_timedwait(ev->e, 100)) {
-            call_maintenance_timer();
+        while (!bsc_event_timedwait(ev->e, 100)) {
+            call_maintenance_timer(0, 100);
         }
         if (ev->ev == wait_ev && ev->node == node) {
             break;
@@ -1900,8 +1902,8 @@ static void test_node_direct_connection(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     bsc_node_disconnect_direct(node3, &node_vmac2);
     zassert_equal(
-        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3), true,
-        0);
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
+        true, 0);
     ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
         sizeof(node_ev3.dest.address));
     zassert_equal(ret, 0, NULL);
@@ -1913,8 +1915,8 @@ static void test_node_direct_connection(void)
         0);
     bsc_node_disconnect_direct(node3, &node_vmac2);
     zassert_equal(
-        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3), true,
-        0);
+        wait_node_ev(&node_ev3, BSC_NODE_EVENT_DIRECT_DISCONNECTED, node3),
+        true, 0);
     ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
         sizeof(node_ev3.dest.address));
     zassert_equal(ret, 0, NULL);
@@ -2221,8 +2223,8 @@ static void test_node_direct_connection(void)
 
     sprintf(url1, "w3sdfsdfsdfss://%s:%d", BACNET_LOCALHOST,
         BACNET_NODE_LOCAL_DIRECT_PORT2);
-    sprintf(
-        url2, "wssdfsdfsdfs://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT2);
+    sprintf(url2, "wssdfsdfsdfs://%s:%d", BACNET_LOCALHOST,
+        BACNET_NODE_LOCAL_DIRECT_PORT2);
     ret = bsc_node_init(&conf, &node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_init(&conf2, &node2);
@@ -2243,7 +2245,7 @@ static void test_node_direct_connection(void)
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     ret = bsc_node_connect_direct(node3, NULL, urls, 2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
-    wait_sec(3* BACNET_TIMEOUT);
+    wait_sec(3 * BACNET_TIMEOUT);
     bsc_node_stop(node);
     wait_specific_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node);
     bsc_node_stop(node2);
@@ -2261,12 +2263,12 @@ static void test_node_direct_connection(void)
         node_primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
     sprintf(node_secondary_url, "wss://%s:%d", BACNET_LOCALHOST,
         BACNET_CLOSED_PORT);
-    sprintf(node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
+    sprintf(
+        node_primary_url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
     sprintf(node_secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
         BACNET_CLOSED_PORT);
-    sprintf(node_primary_url3, "wss://%s:%d", BACNET_LOCALHOST,
-        BACNET_CLOSED_PORT);
+    sprintf(
+        node_primary_url3, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
     sprintf(node_secondary_url3, "wss://%s:%d", BACNET_LOCALHOST,
         BACNET_CLOSED_PORT);
 
@@ -2290,7 +2292,7 @@ static void test_node_direct_connection(void)
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
-    wait_sec(3* BACNET_TIMEOUT);
+    wait_sec(3 * BACNET_TIMEOUT);
     bsc_node_stop(node);
     wait_specific_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node);
     bsc_node_stop(node2);

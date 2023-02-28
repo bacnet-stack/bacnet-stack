@@ -160,9 +160,12 @@ struct BSC_SocketContextFuncs {
     /* to avoid copying of packet payload during manipulation with */
     /* origin and dest addresses (e.g. adding them to received PDU) */
     /* That's why pdu pointer has always reserved BSC_PRE bytes behind */
+    /* The params disconnect_reason and disconnect_reason_desc are meanfull */
+    /* only for disconnect events, e.g. when ev ==  BSC_SOCKET_EVENT_DISCONNECTED */
+
     void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
-                         BACNET_ERROR_CODE reason,
-                         const char* reason_desc,
+                         BACNET_ERROR_CODE disconnect_reason,
+                         const char* disconnect_reason_desc,
                          uint8_t *pdu, uint16_t pdu_len,
                          BVLC_SC_DECODED_MESSAGE *decoded_pdu);
     void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
@@ -222,10 +225,19 @@ BACNET_STACK_EXPORT
 void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
 
 /**
- * @brief  bsc_connect() function starts connection operation for a 
+ * @brief  bsc_connect() function starts connect operation for a 
  *         specified BACNet socket. The function call be called only
  *         for initiator context otherwise BSC_SC_INVALID_OPERATION
- *         error is returned.
+ *         error is returned. As a result if bsc_connect() was
+ *         succeded for given param c, that leads to emitting of
+ *         BSC_SOCKET_EVENT_CONNECTED or BSC_SOCKET_EVENT_DISCONNECTED
+ *         events depending on the result of connect operation.
+ *         If connect operation is failed, BSC_SOCKET_EVENT_DISCONNECTED
+ *         event is emitted and user can determine the reason why it
+ *         happened using disconnect_reason and disconnect_reason_desc
+ *         parameters in callback function.
+ *         If connect operation succeeded, BSC_SOCKET_EVENT_CONNECTED
+ *         event is emited.
  *
  * @param ctx - socket context.
  * @param c - BACNet socket descriptor .

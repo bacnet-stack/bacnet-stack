@@ -187,8 +187,8 @@ hub_function_find_status_for_vmac(
 static void hub_function_update_status(BSC_HUB_FUNCTION *f,
     BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
-    BACNET_ERROR_CODE reason,
-    const char *reason_desc)
+    BACNET_ERROR_CODE disconnect_reason,
+    const char *disconnect_reason_desc)
 {
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s;
     BACNET_SC_CONNECTION_STATE st = BACNET_DISCONNECTED_WITH_ERRORS;
@@ -202,25 +202,26 @@ static void hub_function_update_status(BSC_HUB_FUNCTION *f,
         if (!bsc_socket_get_peer_addr(c, &s->Peer_Address)) {
             memset(&s->Peer_Address, 0, sizeof(s->Peer_Address));
         }
-        if (reason_desc) {
-            bsc_copy_str(
-                s->Error_Details, reason_desc, sizeof(s->Error_Details));
+        if (disconnect_reason_desc) {
+            bsc_copy_str(s->Error_Details, disconnect_reason_desc,
+                sizeof(s->Error_Details));
         } else {
             s->Error_Details[0] = 0;
         }
+        s->Error = ERROR_CODE_OTHER;
         if (ev == BSC_SOCKET_EVENT_CONNECTED) {
             s->State = BACNET_CONNECTED;
             bsc_set_timestamp(&s->Connect_Timestamp);
-            memset(&s->Disconnect_Timestamp, 0xFF,
-                sizeof(s->Disconnect_Timestamp));
+            memset(
+                &s->Disconnect_Timestamp, 0x0, sizeof(s->Disconnect_Timestamp));
         } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
-            s->Error = reason;
             bsc_set_timestamp(&s->Disconnect_Timestamp);
-            if (reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
-                reason == ERROR_CODE_SUCCESS) {
+            if (disconnect_reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
+                disconnect_reason == ERROR_CODE_SUCCESS) {
                 s->State = BACNET_NOT_CONNECTED;
             } else {
                 s->State = BACNET_DISCONNECTED_WITH_ERRORS;
+                s->Error = disconnect_reason;
             }
         }
     }
