@@ -38,6 +38,11 @@
 #include "bacnet/timestamp.h"
 #include "bacnet/weeklyschedule.h"
 
+typedef struct BACnetCustomValue {
+    uint8_t *data;
+    int len;
+} BACNET_CUSTOM_VALUE;
+
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
     bool context_specific;      /* true if context specific data */
@@ -95,6 +100,9 @@ typedef struct BACnet_Application_Data_Value {
             Device_Object_Reference;
         BACNET_OBJECT_PROPERTY_REFERENCE
             Object_Property_Reference;
+#endif
+#if defined (BACDL_BSC)
+        BACNET_CUSTOM_VALUE Custom_Value;
 #endif
     } type;
     /* simple linked list if needed */

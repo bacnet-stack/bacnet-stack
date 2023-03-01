@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <bacnet/basic/sys/keylist.h>
 #include <bacnet/bacnet_stack_exports.h>
+#include <bacnet/bacapp.h>
 #include <bacnet/bacdef.h>
 #include <bacnet/bacenum.h>
 #include <bacnet/apdu.h>
@@ -601,6 +602,7 @@ int bacapp_encode_SCHubFunctionConnection(
 BACNET_STACK_EXPORT
 int bacapp_decode_SCHubFunctionConnection(
     uint8_t *apdu,
+    uint16_t max_apdu_len,
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_SCHubFunctionConnection(
@@ -620,6 +622,7 @@ int bacapp_encode_SCFailedConnectionRequest(
 BACNET_STACK_EXPORT
 int bacapp_decode_SCFailedConnectionRequest(
     uint8_t *apdu,
+    uint16_t max_apdu_len,
     BACNET_SC_FAILED_CONNECTION_REQUEST *value);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_SCFailedConnectionRequest(
@@ -658,6 +661,7 @@ int bacapp_encode_SCDirectConnection(
 BACNET_STACK_EXPORT
 int bacapp_decode_SCDirectConnection(
     uint8_t *apdu,
+    uint16_t max_apdu_len,
     BACNET_SC_DIRECT_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_SCDirectConnection(
@@ -674,6 +678,9 @@ void Network_Port_SC_Pending_Params_Apply(
     uint32_t object_instance);
 void Network_Port_SC_Pending_Params_Discard(
     uint32_t object_instance);
+
+int Network_Port_SC_snprintf_value(
+    char *str, size_t str_len, BACNET_OBJECT_PROPERTY_VALUE *object_value);
 
 #ifdef __cplusplus
 }
