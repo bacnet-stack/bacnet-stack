@@ -230,7 +230,7 @@ int host_n_port_decode(uint8_t *apdu,
         return BACNET_STATUS_REJECT;
     }
 
-    return apdu_len;
+    return len;
 }
 
 int host_n_port_context_decode(uint8_t *apdu,

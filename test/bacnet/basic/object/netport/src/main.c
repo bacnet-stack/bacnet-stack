@@ -444,13 +444,277 @@ static void test_network_port_sc_certificates(void)
     return;
 }
 
+static void test_network_port_sc_status_encode_decode(void)
+{
+#ifdef BACDL_BSC
+    unsigned count = 0;
+    uint32_t instance = 0;
+    bool status = false;
+    BACNET_DATE_TIME ts = {{2202, 5, 7, 3}, {12,34,22,10}};
+    BACNET_HOST_N_PORT_DATA peer_address = {1, "\xef\x00\x00\x10", 50001};
+    uint8_t peer_VMAC[BACNET_PEER_VMAC_LENGTH] = {1,2,3,4,5,6};
+    uint8_t peer_UUID[16] = {0};
+    BACNET_HOST_N_PORT_DATA peer_address2 = {1, "\xef\x00\x00\x10", 50002};
+
+    BACNET_READ_PROPERTY_DATA rpdata;
+    BACNET_OBJECT_PROPERTY_VALUE object_value;
+    BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
+    uint8_t apdu[MAX_APDU];
+    uint16_t apdu_len_max;
+    int len, len2;
+    char str[512];
+
+    const char REQ_STR[] =
+        "{1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
+        "00000000-0000-0000-0000-000000000000, 38, \"error details\"}";
+
+    const char HUB_STATUS_STR1[] = "{1, 1946-05-07T12:34:22.010, "
+        "1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
+        "00000000-0000-0000-0000-000000000000, 0}";
+
+    const char HUB_STATUS_STR2[] = "{1, 1946-05-07T12:34:22.010, "
+        "1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
+        "00000000-0000-0000-0000-000000000000, 0}{3, 1946-05-07T12:34:22.010, "
+        "1946-05-07T12:34:22.010, 239.0.0.16:50002, 1.2.3.4.5.6, "
+        "00000000-0000-0000-0000-000000000000, 38, "
+        "\"error message of hub status\"}";
+
+    const char DIRECT_STATUS_STR[] =
+        "{connect url, 3, 1946-05-07T12:34:22.010, 1946-05-07T12:34:22.010, "
+        "239.0.0.16:50001, 1.2.3.4.5.6, 00000000-0000-0000-0000-000000000000, "
+        "38, \"error message of direct status\"}";
+
+    Network_Port_Init();
+    instance = 1234;
+    status = Network_Port_Object_Instance_Number_Set(0, instance);
+    zassert_true(status, NULL);
+    count = Network_Port_Count();
+    zassert_true(count > 0, NULL);
+
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.object_type = OBJECT_NETWORK_PORT;
+    rpdata.object_instance = instance;
+
+    object_value.object_type = rpdata.object_type;
+    object_value.object_instance = rpdata.object_instance;
+    object_value.value = &value;
+
+    /* SC_Failed_Connection_Requests */
+    count = Network_Port_SC_Failed_Connection_Requests_Count(instance);
+    zassert_equal(count, 0, NULL);
+    status = Network_Port_SC_Failed_Connection_Requests_Add(instance, &ts,
+        &peer_address, peer_VMAC, peer_UUID,
+        ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "error details");
+    zassert_true(status, NULL);
+    count = Network_Port_SC_Failed_Connection_Requests_Count(instance);
+    zassert_equal(count, 1, NULL);
+
+    object_value.object_property = rpdata.object_property =
+        PROP_SC_FAILED_CONNECTION_REQUESTS;
+
+    // count
+    object_value.array_index = rpdata.array_index = 0;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+
+    zassert_true(strncmp(str, "1", strlen("1")) == 0, NULL);
+
+    // context
+    object_value.array_index = rpdata.array_index = 1;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+
+    zassert_true(strncmp(str, REQ_STR, strlen(REQ_STR)) == 0, NULL);
+
+    // all context
+    object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+
+    zassert_true(strncmp(str, REQ_STR, strlen(REQ_STR)) == 0, NULL);
+
+#if BSC_CONF_HUB_FUNCTIONS_NUM!=0
+
+    /* SC_Hub_Function_Connection_Status */
+    count = Network_Port_SC_Hub_Function_Connection_Status_Count(instance);
+    zassert_equal(count, 0, NULL);
+
+    status = Network_Port_SC_Hub_Function_Connection_Status_Add(instance, 
+        BACNET_CONNECTED, &ts, &ts,&peer_address, peer_VMAC, peer_UUID,
+        ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "hided error message");
+    zassert_true(status, NULL);
+
+    status = Network_Port_SC_Hub_Function_Connection_Status_Add(instance,
+        BACNET_FAILED_TO_CONNECT, &ts, &ts, &peer_address2, peer_VMAC,peer_UUID,
+        ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "error message of hub status");
+    zassert_true(status, NULL);
+
+    count = Network_Port_SC_Hub_Function_Connection_Status_Count(instance);
+    zassert_equal(count, 2, NULL);
+
+    object_value.object_property = rpdata.object_property =
+        PROP_SC_HUB_FUNCTION_CONNECTION_STATUS;
+
+    // count
+    object_value.array_index = rpdata.array_index = 0;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+
+    zassert_true(strncmp(str, "2", strlen("2")) == 0, NULL);
+
+    // context
+    object_value.array_index = rpdata.array_index = 1;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+    zassert_true(
+        strncmp(str, HUB_STATUS_STR1, strlen(HUB_STATUS_STR1)) == 0, NULL);
+
+    // all context
+    object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+
+    zassert_true(
+        strncmp(str, HUB_STATUS_STR2, strlen(HUB_STATUS_STR2)) == 0, NULL);
+
+#endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+#if BSC_CONF_HUB_CONNECTORS_NUM!=0
+
+    /* SC_Hub_Function_Connection_Status */
+    count = Network_Port_SC_Direct_Connect_Connection_Status_Count(instance);
+    zassert_equal(count, 0, NULL);
+
+    status = Network_Port_SC_Direct_Connect_Connection_Status_Add(instance,
+        "connect url", BACNET_FAILED_TO_CONNECT, &ts, &ts, &peer_address,
+        peer_VMAC, peer_UUID, ERROR_CODE_VT_SESSION_ALREADY_CLOSED,
+        "error message of direct status");
+    zassert_true(status, NULL);
+
+    count = Network_Port_SC_Direct_Connect_Connection_Status_Count(instance);
+    zassert_equal(count, 1, NULL);
+
+    object_value.object_property = rpdata.object_property =
+        PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS;
+
+    // count
+    object_value.array_index = rpdata.array_index = 0;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+
+    zassert_true(strncmp(str, "1", strlen("1")) == 0, NULL);
+
+    // context
+    object_value.array_index = rpdata.array_index = 1;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+
+    zassert_true(
+        strncmp(str, DIRECT_STATUS_STR, strlen(DIRECT_STATUS_STR)) == 0, NULL);
+
+    // all context
+    object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+
+    zassert_true(
+        strncmp(str, DIRECT_STATUS_STR, strlen(DIRECT_STATUS_STR)) == 0, NULL);
+#endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
+
+#endif /* BACDL_BSC */
+
+    return;
+}
+
 void test_main(void)
 {
     ztest_test_suite(netport_tests,
      ztest_unit_test(test_network_port),
      ztest_unit_test(test_network_port_pending_param),
      ztest_unit_test(test_network_port_sc_direct_connect_accept_uri),
-     ztest_unit_test(test_network_port_sc_certificates)
+     ztest_unit_test(test_network_port_sc_certificates),
+     ztest_unit_test(test_network_port_sc_status_encode_decode)
      );
 
     ztest_run_test_suite(netport_tests);
