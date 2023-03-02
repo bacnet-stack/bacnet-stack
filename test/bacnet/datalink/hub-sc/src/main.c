@@ -1063,6 +1063,7 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define MAX_NDPU_LEN 1500
 #define MAX_SERVER_SOCKETS BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #define MAX_CLIENT_SOCKETS BSC_CONF_CLIENT_CONNECTIONS_NUM
+#define WAIT_EVENT_MS 10
 
 typedef struct {
     BSC_HUB_CONNECTOR_EVENT ev;
@@ -1126,8 +1127,8 @@ static bool wait_hubc_ev(hubc_ev_t *ev,
     BSC_HUB_CONNECTOR_HANDLE wait_h)
 {
     call_maintenance_timer(1, 0);
-    while (!bsc_event_timedwait(ev->e, 100)) {
-        call_maintenance_timer(0, 100);
+    while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
+        call_maintenance_timer(0, WAIT_EVENT_MS);
     }
     if (ev->ev == wait_ev && ev->h == wait_h) {
         return true;
@@ -1175,13 +1176,14 @@ static void deinit_hubf_ev(hubf_ev_t *ev)
     bsc_event_deinit(ev->e);
 }
 
+
 static bool wait_hubf_ev(hubf_ev_t *ev,
     BSC_HUB_FUNCTION_EVENT wait_ev,
     BSC_HUB_FUNCTION_HANDLE wait_h)
 {
     call_maintenance_timer(1, 0);
-    while (!bsc_event_timedwait(ev->e, 100)) {
-        call_maintenance_timer(0, 100);
+    while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
+        call_maintenance_timer(0, WAIT_EVENT_MS);
     }
 
     if (ev->ev == wait_ev && ev->h == wait_h) {

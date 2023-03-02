@@ -1085,6 +1085,7 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 
 #define SC_NETPORT_DIRECT_CONNECT_ACCERT_URIS \
     "SC_Direct_Connect_Accept_URI1 SC_Direct_Connect_Accept_URI2"
+#define WAIT_EVENT_MS 10
 
 typedef struct {
     BSC_NODE_EVENT ev;
@@ -1135,11 +1136,31 @@ static void deinit_node_ev(node_ev_t *ev)
     bsc_event_deinit(ev->e);
 }
 
+static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
+{
+    BACNET_SC_HUB_CONNECTION_STATUS* st1;
+    BACNET_SC_HUB_CONNECTION_STATUS* st2;
+    call_maintenance_timer(1, 0);
+    while (1) {
+        bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+        
+        st1 = bsc_node_hub_connector_status(node, true);
+        st2 = bsc_node_hub_connector_status(node, false);
+        if(st1 && st1->State == BACNET_CONNECTED) {
+            break;
+        }
+        if(st2 && st2->State == BACNET_CONNECTED) {
+            break;
+        }
+    }
+}
+
 static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
     call_maintenance_timer(1, 0);
-    while (!bsc_event_timedwait(ev->e, 100)) {
-        call_maintenance_timer(0, 100);
+    while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
+        call_maintenance_timer(0, WAIT_EVENT_MS);
     }
     if (ev->ev == wait_ev && ev->node == node) {
         return true;
@@ -1153,8 +1174,8 @@ static void wait_specific_node_ev(
 {
     call_maintenance_timer(1, 0);
     while (1) {
-        while (!bsc_event_timedwait(ev->e, 100)) {
-            call_maintenance_timer(0, 100);
+        while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
+            call_maintenance_timer(0, WAIT_EVENT_MS);
         }
         if (ev->ev == wait_ev && ev->node == node) {
             break;
@@ -1445,7 +1466,7 @@ static void test_sc_datalink(void)
     BACNET_ADDRESS test;
     uint8_t broadcast[BVLC_SC_VMAC_SIZE];
 
-    memset(&uuid1, 0x31, sizeof(uuid1));
+    bsc_generate_random_uuid(&uuid1);
     memset(&vmac1, 0x32, sizeof(vmac1));
     memset(&uuid2, 0x33, sizeof(uuid2));
     memset(&vmac2, 0x34, sizeof(vmac2));
@@ -1553,7 +1574,7 @@ static void test_sc_datalink(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
-    wait_sec(BACNET_TIMEOUT * 2);
+    wait_for_connection_to_hub(&node_ev2, node2);
     // send encapsulated npdu packet
     memset(npdu, 0x99, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
@@ -1778,13 +1799,12 @@ static void test_sc_datalink_properties(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
-    wait_sec(1);
     ret = bsc_node_start(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
-
-    wait_sec(BACNET_TIMEOUT * 2);
+    wait_for_connection_to_hub(&node_ev2, node2);
+    wait_for_connection_to_hub(&node_ev3, node3);
 
     ret = bsc_node_start(node4);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
@@ -1868,8 +1888,8 @@ static void test_sc_datalink_properties(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
-
-    wait_sec(BACNET_TIMEOUT * 2);
+    wait_for_connection_to_hub(&node_ev2, node2);
+    wait_for_connection_to_hub(&node_ev3, node3);
 
     ret = bsc_node_start(node4);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
