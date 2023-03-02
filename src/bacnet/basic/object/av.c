@@ -74,6 +74,7 @@ static const int Analog_Value_Properties_Proprietary[] = { -1 };
 void Analog_Value_Property_Lists(
     const int **pRequired, const int **pOptional, const int **pProprietary)
 {
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     if (pRequired) {
         *pRequired = Analog_Value_Properties_Required;
     }
@@ -96,8 +97,14 @@ void Analog_Value_Init(void)
 #if defined(INTRINSIC_REPORTING)
     unsigned j;
 #endif
-    PRINT(" ");
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
+    PRINT("DEBUG IS ON");
 
+#ifdef DEBUG_PRINT
+    printf("*** Analog_Value_Init *** DEBUG IS ON\r\n");
+#else
+    printf("*** Analog_Value_Init *** DEBUG IS OFF \r\n");
+#endif
     for (i = 0; i < MAX_ANALOG_VALUES; i++) {
         memset(&AV_Descr[i], 0x00, sizeof(ANALOG_VALUE_DESCR));
         AV_Descr[i].Present_Value = 0.0;
@@ -139,6 +146,8 @@ int Analog_Value_Init_Nif(BACNET_OBJECT_LIST_INIT_T *pInit_data)
 {
     unsigned i;
 
+    PRINT(" ");
+
     if (!pInit_data) {
         PRINT("pInit_data pointer is NULL");
         return false;
@@ -146,9 +155,10 @@ int Analog_Value_Init_Nif(BACNET_OBJECT_LIST_INIT_T *pInit_data)
         PRINT("pInit_data->length is greater than MAX_ANALOG_VALUES");
         return false;
     } else {
-        PRINT("length of pInit_data = %u", pInit_data->length);
+        PRINT("pInit_data pointer is valid; got %u items", pInit_data->length);
         for (i = 0; i < pInit_data->length; i++) {
             if (pInit_data->Object_Init_Values[i].Object_Instance < BACNET_MAX_INSTANCE) {
+                PRINT("pInit instance is: %u", pInit_data->Object_Init_Values[i].Object_Instance);
                 AV_Descr[i].Object_Instance = pInit_data->Object_Init_Values[i].Object_Instance;
                 PRINT("object #%u: got instance %u", i, AV_Descr[i].Object_Instance);
             }
@@ -194,10 +204,12 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
 
     for (instance = 0; instance < MAX_ANALOG_VALUES; instance++) {
         if (AV_Descr[instance].Object_Instance == object_instance) {
+            PRINT(" %u: is TRUE @ %u", object_instance, instance);
             return true;
         }
     }
 
+    PRINT(" %u: is FALSE", object_instance);
     return false;
 }
 
@@ -208,6 +220,7 @@ bool Analog_Value_Valid_Instance(uint32_t object_instance)
  */
 unsigned Analog_Value_Count(void)
 {
+    PRINT(" ");
     //NMC4 TODO: we could modify this to only return number of values that we actually set.
     return MAX_ANALOG_VALUES;
 }
@@ -225,9 +238,11 @@ uint32_t Analog_Value_Index_To_Instance(unsigned index)
 
     if (index < MAX_ANALOG_VALUES) {
         instance = AV_Descr[index].Object_Instance;
+        PRINT("instance = %u", instance);
         return instance;
     }
     else {
+        PRINT("index out of bounds");
         return 0;
     }
 }
@@ -246,11 +261,13 @@ unsigned Analog_Value_Instance_To_Index(uint32_t object_instance)
 
     for (instance = 0; instance < MAX_ANALOG_VALUES; instance++) {
         if (AV_Descr[instance].Object_Instance == object_instance) {
+            PRINT(" found matching instance");
             index = instance;
             break;
         }
     }
 
+    PRINT("return index %u for instance %u", index, object_instance);
     return index;
 }
 
@@ -270,6 +287,7 @@ static void Analog_Value_COV_Detect(unsigned int index, float value)
     float cov_increment = 0.0;
     float cov_delta = 0.0;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     if (index < MAX_ANALOG_VALUES) {
         prior_value = AV_Descr[index].Prior_Value;
         cov_increment = AV_Descr[index].COV_Increment;
@@ -301,6 +319,7 @@ bool Analog_Value_Present_Value_Set(
     unsigned index = 0;
     bool status = false;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         Analog_Value_COV_Detect(index, value);
@@ -322,6 +341,7 @@ float Analog_Value_Present_Value(uint32_t object_instance)
     float value = 0;
     unsigned index = 0;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         value = AV_Descr[index].Present_Value;
@@ -346,6 +366,7 @@ bool Analog_Value_Object_Name(
     bool status = false;
     unsigned index = 0;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     if (!object_name) {
         return false;
     }
@@ -353,6 +374,7 @@ bool Analog_Value_Object_Name(
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         *object_name = AV_Descr[index].Object_Name;
+        PRINT("index %u in range, return to &%p:\"%s\"", index, object_name, object_name->value);
         status = true;
     }
 
@@ -376,13 +398,16 @@ bool Analog_Value_Description(
     bool status = false;
     unsigned index = 0;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     if (!description) {
         return false;
     }
 
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
+        PRINT("Saved Description = %s", AV_Descr[index].Description.value);
         *description = AV_Descr[index].Description;
+        PRINT("index %u in range, return &%p(%p):\"%s\"", index, description, description->value, description->value);
         status = true;
     }
 
@@ -401,6 +426,7 @@ unsigned Analog_Value_Event_State(uint32_t object_instance)
     unsigned index = 0;
     unsigned state = EVENT_STATE_NORMAL;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
 #if defined(INTRINSIC_REPORTING)
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
@@ -424,6 +450,7 @@ bool Analog_Value_Change_Of_Value(uint32_t object_instance)
     unsigned index = 0;
     bool changed = false;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         changed = AV_Descr[index].Changed;
@@ -441,6 +468,7 @@ void Analog_Value_Change_Of_Value_Clear(uint32_t object_instance)
 {
     unsigned index = 0;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         AV_Descr[index].Changed = false;
@@ -460,6 +488,7 @@ bool Analog_Value_Encode_Value_List(
 {
     bool status = false;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     if (value_list) {
         value_list->propertyIdentifier = PROP_PRESENT_VALUE;
         value_list->propertyArrayIndex = BACNET_ARRAY_ALL;
@@ -509,6 +538,7 @@ float Analog_Value_COV_Increment(uint32_t object_instance)
     unsigned index = 0;
     float value = 0;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         value = AV_Descr[index].COV_Increment;
@@ -521,6 +551,7 @@ void Analog_Value_COV_Increment_Set(uint32_t object_instance, float value)
 {
     unsigned index = 0;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         AV_Descr[index].COV_Increment = value;
@@ -533,6 +564,7 @@ bool Analog_Value_Out_Of_Service(uint32_t object_instance)
     unsigned index = 0;
     bool value = false;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         value = AV_Descr[index].Out_Of_Service;
@@ -545,6 +577,7 @@ void Analog_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
 {
     unsigned index = 0;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     index = Analog_Value_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_VALUES) {
         if (AV_Descr[index].Out_Of_Service != value) {
@@ -605,16 +638,21 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
+            PRINT("FETCHING PROP_OBJECT_NAME(%u, %p)", rpdata->object_instance, &char_string);
             if (Analog_Value_Object_Name(
                     rpdata->object_instance, &char_string)) {
+                //PRINT("pChar_string == %p", &char_string);
+                PRINT("Encoding char string %p(%p): \"%s\"", &char_string, char_string.value, char_string.value);
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
             break;
 
         case PROP_DESCRIPTION:
+            PRINT("FETCHING PROP_DESCRIPTION(%u, %p)", rpdata->object_instance, &char_string);
             if (Analog_Value_Description(
                     rpdata->object_instance, &char_string)) {
+                PRINT("Encoding char string %p(%p): \"%s\"", &char_string, char_string.value, char_string.value);
                 apdu_len =
                     encode_application_character_string(&apdu[0], &char_string);
             }
@@ -814,6 +852,7 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_APPLICATION_DATA_VALUE value;
     ANALOG_VALUE_DESCR *CurrentAV;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     /* Valid data? */
     if (wp_data == NULL) {
         return false;
@@ -1037,6 +1076,7 @@ void Analog_Value_Intrinsic_Reporting(uint32_t object_instance)
     float PresentVal = 0.0f;
     bool SendNotify = false;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     object_index = Analog_Value_Instance_To_Index(object_instance);
     if (object_index < MAX_ANALOG_VALUES)
         CurrentAV = &AV_Descr[object_index];
@@ -1342,6 +1382,7 @@ int Analog_Value_Event_Information(
     bool IsActiveEvent;
     int i;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     /* check index */
     if (index < MAX_ANALOG_VALUES) {
         /* Event_State not equal to NORMAL */
@@ -1414,6 +1455,7 @@ int Analog_Value_Alarm_Ack(
     ANALOG_VALUE_DESCR *CurrentAV;
     unsigned int object_index;
 
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     object_index = Analog_Value_Instance_To_Index(
         alarmack_data->eventObjectIdentifier.instance);
 
@@ -1523,6 +1565,7 @@ int Analog_Value_Alarm_Ack(
 int Analog_Value_Alarm_Summary(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data)
 {
+    printf("%s(%d): %s\r\n", __FILE__, __LINE__, __func__);
     /* check index */
     if (index < MAX_ANALOG_VALUES) {
         /* Event_State is not equal to NORMAL  and

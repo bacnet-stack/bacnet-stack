@@ -26,6 +26,7 @@
 /** @file device.c Base "class" for handling all BACnet objects belonging
  *                 to a BACnet device, as well as Device-specific properties. */
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h> /* for memmove */
@@ -537,15 +538,19 @@ uint32_t Device_Index_To_Instance(unsigned index)
  */
 uint32_t Device_Object_Instance_Number(void)
 {
+    printf("%s:%d: Device_Object_Instance_Number(): %d\n", __FILE__, __LINE__, (int)Object_Instance_Number);
+
 #ifdef BAC_ROUTING
     return Routed_Device_Object_Instance_Number();
 #else
+    printf("return internal Object_Instance_Number value\n");
     return Object_Instance_Number;
 #endif
 }
 
 bool Device_Set_Object_Instance_Number(uint32_t object_id)
 {
+    printf("%s:%d: Device_Set_Object_Instance_Number()\n", __FILE__, __LINE__);
     bool status = true; /* return value */
 
     if (object_id <= BACNET_MAX_INSTANCE) {
@@ -731,6 +736,7 @@ const char *Device_Description(void)
 bool Device_Set_Description(const char *name, size_t length)
 {
     bool status = false; /*return value */
+    PRINT("***THEIRS***");
 
     if (length < sizeof(Description)) {
         memmove(Description, name, length);
@@ -804,11 +810,16 @@ unsigned Device_Object_List_Count(void)
     unsigned count = 0; /* number of objects */
     struct object_functions *pObject = NULL;
 
+    PRINT("***THEIRS***");
     /* initialize the default return values */
     pObject = Object_Table;
     while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
+        PRINT("Object Type %u", pObject->Object_Type);
         if (pObject->Object_Count) {
-            count += pObject->Object_Count();
+            unsigned num = pObject->Object_Count();
+            PRINT("Got count %u", num);
+            count += num; //pObject->Object_Count();
+            //count += pObject->Object_Count();
         }
         pObject++;
     }
@@ -1087,6 +1098,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     }
     apdu = rpdata->application_data;
     apdu_max = rpdata->application_data_len;
+    PRINT("***READ PROPERTY #%u***", rpdata->object_property);
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -1296,6 +1308,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = handler_cov_encode_subscriptions(&apdu[0], apdu_max);
             break;
         default:
+        // note PROP_STRUCTURED_OBJECT_LIST is not supported
+            PRINT("property #%u not found.", rpdata->object_property);
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
             apdu_len = BACNET_STATUS_ERROR;
@@ -1329,6 +1343,8 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     struct special_property_list_t property_list;
 #endif
 
+    PRINT("***THEIRS***");
+
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -1337,8 +1353,11 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         if (pObject->Object_Valid_Instance &&
             pObject->Object_Valid_Instance(rpdata->object_instance)) {
             if (pObject->Object_Read_Property) {
+                PRINT("Object_Read_Property***");
 #if (BACNET_PROTOCOL_REVISION >= 14)
+                PRINT("BACNET_PROTOCOL_REVISION > 14***");
                 if ((int)rpdata->object_property == PROP_PROPERTY_LIST) {
+                    PRINT("has PROP_PROPERTY_LIST***");
                     Device_Objects_Property_List(rpdata->object_type,
                         rpdata->object_instance, &property_list);
                     apdu_len = property_list_encode(rpdata,
