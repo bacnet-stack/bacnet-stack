@@ -583,6 +583,7 @@ int bacapp_encode_SCHubConnection(
 BACNET_STACK_EXPORT
 int bacapp_decode_SCHubConnection(
     uint8_t *apdu,
+    uint16_t max_apdu_len,
     BACNET_SC_HUB_CONNECTION_STATUS *value);
 BACNET_STACK_EXPORT
 int bacapp_encode_context_SCHubConnection(

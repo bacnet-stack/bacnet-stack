@@ -1694,8 +1694,8 @@ int bacapp_encode_SCHubConnection(
     return apdu_len;
 }
 
-int bacapp_decode_SCHubConnection(
-    uint8_t *apdu, BACNET_SC_HUB_CONNECTION_STATUS *value)
+int bacapp_decode_SCHubConnection(uint8_t *apdu, uint16_t max_apdu_len,
+    BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
     int apdu_len = 0;
     int len;
@@ -1734,7 +1734,7 @@ int bacapp_decode_SCHubConnection(
         value->Error_Details[0] = 0;
     }
 
-    return apdu_len;
+    return (apdu_len <= max_apdu_len) ? apdu_len : -1;
 }
 
 int bacapp_encode_context_SCHubConnection(
@@ -1758,11 +1758,13 @@ int bacapp_decode_context_SCHubConnection(
     uint8_t *apdu, uint8_t tag_number, BACNET_SC_HUB_CONNECTION_STATUS *value)
 {
     int len = 0;
+    const uint16_t apdu_len_max = MAX_APDU;
     int section_len;
 
     if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
         len++;
-        section_len = bacapp_decode_SCHubConnection(&apdu[len], value);
+        section_len =
+            bacapp_decode_SCHubConnection(&apdu[len], apdu_len_max, value);
         if (section_len > 0) {
             len += section_len;
             if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
@@ -2674,6 +2676,29 @@ int Network_Port_SC_snprintf_value(
                     } else {
                         break;
                     }
+                }
+            }
+            break;
+
+            case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+            case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+            {
+                BACNET_SC_HUB_CONNECTION_STATUS status;
+                int rc = bacapp_decode_SCHubConnection(
+                    value->type.Custom_Value.data,
+                    value->type.Custom_Value.len, &status);
+                if (rc > 0) {
+                    SNPRINTF_AND_MOVE("{%d, ", status.State);
+                    BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
+                        &status.Connect_Timestamp);
+                    BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
+                        &status.Disconnect_Timestamp);
+                    SNPRINTF_AND_MOVE("%d", status.Error);
+                    if (status.Error_Details[0]) {
+                        SNPRINTF_AND_MOVE(", \"%s\"", status.Error_Details);
+                    }
+                    SNPRINTF_AND_MOVE("}");
+                    len += rc;
                 }
             }
             break;

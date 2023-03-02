@@ -161,7 +161,7 @@ static void node_init_status_array(BACNET_SC_DIRECT_CONNECTION_STATUS *s)
 
 static BSC_NODE_SWITCH_CTX *node_switch_alloc(void)
 {
-    int i, j;
+    int i;
     for (i = 0; i < BSC_CONF_NODE_SWITCHES_NUM; i++) {
         if (!bsc_node_switch[i].used) {
             bsc_node_switch[i].used = true;
