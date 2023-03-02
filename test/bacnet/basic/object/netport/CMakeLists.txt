@@ -128,6 +128,7 @@ elseif(WIN32)
 	${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+	${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c
@@ -169,6 +170,7 @@ elseif(APPLE)
 	${SRC_DIR}/bacnet/dailyschedule.c
     ${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
+	${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c
