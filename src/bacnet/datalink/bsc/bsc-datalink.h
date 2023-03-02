@@ -52,6 +52,14 @@ bool bsc_init(char *ifname);
  */
 BACNET_STACK_EXPORT
 void bsc_cleanup(void);
+/**
+ * @brief Function checks if all needed certificate file are present.
+ * @return true if all needed certificate file are present otherwise returns
+ *         false.
+ */
+
+BACNET_STACK_EXPORT
+bool bsc_cert_files_check(void);
 
 /**
  * @brief Blocking thread-safe bsc_send_pdu() function

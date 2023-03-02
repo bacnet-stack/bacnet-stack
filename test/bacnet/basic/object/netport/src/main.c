@@ -484,6 +484,12 @@ static void test_network_port_sc_status_encode_decode(void)
         "239.0.0.16:50001, 1.2.3.4.5.6, 00000000-0000-0000-0000-000000000000, "
         "38, \"error message of direct status\"}";
 
+    const char PRIMARY_HUB_STATUS[] = "{2, 1946-05-07T12:34:22.010, "
+        "1946-05-07T12:34:22.010, 38, \"error message\"}";
+
+    const char FAILOVER_HUB_STATUS[] = "{3, 1946-05-07T12:34:22.010, "
+        "1946-05-07T12:34:22.010, 14, \"again error message\"}";
+
     Network_Port_Init();
     instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, instance);
@@ -632,7 +638,57 @@ static void test_network_port_sc_status_encode_decode(void)
     zassert_true(
         strncmp(str, HUB_STATUS_STR2, strlen(HUB_STATUS_STR2)) == 0, NULL);
 
+    /* SC_Primary_Hub_Connection_Status */
+    status = Network_Port_SC_Primary_Hub_Connection_Status_Set(instance,
+        BACNET_DISCONNECTED_WITH_ERRORS, &ts, &ts,
+        ERROR_CODE_VT_SESSION_ALREADY_CLOSED, "error message");
+    zassert_true(status, NULL);
+
+    object_value.object_property = rpdata.object_property =
+        PROP_SC_PRIMARY_HUB_CONNECTION_STATUS;
+
+    // context
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+    zassert_true(
+        strncmp(str, PRIMARY_HUB_STATUS, strlen(PRIMARY_HUB_STATUS))== 0, NULL);
+
+    /* SC_Failover_Hub_Connection_Status */
+    status = Network_Port_SC_Failover_Hub_Connection_Status_Set(instance,
+        BACNET_FAILED_TO_CONNECT, &ts, &ts, ERROR_CODE_INVALID_TIME_STAMP,
+        "again error message");
+    zassert_true(status, NULL);
+
+    object_value.object_property = rpdata.object_property =
+        PROP_SC_FAILOVER_HUB_CONNECTION_STATUS;
+
+    // context
+    len = Network_Port_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
+        rpdata.object_property);
+    zassert_equal(len2, len, NULL);
+
+    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
+    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    zassert_equal(len2, len, NULL);
+    zassert_true(
+        strncmp(str, FAILOVER_HUB_STATUS, strlen(FAILOVER_HUB_STATUS))== 0,
+        NULL);
+
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
+
 #if BSC_CONF_HUB_CONNECTORS_NUM!=0
 
     /* SC_Hub_Function_Connection_Status */

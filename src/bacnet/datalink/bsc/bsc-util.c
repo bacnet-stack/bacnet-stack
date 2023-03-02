@@ -16,7 +16,11 @@
 #include "bacnet/basic/object/netport.h"
 #include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/basic/object/bacfile.h"
+#include "bacnet/basic/sys/debug.h"
 #include <stdlib.h>
+
+#define PRINTF debug_aprintf
+#define PRINTF_ERR debug_perror
 
 BSC_SC_RET bsc_map_websocket_retcode(BSC_WEBSOCKET_RET ret)
 {
@@ -119,8 +123,7 @@ static bool bsc_node_load_cert_bacfile(
     pbuf[*psize - 1] = 0;
 #endif
     if (file_length == 0) {
-        fprintf(
-            stderr, "Can't read %s file\n", bacfile_pathname(file_instance));
+        PRINTF_ERR("Can't read %s file\n", bacfile_pathname(file_instance));
         return false;
     }
     return true;
@@ -239,4 +242,32 @@ void bsc_set_timestamp(BACNET_DATE_TIME *timestamp)
     bool dst_active;
     datetime_local(
         &timestamp->date, &timestamp->time, &utc_offset_minutes, &dst_active);
+}
+
+bool bsc_cert_files_check(void)
+{
+    uint32_t instance;
+    uint32_t file_instance;
+
+    instance = Network_Port_Index_To_Instance(0);
+
+    file_instance = Network_Port_Issuer_Certificate_File(instance, 0);
+    if (bacfile_file_size(file_instance) == 0) {
+        PRINTF_ERR("CA certificate file not exist\n");
+        return false;
+    }
+
+    file_instance = Network_Port_Operational_Certificate_File(instance);
+    if (bacfile_file_size(file_instance) == 0) {
+        PRINTF_ERR("Certificate file not exist\n");
+        return false;
+    }
+
+    file_instance = Network_Port_Certificate_Key_File(instance);
+    if (bacfile_file_size(file_instance) == 0) {
+        PRINTF_ERR("Certificate key file not exist\n");
+        return false;
+    }
+
+    return true;
 }

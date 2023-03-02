@@ -115,7 +115,6 @@ static void hub_conector_update_status(BACNET_SC_HUB_CONNECTION_STATUS *s,
     BACNET_ERROR_CODE err,
     const char *err_desc)
 {
-    int len;
     s->State = state;
     if (state == BACNET_NOT_CONNECTED ||
         state == BACNET_DISCONNECTED_WITH_ERRORS) {

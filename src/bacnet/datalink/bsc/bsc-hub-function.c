@@ -217,7 +217,6 @@ static void hub_function_update_status(BSC_HUB_FUNCTION *f,
     const char *disconnect_reason_desc)
 {
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s;
-    BACNET_SC_CONNECTION_STATE st = BACNET_DISCONNECTED_WITH_ERRORS;
 
     s = hub_function_find_status_for_vmac(f, &c->vmac);
 
@@ -260,6 +259,7 @@ static void hub_function_failed_request(BSC_SOCKET_CTX *ctx,
 {
     BSC_HUB_FUNCTION *f;
     BACNET_HOST_N_PORT_DATA peer;
+    (void)ctx;
 
     bws_dispatch_lock();
     f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;

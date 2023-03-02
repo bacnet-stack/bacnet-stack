@@ -175,8 +175,10 @@ static void bws_set_disconnect_reason(BSC_WEBSOCKET_HANDLE h, uint16_t err_code)
             break;
         }
         case LWS_CLOSE_STATUS_NO_STATUS:
-        case LWS_CLOSE_STATUS_RESERVED: {
+        case LWS_CLOSE_STATUS_RESERVED:
+        {
             bws_cli_conn[h].err_code = ERROR_CODE_WEBSOCKET_ERROR;
+            break;
         }
         case LWS_CLOSE_STATUS_ABNORMAL_CLOSE: {
             bws_cli_conn[h].err_code = ERROR_CODE_WEBSOCKET_DATA_NOT_ACCEPTED;
@@ -520,6 +522,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     BSC_WEBSOCKET_RET ret;
     pthread_t thread_id;
     int len;
+    int st;
 
     DEBUG_PRINTF("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
 
@@ -553,9 +556,9 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     bsc_websocket_global_unlock();
 
     pthread_mutex_lock(&bws_cli_mutex);
-    (void)lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
+    st = lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
 
-    if (port == -1 || !prot || !addr || !path) {
+    if (st || port == -1 || !prot || !addr || !path) {
         pthread_mutex_unlock(&bws_cli_mutex);
         DEBUG_PRINTF("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;

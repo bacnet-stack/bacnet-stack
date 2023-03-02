@@ -852,6 +852,9 @@ void dlenv_init(void)
         filename_ca_1_cert, filename_ca_2_cert, filename_cert, filename_key,
         direct_binding, hub_binding, direct_connect_initiate,
         direct_connect_accept_urls);
+    if(!bsc_cert_files_check()) {
+        exit(1);
+    }
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {

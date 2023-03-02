@@ -1294,6 +1294,8 @@ int bacapp_decode_known_property(uint8_t *apdu,
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
             value->type.Custom_Value.len = max_apdu_len;
             value->type.Custom_Value.data = apdu;
             len = max_apdu_len;
@@ -2305,7 +2307,9 @@ int bacapp_snprintf_value(
 #ifdef BACDL_BSC
                 if (property == PROP_SC_FAILED_CONNECTION_REQUESTS ||
                     property == PROP_SC_HUB_FUNCTION_CONNECTION_STATUS ||
-                    property == PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS)
+                    property == PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS ||
+                    property == PROP_SC_PRIMARY_HUB_CONNECTION_STATUS ||
+                    property == PROP_SC_FAILOVER_HUB_CONNECTION_STATUS)
                 {
                     ret_val = Network_Port_SC_snprintf_value(
                         str, str_len, object_value);

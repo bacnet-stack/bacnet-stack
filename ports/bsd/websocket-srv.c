@@ -174,6 +174,7 @@ static void bws_set_disconnect_reason(
         case LWS_CLOSE_STATUS_NO_STATUS:
         case LWS_CLOSE_STATUS_RESERVED: {
             ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_ERROR;
+            break;
         }
         case LWS_CLOSE_STATUS_ABNORMAL_CLOSE: {
             ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_DATA_NOT_ACCEPTED;
