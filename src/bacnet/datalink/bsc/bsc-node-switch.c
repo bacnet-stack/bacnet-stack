@@ -86,8 +86,7 @@ typedef struct BSC_Node_Switch_Acceptor {
     BSC_CONTEXT_CFG cfg;
     BSC_SOCKET sock[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_STATE state;
-    BACNET_SC_DIRECT_CONNECTION_STATUS
-    status[BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+    BACNET_SC_DIRECT_CONNECTION_STATUS *status;
 } BSC_NODE_SWITCH_ACCEPTOR;
 
 typedef struct {
@@ -107,8 +106,7 @@ typedef struct BSC_Node_Switch_Initiator {
     struct mstimer t[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_URLS urls[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_STATE state;
-    BACNET_SC_DIRECT_CONNECTION_STATUS
-    status[BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+    BACNET_SC_DIRECT_CONNECTION_STATUS *status;
 } BSC_NODE_SWITCH_INITIATOR;
 
 typedef struct {
@@ -124,6 +122,16 @@ typedef struct {
 } BSC_NODE_SWITCH_CTX;
 
 static BSC_NODE_SWITCH_CTX bsc_node_switch[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
+static BACNET_SC_DIRECT_CONNECTION_STATUS
+    bsc_initiator_status[BSC_CONF_NODE_SWITCHES_NUM]
+                        [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+static bool bsc_initiator_status_initialized[BSC_CONF_NODE_SWITCHES_NUM] = {
+    0
+};
+static BACNET_SC_DIRECT_CONNECTION_STATUS
+    bsc_acceptor_status[BSC_CONF_NODE_SWITCHES_NUM]
+                       [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+static bool bsc_acceptor_status_initialized[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
 
 static BSC_SOCKET_CTX_FUNCS bsc_node_switch_acceptor_ctx_funcs = {
     node_switch_acceptor_find_connection_for_vmac,
@@ -139,9 +147,21 @@ static BSC_SOCKET_CTX_FUNCS bsc_node_switch_initiator_ctx_funcs = { NULL, NULL,
 static int node_switch_acceptor_find_connection_index_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac, BSC_NODE_SWITCH_CTX *ctx);
 
+static void node_init_status_array(BACNET_SC_DIRECT_CONNECTION_STATUS *s)
+{
+    int j;
+
+    for (j = 0; j < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; j++) {
+        memset(&s[j], 0, sizeof(*s));
+        memset(&s[j].Connect_Timestamp, 0xFF, sizeof(s[j].Connect_Timestamp));
+        memset(&s[j].Disconnect_Timestamp, 0xFF,
+            sizeof(s[j].Disconnect_Timestamp));
+    }
+}
+
 static BSC_NODE_SWITCH_CTX *node_switch_alloc(void)
 {
-    int i;
+    int i, j;
     for (i = 0; i < BSC_CONF_NODE_SWITCHES_NUM; i++) {
         if (!bsc_node_switch[i].used) {
             bsc_node_switch[i].used = true;
@@ -149,6 +169,19 @@ static BSC_NODE_SWITCH_CTX *node_switch_alloc(void)
                 sizeof(bsc_node_switch[i].initiator));
             memset(&bsc_node_switch[i].acceptor, 0,
                 sizeof(bsc_node_switch[i].acceptor));
+            bsc_node_switch[i].initiator.status = &bsc_initiator_status[i][0];
+            bsc_node_switch[i].acceptor.status = &bsc_acceptor_status[i][0];
+            /* Start/stop cycles of a hub function must not make an influence to
+             * history related to connection status */
+            /* That's why status array is initialized only once */
+            if (!bsc_initiator_status_initialized[i]) {
+                node_init_status_array(bsc_node_switch[i].initiator.status);
+                bsc_initiator_status_initialized[i] = true;
+            }
+            if (!bsc_acceptor_status_initialized[i]) {
+                node_init_status_array(bsc_node_switch[i].acceptor.status);
+                bsc_acceptor_status_initialized[i] = true;
+            }
             return &bsc_node_switch[i];
         }
     }
@@ -242,8 +275,6 @@ static void node_switch_update_status(BSC_NODE_SWITCH_CTX *ctx,
             DEBUG_PRINTF("set status state to BACNET_CONNECTED\n");
             s->State = BACNET_CONNECTED;
             bsc_set_timestamp(&s->Connect_Timestamp);
-            memset(
-                &s->Disconnect_Timestamp, 0x0, sizeof(s->Disconnect_Timestamp));
         } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
             bsc_set_timestamp(&s->Disconnect_Timestamp);
             if (reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
@@ -766,8 +797,6 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
     ns->direct_connect_accept_enable = direct_connect_accept_enable;
     ns->initiator.state = BSC_NODE_SWITCH_STATE_IDLE;
     ns->acceptor.state = BSC_NODE_SWITCH_STATE_IDLE;
-    memset(ns->initiator.status, 0, sizeof(ns->initiator.status));
-    memset(ns->acceptor.status, 0, sizeof(ns->initiator.status));
 
     if (direct_connect_initiate_enable) {
         bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &ns->initiator.cfg,

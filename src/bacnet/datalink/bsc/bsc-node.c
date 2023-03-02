@@ -54,22 +54,26 @@ struct BSC_Node {
     BSC_HUB_CONNECTOR_HANDLE hub_connector;
     BSC_HUB_FUNCTION_HANDLE hub_function;
     BSC_NODE_SWITCH_HANDLE node_switch;
-    BACNET_SC_FAILED_CONNECTION_REQUEST
-    failed[BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM];
+    BACNET_SC_FAILED_CONNECTION_REQUEST *failed;
 };
 
 static struct BSC_Node bsc_node[BSC_CONF_NODES_NUM] = { 0 };
 
+static BACNET_SC_FAILED_CONNECTION_REQUEST
+    bsc_failed_request[BSC_CONF_NODES_NUM]
+                      [BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM];
+static bool bsc_failed_request_initialized[BSC_CONF_NODES_NUM] = { 0 };
 static BSC_ADDRESS_RESOLUTION
     bsc_address_resolution[BSC_CONF_NODES_NUM]
                           [BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM];
+
 static BSC_NODE_CONF bsc_conf[BSC_CONF_NODES_NUM];
 
 static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state);
 
 static BSC_NODE *bsc_alloc_node(void)
 {
-    int i;
+    int i, j;
 
     for (i = 0; i < BSC_CONF_NODES_NUM; i++) {
         if (bsc_node[i].used == false) {
@@ -77,9 +81,23 @@ static BSC_NODE *bsc_alloc_node(void)
             bsc_node[i].used = true;
             bsc_node[i].conf = &bsc_conf[i];
             bsc_node[i].resolution = &bsc_address_resolution[i][0];
+            bsc_node[i].failed = &bsc_failed_request[i][0];
             memset(bsc_node[i].resolution, 0,
                 sizeof(BSC_ADDRESS_RESOLUTION) *
                     BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
+            /* Start/stop cycles of a node must not make an influence to history
+             * about failed requests */
+            /* That's why bsc_failed_request[] array is initialized only once */
+            if (!bsc_failed_request_initialized[i]) {
+                for (j = 0; j < BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM;
+                     j++) {
+                    memset(&bsc_failed_request[i][j], 0,
+                        sizeof(bsc_failed_request[i][j]));
+                    memset(&bsc_failed_request[i][j].Timestamp, 0xff,
+                        sizeof(bsc_failed_request[i][j].Timestamp));
+                }
+                bsc_failed_request_initialized[i] = true;
+            }
             return &bsc_node[i];
         }
     }

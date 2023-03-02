@@ -81,8 +81,8 @@ static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = { NULL, NULL,
 static void hub_connector_reset_status(BACNET_SC_HUB_CONNECTION_STATUS *s)
 {
     /* set timestamps to unspecified values */
-    memset(&s->Connect_Timestamp, 0x0, sizeof(s->Connect_Timestamp));
-    memset(&s->Disconnect_Timestamp, 0x0, sizeof(s->Disconnect_Timestamp));
+    memset(&s->Connect_Timestamp, 0xFF, sizeof(s->Connect_Timestamp));
+    memset(&s->Disconnect_Timestamp, 0xFF, sizeof(s->Disconnect_Timestamp));
     s->Error = ERROR_CODE_OTHER;
     s->Error_Details[0] = 0;
 }
