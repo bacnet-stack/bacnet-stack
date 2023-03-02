@@ -239,7 +239,6 @@ static void node_switch_update_status(BSC_NODE_SWITCH_CTX *ctx,
     const char *reason_desc)
 {
     BACNET_SC_DIRECT_CONNECTION_STATUS *s;
-    BACNET_SC_CONNECTION_STATE st = BACNET_DISCONNECTED_WITH_ERRORS;
 
     DEBUG_PRINTF("node_switch_update_status() >>> ctx = %p, initiator = %d, "
                  "failed_to_connect = %d, URI = %p, c = %p, ev = %d, reason = "
@@ -375,6 +374,7 @@ static void node_switch_acceptor_failed_request(BSC_SOCKET_CTX *ctx,
 {
     BSC_NODE_SWITCH_CTX *ns;
     BACNET_HOST_N_PORT_DATA peer;
+    (void)ctx;
 
     bws_dispatch_lock();
     ns = (BSC_NODE_SWITCH_CTX *)c->ctx->user_arg;

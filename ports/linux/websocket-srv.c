@@ -173,8 +173,10 @@ static void bws_set_disconnect_reason(
             break;
         }
         case LWS_CLOSE_STATUS_NO_STATUS:
-        case LWS_CLOSE_STATUS_RESERVED: {
+        case LWS_CLOSE_STATUS_RESERVED:
+        {
             ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_ERROR;
+            break;
         }
         case LWS_CLOSE_STATUS_ABNORMAL_CLOSE: {
             ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_DATA_NOT_ACCEPTED;
@@ -328,7 +330,6 @@ static int bws_srv_websocket_event(struct lws *wsi,
     void *user_param;
     bool stop_worker;
     uint8_t err_code[2];
-    char err_desc[BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN];
     uint16_t err;
     (void)user;
 

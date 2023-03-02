@@ -1027,7 +1027,6 @@ void bsc_node_store_failed_request_info(BSC_NODE *node,
     const char *error_desc)
 {
     size_t i, j = 0;
-    ;
     bool found = false;
     BACNET_DATE_TIME t;
 
