@@ -1722,12 +1722,16 @@ int bacapp_decode_SCHubConnection(
     if ((len = decode_context_enumerated(&apdu[apdu_len], 3, &value->Error)) >
         0) {
         apdu_len += len;
+    } else {
+        value->Error = ERROR_CODE_OTHER;
     }
 
     if ((len = decode_context_character_string(&apdu[apdu_len], 4, &str)) > 0) {
         snprintf(value->Error_Details, sizeof(value->Error_Details), "%s",
             characterstring_value(&str));
         apdu_len += len;
+    } else {
+        value->Error_Details[0] = 0;
     }
 
     return apdu_len;
@@ -1882,6 +1886,8 @@ int bacapp_decode_SCHubFunctionConnection(uint8_t *apdu, uint16_t max_apdu_len,
     if ((len = decode_context_enumerated(&apdu[apdu_len], 6, &value->Error)) >
         0) {
         apdu_len += len;
+    } else {
+        value->Error = ERROR_CODE_OTHER;
     }
 
     if ((len = decode_context_character_string(&apdu[apdu_len], 7, &str)) > 0) {
@@ -2033,6 +2039,8 @@ int bacapp_decode_SCFailedConnectionRequest(uint8_t *apdu,
     if ((len = decode_context_enumerated(&apdu[apdu_len], 4, &value->Error)) >
         0) {
         apdu_len += len;
+    } else {
+        value->Error = ERROR_CODE_OTHER;
     }
 
     if ((len = decode_context_character_string(&apdu[apdu_len], 5, &str)) > 0) {
@@ -2166,6 +2174,8 @@ int bacapp_decode_RouterEntry(uint8_t *apdu, BACNET_ROUTER_ENTRY *value)
     if ((len = decode_context_unsigned(&apdu[apdu_len], 3, &v)) > 0) {
         value->Performance_Index = (uint8_t)v;
         apdu_len += len;
+    } else {
+        value->Performance_Index = 0;
     }
 
     return apdu_len;
@@ -2339,6 +2349,8 @@ int bacapp_decode_SCDirectConnection(uint8_t *apdu, uint16_t max_apdu_len,
     if ((len = decode_context_enumerated(&apdu[apdu_len], 7, &value->Error)) >
         0) {
         apdu_len += len;
+    } else {
+        value->Error = ERROR_CODE_OTHER;
     }
 
     if ((len = decode_context_character_string(&apdu[apdu_len], 8, &str)) > 0) {
@@ -2546,6 +2558,7 @@ int Network_Port_SC_snprintf_value(
     BACNET_PROPERTY_ID property = object_value->object_property;
     //BACNET_OBJECT_TYPE object_type = object_value->object_type;
     BACNET_ARRAY_INDEX array_index = object_value->array_index;
+    BACNET_APPLICATION_DATA_VALUE result;
 
     int ret_val = 0;
     int len = 0;
@@ -2556,9 +2569,9 @@ int Network_Port_SC_snprintf_value(
             if (array_index == 0) {
                 len = bacapp_decode_generic_property(
                     value->type.Custom_Value.data, value->type.Custom_Value.len,
-                    value, property);
+                    &result, property);
                 ret_val =
-                    snprintf(str, str_len, "%ld", (long)value->type.Signed_Int);
+                    snprintf(str, str_len, "%ld", (long)result.type.Signed_Int);
             } else {
                 BACNET_SC_FAILED_CONNECTION_REQUEST req;
                 while (len < value->type.Custom_Value.len) {
@@ -2592,9 +2605,9 @@ int Network_Port_SC_snprintf_value(
             if (array_index == 0) {
                 len = bacapp_decode_generic_property(
                     value->type.Custom_Value.data, value->type.Custom_Value.len,
-                    value, property);
+                    &result, property);
                 ret_val =
-                    snprintf(str, str_len, "%ld", (long)value->type.Signed_Int);
+                    snprintf(str, str_len, "%ld", (long)result.type.Signed_Int);
             } else {
                 BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS status;
                 while (len < value->type.Custom_Value.len) {
@@ -2630,9 +2643,9 @@ int Network_Port_SC_snprintf_value(
             if (array_index == 0) {
                 len = bacapp_decode_generic_property(
                     value->type.Custom_Value.data, value->type.Custom_Value.len,
-                    value, property);
+                    &result, property);
                 ret_val =
-                    snprintf(str, str_len, "%ld", (long)value->type.Signed_Int);
+                    snprintf(str, str_len, "%ld", (long)result.type.Signed_Int);
             } else {
                 BACNET_SC_DIRECT_CONNECTION_STATUS status;
                 while (len < value->type.Custom_Value.len) {
@@ -2640,7 +2653,7 @@ int Network_Port_SC_snprintf_value(
                         value->type.Custom_Value.data + len,
                         value->type.Custom_Value.len - len, &status);
                     if (rc > 0) {
-                        SNPRINTF_AND_MOVE("{%s,%d",
+                        SNPRINTF_AND_MOVE("{%s, %d, ",
                             status.URI?status.URI:"NULL", status.State);
                         BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
                             &status.Connect_Timestamp);
