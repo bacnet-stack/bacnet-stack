@@ -2355,7 +2355,7 @@ static void test_node_direct_connection(void)
     ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
         sizeof(node_ev3.dest.address));
     zassert_equal(ret, 0, NULL);
-    bsc_wait(2);
+    wait_sec(2);
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -2559,7 +2559,7 @@ static void test_node_direct_connection_unsupported(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait while node3 and node2 connects to node
-    bsc_wait(2 * BACNET_TIMEOUT);
+    wait_sec(2 * BACNET_TIMEOUT);
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(

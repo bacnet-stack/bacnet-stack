@@ -1805,8 +1805,7 @@ static void test_sc_datalink_properties(void)
     sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
         Network_Port_Index_To_Instance(0), 1);
     while (sd->State == BACNET_CONNECTED) {
-        bsc_maintenance_timer(0);
-        bsc_wait(1);
+        wait_sec(1);
         sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
             Network_Port_Index_To_Instance(0), 1);
     }
