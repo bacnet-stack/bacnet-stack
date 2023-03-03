@@ -696,7 +696,9 @@ static void bsc_process_srv_awaiting_request(
 
             if (!len) {
                 if (c->ctx->funcs->failed_request) {
-                    c->ctx->funcs->failed_request(c->ctx, c, &c->vmac, &c->uuid,
+                    c->ctx->funcs->failed_request(c->ctx, c,
+                        c->dm.payload.connect_request.vmac,
+                        c->dm.payload.connect_request.uuid,
                         ERROR_CODE_ABORT_OUT_OF_RESOURCES, NULL);
                 }
                 bsc_srv_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
@@ -765,7 +767,9 @@ static void bsc_process_srv_awaiting_request(
             ucode = ERROR_CODE_NODE_DUPLICATE_VMAC;
             message_id = c->dm.hdr.message_id;
             if (c->ctx->funcs->failed_request) {
-                c->ctx->funcs->failed_request(c->ctx, c, &c->vmac, &c->uuid,
+                c->ctx->funcs->failed_request(c->ctx, c,
+                    c->dm.payload.connect_request.vmac,
+                    c->dm.payload.connect_request.uuid,
                     ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
             }
             len =

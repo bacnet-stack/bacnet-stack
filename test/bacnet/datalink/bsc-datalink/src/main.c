@@ -1138,19 +1138,19 @@ static void deinit_node_ev(node_ev_t *ev)
 
 static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
 {
-    BACNET_SC_HUB_CONNECTION_STATUS* st1;
-    BACNET_SC_HUB_CONNECTION_STATUS* st2;
+    BACNET_SC_HUB_CONNECTION_STATUS *st1;
+    BACNET_SC_HUB_CONNECTION_STATUS *st2;
     call_maintenance_timer(1, 0);
     while (1) {
         bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
         call_maintenance_timer(0, WAIT_EVENT_MS);
-        
+
         st1 = bsc_node_hub_connector_status(node, true);
         st2 = bsc_node_hub_connector_status(node, false);
-        if(st1 && st1->State == BACNET_CONNECTED) {
+        if (st1 && st1->State == BACNET_CONNECTED) {
             break;
         }
-        if(st2 && st2->State == BACNET_CONNECTED) {
+        if (st2 && st2->State == BACNET_CONNECTED) {
             break;
         }
     }
@@ -1938,6 +1938,125 @@ static void test_sc_datalink_properties(void)
     deinit_node_ev(&node_ev4);
 }
 
+static void test_sc_datalink_failed_requests(void)
+{
+    BSC_NODE_CONF conf2;
+    BACNET_SC_UUID uuid1;
+    BACNET_SC_VMAC_ADDRESS vmac1;
+    BACNET_SC_UUID uuid2;
+    BACNET_SC_VMAC_ADDRESS vmac2;
+    BACNET_SC_UUID failed_uuid;
+    BACNET_SC_VMAC_ADDRESS failed_vmac;
+    char primary_url1[128];
+    char secondary_url1[128];
+    char primary_url2[128];
+    char secondary_url2[128];
+    BSC_SC_RET ret;
+    BSC_NODE *node2;
+    BSC_NODE *node3;
+
+    BACNET_SC_FAILED_CONNECTION_REQUEST *r;
+
+    memset(&uuid1, 0x41, sizeof(uuid1));
+    memset(&vmac1, 0x42, sizeof(vmac1));
+    memset(&uuid2, 0x43, sizeof(uuid2));
+    memset(&vmac2, 0x42, sizeof(vmac2));
+
+    sprintf(primary_url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(secondary_url2, "wss://%s:%d", BACNET_LOCALHOST,
+        SC_NETPORT_HUB_SERVER_PORT);
+    sprintf(primary_url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
+    sprintf(secondary_url1, "wss://%s:%d", BACNET_LOCALHOST,
+        SC_NETPORT_HUB_SERVER_PORT);
+
+    bacfile_init();
+    netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
+        server_cert, sizeof(server_cert), server_key, sizeof(server_key),
+        SC_NETPORT_HUB_SERVER_PORT_STR, SC_NETPORT_DIRECT_SERVER_PORT_STR,
+        &uuid1, &vmac1, primary_url1, secondary_url1, true, true, true);
+
+    init_node_ev(&node_ev2);
+    zassert_equal(bsc_init(NULL), true, NULL);
+
+    conf2.ca_cert_chain = ca_cert;
+    conf2.ca_cert_chain_size = sizeof(ca_cert);
+    conf2.cert_chain = client_cert;
+    conf2.cert_chain_size = sizeof(client_cert);
+    conf2.key = client_key;
+    conf2.key_size = sizeof(client_key);
+    conf2.local_uuid = &uuid2;
+    conf2.local_vmac = &vmac2;
+    conf2.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf2.max_local_npdu_len = MAX_NDPU_LEN;
+    conf2.connect_timeout_s = BACNET_TIMEOUT;
+    conf2.heartbeat_timeout_s = BACNET_TIMEOUT;
+    conf2.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf2.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf2.primaryURL = primary_url2;
+    conf2.failoverURL = secondary_url2;
+    conf2.hub_server_port = 0;
+    conf2.direct_server_port = 0;
+    conf2.direct_iface = NULL;
+    conf2.hub_iface = NULL;
+    conf2.direct_connect_accept_enable = false;
+    conf2.direct_connect_initiate_enable = true;
+    conf2.hub_function_enabled = false;
+    conf2.direct_connection_accept_uris = NULL;
+    conf2.direct_connection_accept_uris_len = 0;
+    conf2.event_func = node_event2;
+
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    wait_for_connection_to_hub(&node_ev2, node2);
+    bsc_cleanup();
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    ret = bsc_node_deinit(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+
+    memset(&uuid1, 0x51, sizeof(uuid1));
+    memset(&vmac1, 0x52, sizeof(vmac1));
+    memset(&failed_uuid, 0x53, sizeof(failed_uuid));
+    memset(&failed_vmac, 0x52, sizeof(failed_vmac));
+    memset(&uuid2, 0x53, sizeof(uuid2));
+    memset(&vmac2, 0x52, sizeof(vmac2));
+
+    netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
+        server_cert, sizeof(server_cert), server_key, sizeof(server_key),
+        SC_NETPORT_HUB_SERVER_PORT_STR, SC_NETPORT_DIRECT_SERVER_PORT_STR,
+        &uuid1, &vmac1, primary_url1, secondary_url1, true, true, true);
+    zassert_equal(bsc_init(NULL), true, NULL);
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    wait_for_connection_to_hub(&node_ev2, node2);
+    wait_sec(1);
+    r = Network_Port_SC_Failed_Connection_Requests_Get(
+        Network_Port_Index_To_Instance(0), 0);
+    zassert_equal(r != NULL, true, 0);
+    zassert_equal(
+        memcmp(r->Peer_VMAC, &failed_vmac.address[0], BVLC_SC_VMAC_SIZE) == 0,
+        true, NULL);
+    zassert_equal(memcmp(r->Peer_UUID.uuid.uuid128, &failed_uuid.uuid[0],
+                      BVLC_SC_UUID_SIZE) == 0,
+        true, NULL);
+    bsc_cleanup();
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    ret = bsc_node_deinit(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    deinit_node_ev(&node_ev2);
+}
+
 void test_main(void)
 {
     // Tests must not be run in parallel threads!
@@ -1947,7 +2066,11 @@ void test_main(void)
     ztest_test_suite(test_datalink_2, ztest_unit_test(test_sc_datalink));
     ztest_test_suite(
         test_datalink_3, ztest_unit_test(test_sc_datalink_properties));
+    ztest_test_suite(
+        test_datalink_4, ztest_unit_test(test_sc_datalink_failed_requests));
+
     ztest_run_test_suite(test_datalink_1);
     ztest_run_test_suite(test_datalink_2);
     ztest_run_test_suite(test_datalink_3);
+    ztest_run_test_suite(test_datalink_4);
 }
