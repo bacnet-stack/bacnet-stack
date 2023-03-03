@@ -2656,7 +2656,7 @@ int Network_Port_SC_snprintf_value(
                         value->type.Custom_Value.len - len, &status);
                     if (rc > 0) {
                         SNPRINTF_AND_MOVE("{%s, %d, ",
-                            status.URI?status.URI:"NULL", status.State);
+                            status.URI[0] ? status.URI : "NULL", status.State);
                         BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
                             &status.Connect_Timestamp);
                         BACAPP_SNPRINTF_AND_MOVE(bacapp_snprintf_timestamp,
