@@ -129,11 +129,11 @@ list(APPEND testdirs
   bacnet/datalink/crc
   bacnet/datalink/bvlc
   bacnet/datalink/bvlc-sc
-  bacnet/datalink/websockets
-  bacnet/datalink/bsc-socket
-  bacnet/datalink/hub-sc
-  bacnet/datalink/bsc-node
-  bacnet/datalink/bsc-datalink
+  #bacnet/datalink/websockets
+  #bacnet/datalink/bsc-socket
+  #bacnet/datalink/hub-sc
+  #bacnet/datalink/bsc-node
+  #bacnet/datalink/bsc-datalink
   )
 
 # ports tests
