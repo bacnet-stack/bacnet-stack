@@ -1,13 +1,11 @@
 #!/bin/bash
 echo "Example of parameters for BACnet/SC server"
 
-# Not need for server
-#BACNET_SC_PRIMARY_HUB_URI="wss://127.0.0.1:9999"
-#export BACNET_SC_PRIMARY_HUB_URI
+BACNET_SC_PRIMARY_HUB_URI="wss://127.0.0.1:50000"
+export BACNET_SC_PRIMARY_HUB_URI
 
-# Not need for server
-#BACNET_SC_FAILOVER_HUB_URI="wss://127.0.0.1:9999"
-#export BACNET_SC_FAILOVER_HUB_URI
+BACNET_SC_FAILOVER_HUB_URI="wss://127.0.0.1:5555"
+export BACNET_SC_FAILOVER_HUB_URI
 
 BACNET_SC_ISSUER_1_CERTIFICATE_FILE="certs/ca_cert.pem"
 export BACNET_SC_ISSUER_1_CERTIFICATE_FILE
