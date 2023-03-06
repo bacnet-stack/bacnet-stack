@@ -174,6 +174,8 @@ static bool bsc_prepare_error_extended(BSC_SOCKET *c,
 
     DEBUG_PRINTF(
         "bsc_prepare_error_extended() >>> bvlc_function = %d\n", bvlc_function);
+
+#if DEBUG_BSC_SOCKET == 1
     if (error_header_marker) {
         DEBUG_PRINTF("                              error_header_marker = %d\n",
             *error_header_marker);
@@ -198,6 +200,7 @@ static bool bsc_prepare_error_extended(BSC_SOCKET *c,
         DEBUG_PRINTF("                              dest = %s\n",
             bsc_vmac_to_string(dest));
     }
+#endif
 
     message_id = bsc_get_next_message_id();
     DEBUG_PRINTF("                              message_id = %d\n", message_id);
@@ -263,6 +266,7 @@ static void bsc_process_socket_disconnecting(
     DEBUG_PRINTF("bsc_process_socket_disconnecting() >>> c = %p\n", c);
 
     if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
+#if DEBUG_BSC_SOCKET == 1
         if (c->dm.hdr.message_id != c->expected_disconnect_message_id) {
             DEBUG_PRINTF(
                 "bsc_process_socket_disconnecting() got disconnect ack with "
@@ -274,6 +278,7 @@ static void bsc_process_socket_disconnecting(
                 "socket %p\n",
                 c);
         }
+#endif
         *need_disconnect = true;
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
         if (c->dm.payload.result.bvlc_function == BVLC_SC_DISCONNECT_REQUEST &&
@@ -333,12 +338,15 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
             memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
             c->tx_buf_size += len + sizeof(len);
             *need_send = true;
-        } else {
+        }
+#if DEBUG_BSC_SOCKET == 1
+        else {
             DEBUG_PRINTF("bsc_process_socket_connected_state() no resources to "
                          "answer on hearbeat request "
                          "socket %p\n",
                 c);
         }
+#endif
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_REQUEST) {
         DEBUG_PRINTF("bsc_process_socket_connected_state() got disconnect "
                      "request with message_id %d\n",
@@ -437,11 +445,14 @@ static void bsc_process_socket_state(
             if (code != ERROR_CODE_OTHER) {
                 *need_send = bsc_prepare_protocol_error(c, c->dm.hdr.origin,
                     c->dm.hdr.dest, class, code, (uint8_t *)err_desc);
-            } else {
+            }
+#if DEBUG_BSC_SOCKET == 1
+            else {
                 DEBUG_PRINTF(
                     "bsc_process_socket_state() decoding failed, message "
                     "is silently dropped cause it's length < 4 bytes\n");
             }
+#endif
         } else {
             DEBUG_PRINTF("c->dm.hdr.bvlc_function == %d, message_id = %d\n",
                 c->dm.hdr.bvlc_function, c->dm.hdr.message_id);
@@ -664,12 +675,7 @@ static void bsc_process_srv_awaiting_request(
             c->ctx->funcs->failed_request(
                 c->ctx, c, NULL, NULL, code, err_desc);
         }
-    } else if (c->dm.hdr.bvlc_function != BVLC_SC_CONNECT_REQUEST) {
-        DEBUG_PRINTF("bsc_process_srv_awaiting_request() unexpected message "
-                     "with bvlc function "
-                     "%d is discarded in awaiting request state\n",
-            c->dm.hdr.bvlc_function);
-    } else {
+    } else if (c->dm.hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST) {
         existing = c->ctx->funcs->find_connection_for_uuid(
             c->dm.payload.connect_request.uuid, c->ctx->user_arg);
 
@@ -892,7 +898,14 @@ static void bsc_process_srv_awaiting_request(
             bsc_srv_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
         }
     }
-
+#if DEBUG_BSC_SOCKET == 1
+    else {
+        DEBUG_PRINTF("bsc_process_srv_awaiting_request() unexpected message "
+                     "with bvlc function "
+                     "%d is discarded in awaiting request state\n",
+            c->dm.hdr.bvlc_function);
+    }
+#endif
     DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
 }
 
@@ -993,10 +1006,12 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
             DEBUG_PRINTF("bsc_dispatch_srv_func() c->rx_buf_size = %d\n",
                 c->rx_buf_size);
             if (bufsize > BVLC_SC_NPDU_MAX_SIZE) {
+#if DEBUG_BSC_SOCKET == 1
                 DEBUG_PRINTF("bsc_dispatch_srv_func() message is dropped, size "
                              "> BVLC_SC_NPDU_MAX_SIZE, socket %p, state %d, "
                              "data_size %d\n",
                     c, c->state, bufsize);
+#endif
             } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) -
                     BSC_PRE >=
                 bufsize) {
@@ -1012,17 +1027,23 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                     c->rx_buf_size);
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
-            } else {
+            }
+#if DEBUG_BSC_SOCKET == 1
+            else {
                 DEBUG_PRINTF("bsc_dispatch_srv_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
                              "data_size %d, rx_buf_size = %d\n",
                     c, c->state, bufsize, c->rx_buf_size);
             }
-        } else {
+#endif
+        }
+#if DEBUG_BSC_SOCKET == 1
+        else {
             DEBUG_PRINTF("bsc_dispatch_srv_func() data was dropped for socket "
                          "%p, state %d, data_size %d\n",
                 c, c->state, bufsize);
         }
+#endif
     } else if (ev == BSC_WEBSOCKET_SENDABLE) {
         p = c->tx_buf;
 
@@ -1116,12 +1137,15 @@ static void bsc_process_cli_awaiting_accept(
             /* enter the IDLE state. */
             /* Signal upper layer about that error */
             bsc_cli_process_error(c, ERROR_CODE_NODE_DUPLICATE_VMAC);
-        } else {
+        }
+#if DEBUG_BSC_SOCKET == 1
+        else {
             DEBUG_PRINTF("bsc_process_cli_awaiting_accept() got unexpected "
                          "BVLC_RESULT error code "
                          "%d in BVLC-Result message in awaiting accept state\n",
                 c->dm.payload.result.error_code);
         }
+#endif
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_REQUEST) {
         /* AB.6.2.2 BACnet/SC Connection Initiating Peer State */
         /* Machine does not say anything about situation when */
@@ -1141,12 +1165,15 @@ static void bsc_process_cli_awaiting_accept(
             "bsc_process_cli_awaiting_accept() got unexpected disconnect ack "
             "request\n");
         bsc_cli_process_error(c, ERROR_CODE_OTHER);
-    } else {
+    }
+#if DEBUG_BSC_SOCKET == 1
+    else {
         DEBUG_PRINTF("bsc_process_cli_awaiting_accept() unexpected message "
                      "with bvlc function "
                      "%d is discarded in awaiting accept state\n",
             c->dm.hdr.bvlc_function);
     }
+#endif
     DEBUG_PRINTF("bsc_process_cli_awaiting_accept() <<<\n");
 }
 
@@ -1304,17 +1331,23 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 c->rx_buf_size += bufsize;
                 DEBUG_PRINTF("bsc_dispatch_cli_func() c->rx_buf_size = %zu\n",
                     c->rx_buf_size);
-            } else {
+            }
+#if DEBUG_BSC_SOCKET == 1
+            else {
                 DEBUG_PRINTF("bsc_dispatch_cli_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
                              "data_size %d, rx_buf_size = %d\n",
                     c, c->state, bufsize, c->rx_buf_size);
             }
-        } else {
+#endif
+        }
+#if DEBUG_BSC_SOCKET == 1
+        else {
             DEBUG_PRINTF("bsc_dispatch_cli_func() data was dropped for socket "
                          "%p, state %d, data_size %d\n",
                 c, c->state, bufsize);
         }
+#endif
     }
 
     bsc_socket_maintenance_timer(0);
