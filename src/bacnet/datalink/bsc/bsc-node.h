@@ -126,8 +126,12 @@ void bsc_node_disconnect_direct(
     BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *dest);
 
 BACNET_STACK_EXPORT
-BVLC_SC_HUB_CONNECTION_STATUS
-bsc_node_hub_connector_status(BSC_NODE *node);
+BACNET_SC_HUB_CONNECTOR_STATE
+bsc_node_hub_connector_state(BSC_NODE *node);
+
+BACNET_STACK_EXPORT
+BACNET_SC_HUB_CONNECTION_STATUS*
+bsc_node_hub_connector_status(BSC_NODE *node, bool primary);
 
 BACNET_STACK_EXPORT
 bool bsc_node_direct_connection_established(
@@ -137,5 +141,29 @@ bool bsc_node_direct_connection_established(
 
 BACNET_STACK_EXPORT
 void bsc_node_maintenance_timer(uint16_t seconds);
+
+BACNET_STACK_EXPORT
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS*
+bsc_node_hub_function_status(BSC_NODE *node, size_t* cnt);
+
+BACNET_STACK_EXPORT
+BACNET_SC_DIRECT_CONNECTION_STATUS*
+bsc_node_direct_connection_acceptor_status(BSC_NODE *node, size_t* cnt);
+
+BACNET_STACK_EXPORT
+BACNET_SC_DIRECT_CONNECTION_STATUS*
+bsc_node_direct_connection_initiator_status(BSC_NODE *node, size_t* cnt);
+
+BACNET_STACK_EXPORT
+void bsc_node_store_failed_request_info(BSC_NODE *node,
+                                        BACNET_HOST_N_PORT_DATA* peer,
+                                        BACNET_SC_VMAC_ADDRESS *vmac,
+                                        BACNET_SC_UUID *uuid,
+                                        BACNET_ERROR_CODE error,
+                                        const char* error_desc);
+
+BACNET_STACK_EXPORT
+BACNET_SC_FAILED_CONNECTION_REQUEST*
+bsc_node_failed_requests_status(BSC_NODE *node, size_t* cnt);
 
 #endif

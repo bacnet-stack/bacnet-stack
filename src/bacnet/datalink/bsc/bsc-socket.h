@@ -29,6 +29,7 @@
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/object/sc_netport.h"
 
 #ifndef BSC_CONF_RX_BUFFER_SIZE
 #define BSC_RX_BUFFER_SIZE 4096
@@ -42,7 +43,7 @@
 #define BSC_TX_BUFFER_SIZE BSC_CONF_TX_BUFFER_SIZE
 #endif
 
-#define BSC_SOCKET_CTX_NUM (BSC_CONF_NODES_NUM*(BSC_CONF_HUB_CONNECTORS_NUM + BSC_CONF_NODE_SWITCHES_NUM + BSC_CONF_HUB_FUNCTIONS_NUM))
+#define BSC_SOCKET_CTX_NUM (BSC_CONF_NODES_NUM*(BSC_CONF_HUB_CONNECTORS_NUM + 2*BSC_CONF_NODE_SWITCHES_NUM + BSC_CONF_HUB_FUNCTIONS_NUM))
 
 struct BSC_Socket;
 typedef struct BSC_Socket BSC_SOCKET;
@@ -94,7 +95,7 @@ struct BSC_Socket {
     BSC_SOCKET_CTX *ctx;
     BSC_WEBSOCKET_HANDLE wh;
     BSC_SOCKET_STATE state;
-    BSC_SC_RET disconnect_reason;
+    BACNET_ERROR_CODE reason;
     struct mstimer t;
     struct mstimer heartbeat;
     BACNET_SC_VMAC_ADDRESS vmac; /* VMAC address of the requesting node. */
@@ -159,10 +160,20 @@ struct BSC_SocketContextFuncs {
     /* to avoid copying of packet payload during manipulation with */
     /* origin and dest addresses (e.g. adding them to received PDU) */
     /* That's why pdu pointer has always reserved BSC_PRE bytes behind */
+    /* The params disconnect_reason and disconnect_reason_desc are meanfull */
+    /* only for disconnect events, e.g. when ev ==  BSC_SOCKET_EVENT_DISCONNECTED */
+
     void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
-                         BSC_SC_RET err, uint8_t *pdu, uint16_t pdu_len,
+                         BACNET_ERROR_CODE disconnect_reason,
+                         const char* disconnect_reason_desc,
+                         uint8_t *pdu, uint16_t pdu_len,
                          BVLC_SC_DECODED_MESSAGE *decoded_pdu);
     void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
+    void (*failed_request)(BSC_SOCKET_CTX *ctx, BSC_SOCKET*c,
+                           BACNET_SC_VMAC_ADDRESS *vmac,
+                           BACNET_SC_UUID *uuid,
+                           BACNET_ERROR_CODE error,
+                           const char* error_desc);
 };
 
 
@@ -214,10 +225,19 @@ BACNET_STACK_EXPORT
 void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx);
 
 /**
- * @brief  bsc_connect() function starts connection operation for a 
+ * @brief  bsc_connect() function starts connect operation for a 
  *         specified BACNet socket. The function call be called only
  *         for initiator context otherwise BSC_SC_INVALID_OPERATION
- *         error is returned.
+ *         error is returned. As a result if bsc_connect() was
+ *         succeded for given param c, that leads to emitting of
+ *         BSC_SOCKET_EVENT_CONNECTED or BSC_SOCKET_EVENT_DISCONNECTED
+ *         events depending on the result of connect operation.
+ *         If connect operation is failed, BSC_SOCKET_EVENT_DISCONNECTED
+ *         event is emitted and user can determine the reason why it
+ *         happened using disconnect_reason and disconnect_reason_desc
+ *         parameters in callback function.
+ *         If connect operation succeeded, BSC_SOCKET_EVENT_CONNECTED
+ *         event is emited.
  *
  * @param ctx - socket context.
  * @param c - BACNet socket descriptor .
@@ -275,5 +295,21 @@ uint16_t bsc_get_next_message_id(void);
 
 BACNET_STACK_EXPORT
 void bsc_socket_maintenance_timer(uint16_t seconds);
+
+/**
+ * @brief  bsc_socket_get_peer_addr() function gets information
+ *         about remote peer address only for socket with acceptor cotext.
+ *
+ * @param c - BACNet socket descriptor initialized by bsc_accept() call.
+ * @param data - pointer to a struct holding address information.
+ * @param pdu_len - size in bytes of data to send.
+ *
+ * @return false if socket is not acceptor or bad parameter was passed or
+ *               if getting of address information failed.
+ *         true  if function succeeds.
+ */
+
+BACNET_STACK_EXPORT
+bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data);
 
 #endif

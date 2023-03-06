@@ -94,10 +94,6 @@ pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
 find_package(OpenSSL)
 endif()
 
-add_compile_definitions(
-  BSC_CONF_WSURL_MAX_LEN=127
-    )
-
 add_library(${PROJECT_NAME}
     src/bacnet/abort.c
     src/bacnet/abort.h

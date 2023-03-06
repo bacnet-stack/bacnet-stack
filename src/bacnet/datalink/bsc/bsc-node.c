@@ -18,6 +18,7 @@
 #include "bacnet/datalink/bsc/bsc-hub-connector.h"
 #include "bacnet/datalink/bsc/bsc-node-switch.h"
 #include "bacnet/datalink/bsc/bsc-socket.h"
+#include "bacnet/basic/object/sc_netport.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
@@ -53,26 +54,50 @@ struct BSC_Node {
     BSC_HUB_CONNECTOR_HANDLE hub_connector;
     BSC_HUB_FUNCTION_HANDLE hub_function;
     BSC_NODE_SWITCH_HANDLE node_switch;
+    BACNET_SC_FAILED_CONNECTION_REQUEST *failed;
 };
 
 static struct BSC_Node bsc_node[BSC_CONF_NODES_NUM] = { 0 };
 
+static BACNET_SC_FAILED_CONNECTION_REQUEST
+    bsc_failed_request[BSC_CONF_NODES_NUM]
+                      [BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM];
+static bool bsc_failed_request_initialized[BSC_CONF_NODES_NUM] = { 0 };
 static BSC_ADDRESS_RESOLUTION
     bsc_address_resolution[BSC_CONF_NODES_NUM]
                           [BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM];
+
 static BSC_NODE_CONF bsc_conf[BSC_CONF_NODES_NUM];
 
 static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state);
 
 static BSC_NODE *bsc_alloc_node(void)
 {
-    int i;
+    int i, j;
 
     for (i = 0; i < BSC_CONF_NODES_NUM; i++) {
         if (bsc_node[i].used == false) {
+            memset(&bsc_node[i], 0, sizeof(bsc_node[i]));
             bsc_node[i].used = true;
             bsc_node[i].conf = &bsc_conf[i];
             bsc_node[i].resolution = &bsc_address_resolution[i][0];
+            bsc_node[i].failed = &bsc_failed_request[i][0];
+            memset(bsc_node[i].resolution, 0,
+                sizeof(BSC_ADDRESS_RESOLUTION) *
+                    BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
+            /* Start/stop cycles of a node must not make an influence to history
+             * about failed requests */
+            /* That's why bsc_failed_request[] array is initialized only once */
+            if (!bsc_failed_request_initialized[i]) {
+                for (j = 0; j < BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM;
+                     j++) {
+                    memset(&bsc_failed_request[i][j], 0,
+                        sizeof(bsc_failed_request[i][j]));
+                    memset(&bsc_failed_request[i][j].Timestamp, 0xff,
+                        sizeof(bsc_failed_request[i][j].Timestamp));
+                }
+                bsc_failed_request_initialized[i] = true;
+            }
             return &bsc_node[i];
         }
     }
@@ -365,7 +390,7 @@ static void bsc_node_process_received(BSC_NODE *node,
         case BVLC_SC_ADVERTISIMENT_SOLICITATION: {
             bufsize = bvlc_sc_encode_advertisiment(buf, sizeof(buf),
                 bsc_get_next_message_id(), NULL, decoded_pdu->hdr.origin,
-                bsc_hub_connector_status(node->hub_connector),
+                bsc_hub_connector_state(node->hub_connector),
                 node_switch_enabled(node->conf)
                     ? BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED
                     : BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_UNSUPPORTED,
@@ -893,7 +918,8 @@ bool bsc_node_direct_connection_established(
     bool ret = false;
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
-        node->conf->direct_connect_initiate_enable) {
+        (node->conf->direct_connect_initiate_enable ||
+            node->conf->direct_connect_accept_enable)) {
         ret =
             bsc_node_switch_connected(node->node_switch, dest, urls, urls_cnt);
     }
@@ -901,19 +927,69 @@ bool bsc_node_direct_connection_established(
     return ret;
 }
 
-BVLC_SC_HUB_CONNECTION_STATUS
-bsc_node_hub_connector_status(BSC_NODE *node)
+BACNET_SC_HUB_CONNECTOR_STATE
+bsc_node_hub_connector_state(BSC_NODE *node)
 {
-    BVLC_SC_HUB_CONNECTION_STATUS ret = BVLC_SC_HUB_CONNECTION_ABSENT;
+    BACNET_SC_HUB_CONNECTOR_STATE ret = BACNET_NO_HUB_CONNECTION;
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED) {
-        ret = bsc_hub_connector_status(node->hub_connector);
+        ret = bsc_hub_connector_state(node->hub_connector);
     }
     bws_dispatch_unlock();
     return ret;
 }
 
-BACNET_STACK_EXPORT
+BACNET_SC_HUB_CONNECTION_STATUS *bsc_node_hub_connector_status(
+    BSC_NODE *node, bool primary)
+{
+    BACNET_SC_HUB_CONNECTION_STATUS *ret = NULL;
+    bws_dispatch_lock();
+    if (node->state == BSC_NODE_STATE_STARTED) {
+        ret = bsc_hub_connector_status(node->hub_connector, primary);
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_hub_function_status(
+    BSC_NODE *node, size_t *cnt)
+{
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *ret = NULL;
+    bws_dispatch_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        node->conf->hub_function_enabled) {
+        ret = bsc_hub_function_status(node->hub_function, cnt);
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
+BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_direct_connection_acceptor_status(
+    BSC_NODE *node, size_t *cnt)
+{
+    BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
+    bws_dispatch_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        node->conf->direct_connect_accept_enable) {
+        ret = bsc_node_switch_acceptor_status(node->node_switch, cnt);
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
+BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_direct_connection_initiator_status(
+    BSC_NODE *node, size_t *cnt)
+{
+    BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
+    bws_dispatch_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        node->conf->direct_connect_initiate_enable) {
+        ret = bsc_node_switch_initiator_status(node->node_switch, cnt);
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
 void bsc_node_maintenance_timer(uint16_t seconds)
 {
     (void)seconds;
@@ -921,4 +997,76 @@ void bsc_node_maintenance_timer(uint16_t seconds)
     bsc_socket_maintenance_timer(seconds);
     bsc_hub_connector_maintenance_timer(seconds);
     bsc_node_switch_maintenance_timer(seconds);
+}
+
+static void bsc_node_add_failed_request_info(
+    BACNET_SC_FAILED_CONNECTION_REQUEST *r,
+    BACNET_HOST_N_PORT_DATA *peer,
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE error,
+    const char *error_desc)
+{
+    bsc_set_timestamp(&r->Timestamp);
+    memcpy(&r->Peer_Address, peer, sizeof(*peer));
+    memcpy(r->Peer_VMAC, &vmac->address[0], BVLC_SC_VMAC_SIZE);
+    memcpy(&r->Peer_UUID.uuid.uuid128[0], &uuid->uuid[0], BVLC_SC_UUID_SIZE);
+    r->Error = error;
+    if (!error_desc) {
+        r->Error_Details[0] = 0;
+    } else {
+        bsc_copy_str(r->Error_Details, error_desc, sizeof(r->Error_Details));
+    }
+}
+
+void bsc_node_store_failed_request_info(BSC_NODE *node,
+    BACNET_HOST_N_PORT_DATA *peer,
+    BACNET_SC_VMAC_ADDRESS *vmac,
+    BACNET_SC_UUID *uuid,
+    BACNET_ERROR_CODE error,
+    const char *error_desc)
+{
+    size_t i, j = 0;
+    bool found = false;
+    BACNET_DATE_TIME t;
+
+    bws_dispatch_lock();
+
+    for (i = 0; i < BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (node->failed[i].Peer_Address.host[0] == 0) {
+            found = true;
+            break;
+        }
+    }
+    if (found) {
+        bsc_node_add_failed_request_info(
+            &node->failed[i], peer, vmac, uuid, error, error_desc);
+    } else {
+        bsc_set_timestamp(&t);
+        for (i = 0; i < BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM; i++) {
+            if (datetime_compare(&node->failed[i].Timestamp, &t) < 0) {
+                j = i;
+                memcpy(&t, &node->failed[i].Timestamp, sizeof(t));
+            }
+        }
+        bsc_node_add_failed_request_info(
+            &node->failed[j], peer, vmac, uuid, error, error_desc);
+    }
+
+    bws_dispatch_unlock();
+}
+
+BACNET_SC_FAILED_CONNECTION_REQUEST *bsc_node_failed_requests_status(
+    BSC_NODE *node, size_t *cnt)
+{
+    BACNET_SC_FAILED_CONNECTION_REQUEST *ret = NULL;
+    bws_dispatch_lock();
+    if (node->state == BSC_NODE_STATE_STARTED &&
+        (node->conf->direct_connect_accept_enable ||
+            node->conf->hub_function_enabled)) {
+        ret = node->failed;
+        *cnt = BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM;
+    }
+    bws_dispatch_unlock();
+    return ret;
 }

@@ -1,3 +1,4 @@
+
 /**
  * @file
  * @brief BACNet secure connect API.
@@ -138,21 +139,21 @@ static BSC_SOCKET *bsc_find_free_socket(BSC_SOCKET_CTX *ctx)
     return NULL;
 }
 
-static void bsc_srv_process_error(BSC_SOCKET *c, BSC_SC_RET reason)
+static void bsc_srv_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
 {
     DEBUG_PRINTF(
         "bsc_srv_process_error() >>> c = %p, reason = %d\n", c, reason);
     c->state = BSC_SOCK_STATE_ERROR;
-    c->disconnect_reason = reason;
+    c->reason = reason;
     bws_srv_disconnect(c->ctx->sh, c->wh);
     DEBUG_PRINTF("bsc_srv_process_error() <<<\n");
 }
 
-static void bsc_cli_process_error(BSC_SOCKET *c, BSC_SC_RET reason)
+static void bsc_cli_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
 {
     DEBUG_PRINTF("bsc_cli_process_error) >>> c = %p, reason = %d\n", c, reason);
     c->state = BSC_SOCK_STATE_ERROR;
-    c->disconnect_reason = reason;
+    c->reason = reason;
     bws_cli_disconnect(c->wh);
     DEBUG_PRINTF("bsc_cli_process_error) <<<\n");
 }
@@ -173,6 +174,8 @@ static bool bsc_prepare_error_extended(BSC_SOCKET *c,
 
     DEBUG_PRINTF(
         "bsc_prepare_error_extended() >>> bvlc_function = %d\n", bvlc_function);
+
+#if DEBUG_BSC_SOCKET == 1
     if (error_header_marker) {
         DEBUG_PRINTF("                              error_header_marker = %d\n",
             *error_header_marker);
@@ -197,6 +200,7 @@ static bool bsc_prepare_error_extended(BSC_SOCKET *c,
         DEBUG_PRINTF("                              dest = %s\n",
             bsc_vmac_to_string(dest));
     }
+#endif
 
     message_id = bsc_get_next_message_id();
     DEBUG_PRINTF("                              message_id = %d\n", message_id);
@@ -244,11 +248,16 @@ static bool bsc_prepare_protocol_error(BSC_SOCKET *c,
         c, origin, dest, NULL, error_class, error_code, utf8_details_string);
 }
 
+static void bsc_clear_vmac_and_uuid(BSC_SOCKET *c)
+{
+    memset(&c->vmac, 0, sizeof(c->vmac));
+    memset(&c->uuid, 0, sizeof(c->uuid));
+}
+
 static void bsc_set_socket_idle(BSC_SOCKET *c)
 {
     c->state = BSC_SOCK_STATE_IDLE;
     c->wh = BSC_WEBSOCKET_INVALID_HANDLE;
-    bsc_reset_socket(c);
 }
 
 static void bsc_process_socket_disconnecting(
@@ -257,6 +266,7 @@ static void bsc_process_socket_disconnecting(
     DEBUG_PRINTF("bsc_process_socket_disconnecting() >>> c = %p\n", c);
 
     if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
+#if DEBUG_BSC_SOCKET == 1
         if (c->dm.hdr.message_id != c->expected_disconnect_message_id) {
             DEBUG_PRINTF(
                 "bsc_process_socket_disconnecting() got disconnect ack with "
@@ -268,6 +278,7 @@ static void bsc_process_socket_disconnecting(
                 "socket %p\n",
                 c);
         }
+#endif
         *need_disconnect = true;
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
         if (c->dm.payload.result.bvlc_function == BVLC_SC_DISCONNECT_REQUEST &&
@@ -279,7 +290,7 @@ static void bsc_process_socket_disconnecting(
         }
     } else {
         c->ctx->funcs->socket_event(
-            c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen, &c->dm);
+            c, BSC_SOCKET_EVENT_RECEIVED, 0, NULL, buf, buflen, &c->dm);
     }
 
     DEBUG_PRINTF("bsc_process_socket_disconnecting() <<<\n");
@@ -327,12 +338,15 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
             memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
             c->tx_buf_size += len + sizeof(len);
             *need_send = true;
-        } else {
+        }
+#if DEBUG_BSC_SOCKET == 1
+        else {
             DEBUG_PRINTF("bsc_process_socket_connected_state() no resources to "
                          "answer on hearbeat request "
                          "socket %p\n",
                 c);
         }
+#endif
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_REQUEST) {
         DEBUG_PRINTF("bsc_process_socket_connected_state() got disconnect "
                      "request with message_id %d\n",
@@ -347,7 +361,7 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
         if (len) {
             memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
             c->tx_buf_size += len + sizeof(len);
-            c->disconnect_reason = BSC_SC_PEER_DISCONNECTED;
+            c->reason = ERROR_CODE_SUCCESS;
             c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
             *need_send = true;
         } else {
@@ -371,7 +385,7 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
                      "buf = %p, size = %d\n",
             buf, buflen);
         c->ctx->funcs->socket_event(
-            c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen, &c->dm);
+            c, BSC_SOCKET_EVENT_RECEIVED, 0, NULL, buf, buflen, &c->dm);
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
         c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
         c->dm.hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION_ACK ||
@@ -382,7 +396,7 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
                      "buf = %p, size = %d\n",
             buf, buflen);
         c->ctx->funcs->socket_event(
-            c, BSC_SOCKET_EVENT_RECEIVED, BSC_SC_SUCCESS, buf, buflen, &c->dm);
+            c, BSC_SOCKET_EVENT_RECEIVED, 0, NULL, buf, buflen, &c->dm);
     }
 
     DEBUG_PRINTF("bsc_process_socket_connected_state() <<<\n");
@@ -431,11 +445,14 @@ static void bsc_process_socket_state(
             if (code != ERROR_CODE_OTHER) {
                 *need_send = bsc_prepare_protocol_error(c, c->dm.hdr.origin,
                     c->dm.hdr.dest, class, code, (uint8_t *)err_desc);
-            } else {
+            }
+#if DEBUG_BSC_SOCKET == 1
+            else {
                 DEBUG_PRINTF(
                     "bsc_process_socket_state() decoding failed, message "
                     "is silently dropped cause it's length < 4 bytes\n");
             }
+#endif
         } else {
             DEBUG_PRINTF("c->dm.hdr.bvlc_function == %d, message_id = %d\n",
                 c->dm.hdr.bvlc_function, c->dm.hdr.message_id);
@@ -512,15 +529,15 @@ static void bsc_process_socket_state(
 
     if (c->state == BSC_SOCK_STATE_AWAITING_ACCEPT && expired) {
         c->state = BSC_SOCK_STATE_ERROR;
-        c->disconnect_reason = BSC_SC_TIMEDOUT;
+        c->reason = ERROR_CODE_TIMEOUT;
         *need_disconnect = true;
     } else if (c->state == BSC_SOCK_STATE_AWAITING_REQUEST && expired) {
         c->state = BSC_SOCK_STATE_ERROR;
-        c->disconnect_reason = BSC_SC_TIMEDOUT;
+        c->reason = ERROR_CODE_TIMEOUT;
         *need_disconnect = true;
     } else if (c->state == BSC_SOCK_STATE_DISCONNECTING && expired) {
         c->state = BSC_SOCK_STATE_ERROR;
-        c->disconnect_reason = BSC_SC_TIMEDOUT;
+        c->reason = ERROR_CODE_TIMEOUT;
         *need_disconnect = true;
     } else if (c->state == BSC_SOCK_STATE_CONNECTED) {
         expired = mstimer_expired(&c->heartbeat);
@@ -563,6 +580,8 @@ static void bsc_process_socket_state(
                 DEBUG_PRINTF("bsc_process_socket_state() zombie socket %p is "
                              "disconnecting...\n",
                     c);
+                c->state = BSC_SOCK_STATE_ERROR;
+                c->reason = ERROR_CODE_TIMEOUT;
                 *need_disconnect = true;
             }
         }
@@ -652,12 +671,11 @@ static void bsc_process_srv_awaiting_request(
             "bsc_process_srv_awaiting_request() decoding of received message "
             "failed, error code = %d, class = %d\n",
             code, class);
-    } else if (c->dm.hdr.bvlc_function != BVLC_SC_CONNECT_REQUEST) {
-        DEBUG_PRINTF("bsc_process_srv_awaiting_request() unexpected message "
-                     "with bvlc function "
-                     "%d is discarded in awaiting request state\n",
-            c->dm.hdr.bvlc_function);
-    } else {
+        if (c->ctx->funcs->failed_request) {
+            c->ctx->funcs->failed_request(
+                c->ctx, c, NULL, NULL, code, err_desc);
+        }
+    } else if (c->dm.hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST) {
         existing = c->ctx->funcs->find_connection_for_uuid(
             c->dm.payload.connect_request.uuid, c->ctx->user_arg);
 
@@ -692,7 +710,13 @@ static void bsc_process_srv_awaiting_request(
                 c->ctx->cfg->max_bvlc_len, c->ctx->cfg->max_ndpu_len);
 
             if (!len) {
-                bsc_srv_process_error(c, BSC_SC_NO_RESOURCES);
+                if (c->ctx->funcs->failed_request) {
+                    c->ctx->funcs->failed_request(c->ctx, c,
+                        c->dm.payload.connect_request.vmac,
+                        c->dm.payload.connect_request.uuid,
+                        ERROR_CODE_ABORT_OUT_OF_RESOURCES, NULL);
+                }
+                bsc_srv_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
                 DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
                 return;
             } else {
@@ -737,7 +761,7 @@ static void bsc_process_srv_awaiting_request(
                 &c->heartbeat, 2 * c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
             c->ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0, NULL);
+                c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
             DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
             return;
         }
@@ -757,7 +781,12 @@ static void bsc_process_srv_awaiting_request(
             uclass = ERROR_CLASS_COMMUNICATION;
             ucode = ERROR_CODE_NODE_DUPLICATE_VMAC;
             message_id = c->dm.hdr.message_id;
-
+            if (c->ctx->funcs->failed_request) {
+                c->ctx->funcs->failed_request(c->ctx, c,
+                    c->dm.payload.connect_request.vmac,
+                    c->dm.payload.connect_request.uuid,
+                    ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
+            }
             len =
                 bvlc_sc_encode_result(&c->tx_buf[c->tx_buf_size + sizeof(len)],
                     (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
@@ -770,13 +799,13 @@ static void bsc_process_srv_awaiting_request(
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
                 c->tx_buf_size += len + sizeof(len);
                 c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
-                c->disconnect_reason = BSC_SC_DUPLICATED_VMAC;
+                c->reason = ERROR_CODE_NODE_DUPLICATE_VMAC;
                 bws_srv_send(c->ctx->sh, c->wh);
             } else {
                 DEBUG_PRINTF(
                     "bsc_process_srv_awaiting_request() sending of nack result "
                     "message failed, err = BSC_SC_NO_RESOURCES\n");
-                bsc_srv_process_error(c, BSC_SC_DUPLICATED_VMAC);
+                bsc_srv_process_error(c, ERROR_CODE_NODE_DUPLICATE_VMAC);
             }
             DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
             return;
@@ -805,7 +834,10 @@ static void bsc_process_srv_awaiting_request(
             uclass = ERROR_CLASS_COMMUNICATION;
             ucode = ERROR_CODE_NODE_DUPLICATE_VMAC;
             message_id = c->dm.hdr.message_id;
-
+            if (c->ctx->funcs->failed_request) {
+                c->ctx->funcs->failed_request(c->ctx, c, &c->vmac, &c->uuid,
+                    ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
+            }
             len =
                 bvlc_sc_encode_result(&c->tx_buf[c->tx_buf_size + sizeof(len)],
                     (sizeof(c->tx_buf) - c->tx_buf_size >= sizeof(len))
@@ -818,13 +850,13 @@ static void bsc_process_srv_awaiting_request(
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
                 c->tx_buf_size += len + sizeof(len);
                 c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
-                c->disconnect_reason = BSC_SC_DUPLICATED_VMAC;
+                c->reason = ERROR_CODE_NODE_DUPLICATE_VMAC;
                 bws_srv_send(c->ctx->sh, c->wh);
             } else {
                 DEBUG_PRINTF(
                     "bsc_process_srv_awaiting_request() sending of nack result "
                     "message failed, err =  BSC_SC_NO_RESOURCES\n");
-                bsc_srv_process_error(c, BSC_SC_DUPLICATED_VMAC);
+                bsc_srv_process_error(c, ERROR_CODE_NODE_DUPLICATE_VMAC);
             }
             DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
             return;
@@ -854,21 +886,34 @@ static void bsc_process_srv_awaiting_request(
                 &c->heartbeat, 2 * c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
             c->ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0, NULL);
+                c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
             bws_srv_send(c->ctx->sh, c->wh);
         } else {
             DEBUG_PRINTF("bsc_process_srv_awaiting_request() sending of "
                          "connect accept failed, err = BSC_SC_NO_RESOURCES\n");
-            bsc_srv_process_error(c, BSC_SC_NO_RESOURCES);
+            if (c->ctx->funcs->failed_request) {
+                c->ctx->funcs->failed_request(c->ctx, c, &c->vmac, &c->uuid,
+                    ERROR_CODE_ABORT_OUT_OF_RESOURCES, NULL);
+            }
+            bsc_srv_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
         }
     }
-
+#if DEBUG_BSC_SOCKET == 1
+    else {
+        DEBUG_PRINTF("bsc_process_srv_awaiting_request() unexpected message "
+                     "with bvlc function "
+                     "%d is discarded in awaiting request state\n",
+            c->dm.hdr.bvlc_function);
+    }
+#endif
     DEBUG_PRINTF("bsc_process_srv_awaiting_request() <<<\n");
 }
 
 static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
     BSC_WEBSOCKET_EVENT ev,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
     uint8_t *buf,
     size_t bufsize,
     void *dispatch_func_user_param)
@@ -883,9 +928,10 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
 
     (void)sh;
     bws_dispatch_lock();
-    DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, buf "
+    DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
+                 "reason = %d, desc = %p, buf "
                  "= %p, bufsize = %d, ctx = %p\n",
-        sh, h, ev, buf, bufsize, ctx);
+        sh, h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
         for (i = 0; i < ctx->sock_num; i++) {
@@ -927,11 +973,13 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         if (c->state == BSC_SOCK_STATE_ERROR) {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
-                c->disconnect_reason, NULL, 0, NULL);
+                c->reason, NULL, NULL, 0, NULL);
+            bsc_clear_vmac_and_uuid(c);
         } else {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
-                BSC_SC_PEER_DISCONNECTED, NULL, 0, NULL);
+                ws_reason, ws_reason_desc, NULL, 0, NULL);
+            bsc_clear_vmac_and_uuid(c);
         }
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         c = bsc_find_free_socket(ctx);
@@ -958,10 +1006,12 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
             DEBUG_PRINTF("bsc_dispatch_srv_func() c->rx_buf_size = %d\n",
                 c->rx_buf_size);
             if (bufsize > BVLC_SC_NPDU_MAX_SIZE) {
+#if DEBUG_BSC_SOCKET == 1
                 DEBUG_PRINTF("bsc_dispatch_srv_func() message is dropped, size "
                              "> BVLC_SC_NPDU_MAX_SIZE, socket %p, state %d, "
                              "data_size %d\n",
                     c, c->state, bufsize);
+#endif
             } else if (sizeof(c->rx_buf) - c->rx_buf_size - sizeof(len) -
                     BSC_PRE >=
                 bufsize) {
@@ -977,17 +1027,23 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                     c->rx_buf_size);
                 memcpy(&c->rx_buf[c->rx_buf_size], buf, bufsize);
                 c->rx_buf_size += bufsize;
-            } else {
+            }
+#if DEBUG_BSC_SOCKET == 1
+            else {
                 DEBUG_PRINTF("bsc_dispatch_srv_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
                              "data_size %d, rx_buf_size = %d\n",
                     c, c->state, bufsize, c->rx_buf_size);
             }
-        } else {
+#endif
+        }
+#if DEBUG_BSC_SOCKET == 1
+        else {
             DEBUG_PRINTF("bsc_dispatch_srv_func() data was dropped for socket "
                          "%p, state %d, data_size %d\n",
                 c, c->state, bufsize);
         }
+#endif
     } else if (ev == BSC_WEBSOCKET_SENDABLE) {
         p = c->tx_buf;
 
@@ -999,7 +1055,10 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
                 DEBUG_PRINTF("bsc_dispatch_srv_func() send data failed, start "
                              "disconnect operation on socket %p\n",
                     c);
-                bsc_srv_process_error(c, bsc_map_websocket_retcode(wret));
+                bsc_srv_process_error(c,
+                    c->state != BSC_SOCK_STATE_ERROR_FLUSH_TX
+                        ? ERROR_CODE_ABORT_OUT_OF_RESOURCES
+                        : c->reason);
                 failed = true;
                 break;
             } else {
@@ -1010,7 +1069,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
 
         if (!failed) {
             if (c->state == BSC_SOCK_STATE_ERROR_FLUSH_TX) {
-                bsc_srv_process_error(c, c->disconnect_reason);
+                bsc_srv_process_error(c, c->reason);
             }
         }
     }
@@ -1054,7 +1113,7 @@ static void bsc_process_cli_awaiting_accept(
             mstimer_set(&c->heartbeat, c->ctx->cfg->heartbeat_timeout_s * 1000);
             c->state = BSC_SOCK_STATE_CONNECTED;
             c->ctx->funcs->socket_event(
-                c, BSC_SOCKET_EVENT_CONNECTED, BSC_SC_SUCCESS, NULL, 0, NULL);
+                c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
         }
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_RESULT) {
         if (c->dm.payload.result.bvlc_function != BVLC_SC_CONNECT_REQUEST) {
@@ -1077,13 +1136,16 @@ static void bsc_process_cli_awaiting_accept(
             /* Random-48 VMAC, close the WebSocket connection, and */
             /* enter the IDLE state. */
             /* Signal upper layer about that error */
-            bsc_cli_process_error(c, BSC_SC_DUPLICATED_VMAC);
-        } else {
+            bsc_cli_process_error(c, ERROR_CODE_NODE_DUPLICATE_VMAC);
+        }
+#if DEBUG_BSC_SOCKET == 1
+        else {
             DEBUG_PRINTF("bsc_process_cli_awaiting_accept() got unexpected "
                          "BVLC_RESULT error code "
                          "%d in BVLC-Result message in awaiting accept state\n",
                 c->dm.payload.result.error_code);
         }
+#endif
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_REQUEST) {
         /* AB.6.2.2 BACnet/SC Connection Initiating Peer State */
         /* Machine does not say anything about situation when */
@@ -1092,7 +1154,7 @@ static void bsc_process_cli_awaiting_accept(
         /* it and close connection. */
         DEBUG_PRINTF("bsc_process_cli_awaiting_accept() got unexpected "
                      "disconnect request\n");
-        bsc_cli_process_error(c, BSC_SC_PEER_DISCONNECTED);
+        bsc_cli_process_error(c, ERROR_CODE_OTHER);
     } else if (c->dm.hdr.bvlc_function == BVLC_SC_DISCONNECT_ACK) {
         /* AB.6.2.2 BACnet/SC Connection Initiating Peer State */
         /* Machine does not say anything about situation when */
@@ -1102,18 +1164,23 @@ static void bsc_process_cli_awaiting_accept(
         DEBUG_PRINTF(
             "bsc_process_cli_awaiting_accept() got unexpected disconnect ack "
             "request\n");
-        bsc_cli_process_error(c, BSC_SC_PEER_DISCONNECTED);
-    } else {
+        bsc_cli_process_error(c, ERROR_CODE_OTHER);
+    }
+#if DEBUG_BSC_SOCKET == 1
+    else {
         DEBUG_PRINTF("bsc_process_cli_awaiting_accept() unexpected message "
                      "with bvlc function "
                      "%d is discarded in awaiting accept state\n",
             c->dm.hdr.bvlc_function);
     }
+#endif
     DEBUG_PRINTF("bsc_process_cli_awaiting_accept() <<<\n");
 }
 
 static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     BSC_WEBSOCKET_EVENT ev,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
     uint8_t *buf,
     size_t bufsize,
     void *dispatch_func_user_param)
@@ -1125,10 +1192,12 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     uint8_t *p;
     size_t i;
     bool all_socket_disconnected = true;
+    bool failed = false;
 
-    DEBUG_PRINTF("bsc_dispatch_cli_func() >>> h = %d, ev = %d, buf = %p, "
+    DEBUG_PRINTF("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
+                 "reason_desc = %p, buf = %p, "
                  "bufsize = %d, ctx = %p\n",
-        h, ev, buf, bufsize, ctx);
+        h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     bws_dispatch_lock();
 
@@ -1148,6 +1217,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         DEBUG_PRINTF("bsc_dispatch_cli_func() ctx->state = %d\n", ctx->state);
         if (ctx->state == BSC_CTX_STATE_DEINITIALIZING) {
             bsc_set_socket_idle(c);
+            bsc_clear_vmac_and_uuid(c);
             for (i = 0; i < ctx->sock_num; i++) {
                 if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                     all_socket_disconnected = false;
@@ -1162,11 +1232,13 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         } else if (c->state == BSC_SOCK_STATE_ERROR) {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
-                c->disconnect_reason, NULL, 0, NULL);
+                c->reason, NULL, NULL, 0, NULL);
+            bsc_clear_vmac_and_uuid(c);
         } else {
             bsc_set_socket_idle(c);
             ctx->funcs->socket_event(c, BSC_SOCKET_EVENT_DISCONNECTED,
-                BSC_SC_PEER_DISCONNECTED, NULL, 0, NULL);
+                ws_reason, ws_reason_desc, NULL, 0, NULL);
+            bsc_clear_vmac_and_uuid(c);
         }
     } else if (ev == BSC_WEBSOCKET_CONNECTED) {
         if (c->state == BSC_SOCK_STATE_AWAITING_WEBSOCKET) {
@@ -1196,7 +1268,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 ctx->cfg->max_ndpu_len);
 
             if (!len) {
-                bsc_cli_process_error(c, BSC_SC_NO_RESOURCES);
+                bsc_cli_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
             } else {
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
                 c->tx_buf_size += len + sizeof(len);
@@ -1216,11 +1288,20 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                     "bsc_dispatch_cli_func() pdu send failed, err = %d, start "
                     "disconnect operation on socket %p\n",
                     wret, c);
-                bsc_cli_process_error(c, bsc_map_websocket_retcode(wret));
+                bsc_cli_process_error(c,
+                    c->state != BSC_SOCK_STATE_ERROR_FLUSH_TX
+                        ? ERROR_CODE_ABORT_OUT_OF_RESOURCES
+                        : c->reason);
+                failed = true;
                 break;
             } else {
                 c->tx_buf_size -= len + sizeof(len);
                 p += len + sizeof(len);
+            }
+        }
+        if (!failed) {
+            if (c->state == BSC_SOCK_STATE_ERROR_FLUSH_TX) {
+                bsc_cli_process_error(c, c->reason);
             }
         }
     } else if (ev == BSC_WEBSOCKET_RECEIVED) {
@@ -1250,17 +1331,23 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 c->rx_buf_size += bufsize;
                 DEBUG_PRINTF("bsc_dispatch_cli_func() c->rx_buf_size = %zu\n",
                     c->rx_buf_size);
-            } else {
+            }
+#if DEBUG_BSC_SOCKET == 1
+            else {
                 DEBUG_PRINTF("bsc_dispatch_cli_func() no space in rx_buf, "
                              "message is dropped,  socket %p, state %d, "
                              "data_size %d, rx_buf_size = %d\n",
                     c, c->state, bufsize, c->rx_buf_size);
             }
-        } else {
+#endif
+        }
+#if DEBUG_BSC_SOCKET == 1
+        else {
             DEBUG_PRINTF("bsc_dispatch_cli_func() data was dropped for socket "
                          "%p, state %d, data_size %d\n",
                 c, c->state, bufsize);
         }
+#endif
     }
 
     bsc_socket_maintenance_timer(0);
@@ -1413,6 +1500,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
             ret = bsc_map_websocket_retcode(wret);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
                 bsc_set_socket_idle(c);
+                bsc_clear_vmac_and_uuid(c);
             }
         }
 
@@ -1447,9 +1535,9 @@ void bsc_disconnect(BSC_SOCKET *c)
                     "bsc_disconnect() disconnect request not sent, err = "
                     "BSC_SC_NO_RESOURCES\n");
                 if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
-                    bsc_cli_process_error(c, BSC_SC_NO_RESOURCES);
+                    bsc_cli_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
                 } else {
-                    bsc_srv_process_error(c, BSC_SC_NO_RESOURCES);
+                    bsc_srv_process_error(c, ERROR_CODE_ABORT_OUT_OF_RESOURCES);
                 }
             } else {
                 memcpy(&c->tx_buf[c->tx_buf_size], &len, sizeof(len));
@@ -1530,6 +1618,24 @@ uint16_t bsc_get_next_message_id(void)
     }
     ret = message_id;
     DEBUG_PRINTF("next message id = %u(%04x)\n", ret, ret);
+    bws_dispatch_unlock();
+    return ret;
+}
+
+bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data)
+{
+    bool ret = false;
+
+    if (!c || !data) {
+        return false;
+    }
+
+    bws_dispatch_lock();
+    if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
+        data->type = BACNET_HOST_N_PORT_IP;
+        ret = bws_srv_get_peer_ip_addr(c->ctx->sh, c->wh, (uint8_t *)data->host,
+            sizeof(data->host), &data->port);
+    }
     bws_dispatch_unlock();
     return ret;
 }

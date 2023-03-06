@@ -72,6 +72,12 @@
 #endif
 #endif
 
+#ifndef BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN
+#define BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN 128
+#else
+#define BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN
+#endif
+
 #define BSC_WSURL_MAX_LEN BSC_CONF_WSURL_MAX_LEN
 
 typedef int BSC_WEBSOCKET_HANDLE;
@@ -104,10 +110,15 @@ typedef enum {
     BSC_WEBSOCKET_SERVER_STOPPED = 5
 } BSC_WEBSOCKET_EVENT;
 
-/** @} */
+/* 
+   values of ws_reason and ws_reason_desc parameters are actual
+   only for BSC_WEBSOCKET_DISCONNECTED event.
+*/
 
 typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
+                              BACNET_ERROR_CODE ws_reason,
+                              char* ws_reason_desc,
                               uint8_t* buf,
                               size_t bufsize,
                               void* dispatch_func_user_param);
@@ -115,6 +126,8 @@ typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
 typedef void (*BSC_WEBSOCKET_SRV_DISPATCH) (BSC_WEBSOCKET_SRV_HANDLE sh,
                               BSC_WEBSOCKET_HANDLE h,
                               BSC_WEBSOCKET_EVENT ev,
+                              BACNET_ERROR_CODE ws_reason,
+                              char* ws_reason_desc,
                               uint8_t* buf,
                               size_t bufsize,
                               void* dispatch_func_user_param);
@@ -370,4 +383,24 @@ void bws_dispatch_lock(void);
 
 void bws_dispatch_unlock(void);
 
+/**
+ * @brief bws_srv_get_peer_ip_addr() gets ipv4 or ipv6 address as ANSI string
+ *        and port of remote peer.
+ *
+ * @pararm sh - websocket server handle.
+ * @param h - websocket handle.
+ * @param ip_str - buffer to store null terminated string of ip address.
+ * @param ip_str_len - size of ip_str buffer
+ * @param  port- pointer to store port of a remote node.
+ * 
+ * @return true if function succeeded otherwise returns false
+ *         if peer's address information can't be retrieved from
+ *         underlying websocket library.
+ */
+
+bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
+                              BSC_WEBSOCKET_HANDLE h,
+                              uint8_t* ip_str,
+                              size_t ip_str_len,
+                              uint16_t* port);
 #endif

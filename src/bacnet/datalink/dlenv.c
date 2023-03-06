@@ -593,6 +593,23 @@ static void bacnet_secure_connect_network_port_init(
     Network_Port_Changes_Pending_Set(instance, false);
 }
 
+
+static bool dlenv_hub_connection_status_check(void)
+{
+    uint32_t instance = Network_Port_Index_To_Instance(0);
+    BACNET_SC_HUB_CONNECTION_STATUS *status;
+
+    status = Network_Port_SC_Primary_Hub_Connection_Status(instance);
+    if (status && status->State == BACNET_CONNECTED)
+        return true;
+
+    status = Network_Port_SC_Failover_Hub_Connection_Status(instance);
+    if (status && status->State == BACNET_CONNECTED)
+        return true;
+
+    return false;
+}
+
 /**
  * Datalink network port object settings for BACnet/SC
  */
@@ -602,7 +619,7 @@ void dlenv_network_port_init(void)
     /* wait for a establishin of a connection to BACnet/SC hub at first  */
     /* to reduce possibility of packet losses.                           */
     if(Network_Port_SC_Primary_Hub_URI_char(1)) {
-        while(bsc_hub_connection_status() == BVLC_SC_HUB_CONNECTION_ABSENT) {
+        while(!dlenv_hub_connection_status_check()) {
             bsc_wait(1);
             bsc_maintenance_timer(1);
         }
@@ -835,6 +852,9 @@ void dlenv_init(void)
         filename_ca_1_cert, filename_ca_2_cert, filename_cert, filename_key,
         direct_binding, hub_binding, direct_connect_initiate,
         direct_connect_accept_urls);
+    if(!bsc_cert_files_check()) {
+        exit(1);
+    }
 #endif
     pEnv = getenv("BACNET_APDU_TIMEOUT");
     if (pEnv) {

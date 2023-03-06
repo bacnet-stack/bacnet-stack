@@ -1071,6 +1071,7 @@ unsigned char node_cert2[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define MAX_NDPU_LEN 1500
 #define MAX_SERVER_SOCKETS BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM
 #define MAX_CLIENT_SOCKETS BSC_CONF_CLIENT_CONNECTIONS_NUM
+#define WAIT_EVENT_MS 10
 
 typedef struct {
     BSC_NODE_EVENT ev;
@@ -1081,18 +1082,18 @@ typedef struct {
     BACNET_SC_VMAC_ADDRESS dest;
 } node_ev_t;
 
-static void call_maintenance_timer(void)
+static void call_maintenance_timer(bool reset, int time_passed_ms)
 {
-    static time_t last_seconds = -1;
-    time_t current_seconds = time(NULL);
-
-    if (last_seconds == -1) {
-        last_seconds = time(NULL);
+    static int total_ms;
+    if (reset) {
+        total_ms = 0;
     }
 
-    if (current_seconds - last_seconds > 0) {
-        bsc_node_maintenance_timer(current_seconds - last_seconds);
-        last_seconds = time(NULL);
+    total_ms += time_passed_ms;
+
+    if (total_ms >= 1000) {
+        bsc_node_maintenance_timer(1);
+        total_ms = 0;
     }
 }
 
@@ -1100,7 +1101,7 @@ static void wait_sec(int seconds)
 {
     while (seconds >= 0) {
         bsc_wait(1);
-        call_maintenance_timer();
+        bsc_node_maintenance_timer(1);
         seconds--;
     }
 }
@@ -1123,8 +1124,9 @@ static void deinit_node_ev(node_ev_t *ev)
 
 static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
-    while (!bsc_event_timedwait(ev->e, 100)) {
-        call_maintenance_timer();
+    call_maintenance_timer(1, 0);
+    while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
+        call_maintenance_timer(0, WAIT_EVENT_MS);
     }
     if (ev->ev == wait_ev && ev->node == node) {
         return true;
@@ -1136,11 +1138,46 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 static void wait_specific_node_ev(
     node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
+    call_maintenance_timer(1, 0);
     while (1) {
-        while (!bsc_event_timedwait(ev->e, 100)) {
-            call_maintenance_timer();
+        while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
+            call_maintenance_timer(0, WAIT_EVENT_MS);
         }
         if (ev->ev == wait_ev && ev->node == node) {
+            break;
+        }
+    }
+}
+
+static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
+{
+    BACNET_SC_HUB_CONNECTION_STATUS* st1;
+    BACNET_SC_HUB_CONNECTION_STATUS* st2;
+    call_maintenance_timer(1, 0);
+    while (1) {
+        bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+        
+        st1 = bsc_node_hub_connector_status(node, true);
+        st2 = bsc_node_hub_connector_status(node, false);
+        if(st1 && st1->State == BACNET_CONNECTED) {
+            break;
+        }
+        if(st2 && st2->State == BACNET_CONNECTED) {
+            break;
+        }
+    }
+}
+
+static void wait_for_direct_connection_established(node_ev_t *ev, BSC_NODE *node,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    char** urls, size_t urls_cnt)
+{
+    call_maintenance_timer(1, 0);
+    while (1) {
+        bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+        if(bsc_node_direct_connection_established(node, dest, urls, urls_cnt)) {
             break;
         }
     }
@@ -1615,7 +1652,8 @@ static void test_node_send(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait until hub connectors connects
-    wait_sec(BACNET_TIMEOUT);
+    wait_for_connection_to_hub(&node_ev3, node3);
+    wait_for_connection_to_hub(&node_ev2, node2);
 
     // send encapsulated npdu packet
     len = bvlc_sc_encode_encapsulated_npdu(
@@ -2078,7 +2116,8 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait while node3 and node2 connects to node
-    wait_sec(2 * BACNET_TIMEOUT);
+    wait_for_connection_to_hub(&node_ev3, node3);
+    wait_for_connection_to_hub(&node_ev2, node2);
 
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
@@ -2148,12 +2187,10 @@ static void test_node_direct_connection(void)
     ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
         sizeof(node_ev3.dest.address));
     zassert_equal(ret, 0, NULL);
-    wait_sec(2 * BACNET_TIMEOUT);
     bsc_node_start(node2);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
-    wait_sec(3 * BACNET_TIMEOUT);
-
+    wait_for_connection_to_hub(&node_ev2, node2);
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -2203,7 +2240,9 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait while node3 and node2 connects to node
-    wait_sec(2 * BACNET_TIMEOUT);
+    wait_for_connection_to_hub(&node_ev3, node3);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
     sprintf(url1, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
     sprintf(
         url2, "wss://%s:%d", BACNET_LOCALHOST, BACNET_NODE_LOCAL_DIRECT_PORT2);
@@ -2257,7 +2296,9 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait while node3 and node2 connects to node
-    wait_sec(2 * BACNET_TIMEOUT);
+    wait_for_connection_to_hub(&node_ev3, node3);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -2372,7 +2413,9 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait while node3 and node2 connects to node
-    wait_sec(2 * BACNET_TIMEOUT);
+    wait_for_connection_to_hub(&node_ev3, node3);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
     ret = bsc_node_connect_direct(node3, NULL, urls, 2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -2521,7 +2564,9 @@ static void test_node_direct_connection(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait while node3 and node2 connects to node
-    wait_sec(2 * BACNET_TIMEOUT);
+    wait_for_connection_to_hub(&node_ev3, node3);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -2537,7 +2582,7 @@ static void test_node_direct_connection(void)
     ret = memcmp(&node_vmac2.address[0], &node_ev3.dest.address[0],
         sizeof(node_ev3.dest.address));
     zassert_equal(ret, 0, NULL);
-    bsc_wait(2);
+    wait_sec(2);
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -2741,7 +2786,9 @@ static void test_node_direct_connection_unsupported(void)
     zassert_equal(
         wait_node_ev(&node_ev3, BSC_NODE_EVENT_STARTED, node3), true, 0);
     // wait while node3 and node2 connects to node
-    bsc_wait(2 * BACNET_TIMEOUT);
+    wait_for_connection_to_hub(&node_ev3, node3);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
     ret = bsc_node_connect_direct(node3, &node_vmac2, NULL, 0);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(

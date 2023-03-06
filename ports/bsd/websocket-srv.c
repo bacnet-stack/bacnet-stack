@@ -19,6 +19,7 @@
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/debug.h"
 #include "websocket-mutex.h"
+#include <arpa/inet.h>
 
 #define DEBUG_WEBSOCKET_SERVER 0
 
@@ -44,7 +45,7 @@ typedef enum {
     BSC_WEBSOCKET_STATE_DISCONNECTING = 2
 } BSC_WEBSOCKET_STATE;
 
-// Some forward function declarations
+/* Some forward function declarations */
 
 static int bws_srv_websocket_event(struct lws *wsi,
     enum lws_callback_reasons reason,
@@ -61,6 +62,7 @@ typedef struct {
     uint8_t *fragment_buffer;
     size_t fragment_buffer_size;
     int fragment_buffer_len;
+    BACNET_ERROR_CODE err_code;
 } BSC_WEBSOCKET_CONNECTION;
 
 static pthread_mutex_t bws_global_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
@@ -147,6 +149,62 @@ static BSC_WEBSOCKET_CONTEXT *bws_alloc_server_ctx(BSC_WEBSOCKET_PROTOCOL proto)
     DEBUG_PRINTF("bws_alloc_server_ctx() <<< ret = %p\n", &ctx[i]);
     pthread_mutex_unlock(&bws_global_mutex);
     return NULL;
+}
+
+static void bws_set_disconnect_reason(
+    BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h, uint16_t err_code)
+{
+    switch (err_code) {
+        case LWS_CLOSE_STATUS_NORMAL: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER;
+            break;
+        }
+        case LWS_CLOSE_STATUS_GOINGAWAY: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_ENDPOINT_LEAVES;
+            break;
+        }
+        case LWS_CLOSE_STATUS_PROTOCOL_ERR: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_PROTOCOL_ERROR;
+            break;
+        }
+        case LWS_CLOSE_STATUS_UNACCEPTABLE_OPCODE: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_DATA_NOT_ACCEPTED;
+            break;
+        }
+        case LWS_CLOSE_STATUS_NO_STATUS:
+        case LWS_CLOSE_STATUS_RESERVED: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_ERROR;
+            break;
+        }
+        case LWS_CLOSE_STATUS_ABNORMAL_CLOSE: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_DATA_NOT_ACCEPTED;
+            break;
+        }
+        case LWS_CLOSE_STATUS_INVALID_PAYLOAD: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_DATA_INCONSISTENT;
+            break;
+        }
+        case LWS_CLOSE_STATUS_POLICY_VIOLATION: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_DATA_AGAINST_POLICY;
+            break;
+        }
+        case LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_FRAME_TOO_LONG;
+            break;
+        }
+        case LWS_CLOSE_STATUS_EXTENSION_REQUIRED: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_EXTENSION_MISSING;
+            break;
+        }
+        case LWS_CLOSE_STATUS_UNEXPECTED_CONDITION: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_REQUEST_UNAVAILABLE;
+            break;
+        }
+        default: {
+            ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_ERROR;
+            break;
+        }
+    }
 }
 
 static void bws_free_server_ctx(BSC_WEBSOCKET_CONTEXT *ctx)
@@ -269,7 +327,9 @@ static int bws_srv_websocket_event(struct lws *wsi,
     BSC_WEBSOCKET_SRV_DISPATCH dispatch_func;
     void *user_param;
     bool stop_worker;
-
+    uint8_t err_code[2];
+    char err_desc[BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN];
+    uint16_t err;
     (void)user;
 
     DEBUG_PRINTF("bws_srv_websocket_event() >>> ctx = %p, user_param = %p, "
@@ -294,12 +354,13 @@ static int bws_srv_websocket_event(struct lws *wsi,
                 ctx, ctx->proto, h);
             ctx->conn[h].ws = wsi;
             ctx->conn[h].state = BSC_WEBSOCKET_STATE_CONNECTED;
+            ctx->conn[h].err_code = ERROR_CODE_SUCCESS;
             dispatch_func = ctx->dispatch_func;
             user_param = ctx->user_param;
             pthread_mutex_unlock(ctx->mutex);
             dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
-                BSC_WEBSOCKET_CONNECTED, NULL, 0, user_param);
-            // wakeup worker to process pending event
+                BSC_WEBSOCKET_CONNECTED, 0, NULL, NULL, 0, user_param);
+            /* wakeup worker to process pending event */
             lws_cancel_service(ctx->wsctx);
             break;
         }
@@ -317,13 +378,26 @@ static int bws_srv_websocket_event(struct lws *wsi,
                 dispatch_func = ctx->dispatch_func;
                 user_param = ctx->user_param;
                 stop_worker = ctx->stop_worker;
+                err = ctx->conn[h].err_code;
                 bws_srv_free_connection(ctx, h);
                 pthread_mutex_unlock(ctx->mutex);
                 if (!stop_worker) {
                     dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
-                        BSC_WEBSOCKET_DISCONNECTED, NULL, 0, user_param);
+                        BSC_WEBSOCKET_DISCONNECTED, err, NULL, NULL, 0,
+                        user_param);
                 }
             }
+            break;
+        }
+        case LWS_CALLBACK_WS_PEER_INITIATED_CLOSE: {
+            pthread_mutex_lock(ctx->mutex);
+            h = bws_find_connnection(ctx, wsi);
+            if (h != BSC_WEBSOCKET_INVALID_HANDLE && len >= 2) {
+                err_code[0] = ((uint8_t *)in)[1];
+                err_code[1] = ((uint8_t *)in)[0];
+                bws_set_disconnect_reason(ctx, h, *((uint16_t *)&err_code));
+            }
+            pthread_mutex_unlock(ctx->mutex);
             break;
         }
         case LWS_CALLBACK_RECEIVE: {
@@ -337,10 +411,11 @@ static int bws_srv_websocket_event(struct lws *wsi,
                              "data for websocket %d\n",
                     ctx, ctx->proto, len, h);
                 if (!lws_frame_is_binary(wsi)) {
-                    // According AB.7.5.3 BACnet/SC BVLC Message Exchange,
-                    // if a received data frame is not binary,
-                    // the WebSocket connection shall be closed with a
-                    // status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED.
+                    /* According AB.7.5.3 BACnet/SC BVLC Message Exchange,
+                       if a received data frame is not binary,
+                       the WebSocket connection shall be closed with a
+                       status code of 1003 -WEBSOCKET_DATA_NOT_ACCEPTED.
+                    */
                     DEBUG_PRINTF(
                         "bws_srv_websocket_event() ctx %p proto %d got "
                         "non-binary frame, "
@@ -406,7 +481,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         user_param = ctx->user_param;
                         pthread_mutex_unlock(ctx->mutex);
                         dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
-                            BSC_WEBSOCKET_RECEIVED,
+                            BSC_WEBSOCKET_RECEIVED, 0, NULL,
                             ctx->conn[h].fragment_buffer,
                             ctx->conn[h].fragment_buffer_len, user_param);
                         pthread_mutex_lock(ctx->mutex);
@@ -445,13 +520,14 @@ static int bws_srv_websocket_event(struct lws *wsi,
                     pthread_mutex_unlock(ctx->mutex);
                     if (!stop_worker) {
                         dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
-                            BSC_WEBSOCKET_SENDABLE, NULL, 0, user_param);
+                            BSC_WEBSOCKET_SENDABLE, 0, NULL, NULL, 0,
+                            user_param);
                     }
                     pthread_mutex_lock(ctx->mutex);
                     ctx->conn[h].want_send_data = false;
                     ctx->conn[h].can_send_data = false;
                     pthread_mutex_unlock(ctx->mutex);
-                    // wakeup worker to process internal state
+                    /* wakeup worker to process internal state */
                     lws_cancel_service(ctx->wsctx);
                 } else {
                     ctx->conn[h].want_send_data = false;
@@ -484,7 +560,7 @@ static void *bws_srv_worker(void *arg)
     pthread_mutex_unlock(ctx->mutex);
 
     dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, 0,
-        BSC_WEBSOCKET_SERVER_STARTED, NULL, 0, user_param);
+        BSC_WEBSOCKET_SERVER_STARTED, 0, NULL, NULL, 0, user_param);
 
     while (1) {
         DEBUG_PRINTF("bws_srv_worker() ctx %p proto %d blocked user_param %p\n",
@@ -498,20 +574,21 @@ static void *bws_srv_worker(void *arg)
             DEBUG_PRINTF("bws_srv_worker() destroy wsctx %p, ctx = %p, "
                          "user_param = %p\n",
                 ctx->wsctx, ctx, ctx->user_param);
-            // TRICKY: This is ridiculus but lws_context_destroy()
-            //         does't seem to be
-            //         thread safe. More over, on different platforms the
-            //         function behaves in different ways. Call of
-            //         lws_context_destroy() leads to several calls of
-            //         bws_srv_websocket_event() callback (LWS_CALLBACK_CLOSED,
-            //         etc..). But under some OS (MacOSx) that callback is
-            //         called from context of the bws_cli_worker() thread and
-            //         under some other OS (linux) the callback is called from
-            //         internal libwebsockets lib thread. That's why
-            //         bws_cli_mutex must be unlocked before
-            //         lws_context_destroy() call. To ensure that nobody calls
-            //         lws_context_destroy() from some parallel thread it is
-            //         protected by global websocket mutex.
+            /* TRICKY: This is ridiculus but lws_context_destroy()
+                       does't seem to be
+                       thread safe. More over, on different platforms the
+                       function behaves in different ways. Call of
+                       lws_context_destroy() leads to several calls of
+                       bws_srv_websocket_event() callback (LWS_CALLBACK_CLOSED,
+                       etc..). But under some OS (MacOSx) that callback is
+                       called from context of the bws_cli_worker() thread and
+                       under some other OS (linux) the callback is called from
+                       internal libwebsockets lib thread. That's why
+                       bws_cli_mutex must be unlocked before
+                       lws_context_destroy() call. To ensure that nobody calls
+                       lws_context_destroy() from some parallel thread it is
+                       protected by global websocket mutex.
+            */
             pthread_mutex_unlock(ctx->mutex);
             bsc_websocket_global_lock();
             lws_context_destroy(ctx->wsctx);
@@ -528,8 +605,8 @@ static void *bws_srv_worker(void *arg)
             DEBUG_PRINTF(
                 "bws_srv_worker() ctx %p user_param = %p\n", ctx, user_param);
             pthread_mutex_unlock(ctx->mutex);
-            dispatch_func(
-                ctx, 0, BSC_WEBSOCKET_SERVER_STOPPED, NULL, 0, user_param);
+            dispatch_func(ctx, 0, BSC_WEBSOCKET_SERVER_STOPPED, 0, NULL, NULL,
+                0, user_param);
             bws_free_server_ctx(ctx);
             DEBUG_PRINTF(
                 "bws_srv_worker() ctx %p proto %d stopped\n", ctx, ctx->proto);
@@ -658,7 +735,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     info.connect_timeout_secs = timeout_s;
     info.user = ctx;
 
-    // TRICKY: check comments related to lws_context_destroy() call
+    /* TRICKY: check comments related to lws_context_destroy() call */
 
     pthread_mutex_unlock(ctx->mutex);
     bsc_websocket_global_lock();
@@ -680,20 +757,21 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     ret = pthread_create(&thread_id, NULL, &bws_srv_worker, ctx);
 
     if (ret != 0) {
-        // TRICKY: This is ridiculus but lws_context_destroy()
-        //         does't seem to be
-        //         thread safe. More over, on different platforms the
-        //         function behaves in different ways. Call of
-        //         lws_context_destroy() leads to several calls of
-        //         bws_srv_websocket_event() callback (LWS_CALLBACK_CLOSED,
-        //         etc..). But under some OS (MacOSx) that callback is
-        //         called from context of the bws_cli_worker() thread and
-        //         under some other OS (linux) the callback is called from
-        //         internal libwebsockets lib thread. That's why
-        //         bws_cli_mutex must be unlocked before
-        //         lws_context_destroy() call. To ensure that nobody calls
-        //         lws_context_destroy() from some parallel thread it is
-        //         protected by global websocket mutex.
+        /* TRICKY: This is ridiculus but lws_context_destroy()
+                   does't seem to be
+                   thread safe. More over, on different platforms the
+                   function behaves in different ways. Call of
+                   lws_context_destroy() leads to several calls of
+                   bws_srv_websocket_event() callback (LWS_CALLBACK_CLOSED,
+                   etc..). But under some OS (MacOSx) that callback is
+                   called from context of the bws_cli_worker() thread and
+                   under some other OS (linux) the callback is called from
+                   internal libwebsockets lib thread. That's why
+                   bws_cli_mutex must be unlocked before
+                   lws_context_destroy() call. To ensure that nobody calls
+                   lws_context_destroy() from some parallel thread it is
+                   protected by global websocket mutex.
+        */
         pthread_mutex_unlock(ctx->mutex);
         bsc_websocket_global_lock();
         lws_context_destroy(ctx->wsctx);
@@ -738,7 +816,7 @@ BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_SRV_HANDLE sh)
     }
 
     ctx->stop_worker = true;
-    // wake up libwebsockets runloop
+    /* wake up libwebsockets runloop */
     lws_cancel_service(ctx->wsctx);
     pthread_mutex_unlock(ctx->mutex);
 
@@ -762,7 +840,7 @@ void bws_srv_disconnect(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
     if (h >= 0 && h < bws_srv_get_max_sockets(ctx->proto) &&
         !ctx->stop_worker) {
         if (ctx->conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
-            // tell worker to process change of connection state
+            /* tell worker to process change of connection state */
             ctx->conn[h].state = BSC_WEBSOCKET_STATE_DISCONNECTING;
             lws_cancel_service(ctx->wsctx);
         }
@@ -786,7 +864,7 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
 
     pthread_mutex_lock(ctx->mutex);
     if (ctx->conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
-        // tell worker to process send request
+        /* tell worker to process send request */
         ctx->conn[h].want_send_data = true;
         lws_cancel_service(ctx->wsctx);
     }
@@ -843,8 +921,9 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
-    // malloc() and copying is evil, but libwesockets wants some space before
-    // actual payload.
+    /* malloc() and copying is evil, but libwesockets wants some space before
+       actual payload.
+    */
 
     tmp_buf = malloc(payload_size + LWS_PRE);
 
@@ -865,7 +944,7 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     if (written < (int)payload_size) {
         DEBUG_PRINTF(
             "bws_srv_dispatch_send() websocket connection is broken(closed)\n");
-        // tell worker to process change of connection state
+        /* tell worker to process change of connection state */
         ctx->conn[h].state = BSC_WEBSOCKET_STATE_DISCONNECTING;
         lws_cancel_service(ctx->wsctx);
         ret = BSC_WEBSOCKET_INVALID_OPERATION;
@@ -876,4 +955,52 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     pthread_mutex_unlock(ctx->mutex);
     DEBUG_PRINTF("bws_srv_dispatch_send() <<< ret = %d\n", ret);
     return ret;
+}
+
+bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    uint8_t *ip_str,
+    size_t ip_str_len,
+    uint16_t *port)
+{
+    BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
+    int fd;
+    struct sockaddr_storage addr;
+    socklen_t len;
+    const char *ret = NULL;
+
+    if (!ctx || h < 0 || !ip_str || !ip_str_len || !port ||
+        h >= bws_srv_get_max_sockets(ctx->proto)) {
+        return false;
+    }
+
+    pthread_mutex_lock(ctx->mutex);
+
+    if (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE &&
+        ctx->conn[h].ws != NULL && !ctx->stop_worker) {
+        len = sizeof(addr);
+        fd = lws_get_socket_fd(ctx->conn[h].ws);
+        if (fd != -1) {
+            getpeername(fd, (struct sockaddr *)&addr, &len);
+            if (addr.ss_family == AF_INET) {
+                struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+                *port = ntohs(s->sin_port);
+                ret = inet_ntop(
+                    AF_INET, &s->sin_addr, (char *)ip_str, ip_str_len);
+            } else {
+                struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+                *port = ntohs(s->sin6_port);
+                ret = inet_ntop(
+                    AF_INET6, &s->sin6_addr, (char *)ip_str, ip_str_len);
+            }
+        }
+    }
+
+    pthread_mutex_unlock(ctx->mutex);
+
+    if (ret) {
+        return true;
+    }
+
+    return false;
 }

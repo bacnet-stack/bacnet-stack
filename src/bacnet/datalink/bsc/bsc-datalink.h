@@ -52,6 +52,14 @@ bool bsc_init(char *ifname);
  */
 BACNET_STACK_EXPORT
 void bsc_cleanup(void);
+/**
+ * @brief Function checks if all needed certificate file are present.
+ * @return true if all needed certificate file are present otherwise returns
+ *         false.
+ */
+
+BACNET_STACK_EXPORT
+bool bsc_cert_files_check(void);
 
 /**
  * @brief Blocking thread-safe bsc_send_pdu() function
@@ -119,17 +127,6 @@ BACNET_STACK_EXPORT
 void bsc_get_my_address(BACNET_ADDRESS *my_address);
 
 /**
- * @brief Function retrieves status of BACNet/SC connection
- *        of local datalink to remote BACNet/SC hub.
- *
- * @return a value from BVLC_SC_HUB_CONNECTION_STATUS enum
- *         defined in bvlc-sc.h
- */
-
-BACNET_STACK_EXPORT
-BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connection_status(void);
-
-/**
  * @brief Function checks if BACNet/SC direct connection is
  *        established with remote BACNet/SC node.
  *        User can check the status of connection using either
@@ -137,8 +134,9 @@ BVLC_SC_HUB_CONNECTION_STATUS bsc_hub_connection_status(void);
  * @param dest BACNet/SC vmac of remote node to check direct
  *        connection status.
  * @param urls this array represents the possible URIs of a
-          remote node for acceptance of direct connections.
-          Can contain 1 elem.
+ *        remote node for acceptance of direct connections.
+ *        Can contain 1 elem.
+ * @param urls_cnt - size of urls array.
  * @return true if connection is established otherwise returns
  *         false.
  */
@@ -147,6 +145,28 @@ BACNET_STACK_EXPORT
 bool bsc_direct_connection_established(
     BACNET_SC_VMAC_ADDRESS *dest,
     char** urls, size_t urls_cnt);
+
+/**
+ * @brief Function starts process of establishing of a
+ *        direct BACNet/SC connection to node indentified by
+ *        either urls or dest parameter. User should note that
+ *        if dest parameter is used, local node tries to resolve
+ *        it (e.g.to get URIs related to dest vmac from all existent
+ *        BACNet/SC nodes in network). As a result the process of
+ *        establishing of a BACNet/SC connection by dest may
+ *        take unpredictable amount of time depending on a current
+ *        network configuration.
+ * @param dest BACNet/SC vmac of remote node to check direct
+ *        connection status.
+ * @param urls this array represents the possible URIs of a
+ *        remote node for acceptance of direct connections.
+ *        Can contain 1 elem.
+ * @param urls_cnt - size of urls array.
+ * 
+ * @return BSC_SC_SUCCESS if process of a establishing of a BACNet/SC
+ *         connection was started successfully, otherwise returns
+ *         any retcode from BSC_SC_RET enum.
+ */
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_connect_direct(

@@ -135,12 +135,6 @@ typedef enum BVLC_SC_Option_Type {
     BVLC_SC_OPTION_TYPE_PROPRIETARY = 31
 } BVLC_SC_OPTION_TYPE;
 
-typedef enum BVLC_SC_Hub_Connection_Status {
-    BVLC_SC_HUB_CONNECTION_ABSENT = 0,
-    BVLC_SC_HUB_CONNECTION_PRIMARY_HUB_CONNECTED = 1,
-    BVLC_SC_HUB_CONNECTION_FAILOVER_HUB_CONNECTED = 2
-} BVLC_SC_HUB_CONNECTION_STATUS;
-
 typedef enum BVLC_SC_Direct_Connection_Support {
     BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_UNSUPPORTED = 0,
     BVLC_SC_DIRECT_CONNECTIONS_ACCEPT_SUPPORTED = 1
@@ -184,7 +178,7 @@ typedef struct BVLC_SC_Decoded_Ecapsulated_NPDU {
 } BVLC_SC_DECODED_ENCAPSULATED_NPDU;
 
 typedef struct BVLC_SC_Decoded_Advertisiment {
-    BVLC_SC_HUB_CONNECTION_STATUS hub_status;
+    BACNET_SC_HUB_CONNECTOR_STATE hub_status;
     BVLC_SC_DIRECT_CONNECTION_SUPPORT support;
     uint16_t max_bvlc_len;
     uint16_t max_npdu_len;
@@ -323,7 +317,7 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
-    BVLC_SC_HUB_CONNECTION_STATUS hub_status,
+    BACNET_SC_HUB_CONNECTOR_STATE hub_status,
     BVLC_SC_DIRECT_CONNECTION_SUPPORT support,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_size);

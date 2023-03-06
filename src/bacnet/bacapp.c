@@ -56,6 +56,9 @@
 #include "bacnet/hostnport.h"
 #include "bacnet/weeklyschedule.h"
 #include "bacnet/basic/sys/platform.h"
+#ifdef BACDL_BSC
+#include "bacnet/basic/object/sc_netport.h"
+#endif
 
 /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
 
@@ -1287,6 +1290,18 @@ int bacapp_decode_known_property(uint8_t *apdu,
                 apdu, max_apdu_len, &value->type.Weekly_Schedule);
             break;
 
+#ifdef BACDL_BSC
+        case PROP_SC_FAILED_CONNECTION_REQUESTS:
+        case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
+        case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
+        case PROP_SC_PRIMARY_HUB_CONNECTION_STATUS:
+        case PROP_SC_FAILOVER_HUB_CONNECTION_STATUS:
+            value->type.Custom_Value.len = max_apdu_len;
+            value->type.Custom_Value.data = apdu;
+            len = max_apdu_len;
+            break;
+#endif /* BACDL_BSC */
+
             /* properties without a specific decoder - fall through to default
              */
 
@@ -2289,6 +2304,17 @@ int bacapp_snprintf_value(
                 break;
 #endif
             default:
+#ifdef BACDL_BSC
+                if (property == PROP_SC_FAILED_CONNECTION_REQUESTS ||
+                    property == PROP_SC_HUB_FUNCTION_CONNECTION_STATUS ||
+                    property == PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS ||
+                    property == PROP_SC_PRIMARY_HUB_CONNECTION_STATUS ||
+                    property == PROP_SC_FAILOVER_HUB_CONNECTION_STATUS)
+                {
+                    ret_val = Network_Port_SC_snprintf_value(
+                        str, str_len, object_value);
+                } else
+#endif /* BACDL_BSC */
                 ret_val =
                     snprintf(str, str_len, "UnknownType(tag=%d)", value->tag);
                 break;
