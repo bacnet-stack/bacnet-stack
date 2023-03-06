@@ -1491,7 +1491,7 @@ bool Network_Port_SC_Direct_Connect_Connection_Status_Add(
     st->State = state;
     st->Connect_Timestamp = *connect_ts;
     st->Disconnect_Timestamp = *disconnect_ts;
-    // host_n_port_to_data(peer_address, &st->Peer_Address);
+
     memcpy(&st->Peer_Address, peer_address, sizeof(st->Peer_Address));
     memcpy(st->Peer_VMAC, peer_VMAC, sizeof(st->Peer_VMAC));
     memcpy(st->Peer_UUID.uuid.uuid128, peer_UUID,
