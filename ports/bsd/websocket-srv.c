@@ -976,7 +976,8 @@ bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
 
     pthread_mutex_lock(ctx->mutex);
 
-    if (ctx->conn[h].ws != NULL) {
+    if (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE &&
+        ctx->conn[h].ws != NULL && !ctx->stop_worker) {
         len = sizeof(addr);
         fd = lws_get_socket_fd(ctx->conn[h].ws);
         if (fd != -1) {

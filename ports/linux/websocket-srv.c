@@ -66,7 +66,8 @@ typedef struct {
     BACNET_ERROR_CODE err_code;
 } BSC_WEBSOCKET_CONNECTION;
 
-static pthread_mutex_t bws_global_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static pthread_mutex_t bws_global_mutex =
+    PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static pthread_mutex_t bws_srv_direct_mutex[BSC_CONF_WEBSOCKET_SERVERS_NUM];
 static pthread_mutex_t bws_srv_hub_mutex[BSC_CONF_WEBSOCKET_SERVERS_NUM];
 
@@ -173,8 +174,7 @@ static void bws_set_disconnect_reason(
             break;
         }
         case LWS_CLOSE_STATUS_NO_STATUS:
-        case LWS_CLOSE_STATUS_RESERVED:
-        {
+        case LWS_CLOSE_STATUS_RESERVED: {
             ctx->conn[h].err_code = ERROR_CODE_WEBSOCKET_ERROR;
             break;
         }
@@ -977,7 +977,8 @@ bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
 
     pthread_mutex_lock(ctx->mutex);
 
-    if (ctx->conn[h].ws != NULL) {
+    if (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE &&
+        ctx->conn[h].ws != NULL && !ctx->stop_worker) {
         len = sizeof(addr);
         fd = lws_get_socket_fd(ctx->conn[h].ws);
         if (fd != -1) {
