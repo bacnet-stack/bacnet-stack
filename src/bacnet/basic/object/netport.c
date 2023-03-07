@@ -2332,9 +2332,15 @@ BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
         /* if no index was specified, then try to encode the entire list */ \
         /* into one packet. */                                              \
         unsigned index;                                                     \
+        int len;                                                            \
         for (index = 0; index < (size); index++) {                          \
             getter(rpdata->object_instance, index, var);                    \
-            apdu_len += encode(&apdu[apdu_len], var);                       \
+            len = encode(&apdu[apdu_len], var);                             \
+            if ((len < 0) || (apdu_len + len > apdu_size)) {                \
+                apdu_len = BACNET_STATUS_ABORT;                             \
+                break;                                                      \
+            }                                                               \
+            apdu_len += len;                                                \
         }                                                                   \
     } else if (rpdata->array_index <= (size)) {                             \
         /* index was specified; encode a single array element */            \
@@ -2348,30 +2354,25 @@ BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
         apdu_len = BACNET_STATUS_ERROR;                                     \
     }
 
-#define ENCODE_KEYLIST_ARRAY(getter, encode, size_f, type)                   \
+#define ENCODE_KEYLIST(getter, encode, size_f, type)                         \
     {                                                                        \
-        uint16_t size = (size_f)(rpdata->object_instance);                   \
-        if (rpdata->array_index == 0) {                                      \
-            /* Array element zero is the number of objects in the list */    \
-            apdu_len = encode_application_unsigned(&apdu[0], (size));        \
-        } else if (rpdata->array_index == BACNET_ARRAY_ALL) {                \
-            /* if no index was specified, then try to encode the entire list \
-             */                                                              \
-            /* into one packet. */                                           \
+        if (rpdata->array_index == BACNET_ARRAY_ALL) {                       \
+            uint16_t size = (size_f)(rpdata->object_instance);               \
             unsigned index;                                                  \
+            int len;                                                         \
             for (index = 0; index < (size); index++) {                       \
                 type *var = (getter)(rpdata->object_instance, index);        \
-                apdu_len += (encode)(&apdu[apdu_len], var);                  \
+                len = (encode)(&apdu[apdu_len], var);                        \
+                if ((len < 0) || (apdu_len + len > apdu_size)) {             \
+                    apdu_len = len;                                          \
+                    break;                                                   \
+                }                                                            \
+                apdu_len += len;                                             \
             }                                                                \
-        } else if (rpdata->array_index <= (size)) {                          \
-            /* index was specified; encode a single array element */         \
-            unsigned index = rpdata->array_index - 1;                        \
-            type *var = (getter)(rpdata->object_instance, index);            \
-            apdu_len = (encode)(&apdu[0], var);                              \
         } else {                                                             \
             /* index was specified, but out of range */                      \
             rpdata->error_class = ERROR_CLASS_PROPERTY;                      \
-            rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;             \
+            rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;        \
             apdu_len = BACNET_STATUS_ERROR;                                  \
         }                                                                    \
     }
@@ -2686,7 +2687,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             /* SC optionals */
 #if BACNET_SECURE_CONNECT_ROUTING_TABLE
         case PROP_ROUTING_TABLE:
-            ENCODE_KEYLIST_ARRAY(Network_Port_Routing_Table_Get,
+            ENCODE_KEYLIST(Network_Port_Routing_Table_Get,
                 bacapp_encode_RouterEntry, Network_Port_Routing_Table_Count,
                 BACNET_ROUTER_ENTRY);
             break;
@@ -2718,7 +2719,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
-            ENCODE_KEYLIST_ARRAY(
+            ENCODE_KEYLIST(
                 Network_Port_SC_Hub_Function_Connection_Status_Get,
                 bacapp_encode_SCHubFunctionConnection,
                 Network_Port_SC_Hub_Function_Connection_Status_Count,
@@ -2748,7 +2749,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
-            ENCODE_KEYLIST_ARRAY(
+            ENCODE_KEYLIST(
                 Network_Port_SC_Direct_Connect_Connection_Status_Get,
                 bacapp_encode_SCDirectConnection,
                 Network_Port_SC_Direct_Connect_Connection_Status_Count,
@@ -2756,7 +2757,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
-            ENCODE_KEYLIST_ARRAY(Network_Port_SC_Failed_Connection_Requests_Get,
+            ENCODE_KEYLIST(Network_Port_SC_Failed_Connection_Requests_Get,
                 bacapp_encode_SCFailedConnectionRequest,
                 Network_Port_SC_Failed_Connection_Requests_Count,
                 BACNET_SC_FAILED_CONNECTION_REQUEST);
