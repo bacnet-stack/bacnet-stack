@@ -328,7 +328,6 @@ static int bws_srv_websocket_event(struct lws *wsi,
     void *user_param;
     bool stop_worker;
     uint8_t err_code[2];
-    char err_desc[BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN];
     uint16_t err;
     (void)user;
 
