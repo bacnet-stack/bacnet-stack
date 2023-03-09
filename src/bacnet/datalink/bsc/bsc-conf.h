@@ -14,6 +14,8 @@
 #ifndef __BSC__CONF__INCLUDED__
 #define __BSC__CONF__INCLUDED__
 
+#include "bacnet/bacdef.h"
+
 #ifndef BSC_CONF_HUB_CONNECTORS_NUM
 #define BSC_CONF_HUB_CONNECTORS_NUM 1
 #endif
@@ -31,7 +33,13 @@
 #endif
 
 #ifndef BVLC_SC_NPDU_SIZE_CONF
-#define BVLC_SC_NPDU_SIZE_CONF 1440
+/* 16 bytes is sum of all sizes of all static (non variable)
+   fields of BVLC message */
+#define BVLC_SC_NPDU_SIZE_CONF ((MAX_PDU) + 16)
+#endif
+
+#ifndef BSC_CONF_WEBSOCKET_INITIAL_RECV_BUFFER_LEN
+#define BSC_CONF_WEBSOCKET_INITIAL_RECV_BUFFER_LEN BVLC_SC_NPDU_SIZE_CONF
 #endif
 
 /* THIS should not be changed, most of BACNet/SC devices must have */

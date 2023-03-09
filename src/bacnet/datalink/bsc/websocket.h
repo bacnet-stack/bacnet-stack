@@ -54,7 +54,19 @@
 #else
 #define BSC_SERVER_HUB_WEBSOCKETS_MAX_NUM BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM
 #endif
+/** @} */
 
+/**
+ * Initial size of websocket buffer used on receive. It can be increased dynamically
+ * depending on received packet size.
+ * @{
+ */
+
+#ifndef BSC_CONF_WEBSOCKET_INITIAL_RECV_BUFFER_LEN
+#define BSC_WEBSOCKET_INITIAL_RECV_BUFFER_LEN 512
+#else
+#define BSC_WEBSOCKET_INITIAL_RECV_BUFFER_LEN BSC_CONF_WEBSOCKET_INITIAL_RECV_BUFFER_LEN
+#endif
 /** @} */
 
 
