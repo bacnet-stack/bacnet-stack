@@ -2520,6 +2520,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = bacnet_array_encode(rpdata->object_instance,
                 rpdata->array_index, Network_Port_IP_DNS_Server_Encode,
                 BIP_DNS_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
             break;
 #if defined(BACDL_BIP) && BBMD_ENABLED
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
@@ -2577,6 +2584,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = bacnet_array_encode(rpdata->object_instance,
                 rpdata->array_index, Network_Port_IPv6_DNS_Server_Encode,
                 BIP_DNS_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
             break;
         case PROP_IPV6_AUTO_ADDRESSING_ENABLE:
             apdu_len = encode_application_boolean(&apdu[0], false);
@@ -2711,6 +2725,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->array_index,
                 Network_Port_SC_Hub_Function_Accept_URI_Encode,
                 BACNET_SC_DIRECT_ACCEPT_URI_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
             break;
         case PROP_SC_HUB_FUNCTION_BINDING:
             Network_Port_SC_Hub_Function_Binding(
@@ -2739,6 +2760,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->array_index,
                 Network_Port_SC_Direct_Connect_Accept_URI_Encode,
                 BACNET_SC_DIRECT_ACCEPT_URI_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
             break;
         case PROP_SC_DIRECT_CONNECT_BINDING:
             Network_Port_SC_Direct_Connect_Binding(
