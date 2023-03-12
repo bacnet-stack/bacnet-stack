@@ -1263,6 +1263,33 @@ bool Network_Port_IP_DNS_Server_Set(uint32_t object_instance,
 }
 
 /**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to (array size - 1) for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or
+ *    NULL to return the length of buffer if it had been built
+ * @return The length of the apdu encoded, or
+ *    BACNET_STATUS_ERROR for an invalid array index
+ */
+int Network_Port_IP_DNS_Server_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    BACNET_OCTET_STRING ip_address = { 0 };
+
+    if (index >= BIP_DNS_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        if (Network_Port_IP_DNS_Server(object_instance, index, &ip_address)) {
+            apdu_len = encode_application_octet_string(apdu, &ip_address);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * For a given object instance-number, gets the BACnet/IP UDP Port number
  * Note: depends on Network_Type being set to PORT_TYPE_BIP for this object
  *
@@ -2011,6 +2038,33 @@ bool Network_Port_IPv6_DNS_Server_Set(
 }
 
 /**
+ * @brief Encode a BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to (array size - 1) for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or
+ *    NULL to return the length of buffer if it had been built
+ * @return The length of the apdu encoded, or
+ *    BACNET_STATUS_ERROR for an invalid array index
+ */
+int Network_Port_IPv6_DNS_Server_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    BACNET_OCTET_STRING ip_address = { 0 };
+
+    if (index >= BIP_DNS_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        if (Network_Port_IPv6_DNS_Server(object_instance, index, &ip_address)) {
+            apdu_len = encode_application_octet_string(apdu, &ip_address);
+        }
+    }
+
+    return apdu_len;
+}
+
+/**
  * For a given object instance-number, loads the multicast ip-address into
  * an octet string.
  * Note: depends on Network_Type being set for this object
@@ -2321,58 +2375,6 @@ BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
     return param;
 }
 
-#define ENCODE_STRING_ARRAY(getter, encode, size, var)                      \
-    if (rpdata->array_index == 0) {                                         \
-        /* Array element zero is the number of objects in the list */       \
-        apdu_len = encode_application_unsigned(&apdu[0], (size));           \
-    } else if (rpdata->array_index == BACNET_ARRAY_ALL) {                   \
-        /* if no index was specified, then try to encode the entire list */ \
-        /* into one packet. */                                              \
-        unsigned index;                                                     \
-        for (index = 0; index < (size); index++) {                          \
-            getter(rpdata->object_instance, index, var);                    \
-            apdu_len += encode(&apdu[apdu_len], var);                       \
-        }                                                                   \
-    } else if (rpdata->array_index <= (size)) {                             \
-        /* index was specified; encode a single array element */            \
-        unsigned index = rpdata->array_index - 1;                           \
-        getter(rpdata->object_instance, index, var);                        \
-        apdu_len = encode(&apdu[0], var);                                   \
-    } else {                                                                \
-        /* index was specified, but out of range */                         \
-        rpdata->error_class = ERROR_CLASS_PROPERTY;                         \
-        rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;                \
-        apdu_len = BACNET_STATUS_ERROR;                                     \
-    }
-
-#define ENCODE_KEYLIST_ARRAY(getter, encode, size_f, type)                   \
-    {                                                                        \
-        uint16_t size = (size_f)(rpdata->object_instance);                   \
-        if (rpdata->array_index == 0) {                                      \
-            /* Array element zero is the number of objects in the list */    \
-            apdu_len = encode_application_unsigned(&apdu[0], (size));        \
-        } else if (rpdata->array_index == BACNET_ARRAY_ALL) {                \
-            /* if no index was specified, then try to encode the entire list \
-             */                                                              \
-            /* into one packet. */                                           \
-            unsigned index;                                                  \
-            for (index = 0; index < (size); index++) {                       \
-                type *var = (getter)(rpdata->object_instance, index);        \
-                apdu_len += (encode)(&apdu[apdu_len], var);                  \
-            }                                                                \
-        } else if (rpdata->array_index <= (size)) {                          \
-            /* index was specified; encode a single array element */         \
-            unsigned index = rpdata->array_index - 1;                        \
-            type *var = (getter)(rpdata->object_instance, index);            \
-            apdu_len = (encode)(&apdu[0], var);                              \
-        } else {                                                             \
-            /* index was specified, but out of range */                      \
-            rpdata->error_class = ERROR_CLASS_PROPERTY;                      \
-            rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;             \
-            apdu_len = BACNET_STATUS_ERROR;                                  \
-        }                                                                    \
-    }
-
 /**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
@@ -2515,8 +2517,9 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
         case PROP_IP_DNS_SERVER:
-            ENCODE_STRING_ARRAY(Network_Port_IP_DNS_Server,
-                encode_application_octet_string, BIP_DNS_MAX, &octet_string);
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index, Network_Port_IP_DNS_Server_Encode,
+                BIP_DNS_MAX, apdu, apdu_size);
             break;
 #if defined(BACDL_BIP) && BBMD_ENABLED
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
@@ -2571,8 +2574,9 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
         case PROP_IPV6_DNS_SERVER:
-            ENCODE_STRING_ARRAY(Network_Port_IPv6_DNS_Server,
-                encode_application_octet_string, BIP_DNS_MAX, &octet_string);
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index, Network_Port_IPv6_DNS_Server_Encode,
+                BIP_DNS_MAX, apdu, apdu_size);
             break;
         case PROP_IPV6_AUTO_ADDRESSING_ENABLE:
             apdu_len = encode_application_boolean(&apdu[0], false);
@@ -2703,9 +2707,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 Network_Port_SC_Hub_Function_Enable(rpdata->object_instance));
             break;
         case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
-            ENCODE_STRING_ARRAY(Network_Port_SC_Hub_Function_Accept_URI,
-                encode_application_character_string, BACNET_SC_HUB_URI_MAX,
-                &char_string);
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index,
+                Network_Port_SC_Hub_Function_Accept_URI_Encode,
+                BACNET_SC_DIRECT_ACCEPT_URI_MAX, apdu, apdu_size);
             break;
         case PROP_SC_HUB_FUNCTION_BINDING:
             Network_Port_SC_Hub_Function_Binding(
@@ -2714,11 +2719,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SC_HUB_FUNCTION_CONNECTION_STATUS:
-            ENCODE_KEYLIST_ARRAY(
-                Network_Port_SC_Hub_Function_Connection_Status_Get,
-                bacapp_encode_SCHubFunctionConnection,
-                Network_Port_SC_Hub_Function_Connection_Status_Count,
-                BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS);
+            apdu_len = Network_Port_SC_Hub_Function_Connection_Status_Encode(
+                rpdata->object_instance, apdu, apdu_size);
             break;
 #endif /* BSC_CONF_HUB_FUNCTIONS_NUM!=0 */
 #if BSC_CONF_HUB_CONNECTORS_NUM != 0
@@ -2733,9 +2735,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
             break;
         case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
-            ENCODE_STRING_ARRAY(Network_Port_SC_Direct_Connect_Accept_URI,
-                encode_application_character_string, BACNET_SC_HUB_URI_MAX,
-                &char_string);
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index,
+                Network_Port_SC_Direct_Connect_Accept_URI_Encode,
+                BACNET_SC_DIRECT_ACCEPT_URI_MAX, apdu, apdu_size);
             break;
         case PROP_SC_DIRECT_CONNECT_BINDING:
             Network_Port_SC_Direct_Connect_Binding(
@@ -2744,18 +2747,13 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS:
-            ENCODE_KEYLIST_ARRAY(
-                Network_Port_SC_Direct_Connect_Connection_Status_Get,
-                bacapp_encode_SCDirectConnection,
-                Network_Port_SC_Direct_Connect_Connection_Status_Count,
-                BACNET_SC_DIRECT_CONNECTION_STATUS);
+            apdu_len = Network_Port_SC_Direct_Connect_Connection_Status_Encode(
+                rpdata->object_instance, apdu, apdu_size);
             break;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
         case PROP_SC_FAILED_CONNECTION_REQUESTS:
-            ENCODE_KEYLIST_ARRAY(Network_Port_SC_Failed_Connection_Requests_Get,
-                bacapp_encode_SCFailedConnectionRequest,
-                Network_Port_SC_Failed_Connection_Requests_Count,
-                BACNET_SC_FAILED_CONNECTION_REQUEST);
+            apdu_len = Network_Port_SC_Failed_Connection_Requests_Encode(
+                rpdata->object_instance, apdu, apdu_size);
             break;
 #endif /* BACDL_BSC */
         default:

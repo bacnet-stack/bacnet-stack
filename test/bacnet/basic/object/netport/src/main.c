@@ -468,11 +468,7 @@ static void test_network_port_sc_status_encode_decode(void)
         "{1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
         "00000000-0000-0000-0000-000000000000, 38, \"error details\"}";
 
-    const char HUB_STATUS_STR1[] = "{1, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
-        "00000000-0000-0000-0000-000000000000, 0}";
-
-    const char HUB_STATUS_STR2[] = "{1, 1946-05-07T12:34:22.010, "
+    const char HUB_STATUS_STR[] = "{1, 1946-05-07T12:34:22.010, "
         "1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
         "00000000-0000-0000-0000-000000000000, 0}{3, 1946-05-07T12:34:22.010, "
         "1946-05-07T12:34:22.010, 239.0.0.16:50002, 1.2.3.4.5.6, "
@@ -519,37 +515,15 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_FAILED_CONNECTION_REQUESTS;
 
-    // count
+    // count (error: property is not BacArray)
     object_value.array_index = rpdata.array_index = 0;
     len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len > 0, NULL);
+    zassert_true(len == -1, NULL);
 
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
-
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
-
-    zassert_true(strncmp(str, "1", strlen("1")) == 0, NULL);
-
-    // context
+    // context (error: property is not BacArray)
     object_value.array_index = rpdata.array_index = 1;
     len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len > 0, NULL);
-
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
-
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
-
-    zassert_true(strncmp(str, REQ_STR, strlen(REQ_STR)) == 0, NULL);
+    zassert_true(len == -1, NULL);
 
     // all context
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
@@ -589,37 +563,15 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_HUB_FUNCTION_CONNECTION_STATUS;
 
-    // count
+    // count (error: property is not BacArray)
     object_value.array_index = rpdata.array_index = 0;
     len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len > 0, NULL);
+    zassert_true(len == -1, NULL);
 
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
-
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
-
-    zassert_true(strncmp(str, "2", strlen("2")) == 0, NULL);
-
-    // context
+    // context (error: property is not BacArray)
     object_value.array_index = rpdata.array_index = 1;
     len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len > 0, NULL);
-
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
-
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
-    zassert_true(
-        strncmp(str, HUB_STATUS_STR1, strlen(HUB_STATUS_STR1)) == 0, NULL);
+    zassert_true(len == -1, NULL);
 
     // all context
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
@@ -636,7 +588,7 @@ static void test_network_port_sc_status_encode_decode(void)
     zassert_equal(len2, len, NULL);
 
     zassert_true(
-        strncmp(str, HUB_STATUS_STR2, strlen(HUB_STATUS_STR2)) == 0, NULL);
+        strncmp(str, HUB_STATUS_STR, strlen(HUB_STATUS_STR)) == 0, NULL);
 
     /* SC_Primary_Hub_Connection_Status */
     status = Network_Port_SC_Primary_Hub_Connection_Status_Set(instance,
@@ -707,38 +659,15 @@ static void test_network_port_sc_status_encode_decode(void)
     object_value.object_property = rpdata.object_property =
         PROP_SC_DIRECT_CONNECT_CONNECTION_STATUS;
 
-    // count
+    // count (error: property is not BacArray)
     object_value.array_index = rpdata.array_index = 0;
     len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len > 0, NULL);
+    zassert_true(len == -1, NULL);
 
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
-
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
-
-    zassert_true(strncmp(str, "1", strlen("1")) == 0, NULL);
-
-    // context
+    // context (error: property is not BacArray)
     object_value.array_index = rpdata.array_index = 1;
     len = Network_Port_Read_Property(&rpdata);
-    zassert_true(len > 0, NULL);
-
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
-
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
-
-    zassert_true(
-        strncmp(str, DIRECT_STATUS_STR, strlen(DIRECT_STATUS_STR)) == 0, NULL);
+    zassert_true(len == -1, NULL);
 
     // all context
     object_value.array_index = rpdata.array_index = BACNET_ARRAY_ALL;
