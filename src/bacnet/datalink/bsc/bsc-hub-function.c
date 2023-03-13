@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACNet hub connector API.
+ * @brief BACNet hub function API.
  * @author Kirill Neznamov
  * @date July 2022
  * @section LICENSE
@@ -71,11 +71,17 @@ typedef struct BSC_Hub_Connector {
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *status;
 } BSC_HUB_FUNCTION;
 
+#if BSC_CONF_HUB_FUNCTIONS_NUM > 0
 static BSC_HUB_FUNCTION bsc_hub_function[BSC_CONF_HUB_FUNCTIONS_NUM] = { 0 };
 static BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS
     bsc_hub_status[BSC_CONF_HUB_FUNCTIONS_NUM]
                   [BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM];
 static bool bsc_hub_status_initialized[BSC_CONF_HUB_FUNCTIONS_NUM] = { 0 };
+#else
+static BSC_HUB_FUNCTION *bsc_hub_function = NULL;
+static BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_hub_status[1][1];
+static bool *bsc_hub_status_initialized = NULL;
+#endif
 
 static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
     hub_function_find_connection_for_vmac,
@@ -89,7 +95,9 @@ static BSC_HUB_FUNCTION *hub_function_alloc(void)
     for (i = 0; i < BSC_CONF_HUB_FUNCTIONS_NUM; i++) {
         if (!bsc_hub_function[i].used) {
             bsc_hub_function[i].used = true;
-            bsc_hub_function[i].status = &bsc_hub_status[i][0];
+            bsc_hub_function[i].status =
+                (BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *)
+                 &bsc_hub_status[i][0];
 
             /* Start/stop cycles of a hub function must not make an influence to
              * history related to connection status */

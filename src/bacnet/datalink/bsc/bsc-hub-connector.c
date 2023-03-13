@@ -73,7 +73,11 @@ typedef struct BSC_Hub_Connector {
     BACNET_SC_HUB_CONNECTION_STATUS failover_status;
 } BSC_HUB_CONNECTOR;
 
+#if BSC_CONF_HUB_CONNECTORS_NUM > 0
 static BSC_HUB_CONNECTOR bsc_hub_connector[BSC_CONF_HUB_CONNECTORS_NUM] = { 0 };
+#else
+static BSC_HUB_CONNECTOR *bsc_hub_connector = NULL;
+#endif
 
 static BSC_SOCKET_CTX_FUNCS bsc_hub_connector_ctx_funcs = { NULL, NULL,
     hub_connector_socket_event, hub_connector_context_event, NULL };

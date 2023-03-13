@@ -57,6 +57,10 @@ struct BSC_Node {
     BACNET_SC_FAILED_CONNECTION_REQUEST *failed;
 };
 
+#if BSC_CONF_NODES_NUM < 1
+#error "BSC_CONF_NODES_NUM must be >= 1"
+#endif
+
 static struct BSC_Node bsc_node[BSC_CONF_NODES_NUM] = { 0 };
 
 static BACNET_SC_FAILED_CONNECTION_REQUEST

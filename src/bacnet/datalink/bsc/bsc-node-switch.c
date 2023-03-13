@@ -121,17 +121,25 @@ typedef struct {
     void *user_arg;
 } BSC_NODE_SWITCH_CTX;
 
+#if BSC_CONF_NODE_SWITCHES_NUM > 0
 static BSC_NODE_SWITCH_CTX bsc_node_switch[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
-static BACNET_SC_DIRECT_CONNECTION_STATUS
-    bsc_initiator_status[BSC_CONF_NODE_SWITCHES_NUM]
-                        [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
 static bool bsc_initiator_status_initialized[BSC_CONF_NODE_SWITCHES_NUM] = {
     0
 };
+static bool bsc_acceptor_status_initialized[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
+#else
+static BSC_NODE_SWITCH_CTX *bsc_node_switch = NULL;
+static bool *bsc_initiator_status_initialized = NULL;
+static bool *bsc_acceptor_status_initialized = NULL;
+#endif
+
+static BACNET_SC_DIRECT_CONNECTION_STATUS
+    bsc_initiator_status[BSC_CONF_NODE_SWITCHES_NUM]
+                        [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+
 static BACNET_SC_DIRECT_CONNECTION_STATUS
     bsc_acceptor_status[BSC_CONF_NODE_SWITCHES_NUM]
                        [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
-static bool bsc_acceptor_status_initialized[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
 
 static BSC_SOCKET_CTX_FUNCS bsc_node_switch_acceptor_ctx_funcs = {
     node_switch_acceptor_find_connection_for_vmac,
