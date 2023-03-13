@@ -66,17 +66,29 @@ typedef struct {
     BACNET_ERROR_CODE err_code;
 } BSC_WEBSOCKET_CONNECTION;
 
-static pthread_mutex_t bws_global_mutex =
-    PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+#if BSC_CONF_WEBSOCKET_SERVERS_NUM < 1
+#error "BSC_CONF_WEBSOCKET_SERVERS_NUM must be >= 1"
+#endif
+
+static pthread_mutex_t bws_global_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static pthread_mutex_t bws_srv_direct_mutex[BSC_CONF_WEBSOCKET_SERVERS_NUM];
 static pthread_mutex_t bws_srv_hub_mutex[BSC_CONF_WEBSOCKET_SERVERS_NUM];
 
+#if BSC_SERVER_HUB_WEBSOCKETS_MAX_NUM > 0
 static BSC_WEBSOCKET_CONNECTION
     bws_hub_conn[BSC_CONF_WEBSOCKET_SERVERS_NUM]
                 [BSC_SERVER_HUB_WEBSOCKETS_MAX_NUM] = { 0 };
+#else
+static BSC_WEBSOCKET_CONNECTION bws_hub_conn[1][1] = { 0 };
+#endif
+
+#if BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM > 0
 static BSC_WEBSOCKET_CONNECTION
     bws_direct_conn[BSC_CONF_WEBSOCKET_SERVERS_NUM]
                    [BSC_SERVER_DIRECT_WEBSOCKETS_MAX_NUM] = { 0 };
+#else
+static BSC_WEBSOCKET_CONNECTION bws_direct_conn[1][1] = { 0 };
+#endif
 
 typedef struct BACNetWebsocketServerContext {
     bool used;
@@ -954,6 +966,7 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     pthread_mutex_unlock(ctx->mutex);
+    free(tmp_buf);
     DEBUG_PRINTF("bws_srv_dispatch_send() <<< ret = %d\n", ret);
     return ret;
 }

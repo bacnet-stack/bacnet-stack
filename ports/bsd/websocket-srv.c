@@ -965,6 +965,7 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     pthread_mutex_unlock(ctx->mutex);
+    free(tmp_buf);
     DEBUG_PRINTF("bws_srv_dispatch_send() <<< ret = %d\n", ret);
     return ret;
 }
