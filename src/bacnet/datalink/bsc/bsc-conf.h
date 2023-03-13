@@ -72,7 +72,11 @@
 #define BSC_CONF_SOCKET_BUFFERED_PACKET_NUM 2
 #define BSC_CONF_DATALINK_BUFFERED_PACKET_NUM 10
 
-#define BSC_CONF_RX_BUFFER_SIZE (BVLC_SC_NPDU_SIZE_CONF * BSC_CONF_SOCKET_BUFFERED_PACKET_NUM)
+/* BSC_PRE bytes is always reserved before BVLC message header
+   to avoid copying of packet payload during manipulation with
+   origin and dest addresses (add them to received PDU) */
+#define BSC_CONF_RX_BUFFER_SIZE ((BVLC_SC_NPDU_SIZE_CONF + BSC_PRE) * BSC_CONF_SOCKET_BUFFERED_PACKET_NUM)
+
 #define BSC_CONF_TX_BUFFER_SIZE (BVLC_SC_NPDU_SIZE_CONF * BSC_CONF_SOCKET_BUFFERED_PACKET_NUM)
 
 #ifndef BSC_CONF_WSURL_MAX_LEN
