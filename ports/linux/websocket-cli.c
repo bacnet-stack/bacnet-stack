@@ -488,7 +488,8 @@ static void *bws_cli_worker(void *arg)
             pthread_mutex_unlock(&bws_cli_mutex);
             DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
             dispatch_func(h, BSC_WEBSOCKET_DISCONNECTED, err_code,
-                err_code != ERROR_CODE_SUCCESS ? err_desc : NULL, NULL, 0, user_param);
+                err_code != ERROR_CODE_SUCCESS ? err_desc : NULL, NULL, 0,
+                user_param);
             return NULL;
         }
         DEBUG_PRINTF("bws_cli_worker() unlock mutex\n");
@@ -522,7 +523,6 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     BSC_WEBSOCKET_RET ret;
     pthread_t thread_id;
     int len;
-    int st;
 
     DEBUG_PRINTF("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
 
@@ -556,9 +556,9 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     bsc_websocket_global_unlock();
 
     pthread_mutex_lock(&bws_cli_mutex);
-    st = lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
+    (void)lws_parse_uri(tmp_url, &prot, &addr, &port, &path);
 
-    if (st || port == -1 || !prot || !addr || !path) {
+    if (port == -1 || !prot || !addr || !path) {
         pthread_mutex_unlock(&bws_cli_mutex);
         DEBUG_PRINTF("bws_cli_connect() <<< ret = BSC_WEBSOCKET_BAD_PARAM\n");
         return BSC_WEBSOCKET_BAD_PARAM;
