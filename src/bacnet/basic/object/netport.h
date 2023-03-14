@@ -330,6 +330,9 @@ void Network_Port_Cleanup(void);
 BACNET_STACK_EXPORT
 void Network_Port_Init(void);
 
+BACNET_STACK_EXPORT
+bool Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property);
+
 /* handling for read property service */
 BACNET_STACK_EXPORT
 int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

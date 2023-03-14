@@ -2376,6 +2376,36 @@ BACNET_SC_PARAMS *Network_Port_SC_Params(uint32_t object_instance)
 }
 
 /**
+ * Determine if the object property is a BACnetARRAY datatype
+ * @param  object_property [in] BACnet object property
+ * @return true if the object property is a BACnetARRAY datatype
+ */
+bool Network_Port_BACnetArray_Property(BACNET_PROPERTY_ID object_property)
+{
+    bool status = false;
+
+    switch (object_property) {
+        case PROP_EVENT_TIME_STAMPS:
+        case PROP_EVENT_MESSAGE_TEXTS:
+        case PROP_EVENT_MESSAGE_TEXTS_CONFIG:
+        case PROP_PROPERTY_LIST:
+        case PROP_TAGS:
+        case PROP_LINK_SPEEDS:
+        case PROP_IP_DNS_SERVER:
+        case PROP_IPV6_DNS_SERVER:
+        case PROP_ISSUER_CERTIFICATE_FILES:
+        case PROP_SC_HUB_FUNCTION_ACCEPT_URIS:
+        case PROP_SC_DIRECT_CONNECT_ACCEPT_URIS:
+            status = true;
+            break;
+        default:
+            break;
+    }
+
+    return status;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -2665,32 +2695,16 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                     rpdata->object_instance));
             break;
         case PROP_ISSUER_CERTIFICATE_FILES:
-            if (rpdata->array_index == 0) {
-                /* Array element zero is the number of objects in the list */
-                apdu_len = encode_application_unsigned(
-                    &apdu[0], BACNET_ISSUER_CERT_FILE_MAX);
-            } else if (rpdata->array_index == BACNET_ARRAY_ALL) {
-                /* if no index was specified, then try to encode the entire list
-                 */
-                /* into one packet. */
-                int len;
-                unsigned index;
-                for (index = 0; index < BACNET_ISSUER_CERT_FILE_MAX; index++) {
-                    len = encode_application_unsigned(&apdu[apdu_len],
-                        Network_Port_Issuer_Certificate_File(
-                            rpdata->object_instance, index));
-                    apdu_len += len;
-                }
-            } else if (rpdata->array_index <= BACNET_ISSUER_CERT_FILE_MAX) {
-                /* index was specified; encode a single array element */
-                apdu_len = encode_application_unsigned(&apdu[0],
-                    Network_Port_Issuer_Certificate_File(
-                        rpdata->object_instance, rpdata->array_index - 1));
-            } else {
-                /* index was specified, but out of range */
+            apdu_len = bacnet_array_encode(rpdata->object_instance,
+                rpdata->array_index,
+                Network_Port_Issuer_Certificate_File_Encode,
+                BACNET_ISSUER_CERT_FILE_MAX, apdu, apdu_size);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
                 rpdata->error_class = ERROR_CLASS_PROPERTY;
                 rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                apdu_len = BACNET_STATUS_ERROR;
             }
             break;
         case PROP_CERTIFICATE_SIGNING_REQUEST_FILE:
@@ -2790,6 +2804,14 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = BACNET_STATUS_ERROR;
             (void)apdu_size;
             break;
+    }
+    /*  only array properties can have optional array indices */
+    if ((apdu_len >= 0) &&
+        (!Network_Port_BACnetArray_Property(rpdata->object_property)) &&
+        (rpdata->array_index != BACNET_ARRAY_ALL)) {
+        rpdata->error_class = ERROR_CLASS_PROPERTY;
+        rpdata->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        apdu_len = BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

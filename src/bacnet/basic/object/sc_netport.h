@@ -262,6 +262,9 @@ uint32_t Network_Port_Issuer_Certificate_File(
 BACNET_STACK_EXPORT
 bool Network_Port_Issuer_Certificate_File_Set(
     uint32_t object_instance, uint8_t index, uint32_t value);
+BACNET_STACK_EXPORT
+int Network_Port_Issuer_Certificate_File_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu);
 
 BACNET_STACK_EXPORT
 uint32_t Network_Port_Certificate_Signing_Request_File(
