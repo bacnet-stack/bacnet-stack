@@ -584,6 +584,33 @@ bool Network_Port_Issuer_Certificate_File_Set(
     return true;
 }
 
+/**
+ * @brief Encode one BACnetARRAY property element; a function template
+ * @param object_instance [in] BACnet network port object instance number
+ * @param index [in] array index requested:
+ *    0 to n for individual array members
+ * @param apdu [out] Buffer in which the APDU contents are built, or NULL to
+ * return the length of buffer if it had been built
+ * @return The length of the apdu encoded or
+ *   BACNET_STATUS_ERROR for invalid array index
+ */
+int Network_Port_Issuer_Certificate_File_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = 0;
+    uint32_t file_instance = 0;
+
+    if (index >= BACNET_ISSUER_CERT_FILE_MAX) {
+        apdu_len = BACNET_STATUS_ERROR;
+    } else {
+        file_instance =
+            Network_Port_Issuer_Certificate_File(object_instance, index);
+        apdu_len = encode_application_unsigned(apdu, file_instance);
+    }
+
+    return apdu_len;
+}
+
 uint32_t Network_Port_Certificate_Signing_Request_File(uint32_t object_instance)
 {
     uint32_t id = 0;

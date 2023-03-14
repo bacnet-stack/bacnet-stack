@@ -431,10 +431,14 @@ extern "C" {
     int Network_Port_Read_Property(
         BACNET_READ_PROPERTY_DATA * rpdata);
 
-    /* handling for write property service */
     BACNET_STACK_EXPORT
-    bool Network_Port_Write_Property(
-        BACNET_WRITE_PROPERTY_DATA * wp_data);
+    bool Network_Port_BACnetArray_Property(
+        BACNET_PROPERTY_ID object_property);
+
+    /* handling for read property service */
+    BACNET_STACK_EXPORT
+    int Network_Port_Read_Property(
+        BACNET_READ_PROPERTY_DATA *rpdata);
 
     void Network_Port_Pending_Params_Apply(
         uint32_t object_instance);
