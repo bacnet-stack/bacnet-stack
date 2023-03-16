@@ -69,7 +69,7 @@ option(
 option(
   BACDL_BSC
   "compile with secure-connect support"
-  OFF)
+  ON)
 
 set(BACNET_PROTOCOL_REVISION 19)
 
@@ -518,7 +518,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNET: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
-
+  add_compile_definitions(BACNET_PORT=linux)
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
     ports/linux/datetime-init.c
@@ -541,7 +541,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 elseif(WIN32)
   message(STATUS "BACNET: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
-
+  add_compile_definitions(BACNET_PORT=win32)
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -566,7 +566,7 @@ elseif(WIN32)
 elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
-
+  add_compile_definitions(BACNET_PORT=bsd)
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
     ports/bsd/bip-init.c
