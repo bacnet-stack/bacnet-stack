@@ -968,27 +968,15 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_hub_function_status(
     return ret;
 }
 
-BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_direct_connection_acceptor_status(
+BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_direct_connection_status(
     BSC_NODE *node, size_t *cnt)
 {
     BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
-        node->conf->direct_connect_accept_enable) {
-        ret = bsc_node_switch_acceptor_status(node->node_switch, cnt);
-    }
-    bws_dispatch_unlock();
-    return ret;
-}
-
-BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_direct_connection_initiator_status(
-    BSC_NODE *node, size_t *cnt)
-{
-    BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
-    bws_dispatch_lock();
-    if (node->state == BSC_NODE_STATE_STARTED &&
-        node->conf->direct_connect_initiate_enable) {
-        ret = bsc_node_switch_initiator_status(node->node_switch, cnt);
+        (node->conf->direct_connect_accept_enable ||
+            node->conf->direct_connect_initiate_enable)) {
+        ret = bsc_node_switch_status(node->node_switch, cnt);
     }
     bws_dispatch_unlock();
     return ret;

@@ -148,11 +148,7 @@ bsc_node_hub_function_status(BSC_NODE *node, size_t* cnt);
 
 BACNET_STACK_EXPORT
 BACNET_SC_DIRECT_CONNECTION_STATUS*
-bsc_node_direct_connection_acceptor_status(BSC_NODE *node, size_t* cnt);
-
-BACNET_STACK_EXPORT
-BACNET_SC_DIRECT_CONNECTION_STATUS*
-bsc_node_direct_connection_initiator_status(BSC_NODE *node, size_t* cnt);
+bsc_node_direct_connection_status(BSC_NODE *node, size_t* cnt);
 
 BACNET_STACK_EXPORT
 void bsc_node_store_failed_request_info(BSC_NODE *node,

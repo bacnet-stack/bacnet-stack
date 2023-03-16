@@ -125,11 +125,7 @@ BSC_SC_RET bsc_node_switch_send(
 
 BACNET_STACK_EXPORT
 BACNET_SC_DIRECT_CONNECTION_STATUS*
-bsc_node_switch_acceptor_status(BSC_NODE_SWITCH_HANDLE h, size_t* cnt);
-
-BACNET_STACK_EXPORT
-BACNET_SC_DIRECT_CONNECTION_STATUS*
-bsc_node_switch_initiator_status(BSC_NODE_SWITCH_HANDLE h, size_t* cnt);
+bsc_node_switch_status(BSC_NODE_SWITCH_HANDLE h, size_t* cnt);
 
 BACNET_STACK_EXPORT
 void bsc_node_switch_maintenance_timer(uint16_t seconds);

@@ -110,7 +110,7 @@ extern "C" {
         char SC_Direct_Connect_Binding[BACNET_BINDING_STRING_LENGTH];
         char SC_Direct_Connect_Binding_dirty[BACNET_BINDING_STRING_LENGTH];
         BACNET_SC_DIRECT_CONNECTION_STATUS SC_Direct_Connect_Connection_Status[
-            2 * BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+            BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
         uint8_t SC_Direct_Connect_Connection_Status_Count;
         uint16_t Direct_Server_Port;
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */

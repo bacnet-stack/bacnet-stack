@@ -459,21 +459,15 @@ static void bsc_add_direct_status_to_netport(
 
 static void bsc_update_direct_connection_status(void)
 {
-    BACNET_SC_DIRECT_CONNECTION_STATUS *s1;
-    BACNET_SC_DIRECT_CONNECTION_STATUS *s2;
-    size_t cnt1;
-    size_t cnt2;
+    BACNET_SC_DIRECT_CONNECTION_STATUS *s = NULL;
+    size_t cnt = 0;
     uint32_t instance = Network_Port_Index_To_Instance(0);
 
-    s1 = bsc_node_direct_connection_initiator_status(bsc_node, &cnt1);
-    s2 = bsc_node_direct_connection_acceptor_status(bsc_node, &cnt2);
-    if (s1 || s2) {
+    s = bsc_node_direct_connection_status(bsc_node, &cnt);
+    if (s) {
         Network_Port_SC_Direct_Connect_Connection_Status_Delete_All(instance);
-        if (s1 && cnt1) {
-            bsc_add_direct_status_to_netport(s1, cnt1);
-        }
-        if (s2 && cnt2) {
-            bsc_add_direct_status_to_netport(s2, cnt2);
+        if (s && cnt) {
+            bsc_add_direct_status_to_netport(s, cnt);
         }
     }
 }

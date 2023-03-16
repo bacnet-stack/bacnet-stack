@@ -106,7 +106,6 @@ typedef struct BSC_Node_Switch_Initiator {
     struct mstimer t[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_URLS urls[BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM];
     BSC_NODE_SWITCH_STATE state;
-    BACNET_SC_DIRECT_CONNECTION_STATUS *status;
 } BSC_NODE_SWITCH_INITIATOR;
 
 typedef struct {
@@ -118,28 +117,21 @@ typedef struct {
     unsigned int address_resolution_timeout_s;
     bool direct_connect_accept_enable;
     bool direct_connect_initiate_enable;
+    BACNET_SC_DIRECT_CONNECTION_STATUS *status;
     void *user_arg;
 } BSC_NODE_SWITCH_CTX;
 
 #if BSC_CONF_NODE_SWITCHES_NUM > 0
 static BSC_NODE_SWITCH_CTX bsc_node_switch[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
-static bool bsc_initiator_status_initialized[BSC_CONF_NODE_SWITCHES_NUM] = {
-    0
-};
-static bool bsc_acceptor_status_initialized[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
+static bool bsc_status_initialized[BSC_CONF_NODE_SWITCHES_NUM] = { 0 };
 #else
 static BSC_NODE_SWITCH_CTX *bsc_node_switch = NULL;
-static bool *bsc_initiator_status_initialized = NULL;
-static bool *bsc_acceptor_status_initialized = NULL;
+static bool *bsc_status_initialized = NULL;
 #endif
 
 static BACNET_SC_DIRECT_CONNECTION_STATUS
-    bsc_initiator_status[BSC_CONF_NODE_SWITCHES_NUM]
-                        [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
-
-static BACNET_SC_DIRECT_CONNECTION_STATUS
-    bsc_acceptor_status[BSC_CONF_NODE_SWITCHES_NUM]
-                       [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+    bsc_status[BSC_CONF_NODE_SWITCHES_NUM]
+              [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
 
 static BSC_SOCKET_CTX_FUNCS bsc_node_switch_acceptor_ctx_funcs = {
     node_switch_acceptor_find_connection_for_vmac,
@@ -177,18 +169,13 @@ static BSC_NODE_SWITCH_CTX *node_switch_alloc(void)
                 sizeof(bsc_node_switch[i].initiator));
             memset(&bsc_node_switch[i].acceptor, 0,
                 sizeof(bsc_node_switch[i].acceptor));
-            bsc_node_switch[i].initiator.status = &bsc_initiator_status[i][0];
-            bsc_node_switch[i].acceptor.status = &bsc_acceptor_status[i][0];
+            bsc_node_switch[i].status = &bsc_status[i][0];
             /* Start/stop cycles of a hub function must not make an influence to
              * history related to connection status */
             /* That's why status array is initialized only once */
-            if (!bsc_initiator_status_initialized[i]) {
-                node_init_status_array(bsc_node_switch[i].initiator.status);
-                bsc_initiator_status_initialized[i] = true;
-            }
-            if (!bsc_acceptor_status_initialized[i]) {
-                node_init_status_array(bsc_node_switch[i].acceptor.status);
-                bsc_acceptor_status_initialized[i] = true;
+            if (!bsc_status_initialized[i]) {
+                node_init_status_array(bsc_node_switch[i].status);
+                bsc_status_initialized[i] = true;
             }
             return &bsc_node_switch[i];
         }
@@ -207,34 +194,30 @@ static BACNET_SC_DIRECT_CONNECTION_STATUS *node_switch_find_status_for_vmac(
     BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
-    int non_connected_index = -1;
+    int index = 0;
     BACNET_DATE_TIME timestamp;
 
+    memcpy(&timestamp, &s[0].Connect_Timestamp, sizeof(timestamp));
+
     for (i = 0; i < s_len; i++) {
+        if (!datetime_is_valid(
+                &s[i].Connect_Timestamp.date, &s[i].Connect_Timestamp.time)) {
+            return &s[i];
+        }
         if (!memcmp(&s[i].Peer_VMAC[0], &vmac->address[0], BVLC_SC_VMAC_SIZE)) {
             return &s[i];
         }
-        if (s[i].State != BACNET_CONNECTED) {
-            if (non_connected_index < 0) {
-                non_connected_index = i;
-                memcpy(
-                    &timestamp, &s[i].Disconnect_Timestamp, sizeof(timestamp));
-            } else {
-                if (datetime_is_valid(&s[i].Disconnect_Timestamp.date,
-                        &s[i].Disconnect_Timestamp.time) &&
-                    datetime_is_valid(&timestamp.date, &timestamp.time)) {
-                    if (datetime_compare(
-                            &s[i].Disconnect_Timestamp, &timestamp) < 0) {
-                        non_connected_index = i;
-                        memcpy(&timestamp, &s[i].Disconnect_Timestamp,
-                            sizeof(timestamp));
-                    }
-                }
+        if (datetime_is_valid(&s[i].Connect_Timestamp.date,
+                &s[i].Disconnect_Timestamp.time) &&
+            datetime_is_valid(&timestamp.date, &timestamp.time)) {
+            if (datetime_compare(&s[i].Connect_Timestamp, &timestamp) < 0) {
+                index = i;
+                memcpy(&timestamp, &s[i].Connect_Timestamp, sizeof(timestamp));
             }
         }
     }
 
-    return non_connected_index < 0 ? NULL : &s[non_connected_index];
+    return &s[index];
 }
 
 static void node_switch_update_status(BSC_NODE_SWITCH_CTX *ctx,
@@ -254,8 +237,7 @@ static void node_switch_update_status(BSC_NODE_SWITCH_CTX *ctx,
         ctx, initiator, failed_to_connect, URI, c, ev, reason, reason_desc);
 
     s = node_switch_find_status_for_vmac(
-        initiator ? ctx->initiator.status : ctx->acceptor.status,
-        BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM, &c->vmac);
+        ctx->status, BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM, &c->vmac);
 
     if (s) {
         DEBUG_PRINTF("found existent status entry %p for vmac = %s\n", s,
@@ -1156,32 +1138,17 @@ bool bsc_node_switch_connected(BSC_NODE_SWITCH_HANDLE h,
     return ret;
 }
 
-BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_switch_acceptor_status(
+BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_switch_status(
     BSC_NODE_SWITCH_HANDLE h, size_t *cnt)
 {
     BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
     BSC_NODE_SWITCH_CTX *ns;
     bws_dispatch_lock();
     ns = (BSC_NODE_SWITCH_CTX *)h;
-    if (ns->direct_connect_accept_enable &&
-        ns->acceptor.state == BSC_NODE_SWITCH_STATE_STARTED) {
-        ret = ns->acceptor.status;
-        *cnt = BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM;
-    }
-    bws_dispatch_unlock();
-    return ret;
-}
-
-BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_switch_initiator_status(
-    BSC_NODE_SWITCH_HANDLE h, size_t *cnt)
-{
-    BACNET_SC_DIRECT_CONNECTION_STATUS *ret = NULL;
-    BSC_NODE_SWITCH_CTX *ns;
-    bws_dispatch_lock();
-    ns = (BSC_NODE_SWITCH_CTX *)h;
-    if (ns->direct_connect_initiate_enable &&
-        ns->initiator.state == BSC_NODE_SWITCH_STATE_STARTED) {
-        ret = ns->initiator.status;
+    if (ns->acceptor.state == BSC_NODE_SWITCH_STATE_STARTED &&
+        (ns->direct_connect_accept_enable ||
+            ns->direct_connect_initiate_enable)) {
+        ret = ns->status;
         *cnt = BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM;
     }
     bws_dispatch_unlock();

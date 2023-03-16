@@ -96,8 +96,8 @@ static BSC_HUB_FUNCTION *hub_function_alloc(void)
         if (!bsc_hub_function[i].used) {
             bsc_hub_function[i].used = true;
             bsc_hub_function[i].status =
-                (BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *)
-                 &bsc_hub_status[i][0];
+                (BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *)&bsc_hub_status[i]
+                                                                           [0];
 
             /* Start/stop cycles of a hub function must not make an influence to
              * history related to connection status */
@@ -187,35 +187,31 @@ hub_function_find_status_for_vmac(
     BSC_HUB_FUNCTION *f, BACNET_SC_VMAC_ADDRESS *vmac)
 {
     int i;
-    int non_connected_index = -1;
+    int index = 0;
     BACNET_DATE_TIME timestamp;
 
     for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (!datetime_is_valid(&f->status[i].Connect_Timestamp.date,
+                &f->status[i].Connect_Timestamp.time)) {
+            return &f->status[i];
+        }
         if (!memcmp(&f->status[i].Peer_VMAC[0], &vmac->address[0],
                 BVLC_SC_VMAC_SIZE)) {
             return &f->status[i];
         }
-        if (f->status[i].State != BACNET_CONNECTED) {
-            if (non_connected_index < 0) {
-                non_connected_index = i;
-                memcpy(&timestamp, &f->status[i].Disconnect_Timestamp,
+        if (datetime_is_valid(&f->status[i].Connect_Timestamp.date,
+                &f->status[i].Connect_Timestamp.time) &&
+            datetime_is_valid(&timestamp.date, &timestamp.time)) {
+            if (datetime_compare(&f->status[i].Connect_Timestamp, &timestamp) <
+                0) {
+                index = i;
+                memcpy(&timestamp, &f->status[i].Connect_Timestamp,
                     sizeof(timestamp));
-            } else {
-                if (datetime_is_valid(&f->status[i].Disconnect_Timestamp.date,
-                        &f->status[i].Disconnect_Timestamp.time) &&
-                    datetime_is_valid(&timestamp.date, &timestamp.time)) {
-                    if (datetime_compare(&f->status[i].Disconnect_Timestamp,
-                            &timestamp) < 0) {
-                        non_connected_index = i;
-                        memcpy(&timestamp, &f->status[i].Disconnect_Timestamp,
-                            sizeof(timestamp));
-                    }
-                }
             }
         }
     }
 
-    return non_connected_index < 0 ? NULL : &f->status[non_connected_index];
+    return &f->status[index];
 }
 
 static void hub_function_update_status(BSC_HUB_FUNCTION *f,
