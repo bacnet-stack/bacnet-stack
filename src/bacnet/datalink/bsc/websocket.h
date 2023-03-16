@@ -120,6 +120,10 @@ typedef enum {
 /* 
    values of ws_reason and ws_reason_desc parameters are actual
    only for BSC_WEBSOCKET_DISCONNECTED event.
+
+   you can assume that buf pointer provided for BSC_WEBSOCKET_RECEIVED
+   has BSC_CONF_RX_PRE reserved before actual payload. That trick
+   allows to avoid additional memcpy for upper layer.
 */
 
 typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,
@@ -221,7 +225,19 @@ void bws_cli_send(BSC_WEBSOCKET_HANDLE h);
  *        In as case if data was not sent for some reasons thic could result
  *        dispatch_func() cal with event BSC_WEBSOCKET_DISCONNECTED
  * @param h - websocket handle.
- * @param payload - pointer to a data to send.
+ * @param payload - pointer to a data to send. It is assumed that
+ *                  BSC_CONF_TX_PRE bytes are available before payload.
+ *                  So for example you need this kind of code to use
+ *                  bws_srv_dispatch_send with a 128-byte payload:
+ *
+ *                   char buf[BSC_CONF_TX_PRE + 128];
+ *
+ *                  // fill your part of the buffer... for example here
+ *                  // it's all zeros
+ *
+ *                  memset(&buf[BSC_CONF_TX_PRE], 0, 128);
+ *                  bws_cli_dispatch_send(sh, h, &buf[BSC_CONF_TX_PRE], 128);
+ *
  * @param payload_size - size in bytes of data to send.
  *
  * @return error code from BSC_WEBSOCKET_RET enum.
@@ -354,7 +370,19 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h);
  *
  * @pararm sh - websocket server handle.
  * @param h - websocket handle.
- * @param payload - pointer to a data to send.
+ * @param payload - pointer to a data to send. It is assumed that
+ *                  BSC_CONF_TX_PRE bytes are available before payload.
+ *                  So for example you need this kind of code to use
+ *                  bws_srv_dispatch_send with a 128-byte payload:
+ *
+ *                   char buf[BSC_CONF_TX_PRE + 128];
+ *
+ *                  // fill your part of the buffer... for example here
+ *                  // it's all zeros
+ *
+ *                  memset(&buf[BSC_CONF_TX_PRE], 0, 128);
+ *                  bws_srv_dispatch_send(sh, h, &buf[BSC_CONF_TX_PRE], 128);
+ *
  * @param payload_size - size in bytes of data to send.
  *
  * @return error code from BSC_WEBSOCKET_RET enum.
