@@ -31,7 +31,7 @@
 #define DEBUG_PRINTF(...)
 #endif
 
-#define BSC_INITIAL_BUFFER_LEN BSC_WEBSOCKET_INITIAL_RECV_BUFFER_LEN
+#define BSC_RX_BUFFER_LEN BSC_WEBSOCKET_RX_BUFFER_LEN
 
 #ifndef LWS_PROTOCOL_LIST_TERM
 #define LWS_PROTOCOL_LIST_TERM       \
@@ -445,28 +445,33 @@ static int bws_srv_websocket_event(struct lws *wsi,
                 } else {
                     if (!ctx->conn[h].fragment_buffer) {
                         ctx->conn[h].fragment_buffer =
-                            malloc(len <= BSC_INITIAL_BUFFER_LEN
-                                    ? BSC_INITIAL_BUFFER_LEN
-                                    : len);
+                            malloc(BSC_RX_BUFFER_LEN);
                         if (!ctx->conn[h].fragment_buffer) {
                             lws_close_reason(wsi,
                                 LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
                             pthread_mutex_unlock(ctx->mutex);
                             DEBUG_PRINTF("bws_srv_websocket_event() <<< ret = "
                                          "-1, allocation of %d bytes failed\n",
-                                len <= BSC_INITIAL_BUFFER_LEN
-                                    ? BSC_INITIAL_BUFFER_LEN
-                                    : len);
+                                len <= BSC_RX_BUFFER_LEN ? BSC_RX_BUFFER_LEN
+                                                         : len);
                             return -1;
                         }
                         ctx->conn[h].fragment_buffer_len = 0;
-                        ctx->conn[h].fragment_buffer_size = len;
+                        ctx->conn[h].fragment_buffer_size = BSC_RX_BUFFER_LEN;
                     }
                     if (ctx->conn[h].fragment_buffer_len + len >
-                        ctx->conn[h].fragment_buffer_size) {
+                        ctx->conn[h].fragment_buffer_size - BSC_CONF_RX_PRE) {
+                        DEBUG_PRINTF(
+                            "bws_srv_websocket_event() realloc buf of %d bytes"
+                            "for socket %d to %d bytes\n",
+                            ctx->conn[h].fragment_buffer_len, h,
+                            ctx->conn[h].fragment_buffer_len + len +
+                                BSC_CONF_RX_PRE);
+
                         ctx->conn[h].fragment_buffer =
                             realloc(ctx->conn[h].fragment_buffer,
-                                ctx->conn[h].fragment_buffer_len + len);
+                                ctx->conn[h].fragment_buffer_len + len +
+                                    BSC_CONF_RX_PRE);
                         if (!ctx->conn[h].fragment_buffer) {
                             lws_close_reason(wsi,
                                 LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
@@ -478,15 +483,15 @@ static int bws_srv_websocket_event(struct lws *wsi,
                             return -1;
                         }
                         ctx->conn[h].fragment_buffer_size =
-                            ctx->conn[h].fragment_buffer_len + len;
+                            ctx->conn[h].fragment_buffer_len + len +
+                            BSC_CONF_RX_PRE;
                     }
                     DEBUG_PRINTF(
                         "bws_srv_websocket_event() got next %d bytes for "
-                        "socket %d\n",
-                        len, h);
-                    memcpy(
-                        &ctx->conn[h]
-                             .fragment_buffer[ctx->conn[h].fragment_buffer_len],
+                        "socket %d total_len %d\n",
+                        len, h, ctx->conn[h].fragment_buffer_len);
+                    memcpy(&ctx->conn[h].fragment_buffer[BSC_CONF_RX_PRE +
+                               ctx->conn[h].fragment_buffer_len],
                         in, len);
                     ctx->conn[h].fragment_buffer_len += len;
                     if (lws_is_final_fragment(wsi) && !ctx->stop_worker) {
@@ -495,7 +500,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         pthread_mutex_unlock(ctx->mutex);
                         dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
                             BSC_WEBSOCKET_RECEIVED, 0, NULL,
-                            ctx->conn[h].fragment_buffer,
+                            &ctx->conn[h].fragment_buffer[BSC_CONF_RX_PRE],
                             ctx->conn[h].fragment_buffer_len, user_param);
                         pthread_mutex_lock(ctx->mutex);
                         ctx->conn[h].fragment_buffer_len = 0;
@@ -891,7 +896,6 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     size_t payload_size)
 {
     int written;
-    uint8_t *tmp_buf;
     BSC_WEBSOCKET_RET ret;
     BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
 
@@ -934,23 +938,8 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
-    /* malloc() and copying is evil, but libwesockets wants some space before
-       actual payload.
-    */
-
-    tmp_buf = malloc(payload_size + LWS_PRE);
-
-    if (!tmp_buf) {
-        DEBUG_PRINTF(
-            "bws_srv_dispatch_send() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
-        pthread_mutex_unlock(ctx->mutex);
-        return BSC_WEBSOCKET_NO_RESOURCES;
-    }
-
-    memcpy(&tmp_buf[LWS_PRE], payload, payload_size);
-
-    written = lws_write(
-        ctx->conn[h].ws, &tmp_buf[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    written =
+        lws_write(ctx->conn[h].ws, payload, payload_size, LWS_WRITE_BINARY);
 
     DEBUG_PRINTF("bws_srv_dispatch_send() %d bytes is sent\n", written);
 
@@ -966,7 +955,6 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     pthread_mutex_unlock(ctx->mutex);
-    free(tmp_buf);
     DEBUG_PRINTF("bws_srv_dispatch_send() <<< ret = %d\n", ret);
     return ret;
 }
