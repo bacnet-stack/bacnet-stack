@@ -1691,7 +1691,7 @@ static void test_sc_datalink_properties(void)
     BSC_NODE *node3;
     BSC_NODE *node4;
     BACNET_SC_DIRECT_CONNECTION_STATUS *sd;
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *sh;
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *sh = NULL;
 
     memset(&uuid1, 0x1, sizeof(uuid1));
     memset(&vmac1, 0x2, sizeof(vmac1));
@@ -1851,6 +1851,7 @@ static void test_sc_datalink_properties(void)
         true, NULL);
     sh = Network_Port_SC_Hub_Function_Connection_Status_Get(
         Network_Port_Index_To_Instance(0), 0);
+    zassert_equal(sh!=NULL, true, 0);
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
     /* this wait is needed for different Disconnect_Timestamp in status */

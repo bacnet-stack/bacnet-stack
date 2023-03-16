@@ -15,6 +15,22 @@
 #define __BSC__CONF__INCLUDED__
 
 #include "bacnet/bacdef.h"
+#include "bvlc-sc.h"
+
+#ifndef BSC_CONF_TX_PRE
+#if BACNET_PORT == bsd || BACNET_PORT == linux
+#include <libwebsockets.h>
+#define BSC_CONF_TX_PRE LWS_PRE
+#else
+#define BSC_CONF_TX_PRE 0
+#endif
+#else
+#define BSC_CONF_TX_PRE 0
+#endif
+
+#ifndef BSC_CONF_RX_PRE
+#define BSC_CONF_RX_PRE BSC_PRE
+#endif
 
 #ifndef BSC_CONF_HUB_CONNECTORS_NUM
 #define BSC_CONF_HUB_CONNECTORS_NUM 1
@@ -38,8 +54,8 @@
 #define BVLC_SC_NPDU_SIZE_CONF ((MAX_PDU) + 16)
 #endif
 
-#ifndef BSC_CONF_WEBSOCKET_INITIAL_RECV_BUFFER_LEN
-#define BSC_CONF_WEBSOCKET_INITIAL_RECV_BUFFER_LEN BVLC_SC_NPDU_SIZE_CONF
+#ifndef BSC_CONF_WEBSOCKET_RX_BUFFER_LEN
+#define BSC_CONF_WEBSOCKET_RX_BUFFER_LEN (BVLC_SC_NPDU_SIZE_CONF+BSC_CONF_RX_PRE)
 #endif
 
 /* THIS should not be changed, most of BACNet/SC devices must have */
@@ -61,6 +77,7 @@
 #define BSC_CONF_CLIENT_CONNECTIONS_NUM (BSC_CONF_HUB_CONNECTOR_CONNECTIONS_NUM + BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM*BSC_CONF_NODE_SWITCHES_NUM)
 #endif
 
+
 #ifndef BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM
 #define BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM (BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM)
 #endif
@@ -69,15 +86,31 @@
 #define BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM  (BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM*BSC_CONF_NODE_SWITCHES_NUM)
 #endif
 
-#define BSC_CONF_SOCKET_BUFFERED_PACKET_NUM 2
+#define BSC_CONF_SOCKET_TX_BUFFERED_PACKET_NUM 2
 #define BSC_CONF_DATALINK_BUFFERED_PACKET_NUM 10
 
-/* BSC_PRE bytes is always reserved before BVLC message header
-   to avoid copying of packet payload during manipulation with
-   origin and dest addresses (add them to received PDU) */
-#define BSC_CONF_RX_BUFFER_SIZE ((BVLC_SC_NPDU_SIZE_CONF + BSC_PRE) * BSC_CONF_SOCKET_BUFFERED_PACKET_NUM)
+/* BSC_CONF_RX_PRE bytes is always reserved before header of received
+   BVLC message to avoid copying of packet payload during manipulation
+   with origin and dest addresses (add them to received PDU).
+   */
 
-#define BSC_CONF_TX_BUFFER_SIZE (BVLC_SC_NPDU_SIZE_CONF * BSC_CONF_SOCKET_BUFFERED_PACKET_NUM)
+#define BSC_CONF_SOCK_RX_BUFFER_SIZE (BVLC_SC_NPDU_SIZE_CONF + BSC_CONF_RX_PRE)
+
+/* 2 bytes is a prefix containing BVLC message length.
+   BSC_CONF_TX_PRE - some reserved bytes before actual payload.
+   Some libs like libwebsocket requires some bytes to be reserverd
+   before actual payload for sending, so BSC_CONF_TX_PRE is used for
+   that purpose (it allows to avoid copying of payload and
+   buffer reallocation)
+*/
+
+#define BSC_CONF_SOCK_TX_BUFFER_SIZE ((BVLC_SC_NPDU_SIZE_CONF + 2 + BSC_CONF_TX_PRE) * BSC_CONF_SOCKET_TX_BUFFERED_PACKET_NUM)
+
+/* datalink RX buffer size is always rounded to next power of two */
+/* so if final buffer size is 1628 it will be rounded to 2048 */
+
+#define BSC_CONF_DATALINK_RX_BUFFER_SIZE (BVLC_SC_NPDU_SIZE_CONF * BSC_CONF_DATALINK_BUFFERED_PACKET_NUM)
+
 
 #ifndef BSC_CONF_WSURL_MAX_LEN
 #define BSC_CONF_WSURL_MAX_LEN 128
@@ -93,7 +126,7 @@
 
 #ifndef BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK
 #define BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK \
-        (BSC_CONF_RX_BUFFER_SIZE/BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK - 1)
+        (BSC_CONF_SOCK_RX_BUFFER_SIZE/BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK - 1)
 #endif
 
 #ifndef BSC_CONF_OPERATIONAL_CERTIFICATE_FILE_INSTANCE

@@ -1151,11 +1151,13 @@ static void reset_sock_ev(sock_ev_t *ev)
 {
     ev->ev_code = -1;
     ev->err = -1;
+    bsc_event_reset(ev->ev);
 }
 
 static void reset_ctx_ev(ctx_ev_t *ev)
 {
     ev->ev_code = -1;
+    bsc_event_reset(ev->ev);
 }
 
 static void signal_sock_ev(
@@ -1243,7 +1245,7 @@ static void cli_simple_socket_event(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("cli ev = %d, reason = %d\n", ev, reason);
+    debug_printf("cli ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev);
 
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
@@ -1260,7 +1262,7 @@ static void cli_simple_socket_event2(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("cli2 ev = %d, reason = %d\n", ev, reason);
+    debug_printf("cli2 ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev2);
 
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
@@ -1277,7 +1279,7 @@ static void srv_simple_socket_event(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    debug_printf("srv ev = %d, reason = %d\n", ev, reason);
+    debug_printf("srv ev = %d, reason = %d, ev = %p\n", ev, reason, &srv_ev);
     srv_sock = c;
     if (ev == BSC_SOCKET_EVENT_RECEIVED) {
         memcpy(recv_buf, pdu, pdu_len);
@@ -1859,7 +1861,7 @@ static void test_bad_params(void)
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     ret = bsc_send(
-        &cli_socks[0], (uint8_t *)&client_uuid, BSC_CONF_TX_BUFFER_SIZE * 2);
+        &cli_socks[0], (uint8_t *)&client_uuid, BSC_CONF_SOCK_TX_BUFFER_SIZE * 2);
     zassert_equal(ret, BSC_SC_NO_RESOURCES, 0);
     reset_sock_ev(&cli_ev);
     reset_sock_ev(&srv_ev);

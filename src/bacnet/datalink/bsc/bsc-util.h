@@ -17,10 +17,10 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/datalink/bsc/bsc-node.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
+#include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/datetime.h"
 #include <stdbool.h>
 

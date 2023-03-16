@@ -1056,96 +1056,102 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define DEFAULT_TIMEOUT 10
 #define DEFAULT_WAIT_TIMEOUT_MS 100
 
-typedef struct
-{
-  BSC_WEBSOCKET_EVENT ev;
-  BSC_WEBSOCKET_HANDLE h;
-  BSC_WEBSOCKET_SRV_HANDLE sh;
-  uint8_t in_buf[12*1024];
-  size_t in_buf_size;
-  uint8_t out_buf[12*1024];
-  size_t out_buf_size;
+typedef struct {
+    BSC_WEBSOCKET_EVENT ev;
+    BSC_WEBSOCKET_HANDLE h;
+    BSC_WEBSOCKET_SRV_HANDLE sh;
+    uint8_t in_buf[12 * 1024];
+    size_t in_buf_size;
+    uint8_t out_buf[12 * 1024];
+    size_t out_buf_size;
 } test_ctx_t;
 
-static void wait_for_event(test_ctx_t* ctx, BSC_WEBSOCKET_EVENT ev)
+static void wait_for_event(test_ctx_t *ctx, BSC_WEBSOCKET_EVENT ev)
 {
-  while(ctx->ev != ev) {
-    usleep(DEFAULT_WAIT_TIMEOUT_MS*1000);
-  }
-  ctx->ev = -1;
+    while (ctx->ev != ev) {
+        usleep(DEFAULT_WAIT_TIMEOUT_MS * 1000);
+    }
+    ctx->ev = -1;
 }
 
 static void cli_event(BSC_WEBSOCKET_HANDLE h,
-               BSC_WEBSOCKET_EVENT ev,
-               BACNET_ERROR_CODE ws_reason,
-               char* ws_reason_desc,
-               uint8_t* buf,
-               size_t bufsize,
-               void* user_param)
+    BSC_WEBSOCKET_EVENT ev,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
+    uint8_t *buf,
+    size_t bufsize,
+    void *user_param)
 {
-  test_ctx_t* ctx = (test_ctx_t*) user_param;
-  BSC_WEBSOCKET_RET ret;
+    test_ctx_t *ctx = (test_ctx_t *)user_param;
+    BSC_WEBSOCKET_RET ret;
 
-  if(ev == BSC_WEBSOCKET_CONNECTED) {
-     ctx->ev = BSC_WEBSOCKET_CONNECTED;
-  }
-  else if(ev == BSC_WEBSOCKET_SENDABLE) {
-    ret = bws_cli_dispatch_send( h, ctx->out_buf, ctx->out_buf_size);
-    zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
-  }
-  else if(ev == BSC_WEBSOCKET_RECEIVED) {
-     zassert_equal(sizeof(ctx->in_buf) >= bufsize, true, NULL);
-     memcpy(ctx->in_buf, buf, bufsize);
-     ctx->in_buf_size = bufsize;
-     ctx->ev = BSC_WEBSOCKET_RECEIVED;
-  }
-  else if(ev == BSC_WEBSOCKET_DISCONNECTED) {
-     ctx->ev = BSC_WEBSOCKET_DISCONNECTED;
-  }
+    if (ev == BSC_WEBSOCKET_CONNECTED) {
+        ctx->ev = BSC_WEBSOCKET_CONNECTED;
+    } else if (ev == BSC_WEBSOCKET_SENDABLE) {
+        uint8_t *p = malloc(sizeof(ctx->out_buf) + BSC_CONF_TX_PRE);
+        memcpy(&p[BSC_CONF_TX_PRE], ctx->out_buf, ctx->out_buf_size);
+        ret = bws_cli_dispatch_send(h, &p[BSC_CONF_TX_PRE], ctx->out_buf_size);
+        zassert_equal(ret == BSC_WEBSOCKET_SUCCESS, true, 0);
+        free(p);
+    } else if (ev == BSC_WEBSOCKET_RECEIVED) {
+        zassert_equal(sizeof(ctx->in_buf) >= bufsize, true, NULL);
+        memcpy(ctx->in_buf, buf, bufsize);
+        ctx->in_buf_size = bufsize;
+        ctx->ev = BSC_WEBSOCKET_RECEIVED;
+    } else if (ev == BSC_WEBSOCKET_DISCONNECTED) {
+        ctx->ev = BSC_WEBSOCKET_DISCONNECTED;
+    }
 }
 
-static void srv_event (BSC_WEBSOCKET_SRV_HANDLE sh,
-                BSC_WEBSOCKET_HANDLE h,
-                BSC_WEBSOCKET_EVENT ev,
-                BACNET_ERROR_CODE ws_reason,
-                char* ws_reason_desc,
-                uint8_t* buf,
-                size_t bufsize,
-                void* user_param)
+static void srv_event(BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    BSC_WEBSOCKET_EVENT ev,
+    BACNET_ERROR_CODE ws_reason,
+    char *ws_reason_desc,
+    uint8_t *buf,
+    size_t bufsize,
+    void *user_param)
 {
-  test_ctx_t* ctx = (test_ctx_t*) user_param;
-  BSC_WEBSOCKET_RET ret;
+    test_ctx_t *ctx = (test_ctx_t *)user_param;
+    BSC_WEBSOCKET_RET ret;
 
-  if(ev == BSC_WEBSOCKET_SERVER_STARTED) {
-     ctx->ev = BSC_WEBSOCKET_SERVER_STARTED;
-  }
-  else if(ev == BSC_WEBSOCKET_SERVER_STOPPED) {
-     ctx->ev = BSC_WEBSOCKET_SERVER_STOPPED;
-  }
-  else if(ev == BSC_WEBSOCKET_CONNECTED) {
-     ctx->ev = BSC_WEBSOCKET_CONNECTED;
-     ctx->h = h;
-  }
-  else if(ev == BSC_WEBSOCKET_SENDABLE) {
-    ret = bws_srv_dispatch_send( sh, h, ctx->out_buf, ctx->out_buf_size);
-    zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
-  }
-  else if(ev == BSC_WEBSOCKET_RECEIVED) {
-     zassert_equal(sizeof(ctx->in_buf) >= bufsize, true, NULL);
-     memcpy(ctx->in_buf, buf, bufsize);
-     ctx->in_buf_size = bufsize;
-     ctx->ev = BSC_WEBSOCKET_RECEIVED;
-  }
+    if (ev == BSC_WEBSOCKET_SERVER_STARTED) {
+        ctx->ev = BSC_WEBSOCKET_SERVER_STARTED;
+    } else if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
+        ctx->ev = BSC_WEBSOCKET_SERVER_STOPPED;
+    } else if (ev == BSC_WEBSOCKET_CONNECTED) {
+        ctx->ev = BSC_WEBSOCKET_CONNECTED;
+        ctx->h = h;
+    } else if (ev == BSC_WEBSOCKET_SENDABLE) {
+        uint8_t *p = malloc(sizeof(ctx->out_buf) + BSC_CONF_TX_PRE);
+        memcpy(&p[BSC_CONF_TX_PRE], ctx->out_buf, ctx->out_buf_size);
+        ret = bws_srv_dispatch_send(
+            sh, h, &p[BSC_CONF_TX_PRE], ctx->out_buf_size);
+        zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
+    } else if (ev == BSC_WEBSOCKET_RECEIVED) {
+        zassert_equal(sizeof(ctx->in_buf) >= bufsize, true, NULL);
+        memcpy(ctx->in_buf, buf, bufsize);
+        ctx->in_buf_size = bufsize;
+        ctx->ev = BSC_WEBSOCKET_RECEIVED;
+    }
+}
+
+static void fill_buf(uint8_t *buf, size_t bufsize, uint8_t shift)
+{
+    size_t i;
+    for (i = 0; i < bufsize; i++) {
+        buf[i] = i + shift;
+    }
 }
 
 static void test_simple(void)
 {
     BSC_WEBSOCKET_RET ret;
-    test_ctx_t cli_ctx;
-    test_ctx_t srv_ctx;
+    static test_ctx_t cli_ctx;
+    static test_ctx_t srv_ctx;
     BSC_WEBSOCKET_HANDLE h;
     char url[128];
-    char* iface = NULL;
+    char *iface = NULL;
     char ip_addr[128];
     uint16_t port;
     bool res;
@@ -1159,32 +1165,27 @@ static void test_simple(void)
     sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
 
-   ret = bws_srv_start(BSC_WEBSOCKET_HUB_PROTOCOL,
-                        BACNET_WEBSOCKET_SERVER_PORT, 
-                        iface,
-                        ca_cert, sizeof(ca_cert),
-                        server_cert, sizeof(server_cert),
-                        server_key, sizeof(server_key),
-                        DEFAULT_TIMEOUT, srv_event, &srv_ctx, &srv_ctx.sh);
+    ret = bws_srv_start(BSC_WEBSOCKET_HUB_PROTOCOL,
+        BACNET_WEBSOCKET_SERVER_PORT, iface, ca_cert, sizeof(ca_cert),
+        server_cert, sizeof(server_cert), server_key, sizeof(server_key),
+        DEFAULT_TIMEOUT, srv_event, &srv_ctx, &srv_ctx.sh);
 
     zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_SERVER_STARTED);
 
     ret = bws_cli_connect(BSC_WEBSOCKET_HUB_PROTOCOL, url, ca_cert,
-                          sizeof(ca_cert), client_cert, sizeof(client_cert),
-                          client_key, sizeof(client_key), DEFAULT_TIMEOUT,
-                          cli_event, &cli_ctx, &h);
+        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
+        sizeof(client_key), DEFAULT_TIMEOUT, cli_event, &cli_ctx, &h);
 
     zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
     wait_for_event(&cli_ctx, BSC_WEBSOCKET_CONNECTED);
-    res = bws_srv_get_peer_ip_addr(srv_ctx.sh, srv_ctx.h,
-                                   (uint8_t*)ip_addr, sizeof(ip_addr),
-                                   &port);
+    res = bws_srv_get_peer_ip_addr(
+        srv_ctx.sh, srv_ctx.h, (uint8_t *)ip_addr, sizeof(ip_addr), &port);
     zassert_equal(res, true, NULL);
     /*printf("client %s:%d connected.\n", ip_addr, port);*/
     /*printf("client sending data...\n");*/
-    memset(cli_ctx.out_buf, 0x56, sizeof(cli_ctx.out_buf));
     cli_ctx.out_buf_size = sizeof(cli_ctx.out_buf);
+    fill_buf(cli_ctx.out_buf, sizeof(cli_ctx.out_buf), 1);
     bws_cli_send(h);
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_RECEIVED);
     zassert_equal(srv_ctx.in_buf_size, cli_ctx.out_buf_size, NULL);
@@ -1192,8 +1193,8 @@ static void test_simple(void)
     zassert_equal(ret, 0, NULL);
 
     /*printf("server sending data...\n");*/
-    memset(srv_ctx.out_buf, 0x33, sizeof(srv_ctx.out_buf));
     srv_ctx.out_buf_size = sizeof(srv_ctx.out_buf);
+    fill_buf(srv_ctx.out_buf, sizeof(srv_ctx.out_buf), 2);
     bws_srv_send(srv_ctx.sh, srv_ctx.h);
     wait_for_event(&cli_ctx, BSC_WEBSOCKET_RECEIVED);
     zassert_equal(cli_ctx.in_buf_size, srv_ctx.out_buf_size, NULL);

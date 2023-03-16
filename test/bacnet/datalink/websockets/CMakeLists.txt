@@ -52,7 +52,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "Websockets test: building for linux")
   message(STATUS "LIB_WEBSOCKETS_LIBRARIES= ${LIB_WEBSOCKETS_LIBRARIES}")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
-
+  add_compile_definitions(BACNET_PORT=linux)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/linux/websocket-cli.c
     ${PORTS_DIR}/linux/websocket-srv.c
@@ -69,9 +69,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 elseif(WIN32)
   message(STATUS "Websockets test: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
-
+  add_compile_definitions(BACNET_PORT=win32)
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
-
   target_link_libraries(${PROJECT_NAME} PRIVATE
     winmm
     ws2_32>
@@ -90,6 +89,7 @@ elseif(WIN32)
 elseif(APPLE)
   message(STATUS "Websockets test: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  add_compile_definitions(BACNET_PORT=bsd)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c

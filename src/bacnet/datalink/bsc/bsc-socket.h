@@ -31,17 +31,8 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/object/sc_netport.h"
 
-#ifndef BSC_CONF_RX_BUFFER_SIZE
-#define BSC_RX_BUFFER_SIZE 4096
-#else
-#define BSC_RX_BUFFER_SIZE BSC_CONF_RX_BUFFER_SIZE
-#endif
-
-#ifndef BSC_CONF_TX_BUFFER_SIZE
-#define BSC_TX_BUFFER_SIZE 4096
-#else
-#define BSC_TX_BUFFER_SIZE BSC_CONF_TX_BUFFER_SIZE
-#endif
+#define BSC_RX_BUFFER_SIZE BSC_CONF_SOCK_RX_BUFFER_SIZE
+#define BSC_TX_BUFFER_SIZE BSC_CONF_SOCK_TX_BUFFER_SIZE
 
 #define BSC_SOCKET_CTX_NUM (BSC_CONF_NODES_NUM*(BSC_CONF_HUB_CONNECTORS_NUM + 2*BSC_CONF_NODE_SWITCHES_NUM + BSC_CONF_HUB_FUNCTIONS_NUM))
 
@@ -113,12 +104,7 @@ struct BSC_Socket {
     uint16_t expected_disconnect_message_id;
     uint16_t expected_heartbeat_message_id;
 
-    BVLC_SC_DECODED_MESSAGE dm;
-    /* 2 bytes is packet len */
-    uint8_t rx_buf[BSC_RX_BUFFER_SIZE + 2]; 
-    size_t rx_buf_size;
-    /* 2 bytes is packet len */
-    uint8_t tx_buf[BSC_TX_BUFFER_SIZE + 2]; 
+    uint8_t tx_buf[BSC_TX_BUFFER_SIZE];
     size_t tx_buf_size;
 };
 

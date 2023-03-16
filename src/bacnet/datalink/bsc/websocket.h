@@ -18,7 +18,6 @@
 #include "bacnet/bacenum.h"
 #include "bacnet/datalink/bsc/bsc-conf.h"
 
-
 /**
  * Maximum number of sockets that can be opened on client's side.
  * @{
@@ -62,10 +61,10 @@
  * @{
  */
 
-#ifndef BSC_CONF_WEBSOCKET_INITIAL_RECV_BUFFER_LEN
-#define BSC_WEBSOCKET_INITIAL_RECV_BUFFER_LEN 512
+#ifndef BSC_CONF_WEBSOCKET_RX_BUFFER_LEN
+#define BSC_WEBSOCKET_RX_BUFFER_LEN 512
 #else
-#define BSC_WEBSOCKET_INITIAL_RECV_BUFFER_LEN BSC_CONF_WEBSOCKET_INITIAL_RECV_BUFFER_LEN
+#define BSC_WEBSOCKET_RX_BUFFER_LEN BSC_CONF_WEBSOCKET_RX_BUFFER_LEN
 #endif
 /** @} */
 

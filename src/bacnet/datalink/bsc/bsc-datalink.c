@@ -55,8 +55,7 @@ typedef enum {
 } BSC_DATALINK_STATE;
 
 static FIFO_BUFFER bsc_fifo = { 0 };
-static uint8_t bsc_fifo_buf[BSC_NEXT_POWER_OF_TWO(
-    BVLC_SC_NPDU_SIZE_CONF * BSC_CONF_DATALINK_BUFFERED_PACKET_NUM)];
+static uint8_t bsc_fifo_buf[BSC_NEXT_POWER_OF_TWO(BSC_CONF_DATALINK_RX_BUFFER_SIZE)];
 static BSC_NODE *bsc_node = NULL;
 static BSC_NODE_CONF bsc_conf;
 static BSC_DATALINK_STATE bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
