@@ -611,25 +611,6 @@ static void bsc_runloop_socket(BSC_SOCKET *s,
     }
 }
 
-static void bsc_runloop(BSC_SOCKET_CTX *ctx)
-{
-    BSC_SOCKET_CTX_TYPE type;
-    BSC_WEBSOCKET_SRV_HANDLE sh;
-    BSC_WEBSOCKET_HANDLE wh;
-    bool need_disconnect;
-    bool need_send;
-    size_t i;
-
-    /* DEBUG_PRINTF("bsc_runloop() >>> ctx = %p, state = %d\n", ctx, */
-    /* ctx->state); */
-    if (ctx->state == BSC_CTX_STATE_INITIALIZED) {
-        for (i = 0; i < ctx->sock_num; i++) {
-            bsc_runloop_socket(&ctx->sock[i], NULL, NULL, 0);
-        }
-    }
-    /* DEBUG_PRINTF("bsc_runloop() <<<\n"); */
-}
-
 void bsc_socket_maintenance_timer(uint16_t seconds)
 {
     int i, j;
