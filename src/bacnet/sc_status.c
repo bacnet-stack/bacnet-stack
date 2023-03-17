@@ -935,14 +935,6 @@ int bacapp_decode_context_SCDirectConnection(uint8_t *apdu,
     return len;
 }
 
-static int bacapp_snprintf_timestamp(
-    char *str, size_t str_len, BACNET_DATE_TIME *ts)
-{
-    return snprintf(str, str_len, "%04u-%02u-%02uT%02u:%02u:%02u.%03u, ",
-        ts->date.year, ts->date.month, ts->date.day, ts->time.hour,
-        ts->time.min, ts->time.sec, ts->time.hundredths);
-}
-
 static int bacapp_snprintf_host_n_port(
     char *str, size_t str_len, BACNET_HOST_N_PORT_DATA *host_port)
 {
@@ -993,6 +985,8 @@ int bacapp_snprintf_SCFailedConnectionRequest(char *str, size_t str_len,
     POSITION_MOVE();
     slen = bacapp_snprintf_timestamp(str, str_len, &req->Timestamp);
     POSITION_MOVE();
+    slen = snprintf(str, str_len, ", ");
+    POSITION_MOVE();
     slen = bacapp_snprintf_host_n_port(str, str_len, &req->Peer_Address);
     POSITION_MOVE();
     slen = bacapp_snprintf_vmac(str, str_len, req->Peer_VMAC);
@@ -1016,7 +1010,11 @@ int  bacapp_snprintf_SCHubFunctionConnection(char *str, size_t str_len,
     POSITION_MOVE();
     slen = bacapp_snprintf_timestamp(str, str_len, &st->Connect_Timestamp);
     POSITION_MOVE();
+    slen = snprintf(str, str_len, ", ");
+    POSITION_MOVE();
     slen = bacapp_snprintf_timestamp(str, str_len, &st->Disconnect_Timestamp);
+    POSITION_MOVE();
+    slen = snprintf(str, str_len, ", ");
     POSITION_MOVE();
     slen = bacapp_snprintf_host_n_port(str, str_len, &st->Peer_Address);
     POSITION_MOVE();
@@ -1042,7 +1040,11 @@ int bacapp_snprintf_SCDirectConnection(char *str, size_t str_len,
     POSITION_MOVE();
     slen = bacapp_snprintf_timestamp(str, str_len, &st->Connect_Timestamp);
     POSITION_MOVE();
+    slen = snprintf(str, str_len, ", ");
+    POSITION_MOVE();
     slen = bacapp_snprintf_timestamp(str, str_len, &st->Disconnect_Timestamp);
+    POSITION_MOVE();
+    slen = snprintf(str, str_len, ", ");
     POSITION_MOVE();
     slen = bacapp_snprintf_host_n_port(str, str_len, &st->Peer_Address);
     POSITION_MOVE();
@@ -1067,7 +1069,11 @@ int bacapp_snprintf_SCHubConnection(char *str, size_t str_len,
     POSITION_MOVE();
     slen = bacapp_snprintf_timestamp(str, str_len, &st->Connect_Timestamp);
     POSITION_MOVE();
+    slen = snprintf(str, str_len, ", ");
+    POSITION_MOVE();
     slen = bacapp_snprintf_timestamp(str, str_len, &st->Disconnect_Timestamp);
+    POSITION_MOVE();
+    slen = snprintf(str, str_len, ", ");
     POSITION_MOVE();
     slen = snprintf_error_code(str, str_len, st->Error, st->Error_Details);
     POSITION_MOVE();
