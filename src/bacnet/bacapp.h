@@ -263,6 +263,11 @@ extern "C" {
 #endif
 #endif
     BACNET_STACK_EXPORT
+    int bacapp_snprintf_timestamp(
+        char *str,
+        size_t str_len,
+        BACNET_DATE_TIME *ts);
+    BACNET_STACK_EXPORT
     int bacapp_snprintf_value(
         char *str,
         size_t str_len,

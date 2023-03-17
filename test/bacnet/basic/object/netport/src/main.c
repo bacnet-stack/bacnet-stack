@@ -465,26 +465,27 @@ static void test_network_port_sc_status_encode_decode(void)
     char str[512];
 
     const char REQ_STR[] =
-        "{1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
+        "{Wednesday, May 7, 1946 12:34:22.10, 239.0.0.16:50001, 1.2.3.4.5.6, "
         "00000000-0000-0000-0000-000000000000, 38, \"error details\"}";
 
-    const char HUB_STATUS_STR[] = "{1, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 239.0.0.16:50001, 1.2.3.4.5.6, "
-        "00000000-0000-0000-0000-000000000000, 0}{3, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 239.0.0.16:50002, 1.2.3.4.5.6, "
-        "00000000-0000-0000-0000-000000000000, 38, "
+    const char HUB_STATUS_STR[] = "{1, Wednesday, May 7, 1946 12:34:22.10, "
+        "Wednesday, May 7, 1946 12:34:22.10, 239.0.0.16:50001, 1.2.3.4.5.6, "
+        "00000000-0000-0000-0000-000000000000, 0}{3, Wednesday, May 7, 1946 "
+        "12:34:22.10, Wednesday, May 7, 1946 12:34:22.10, 239.0.0.16:50002, "
+        "1.2.3.4.5.6, 00000000-0000-0000-0000-000000000000, 38, "
         "\"error message of hub status\"}";
 
     const char DIRECT_STATUS_STR[] =
-        "{connect url, 3, 1946-05-07T12:34:22.010, 1946-05-07T12:34:22.010, "
-        "239.0.0.16:50001, 1.2.3.4.5.6, 00000000-0000-0000-0000-000000000000, "
-        "38, \"error message of direct status\"}";
+        "{connect url, 3, Wednesday, May 7, 1946 12:34:22.10, Wednesday, May "
+        "7, 1946 12:34:22.10, 239.0.0.16:50001, 1.2.3.4.5.6, "
+        "00000000-0000-0000-0000-000000000000, 38, "
+        "\"error message of direct status\"}";
 
-    const char PRIMARY_HUB_STATUS[] = "{2, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 38, \"error message\"}";
+    const char PRIMARY_HUB_STATUS[] = "{2, Wednesday, May 7, 1946 12:34:22.10, "
+        "Wednesday, May 7, 1946 12:34:22.10, 38, \"error message\"}";
 
-    const char FAILOVER_HUB_STATUS[] = "{3, 1946-05-07T12:34:22.010, "
-        "1946-05-07T12:34:22.010, 14, \"again error message\"}";
+    const char FAILOVER_HUB_STATUS[] = "{3, Wednesday, May 7, 1946 12:34:22.10,"
+        " Wednesday, May 7, 1946 12:34:22.10, 14, \"again error message\"}";
 
     Network_Port_Init();
     instance = 1234;
