@@ -37,11 +37,7 @@
 #include "bacnet/hostnport.h"
 #include "bacnet/timestamp.h"
 #include "bacnet/weeklyschedule.h"
-
-typedef struct BACnetCustomValue {
-    uint8_t *data;
-    int len;
-} BACNET_CUSTOM_VALUE;
+#include "bacnet/sc_status.h"
 
 struct BACnet_Application_Data_Value;
 typedef struct BACnet_Application_Data_Value {
@@ -100,9 +96,10 @@ typedef struct BACnet_Application_Data_Value {
             Device_Object_Reference;
         BACNET_OBJECT_PROPERTY_REFERENCE
             Object_Property_Reference;
-#endif
-#if defined (BACDL_BSC)
-        BACNET_CUSTOM_VALUE Custom_Value;
+        BACNET_SC_FAILED_CONNECTION_REQUEST SC_Failed_Req;
+        BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS SC_Hub_Function_Status;
+        BACNET_SC_DIRECT_CONNECTION_STATUS SC_Direct_Status;
+        BACNET_SC_HUB_CONNECTION_STATUS SC_Hub_Status;
 #endif
     } type;
     /* simple linked list if needed */
