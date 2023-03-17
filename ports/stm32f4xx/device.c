@@ -56,19 +56,19 @@ static struct my_object_functions {
     read_property_function Object_Read_Property;
     write_property_function Object_Write_Property;
     rpm_property_lists_function Object_RPM_List;
-} Object_Table[] = {
-    { OBJECT_DEVICE, NULL, /* don't init - recursive! */
-        Device_Count, Device_Index_To_Instance,
-        Device_Valid_Object_Instance_Number,
-        Device_Object_Name, Device_Read_Property_Local,
-        Device_Write_Property_Local, Device_Property_Lists },
+} Object_Table[] = { { OBJECT_DEVICE, NULL, /* don't init - recursive! */
+                         Device_Count, Device_Index_To_Instance,
+                         Device_Valid_Object_Instance_Number,
+                         Device_Object_Name, Device_Read_Property_Local,
+                         Device_Write_Property_Local, Device_Property_Lists },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
         Network_Port_Object_Name, Network_Port_Read_Property,
         Network_Port_Write_Property, Network_Port_Property_Lists },
 #endif
-    { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL } };
+    { MAX_BACNET_OBJECT_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL } };
 
 /* note: you really only need to define variables for
    properties that are writable or that may change.
@@ -442,6 +442,7 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
     /*return value - 0 = ok, -1 = bad value, -2 = not allowed */
     int result = -1;
 
+    (void)local;
     if (status < MAX_DEVICE_STATUS) {
         System_Status = status;
         result = 0;
@@ -714,9 +715,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_LIST:
             count = Device_Object_List_Count();
             apdu_len = bacnet_array_encode(rpdata->object_instance,
-                rpdata->array_index,
-                Device_Object_List_Element_Encode,
-                count, apdu, apdu_max);
+                rpdata->array_index, Device_Object_List_Element_Encode, count,
+                apdu, apdu_max);
             if (apdu_len == BACNET_STATUS_ABORT) {
                 rpdata->error_code =
                     ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
