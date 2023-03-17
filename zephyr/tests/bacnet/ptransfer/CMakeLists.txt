@@ -47,6 +47,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_SRC}/weeklyschedule.c
     ${BACNET_SRC}/basic/sys/bigend.c
     ${BACNET_SRC}/bactimevalue.c
+    ${BACNET_SRC}/sc_status.c
     )
 
   add_definitions(-DBACAPP_PRINT_ENABLED=1 -DBACAPP_SNPRINTF_ENABLED=1)

@@ -80,6 +80,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
 	${SRC_DIR}/bacnet/basic/sys/debug.c
+	${SRC_DIR}/bacnet/sc_status.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c
@@ -126,9 +127,10 @@ elseif(WIN32)
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
-    ${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
 	${SRC_DIR}/bacnet/basic/sys/debug.c
+	${SRC_DIR}/bacnet/sc_status.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c
@@ -168,9 +170,10 @@ elseif(APPLE)
 	${SRC_DIR}/bacnet/weeklyschedule.c
 	${SRC_DIR}/bacnet/bactimevalue.c
 	${SRC_DIR}/bacnet/dailyschedule.c
-    ${SRC_DIR}/bacnet/datetime.c
+	${SRC_DIR}/bacnet/datetime.c
 	${SRC_DIR}/bacnet/datalink/bsc/bsc-util.c
 	${SRC_DIR}/bacnet/basic/sys/debug.c
+	${SRC_DIR}/bacnet/sc_status.c
     # Test and test library files
 	${TST_DIR}/bacnet/basic/object/mock/device_mock.c
 	./src/main.c

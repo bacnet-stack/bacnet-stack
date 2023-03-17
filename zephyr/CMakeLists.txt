@@ -89,6 +89,8 @@ set(BACNETSTACK_SRCS
     ${BACNETSTACK_SRC}/bacnet/dailyschedule.h
     ${BACNETSTACK_SRC}/bacnet/weeklyschedule.c
     ${BACNETSTACK_SRC}/bacnet/weeklyschedule.h
+    ${BACNETSTACK_SRC}/bacnet/sc_status.c
+    ${BACNETSTACK_SRC}/bacnet/sc_status.h
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${CONFIG_BACDL_BIP}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${CONFIG_BACDL_BIP6}>:${BACNETSTACK_SRC}/bacnet/basic/bbmd6/h_bbmd6.c>

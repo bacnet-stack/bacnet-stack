@@ -461,7 +461,7 @@ static void test_network_port_sc_status_encode_decode(void)
     BACNET_APPLICATION_DATA_VALUE value; /* for decode value data */
     uint8_t apdu[MAX_APDU];
     uint16_t apdu_len_max;
-    int len, len2;
+    int len, len2, apdu_len, str_len;
     char str[512];
 
     const char REQ_STR[] =
@@ -530,14 +530,19 @@ static void test_network_port_sc_status_encode_decode(void)
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);
 
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
+    str_len = 0;
+    apdu_len = 0;
+    while ((apdu_len < len)) {
+        len2 = bacapp_decode_known_property(apdu + apdu_len, len - apdu_len,
+            &value, rpdata.object_type, rpdata.object_property);
+        zassert_true(len2 > 0, NULL);
+        apdu_len += len2;
 
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
+        len2 = bacapp_snprintf_value(NULL, 0, &object_value);
+        zassert_true((len2 > 0) && (len2 < sizeof(str) - 1 - str_len), NULL);
+        str_len +=
+            bacapp_snprintf_value(str + str_len, len2 + 1, &object_value);
+    }
 
     zassert_true(strncmp(str, REQ_STR, strlen(REQ_STR)) == 0, NULL);
 
@@ -578,14 +583,19 @@ static void test_network_port_sc_status_encode_decode(void)
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);
 
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
+    str_len = 0;
+    apdu_len = 0;
+    while ((apdu_len < len)) {
+        len2 = bacapp_decode_known_property(apdu + apdu_len, len - apdu_len,
+            &value, rpdata.object_type, rpdata.object_property);
+        zassert_true(len2 > 0, NULL);
+        apdu_len += len2;
 
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
+        len2 = bacapp_snprintf_value(NULL, 0, &object_value);
+        zassert_true((len2 > 0) && (len2 < sizeof(str) - 1 - str_len), NULL);
+        str_len +=
+            bacapp_snprintf_value(str + str_len, len2 + 1, &object_value);
+    }
 
     zassert_true(
         strncmp(str, HUB_STATUS_STR, strlen(HUB_STATUS_STR)) == 0, NULL);
@@ -607,9 +617,9 @@ static void test_network_port_sc_status_encode_decode(void)
         rpdata.object_property);
     zassert_equal(len2, len, NULL);
 
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    len = bacapp_snprintf_value(NULL, 0, &object_value);
     zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    len2 = bacapp_snprintf_value(str, len + 1, &object_value);
     zassert_equal(len2, len, NULL);
     zassert_true(
         strncmp(str, PRIMARY_HUB_STATUS, strlen(PRIMARY_HUB_STATUS))== 0, NULL);
@@ -631,9 +641,9 @@ static void test_network_port_sc_status_encode_decode(void)
         rpdata.object_property);
     zassert_equal(len2, len, NULL);
 
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
+    len = bacapp_snprintf_value(NULL, 0, &object_value);
     zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
+    len2 = bacapp_snprintf_value(str, len + 1, &object_value);
     zassert_equal(len2, len, NULL);
     zassert_true(
         strncmp(str, FAILOVER_HUB_STATUS, strlen(FAILOVER_HUB_STATUS))== 0,
@@ -674,14 +684,19 @@ static void test_network_port_sc_status_encode_decode(void)
     len = Network_Port_Read_Property(&rpdata);
     zassert_true(len > 0, NULL);
 
-    len2 = bacapp_decode_known_property(apdu, len, &value, rpdata.object_type,
-        rpdata.object_property);
-    zassert_equal(len2, len, NULL);
+    str_len = 0;
+    apdu_len = 0;
+    while ((apdu_len < len)) {
+        len2 = bacapp_decode_known_property(apdu + apdu_len, len - apdu_len,
+            &value, rpdata.object_type, rpdata.object_property);
+        zassert_true(len2 > 0, NULL);
+        apdu_len += len2;
 
-    len = Network_Port_SC_snprintf_value(NULL, 0, &object_value);
-    zassert_true((len > 0) && (len < sizeof(str) - 1), NULL);
-    len2 = Network_Port_SC_snprintf_value(str, len + 1, &object_value);
-    zassert_equal(len2, len, NULL);
+        len2 = bacapp_snprintf_value(NULL, 0, &object_value);
+        zassert_true((len2 > 0) && (len2 < sizeof(str) - 1 - str_len), NULL);
+        str_len +=
+            bacapp_snprintf_value(str + str_len, len2 + 1, &object_value);
+    }
 
     zassert_true(
         strncmp(str, DIRECT_STATUS_STR, strlen(DIRECT_STATUS_STR)) == 0, NULL);

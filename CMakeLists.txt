@@ -142,6 +142,8 @@ add_library(${PROJECT_NAME}
     src/bacnet/dailyschedule.h
     src/bacnet/weeklyschedule.c
     src/bacnet/weeklyschedule.h
+    src/bacnet/sc_status.c
+    src/bacnet/sc_status.h
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.c>
     $<$<BOOL:${BACDL_BIP}>:src/bacnet/basic/bbmd/h_bbmd.h>
     $<$<BOOL:${BACDL_BIP6}>:src/bacnet/basic/bbmd6/h_bbmd6.c>
