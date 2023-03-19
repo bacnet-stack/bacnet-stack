@@ -1820,10 +1820,10 @@ static void test_sc_datalink_properties(void)
         bsc_direct_connection_established(&vmac2, NULL, 0) == true, true, NULL);
     bsc_maintenance_timer(0);
     zassert_equal(Network_Port_SC_Direct_Connect_Connection_Status_Count(
-                      Network_Port_Index_To_Instance(0)) == 2,
+                      Network_Port_Index_To_Instance(0)) == 1,
         true, NULL);
     sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
-        Network_Port_Index_To_Instance(0), 1);
+        Network_Port_Index_To_Instance(0), 0);
     zassert_equal(sd != NULL, true, NULL);
     zassert_equal(sd->State == BACNET_CONNECTED, true, NULL);
     zassert_equal(
@@ -1839,14 +1839,14 @@ static void test_sc_datalink_properties(void)
             Network_Port_Index_To_Instance(0), 1);
     }
     zassert_equal(Network_Port_SC_Direct_Connect_Connection_Status_Count(
-                      Network_Port_Index_To_Instance(0)) == 2,
+                      Network_Port_Index_To_Instance(0)) == 1,
         true, NULL);
     zassert_equal(bsc_direct_connection_established(&vmac2, NULL, 0) == false,
         true, NULL);
     sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
-        Network_Port_Index_To_Instance(0), 1);
+        Network_Port_Index_To_Instance(0), 0);
     zassert_equal(sd != NULL, true, NULL);
-    zassert_equal(sd->State == BACNET_NOT_CONNECTED, true, NULL);
+    zassert_equal(sd->State == BACNET_CONNECTED, true, NULL);
     zassert_equal(
         memcmp(sd->Peer_VMAC, &vmac2.address[0], BVLC_SC_VMAC_SIZE) == 0, true,
         NULL);
@@ -1857,7 +1857,7 @@ static void test_sc_datalink_properties(void)
                       Network_Port_Index_To_Instance(0)) == 3,
         true, NULL);
     sh = Network_Port_SC_Hub_Function_Connection_Status_Get(
-        Network_Port_Index_To_Instance(0), 0);
+        Network_Port_Index_To_Instance(0), 1);
     zassert_equal(sh != NULL, true, 0);
     ret = bsc_node_connect_direct(node2, NULL, direct_urls, 1);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
@@ -1884,13 +1884,13 @@ static void test_sc_datalink_properties(void)
         Network_Port_Index_To_Instance(0), 0);
     zassert_equal(sd != NULL, true, NULL);
     zassert_equal(
-        memcmp(sd->Peer_VMAC, &vmac3.address[0], BVLC_SC_VMAC_SIZE) == 0, true,
+        memcmp(sd->Peer_VMAC, &vmac4.address[0], BVLC_SC_VMAC_SIZE) == 0, true,
         NULL);
     sd = Network_Port_SC_Direct_Connect_Connection_Status_Get(
         Network_Port_Index_To_Instance(0), 1);
     zassert_equal(sd != NULL, true, NULL);
     zassert_equal(
-        memcmp(sd->Peer_VMAC, &vmac4.address[0], BVLC_SC_VMAC_SIZE) == 0, true,
+        memcmp(sd->Peer_VMAC, &vmac3.address[0], BVLC_SC_VMAC_SIZE) == 0, true,
         NULL);
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
