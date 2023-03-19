@@ -1128,6 +1128,7 @@ static void srv_event(BSC_WEBSOCKET_SRV_HANDLE sh,
         ret = bws_srv_dispatch_send(
             sh, h, &p[BSC_CONF_TX_PRE], ctx->out_buf_size);
         zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
+        free(p);
     } else if (ev == BSC_WEBSOCKET_RECEIVED) {
         zassert_equal(sizeof(ctx->in_buf) >= bufsize, true, NULL);
         memcpy(ctx->in_buf, buf, bufsize);
