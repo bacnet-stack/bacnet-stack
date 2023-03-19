@@ -55,6 +55,8 @@ struct BSC_Node {
     BSC_HUB_FUNCTION_HANDLE hub_function;
     BSC_NODE_SWITCH_HANDLE node_switch;
     BACNET_SC_FAILED_CONNECTION_REQUEST *failed;
+    BACNET_SC_DIRECT_CONNECTION_STATUS *direct_status;
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *hub_status;
 };
 
 #if BSC_CONF_NODES_NUM < 1
@@ -67,6 +69,17 @@ static BACNET_SC_FAILED_CONNECTION_REQUEST
     bsc_failed_request[BSC_CONF_NODES_NUM]
                       [BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM];
 static bool bsc_failed_request_initialized[BSC_CONF_NODES_NUM] = { 0 };
+
+static BACNET_SC_DIRECT_CONNECTION_STATUS
+    bsc_direct_status[BSC_CONF_NODES_NUM]
+                     [BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM];
+static bool bsc_direct_status_initialized[BSC_CONF_NODES_NUM] = { 0 };
+
+static BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS
+    bsc_hub_status[BSC_CONF_NODES_NUM]
+                  [BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM];
+static bool bsc_hub_status_initialized[BSC_CONF_NODES_NUM] = { 0 };
+
 static BSC_ADDRESS_RESOLUTION
     bsc_address_resolution[BSC_CONF_NODES_NUM]
                           [BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM];
@@ -74,6 +87,31 @@ static BSC_ADDRESS_RESOLUTION
 static BSC_NODE_CONF bsc_conf[BSC_CONF_NODES_NUM];
 
 static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state);
+
+static void bsc_node_init_direct_status(BACNET_SC_DIRECT_CONNECTION_STATUS *s)
+{
+    int j;
+
+    for (j = 0; j < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; j++) {
+        memset(&s[j], 0, sizeof(*s));
+        memset(&s[j].Connect_Timestamp, 0xFF, sizeof(s[j].Connect_Timestamp));
+        memset(&s[j].Disconnect_Timestamp, 0xFF,
+            sizeof(s[j].Disconnect_Timestamp));
+    }
+}
+
+static void bsc_node_init_hub_status(
+    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s)
+{
+    int j;
+
+    for (j = 0; j < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; j++) {
+        memset(&s[j], 0, sizeof(*s));
+        memset(&s[j].Connect_Timestamp, 0xFF, sizeof(s[j].Connect_Timestamp));
+        memset(&s[j].Disconnect_Timestamp, 0xFF,
+            sizeof(s[j].Disconnect_Timestamp));
+    }
+}
 
 static BSC_NODE *bsc_alloc_node(void)
 {
@@ -83,15 +121,34 @@ static BSC_NODE *bsc_alloc_node(void)
         if (bsc_node[i].used == false) {
             memset(&bsc_node[i], 0, sizeof(bsc_node[i]));
             bsc_node[i].used = true;
+            bsc_node[i].hub_status = (BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS
+                    *)&bsc_hub_status[i][0];
+            bsc_node[i].direct_status =
+                (BACNET_SC_DIRECT_CONNECTION_STATUS *)&bsc_direct_status[i][0];
+
+            /* Start/stop cycles of a node must not make an influence to history
+               That's why hub and direct status arrays are initialized
+               only once */
+
+            if (!bsc_hub_status_initialized[i]) {
+                bsc_node_init_hub_status(bsc_node[i].hub_status);
+            }
+
+            if (!bsc_direct_status_initialized[i]) {
+                bsc_node_init_direct_status(bsc_node[i].direct_status);
+            }
+
             bsc_node[i].conf = &bsc_conf[i];
             bsc_node[i].resolution = &bsc_address_resolution[i][0];
             bsc_node[i].failed = &bsc_failed_request[i][0];
             memset(bsc_node[i].resolution, 0,
                 sizeof(BSC_ADDRESS_RESOLUTION) *
                     BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
+
             /* Start/stop cycles of a node must not make an influence to history
              * about failed requests */
             /* That's why bsc_failed_request[] array is initialized only once */
+
             if (!bsc_failed_request_initialized[i]) {
                 for (j = 0; j < BSC_CONF_FAILED_CONNECTION_STATUS_MAX_NUM;
                      j++) {
@@ -962,7 +1019,8 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_hub_function_status(
     bws_dispatch_lock();
     if (node->state == BSC_NODE_STATE_STARTED &&
         node->conf->hub_function_enabled) {
-        ret = bsc_hub_function_status(node->hub_function, cnt);
+        *cnt = BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM;
+        ret = node->hub_status;
     }
     bws_dispatch_unlock();
     return ret;
@@ -976,7 +1034,8 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_direct_connection_status(
     if (node->state == BSC_NODE_STATE_STARTED &&
         (node->conf->direct_connect_accept_enable ||
             node->conf->direct_connect_initiate_enable)) {
-        ret = bsc_node_switch_status(node->node_switch, cnt);
+        *cnt = BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM;
+        ret = node->direct_status;
     }
     bws_dispatch_unlock();
     return ret;
@@ -1061,4 +1120,128 @@ BACNET_SC_FAILED_CONNECTION_REQUEST *bsc_node_failed_requests_status(
     }
     bws_dispatch_unlock();
     return ret;
+}
+
+BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
+    BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
+{
+    int i;
+    int index = -1;
+    BACNET_DATE_TIME timestamp;
+
+    for (i = 0; i < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (!datetime_is_valid(&node->direct_status[i].Connect_Timestamp.date,
+                &node->direct_status[i].Connect_Timestamp.time)) {
+            return &node->direct_status[i];
+        }
+        if (!memcmp(&node->direct_status[i].Peer_VMAC[0], &vmac->address[0],
+                BVLC_SC_VMAC_SIZE)) {
+            return &node->direct_status[i];
+        }
+    }
+
+    /* ok, all entries are already filled, try to found oldest entry with
+       non connected status */
+
+    for (i = 0; i < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (node->direct_status[i].State != BACNET_CONNECTED &&
+            datetime_is_valid(&node->direct_status[i].Disconnect_Timestamp.date,
+                &node->direct_status[i].Disconnect_Timestamp.time)) {
+            if (i == -1) {
+                index = i;
+                memcpy(&timestamp, &node->direct_status[i].Disconnect_Timestamp,
+                    sizeof(timestamp));
+            } else if (datetime_compare(
+                           &node->direct_status[i].Disconnect_Timestamp,
+                           &timestamp) < 0) {
+                index = i;
+                memcpy(&timestamp, &node->direct_status[i].Disconnect_Timestamp,
+                    sizeof(timestamp));
+            }
+        }
+    }
+
+    if (index != -1) {
+        return &node->direct_status[index];
+    }
+
+    /* ok, all entries are already filled and all are in connected state,
+       so re-use oldest entry which is in connected state */
+
+    memcpy(&timestamp, &node->direct_status[0].Connect_Timestamp,
+        sizeof(timestamp));
+    index = 0;
+
+    for (i = 0; i < BSC_CONF_NODE_SWITCH_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (datetime_compare(
+                &node->direct_status[i].Connect_Timestamp, &timestamp) < 0) {
+            index = i;
+            memcpy(&timestamp, &node->direct_status[i].Connect_Timestamp,
+                sizeof(timestamp));
+        }
+    }
+
+    return &node->direct_status[index];
+}
+
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_find_hub_status_for_vmac(
+    BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac)
+{
+    int i;
+    int index = -1;
+    BACNET_DATE_TIME timestamp;
+
+    for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (!datetime_is_valid(&node->hub_status[i].Connect_Timestamp.date,
+                &node->hub_status[i].Connect_Timestamp.time)) {
+            return &node->hub_status[i];
+        }
+        if (!memcmp(&node->hub_status[i].Peer_VMAC[0], &vmac->address[0],
+                BVLC_SC_VMAC_SIZE)) {
+            return &node->hub_status[i];
+        }
+    }
+
+    /* ok, all entries are already filled, try to found oldest entry with
+       non connected status */
+
+    for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (node->hub_status[i].State != BACNET_CONNECTED &&
+            datetime_is_valid(&node->hub_status[i].Disconnect_Timestamp.date,
+                &node->hub_status[i].Disconnect_Timestamp.time)) {
+            if (i == -1) {
+                index = i;
+                memcpy(&timestamp, &node->hub_status[i].Disconnect_Timestamp,
+                    sizeof(timestamp));
+            } else if (datetime_compare(
+                           &node->hub_status[i].Disconnect_Timestamp,
+                           &timestamp) < 0) {
+                index = i;
+                memcpy(&timestamp, &node->hub_status[i].Disconnect_Timestamp,
+                    sizeof(timestamp));
+            }
+        }
+    }
+
+    if (index != -1) {
+        return &node->hub_status[index];
+    }
+
+    /* ok, all entries are already filled and all are in connected state,
+       so re-use oldest entry which is in connected state */
+
+    memcpy(
+        &timestamp, &node->hub_status[0].Connect_Timestamp, sizeof(timestamp));
+    index = 0;
+
+    for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
+        if (datetime_compare(
+                &node->hub_status[i].Connect_Timestamp, &timestamp) < 0) {
+            index = i;
+            memcpy(&timestamp, &node->hub_status[i].Connect_Timestamp,
+                sizeof(timestamp));
+        }
+    }
+
+    return &node->hub_status[index];
 }

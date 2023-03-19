@@ -162,4 +162,12 @@ BACNET_STACK_EXPORT
 BACNET_SC_FAILED_CONNECTION_REQUEST*
 bsc_node_failed_requests_status(BSC_NODE *node, size_t* cnt);
 
+BACNET_STACK_EXPORT
+BACNET_SC_DIRECT_CONNECTION_STATUS*
+bsc_node_find_direct_status_for_vmac(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac);
+
+BACNET_STACK_EXPORT
+BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS*
+bsc_node_find_hub_status_for_vmac(BSC_NODE *node, BACNET_SC_VMAC_ADDRESS *vmac);
+
 #endif

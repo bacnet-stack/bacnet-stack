@@ -68,19 +68,12 @@ typedef struct BSC_Hub_Connector {
     BSC_HUB_FUNCTION_STATE state;
     BSC_HUB_EVENT_FUNC event_func;
     void *user_arg;
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *status;
 } BSC_HUB_FUNCTION;
 
 #if BSC_CONF_HUB_FUNCTIONS_NUM > 0
 static BSC_HUB_FUNCTION bsc_hub_function[BSC_CONF_HUB_FUNCTIONS_NUM] = { 0 };
-static BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS
-    bsc_hub_status[BSC_CONF_HUB_FUNCTIONS_NUM]
-                  [BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM];
-static bool bsc_hub_status_initialized[BSC_CONF_HUB_FUNCTIONS_NUM] = { 0 };
 #else
 static BSC_HUB_FUNCTION *bsc_hub_function = NULL;
-static BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_hub_status[1][1];
-static bool *bsc_hub_status_initialized = NULL;
 #endif
 
 static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
@@ -95,33 +88,6 @@ static BSC_HUB_FUNCTION *hub_function_alloc(void)
     for (i = 0; i < BSC_CONF_HUB_FUNCTIONS_NUM; i++) {
         if (!bsc_hub_function[i].used) {
             bsc_hub_function[i].used = true;
-            bsc_hub_function[i].status =
-                (BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *)&bsc_hub_status[i]
-                                                                           [0];
-
-            /* Start/stop cycles of a hub function must not make an influence to
-             * history related to connection status */
-            /* That's why bsc_hub_function[i].status array is initialized only
-             * once */
-
-            if (!bsc_hub_status_initialized[i]) {
-                for (j = 0; j < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM;
-                     j++) {
-                    memset(&bsc_hub_function[i].status[j], 0,
-                        sizeof(bsc_hub_function[i].status[j]));
-                    /* set timestamps to unspecified values */
-                    memset(&bsc_hub_function[i].status[j].Disconnect_Timestamp,
-                        0xFF,
-                        sizeof(bsc_hub_function[i]
-                                   .status[j]
-                                   .Disconnect_Timestamp));
-                    memset(&bsc_hub_function[i].status[j].Connect_Timestamp,
-                        0xFF,
-                        sizeof(
-                            bsc_hub_function[i].status[j].Connect_Timestamp));
-                }
-                bsc_hub_status_initialized[i] = true;
-            }
             return &bsc_hub_function[i];
         }
     }
@@ -182,38 +148,6 @@ static BSC_SOCKET *hub_function_find_connection_for_uuid(
     return NULL;
 }
 
-static BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *
-hub_function_find_status_for_vmac(
-    BSC_HUB_FUNCTION *f, BACNET_SC_VMAC_ADDRESS *vmac)
-{
-    int i;
-    int index = 0;
-    BACNET_DATE_TIME timestamp;
-
-    for (i = 0; i < BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM; i++) {
-        if (!datetime_is_valid(&f->status[i].Connect_Timestamp.date,
-                &f->status[i].Connect_Timestamp.time)) {
-            return &f->status[i];
-        }
-        if (!memcmp(&f->status[i].Peer_VMAC[0], &vmac->address[0],
-                BVLC_SC_VMAC_SIZE)) {
-            return &f->status[i];
-        }
-        if (datetime_is_valid(&f->status[i].Connect_Timestamp.date,
-                &f->status[i].Connect_Timestamp.time) &&
-            datetime_is_valid(&timestamp.date, &timestamp.time)) {
-            if (datetime_compare(&f->status[i].Connect_Timestamp, &timestamp) <
-                0) {
-                index = i;
-                memcpy(&timestamp, &f->status[i].Connect_Timestamp,
-                    sizeof(timestamp));
-            }
-        }
-    }
-
-    return &f->status[index];
-}
-
 static void hub_function_update_status(BSC_HUB_FUNCTION *f,
     BSC_SOCKET *c,
     BSC_SOCKET_EVENT ev,
@@ -222,33 +156,37 @@ static void hub_function_update_status(BSC_HUB_FUNCTION *f,
 {
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *s;
 
-    s = hub_function_find_status_for_vmac(f, &c->vmac);
+    if (f->user_arg) {
+        s = bsc_node_find_hub_status_for_vmac(f->user_arg, &c->vmac);
 
-    if (s) {
-        memcpy(s->Peer_VMAC, &c->vmac.address[0], BVLC_SC_VMAC_SIZE);
-        memcpy(
-            &s->Peer_UUID.uuid.uuid128[0], &c->uuid.uuid[0], BVLC_SC_UUID_SIZE);
-        if (!bsc_socket_get_peer_addr(c, &s->Peer_Address)) {
-            memset(&s->Peer_Address, 0, sizeof(s->Peer_Address));
-        }
-        if (disconnect_reason_desc) {
-            bsc_copy_str(s->Error_Details, disconnect_reason_desc,
-                sizeof(s->Error_Details));
-        } else {
-            s->Error_Details[0] = 0;
-        }
-        s->Error = ERROR_CODE_OTHER;
-        if (ev == BSC_SOCKET_EVENT_CONNECTED) {
-            s->State = BACNET_CONNECTED;
-            bsc_set_timestamp(&s->Connect_Timestamp);
-        } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
-            bsc_set_timestamp(&s->Disconnect_Timestamp);
-            if (disconnect_reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
-                disconnect_reason == ERROR_CODE_SUCCESS) {
-                s->State = BACNET_NOT_CONNECTED;
+        if (s) {
+            memcpy(s->Peer_VMAC, &c->vmac.address[0], BVLC_SC_VMAC_SIZE);
+            memcpy(&s->Peer_UUID.uuid.uuid128[0], &c->uuid.uuid[0],
+                BVLC_SC_UUID_SIZE);
+            if (!bsc_socket_get_peer_addr(c, &s->Peer_Address)) {
+                memset(&s->Peer_Address, 0, sizeof(s->Peer_Address));
+            }
+            if (disconnect_reason_desc) {
+                bsc_copy_str(s->Error_Details, disconnect_reason_desc,
+                    sizeof(s->Error_Details));
             } else {
-                s->State = BACNET_DISCONNECTED_WITH_ERRORS;
-                s->Error = disconnect_reason;
+                s->Error_Details[0] = 0;
+            }
+            s->Error = ERROR_CODE_OTHER;
+            if (ev == BSC_SOCKET_EVENT_CONNECTED) {
+                s->State = BACNET_CONNECTED;
+                bsc_set_timestamp(&s->Connect_Timestamp);
+                memset(&s->Disconnect_Timestamp, 0xff,
+                    sizeof(s->Disconnect_Timestamp));
+            } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
+                bsc_set_timestamp(&s->Disconnect_Timestamp);
+                if (disconnect_reason == ERROR_CODE_WEBSOCKET_CLOSED_BY_PEER ||
+                    disconnect_reason == ERROR_CODE_SUCCESS) {
+                    s->State = BACNET_NOT_CONNECTED;
+                } else {
+                    s->State = BACNET_DISCONNECTED_WITH_ERRORS;
+                    s->Error = disconnect_reason;
+                }
             }
         }
     }
@@ -474,20 +412,5 @@ bool bsc_hub_function_started(BSC_HUB_FUNCTION_HANDLE h)
     }
     bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_hub_function_started() <<< ret = %d\n", ret);
-    return ret;
-}
-
-BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_hub_function_status(
-    BSC_HUB_FUNCTION_HANDLE h, size_t *cnt)
-{
-    BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
-    BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *ret = NULL;
-
-    bws_dispatch_lock();
-    if (f && f->state == BSC_HUB_FUNCTION_STATE_STARTED) {
-        ret = f->status;
-        *cnt = BSC_CONF_HUB_FUNCTION_CONNECTION_STATUS_MAX_NUM;
-    }
-    bws_dispatch_unlock();
     return ret;
 }
