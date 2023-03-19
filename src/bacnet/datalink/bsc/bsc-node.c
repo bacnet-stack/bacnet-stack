@@ -1147,13 +1147,9 @@ BACNET_SC_DIRECT_CONNECTION_STATUS *bsc_node_find_direct_status_for_vmac(
         if (node->direct_status[i].State != BACNET_CONNECTED &&
             datetime_is_valid(&node->direct_status[i].Disconnect_Timestamp.date,
                 &node->direct_status[i].Disconnect_Timestamp.time)) {
-            if (i == -1) {
-                index = i;
-                memcpy(&timestamp, &node->direct_status[i].Disconnect_Timestamp,
-                    sizeof(timestamp));
-            } else if (datetime_compare(
-                           &node->direct_status[i].Disconnect_Timestamp,
-                           &timestamp) < 0) {
+            if (index == -1 ||
+                (datetime_compare(&node->direct_status[i].Disconnect_Timestamp,
+                     &timestamp) < 0)) {
                 index = i;
                 memcpy(&timestamp, &node->direct_status[i].Disconnect_Timestamp,
                     sizeof(timestamp));
@@ -1209,13 +1205,9 @@ BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *bsc_node_find_hub_status_for_vmac(
         if (node->hub_status[i].State != BACNET_CONNECTED &&
             datetime_is_valid(&node->hub_status[i].Disconnect_Timestamp.date,
                 &node->hub_status[i].Disconnect_Timestamp.time)) {
-            if (i == -1) {
-                index = i;
-                memcpy(&timestamp, &node->hub_status[i].Disconnect_Timestamp,
-                    sizeof(timestamp));
-            } else if (datetime_compare(
-                           &node->hub_status[i].Disconnect_Timestamp,
-                           &timestamp) < 0) {
+            if (index == -1 ||
+                (datetime_compare(&node->hub_status[i].Disconnect_Timestamp,
+                     &timestamp) < 0)) {
                 index = i;
                 memcpy(&timestamp, &node->hub_status[i].Disconnect_Timestamp,
                     sizeof(timestamp));

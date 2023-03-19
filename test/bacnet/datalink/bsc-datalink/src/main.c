@@ -1854,7 +1854,7 @@ static void test_sc_datalink_properties(void)
                       BVLC_SC_UUID_SIZE) == 0,
         true, NULL);
     zassert_equal(Network_Port_SC_Hub_Function_Connection_Status_Count(
-                      Network_Port_Index_To_Instance(0)) == 3,
+                      Network_Port_Index_To_Instance(0)) == 2,
         true, NULL);
     sh = Network_Port_SC_Hub_Function_Connection_Status_Get(
         Network_Port_Index_To_Instance(0), 1);
