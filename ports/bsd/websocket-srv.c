@@ -523,12 +523,14 @@ static int bws_srv_websocket_event(struct lws *wsi,
                 DEBUG_PRINTF("bws_srv_websocket_event() ctx %p proto %d socket "
                              "%d state = %d\n",
                     ctx, ctx->proto, h, ctx->conn[h].state);
+
                 if (ctx->conn[h].state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
-                    DEBUG_PRINTF("bws_srv_websocket_event() <<< ret = -1\n");
-                    pthread_mutex_unlock(ctx->mutex);
-                    return -1;
-                } else if (ctx->conn[h].state ==
-                        BSC_WEBSOCKET_STATE_CONNECTED &&
+                    /* if -1 returned from this callback libwebsocket closes
++                      websocket related to wsi */
+                    ret = -1;
+                }
+
+                if ((ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE) &&
                     !ctx->stop_worker && ctx->conn[h].want_send_data) {
                     ctx->conn[h].can_send_data = true;
                     dispatch_func = ctx->dispatch_func;
