@@ -1140,6 +1140,8 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
     while (!bsc_event_timedwait(ev->ev, 100)) {
         call_maintenance_timer(0, 100);
     }
+    debug_printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
+        ev->ev_code, wait_ev);
     if (ev->ev_code == wait_ev) {
         return true;
     } else {
@@ -1149,6 +1151,7 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
 
 static void reset_sock_ev(sock_ev_t *ev)
 {
+    debug_printf("reset_sock_ev %p\n", ev);
     ev->ev_code = -1;
     ev->err = -1;
     bsc_event_reset(ev->ev);
@@ -1163,6 +1166,7 @@ static void reset_ctx_ev(ctx_ev_t *ev)
 static void signal_sock_ev(
     sock_ev_t *ev, BSC_SOCKET_EVENT s_ev, BACNET_ERROR_CODE err)
 {
+    debug_printf("signal_sock_ev %p s_ev %d\n", ev, s_ev);
     ev->ev_code = s_ev;
     ev->err = err;
     bsc_event_signal(ev->ev);
@@ -1860,8 +1864,8 @@ static void test_bad_params(void)
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    ret = bsc_send(
-        &cli_socks[0], (uint8_t *)&client_uuid, BSC_CONF_SOCK_TX_BUFFER_SIZE * 2);
+    ret = bsc_send(&cli_socks[0], (uint8_t *)&client_uuid,
+        BSC_CONF_SOCK_TX_BUFFER_SIZE * 2);
     zassert_equal(ret, BSC_SC_NO_RESOURCES, 0);
     reset_sock_ev(&cli_ev);
     reset_sock_ev(&srv_ev);

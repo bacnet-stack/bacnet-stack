@@ -33,6 +33,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
   BIG_ENDIAN=0
   CONFIG_ZTEST=1
+  BACDL_BSC
   BSC_CONF_HUB_FUNCTION_CONNECTIONS_NUM=4
   BSC_CONF_NODE_SWITCH_CONNECTIONS_NUM=4
   BSC_CONF_WSURL_MAX_LEN=128
@@ -40,7 +41,6 @@ add_compile_definitions(
   BSC_CONF_WEBSOCKET_SERVERS_NUM=4
   BSC_CONF_HUB_CONNECTORS_NUM=2
   BSC_CONF_HUB_FUNCTIONS_NUM=2
-  BACDL_BSC
   MAX_TSM_TRANSACTIONS=0
   )
 
@@ -52,8 +52,9 @@ include_directories(
 if(ZEPHYR_BASE)
   message(FATAL_ERROR "ZEPHYR_BASE env variable defined. Use zephyr/CMakeLists.txt for Zephyr build")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  message(STATUS "Websockets test: building for linux")
+  message(STATUS "BACNet/SC hub function test: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
+  add_compile_definitions(BACNET_PORT=linux)
 
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/linux/websocket-cli.c
@@ -109,8 +110,9 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
                         ${LIB_WEBSOCKETS_LIBRARIES}
   )
 elseif(WIN32)
-  message(STATUS "Websockets test: building for win32")
+  message(STATUS "BACNet/SC hub function test: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
+  add_compile_definitions(BACNET_PORT=win32)
 
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
@@ -171,8 +173,10 @@ elseif(WIN32)
     )
 
 elseif(APPLE)
-  message(STATUS "Websockets test: building for APPLE")
+  message(STATUS "BACNet/SC hub function test: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  add_compile_definitions(BACNET_PORT=bsd)
+
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c

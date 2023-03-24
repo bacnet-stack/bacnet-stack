@@ -504,6 +504,7 @@ static void bsc_process_socket_state(BSC_SOCKET *c,
             }
 
             /* every valid message restarts hearbeat timeout */
+            /* and only valid messages are processed */
             if (valid) {
                 if (c->ctx->cfg->type == BSC_SOCKET_CTX_ACCEPTOR) {
                     mstimer_set(&c->heartbeat,
@@ -512,13 +513,13 @@ static void bsc_process_socket_state(BSC_SOCKET *c,
                     mstimer_set(
                         &c->heartbeat, c->ctx->cfg->heartbeat_timeout_s * 1000);
                 }
-            }
-            if (c->state == BSC_SOCK_STATE_CONNECTED) {
-                bsc_process_socket_connected_state(
-                    c, dm, rx_buf, rx_buf_size, need_disconnect, need_send);
-            } else if (c->state == BSC_SOCK_STATE_DISCONNECTING) {
-                bsc_process_socket_disconnecting(
-                    c, dm, rx_buf, rx_buf_size, need_disconnect);
+                if (c->state == BSC_SOCK_STATE_CONNECTED) {
+                    bsc_process_socket_connected_state(
+                        c, dm, rx_buf, rx_buf_size, need_disconnect, need_send);
+                } else if (c->state == BSC_SOCK_STATE_DISCONNECTING) {
+                    bsc_process_socket_disconnecting(
+                        c, dm, rx_buf, rx_buf_size, need_disconnect);
+                }
             }
         }
     }

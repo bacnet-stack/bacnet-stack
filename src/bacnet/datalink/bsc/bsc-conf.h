@@ -17,7 +17,7 @@
 #include "bacnet/bacdef.h"
 #include "bvlc-sc.h"
 
-#if !defined(BACL_BSC)
+#if !defined(BACDL_BSC)
   #define BSC_CONF_TX_PRE 0
 #else
   #define bsd 1
