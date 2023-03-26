@@ -1159,7 +1159,6 @@ static void signal_hubc_ev(hubc_ev_t *e,
 
 static void reset_hubc_ev(hubc_ev_t *ev)
 {
-    bsc_event_reset(ev->e);
     ev->ev = -1;
     ev->h = NULL;
 }
@@ -1206,7 +1205,6 @@ static void signal_hubf_ev(hubf_ev_t *e,
 
 static void reset_hubf_ev(hubf_ev_t *ev)
 {
-    bsc_event_reset(ev->e);
     ev->ev = -1;
     ev->h = NULL;
 }

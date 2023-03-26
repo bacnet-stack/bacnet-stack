@@ -1154,13 +1154,11 @@ static void reset_sock_ev(sock_ev_t *ev)
     debug_printf("reset_sock_ev %p\n", ev);
     ev->ev_code = -1;
     ev->err = -1;
-    bsc_event_reset(ev->ev);
 }
 
 static void reset_ctx_ev(ctx_ev_t *ev)
 {
     ev->ev_code = -1;
-    bsc_event_reset(ev->ev);
 }
 
 static void signal_sock_ev(

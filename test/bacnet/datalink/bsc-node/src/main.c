@@ -1211,7 +1211,6 @@ static void signal_node_ev(node_ev_t *e,
 
 static void reset_node_ev(node_ev_t *ev)
 {
-    bsc_event_reset(ev->e);
     ev->ev = -1;
     ev->node = NULL;
 }

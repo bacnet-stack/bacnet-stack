@@ -161,14 +161,6 @@ void bsc_event_signal(BSC_EVENT *ev)
     DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
 }
 
-void bsc_event_reset(BSC_EVENT *ev)
-{
-    WaitForSingleObject(ev->mutex, INFINITE);
-    ev->v = false;
-    ev->counter = 0;
-    ReleaseMutex(ev->mutex);
-}
-
 void bsc_wait(int seconds)
 {
     sleep(seconds);

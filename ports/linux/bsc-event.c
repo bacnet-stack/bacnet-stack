@@ -152,14 +152,6 @@ void bsc_event_signal(BSC_EVENT *ev)
     DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
 }
 
-void bsc_event_reset(BSC_EVENT *ev)
-{
-    pthread_mutex_lock(&ev->mutex);
-    ev->v = false;
-    ev->counter = 0;
-    pthread_mutex_unlock(&ev->mutex);
-}
-
 void bsc_wait(int seconds)
 {
     sleep(seconds);

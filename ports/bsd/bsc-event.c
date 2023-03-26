@@ -100,6 +100,10 @@ void bsc_event_wait(BSC_EVENT *ev)
         ev->v = false;
         DEBUG_PRINTF("bsc_event_wait() reset ev\n");
     }
+    else {
+       DEBUG_PRINTF("bsc_event_wait() wake up other waiting threads\n");
+       pthread_cond_broadcast(&ev->cond);
+    }
     DEBUG_PRINTF("bsc_event_wait() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
 }
@@ -136,6 +140,11 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
         ev->v = false;
         DEBUG_PRINTF("bsc_event_timedwait() reset ev\n");
     }
+    else {
+       DEBUG_PRINTF("bsc_event_timedwait() wake up other waiting threads\n");
+       pthread_cond_broadcast(&ev->cond);
+    }
+
     DEBUG_PRINTF("bsc_event_timedwait() <<< ev = %p\n", ev);
     pthread_mutex_unlock(&ev->mutex);
     return !timedout;
@@ -149,14 +158,6 @@ void bsc_event_signal(BSC_EVENT *ev)
     pthread_cond_broadcast(&ev->cond);
     pthread_mutex_unlock(&ev->mutex);
     DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
-}
-
-void bsc_event_reset(BSC_EVENT *ev)
-{
-    pthread_mutex_lock(&ev->mutex);
-    ev->v = false;
-    ev->counter = 0;
-    pthread_mutex_unlock(&ev->mutex);
 }
 
 void bsc_wait(int seconds)

@@ -35,6 +35,7 @@ static TEST_STAGE test_stage = STAGE_NONE;
 #define TIMEOUT_SLEEP   2
 #define WAITTIME_MIN    (TIMEOUT_SLEEP * MSEC_PER_SEC - 20)
 #define WAITTIME_MAX    (TIMEOUT_SLEEP * MSEC_PER_SEC + 20)
+#define MULTIPLE_WAIT_THREADS_NUM 50
 
 static void *child_func(void* arg)
 {
@@ -66,7 +67,7 @@ static void *child_func(void* arg)
     return NULL;
 }
 
-static void test_bsc_event(void)
+static void test_bsc_event1(void)
 {
     BSC_EVENT *event;
     pthread_t tid_child;
@@ -86,7 +87,6 @@ static void test_bsc_event(void)
     test_stage = STAGE_WAIT_1;
     bsc_event_wait(event);
 
-    bsc_event_reset(event);
     test_stage = STAGE_WAIT_2;
     bsc_event_wait(event);
 
@@ -109,8 +109,41 @@ static void test_bsc_event(void)
     bsc_event_deinit(event);
 }
 
+static void *thread_func(void* arg)
+{
+    BSC_EVENT *event = (BSC_EVENT *)arg;
+    zassert_not_null(event, NULL);
+    bsc_event_wait(event);
+    return NULL;
+}
+
+static void test_bsc_event2(void)
+{
+    BSC_EVENT *event;
+    pthread_t tid[MULTIPLE_WAIT_THREADS_NUM];
+    int i;
+
+    event = bsc_event_init();
+    zassert_not_null(event, NULL);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        zassert_equal(
+            pthread_create(&tid[i], NULL, &thread_func, event), 0, NULL);
+    }
+
+    bsc_event_signal(event);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+       pthread_join(tid[i], NULL);
+    }
+
+    bsc_event_deinit(event);
+}
+
 void test_main(void)
 {
-    ztest_test_suite(bsc_event_test, ztest_unit_test(test_bsc_event));
-    ztest_run_test_suite(bsc_event_test);
+    ztest_test_suite(bsc_event_test1, ztest_unit_test(test_bsc_event1));
+    ztest_test_suite(bsc_event_test2, ztest_unit_test(test_bsc_event2));
+    ztest_run_test_suite(bsc_event_test1);
+    ztest_run_test_suite(bsc_event_test2);
 }

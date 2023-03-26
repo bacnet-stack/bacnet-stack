@@ -180,18 +180,20 @@ void bsc_cleanup(void)
             bsc_event_wait(bsc_event);
             bws_dispatch_lock();
         }
-        bsc_datalink_state = BSC_DATALINK_STATE_STOPPING;
-        bsc_event_signal(bsc_data_event);
-        bsc_node_stop(bsc_node);
-        bws_dispatch_unlock();
-        bsc_event_wait(bsc_event);
-        bsc_event_wait(bsc_data_event);
-        bws_dispatch_lock();
-        bsc_deinit_resources();
-        (void)bsc_node_deinit(bsc_node);
-        bsc_node_conf_cleanup(&bsc_conf);
-        bsc_node = NULL;
-        bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
+        if(bsc_datalink_state != BSC_DATALINK_STATE_STOPPING) {
+            bsc_datalink_state = BSC_DATALINK_STATE_STOPPING;
+            bsc_event_signal(bsc_data_event);
+            bsc_node_stop(bsc_node);
+            bws_dispatch_unlock();
+            bsc_event_wait(bsc_event);
+            bsc_event_wait(bsc_data_event);
+            bws_dispatch_lock();
+            bsc_deinit_resources();
+            (void)bsc_node_deinit(bsc_node);
+            bsc_node_conf_cleanup(&bsc_conf);
+            bsc_node = NULL;
+            bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
+        }
     }
     bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_cleanup() <<<\n");
