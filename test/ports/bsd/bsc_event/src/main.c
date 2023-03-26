@@ -130,6 +130,7 @@ static void test_bsc_event2(void)
             pthread_create(&tid[i], NULL, &thread_func, event), 0, NULL);
     }
 
+    bsc_wait(1);
     bsc_event_signal(event);
 
     for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
