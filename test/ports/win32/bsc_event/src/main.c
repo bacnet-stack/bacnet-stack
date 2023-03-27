@@ -12,10 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
-#include <unistd.h>
 
 typedef enum {
     STAGE_NONE,
@@ -32,6 +30,7 @@ static TEST_STAGE test_stage = STAGE_NONE;
 #define TIMEOUT_SLEEP   2
 #define WAITTIME_MIN    (TIMEOUT_SLEEP * 1000 - 20)
 #define WAITTIME_MAX    (TIMEOUT_SLEEP * 1000 + 20)
+#define MULTIPLE_WAIT_THREADS_NUM 50
 
 DWORD WINAPI child_func( LPVOID lpParam )
 {
@@ -39,31 +38,32 @@ DWORD WINAPI child_func( LPVOID lpParam )
     zassert_not_null(event, NULL);
 
     while (test_stage != STAGE_WAIT_1) {
-        usleep(10);
+        Sleep(1);
     }
     bsc_event_signal(event);
 
     while (test_stage != STAGE_WAIT_2) {
-        usleep(10);
+        Sleep(1);
     }
     bsc_event_signal(event);
 
     while (test_stage != STAGE_TIMEDWAIT_TIMEOUT) {
-        usleep(10);
+        Sleep(1);
     }
-    usleep(1000 * TIMEOUT_CHILD);
+    Sleep(TIMEOUT_CHILD);
     bsc_event_signal(event);
 
     while (test_stage != STAGE_TIMEDWAIT_OK) {
-        usleep(10);
+        Sleep(1);
     }
-    usleep(1000 * TIMEOUT_CHILD);
+
+    Sleep(TIMEOUT_CHILD);
     bsc_event_signal(event);
-  
+
     return 0;
 }
 
-static void test_bsc_event(void)
+static void test_bsc_event1(void)
 {
     BSC_EVENT *event;
     HANDLE thread;
@@ -84,13 +84,12 @@ static void test_bsc_event(void)
                      (LPTHREAD_START_ROUTINE) child_func,
                      event,
                      0,          // default creation flags
-                     &ThreadID); // receive thread identifier
+                     &threadID); // receive thread identifier
     zassert_not_null(thread, NULL);
 
     test_stage = STAGE_WAIT_1;
     bsc_event_wait(event);
 
-    bsc_event_reset(event);
     test_stage = STAGE_WAIT_2;
     bsc_event_wait(event);
 
@@ -110,12 +109,54 @@ static void test_bsc_event(void)
 
     WaitForSingleObject(thread, INFINITE);
     CloseHandle(thread);
+    bsc_event_deinit(event);
+}
+
+DWORD WINAPI thread_func( LPVOID lpParam )
+{
+    BSC_EVENT *event = (BSC_EVENT *)lpParam;
+    zassert_not_null(event, NULL);
+    bsc_event_wait(event);
+    return 0;
+}
+
+static void test_bsc_event2(void)
+{
+    int i;
+    BSC_EVENT *event;
+    DWORD tid[MULTIPLE_WAIT_THREADS_NUM];
+    HANDLE thread[MULTIPLE_WAIT_THREADS_NUM];
+
+    event = bsc_event_init();
+    zassert_not_null(event, NULL);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+        thread[i] = CreateThread(
+                         NULL,       // default security attributes
+                         0,          // default stack size
+                         (LPTHREAD_START_ROUTINE) thread_func,
+                         event,
+                         0,          // default creation flags
+                         &tid[i]); // receive thread identifier
+        zassert_not_null(thread[i], NULL);
+
+    }
+
+    bsc_wait(1);
+    bsc_event_signal(event);
+
+    for(i=0; i<MULTIPLE_WAIT_THREADS_NUM; i++) {
+       WaitForSingleObject(thread[i], INFINITE);
+       CloseHandle(thread[i]);
+    }
 
     bsc_event_deinit(event);
 }
 
 void test_main(void)
 {
-    ztest_test_suite(bsc_event_test, ztest_unit_test(test_bsc_event));
-    ztest_run_test_suite(bsc_event_test);
+    ztest_test_suite(bsc_event_test1, ztest_unit_test(test_bsc_event1));
+    ztest_test_suite(bsc_event_test2, ztest_unit_test(test_bsc_event2));
+    ztest_run_test_suite(bsc_event_test1);
+    ztest_run_test_suite(bsc_event_test2);
 }
