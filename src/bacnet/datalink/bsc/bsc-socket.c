@@ -15,7 +15,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/datalink/bsc/bsc-util.h"
