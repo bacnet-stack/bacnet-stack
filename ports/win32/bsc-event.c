@@ -97,7 +97,6 @@ void bsc_event_wait(BSC_EVENT *ev)
     else {
        DEBUG_PRINTF("bsc_event_wait() set event\n");
        ReleaseMutex(ev->mutex);
-       SetEvent(ev->event);
     }
     DEBUG_PRINTF("bsc_event_wait() <<< ev = %p\n", ev);
 }
@@ -126,7 +125,6 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     }
     else {
        ReleaseMutex(ev->mutex);
-       SetEvent(ev->event);
     }
     DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d\n", ret == WAIT_OBJECT_0 ? true : false);
     return ret == WAIT_OBJECT_0 ? true : false;
