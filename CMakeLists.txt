@@ -90,7 +90,7 @@ find_package(Threads)
 if(BACDL_BSC)
 find_package(libwebsockets CONFIG REQUIRED)
 find_package(PkgConfig)
-pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
+#pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
 find_package(OpenSSL)
 endif()
 
