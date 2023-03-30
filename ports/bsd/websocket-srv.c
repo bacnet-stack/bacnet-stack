@@ -459,18 +459,16 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         ctx->conn[h].fragment_buffer_size = BSC_RX_BUFFER_LEN;
                     }
                     if (ctx->conn[h].fragment_buffer_len + len >
-                        ctx->conn[h].fragment_buffer_size - BSC_CONF_RX_PRE) {
+                        ctx->conn[h].fragment_buffer_size) {
                         DEBUG_PRINTF(
                             "bws_srv_websocket_event() realloc buf of %d bytes"
                             "for socket %d to %d bytes\n",
                             ctx->conn[h].fragment_buffer_len, h,
-                            ctx->conn[h].fragment_buffer_len + len +
-                                BSC_CONF_RX_PRE);
+                            ctx->conn[h].fragment_buffer_len + len);
 
                         ctx->conn[h].fragment_buffer =
                             realloc(ctx->conn[h].fragment_buffer,
-                                ctx->conn[h].fragment_buffer_len + len +
-                                    BSC_CONF_RX_PRE);
+                                ctx->conn[h].fragment_buffer_len + len);
                         if (!ctx->conn[h].fragment_buffer) {
                             lws_close_reason(wsi,
                                 LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
@@ -482,14 +480,13 @@ static int bws_srv_websocket_event(struct lws *wsi,
                             return -1;
                         }
                         ctx->conn[h].fragment_buffer_size =
-                            ctx->conn[h].fragment_buffer_len + len +
-                            BSC_CONF_RX_PRE;
+                            ctx->conn[h].fragment_buffer_len + len;
                     }
                     DEBUG_PRINTF(
                         "bws_srv_websocket_event() got next %d bytes for "
                         "socket %d total_len %d\n",
                         len, h, ctx->conn[h].fragment_buffer_len);
-                    memcpy(&ctx->conn[h].fragment_buffer[BSC_CONF_RX_PRE +
+                    memcpy(&ctx->conn[h].fragment_buffer[
                                ctx->conn[h].fragment_buffer_len],
                         in, len);
                     ctx->conn[h].fragment_buffer_len += len;
@@ -499,7 +496,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         pthread_mutex_unlock(ctx->mutex);
                         dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
                             BSC_WEBSOCKET_RECEIVED, 0, NULL,
-                            &ctx->conn[h].fragment_buffer[BSC_CONF_RX_PRE],
+                            ctx->conn[h].fragment_buffer,
                             ctx->conn[h].fragment_buffer_len, user_param);
                         pthread_mutex_lock(ctx->mutex);
                         ctx->conn[h].fragment_buffer_len = 0;

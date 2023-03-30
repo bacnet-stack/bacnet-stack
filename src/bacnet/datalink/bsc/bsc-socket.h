@@ -154,6 +154,7 @@ struct BSC_SocketContextFuncs {
                          const char* disconnect_reason_desc,
                          uint8_t *pdu, uint16_t pdu_len,
                          BVLC_SC_DECODED_MESSAGE *decoded_pdu);
+
     void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
     void (*failed_request)(BSC_SOCKET_CTX *ctx, BSC_SOCKET*c,
                            BACNET_SC_VMAC_ADDRESS *vmac,
@@ -298,4 +299,9 @@ void bsc_socket_maintenance_timer(uint16_t seconds);
 BACNET_STACK_EXPORT
 bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data);
 
+BACNET_STACK_EXPORT
+uint8_t* bsc_socket_get_global_buf(void);
+
+BACNET_STACK_EXPORT
+size_t bsc_socket_get_global_buf_size(void);
 #endif

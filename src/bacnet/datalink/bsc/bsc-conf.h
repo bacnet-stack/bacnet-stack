@@ -32,10 +32,6 @@
    #endif
 #endif
 
-#ifndef BSC_CONF_RX_PRE
-#define BSC_CONF_RX_PRE BSC_PRE
-#endif
-
 #ifndef BSC_CONF_HUB_CONNECTORS_NUM
 #define BSC_CONF_HUB_CONNECTORS_NUM 1
 #endif
@@ -59,7 +55,7 @@
 #endif
 
 #ifndef BSC_CONF_WEBSOCKET_RX_BUFFER_LEN
-#define BSC_CONF_WEBSOCKET_RX_BUFFER_LEN (BVLC_SC_NPDU_SIZE_CONF+BSC_CONF_RX_PRE)
+#define BSC_CONF_WEBSOCKET_RX_BUFFER_LEN BVLC_SC_NPDU_SIZE_CONF
 #endif
 
 /* THIS should not be changed, most of BACNet/SC devices must have */
@@ -93,12 +89,7 @@
 #define BSC_CONF_SOCKET_TX_BUFFERED_PACKET_NUM 2
 #define BSC_CONF_DATALINK_BUFFERED_PACKET_NUM 10
 
-/* BSC_CONF_RX_PRE bytes is always reserved before header of received
-   BVLC message to avoid copying of packet payload during manipulation
-   with origin and dest addresses (add them to received PDU).
-   */
-
-#define BSC_CONF_SOCK_RX_BUFFER_SIZE (BVLC_SC_NPDU_SIZE_CONF + BSC_CONF_RX_PRE)
+#define BSC_CONF_SOCK_RX_BUFFER_SIZE BVLC_SC_NPDU_SIZE_CONF
 
 /* 2 bytes is a prefix containing BVLC message length.
    BSC_CONF_TX_PRE - some reserved bytes before actual payload.

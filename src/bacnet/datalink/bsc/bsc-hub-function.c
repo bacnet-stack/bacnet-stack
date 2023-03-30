@@ -225,8 +225,13 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     BSC_SOCKET *dst;
     BSC_SC_RET ret;
     int i;
-    uint8_t **ppdu = &pdu;
+    uint8_t *p_pdu;
     BSC_HUB_FUNCTION *f;
+    uint16_t len;
+
+    DEBUG_PRINTF("hub_function_socket_event() >>> c = %p, ev = %d, reason = "
+                 "%d, desc = %p, pdu = %p, pdu_len = %d, decoded_pdu = %p\n",
+        c, ev, reason, reason_desc, pdu, pdu_len, decoded_pdu);
 
     bws_dispatch_lock();
     f = (BSC_HUB_FUNCTION *)c->ctx->user_arg;
@@ -236,23 +241,36 @@ static void hub_function_socket_event(BSC_SOCKET *c,
         /* although such kind of check is already in bsc-socket.c */
         if (!decoded_pdu->hdr.origin && decoded_pdu->hdr.dest) {
             if (bvlc_sc_is_vmac_broadcast(decoded_pdu->hdr.dest)) {
-                for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
-                    if (&f->sock[i] != c &&
-                        f->sock[i].state == BSC_SOCK_STATE_CONNECTED) {
-                        /* change origin address if presented or add origin */
-                        /* address into pdu by extending of it's header */
-                        pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
-                        ret = bsc_send(&f->sock[i], *ppdu, pdu_len);
-                        (void)ret;
+                if (bsc_socket_get_global_buf_size() >= pdu_len) {
+                    p_pdu = bsc_socket_get_global_buf();
+                    len = pdu_len;
+                    memcpy(p_pdu, pdu, len);
+
+                    for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
+                        if (&f->sock[i] != c &&
+                            f->sock[i].state == BSC_SOCK_STATE_CONNECTED) {
+                            /* change origin address if presented or add origin */
+                            /* address into pdu by extending of it's header */
+                            len = (uint16_t)bvlc_sc_set_orig(&p_pdu,
+                                                             len, &c->vmac);
+                            ret = bsc_send(&f->sock[i], p_pdu, len);
+                            (void)ret;
 #if DEBUG_ENABLED == 1
-                        if (ret != BSC_SC_SUCCESS) {
-                            DEBUG_PRINTF("sending of reconstructed pdu failed, "
-                                         "err = %d\n",
-                                ret);
-                        }
+                            if (ret != BSC_SC_SUCCESS) {
+                                DEBUG_PRINTF(
+                                    "sending of reconstructed pdu failed, "
+                                    "err = %d\n",
+                                    ret);
+                            }
 #endif
+                        }
                     }
                 }
+#if DEBUG_ENABLED == 1
+                else {
+                    DEBUG_PRINTF("pdu with len = %d is dropped\n", pdu_len);
+                }
+#endif
             } else {
                 dst = hub_function_find_connection_for_vmac(
                     decoded_pdu->hdr.dest, (void *)f);
@@ -284,6 +302,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
         hub_function_update_status(f, c, ev, reason, reason_desc);
     }
     bws_dispatch_unlock();
+    DEBUG_PRINTF("hub_function_socket_event() <<<\n");
 }
 
 static void hub_function_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)

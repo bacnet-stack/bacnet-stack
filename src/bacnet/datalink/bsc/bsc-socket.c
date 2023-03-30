@@ -402,6 +402,7 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
         DEBUG_PRINTF("bsc_process_socket_connected_state() emit received event "
                      "buf = %p, size = %d\n",
             buf, buflen);
+
         c->ctx->funcs->socket_event(
             c, BSC_SOCKET_EVENT_RECEIVED, 0, NULL, buf, buflen, dm);
     }
@@ -1523,4 +1524,17 @@ bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data)
     }
     bws_dispatch_unlock();
     return ret;
+}
+
+BACNET_STACK_EXPORT
+uint8_t* bsc_socket_get_global_buf(void)
+{
+    static uint8_t buf[BSC_PRE + BVLC_SC_NPDU_SIZE_CONF];
+    return &buf[BSC_PRE];
+}
+
+BACNET_STACK_EXPORT
+size_t bsc_socket_get_global_buf_size(void)
+{
+    return BVLC_SC_NPDU_SIZE_CONF;
 }

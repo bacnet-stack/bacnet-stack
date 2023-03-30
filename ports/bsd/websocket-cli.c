@@ -302,35 +302,31 @@ static int bws_cli_websocket_event(struct lws *wsi,
                     bws_cli_conn[h].fragment_buffer_size = BSC_RX_BUFFER_LEN;
                 }
                 if (bws_cli_conn[h].fragment_buffer_len + len >
-                    bws_cli_conn[h].fragment_buffer_size - BSC_CONF_RX_PRE) {
+                    bws_cli_conn[h].fragment_buffer_size) {
                     DEBUG_PRINTF(
                         "bws_cli_websocket_event() realloc buf of %d bytes"
                         "for socket %d to %d bytes\n",
                         bws_cli_conn[h].fragment_buffer_len, h,
-                        bws_cli_conn[h].fragment_buffer_len + len +
-                            BSC_CONF_RX_PRE);
+                        bws_cli_conn[h].fragment_buffer_len + len);
                     bws_cli_conn[h].fragment_buffer =
                         realloc(bws_cli_conn[h].fragment_buffer,
-                            bws_cli_conn[h].fragment_buffer_len + len +
-                                BSC_CONF_RX_PRE);
+                            bws_cli_conn[h].fragment_buffer_len + len);
                     if (!bws_cli_conn[h].fragment_buffer) {
                         lws_close_reason(
                             wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
                         pthread_mutex_unlock(&bws_cli_mutex);
                         DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = -1, "
                                      "re-allocation of %d bytes failed\n",
-                            bws_cli_conn[h].fragment_buffer_len + len +
-                                BSC_CONF_RX_PRE);
+                            bws_cli_conn[h].fragment_buffer_len + len);
                         return -1;
                     }
                     bws_cli_conn[h].fragment_buffer_size =
-                        bws_cli_conn[h].fragment_buffer_len + len +
-                        BSC_CONF_RX_PRE;
+                        bws_cli_conn[h].fragment_buffer_len + len;
                 }
                 DEBUG_PRINTF("bws_cli_websocket_event() got next %d bytes for "
                              "socket %d\n",
                     len, h);
-                memcpy(&bws_cli_conn[h].fragment_buffer[BSC_CONF_RX_PRE +
+                memcpy(&bws_cli_conn[h].fragment_buffer[
                            bws_cli_conn[h].fragment_buffer_len],
                     in, len);
                 bws_cli_conn[h].fragment_buffer_len += len;
@@ -342,7 +338,7 @@ static int bws_cli_websocket_event(struct lws *wsi,
                     user_param = bws_cli_conn[h].user_param;
                     pthread_mutex_unlock(&bws_cli_mutex);
                     dispatch_func(h, BSC_WEBSOCKET_RECEIVED, 0, NULL,
-                        &bws_cli_conn[h].fragment_buffer[BSC_CONF_RX_PRE],
+                        bws_cli_conn[h].fragment_buffer,
                         bws_cli_conn[h].fragment_buffer_len, user_param);
                     pthread_mutex_lock(&bws_cli_mutex);
                     bws_cli_conn[h].fragment_buffer_len = 0;

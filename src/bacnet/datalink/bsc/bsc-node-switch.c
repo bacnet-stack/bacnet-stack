@@ -329,8 +329,12 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
     uint16_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
-    uint8_t **ppdu = &pdu;
+    uint8_t* p_pdu;
     BSC_NODE_SWITCH_CTX *ctx;
+    BACNET_ERROR_CODE error;
+    BACNET_ERROR_CLASS class;
+    const char *err_desc;
+    bool res = true;
 
     DEBUG_PRINTF(
         "node_switch_acceptor_socket_event() >>> c %p, ev = %d\n", c, ev);
@@ -343,9 +347,16 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
 
     if (ctx->acceptor.state == BSC_NODE_SWITCH_STATE_STARTED) {
         if (ev == BSC_SOCKET_EVENT_RECEIVED) {
-            pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
-            ctx->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ctx, ctx->user_arg,
-                NULL, *ppdu, pdu_len, decoded_pdu);
+            if(bsc_socket_get_global_buf_size() >= pdu_len) {
+                p_pdu = bsc_socket_get_global_buf();
+                memcpy(p_pdu, pdu, pdu_len);
+                pdu_len = bvlc_sc_set_orig(&p_pdu, pdu_len, &c->vmac);
+                res = bvlc_sc_decode_message(p_pdu, pdu_len, decoded_pdu, &error, &class, &err_desc);
+                if(res) {
+                    ctx->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ctx, ctx->user_arg,
+                        NULL, p_pdu, pdu_len, decoded_pdu);
+                }
+            }
         } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
             node_switch_update_status(ctx, false, false, NULL, c, ev,
                 disconnect_reason, disconnect_reason_desc);
@@ -553,9 +564,13 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     int index;
-    uint8_t **ppdu = &pdu;
+    uint8_t *p_pdu = NULL;
     BSC_NODE_SWITCH_CTX *ns;
     int elem;
+    BACNET_ERROR_CODE error;
+    BACNET_ERROR_CLASS class;
+    const char *err_desc;
+    bool res;
 
     DEBUG_PRINTF(
         "node_switch_initiator_socket_event() >>> c %p, ev = %d\n", c, ev);
@@ -570,9 +585,16 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
             ns->event_func(BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC, ns,
                 ns->user_arg, NULL, NULL, 0, NULL);
         } else if (ev == BSC_SOCKET_EVENT_RECEIVED) {
-            pdu_len = bvlc_sc_set_orig(ppdu, pdu_len, &c->vmac);
-            ns->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ns, ns->user_arg,
-                NULL, *ppdu, pdu_len, decoded_pdu);
+            if(bsc_socket_get_global_buf_size() >= pdu_len) {
+                p_pdu = bsc_socket_get_global_buf();
+                memcpy(p_pdu, pdu, pdu_len);
+                pdu_len = bvlc_sc_set_orig(&p_pdu, pdu_len, &c->vmac);
+                res = bvlc_sc_decode_message(p_pdu, pdu_len, decoded_pdu, &error, &class, &err_desc);
+                if(res) {
+                    ns->event_func(BSC_NODE_SWITCH_EVENT_RECEIVED, ns, ns->user_arg,
+                        NULL, p_pdu, pdu_len, decoded_pdu);
+                }
+            }
         }
 
         index = node_switch_initiator_get_index(ns, c);
