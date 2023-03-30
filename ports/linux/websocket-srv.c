@@ -683,7 +683,8 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     struct lws_context_creation_info info = { 0 };
     int ret;
     BSC_WEBSOCKET_CONTEXT *ctx;
-
+    pthread_attr_t attr;
+    int r;
     struct lws_protocols protos[] = {
         { (proto == BSC_WEBSOCKET_HUB_PROTOCOL)
                 ? BSC_WEBSOCKET_HUB_PROTOCOL_STR
@@ -691,6 +692,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
             bws_srv_websocket_event, 0, 0, 0, NULL, 0 },
         LWS_PROTOCOL_LIST_TERM
     };
+
     DEBUG_PRINTF("bws_srv_start() >>> proto = %d port = %d "
                  "dispatch_func_user_param = %p\n",
         proto, port, dispatch_func_user_param);
@@ -770,10 +772,17 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     ctx->dispatch_func = dispatch_func;
     ctx->user_param = dispatch_func_user_param;
     ctx->proto = proto;
+    r = pthread_attr_init(&attr);
 
-    ret = pthread_create(&thread_id, NULL, &bws_srv_worker, ctx);
+    if(!r) {
+        r = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    }
 
-    if (ret != 0) {
+    if(!r) {
+        r = pthread_create(&thread_id, &attr, &bws_srv_worker, ctx);
+    }
+
+    if (r) {
         /* TRICKY: This is ridiculus but lws_context_destroy()
                    does't seem to be
                    thread safe. More over, on different platforms the
@@ -801,7 +810,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
             "bws_srv_start() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
-
+    pthread_attr_destroy(&attr);
     pthread_mutex_unlock(ctx->mutex);
     *sh = (BSC_WEBSOCKET_SRV_HANDLE)ctx;
     DEBUG_PRINTF("bws_srv_start() <<< ret = BSC_WEBSOCKET_SUCCESS\n");
