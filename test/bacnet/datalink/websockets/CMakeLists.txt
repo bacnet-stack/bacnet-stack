@@ -8,14 +8,10 @@ project(test_${basename}
 	LANGUAGES C)
 
 include(CMakePrintHelpers)
-cmake_print_variables(CMAKE_FIND_ROOT_PATH)
-cmake_print_variables(CMAKE_PREFIX_PATH)
-set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH TRUE)
 
 find_package(Threads)
 find_package(libwebsockets CONFIG REQUIRED)
-find_package(PkgConfig)
-find_package(OpenSSL)
+include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
 
 string(REGEX REPLACE
     "/test/bacnet/[a-z0-9A-Z_/-]*$"
@@ -37,18 +33,19 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
-  BACDL_BSC
+	BACDL_BSC
 	BSC_CONF_CLIENT_CONNECTIONS_NUM=5
 	BSC_CONF_SERVER_HUB_CONNECTIONS_MAX_NUM=4
 	BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM=4
-  BSC_CONF_WSURL_MAX_LEN=128
-  BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN=128
-  BSC_CONF_WEBSOCKET_SERVERS_NUM=4
+	BSC_CONF_WSURL_MAX_LEN=128
+	BSC_CONF_WEBSOCKET_ERR_DESC_STR_MAX_LEN=128
+	BSC_CONF_WEBSOCKET_SERVERS_NUM=4
 	)
 
 include_directories(
 	${SRC_DIR}
 	${TST_DIR}/ztest/include
+	${LIBWEBSOCKETS_INCLUDE_DIRS}
 	)
 
 if(ZEPHYR_BASE)
@@ -58,44 +55,56 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "LIB_WEBSOCKETS_LIBRARIES= ${LIB_WEBSOCKETS_LIBRARIES}")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   add_compile_definitions(BACNET_PORT=linux)
+  find_package(OpenSSL)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/linux/websocket-cli.c
     ${PORTS_DIR}/linux/websocket-srv.c
     ${PORTS_DIR}/linux/websocket-mutex.c
+    ${PORTS_DIR}/linux/bsc-event.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${LIBWEBSOCKETS_INCLUDE_DIRS}/libwebsockets.h
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
   target_link_libraries(${PROJECT_NAME}
-                        ${LIB_WEBSOCKETS_LIBRARIES}
+                        ${LIBWEBSOCKETS_LIBRARIES}
   )
 elseif(WIN32)
   message(STATUS "Websockets test: building for win32")
   message(STATUS "LIBWEBSOCKETS_LIBRARIES= ${LIBWEBSOCKETS_LIBRARIES}")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
   add_compile_definitions(BACNET_PORT=win32)
+  find_package(OpenSSL)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/win32/websocket-cli.c
     ${PORTS_DIR}/win32/websocket-srv.c
     ${PORTS_DIR}/win32/websocket-mutex.c
+    ${PORTS_DIR}/win32/bsc-event.c
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
-  #target_link_libraries(${PROJECT_NAME}
-  #                      ${LIBWEBSOCKETS_LIBRARIES}"
-  #)
+  target_link_libraries(${PROJECT_NAME}
+                        websockets
+                        websockets_shared
+  )
 elseif(APPLE)
   message(STATUS "Websockets test: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
+  execute_process (
+         COMMAND bash -c "brew --prefix openssl"
+         OUTPUT_VARIABLE OPEN_SSL_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  include_directories(${OPEN_SSL_DIR}/include)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c
     ${PORTS_DIR}/bsd/websocket-mutex.c
+    ${PORTS_DIR}/bsd/bsc-event.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     # Test and test library files
     ./src/main.c
@@ -103,7 +112,7 @@ elseif(APPLE)
     ${ZTST_DIR}/ztest.c
     )
   target_link_libraries(${PROJECT_NAME}
-                        ${LIB_WEBSOCKETS_LIBRARIES}
+                        ${LIBWEBSOCKETS_LIBRARIES}
   )
 endif()
 
