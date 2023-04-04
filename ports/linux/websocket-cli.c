@@ -303,35 +303,31 @@ static int bws_cli_websocket_event(struct lws *wsi,
                     bws_cli_conn[h].fragment_buffer_size = BSC_RX_BUFFER_LEN;
                 }
                 if (bws_cli_conn[h].fragment_buffer_len + len >
-                    bws_cli_conn[h].fragment_buffer_size - BSC_CONF_RX_PRE) {
+                    bws_cli_conn[h].fragment_buffer_size) {
                     DEBUG_PRINTF(
                         "bws_cli_websocket_event() realloc buf of %d bytes"
                         "for socket %d to %d bytes\n",
                         bws_cli_conn[h].fragment_buffer_len, h,
-                        bws_cli_conn[h].fragment_buffer_len + len +
-                            BSC_CONF_RX_PRE);
+                        bws_cli_conn[h].fragment_buffer_len + len);
                     bws_cli_conn[h].fragment_buffer =
                         realloc(bws_cli_conn[h].fragment_buffer,
-                            bws_cli_conn[h].fragment_buffer_len + len +
-                                BSC_CONF_RX_PRE);
+                            bws_cli_conn[h].fragment_buffer_len + len);
                     if (!bws_cli_conn[h].fragment_buffer) {
                         lws_close_reason(
                             wsi, LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
                         pthread_mutex_unlock(&bws_cli_mutex);
                         DEBUG_PRINTF("bws_cli_websocket_event() <<< ret = -1, "
                                      "re-allocation of %d bytes failed\n",
-                            bws_cli_conn[h].fragment_buffer_len + len +
-                                BSC_CONF_RX_PRE);
+                            bws_cli_conn[h].fragment_buffer_len + len);
                         return -1;
                     }
                     bws_cli_conn[h].fragment_buffer_size =
-                        bws_cli_conn[h].fragment_buffer_len + len +
-                        BSC_CONF_RX_PRE;
+                        bws_cli_conn[h].fragment_buffer_len + len;
                 }
                 DEBUG_PRINTF("bws_cli_websocket_event() got next %d bytes for "
                              "socket %d\n",
                     len, h);
-                memcpy(&bws_cli_conn[h].fragment_buffer[BSC_CONF_RX_PRE +
+                memcpy(&bws_cli_conn[h].fragment_buffer[
                            bws_cli_conn[h].fragment_buffer_len],
                     in, len);
                 bws_cli_conn[h].fragment_buffer_len += len;
@@ -343,7 +339,7 @@ static int bws_cli_websocket_event(struct lws *wsi,
                     user_param = bws_cli_conn[h].user_param;
                     pthread_mutex_unlock(&bws_cli_mutex);
                     dispatch_func(h, BSC_WEBSOCKET_RECEIVED, 0, NULL,
-                        &bws_cli_conn[h].fragment_buffer[BSC_CONF_RX_PRE],
+                        bws_cli_conn[h].fragment_buffer,
                         bws_cli_conn[h].fragment_buffer_len, user_param);
                     pthread_mutex_lock(&bws_cli_mutex);
                     bws_cli_conn[h].fragment_buffer_len = 0;
@@ -521,9 +517,10 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     int port = -1;
     BSC_WEBSOCKET_HANDLE h;
     struct lws_client_connect_info cinfo = { 0 };
-    BSC_WEBSOCKET_RET ret;
     pthread_t thread_id;
     size_t len;
+    pthread_attr_t attr;
+    int r;
 
     DEBUG_PRINTF("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
 
@@ -619,9 +616,17 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
 
-    ret = pthread_create(&thread_id, NULL, &bws_cli_worker, &bws_cli_conn[h]);
+    r = pthread_attr_init(&attr);
 
-    if (ret != 0) {
+    if(!r) {
+        r = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    }
+
+    if(!r) {
+        r = pthread_create(&thread_id, &attr, &bws_cli_worker, &bws_cli_conn[h]);
+    }
+
+    if(r) {
         /* TRICKY: This is ridiculus but lws_context_destroy()
                    does't seem to be
                    thread safe. More over, on different platforms the
@@ -648,6 +653,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
             "bws_cli_connect() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
+    pthread_attr_destroy(&attr);
     bws_cli_conn[h].ws = NULL;
     cinfo.context = bws_cli_conn[h].ctx;
     cinfo.address = addr;
@@ -676,7 +682,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     pthread_mutex_unlock(&bws_cli_mutex);
 
     DEBUG_PRINTF("bws_cli_connect() <<< ret = %d\n", BSC_WEBSOCKET_SUCCESS);
-    return ret;
+    return BSC_WEBSOCKET_SUCCESS;
 }
 
 void bws_cli_disconnect(BSC_WEBSOCKET_HANDLE h)

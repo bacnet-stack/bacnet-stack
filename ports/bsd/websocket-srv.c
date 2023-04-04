@@ -459,18 +459,16 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         ctx->conn[h].fragment_buffer_size = BSC_RX_BUFFER_LEN;
                     }
                     if (ctx->conn[h].fragment_buffer_len + len >
-                        ctx->conn[h].fragment_buffer_size - BSC_CONF_RX_PRE) {
+                        ctx->conn[h].fragment_buffer_size) {
                         DEBUG_PRINTF(
                             "bws_srv_websocket_event() realloc buf of %d bytes"
                             "for socket %d to %d bytes\n",
                             ctx->conn[h].fragment_buffer_len, h,
-                            ctx->conn[h].fragment_buffer_len + len +
-                                BSC_CONF_RX_PRE);
+                            ctx->conn[h].fragment_buffer_len + len);
 
                         ctx->conn[h].fragment_buffer =
                             realloc(ctx->conn[h].fragment_buffer,
-                                ctx->conn[h].fragment_buffer_len + len +
-                                    BSC_CONF_RX_PRE);
+                                ctx->conn[h].fragment_buffer_len + len);
                         if (!ctx->conn[h].fragment_buffer) {
                             lws_close_reason(wsi,
                                 LWS_CLOSE_STATUS_MESSAGE_TOO_LARGE, NULL, 0);
@@ -482,14 +480,13 @@ static int bws_srv_websocket_event(struct lws *wsi,
                             return -1;
                         }
                         ctx->conn[h].fragment_buffer_size =
-                            ctx->conn[h].fragment_buffer_len + len +
-                            BSC_CONF_RX_PRE;
+                            ctx->conn[h].fragment_buffer_len + len;
                     }
                     DEBUG_PRINTF(
                         "bws_srv_websocket_event() got next %d bytes for "
                         "socket %d total_len %d\n",
                         len, h, ctx->conn[h].fragment_buffer_len);
-                    memcpy(&ctx->conn[h].fragment_buffer[BSC_CONF_RX_PRE +
+                    memcpy(&ctx->conn[h].fragment_buffer[
                                ctx->conn[h].fragment_buffer_len],
                         in, len);
                     ctx->conn[h].fragment_buffer_len += len;
@@ -499,7 +496,7 @@ static int bws_srv_websocket_event(struct lws *wsi,
                         pthread_mutex_unlock(ctx->mutex);
                         dispatch_func((BSC_WEBSOCKET_SRV_HANDLE)ctx, h,
                             BSC_WEBSOCKET_RECEIVED, 0, NULL,
-                            &ctx->conn[h].fragment_buffer[BSC_CONF_RX_PRE],
+                            ctx->conn[h].fragment_buffer,
                             ctx->conn[h].fragment_buffer_len, user_param);
                         pthread_mutex_lock(ctx->mutex);
                         ctx->conn[h].fragment_buffer_len = 0;
@@ -685,7 +682,8 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     struct lws_context_creation_info info = { 0 };
     int ret;
     BSC_WEBSOCKET_CONTEXT *ctx;
-
+    pthread_attr_t attr;
+    int r;
     struct lws_protocols protos[] = {
         { (proto == BSC_WEBSOCKET_HUB_PROTOCOL)
                 ? BSC_WEBSOCKET_HUB_PROTOCOL_STR
@@ -693,6 +691,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
             bws_srv_websocket_event, 0, 0, 0, NULL, 0 },
         LWS_PROTOCOL_LIST_TERM
     };
+
     DEBUG_PRINTF("bws_srv_start() >>> proto = %d port = %d "
                  "dispatch_func_user_param = %p\n",
         proto, port, dispatch_func_user_param);
@@ -772,10 +771,17 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
     ctx->dispatch_func = dispatch_func;
     ctx->user_param = dispatch_func_user_param;
     ctx->proto = proto;
+    r = pthread_attr_init(&attr);
 
-    ret = pthread_create(&thread_id, NULL, &bws_srv_worker, ctx);
+    if(!r) {
+        r = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    }
 
-    if (ret != 0) {
+    if(!r) {
+        r = pthread_create(&thread_id, &attr, &bws_srv_worker, ctx);
+    }
+
+    if (r) {
         /* TRICKY: This is ridiculus but lws_context_destroy()
                    does't seem to be
                    thread safe. More over, on different platforms the
@@ -803,7 +809,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
             "bws_srv_start() <<< ret = BACNET_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
-
+    pthread_attr_destroy(&attr);
     pthread_mutex_unlock(ctx->mutex);
     *sh = (BSC_WEBSOCKET_SRV_HANDLE)ctx;
     DEBUG_PRINTF("bws_srv_start() <<< ret = BSC_WEBSOCKET_SUCCESS\n");

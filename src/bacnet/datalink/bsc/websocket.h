@@ -120,10 +120,6 @@ typedef enum {
 /* 
    values of ws_reason and ws_reason_desc parameters are actual
    only for BSC_WEBSOCKET_DISCONNECTED event.
-
-   you can assume that buf pointer provided for BSC_WEBSOCKET_RECEIVED
-   has BSC_CONF_RX_PRE reserved before actual payload. That trick
-   allows to avoid additional memcpy for upper layer.
 */
 
 typedef void (*BSC_WEBSOCKET_CLI_DISPATCH) (BSC_WEBSOCKET_HANDLE h,

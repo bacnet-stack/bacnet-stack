@@ -42,23 +42,21 @@ BSC_EVENT *bsc_event_init(void)
         return NULL;
     }
 
-    ret->mutex = CreateMutex(
-        NULL,              // default security attributes
-        FALSE,             // initially not owned
-        NULL);             // unnamed mutex
+    ret->mutex = CreateMutex(NULL, // default security attributes
+        FALSE, // initially not owned
+        NULL); // unnamed mutex
 
     if (ret->mutex == NULL) {
         free(ret);
         return NULL;
     }
 
-    ret->event = CreateEvent(
-        NULL,               // default security attributes
-        TRUE,               // manual-reset event
-        FALSE,              // initial state is nonsignaled
-        NULL                // unnamed event
-        );
-  
+    ret->event = CreateEvent(NULL, // default security attributes
+        TRUE, // manual-reset event
+        FALSE, // initial state is nonsignaled
+        NULL // unnamed event
+    );
+
     if (ret->event == NULL) {
         CloseHandle(ret->mutex);
         free(ret);
@@ -90,13 +88,12 @@ void bsc_event_wait(BSC_EVENT *ev)
     ev->counter--;
     DEBUG_PRINTF("bsc_event_wait() counter %zu\n", ev->counter);
     if (!ev->counter) {
-       DEBUG_PRINTF("bsc_event_wait() reset event\n");
-       ReleaseMutex(ev->mutex);
-       ResetEvent(ev->event); 
-    }
-    else {
-       DEBUG_PRINTF("bsc_event_wait() set event\n");
-       ReleaseMutex(ev->mutex);
+        DEBUG_PRINTF("bsc_event_wait() reset event\n");
+        ReleaseMutex(ev->mutex);
+        ResetEvent(ev->event);
+    } else {
+        DEBUG_PRINTF("bsc_event_wait() set event\n");
+        ReleaseMutex(ev->mutex);
     }
     DEBUG_PRINTF("bsc_event_wait() <<< ev = %p\n", ev);
 }
@@ -120,13 +117,13 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     ev->counter--;
     DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
     if (!ev->counter) {
-       ReleaseMutex(ev->mutex);
-       ResetEvent(ev->event); 
+        ReleaseMutex(ev->mutex);
+        ResetEvent(ev->event);
+    } else {
+        ReleaseMutex(ev->mutex);
     }
-    else {
-       ReleaseMutex(ev->mutex);
-    }
-    DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d\n", ret == WAIT_OBJECT_0 ? true : false);
+    DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d\n",
+        ret == WAIT_OBJECT_0 ? true : false);
     return ret == WAIT_OBJECT_0 ? true : false;
 }
 
@@ -139,7 +136,7 @@ void bsc_event_signal(BSC_EVENT *ev)
 
 void bsc_wait(int seconds)
 {
-    Sleep(seconds*1000);
+    Sleep(seconds * 1000);
 }
 
 void bsc_wait_ms(int mseconds)

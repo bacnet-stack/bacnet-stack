@@ -196,7 +196,6 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_HUB_CONNECTOR *hc;
-    uint8_t **ppdu = &pdu;
     BACNET_SC_CONNECTION_STATE st = BACNET_DISCONNECTED_WITH_ERRORS;
 
     bws_dispatch_lock();
@@ -279,7 +278,7 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
         DEBUG_PRINTF("hub_connector_socket_event() hub_connector = %p pdu of "
                      "%d len is received\n",
             hc, pdu_len);
-        hc->event_func(BSC_HUBC_EVENT_RECEIVED, hc, hc->user_arg, *ppdu,
+        hc->event_func(BSC_HUBC_EVENT_RECEIVED, hc, hc->user_arg, pdu,
             pdu_len, decoded_pdu);
     }
     bws_dispatch_unlock();
