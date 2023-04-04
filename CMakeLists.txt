@@ -89,9 +89,7 @@ find_package(Threads)
 
 if(BACDL_BSC)
 find_package(libwebsockets CONFIG REQUIRED)
-find_package(PkgConfig)
-#pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
-find_package(OpenSSL)
+include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
 endif()
 
 add_library(${PROJECT_NAME}
@@ -519,6 +517,11 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   target_link_libraries(${PROJECT_NAME} PUBLIC m)
   add_compile_definitions(BACNET_PORT=linux)
+
+if(BACDL_BSC)
+  find_package(OpenSSL)
+endif()
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/linux/bacport.h
     ports/linux/datetime-init.c
@@ -542,6 +545,11 @@ elseif(WIN32)
   message(STATUS "BACNET: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
   add_compile_definitions(BACNET_PORT=win32)
+
+if(BACDL_BSC)
+  find_package(OpenSSL)
+endif()
+
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -567,6 +575,14 @@ elseif(APPLE)
   message(STATUS "BACNET: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
   add_compile_definitions(BACNET_PORT=bsd)
+
+if(BACDL_BSC)
+  execute_process (
+         COMMAND bash -c "brew --prefix openssl"
+         OUTPUT_VARIABLE OPEN_SSL_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+endif()
+
   target_sources(${PROJECT_NAME} PRIVATE
     ports/bsd/bacport.h
     ports/bsd/bip-init.c
@@ -580,7 +596,9 @@ elseif(APPLE)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-  $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>)
+  $<BUILD_INTERFACE:${BACNET_PORT_DIRECTORY_PATH}>
+  $<$<BOOL:${BACDL_BSC}>:${OPEN_SSL_DIR}/include>
+  )
 
 #
 # examples
