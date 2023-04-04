@@ -62,7 +62,7 @@ typedef struct {
     bool can_send_data;
     uint8_t *fragment_buffer;
     size_t fragment_buffer_size;
-    int fragment_buffer_len;
+    size_t fragment_buffer_len;
     BACNET_ERROR_CODE err_code;
 } BSC_WEBSOCKET_CONNECTION;
 

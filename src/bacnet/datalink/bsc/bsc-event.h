@@ -62,6 +62,15 @@ void bsc_event_deinit(BSC_EVENT *ev);
 void bsc_wait(int seconds);
 
 /**
+ * @brief  bsc_wait() suspends the execution of the current thread
+ *                    for the specified amount of seconds.
+ *
+ * @param  mseconds - time to sleep in milliseconds.
+ */
+
+void bsc_wait_ms(int mseconds);
+
+/**
  * @brief  bsc_event_wait() suspends the execution of the current thread
  *                          until corresponded event object becomes signalled.
  *

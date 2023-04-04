@@ -11,10 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <zephyr/ztest.h>
 #include <bacnet/datalink/bsc/websocket.h>
-#include <unistd.h>
+#include <bacnet/datalink/bsc/bsc-event.h>
 
 #define TEST_THREAD_NUM 10
 
@@ -1069,7 +1068,7 @@ typedef struct {
 static void wait_for_event(test_ctx_t *ctx, BSC_WEBSOCKET_EVENT ev)
 {
     while (ctx->ev != ev) {
-        usleep(DEFAULT_WAIT_TIMEOUT_MS * 1000);
+        bsc_wait_ms(DEFAULT_WAIT_TIMEOUT_MS);
     }
     ctx->ev = -1;
 }
@@ -1141,7 +1140,7 @@ static void fill_buf(uint8_t *buf, size_t bufsize, uint8_t shift)
 {
     size_t i;
     for (i = 0; i < bufsize; i++) {
-        buf[i] = i + shift;
+        buf[i] = (uint8_t) (i + shift);
     }
 }
 

@@ -165,3 +165,8 @@ void bsc_wait(int seconds)
 {
     sleep(seconds);
 }
+
+void bsc_wait_ms(int mseconds)
+{
+    usleep(mseconds * 1000);
+}

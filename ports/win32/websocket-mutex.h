@@ -13,6 +13,10 @@
 #ifndef __BSC_WEBSOCKET_INCLUDED__
 #define __BSC_WEBSOCKET_INCLUDED__
 
+#include <windows.h>
+
+void bsc_mutex_lock(volatile HANDLE* m);
+void bsc_mutex_unlock(volatile HANDLE* m);
 void bsc_websocket_global_lock(void);
 void bsc_websocket_global_unlock(void);
 

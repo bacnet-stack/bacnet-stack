@@ -56,7 +56,7 @@ typedef struct {
     void *user_param;
     uint8_t *fragment_buffer;
     size_t fragment_buffer_size;
-    int fragment_buffer_len;
+    size_t fragment_buffer_len;
     char err_desc[BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN];
     BACNET_ERROR_CODE err_code;
 } BSC_WEBSOCKET_CONNECTION;
@@ -138,7 +138,7 @@ static BSC_WEBSOCKET_HANDLE bws_cli_find_connnection(struct lws *ws)
 
 static void bws_set_err_desc(BSC_WEBSOCKET_HANDLE h, char *err_desc)
 {
-    int len;
+    size_t len;
     if (bws_cli_conn[h].err_code == ERROR_CODE_SUCCESS) {
         len = strlen(err_desc) >= sizeof(bws_cli_conn[h].err_desc)
             ? sizeof(bws_cli_conn[h].err_desc) - 1
@@ -523,7 +523,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     struct lws_client_connect_info cinfo = { 0 };
     BSC_WEBSOCKET_RET ret;
     pthread_t thread_id;
-    int len;
+    size_t len;
 
     DEBUG_PRINTF("bws_cli_connect() >>> proto = %d, url = %s\n", proto, url);
 
