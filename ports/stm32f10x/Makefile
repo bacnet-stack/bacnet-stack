@@ -56,6 +56,7 @@ BACNET_SRC = \
 	$(BACNET_CORE)/bacaddr.c \
 	$(BACNET_CORE)/bacapp.c \
 	$(BACNET_CORE)/bacdcode.c \
+	$(BACNET_CORE)/bacdest.c \
 	$(BACNET_CORE)/bacdevobjpropref.c \
 	$(BACNET_CORE)/bacerror.c \
 	$(BACNET_CORE)/bacint.c \
@@ -160,7 +161,7 @@ CFLAGS += -fno-builtin
 CFLAGS += -fno-common
 # enable all relevant warnings that find bugs
 WARNING_ALL := -Wall -Wextra -Wall -Wfloat-equal -Wconversion -Wparentheses
-WARNING_ALL += -pedantic -Wunused-parameter -Wunused-variable -Wreturn-type
+WARNING_ALL += -pedantic -Wunused-variable -Wreturn-type
 WARNING_ALL += -Wunused-function -Wreturn-type -Wunused-value
 WARNING_ALL += -Wswitch-default -Wuninitialized -Winit-self
 WARNING_ALL += -Wno-sign-conversion -Wno-conversion -Wno-sign-compare
@@ -168,6 +169,8 @@ WARNING_ALL += -Wno-long-long
 #WARNING_ALL += -Wredundant-decls
 #WARNING_ALL += -Werror
 CFLAGS += $(WARNING_ALL)
+# don't warn about unused parameter since STM32 library doesn't achieve it
+CFLAGS += -Wno-unused-parameter
 # don't warn about missing braces since GCC is over-achiever for this
 CFLAGS += -Wno-missing-braces
 # don't warn about missing prototypes since STM32 library doesn't have some

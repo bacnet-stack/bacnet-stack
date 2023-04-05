@@ -554,9 +554,9 @@ int bacnet_destination_to_ascii(const BACNET_DESTINATION *bacdest, char *buf, si
 
     LEN_BRANCH(snprintf(buf, buf_size, "Recipient="));
     if (bacdest->Recipient.tag == BACNET_RECIPIENT_TAG_DEVICE) {
-        LEN_BRANCH(snprintf(buf, buf_size, "Device(type=%d,instance=%d)",
+        LEN_BRANCH(snprintf(buf, buf_size, "Device(type=%d,instance=%lu)",
         bacdest->Recipient.type.device.type,
-        bacdest->Recipient.type.device.instance));
+        (unsigned long)bacdest->Recipient.type.device.instance));
     } else {
         /*
           BACnetAddress ::= SEQUENCE {
@@ -578,7 +578,8 @@ int bacnet_destination_to_ascii(const BACNET_DESTINATION *bacdest, char *buf, si
     }
     LEN_BRANCH(snprintf(buf, buf_size, ";"));
 
-    LEN_BRANCH(snprintf(buf, buf_size, "ProcessIdentifier=%u;", bacdest->ProcessIdentifier));
+    LEN_BRANCH(snprintf(buf, buf_size, "ProcessIdentifier=%lu;", 
+        (unsigned long)bacdest->ProcessIdentifier));
 
     LEN_BRANCH(snprintf(buf, buf_size, "ConfirmedNotify=%s;",
         bacdest->ConfirmedNotify ? "true" : "false"
