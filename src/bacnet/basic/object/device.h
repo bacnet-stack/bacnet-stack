@@ -34,6 +34,7 @@
 #include "bacnet/bacnet_stack_exports.h"
 #include "bacnet/bacdef.h"
 #include "bacnet/bacenum.h"
+#include "bacnet/list_element.h"
 #include "bacnet/wp.h"
 #include "bacnet/rd.h"
 #include "bacnet/rp.h"
@@ -165,6 +166,8 @@ typedef struct object_functions {
     object_cov_function Object_COV;
     object_cov_clear_function Object_COV_Clear;
     object_intrinsic_reporting_function Object_Intrinsic_Reporting;
+    list_element_function Object_Add_List_Element;
+    list_element_function Object_Remove_List_Element;
 } object_functions_t;
 
 /* String Lengths - excluding any nul terminator */
@@ -424,6 +427,14 @@ extern "C" {
     BACNET_STACK_EXPORT
     bool Device_Write_Property(
         BACNET_WRITE_PROPERTY_DATA * wp_data);
+
+    BACNET_STACK_EXPORT
+    int Device_Add_List_Element(
+        BACNET_LIST_ELEMENT_DATA *list_element);
+
+    BACNET_STACK_EXPORT
+    int Device_Remove_List_Element(
+        BACNET_LIST_ELEMENT_DATA *list_element);
 
     BACNET_STACK_EXPORT
     bool DeviceGetRRInfo(

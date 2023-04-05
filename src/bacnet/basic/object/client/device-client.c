@@ -116,14 +116,16 @@ static object_functions_t Object_Table[] = {
         Device_Read_Property_Local, NULL /* Write_Property */,
         Device_Property_Lists, NULL /* ReadRangeInfo */, NULL /* Iterator */,
         NULL /* Value_Lists */, NULL /* COV */, NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */ },
+        NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */ },
 #if (BACNET_PROTOCOL_REVISION >= 17)
     { OBJECT_NETWORK_PORT, Network_Port_Init, Network_Port_Count,
         Network_Port_Index_To_Instance, Network_Port_Valid_Instance,
         Network_Port_Object_Name, Network_Port_Read_Property,
         Network_Port_Write_Property, Network_Port_Property_Lists,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
-        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */ },
+        NULL /* COV */, NULL /* COV Clear */, NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */ },
 #endif
     { MAX_BACNET_OBJECT_TYPE, NULL /* Init */, NULL /* Count */,
         NULL /* Index_To_Instance */, NULL /* Valid_Instance */,
@@ -131,7 +133,8 @@ static object_functions_t Object_Table[] = {
         NULL /* Write_Property */, NULL /* Property_Lists */,
         NULL /* ReadRangeInfo */, NULL /* Iterator */, NULL /* Value_Lists */,
         NULL /* COV */, NULL /* COV Clear */,
-        NULL /* Intrinsic Reporting */ }
+        NULL /* Intrinsic Reporting */,
+        NULL /* Add_List_Element */, NULL /* Remove_List_Element */ }
 };
 
 /** Glue function to let the Device object, when called by a handler,
