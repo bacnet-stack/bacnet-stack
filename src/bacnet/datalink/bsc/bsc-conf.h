@@ -20,10 +20,15 @@
 #if !defined(BACDL_BSC)
   #define BSC_CONF_TX_PRE 0
 #else
+#ifndef bsd
   #define bsd 1
+#endif
+#ifndef linux
   #define linux 2
+#endif
+#ifndef win32
   #define win32 3
-
+#endif
   #if BACNET_PORT == bsd || BACNET_PORT == linux || BACNET_PORT == win32
      #include <libwebsockets.h>
      #define BSC_CONF_TX_PRE LWS_PRE
