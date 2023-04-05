@@ -292,9 +292,6 @@ int bacnet_destination_encode(uint8_t *apdu, BACNET_DESTINATION *destination)
         /* Transitions - BACnet Event Transition Bits [bitstring] */
         len = encode_application_bitstring(apdu, &destination->Transitions);
         apdu_len += len;
-        if (apdu) {
-            apdu += len;
-        }
     }
 
     return apdu_len;
@@ -460,7 +457,6 @@ int bacnet_destination_decode(
     /* store value */
     bitstring_copy(&destination->Transitions, &value.type.Bit_String);
     apdu_len += len;
-    apdu += len;
 
     return apdu_len;
 }
@@ -614,7 +610,6 @@ int bacnet_destination_to_ascii(const BACNET_DESTINATION *bacdest, char *buf, si
             LEN_BRANCH(snprintf(buf, buf_size, ","));
         }
         LEN_BRANCH(snprintf(buf, buf_size, "to-normal"));
-        comma = true;
     }
     LEN_BRANCH(snprintf(buf, buf_size, "])")); /* end of the outer paren */
 

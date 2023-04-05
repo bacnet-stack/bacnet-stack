@@ -96,13 +96,14 @@ int list_element_encode_service_request(
 int list_element_decode_service_request(
     uint8_t *apdu, unsigned apdu_len, BACNET_LIST_ELEMENT_DATA *list_element)
 {
-    unsigned len = 0;
+    unsigned len = 0, application_data_len = 0;
     uint8_t tag_number = 0;
     uint32_t len_value_type = 0;
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     uint32_t property = 0;
     BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+
 
     /* Must have at least 2 tags, an object id and a property identifier
      * of at least 1 byte in length to have any chance of parsing */
@@ -183,16 +184,16 @@ int list_element_decode_service_request(
         if (list_element) {
             list_element->application_data = &apdu[len];
         }
-        /* Just to ensure we do not create a wrapped over value here. */
+        application_data_len = apdu_len - len - 1 /*closing tag */;
         if (list_element) {
+            /* Just to ensure we do not create a wrapped over value here. */
             if (len < apdu_len) {
-                list_element->application_data_len =
-                    apdu_len - len - 1 /*closing tag */;
+                list_element->application_data_len = application_data_len;
             } else {
                 list_element->application_data_len = 0;
             }
         }
-        len += list_element->application_data_len;
+        len += application_data_len;
     } else {
         if (list_element) {
             list_element->error_code = ERROR_CODE_REJECT_INVALID_TAG;
