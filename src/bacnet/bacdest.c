@@ -578,7 +578,7 @@ int bacnet_destination_to_ascii(const BACNET_DESTINATION *bacdest, char *buf, si
     }
     LEN_BRANCH(snprintf(buf, buf_size, ";"));
 
-    LEN_BRANCH(snprintf(buf, buf_size, "ProcessIdentifier=%d;", bacdest->ProcessIdentifier));
+    LEN_BRANCH(snprintf(buf, buf_size, "ProcessIdentifier=%u;", bacdest->ProcessIdentifier));
 
     LEN_BRANCH(snprintf(buf, buf_size, "ConfirmedNotify=%s;",
         bacdest->ConfirmedNotify ? "true" : "false"
