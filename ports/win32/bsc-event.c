@@ -18,7 +18,7 @@
 #include <errno.h>
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-#define DEBUG_BSC_EVENT 1
+#define DEBUG_BSC_EVENT 0
 
 #if DEBUG_BSC_EVENT == 1
 #define DEBUG_PRINTF printf
