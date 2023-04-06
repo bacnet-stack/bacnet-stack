@@ -9,22 +9,20 @@ project(test_${basename}
 
 find_package(Threads)
 find_package(libwebsockets CONFIG REQUIRED)
-find_package(PkgConfig)
-pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
-find_package(OpenSSL)
+include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
 
 string(REGEX REPLACE
-    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/test/bacnet/[a-z0-9A-Z_/-]*$"
     "/src"
     SRC_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
 string(REGEX REPLACE
-    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/test/bacnet/[a-z0-9A-Z_/-]*$"
     "/ports"
     PORTS_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
 string(REGEX REPLACE
-    "/test/bacnet/[a-zA-Z_/-]*$"
+    "/test/bacnet/[a-z0-9A-Z_/-]*$"
     "/test"
     TST_DIR
     ${CMAKE_CURRENT_SOURCE_DIR})
@@ -113,13 +111,7 @@ elseif(WIN32)
   message(STATUS "BACNet/SC hub function test: building for win32")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
   add_compile_definitions(BACNET_PORT=win32)
-
-  target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
-
-  target_link_libraries(${PROJECT_NAME} PRIVATE
-    winmm
-    ws2_32>
-    iphlpapi>)
+  add_compile_definitions(BACNET_STACK_STATIC_DEFINE)
 
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/win32/websocket-cli.c
@@ -165,12 +157,18 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
+    ${SRC_DIR}/bacnet/basic/sys/bigend.c
     # Test and test library files
     ./src/main.c
     ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
+
+  target_link_libraries(${PROJECT_NAME}
+                        websockets
+                        websockets_shared
+  )
 
 elseif(APPLE)
   message(STATUS "BACNet/SC hub function test: building for APPLE")

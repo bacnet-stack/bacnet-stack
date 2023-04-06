@@ -64,7 +64,7 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
 static void node_switch_acceptor_context_event(
@@ -75,7 +75,7 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
 static void node_switch_initiator_context_event(
@@ -93,7 +93,7 @@ typedef struct {
     uint8_t utf8_urls[BSC_CONF_NODE_MAX_URIS_NUM_IN_ADDRESS_RESOLUTION_ACK]
                      [BSC_CONF_NODE_MAX_URI_SIZE_IN_ADDRESS_RESOLUTION_ACK + 1];
     size_t urls_cnt;
-    size_t url_elem;
+    int url_elem;
 } BSC_NODE_SWITCH_URLS;
 
 typedef struct BSC_Node_Switch_Initiator {
@@ -326,7 +326,7 @@ static void node_switch_acceptor_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE disconnect_reason,
     const char *disconnect_reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     uint8_t* p_pdu;
@@ -441,7 +441,7 @@ static int node_switch_acceptor_find_connection_index_for_vmac(
 static int node_switch_initiator_get_index(
     BSC_NODE_SWITCH_CTX *ctx, BSC_SOCKET *c)
 {
-    return ((c - &ctx->initiator.sock[0]) >= 0) ? (c - &ctx->initiator.sock[0])
+    return ((c - &ctx->initiator.sock[0]) >= 0) ? (int) (c - &ctx->initiator.sock[0])
                                                 : -1;
 }
 
@@ -560,7 +560,7 @@ static void node_switch_initiator_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE disconnect_reason,
     const char *disconnect_reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     int index;
@@ -708,11 +708,11 @@ BSC_SC_RET bsc_node_switch_start(uint8_t *ca_cert_chain,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     uint16_t max_local_bvlc_len,
     uint16_t max_local_npdu_len,
-    unsigned int connect_timeout_s,
-    unsigned int heartbeat_timeout_s,
-    unsigned int disconnect_timeout_s,
-    unsigned int reconnnect_timeout_s,
-    unsigned int address_resolution_timeout_s,
+    uint16_t connect_timeout_s,
+    uint16_t heartbeat_timeout_s,
+    uint16_t disconnect_timeout_s,
+    uint16_t reconnnect_timeout_s,
+    uint16_t address_resolution_timeout_s,
     bool direct_connect_accept_enable,
     bool direct_connect_initiate_enable,
     BSC_NODE_SWITCH_EVENT_FUNC event_func,
@@ -996,7 +996,7 @@ void bsc_node_switch_disconnect(
 }
 
 BSC_SC_RET bsc_node_switch_send(
-    BSC_NODE_SWITCH_HANDLE h, uint8_t *pdu, unsigned pdu_len)
+    BSC_NODE_SWITCH_HANDLE h, uint8_t *pdu, size_t pdu_len)
 {
     BSC_NODE_SWITCH_CTX *ns;
     BSC_SC_RET ret = BSC_SC_SUCCESS;

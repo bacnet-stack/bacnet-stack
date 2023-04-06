@@ -60,7 +60,7 @@ typedef void (*BSC_NODE_SWITCH_EVENT_FUNC)(BSC_NODE_SWITCH_EVENT ev,
                                            void* user_arg,
                                            BACNET_SC_VMAC_ADDRESS *dest,
                                            uint8_t *pdu,
-                                           uint16_t pdu_len,
+                                           size_t pdu_len,
                                            BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
 BACNET_STACK_EXPORT
@@ -77,11 +77,11 @@ BSC_SC_RET bsc_node_switch_start(
    BACNET_SC_VMAC_ADDRESS *local_vmac,
    uint16_t max_local_bvlc_len,
    uint16_t max_local_npdu_len,
-   unsigned int connect_timeout_s,
-   unsigned int heartbeat_timeout_s,
-   unsigned int disconnect_timeout_s,
-   unsigned int reconnnect_timeout_s,
-   unsigned int address_resolution_timeout_s,
+   uint16_t connect_timeout_s,
+   uint16_t heartbeat_timeout_s,
+   uint16_t disconnect_timeout_s,
+   uint16_t reconnnect_timeout_s,
+   uint16_t address_resolution_timeout_s,
    bool direct_connect_accept_enable,
    bool direct_connect_initiate_enable,
    BSC_NODE_SWITCH_EVENT_FUNC event_func,
@@ -121,7 +121,7 @@ BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_switch_send(
      BSC_NODE_SWITCH_HANDLE h,
      uint8_t *pdu,
-     unsigned pdu_len);
+     size_t pdu_len);
 
 BACNET_STACK_EXPORT
 void bsc_node_switch_maintenance_timer(uint16_t seconds);

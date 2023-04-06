@@ -48,7 +48,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
 static void hub_function_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
@@ -219,7 +219,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_SOCKET *dst;
@@ -227,7 +227,7 @@ static void hub_function_socket_event(BSC_SOCKET *c,
     int i;
     uint8_t *p_pdu;
     BSC_HUB_FUNCTION *f;
-    uint16_t len;
+    size_t len;
 
     DEBUG_PRINTF("hub_function_socket_event() >>> c = %p, ev = %d, reason = "
                  "%d, desc = %p, pdu = %p, pdu_len = %d, decoded_pdu = %p\n",

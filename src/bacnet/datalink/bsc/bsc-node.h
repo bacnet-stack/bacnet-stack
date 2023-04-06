@@ -40,7 +40,7 @@ typedef enum {
 
 typedef void (*BSC_NODE_EVENT_FUNC)(BSC_NODE* node, BSC_NODE_EVENT ev,
                                     BACNET_SC_VMAC_ADDRESS *dest,
-                                    uint8_t *pdu, uint16_t pdu_len);
+                                    uint8_t *pdu, size_t pdu_len);
 typedef struct {
     bool used;
     BACNET_SC_VMAC_ADDRESS vmac;
@@ -97,7 +97,7 @@ void bsc_node_stop(BSC_NODE *node);
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_send(BSC_NODE* node,
      uint8_t *pdu,
-     unsigned pdu_len);
+     size_t pdu_len);
 
 BACNET_STACK_EXPORT
 BSC_ADDRESS_RESOLUTION* bsc_node_get_address_resolution(
@@ -113,7 +113,7 @@ BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_hub_connector_send(
      void *user_arg,
      uint8_t *pdu,
-     unsigned pdu_len);
+     size_t pdu_len);
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_connect_direct(

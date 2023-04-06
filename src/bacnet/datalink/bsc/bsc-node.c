@@ -361,12 +361,12 @@ static void bsc_node_parse_urls(
 
 static void bsc_node_process_received(BSC_NODE *node,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     int i;
     static uint8_t buf[BVLC_SC_NPDU_SIZE_CONF];
-    uint16_t bufsize;
+    size_t bufsize;
     BSC_SC_RET ret;
     uint16_t error_class;
     uint16_t error_code;
@@ -551,7 +551,7 @@ static void bsc_hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     BSC_HUB_CONNECTOR_HANDLE h,
     void *user_arg,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
@@ -604,7 +604,7 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
     void *user_arg,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_NODE *node = (BSC_NODE *)user_arg;
@@ -832,7 +832,7 @@ void bsc_node_stop(BSC_NODE *node)
 }
 
 BSC_SC_RET bsc_node_hub_connector_send(
-    void *p_node, uint8_t *pdu, unsigned pdu_len)
+    void *p_node, uint8_t *pdu, size_t pdu_len)
 {
     BSC_NODE *node = (BSC_NODE *)p_node;
     BSC_SC_RET ret;
@@ -862,7 +862,7 @@ BSC_SC_RET bsc_node_hub_connector_send(
     return ret;
 }
 
-BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, unsigned pdu_len)
+BSC_SC_RET bsc_node_send(BSC_NODE *p_node, uint8_t *pdu, size_t pdu_len)
 {
     BSC_NODE *node = (BSC_NODE *)p_node;
     BSC_SC_RET ret;
@@ -931,7 +931,7 @@ BSC_SC_RET bsc_node_send_address_resolution(
 {
     BSC_NODE *node = (BSC_NODE *)p_node;
     uint8_t pdu[32];
-    unsigned pdu_len;
+    size_t pdu_len;
     BSC_SC_RET ret;
     DEBUG_PRINTF(
         "bsc_node_send_address_resolution() >>> node = %p, dest = %p\n", node,

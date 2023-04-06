@@ -41,7 +41,7 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
 static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
@@ -192,7 +192,7 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE disconnect_reason,
     const char *disconnect_reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     BSC_HUB_CONNECTOR *hc;
@@ -441,7 +441,7 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
 }
 
 BSC_SC_RET bsc_hub_connector_send(
-    BSC_HUB_CONNECTOR_HANDLE h, uint8_t *pdu, unsigned pdu_len)
+    BSC_HUB_CONNECTOR_HANDLE h, uint8_t *pdu, size_t pdu_len)
 {
     BSC_SC_RET ret;
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;

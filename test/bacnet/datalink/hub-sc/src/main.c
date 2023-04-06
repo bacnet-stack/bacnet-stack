@@ -21,7 +21,6 @@
 #include <bacnet/datalink/bsc/websocket.h>
 #include <bacnet/datalink/bsc/bsc-hub-connector.h>
 #include <bacnet/datalink/bsc/bsc-hub-function.h>
-#include <unistd.h>
 
 unsigned char ca_key[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47, 0x49,
     0x4e, 0x20, 0x52, 0x53, 0x41, 0x20, 0x50, 0x52, 0x49, 0x56, 0x41, 0x54,
@@ -1070,7 +1069,7 @@ typedef struct {
     BSC_HUB_CONNECTOR_HANDLE h;
     void *user_arg;
     uint8_t pdu[MAX_BVLC_LEN];
-    uint16_t pdu_len;
+    size_t pdu_len;
     BSC_EVENT *e;
 } hubc_ev_t;
 
@@ -1142,7 +1141,7 @@ static void signal_hubc_ev(hubc_ev_t *e,
     BSC_HUB_CONNECTOR_HANDLE h,
     void *user_arg,
     uint8_t *pdu,
-    uint16_t pdu_len)
+    size_t pdu_len)
 {
     e->ev = ev;
     e->h = h;
@@ -1213,7 +1212,7 @@ static void hub_connector_event(BSC_HUB_CONNECTOR_EVENT ev,
     BSC_HUB_CONNECTOR_HANDLE h,
     void *user_arg,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     debug_printf("hub_connector_event() ev = %d, h = %p, user_arg = %p, pdu = "
@@ -1245,7 +1244,7 @@ static void test_hub_connector_url(bool primary)
     char primary_url[128];
     char secondary_url[128];
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
@@ -1418,7 +1417,6 @@ static void test_hub_connector_bad_primary_url(void)
     BSC_HUB_FUNCTION_HANDLE hubc_h;
     char primary_url[128];
     char secondary_url[128];
-    uint8_t buf[256];
 
     memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
     memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
@@ -1640,7 +1638,6 @@ static void test_hub_connector_reconnect(void)
     BSC_HUB_FUNCTION_HANDLE hubc_h;
     char primary_url[128];
     char secondary_url[128];
-    uint8_t buf[256];
 
     memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
     memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
@@ -2054,7 +2051,7 @@ void test_main(void)
 {
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
-    int i;
+
     ztest_test_suite(
         hub_test_1, ztest_unit_test(test_hub_connector_primary_url));
     ztest_test_suite(

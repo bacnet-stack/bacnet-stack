@@ -35,7 +35,7 @@ typedef void (*BSC_HUB_CONNECTOR_EVENT_FUNC)(BSC_HUB_CONNECTOR_EVENT ev,
                                              BSC_HUB_CONNECTOR_HANDLE h,
                                              void* user_arg,
                                              uint8_t *pdu,
-                                             uint16_t pdu_len,
+                                             size_t pdu_len,
                                              BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
 BACNET_STACK_EXPORT
@@ -67,7 +67,7 @@ BACNET_STACK_EXPORT
 BSC_SC_RET bsc_hub_connector_send(
      BSC_HUB_CONNECTOR_HANDLE h,
      uint8_t *pdu,
-     unsigned pdu_len);
+     size_t pdu_len);
 
 BACNET_STACK_EXPORT
 bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h);
