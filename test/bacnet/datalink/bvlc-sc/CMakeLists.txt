@@ -23,7 +23,7 @@ add_compile_definitions(
 	BIG_ENDIAN=0
 	CONFIG_ZTEST=1
 	BSC_CONF_TX_PRE=0
-	add_compile_definitions(BACNET_STACK_STATIC_DEFINE)
+	BACNET_STACK_STATIC_DEFINE
 	)
 
 include_directories(

@@ -173,6 +173,11 @@ elseif(WIN32)
 elseif(APPLE)
   message(STATUS "BACNet/SC hub function test: building for APPLE")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/bsd)
+  execute_process (
+         COMMAND bash -c "brew --prefix openssl"
+         OUTPUT_VARIABLE OPEN_SSL_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  include_directories(${OPEN_SSL_DIR}/include)
   add_compile_definitions(BACNET_PORT=bsd)
 
   add_executable(${PROJECT_NAME}
@@ -226,7 +231,7 @@ elseif(APPLE)
     ${ZTST_DIR}/ztest.c
     )
   target_link_libraries(${PROJECT_NAME}
-                        ${LIB_WEBSOCKETS_LIBRARIES}
+                        ${LIBWEBSOCKETS_LIBRARIES}
   )
 endif()
 

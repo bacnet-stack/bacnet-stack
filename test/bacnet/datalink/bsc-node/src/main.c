@@ -21,7 +21,6 @@
 #include <bacnet/datalink/bsc/bsc-retcodes.h>
 #include <bacnet/datalink/bsc/websocket.h>
 #include <bacnet/datalink/bsc/bsc-node.h>
-#include <unistd.h>
 
 unsigned char ca_key[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47, 0x49,
     0x4e, 0x20, 0x52, 0x53, 0x41, 0x20, 0x50, 0x52, 0x49, 0x56, 0x41, 0x54,
@@ -1065,7 +1064,7 @@ unsigned char node_cert2[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 #define BACNET_NODE_LOCAL_DIRECT_PORT3 60011
 
 #define BACNET_TIMEOUT 3
-#define BACNET_INFINITE_TIMEOUT 1000000
+#define BACNET_INFINITE_TIMEOUT 0XFFFF
 
 #define MAX_BVLC_LEN 1500
 #define MAX_NDPU_LEN 1500
@@ -1077,7 +1076,7 @@ typedef struct {
     BSC_NODE_EVENT ev;
     BSC_NODE *node;
     uint8_t pdu[MAX_BVLC_LEN];
-    uint16_t pdu_len;
+    size_t pdu_len;
     BSC_EVENT *e;
     BACNET_SC_VMAC_ADDRESS dest;
 } node_ev_t;
@@ -1188,7 +1187,7 @@ static void signal_node_ev(node_ev_t *e,
     BSC_NODE *node,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
-    uint16_t pdu_len)
+    size_t pdu_len)
 {
     e->ev = ev;
     e->node = node;
@@ -1219,7 +1218,7 @@ static void node_event(BSC_NODE *node,
     BSC_NODE_EVENT ev,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
-    uint16_t pdu_len)
+    size_t pdu_len)
 {
     debug_printf(
         "node_event() ev = %d event = %p node = %p\n", ev, node_ev.e, node);
@@ -1230,7 +1229,7 @@ static void node_event2(BSC_NODE *node,
     BSC_NODE_EVENT ev,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
-    uint16_t pdu_len)
+    size_t pdu_len)
 {
     debug_printf(
         "node_event2() ev = %d event = %p node = %p\n", ev, node_ev2.e, node);
@@ -1241,7 +1240,7 @@ static void node_event3(BSC_NODE *node,
     BSC_NODE_EVENT ev,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
-    uint16_t pdu_len)
+    size_t pdu_len)
 {
     debug_printf(
         "node_event3() ev = %d event = %p node = %p\n", ev, node_ev3.e, node);
@@ -1539,14 +1538,14 @@ static void test_node_send(void)
     char node_primary_url2[128];
     char node_secondary_url2[128];
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     const char *err_desc;
     uint8_t optbuf[128];
-    int optlen;
+    size_t optlen;
 
     memset(npdu, 0x33, sizeof(npdu));
     memset(&node_uuid, 0x1, sizeof(node_uuid));
@@ -1770,17 +1769,13 @@ static void test_node_local_hub_function(void)
     BSC_NODE *node3;
     char node_primary_url[128];
     char node_secondary_url[128];
-    char node_primary_url2[128];
-    char node_secondary_url2[128];
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     const char *err_desc;
-    uint8_t optbuf[128];
-    int optlen;
     BACNET_SC_VMAC_ADDRESS broadcast;
 
     memset(&node_uuid, 0x1, sizeof(node_uuid));
@@ -1958,7 +1953,7 @@ static void test_node_direct_connection(void)
     char node_primary_url3[128];
     char node_secondary_url3[128];
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
@@ -1970,7 +1965,7 @@ static void test_node_direct_connection(void)
     char *urls[2] = { url1, url2 };
     BACNET_SC_VMAC_ADDRESS broadcast;
     uint8_t optbuf[128];
-    int optlen;
+    size_t optlen;
 
     // test configuration
     // node is a just a hub
@@ -2635,8 +2630,6 @@ static void test_node_direct_connection_unsupported(void)
     char node_secondary_url2[128];
     char node_primary_url3[128];
     char node_secondary_url3[128];
-    uint8_t buf[256];
-    int len;
     uint8_t npdu[128];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
@@ -2826,7 +2819,7 @@ static void node_switch_event(BSC_NODE_SWITCH_EVENT ev,
     void *user_arg,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
 }
