@@ -60,12 +60,12 @@ typedef struct {
    BACNET_SC_VMAC_ADDRESS *local_vmac;
    uint16_t max_local_bvlc_len;
    uint16_t max_local_npdu_len;
-   unsigned int connect_timeout_s;
-   unsigned int heartbeat_timeout_s;
-   unsigned int disconnect_timeout_s;
-   unsigned int reconnnect_timeout_s;
-   unsigned int address_resolution_timeout_s;
-   unsigned int address_resolution_freshness_timeout_s;
+   uint16_t connect_timeout_s;
+   uint16_t heartbeat_timeout_s;
+   uint16_t disconnect_timeout_s;
+   uint16_t reconnnect_timeout_s;
+   uint16_t address_resolution_timeout_s;
+   uint16_t address_resolution_freshness_timeout_s;
    char* primaryURL;
    char* failoverURL;
    uint16_t hub_server_port;
@@ -76,7 +76,7 @@ typedef struct {
    bool direct_connect_initiate_enable;
    bool hub_function_enabled;
    char *direct_connection_accept_uris;     /* URIs joined ' 'space */
-   unsigned int direct_connection_accept_uris_len;
+   size_t direct_connection_accept_uris_len;
    BSC_NODE_EVENT_FUNC event_func;
 } BSC_NODE_CONF;
 

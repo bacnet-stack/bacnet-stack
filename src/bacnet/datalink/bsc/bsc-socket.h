@@ -127,13 +127,13 @@ struct BSC_ContextCFG
 
     /* According AB.6.2 BACnet/SC Connection Establishment and Termination */
     /* recommended default value for establishing of connection 10 seconds */
-    unsigned long connect_timeout_s;
-    unsigned long disconnect_timeout_s;
+    uint16_t connect_timeout_s;
+    uint16_t disconnect_timeout_s;
 
     /* According 12.56.Y10 SC_Heartbeat_Timeout */
     /* (http://www.bacnet.org/Addenda/Add-135-2020cc.pdf) the recommended default */
     /* value is 300 seconds. */
-    unsigned long heartbeat_timeout_s;
+    uint16_t heartbeat_timeout_s;
 };
 
 struct BSC_SocketContextFuncs {
@@ -152,7 +152,7 @@ struct BSC_SocketContextFuncs {
     void (*socket_event)(BSC_SOCKET*c, BSC_SOCKET_EVENT ev,
                          BACNET_ERROR_CODE disconnect_reason,
                          const char* disconnect_reason_desc,
-                         uint8_t *pdu, uint16_t pdu_len,
+                         uint8_t *pdu, size_t pdu_len,
                          BVLC_SC_DECODED_MESSAGE *decoded_pdu);
 
     void (*context_event)(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev);
@@ -275,7 +275,7 @@ void bsc_disconnect(BSC_SOCKET *c);
  */
 
 BACNET_STACK_EXPORT
-BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len);
+BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, size_t pdu_len);
 
 BACNET_STACK_EXPORT
 uint16_t bsc_get_next_message_id(void);

@@ -182,7 +182,7 @@ static bool bsc_prepare_error_extended(BSC_SOCKET *c,
 {
     uint16_t eclass = (uint16_t)error_class;
     uint16_t ecode = (uint16_t)error_code;
-    uint16_t len;
+    size_t len;
     uint16_t message_id;
 
     DEBUG_PRINTF(
@@ -274,7 +274,7 @@ static void bsc_set_socket_idle(BSC_SOCKET *c)
 static void bsc_process_socket_disconnecting(BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *dm,
     uint8_t *buf,
-    uint16_t buflen,
+    size_t buflen,
     bool *need_disconnect)
 {
     DEBUG_PRINTF("bsc_process_socket_disconnecting() >>> c = %p\n", c);
@@ -313,12 +313,12 @@ static void bsc_process_socket_disconnecting(BSC_SOCKET *c,
 static void bsc_process_socket_connected_state(BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *dm,
     uint8_t *buf,
-    uint16_t buflen,
+    size_t buflen,
     bool *need_disconnect,
     bool *need_send)
 {
     uint16_t message_id;
-    uint16_t len;
+    size_t len;
 
     DEBUG_PRINTF(
         "bsc_process_socket_connected_state() >>> c = %p, dm = %p,  buf = %p, "
@@ -412,7 +412,7 @@ static void bsc_process_socket_connected_state(BSC_SOCKET *c,
 static void bsc_process_socket_state(BSC_SOCKET *c,
     BVLC_SC_DECODED_MESSAGE *dm,
     uint8_t *rx_buf,
-    uint16_t rx_buf_size,
+    size_t rx_buf_size,
     bool *need_disconnect,
     bool *need_send)
 {
@@ -421,7 +421,7 @@ static void bsc_process_socket_state(BSC_SOCKET *c,
     BACNET_ERROR_CLASS class;
     const char *err_desc = NULL;
     bool valid = true;
-    unsigned int len;
+    size_t len;
 
     DEBUG_PRINTF("bsc_process_socket_state() >>> ctx = %p, c = %p, state = %d, "
                  "rx_buf = %p, rx_buf_size = %d\n",
@@ -587,7 +587,7 @@ static void bsc_process_socket_state(BSC_SOCKET *c,
 static void bsc_runloop_socket(BSC_SOCKET *s,
     BVLC_SC_DECODED_MESSAGE *dm,
     uint8_t *rx_buf,
-    uint16_t rx_buf_size)
+    size_t rx_buf_size)
 {
     bool need_disconnect = false;
     bool need_send = false;
@@ -640,7 +640,7 @@ static void bsc_process_srv_awaiting_request(
     BACNET_ERROR_CLASS class;
     BSC_SOCKET *existing = NULL;
     uint16_t message_id;
-    uint16_t len;
+    size_t len;
     uint16_t ucode;
     uint16_t uclass;
     const char *err_desc = NULL;
@@ -1115,7 +1115,8 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
 {
     BSC_SOCKET_CTX *ctx = (BSC_SOCKET_CTX *)dispatch_func_user_param;
     BSC_SOCKET *c;
-    uint16_t len;
+    size_t len;
+    uint16_t pdu_len;
     BSC_WEBSOCKET_RET wret;
     uint8_t *p;
     size_t i;
@@ -1202,11 +1203,11 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
         p = c->tx_buf;
 
         while (c->tx_buf_size > 0) {
-            memcpy(&len, p, sizeof(len));
+            memcpy(&pdu_len, p, sizeof(pdu_len));
             DEBUG_PRINTF(
-                "bsc_dispatch_cli_func() sending pdu of %d bytes\n", len);
+                "bsc_dispatch_cli_func() sending pdu of %d bytes\n", pdu_len);
             wret = bws_cli_dispatch_send(
-                c->wh, &p[sizeof(len) + BSC_CONF_TX_PRE], len);
+                c->wh, &p[sizeof(pdu_len) + BSC_CONF_TX_PRE], pdu_len);
             if (wret != BSC_WEBSOCKET_SUCCESS) {
                 DEBUG_PRINTF(
                     "bsc_dispatch_cli_func() pdu send failed, err = %d, start "
@@ -1219,8 +1220,8 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
                 failed = true;
                 break;
             } else {
-                c->tx_buf_size -= len + sizeof(len) + BSC_CONF_TX_PRE;
-                p += len + sizeof(len) + BSC_CONF_TX_PRE;
+                c->tx_buf_size -= pdu_len + sizeof(pdu_len) + BSC_CONF_TX_PRE;
+                p += pdu_len + sizeof(pdu_len) + BSC_CONF_TX_PRE;
             }
         }
         if (!failed) {
@@ -1406,7 +1407,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
 
 void bsc_disconnect(BSC_SOCKET *c)
 {
-    uint16_t len;
+    size_t len;
 
     DEBUG_PRINTF("bsc_disconnect() >>> c = %p\n", c);
 
@@ -1452,7 +1453,7 @@ void bsc_disconnect(BSC_SOCKET *c)
     DEBUG_PRINTF("bsc_disconnect() <<<\n");
 }
 
-BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, uint16_t pdu_len)
+BSC_SC_RET bsc_send(BSC_SOCKET *c, uint8_t *pdu, size_t pdu_len)
 {
     BSC_SC_RET ret = BSC_SC_SUCCESS;
 

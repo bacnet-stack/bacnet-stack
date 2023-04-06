@@ -118,7 +118,7 @@ static bool bsc_node_load_cert_bacfile(
     if (*pbuf == NULL)
         return false;
 
-    file_length = bacfile_read(file_instance, *pbuf, *psize - ZERO_BYTE);
+    file_length = bacfile_read(file_instance, *pbuf, (uint32_t) (*psize - ZERO_BYTE));
 #ifdef CONFIG_MBEDTLS
     pbuf[*psize - 1] = 0;
 #endif
@@ -168,16 +168,17 @@ bool bsc_node_conf_fill_from_netport(
     bsc_conf->local_vmac =
         (BACNET_SC_VMAC_ADDRESS *)Network_Port_MAC_Address_pointer(instance);
     bsc_conf->max_local_bvlc_len =
-        Network_Port_Max_BVLC_Length_Accepted(instance);
+        (uint16_t) Network_Port_Max_BVLC_Length_Accepted(instance);
     bsc_conf->max_local_npdu_len =
-        Network_Port_Max_NPDU_Length_Accepted(instance);
+        (uint16_t) Network_Port_Max_NPDU_Length_Accepted(instance);
     bsc_conf->connect_timeout_s =
-        Network_Port_SC_Connect_Wait_Timeout(instance);
-    bsc_conf->heartbeat_timeout_s = Network_Port_SC_Heartbeat_Timeout(instance);
+        (uint16_t)Network_Port_SC_Connect_Wait_Timeout(instance);
+    bsc_conf->heartbeat_timeout_s =
+        (uint16_t) Network_Port_SC_Heartbeat_Timeout(instance);
     bsc_conf->disconnect_timeout_s =
-        Network_Port_SC_Disconnect_Wait_Timeout(instance);
+        (uint16_t) Network_Port_SC_Disconnect_Wait_Timeout(instance);
     bsc_conf->reconnnect_timeout_s =
-        Network_Port_SC_Maximum_Reconnect_Time(instance);
+        (uint16_t) Network_Port_SC_Maximum_Reconnect_Time(instance);
     bsc_conf->address_resolution_timeout_s = bsc_conf->connect_timeout_s;
     bsc_conf->address_resolution_freshness_timeout_s =
         bsc_conf->connect_timeout_s;
@@ -226,9 +227,9 @@ void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf)
     }
 }
 
-void bsc_copy_str(char *dst, const char *src, int dst_len)
+void bsc_copy_str(char *dst, const char *src, size_t dst_len)
 {
-    int len;
+    size_t len;
     if (dst_len > 0) {
         len = strlen(src) >= dst_len ? dst_len - 1 : strlen(src);
         memcpy(dst, src, len);

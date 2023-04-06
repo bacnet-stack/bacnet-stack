@@ -1244,7 +1244,7 @@ static void cli_simple_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     debug_printf("cli ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev);
@@ -1261,7 +1261,7 @@ static void cli_simple_socket_event2(BSC_SOCKET *c,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     debug_printf("cli2 ev = %d, reason = %d, ev = %p\n", ev, reason, &cli_ev2);
@@ -1278,7 +1278,7 @@ static void srv_simple_socket_event(BSC_SOCKET *c,
     BACNET_ERROR_CODE reason,
     const char *reason_desc,
     uint8_t *pdu,
-    uint16_t pdu_len,
+    size_t pdu_len,
     BVLC_SC_DECODED_MESSAGE *decoded_pdu)
 {
     debug_printf("srv ev = %d, reason = %d, ev = %p\n", ev, reason, &srv_ev);
@@ -1445,9 +1445,6 @@ static void test_duplicated_vmac_on_server(void)
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
     char url[128];
-    uint8_t buf[2048];
-    uint8_t npdu[1200];
-    size_t len;
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&cli_ev2);
@@ -1544,13 +1541,10 @@ static void test_duplicated_vmac_on_server2(void)
 {
     BSC_CONTEXT_CFG server_cfg;
     BSC_CONTEXT_CFG client_cfg;
-    BSC_CONTEXT_CFG client_cfg2;
     BACNET_SC_UUID server_uuid;
     BACNET_SC_VMAC_ADDRESS server_vmac;
     BACNET_SC_UUID client_uuid;
     BACNET_SC_VMAC_ADDRESS client_vmac;
-    BACNET_SC_UUID client_uuid2;
-    BACNET_SC_VMAC_ADDRESS client_vmac2;
     BSC_SC_RET ret;
     BSC_SOCKET_CTX_FUNCS srv_funcs = { simple_find_connection_for_vmac,
         simple_find_connection_for_uuid, srv_simple_socket_event,
@@ -1566,9 +1560,6 @@ static void test_duplicated_vmac_on_server2(void)
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
     char url[128];
-    uint8_t buf[2048];
-    uint8_t npdu[1200];
-    size_t len;
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&srv_ev);
@@ -1659,9 +1650,6 @@ static void test_duplicated_uuid_on_server(void)
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
     char url[128];
-    uint8_t buf[2048];
-    uint8_t npdu[1200];
-    size_t len;
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&cli_ev2);
@@ -2043,7 +2031,6 @@ static void test_error_case1(void)
 
 void test_main(void)
 {
-    BSC_SC_RET ret;
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(socket_test_1, ztest_unit_test(test_simple));
