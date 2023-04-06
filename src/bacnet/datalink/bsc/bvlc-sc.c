@@ -107,9 +107,9 @@ static const char *s_proprietary_payload =
 static bool bvlc_sc_validate_options_headers(
     BACNET_OPTION_VALIDATION_TYPE validation_type,
     uint8_t *option_headers,
-    uint16_t option_headers_max_len,
-    uint16_t *out_option_headers_real_length,
-    uint16_t *out_option_header_num,
+    size_t option_headers_max_len,
+    size_t *out_option_headers_real_length,
+    size_t *out_option_header_num,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
     const char **error_desc_string)
@@ -206,17 +206,17 @@ static bool bvlc_sc_validate_options_headers(
     return true;
 }
 
-static unsigned int bvlc_sc_add_option(bool to_data_option,
+static size_t bvlc_sc_add_option(bool to_data_option,
     uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t *in_pdu,
-    uint16_t in_pdu_len,
+    size_t in_pdu_len,
     uint8_t *sc_option,
-    uint16_t sc_option_len)
+    size_t sc_option_len)
 {
-    uint16_t offs = 4;
+    size_t offs = 4;
     uint8_t flags = 0;
-    uint16_t options_len = 0;
+    size_t options_len = 0;
     uint8_t mask;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
@@ -232,7 +232,7 @@ static unsigned int bvlc_sc_add_option(bool to_data_option,
         return 0;
     }
 
-    if (((int)(sc_option_len)) + ((int)(in_pdu_len)) > USHRT_MAX) {
+    if (sc_option_len + in_pdu_len > USHRT_MAX) {
         return 0;
     }
 
@@ -240,7 +240,7 @@ static unsigned int bvlc_sc_add_option(bool to_data_option,
         return 0;
     }
 
-    if ((((int)pdu_size)) < ((int)(sc_option_len)) + ((int)(in_pdu_len))) {
+    if (pdu_size < sc_option_len + in_pdu_len) {
         return 0;
     }
 
@@ -349,12 +349,12 @@ static unsigned int bvlc_sc_add_option(bool to_data_option,
            or 0 in a case of error (validation of pdu or sc_option fails)
  */
 
-unsigned int bvlc_sc_add_option_to_destination_options(uint8_t *out_pdu,
-    uint16_t out_pdu_size,
+size_t bvlc_sc_add_option_to_destination_options(uint8_t *out_pdu,
+    size_t out_pdu_size,
     uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t *sc_option,
-    uint16_t sc_option_len)
+    size_t sc_option_len)
 {
     return bvlc_sc_add_option(
         false, out_pdu, out_pdu_size, pdu, pdu_size, sc_option, sc_option_len);
@@ -375,12 +375,12 @@ unsigned int bvlc_sc_add_option_to_destination_options(uint8_t *out_pdu,
            or 0 in a case of error (validation of pdu or sc_option fails)
  */
 
-unsigned int bvlc_sc_add_option_to_data_options(uint8_t *out_pdu,
-    uint16_t out_pdu_size,
+size_t bvlc_sc_add_option_to_data_options(uint8_t *out_pdu,
+    size_t out_pdu_size,
     uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t *sc_option,
-    uint16_t sc_option_len)
+    size_t sc_option_len)
 {
     return bvlc_sc_add_option(
         true, out_pdu, out_pdu_size, pdu, pdu_size, sc_option, sc_option_len);
@@ -419,15 +419,15 @@ unsigned int bvlc_sc_add_option_to_data_options(uint8_t *out_pdu,
            an error
  */
 
-unsigned int bvlc_sc_encode_proprietary_option(uint8_t *pdu,
-    uint16_t pdu_size,
+size_t bvlc_sc_encode_proprietary_option(uint8_t *pdu,
+    size_t pdu_size,
     bool must_understand,
     uint16_t vendor_id,
     uint8_t proprietary_option_type,
     uint8_t *proprietary_data,
-    uint16_t proprietary_data_len)
+    size_t proprietary_data_len)
 {
-    uint16_t total_len =
+    size_t total_len =
         sizeof(vendor_id) + proprietary_data_len + sizeof(uint8_t);
 
     if (proprietary_data_len > BVLC_SC_NPDU_SIZE -
@@ -475,8 +475,8 @@ unsigned int bvlc_sc_encode_proprietary_option(uint8_t *pdu,
            an error
  */
 
-unsigned int bvlc_sc_encode_secure_path_option(
-    uint8_t *pdu, uint16_t pdu_size, bool must_understand)
+size_t bvlc_sc_encode_secure_path_option(
+    uint8_t *pdu, size_t pdu_size, bool must_understand)
 {
     if (pdu_size < 1) {
         return 0;
@@ -554,7 +554,7 @@ static void bvlc_sc_decode_proprietary_option(uint8_t *in_options_list,
     uint16_t *out_vendor_id,
     uint8_t *out_proprietary_option_type,
     uint8_t **out_proprietary_data,
-    uint16_t *out_proprietary_data_len)
+    size_t *out_proprietary_data_len)
 {
     uint16_t hdr_len;
 
@@ -570,14 +570,14 @@ static void bvlc_sc_decode_proprietary_option(uint8_t *in_options_list,
     }
 }
 
-static unsigned int bvlc_sc_encode_common(uint8_t *pdu,
-    int pdu_len,
+static size_t bvlc_sc_encode_common(uint8_t *pdu,
+    size_t pdu_len,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest)
 {
-    int offs = 4;
+    size_t offs = 4;
     if (pdu_len < 4) {
         return 0;
     }
@@ -676,8 +676,8 @@ static unsigned int bvlc_sc_encode_common(uint8_t *pdu,
  *
  */
 
-unsigned int bvlc_sc_encode_result(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_result(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
@@ -688,7 +688,7 @@ unsigned int bvlc_sc_encode_result(uint8_t *pdu,
     uint16_t *error_code,
     uint8_t *utf8_details_string)
 {
-    int offs;
+    size_t offs;
 
     if (bvlc_function > (uint16_t)BVLC_SC_PROPRIETARY_MESSAGE) {
         /* unsupported bvlc function */
@@ -748,7 +748,7 @@ unsigned int bvlc_sc_encode_result(uint8_t *pdu,
     offs += sizeof(*error_code);
 
     if (utf8_details_string) {
-        if (pdu_len < offs + (int)strlen((const char *)utf8_details_string)) {
+        if (pdu_len < offs + strlen((const char *)utf8_details_string)) {
             return 0;
         }
         memcpy(&pdu[offs], utf8_details_string,
@@ -761,12 +761,12 @@ unsigned int bvlc_sc_encode_result(uint8_t *pdu,
 
 static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
-    uint16_t packed_payload_len,
+    size_t packed_payload_len,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
     const char **err_desc)
 {
-    int i;
+    size_t i;
 
     if (packed_payload_len < 2) {
         *error = ERROR_CODE_MESSAGE_INCOMPLETE;
@@ -867,15 +867,15 @@ static bool bvlc_sc_decode_result(BVLC_SC_DECODED_DATA *payload,
  * @return number of bytes encoded, in a case of error returns 0.
  *
  */
-unsigned int bvlc_sc_encode_encapsulated_npdu(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_encapsulated_npdu(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *npdu,
-    uint16_t npdu_size)
+    size_t npdu_size)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_ENCAPSULATED_NPDU, message_id, origin, dest);
@@ -916,13 +916,13 @@ unsigned int bvlc_sc_encode_encapsulated_npdu(uint8_t *pdu,
  * @return number of bytes encoded, in a case of error returns 0.
  *
  */
-unsigned int bvlc_sc_encode_address_resolution(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_address_resolution(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_ADDRESS_RESOLUTION, message_id, origin, dest);
@@ -969,15 +969,15 @@ unsigned int bvlc_sc_encode_address_resolution(uint8_t *pdu,
  * @return number of bytes encoded, in a case of error returns 0.
  */
 
-unsigned int bvlc_sc_encode_address_resolution_ack(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_address_resolution_ack(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *web_socket_uris,
-    uint16_t web_socket_uris_len)
+    size_t web_socket_uris_len)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_ADDRESS_RESOLUTION_ACK, message_id, origin, dest);
@@ -1038,8 +1038,8 @@ unsigned int bvlc_sc_encode_address_resolution_ack(uint8_t *pdu,
  * @return number of bytes encoded, in a case of error returns 0.
  */
 
-unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_advertisiment(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
@@ -1048,7 +1048,7 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_size)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_ADVERTISIMENT, message_id, origin, dest);
@@ -1067,7 +1067,7 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
 
 static bool bvlc_sc_decode_advertisiment(BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
-    uint16_t packed_payload_len,
+    size_t packed_payload_len,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
     const char **err_desc)
@@ -1131,13 +1131,13 @@ static bool bvlc_sc_decode_advertisiment(BVLC_SC_DECODED_DATA *payload,
  * @return number of bytes encoded, in a case of error returns 0.
  */
 
-unsigned int bvlc_sc_encode_advertisiment_solicitation(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_advertisiment_solicitation(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(pdu, pdu_len,
         BVLC_SC_ADVERTISIMENT_SOLICITATION, message_id, origin, dest);
@@ -1183,15 +1183,15 @@ unsigned int bvlc_sc_encode_advertisiment_solicitation(uint8_t *pdu,
  * @return number of bytes encoded, in a case of error returns 0.
  */
 
-unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_connect_request(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     BACNET_SC_UUID *local_uuid,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_size)
 {
-    int offs;
+    size_t offs;
 
     if (!local_vmac || !local_uuid) {
         return 0;
@@ -1203,8 +1203,8 @@ unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
         return 0;
     }
 
-    if (pdu_len < (int)(offs + BVLC_SC_VMAC_SIZE + BVLC_SC_UUID_SIZE +
-                      2 * sizeof(uint16_t))) {
+    if (pdu_len < (offs + BVLC_SC_VMAC_SIZE + BVLC_SC_UUID_SIZE +
+                   2 * sizeof(uint16_t))) {
         return 0;
     }
 
@@ -1221,7 +1221,7 @@ unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
 
 static bool bvlc_sc_decode_connect_request(BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
-    uint16_t packed_payload_len,
+    size_t packed_payload_len,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
     const char **err_desc)
@@ -1288,15 +1288,15 @@ static bool bvlc_sc_decode_connect_request(BVLC_SC_DECODED_DATA *payload,
  * @return number of bytes encoded, in a case of error returns 0.
  */
 
-unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_connect_accept(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     BACNET_SC_UUID *local_uuid,
     uint16_t max_bvlc_len,
     uint16_t max_npdu_len)
 {
-    int offs;
+    size_t offs;
 
     if (!local_vmac || !local_uuid) {
         return 0;
@@ -1308,7 +1308,7 @@ unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
         return 0;
     }
 
-    if (pdu_len < (int)(offs + BVLC_SC_VMAC_SIZE + BVLC_SC_UUID_SIZE +
+    if (pdu_len < (offs + BVLC_SC_VMAC_SIZE + BVLC_SC_UUID_SIZE +
                       2 * sizeof(uint16_t))) {
         return 0;
     }
@@ -1326,7 +1326,7 @@ unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
 
 static bool bvlc_sc_decode_connect_accept(BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
-    uint16_t packed_payload_len,
+    size_t packed_payload_len,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
     const char **err_desc)
@@ -1376,10 +1376,10 @@ static bool bvlc_sc_decode_connect_accept(BVLC_SC_DECODED_DATA *payload,
  * @param message_id- The message identifier
  * @return number of bytes encoded, in a case of error returns 0.
  */
-unsigned int bvlc_sc_encode_disconnect_request(
-    uint8_t *pdu, int pdu_len, uint16_t message_id)
+size_t bvlc_sc_encode_disconnect_request(
+    uint8_t *pdu, size_t pdu_len, uint16_t message_id)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_DISCONNECT_REQUEST, message_id, NULL, NULL);
@@ -1407,10 +1407,10 @@ unsigned int bvlc_sc_encode_disconnect_request(
  * @param message_id- The message identifier
  * @return number of bytes encoded, in a case of error returns 0.
  */
-unsigned int bvlc_sc_encode_disconnect_ack(
-    uint8_t *pdu, int pdu_len, uint16_t message_id)
+size_t bvlc_sc_encode_disconnect_ack(
+    uint8_t *pdu, size_t pdu_len, uint16_t message_id)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_DISCONNECT_ACK, message_id, NULL, NULL);
@@ -1438,10 +1438,10 @@ unsigned int bvlc_sc_encode_disconnect_ack(
  * @param message_id- The message identifier
  * @return number of bytes encoded, in a case of error returns 0.
  */
-unsigned int bvlc_sc_encode_heartbeat_request(
-    uint8_t *pdu, int pdu_len, uint16_t message_id)
+size_t bvlc_sc_encode_heartbeat_request(
+    uint8_t *pdu, size_t pdu_len, uint16_t message_id)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_HEARTBEAT_REQUEST, message_id, NULL, NULL);
@@ -1469,10 +1469,10 @@ unsigned int bvlc_sc_encode_heartbeat_request(
  * @param message_id- The message identifier
  * @return number of bytes encoded, in a case of error returns 0.
  */
-unsigned int bvlc_sc_encode_heartbeat_ack(
-    uint8_t *pdu, int pdu_len, uint16_t message_id)
+size_t bvlc_sc_encode_heartbeat_ack(
+    uint8_t *pdu, size_t pdu_len, uint16_t message_id)
 {
-    uint16_t offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_HEARTBEAT_ACK, message_id, NULL, NULL);
@@ -1519,17 +1519,17 @@ unsigned int bvlc_sc_encode_heartbeat_ack(
  *
  */
 
-unsigned int bvlc_sc_encode_proprietary_message(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_proprietary_message(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint16_t vendor_id,
     uint8_t proprietary_function,
     uint8_t *proprietary_data,
-    uint16_t proprietary_data_len)
+    size_t proprietary_data_len)
 {
-    int offs;
+    size_t offs;
 
     offs = bvlc_sc_encode_common(
         pdu, pdu_len, BVLC_SC_PROPRIETARY_MESSAGE, message_id, origin, dest);
@@ -1537,8 +1537,8 @@ unsigned int bvlc_sc_encode_proprietary_message(uint8_t *pdu,
         return 0;
     }
 
-    if (pdu_len < (int)(offs + sizeof(vendor_id) +
-                      sizeof(proprietary_function) + proprietary_data_len)) {
+    if (pdu_len < (offs + sizeof(vendor_id) +
+                   sizeof(proprietary_function) + proprietary_data_len)) {
         return 0;
     }
 
@@ -1553,7 +1553,7 @@ unsigned int bvlc_sc_encode_proprietary_message(uint8_t *pdu,
 
 static bool bvlc_sc_decode_proprietary(BVLC_SC_DECODED_DATA *payload,
     uint8_t *packed_payload,
-    uint16_t packed_payload_len,
+    size_t packed_payload_len,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
     const char **err_desc)
@@ -1581,15 +1581,16 @@ static bool bvlc_sc_decode_proprietary(BVLC_SC_DECODED_DATA *payload,
 }
 
 static bool bvlc_sc_decode_hdr(uint8_t *message,
-    int message_len,
+    size_t message_len,
     BVLC_SC_DECODED_HDR *hdr,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
     const char **err_desc)
 {
-    int offs = 4;
+    size_t offs = 4;
     bool ret = false;
-    uint16_t hdr_opt_len = 0;
+    size_t hdr_opt_len = 0;
+
     memset(hdr, 0, sizeof(*hdr));
 
     if (message_len < 4) {
@@ -1645,8 +1646,9 @@ static bool bvlc_sc_decode_hdr(uint8_t *message,
     if (message[1] & BVLC_SC_CONTROL_DEST_OPTIONS) {
         ret =
             bvlc_sc_validate_options_headers(BACNET_PDU_DEST_OPTION_VALIDATION,
-                &message[offs], message_len - offs, &hdr_opt_len,
-                &hdr->dest_options_num, error, class, err_desc);
+                &message[offs], message_len - offs, &hdr_opt_len, &hdr->dest_options_num,
+                error, class, err_desc);
+
         if (!ret) {
             return false;
         }
@@ -1682,7 +1684,7 @@ static bool bvlc_sc_decode_header_options(
     BVLC_SC_DECODED_HDR_OPTION *option_array, uint8_t *options_list)
 {
     uint8_t *next_option = options_list;
-    int i = 0;
+    size_t i = 0;
 
     while (next_option) {
         bvlc_sc_decode_option_hdr(options_list, &option_array[i].type,
@@ -1737,7 +1739,7 @@ static void bvlc_sc_decode_data_options_if_exists(
  */
 
 bool bvlc_sc_decode_message(uint8_t *buf,
-    uint16_t buf_len,
+    size_t buf_len,
     BVLC_SC_DECODED_MESSAGE *message,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
@@ -2018,9 +2020,9 @@ bool bvlc_sc_decode_message(uint8_t *buf,
  */
 
 void bvlc_sc_remove_dest_set_orig(
-    uint8_t *pdu, int pdu_len, BACNET_SC_VMAC_ADDRESS *orig)
+    uint8_t *pdu, size_t pdu_len, BACNET_SC_VMAC_ADDRESS *orig)
 {
-    int offs = 4;
+    size_t offs = 4;
     if (pdu && pdu_len > 4) {
         if (!(pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) &&
             (pdu[1] & BVLC_SC_CONTROL_DEST_VADDR)) {
@@ -2042,13 +2044,13 @@ void bvlc_sc_remove_dest_set_orig(
  *         changed pdu, otherwise returns old pdu_len and ppdu is not channged.
  */
 
-int bvlc_sc_set_orig(uint8_t** ppdu,
-                     int pdu_len,
-                     BACNET_SC_VMAC_ADDRESS *orig)
+size_t bvlc_sc_set_orig(uint8_t** ppdu,
+                        size_t pdu_len,
+                        BACNET_SC_VMAC_ADDRESS *orig)
 {
     uint8_t buf[BSC_PRE];
     uint8_t *pdu = *ppdu;
-    int offs = 4;
+    size_t offs = 4;
     if (pdu && pdu_len > 4) {
         if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
             memcpy(&pdu[offs], orig, sizeof(orig->address));
@@ -2120,9 +2122,9 @@ bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE* dm)
  */
 
 bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
-                                    int pdu_len)
+                                    size_t pdu_len)
 {
-  int offs = 4;
+  size_t offs = 4;
 
   if(pdu_len >=4 ) {
     if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
@@ -2145,7 +2147,7 @@ bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
  */
 
 bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
-                             int pdu_len)
+                             size_t pdu_len)
 {
   if(pdu_len >=4 ) {
     if (pdu[1] & BVLC_SC_CONTROL_DEST_VADDR) {
@@ -2166,10 +2168,10 @@ bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
  */
 
 bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
-                          int pdu_len,
+                          size_t pdu_len,
                           BACNET_SC_VMAC_ADDRESS *vmac)
 {
-  int offs = 4;
+  size_t offs = 4;
 
   if(pdu_len >=4 ) {
     if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {
@@ -2194,11 +2196,11 @@ bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
  *         updated pointer to buffer to modified BACNet/SC message.
  */
 
-int bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
-                                 int pdu_len)
+size_t bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
+                                    size_t pdu_len)
 {
   uint8_t* pdu = *ppdu;
-  int offs = 4;
+  size_t offs = 4;
 
   if(pdu_len > 4) {
     if (pdu[1] & BVLC_SC_CONTROL_ORIG_VADDR) {

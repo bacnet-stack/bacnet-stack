@@ -22,7 +22,7 @@ static bool verify_bsc_bvll_header(BVLC_SC_DECODED_HDR *hdr,
     BACNET_SC_VMAC_ADDRESS *dest,
     bool dest_options_absent,
     bool data_options_absent,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     if (hdr->bvlc_function != bvlc_function) {
         return false;
@@ -105,13 +105,13 @@ static bool verify_bsc_bvll_header(BVLC_SC_DECODED_HDR *hdr,
 }
 
 static void test_header_modifications(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len,
+    size_t payload_len,
     bool dest_options_absent,
     bool data_options_absent)
 {
@@ -121,7 +121,7 @@ static void test_header_modifications(uint8_t *pdu,
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     const char *err_desc = NULL;
-    int len;
+    size_t len;
     bool ret;
     BACNET_SC_VMAC_ADDRESS test;
     BACNET_SC_VMAC_ADDRESS test_dest;
@@ -229,13 +229,13 @@ static void test_header_modifications(uint8_t *pdu,
 }
 
 static void test_1_option_data(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
@@ -243,8 +243,8 @@ static void test_1_option_data(uint8_t *pdu,
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     const char *err_desc = NULL;
-    int optlen;
-    int len;
+    size_t optlen;
+    size_t len;
     bool ret;
     int res;
 
@@ -275,13 +275,13 @@ static void test_1_option_data(uint8_t *pdu,
 /* 3 options are added to pdu in total: 1 sc, 2 proprietary */
 
 static void test_3_options_different_buffer_data(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t buf1[256];
@@ -289,8 +289,8 @@ static void test_3_options_different_buffer_data(uint8_t *pdu,
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len;
+    size_t optlen;
+    size_t len;
     bool ret;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
@@ -383,21 +383,21 @@ static void test_3_options_different_buffer_data(uint8_t *pdu,
 /* 3 options are added to pdu in total: 1 sc, 2 proprietary */
 
 static void test_3_options_data(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
@@ -489,30 +489,26 @@ static void test_3_options_data(uint8_t *pdu,
 }
 
 static void test_5_options_data(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len;
+    size_t optlen;
+    size_t len;
     bool ret;
-    int res;
     uint16_t vendor_id1;
-    uint16_t vendor_id2;
     uint8_t proprietary_option_type1;
-    uint8_t proprietary_option_type2;
     uint8_t proprietary_data1[17];
-    uint8_t proprietary_data2[1];
-    int i;
+    size_t i;
     const char *err_desc = NULL;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
@@ -541,30 +537,29 @@ static void test_5_options_data(uint8_t *pdu,
 /* check message decoding when header option has incorrect more bit flag */
 
 static void test_options_incorrect_more_bit_data(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
     uint8_t proprietary_option_type1;
     uint8_t proprietary_option_type2;
     uint8_t proprietary_data1[17];
     uint8_t proprietary_data2[5];
-    int offs = 4;
+    size_t offs = 4;
     const char *err_desc = NULL;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
@@ -607,27 +602,26 @@ static void test_options_incorrect_more_bit_data(uint8_t *pdu,
 /* check message decoding when header option has incorrect more bit flag */
 
 static void test_options_incorrect_data_bit_data(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
     uint8_t proprietary_option_type1;
     uint8_t proprietary_data1[17];
-    int offs = 4;
+    size_t offs = 4;
     const char *err_desc = NULL;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
@@ -663,23 +657,22 @@ static void test_options_incorrect_data_bit_data(uint8_t *pdu,
    checks this case */
 
 static void test_1_option_dest_incorrect(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len;
+    size_t optlen;
+    size_t len;
     bool ret;
-    int res;
     const char *err_desc = NULL;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
@@ -702,21 +695,21 @@ static void test_1_option_dest_incorrect(uint8_t *pdu,
 }
 
 static void test_1_option_dest(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len;
+    size_t optlen;
+    size_t len;
     bool ret;
     int res;
     uint16_t vendor_id1;
@@ -766,21 +759,21 @@ static void test_1_option_dest(uint8_t *pdu,
 /* 3 proprietary options are added to pdu */
 
 static void test_3_options_dest(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
@@ -899,13 +892,13 @@ static void test_3_options_dest(uint8_t *pdu,
 }
 
 static void test_3_options_dest_different_buffer(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf1[256];
     uint8_t buf[256];
@@ -913,8 +906,8 @@ static void test_3_options_dest_different_buffer(uint8_t *pdu,
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
@@ -1034,30 +1027,26 @@ static void test_3_options_dest_different_buffer(uint8_t *pdu,
 }
 
 static void test_5_options_dest(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
-    uint16_t vendor_id2;
     uint8_t proprietary_option_type1;
-    uint8_t proprietary_option_type2;
     uint8_t proprietary_data1[17];
-    uint8_t proprietary_data2[1];
-    int i;
+    size_t i;
     const char *err_desc = NULL;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
@@ -1084,23 +1073,22 @@ static void test_5_options_dest(uint8_t *pdu,
 }
 
 static void test_options_incorrect_data_bit_dest(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
     uint8_t proprietary_option_type1;
     uint8_t proprietary_data1[17];
@@ -1137,30 +1125,29 @@ static void test_options_incorrect_data_bit_dest(uint8_t *pdu,
 }
 
 static void test_options_incorrect_more_bit_dest(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
-    int res;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
     uint8_t proprietary_option_type1;
     uint8_t proprietary_option_type2;
     uint8_t proprietary_data1[17];
     uint8_t proprietary_data2[5];
-    int offs = 4;
+    size_t offs = 4;
     const char *err_desc = NULL;
 
     zassert_equal(true, sizeof(buf) >= pdu_size ? true : false, NULL);
@@ -1207,21 +1194,21 @@ static void test_options_incorrect_more_bit_dest(uint8_t *pdu,
 }
 
 static void test_options_mixed_case1(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
@@ -1375,21 +1362,21 @@ static void test_options_mixed_case1(uint8_t *pdu,
 }
 
 static void test_options_mixed_case2(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
@@ -1543,21 +1530,21 @@ static void test_options_mixed_case2(uint8_t *pdu,
 }
 
 static void test_options_mixed_case3(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *payload,
-    uint16_t payload_len)
+    size_t payload_len)
 {
     uint8_t buf[256];
     uint8_t optbuf[256];
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
-    int optlen;
-    int len = pdu_size;
+    size_t optlen;
+    size_t len = pdu_size;
     bool ret;
     uint16_t vendor_id1;
     uint16_t vendor_id2;
@@ -1711,7 +1698,7 @@ static void test_options_mixed_case3(uint8_t *pdu,
 }
 
 static void test_options(uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t bvlc_function,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
@@ -1719,7 +1706,7 @@ static void test_options(uint8_t *pdu,
     bool test_dest_option,
     bool test_data_option,
     uint8_t *payload,
-    uint16_t payload_len,
+    size_t payload_len,
     bool ignore_more_bit_test)
 {
     if (!test_dest_option && test_data_option) {
@@ -1769,9 +1756,9 @@ static void test_BVLC_RESULT(void)
     uint8_t sbuf[256 + BSC_PRE];
     uint8_t *buf = &sbuf[BSC_PRE];
     int buf_len = 256;
-    int len;
+    size_t len;
     uint8_t optbuf[256];
-    int optlen;
+    size_t optlen;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS new_origin;
     BACNET_SC_VMAC_ADDRESS dest;
@@ -2166,9 +2153,9 @@ static void test_BVLC_RESULT(void)
 static void test_ENCAPSULATED_NPDU(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t npdu[256];
-    int npdulen;
+    size_t npdulen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
@@ -2331,14 +2318,13 @@ static void test_ENCAPSULATED_NPDU(void)
 static void test_ADDRESS_RESOLUTION(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t optbuf[256];
-    int optlen;
+    size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x514a;
-    int res;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
@@ -2454,9 +2440,9 @@ static void test_ADDRESS_RESOLUTION(void)
 static void test_ADDRESS_RESOLUTION_ACK(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t optbuf[256];
-    int optlen;
+    size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
@@ -2643,14 +2629,13 @@ static void test_ADDRESS_RESOLUTION_ACK(void)
 static void test_ADVERTISIMENT(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t optbuf[256];
-    int optlen;
+    size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0xe2ad;
-    int res;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
@@ -2852,14 +2837,13 @@ static void test_ADVERTISIMENT(void)
 static void test_ADVERTISIMENT_SOLICITATION(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t optbuf[256];
-    int optlen;
+    size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0xaf4a;
-    int res;
     BACNET_SC_VMAC_ADDRESS origin;
     BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
@@ -2979,14 +2963,12 @@ static void test_ADVERTISIMENT_SOLICITATION(void)
 static void test_CONNECT_REQUEST(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x41af;
     int res;
-    BACNET_SC_VMAC_ADDRESS origin;
-    BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
     uint16_t max_bvlc_len = 9997;
     uint16_t max_npdu_len = 3329;
@@ -3075,14 +3057,12 @@ static void test_CONNECT_REQUEST(void)
 static void test_CONNECT_ACCEPT(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
     int res;
-    BACNET_SC_VMAC_ADDRESS origin;
-    BACNET_SC_VMAC_ADDRESS dest;
     bool ret;
     uint16_t max_bvlc_len = 1027;
     uint16_t max_npdu_len = 22;
@@ -3171,12 +3151,11 @@ static void test_CONNECT_ACCEPT(void)
 static void test_DISCONNECT_REQUEST(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     const char *err_desc = NULL;
 
@@ -3212,12 +3191,11 @@ static void test_DISCONNECT_REQUEST(void)
 static void test_DISCONNECT_ACK(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     const char *err_desc = NULL;
 
@@ -3253,12 +3231,11 @@ static void test_DISCONNECT_ACK(void)
 static void test_HEARTBEAT_REQUEST(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     const char *err_desc = NULL;
 
@@ -3294,14 +3271,13 @@ static void test_HEARTBEAT_REQUEST(void)
 static void test_HEARTBEAT_ACK(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t optbuf[256];
-    int optlen;
+    size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     const char *err_desc = NULL;
 
@@ -3347,9 +3323,9 @@ static void test_HEARTBEAT_ACK(void)
 static void test_PROPRIETARY_MESSAGE(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     uint8_t optbuf[256];
-    int optlen;
+    size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
@@ -3530,13 +3506,12 @@ static void test_BAD_HEADER_OPTIONS(void)
     uint8_t optbuf[256];
     uint8_t npdu[256];
     uint16_t npdulen;
-    int len;
-    int optlen;
+    size_t len;
+    size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
     uint16_t vendor_id1;
     uint8_t proprietary_option_type1;
@@ -3749,14 +3724,10 @@ static void test_BAD_ENCODE_PARAMS(void)
     uint8_t optbuf[256];
     uint8_t npdu[256];
     uint16_t npdulen;
-    int len;
-    int optlen;
+    size_t len;
+    size_t optlen;
     BVLC_SC_DECODED_MESSAGE message;
-    BACNET_ERROR_CODE error;
-    BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
-    bool ret;
     uint16_t vendor_id1;
     uint8_t proprietary_option_type1;
     uint8_t proprietary_data1[17];
@@ -3899,29 +3870,18 @@ static void test_BAD_ENCODE_PARAMS(void)
 static void test_BAD_DECODE_PARAMS(void)
 {
     uint8_t buf[256];
-    uint8_t optbuf[256];
     uint8_t npdu[256];
     uint16_t npdulen = 50;
-    int len;
-    int optlen;
+    size_t len;
     BVLC_SC_DECODED_MESSAGE message;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
     uint16_t message_id = 0x0203;
-    int res;
     bool ret;
-    uint16_t vendor_id1;
-    uint8_t proprietary_option_type1;
-    uint8_t proprietary_data1[17];
-    BACNET_SC_VMAC_ADDRESS origin;
-    BACNET_SC_VMAC_ADDRESS dest;
     uint8_t error_header_marker = 0xcc;
     uint16_t error_class = 0xaa;
     uint16_t error_code = 0xdd;
     char *error_details_string = "something bad has happend";
-    BACNET_SC_VMAC_ADDRESS local_vmac;
-    BACNET_SC_UUID local_uuid;
-    uint8_t data[34];
     uint8_t proprietary_function = 0xea;
     const char *err_desc = NULL;
 
@@ -3949,7 +3909,7 @@ static void test_BAD_DECODE_PARAMS(void)
 static void test_BROADCAST(void)
 {
     uint8_t buf[256];
-    int len;
+    size_t len;
     BACNET_SC_VMAC_ADDRESS dest;
     BACNET_SC_VMAC_ADDRESS orig;
     bool ret;

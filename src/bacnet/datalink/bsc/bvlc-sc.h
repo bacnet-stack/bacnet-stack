@@ -146,13 +146,13 @@ typedef struct BVLC_SC_Decoded_Hdr {
     BACNET_SC_VMAC_ADDRESS *origin;
     BACNET_SC_VMAC_ADDRESS *dest;
     uint8_t *dest_options; /* pointer to packed dest options list in message */
-    uint16_t dest_options_len;
-    uint16_t dest_options_num; /* number of filled items in dest_options */
+    size_t dest_options_len;
+    size_t dest_options_num; /* number of filled items in dest_options */
     uint8_t *data_options; /* pointer to packed data options list in message */
-    uint16_t data_options_len;
-    uint16_t data_options_num; /* number of filled items in data_options */
+    size_t data_options_len;
+    size_t data_options_num; /* number of filled items in data_options */
     uint8_t *payload; /* packed payload, points to data in message */
-    uint16_t payload_len;
+    size_t payload_len;
 } BVLC_SC_DECODED_HDR;
 
 typedef struct BVLC_SC_Decoded_Result {
@@ -163,18 +163,18 @@ typedef struct BVLC_SC_Decoded_Result {
     uint16_t error_code;
     uint8_t *utf8_details_string; /* NOTE!: this is utf 8 string without
                                      trailing zero */
-    uint8_t utf8_details_string_len;
+    size_t utf8_details_string_len;
 } BVLC_SC_DECODED_RESULT;
 
 typedef struct BVLC_SC_Decoded_Address_Resolution_Ack {
     uint8_t *utf8_websocket_uri_string; /* NOTE!: this is utf 8 string without
                                            trailing zero */
-    uint8_t utf8_websocket_uri_string_len;
+    size_t utf8_websocket_uri_string_len;
 } BVLC_SC_DECODED_ADDRESS_RESOLUTION_ACK;
 
 typedef struct BVLC_SC_Decoded_Ecapsulated_NPDU {
     uint8_t *npdu;
-    uint16_t npdu_len;
+    size_t npdu_len;
 } BVLC_SC_DECODED_ENCAPSULATED_NPDU;
 
 typedef struct BVLC_SC_Decoded_Advertisiment {
@@ -202,7 +202,7 @@ typedef struct BVLC_SC_Decoded_Proprietary {
     uint16_t vendor_id;
     uint8_t function;
     uint8_t *data;
-    uint16_t data_len;
+    size_t data_len;
 } BVLC_SC_DECODED_PROPRIETARY;
 
 typedef union BVLC_SC_Decoded_Data {
@@ -219,7 +219,7 @@ typedef struct BVLC_SC_Decoded_Hdr_Proprietary_Option {
     uint16_t vendor_id;
     uint8_t option_type;
     uint8_t *data;
-    uint16_t data_len;
+    size_t data_len;
 } BVLC_SC_DECODED_HDR_PROPRIETARY_OPTION;
 
 typedef union BVLC_SC_Decoded_Specific_Option_Data {
@@ -245,37 +245,37 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_add_option_to_destination_options(uint8_t *out_pdu,
-    uint16_t out_pdu_size,
+size_t bvlc_sc_add_option_to_destination_options(uint8_t *out_pdu,
+    size_t out_pdu_size,
     uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t *sc_option,
-    uint16_t sc_option_len);
+    size_t sc_option_len);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_add_option_to_data_options(uint8_t *out_pdu,
-    uint16_t out_pdu_size,
+size_t bvlc_sc_add_option_to_data_options(uint8_t *out_pdu,
+    size_t out_pdu_size,
     uint8_t *pdu,
-    uint16_t pdu_size,
+    size_t pdu_size,
     uint8_t *sc_option,
-    uint16_t sc_option_len);
+    size_t sc_option_len);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_proprietary_option(uint8_t *pdu,
-    uint16_t pdu_size,
+size_t bvlc_sc_encode_proprietary_option(uint8_t *pdu,
+    size_t pdu_size,
     bool must_understand,
     uint16_t vendor_id,
     uint8_t proprietary_option_type,
     uint8_t *proprietary_data,
-    uint16_t proprietary_data_len);
+    size_t proprietary_data_len);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_secure_path_option(
-    uint8_t *pdu, uint16_t pdu_size, bool must_understand);
+size_t bvlc_sc_encode_secure_path_option(
+    uint8_t *pdu, size_t pdu_size, bool must_understand);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_result(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_result(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
@@ -287,33 +287,33 @@ unsigned int bvlc_sc_encode_result(uint8_t *pdu,
     uint8_t *utf8_details_string);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_encapsulated_npdu(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_encapsulated_npdu(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *npdu,
-    uint16_t npdu_size);
+    size_t npdu_size);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_address_resolution(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_address_resolution(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_address_resolution_ack(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_address_resolution_ack(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *web_socket_uris,
-    uint16_t web_socket_uris_len);
+    size_t web_socket_uris_len);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_advertisiment(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
@@ -323,15 +323,15 @@ unsigned int bvlc_sc_encode_advertisiment(uint8_t *pdu,
     uint16_t max_npdu_size);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_advertisiment_solicitation(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_advertisiment_solicitation(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_connect_request(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     BACNET_SC_UUID *local_uuid,
@@ -339,8 +339,8 @@ unsigned int bvlc_sc_encode_connect_request(uint8_t *pdu,
     uint16_t max_npdu_size);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_connect_accept(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *local_vmac,
     BACNET_SC_UUID *local_uuid,
@@ -348,35 +348,35 @@ unsigned int bvlc_sc_encode_connect_accept(uint8_t *pdu,
     uint16_t max_npdu_len);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_disconnect_request(
-    uint8_t *pdu, int pdu_len, uint16_t message_id);
+size_t bvlc_sc_encode_disconnect_request(
+    uint8_t *pdu, size_t pdu_len, uint16_t message_id);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_disconnect_ack(
-    uint8_t *pdu, int pdu_len, uint16_t message_id);
+size_t bvlc_sc_encode_disconnect_ack(
+    uint8_t *pdu, size_t pdu_len, uint16_t message_id);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_heartbeat_request(
-    uint8_t *out_buf, int out_buf_len, uint16_t message_id);
+size_t bvlc_sc_encode_heartbeat_request(
+    uint8_t *out_buf, size_t out_buf_len, uint16_t message_id);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_heartbeat_ack(
-    uint8_t *out_buf, int out_buf_len, uint16_t message_id);
+size_t bvlc_sc_encode_heartbeat_ack(
+    uint8_t *out_buf, size_t out_buf_len, uint16_t message_id);
 
 BACNET_STACK_EXPORT
-unsigned int bvlc_sc_encode_proprietary_message(uint8_t *pdu,
-    int pdu_len,
+size_t bvlc_sc_encode_proprietary_message(uint8_t *pdu,
+    size_t pdu_len,
     uint16_t message_id,
     BACNET_SC_VMAC_ADDRESS *origin,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint16_t vendor_id,
     uint8_t proprietary_function,
     uint8_t *proprietary_data,
-    uint16_t proprietary_data_len);
+    size_t proprietary_data_len);
 
 BACNET_STACK_EXPORT
 bool bvlc_sc_decode_message(uint8_t *buf,
-    uint16_t buf_len,
+    size_t buf_len,
     BVLC_SC_DECODED_MESSAGE *message,
     BACNET_ERROR_CODE *error,
     BACNET_ERROR_CLASS *class,
@@ -384,13 +384,13 @@ bool bvlc_sc_decode_message(uint8_t *buf,
 
 BACNET_STACK_EXPORT
 void bvlc_sc_remove_dest_set_orig(uint8_t *pdu,
-                                  int pdu_len,
+                                  size_t pdu_len,
                                   BACNET_SC_VMAC_ADDRESS *orig);
 
 BACNET_STACK_EXPORT
-int bvlc_sc_set_orig(uint8_t** ppdu,
-                     int pdu_len,
-                     BACNET_SC_VMAC_ADDRESS *orig);
+size_t bvlc_sc_set_orig(uint8_t** ppdu,
+                        size_t pdu_len,
+                        BACNET_SC_VMAC_ADDRESS *orig);
 
 BACNET_STACK_EXPORT
 bool bvlc_sc_is_vmac_broadcast(BACNET_SC_VMAC_ADDRESS *vmac);
@@ -400,20 +400,20 @@ bool bvlc_sc_need_send_bvlc_result(BVLC_SC_DECODED_MESSAGE* dm);
 
 BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_has_dest_broadcast(uint8_t *pdu,
-                               int pdu_len);
+                                    size_t pdu_len);
 
 BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_has_no_dest(uint8_t *pdu,
-                             int pdu_len);
+                             size_t pdu_len);
 
 BACNET_STACK_EXPORT
 bool bvlc_sc_pdu_get_dest(uint8_t *pdu,
-                          int pdu_len,
+                          size_t pdu_len,
                           BACNET_SC_VMAC_ADDRESS *vmac);
 
 BACNET_STACK_EXPORT
-int bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
-                                 int pdu_len);
+size_t bvlc_sc_remove_orig_and_dest(uint8_t** ppdu,
+                                    size_t pdu_len);
 
 #ifdef __cplusplus
 }
