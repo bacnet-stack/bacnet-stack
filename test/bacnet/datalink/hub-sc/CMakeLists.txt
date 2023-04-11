@@ -9,7 +9,8 @@ project(test_${basename}
 
 find_package(Threads)
 find_package(libwebsockets CONFIG REQUIRED)
-include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
+find_package(PkgConfig)
+pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
 
 string(REGEX REPLACE
     "/test/bacnet/[a-z0-9A-Z_/-]*$"
