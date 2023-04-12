@@ -275,10 +275,12 @@ static void bsc_node_process_stop_event(BSC_NODE *node)
     if (node->state == BSC_NODE_STATE_STOPPING) {
         if (stopped) {
             node->state = BSC_NODE_STATE_IDLE;
+            DEBUG_PRINTF("bsc_node_process_stop_event() emit stop event\n");
             node->conf->event_func(node, BSC_NODE_EVENT_STOPPED, NULL, NULL, 0);
         }
     } else if (node->state == BSC_NODE_STATE_RESTARTING) {
         if (stopped) {
+            DEBUG_PRINTF("bsc_node_process_stop_event() emit restart event\n");
             (void)bsc_node_start_state(node, BSC_NODE_STATE_RESTARTING);
         }
     }
