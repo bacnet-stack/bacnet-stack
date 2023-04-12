@@ -1002,8 +1002,8 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     bsc_socket_maintenance_timer(0);
-    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
+    bws_dispatch_unlock();
 }
 
 static void bsc_process_cli_awaiting_accept(
@@ -1123,12 +1123,12 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     bool all_socket_disconnected = true;
     bool failed = false;
 
+    bws_dispatch_lock();
+
     DEBUG_PRINTF("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
                  "reason_desc = %p, buf = %p, "
                  "bufsize = %d, ctx = %p\n",
         h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
-
-    bws_dispatch_lock();
 
     c = bsc_find_conn_by_websocket(ctx, h);
 
@@ -1246,8 +1246,8 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     }
 
     bsc_socket_maintenance_timer(0);
-    bws_dispatch_unlock();
     DEBUG_PRINTF("bsc_dispatch_cli_func() <<<\n");
+    bws_dispatch_unlock();
 }
 
 BSC_SC_RET bsc_init_ctx(BSC_SOCKET_CTX *ctx,
