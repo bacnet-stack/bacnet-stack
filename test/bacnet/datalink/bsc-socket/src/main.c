@@ -1140,25 +1140,32 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
     while (!bsc_event_timedwait(ev->ev, 100)) {
         call_maintenance_timer(0, 100);
     }
+    bws_dispatch_lock();
     debug_printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
         ev->ev_code, wait_ev);
     if (ev->ev_code == wait_ev) {
+        bws_dispatch_unlock();
         return true;
     } else {
+        bws_dispatch_unlock();
         return false;
     }
 }
 
 static void reset_sock_ev(sock_ev_t *ev)
 {
+    bws_dispatch_lock();
     debug_printf("reset_sock_ev %p\n", ev);
     ev->ev_code = -1;
     ev->err = -1;
+    bws_dispatch_unlock();
 }
 
 static void reset_ctx_ev(ctx_ev_t *ev)
 {
+    bws_dispatch_lock();
     ev->ev_code = -1;
+    bws_dispatch_unlock();
 }
 
 static void signal_sock_ev(
@@ -1177,9 +1184,12 @@ static bool wait_ctx_ev(ctx_ev_t *ev, BSC_CTX_EVENT wait_ev)
         call_maintenance_timer(0, 100);
     }
 
+    bws_dispatch_lock();
     if (ev->ev_code == wait_ev) {
+        bws_dispatch_unlock();
         return true;
     } else {
+        bws_dispatch_unlock();
         return false;
     }
 }
@@ -1383,7 +1393,6 @@ static void test_simple(void)
     zassert_equal(cli_ev.err == -1 && cli_ev.ev_code == -1 &&
             srv_ev.err == -1 && srv_ev.ev_code == -1,
         true, 0);
-
     // simple test for data flow
 
     memset(npdu, 0x55, sizeof(npdu));
