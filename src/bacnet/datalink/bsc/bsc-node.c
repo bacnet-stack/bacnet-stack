@@ -116,6 +116,7 @@ static void bsc_node_init_hub_status(
 static BSC_NODE *bsc_alloc_node(void)
 {
     int i, j;
+    DEBUG_PRINTF("bsc_alloc_node() >>> \n");
 
     for (i = 0; i < BSC_CONF_NODES_NUM; i++) {
         if (bsc_node[i].used == false) {
@@ -159,9 +160,12 @@ static BSC_NODE *bsc_alloc_node(void)
                 }
                 bsc_failed_request_initialized[i] = true;
             }
+            DEBUG_PRINTF("bsc_alloc_node() <<< i = %d, node = %p, conf = %p\n",
+                i, &bsc_node[i], bsc_node[i].conf);
             return &bsc_node[i];
         }
     }
+    DEBUG_PRINTF("bsc_alloc_node() <<< ret = NULL\n");
     return NULL;
 }
 
@@ -228,7 +232,10 @@ static BSC_ADDRESS_RESOLUTION *node_alloc_address_resolution(
 
 static void bsc_free_node(BSC_NODE *node)
 {
+    DEBUG_PRINTF(
+        "bsc_free_node() >>> node = %p, state = %d\n", node, node->state);
     node->used = false;
+    DEBUG_PRINTF("bsc_free_node() <<<\n");
 }
 
 static void bsc_node_process_stop_event(BSC_NODE *node)
@@ -314,7 +321,9 @@ static void bsc_node_restart(BSC_NODE *node)
                  "hub_connector %p node_switch %p\n",
         node, node->hub_function, node->hub_connector, node->node_switch);
     node->state = BSC_NODE_STATE_RESTARTING;
-    bsc_hub_connector_stop(node->hub_connector);
+    if (node->conf->primaryURL) {
+        bsc_hub_connector_stop(node->hub_connector);
+    }
     if (node->hub_function && node->conf->hub_function_enabled) {
         bsc_hub_function_stop(node->hub_function);
     }
@@ -704,6 +713,8 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
     } else {
         /* TODO: integration with BACNET/SC properties */
         bsc_generate_random_vmac(node->conf->local_vmac);
+        DEBUG_PRINTF("bsc_node_start() generated random vmac %s for node %p\n",
+            bsc_vmac_to_string(node->conf->local_vmac), node);
     }
 
     if (node->conf->primaryURL) {
