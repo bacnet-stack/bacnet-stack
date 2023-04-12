@@ -27,7 +27,9 @@ static void bsc_init_mutex(volatile HANDLE* m)
   { 
     p = CreateMutex(NULL, FALSE, NULL);
     if (InterlockedCompareExchangePointer((PVOID*)m, (PVOID)p, NULL) != NULL)
+    {
       CloseHandle(p);
+    }
   }
 }
 

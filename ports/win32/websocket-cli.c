@@ -440,6 +440,8 @@ static DWORD WINAPI bws_cli_worker(LPVOID arg)
     char err_desc[BSC_WEBSOCKET_ERR_DESC_STR_MAX_LEN];
     uint16_t err_code;
 
+    srand((unsigned) GetCurrentThreadId());
+
     while (1) {
         DEBUG_PRINTF("bws_cli_worker() try mutex h = %d\n", h);
         bsc_mutex_lock(&bws_cli_mutex);

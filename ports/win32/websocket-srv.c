@@ -555,6 +555,8 @@ static DWORD WINAPI bws_srv_worker(LPVOID arg)
     DEBUG_PRINTF("bws_srv_worker() started for ctx %p proto %d user_param %p\n",
         ctx, ctx->proto, ctx->user_param);
 
+    srand((unsigned) GetCurrentThreadId());
+
     bsc_mutex_lock(&ctx->mutex);
     dispatch_func = ctx->dispatch_func;
     user_param = ctx->user_param;
