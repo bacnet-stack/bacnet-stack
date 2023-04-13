@@ -102,8 +102,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
-  target_link_libraries(${PROJECT_NAME}
-                        ${LIB_WEBSOCKETS_LIBRARIES}
+   target_link_libraries(${PROJECT_NAME}
+                         ${LIBWEBSOCKETS_LIBRARIES}
   )
 elseif(WIN32)
   message(STATUS "BACNet/SC hub function test: building for win32")
