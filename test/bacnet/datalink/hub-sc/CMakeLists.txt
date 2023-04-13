@@ -49,6 +49,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNet/SC hub function test: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
   add_compile_definitions(BACNET_PORT=linux)
+  find_package(libwebsockets CONFIG REQUIRED)
+  include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
 
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/linux/websocket-cli.c
