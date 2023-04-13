@@ -23,7 +23,6 @@
 #include <bacnet/datalink/bsc/bsc-util.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <bacnet/bacdef.h>
-#include <unistd.h>
 
 unsigned char ca_key[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47, 0x49,
     0x4e, 0x20, 0x52, 0x53, 0x41, 0x20, 0x50, 0x52, 0x49, 0x56, 0x41, 0x54,
@@ -1136,6 +1135,22 @@ static void deinit_node_ev(node_ev_t *ev)
     bsc_event_deinit(ev->e);
 }
 
+static void datalink_wait_for_connection_to_hub(node_ev_t *ev)
+{
+    BACNET_SC_HUB_CONNECTOR_STATE st;
+    call_maintenance_timer(1, 0);
+    while (1) {
+        bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+        st = Network_Port_SC_Hub_Connector_State(SC_DATALINK_INSTANCE);
+
+        if (st == BACNET_CONNECTED_TO_PRIMARY ||
+            st == BACNET_CONNECTED_TO_FAILOVER) {
+            break;
+        }
+    }
+}
+
 static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
 {
     BACNET_SC_HUB_CONNECTION_STATUS *st1;
@@ -1164,6 +1179,8 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
     }
     bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->node == node) {
+        debug_printf("got event %d\n", ev->ev);
+        ev->ev = -1;
         bws_dispatch_unlock();
         return true;
     } else {
@@ -1182,10 +1199,11 @@ static void wait_specific_node_ev(
         }
         bws_dispatch_lock();
         if (ev->ev == wait_ev && ev->node == node) {
+            debug_printf("got event %d\n", ev->ev);
+            ev->ev = -1;
             bws_dispatch_unlock();
             break;
-        }
-        else{
+        } else {
             bws_dispatch_unlock();
         }
     }
@@ -1196,7 +1214,7 @@ static void signal_node_ev(node_ev_t *e,
     BSC_NODE *node,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
-    uint16_t pdu_len)
+    size_t pdu_len)
 {
     e->ev = ev;
     e->node = node;
@@ -1217,31 +1235,39 @@ static void signal_node_ev(node_ev_t *e,
     bsc_event_signal(e->e);
 }
 
-static void node_event(BSC_NODE* node, BSC_NODE_EVENT ev,
-                                    BACNET_SC_VMAC_ADDRESS *dest,
-                                    uint8_t *pdu, size_t pdu_len)
+static void node_event(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    size_t pdu_len)
 {
 }
 
-static void node_event2(BSC_NODE* node, BSC_NODE_EVENT ev,
-                                    BACNET_SC_VMAC_ADDRESS *dest,
-                                    uint8_t *pdu, size_t pdu_len)
+static void node_event2(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    size_t pdu_len)
 {
     debug_printf("node_event2() ev = %d event = %p\n", ev, node_ev2.e);
     signal_node_ev(&node_ev2, ev, node, dest, pdu, pdu_len);
 }
 
-static void node_event3(BSC_NODE* node, BSC_NODE_EVENT ev,
-                                    BACNET_SC_VMAC_ADDRESS *dest,
-                                    uint8_t *pdu, size_t pdu_len)
+static void node_event3(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    size_t pdu_len)
 {
     debug_printf("node_event3() ev = %d event = %p\n", ev, node_ev3.e);
     signal_node_ev(&node_ev3, ev, node, dest, pdu, pdu_len);
 }
 
-static void node_event4(BSC_NODE* node, BSC_NODE_EVENT ev,
-                                    BACNET_SC_VMAC_ADDRESS *dest,
-                                    uint8_t *pdu, size_t pdu_len)
+static void node_event4(BSC_NODE *node,
+    BSC_NODE_EVENT ev,
+    BACNET_SC_VMAC_ADDRESS *dest,
+    uint8_t *pdu,
+    size_t pdu_len)
 {
     debug_printf("node_event4() ev = %d event = %p\n", ev, node_ev4.e);
     signal_node_ev(&node_ev4, ev, node, dest, pdu, pdu_len);
@@ -1267,7 +1293,6 @@ static void netport_object_init(uint32_t instance,
     const char *filename_ca_cert = "ca_cert.pem";
     const char *filename_cert = "cert.pem";
     const char *filename_key = "key.pem";
-    char str[10];
 
     Network_Port_Init();
     Network_Port_Object_Instance_Number_Set(0, instance);
@@ -1277,22 +1302,23 @@ static void netport_object_init(uint32_t instance,
     bacfile_pathname_set(
         BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE, filename_ca_cert);
     bacfile_write(BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE, ca_cert_chain,
-        ca_cert_chain_size);
+        (uint32_t)ca_cert_chain_size);
     Network_Port_Issuer_Certificate_File_Set(
         instance, 0, BSC_ISSUER_CERTIFICATE_FILE_1_INSTANCE);
 
     bacfile_create(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
     bacfile_pathname_set(
         BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE, filename_cert);
-    bacfile_write(
-        BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE, cert_chain, cert_chain_size);
+    bacfile_write(BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE, cert_chain,
+        (uint32_t)cert_chain_size);
     Network_Port_Operational_Certificate_File_Set(
         instance, BSC_OPERATIONAL_CERTIFICATE_FILE_INSTANCE);
 
     bacfile_create(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
     bacfile_pathname_set(
         BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE, filename_key);
-    bacfile_write(BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE, key, key_size);
+    bacfile_write(
+        BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE, key, (uint32_t)key_size);
     Network_Port_Certificate_Key_File_Set(
         instance, BSC_CERTIFICATE_SIGNING_REQUEST_FILE_INSTANCE);
 
@@ -1446,8 +1472,8 @@ static void test_sc_datalink(void)
     BSC_NODE *node2;
     BSC_NODE *node3;
     uint8_t buf[2 * BVLC_SC_NPDU_SIZE_CONF];
-    int len;
-    int sent;
+    size_t len;
+    size_t sent;
     uint8_t npdu[128];
     BACNET_ADDRESS from;
     BVLC_SC_DECODED_MESSAGE message;
@@ -1569,6 +1595,7 @@ static void test_sc_datalink(void)
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
     wait_for_connection_to_hub(&node_ev2, node2);
+    datalink_wait_for_connection_to_hub(&node_ev2);
     // send encapsulated npdu packet
     memset(npdu, 0x99, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
@@ -1587,7 +1614,7 @@ static void test_sc_datalink(void)
     memset(npdu, 0x22, len);
     dest.mac_len = BVLC_SC_VMAC_SIZE;
     memcpy(&dest.mac[0], &vmac2.address[0], BVLC_SC_VMAC_SIZE);
-    sent = bsc_send_pdu(&dest, NULL, npdu, len);
+    sent = bsc_send_pdu(&dest, NULL, npdu, (unsigned int)len);
     zassert_equal(sent == len, true, NULL);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
@@ -1603,7 +1630,7 @@ static void test_sc_datalink(void)
     len = 105;
     memset(npdu, 0x52, len);
     dest.mac_len = BVLC_SC_VMAC_SIZE;
-    sent = bsc_send_pdu(&dest, NULL, npdu, len);
+    sent = bsc_send_pdu(&dest, NULL, npdu, (unsigned int)len);
     zassert_equal(sent == len, true, NULL);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_RECEIVED_NPDU, node2), true, 0);
@@ -1987,7 +2014,6 @@ static void test_sc_datalink_failed_requests(void)
     char secondary_url2[128];
     BSC_SC_RET ret;
     BSC_NODE *node2;
-    BSC_NODE *node3;
 
     BACNET_SC_FAILED_CONNECTION_REQUEST *r;
 
