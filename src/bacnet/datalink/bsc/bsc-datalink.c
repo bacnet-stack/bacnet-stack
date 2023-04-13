@@ -29,7 +29,7 @@
 #include "bacnet/basic/object/bacfile.h"
 
 #define PRINTF debug_perror
-#define DEBUG_BSC_DATALINK 1
+#define DEBUG_BSC_DATALINK 0
 #if DEBUG_BSC_DATALINK == 1
 #define DEBUG_PRINTF debug_printf
 #else
@@ -55,7 +55,8 @@ typedef enum {
 } BSC_DATALINK_STATE;
 
 static FIFO_BUFFER bsc_fifo = { 0 };
-static uint8_t bsc_fifo_buf[BSC_NEXT_POWER_OF_TWO(BSC_CONF_DATALINK_RX_BUFFER_SIZE)];
+static uint8_t
+    bsc_fifo_buf[BSC_NEXT_POWER_OF_TWO(BSC_CONF_DATALINK_RX_BUFFER_SIZE)];
 static BSC_NODE *bsc_node = NULL;
 static BSC_NODE_CONF bsc_conf;
 static BSC_DATALINK_STATE bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
@@ -68,6 +69,7 @@ static void bsc_node_event(BSC_NODE *node,
     uint8_t *pdu,
     size_t pdu_len)
 {
+    uint16_t pdu16_len;
     DEBUG_PRINTF("bsc_node_event() >>> ev = %d\n", ev);
     bws_dispatch_lock();
     (void)node;
@@ -78,9 +80,12 @@ static void bsc_node_event(BSC_NODE *node,
         }
     } else if (ev == BSC_NODE_EVENT_RECEIVED_NPDU) {
         if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
-            if (FIFO_Available(&bsc_fifo, pdu_len + sizeof(pdu_len))) {
-                FIFO_Add(&bsc_fifo, (uint8_t *)&pdu_len, sizeof(pdu_len));
-                FIFO_Add(&bsc_fifo, pdu, pdu_len);
+            if (pdu_len <= USHRT_MAX &&
+                FIFO_Available(
+                    &bsc_fifo, (unsigned)(pdu_len + sizeof(pdu16_len)))) {
+                pdu16_len = (uint16_t)pdu_len;
+                FIFO_Add(&bsc_fifo, (uint8_t *)&pdu16_len, sizeof(pdu16_len));
+                FIFO_Add(&bsc_fifo, pdu, pdu16_len);
                 bsc_event_signal(bsc_data_event);
             }
 #if DEBUG_ENABLED == 1
@@ -180,7 +185,7 @@ void bsc_cleanup(void)
             bsc_event_wait(bsc_event);
             bws_dispatch_lock();
         }
-        if(bsc_datalink_state != BSC_DATALINK_STATE_STOPPING) {
+        if (bsc_datalink_state != BSC_DATALINK_STATE_STOPPING) {
             bsc_datalink_state = BSC_DATALINK_STATE_STOPPING;
             bsc_event_signal(bsc_data_event);
             bsc_node_stop(bsc_node);
@@ -227,7 +232,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
             return len;
         }
 
-        len = bvlc_sc_encode_encapsulated_npdu(buf, sizeof(buf),
+        len = (int)bvlc_sc_encode_encapsulated_npdu(buf, sizeof(buf),
             bsc_get_next_message_id(), NULL, &dest_vmac, pdu, pdu_len);
 
         ret = bsc_node_send(bsc_node, buf, len);
@@ -245,7 +250,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
 
 static void bsc_remove_packet(size_t packet_size)
 {
-    int i;
+    size_t i;
     for (i = 0; i < packet_size; i++) {
         (void)FIFO_Get(&bsc_fifo);
     }
@@ -255,7 +260,7 @@ uint16_t bsc_receive(
     BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout_ms)
 {
     uint16_t pdu_len = 0;
-    size_t npdu_len = 0;
+    uint16_t npdu16_len = 0;
     BVLC_SC_DECODED_MESSAGE dm;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
@@ -267,28 +272,28 @@ uint16_t bsc_receive(
     bws_dispatch_lock();
 
     if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED) {
-        if (FIFO_Count(&bsc_fifo) <= sizeof(uint16_t)) {
+        if (FIFO_Count(&bsc_fifo) <= sizeof(npdu16_len)) {
             bws_dispatch_unlock();
             bsc_event_timedwait(bsc_data_event, timeout_ms);
             bws_dispatch_lock();
         }
 
         if (bsc_datalink_state == BSC_DATALINK_STATE_STARTED &&
-            FIFO_Count(&bsc_fifo) > sizeof(uint16_t)) {
+            FIFO_Count(&bsc_fifo) > sizeof(npdu16_len)) {
             DEBUG_PRINTF("bsc_receive() processing data...\n");
-            FIFO_Pull(&bsc_fifo, (uint8_t *)&npdu_len, sizeof(npdu_len));
+            FIFO_Pull(&bsc_fifo, (uint8_t *)&npdu16_len, sizeof(npdu16_len));
 
-            if (sizeof(buf) < npdu_len) {
-                PRINTF("bsc_receive() pdu of size %d is dropped\n", pdu_len);
-                bsc_remove_packet(npdu_len);
+            if (sizeof(buf) < npdu16_len) {
+                PRINTF("bsc_receive() pdu of size %d is dropped\n", npdu16_len);
+                bsc_remove_packet(npdu16_len);
             } else {
-                FIFO_Pull(&bsc_fifo, buf, npdu_len);
+                FIFO_Pull(&bsc_fifo, buf, npdu16_len);
                 if (!bvlc_sc_decode_message(
-                        buf, npdu_len, &dm, &error, &class, &err_desc)) {
+                        buf, npdu16_len, &dm, &error, &class, &err_desc)) {
                     PRINTF("bsc_receive() pdu of size %d is dropped because "
                            "of err = %d, class %d, desc = %s\n",
-                        npdu_len, error, class, err_desc);
-                    bsc_remove_packet(npdu_len);
+                        npdu16_len, error, class, err_desc);
+                    bsc_remove_packet(npdu16_len);
                 } else {
                     if (dm.hdr.origin &&
                         max_pdu >= dm.payload.encapsulated_npdu.npdu_len) {
@@ -297,14 +302,15 @@ uint16_t bsc_receive(
                             BVLC_SC_VMAC_SIZE);
                         memcpy(pdu, dm.payload.encapsulated_npdu.npdu,
                             dm.payload.encapsulated_npdu.npdu_len);
-                        pdu_len = dm.payload.encapsulated_npdu.npdu_len;
+                        pdu_len =
+                            (uint16_t)dm.payload.encapsulated_npdu.npdu_len;
                     }
 #if DEBUG_ENABLED == 1
                     else {
                         PRINTF("bsc_receive() pdu of size %d is dropped "
                                "because origin addr is absent or output "
                                "buf of size %d is to small\n",
-                            npdu_len, max_pdu);
+                            npdu16_len, max_pdu);
                     }
 #endif
                 }
