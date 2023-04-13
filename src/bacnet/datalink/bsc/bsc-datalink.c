@@ -66,7 +66,7 @@ static void bsc_node_event(BSC_NODE *node,
     BSC_NODE_EVENT ev,
     BACNET_SC_VMAC_ADDRESS *dest,
     uint8_t *pdu,
-    uint16_t pdu_len)
+    size_t pdu_len)
 {
     DEBUG_PRINTF("bsc_node_event() >>> ev = %d\n", ev);
     bws_dispatch_lock();
@@ -243,7 +243,7 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
     return len;
 }
 
-static void bsc_remove_packet(uint16_t packet_size)
+static void bsc_remove_packet(size_t packet_size)
 {
     int i;
     for (i = 0; i < packet_size; i++) {
@@ -255,7 +255,7 @@ uint16_t bsc_receive(
     BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout_ms)
 {
     uint16_t pdu_len = 0;
-    uint16_t npdu_len = 0;
+    size_t npdu_len = 0;
     BVLC_SC_DECODED_MESSAGE dm;
     BACNET_ERROR_CODE error;
     BACNET_ERROR_CLASS class;
@@ -309,7 +309,7 @@ uint16_t bsc_receive(
 #endif
                 }
             }
-            DEBUG_PRINTF("bsc_receive() pdu_len = %d\n", npdu_len);
+            DEBUG_PRINTF("bsc_receive() pdu_len = %d\n", pdu_len);
         }
     }
 

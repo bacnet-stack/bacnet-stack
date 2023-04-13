@@ -1091,7 +1091,7 @@ typedef struct {
     BSC_NODE_EVENT ev;
     BSC_NODE *node;
     uint8_t pdu[MAX_BVLC_LEN];
-    uint16_t pdu_len;
+    size_t pdu_len;
     BSC_EVENT *e;
     BACNET_SC_VMAC_ADDRESS dest;
 } node_ev_t;
@@ -1162,9 +1162,12 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
     while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
         call_maintenance_timer(0, WAIT_EVENT_MS);
     }
+    bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->node == node) {
+        bws_dispatch_unlock();
         return true;
     } else {
+        bws_dispatch_unlock();
         return false;
     }
 }
@@ -1177,8 +1180,13 @@ static void wait_specific_node_ev(
         while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
             call_maintenance_timer(0, WAIT_EVENT_MS);
         }
+        bws_dispatch_lock();
         if (ev->ev == wait_ev && ev->node == node) {
+            bws_dispatch_unlock();
             break;
+        }
+        else{
+            bws_dispatch_unlock();
         }
     }
 }
@@ -1209,45 +1217,31 @@ static void signal_node_ev(node_ev_t *e,
     bsc_event_signal(e->e);
 }
 
-static void reset_node_ev(node_ev_t *ev)
-{
-    ev->ev = -1;
-    ev->node = NULL;
-}
-
-static void node_event(BSC_NODE *node,
-    BSC_NODE_EVENT ev,
-    BACNET_SC_VMAC_ADDRESS *dest,
-    uint8_t *pdu,
-    uint16_t pdu_len)
+static void node_event(BSC_NODE* node, BSC_NODE_EVENT ev,
+                                    BACNET_SC_VMAC_ADDRESS *dest,
+                                    uint8_t *pdu, size_t pdu_len)
 {
 }
 
-static void node_event2(BSC_NODE *node,
-    BSC_NODE_EVENT ev,
-    BACNET_SC_VMAC_ADDRESS *dest,
-    uint8_t *pdu,
-    uint16_t pdu_len)
+static void node_event2(BSC_NODE* node, BSC_NODE_EVENT ev,
+                                    BACNET_SC_VMAC_ADDRESS *dest,
+                                    uint8_t *pdu, size_t pdu_len)
 {
     debug_printf("node_event2() ev = %d event = %p\n", ev, node_ev2.e);
     signal_node_ev(&node_ev2, ev, node, dest, pdu, pdu_len);
 }
 
-static void node_event3(BSC_NODE *node,
-    BSC_NODE_EVENT ev,
-    BACNET_SC_VMAC_ADDRESS *dest,
-    uint8_t *pdu,
-    uint16_t pdu_len)
+static void node_event3(BSC_NODE* node, BSC_NODE_EVENT ev,
+                                    BACNET_SC_VMAC_ADDRESS *dest,
+                                    uint8_t *pdu, size_t pdu_len)
 {
     debug_printf("node_event3() ev = %d event = %p\n", ev, node_ev3.e);
     signal_node_ev(&node_ev3, ev, node, dest, pdu, pdu_len);
 }
 
-static void node_event4(BSC_NODE *node,
-    BSC_NODE_EVENT ev,
-    BACNET_SC_VMAC_ADDRESS *dest,
-    uint8_t *pdu,
-    uint16_t pdu_len)
+static void node_event4(BSC_NODE* node, BSC_NODE_EVENT ev,
+                                    BACNET_SC_VMAC_ADDRESS *dest,
+                                    uint8_t *pdu, size_t pdu_len)
 {
     debug_printf("node_event4() ev = %d event = %p\n", ev, node_ev4.e);
     signal_node_ev(&node_ev4, ev, node, dest, pdu, pdu_len);
