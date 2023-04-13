@@ -1131,6 +1131,8 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
     }
     bws_dispatch_lock();
     if (ev->ev == wait_ev && ev->node == node) {
+        debug_printf("got event %d\n", ev->ev);
+        ev->ev = -1;
         bws_dispatch_unlock();
         return true;
     } else {
@@ -1456,11 +1458,9 @@ static void test_node_duplicated_vmac(void)
     wait_specific_node_ev(&node_ev, BSC_NODE_EVENT_RESTARTED, node);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_RESTARTED, node2);
     bsc_node_stop(node);
-    zassert_equal(
-        wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    wait_specific_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node);
     bsc_node_stop(node2);
-    zassert_equal(
-        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2), true, 0);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
     ret = bsc_node_deinit(node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_deinit(node2);
@@ -1500,18 +1500,15 @@ static void test_node_duplicated_vmac(void)
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
     ret = bsc_node_connect_direct(node2, NULL, urls, 2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
-    zassert_equal(
-        wait_node_ev(&node_ev, BSC_NODE_EVENT_RESTARTED, node), true, 0);
-    zassert_equal(
-        wait_node_ev(&node_ev2, BSC_NODE_EVENT_RESTARTED, node2), true, 0);
+    wait_specific_node_ev(&node_ev, BSC_NODE_EVENT_RESTARTED, node);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_RESTARTED, node2);
     ret = bsc_node_connect_direct(node2, NULL, urls, 2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
         wait_node_ev(&node_ev2, BSC_NODE_EVENT_DIRECT_CONNECTED, node2), true,
         0);
     bsc_node_stop(node);
-    zassert_equal(
-        wait_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node), true, 0);
+    wait_specific_node_ev(&node_ev, BSC_NODE_EVENT_STOPPED, node);
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
     ret = bsc_node_deinit(node);
@@ -2988,6 +2985,7 @@ void test_main(void)
 {
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
+
     ztest_test_suite(node_test_1, ztest_unit_test(test_node_start_stop));
     ztest_test_suite(node_test_2, ztest_unit_test(test_node_duplicated_vmac));
     ztest_test_suite(node_test_3, ztest_unit_test(test_node_send));
@@ -2997,7 +2995,6 @@ void test_main(void)
     ztest_test_suite(
         node_test_6, ztest_unit_test(test_node_direct_connection_unsupported));
     ztest_test_suite(node_test_7, ztest_unit_test(test_node_bad_cases));
-
     ztest_run_test_suite(node_test_1);
     ztest_run_test_suite(node_test_2);
     ztest_run_test_suite(node_test_3);
