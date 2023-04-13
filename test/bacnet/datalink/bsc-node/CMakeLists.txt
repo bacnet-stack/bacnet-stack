@@ -50,6 +50,8 @@ if(ZEPHYR_BASE)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNet/SC node test: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
+  find_package(libwebsockets CONFIG REQUIRED)
+  include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
   add_compile_definitions(BACNET_PORT=linux)
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/linux/websocket-cli.c
@@ -102,8 +104,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
-  target_link_libraries(${PROJECT_NAME}
-                        ${LIB_WEBSOCKETS_LIBRARIES}
+    target_link_libraries(${PROJECT_NAME}
+                          ${LIBWEBSOCKETS_LIBRARIES}
   )
 elseif(WIN32)
   message(STATUS "BACNet/SC node test: building for win32")
