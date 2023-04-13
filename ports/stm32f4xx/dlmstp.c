@@ -1135,6 +1135,7 @@ static bool MSTP_Master_Node_FSM(void)
                     Next_Station = This_Station;
                     RetryCount = 0;
                     TokenCount = 0;
+                    Statistics.lost_token_counter++;
                     /* EventCount = 0; removed in Addendum 135-2004d-8 */
                     /* find a new successor to TS */
                     Master_State = MSTP_MASTER_STATE_POLL_FOR_MASTER;
