@@ -7,11 +7,6 @@ project(test_${basename}
   VERSION 1.0.0
   LANGUAGES C)
 
-find_package(Threads)
-find_package(libwebsockets CONFIG REQUIRED)
-find_package(PkgConfig)
-pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
-
 string(REGEX REPLACE
     "/test/bacnet/[a-z0-9A-Z_/-]*$"
     "/src"
@@ -181,6 +176,9 @@ elseif(APPLE)
   )
   include_directories(${OPEN_SSL_DIR}/include)
   add_compile_definitions(BACNET_PORT=bsd)
+  find_package(libwebsockets CONFIG REQUIRED)
+  include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
+
   add_executable(${PROJECT_NAME}
     ${PORTS_DIR}/bsd/websocket-cli.c
     ${PORTS_DIR}/bsd/websocket-srv.c

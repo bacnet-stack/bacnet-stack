@@ -2998,9 +2998,6 @@ void test_main(void)
         node_test_6, ztest_unit_test(test_node_direct_connection_unsupported));
     ztest_test_suite(node_test_7, ztest_unit_test(test_node_bad_cases));
 
-#if 1
-    ztest_run_test_suite(node_test_5);
-#else
     ztest_run_test_suite(node_test_1);
     ztest_run_test_suite(node_test_2);
     ztest_run_test_suite(node_test_3);
@@ -3008,5 +3005,4 @@ void test_main(void)
     ztest_run_test_suite(node_test_5);
     ztest_run_test_suite(node_test_6);
     ztest_run_test_suite(node_test_7);
-#endif
 }
