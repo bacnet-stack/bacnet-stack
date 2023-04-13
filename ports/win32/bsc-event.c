@@ -118,7 +118,9 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
     DEBUG_PRINTF("bsc_event_timedwait() counter %zu\n", ev->counter);
     if (!ev->counter) {
         ReleaseMutex(ev->mutex);
-        ResetEvent(ev->event);
+        if(ret == WAIT_OBJECT_0) {
+            ResetEvent(ev->event);
+        }
     } else {
         ReleaseMutex(ev->mutex);
     }
