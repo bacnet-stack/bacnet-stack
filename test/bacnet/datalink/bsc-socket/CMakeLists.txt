@@ -46,7 +46,8 @@ if(ZEPHYR_BASE)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "BACNet/SC socket test: building for linux")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/linux)
-
+  find_package(libwebsockets CONFIG REQUIRED)
+  include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
   add_compile_definitions(BACNET_PORT=linux)
 
   add_executable(${PROJECT_NAME}
