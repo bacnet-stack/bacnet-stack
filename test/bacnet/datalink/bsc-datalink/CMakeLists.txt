@@ -119,6 +119,8 @@ elseif(WIN32)
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
   add_compile_definitions(BACNET_PORT=win32)
   target_link_libraries(${PROJECT_NAME} PUBLIC wsock32)
+  find_package(libwebsockets CONFIG REQUIRED)
+  include_directories(${LIBWEBSOCKETS_INCLUDE_DIRS})
 
   target_link_libraries(${PROJECT_NAME} PRIVATE
     winmm
