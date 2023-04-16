@@ -30,7 +30,9 @@ if(BOARD STREQUAL unit_testing)
 
   get_filename_component(BACNET_SRC ${BACNET_SRC_PATH} PATH)
   list(APPEND SOURCES
+    ${BACNET_SRC}/bacaddr.c
     ${BACNET_SRC}/bacdcode.c
+    ${BACNET_SRC}/bacdest.c
     ${BACNET_SRC}/bacstr.c
     ${BACNET_SRC}/bacint.c
     ${BACNET_SRC}/bacreal.c

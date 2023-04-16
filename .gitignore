@@ -109,3 +109,6 @@ apps/piface/libpifacedigital/
 /apps/writepropm/bacwpm
 /apps/mstpcap/mstpcap
 /apps/mstpcrc/mstpcrc
+/apps/add-list-element/bacale
+/apps/remove-list-element/bacrle
+
