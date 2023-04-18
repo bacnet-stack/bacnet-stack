@@ -2297,6 +2297,7 @@ static void test_sc_datalink_failed_requests(void)
     BACNET_SC_VMAC_ADDRESS vmac1;
     BACNET_SC_UUID uuid2;
     BACNET_SC_VMAC_ADDRESS vmac2;
+    BACNET_SC_VMAC_ADDRESS vmac2_original;
     BACNET_SC_UUID failed_uuid;
     BACNET_SC_VMAC_ADDRESS failed_vmac;
     char primary_url1[128];
@@ -2305,6 +2306,8 @@ static void test_sc_datalink_failed_requests(void)
     char secondary_url2[128];
     BSC_SC_RET ret;
     BSC_NODE *node2;
+    bool b;
+    BACNET_OCTET_STRING mac_address;
 
     BACNET_SC_FAILED_CONNECTION_REQUEST *r;
 
@@ -2381,6 +2384,7 @@ static void test_sc_datalink_failed_requests(void)
     memset(&failed_vmac, 0x52, sizeof(failed_vmac));
     memset(&uuid2, 0x53, sizeof(uuid2));
     memset(&vmac2, 0x52, sizeof(vmac2));
+    memcpy(&vmac2_original, &vmac2, sizeof(vmac2));
 
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key),
@@ -2389,6 +2393,14 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(bsc_init(NULL), true, NULL);
     ret = bsc_node_init(&conf2, &node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+
+    b = Network_Port_MAC_Address(Network_Port_Index_To_Instance(0),
+        &mac_address);
+    zassert_true(b, NULL);
+    zassert_equal(
+        memcmp(&vmac2_original.address[0], octetstring_value(&mac_address),
+        sizeof(vmac2_original)) == 0, true, NULL);
+
     ret = bsc_node_start(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     zassert_equal(
@@ -2404,6 +2416,13 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(memcmp(r->Peer_UUID.uuid.uuid128, &failed_uuid.uuid[0],
                       BVLC_SC_UUID_SIZE) == 0,
         true, NULL);
+    b = Network_Port_MAC_Address(Network_Port_Index_To_Instance(0),
+        &mac_address);
+    zassert_true(b, NULL);
+    zassert_not_equal(
+        memcmp(&vmac2_original.address[0], octetstring_value(&mac_address),
+        sizeof(vmac2_original)) == 0, true, NULL);
+
     bsc_cleanup();
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
