@@ -1207,6 +1207,7 @@ static void test_simple(void)
     ret = bws_srv_stop(srv_ctx.sh);
     zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_SERVER_STOPPED);
+    zassert_equal(0, 1, NULL);
 }
 
 void test_main(void)
