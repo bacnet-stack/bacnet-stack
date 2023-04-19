@@ -5,7 +5,7 @@ on: [push, pull_request]
 # TODO: add jobs for linux and windows
 
 jobs:
-  BACNet/SC macOS tests:
+  job_bsc_test_macos:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v3
