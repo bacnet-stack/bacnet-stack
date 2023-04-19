@@ -61,7 +61,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${PORTS_DIR}/linux/websocket-mutex.c
     ${PORTS_DIR}/linux/bsc-event.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
-    ${LIBWEBSOCKETS_INCLUDE_DIRS}/libwebsockets.h
     # Test and test library files
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
