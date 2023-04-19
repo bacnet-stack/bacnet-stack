@@ -32,6 +32,14 @@ jobs:
         cmake ..
         make
         ./test_websockets
+    - name: bsc-socket
+      run: |
+        cd ./test/bacnet/datalink/bsc-socket
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bsc-socket
     - name: hub-sc
       run: |
         cd ./test/bacnet/datalink/hub-sc
@@ -40,3 +48,19 @@ jobs:
         cmake ..
         make
         ./test_hub-sc
+    - name: bsc-node
+      run: |
+        cd ./test/bacnet/datalink/bsc-node
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bsc-node
+    - name: bsc-datalink
+      run: |
+        cd ./test/bacnet/datalink/bsc-datalink
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bsc-datalink
