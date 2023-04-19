@@ -1,4 +1,4 @@
-name: BSC_Test
+name: BACNet/SC tests
 
 on: [push, pull_request]
 
