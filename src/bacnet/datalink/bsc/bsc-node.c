@@ -713,7 +713,6 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             sizeof(BSC_ADDRESS_RESOLUTION) *
                 BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
     } else {
-        /* TODO: integration with BACNET/SC properties */
         bsc_generate_random_vmac(node->conf->local_vmac);
         DEBUG_PRINTF("bsc_node_start() generated random vmac %s for node %p\n",
             bsc_vmac_to_string(node->conf->local_vmac), node);
