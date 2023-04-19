@@ -24,8 +24,6 @@ static TEST_STAGE test_stage = STAGE_NONE;
 #define TIMEOUT_CHILD   400
 #define TIMEOUT_MIN     200
 #define TIMEOUT_MAX     600
-//#define MSEC_PER_SEC    1000
-//#define USEC_PER_MSEC   1000000
 #define TIMEOUT_SLEEP   2
 #define WAITTIME_MIN    (TIMEOUT_SLEEP * MSEC_PER_SEC - 20)
 #define WAITTIME_MAX    (TIMEOUT_SLEEP * MSEC_PER_SEC + 20)

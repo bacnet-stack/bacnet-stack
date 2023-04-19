@@ -1073,7 +1073,8 @@ K_MUTEX_DEFINE(mutex);
 struct k_condvar cond;
 
 void cli_dispatch(BSC_WEBSOCKET_HANDLE h, BSC_WEBSOCKET_EVENT ev,
-                 uint8_t* buf, size_t bufsize, void* user_param)
+                  BACNET_ERROR_CODE ws_reason, char* ws_reason_desc,
+                  uint8_t* buf, size_t bufsize, void* user_param)
 {
     BSC_WEBSOCKET_RET ret;
     size_t len;

@@ -51,27 +51,6 @@ static int littlefs_flash_erase(unsigned int id)
     return rc;
 }
 
-static int test_statvfs(char *str)
-{
-    struct fs_statvfs stat;
-    int res;
-
-    /* Verify fs_statvfs() */
-    res = fs_statvfs(MNTP, &stat);
-    if (res) {
-        debug_printf("Error getting volume stats [%d]", res);
-        return res;
-    }
-
-    debug_printf("%s", str);
-    debug_printf("Optimal transfer block size   = %lu", stat.f_bsize);
-    debug_printf("Allocation unit size          = %lu", stat.f_frsize);
-    debug_printf("Volume size in f_frsize units = %lu", stat.f_blocks);
-    debug_printf("Free space in f_frsize units  = %lu", stat.f_bfree);
-
-    return 0;
-}
-
 bool init_zephyr_env(void)
 {
     int rc;
@@ -87,13 +66,5 @@ bool init_zephyr_env(void)
         return false;
     }
 
-/*
-    setenv("BACNET_SC_PRIMARY_HUB_URI", SERVER_URL, 1);
-    setenv("BACNET_SC_FAILOVER_HUB_URI", SERVER_URL, 1);
-    setenv("BACNET_SC_ISSUER_1_CERTIFICATE_FILE", FILENAME_CA_CERT, 1);
-    setenv("BACNET_SC_OPERATIONAL_CERTIFICATE_FILE", FILENAME_CERT, 1);
-    setenv("BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE", FILENAME_KEY,
-        1);
-*/
     return true;
 }
