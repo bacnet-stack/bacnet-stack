@@ -9,14 +9,14 @@
  * @brief Echo-loop server with websockets protocol
  */
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 
 LOG_MODULE_DECLARE(bacnet, LOG_LEVEL_DBG);
 
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
 #include <stdio.h>
-#include <kernel.h>
+#include <zephyr/kernel.h>
 #include "bacnet/basic/sys/mstimer.h"
 #include <bacnet/datalink/bsc/websocket.h>
 
