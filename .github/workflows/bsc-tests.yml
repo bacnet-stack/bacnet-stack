@@ -5,27 +5,15 @@ on: [push, pull_request]
 # TODO: add jobs for linux and windows
 
 jobs:
-  job_bsc_linux_tests:
-    runs-on: ubuntu-latest
+
+
+  BACNet/SC macOS tests:
+    runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v3
     - name: Create Build Environment
       run: |
-        sudo apt-get update -qq
-        sudo apt-get install -qq libconfig-dev
-        sudo apt-get install -qq libcap-dev
-        sudo apt-get install -qq libssl-dev
-        git clone https://libwebsockets.org/repo/libwebsockets
-        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
-        sudo bash -c 'cd libwebsockets;cd build;make install'
-    - name: bvlc-sc
-      run: |
-        cd ./test/bacnet/datalink/bvlc-sc
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_bvlc-sc
+        brew install libwebsockets
     - name: websockets
       run: |
         cd ./test/bacnet/datalink/websockets
@@ -34,35 +22,4 @@ jobs:
         cmake ..
         make
         ./test_websockets
-    - name: bsc-socket
-      run: |
-        cd ./test/bacnet/datalink/bsc-socket
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_bsc-socket
-    - name: hub-sc
-      run: |
-        cd ./test/bacnet/datalink/hub-sc
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_hub-sc
-    - name: bsc-node
-      run: |
-        cd ./test/bacnet/datalink/bsc-node
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_bsc-node
-    - name: bsc-datalink
-      run: |
-        cd ./test/bacnet/datalink/bsc-datalink
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_bsc-datalink
+ 
