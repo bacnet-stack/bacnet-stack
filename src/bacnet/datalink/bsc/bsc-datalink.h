@@ -65,7 +65,7 @@ bool bsc_cert_files_check(void);
  * @brief Blocking thread-safe bsc_send_pdu() function
  *        sends pdu over BACNet/SC to node specified by
  *        destination address param.
- *
+*
  * @param dest [in] BACNet/SC node's virtual MAC address as
  *                  defined in Clause AB.1.5.2.
  *                  Can be broadcast.
@@ -98,8 +98,10 @@ int bsc_send_pdu(BACNET_ADDRESS *dest,
  */
 
 BACNET_STACK_EXPORT
-uint16_t bsc_receive(
-    BACNET_ADDRESS *src, uint8_t *pdu, uint16_t max_pdu, unsigned timeout_ms);
+uint16_t bsc_receive(BACNET_ADDRESS *src,
+    uint8_t *pdu,
+    uint16_t max_pdu,
+    unsigned timeout_ms);
 
 /**
  * @brief Function can be used to retrieve broadcast
@@ -109,7 +111,7 @@ uint16_t bsc_receive(
  */
 
 BACNET_STACK_EXPORT
-void bsc_get_broadcast_address(BACNET_ADDRESS *addr);
+void bsc_get_broadcast_address(BACNET_ADDRESS * addr);
 
 /**
  * @brief Function can be used to retrieve local
@@ -141,11 +143,12 @@ void bsc_get_my_address(BACNET_ADDRESS *my_address);
 
 BACNET_STACK_EXPORT
 bool bsc_direct_connection_established(
-    BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt);
+    BACNET_SC_VMAC_ADDRESS *dest,
+    char** urls, size_t urls_cnt);
 
 /**
  * @brief Function starts process of establishing of a
- *        direct BACNet/SC connection to node identified by
+ *        direct BACNet/SC connection to node indentified by
  *        either urls or dest parameter. User should note that
  *        if dest parameter is used, local node tries to resolve
  *        it (e.g.to get URIs related to dest vmac from all existent
@@ -159,7 +162,7 @@ bool bsc_direct_connection_established(
  *        remote node for acceptance of direct connections.
  *        Can contain 1 elem.
  * @param urls_cnt - size of urls array.
- *
+ * 
  * @return BSC_SC_SUCCESS if process of a establishing of a BACNet/SC
  *         connection was started successfully, otherwise returns
  *         any retcode from BSC_SC_RET enum.
@@ -167,7 +170,8 @@ bool bsc_direct_connection_established(
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_connect_direct(
-    BACNET_SC_VMAC_ADDRESS *dest, char **urls, size_t urls_cnt);
+    BACNET_SC_VMAC_ADDRESS *dest,
+    char** urls, size_t urls_cnt);
 
 BACNET_STACK_EXPORT
 void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest);
