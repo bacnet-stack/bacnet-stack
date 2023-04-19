@@ -3,7 +3,7 @@ name: BSC_Test
 on: [push, pull_request]
 
 jobs:
-  job_test_websockets:
+  job_bsc_linux_tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -16,12 +16,27 @@ jobs:
         git clone https://libwebsockets.org/repo/libwebsockets
         bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
-    - name: Build Router Demo
+    - name: bvlc-sc
       run: |
-        gcc --version
+        cd ./test/bacnet/datalink/bvlc-sc
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bvlc-sc
+    - name: websockets
+      run: |
         cd ./test/bacnet/datalink/websockets
         mkdir build
         cd build
         cmake ..
         make
         ./test_websockets
+    - name: hub-sc
+      run: |
+        cd ./test/bacnet/datalink/hub-sc
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_hub-sc
