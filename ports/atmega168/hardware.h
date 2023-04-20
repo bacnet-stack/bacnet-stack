@@ -31,10 +31,10 @@
 #endif
 
 #if defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ASM__)
-#include <iom168.h>
+#include <ioavr.h>
 #else
-#if !defined(__AVR_ATmega168__)
-#error Firmware is configured for ATmega168 only (-mmcu=atmega168)
+#if !defined(__AVR_ATmega328__)
+#error Firmware is configured for ATmega328 only (-mmcu=atmega328)
 #endif
 #endif
 #include "iar2gcc.h"
