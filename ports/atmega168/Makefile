@@ -3,8 +3,8 @@
 ###############################################################################
 
 ## General Flags
-MCU = atmega168
-AVRDUDE_MCU = m168
+MCU = atmega328
+AVRDUDE_MCU = m328
 TARGET = bacnet
 ## Tools
 CC = avr-gcc
