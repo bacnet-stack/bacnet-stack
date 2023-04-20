@@ -139,10 +139,15 @@ static const int MSTP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
 static const int BIP_Port_Properties_Optional[] = { PROP_MAC_ADDRESS,
     PROP_BACNET_IP_MODE, PROP_IP_ADDRESS, PROP_BACNET_IP_UDP_PORT,
     PROP_IP_SUBNET_MASK, PROP_IP_DEFAULT_GATEWAY, PROP_IP_DNS_SERVER,
-#if defined(BACDL_BIP) && BBMD_ENABLED
+    PROP_IP_DHCP_ENABLE,
+#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if (BBMD_ENABLED)
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS, PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
-    PROP_BBMD_FOREIGN_DEVICE_TABLE, PROP_FD_BBMD_ADDRESS,
-    PROP_FD_SUBSCRIPTION_LIFETIME,
+    PROP_BBMD_FOREIGN_DEVICE_TABLE,
+#endif
+#if (BBMD_CLIENT_ENABLED)
+    PROP_FD_BBMD_ADDRESS, PROP_FD_SUBSCRIPTION_LIFETIME,
+#endif
 #endif
     -1 };
 
@@ -1069,6 +1074,53 @@ bool Network_Port_IP_Gateway_Set(
 }
 
 /**
+ * For a given object instance-number, returns the IP_DHCP_Enable
+ * property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  IP_DHCP_Enable property value
+ */
+bool Network_Port_IP_DHCP_Enable(uint32_t object_instance)
+{
+	bool dhcp_enable = false;
+	unsigned index = 0;
+
+	index = Network_Port_Instance_To_Index(object_instance);
+	if (index < BACNET_NETWORK_PORTS_MAX) {
+		if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+			dhcp_enable = Object_List[index].Network.IPv4.IP_DHCP_Enable;
+		}
+	}
+
+	return dhcp_enable;
+}
+
+/**
+ * For a given object instance-number, sets the IP_DHCP_Enable property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param value - boolean IP_DHCP_Enable value
+ *
+ * @return true if the IP_DHCP_Enable property value was set
+ */
+bool Network_Port_IP_DHCP_Enable_Set(uint32_t object_instance, bool value)
+{
+	bool status = false;
+	unsigned index = 0;
+
+	index = Network_Port_Instance_To_Index(object_instance);
+	if (index < BACNET_NETWORK_PORTS_MAX) {
+		if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+			Object_List[index].Network.IPv4.IP_DHCP_Enable = value;
+			status = true;
+		}
+	}
+
+	return status;
+}
+
+/**
  * For a given object instance-number, loads the subnet-mask-address into
  * an octet string.
  * Note: depends on Network_Type being set for this object
@@ -1396,7 +1448,7 @@ bool Network_Port_BBMD_FD_Table_Set(uint32_t object_instance, void *fdt_head)
     return status;
 }
 
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
 /**
  * For a given object instance-number, gets the ip-address and port
  * Note: depends on Network_Type being set for this object
@@ -2177,7 +2229,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string;
     BACNET_OCTET_STRING octet_string;
     BACNET_CHARACTER_STRING char_string;
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
     BACNET_IP_ADDRESS ip_address;
 #endif
     uint8_t *apdu = NULL;
@@ -2301,6 +2353,10 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             Network_Port_IP_Gateway(rpdata->object_instance, &octet_string);
             apdu_len = encode_application_octet_string(&apdu[0], &octet_string);
             break;
+        case PROP_IP_DHCP_ENABLE:
+            apdu_len = encode_application_boolean(
+                &apdu[0], Network_Port_IP_DHCP_Enable(rpdata->object_instance));
+            break;
         case PROP_IP_DNS_SERVER:
             if (rpdata->array_index == 0) {
                 /* Array element zero is the number of objects in the list */
@@ -2333,7 +2389,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = BACNET_STATUS_ERROR;
             }
             break;
-#if defined(BACDL_BIP) && BBMD_ENABLED
+#if defined(BACDL_BIP) && (BBMD_ENABLED || BBMD_CLIENT_ENABLED)
+#if (BBMD_ENABLED)
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
             apdu_len = encode_application_boolean(&apdu[0],
                 Network_Port_BBMD_Accept_FD_Registrations(
@@ -2349,6 +2406,8 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 rpdata->application_data_len,
                 Network_Port_BBMD_FD_Table(rpdata->object_instance));
             break;
+#endif
+#if (BBMD_CLIENT_ENABLED)
         case PROP_FD_BBMD_ADDRESS:
             Network_Port_Remote_BBMD_IP_Address_And_Port(
                 rpdata->object_instance, &ip_address);
@@ -2359,6 +2418,7 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_unsigned(&apdu[0],
                 Network_Port_Remote_BBMD_BIP_Lifetime(rpdata->object_instance));
             break;
+#endif
 #endif
         case PROP_BACNET_IPV6_MODE:
             apdu_len = encode_application_enumerated(

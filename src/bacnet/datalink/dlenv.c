@@ -546,7 +546,7 @@ void dlenv_init(void)
         datalink_set(NULL);
     }
 #endif
-#if defined(BACDL_BIP6)
+#if defined(BACDL_BIP6) && !defined(BACDL_ALL)
     BACNET_IP6_ADDRESS addr;
     pEnv = getenv("BACNET_BIP6_DEBUG");
     if (pEnv) {
@@ -570,7 +570,7 @@ void dlenv_init(void)
         bip6_set_port(0xBAC0);
     }
 #endif
-#if defined(BACDL_BIP)
+#if defined(BACDL_BIP) && !defined(BACDL_ALL)
     BACNET_IP_ADDRESS addr;
     pEnv = getenv("BACNET_IP_DEBUG");
     if (pEnv) {
