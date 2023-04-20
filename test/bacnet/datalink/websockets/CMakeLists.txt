@@ -71,7 +71,6 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   )
 elseif(WIN32)
   message(STATUS "Websockets test: building for win32")
-  message(STATUS "LIBWEBSOCKETS_LIBRARIES= ${LIBWEBSOCKETS_LIBRARIES}")
   set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/win32)
   add_compile_definitions(BACNET_PORT=win32)
   find_package(OpenSSL)
@@ -85,9 +84,33 @@ elseif(WIN32)
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
+
+  # basically if you use vcpkg you should just add ${LIBWEBSOCKETS_LIBRARIES}
+  # into target_link_libraries() but for some reason it does not work as expected
+  # so that's why libs have to be hardcoded as workaround
+
   target_link_libraries(${PROJECT_NAME}
-                        websockets
-                        websockets_shared
+                        C:\\vcpkg\\installed\\x64-windows\\lib\\websockets.lib
+                        C:\\vcpkg\\installed\\x64-windows\\lib\\libssl.lib
+                        C:\\vcpkg\\installed\\x64-windows\\lib\\libcrypto.lib
+                        C:\\vcpkg\\installed\\x64-windows\\lib\\pthreadVC3.lib
+                        ws2_32.lib
+                        userenv.lib
+                        psapi.lib
+                        iphlpapi.lib
+                        crypt32.lib
+                        C:\\vcpkg\\installed\\x64-windows\\lib\\zlib.lib
+                        C:\\vcpkg\\installed\\x64-windows\\lib\\uv.lib
+                        kernel32.lib
+                        user32.lib
+                        gdi32.lib
+                        winspool.lib
+                        shell32.lib
+                        ole32.lib
+                        oleaut32.lib
+                        uuid.lib
+                        comdlg32.lib
+                        advapi32.lib
   )
 elseif(APPLE)
   message(STATUS "Websockets test: building for APPLE")

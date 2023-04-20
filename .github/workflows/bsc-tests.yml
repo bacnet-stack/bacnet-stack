@@ -13,8 +13,6 @@ jobs:
     - name: websockets
       run: |
         cd ./test/bacnet/datalink/websockets
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_websockets
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        msbuild build/test_websockets.sln /Property:Configuration=Release
+        ./build/test_websockets
