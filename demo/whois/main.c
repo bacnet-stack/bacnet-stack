@@ -353,28 +353,52 @@ static int parse_bac_address(
     int c = sscanf(src, "%u.%u.%u.%u:%u", &a[0], &a[1], &a[2], &a[3], &p);
 
     dest->len = 0;
-
     if (c == 1) {
-        if (a[0] < 256) {       /* mstp */
-            dest->adr[0] = a[0];
-            dest->len = 1;
-        } else if (a[0] < 0x0FFFF) {    /* lon */
+        if (a[0] < 256) {
+            /* mstp */
+            if (dest->net > 0) {
+                dest->adr[0] = a[0];
+                dest->len = 1;
+            } else {
+                dest->mac[0] = a[0];
+                dest->mac_len = 1;
+            }
+        } else if (a[0] < 0x0FFFF) {
+            /* lon */
             s = htons((uint16_t) a[0]);
-            memcpy(&dest->adr[0], &s, 2);
-            dest->len = 2;
-        } else
+            if (dest->net > 0) {
+                memcpy(&dest->adr[0], &s, 2);
+                dest->len = 2;
+            } else {
+                memcpy(&dest->mac[0], &s, 2);
+                dest->mac_len = 2;
+            }
+        } else {
             return 0;
-    } else if (c == 5) {        /* ip address */
+        }
+    } else if (c == 5) {
+        /* dotted ip address */
         for (i = 0; i < 4; i++) {
             if ((a[i] < 0) || (a[i] > 255)) {
                 return 0;
             }
-            dest->adr[i] = a[i];
+            if (dest->net > 0) {
+                dest->adr[i] = a[i];
+            } else {
+                dest->mac[i] = a[i];
+            }
         }
+        /* UDP port number */
         s = htons((uint16_t) p);
-        memcpy(&dest->adr[i], &s, 2);
-        dest->len = 6;
+        if (dest->net > 0) {
+            memcpy(&dest->adr[i], &s, 2);
+            dest->len = 6;
+        } else {
+            memcpy(&dest->mac[i], &s, 2);
+            dest->mac_len = 6;
+        }
     }
+
     return dest->len;
 }
 
@@ -392,7 +416,7 @@ int main(
     time_t last_seconds = 0;
     time_t current_seconds = 0;
     time_t timeout_seconds = 0;
-    BACNET_ADDRESS dest;
+    BACNET_ADDRESS dest = { 0 };
     int argi;
 
     /* print help if requested */
