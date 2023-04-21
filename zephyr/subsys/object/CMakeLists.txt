@@ -11,7 +11,7 @@ zephyr_compile_definitions(
 
 zephyr_sources(device.c)
 
-if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
+if(CONFIG_BACNETSTACK_USE_DYNAMIC_DESCRIPTION)
   zephyr_sources(
     acc.c
     access_credential.c
@@ -45,7 +45,7 @@ if(CONFIG_BACNET_USE_DYNAMIC_DESCRIPTION)
     trendlog.c
     )
 
-  zephyr_sources_ifdef(CONFIG_BACDL_BIP netport.c)
+  zephyr_sources_ifdef(CONFIG_BACNETSTACK_BACDL_BIP netport.c)
 
   zephyr_linker_sources(DATA_SECTIONS objects.ld)
 

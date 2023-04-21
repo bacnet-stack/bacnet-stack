@@ -26,6 +26,7 @@ if(BOARD STREQUAL unit_testing)
     ${BACNET_TEST_PATH}/src/main.c
     )
 
+  set(CONF_FILE "${CONF_FILE};prj.unit_testing.conf")
   find_package(Zephyr COMPONENTS unittest REQUIRED HINTS $ENV{ZEPHYR_BASE})
   project(${BACNET_NAME})
 else()

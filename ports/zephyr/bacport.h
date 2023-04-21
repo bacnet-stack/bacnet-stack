@@ -39,7 +39,7 @@ static inline char *inet_ntoa(struct in_addr in) {
 extern int bip_get_local_netmask(
     struct in_addr *netmask);
 
-#ifdef CONFIG_BACNET_USE_SECTION_ITERABLE_OBJECT_TABLE
+#ifdef CONFIG_BACNETSTACK_USE_SECTION_ITERABLE_OBJECT_TABLE
 
 #define BACNET_OBJECT_TABLE(table_name, _type, _init, _count, \
                             _index_to_instance, _valid_instance, _object_name, \

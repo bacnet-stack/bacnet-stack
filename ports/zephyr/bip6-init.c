@@ -66,7 +66,7 @@ static int BIP6_Socket = -1;
    since BACnet/IP uses network byte order for all address byte arrays
 */
 /* port to use - stored here in network byte order */
-static uint16_t BIP6_Port = htons(CONFIG_BACDL_BIP6_PORT);
+static uint16_t BIP6_Port = htons(CONFIG_BACNETSTACK_BACDL_BIP6_PORT);
 /* IP address - stored here in network byte order */
 static struct in6_addr BIP6_Address;
 /* IP multicast address - stored here in network byte order */
@@ -448,21 +448,26 @@ void bip6_set_interface(char *ifname)
             LOG_INF(" multicast[%d]: %s", x, log_strdup(ipv6_addr_str));
         }
 
-        if(CONFIG_BACDL_BIP6_ADDRESS_INDEX >= NET_IF_MAX_IPV6_ADDR)
+        if(CONFIG_BACNETSTACK_BACDL_BIP6_ADDRESS_INDEX >= NET_IF_MAX_IPV6_ADDR)
         {
-            LOG_ERR("%s:%d - IPv6 address index of %d is out of range (0-%d)", THIS_FILE,
-                __LINE__, CONFIG_BACDL_BIP6_ADDRESS_INDEX, NET_IF_MAX_IPV6_ADDR-1);
+            LOG_ERR("%s:%d - IPv6 address index of %d is out of range (0-%d)",
+                THIS_FILE, __LINE__, CONFIG_BACNETSTACK_BACDL_BIP6_ADDRESS_INDEX,
+                NET_IF_MAX_IPV6_ADDR-1);
             return;
         }
 
-        LOG_INF("Using IPv6 address at index %d", CONFIG_BACDL_BIP6_ADDRESS_INDEX);
+        LOG_INF("Using IPv6 address at index %d",
+            CONFIG_BACNETSTACK_BACDL_BIP6_ADDRESS_INDEX);
 
         memcpy(&unicast.address, &interface->config.ip.ipv6->unicast
-            [CONFIG_BACDL_BIP6_ADDRESS_INDEX].address.in6_addr, IP6_ADDRESS_MAX);
+            [CONFIG_BACNETSTACK_BACDL_BIP6_ADDRESS_INDEX].address.in6_addr,
+            IP6_ADDRESS_MAX);
     
-        if(net_addr_pton(AF_INET6, CONFIG_BACDL_BIP6_MCAST_ADDRESS, &multicast.address))
+        if(net_addr_pton(AF_INET6, CONFIG_BACNETSTACK_BACDL_BIP6_MCAST_ADDRESS,
+            &multicast.address))
         {
-            LOG_ERR("%s:%d - Failed to parse IPv6 multicast address: %s", THIS_FILE, __LINE__, CONFIG_BACDL_BIP6_MCAST_ADDRESS);
+            LOG_ERR("%s:%d - Failed to parse IPv6 multicast address: %s",
+                THIS_FILE, __LINE__, CONFIG_BACNETSTACK_BACDL_BIP6_MCAST_ADDRESS);
         }
 
         bip6_set_addr(&unicast);

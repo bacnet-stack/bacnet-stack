@@ -63,7 +63,7 @@ static int BIP_Broadcast_Socket = -1;
    since BACnet/IP uses network byte order for all address byte arrays
 */
 /* port to use - stored here in network byte order */
-static uint16_t BIP_Port = htons(CONFIG_BACDL_BIP_PORT);
+static uint16_t BIP_Port = htons(CONFIG_BACNETSTACK_BACDL_BIP_PORT);
 /* IP address - stored here in network byte order */
 static struct in_addr BIP_Address;
 /* IP broadcast address - stored here in network byte order */
@@ -481,21 +481,26 @@ void bip_set_interface(char *ifname)
     {
         LOG_INF("Interface set");
 
-        if(CONFIG_BACDL_BIP_ADDRESS_INDEX >= NET_IF_MAX_IPV4_ADDR)
+        if(CONFIG_BACNETSTACK_BACDL_BIP_ADDRESS_INDEX >= NET_IF_MAX_IPV4_ADDR)
         {
-            LOG_ERR("%s:%d - IPv4 address index of %d is out of range (0-%d)",THIS_FILE, __LINE__, CONFIG_BACDL_BIP_ADDRESS_INDEX, NET_IF_MAX_IPV4_ADDR-1);
+            LOG_ERR("%s:%d - IPv4 address index of %d is out of range (0-%d)",
+                THIS_FILE, __LINE__, CONFIG_BACNETSTACK_BACDL_BIP_ADDRESS_INDEX,
+                NET_IF_MAX_IPV4_ADDR-1);
             return;
         }
 
-        LOG_INF("Using IPv4 address at index %d", CONFIG_BACDL_BIP_ADDRESS_INDEX);
+        LOG_INF("Using IPv4 address at index %d",
+            CONFIG_BACNETSTACK_BACDL_BIP_ADDRESS_INDEX);
 
         /* Build the broadcast address from the unicast and netmask */
-        for(x=0; x<IP_ADDRESS_MAX; x++)
+        for(x = 0; x < IP_ADDRESS_MAX; x++)
         {
-            broadcast.address[x] = interface->config.ip.ipv4->unicast[CONFIG_BACDL_BIP_ADDRESS_INDEX].address.in_addr.s4_addr[x] |
+            unicast.address[x] =
+                interface->config.ip.ipv4->unicast
+                [CONFIG_BACNETSTACK_BACDL_BIP_ADDRESS_INDEX].address.
+                in_addr.s4_addr[x];
+            broadcast.address[x] = unicast.address[x] |
                 ~interface->config.ip.ipv4->netmask.s4_addr[x];
-
-            unicast.address[x] = interface->config.ip.ipv4->unicast[CONFIG_BACDL_BIP_ADDRESS_INDEX].address.in_addr.s4_addr[x];
         }
 
         bip_set_addr(&unicast);
