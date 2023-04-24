@@ -171,17 +171,17 @@ elseif(WIN32)
   # into target_link_libraries() but for some reason it does not work as expected
   # so that's why libs have to be hardcoded as workaround
   target_link_libraries(${PROJECT_NAME}
-                        C:\\vcpkg\\installed\\x64-windows\\lib\\websockets.lib
-                        C:\\vcpkg\\installed\\x64-windows\\lib\\libssl.lib
-                        C:\\vcpkg\\installed\\x64-windows\\lib\\libcrypto.lib
-                        C:\\vcpkg\\installed\\x64-windows\\lib\\pthreadVC3.lib
+                        C:\\vcpkg\\installed\\x64-windows-custom\\lib\\websockets.lib
+                        C:\\vcpkg\\installed\\x64-windows-custom\\lib\\libssl.lib
+                        C:\\vcpkg\\installed\\x64-windows-custom\\lib\\libcrypto.lib
+                        C:\\vcpkg\\installed\\x64-windows-custom\\lib\\pthreadVC3.lib
                         ws2_32.lib
                         userenv.lib
                         psapi.lib
                         iphlpapi.lib
                         crypt32.lib
-                        C:\\vcpkg\\installed\\x64-windows\\lib\\zlib.lib
-                        C:\\vcpkg\\installed\\x64-windows\\lib\\uv.lib
+                        C:\\vcpkg\\installed\\x64-windows-custom\\lib\\zlib.lib
+                        C:\\vcpkg\\installed\\x64-windows-custom\\lib\\uv.lib
                         kernel32.lib
                         user32.lib
                         gdi32.lib
