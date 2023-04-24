@@ -22,23 +22,23 @@ jobs:
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bvlc-sc.sln /Property:Configuration=Release
         ./build/Release/test_bvlc-sc.exe
-        cd ../../websockets
+        cd ../websockets
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_websockets.sln /Property:Configuration=Release
         ./build/Release/test_websockets.exe
-        cd ../../bsc-socket
+        cd ../bsc-socket
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc-socket.sln /Property:Configuration=Release
         ./build/Release/test_bsc-socket.exe
-        cd ../../hub-sc
+        cd ../hub-sc
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_hub-sc.sln /Property:Configuration=Release
         ./build/Release/test_hub-sc.exe
-        cd ../../bsc-node
+        cd ../bsc-node
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc-node.sln /Property:Configuration=Release
         ./build/Release/test_bsc-node.exe
-        cd ../../bsc-datalink
+        cd ../bsc-datalink
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc-datalink.sln /Property:Configuration=Release
         ./build/Release/test_bsc-datalink.exe
