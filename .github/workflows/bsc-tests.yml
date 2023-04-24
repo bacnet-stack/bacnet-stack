@@ -14,9 +14,39 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
       with:
         msbuild-architecture: x64
+    - name: Build and run bvlc-sc test
+      run: |
+        cd ./test/bacnet/datalink/bvlc-sc
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        msbuild build/test_bvlc-sc.sln /Property:Configuration=Release
+        ./build/Release/test_bvlc-sc.exe
     - name: Build and run websockets test
       run: |
-        cd ./test/bacnet/datalink/websockets
+        cd ../websockets
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
         msbuild build/test_websockets.sln /Property:Configuration=Release
         ./build/Release/test_websockets.exe
+    - name: Build and run bsc-socket test
+      run: |
+        cd ../bsc-socket
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        msbuild build/test_bsc-socket.sln /Property:Configuration=Release
+        ./build/Release/test_bsc-socket.exe
+    - name: Build and run hub-sc test
+      run: |
+        cd ../hub-sc
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        msbuild build/test_hub-sc.sln /Property:Configuration=Release
+        ./build/Release/test_hub-sc.exe
+    - name: Build and run bsc-node test
+      run: |
+        cd ../bsc-node
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        msbuild build/test_bsc-node.sln /Property:Configuration=Release
+        ./build/Release/test_bsc-node.exe
+    - name: Build and run bsc-datalink test
+      run: |
+        cd ../bsc-datalink
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        msbuild build/test_bsc-datalink.sln /Property:Configuration=Release
+        ./build/Release/test_bsc-datalink.exe
