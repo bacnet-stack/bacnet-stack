@@ -24,7 +24,7 @@ jobs:
         cmake ..
         make
         ./test_bvlc-sc
-        cd ../websockets
+        cd ./test/bacnet/datalink/websockets
         mkdir build
         cd build
         cmake ..
