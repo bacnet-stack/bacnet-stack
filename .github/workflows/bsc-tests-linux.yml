@@ -24,31 +24,33 @@ jobs:
         cmake ..
         make
         ./test_bvlc-sc
-        cd ./test/bacnet/datalink/websockets
+        pwd
+        echo pwd
+        cd ../../websockets
         mkdir build
         cd build
         cmake ..
         make
         ./test_websockets
-        cd ../bsc-socket
+        cd ../../bsc-socket
         mkdir build
         cd build
         cmake ..
         make
         ./test_bsc-socket
-        cd ../hub-sc
+        cd ../../hub-sc
         mkdir build
         cd build
         cmake ..
         make
         ./test_hub-sc
-        cd ../bsc-node
+        cd ../../bsc-node
         mkdir build
         cd build
         cmake ..
         make
         ./test_bsc-node
-        cd ../bsc-datalink
+        cd ../../bsc-datalink
         mkdir build
         cd build
         cmake ..
