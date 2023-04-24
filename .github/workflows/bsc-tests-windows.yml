@@ -19,36 +19,36 @@ jobs:
     - name: Build and run bvlc-sc test
       run: |
         cd ./test/bacnet/datalink/bvlc-sc
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bvlc-sc.sln /Property:Configuration=Release
         ./build/Release/test_bvlc-sc.exe
     - name: Build and run websockets test
       run: |
         cd ./test/bacnet/datalink/websockets
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_websockets.sln /Property:Configuration=Release
         ./build/Release/test_websockets.exe
     - name: Build and run bsc-socket test
       run: |
         cd ./test/bacnet/datalink/bsc-socket
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc-socket.sln /Property:Configuration=Release
         ./build/Release/test_bsc-socket.exe
     - name: Build and run hub-sc test
       run: |
         cd ./test/bacnet/datalink/hub-sc
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_hub-sc.sln /Property:Configuration=Release
         ./build/Release/test_hub-sc.exe
     - name: Build and run bsc-node test
       run: |
         cd ./test/bacnet/datalink/bsc-node
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc-node.sln /Property:Configuration=Release
         ./build/Release/test_bsc-node.exe
     - name: Build and run bsc-datalink test
       run: |
         cd ./test/bacnet/datalink/bsc-datalink
-        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
+        cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc-datalink.sln /Property:Configuration=Release
         ./build/Release/test_bsc-datalink.exe
