@@ -14,9 +14,9 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
       with:
         msbuild-architecture: x64
-    - name: websockets
+    - name: Build and run websockets test
       run: |
         cd ./test/bacnet/datalink/websockets
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
         msbuild build/test_websockets.sln /Property:Configuration=Release
-        ./build/test_websockets
+        ./build/Release/test_websockets.exe
