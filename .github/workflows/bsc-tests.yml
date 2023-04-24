@@ -16,15 +16,15 @@ jobs:
         msbuild-architecture: x64
     - name: Build and run bvlc-sc test
       run: |
-        pwd
         cd ./test/bacnet/datalink/bvlc-sc
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
         msbuild build/test_bvlc-sc.sln /Property:Configuration=Release
         ./build/Release/test_bvlc-sc.exe
+        pwd
     - name: Build and run websockets test
       run: |
         pwd
-        cd ../websockets
+        cd ./test/bacnet/datalink/websockets
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake
         msbuild build/test_websockets.sln /Property:Configuration=Release
         ./build/Release/test_websockets.exe
