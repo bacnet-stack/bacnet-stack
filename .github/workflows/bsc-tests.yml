@@ -10,8 +10,10 @@ jobs:
     - name: Create Build Environment
       run: |
         vcpkg install libwebsockets --triplet x64-windows
-    - name: Setup MSBuild.exe
-      uses: warrenbuckley/Setup-MSBuild@v1
+    - name: Setup MSBuild 
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: x64
     - name: websockets
       run: |
         cd ./test/bacnet/datalink/websockets
