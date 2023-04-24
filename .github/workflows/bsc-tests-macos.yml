@@ -10,7 +10,7 @@ jobs:
     - name: Create Build Environment
       run: |
         brew install libwebsockets
-    - name: Build and run bvlc-sc test
+    - name: Build and run bsc tests
       run: |
         cd ./test/bacnet/datalink/bvlc-sc
         mkdir build
@@ -18,41 +18,31 @@ jobs:
         cmake ..
         make
         ./test_bvlc-sc
-    - name: Build and run websockets test
-      run: |
-        cd ./test/bacnet/datalink/websockets
+        cd ../../websockets
         mkdir build
         cd build
         cmake ..
         make
         ./test_websockets
-    - name: Build and run bsc-socket test
-      run: |
-        cd ./test/bacnet/datalink/bsc-socket
+        cd ../../bsc-socket
         mkdir build
         cd build
         cmake ..
         make
         ./test_bsc-socket
-    - name: Build and run hub-sc test
-      run: |
-        cd ./test/bacnet/datalink/hub-sc
+        cd ../../hub-sc
         mkdir build
         cd build
         cmake ..
         make
         ./test_hub-sc
-    - name: Build and run bsc-node test
-      run: |
-        cd ./test/bacnet/datalink/bsc-node
+        cd ../../bsc-node
         mkdir build
         cd build
         cmake ..
         make
         ./test_bsc-node
-    - name: Build and run bsc-datalink test
-      run: |
-        cd ./test/bacnet/datalink/bsc-datalink
+        cd ../../bsc-datalink
         mkdir build
         cd build
         cmake ..
