@@ -144,6 +144,8 @@ bool bsc_init(char *ifname)
 
     ret = bsc_node_conf_fill_from_netport(&bsc_conf, &bsc_node_event);
 
+    printf("ifaces %s%d %s%d\n", bsc_conf.hub_iface, bsc_conf.hub_server_port,
+        bsc_conf.direct_iface, bsc_conf.direct_server_port);
     if (!ret) {
         bsc_deinit_resources();
         bws_dispatch_unlock();

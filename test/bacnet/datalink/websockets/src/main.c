@@ -1049,6 +1049,10 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
     0x2d, 0x2d, 0x2d, 0x45, 0x4e, 0x44, 0x20, 0x43, 0x45, 0x52, 0x54, 0x49,
     0x46, 0x49, 0x43, 0x41, 0x54, 0x45, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x0a };
 
+#ifndef BSC_NETWORK_IFACE
+#define BSC_NETWORK_IFACE "127.0.0.1"
+#endif
+
 #define BACNET_WEBSOCKET_SERVER_PORT 40000
 #define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
 #define INFINITE_TIMEOUT 10000000
@@ -1140,7 +1144,7 @@ static void fill_buf(uint8_t *buf, size_t bufsize, uint8_t shift)
 {
     size_t i;
     for (i = 0; i < bufsize; i++) {
-        buf[i] = (uint8_t) (i + shift);
+        buf[i] = (uint8_t)(i + shift);
     }
 }
 
@@ -1151,7 +1155,6 @@ static void test_simple(void)
     static test_ctx_t srv_ctx;
     BSC_WEBSOCKET_HANDLE h;
     char url[128];
-    char *iface = NULL;
     char ip_addr[128];
     uint16_t port;
     bool res;
@@ -1166,9 +1169,9 @@ static void test_simple(void)
         BACNET_WEBSOCKET_SERVER_PORT);
 
     ret = bws_srv_start(BSC_WEBSOCKET_HUB_PROTOCOL,
-        BACNET_WEBSOCKET_SERVER_PORT, iface, ca_cert, sizeof(ca_cert),
-        server_cert, sizeof(server_cert), server_key, sizeof(server_key),
-        DEFAULT_TIMEOUT, srv_event, &srv_ctx, &srv_ctx.sh);
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, ca_cert,
+        sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
+        sizeof(server_key), DEFAULT_TIMEOUT, srv_event, &srv_ctx, &srv_ctx.sh);
 
     zassert_equal(ret, BSC_WEBSOCKET_SUCCESS, NULL);
     wait_for_event(&srv_ctx, BSC_WEBSOCKET_SERVER_STARTED);

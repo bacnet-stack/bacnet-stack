@@ -1056,6 +1056,18 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
     0x2d, 0x2d, 0x2d, 0x45, 0x4e, 0x44, 0x20, 0x43, 0x45, 0x52, 0x54, 0x49,
     0x46, 0x49, 0x43, 0x41, 0x54, 0x45, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x0a };
 
+#ifndef BSC_NETWORK_IFACE
+#define BSC_NETWORK_IFACE "127.0.0.1"
+#endif
+
+#ifndef BSC_DATALINK_HUB_IFACE
+#define BSC_DATALINK_HUB_IFACE "127.0.0.1:40001"
+#endif
+
+#ifndef BSC_DATALINK_DIRECT_IFACE
+#define BSC_DATALINK_DIRECT_IFACE "127.0.0.1:40000"
+#endif
+
 #define BACNET_CLOSED_PORT 30000
 #define BACNET_HUB_PORT 50000
 #define BACNET_LOCALHOST "127.0.0.1"
@@ -1072,12 +1084,10 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
 /* Netport constants */
 #define SC_NETPORT_DIRECT_SERVER_IFNAME "eth0"
 #define SC_NETPORT_DIRECT_SERVER_PORT 40000
-#define SC_NETPORT_DIRECT_SERVER_PORT_STR "40000"
 #define SC_NETPORT_DIRECT_SERVER_BINDING "eth0:40000"
 #define SC_NETPORT_DIRECT_CONNECT_INITIAT true
 #define SC_NETPORT_DIRECT_CONNECT_ACCERT true
 #define SC_NETPORT_HUB_SERVER_PORT 40001
-#define SC_NETPORT_HUB_SERVER_PORT_STR "40001"
 #define SC_NETPORT_HUB_SERVER_BINDING "40001"
 #define SC_NETPORT_HUB_FUNCTION_ENABLE true
 #define SC_NETPORT_BACFILE_START_INDEX 0
@@ -1504,8 +1514,9 @@ static void test_sc_datalink(void)
 
     bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
-        server_cert, sizeof(server_cert), server_key, sizeof(server_key), NULL,
-        NULL, &uuid1, &vmac1, primary_url1, secondary_url1, true, false, false);
+        server_cert, sizeof(server_cert), server_key, sizeof(server_key),
+        BSC_DATALINK_HUB_IFACE, BSC_DATALINK_DIRECT_IFACE, &uuid1, &vmac1,
+        primary_url1, secondary_url1, true, false, false);
 
     init_node_ev(&node_ev2);
     init_node_ev(&node_ev3);
@@ -1544,8 +1555,8 @@ static void test_sc_datalink(void)
     conf2.failoverURL = secondary_url2;
     conf2.hub_server_port = 0;
     conf2.direct_server_port = 0;
-    conf2.direct_iface = NULL;
-    conf2.hub_iface = NULL;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
@@ -1573,8 +1584,8 @@ static void test_sc_datalink(void)
     conf3.failoverURL = secondary_url3;
     conf3.hub_server_port = BACNET_HUB_PORT;
     conf3.direct_server_port = SC_NETPORT_DIRECT_SERVER_PORT;
-    conf3.direct_iface = NULL;
-    conf3.hub_iface = NULL;
+    conf3.direct_iface = BSC_NETWORK_IFACE;
+    conf3.hub_iface = BSC_NETWORK_IFACE;
     conf3.direct_connect_accept_enable = true;
     conf3.direct_connect_initiate_enable = false;
     conf3.hub_function_enabled = true;
@@ -1740,8 +1751,8 @@ static void test_sc_datalink_properties(void)
     bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key),
-        SC_NETPORT_HUB_SERVER_PORT_STR, SC_NETPORT_DIRECT_SERVER_PORT_STR,
-        &uuid1, &vmac1, primary_url1, secondary_url1, true, true, true);
+        BSC_DATALINK_HUB_IFACE, BSC_DATALINK_DIRECT_IFACE, &uuid1, &vmac1,
+        primary_url1, secondary_url1, true, true, true);
 
     init_node_ev(&node_ev2);
     init_node_ev(&node_ev3);
@@ -1769,8 +1780,8 @@ static void test_sc_datalink_properties(void)
     conf2.failoverURL = secondary_url2;
     conf2.hub_server_port = 0;
     conf2.direct_server_port = 0;
-    conf2.direct_iface = NULL;
-    conf2.hub_iface = NULL;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = true;
     conf2.hub_function_enabled = false;
@@ -1798,8 +1809,8 @@ static void test_sc_datalink_properties(void)
     conf3.failoverURL = secondary_url3;
     conf3.hub_server_port = BACNET_HUB_PORT;
     conf3.direct_server_port = SC_NETPORT_DIRECT_SERVER_PORT;
-    conf3.direct_iface = NULL;
-    conf3.hub_iface = NULL;
+    conf3.direct_iface = BSC_NETWORK_IFACE;
+    conf3.hub_iface = BSC_NETWORK_IFACE;
     conf3.direct_connect_accept_enable = false;
     conf3.direct_connect_initiate_enable = true;
     conf3.hub_function_enabled = false;
@@ -2032,8 +2043,8 @@ static void test_sc_datalink_failed_requests(void)
     bacfile_init();
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key),
-        SC_NETPORT_HUB_SERVER_PORT_STR, SC_NETPORT_DIRECT_SERVER_PORT_STR,
-        &uuid1, &vmac1, primary_url1, secondary_url1, true, true, true);
+        BSC_DATALINK_HUB_IFACE, BSC_DATALINK_DIRECT_IFACE, &uuid1, &vmac1,
+        primary_url1, secondary_url1, true, true, true);
 
     init_node_ev(&node_ev2);
     zassert_equal(bsc_init(NULL), true, NULL);
@@ -2058,8 +2069,8 @@ static void test_sc_datalink_failed_requests(void)
     conf2.failoverURL = secondary_url2;
     conf2.hub_server_port = 0;
     conf2.direct_server_port = 0;
-    conf2.direct_iface = NULL;
-    conf2.hub_iface = NULL;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = true;
     conf2.hub_function_enabled = false;
@@ -2089,8 +2100,8 @@ static void test_sc_datalink_failed_requests(void)
 
     netport_object_init(SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert),
         server_cert, sizeof(server_cert), server_key, sizeof(server_key),
-        SC_NETPORT_HUB_SERVER_PORT_STR, SC_NETPORT_DIRECT_SERVER_PORT_STR,
-        &uuid1, &vmac1, primary_url1, secondary_url1, true, true, true);
+        BSC_DATALINK_HUB_IFACE, BSC_DATALINK_DIRECT_IFACE, &uuid1, &vmac1,
+        primary_url1, secondary_url1, true, true, true);
     zassert_equal(bsc_init(NULL), true, NULL);
     ret = bsc_node_init(&conf2, &node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);

@@ -1054,6 +1054,10 @@ unsigned char node_cert2[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
     0x2d, 0x2d, 0x2d, 0x45, 0x4e, 0x44, 0x20, 0x43, 0x45, 0x52, 0x54, 0x49,
     0x46, 0x49, 0x43, 0x41, 0x54, 0x45, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x0a };
 
+#ifndef BSC_NETWORK_IFACE
+#define BSC_NETWORK_IFACE "127.0.0.1"
+#endif
+
 #define BACNET_CLOSED_PORT 40000
 #define BACNET_LOCALHOST "127.0.0.1"
 #define BACNET_NODE_LOCAL_HUB_PORT 50000
@@ -1156,8 +1160,7 @@ static void wait_specific_node_ev(
             ev->ev = -1;
             bws_dispatch_unlock();
             break;
-        }
-        else {
+        } else {
             bws_dispatch_unlock();
             debug_printf("skip event %d\n", ev->ev);
         }
@@ -1166,33 +1169,36 @@ static void wait_specific_node_ev(
 
 static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
 {
-    BACNET_SC_HUB_CONNECTION_STATUS* st1;
-    BACNET_SC_HUB_CONNECTION_STATUS* st2;
+    BACNET_SC_HUB_CONNECTION_STATUS *st1;
+    BACNET_SC_HUB_CONNECTION_STATUS *st2;
     call_maintenance_timer(1, 0);
     while (1) {
         bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
         call_maintenance_timer(0, WAIT_EVENT_MS);
-        
+
         st1 = bsc_node_hub_connector_status(node, true);
         st2 = bsc_node_hub_connector_status(node, false);
-        if(st1 && st1->State == BACNET_CONNECTED) {
+        if (st1 && st1->State == BACNET_CONNECTED) {
             break;
         }
-        if(st2 && st2->State == BACNET_CONNECTED) {
+        if (st2 && st2->State == BACNET_CONNECTED) {
             break;
         }
     }
 }
 
-static void wait_for_direct_connection_established(node_ev_t *ev, BSC_NODE *node,
+static void wait_for_direct_connection_established(node_ev_t *ev,
+    BSC_NODE *node,
     BACNET_SC_VMAC_ADDRESS *dest,
-    char** urls, size_t urls_cnt)
+    char **urls,
+    size_t urls_cnt)
 {
     call_maintenance_timer(1, 0);
     while (1) {
         bsc_event_timedwait(ev->e, WAIT_EVENT_MS);
         call_maintenance_timer(0, WAIT_EVENT_MS);
-        if(bsc_node_direct_connection_established(node, dest, urls, urls_cnt)) {
+        if (bsc_node_direct_connection_established(
+                node, dest, urls, urls_cnt)) {
             break;
         }
     }
@@ -1294,8 +1300,8 @@ static void test_node_start_stop(void)
     conf.failoverURL = secondary_url;
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf.hub_iface = NULL;
-    conf.direct_iface = NULL;
+    conf.hub_iface = BSC_NETWORK_IFACE;
+    conf.direct_iface = BSC_NETWORK_IFACE;
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
@@ -1403,8 +1409,8 @@ static void test_node_duplicated_vmac(void)
     conf.failoverURL = node_secondary_url;
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf.hub_iface = NULL;
-    conf.direct_iface = NULL;
+    conf.hub_iface = BSC_NETWORK_IFACE;
+    conf.direct_iface = BSC_NETWORK_IFACE;
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
@@ -1432,8 +1438,8 @@ static void test_node_duplicated_vmac(void)
     conf2.failoverURL = node_secondary_url2;
     conf2.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT2;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
-    conf2.hub_iface = NULL;
-    conf2.direct_iface = NULL;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
     conf2.direct_connect_accept_enable = true;
     conf2.direct_connect_initiate_enable = true;
     conf2.hub_function_enabled = true;
@@ -1585,8 +1591,8 @@ static void test_node_send(void)
     conf.failoverURL = node_secondary_url;
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf.hub_iface = NULL;
-    conf.direct_iface = NULL;
+    conf.hub_iface = BSC_NETWORK_IFACE;
+    conf.direct_iface = BSC_NETWORK_IFACE;
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
@@ -1614,8 +1620,8 @@ static void test_node_send(void)
     conf2.failoverURL = node_secondary_url2;
     conf2.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT2;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
-    conf2.hub_iface = NULL;
-    conf2.direct_iface = NULL;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
@@ -1812,8 +1818,8 @@ static void test_node_local_hub_function(void)
     conf.failoverURL = node_secondary_url;
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf.hub_iface = NULL;
-    conf.direct_iface = NULL;
+    conf.hub_iface = BSC_NETWORK_IFACE;
+    conf.direct_iface = BSC_NETWORK_IFACE;
     conf.direct_connect_accept_enable = false;
     conf.direct_connect_initiate_enable = false;
     conf.hub_function_enabled = true;
@@ -1841,8 +1847,8 @@ static void test_node_local_hub_function(void)
     conf2.failoverURL = node_secondary_url;
     conf2.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf2.hub_iface = NULL;
-    conf2.direct_iface = NULL;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
@@ -2014,8 +2020,8 @@ static void test_node_direct_connection(void)
     conf.failoverURL = node_secondary_url;
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf.hub_iface = NULL;
-    conf.direct_iface = NULL;
+    conf.hub_iface = BSC_NETWORK_IFACE;
+    conf.direct_iface = BSC_NETWORK_IFACE;
     conf.direct_connect_accept_enable = false;
     conf.direct_connect_initiate_enable = false;
     conf.hub_function_enabled = true;
@@ -2046,8 +2052,8 @@ static void test_node_direct_connection(void)
     conf2.failoverURL = node_secondary_url2;
     conf2.hub_server_port = 0;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
-    conf2.hub_iface = NULL;
-    conf2.direct_iface = NULL;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
     conf2.direct_connect_accept_enable = true;
     conf2.direct_connect_initiate_enable = true;
     conf2.hub_function_enabled = false;
@@ -2075,8 +2081,8 @@ static void test_node_direct_connection(void)
     conf3.failoverURL = node_secondary_url3;
     conf3.hub_server_port = 0;
     conf3.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT3;
-    conf3.hub_iface = NULL;
-    conf3.direct_iface = NULL;
+    conf3.hub_iface = BSC_NETWORK_IFACE;
+    conf3.direct_iface = BSC_NETWORK_IFACE;
     conf3.direct_connect_accept_enable = true;
     conf3.direct_connect_initiate_enable = true;
     conf3.hub_function_enabled = false;
@@ -2664,8 +2670,8 @@ static void test_node_direct_connection_unsupported(void)
     conf.failoverURL = node_secondary_url;
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf.hub_iface = NULL;
-    conf.direct_iface = NULL;
+    conf.hub_iface = BSC_NETWORK_IFACE;
+    conf.direct_iface = BSC_NETWORK_IFACE;
     conf.direct_connect_accept_enable = false;
     conf.direct_connect_initiate_enable = false;
     conf.hub_function_enabled = true;
@@ -2696,8 +2702,8 @@ static void test_node_direct_connection_unsupported(void)
     conf2.failoverURL = node_secondary_url2;
     conf2.hub_server_port = 0;
     conf2.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT2;
-    conf2.hub_iface = NULL;
-    conf2.direct_iface = NULL;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
     conf2.direct_connect_accept_enable = false;
     conf2.direct_connect_initiate_enable = false;
     conf2.hub_function_enabled = false;
@@ -2725,8 +2731,8 @@ static void test_node_direct_connection_unsupported(void)
     conf3.failoverURL = node_secondary_url3;
     conf3.hub_server_port = 0;
     conf3.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT3;
-    conf3.hub_iface = NULL;
-    conf3.direct_iface = NULL;
+    conf3.hub_iface = BSC_NETWORK_IFACE;
+    conf3.direct_iface = BSC_NETWORK_IFACE;
     conf3.direct_connect_accept_enable = true;
     conf3.direct_connect_initiate_enable = true;
     conf3.hub_function_enabled = false;
@@ -2852,8 +2858,8 @@ static void test_node_bad_cases(void)
     conf.failoverURL = node_secondary_url;
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf.hub_iface = NULL;
-    conf.direct_iface = NULL;
+    conf.hub_iface = BSC_NETWORK_IFACE;
+    conf.direct_iface = BSC_NETWORK_IFACE;
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;
@@ -2953,8 +2959,8 @@ static void test_node_bad_cases(void)
     conf.failoverURL = node_secondary_url;
     conf.hub_server_port = BACNET_NODE_LOCAL_HUB_PORT;
     conf.direct_server_port = BACNET_NODE_LOCAL_DIRECT_PORT;
-    conf.hub_iface = NULL;
-    conf.direct_iface = NULL;
+    conf.hub_iface = BSC_NETWORK_IFACE;
+    conf.direct_iface = BSC_NETWORK_IFACE;
     conf.direct_connect_accept_enable = true;
     conf.direct_connect_initiate_enable = true;
     conf.hub_function_enabled = true;

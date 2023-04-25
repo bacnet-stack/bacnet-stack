@@ -1054,6 +1054,10 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
     0x2d, 0x2d, 0x2d, 0x45, 0x4e, 0x44, 0x20, 0x43, 0x45, 0x52, 0x54, 0x49,
     0x46, 0x49, 0x43, 0x41, 0x54, 0x45, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x0a };
 
+#ifndef BSC_NETWORK_IFACE
+#define BSC_NETWORK_IFACE "127.0.0.1"
+#endif
+
 #define BACNET_WEBSOCKET_SERVER_PORT 40000
 #define BACNET_WEBSOCKET_SERVER_PORT2 40002
 #define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
@@ -1174,7 +1178,6 @@ static void deinit_hubf_ev(hubf_ev_t *ev)
     bsc_event_deinit(ev->e);
 }
 
-
 static bool wait_hubf_ev(hubf_ev_t *ev,
     BSC_HUB_FUNCTION_EVENT wait_ev,
     BSC_HUB_FUNCTION_HANDLE wait_h)
@@ -1279,7 +1282,7 @@ static void test_hub_connector_url(bool primary)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1433,7 +1436,7 @@ static void test_hub_connector_bad_primary_url(void)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1656,7 +1659,7 @@ static void test_hub_connector_reconnect(void)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1669,8 +1672,8 @@ static void test_hub_connector_reconnect(void)
     reset_hubf_ev(&hubf);
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT2, NULL, &hubf_uuid2, &hubf_vmac2,
-        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_WEBSOCKET_SERVER_PORT2, BSC_NETWORK_IFACE, &hubf_uuid2,
+        &hubf_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
@@ -1717,7 +1720,7 @@ static void test_hub_connector_reconnect(void)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1738,7 +1741,7 @@ static void test_hub_connector_reconnect(void)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1771,7 +1774,7 @@ static void test_hub_connector_reconnect(void)
     reset_hubc_ev(&hubc);
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1822,7 +1825,7 @@ static void test_hub_connector_duplicated_vmac(void)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1889,7 +1892,7 @@ static void test_hub_function_bad_params(void)
 
     ret = bsc_hub_function_start(NULL, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1900,7 +1903,7 @@ static void test_hub_function_bad_params(void)
     reset_hubf_ev(&hubf);
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1912,8 +1915,8 @@ static void test_hub_function_bad_params(void)
     reset_hubf_ev(&hubf);
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT + 1, NULL, &hubf_uuid2, &hubf_vmac2,
-        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_WEBSOCKET_SERVER_PORT + 1, BSC_NETWORK_IFACE, &hubf_uuid2,
+        &hubf_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
@@ -1924,8 +1927,8 @@ static void test_hub_function_bad_params(void)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT + 2, NULL, &hubf_uuid3, &hubf_vmac3,
-        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_WEBSOCKET_SERVER_PORT + 2, BSC_NETWORK_IFACE, &hubf_uuid3,
+        &hubf_vmac3, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
@@ -1978,7 +1981,7 @@ void test_hub_function_duplicated_uuid(void)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT, NULL, &hubf_uuid, &hubf_vmac,
+        BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE, &hubf_uuid, &hubf_vmac,
         MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
@@ -1990,8 +1993,8 @@ void test_hub_function_duplicated_uuid(void)
 
     ret = bsc_hub_function_start(ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key),
-        BACNET_WEBSOCKET_SERVER_PORT2, NULL, &hubf_uuid2, &hubf_vmac2,
-        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_WEBSOCKET_SERVER_PORT2, BSC_NETWORK_IFACE, &hubf_uuid2,
+        &hubf_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout

@@ -1051,6 +1051,9 @@ unsigned char server_cert[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47,
     0x2d, 0x2d, 0x2d, 0x45, 0x4e, 0x44, 0x20, 0x43, 0x45, 0x52, 0x54, 0x49,
     0x46, 0x49, 0x43, 0x41, 0x54, 0x45, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x0a };
 
+#ifndef BSC_NETWORK_IFACE
+#define BSC_NETWORK_IFACE "127.0.0.1"
+#endif
 #define BACNET_WEBSOCKET_SERVER_PORT 40000
 #define BACNET_WEBSOCKET_SERVER_ADDR "127.0.0.1"
 #define BACNET_SOCKET_TIMEOUT 5
@@ -1354,18 +1357,18 @@ static void test_simple(void)
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
-        sizeof(server_key), &server_uuid, &server_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key), &server_uuid,
+        &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
+        &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
@@ -1476,25 +1479,25 @@ static void test_duplicated_vmac_on_server(void)
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
-        sizeof(server_key), &server_uuid, &server_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key), &server_uuid,
+        &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
+        &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg2,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid2, &client_vmac2, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid2,
+        &client_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
@@ -1587,18 +1590,18 @@ static void test_duplicated_vmac_on_server2(void)
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
-        sizeof(server_key), &server_uuid, &server_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key), &server_uuid,
+        &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
+        &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
@@ -1681,25 +1684,25 @@ static void test_duplicated_uuid_on_server(void)
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
-        sizeof(server_key), &server_uuid, &server_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key), &server_uuid,
+        &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
+        &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg2,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid2, &client_vmac2, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid2,
+        &client_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
@@ -1786,11 +1789,11 @@ static void test_bad_params(void)
     // bad params bsc_init_ctx() test
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
-        sizeof(server_key), &server_uuid, &server_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key), &server_uuid,
+        &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     ret = bsc_init_ctx(
         NULL, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
@@ -1815,11 +1818,11 @@ static void test_bad_params(void)
     ret = bsc_connect(NULL, NULL, NULL);
     zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL, NULL,
-        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, NULL, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
+        &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
     reset_ctx_ev(&cli_ctx_ev);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
@@ -1843,11 +1846,11 @@ static void test_bad_params(void)
     reset_ctx_ev(&srv_ctx_ev);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
-        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL,
-        ca_cert, sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
+        &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
     reset_ctx_ev(&cli_ctx_ev);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
@@ -1935,18 +1938,18 @@ static void test_error_case1(void)
         BACNET_WEBSOCKET_SERVER_PORT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
-        BSC_WEBSOCKET_HUB_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL, ca_cert,
-        sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
-        sizeof(server_key), &server_uuid, &server_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_HUB_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key), &server_uuid,
+        &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
-        BSC_WEBSOCKET_HUB_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT, NULL, ca_cert,
-        sizeof(ca_cert), client_cert, sizeof(client_cert), client_key,
-        sizeof(client_key), &client_uuid, &client_vmac, MAX_BVLC_LEN,
-        MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT, BACNET_SOCKET_HEARTBEAT_TIMEOUT,
-        BACNET_SOCKET_TIMEOUT);
+        BSC_WEBSOCKET_HUB_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
+        BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
+        sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
+        &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
+        BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
