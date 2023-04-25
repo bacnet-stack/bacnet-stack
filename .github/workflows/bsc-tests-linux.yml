@@ -13,7 +13,10 @@ jobs:
         sudo apt-get install -qq libconfig-dev
         sudo apt-get install -qq libcap-dev
         sudo apt-get install -qq libssl-dev
-        sudo apt-get install libwebsockets-dev
+        sudo apt-get install libuv1-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake ..;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build and run bsc tests
       run: |
         cd ./test/ports/linux/bsc_event
