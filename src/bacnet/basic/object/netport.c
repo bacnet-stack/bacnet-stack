@@ -3142,6 +3142,20 @@ void Network_Port_Init(void)
     }
 }
 
+void Network_Port_Cleanup(void)
+{
+#if defined(BACDL_BSC) && defined(BACNET_SECURE_CONNECT_ROUTING_TABLE)
+    unsigned index = 0;
+    for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+        BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
+        if (sc->Routing_Table) {
+            Keylist_Delete(sc->Routing_Table);
+            sc->Routing_Table = NULL;
+        }
+    }
+#endif
+}
+
 void Network_Port_Pending_Params_Apply(uint32_t object_instance)
 {
 #ifdef BACDL_BSC
