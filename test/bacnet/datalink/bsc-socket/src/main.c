@@ -1343,7 +1343,8 @@ static void test_simple(void)
     uint8_t buf[2048];
     uint8_t npdu[1200];
     size_t len;
-
+    printf("test case test_simple\n");
+    fflush(stdout);
     init_sock_ev(&cli_ev);
     init_sock_ev(&srv_ev);
     init_ctx_ev(&cli_ctx_ev);
