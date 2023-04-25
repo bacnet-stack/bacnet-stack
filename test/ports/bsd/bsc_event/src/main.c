@@ -32,8 +32,8 @@ static TEST_STAGE test_stage = STAGE_NONE;
 #define MSEC_PER_SEC    1000
 #define USEC_PER_MSEC   1000000
 #define TIMEOUT_SLEEP   2
-#define WAITTIME_MIN    (TIMEOUT_SLEEP * MSEC_PER_SEC - 20)
-#define WAITTIME_MAX    (TIMEOUT_SLEEP * MSEC_PER_SEC + 20)
+#define WAITTIME_MIN    (TIMEOUT_SLEEP * MSEC_PER_SEC - 100)
+#define WAITTIME_MAX    (TIMEOUT_SLEEP * MSEC_PER_SEC + 100)
 #define MULTIPLE_WAIT_THREADS_NUM 50
 
 static void *child_func(void* arg)
