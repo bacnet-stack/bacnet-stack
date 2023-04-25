@@ -1458,6 +1458,10 @@ static void test_sc_parameters(void)
 #endif
 
     zassert_equal(bsc_conf.event_func, &node_event, NULL);
+
+    bsc_node_conf_cleanup(&bsc_conf);
+    Network_Port_Cleanup();
+    bacfile_cleanup();
 }
 
 static void test_sc_datalink(void)
@@ -1624,6 +1628,7 @@ static void test_sc_datalink(void)
     len = 55;
     memset(npdu, 0x22, len);
     dest.mac_len = BVLC_SC_VMAC_SIZE;
+    dest.net = 0;
     memcpy(&dest.mac[0], &vmac2.address[0], BVLC_SC_VMAC_SIZE);
     sent = bsc_send_pdu(&dest, NULL, npdu, (unsigned int)len);
     zassert_equal(sent == len, true, NULL);
@@ -1694,6 +1699,9 @@ static void test_sc_datalink(void)
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     deinit_node_ev(&node_ev2);
     deinit_node_ev(&node_ev3);
+
+    Network_Port_Cleanup();
+    bacfile_cleanup();
 }
 
 static void test_sc_datalink_properties(void)
@@ -2008,6 +2016,9 @@ static void test_sc_datalink_properties(void)
     deinit_node_ev(&node_ev2);
     deinit_node_ev(&node_ev3);
     deinit_node_ev(&node_ev4);
+
+    Network_Port_Cleanup();
+    bacfile_cleanup();
 }
 
 static void test_sc_datalink_failed_requests(void)
@@ -2126,6 +2137,9 @@ static void test_sc_datalink_failed_requests(void)
     ret = bsc_node_deinit(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     deinit_node_ev(&node_ev2);
+
+    Network_Port_Cleanup();
+    bacfile_cleanup();
 }
 
 void test_main(void)

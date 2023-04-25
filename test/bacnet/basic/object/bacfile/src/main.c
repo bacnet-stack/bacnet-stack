@@ -58,6 +58,8 @@ static void test_BACnet_File_Object(void)
         required_property++;
     }
 
+    bacfile_cleanup();
+
     return;
 }
 /**

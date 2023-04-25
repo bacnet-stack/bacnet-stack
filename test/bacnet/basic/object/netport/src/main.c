@@ -89,6 +89,7 @@ static void test_network_port(void)
             pOptional++;
         }
         port++;
+        Network_Port_Cleanup();
     }
 
     return;
@@ -277,6 +278,7 @@ static void test_network_port_pending_param(void)
         characterstring_length(&str)) == 0, NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
+    Network_Port_Cleanup();
 #endif /* BACDL_BSC */
     return;
 }
@@ -376,6 +378,7 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     zassert_true(strncmp(characterstring_value(&str), URL_BIG,
         characterstring_length(&str)) == 0, NULL);
 
+    Network_Port_Cleanup();
 #endif /* BACDL_BSC && BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
     return;
@@ -436,6 +439,8 @@ static void test_network_port_sc_certificates(void)
         NULL);
 
     // reset
+    bacfile_cleanup();
+    Network_Port_Cleanup();
 
     // check bacfile after reset
 
@@ -687,6 +692,7 @@ static void test_network_port_sc_status_encode_decode(void)
         strncmp(str, DIRECT_STATUS_STR, strlen(DIRECT_STATUS_STR)) == 0, NULL);
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
+    Network_Port_Cleanup();
 #endif /* BACDL_BSC */
 
     return;
