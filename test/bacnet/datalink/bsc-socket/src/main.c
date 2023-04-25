@@ -2056,7 +2056,7 @@ void test_main(void)
         socket_test_4, ztest_unit_test(test_duplicated_uuid_on_server));
     ztest_test_suite(socket_test_5, ztest_unit_test(test_bad_params));
     ztest_test_suite(socket_test_6, ztest_unit_test(test_error_case1));
-    printf("bsc-test started\n", i);
+    printf("bsc-test started\n");
     fflush (stdout);
     ztest_run_test_suite(socket_test_1);
     ztest_run_test_suite(socket_test_2);
