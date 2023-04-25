@@ -1150,6 +1150,8 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
         bws_dispatch_unlock();
         return true;
     } else {
+        printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
+        ev->ev_code, wait_ev);
         bws_dispatch_unlock();
         return false;
     }
@@ -2054,6 +2056,8 @@ void test_main(void)
         socket_test_4, ztest_unit_test(test_duplicated_uuid_on_server));
     ztest_test_suite(socket_test_5, ztest_unit_test(test_bad_params));
     ztest_test_suite(socket_test_6, ztest_unit_test(test_error_case1));
+    printf("bsc-test started\n", i);
+    fflush (stdout);
     ztest_run_test_suite(socket_test_1);
     ztest_run_test_suite(socket_test_2);
     ztest_run_test_suite(socket_test_3);
