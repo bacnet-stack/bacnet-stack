@@ -102,6 +102,7 @@ static void test_bsc_event1(void)
     clock_gettime(CLOCK_REALTIME, &t2);
     timediff = (t2.tv_sec * MSEC_PER_SEC + t2.tv_nsec / USEC_PER_MSEC) -
                (t1.tv_sec * MSEC_PER_SEC + t1.tv_nsec / USEC_PER_MSEC);
+               printf("timediff = %lld\n", (long long) timediff);
     zassert_true((WAITTIME_MIN < timediff) && (timediff < WAITTIME_MAX), NULL);
 
     pthread_join(tid_child, NULL);
