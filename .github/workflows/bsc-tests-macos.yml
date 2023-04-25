@@ -19,7 +19,6 @@ jobs:
         make
         ./test_bsc_event
         cd ../../../../../
-        pwd
         cd ./test/bacnet/datalink/bvlc-sc
         mkdir build
         cd build
