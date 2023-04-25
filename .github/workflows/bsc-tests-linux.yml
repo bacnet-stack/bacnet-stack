@@ -1,0 +1,64 @@
+name: BACNet/SC linux tests
+
+on: [push, pull_request]
+
+jobs:
+  job_bsc_tests_linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -qq libconfig-dev
+        sudo apt-get install -qq libcap-dev
+        sudo apt-get install -qq libssl-dev
+        sudo apt-get install -qq libuv1-dev
+        git clone https://libwebsockets.org/repo/libwebsockets
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=OFF;make'
+        sudo bash -c 'cd libwebsockets;cd build;make install'
+    - name: Build and run bsc tests
+      run: |
+        cd ./test/ports/linux/bsc_event
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bsc_event
+        cd ../../../../../
+        cd ./test/bacnet/datalink/bvlc-sc
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bvlc-sc
+        cd ../../websockets
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_websockets
+        cd ../../bsc-socket
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bsc-socket
+        cd ../../hub-sc
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_hub-sc
+        cd ../../bsc-node
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bsc-node
+        cd ../../bsc-datalink
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bsc-datalink
