@@ -18,6 +18,7 @@ jobs:
         msbuild-architecture: x64
     - name: Build and run bsc tests
       run: |
+        ipconfig
         cd ./test/bacnet/datalink/bvlc-sc
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bvlc-sc.sln /Property:Configuration=Release
