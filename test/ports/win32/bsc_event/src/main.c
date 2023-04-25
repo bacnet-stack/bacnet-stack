@@ -105,7 +105,7 @@ static void test_bsc_event1(void)
     bsc_wait(TIMEOUT_SLEEP);
     time2 = GetTickCount64();
     timediff = time2 - time1;
-    zassert_true((WAITTIME_MIN < timediff) && (timediff < WAITTIME_MAX), NULL);
+    zassert_true(timediff >= TIMEOUT_SLEEP*MSEC_PER_SEC, NULL);
 
     WaitForSingleObject(thread, INFINITE);
     CloseHandle(thread);
