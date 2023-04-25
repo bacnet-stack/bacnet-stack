@@ -18,7 +18,7 @@ jobs:
         msbuild-architecture: x64
     - name: Build and run bsc tests
       run: |
-        cd ./test/bacnet/ports/win32/bsc_event
+        cd ./test/ports/win32/bsc_event
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc_event.sln /Property:Configuration=Release
         ./build/Release/test_bsc_event.exe
