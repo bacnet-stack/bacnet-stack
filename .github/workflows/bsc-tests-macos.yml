@@ -12,7 +12,14 @@ jobs:
         brew install libwebsockets
     - name: Build and run bsc tests
       run: |
-        ifconfig
+        cd ./test/bacnet/ports/bsd/bsc_event
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_bsc_event
+        cd ../../../../../
+        pwd
         cd ./test/bacnet/datalink/bvlc-sc
         mkdir build
         cd build
