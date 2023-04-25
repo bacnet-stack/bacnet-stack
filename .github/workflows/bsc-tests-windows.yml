@@ -1,4 +1,4 @@
-name: BACNet/SC tests windows
+name: BACNet/SC windows tests
 
 on: [push, pull_request]
 
