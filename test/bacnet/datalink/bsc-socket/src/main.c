@@ -2115,9 +2115,21 @@ void test_main(void)
     printf("bsc-test started\n");
     fflush (stdout);
     ztest_run_test_suite(socket_test_1);
+    printf("a1\n");
+       fflush(stdout);
     ztest_run_test_suite(socket_test_2);
+    printf("a2\n");
+       fflush(stdout);
     ztest_run_test_suite(socket_test_3);
+    printf("a3\n");
+       fflush(stdout);
     ztest_run_test_suite(socket_test_4);
+    printf("a4\n");
+       fflush(stdout);
     ztest_run_test_suite(socket_test_5);
+    printf("a5\n");
+       fflush(stdout);
     ztest_run_test_suite(socket_test_6);
+    printf("a6");
+       fflush(stdout);
 }
