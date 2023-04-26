@@ -1145,18 +1145,37 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
     }
     bws_dispatch_lock();
     debug_printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
-        ev->ev_code, wait_ev);
+                  wait_ev, ev->ev_code);
     if (ev->ev_code == wait_ev) {
         ev->ev_code = -1;
         bws_dispatch_unlock();
         return true;
     } else {
         printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
-        ev->ev_code, wait_ev);
+                wait_ev, ev->ev_code);
         ev->ev_code = -1;
         bws_dispatch_unlock();
         return false;
     }
+}
+
+static void wait_for_srv_specific_socket_state(BSC_SOCKET *s, BSC_SOCKET_STATE st)
+{
+    int i;
+    call_maintenance_timer(1, 0);
+    while(1) {
+        bsc_wait_ms(100);
+        call_maintenance_timer(0, 100);
+        bws_dispatch_lock();
+        for(i=0; i < MAX_SERVER_SOCKETS; i++ )
+        {
+           if(&srv_socks[i] == s && srv_socks[i].state == st ) {
+                bws_dispatch_unlock();
+                return;
+           }
+        }
+        bws_dispatch_unlock();
+     }
 }
 
 static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
@@ -1168,14 +1187,15 @@ static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
         }
         bws_dispatch_lock();
         debug_printf("wait_specific: wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
-            ev->ev_code, wait_ev);
+                     wait_ev, ev->ev_code);
         if (ev->ev_code == wait_ev) {
             ev->ev_code = -1;
             bws_dispatch_unlock();
             break;
         } else {
             printf("wait_specific: event is ignored wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
-            ev->ev_code, wait_ev);
+                   wait_ev, ev->ev_code);
+            ev->ev_code = -1;
             bws_dispatch_unlock();
             continue;
         }
@@ -1571,9 +1591,9 @@ static void test_duplicated_vmac_on_server(void)
     ret = bsc_connect(&cli_ctx2, &cli_socks2[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED);
+    zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     zassert_equal(
         wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
-    zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     zassert_equal(cli_ev2.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
@@ -1655,9 +1675,9 @@ static void test_duplicated_vmac_on_server2(void)
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
+    zassert_equal(cli_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED);
     zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
-    zassert_equal(cli_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
@@ -1782,17 +1802,16 @@ static void test_duplicated_uuid_on_server(void)
     printf("a4_15\n");
     fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED);
-    printf("a4_16\n");
-    fflush(stdout);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
+    zassert_equal(cli_ev.err, ERROR_CODE_SUCCESS, NULL);
     printf("a4_17\n");
     fflush(stdout);
     zassert_equal(wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     printf("a4_18\n");
     fflush(stdout);
-    zassert_equal(cli_ev.err, ERROR_CODE_SUCCESS, NULL);
+    wait_for_srv_specific_socket_state(&srv_socks[0], BSC_SOCK_STATE_IDLE);
+    wait_for_srv_specific_socket_state(&srv_socks[1], BSC_SOCK_STATE_CONNECTED);
     bsc_deinit_ctx(&cli_ctx);
     printf("a4_19\n");
     fflush(stdout);
