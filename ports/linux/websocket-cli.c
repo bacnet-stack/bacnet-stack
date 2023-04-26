@@ -450,7 +450,9 @@ static void *bws_cli_worker(void *arg)
             if (conn->want_send_data) {
                 DEBUG_PRINTF(
                     "bws_cli_worker() process request for sending data\n");
+                bsc_websocket_global_lock();
                 lws_callback_on_writable(conn->ws);
+                bsc_websocket_global_unlock();
             }
         } else if (conn->state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
@@ -678,7 +680,9 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_CONNECTING;
     bws_cli_conn[h].err_code = ERROR_CODE_SUCCESS;
     *out_handle = h;
+    bsc_websocket_global_lock();
     lws_client_connect_via_info(&cinfo);
+    bsc_websocket_global_unlock();
     pthread_mutex_unlock(&bws_cli_mutex);
 
     DEBUG_PRINTF("bws_cli_connect() <<< ret = %d\n", BSC_WEBSOCKET_SUCCESS);
@@ -754,8 +758,10 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
+    bsc_websocket_global_lock();
     written =
         lws_write(bws_cli_conn[h].ws, payload, payload_size, LWS_WRITE_BINARY);
+    bsc_websocket_global_unlock();
 
     DEBUG_PRINTF("bws_cli_dispatch_send() %d bytes is sent\n", written);
 

@@ -640,14 +640,18 @@ static void *bws_srv_worker(void *arg)
                     DEBUG_PRINTF("bws_srv_worker() process request for sending "
                                  "data on socket %d\n",
                         i);
+                    bsc_websocket_global_lock();
                     lws_callback_on_writable(ctx->conn[i].ws);
+                    bsc_websocket_global_unlock();
                 }
             } else if (ctx->conn[i].state ==
                 BSC_WEBSOCKET_STATE_DISCONNECTING) {
                 DEBUG_PRINTF("bws_srv_worker() process disconnecting event on "
                              "socket %d\n",
                     i);
+                bsc_websocket_global_lock();
                 lws_callback_on_writable(ctx->conn[i].ws);
+                bsc_websocket_global_unlock();
             }
         }
 
@@ -946,8 +950,10 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
+    bsc_websocket_global_lock();
     written =
         lws_write(ctx->conn[h].ws, payload, payload_size, LWS_WRITE_BINARY);
+    bsc_websocket_global_unlock();
 
     DEBUG_PRINTF("bws_srv_dispatch_send() %d bytes is sent\n", written);
 
@@ -989,7 +995,9 @@ bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
     if (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE &&
         ctx->conn[h].ws != NULL && !ctx->stop_worker) {
         len = sizeof(addr);
+        bsc_websocket_global_lock();
         fd = lws_get_socket_fd(ctx->conn[h].ws);
+        bsc_websocket_global_unlock();
         if (fd != -1) {
             getpeername(fd, (struct sockaddr *)&addr, &len);
             if (addr.ss_family == AF_INET) {
