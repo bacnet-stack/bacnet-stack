@@ -1427,34 +1427,64 @@ wait_sec(10);
     memset(npdu, 0x55, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 400, NULL, NULL, npdu, sizeof(npdu));
+    printf("13\n");
+       fflush(stdout);
     ret = bsc_send(&cli_socks[0], buf, len);
+    printf("14\n");
+       fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
+    printf("15\n");
+       fflush(stdout);
     zassert_equal(len == recv_buf_len, true, 0);
     zassert_equal(!memcmp(buf, recv_buf, len), true, 0);
+    printf("16\n");
+       fflush(stdout);
     reset_sock_ev(&cli_ev);
     reset_sock_ev(&srv_ev);
     memset(npdu, 0x44, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 500, NULL, NULL, npdu, sizeof(npdu));
+    printf("17\n");
+       fflush(stdout);
     ret = bsc_send(srv_sock, buf, len);
+    printf("18\n");
+       fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
+    printf("19\n");
+       fflush(stdout);
     zassert_equal(len == recv_buf_len, true, 0);
     zassert_equal(!memcmp(buf, recv_buf, len), true, 0);
     reset_sock_ev(&cli_ev);
     reset_sock_ev(&srv_ev);
+    printf("20\n");
+       fflush(stdout);
     bsc_disconnect(&cli_socks[0]);
+    printf("21\n");
+       fflush(stdout);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
+    printf("22\n");
+       fflush(stdout);
     bsc_deinit_ctx(&cli_ctx);
+    printf("23\n");
+       fflush(stdout);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+    printf("24\n");
+       fflush(stdout);
     bsc_deinit_ctx(&srv_ctx);
+    printf("25\n");
+       fflush(stdout);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+    printf("26\n");
+       fflush(stdout);
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&srv_ev);
     deinit_ctx_ev(&cli_ctx_ev);
     deinit_ctx_ev(&srv_ctx_ev);
+    printf("27\n");
+       fflush(stdout);
 }
 
 static void test_duplicated_vmac_on_server(void)
@@ -1483,6 +1513,8 @@ static void test_duplicated_vmac_on_server(void)
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
     char url[128];
+    printf("test_duplicated_vmac_on_server\n");
+       fflush(stdout);
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&cli_ev2);
