@@ -1359,6 +1359,7 @@ static void test_simple(void)
     sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
     printf("1\n");
+    fflush(stdout);
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
         BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
@@ -1367,7 +1368,8 @@ static void test_simple(void)
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     printf("2\n");
-    bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
+     fflush(stdout);
+   bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
         BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
         sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
@@ -1375,27 +1377,35 @@ static void test_simple(void)
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
     printf("3\n");
-    reset_ctx_ev(&srv_ctx_ev);
+     fflush(stdout);
+   reset_ctx_ev(&srv_ctx_ev);
     printf("4\n");
-    ret = bsc_init_ctx(
+      fflush(stdout);
+  ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     printf("5\n");
-    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+     fflush(stdout);
+   zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     reset_ctx_ev(&cli_ctx_ev);
     printf("6\n");
-    ret = bsc_init_ctx(
+      fflush(stdout);
+  ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     printf("7\n");
-    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+       fflush(stdout);
+ zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     printf("8\n");
-    reset_sock_ev(&cli_ev);
+       fflush(stdout);
+ reset_sock_ev(&cli_ev);
     reset_sock_ev(&srv_ev);
     printf("9\n");
-    ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
+       fflush(stdout);
+ ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
     printf("10\n");
-    zassert_equal(ret, BSC_SC_SUCCESS, 0);
+        fflush(stdout);
+zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     reset_sock_ev(&cli_ev);
@@ -1405,9 +1415,11 @@ static void test_simple(void)
     // ensure that there were no any events for that 10 seconds
     // (connection was not dropped)
     printf("11\n");
-    wait_sec(10);
+        fflush(stdout);
+wait_sec(10);
     printf("12\n");
-    zassert_equal(cli_ev.err == -1 && cli_ev.ev_code == -1 &&
+       fflush(stdout);
+ zassert_equal(cli_ev.err == -1 && cli_ev.ev_code == -1 &&
             srv_ev.err == -1 && srv_ev.ev_code == -1,
         true, 0);
     // simple test for data flow
