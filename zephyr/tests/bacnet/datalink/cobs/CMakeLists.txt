@@ -26,7 +26,6 @@ if(BOARD STREQUAL unit_testing)
   list(APPEND SOURCES
     ${BACNET_SRC_PATH}.c
     ${BACNET_TEST_PATH}/src/main.c
-    ${BACNET_DATALINK_SRC}/cobs.c
     )
 
   add_definitions(-DBACDL_MSTP=1)
@@ -41,6 +40,5 @@ else()
   target_include_directories(app PRIVATE ${BACNET_BASE}/src)
   target_sources(app PRIVATE
     ${BACNET_TEST_PATH}/src/main.c
-    ${BACNET_DATALINK_SRC}/cobs.c
     )
 endif()

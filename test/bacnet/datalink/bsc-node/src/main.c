@@ -1412,7 +1412,7 @@ static void wait_for_connection_to_hub(node_ev_t *ev, BSC_NODE *node)
         }
     }
 }
-
+/*
 static void wait_for_direct_connection_established(node_ev_t *ev,
     BSC_NODE *node,
     BACNET_SC_VMAC_ADDRESS *dest,
@@ -1429,7 +1429,7 @@ static void wait_for_direct_connection_established(node_ev_t *ev,
         }
     }
 }
-
+*/
 static void signal_node_ev(node_ev_t *e,
     BSC_NODE_EVENT ev,
     BSC_NODE *node,

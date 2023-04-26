@@ -468,7 +468,7 @@ zephyr_library_compile_definitions(
   $<$<BOOL:${CONFIG_BACNET_ADDRESS_CACHE_FILE}>:BACNET_ADDRESS_CACHE_FILE=1>
   BSC_CONF_WSURL_MAX_LEN=127
   BACNET_PORT=zephyr
-  MG_ARCH=MG_ARCH_ZEPHYR
+  MG_ARCH=MG_ARCH_CUSTOM
   )
 
 zephyr_library_sources(
@@ -499,5 +499,5 @@ target_compile_definitions(
   PRINT_ENABLED=1
   BSC_CONF_WSURL_MAX_LEN=127
   BACNET_PORT=zephyr
-  MG_ARCH=MG_ARCH_ZEPHYR
+  MG_ARCH=MG_ARCH_CUSTOM
   )

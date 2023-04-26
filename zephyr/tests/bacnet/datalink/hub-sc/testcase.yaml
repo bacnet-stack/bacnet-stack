@@ -6,4 +6,3 @@ tests:
     skip: true
   bacnet.datalink.hub-sc:
     tags: bacnet
-    skip: true

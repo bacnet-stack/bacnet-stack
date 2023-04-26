@@ -19,7 +19,7 @@ jobs:
         run: |
           west init -l .
           west update
-          
+
       - name: Twister Tests unit_testing
         working-directory: bacnet-stack
         run: |
@@ -28,6 +28,16 @@ jobs:
           for file in CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
             do 
               find twister-out.unit_testing -name $file -exec rm -rf {} \; || true 
+            done
+
+      - name: Twister Tests BSC native_posix
+        working-directory: bacnet-stack
+        run: |
+          rm -rf twister-out.unit_testing &&
+          ../zephyr/scripts/twister -O twister-out.native_posix -p native_posix -T zephyr/tests/datalink &&
+          for file in CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
+            do
+              find twister-out.native_posix -name $file -exec rm -rf {} \; || true
             done
 
       - name: Archive firmware

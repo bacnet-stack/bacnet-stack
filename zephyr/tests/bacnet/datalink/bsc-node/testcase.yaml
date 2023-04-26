@@ -6,4 +6,3 @@ tests:
     skip: true
   bacnet.datalink.bsc-node:
     tags: bacnet
-    skip: true

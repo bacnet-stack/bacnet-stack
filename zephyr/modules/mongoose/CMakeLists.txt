@@ -6,6 +6,7 @@ if(CONFIG_BACNET_MONGOOSE)
 
   zephyr_include_directories(
     ${ZEPHYR_MONGOOSE_MODULE_DIR}
+    .
   )
 
   zephyr_library()
@@ -15,9 +16,10 @@ if(CONFIG_BACNET_MONGOOSE)
   )
 
 zephyr_library_compile_definitions(
-  MG_ARCH=MG_ARCH_ZEPHYR
+  MG_ARCH=MG_ARCH_CUSTOM
   MG_ENABLE_FILE=0
   MG_ENABLE_CUSTOM_RANDOM
+  MG_ENABLE_CUSTOM_MILLIS
   MG_ENABLE_MBEDTLS=1
   )
 

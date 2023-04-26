@@ -27,7 +27,6 @@ add_compile_definitions(
   BSC_CONF_WEBSOCKET_SERVERS_NUM=4
   MAX_TSM_TRANSACTIONS=0
   ZEPHYR_TEST
-  MG_ARCH=MG_ARCH_ZEPHYR
   )
 
 if(BOARD STREQUAL unit_testing)

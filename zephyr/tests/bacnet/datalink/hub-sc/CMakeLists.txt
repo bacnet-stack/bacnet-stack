@@ -29,7 +29,6 @@ add_compile_definitions(
   BSC_CONF_HUB_FUNCTIONS_NUM=2
   MAX_TSM_TRANSACTIONS=0
   ZEPHYR_TEST
-  MG_ARCH=MG_ARCH_ZEPHYR
   )
 
 if(BOARD STREQUAL unit_testing)
