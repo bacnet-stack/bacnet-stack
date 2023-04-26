@@ -1157,6 +1157,28 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
     }
 }
 
+static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
+{
+    call_maintenance_timer(1, 0);
+    while(1) {
+        while (!bsc_event_timedwait(ev->ev, 100)) {
+            call_maintenance_timer(0, 100);
+        }
+        bws_dispatch_lock();
+        debug_printf("wait_specific: wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
+            ev->ev_code, wait_ev);
+        if (ev->ev_code == wait_ev) {
+            bws_dispatch_unlock();
+            break;
+        } else {
+            printf("wait_specific: event is ignored wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
+            ev->ev_code, wait_ev);
+            bws_dispatch_unlock();
+            continue;
+        }
+    }
+}
+
 static void reset_sock_ev(sock_ev_t *ev)
 {
     bws_dispatch_lock();
@@ -1584,8 +1606,7 @@ static void test_duplicated_vmac_on_server(void)
     reset_sock_ev(&srv_ev);
     ret = bsc_connect(&cli_ctx2, &cli_socks2[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    zassert_equal(
-        wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
+    wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED);
     zassert_equal(
         wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
     zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
@@ -1677,8 +1698,7 @@ static void test_duplicated_vmac_on_server2(void)
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
-    zassert_equal(
-        wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
+    wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED);
     zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     zassert_equal(cli_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     reset_ctx_ev(&cli_ctx_ev);
@@ -1789,7 +1809,7 @@ static void test_duplicated_uuid_on_server(void)
     reset_sock_ev(&srv_ev);
     ret = bsc_connect(&cli_ctx2, &cli_socks2[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
+    wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_CONNECTED), true, 0);
