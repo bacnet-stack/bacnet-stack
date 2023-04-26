@@ -1145,56 +1145,58 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
     }
     bws_dispatch_lock();
     debug_printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
-                  wait_ev, ev->ev_code);
+        wait_ev, ev->ev_code);
     if (ev->ev_code == wait_ev) {
         ev->ev_code = -1;
         bws_dispatch_unlock();
         return true;
     } else {
-        printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
-                wait_ev, ev->ev_code);
+        debug_printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
+            wait_ev, ev->ev_code);
         ev->ev_code = -1;
         bws_dispatch_unlock();
         return false;
     }
 }
 
-static void wait_for_srv_specific_socket_state(BSC_SOCKET *s, BSC_SOCKET_STATE st)
+static void wait_for_srv_specific_socket_state(
+    BSC_SOCKET *s, BSC_SOCKET_STATE st)
 {
     int i;
     call_maintenance_timer(1, 0);
-    while(1) {
+    while (1) {
         bsc_wait_ms(100);
         call_maintenance_timer(0, 100);
         bws_dispatch_lock();
-        for(i=0; i < MAX_SERVER_SOCKETS; i++ )
-        {
-           if(&srv_socks[i] == s && srv_socks[i].state == st ) {
+        for (i = 0; i < MAX_SERVER_SOCKETS; i++) {
+            if (&srv_socks[i] == s && srv_socks[i].state == st) {
                 bws_dispatch_unlock();
                 return;
-           }
+            }
         }
         bws_dispatch_unlock();
-     }
+    }
 }
 
 static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
 {
     call_maintenance_timer(1, 0);
-    while(1) {
+    while (1) {
         while (!bsc_event_timedwait(ev->ev, 100)) {
             call_maintenance_timer(0, 100);
         }
         bws_dispatch_lock();
-        debug_printf("wait_specific: wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
-                     wait_ev, ev->ev_code);
+        debug_printf("wait_specific: wait_sock_ev ev = %p awaited_ev %d "
+                     "received_ev %d\n",
+            ev, wait_ev, ev->ev_code);
         if (ev->ev_code == wait_ev) {
             ev->ev_code = -1;
             bws_dispatch_unlock();
             break;
         } else {
-            printf("wait_specific: event is ignored wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
-                   wait_ev, ev->ev_code);
+            debug_printf("wait_specific: event is ignored wait_sock_ev ev = %p "
+                         "awaited_ev %d received_ev %d\n",
+                ev, wait_ev, ev->ev_code);
             ev->ev_code = -1;
             bws_dispatch_unlock();
             continue;
@@ -1372,8 +1374,6 @@ static void test_simple(void)
     uint8_t buf[2048];
     uint8_t npdu[1200];
     size_t len;
-    printf("test case test_simple\n");
-    fflush(stdout);
     init_sock_ev(&cli_ev);
     init_sock_ev(&srv_ev);
     init_ctx_ev(&cli_ctx_ev);
@@ -1387,8 +1387,7 @@ static void test_simple(void)
     memset(&client_vmac, 0x4, sizeof(server_vmac));
     sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
-    printf("1\n");
-    fflush(stdout);
+
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
         BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
@@ -1396,110 +1395,67 @@ static void test_simple(void)
         &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
-    printf("2\n");
-     fflush(stdout);
-   bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
+    bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
         BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
         sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
-    printf("4\n");
-      fflush(stdout);
-  ret = bsc_init_ctx(
+    ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
-    printf("5\n");
-     fflush(stdout);
-   zassert_equal(ret, BSC_SC_SUCCESS, 0);
+
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    printf("6\n");
-      fflush(stdout);
-  ret = bsc_init_ctx(
+
+    ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
-    printf("7\n");
-       fflush(stdout);
- zassert_equal(ret, BSC_SC_SUCCESS, 0);
+
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    printf("9\n");
-       fflush(stdout);
- ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
-    printf("10\n");
-        fflush(stdout);
-zassert_equal(ret, BSC_SC_SUCCESS, 0);
+    ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
+    zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
 
     // test that heartbeat works
     // ensure that there were no any events for that 10 seconds
     // (connection was not dropped)
-    printf("11\n");
-        fflush(stdout);
-wait_sec(10);
-    printf("12\n");
-       fflush(stdout);
+    wait_sec(10);
     bws_dispatch_lock();
     zassert_equal(cli_socks[0].state == BSC_SOCK_STATE_CONNECTED &&
-                  srv_socks[0].state == BSC_SOCK_STATE_CONNECTED,
-                  true, 0);
+            srv_socks[0].state == BSC_SOCK_STATE_CONNECTED,
+        true, 0);
     bws_dispatch_unlock();
     // simple test for data flow
 
     memset(npdu, 0x55, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 400, NULL, NULL, npdu, sizeof(npdu));
-    printf("13\n");
-       fflush(stdout);
     ret = bsc_send(&cli_socks[0], buf, len);
-    printf("14\n");
-       fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
-    printf("15\n");
-       fflush(stdout);
     zassert_equal(len == recv_buf_len, true, 0);
     zassert_equal(!memcmp(buf, recv_buf, len), true, 0);
     memset(npdu, 0x44, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 500, NULL, NULL, npdu, sizeof(npdu));
-    printf("17\n");
-       fflush(stdout);
     ret = bsc_send(srv_sock, buf, len);
-    printf("18\n");
-       fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_RECEIVED), true, 0);
-    printf("19\n");
-       fflush(stdout);
     zassert_equal(len == recv_buf_len, true, 0);
     zassert_equal(!memcmp(buf, recv_buf, len), true, 0);
-    printf("20\n");
-       fflush(stdout);
     bsc_disconnect(&cli_socks[0]);
-    printf("21\n");
-       fflush(stdout);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
-    printf("22\n");
-       fflush(stdout);
     bsc_deinit_ctx(&cli_ctx);
-    printf("23\n");
-       fflush(stdout);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    printf("24\n");
-       fflush(stdout);
     bsc_deinit_ctx(&srv_ctx);
-    printf("25\n");
-       fflush(stdout);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    printf("26\n");
-       fflush(stdout);
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&srv_ev);
     deinit_ctx_ev(&cli_ctx_ev);
     deinit_ctx_ev(&srv_ctx_ev);
-    printf("27\n");
-       fflush(stdout);
 }
 
 static void test_duplicated_vmac_on_server(void)
@@ -1528,8 +1484,6 @@ static void test_duplicated_vmac_on_server(void)
     BSC_SOCKET_CTX cli_ctx;
     BSC_SOCKET_CTX cli_ctx2;
     char url[128];
-    printf("test_duplicated_vmac_on_server\n");
-       fflush(stdout);
 
     init_sock_ev(&cli_ev);
     init_sock_ev(&cli_ev2);
@@ -1735,16 +1689,13 @@ static void test_duplicated_uuid_on_server(void)
 
     sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
-    printf("a4_1\n");
-    fflush(stdout);
+
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
         BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key), &server_uuid,
         &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
-    printf("a4_2\n");
-    fflush(stdout);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
@@ -1752,8 +1703,6 @@ static void test_duplicated_uuid_on_server(void)
         sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
-    printf("a4_3\n");
-    fflush(stdout);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg2,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
@@ -1761,83 +1710,43 @@ static void test_duplicated_uuid_on_server(void)
         sizeof(client_cert), client_key, sizeof(client_key), &client_uuid2,
         &client_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
-    printf("a4_4\n");
-    fflush(stdout);
 
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
-    printf("a4_5\n");
-    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    printf("a4_6\n");
-    fflush(stdout);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
-    printf("a4_7\n");
-    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    printf("a4_8\n");
-    fflush(stdout);
     ret = bsc_init_ctx(&cli_ctx2, &client_cfg2, &cli_funcs2, cli_socks2,
         MAX_CLIENT_SOCKETS, NULL);
-    printf("a4_9\n");
-    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_INITIALIZED), true, 0);
-    printf("a4_10\n");
-    fflush(stdout);
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
-    printf("a4_11\n");
-    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    printf("a4_12\n");
-    fflush(stdout);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    printf("a4_13\n");
-    fflush(stdout);
     ret = bsc_connect(&cli_ctx2, &cli_socks2[0], url);
-    printf("a4_15\n");
-    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
     zassert_equal(cli_ev.err, ERROR_CODE_SUCCESS, NULL);
-    printf("a4_17\n");
-    fflush(stdout);
     zassert_equal(wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    printf("a4_18\n");
-    fflush(stdout);
     wait_for_srv_specific_socket_state(&srv_socks[0], BSC_SOCK_STATE_IDLE);
     wait_for_srv_specific_socket_state(&srv_socks[1], BSC_SOCK_STATE_CONNECTED);
     bsc_deinit_ctx(&cli_ctx);
-    printf("a4_19\n");
-    fflush(stdout);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    printf("a4_20\n");
-    fflush(stdout);
     bsc_deinit_ctx(&cli_ctx2);
-    printf("a4_21\n");
-    fflush(stdout);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_DEINITIALIZED), true, 0);
-    printf("a4_22\n");
-    fflush(stdout);
     bsc_deinit_ctx(&srv_ctx);
-    printf("a4_23\n");
-    fflush(stdout);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
-    printf("a4_24\n");
-    fflush(stdout);
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&cli_ev2);
     deinit_sock_ev(&srv_ev);
     deinit_ctx_ev(&cli_ctx_ev);
     deinit_ctx_ev(&cli_ctx_ev2);
     deinit_ctx_ev(&srv_ctx_ev);
-    printf("a4_25\n");
-    fflush(stdout);
 }
 
 static void test_bad_params(void)
@@ -2114,24 +2023,10 @@ void test_main(void)
         socket_test_4, ztest_unit_test(test_duplicated_uuid_on_server));
     ztest_test_suite(socket_test_5, ztest_unit_test(test_bad_params));
     ztest_test_suite(socket_test_6, ztest_unit_test(test_error_case1));
-    printf("bsc-test started\n");
-    fflush (stdout);
     ztest_run_test_suite(socket_test_1);
-    printf("a1\n");
-       fflush(stdout);
     ztest_run_test_suite(socket_test_2);
-    printf("a2\n");
-       fflush(stdout);
     ztest_run_test_suite(socket_test_3);
-    printf("a3\n");
-       fflush(stdout);
     ztest_run_test_suite(socket_test_4);
-    printf("a4\n");
-       fflush(stdout);
     ztest_run_test_suite(socket_test_5);
-    printf("a5\n");
-       fflush(stdout);
     ztest_run_test_suite(socket_test_6);
-    printf("a6");
-       fflush(stdout);
 }

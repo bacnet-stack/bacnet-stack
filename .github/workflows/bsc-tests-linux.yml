@@ -44,18 +44,6 @@ jobs:
         cmake ..
         make
         ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
-        ./test_bsc-socket
         cd ../../hub-sc
         mkdir build
         cd build
