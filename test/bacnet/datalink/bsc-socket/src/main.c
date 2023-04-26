@@ -1358,7 +1358,7 @@ static void test_simple(void)
     memset(&client_vmac, 0x4, sizeof(server_vmac));
     sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
-
+    printf("1\n");
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
         BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
@@ -1366,6 +1366,7 @@ static void test_simple(void)
         &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
+    printf("2\n");
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
         BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), client_cert,
@@ -1373,19 +1374,27 @@ static void test_simple(void)
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
+    printf("3\n");
     reset_ctx_ev(&srv_ctx_ev);
+    printf("4\n");
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
+    printf("5\n");
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     reset_ctx_ev(&cli_ctx_ev);
+    printf("6\n");
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
+    printf("7\n");
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
+    printf("8\n");
     reset_sock_ev(&cli_ev);
     reset_sock_ev(&srv_ev);
+    printf("9\n");
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
+    printf("10\n");
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
@@ -1395,7 +1404,9 @@ static void test_simple(void)
     // test that heartbeat works
     // ensure that there were no any events for that 10 seconds
     // (connection was not dropped)
+    printf("11\n");
     wait_sec(10);
+    printf("12\n");
     zassert_equal(cli_ev.err == -1 && cli_ev.ev_code == -1 &&
             srv_ev.err == -1 && srv_ev.ev_code == -1,
         true, 0);
