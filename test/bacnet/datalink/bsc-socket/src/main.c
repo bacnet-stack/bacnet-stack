@@ -1147,11 +1147,13 @@ static bool wait_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
     debug_printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
         ev->ev_code, wait_ev);
     if (ev->ev_code == wait_ev) {
+        ev->ev_code = -1;
         bws_dispatch_unlock();
         return true;
     } else {
         printf("wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
         ev->ev_code, wait_ev);
+        ev->ev_code = -1;
         bws_dispatch_unlock();
         return false;
     }
@@ -1168,6 +1170,7 @@ static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
         debug_printf("wait_specific: wait_sock_ev ev = %p awaited_ev %d received_ev %d\n", ev,
             ev->ev_code, wait_ev);
         if (ev->ev_code == wait_ev) {
+            ev->ev_code = -1;
             bws_dispatch_unlock();
             break;
         } else {
@@ -1177,22 +1180,6 @@ static void wait_specific_sock_ev(sock_ev_t *ev, BSC_SOCKET_EVENT wait_ev)
             continue;
         }
     }
-}
-
-static void reset_sock_ev(sock_ev_t *ev)
-{
-    bws_dispatch_lock();
-    debug_printf("reset_sock_ev %p\n", ev);
-    ev->ev_code = -1;
-    ev->err = -1;
-    bws_dispatch_unlock();
-}
-
-static void reset_ctx_ev(ctx_ev_t *ev)
-{
-    bws_dispatch_lock();
-    ev->ev_code = -1;
-    bws_dispatch_unlock();
 }
 
 static void signal_sock_ev(
@@ -1398,9 +1385,6 @@ static void test_simple(void)
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
-    printf("3\n");
-     fflush(stdout);
-   reset_ctx_ev(&srv_ctx_ev);
     printf("4\n");
       fflush(stdout);
   ret = bsc_init_ctx(
@@ -1409,7 +1393,6 @@ static void test_simple(void)
      fflush(stdout);
    zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_ctx_ev(&cli_ctx_ev);
     printf("6\n");
       fflush(stdout);
   ret = bsc_init_ctx(
@@ -1418,10 +1401,6 @@ static void test_simple(void)
        fflush(stdout);
  zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    printf("8\n");
-       fflush(stdout);
- reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     printf("9\n");
        fflush(stdout);
  ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
@@ -1430,8 +1409,6 @@ static void test_simple(void)
 zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
 
     // test that heartbeat works
     // ensure that there were no any events for that 10 seconds
@@ -1441,9 +1418,11 @@ zassert_equal(ret, BSC_SC_SUCCESS, 0);
 wait_sec(10);
     printf("12\n");
        fflush(stdout);
- zassert_equal(cli_ev.err == -1 && cli_ev.ev_code == -1 &&
-            srv_ev.err == -1 && srv_ev.ev_code == -1,
-        true, 0);
+    bws_dispatch_lock();
+    zassert_equal(cli_socks[0].state == BSC_SOCK_STATE_CONNECTED &&
+                  srv_socks[0].state == BSC_SOCK_STATE_CONNECTED,
+                  true, 0);
+    bws_dispatch_unlock();
     // simple test for data flow
 
     memset(npdu, 0x55, sizeof(npdu));
@@ -1460,10 +1439,6 @@ wait_sec(10);
        fflush(stdout);
     zassert_equal(len == recv_buf_len, true, 0);
     zassert_equal(!memcmp(buf, recv_buf, len), true, 0);
-    printf("16\n");
-       fflush(stdout);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     memset(npdu, 0x44, sizeof(npdu));
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 500, NULL, NULL, npdu, sizeof(npdu));
@@ -1478,8 +1453,6 @@ wait_sec(10);
        fflush(stdout);
     zassert_equal(len == recv_buf_len, true, 0);
     zassert_equal(!memcmp(buf, recv_buf, len), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     printf("20\n");
        fflush(stdout);
     bsc_disconnect(&cli_socks[0]);
@@ -1579,31 +1552,22 @@ static void test_duplicated_vmac_on_server(void)
         &client_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
-    reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_ctx_ev(&cli_ctx_ev);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_ctx_ev(&cli_ctx_ev2);
     ret = bsc_init_ctx(&cli_ctx2, &client_cfg2, &cli_funcs2, cli_socks2,
         MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_INITIALIZED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&cli_ev2);
-    reset_sock_ev(&srv_ev);
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&cli_ev2);
-    reset_sock_ev(&srv_ev);
     ret = bsc_connect(&cli_ctx2, &cli_socks2[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED);
@@ -1611,9 +1575,6 @@ static void test_duplicated_vmac_on_server(void)
         wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
     zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     zassert_equal(cli_ev2.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
-    reset_ctx_ev(&cli_ctx_ev);
-    reset_ctx_ev(&cli_ctx_ev2);
-    reset_ctx_ev(&srv_ctx_ev);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&cli_ctx2);
@@ -1682,18 +1643,14 @@ static void test_duplicated_vmac_on_server2(void)
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
-    reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_ctx_ev(&cli_ctx_ev);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(
@@ -1701,8 +1658,6 @@ static void test_duplicated_vmac_on_server2(void)
     wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED);
     zassert_equal(srv_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
     zassert_equal(cli_ev.err, ERROR_CODE_NODE_DUPLICATE_VMAC, NULL);
-    reset_ctx_ev(&cli_ctx_ev);
-    reset_ctx_ev(&srv_ctx_ev);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
@@ -1760,13 +1715,16 @@ static void test_duplicated_uuid_on_server(void)
 
     sprintf(url, "wss://%s:%d", BACNET_WEBSOCKET_SERVER_ADDR,
         BACNET_WEBSOCKET_SERVER_PORT);
-
+    printf("a4_1\n");
+    fflush(stdout);
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_ACCEPTOR, &server_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
         BSC_NETWORK_IFACE, ca_cert, sizeof(ca_cert), server_cert,
         sizeof(server_cert), server_key, sizeof(server_key), &server_uuid,
         &server_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
+    printf("a4_2\n");
+    fflush(stdout);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
@@ -1774,6 +1732,8 @@ static void test_duplicated_uuid_on_server(void)
         sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
+    printf("a4_3\n");
+    fflush(stdout);
 
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg2,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
@@ -1781,54 +1741,84 @@ static void test_duplicated_uuid_on_server(void)
         sizeof(client_cert), client_key, sizeof(client_key), &client_uuid2,
         &client_vmac2, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
+    printf("a4_4\n");
+    fflush(stdout);
 
-    reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
+    printf("a4_5\n");
+    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_ctx_ev(&cli_ctx_ev);
+    printf("a4_6\n");
+    fflush(stdout);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
+    printf("a4_7\n");
+    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_ctx_ev(&cli_ctx_ev2);
+    printf("a4_8\n");
+    fflush(stdout);
     ret = bsc_init_ctx(&cli_ctx2, &client_cfg2, &cli_funcs2, cli_socks2,
         MAX_CLIENT_SOCKETS, NULL);
+    printf("a4_9\n");
+    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_INITIALIZED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&cli_ev2);
-    reset_sock_ev(&srv_ev);
+    printf("a4_10\n");
+    fflush(stdout);
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
+    printf("a4_11\n");
+    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
+    printf("a4_12\n");
+    fflush(stdout);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&cli_ev2);
-    reset_sock_ev(&srv_ev);
+    printf("a4_13\n");
+    fflush(stdout);
     ret = bsc_connect(&cli_ctx2, &cli_socks2[0], url);
+    printf("a4_15\n");
+    fflush(stdout);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     wait_specific_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED);
+    printf("a4_16\n");
+    fflush(stdout);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
+    printf("a4_17\n");
+    fflush(stdout);
     zassert_equal(wait_sock_ev(&cli_ev2, BSC_SOCKET_EVENT_CONNECTED), true, 0);
+    printf("a4_18\n");
+    fflush(stdout);
     zassert_equal(cli_ev.err, ERROR_CODE_SUCCESS, NULL);
-    reset_ctx_ev(&cli_ctx_ev);
-    reset_ctx_ev(&cli_ctx_ev2);
-    reset_ctx_ev(&srv_ctx_ev);
     bsc_deinit_ctx(&cli_ctx);
+    printf("a4_19\n");
+    fflush(stdout);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+    printf("a4_20\n");
+    fflush(stdout);
     bsc_deinit_ctx(&cli_ctx2);
+    printf("a4_21\n");
+    fflush(stdout);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev2, BSC_CTX_DEINITIALIZED), true, 0);
+    printf("a4_22\n");
+    fflush(stdout);
     bsc_deinit_ctx(&srv_ctx);
+    printf("a4_23\n");
+    fflush(stdout);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
+    printf("a4_24\n");
+    fflush(stdout);
     deinit_sock_ev(&cli_ev);
     deinit_sock_ev(&cli_ev2);
     deinit_sock_ev(&srv_ev);
     deinit_ctx_ev(&cli_ctx_ev);
     deinit_ctx_ev(&cli_ctx_ev2);
     deinit_ctx_ev(&srv_ctx_ev);
+    printf("a4_25\n");
+    fflush(stdout);
 }
 
 static void test_bad_params(void)
@@ -1884,7 +1874,6 @@ static void test_bad_params(void)
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_INVALID_OPERATION, 0);
-    reset_ctx_ev(&srv_ctx_ev);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
@@ -1901,14 +1890,12 @@ static void test_bad_params(void)
         sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
-    reset_ctx_ev(&cli_ctx_ev);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
     zassert_equal(ret, BSC_SC_BAD_PARAM, 0);
-    reset_ctx_ev(&cli_ctx_ev);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
 
@@ -1921,7 +1908,6 @@ static void test_bad_params(void)
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    reset_ctx_ev(&srv_ctx_ev);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
     bsc_init_ctx_cfg(BSC_SOCKET_CTX_INITIATOR, &client_cfg,
         BSC_WEBSOCKET_DIRECT_PROTOCOL, BACNET_WEBSOCKET_SERVER_PORT,
@@ -1929,13 +1915,10 @@ static void test_bad_params(void)
         sizeof(client_cert), client_key, sizeof(client_key), &client_uuid,
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
-    reset_ctx_ev(&cli_ctx_ev);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
@@ -1943,27 +1926,21 @@ static void test_bad_params(void)
     ret = bsc_send(&cli_socks[0], (uint8_t *)&client_uuid,
         BSC_CONF_SOCK_TX_BUFFER_SIZE * 2);
     zassert_equal(ret, BSC_SC_NO_RESOURCES, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
     bsc_deinit_ctx(&srv_ctx);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
 
     // connect client to non existent server
-    reset_ctx_ev(&cli_ctx_ev);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_sock_ev(&cli_ev);
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
-    reset_sock_ev(&cli_ev);
     zassert_equal(
         wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
     zassert_equal(cli_ev.err, ERROR_CODE_WEBSOCKET_ERROR, NULL);
-    reset_sock_ev(&cli_ev);
     bsc_deinit_ctx(&cli_ctx);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_DEINITIALIZED), true, 0);
 
@@ -2029,24 +2006,18 @@ static void test_error_case1(void)
         &client_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN, BACNET_SOCKET_TIMEOUT,
         BACNET_SOCKET_HEARTBEAT_TIMEOUT, BACNET_SOCKET_TIMEOUT);
 
-    reset_ctx_ev(&srv_ctx_ev);
     ret = bsc_init_ctx(
         &srv_ctx, &server_cfg, &srv_funcs, srv_socks, MAX_SERVER_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&srv_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_ctx_ev(&cli_ctx_ev);
     ret = bsc_init_ctx(
         &cli_ctx, &client_cfg, &cli_funcs, cli_socks, MAX_CLIENT_SOCKETS, NULL);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_ctx_ev(&cli_ctx_ev, BSC_CTX_INITIALIZED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     ret = bsc_connect(&cli_ctx, &cli_socks[0], url);
     zassert_equal(ret, BSC_SC_SUCCESS, 0);
     zassert_equal(wait_sock_ev(&cli_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
     zassert_equal(wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_CONNECTED), true, 0);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
 
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 500, NULL, NULL, npdu, sizeof(npdu));
@@ -2060,8 +2031,6 @@ static void test_error_case1(void)
         dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
     zassert_equal(
         dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 505, NULL, NULL, npdu, sizeof(npdu));
     ret = bsc_send(&cli_socks[0], buf, len);
@@ -2074,8 +2043,6 @@ static void test_error_case1(void)
         dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
     zassert_equal(
         dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 506, &server_vmac, &client_vmac, npdu, sizeof(npdu));
     ret = bsc_send(srv_sock, buf, len);
@@ -2088,8 +2055,6 @@ static void test_error_case1(void)
         dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
     zassert_equal(
         dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     len = bvlc_sc_encode_encapsulated_npdu(
         buf, sizeof(buf), 506, &server_vmac, &client_vmac, npdu, sizeof(npdu));
     ret = bsc_send(&cli_socks[0], buf, len);
@@ -2102,8 +2067,6 @@ static void test_error_case1(void)
         dpdu.payload.result.error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
     zassert_equal(
         dpdu.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
-    reset_sock_ev(&cli_ev);
-    reset_sock_ev(&srv_ev);
     bsc_disconnect(srv_sock);
     zassert_equal(
         wait_sock_ev(&srv_ev, BSC_SOCKET_EVENT_DISCONNECTED), true, 0);
