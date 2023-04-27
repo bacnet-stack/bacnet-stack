@@ -602,7 +602,8 @@ static void bsc_hub_function_event(
         bsc_node_process_stop_event(node);
     } else if (ev == BSC_HUBF_EVENT_ERROR_DUPLICATED_VMAC) {
         if (node->state != BSC_NODE_STATE_STOPPING &&
-            node->state != BSC_NODE_STATE_RESTARTING) {
+            node->state != BSC_NODE_STATE_RESTARTING &&
+            node->state != BSC_NODE_STATE_IDLE) {
             bsc_node_restart(node);
         }
     }
@@ -631,7 +632,8 @@ static void bsc_node_switch_event(BSC_NODE_SWITCH_EVENT ev,
         bsc_node_process_stop_event(node);
     } else if (ev == BSC_NODE_SWITCH_EVENT_DUPLICATED_VMAC) {
         if (node->state != BSC_NODE_STATE_STOPPING &&
-            node->state != BSC_NODE_STATE_RESTARTING) {
+            node->state != BSC_NODE_STATE_RESTARTING &&
+            node->state != BSC_NODE_STATE_IDLE) {
             bsc_node_restart(node);
         }
     } else if (ev == BSC_NODE_SWITCH_EVENT_RECEIVED) {
