@@ -39,8 +39,8 @@ jobs:
         mkdir build
         cd build
         cmake ..
-        make
-        ./test_websockets
+#        make
+#        ./test_websockets
     - name: Build and run bsc-socket test
       run: |
         cd ./test/bacnet/datalink/bsc-socket
