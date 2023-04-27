@@ -1371,7 +1371,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
     BSC_WEBSOCKET_RET wret;
 
-    DEBUG_PRINTF("bsc_connect() >>> ctx = %p, c = %p, url = %s\n", ctx, c, url);
+    printf("bsc_connect() >>> ctx = %p, c = %p, url = %s\n", ctx, c, url);
 
     if (!ctx || !c || !url) {
         ret = BSC_SC_BAD_PARAM;
@@ -1401,7 +1401,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
         bws_dispatch_unlock();
     }
 
-    DEBUG_PRINTF("bsc_connect() <<< ret = %d\n", ret);
+    printf("bsc_connect() <<< ret = %d\n", ret);
     return ret;
 }
 
