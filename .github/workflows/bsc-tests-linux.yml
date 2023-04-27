@@ -73,3 +73,19 @@ jobs:
         cmake ..
         make
         ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
+        ./test_bsc-datalink
