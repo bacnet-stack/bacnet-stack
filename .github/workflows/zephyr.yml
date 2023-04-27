@@ -34,7 +34,7 @@ jobs:
         working-directory: bacnet-stack
         run: |
           rm -rf twister-out.unit_testing &&
-          ../zephyr/scripts/twister -O twister-out.native_posix -p native_posix -T zephyr/tests/datalink &&
+          ../zephyr/scripts/twister -O twister-out.native_posix -p native_posix -T zephyr/tests/bacnet/datalink &&
           for file in CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
             do
               find twister-out.native_posix -name $file -exec rm -rf {} \; || true
