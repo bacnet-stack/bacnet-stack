@@ -200,11 +200,11 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
 
     bws_dispatch_lock();
     hc = (BSC_HUB_CONNECTOR *)c->ctx->user_arg;
-    DEBUG_PRINTF("hub_connector_socket_event() >>> hub_connector = %p, socket "
+    printf("hub_connector_socket_event() >>> hub_connector = %p, socket "
                  "= %p, ev = %d, reason = %d, reason_desc = %p,"
                  "pdu = %p, pdu_len = %d\n",
         hc, c, ev, disconnect_reason, disconnect_reason_desc, pdu, pdu_len);
-    DEBUG_PRINTF("hub_connector_socket_event() state = %d\n", hc->state);
+    printf("hub_connector_socket_event() state = %d\n", hc->state);
     if (ev == BSC_SOCKET_EVENT_CONNECTED) {
         if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
             DEBUG_PRINTF("hub_connector_socket_event() hub_connector = %p "
@@ -283,7 +283,7 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
             pdu_len, decoded_pdu);
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("hub_connector_socket_event() <<<\n");
+    printf("hub_connector_socket_event() <<<\n");
 }
 
 static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
