@@ -38,7 +38,8 @@ jobs:
           for file in CMakeFiles CMakeCache.txt cmake_install.cmake Makefile
             do
               find twister-out.native_posix -name $file -exec rm -rf {} \; || true
-            done
+            done &&
+          cat twister-out.native_posix/native_posix/bsc-socket/bacnet.datalink.bsc-socket/build.log
 
       - name: Archive firmware
         uses: actions/upload-artifact@v3
