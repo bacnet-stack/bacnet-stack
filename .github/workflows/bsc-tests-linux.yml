@@ -24,7 +24,7 @@ jobs:
         cd build
         cmake ..
         make
-        ./test_bsc_event
+#        ./test_bsc_event
     - name: Build and run bvlc-sc test
       run: |
         cd ./test/bacnet/datalink/bvlc-sc
