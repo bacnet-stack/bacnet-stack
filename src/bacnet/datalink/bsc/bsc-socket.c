@@ -1327,15 +1327,15 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
 {
     size_t i;
     bool active_socket = false;
-    DEBUG_PRINTF("bsc_deinit_ctx() >>> ctx = %p\n", ctx);
+    printf("bsc_deinit_ctx() >>> ctx = %p\n", ctx);
 
     bws_dispatch_lock();
 
     if (!ctx || ctx->state == BSC_CTX_STATE_IDLE ||
         ctx->state == BSC_CTX_STATE_DEINITIALIZING) {
-        DEBUG_PRINTF("bsc_deinit_ctx() no action required\n");
+        printf("bsc_deinit_ctx() no action required\n");
         bws_dispatch_unlock();
-        DEBUG_PRINTF("bsc_deinit_ctx() <<<\n");
+        printf("bsc_deinit_ctx() <<<\n");
         return;
     }
 
@@ -1344,14 +1344,14 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         for (i = 0; i < ctx->sock_num; i++) {
             if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                 active_socket = true;
-                DEBUG_PRINTF(
+                printf(
                     "bsc_deinit_ctx() disconnect socket %d(%p) with wh = %d\n",
                     i, &ctx->sock[i], ctx->sock[i].wh);
                 bws_cli_disconnect(ctx->sock[i].wh);
             }
         }
         if (!active_socket) {
-            DEBUG_PRINTF(
+            printf(
                 "bsc_deinit_ctx() no active sockets, ctx de-initialized\n");
             ctx->state = BSC_CTX_STATE_IDLE;
             bsc_ctx_remove(ctx);
@@ -1363,7 +1363,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
     }
 
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_deinit_ctx() <<<\n");
+    printf("bsc_deinit_ctx() <<<\n");
 }
 
 BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)

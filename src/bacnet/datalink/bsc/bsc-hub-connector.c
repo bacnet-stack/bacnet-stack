@@ -426,7 +426,8 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
 
     bws_dispatch_lock();
 
-#if DEBUG_ENABLED == 1
+//#if DEBUG_ENABLED == 1
+#if 1
     if (c) {
         printf("bsc_hub_connector_stop() state = %d\n", c->state);
     }
