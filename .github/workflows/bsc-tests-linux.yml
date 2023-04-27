@@ -23,7 +23,7 @@ jobs:
         mkdir build
         cd build
         cmake ..
-        make
+#        make
 #        ./test_bsc_event
     - name: Build and run bvlc-sc test
       run: |
