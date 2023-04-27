@@ -2989,9 +2989,9 @@ static void test_node_bad_cases(void)
 
 void test_main(void)
 {
+    setbuf(stdout, NULL);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
-
     ztest_test_suite(node_test_1, ztest_unit_test(test_node_start_stop));
     ztest_test_suite(node_test_2, ztest_unit_test(test_node_duplicated_vmac));
     ztest_test_suite(node_test_3, ztest_unit_test(test_node_send));

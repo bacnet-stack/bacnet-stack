@@ -2144,9 +2144,9 @@ static void test_sc_datalink_failed_requests(void)
 
 void test_main(void)
 {
+    setbuf(stdout, NULL);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
-    setbuf(stdout, NULL);
     ztest_test_suite(test_datalink_1, ztest_unit_test(test_sc_parameters));
     ztest_test_suite(test_datalink_2, ztest_unit_test(test_sc_datalink));
     ztest_test_suite(

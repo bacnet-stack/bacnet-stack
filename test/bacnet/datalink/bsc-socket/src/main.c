@@ -2012,6 +2012,7 @@ static void test_error_case1(void)
 
 void test_main(void)
 {
+    setbuf(stdout, NULL);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
     ztest_test_suite(socket_test_1, ztest_unit_test(test_simple));

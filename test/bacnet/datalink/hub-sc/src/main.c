@@ -2052,9 +2052,9 @@ void test_hub_function_duplicated_uuid(void)
 
 void test_main(void)
 {
+    setbuf(stdout, NULL);
     // Tests must not be run in parallel threads!
     // Thats why tests functions are in different suites.
-
     ztest_test_suite(
         hub_test_1, ztest_unit_test(test_hub_connector_primary_url));
     ztest_test_suite(
