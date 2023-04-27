@@ -703,7 +703,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
 {
     BSC_SC_RET ret = BSC_SC_BAD_PARAM;
     bws_dispatch_lock();
-    DEBUG_PRINTF("bsc_node_start() >>> node = %p state = %d\n", node, state);
+    DEBUG_PRINTF("bsc_node_start_state() >>> node = %p state = %d\n", node, state);
 
     node->state = state;
     node->hub_connector = NULL;
@@ -716,7 +716,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
                 BSC_CONF_SERVER_DIRECT_CONNECTIONS_MAX_NUM);
     } else {
         bsc_generate_random_vmac(node->conf->local_vmac);
-        DEBUG_PRINTF("bsc_node_start() generated random vmac %s for node %p\n",
+        DEBUG_PRINTF("bsc_node_start_state() generated random vmac %s for node %p\n",
             bsc_vmac_to_string(node->conf->local_vmac), node);
     }
 
@@ -734,7 +734,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
         if (ret != BSC_SC_SUCCESS) {
             node->state = BSC_NODE_STATE_IDLE;
             bws_dispatch_unlock();
-            DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
+            DEBUG_PRINTF("bsc_node_start_state() <<< ret = %d\n", ret);
             return ret;
         }
     }
@@ -753,7 +753,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             node->state = BSC_NODE_STATE_IDLE;
             bsc_hub_connector_stop(node->hub_connector);
             bws_dispatch_unlock();
-            DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
+            DEBUG_PRINTF("bsc_node_start_state() <<< ret = %d\n", ret);
             return ret;
         }
     }
@@ -776,7 +776,7 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             bsc_hub_connector_stop(node->hub_connector);
             bsc_hub_function_stop(node->hub_function);
             bws_dispatch_unlock();
-            DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
+            DEBUG_PRINTF("bsc_node_start_state() <<< ret = %d\n", ret);
             return ret;
         }
     }
@@ -789,10 +789,10 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
         }
     }
     DEBUG_PRINTF(
-        "bsc_node_start() hub_function %p hub_connector %p node_switch %p\n",
+        "bsc_node_start_state() hub_function %p hub_connector %p node_switch %p\n",
         node->hub_function, node->hub_connector, node->node_switch);
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_node_start() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_node_start_state() <<< ret = %d\n", ret);
     return ret;
 }
 
