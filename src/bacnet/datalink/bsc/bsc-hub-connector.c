@@ -226,7 +226,8 @@ static void hub_connector_socket_event(BSC_SOCKET *c,
                 NULL, 0, NULL);
         }
     } else if (ev == BSC_SOCKET_EVENT_DISCONNECTED) {
-        if (disconnect_reason == ERROR_CODE_NODE_DUPLICATE_VMAC) {
+        if (disconnect_reason == ERROR_CODE_NODE_DUPLICATE_VMAC &&
+            hc->state != BSC_HUB_CONNECTOR_STATE_WAIT_FOR_CTX_DEINIT) {
             DEBUG_PRINTF("hub_connector_socket_event() "
                          "got ERROR_CODE_NODE_DUPLICATE_VMAC error\n");
             if (hc->state == BSC_HUB_CONNECTOR_STATE_CONNECTING_PRIMARY) {
@@ -289,7 +290,7 @@ static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
 {
     BSC_HUB_CONNECTOR *c;
 
-    DEBUG_PRINTF(
+    printf(
         "hub_connector_context_event() >>> ctx = %p, ev = %d\n", ctx, ev);
 
     if (ev == BSC_CTX_DEINITIALIZED) {
@@ -304,7 +305,7 @@ static void hub_connector_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
         bws_dispatch_unlock();
     }
 
-    DEBUG_PRINTF("hub_connector_context_event() <<<\n");
+    printf("hub_connector_context_event() <<<\n");
 }
 
 BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
@@ -421,13 +422,13 @@ BSC_SC_RET bsc_hub_connector_start(uint8_t *ca_cert_chain,
 void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
 {
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
-    DEBUG_PRINTF("bsc_hub_connector_stop() >>> h = %p\n", h);
+    printf("bsc_hub_connector_stop() >>> h = %p\n", h);
 
     bws_dispatch_lock();
 
 #if DEBUG_ENABLED == 1
     if (c) {
-        DEBUG_PRINTF("bsc_hub_connector_stop() state = %d\n", c->state);
+        printf("bsc_hub_connector_stop() state = %d\n", c->state);
     }
 #endif
 
@@ -437,7 +438,7 @@ void bsc_hub_connector_stop(BSC_HUB_CONNECTOR_HANDLE h)
         bsc_deinit_ctx(&c->ctx);
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_hub_connector_stop() <<<\n");
+    printf("bsc_hub_connector_stop() <<<\n");
 }
 
 BSC_SC_RET bsc_hub_connector_send(
@@ -482,13 +483,13 @@ bool bsc_hub_connector_stopped(BSC_HUB_CONNECTOR_HANDLE h)
     BSC_HUB_CONNECTOR *c = (BSC_HUB_CONNECTOR *)h;
     bool ret = false;
 
-    DEBUG_PRINTF("bsc_hub_connector_stopped() >>> h = %p\n", h);
+    printf("bsc_hub_connector_stopped() >>> h = %p\n", h);
     bws_dispatch_lock();
     if (c && c->state == BSC_HUB_CONNECTOR_STATE_IDLE) {
         ret = true;
     }
     bws_dispatch_unlock();
-    DEBUG_PRINTF("bsc_hub_connector_stopped() <<< ret = %d\n", ret);
+    printf("bsc_hub_connector_stopped() <<< ret = %d\n", ret);
     return ret;
 }
 
