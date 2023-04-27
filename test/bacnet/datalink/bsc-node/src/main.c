@@ -1140,6 +1140,7 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
         bws_dispatch_unlock();
         return true;
     } else {
+        debug_printf("got event %d but wait for %d\n", ev->ev, wait_ev);
         bws_dispatch_unlock();
         return false;
     }
