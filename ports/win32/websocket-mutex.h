@@ -10,8 +10,8 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#ifndef __BSC_WEBSOCKET_INCLUDED__
-#define __BSC_WEBSOCKET_INCLUDED__
+#ifndef __BSC_WEBSOCKET_MUTEX_INCLUDED__
+#define __BSC_WEBSOCKET_MUTEX_INCLUDED__
 
 #include <windows.h>
 

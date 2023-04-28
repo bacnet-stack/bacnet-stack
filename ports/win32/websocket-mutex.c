@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implementation of websocket client interface.
+ * @brief Implementation of global websocket mutex lock/unlock functions.
  * @author Kirill Neznamov
  * @date May 2022
  * @section LICENSE
