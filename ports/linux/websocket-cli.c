@@ -21,7 +21,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "websocket-mutex.h"
 
-#define DEBUG_WEBSOCKET_CLIENT 0
+#define DEBUG_WEBSOCKET_CLIENT 1
 
 #if DEBUG_WEBSOCKET_CLIENT == 1
 #define DEBUG_PRINTF debug_printf

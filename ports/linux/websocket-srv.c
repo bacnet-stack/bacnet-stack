@@ -22,7 +22,7 @@
 #include "websocket-mutex.h"
 #include <arpa/inet.h>
 
-#define DEBUG_WEBSOCKET_SERVER 0
+#define DEBUG_WEBSOCKET_SERVER 1
 
 #if DEBUG_WEBSOCKET_SERVER == 1
 #define DEBUG_PRINTF debug_printf
