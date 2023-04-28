@@ -49,41 +49,41 @@ static int volatile websocket_dispatch_mutex_cnt = 0;
 
 void bsc_websocket_global_lock_dbg(char *f, int line)
 {
-  printf("bsc_websocket_global_lock_dbg() >>> %s:%d lock_cnt %d\n", f, line, websocket_mutex_cnt);
+  printf("bsc_websocket_global_lock_dbg() >>> %s:%d lock_cnt %d tid = %ld\n", f, line, websocket_mutex_cnt, pthread_self());
   websocket_mutex_cnt++;
   fflush(stdout);
   pthread_mutex_lock(&websocket_mutex);
-  printf("bsc_websocket_global_lock_dbg() <<< lock_cnt %d\n", websocket_mutex_cnt);
+  printf("bsc_websocket_global_lock_dbg() <<< lock_cnt %d tid = %ld\n", websocket_mutex_cnt, pthread_self());
   fflush(stdout);
 }
 
 void bsc_websocket_global_unlock_dbg(char *f, int line)
 {
-  printf("bsc_websocket_global_unlock_dbg() >>> %s:%d lock_cnt %d\n", f, line, websocket_mutex_cnt);
+  printf("bsc_websocket_global_unlock_dbg() >>> %s:%d lock_cnt %d tid = %ld\n", f, line, websocket_mutex_cnt, pthread_self());
   websocket_mutex_cnt--;
   fflush(stdout);
   pthread_mutex_unlock(&websocket_mutex);
-  printf("bsc_websocket_global_unlock_dbg() <<< lock_cnt %d\n", websocket_mutex_cnt);
+  printf("bsc_websocket_global_unlock_dbg() <<< lock_cnt %d tid = %ld\n", websocket_mutex_cnt, pthread_self());
   fflush(stdout);
 }
 
 void bws_dispatch_lock_dbg(char *f, int line)
 {
-  printf("bws_dispatch_lock_dbg() >>> %s:%d lock_cnt %d\n", f, line, websocket_dispatch_mutex_cnt);
+  printf("bws_dispatch_lock_dbg() >>> %s:%d lock_cnt %d tid = %ld\n", f, line, websocket_dispatch_mutex_cnt, pthread_self());
   websocket_dispatch_mutex_cnt++;
   fflush(stdout);
   pthread_mutex_lock(&websocket_dispatch_mutex);
-  printf("bws_dispatch_lock_dbg() <<< lock_cnt %d\n", websocket_dispatch_mutex_cnt);
+  printf("bws_dispatch_lock_dbg() <<< lock_cnt %d tid = %ld\n", websocket_dispatch_mutex_cnt, pthread_self());
   fflush(stdout);
 }
 
 void bws_dispatch_unlock_dbg(char *f, int line)
 {
-  printf("bws_dispatch_unlock_dbg() >>> %s:%d lock_cnt %d\n", f, line, websocket_dispatch_mutex_cnt);
+  printf("bws_dispatch_unlock_dbg() >>> %s:%d lock_cnt %d  tid = %ld\n", f, line, websocket_dispatch_mutex_cnt, pthread_self());
   websocket_dispatch_mutex_cnt--;
   fflush(stdout);
   pthread_mutex_unlock(&websocket_dispatch_mutex);
-  printf("bws_dispatch_unlock_dbg() <<< lock_cnt %d\n", websocket_dispatch_mutex_cnt);
+  printf("bws_dispatch_unlock_dbg() <<< lock_cnt %d tid = %ld\n", websocket_dispatch_mutex_cnt, pthread_self());
   fflush(stdout);
 }
 
