@@ -616,7 +616,7 @@ void bsc_socket_maintenance_timer(uint16_t seconds)
 {
     int i, j;
     (void)seconds;
-
+    printf("bsc_socket_maintenance_timer() >>>\n");
     bws_dispatch_lock();
 
     for (i = 0; i < BSC_SOCKET_CTX_NUM; i++) {
@@ -631,6 +631,7 @@ void bsc_socket_maintenance_timer(uint16_t seconds)
     }
 
     bws_dispatch_unlock();
+    printf("bsc_socket_maintenance_timer() <<<\n");
 }
 
 static void bsc_process_srv_awaiting_request(
@@ -887,7 +888,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
 
     (void)sh;
     bws_dispatch_lock();
-    DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
+    printf("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
                  "reason = %d, desc = %p, buf "
                  "= %p, bufsize = %d, ctx = %p\n",
         sh, h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
@@ -901,7 +902,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         ctx->state = BSC_CTX_STATE_IDLE;
         ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
         bsc_socket_maintenance_timer(0);
-        DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
+        printf("bsc_dispatch_srv_func() <<<\n");
         bws_dispatch_unlock();
         return;
     } else if (ev == BSC_WEBSOCKET_SERVER_STARTED) {
@@ -909,7 +910,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         DEBUG_PRINTF("bsc_dispatch_srv_func() ctx %p is initialized\n", ctx);
         ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
         bsc_socket_maintenance_timer(0);
-        DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
+        printf("bsc_dispatch_srv_func() <<<\n");
         bws_dispatch_unlock();
         return;
     }
@@ -920,7 +921,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
             DEBUG_PRINTF("bsc_dispatch_srv_func() can not find socket "
                          "descriptor for websocket %d\n",
                 h);
-            DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
+            printf("bsc_dispatch_srv_func() <<<\n");
             bws_dispatch_unlock();
             return;
         }
@@ -1002,7 +1003,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     bsc_socket_maintenance_timer(0);
-    DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
+    printf("bsc_dispatch_srv_func() <<<\n");
     bws_dispatch_unlock();
 }
 
@@ -1125,7 +1126,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
 
     bws_dispatch_lock();
 
-    DEBUG_PRINTF("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
+    printf("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
                  "reason_desc = %p, buf = %p, "
                  "bufsize = %d, ctx = %p\n",
         h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
@@ -1133,7 +1134,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     c = bsc_find_conn_by_websocket(ctx, h);
 
     if (!c) {
-        DEBUG_PRINTF("bsc_dispatch_cli_func() <<< warning, can not find "
+        printf("bsc_dispatch_cli_func() <<< warning, can not find "
                      "connection object for websocket %d\n",
             h);
         bws_dispatch_unlock();
@@ -1246,7 +1247,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     }
 
     bsc_socket_maintenance_timer(0);
-    DEBUG_PRINTF("bsc_dispatch_cli_func() <<<\n");
+    printf("bsc_dispatch_cli_func() <<<\n");
     bws_dispatch_unlock();
 }
 
