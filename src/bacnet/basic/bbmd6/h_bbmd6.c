@@ -48,14 +48,22 @@ static bool BVLC6_Debug;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
-#define PRINTF(...)                   \
-    if (BVLC6_Debug) {                \
-        fprintf(stderr, __VA_ARGS__); \
-        fflush(stderr);               \
+static int printf_stderr(const char *format, ...) {
+    int len = 0;
+
+    if (BVLC6_Debug) {
+        len = fprintf(stderr, __VA_ARGS__);
+        fflush(stderr);
     }
+
+    return len;
+}
 #else
-#define PRINTF(...)
+static int printf_stderr(const char *format, ...) {
+    (void)format;
+}
 #endif
+#define PRINTF printf_stderr
 
 /** result from a client request */
 static uint16_t BVLC6_Result_Code = BVLC6_RESULT_SUCCESSFUL_COMPLETION;
@@ -178,10 +186,11 @@ static bool bbmd6_address_to_vmac(
 static void bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
 {
     bool found = false;
+    uint32_t list_device_id = 0;
     struct vmac_data *vmac;
     struct vmac_data new_vmac;
 
-    if (bvlc6_address_to_vmac(&new_vmac, addr)) {
+    if (bbmd6_address_to_vmac(&new_vmac, addr)) {
         if (VMAC_Find_By_Data(&new_vmac, &list_device_id)) {
             if (list_device_id == device_id) {
                 /* valid VMAC entry exists. */
