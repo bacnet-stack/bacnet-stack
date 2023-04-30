@@ -174,39 +174,37 @@ static bool bbmd6_address_to_vmac(
  *
  * @param device_id - device ID used as the key-pair
  * @param addr - IPv6 source address
- *
- * @return true if the VMAC address was added
  */
-static bool bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
+static void bbmd6_add_vmac(uint32_t device_id, BACNET_IP6_ADDRESS *addr)
 {
-    bool status = false;
+    bool found = false;
     struct vmac_data *vmac;
     struct vmac_data new_vmac;
-    unsigned i = 0;
 
-    if (addr) {
-        vmac = VMAC_Find_By_Key(device_id);
-        if (vmac) {
-            /* already exists - replace? */
-            PRINTF("VMAC existing %u [", (unsigned int)device_id);
-            for (i = 0; i < vmac->mac_len; i++) {
-                PRINTF("%02X", vmac->mac[i]);
+    if (bvlc6_address_to_vmac(&new_vmac, addr)) {
+        if (VMAC_Find_By_Data(&new_vmac, &list_device_id)) {
+            if (list_device_id == device_id) {
+                /* valid VMAC entry exists. */
+                found = true;
+            } else {
+                /* VMAC exists, but device ID changed */
+                VMAC_Delete(list_device_id);
+                PRINTF("BVLC6: Removed VMAC %lu.\n", (unsigned long)device_id);
             }
-            PRINTF("]\n");
-            PRINTF("VMAC ignoring %u [", (unsigned int)device_id);
-            for (i = 0; i < IP6_ADDRESS_MAX; i++) {
-                PRINTF("%02X", addr->address[i]);
+        }
+        if (!found) {
+            vmac = VMAC_Find_By_Key(device_id);
+            if (vmac) {
+                /* device ID already exists. Update MAC. */
+                memmove(vmac, &new_vmac, sizeof(struct vmac_data));
+                PRINTF("BVLC6: Updated VMAC %lu.\n", (unsigned long)device_id);
+            } else {
+                /* new entry - add it! */
+                VMAC_Add(device_id, &new_vmac);
+                PRINTF("BVLC6: Added VMAC %lu.\n", (unsigned long)device_id);
             }
-            PRINTF("%04X", addr->port);
-            PRINTF("]\n");
-        } else if (bbmd6_address_to_vmac(&new_vmac, addr)) {
-            /* new entry - add it! */
-            status = VMAC_Add(device_id, &new_vmac);
-            PRINTF("BVLC6: Adding VMAC %lu.\n", (unsigned long)device_id);
         }
     }
-
-    return status;
 }
 
 /**
