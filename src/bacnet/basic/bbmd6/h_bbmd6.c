@@ -48,7 +48,7 @@ static bool BVLC6_Debug;
 #if PRINT_ENABLED
 #include <stdarg.h>
 #include <stdio.h>
-int printf_stderr(const char *format, ...)
+static int printf_stderr(const char *format, ...)
 {
     int length = 0;
     va_list ap;
