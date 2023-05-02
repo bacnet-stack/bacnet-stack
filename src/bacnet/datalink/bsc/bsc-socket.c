@@ -660,7 +660,7 @@ static void bsc_process_srv_awaiting_request(
         c, dm, buf, bufsize);
 
     if (!bvlc_sc_decode_message(buf, bufsize, dm, &code, &class, &err_desc)) {
-        DEBUG_PRINTF(
+        debug_printf(
             "bsc_process_srv_awaiting_request() decoding of received message "
             "failed, error code = %d, class = %d\n",
             code, class);
@@ -752,7 +752,7 @@ static void bsc_process_srv_awaiting_request(
             dm->payload.connect_request.vmac, c->ctx->user_arg);
 
         if (existing) {
-            DEBUG_PRINTF(
+            debug_printf(
                 "bsc_process_srv_awaiting_request() rejected connection for "
                 "duplicated vmac %s from uuid %s,"
                 " vmac is used by uuid %s\n",
@@ -796,7 +796,7 @@ static void bsc_process_srv_awaiting_request(
             bsc_vmac_to_string(&c->ctx->cfg->local_vmac),
             bsc_uuid_to_string(&c->ctx->cfg->local_uuid));
 
-        DEBUG_PRINTF("bsc_process_srv_awaiting_request() remote vmac = %s, "
+        debug_printf("bsc_process_srv_awaiting_request() remote vmac = %s, "
                      "remote uuid = %s\n",
             bsc_vmac_to_string(&c->vmac), bsc_uuid_to_string(&c->uuid));
 
@@ -857,7 +857,7 @@ static void bsc_process_srv_awaiting_request(
                 c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
             bws_srv_send(c->ctx->sh, c->wh);
         } else {
-            DEBUG_PRINTF("bsc_process_srv_awaiting_request() sending of "
+            debug_printf("bsc_process_srv_awaiting_request() sending of "
                          "connect accept failed, err = BSC_SC_NO_RESOURCES\n");
             if (c->ctx->funcs->failed_request) {
                 c->ctx->funcs->failed_request(c->ctx, c, &c->vmac, &c->uuid,
