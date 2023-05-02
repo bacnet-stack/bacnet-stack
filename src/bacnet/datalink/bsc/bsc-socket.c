@@ -616,7 +616,7 @@ void bsc_socket_maintenance_timer(uint16_t seconds)
 {
     int i, j;
     (void)seconds;
-    printf("bsc_socket_maintenance_timer() >>>\n");
+    DEBUG_PRINTF("bsc_socket_maintenance_timer() >>>\n");
     bws_dispatch_lock();
 
     for (i = 0; i < BSC_SOCKET_CTX_NUM; i++) {
@@ -631,7 +631,7 @@ void bsc_socket_maintenance_timer(uint16_t seconds)
     }
 
     bws_dispatch_unlock();
-    printf("bsc_socket_maintenance_timer() <<<\n");
+    DEBUG_PRINTF("bsc_socket_maintenance_timer() <<<\n");
 }
 
 static void bsc_process_srv_awaiting_request(

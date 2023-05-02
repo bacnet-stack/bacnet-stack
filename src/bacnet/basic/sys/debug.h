@@ -31,11 +31,11 @@
 #include "bacnet/bacdef.h"
 
 #ifndef DEBUG_ENABLED
-#define DEBUG_ENABLED 0
+#define DEBUG_ENABLED 1
 #endif
 
 #ifndef DEBUG_PRINTF_WITH_TIMESTAMP
-#define DEBUG_PRINTF_WITH_TIMESTAMP 0
+#define DEBUG_PRINTF_WITH_TIMESTAMP 1
 #endif
 
 #ifdef __cplusplus
