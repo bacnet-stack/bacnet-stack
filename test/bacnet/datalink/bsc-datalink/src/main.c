@@ -1259,8 +1259,10 @@ static void node_event2(BSC_NODE *node,
     uint8_t *pdu,
     size_t pdu_len)
 {
+    bws_dispatch_lock();
     debug_printf("node_event2() ev = %d event = %p\n", ev, node_ev2.e);
     signal_node_ev(&node_ev2, ev, node, dest, pdu, pdu_len);
+    bws_dispatch_unlock();
 }
 
 static void node_event3(BSC_NODE *node,
@@ -1269,8 +1271,10 @@ static void node_event3(BSC_NODE *node,
     uint8_t *pdu,
     size_t pdu_len)
 {
+    bws_dispatch_lock();
     debug_printf("node_event3() ev = %d event = %p\n", ev, node_ev3.e);
     signal_node_ev(&node_ev3, ev, node, dest, pdu, pdu_len);
+    bws_dispatch_unlock();
 }
 
 static void node_event4(BSC_NODE *node,
@@ -1279,8 +1283,10 @@ static void node_event4(BSC_NODE *node,
     uint8_t *pdu,
     size_t pdu_len)
 {
+    bws_dispatch_lock();
     debug_printf("node_event4() ev = %d event = %p\n", ev, node_ev4.e);
     signal_node_ev(&node_ev4, ev, node, dest, pdu, pdu_len);
+    bws_dispatch_unlock();
 }
 
 static void netport_object_init(uint32_t instance,
