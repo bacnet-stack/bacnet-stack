@@ -575,6 +575,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
             "bws_cli_connect() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
+    bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_CONNECTING;
     bws_cli_conn[h].fragment_buffer = NULL;
     bws_cli_conn[h].fragment_buffer_len = 0;
     bws_cli_conn[h].fragment_buffer_size = 0;
@@ -675,7 +676,6 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
         cinfo.protocol = bws_direct_protocol;
     }
 
-    bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_CONNECTING;
     bws_cli_conn[h].err_code = ERROR_CODE_SUCCESS;
     *out_handle = h;
     pthread_mutex_unlock(&bws_cli_mutex);
