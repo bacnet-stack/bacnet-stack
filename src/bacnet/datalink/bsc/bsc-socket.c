@@ -302,11 +302,19 @@ static void bsc_process_socket_disconnecting(BSC_SOCKET *c,
                 "NAK on BVLC_SC_DISCONNECT_REQUEST\n");
             *need_disconnect = true;
         }
-    } else {
+    } else if (dm->hdr.bvlc_function == BVLC_SC_ENCAPSULATED_NPDU ||
+        dm->hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION ||
+        dm->hdr.bvlc_function == BVLC_SC_ADDRESS_RESOLUTION_ACK ||
+        dm->hdr.bvlc_function == BVLC_SC_ADVERTISIMENT ||
+        dm->hdr.bvlc_function == BVLC_SC_ADVERTISIMENT_SOLICITATION ||
+        dm->hdr.bvlc_function == BVLC_SC_PROPRIETARY_MESSAGE) {
+        DEBUG_PRINTF("bsc_process_socket_disconnecting() emit received event "
+                     "buf = %p, size = %d\n",
+            buf, buflen);
+
         c->ctx->funcs->socket_event(
             c, BSC_SOCKET_EVENT_RECEIVED, 0, NULL, buf, buflen, dm);
     }
-
     DEBUG_PRINTF("bsc_process_socket_disconnecting() <<<\n");
 }
 
@@ -889,8 +897,8 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     (void)sh;
     bws_dispatch_lock();
     printf("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
-                 "reason = %d, desc = %p, buf "
-                 "= %p, bufsize = %ld, ctx = %p\n",
+           "reason = %d, desc = %p, buf "
+           "= %p, bufsize = %ld, ctx = %p\n",
         sh, h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
@@ -1127,15 +1135,15 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     bws_dispatch_lock();
 
     printf("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
-                 "reason_desc = %p, buf = %p, "
-                 "bufsize = %ld, ctx = %p\n",
+           "reason_desc = %p, buf = %p, "
+           "bufsize = %ld, ctx = %p\n",
         h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     c = bsc_find_conn_by_websocket(ctx, h);
 
     if (!c) {
         printf("bsc_dispatch_cli_func() <<< warning, can not find "
-                     "connection object for websocket %d\n",
+               "connection object for websocket %d\n",
             h);
         bws_dispatch_unlock();
         return;
@@ -1352,8 +1360,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
             }
         }
         if (!active_socket) {
-            printf(
-                "bsc_deinit_ctx() no active sockets, ctx de-initialized\n");
+            printf("bsc_deinit_ctx() no active sockets, ctx de-initialized\n");
             ctx->state = BSC_CTX_STATE_IDLE;
             bsc_ctx_remove(ctx);
             ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
@@ -1528,7 +1535,7 @@ bool bsc_socket_get_peer_addr(BSC_SOCKET *c, BACNET_HOST_N_PORT_DATA *data)
 }
 
 BACNET_STACK_EXPORT
-uint8_t* bsc_socket_get_global_buf(void)
+uint8_t *bsc_socket_get_global_buf(void)
 {
     static uint8_t buf[BSC_PRE + BVLC_SC_NPDU_SIZE_CONF];
     return &buf[BSC_PRE];
