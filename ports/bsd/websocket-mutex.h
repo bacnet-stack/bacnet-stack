@@ -13,9 +13,11 @@
 #ifndef __BSC_WEBSOCKET_MUTEX_INCLUDED__
 #define __BSC_WEBSOCKET_MUTEX_INCLUDED__
 
-#define BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED 1
+#ifndef BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED
+#define BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED 0
+#endif
 
-#if !defined(BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED)
+#if (BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED != 1)
 void bsc_websocket_global_lock(void);
 void bsc_websocket_global_unlock(void);
 #else

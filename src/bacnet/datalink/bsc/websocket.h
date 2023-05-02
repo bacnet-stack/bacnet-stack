@@ -404,8 +404,11 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(BSC_WEBSOCKET_SRV_HANDLE sh,
  *        websocket server and client instances won't be called until user
  *        calls bws_dispatch_unlock().
  */
-#define BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED 1
 #ifndef BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED
+#define BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED 0
+#endif
+
+#if (BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED != 1)
 void bws_dispatch_lock(void);
 #else
 extern void bws_dispatch_lock_dbg(char *f, int line);
@@ -417,7 +420,7 @@ extern void bws_dispatch_lock_dbg(char *f, int line);
  *        global mutex.
  */
 
-#ifndef BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED
+#if (BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED != 1)
 void bws_dispatch_unlock(void);
 #else
 extern void bws_dispatch_unlock_dbg(char *f, int line);

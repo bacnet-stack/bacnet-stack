@@ -23,7 +23,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/bacenum.h"
 
-#define DEBUG_BSC_NODE 1
+#define DEBUG_BSC_NODE 0
 
 #if DEBUG_BSC_NODE == 1
 #define DEBUG_PRINTF debug_printf

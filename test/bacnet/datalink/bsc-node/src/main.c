@@ -1269,17 +1269,17 @@ static void node_event3(BSC_NODE *node,
 
 static void test_node_start_stop(void)
 {
-    BACNET_SC_UUID node_uuid;
-    BACNET_SC_VMAC_ADDRESS node_vmac;
-    BSC_NODE_CONF conf;
+    BACNET_SC_UUID node_uuid = {0};
+    BACNET_SC_VMAC_ADDRESS node_vmac = {0};
+    BSC_NODE_CONF conf = {0};
     BSC_SC_RET ret;
-    BSC_NODE *node;
-    BSC_NODE *node1;
-    BSC_NODE *node2;
-    BSC_NODE *node3;
+    BSC_NODE *node = NULL;
+    BSC_NODE *node1 = NULL;
+    BSC_NODE *node2 = NULL;
+    BSC_NODE *node3 = NULL;
 
-    char primary_url[128];
-    char secondary_url[128];
+    char primary_url[128] = {0};
+    char secondary_url[128] = {0};
 
     sprintf(primary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);
     sprintf(secondary_url, "wss://%s:%d", BACNET_LOCALHOST, BACNET_CLOSED_PORT);

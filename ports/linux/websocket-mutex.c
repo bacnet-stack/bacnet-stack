@@ -21,7 +21,7 @@
 static pthread_mutex_t websocket_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static pthread_mutex_t websocket_dispatch_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
-#ifndef BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED
+#if (BSC_DEBUG_WEBSOCKET_MUTEX_ENABLED != 1)
 
 void bsc_websocket_global_lock(void)
 {
