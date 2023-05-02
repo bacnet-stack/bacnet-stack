@@ -23,6 +23,7 @@
 #include <bacnet/datalink/bsc/bsc-util.h>
 #include <bacnet/datalink/bsc/bsc-event.h>
 #include <bacnet/bacdef.h>
+#include "bacnet/basic/sys/debug.h"
 
 unsigned char ca_key[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x42, 0x45, 0x47, 0x49,
     0x4e, 0x20, 0x52, 0x53, 0x41, 0x20, 0x50, 0x52, 0x49, 0x56, 0x41, 0x54,
@@ -2134,6 +2135,12 @@ static void test_sc_datalink_failed_requests(void)
     zassert_equal(
         memcmp(r->Peer_VMAC, &failed_vmac.address[0], BVLC_SC_VMAC_SIZE) == 0,
         true, NULL);
+
+#if DEBUG_ENABLED
+    debug_printf("r->Peer_UUID.uuid.uuid128 = %s\n", bsc_uuid_to_string((BACNET_SC_UUID *)r->Peer_UUID.uuid.uuid128));
+    debug_printf("failed_uuid.uuid[0] = %s\n", bsc_uuid_to_string(&failed_uuid));
+#endif
+
     zassert_equal(memcmp(r->Peer_UUID.uuid.uuid128, &failed_uuid.uuid[0],
                       BVLC_SC_UUID_SIZE) == 0,
         true, NULL);
