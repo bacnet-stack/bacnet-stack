@@ -16,7 +16,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <libwebsockets.h>
 #include "websocket-mutex.h"
+#include "bacnet/basic/sys/debug.h"
 
 static pthread_mutex_t websocket_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static pthread_mutex_t websocket_dispatch_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
@@ -88,3 +90,23 @@ void bws_dispatch_unlock_dbg(char *f, int line)
 }
 
 #endif
+
+static bool bsc_websocket_log_initialized = false;
+
+void bsc_websocket_init_log(void)
+{
+    bsc_websocket_global_lock();
+    if(!bsc_websocket_log_initialized) {
+      bsc_websocket_log_initialized = true;
+#if DEBUG_LIBWEBSOCKETS_ENABLED == 1
+      lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG |
+            LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY |
+            LLL_USER | LLL_THREAD,
+        NULL);
+#else
+      lws_set_log_level(0, NULL);
+#endif
+    }
+    bsc_websocket_global_unlock();
+}
+

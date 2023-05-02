@@ -725,16 +725,7 @@ BSC_WEBSOCKET_RET bws_srv_start(BSC_WEBSOCKET_PROTOCOL proto,
         return BSC_WEBSOCKET_NO_RESOURCES;
     }
 
-    bsc_websocket_global_lock();
-#if DEBUG_ENABLED == 1
-    lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG |
-            LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_LATENCY |
-            LLL_USER | LLL_THREAD,
-        NULL);
-#else
-    lws_set_log_level(0, NULL);
-#endif
-    bsc_websocket_global_unlock();
+    bsc_websocket_init_log();
 
     pthread_mutex_lock(ctx->mutex);
     info.port = port;
