@@ -1128,7 +1128,7 @@ static void deinit_node_ev(node_ev_t *ev)
 
 static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
 {
-    debug_printf("wait_node_ev() >>> ev->ev = %p wait_ev = %d, node = %p\n", ev->ev, wait_ev, node);
+    debug_printf("wait_node_ev() >>> ev = %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->ev, wait_ev, node);
     call_maintenance_timer(1, 0);
     while (!bsc_event_timedwait(ev->e, WAIT_EVENT_MS)) {
         call_maintenance_timer(0, WAIT_EVENT_MS);
@@ -1138,12 +1138,12 @@ static bool wait_node_ev(node_ev_t *ev, BSC_NODE_EVENT wait_ev, BSC_NODE *node)
         debug_printf("wait_node_ev() got event %d\n", ev->ev);
         ev->ev = -1;
         bws_dispatch_unlock();
-        debug_printf("wait_node_ev() <<< ret = true, ev->ev = %p wait_ev = %d, node = %p\n", ev->ev, wait_ev, node);
+        debug_printf("wait_node_ev() <<< ret = true,  ev = %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->ev, wait_ev, node);
         return true;
     } else {
         debug_printf("wait_node_ev() got event %d but wait for %d\n", ev->ev, wait_ev);
         bws_dispatch_unlock();
-        debug_printf("wait_node_ev() <<< ret = false, ev->ev = %p wait_ev = %d, node = %p\n", ev->ev, wait_ev, node);
+        debug_printf("wait_node_ev() <<< ret = false,  ev = %p ev->ev = %d wait_ev = %d, node = %p\n", ev, ev->ev, wait_ev, node);
         return false;
     }
 }

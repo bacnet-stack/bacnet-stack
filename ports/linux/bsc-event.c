@@ -20,7 +20,7 @@
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/datalink/bsc/bsc-event.h"
 
-#define DEBUG_BSC_EVENT 0
+#define DEBUG_BSC_EVENT 1
 
 #if DEBUG_BSC_EVENT == 1
 #define DEBUG_PRINTF printf
@@ -113,7 +113,7 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
 {
     bool timedout = false;
     struct timespec to;
-
+    bool ret;
     clock_gettime(CLOCK_REALTIME, &to);
     to.tv_sec = to.tv_sec + ms_timeout / 1000;
     to.tv_nsec = to.tv_nsec + (ms_timeout % 1000) * 1000000;
@@ -145,20 +145,20 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
        DEBUG_PRINTF("bsc_event_timedwait() wake up other waiting threads\n");
        pthread_cond_broadcast(&ev->cond);
     }
-
-    DEBUG_PRINTF("bsc_event_timedwait() <<< ev = %p\n", ev);
+    ret = !timedout;
+    DEBUG_PRINTF("bsc_event_timedwait() <<< ret = %d, ev = %p\n", ret, ev);
     pthread_mutex_unlock(&ev->mutex);
-    return !timedout;
+    return ret;
 }
 
 void bsc_event_signal(BSC_EVENT *ev)
 {
-    DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
+    printf("bsc_event_signal() >>> ev = %p\n", ev);
     pthread_mutex_lock(&ev->mutex);
     ev->v = true;
     pthread_cond_broadcast(&ev->cond);
     pthread_mutex_unlock(&ev->mutex);
-    DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
+    printf("bsc_event_signal() <<< ev = %p\n", ev);
 }
 
 void bsc_wait(int seconds)
