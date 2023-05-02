@@ -989,11 +989,7 @@ bool bws_srv_get_peer_ip_addr(BSC_WEBSOCKET_SRV_HANDLE sh,
     if (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE &&
         ctx->conn[h].ws != NULL && !ctx->stop_worker) {
         len = sizeof(addr);
-        pthread_mutex_unlock(ctx->mutex);
-        bsc_websocket_global_lock();
         fd = lws_get_socket_fd(ctx->conn[h].ws);
-        bsc_websocket_global_unlock();
-        pthread_mutex_lock(ctx->mutex);
         if (fd != -1) {
             getpeername(fd, (struct sockaddr *)&addr, &len);
             if (addr.ss_family == AF_INET) {
