@@ -890,7 +890,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     bws_dispatch_lock();
     printf("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
                  "reason = %d, desc = %p, buf "
-                 "= %p, bufsize = %d, ctx = %p\n",
+                 "= %p, bufsize = %ld, ctx = %p\n",
         sh, h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
@@ -1128,7 +1128,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
 
     printf("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
                  "reason_desc = %p, buf = %p, "
-                 "bufsize = %d, ctx = %p\n",
+                 "bufsize = %ld, ctx = %p\n",
         h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     c = bsc_find_conn_by_websocket(ctx, h);
@@ -1346,7 +1346,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
             if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                 active_socket = true;
                 printf(
-                    "bsc_deinit_ctx() disconnect socket %d(%p) with wh = %d\n",
+                    "bsc_deinit_ctx() disconnect socket %ld(%p) with wh = %d\n",
                     i, &ctx->sock[i], ctx->sock[i].wh);
                 bws_cli_disconnect(ctx->sock[i].wh);
             }
