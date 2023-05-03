@@ -153,12 +153,12 @@ bool bsc_event_timedwait(BSC_EVENT *ev, unsigned int ms_timeout)
 
 void bsc_event_signal(BSC_EVENT *ev)
 {
-    printf("bsc_event_signal() >>> ev = %p\n", ev);
+    DEBUG_PRINTF("bsc_event_signal() >>> ev = %p\n", ev);
     pthread_mutex_lock(&ev->mutex);
     ev->v = true;
     pthread_cond_broadcast(&ev->cond);
     pthread_mutex_unlock(&ev->mutex);
-    printf("bsc_event_signal() <<< ev = %p\n", ev);
+    DEBUG_PRINTF("bsc_event_signal() <<< ev = %p\n", ev);
 }
 
 void bsc_wait(int seconds)

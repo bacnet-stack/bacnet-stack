@@ -683,23 +683,21 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
 
 void bws_cli_disconnect(BSC_WEBSOCKET_HANDLE h)
 {
-    printf("bws_cli_disconnect() >>> h = %d\n", h);
+    DEBUG_PRINTF("bws_cli_disconnect() >>> h = %d\n", h);
 
     if (h >= 0 && h < BSC_CLIENT_WEBSOCKETS_MAX_NUM) {
         pthread_mutex_lock(&bws_cli_mutex);
-        printf("bws_cli_disconnect() state = %d\n", bws_cli_conn[h].state);
-
+        DEBUG_PRINTF("bws_cli_disconnect() state = %d\n", bws_cli_conn[h].state);
         if (bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTING ||
             bws_cli_conn[h].state == BSC_WEBSOCKET_STATE_CONNECTED) {
             /* tell worker to process change of connection state */
             bws_cli_conn[h].state = BSC_WEBSOCKET_STATE_DISCONNECTING;
             lws_cancel_service(bws_cli_conn[h].ctx);
         }
-
         pthread_mutex_unlock(&bws_cli_mutex);
     }
 
-    printf("bws_cli_disconnect() <<<\n");
+    DEBUG_PRINTF("bws_cli_disconnect() <<<\n");
 }
 
 void bws_cli_send(BSC_WEBSOCKET_HANDLE h)
