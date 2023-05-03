@@ -434,7 +434,7 @@ list(
       ${BACNETSTACK_PORT}/av.c
       ${BACNETSTACK_PORT}/event.c
       $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/bsc-event.c>
-      $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-mutex.c>
+      $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-global.c>
       $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-cli.c>
       $<$<BOOL:${CONFIG_BACDL_BSC}>:${BACNETSTACK_PORT}/websocket-srv.c>
       ${BACNETSTACK_PORT}/libc_extensions.c

@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "websocket-mutex.h"
+#include "websocket-global.h"
 
 static pthread_mutex_t websocket_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 static pthread_mutex_t websocket_dispatch_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;

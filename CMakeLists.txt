@@ -536,7 +536,7 @@ endif()
     $<$<BOOL:${BACDL_BSC}>:ports/linux/bsc-event.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-srv.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-mutex.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/linux/websocket-global.c>
     # ports/linux/rx_fsm.c
     $<$<BOOL:${BACDL_ETHERNET}>:ports/linux/ethernet.c>
     ports/linux/mstimer-init.c)
@@ -591,7 +591,7 @@ endif()
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-mutex.c>
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>
     ports/bsd/stdbool.h)
 endif()
 

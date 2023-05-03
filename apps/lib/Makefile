@@ -50,7 +50,7 @@ PORT_BIP6_SRC = \
 
 PORT_BSC_SRC = \
 	$(BACNET_PORT_DIR)/bip-init.c \
-	$(BACNET_PORT_DIR)/websocket-mutex.c \
+	$(BACNET_PORT_DIR)/websocket-global.c \
 	$(BACNET_PORT_DIR)/websocket-srv.c \
 	$(BACNET_PORT_DIR)/websocket-cli.c \
 	$(BACNET_PORT_DIR)/bsc-event.c \

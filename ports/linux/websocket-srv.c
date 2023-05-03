@@ -19,7 +19,7 @@
 #include <pthread.h>
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/debug.h"
-#include "websocket-mutex.h"
+#include "websocket-global.h"
 #include <arpa/inet.h>
 
 #define DEBUG_WEBSOCKET_SERVER 0
