@@ -71,7 +71,7 @@ void bsc_websocket_init_log(void)
 {
     bsc_websocket_global_lock();
     if(!bsc_websocket_log_initialized) {
-      bsc_websocket_log_initialized = true;
+      bsc_websocket_log_initialized = TRUE;
       printf("LWS_MAX_SMP = %d", LWS_MAX_SMP);
 #if DEBUG_LIBWEBSOCKETS_ENABLED == 1
       lws_set_log_level(LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_DEBUG |
