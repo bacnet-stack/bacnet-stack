@@ -50,7 +50,6 @@ void bsc_copy_uuid(BACNET_SC_UUID *dst, BACNET_SC_UUID *src)
 char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 {
     static char buf[128];
-    buf[0] = 0;
     sprintf(buf, "%02x%02x%02x%02x%02x%02x", vmac->address[0], vmac->address[1],
         vmac->address[2], vmac->address[3], vmac->address[4], vmac->address[5]);
     return buf;
@@ -59,7 +58,6 @@ char *bsc_vmac_to_string(BACNET_SC_VMAC_ADDRESS *vmac)
 char *bsc_uuid_to_string(BACNET_SC_UUID *uuid)
 {
     static char buf[128];
-    buf[0] = 0;
     sprintf(buf,
         "%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x-%02x%02x%02x%02x",
         uuid->uuid[0], uuid->uuid[1], uuid->uuid[2], uuid->uuid[3],

@@ -660,7 +660,7 @@ static void bsc_process_srv_awaiting_request(
         c, dm, buf, bufsize);
 
     if (!bvlc_sc_decode_message(buf, bufsize, dm, &code, &class, &err_desc)) {
-        debug_printf(
+        DEBUG_PRINTF(
             "bsc_process_srv_awaiting_request() decoding of received message "
             "failed, error code = %d, class = %d\n",
             code, class);
@@ -752,7 +752,7 @@ static void bsc_process_srv_awaiting_request(
             dm->payload.connect_request.vmac, c->ctx->user_arg);
 
         if (existing) {
-            debug_printf(
+            DEBUG_PRINTF(
                 "bsc_process_srv_awaiting_request() rejected connection for "
                 "duplicated vmac %s from uuid %s,"
                 " vmac is used by uuid %s\n",
@@ -796,7 +796,7 @@ static void bsc_process_srv_awaiting_request(
             bsc_vmac_to_string(&c->ctx->cfg->local_vmac),
             bsc_uuid_to_string(&c->ctx->cfg->local_uuid));
 
-        debug_printf("bsc_process_srv_awaiting_request() remote vmac = %s, "
+        DEBUG_PRINTF("bsc_process_srv_awaiting_request() remote vmac = %s, "
                      "remote uuid = %s\n",
             bsc_vmac_to_string(&c->vmac), bsc_uuid_to_string(&c->uuid));
 
@@ -857,7 +857,7 @@ static void bsc_process_srv_awaiting_request(
                 c, BSC_SOCKET_EVENT_CONNECTED, 0, NULL, NULL, 0, NULL);
             bws_srv_send(c->ctx->sh, c->wh);
         } else {
-            debug_printf("bsc_process_srv_awaiting_request() sending of "
+            DEBUG_PRINTF("bsc_process_srv_awaiting_request() sending of "
                          "connect accept failed, err = BSC_SC_NO_RESOURCES\n");
             if (c->ctx->funcs->failed_request) {
                 c->ctx->funcs->failed_request(c->ctx, c, &c->vmac, &c->uuid,
@@ -896,9 +896,9 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
 
     (void)sh;
     bws_dispatch_lock();
-    printf("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
-           "reason = %d, desc = %p, buf "
-           "= %p, bufsize = %ld, ctx = %p\n",
+    DEBUG_PRINTF("bsc_dispatch_srv_func() >>> sh = %p, h = %d, ev = %d, "
+                 "reason = %d, desc = %p, buf "
+                 "= %p, bufsize = %ld, ctx = %p\n",
         sh, h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     if (ev == BSC_WEBSOCKET_SERVER_STOPPED) {
@@ -910,7 +910,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         ctx->state = BSC_CTX_STATE_IDLE;
         ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
         bsc_socket_maintenance_timer(0);
-        printf("bsc_dispatch_srv_func() <<<\n");
+        DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
         bws_dispatch_unlock();
         return;
     } else if (ev == BSC_WEBSOCKET_SERVER_STARTED) {
@@ -918,7 +918,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
         DEBUG_PRINTF("bsc_dispatch_srv_func() ctx %p is initialized\n", ctx);
         ctx->funcs->context_event(ctx, BSC_CTX_INITIALIZED);
         bsc_socket_maintenance_timer(0);
-        printf("bsc_dispatch_srv_func() <<<\n");
+        DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
         bws_dispatch_unlock();
         return;
     }
@@ -929,7 +929,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
             DEBUG_PRINTF("bsc_dispatch_srv_func() can not find socket "
                          "descriptor for websocket %d\n",
                 h);
-            printf("bsc_dispatch_srv_func() <<<\n");
+            DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
             bws_dispatch_unlock();
             return;
         }
@@ -1011,7 +1011,7 @@ static void bsc_dispatch_srv_func(BSC_WEBSOCKET_SRV_HANDLE sh,
     }
 
     bsc_socket_maintenance_timer(0);
-    printf("bsc_dispatch_srv_func() <<<\n");
+    DEBUG_PRINTF("bsc_dispatch_srv_func() <<<\n");
     bws_dispatch_unlock();
 }
 
@@ -1134,16 +1134,16 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
 
     bws_dispatch_lock();
 
-    printf("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
-           "reason_desc = %p, buf = %p, "
-           "bufsize = %ld, ctx = %p\n",
+    DEBUG_PRINTF("bsc_dispatch_cli_func() >>> h = %d, ev = %d, reason = %d, "
+                 "reason_desc = %p, buf = %p, "
+                 "bufsize = %ld, ctx = %p\n",
         h, ev, ws_reason, ws_reason_desc, buf, bufsize, ctx);
 
     c = bsc_find_conn_by_websocket(ctx, h);
 
     if (!c) {
-        printf("bsc_dispatch_cli_func() <<< warning, can not find "
-               "connection object for websocket %d\n",
+        DEBUG_PRINTF("bsc_dispatch_cli_func() <<< warning, can not find "
+                     "connection object for websocket %d\n",
             h);
         bws_dispatch_unlock();
         return;
@@ -1255,7 +1255,7 @@ static void bsc_dispatch_cli_func(BSC_WEBSOCKET_HANDLE h,
     }
 
     bsc_socket_maintenance_timer(0);
-    printf("bsc_dispatch_cli_func() <<<\n");
+    DEBUG_PRINTF("bsc_dispatch_cli_func() <<<\n");
     bws_dispatch_unlock();
 }
 
@@ -1336,15 +1336,15 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
 {
     size_t i;
     bool active_socket = false;
-    printf("bsc_deinit_ctx() >>> ctx = %p\n", ctx);
+    DEBUG_PRINTF("bsc_deinit_ctx() >>> ctx = %p\n", ctx);
 
     bws_dispatch_lock();
 
     if (!ctx || ctx->state == BSC_CTX_STATE_IDLE ||
         ctx->state == BSC_CTX_STATE_DEINITIALIZING) {
-        printf("bsc_deinit_ctx() no action required\n");
+        DEBUG_PRINTF("bsc_deinit_ctx() no action required\n");
         bws_dispatch_unlock();
-        printf("bsc_deinit_ctx() <<<\n");
+        DEBUG_PRINTF("bsc_deinit_ctx() <<<\n");
         return;
     }
 
@@ -1353,14 +1353,15 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
         for (i = 0; i < ctx->sock_num; i++) {
             if (ctx->sock[i].state != BSC_SOCK_STATE_IDLE) {
                 active_socket = true;
-                printf(
+                DEBUG_PRINTF(
                     "bsc_deinit_ctx() disconnect socket %ld(%p) with wh = %d\n",
                     i, &ctx->sock[i], ctx->sock[i].wh);
                 bws_cli_disconnect(ctx->sock[i].wh);
             }
         }
         if (!active_socket) {
-            printf("bsc_deinit_ctx() no active sockets, ctx de-initialized\n");
+            DEBUG_PRINTF(
+                "bsc_deinit_ctx() no active sockets, ctx de-initialized\n");
             ctx->state = BSC_CTX_STATE_IDLE;
             bsc_ctx_remove(ctx);
             ctx->funcs->context_event(ctx, BSC_CTX_DEINITIALIZED);
@@ -1371,7 +1372,7 @@ void bsc_deinit_ctx(BSC_SOCKET_CTX *ctx)
     }
 
     bws_dispatch_unlock();
-    printf("bsc_deinit_ctx() <<<\n");
+    DEBUG_PRINTF("bsc_deinit_ctx() <<<\n");
 }
 
 BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
@@ -1379,7 +1380,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
     BSC_SC_RET ret = BSC_SC_INVALID_OPERATION;
     BSC_WEBSOCKET_RET wret;
 
-    printf("bsc_connect() >>> ctx = %p, c = %p, url = %s\n", ctx, c, url);
+    DEBUG_PRINTF("bsc_connect() >>> ctx = %p, c = %p, url = %s\n", ctx, c, url);
 
     if (!ctx || !c || !url) {
         ret = BSC_SC_BAD_PARAM;
@@ -1409,7 +1410,7 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url)
         bws_dispatch_unlock();
     }
 
-    printf("bsc_connect() <<< ret = %d\n", ret);
+    DEBUG_PRINTF("bsc_connect() <<< ret = %d\n", ret);
     return ret;
 }
 

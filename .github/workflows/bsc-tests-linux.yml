@@ -23,8 +23,8 @@ jobs:
         mkdir build
         cd build
         cmake ..
-#        make
-#        ./test_bsc_event
+        make
+        ./test_bsc_event
     - name: Build and run bvlc-sc test
       run: |
         cd ./test/bacnet/datalink/bvlc-sc
@@ -39,8 +39,8 @@ jobs:
         mkdir build
         cd build
         cmake ..
-#        make
-#        ./test_websockets
+        make
+        ./test_websockets
     - name: Build and run bsc-socket test
       run: |
         cd ./test/bacnet/datalink/bsc-socket
@@ -72,20 +72,4 @@ jobs:
         cd build
         cmake ..
         make
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
-        ./test_bsc-datalink
         ./test_bsc-datalink
