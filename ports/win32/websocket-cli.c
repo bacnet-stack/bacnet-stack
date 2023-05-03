@@ -632,7 +632,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
 
     bws_cli_conn[h].err_code = ERROR_CODE_SUCCESS;
     *out_handle = h;
-    pthread_mutex_unlock(&bws_cli_mutex);
+    bsc_mutex_unlock(&bws_cli_mutex);
     bsc_websocket_global_lock();
     lws_client_connect_via_info(&cinfo);
     bsc_websocket_global_unlock();
