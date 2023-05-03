@@ -1,6 +1,6 @@
 /**
  * @file 
- * @brief Global websocket mutex lock/unlock functions
+ * @brief Global websocket functions.
  * @author Kirill Neznamov
  * @date May 2022
  * @section LICENSE
