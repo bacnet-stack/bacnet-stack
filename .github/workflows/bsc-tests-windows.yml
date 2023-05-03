@@ -10,7 +10,7 @@ jobs:
     - name: Create Build Environment
       run: |
         copy c:\vcpkg\triplets\x64-windows.cmake c:\vcpkg\triplets\x64-windows-custom.cmake
-        "set(VCPKG_BUILD_TYPE release)\nset(LWS_MAX_SMP 32)\n" >> c:\vcpkg\triplets\x64-windows-custom.cmake
+        "set(VCPKG_BUILD_TYPE release)`nset(LWS_MAX_SMP 32)`n" >> c:\vcpkg\triplets\x64-windows-custom.cmake
         vcpkg install libwebsockets --triplet x64-windows-custom
     - name: Setup MSBuild 
       uses: microsoft/setup-msbuild@v1.1
