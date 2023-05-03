@@ -11,7 +11,7 @@ jobs:
       run: |
         brew install openssl
         git clone https://libwebsockets.org/repo/libwebsockets
-        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32;make'
+        bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_MINIMAL_EXAMPLES=0 -DOPENSSL_ROOT_DIR=$(brew --prefix openssl) -DLWS_MAX_SMP=32;make'
         sudo bash -c 'cd libwebsockets;cd build;make install'
     - name: Build and run bsc_event test
       run: |
@@ -34,7 +34,7 @@ jobs:
         cd ./test/bacnet/datalink/websockets
         mkdir build
         cd build
-        cmake ..
+        cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
         make
         ./test_websockets
     - name: Build and run bsc-socket test
@@ -50,7 +50,7 @@ jobs:
         cd ./test/bacnet/datalink/hub-sc
         mkdir build
         cd build
-        cmake ..
+        cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
         make
         ./test_hub-sc
     - name: Build and run bsc-node test
@@ -58,7 +58,7 @@ jobs:
         cd ./test/bacnet/datalink/bsc-node
         mkdir build
         cd build
-        cmake ..
+        cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
         make
         ./test_bsc-node
         ./test_bsc-node
@@ -70,6 +70,6 @@ jobs:
         cd ./test/bacnet/datalink/bsc-datalink
         mkdir build
         cd build
-        cmake ..
+        cmake .. -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
         make
         ./test_bsc-datalink
