@@ -52,6 +52,10 @@ jobs:
         cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-custom
         msbuild build/test_bsc-node.sln /Property:Configuration=Release
         ./build/Release/test_bsc-node.exe
+        ./build/Release/test_bsc-node.exe
+        ./build/Release/test_bsc-node.exe
+        ./build/Release/test_bsc-node.exe
+        ./build/Release/test_bsc-node.exe
     - name: Build and run bsc-datalink test
       run: |
         cd ./test/bacnet/datalink/bsc-datalink

@@ -58,6 +58,10 @@ jobs:
         cmake ..
         make
         ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
+        ./test_bsc-node
     - name: Build and run bsc-datalink test
       run: |
         cd ./test/bacnet/datalink/bsc-datalink
